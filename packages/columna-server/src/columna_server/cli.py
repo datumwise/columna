@@ -74,25 +74,46 @@ def _run_http(mcp, host: str, port: int):
     uvicorn.run(app, host=bind_host, port=port)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(prog="columna-server")
-    sub = parser.add_subparsers(dest="command", required=True)
-    mcp_cmd = sub.add_parser("mcp", help="run the Columna MCP server")
-    mcp_cmd.add_argument("--manifolds", required=True, help="directory of <id>/manifold.cml + data.toml")
-    mcp_cmd.add_argument("--http", default=None, metavar="HOST:PORT",
-                         help="serve streamable-http (default: stdio); gated by COLUMNA_MCP_TOKEN")
-    args = parser.parse_args(argv)
-
-    store = ManifoldStore(args.manifolds)
+def _serve(store, http: Optional[str]):
     print(f"columna-server: loaded manifolds {store.ids()}", file=sys.stderr)
     mcp = build_server(store)
-
-    if args.http:
-        host, port = _parse_http(args.http)
+    if http:
+        host, port = _parse_http(http)
         _run_http(mcp, host, port)
     else:
         mcp.run(transport="stdio")
 
 
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="columna-server")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    mcp_cmd = sub.add_parser("mcp", help="run the Columna MCP server over a manifolds directory")
+    mcp_cmd.add_argument("--manifolds", required=True, help="directory of <id>/manifold.cml + data.toml")
+    mcp_cmd.add_argument("--http", default=None, metavar="HOST:PORT",
+                         help="serve streamable-http (default: stdio); gated by COLUMNA_MCP_TOKEN")
+
+    demo_cmd = sub.add_parser(
+        "demo", help="run the packaged demo (no path args needed)",
+        description="Run the packaged demo Manifold — the benchmark Manifold over a small bundled "
+                    "warehouse. With no flags, serves MCP stdio (connect an agent). With --play, "
+                    "prints the real clarify -> refuse -> disclose wire transcript in-process and exits.")
+    demo_cmd.add_argument("--http", default=None, metavar="HOST:PORT",
+                          help="serve streamable-http instead of stdio (gated by COLUMNA_MCP_TOKEN)")
+    demo_cmd.add_argument("--play", action="store_true",
+                          help="print the three-mood wire transcript and exit (no MCP loop)")
+
+    args = parser.parse_args(argv)
+
+    if args.command == "demo":
+        from .demo import demo_store, play
+        if args.play:
+            return play()
+        _serve(demo_store(), args.http)
+    else:
+        _serve(ManifoldStore(args.manifolds), args.http)
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
