@@ -42,8 +42,13 @@ server NEVER accepts SQL and has no write surface of any kind.
 
 ```jsonc
 {
-  "outcome": "serve | disclose | clarify | refuse | error",   // FrameResult.outcome
-  "frame": { "anchor": [...], "universe": "U1 | null", "rollup_severity": "none|info|caution|critical" },
+  "outcome": "serve | disclose | clarify | refuse | error",   // DERIVED — see "Outcome derivation"
+  "frame": {
+    "anchor": [...],
+    "universe": "U1 | null",
+    "rollup_severity": "none|info|caution|critical",
+    "disclosures": [ { /* FRAME-scoped wire caveats — see below */ } ]
+  },
   "columns": [
     {
       "name": "aov",
@@ -51,19 +56,42 @@ server NEVER accepts SQL and has no write surface of any kind.
       "value":  ...,              // scalar, or omitted
       "values": [...],            // vector rows {group..., value}, or omitted
       "population": "U1",         // Disclosure.population
-      "disclosures": [ { /* wire caveat, below */ } ],
+      "disclosures": [ { /* COLUMN-scoped wire caveat, below */ } ],
       "no_result": {              // present iff status != served; = Outcome as data
         "kind": "clarify | refuse | error",
         "discriminator": "ambiguous | unsupported | null",
         "reason": "co_anchor_ambiguous",
         "detail": "which population is the rate over?",
-        "alternatives": [ {"token": "on_universe('customers')", "description": "per customer"},
-                          {"token": "on_universe('orders')",    "description": "per order"} ]
+        "alternatives": [ {"token": "on_universe('customers')", "description": "per customer", "apply": {"universe": "customers"}},
+                          {"token": "on_universe('orders')",    "description": "per order",    "apply": {"universe": "orders"}} ]
       }
     }
   ]
 }
 ```
+
+**Outcome derivation (normative).** `outcome` is not a raw copy of `FrameResult.outcome`; it is
+derived once, in `disclosure_wire`, so every surface agrees. A no-result mood dominates and is taken
+from the engine's rollup (`refuse` > `clarify` > `error`). Otherwise the frame is served, and
+**materiality — not severity — decides** `serve` vs `disclose`: the outcome is `disclose` iff at
+least one disclosure is `material` (frame- **or** column-scoped), else `serve`. So an
+immaterial-only served frame (e.g. a lone `freshness`/`provenance` caveat) reads `serve`, while a
+served frame carrying any `material` caveat (a B-anchor crossing, a coverage/`denominator_population`
+caveat) reads `disclose`. `rollup_severity` remains the independent severity roll-up and is not the
+serve/disclose discriminant.
+
+**Disclosure scoping (normative).** Disclosures appear at two scopes, and the same wire-caveat shape
+is used at both:
+- **column-scoped** (`columns[].disclosures`) — caveats a single column's resolution produced (a
+  B-anchor crossing on that column, its approximation error, its coverage).
+- **frame-scoped** (`frame.disclosures`) — caveats that belong to the frame as a whole and are not
+  attributable to any one column, e.g. the multi-universe **coverage** caveat a side-by-side of
+  columns over different populations raises. A frame-scoped caveat is never duplicated into a
+  column's array. Both scopes feed the outcome-derivation materiality test above.
+
+**`alternatives[].apply`.** When an alternative names a universe pin, it carries a derived
+`apply: {"universe": U}` beside the human `token`/`description` — a faithful re-encoding (never a
+synthesized alternative) that a caller applies via the `query`/`explain` `universe` arg.
 
 **Wire caveat (the disclosure adapter).** Each engine `Caveat` maps to:
 

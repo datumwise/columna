@@ -68,7 +68,9 @@ async def test_clarify_two_hop_roundtrip(mcp_session):
     assert hop1["outcome"] != "clarify"
     assert hop1["outcome"] == "refuse"
     assert hop1["columns"][0]["no_result"]["reason"] == "out_of_universe"
-    assert hop2["outcome"] in ("serve", "disclose")
+    # hop 2 serves the numbers but rides a MATERIAL coverage caveat -> the wire outcome is `disclose`
+    # (clarify -> refuse -> disclose is three of the four moods in one flow).
+    assert hop2["outcome"] == "disclose"
     assert "denominator_population" in [d["code"] for d in hop2["frame"]["disclosures"]]
 
 
@@ -120,3 +122,54 @@ async def test_unknown_manifold_is_error_result(mcp_session):
     async with mcp_session() as client:
         res = await client.call_raw("describe_manifold", manifold_id="nope")
     assert res.isError
+
+
+# --- wire-contract SCHEMA + disclosure scoping (post-checkpoint contract, formalized) -------
+_CAVEAT_KEYS = {"code", "materiality", "severity", "category", "detail", "remedy", "source", "rel_error"}
+
+
+def _assert_caveat_shape(d):
+    assert set(d) == _CAVEAT_KEYS, d
+    assert d["materiality"] in ("material", "immaterial")
+
+
+def _assert_frame_shape(w):
+    assert w["contract_version"] == "1"
+    assert w["outcome"] in ("serve", "disclose", "clarify", "refuse", "error")
+    fr = w["frame"]
+    assert set(fr) >= {"anchor", "universe", "rollup_severity", "disclosures"}
+    assert isinstance(fr["anchor"], list)
+    assert fr["rollup_severity"] in ("none", "info", "caution", "critical")
+    for d in fr["disclosures"]:                    # frame-scoped
+        _assert_caveat_shape(d)
+    for col in w["columns"]:
+        assert {"name", "status", "disclosures"} <= set(col)
+        assert col["status"] in ("served", "clarify", "refuse", "error")
+        for d in col["disclosures"]:               # column-scoped
+            _assert_caveat_shape(d)
+        if col["status"] == "served":
+            assert ("value" in col) or ("values" in col)
+            assert "no_result" not in col
+        else:
+            nr = col["no_result"]
+            assert {"kind", "discriminator", "reason", "detail", "alternatives"} <= set(nr)
+
+
+async def test_wire_contract_schema_and_scoping(mcp_session):
+    async with mcp_session() as client:
+        serve = await client.call("query", manifold_id="benchmark", frameql="revenue: revenue @ region")
+        disclose = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        clarify = await client.call("query", manifold_id="benchmark",
+                                    frameql="rate: revenue / level.last @ store, day")
+        hop2 = await client.call("query", manifold_id="benchmark",
+                                 frameql="rev: revenue, inv: level.last @ store, day")
+    for w in (serve, disclose, clarify, hop2):
+        _assert_frame_shape(w)
+    # outcome derivation: nothing material -> serve; a material caveat -> disclose
+    assert serve["outcome"] == "serve"
+    assert disclose["outcome"] == "disclose"
+    # scoping: the multi-universe coverage caveat is FRAME-scoped, not on any column
+    frame_codes = [d["code"] for d in hop2["frame"]["disclosures"]]
+    assert "denominator_population" in frame_codes
+    for col in hop2["columns"]:
+        assert "denominator_population" not in [d["code"] for d in col["disclosures"]]
