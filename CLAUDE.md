@@ -1,3 +1,17 @@
+# WP-2.3 — COMPLETE ✅ (merged 2026-07-08 via PR #3, merge 45d4cc4)
+
+The packaged demo + `columna-server demo [--play]` + the repo README quickstart are done and merged:
+a fresh clone reaches clarify → refuse → disclose in three commands, no path args and no MCP client;
+the demo data ships in the wheel (a drift-guarded, byte-identical copy of the core fixtures) and runs
+from a clean-venv wheel install (proven on Python 3.10). Server + repo-README only; zero columna-core
+changes.
+
+**WP-2.1 (Manifold store) is absorbed.** The directory store shipped inside WP-2.2/2.3
+(`<dir>/<id>/manifold.cml` + `data.toml`, parsed once at startup) satisfies its Phase-2 scope; a
+dedicated store WP resurfaces only when multi-manifold management needs a real catalog.
+
+---
+
 # WP-2.2 — COMPLETE ✅ (merged 2026-07-08 via PR #2, merge 7d9fe45)
 
 The Columna MCP server (`columna-server` 0.1.0) and `columna-core` 0.7.8 (the `disclosure_wire`
