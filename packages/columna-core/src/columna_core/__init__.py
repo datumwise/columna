@@ -22,4 +22,4 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
            "ManifoldServer", "Frame", "Disclosure", "Caveat", "Refusal", "Outcome",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
-__version__ = "0.7.7-core"
+__version__ = "0.7.8-core"

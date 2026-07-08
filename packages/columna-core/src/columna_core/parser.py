@@ -20,10 +20,10 @@ Grammar (statement-oriented; '#' comments; { } blocks):
 """
 from __future__ import annotations
 import re
+from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
-                    Ref, Comparison, Predicate,
-                    ADDITIVE, SKETCH, HOLISTIC)
+                    Ref, Comparison, Predicate)
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "EDGE", "RELATE", "MEASURE", "DERIVED")
 
