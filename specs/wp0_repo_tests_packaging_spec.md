@@ -75,9 +75,14 @@ Principles:
 ## CI (`.github/workflows/ci.yml`)
 
 - Matrix: Python 3.10 / 3.11 / 3.12, ubuntu-latest.
-- Steps: install, `ruff check` (config permissive: line-length 110, no style crusade over the
-  existing code — E/F errors only), `pytest -q`, build wheel.
-- The `warehouse`-marked tests are excluded in CI.
+- Steps: install, `ruff check` (line-length 110; **correctness-only** `lint.select = ["F", "E9"]`
+  — pyflakes + syntax, no pycodestyle style rules, so the verbatim library/demo code is never
+  reformatted; pre-existing findings are suppressed via pyproject `per-file-ignores`, never inline
+  `noqa`), `pytest -q`, build wheel.
+  <!-- Amended per the WP-0 ruff ruling: the original "E/F errors only" wording conflicted with
+  "no style crusade over the existing code" (E includes pycodestyle style rules the verbatim code
+  trips); the zero-behavior-change invariant controls, so the selection is correctness-only F+E9. -->
+- The `warehouse`-marked tests are excluded in CI (skipped when `COLUMNA_BENCH_WAREHOUSE` is unset).
 
 ## Invariants (violating any = rejected PR)
 
