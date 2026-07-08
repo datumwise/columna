@@ -26,19 +26,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e packages/columna-core
-          pip install pytest ruff
+          # columna-core is a local (not-yet-published) dependency, so install the server without
+          # re-resolving it, and add its runtime + test deps explicitly.
+          pip install "mcp>=1.0" "tomli>=2.0; python_version < '3.11'"
+          pip install --no-deps -e packages/columna-server
+          pip install pytest ruff pytest-asyncio
 
       # Bare invocations: exit codes count (no pipe through tail/head).
       - name: Ruff (correctness only — F, E9)
-        run: ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests
+        run: |
+          ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests
+          ruff check packages/columna-server/src packages/columna-server/tests
 
       # COLUMNA_BENCH_WAREHOUSE is intentionally unset, so the 20 @pytest.mark.warehouse proofs are
-      # skipped: collects 124 / runs 104 / skips 20.
-      - name: Pytest (fixture-backed; warehouse proofs skipped)
+      # skipped: columna-core collects 124 / runs 104 / skips 20.
+      - name: Pytest — columna-core (fixture-backed; warehouse proofs skipped)
         run: pytest packages/columna-core -q
 
+      - name: Pytest — columna-server (MCP stdio acceptance)
+        run: pytest packages/columna-server -q
+
   build:
-    name: build wheel + sdist
+    name: build wheels + sdists
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,10 +58,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip build
           python -m build packages/columna-core
+          python -m build packages/columna-server
       - name: Show artifacts
-        run: ls -l packages/columna-core/dist
-      # Install the wheel into a FRESH venv (only its declared deps) and RUN a real fetch — this is
-      # what catches an undeclared hard runtime dep (e.g. pyarrow) that an import-only check misses.
+        run: ls -l packages/columna-core/dist packages/columna-server/dist
+      # Install the core wheel into a FRESH venv (only its declared deps) and RUN a real fetch — this
+      # is what catches an undeclared hard runtime dep (e.g. pyarrow) that an import-only check misses.
       - name: Wheel smoke (clean venv, real fetch)
         run: |
           python -m venv /tmp/wheelenv
@@ -60,5 +70,7 @@ jobs:
           /tmp/wheelenv/bin/python packages/columna-core/tests/smoke_wheel.py
       - uses: actions/upload-artifact@v4
         with:
-          name: columna-core-dist
-          path: packages/columna-core/dist/*
+          name: columna-dists
+          path: |
+            packages/columna-core/dist/*
+            packages/columna-server/dist/*

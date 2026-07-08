@@ -1,0 +1,10 @@
+# WP-2.2 fixture Manifold — the repo's benchmark.cml over the WP-0 mini-warehouse.
+[manifold]
+name = "Benchmark"
+description = "Retail benchmark Manifold (transactions + store_days) over the mini-warehouse."
+
+[connector]
+type = "duckdb"
+# Relative to THIS manifold dir (store.py resolves against the dir, not the cwd), reusing the
+# checked-in WP-0 fixture warehouse — no duplication.
+warehouse = "../../../../../columna-core/tests/fixtures/mini_warehouse"
