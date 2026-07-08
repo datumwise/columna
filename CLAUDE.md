@@ -1,0 +1,1 @@
+Implement specs/wp0_repo_tests_packaging_spec.md exactly. Hard invariants: zero behavior changes to the 12 library modules (import-path moves only); no renames of anything ADR-031/032 name; all 124 demo checks preserved in pytest; the extras/optional-dependency refactor is WP-1.1, do not attempt it. When the spec and your judgment conflict, stop and ask.
