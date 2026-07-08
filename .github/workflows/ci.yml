@@ -43,8 +43,41 @@ jobs:
       - name: Pytest — columna-core (fixture-backed; warehouse proofs skipped)
         run: pytest packages/columna-core -q
 
-      - name: Pytest — columna-server (MCP stdio acceptance)
+      - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
         run: pytest packages/columna-server -q
+
+      # One cheap regression over the whole wedge path: the demo prints all three moods in order.
+      - name: Demo smoke (demo --play, three moods in order)
+        run: |
+          columna-server demo --play | python -c "import sys; s=sys.stdin.read(); \
+          i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose')]; \
+          assert -1 not in i and i == sorted(i), i; \
+          assert '\"contract_version\": \"1\"' in s; print('demo --play smoke OK:', i)"
+
+  # Item (c): prove the packaged demo runs from a clean-venv WHEEL install on Python 3.10 — the
+  # weakest case (importlib.resources directory traversal for zipped resources is 3.12+; pip installs
+  # unzipped so 3.10 works, and this job proves it). This is the package-data-ships acceptance.
+  demo-wheel-py310:
+    name: demo wheel install (py3.10)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Build wheels and install into a clean venv
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build packages/columna-core
+          python -m build packages/columna-server
+          python -m venv /tmp/demoenv
+          /tmp/demoenv/bin/pip install packages/columna-core/dist/*.whl packages/columna-server/dist/*.whl
+      - name: demo --play from the installed wheel (package-data proof)
+        run: |
+          /tmp/demoenv/bin/columna-server demo --play | /tmp/demoenv/bin/python -c "import sys; \
+          s=sys.stdin.read(); i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose')]; \
+          assert -1 not in i and i == sorted(i), i; assert '\"contract_version\": \"1\"' in s; \
+          print('py3.10 wheel demo --play OK')"
 
   build:
     name: build wheels + sdists
