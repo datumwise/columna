@@ -51,6 +51,13 @@ jobs:
           python -m build packages/columna-core
       - name: Show artifacts
         run: ls -l packages/columna-core/dist
+      # Install the wheel into a FRESH venv (only its declared deps) and RUN a real fetch — this is
+      # what catches an undeclared hard runtime dep (e.g. pyarrow) that an import-only check misses.
+      - name: Wheel smoke (clean venv, real fetch)
+        run: |
+          python -m venv /tmp/wheelenv
+          /tmp/wheelenv/bin/pip install packages/columna-core/dist/*.whl
+          /tmp/wheelenv/bin/python packages/columna-core/tests/smoke_wheel.py
       - uses: actions/upload-artifact@v4
         with:
           name: columna-core-dist
