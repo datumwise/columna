@@ -1,0 +1,58 @@
+MANIFOLD benchmark VERSION 1
+
+# ============================================================================
+# Layer 1 — populations (universes).  predicate carves the real population.
+# ============================================================================
+UNIVERSE transactions = customer * store * product * day
+UNIVERSE store_days   = store * day  WHERE day >= stores.opened_date
+
+# ============================================================================
+# Layer 2 — coordinate.  Base levels, then functional edges.
+# A rollup (day->month) and a relationship (store->region) are the SAME thing:
+# a functional edge the engine transports along, tagged with a lineage.
+# ============================================================================
+LEVEL customer    = customer_id BASE
+LEVEL store       = store_id    BASE
+LEVEL product     = product_id  BASE
+LEVEL day         = day         BASE
+LEVEL region      = region
+LEVEL cal.week    = week
+LEVEL cal.month   = month
+LEVEL cal.quarter = quarter
+LEVEL cal.year    = year
+LEVEL category    = category_id
+
+EDGE store -> region      ALONG store_geo VIA stores(store_id, region)
+EDGE day   -> cal.week    ALONG calendar  VIA calendar(day, week)
+EDGE day   -> cal.month   ALONG calendar  VIA calendar(day, month)
+EDGE day   -> cal.quarter ALONG calendar  VIA calendar(day, quarter)
+EDGE day   -> cal.year    ALONG calendar  VIA calendar(day, year)
+
+# non-functional (M:N) — declared only so a fan-out refusal can name the edge.
+RELATE product <-> category VIA product_categories NOTE "a product belongs to up to 3 categories"
+
+# ============================================================================
+# Measures.  Inline AS for single-member families; VALUE + FAMILY for multi.
+# ============================================================================
+MEASURE revenue  ON transactions FROM transactions AS sum(amount)
+MEASURE orders   ON transactions FROM transactions AS count(*)
+MEASURE visitors ON transactions FROM transactions AS distinct(customer_id)
+
+# semi-additive stock.  sum: blocked over calendar (totalling stock across time is
+# non-reconciling).  last: an ORDERED monoid over day (carry day as witness) — the
+# period-end snapshot is the point, so last is NOT blocked over calendar.
+# Tier (additive/sketch/holistic) is NOT declared here: it is operator-level, from the registry.
+MEASURE level ON store_days FROM eom_inventory VALUE level
+    M_ANCHOR { }
+    FAMILY {
+        sum  BLOCKED { calendar }
+        last ORDER day
+    }
+
+# holistic measure: median basket amount — non-monoid, recompute-from-base, never reduced
+MEASURE med_amount ON transactions FROM transactions AS median(amount)
+
+# ============================================================================
+# Derived columns — post-aggregation over measures.
+# ============================================================================
+DERIVED aov = revenue / orders
