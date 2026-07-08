@@ -16,6 +16,10 @@ from _demo_driver import warehouse_run
 pytestmark = pytest.mark.warehouse
 
 _WAREHOUSE = os.environ.get("COLUMNA_BENCH_WAREHOUSE")
+# resolve at read time (in the pytest process cwd): a relative value must not depend on the
+# batch runner's cwd, else the warehouse marker silently fails.
+if _WAREHOUSE:
+    _WAREHOUSE = os.path.abspath(_WAREHOUSE)
 
 _PROOF_NAMES = ['revenue@region == ground truth (transported store→region, no join pushdown)', 'revenue@cal.month == ground truth (transported day→month)', 'revenue@category is REFUSED (non-functional M:N transport)', '(for contrast) the naive join silently inflates revenue', 'level.sum@(region,day) is CLEAN — additive over the store axis (no crossing)', 'level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure (summing a stock across days) — inform-and-serve, not refused', 'aov@cal.month == sum(amount)/count (correct AOV)', 'HLL-merged visitors@quarter ≈ true distinct (within 5%)', '(naive sum-of-daily-distincts would overcount)', 'level.sum@product is REFUSED as out_of_universe (undefined, not missing)']
 

@@ -31,6 +31,9 @@ dependencies = [
     "polars>=1.0,<2.0",
     "duckdb>=1.0,<2.0",
     "datasketches>=5.0,<6.0",
+    # Hard runtime dep: connector.py does pl.from_arrow(con.execute(q).arrow()) on every fetch,
+    # and polars does not pull pyarrow transitively.
+    "pyarrow>=15",
 ]
 
 [project.optional-dependencies]

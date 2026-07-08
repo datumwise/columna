@@ -23,10 +23,10 @@ from columna_core.parser import parse_predicate
 # The benchmark warehouse ships with the demos (packages/columna-core/demos/warehouse).
 # Override with COLUMNA_BENCH_WAREHOUSE to point at another instance directory.
 # NOTE: demo-scope path resolution only — no library module is affected.
-WAREHOUSE = os.environ.get(
+WAREHOUSE = os.path.abspath(os.environ.get(
     "COLUMNA_BENCH_WAREHOUSE",
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "warehouse"),
-)
+))  # resolve at read time: a relative env value must not depend on the eventual cwd
 
 _P, _F = 0, 0
 def check(name, cond, detail=""):
