@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "columna-core"
-version = "0.7.7"
+version = "0.7.8"
 description = "Columna Core — the column-foundation analytic framework (multi-table, transport-based, correctness-governed) over a single backend."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -80,18 +80,10 @@ select = ["F", "E9"]
 # The package facade intentionally re-exports its public API; those names are unused *here* but are
 # the whole point of __init__ (see __all__). Suppress unused-import / import-star only for it.
 "src/columna_core/__init__.py" = ["F401", "F403", "F405"]
-# The other 11 library modules are moved VERBATIM (WP-0 zero-behavior-change invariant: import-path
-# moves only, no body edits). Their pre-existing pyflakes findings are config-ignored here (never
-# inline noqa) and every one is reported in the PR. Codes below are exactly what each file trips:
-#   disclosure.py F401 unused `dataclasses.field`
-#   engine.py     F401 unused `dataclasses.field`,`math`,`.model.{SKETCH,ADDITIVE,HOLISTIC}`; F541 f-string w/o placeholder (L93)
-#   model.py      F841 unused local `known_cols` (L170)
-#   parser.py     F401 unused `.model.{ADDITIVE,SKETCH,HOLISTIC}`; F821 `Optional` undefined (L226) — annotation-only, masked by `from __future__ import annotations`
-"src/columna_core/disclosure.py" = ["F401"]
-"src/columna_core/engine.py" = ["F401", "F541"]
-"src/columna_core/model.py" = ["F841"]
-"src/columna_core/parser.py" = ["F401", "F821"]
-# Demo suites are shipped VERBATIM as executable documentation (same invariant). Pre-existing
-# findings (unused imports; confine_demo re-imports Manifold/FunctionalEdge/DimensionLevel locally)
-# are reported in the PR, not edited away.
+# The v0.7.8 worklist (items 1-2) fixed the library pyflakes findings that WP-0 had config-ignored
+# (parser.py F821 `Optional`; the unused-import / dead-local / F541 cruft in disclosure/engine/
+# model/parser), so those per-file-ignores are tightened back out here.
+# Demo suites are shipped VERBATIM as executable documentation (they are not edited); their
+# pre-existing findings (unused imports; confine_demo re-imports Manifold/FunctionalEdge/
+# DimensionLevel locally) stay suppressed.
 "demos/*.py" = ["F401", "F811", "F841"]
