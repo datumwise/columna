@@ -12,6 +12,10 @@ columna-server mcp --manifolds <dir>          # stdio (canonical)
 columna-server mcp --manifolds <dir> --http :8000   # streamable-http, gated by COLUMNA_MCP_TOKEN
 ```
 
+> Before columna-core is published to PyPI, install it FIRST (the workspace/editable install above),
+> since `columna-server`'s `columna-core>=0.7.8` dependency cannot yet be resolved from an index. To
+> run the tests, install the test extra: `pip install -e "packages/columna-server[test]"`.
+
 `<dir>` holds `<id>/manifold.cml` + `data.toml` (connector type + data path). Manifolds are parsed
 and connected once at startup.
 

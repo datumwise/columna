@@ -35,8 +35,13 @@ moods as data. This is the wedge product: the first metrics MCP server that can 
 5. `explain(manifold_id, frameql, universe?)` → `Frame.plan()` / `explain(execute=False)`:
    the would-be outcome + disclosures with **zero backend fetches**.
 
-`frameql` is the textual form already parsed by the library (anchor spec + column exprs). The
-server NEVER accepts SQL and has no write surface of any kind.
+`frameql` is `"<columns> @ <anchor>"`. Its **envelope** — column names, the `@` separator, and the
+anchor level list — is parsed by the server (`columna_server.frameql`); every column *expression* is
+delegated verbatim to columna-core's existing expression parser, so there is exactly ONE expression
+dialect and the server never reinterprets query semantics (promotion of the envelope parser into
+columna-core is a v0.8 item). A `<column>` is `<name>: <expr>` or a bare `<expr>` (which names itself);
+commas inside parentheses (e.g. `lag(revenue.sum, n=1)`) are not top-level separators. The server
+NEVER accepts SQL and has no write surface of any kind.
 
 ## Wire contract (the heart of the WP)
 
@@ -140,8 +145,16 @@ cases. This is tested, not aspirational (acceptance #4).
    reducer) + `blocked_lineages`.
 3. **The wedge case:** `query` for the demo ratio/AOV ambiguity returns `outcome: clarify` with ≥2
    structured alternatives (mirrors `coanchor_demo` §D).
-4. Substituting an alternative's token and re-querying returns `serve` or `disclose` — the
-   round-trip demo, scripted.
+4. **The clarify round-trip, a two-hop script (amended, ruling A2+ — the adapter is faithful, it
+   never synthesizes an alternative).** For the fixture's co-universe wedge (`revenue / level.last`),
+   the engine's alternatives are universe pins, and pinning either honestly refuses (the other operand
+   is out-of-domain), so a serve does not come from the pin alone. The scripted round-trip is:
+   **hop 1** — substitute a pin token (`apply.universe`) and re-query → a **non-clarify** outcome that
+   is an informative `refuse` (`out_of_universe`), not a guessed number; **hop 2** — reformulate per
+   the clarify's detail into separate columns over the union population → **`serve` + a `disclose`**
+   (a material `denominator_population` coverage caveat). The demo transcript (acceptance #8) narrates
+   both hops. *(The engine-level fix — realizability-checked alternatives + union/side-by-side as a
+   first-class resolution — is the Option B worklist item, not in scope here.)*
 5. B-anchor crossing case returns `serve`d value **with** a `blocked_reduction / material /
    critical` wire caveat (inform-and-serve preserved on the wire).
 6. Out-of-universe returns `refuse` with `discriminator: unsupported`; unknown operator returns
