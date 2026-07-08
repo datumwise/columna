@@ -1,0 +1,18 @@
+# Datumwise monorepo — workspace root.
+#
+# This root is workspace glue + shared tool config only; it is not itself a distributable package.
+# The distributable lives at packages/columna-core (build it from there). A uv workspace ties the
+# member packages together for local development.
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+# Shared lint config so `ruff check` behaves identically from the root or a package dir.
+# Correctness only (WP-0 ruling): F = pyflakes real bugs, E9 = syntax errors. No pycodestyle style
+# rules — verbatim library/demo code is never reformatted. Per-file suppressions live in each
+# package's pyproject (e.g. packages/columna-core/pyproject.toml).
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["F", "E9"]

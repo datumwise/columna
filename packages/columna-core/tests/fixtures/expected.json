@@ -1,0 +1,72 @@
+{
+  "_fixture_bytes": 300453,
+  "_note": "generator-computed from the shipped mini-warehouse; never hand-typed",
+  "distinct_customers_by_quarter": {
+    "2024Q1": 1613,
+    "2024Q2": 1612,
+    "2024Q3": 1775,
+    "2024Q4": 3063,
+    "2025Q1": 1665,
+    "2025Q2": 1726,
+    "2025Q3": 1913,
+    "2025Q4": 3188
+  },
+  "distinct_customers_by_region": {
+    "east": 3900,
+    "north": 3965,
+    "south": 4697,
+    "west": 1750
+  },
+  "hll_region_diagnosis": {
+    "in_estimation_mode_and_within_5pct": true,
+    "per_region": {
+      "east": {
+        "estimate": 3927.792,
+        "estimating": true,
+        "rel_error": 0.00713,
+        "true": 3900
+      },
+      "north": {
+        "estimate": 3970.787,
+        "estimating": true,
+        "rel_error": 0.00146,
+        "true": 3965
+      },
+      "south": {
+        "estimate": 4598.272,
+        "estimating": true,
+        "rel_error": 0.02102,
+        "true": 4697
+      },
+      "west": {
+        "estimate": 1749.082,
+        "estimating": true,
+        "rel_error": 0.00052,
+        "true": 1750
+      }
+    }
+  },
+  "revenue_by_region": {
+    "east": 615704.53,
+    "north": 601075.33,
+    "south": 771240.41,
+    "west": 224371.59
+  },
+  "row_counts": {
+    "calendar": 731,
+    "categories": 12,
+    "customers": 2000,
+    "daily_revenue_summary": 716,
+    "engagement_scores": 1000,
+    "eom_inventory": 16839,
+    "monthly_avg_order_value": 24,
+    "monthly_store_inventory": 554,
+    "monthly_unique_visitors": 24,
+    "product_categories": 870,
+    "products": 600,
+    "stores": 24,
+    "support_tickets": 500,
+    "transactions": 19995,
+    "warehouse_notes": 3
+  }
+}

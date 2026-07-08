@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/columna-core
+          pip install pytest ruff
+
+      # Bare invocations: exit codes count (no pipe through tail/head).
+      - name: Ruff (correctness only — F, E9)
+        run: ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests
+
+      # COLUMNA_BENCH_WAREHOUSE is intentionally unset, so the 20 @pytest.mark.warehouse proofs are
+      # skipped: collects 124 / runs 104 / skips 20.
+      - name: Pytest (fixture-backed; warehouse proofs skipped)
+        run: pytest packages/columna-core -q
+
+  build:
+    name: build wheel + sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build packages/columna-core
+      - name: Show artifacts
+        run: ls -l packages/columna-core/dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: columna-core-dist
+          path: packages/columna-core/dist/*
