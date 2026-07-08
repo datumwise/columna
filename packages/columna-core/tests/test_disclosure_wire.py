@@ -118,6 +118,32 @@ def test_wire_frame_served_scalar_and_vector():
     assert ws["columns"][0]["value"] == 42.0
     assert wv["columns"][0]["values"] == [{"region": "east", "value": 10.0}, {"region": "west", "value": 20.0}]
     assert ws["contract_version"] == "1"
+    assert ws["outcome"] == "serve" and wv["outcome"] == "serve"   # nothing material -> serve
+
+
+def test_outcome_serve_vs_disclose_is_materiality_driven():
+    # an IMMATERIAL disclosure (freshness) on a served frame stays `serve`
+    fresh = _served_col("x", pl.DataFrame({"g": [1], "x": [1.0]}),
+                        [Caveat("freshness", "served from cache")])
+    w_imm = dw.wire_frame(FrameResult(fresh.frame, Disclosure((), None), [fresh], ("g",)))
+    assert w_imm["columns"][0]["disclosures"][0]["materiality"] == "immaterial"
+    assert w_imm["outcome"] == "serve"
+
+    # a MATERIAL disclosure (b_anchor) flips it to `disclose`
+    mat = _served_col("x", pl.DataFrame({"g": [1], "x": [1.0]}),
+                     [Caveat("b_anchor_crossing", "collapses day", severity="critical")])
+    w_mat = dw.wire_frame(FrameResult(mat.frame, Disclosure((), None), [mat], ("g",)))
+    assert w_mat["outcome"] == "disclose"
+
+
+def test_derive_outcome_no_result_moods_dominate():
+    class _FR:  # minimal stand-in exposing .outcome
+        def __init__(self, o): self.outcome = o
+    assert dw.derive_outcome(_FR("refuse"), True) == "refuse"
+    assert dw.derive_outcome(_FR("clarify"), True) == "clarify"
+    assert dw.derive_outcome(_FR("error"), False) == "error"
+    assert dw.derive_outcome(_FR("serve"), True) == "disclose"
+    assert dw.derive_outcome(_FR("serve"), False) == "serve"
 
 
 def test_wire_frame_banchor_served_with_material_critical_caveat():
@@ -152,3 +178,5 @@ def test_wire_frame_surfaces_frame_only_coverage_caveat():
     codes = [d["code"] for d in w["frame"]["disclosures"]]
     assert "denominator_population" in codes
     assert all(d["materiality"] == "material" for d in w["frame"]["disclosures"])
+    # a frame-scoped MATERIAL disclosure makes the served frame read `disclose` (not `serve`)
+    assert w["outcome"] == "disclose"

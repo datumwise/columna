@@ -167,6 +167,17 @@ def _frame_only_caveats(fr) -> tuple:
                  if (cav.category, cav.detail, cav.source) not in col_keys)
 
 
+def derive_outcome(fr, material_present: bool) -> str:
+    """The wire outcome (WP-2.2 §"Outcome derivation"). A no-result mood dominates and is taken from
+    the engine's rollup (refuse > clarify > error). Otherwise the frame is served, and MATERIALITY —
+    not severity — decides serve vs disclose: `disclose` iff at least one disclosure (frame- or
+    column-scoped) is `material`, else `serve`. One rule, applied on every surface."""
+    base = fr.outcome
+    if base in ("refuse", "clarify", "error"):
+        return base
+    return "disclose" if material_present else "serve"
+
+
 def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
                fetches_delta: Optional[int] = None) -> dict:
     """A `FrameResult` -> the full wire contract (WP-2.2 spec §"Wire contract").
@@ -175,16 +186,22 @@ def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
     into `frame.universe`. `executed=False` (from `explain`) and `fetches_delta` annotate the
     zero-fetch guarantee for the EXPLAIN surface.
     """
+    columns = [wire_column(c) for c in fr.columns]
+    frame_disclosures = [wire_caveat(c) for c in _frame_only_caveats(fr)]
+    material_present = (
+        any(d["materiality"] == MATERIAL for d in frame_disclosures)
+        or any(d["materiality"] == MATERIAL for col in columns for d in col["disclosures"])
+    )
     out = {
         "contract_version": CONTRACT_VERSION,
-        "outcome": fr.outcome,
+        "outcome": derive_outcome(fr, material_present),
         "frame": {
             "anchor": list(fr.anchor),
             "universe": universe,
             "rollup_severity": fr.disclosure.severity,
-            "disclosures": [wire_caveat(c) for c in _frame_only_caveats(fr)],
+            "disclosures": frame_disclosures,
         },
-        "columns": [wire_column(c) for c in fr.columns],
+        "columns": columns,
     }
     if not executed:
         out["executed"] = False

@@ -19,6 +19,9 @@ dependencies = [
     "columna-core>=0.7.8",
     "mcp>=1.0",
     "tomli>=2.0; python_version < '3.11'",
+    # store.py imports duckdb directly to load the connector's warehouse — declare it explicitly
+    # rather than rely on columna-core pulling it transitively (the WP-0 pyarrow lesson).
+    "duckdb>=1.0,<2.0",
 ]
 
 [project.optional-dependencies]

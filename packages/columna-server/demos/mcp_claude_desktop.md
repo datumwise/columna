@@ -1,4 +1,4 @@
-# Columna MCP server — Claude Desktop config + the AOV clarify → answer flow
+# Columna MCP server — Claude Desktop config + the co-universe rate clarify → answer flow
 
 The Columna MCP server exposes a library of Manifolds to any MCP client (Claude Desktop, a local
 agent, or Columna's own NL agent) over **one contract**: the four moods — serve · disclose ·
@@ -33,27 +33,27 @@ Five read-only tools appear: `list_manifolds`, `describe_manifold`, `describe_me
 > is set, every request must carry `Authorization: Bearer <token>` (constant-time checked); when it
 > is unset, HTTP binds loopback-only and warns.
 
-## 2. The AOV clarify → answer flow (a real transcript)
+## 2. Three moods in one flow: clarify → refuse → disclose
 
 The wedge: ask for a rate whose two measures live over *different populations* — `revenue` (over
-`transactions`) per `level.last` (over `store_days`). A SQL/metrics layer would silently emit a
-number. Columna **clarifies**, and the clarify is machine-actionable.
+`transactions`) per `level.last` (a stock, over `store_days`). A SQL/metrics layer would silently
+emit a number. Columna **clarifies**, and the clarify is machine-actionable.
 
-### Query — "average order value per unit of inventory, by store and day"
+### Query — "sell-through rate: revenue per unit of inventory, by store and day"
 
 ```
-query(manifold_id="benchmark", frameql="aov_rate: revenue / level.last @ store, day")
+query(manifold_id="benchmark", frameql="sell_through_rate: revenue / level.last @ store, day")
 ```
 
-The server returns `outcome: clarify` — the rate's population is ambiguous, and it names the
-candidate populations as **mechanically substitutable** alternatives (`apply.universe`):
+→ `outcome: clarify` — the rate's population is ambiguous, and it names the candidate populations as
+**mechanically substitutable** alternatives (`apply.universe`):
 
 ```json
 {
   "contract_version": "1",
   "outcome": "clarify",
   "columns": [{
-    "name": "aov_rate", "status": "clarify",
+    "name": "sell_through_rate", "status": "clarify",
     "no_result": {
       "kind": "clarify", "discriminator": "ambiguous", "reason": "co_anchor_ambiguous",
       "detail": "ratio combines measures over different populations ['store_days', 'transactions'] … which population should the rate be taken over?",
@@ -66,23 +66,20 @@ candidate populations as **mechanically substitutable** alternatives (`apply.uni
 }
 ```
 
-### Hop 1 — apply a pin token; the server is honest, not eager
-
-The agent picks the first alternative and re-issues the query with `apply.universe`:
+### Hop 1 — apply a pin token; the server is honest, not eager (→ refuse)
 
 ```
-query(manifold_id="benchmark", frameql="aov_rate: revenue / level.last @ store, day", universe="store_days")
+query(manifold_id="benchmark", frameql="sell_through_rate: revenue / level.last @ store, day", universe="store_days")
 ```
 
-The clarify resolves to a **refuse** with an informative reason — pinning to `store_days` makes the
-numerator out-of-domain, so there is no faithful rate over that population (it does **not** invent a
-number):
+Pinning to `store_days` makes the numerator out-of-domain, so there is no faithful rate over that
+population — the server **refuses** with an informative reason (it does **not** invent a number):
 
 ```json
 {
   "outcome": "refuse",
   "columns": [{
-    "name": "aov_rate", "status": "refuse",
+    "name": "sell_through_rate", "status": "refuse",
     "no_result": {
       "kind": "refuse", "discriminator": "unsupported", "reason": "out_of_universe",
       "detail": "revenue is bound to universe 'transactions', not the pinned population 'store_days' — it is not defined over that population"
@@ -91,11 +88,12 @@ number):
 }
 ```
 
-### Hop 2 — reformulate per the clarify's detail; serve, disclosed
+### Hop 2 — reformulate per the clarify's detail; serve the numbers, disclosed (→ disclose)
 
 Following the clarify's guidance, the agent asks for the two measures as **separate columns** over
-the union population rather than as one rate. Now the server **serves** the numbers and rides the
-population caveat on the frame — surfaced, filterable, `material`:
+the union population rather than as one rate. The server serves the numbers **and** rides the
+population caveat on the frame. Because that caveat is `material`, the wire outcome is **disclose**
+(materiality — not severity — is the serve/disclose discriminant):
 
 ```
 query(manifold_id="benchmark", frameql="revenue: revenue, inv: level.last @ store, day")
@@ -103,7 +101,7 @@ query(manifold_id="benchmark", frameql="revenue: revenue, inv: level.last @ stor
 
 ```json
 {
-  "outcome": "serve",
+  "outcome": "disclose",
   "frame": {
     "rollup_severity": "info",
     "disclosures": [
@@ -121,6 +119,6 @@ query(manifold_id="benchmark", frameql="revenue: revenue, inv: level.last @ stor
 }
 ```
 
-**The point:** the ambiguity was never guessed away. The agent got a *structured* clarify, tried a
-pin (honest refuse), and reformulated into a served-and-disclosed answer — the same conversation a
-careful analyst would have, driven entirely by machine-readable fields. One contract, every surface.
+**The point:** three of the four moods in one conversation — a *structured* clarify, an honest
+pin-**refuse**, and a served-and-**disclosed** answer — driven entirely by machine-readable fields.
+The ambiguity was never guessed away. One contract, every surface.
