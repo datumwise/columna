@@ -68,3 +68,20 @@ def test_fixture_demo_check_count(demo, expected):
 def test_total_fixture_checks_is_104():
     total = sum(len(fixture_run(d).names()) for d in _EXPECTED_COUNTS)
     assert total == 104, f"fixture demos emitted {total} checks total, expected 104"
+
+
+def test_structural_parity_parsed_vs_code(parsed_manifold, hand_manifold):
+    """The ingest-first .cml must reproduce the code-built Manifold's vocabulary.
+
+    Pure structural check — no warehouse, no connection — so it runs in default CI. Guards the
+    WP-0 follow-up that reconciled `region_label` into benchmark.cml: the parsed measure-set and
+    the code-built measure-set must stay equal, so the two definitions never re-drift.
+    """
+    assert set(parsed_manifold.measures) == set(hand_manifold.measures), (
+        f"measure-set drift — parsed={sorted(parsed_manifold.measures)} "
+        f"code={sorted(hand_manifold.measures)}"
+    )
+    assert set(parsed_manifold.universes) == set(hand_manifold.universes)
+    assert set(parsed_manifold.levels) == set(hand_manifold.levels)
+    assert len(parsed_manifold.edges) == len(hand_manifold.edges)
+    assert set(parsed_manifold.derived) == set(hand_manifold.derived)
