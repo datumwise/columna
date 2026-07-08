@@ -1,4 +1,11 @@
-# Columna Core (0.7.7-core)
+# Columna Core (0.7.8-core)
+
+> **v0.7.8-core — packaging hardening + the disclosure wire adapter.** Declares the hard `pyarrow`
+> runtime dependency and resolves `COLUMNA_BENCH_WAREHOUSE` absolutely (WP-0 audit finds); reconciles
+> `benchmark.cml` with the code-built Manifold (adds `region_label`); clears the v0.7.8 worklist
+> (parser `Optional` import; unused-import / dead-local / f-string cruft). Adds
+> `columna_core.disclosure_wire` — the structured `{code, materiality, …}` wire adapter (ADR-032 D8 /
+> WP-1.3), the one contract every surface serializes. See `CHANGELOG.md`.
 
 > **v0.7.7-core — `ON UNIVERSE` pin wiring (Option A).** The population pin recorded by `Frame.on_universe(u)` is now threaded to the planner (`run`/`plan` → `_infer`), where it asserts the frame's intended population. A measure bound to `u` serves; a measure bound to a *different* universe is out-of-domain for that population and **refuses** (`out_of_universe`); an unknown `u` is an **error**. This resolves the multi-universe and D5 co-anchoring ambiguity to the one chosen population — so a cross-universe ratio that *clarifies* unpinned becomes a serve or an honest refuse once pinned, and a multi-universe frame's coverage caveat is resolved. (Resolving a measure over a universe *other* than its declared one — true cross-universe confinement — is Option B, future.) `coanchor_demo` §D covers it. 124 checks across 11 suites.
 

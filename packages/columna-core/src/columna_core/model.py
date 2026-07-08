@@ -167,7 +167,6 @@ class Manifold:
                 if lv not in self.levels:
                     errs.append(f"edge references unknown level '{lv}'")
         # measure universes exist; derived formulas reference known columns
-        known_cols = set(self.measures) | set(self.derived)
         for m in self.measures.values():
             if m.universe not in self.universes:
                 errs.append(f"measure '{m.name}' binds unknown universe '{m.universe}'")

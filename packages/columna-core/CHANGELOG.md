@@ -7,6 +7,31 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.7.8-core] — packaging hardening + the disclosure wire adapter
+
+**Packaging / correctness (crediting the WP-0 acceptance audit):**
+- Declare the hard `pyarrow>=15` runtime dependency. `connector.py` calls
+  `pl.from_arrow(con.execute(q).arrow())` on every fetch and polars does not pull pyarrow
+  transitively, so a clean-venv install imported fine but failed on first fetch. A wheel smoke test
+  (fresh venv → real fetch) now guards this in CI.
+- Resolve `COLUMNA_BENCH_WAREHOUSE` to an absolute path at read time, so a relative value no longer
+  silently mis-resolves against the demo runner's cwd.
+- Reconcile `benchmark.cml` with the code-built Manifold by adding the `region_label` measure
+  (parser now yields 6 measures == the code set; `parse_benchmark` exits 0 on parity YES). A
+  structural parity test guards against re-drift.
+
+**v0.7.8 worklist (items 1–2), cleared:**
+- `parser.py`: import `Optional` (fixes F821 — annotation-only, was masked by
+  `from __future__ import annotations`; would have broken `typing.get_type_hints(parse_predicate)`).
+- Remove unused imports / dead locals / a placeholder-less f-string across `disclosure.py`,
+  `engine.py`, `model.py`, `parser.py`; the corresponding per-file-ignores are tightened back out.
+
+**New:**
+- `columna_core.disclosure_wire` — the structured `{code, materiality, …}` wire adapter (the
+  category → (code, default materiality) table is normative, one dict). This is the ADR-032 D8 "one
+  contract" serialization the MCP surface (WP-2.2) and every other surface share; WP-1.3 collapses
+  into it.
+
 ## [0.7.7-core] — ON UNIVERSE pin wiring (Option A)
 The population pin recorded by `Frame.on_universe(u)` is threaded to the planner (`run`/`plan` →
 `_infer`) where it asserts the frame's intended population: a measure bound to `u` serves; a measure
