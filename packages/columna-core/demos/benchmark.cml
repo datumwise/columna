@@ -52,6 +52,9 @@ MEASURE level ON store_days FROM eom_inventory VALUE level
 # holistic measure: median basket amount — non-monoid, recompute-from-base, never reduced
 MEASURE med_amount ON transactions FROM transactions AS median(amount)
 
+# a CATEGORICAL measure — only count/distinct/mode are well-typed over it (never sum/median)
+MEASURE region_label ON transactions FROM transactions AS mode(customer_region)
+
 # ============================================================================
 # Derived columns — post-aggregation over measures.
 # ============================================================================
