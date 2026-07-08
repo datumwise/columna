@@ -1,2 +1,2 @@
-"""Columna Server — placeholder package (roadmap). Not yet implemented."""
-__version__ = "0.0.0"
+"""Columna MCP server — a library of Manifolds exposed to AI agents over MCP (ADR-032 D8)."""
+__version__ = "0.1.0"

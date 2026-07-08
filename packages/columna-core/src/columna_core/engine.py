@@ -16,12 +16,11 @@ as a Refusal carrying the three remedies. (Fan-out / out-of-universe are normall
 earlier, at the planner; the engine's guard is the backstop.)
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
-import math
 import polars as pl
 
-from .model import Manifold, SKETCH, ADDITIVE, HOLISTIC
+from .model import Manifold
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
@@ -90,7 +89,7 @@ class ColumnEngine:
         ver = self.con.table_version(meas.home_table)
         if key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
-            self._t(trace, f"  cache-hit")
+            self._t(trace, "  cache-hit")
             disc = self._disc(meas, fam, op, uni).with_caveat(Caveat(FRESHNESS, "served from cache"))
             return self.cache[key].frame, disc
 
