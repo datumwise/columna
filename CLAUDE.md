@@ -1,3 +1,13 @@
+# WP-2.2 — COMPLETE ✅ (merged 2026-07-08 via PR #2, merge 7d9fe45)
+
+The Columna MCP server (`columna-server` 0.1.0) and `columna-core` 0.7.8 (the `disclosure_wire`
+adapter) are done and merged: five read-only tools, one contract (the four moods as data), the
+materiality-driven `serve`/`disclose` rule, `--http` gated by COLUMNA_MCP_TOKEN, verified over real
+MCP stdio (8/8 acceptance + wire-schema test + a clean-container install-from-wheels + stdio-replay
+audit). This task section is retained for reference and will be replaced at the next WP kickoff.
+
+---
+
 # Current WP: 2.2 — the Columna MCP server
 
 _(WP-0: COMPLETE, merged 2026-07-08 via PR #1 — repo/tests/packaging/CI for columna-core.)_
