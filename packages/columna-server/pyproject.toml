@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "columna-server"
+version = "0.0.0"
+description = "Columna Server — placeholder (roadmap). Not yet implemented."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Datumwise" }]
+classifiers = ["Development Status :: 1 - Planning"]
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/columna_server"]

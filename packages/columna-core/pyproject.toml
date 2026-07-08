@@ -1,0 +1,97 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "columna-core"
+version = "0.7.7"
+description = "Columna Core — the column-foundation analytic framework (multi-table, transport-based, correctness-governed) over a single backend."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Datumwise" }]
+keywords = ["analytics", "semantic-layer", "duckdb", "polars", "manifold", "frame-ql"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+# All three are hard imports today (engine.py imports sketch.py at module top; __init__ imports
+# connector). Making duckdb / datasketches optional extras is WP-1.1 scope (import-graph
+# restructure for the PolarsConnector) and is deliberately NOT attempted here — they stay required.
+dependencies = [
+    "polars>=1.0,<2.0",
+    "duckdb>=1.0,<2.0",
+    "datasketches>=5.0,<6.0",
+    # Hard runtime dep: connector.py does pl.from_arrow(con.execute(q).arrow()) on every fetch,
+    # and polars does not pull pyarrow transitively.
+    "pyarrow>=15",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[project.urls]
+Homepage = "https://github.com/datumwise/columna"
+Repository = "https://github.com/datumwise/columna"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/columna_core"]
+
+[tool.hatch.build.targets.sdist]
+# Ship the library and its proof material; keep the heavy real warehouse out of the sdist.
+include = [
+    "src/columna_core",
+    "demos",
+    "tests",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
+exclude = [
+    "demos/warehouse",
+    "**/__pycache__",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "warehouse: full real-warehouse validation; opt-in via COLUMNA_BENCH_WAREHOUSE, excluded in CI.",
+]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+# Correctness only (WP-0 ruling: the zero-behavior-change invariant controls over the spec's
+# "E/F only" wording). F = pyflakes real bugs; E9 = syntax errors. NO pycodestyle style rules —
+# the verbatim library/demo code must not be reformatted (no style crusade).
+select = ["F", "E9"]
+
+[tool.ruff.lint.per-file-ignores]
+# The package facade intentionally re-exports its public API; those names are unused *here* but are
+# the whole point of __init__ (see __all__). Suppress unused-import / import-star only for it.
+"src/columna_core/__init__.py" = ["F401", "F403", "F405"]
+# The other 11 library modules are moved VERBATIM (WP-0 zero-behavior-change invariant: import-path
+# moves only, no body edits). Their pre-existing pyflakes findings are config-ignored here (never
+# inline noqa) and every one is reported in the PR. Codes below are exactly what each file trips:
+#   disclosure.py F401 unused `dataclasses.field`
+#   engine.py     F401 unused `dataclasses.field`,`math`,`.model.{SKETCH,ADDITIVE,HOLISTIC}`; F541 f-string w/o placeholder (L93)
+#   model.py      F841 unused local `known_cols` (L170)
+#   parser.py     F401 unused `.model.{ADDITIVE,SKETCH,HOLISTIC}`; F821 `Optional` undefined (L226) — annotation-only, masked by `from __future__ import annotations`
+"src/columna_core/disclosure.py" = ["F401"]
+"src/columna_core/engine.py" = ["F401", "F541"]
+"src/columna_core/model.py" = ["F841"]
+"src/columna_core/parser.py" = ["F401", "F821"]
+# Demo suites are shipped VERBATIM as executable documentation (same invariant). Pre-existing
+# findings (unused imports; confine_demo re-imports Manifold/FunctionalEdge/DimensionLevel locally)
+# are reported in the PR, not edited away.
+"demos/*.py" = ["F401", "F811", "F841"]
