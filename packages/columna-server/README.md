@@ -8,9 +8,15 @@ This is the wedge product: the first metrics MCP server that can say *"it depend
 
 ```bash
 pip install -e packages/columna-core -e packages/columna-server
-columna-server mcp --manifolds <dir>          # stdio (canonical)
+columna-server demo --play                    # the packaged demo: clarify -> refuse -> disclose
+columna-server demo                           # serve the packaged demo over MCP stdio (no path args)
+columna-server mcp --manifolds <dir>          # serve your own manifolds dir over stdio
 columna-server mcp --manifolds <dir> --http :8000   # streamable-http, gated by COLUMNA_MCP_TOKEN
 ```
+
+**Richer run.** The packaged demo ships a small (~330 KB) warehouse. To run the same benchmark
+Manifold over the full 4.7 MB warehouse (299,934 transactions), point `--manifolds` at a directory
+whose `data.toml` warehouse path is the repo's `packages/columna-core/demos/warehouse`.
 
 > Before columna-core is published to PyPI, install it FIRST (the workspace/editable install above),
 > since `columna-server`'s `columna-core>=0.7.8` dependency cannot yet be resolved from an index. To

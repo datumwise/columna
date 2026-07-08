@@ -1,0 +1,10 @@
+# Packaged demo Manifold — the benchmark Manifold over the small bundled warehouse.
+# Self-contained: the warehouse path is relative to THIS directory (store.py resolves against the
+# manifold dir), so the demo ships and runs with no path arguments.
+[manifold]
+name = "Benchmark (demo)"
+description = "Retail benchmark Manifold (transactions + store_days) over a small bundled warehouse."
+
+[connector]
+type = "duckdb"
+warehouse = "./warehouse"
