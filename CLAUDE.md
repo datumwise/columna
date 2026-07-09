@@ -22,26 +22,34 @@ audit). This task section is retained for reference and will be replaced at the 
 
 ---
 
-# Current WP: 2.3 — packaged demo + the ten-minute quickstart
+# Current WP: 2.4 — the query agent (NL over MCP) [Phase-2 finale]
 
-_(WP-0: COMPLETE, merged 2026-07-08 via PR #1 — repo/tests/packaging/CI for columna-core.)_
+_(WP-0: COMPLETE via PR #1. WP-2.2 via PR #2. WP-2.3 via PR #3. WP-2.1 absorbed.)_
 
-Implement `specs/wp2_3_demo_quickstart_spec.md`. Small: a fresh visitor goes from `git clone` to
-*seeing a clarify* in under ten minutes, no path args, no MCP client. Turns the proven three-mood
-transcript (clarify → refuse → disclose) into the product's front door: packaged demo,
-`columna-server demo [--play]`, and the repo README quickstart.
+Implement `specs/wp2_4_query_agent_spec.md`. ADR-032 D8's last surface: `columna-server agent` — a
+chat REPL where natural language becomes a *proposed* Frame-QL query, the planner disposes, and the
+four moods drive a real conversation. Model proposes, layer checks, human decides.
+
+## Architecture (non-negotiable shape)
+1. **True MCP client.** The agent spawns `columna-server mcp/demo` over stdio and speaks the
+   protocol; it NEVER imports the engine to answer. Bypassing the MCP boundary = the WP has failed,
+   regardless of output quality (asserted in tests).
+2. **Loop:** user NL → LLM proposes ONE envelope query (given `describe_manifold` + grammar) →
+   `query` tool → outcome routes the turn: serve/disclose present values *from the wire* (every
+   material disclosure surfaced); clarify relays alternatives to the HUMAN and applies their choice
+   via `apply` (**never auto-picks silently**); refuse/error explains the reason (may propose a
+   reformulation, itself a new proposed query).
+3. **Grounding invariant:** every numeral in a reply originates in this session's wire JSON — no
+   arithmetic on results, no memory-sourced numbers. Tested hermetically.
+4. **Provider layer (ruling 3-B):** tiny `propose(context, user_msg) -> str` interface; `anthropic`
+   (default) + `scripted` (deterministic, for tests/demos). Agent deps isolated in an `[agent]`
+   extra; BYO key; no key → clear error pointing at `demo --play`.
 
 ## Invariants
-1. **No columna-core changes.** Server + repo-README only.
-2. **Wire contract untouched** (`contract_version` stays `"1"`); `--play` prints what the wire
-   actually returns, never a hand-written facsimile.
-3. **Demo data is drift-guarded** — the packaged demo warehouse/`.cml` must be byte-identical to
-   the core fixture source (same guard pattern as the `.cml` byte-identical test), ≤ 2 MB.
-4. **Wheels build with package-data included**, and a clean-venv **wheel** install must run
-   `columna-server demo --play` (proves the data ships).
-5. **Honest naming stays** (`sell_through_rate`; AOV is reserved for the input-anchor story).
-6. Existing suites stay green (core 138/20, server 26 + new tests); CI gains the `--play` smoke.
+- **columna-core and the wire contract untouched.** Agent code + `[agent]` extra only.
+- Hermetic suite is green in CI with **no API key and no network** (scripted provider).
+- System prompt lives as a **versioned file**, not an inline string.
 
-## Checkpoint before building (light — this WP is small; wait for approval)
-Post: (a) the README quickstart text verbatim; (b) the `demo` CLI help surface; (c) the
-package-data mechanics (how the ≤ 2 MB ships in the wheel) + the drift-guard plan.
+## Checkpoint before building (light; wait for approval)
+Post: (a) the system prompt **verbatim**; (b) the provider interface surface; (c) the hermetic
+test plan — specifically how grounding and no-silent-auto-pick are asserted.
