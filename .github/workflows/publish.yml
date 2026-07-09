@@ -1,0 +1,52 @@
+name: Publish
+
+# Build both packages on every PR (dry run — no upload), and publish to PyPI when a GitHub Release
+# is published. Publishing is OIDC via PyPI Trusted Publishers — no API tokens are stored anywhere.
+on:
+  release:
+    types: [published]
+  pull_request:
+
+jobs:
+  build:
+    name: build + check dists (dry run on PRs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build sdists + wheels for both packages
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build packages/columna-core   --outdir dist
+          python -m build packages/columna-server --outdir dist
+      - name: Validate metadata
+        run: twine check dist/*
+      - name: Show dists
+        run: ls -l dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  publish:
+    name: publish to PyPI (Trusted Publisher / OIDC)
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    # MUST match the Trusted Publisher registration on PyPI for BOTH columna-core and
+    # columna-server (owner datumwise, repo columna, workflow publish.yml, environment pypi).
+    environment: pypi
+    permissions:
+      id-token: write        # OIDC token for Trusted Publishing — this job only
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      # Uploads every dist in dist/; PyPI routes each file to its project (columna-core /
+      # columna-server) by the name in the package metadata — both have the Trusted Publisher.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

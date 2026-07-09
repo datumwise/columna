@@ -4,22 +4,20 @@
 refuses to return a confident wrong number: where a metric is ambiguous, non-reconciling, or
 out-of-domain, it says so instead of guessing. Every answer is one of **four moods** — *serve*,
 *disclose*, *clarify*, or *refuse* — returned as structured data on one contract, identical on every
-surface (Python and MCP).
+surface (Python, MCP, and a natural-language agent).
 
-## Quickstart (ten minutes, no arguments, no MCP client)
+## Quickstart (ten minutes, no source checkout)
 
 ```bash
-git clone https://github.com/datumwise/columna && cd columna
-pip install -e packages/columna-core -e packages/columna-server
+pip install columna-core columna-server
 columna-server demo --play
 ```
 
 `demo --play` runs the real wedge end to end and pretty-prints the actual wire JSON for three of the
 four moods in one flow:
 
-- **clarify** — `sell_through_rate: revenue / level.last @ store, day` spans two populations, so the
-  rate's population is ambiguous; the server names the candidate populations as substitutable
-  alternatives instead of inventing a number.
+- **clarify** — a rate whose two measures span different populations is ambiguous; the server names
+  the candidate populations as substitutable alternatives instead of inventing a number.
 - **refuse** — pin one of those populations and re-ask: the other operand is out-of-domain, so it
   refuses with the reason (still no guess).
 - **disclose** — reformulate into separate columns over the union population: the numbers are served
@@ -43,26 +41,36 @@ path args. To wire it into Claude Desktop, add to `claude_desktop_config.json`:
 ```
 
 (Claude Desktop launches the server from an arbitrary working directory, so `demo` — which needs no
-path — is the reliable choice; if you use `mcp --manifolds <dir>` instead, give an **absolute** path.)
-See [`packages/columna-server/demos/mcp_claude_desktop.md`](packages/columna-server/demos/mcp_claude_desktop.md)
+path — is the reliable choice.) See
+[`packages/columna-server/demos/mcp_claude_desktop.md`](packages/columna-server/demos/mcp_claude_desktop.md)
 for the full config and a real clarify → refuse → disclose transcript.
+
+Or talk to it in natural language — Columna's own agent is a true MCP client over the server:
+
+```bash
+pip install "columna-server[agent]"
+ANTHROPIC_API_KEY=... columna-server agent          # chat REPL over the packaged demo
+```
+
+The agent turns your question into a *proposed* Frame-QL query and lets the four moods drive the
+conversation — it never touches the engine in-process, never auto-picks a clarify, and every number
+comes verbatim from the wire. See
+[`packages/columna-server/demos/agent_transcript.md`](packages/columna-server/demos/agent_transcript.md).
 
 ## Contributing
 
 ```bash
-# Before Columna is published to PyPI, install columna-core FIRST (editable), since
-# columna-server's `columna-core>=0.7.8` dependency can't yet be resolved from an index:
-pip install -e packages/columna-core
-pip install -e "packages/columna-server[test]"      # brings pytest + the MCP client harness
+git clone https://github.com/datumwise/columna && cd columna
+pip install -e packages/columna-core -e "packages/columna-server[test]"
 
 pytest packages/columna-core -q       # warehouse proofs skipped unless COLUMNA_BENCH_WAREHOUSE is set
-pytest packages/columna-server -q     # MCP stdio acceptance + the packaged demo
+pytest packages/columna-server -q     # MCP stdio acceptance + the packaged demo + the agent
 ```
 
 The repo is a uv workspace: `packages/columna-core` (the engine + wire contract) and
-`packages/columna-server` (the MCP server). See [`CLAUDE.md`](CLAUDE.md) for the current work package,
-[`specs/`](specs/) for the design record, and [`research/`](research/) for the theory behind the four
-moods.
+`packages/columna-server` (the MCP server + NL agent). See [`CLAUDE.md`](CLAUDE.md) for the project
+state, [`specs/`](specs/) for the design record, and [`research/`](research/) for the theory behind
+the four moods.
 
 ## License
 
