@@ -26,6 +26,7 @@ dependencies = [
 
 [project.optional-dependencies]
 http = ["uvicorn>=0.23", "starlette>=0.37"]
+agent = ["anthropic>=0.40"]
 test = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 
 [project.scripts]
@@ -44,6 +45,9 @@ include = ["src", "tests", "demos", "README.md"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "llm: live test that calls a real LLM provider; needs ANTHROPIC_API_KEY, excluded from CI.",
+]
 
 [tool.ruff]
 line-length = 110
