@@ -1,5 +1,7 @@
 # Columna
 
+Read the launch post: why we built this →" linking the Discussion. Do this in the same minute you fill the About panel (description, homepage, topics — Claude Code's values, ready to paste)
+
 **Columna is an honest metrics engine.** It sits between your questions and your warehouse and
 refuses to return a confident wrong number: where a metric is ambiguous, non-reconciling, or
 out-of-domain, it says so instead of guessing. Every answer is one of **four moods** — *serve*,
