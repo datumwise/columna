@@ -1,3 +1,26 @@
+# Phase 2 — CODE-COMPLETE ✅ (2026-07-08, tag `phase-2`)
+
+All Phase-2 work packages are merged: **WP-0** (repo/tests/packaging/CI for columna-core), **WP-2.2**
+(the Columna MCP server + v0.7.8 core + `disclosure_wire`), **WP-2.3** (packaged demo +
+`demo [--play]` + the ten-minute quickstart), **WP-2.4** (the natural-language query agent).
+**WP-2.1** (Manifold store) is absorbed. The four moods (serve · disclose · clarify · refuse) are
+now reachable as data on every surface — Python, MCP, and a natural-language agent — over one wire
+contract (`contract_version` `"1"`).
+
+---
+
+# WP-2.4 — COMPLETE ✅ (merged 2026-07-08 via PR #4, merge 402791a)
+
+The NL query agent (`columna-server agent`) is done and merged: a **true MCP client** (spawns the
+server over stdio, never imports the engine), natural language → a *proposed* Frame-QL query → the
+planner disposes → the four moods drive the conversation (clarifies relayed, never auto-picked; every
+numeral verbatim from the wire — grounding is structural). Provider layer (`anthropic` default via
+`COLUMNA_AGENT_MODEL`, `scripted` for tests) in an `[agent]` extra; a versioned system prompt with a
+grammar drift-guard. Verified: 9 hermetic tests (no key, no network) + the live `@pytest.mark.llm`
+smoke green against a real `claude-opus-4-8`; columna-core and the wire contract untouched.
+
+---
+
 # WP-2.3 — COMPLETE ✅ (merged 2026-07-08 via PR #3, merge 45d4cc4)
 
 The packaged demo + `columna-server demo [--play]` + the repo README quickstart are done and merged:
