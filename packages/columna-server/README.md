@@ -12,7 +12,17 @@ columna-server demo --play                    # the packaged demo: clarify -> re
 columna-server demo                           # serve the packaged demo over MCP stdio (no path args)
 columna-server mcp --manifolds <dir>          # serve your own manifolds dir over stdio
 columna-server mcp --manifolds <dir> --http :8000   # streamable-http, gated by COLUMNA_MCP_TOKEN
+
+# Natural-language agent (a true MCP client over the server); needs the [agent] extra + a key:
+pip install -e "packages/columna-server[agent]"
+ANTHROPIC_API_KEY=... columna-server agent    # chat REPL over the packaged demo
 ```
+
+The **agent** turns natural language into a *proposed* Frame-QL query, spawns the server over stdio,
+and lets the four moods drive the conversation — it never touches the engine in-process. The model
+proposes, the planner disposes, the human decides (clarifies are relayed, never auto-picked; every
+number comes verbatim from the wire). See [`demos/agent_transcript.md`](demos/agent_transcript.md).
+Model via `COLUMNA_AGENT_MODEL` (default `claude-opus-4-8`).
 
 **Richer run.** The packaged demo ships a small (~330 KB) warehouse. To run the same benchmark
 Manifold over the full 4.7 MB warehouse (299,934 transactions), point `--manifolds` at a directory
