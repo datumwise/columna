@@ -7,14 +7,14 @@ This is the wedge product: the first metrics MCP server that can say *"it depend
 ## Run
 
 ```bash
-pip install -e packages/columna-core -e packages/columna-server
+pip install columna-core columna-server
 columna-server demo --play                    # the packaged demo: clarify -> refuse -> disclose
 columna-server demo                           # serve the packaged demo over MCP stdio (no path args)
 columna-server mcp --manifolds <dir>          # serve your own manifolds dir over stdio
 columna-server mcp --manifolds <dir> --http :8000   # streamable-http, gated by COLUMNA_MCP_TOKEN
 
 # Natural-language agent (a true MCP client over the server); needs the [agent] extra + a key:
-pip install -e "packages/columna-server[agent]"
+pip install "columna-server[agent]"
 ANTHROPIC_API_KEY=... columna-server agent    # chat REPL over the packaged demo
 ```
 
@@ -28,9 +28,9 @@ Model via `COLUMNA_AGENT_MODEL` (default `claude-opus-4-8`).
 Manifold over the full 4.7 MB warehouse (299,934 transactions), point `--manifolds` at a directory
 whose `data.toml` warehouse path is the repo's `packages/columna-core/demos/warehouse`.
 
-> Before columna-core is published to PyPI, install it FIRST (the workspace/editable install above),
-> since `columna-server`'s `columna-core>=0.7.8` dependency cannot yet be resolved from an index. To
-> run the tests, install the test extra: `pip install -e "packages/columna-server[test]"`.
+> **From source (contributors):** `git clone https://github.com/datumwise/columna && cd columna`,
+> then `pip install -e packages/columna-core -e "packages/columna-server[test]"` and
+> `pytest packages/columna-server -q`.
 
 `<dir>` holds `<id>/manifold.cml` + `data.toml` (connector type + data path). Manifolds are parsed
 and connected once at startup.

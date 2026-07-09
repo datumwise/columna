@@ -40,7 +40,7 @@ columna-server = "columna_server.cli:main"
 packages = ["src/columna_server"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "tests", "demos", "README.md"]
+include = ["src", "tests", "demos", "README.md", "CHANGELOG.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

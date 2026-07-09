@@ -45,34 +45,23 @@ audit). This task section is retained for reference and will be replaced at the 
 
 ---
 
-# Current WP: 2.4 — the query agent (NL over MCP) [Phase-2 finale]
+# Current task: Launch checklist v1 — steps 3–8 (public release prep)
 
-_(WP-0: COMPLETE via PR #1. WP-2.2 via PR #2. WP-2.3 via PR #3. WP-2.1 absorbed.)_
+_(Phase 2 CODE-COMPLETE, tag `phase-2`. Steps 1–2 DONE: repo transferred to `datumwise/columna`;
+pending Trusted Publishers registered on PyPI for columna-core + columna-server — owner `datumwise`,
+repo `columna`, workflow `publish.yml`, environment `pypi`.)_
 
-Implement `specs/wp2_4_query_agent_spec.md`. ADR-032 D8's last surface: `columna-server agent` — a
-chat REPL where natural language becomes a *proposed* Frame-QL query, the planner disposes, and the
-four moods drive a real conversation. Model proposes, layer checks, human decides.
-
-## Architecture (non-negotiable shape)
-1. **True MCP client.** The agent spawns `columna-server mcp/demo` over stdio and speaks the
-   protocol; it NEVER imports the engine to answer. Bypassing the MCP boundary = the WP has failed,
-   regardless of output quality (asserted in tests).
-2. **Loop:** user NL → LLM proposes ONE envelope query (given `describe_manifold` + grammar) →
-   `query` tool → outcome routes the turn: serve/disclose present values *from the wire* (every
-   material disclosure surfaced); clarify relays alternatives to the HUMAN and applies their choice
-   via `apply` (**never auto-picks silently**); refuse/error explains the reason (may propose a
-   reformulation, itself a new proposed query).
-3. **Grounding invariant:** every numeral in a reply originates in this session's wire JSON — no
-   arithmetic on results, no memory-sourced numbers. Tested hermetically.
-4. **Provider layer (ruling 3-B):** tiny `propose(context, user_msg) -> str` interface; `anthropic`
-   (default) + `scripted` (deterministic, for tests/demos). Agent deps isolated in an `[agent]`
-   extra; BYO key; no key → clear error pointing at `demo --play`.
-
-## Invariants
-- **columna-core and the wire contract untouched.** Agent code + `[agent]` extra only.
-- Hermetic suite is green in CI with **no API key and no network** (scripted provider).
-- System prompt lives as a **versioned file**, not an inline string.
-
-## Checkpoint before building (light; wait for approval)
-Post: (a) the system prompt **verbatim**; (b) the provider interface surface; (c) the hermetic
-test plan — specifically how grounding and no-silent-auto-pick are asserted.
+Execute `specs/launch_checklist_v1.md` steps 3–8:
+3. `publish.yml` — release-tag trigger; OIDC via `pypa/gh-action-pypi-publish`; environment `pypi`
+   (must match the publisher registration exactly); `id-token: write` on the publish job only;
+   dry-run build job on PRs.
+4. README final pass — quickstart `pip install columna-core columna-server`; clone path → Contributing;
+   delete the core-first caveat; every link checked against the `datumwise/columna` layout.
+5. Verbatim transcript capture — re-run the REPL nonexistent-measure case, commit the transcript to
+   `demos/`. Fold in the nonexistent-measure tests (merged in `3d5beb0`).
+6. Hygiene sweep — LICENSE/NOTICE, full-history secrets scan, no personal paths, `specs/` synced,
+   CHANGELOGs current.
+7. Release — tag + cut the GitHub Release; the publish workflow fires; final proof = clean venv,
+   `pip install columna-core columna-server` FROM PYPI, `columna-server demo --play`.
+8. Report the go/no-go table (every gate item, green/red) and **STOP** — the public flip is not the
+   agent's to execute.
