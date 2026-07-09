@@ -134,6 +134,42 @@ async def test_refuse_is_explained_with_no_invented_value():
     assert len(replies) == 2 and replies[1].startswith("level isn't defined")  # one reformulation (an ASK)
 
 
+# --- nonexistent measure: model asks; engine/formatter backstop ----------------------------
+async def test_engine_and_formatter_backstop_a_fabricated_measure():
+    """Even if the model fabricates a measure name, the engine rejects it (unknown column) and the
+    formatter presents it as an invalid query — no fake number ever reaches the human. This is the
+    deterministic backstop behind the live 'model asks instead of inventing' behavior."""
+    script = ["QUERY: churn_rate @ region",
+              "ASK: I don't have a churn measure — did you mean revenue by region?"]
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, ScriptedProvider(script), describe)
+        replies = await agent.run_turn("what's the churn rate by region?")
+    joined = "\n".join(replies)
+    assert "isn't a valid query" in joined         # engine + formatter backstop
+    assert "churn_rate" in joined                  # names the unknown column
+    assert not re.search(r"\d{3,}", joined)        # no fabricated figure reached the human
+    assert replies[-1].startswith("I don't have")  # the one post-refuse reformulation was an ASK
+
+
+@pytest.mark.llm
+@pytest.mark.skipif(not os.environ.get("ANTHROPIC_API_KEY"), reason="no ANTHROPIC_API_KEY")
+async def test_live_asks_on_a_plausible_but_fake_metric():
+    """A real model, asked for a metric the manifold does not have (customer churn), must NOT invent
+    it: it asks which real measure is meant (honest-naming) — or proposes a fake one that the engine
+    backstops — but never fabricates a number."""
+    from columna_server.agent.providers import AnthropicProvider
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, AnthropicProvider(), describe)
+        reply = "\n".join(await agent.run_turn("What's the customer churn rate by region?"))
+    low = reply.lower()
+    assert "here is the answer" not in low                 # did not serve a fabricated metric
+    assert not re.search(r"\d{3,}", reply)                 # no invented figure
+    assert ("?" in reply or "isn't a valid query" in low   # it asked, or the engine backstopped a fake
+            or "don't have" in low or "which" in low or "no " in low)
+
+
 # --- provider missing key -------------------------------------------------------------------
 def test_anthropic_provider_missing_key_errors_to_demo(monkeypatch):
     from columna_server.agent.providers import AnthropicProvider

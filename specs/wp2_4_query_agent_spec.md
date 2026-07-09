@@ -12,32 +12,49 @@ conversation. The agent completes the wedge story: model proposes, layer checks,
   the protocol. It never imports the engine to answer — if the MCP boundary is bypassed, the WP
   has failed regardless of output quality.
 - Loop: user NL → LLM proposes ONE envelope query (given `describe_manifold` context + grammar)
-  → `query` tool → outcome routes the turn:
-  - **serve/disclose** → present values *from the wire*; every material disclosure is surfaced
-    in the reply (code + plain-language detail). Immaterial ones available on request.
-  - **clarify** → relay to the HUMAN: present alternatives (token + description), may recommend,
-    **never auto-picks silently**; applies the human's choice via `apply`.
-  - **refuse/error** → explain the reason as the answer; may propose a reformulation (which is
-    itself a new proposed query through the same loop).
-- **Grounding invariant:** every numeral in an agent reply must originate in wire JSON from this
-  session. No arithmetic on results, no memory-sourced numbers. (Tested.)
+  → `query` tool → outcome routes the turn. **Role boundary (amended):** the LLM only proposes
+  queries and asks questions — it never writes result numbers or answer prose. The SYSTEM presents
+  every server reply to the human, verbatim from the wire; so grounding is structural, not a rule
+  the model must remember. After each query the loop appends a compact `engine` note (outcome,
+  reason/detail, alternatives) to the conversation, as context for the model's NEXT proposal.
+  - **serve/disclose** → the system presents the values; every material disclosure is surfaced
+    (code + plain-language detail).
+  - **clarify** → the system presents the alternatives (description + `apply`) and waits; the human
+    chooses; the loop re-issues the query with the chosen alternative's `apply` (mechanical) —
+    **never auto-picked**.
+  - **refuse/error** → the reason is presented; the model MAY propose exactly ONE reformulated
+    query that addresses it (a new proposal through the same loop), then stop.
+- **Grounding invariant:** every numeral in an agent reply originates in this session's wire JSON.
+  Because the agent never emits a number (role boundary above), it cannot state a wrong one — and
+  the formatter renders wire values verbatim-stringified (no rounding), so the test's regex
+  membership check is strict. (Tested.)
+- **Honest naming / nonexistent measures:** the model uses the manifold's real names and does not
+  invent measures. Asked for a plausible-but-fake metric (e.g. "customer churn"), it ASKs which
+  real measure is meant. If it ever fabricates a measure anyway, the engine rejects it (unknown
+  column) and the formatter presents it as an invalid query — the deterministic backstop.
 
 ## Provider layer (ruling 3-B)
-- Tiny interface: `propose(context, user_msg) -> str (envelope query | question back)`; providers:
-  `anthropic` (default, `ANTHROPIC_API_KEY`) and `scripted` (deterministic, for tests/demos).
+- Tiny interface: `propose(system, history, user_msg) -> str (envelope query | question back)`;
+  providers: `anthropic` (default; model from `COLUMNA_AGENT_MODEL`, default `claude-opus-4-8`; key
+  from `ANTHROPIC_API_KEY`) and `scripted` (deterministic, for tests/demos). `history` carries the
+  user/agent/`engine` turns.
 - Deps in optional extra `[agent]` (anthropic SDK); base install stays lean. No key → clear
   error pointing at `demo --play`.
 
 ## Deliverables
 1. `columna-server agent [--manifolds DIR]` (defaults to the packaged demo) — REPL.
 2. The **system prompt** (the design-sensitive artifact): manifold context, grammar, the mood
-   rules above, the grounding rule, honest-naming rule. Lives as a versioned file, not an
-   inline string.
-3. Hermetic test suite on the `scripted` provider: clarify-relay (alternatives presented; choice
-   applied via `apply`; no silent auto-pick), material-disclosure surfacing (caveat in wire ⇒
-   represented in reply), grounding (numerals in reply ⊆ wire values), refuse-explained,
-   MCP-boundary assertion (no engine import in the agent module).
-4. Live smoke test, `@pytest.mark.llm` (skipped without key): one wedge conversation end-to-end.
+   rules above, the role boundary, the grounding + one-reformulation-after-refuse + honest-naming
+   rules. Lives as a **versioned file**, not an inline string; a permanent test parses every prompt
+   example against the real engine so prompt/grammar drift is guarded like the `.cml` files.
+3. Hermetic test suite on the `scripted` provider (no key, no network): clarify-relay (alternatives
+   presented; choice applied via `apply`; no silent auto-pick), material-disclosure surfacing,
+   grounding (numerals in reply ⊆ wire; and the agent structurally cannot surface a fabricated
+   number), refuse-explained + one reformulation, nonexistent-measure backstop, and the
+   MCP-boundary assertion (no engine import in the agent module — subprocess + static).
+4. Live smoke tests, `@pytest.mark.llm` (skipped without key): (a) one wedge conversation
+   end-to-end (serve → clarify → …); (b) a plausible-but-fake metric ("customer churn") — the model
+   ASKs rather than inventing a measure, and never fabricates a number.
 5. `demos/agent_transcript.md`: the wedge in NL — question → clarify relayed → choice → refuse
    explained → reformulation → **disclose** with caveat. Four moods, one human conversation.
 
