@@ -103,6 +103,20 @@ def main(argv=None):
     demo_cmd.add_argument("--play", action="store_true",
                           help="print the three-mood wire transcript and exit (no MCP loop)")
 
+    agent_cmd = sub.add_parser(
+        "agent", help="natural-language query agent (a true MCP client over the server)",
+        description="Chat REPL: your question becomes a proposed Frame-QL query, the server's "
+                    "planner disposes, and the four moods drive the conversation. Spawns the MCP "
+                    "server over stdio and speaks the protocol — it never touches the engine "
+                    "in-process. Defaults to the packaged demo Manifold.")
+    agent_cmd.add_argument("--manifolds", default=None,
+                           help="directory of <id>/manifold.cml + data.toml (default: packaged demo)")
+    agent_cmd.add_argument("--provider", default="anthropic", choices=["anthropic"],
+                           help="LLM provider (default: anthropic; needs ANTHROPIC_API_KEY and the "
+                                "[agent] extra). The scripted provider is for tests only.")
+    agent_cmd.add_argument("--model", default=None,
+                           help="override the model (default: $COLUMNA_AGENT_MODEL or claude-opus-4-8)")
+
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -110,6 +124,9 @@ def main(argv=None):
         if args.play:
             return play()
         _serve(demo_store(), args.http)
+    elif args.command == "agent":
+        from .agent.runner import run_agent_cli
+        return run_agent_cli(manifolds=args.manifolds, provider_name=args.provider, model=args.model)
     else:
         _serve(ManifoldStore(args.manifolds), args.http)
     return 0
