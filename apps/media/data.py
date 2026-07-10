@@ -52,6 +52,7 @@ class Numbers:
     s4_daygrain: float
     s5_last: float
     s5_sum: float
+    s4_daily_aov: tuple  # the real per-day aov series for 2024-01 (the "fine day-columns")
     sourced: str  # "warehouse" | "guarded-constants"
 
 
@@ -82,12 +83,17 @@ def _recompute() -> dict:
         f"SELECT sum(level) FROM {INV} i JOIN {CAL} c ON i.day=c.day "
         f"WHERE i.store_id='{S5_STORE}' AND c.month='{S4_MONTH}'"
     ).fetchone()[0]
+    daily = q(
+        f"SELECT sum(amount)/count(*) aov FROM {T} t JOIN {CAL} c ON t.day=c.day "
+        f"WHERE c.month='{S4_MONTH}' GROUP BY t.day ORDER BY t.day"
+    ).fetchall()
     return {
         "s1_amount": round(s1, 2),
         "s4_pooled": round(pooled, 2),
         "s4_daygrain": round(daygrain, 2),
         "s5_last": round(last, 0),
         "s5_sum": round(bad, 0),
+        "s4_daily_aov": tuple(round(r[0], 2) for r in daily),
     }
 
 
@@ -99,8 +105,13 @@ def load() -> Numbers:
                 f"DRIFT: {k} recomputed={got[k]} expected={want} — the warehouse changed; "
                 f"update the animation's guarded values deliberately."
             )
+        daily = got["s4_daily_aov"]
+        assert daily and abs(sum(daily) / len(daily) - _EXPECT["s4_daygrain"]) < 0.02, (
+            "DRIFT: mean of the daily aov series no longer matches s4_daygrain."
+        )
         return Numbers(**got, sourced="warehouse")
-    return Numbers(**_EXPECT, sourced="guarded-constants")
+    # code-only checkout: real guarded scalars; the day series is synthesized in-scene (no numerals)
+    return Numbers(**_EXPECT, s4_daily_aov=(), sourced="guarded-constants")
 
 
 NUM = load()
