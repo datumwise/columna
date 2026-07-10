@@ -1,0 +1,3 @@
+# rendered media (CI artifact / local only — check in the code, not the mp4)
+out/
+*.mp4
