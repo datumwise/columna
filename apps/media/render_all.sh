@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-QUALITY="${1:--qh}"
+# 1080p at a serene 30fps, consistent across every clip so the concat can stream-copy.
+RENDER_FLAGS="-r 1920,1080 --fps 30"
 
 # (class, file) in storyboard order. Scenes are added as they are approved.
 SCENES=(
@@ -21,7 +22,7 @@ for entry in "${SCENES[@]}"; do
   cls="${entry%%:*}"; file="${entry##*:}"
   [ -f "$file" ] || { echo "skip (not yet built): $file"; continue; }
   echo ">>> rendering $cls"
-  manim "$QUALITY" "$file" "$cls"
+  manim $RENDER_FLAGS "$file" "$cls"
   # locate the produced mp4 (manim nests by quality dir); newest match wins
   clip="$(find out/videos -name "${cls}.mp4" -print0 | xargs -0 ls -t 2>/dev/null | head -1)"
   [ -n "$clip" ] && CLIPS+=("$clip")
