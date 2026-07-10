@@ -36,10 +36,13 @@ FONT = "DejaVu Sans"  # clean sans, bundled in the env; deterministic across ren
 MONO = "DejaVu Sans Mono"
 
 
-def caption(text: str, color: str = TEXT) -> Text:
-    """One sentence, clean sans, bottom third. The single voice of each scene."""
-    t = Text(text, font=FONT, weight="LIGHT", color=color, font_size=30)
-    t.to_edge(edge=(0, -1, 0), buff=0.55)  # bottom third
+def caption(text: str, color: str = TEXT, size: int = 30) -> Text:
+    """One sentence, clean sans, bottom third. The single voice of each scene.
+
+    A `\\n` in `text` makes a centered two-line caption (used where the brief's line is long).
+    """
+    t = Text(text, font=FONT, weight="LIGHT", color=color, font_size=size, line_spacing=0.8)
+    t.to_edge(edge=(0, -1, 0), buff=0.5)  # bottom third
     return t
 
 
