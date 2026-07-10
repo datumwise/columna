@@ -25,12 +25,12 @@ from manim import (
 )
 
 import brand as B
+import grid as G
 from data import NUM, S1_STORE, S1_PRODUCT, S1_DAY
 
-# grid geometry
-NX, NY = 8, 6           # store columns, day rows
-DX, DY = 0.92, 0.74
-ORIGIN = LEFT * 3.9 + DOWN * 0.5
+# grid geometry (shared, so nothing jumps between cuts)
+NX, NY = G.NX, G.NY
+DX, DY = G.DX, G.DY
 BRIGHT_I, BRIGHT_J = 2, 3   # the point that brightens (interior, clearly visible)
 
 # soft-perspective offset for the receding `product` axis
@@ -38,7 +38,7 @@ DEPTH = np.array([0.40, 0.30, 0.0])
 
 
 def _pt(i: int, j: int) -> np.ndarray:
-    return ORIGIN + RIGHT * i * DX + UP * j * DY
+    return G.pt(i, j)
 
 
 class Scene1Grid(Scene):
