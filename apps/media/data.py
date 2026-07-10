@@ -53,6 +53,7 @@ class Numbers:
     s5_last: float
     s5_sum: float
     s4_daily_aov: tuple  # the real per-day aov series for 2024-01 (the "fine day-columns")
+    s5_daily_level: tuple  # the real per-day inventory level for S001, 2024-01 (the stock over time)
     sourced: str  # "warehouse" | "guarded-constants"
 
 
@@ -87,6 +88,10 @@ def _recompute() -> dict:
         f"SELECT sum(amount)/count(*) aov FROM {T} t JOIN {CAL} c ON t.day=c.day "
         f"WHERE c.month='{S4_MONTH}' GROUP BY t.day ORDER BY t.day"
     ).fetchall()
+    levels = q(
+        f"SELECT i.level FROM {INV} i JOIN {CAL} c ON i.day=c.day "
+        f"WHERE i.store_id='{S5_STORE}' AND c.month='{S4_MONTH}' ORDER BY i.day"
+    ).fetchall()
     return {
         "s1_amount": round(s1, 2),
         "s4_pooled": round(pooled, 2),
@@ -94,6 +99,7 @@ def _recompute() -> dict:
         "s5_last": round(last, 0),
         "s5_sum": round(bad, 0),
         "s4_daily_aov": tuple(round(r[0], 2) for r in daily),
+        "s5_daily_level": tuple(round(r[0], 0) for r in levels),
     }
 
 
@@ -109,9 +115,13 @@ def load() -> Numbers:
         assert daily and abs(sum(daily) / len(daily) - _EXPECT["s4_daygrain"]) < 0.02, (
             "DRIFT: mean of the daily aov series no longer matches s4_daygrain."
         )
+        lvl = got["s5_daily_level"]
+        assert lvl and abs(lvl[-1] - _EXPECT["s5_last"]) < 0.5 and abs(sum(lvl) - _EXPECT["s5_sum"]) < 0.5, (
+            "DRIFT: the daily level series no longer matches s5_last (LAST) / s5_sum (blocked SUM)."
+        )
         return Numbers(**got, sourced="warehouse")
-    # code-only checkout: real guarded scalars; the day series is synthesized in-scene (no numerals)
-    return Numbers(**_EXPECT, s4_daily_aov=(), sourced="guarded-constants")
+    # code-only checkout: real guarded scalars; the series are synthesized in-scene (no numerals)
+    return Numbers(**_EXPECT, s4_daily_aov=(), s5_daily_level=(), sourced="guarded-constants")
 
 
 NUM = load()
