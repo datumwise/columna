@@ -62,20 +62,22 @@
   .closing { font-family: var(--font-serif); font-size: 1.05rem; margin-top: 0.5rem; }
   .closing a { display: block; font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; }
 
-  /* JS-on initial state: answers hidden until revealed, closing hidden until all three */
-  .js .exhibit-a .answer { opacity: 0; visibility: hidden; }
-  .js .exhibit-a .answer.shown { opacity: 1; visibility: visible; transition: opacity 0.4s; }
-  .js .exhibit-a .closing { opacity: 0; transition: opacity 0.5s; }
-  .js .exhibit-a .closing.shown { opacity: 1; }
+  /* JS-on initial state: answers hidden until revealed, closing hidden until all three.
+     Toggled via a class on the exhibit root (both carry Astro's scope id) — a `.js` class on
+     <html> would be scoped away and never match. */
+  .exhibit-a.is-interactive .answer { opacity: 0; visibility: hidden; }
+  .exhibit-a.is-interactive .answer.shown { opacity: 1; visibility: visible; transition: opacity 0.4s; }
+  .exhibit-a.is-interactive .closing { opacity: 0; transition: opacity 0.5s; }
+  .exhibit-a.is-interactive .closing.shown { opacity: 1; }
 
   @media (max-width: 40rem) { .answers { grid-template-columns: 1fr; gap: 0.8rem; } .value { font-size: 1.8rem; } }
 </style>
 
 <script>
   // Signal JS is available so CSS can hide the pre-rendered State 3 (no-JS keeps it visible).
-  document.documentElement.classList.add('js');
   const root = document.querySelector<HTMLElement>('.exhibit-a');
   if (root) {
+    root.classList.add('is-interactive');
     const highlight = {
       'line-items': () => root.querySelectorAll('.li').forEach((e) => e.classList.add('hot')),
       'orders': () => root.querySelectorAll('tr[data-order]').forEach((e) => e.classList.add('hot')),
