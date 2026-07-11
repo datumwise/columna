@@ -1,0 +1,12 @@
+{
+  "endpoint": "https://demo.datumwise.ai/mcp",
+  "manifold": "benchmark",
+  "contract_version": "1",
+  "queries": [
+    { "id": "clarify",  "label": "sell-through rate — revenue over end-of-period inventory", "frameql": "sell_through_rate: revenue / level.last @ store, day", "universe": null, "intended": "clarify" },
+    { "id": "disclose", "label": "revenue and inventory, side by side, by region",           "frameql": "revenue: revenue, inv: level.last @ region",           "universe": null, "intended": "disclose" },
+    { "id": "refuse",   "label": "the same rate, pinned to one population",                   "frameql": "sell_through_rate: revenue / level.last @ store, day", "universe": "transactions", "intended": "refuse" },
+    { "id": "serve",    "label": "revenue by region",                                         "frameql": "revenue @ region",                                    "universe": null, "intended": "serve" }
+  ],
+  "foolIt": { "placeholder": "sell_through_rate", "template": "%s @ store, day" }
+}
