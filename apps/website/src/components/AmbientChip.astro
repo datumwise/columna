@@ -1,0 +1,43 @@
+---
+// The one door that is always at hand. A door, not a toast — it never animates, never obscures.
+const cmd = 'pip install columna-core columna-server';
+---
+<aside class="chip wayfinding" aria-label="Install Columna">
+  <code class="chip-cmd mono" data-cmd={cmd}>{cmd}</code>
+  <button class="chip-copy" type="button" aria-label="Copy install command" data-copy>
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="1.3" /><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" />
+    </svg>
+  </button>
+  <a class="chip-cap" href="/install">run it — two minutes</a>
+</aside>
+
+<style>
+  .chip {
+    position: fixed; right: 1rem; bottom: 1rem; z-index: 50;
+    display: grid; grid-template-columns: auto auto; align-items: center; gap: 0.5rem 0.6rem;
+    background: var(--paper-raised); border: 1px solid var(--rule-strong); border-radius: 8px;
+    padding: 0.55rem 0.7rem; box-shadow: 0 2px 10px rgba(28, 27, 25, 0.06);
+    max-width: min(92vw, 24rem);
+  }
+  .chip-cmd { font-size: 0.78rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip-copy { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0;
+    background: transparent; border: 1px solid var(--rule-strong); border-radius: 6px; color: var(--ink-soft); cursor: pointer; }
+  .chip-copy:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .chip-copy[data-copied] { color: var(--mood-serve); border-color: var(--mood-serve); }
+  .chip-cap { grid-column: 1 / -1; font-size: 0.72rem; color: var(--ink-faint); text-decoration: none; }
+  .chip-cap:hover { color: var(--ink-soft); text-decoration: underline; }
+  @media (max-width: 34rem) { .chip-cmd { font-size: 0.7rem; } }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.chip [data-copy]');
+  const code = document.querySelector<HTMLElement>('.chip [data-cmd]');
+  btn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(code?.dataset.cmd ?? '');
+      btn.setAttribute('data-copied', '');
+      setTimeout(() => btn.removeAttribute('data-copied'), 1400);
+    } catch { /* clipboard unavailable — the command is visible to select by hand */ }
+  });
+</script>
