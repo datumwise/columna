@@ -24,18 +24,18 @@
 
   <p class="prompt">Revenue is <strong>$250</strong>. Now answer an ordinary question: <strong>what was our average order value?</strong></p>
 
-  <div class="divisors" role="group" aria-label="choose a denominator">
-    <button type="button" data-div="line-items">÷ line items</button>
-    <button type="button" data-div="orders">÷ orders</button>
-    <button type="button" data-div="customers">÷ customers</button>
+  <div class="divisors" role="group" aria-label="read the question three ways">
+    <button type="button" data-div="orders">per order</button>
+    <button type="button" data-div="line-items">per line item</button>
+    <button type="button" data-div="customers">per customer</button>
   </div>
 
   <div class="answers">
-    <figure class="answer" data-answer="line-items">
-      <div class="calc mono">$250 / 6</div><div class="value tabnum">$41.67</div><figcaption>per line item</figcaption>
-    </figure>
     <figure class="answer" data-answer="orders">
       <div class="calc mono">$250 / 3</div><div class="value tabnum">$83.33</div><figcaption>per order</figcaption>
+    </figure>
+    <figure class="answer" data-answer="line-items">
+      <div class="calc mono">$250 / 6</div><div class="value tabnum">$41.67</div><figcaption>per line item</figcaption>
     </figure>
     <figure class="answer" data-answer="customers">
       <div class="calc mono">$250 / 2</div><div class="value tabnum">$125.00</div><figcaption>per customer</figcaption>
