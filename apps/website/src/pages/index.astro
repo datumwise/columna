@@ -6,7 +6,7 @@ import ExhibitB from '../components/ExhibitB.astro';
 <BaseLayout title="datumwise — a number owes you its assumptions" wide={true}>
   <!-- §1 — the opening line (sans/mono, demo energy) -->
   <section class="s1 band">
-    <video class="manifold-bg" src="/media/manifold_loop_59s.mp4"
+    <video class="manifold-bg" src="/media/manifold_loop.mp4"
            poster="/media/manifold_poster.png"
            muted loop playsinline disablepictureinpicture
            preload="metadata" aria-hidden="true" tabindex="-1"></video>
@@ -122,13 +122,13 @@ import ExhibitB from '../components/ExhibitB.astro';
   .s1 { min-height: calc(100vh - 6rem); display: grid; align-items: center; padding-top: 0;
     position: relative; overflow: hidden; }
   .s1 > .col { position: relative; z-index: 1; }
-  /* ambient manifold texture — decorative, aria-hidden; light-on-dark asset dimmed over paper.
-     A radial mask keeps the headline area clearest and fades the loop into the paper at the edges. */
+  /* ambient manifold texture — decorative, aria-hidden. Paper-register asset (ink lines on the
+     same paper as the site), so it composites cleanly; a gentle vignette fades it at the edges. */
   .manifold-bg {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity: 0.13; pointer-events: none; z-index: 0;
-    -webkit-mask-image: radial-gradient(120% 90% at 50% 42%, #000 55%, transparent 100%);
-    mask-image: radial-gradient(120% 90% at 50% 42%, #000 55%, transparent 100%);
+    opacity: 0.5; pointer-events: none; z-index: 0;
+    -webkit-mask-image: radial-gradient(135% 105% at 50% 45%, #000 68%, transparent 100%);
+    mask-image: radial-gradient(135% 105% at 50% 45%, #000 68%, transparent 100%);
   }
   .opening { font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 1.5rem; }
   .sub { font-family: var(--font-sans); font-size: 1.05rem; color: var(--ink-soft); max-width: 34rem; }
