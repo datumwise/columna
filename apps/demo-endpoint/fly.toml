@@ -1,0 +1,33 @@
+# demo.datumwise.ai — the read-only Columna demo endpoint.
+app = "datumwise-columna-demo"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# run the nginx + loopback-columna mode (overrides the image's demo --play CMD)
+[processes]
+  app = "serve-http"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.http_options]
+    # streamable-http keeps connections open; don't let the edge idle them out early
+    idle_timeout = 120
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
