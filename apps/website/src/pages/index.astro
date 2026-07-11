@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="datumwise — a number owes you its assumptions" wide={true}>
+  <section class="s1">
+    <div class="s1-inner">
+      <h1 class="opening serif">A number owes you its assumptions.</h1>
+      <p class="sub">
+        Most numbers don't pay. They arrive alone — clean, confident, formatted — and the choices
+        that made them stay behind. For fifty years that was survivable, because the numbers were
+        made by people, and people argue. Now the numbers are made by machines that never argue at all.
+      </p>
+      <p class="sub">This page is one argument, top to bottom. It will take about eight minutes, and twice along the way you will watch it run.</p>
+      <p class="cue"><span class="rule-inline"></span> begin with ninety seconds of data. <a href="#exhibit-a">skip to the running demo ↓</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .s1 { min-height: calc(100vh - 6rem); display: grid; align-items: center; }
+  .s1-inner { width: min(100% - 3rem, 46rem); margin-inline: auto; }
+  .opening { font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 1.5rem; }
+  .sub { font-family: var(--font-sans); font-size: 1.05rem; color: var(--ink-soft); max-width: 34rem; }
+  .cue { font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-faint); margin-top: 3rem; display: flex; align-items: center; gap: 0.6rem; }
+  .rule-inline { display: inline-block; width: 2.5rem; height: 1px; background: var(--rule-strong); }
+  .cue a { color: var(--ink-faint); margin-left: 0.5rem; }
+</style>
