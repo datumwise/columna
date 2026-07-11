@@ -5,3 +5,4 @@ dist/
 src/data/transcript.generated.json
 .vercel/
 .DS_Store
+.vercel
