@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/columna_thesis_v0_4.md';
+---
+<BaseLayout title="The Columna Thesis — datumwise">
+  <article class="prose">
+    <Content />
+  </article>
+  <p class="engage wayfinding">
+    This is a thesis, not a petition. Dispute it, extend it, or bring evidence —
+    <a href="https://github.com/datumwise/columna/discussions" rel="noopener" target="_blank">in the open</a>.
+  </p>
+</BaseLayout>
+
+<style>
+  .engage { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
+    font-size: 0.92rem; color: var(--ink-soft); }
+</style>

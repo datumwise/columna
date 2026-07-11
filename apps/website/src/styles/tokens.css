@@ -99,3 +99,40 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
   html { scroll-behavior: auto; }
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* --- prose: the verbatim corpus, rendered (serif argument register) --- */
+.prose {
+  font-family: var(--font-serif);
+  font-size: 1.14rem;
+  line-height: 1.68;
+  color: var(--ink);
+}
+.prose > :first-child { margin-top: 0; }
+.prose h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 1.4rem; }
+.prose h2 { font-size: 1.5rem; margin: 2.6rem 0 0.8rem; }
+.prose h3 { font-size: 1.2rem; margin: 2rem 0 0.6rem; }
+.prose p { margin: 1.1em 0; }
+.prose strong { font-weight: 600; }
+.prose em { font-style: italic; }
+.prose a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule-strong); }
+.prose a:hover { text-decoration-color: var(--ink-faint); }
+.prose ul, .prose ol { padding-left: 1.4rem; margin: 1.1em 0; }
+.prose li { margin: 0.35em 0; }
+.prose hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+.prose blockquote {
+  margin: 1.6rem 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 2px solid var(--rule-strong);
+  color: var(--ink-soft); font-style: italic;
+}
+/* tables — monospace numerals, hairline rules */
+.prose table { width: 100%; border-collapse: collapse; margin: 1.6rem 0; font-family: var(--font-sans); font-size: 0.95rem; }
+.prose th, .prose td { text-align: left; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--rule); }
+.prose th { font-weight: 600; color: var(--ink-soft); border-bottom-color: var(--rule-strong); }
+.prose td { font-variant-numeric: tabular-nums; }
+/* inline + block code — the machine's voice, in the dark terminal register */
+.prose code { font-family: var(--font-mono); font-size: 0.86em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 4px; }
+.prose pre { background: var(--wire-bg); color: var(--wire-ink); padding: 1rem 1.15rem; border-radius: 8px; overflow-x: auto; font-size: 0.82rem; line-height: 1.55; margin: 1.6rem 0; }
+.prose pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+/* page title block for inner pages */
+.page-head { margin: 1rem 0 2.5rem; }
+.page-head .kicker { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
