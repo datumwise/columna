@@ -2,7 +2,13 @@
 // Exhibit A — the ninety-second table. Client-side only, no wire. Progressive enhancement:
 // the HTML renders State 3 (all three answers shown) so it works fully with JS disabled; the
 // script then hides the answers and reveals them on click. Interaction budget: three clicks.
-// The $ figures are the approved teaching arithmetic on the table shown (not warehouse data).
+//
+// Colour = grouping: the highlight shows what you divided by. ÷ line items → six distinct colours
+// (six items); ÷ orders → items in a row share a colour (three groups); ÷ customers → a customer's
+// items share a colour (two groups). The count of colours IS the denominator. Muted palette by
+// design — saturated colour stays reserved for the four mood tags (Exhibit B).
+//
+// Each .li span carries: data-li (0–5, unique), data-og (order group 0–2), data-cg (customer 0–1).
 ---
 <section class="exhibit-a" id="exhibit-a" aria-label="Exhibit A: average order value">
   <table class="sales tabnum">
@@ -10,9 +16,9 @@
       <tr><th>order</th><th>customer</th><th>line items</th></tr>
     </thead>
     <tbody>
-      <tr data-order data-customer="Ada"><td>O1</td><td>Ada</td><td><span class="li">$100</span>, <span class="li">$20</span></td></tr>
-      <tr data-order data-customer="Ada"><td>O2</td><td>Ada</td><td><span class="li">$10</span></td></tr>
-      <tr data-order data-customer="Ben"><td>O3</td><td>Ben</td><td><span class="li">$40</span>, <span class="li">$40</span>, <span class="li">$40</span></td></tr>
+      <tr><td>O1</td><td>Ada</td><td><span class="li" data-li="0" data-og="0" data-cg="0">$100</span>, <span class="li" data-li="1" data-og="0" data-cg="0">$20</span></td></tr>
+      <tr><td>O2</td><td>Ada</td><td><span class="li" data-li="2" data-og="1" data-cg="0">$10</span></td></tr>
+      <tr><td>O3</td><td>Ben</td><td><span class="li" data-li="3" data-og="2" data-cg="1">$40</span>, <span class="li" data-li="4" data-og="2" data-cg="1">$40</span>, <span class="li" data-li="5" data-og="2" data-cg="1">$40</span></td></tr>
     </tbody>
   </table>
 
@@ -41,13 +47,19 @@
 </section>
 
 <style>
-  .exhibit-a { font-family: var(--font-sans); margin: 2rem 0; }
+  .exhibit-a {
+    font-family: var(--font-sans); margin: 2rem 0;
+    /* muted grouping palette — distinguishable, paper-friendly, deliberately unsaturated */
+    --g0: #e4d3a2; --g1: #bccfb2; --g2: #aec6d8; --g3: #ddbbb2; --g4: #cabfda; --g5: #aed2cb;
+  }
   .sales { border-collapse: collapse; font-size: 0.98rem; margin-bottom: 1.5rem; }
   .sales th, .sales td { text-align: left; padding: 0.4rem 1.4rem 0.4rem 0; border-bottom: 1px solid var(--rule); }
   .sales th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 500; }
-  .li { transition: background-color 0.25s, color 0.25s; padding: 0 0.15em; border-radius: 3px; }
-  .li.hot { background: var(--mood-disclose); color: #fff; }
-  tr.hot td { background: color-mix(in srgb, var(--mood-disclose) 12%, transparent); }
+  .li { transition: background-color 0.3s ease, color 0.3s ease; padding: 0.05em 0.25em; border-radius: 4px; }
+  .li.g0 { background: var(--g0); } .li.g1 { background: var(--g1); } .li.g2 { background: var(--g2); }
+  .li.g3 { background: var(--g3); } .li.g4 { background: var(--g4); } .li.g5 { background: var(--g5); }
+  .li[class*="g"] { color: #1c1b19; }
+
   .prompt { font-family: var(--font-serif); font-size: 1.15rem; max-width: 34rem; }
   .divisors { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.2rem 0 1.6rem; }
   .divisors button { font-family: var(--font-mono); font-size: 0.9rem; padding: 0.5rem 0.9rem;
@@ -74,29 +86,31 @@
 </style>
 
 <script>
-  // Signal JS is available so CSS can hide the pre-rendered State 3 (no-JS keeps it visible).
   const root = document.querySelector<HTMLElement>('.exhibit-a');
   if (root) {
     root.classList.add('is-interactive');
-    const highlight = {
-      'line-items': () => root.querySelectorAll('.li').forEach((e) => e.classList.add('hot')),
-      'orders': () => root.querySelectorAll('tr[data-order]').forEach((e) => e.classList.add('hot')),
-      'customers': () => {
-        // group by customer: highlight the customer cells
-        root.querySelectorAll('tr[data-customer]').forEach((e) => e.classList.add('hot'));
-      },
-    } as Record<string, () => void>;
-    const clearHot = () => root.querySelectorAll('.hot').forEach((e) => e.classList.remove('hot'));
-    const revealed = new Set<string>();
+    const spans = root.querySelectorAll<HTMLElement>('.li');
+    // colour the line items by the grouping the chosen denominator implies
+    const groupBy: Record<string, (s: HTMLElement) => string> = {
+      'line-items': (s) => s.dataset.li!,   // six unique colours
+      'orders': (s) => s.dataset.og!,       // three groups (by row/order)
+      'customers': (s) => s.dataset.cg!,    // two groups (by customer)
+    };
+    const paint = (mode: string) => {
+      spans.forEach((s) => {
+        s.className = 'li';
+        s.classList.add('g' + groupBy[mode](s));
+      });
+    };
 
+    const revealed = new Set<string>();
     root.querySelectorAll<HTMLButtonElement>('.divisors button').forEach((btn) => {
       btn.addEventListener('click', () => {
         const key = btn.dataset.div!;
-        clearHot();
-        highlight[key]?.();
+        paint(key);
+        root.querySelectorAll('.divisors button').forEach((b) => b.removeAttribute('aria-pressed'));
         btn.setAttribute('aria-pressed', 'true');
-        const ans = root.querySelector<HTMLElement>(`.answer[data-answer="${key}"]`);
-        ans?.classList.add('shown');
+        root.querySelector<HTMLElement>(`.answer[data-answer="${key}"]`)?.classList.add('shown');
         revealed.add(key);
         if (revealed.size === 3) root.querySelector('.closing')?.classList.add('shown');
       });
