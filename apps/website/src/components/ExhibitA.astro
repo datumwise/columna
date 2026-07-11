@@ -1,0 +1,103 @@
+---
+// Exhibit A — the ninety-second table. Client-side only, no wire. Progressive enhancement:
+// the HTML renders State 3 (all three answers shown) so it works fully with JS disabled; the
+// script then hides the answers and reveals them on click. Interaction budget: three clicks.
+// The $ figures are the approved teaching arithmetic on the table shown (not warehouse data).
+---
+<section class="exhibit-a" id="exhibit-a" aria-label="Exhibit A: average order value">
+  <table class="sales tabnum">
+    <thead>
+      <tr><th>order</th><th>customer</th><th>line items</th></tr>
+    </thead>
+    <tbody>
+      <tr data-order data-customer="Ada"><td>O1</td><td>Ada</td><td><span class="li">$100</span>, <span class="li">$20</span></td></tr>
+      <tr data-order data-customer="Ada"><td>O2</td><td>Ada</td><td><span class="li">$10</span></td></tr>
+      <tr data-order data-customer="Ben"><td>O3</td><td>Ben</td><td><span class="li">$40</span>, <span class="li">$40</span>, <span class="li">$40</span></td></tr>
+    </tbody>
+  </table>
+
+  <p class="prompt">Revenue is <strong>$250</strong>. Now answer an ordinary question: <strong>what was our average order value?</strong></p>
+
+  <div class="divisors" role="group" aria-label="choose a denominator">
+    <button type="button" data-div="line-items">÷ line items</button>
+    <button type="button" data-div="orders">÷ orders</button>
+    <button type="button" data-div="customers">÷ customers</button>
+  </div>
+
+  <div class="answers">
+    <figure class="answer" data-answer="line-items">
+      <div class="calc mono">$250 / 6</div><div class="value tabnum">$41.67</div><figcaption>per line item</figcaption>
+    </figure>
+    <figure class="answer" data-answer="orders">
+      <div class="calc mono">$250 / 3</div><div class="value tabnum">$83.33</div><figcaption>per order</figcaption>
+    </figure>
+    <figure class="answer" data-answer="customers">
+      <div class="calc mono">$250 / 2</div><div class="value tabnum">$125.00</div><figcaption>per customer</figcaption>
+    </figure>
+  </div>
+
+  <p class="closing">Same data. Same three words. Three answers — none of them wrong.
+    <a href="/grain-gap">the full ninety-second version → The Grain Gap</a></p>
+</section>
+
+<style>
+  .exhibit-a { font-family: var(--font-sans); margin: 2rem 0; }
+  .sales { border-collapse: collapse; font-size: 0.98rem; margin-bottom: 1.5rem; }
+  .sales th, .sales td { text-align: left; padding: 0.4rem 1.4rem 0.4rem 0; border-bottom: 1px solid var(--rule); }
+  .sales th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 500; }
+  .li { transition: background-color 0.25s, color 0.25s; padding: 0 0.15em; border-radius: 3px; }
+  .li.hot { background: var(--mood-disclose); color: #fff; }
+  tr.hot td { background: color-mix(in srgb, var(--mood-disclose) 12%, transparent); }
+  .prompt { font-family: var(--font-serif); font-size: 1.15rem; max-width: 34rem; }
+  .divisors { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.2rem 0 1.6rem; }
+  .divisors button { font-family: var(--font-mono); font-size: 0.9rem; padding: 0.5rem 0.9rem;
+    background: var(--paper-raised); border: 1px solid var(--rule-strong); border-radius: 7px; color: var(--ink); cursor: pointer; }
+  .divisors button:hover { border-color: var(--ink-faint); }
+  .divisors button[aria-pressed="true"] { border-color: var(--ink); background: var(--paper); }
+  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 0.5rem 0 1.5rem; }
+  .answer { margin: 0; text-align: left; }
+  .calc { font-size: 0.82rem; color: var(--ink-faint); }
+  .value { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 600; line-height: 1.1; margin: 0.15rem 0; }
+  .answer figcaption { font-size: 0.82rem; color: var(--ink-soft); }
+  .closing { font-family: var(--font-serif); font-size: 1.05rem; margin-top: 0.5rem; }
+  .closing a { display: block; font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; }
+
+  /* JS-on initial state: answers hidden until revealed, closing hidden until all three */
+  .js .exhibit-a .answer { opacity: 0; visibility: hidden; }
+  .js .exhibit-a .answer.shown { opacity: 1; visibility: visible; transition: opacity 0.4s; }
+  .js .exhibit-a .closing { opacity: 0; transition: opacity 0.5s; }
+  .js .exhibit-a .closing.shown { opacity: 1; }
+
+  @media (max-width: 40rem) { .answers { grid-template-columns: 1fr; gap: 0.8rem; } .value { font-size: 1.8rem; } }
+</style>
+
+<script>
+  // Signal JS is available so CSS can hide the pre-rendered State 3 (no-JS keeps it visible).
+  document.documentElement.classList.add('js');
+  const root = document.querySelector<HTMLElement>('.exhibit-a');
+  if (root) {
+    const highlight = {
+      'line-items': () => root.querySelectorAll('.li').forEach((e) => e.classList.add('hot')),
+      'orders': () => root.querySelectorAll('tr[data-order]').forEach((e) => e.classList.add('hot')),
+      'customers': () => {
+        // group by customer: highlight the customer cells
+        root.querySelectorAll('tr[data-customer]').forEach((e) => e.classList.add('hot'));
+      },
+    } as Record<string, () => void>;
+    const clearHot = () => root.querySelectorAll('.hot').forEach((e) => e.classList.remove('hot'));
+    const revealed = new Set<string>();
+
+    root.querySelectorAll<HTMLButtonElement>('.divisors button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.div!;
+        clearHot();
+        highlight[key]?.();
+        btn.setAttribute('aria-pressed', 'true');
+        const ans = root.querySelector<HTMLElement>(`.answer[data-answer="${key}"]`);
+        ans?.classList.add('shown');
+        revealed.add(key);
+        if (revealed.size === 3) root.querySelector('.closing')?.classList.add('shown');
+      });
+    });
+  }
+</script>

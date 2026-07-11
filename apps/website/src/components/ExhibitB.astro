@@ -1,0 +1,37 @@
+---
+// Exhibit B — the live widget. SCAFFOLD: renders the mood vocabulary and reserves the frame.
+// Task 5 replaces this with the MCP streamable-http client (four pinned queries, clarify
+// round-trip, fool-it input) and task 6 supplies the CI-generated degrade transcript. No numbers
+// are shown here yet — the integrity rule forbids any figure that did not come from the wire.
+const moods = [
+  { id: 'serve', label: 'serve', gloss: 'the number' },
+  { id: 'disclose', label: 'disclose', gloss: 'with its assumptions attached' },
+  { id: 'clarify', label: 'clarify', gloss: 'when the question admits several readings' },
+  { id: 'refuse', label: 'refuse', gloss: 'what the data cannot answer, with the reason' },
+];
+---
+<section class="exhibit-b" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
+  <p class="wire-caption mono">this is the actual wire — what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the pair reads.</p>
+  <ul class="mood-legend">
+    {moods.map((m) => (
+      <li><span class={`mood-tag mood-${m.id}`}>{m.label}</span><span class="gloss">{m.gloss}</span></li>
+    ))}
+  </ul>
+  <p class="scaffold-note mono" data-scaffold>live widget wires in at build step 5 · degrade transcript at step 6</p>
+</section>
+
+<style>
+  .exhibit-b { font-family: var(--font-sans); margin: 2rem 0; border: 1px solid var(--wire-rule);
+    border-radius: 10px; background: var(--wire-bg); color: var(--wire-ink); padding: 1.5rem 1.6rem; }
+  .wire-caption { font-size: 0.82rem; color: var(--wire-ink-soft); line-height: 1.6; margin: 0 0 1.4rem; }
+  .mood-legend { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
+  .mood-legend li { display: flex; align-items: baseline; gap: 0.8rem; }
+  .mood-tag { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; padding: 0.15rem 0.55rem;
+    border-radius: 999px; color: #fff; }
+  .mood-serve { background: var(--mood-serve); }
+  .mood-disclose { background: var(--mood-disclose); }
+  .mood-clarify { background: var(--mood-clarify); }
+  .mood-refuse { background: var(--mood-refuse); }
+  .gloss { font-size: 0.92rem; color: var(--wire-ink-soft); }
+  .scaffold-note { margin: 1.4rem 0 0; font-size: 0.7rem; color: var(--wire-rule); }
+</style>
