@@ -1,0 +1,119 @@
+---
+// Exhibit A — the ninety-second table. Client-side only, no wire. Progressive enhancement:
+// the HTML renders State 3 (all three answers shown) so it works fully with JS disabled; the
+// script then hides the answers and reveals them on click. Interaction budget: three clicks.
+//
+// Colour = grouping: the highlight shows what you divided by. ÷ line items → six distinct colours
+// (six items); ÷ orders → items in a row share a colour (three groups); ÷ customers → a customer's
+// items share a colour (two groups). The count of colours IS the denominator. Muted palette by
+// design — saturated colour stays reserved for the four mood tags (Exhibit B).
+//
+// Each .li span carries: data-li (0–5, unique), data-og (order group 0–2), data-cg (customer 0–1).
+---
+<section class="exhibit-a" id="exhibit-a" aria-label="Exhibit A: average order value">
+  <table class="sales tabnum">
+    <thead>
+      <tr><th>order</th><th>customer</th><th>line items</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>O1</td><td>Ada</td><td><span class="li" data-li="0" data-og="0" data-cg="0">$100</span>, <span class="li" data-li="1" data-og="0" data-cg="0">$20</span></td></tr>
+      <tr><td>O2</td><td>Ada</td><td><span class="li" data-li="2" data-og="1" data-cg="0">$10</span></td></tr>
+      <tr><td>O3</td><td>Ben</td><td><span class="li" data-li="3" data-og="2" data-cg="1">$40</span>, <span class="li" data-li="4" data-og="2" data-cg="1">$40</span>, <span class="li" data-li="5" data-og="2" data-cg="1">$40</span></td></tr>
+    </tbody>
+  </table>
+
+  <p class="prompt">Revenue is <strong>$250</strong>. Now answer an ordinary question: <strong>what was our average order value?</strong></p>
+
+  <div class="divisors" role="group" aria-label="read the question three ways">
+    <button type="button" data-div="orders">per order</button>
+    <button type="button" data-div="line-items">per line item</button>
+    <button type="button" data-div="customers">per customer</button>
+  </div>
+
+  <div class="answers">
+    <figure class="answer" data-answer="orders">
+      <div class="calc mono">$250 / 3</div><div class="value tabnum">$83.33</div><figcaption>per order</figcaption>
+    </figure>
+    <figure class="answer" data-answer="line-items">
+      <div class="calc mono">$250 / 6</div><div class="value tabnum">$41.67</div><figcaption>per line item</figcaption>
+    </figure>
+    <figure class="answer" data-answer="customers">
+      <div class="calc mono">$250 / 2</div><div class="value tabnum">$125.00</div><figcaption>per customer</figcaption>
+    </figure>
+  </div>
+
+  <p class="closing">Same data. Same three words. Three answers — none of them wrong.
+    <a href="/grain-gap">the full ninety-second version → The Grain Gap</a></p>
+</section>
+
+<style>
+  .exhibit-a {
+    font-family: var(--font-sans); margin: 2rem 0;
+    /* muted grouping palette — distinguishable, paper-friendly, deliberately unsaturated */
+    --g0: #e4d3a2; --g1: #bccfb2; --g2: #aec6d8; --g3: #ddbbb2; --g4: #cabfda; --g5: #aed2cb;
+  }
+  .sales { border-collapse: collapse; font-size: 0.98rem; margin-bottom: 1.5rem; }
+  .sales th, .sales td { text-align: left; padding: 0.4rem 1.4rem 0.4rem 0; border-bottom: 1px solid var(--rule); }
+  .sales th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 500; }
+  .li { transition: background-color 0.3s ease, color 0.3s ease; padding: 0.05em 0.25em; border-radius: 4px; }
+  .li.g0 { background: var(--g0); } .li.g1 { background: var(--g1); } .li.g2 { background: var(--g2); }
+  .li.g3 { background: var(--g3); } .li.g4 { background: var(--g4); } .li.g5 { background: var(--g5); }
+  .li[class*="g"] { color: #1c1b19; }
+
+  .prompt { font-family: var(--font-serif); font-size: 1.15rem; max-width: 34rem; }
+  .divisors { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.2rem 0 1.6rem; }
+  .divisors button { font-family: var(--font-mono); font-size: 0.9rem; padding: 0.5rem 0.9rem;
+    background: var(--paper-raised); border: 1px solid var(--rule-strong); border-radius: 7px; color: var(--ink); cursor: pointer; }
+  .divisors button:hover { border-color: var(--ink-faint); }
+  .divisors button[aria-pressed="true"] { border-color: var(--ink); background: var(--paper); }
+  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 0.5rem 0 1.5rem; }
+  .answer { margin: 0; text-align: left; }
+  .calc { font-size: 0.82rem; color: var(--ink-faint); }
+  .value { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 600; line-height: 1.1; margin: 0.15rem 0; }
+  .answer figcaption { font-size: 0.82rem; color: var(--ink-soft); }
+  .closing { font-family: var(--font-serif); font-size: 1.05rem; margin-top: 0.5rem; }
+  .closing a { display: block; font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; }
+
+  /* JS-on initial state: answers hidden until revealed, closing hidden until all three.
+     Toggled via a class on the exhibit root (both carry Astro's scope id) — a `.js` class on
+     <html> would be scoped away and never match. */
+  .exhibit-a.is-interactive .answer { opacity: 0; visibility: hidden; }
+  .exhibit-a.is-interactive .answer.shown { opacity: 1; visibility: visible; transition: opacity 0.4s; }
+  .exhibit-a.is-interactive .closing { opacity: 0; transition: opacity 0.5s; }
+  .exhibit-a.is-interactive .closing.shown { opacity: 1; }
+
+  @media (max-width: 40rem) { .answers { grid-template-columns: 1fr; gap: 0.8rem; } .value { font-size: 1.8rem; } }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.exhibit-a');
+  if (root) {
+    root.classList.add('is-interactive');
+    const spans = root.querySelectorAll<HTMLElement>('.li');
+    // colour the line items by the grouping the chosen denominator implies
+    const groupBy: Record<string, (s: HTMLElement) => string> = {
+      'line-items': (s) => s.dataset.li!,   // six unique colours
+      'orders': (s) => s.dataset.og!,       // three groups (by row/order)
+      'customers': (s) => s.dataset.cg!,    // two groups (by customer)
+    };
+    const paint = (mode: string) => {
+      spans.forEach((s) => {
+        s.className = 'li';
+        s.classList.add('g' + groupBy[mode](s));
+      });
+    };
+
+    const revealed = new Set<string>();
+    root.querySelectorAll<HTMLButtonElement>('.divisors button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.div!;
+        paint(key);
+        root.querySelectorAll('.divisors button').forEach((b) => b.removeAttribute('aria-pressed'));
+        btn.setAttribute('aria-pressed', 'true');
+        root.querySelector<HTMLElement>(`.answer[data-answer="${key}"]`)?.classList.add('shown');
+        revealed.add(key);
+        if (revealed.size === 3) root.querySelector('.closing')?.classList.add('shown');
+      });
+    });
+  }
+</script>

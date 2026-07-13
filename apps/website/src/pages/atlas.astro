@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/silent_failure_atlas_article_v1_3.md';
+---
+<BaseLayout title="The Silent Failure Atlas — datumwise">
+  <section class="contribute wayfinding">
+    <p class="c-lead">Bring us the failure modes you've witnessed.</p>
+    <p class="c-body">
+      The Atlas is a public, graded catalog of the ways a query runs clean and lies — measured
+      against everyone, including us. If a number has ever lied to you by omission, it belongs here.
+    </p>
+    <a class="c-action" href="https://github.com/datumwise/columna/discussions" rel="noopener" target="_blank">
+      Contribute a failure mode →
+    </a>
+  </section>
+  <article class="prose">
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .contribute { margin: 0 0 3rem; padding: 1.5rem 1.6rem; border: 1px solid var(--rule-strong);
+    border-radius: 10px; background: var(--paper-raised); }
+  .c-lead { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; margin: 0 0 0.6rem; }
+  .c-body { font-size: 0.95rem; color: var(--ink-soft); margin: 0 0 1rem; max-width: 40rem; }
+  .c-action { font-size: 0.92rem; font-weight: 500; text-decoration: none; color: var(--ink);
+    border-bottom: 1px solid var(--ink-faint); padding-bottom: 1px; }
+  .c-action:hover { border-color: var(--ink); }
+</style>
