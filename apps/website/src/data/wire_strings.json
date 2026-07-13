@@ -48,6 +48,15 @@
     }
   },
 
+  "derivations": {
+    "sectionLabel": "derived dimensions & rollups",
+    "rollup": "{frm} rolls up to {targets} — via {lineage}",
+    "lineageGloss": {
+      "calendar": "a calendar hierarchy",
+      "store_geo": "a store → region geography"
+    }
+  },
+
   "foolIt": {
     "queryShapeRedirect": "That looks like a query — this box checks measure names. Use the buttons above to run full queries.",
     "describeIntro": "Not a query — here’s what this measure is:"

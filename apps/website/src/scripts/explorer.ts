@@ -102,8 +102,9 @@ function measureCard(name: string, D: ExplorerData): HTMLElement {
   const parts: string[] = [];
   parts.push(`<div class="obj-head"><span class="obj-kind">measure</span> <strong>${esc(name)}</strong>` +
     `<button class="obj-close" aria-label="close" data-close>✕</button></div>`);
+  // v0.2: family members ARE reducers — label them as the operators they are
   parts.push(`<div class="obj-meta">` +
-    `<span><em>family</em> ${esc(m.family_members.join(' · '))}</span>` +
+    `<span><em>reducers</em> ${esc(m.family_members.join(' · '))}</span>` +
     `<span><em>${gl('universe', 'universe', D)}</em> ${door('universe', uni)}</span>` +
     `<span><em>attested</em> ${esc(m.provenance)}</span></div>`);
 
@@ -165,13 +166,37 @@ function onePagerLink(D: ExplorerData): string {
   return `<a class="onepager-link" href="${esc(op.route)}">${esc(op.linkText || 'how to read the wire →')}</a>`;
 }
 
-// ---- the "what's in this manifold?" panel content -------------------------------------------
+// ---- the "what's in this manifold?" panel content (v0.2: THREE sections) --------------------
 export function renderManifoldPanel(D: ExplorerData): string {
   const unis = D.describe.manifold.universes.map((u) =>
     `<div class="mf-uni">${door('universe', u.name)}<span class="mf-uni-desc">${esc(D.strings.universes?.[u.name] || '')}</span></div>`).join('');
   const measures = D.describe.manifold.measure_index.map((n) => door('measure', n)).join(' ');
   return `<div class="mf-block"><div class="vlabel">the ${D.describe.manifold.universes.length} populations</div>${unis}</div>` +
-    `<div class="mf-block"><div class="vlabel">the ${D.describe.manifold.measure_index.length} measures — tap to describe</div><div class="index-tags">${measures}</div></div>`;
+    `<div class="mf-block"><div class="vlabel">the ${D.describe.manifold.measure_index.length} measures — tap to describe</div><div class="index-tags">${measures}</div></div>` +
+    renderDerivations(D);
+}
+
+// derived dimensions / rollups — the lattice-builders (v0.2). Grouped by (from-dim, lineage),
+// derived structurally from the manifold edges; the phrasing lives in the reviewed strings file.
+function renderDerivations(D: ExplorerData): string {
+  const groups = new Map<string, { frm: string; lineage: string; targets: string[] }>();
+  for (const e of D.describe.manifold.edges) {
+    const key = `${e.frm}|${e.lineage}`;
+    if (!groups.has(key)) groups.set(key, { frm: e.frm, lineage: e.lineage, targets: [] });
+    groups.get(key)!.targets.push(e.to);
+  }
+  if (!groups.size) return '';
+  const dv = D.strings.derivations || {};
+  const rows = [...groups.values()].map((g) => {
+    const line = fill(dv.rollup || '{frm} rolls up to {targets} — via {lineage}', {
+      frm: dimLabel(D, g.frm),
+      targets: g.targets.map((t) => dimLabel(D, t)).join(' / '),
+      lineage: g.lineage,
+    });
+    // make the from-dim + targets tappable is out of scope; keep the lineage name as a code token
+    return `<div class="mf-deriv">${esc(line)}</div>`;
+  }).join('');
+  return `<div class="mf-block"><div class="vlabel">${esc(dv.sectionLabel || 'derived dimensions & rollups')}</div>${rows}</div>`;
 }
 
 // ---- glossary tooltip (one shared floating element) -----------------------------------------
