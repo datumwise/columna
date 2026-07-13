@@ -8,6 +8,7 @@ interface Data {
   seeded: Record<'clarify' | 'disclose' | 'refuse' | 'serve', { label: string; wire: Wire }>;
   roundtrip: Record<string, Wire>;
   foolIt: { wire: Wire; measureIndex: string[]; placeholder: string; template: string };
+  endpoint: string;
 }
 
 const root = document.querySelector<HTMLElement>('.exhibit-b');
@@ -19,18 +20,20 @@ function init(root: HTMLElement) {
   const respEl = root.querySelector<HTMLElement>('[data-response]')!;
   const degradeEl = root.querySelector<HTMLElement>('[data-degrade]');
   const foolForm = root.querySelector<HTMLFormElement>('[data-fool]')!;
+  const foolResp = document.createElement('div');
+  foolResp.className = 'response fool-response';
+  foolForm.querySelector('.fool-hint')!.before(foolResp);
 
-  // Live path activates when the Fly endpoint is deployed; until then we degrade to the recorded
-  // transcript (a first-class requirement — the site never looks broken). No fake data either way.
-  const LIVE = false;
-  if (!LIVE) {
+  // The free-text fool-it goes LIVE against the read-only demo endpoint (real shipped-package wire).
+  // Seeded buttons + the round-trip stay on the build-time transcript (identical, and instant). If a
+  // live request fails/times out, that ONE interaction degrades to the captured trap + a stamped note
+  // — the site never looks broken and never shows fake data.
+  function degradeFool(reason: string) {
+    console.warn('[exhibit-b] live fool-it degraded:', reason);
     degradeEl?.removeAttribute('hidden');
-    // per the exhibit contract, the free-text input is live-only; in degrade show the captured trap
     foolForm.querySelector('.fool-row')?.setAttribute('hidden', '');
-    const captured = document.createElement('div');
-    captured.className = 'response';
-    captured.append(renderCard(DATA.foolIt.wire, { ask: DATA.foolIt.measureIndex, heading: 'captured — asking for a measure that does not exist:' }));
-    foolForm.querySelector('.fool-hint')!.before(captured);
+    foolResp.innerHTML = '';
+    foolResp.append(renderCard(DATA.foolIt.wire, { ask: DATA.foolIt.measureIndex, heading: 'captured — asking for a measure that does not exist:' }));
   }
 
   // --- seeded buttons ---
@@ -46,11 +49,52 @@ function init(root: HTMLElement) {
     });
   });
 
-  // --- fool-it (live only) ---
-  foolForm.addEventListener('submit', (e) => {
+  // --- fool-it (live) ---
+  const foolInput = foolForm.querySelector<HTMLInputElement>('#fool-input')!;
+  const foolBtn = foolForm.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+  foolForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // no-op in degrade; live path issues the query and renders whatever mood returns
+    const measure = foolInput.value.trim();
+    if (!measure) return;
+    // template exactly as the fool-it contract does: "<name> @ store, day"
+    const frameql = DATA.foolIt.template.replace('%s', () => measure);
+
+    foolBtn.disabled = true;
+    foolResp.innerHTML = '<p class="pick-note">asking the live endpoint…</p>';
+    try {
+      const wire = await postQuery(DATA.endpoint, frameql);
+      if (wire.contract_version !== '1') throw new Error('unexpected contract');
+      foolResp.innerHTML = '';
+      const isErr = wire.outcome === 'error' || wire.outcome === 'refuse';
+      foolResp.append(renderCard(wire, isErr
+        ? { ask: DATA.foolIt.measureIndex, heading: `you asked for “${measure}” — here is what came back over the wire:` }
+        : { heading: `you asked for “${measure}”:` }));
+      foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (err) {
+      degradeFool(String(err));
+    } finally {
+      foolBtn.disabled = false;
+    }
   });
+}
+
+// POST a Frame-QL query to the read-only demo endpoint; returns the disclosure wire (real JSON).
+async function postQuery(endpoint: string, frameql: string, universe: string | null = null): Promise<Wire> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ frameql, universe }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`endpoint ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 // The clarify round-trip: pick → refuse → resolve → disclose (the demo --play arc).

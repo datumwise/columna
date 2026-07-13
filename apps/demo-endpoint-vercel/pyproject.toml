@@ -1,0 +1,12 @@
+[project]
+name = "columna-demo-endpoint"
+version = "0.1.0"
+description = "Read-only Columna demo endpoint (Vercel) — serves precomputed real shipped-package wire."
+requires-python = ">=3.12"
+# No dependencies by design: stdlib + a vendored pure-stdlib Frame-QL parser (vendor/frameql.py).
+# The full engine (polars+pyarrow+duckdb) exceeds Vercel's 250MB limit; genuine wire is captured at
+# build time by scripts/generate.py running the real package.
+dependencies = []
+
+[tool.vercel]
+entrypoint = "index:handler"
