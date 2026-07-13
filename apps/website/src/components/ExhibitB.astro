@@ -12,6 +12,7 @@
 // universe) → the honest resolution is separate columns → disclose.
 import transcript from '../data/transcript.generated.json';
 import seeded from '../data/seeded_queries.json';
+import wireStrings from '../data/wire_strings.json';
 
 const labels = Object.fromEntries(seeded.queries.map((q: any) => [q.id, q.label]));
 // key the round-trip by universe for easy lookup
@@ -35,11 +36,21 @@ const data = {
     template: seeded.foolIt.template,
   },
   endpoint: seeded.endpoint,
+  // Manifold Explorer (tier 1): captured describe wire + the governed communicative strings
+  describe: transcript.describe,
+  strings: wireStrings,
 };
 const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10);
 ---
 <section class="exhibit-b" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
   <p class="wire-caption mono">this is the actual wire — what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the pair reads.</p>
+
+  <details class="manifold-panel">
+    <summary>what's in this manifold? <span class="mf-hint">— explore the data before you ask</span></summary>
+    <div class="mf-body" data-manifold-panel></div>
+  </details>
+
+  <div class="explorer-slot" data-explorer-slot hidden></div>
 
   <p class="seed-prompt">👇 <strong>Tap a question to run it live.</strong> You'll get back the real result <em>and</em> the mood it answers in — served, disclosed, clarified, or refused.</p>
 
@@ -174,6 +185,72 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     padding: 0.8rem; overflow-x: auto; max-height: 22rem; }
   .exhibit-b .wire-pane .k { color: var(--wire-key); }
   .exhibit-b .wire-pane .s { color: var(--wire-string); }
+
+  /* ---- Manifold Explorer (tier 1) ---- */
+  .exhibit-b .manifold-panel { border: 1px solid var(--wire-rule); border-radius: 8px; background: var(--wire-panel);
+    margin-bottom: 1.1rem; }
+  .exhibit-b .manifold-panel > summary { cursor: pointer; padding: 0.7rem 0.9rem; font-family: var(--font-mono);
+    font-size: 0.84rem; color: var(--wire-ink); list-style: none; }
+  .exhibit-b .manifold-panel > summary::-webkit-details-marker { display: none; }
+  .exhibit-b .manifold-panel > summary::before { content: "▸ "; color: var(--wire-key); }
+  .exhibit-b .manifold-panel[open] > summary::before { content: "▾ "; }
+  .exhibit-b .manifold-panel .mf-hint { color: var(--wire-ink-soft); }
+  .exhibit-b .mf-body { padding: 0.2rem 0.9rem 1rem; display: grid; gap: 0.9rem; }
+  .exhibit-b .mf-block { display: grid; gap: 0.4rem; }
+  .exhibit-b .mf-uni { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.6rem; }
+  .exhibit-b .mf-uni-desc { color: var(--wire-ink-soft); font-size: 0.82rem; }
+  .exhibit-b .mf-deriv { font-family: var(--font-mono); font-size: 0.82rem; color: var(--wire-ink); padding: 0.1rem 0; }
+
+  /* doorways — inline tap-targets into describe cards */
+  .exhibit-b .door { font: inherit; font-family: var(--font-mono); background: none; border: 0; padding: 0;
+    color: var(--wire-key); border-bottom: 1px dotted var(--wire-key); cursor: pointer; line-height: 1.2; }
+  .exhibit-b .door:hover { color: #fff; border-bottom-color: #fff; }
+  .exhibit-b .index-tags .door.tag { border: 1px solid var(--wire-rule); border-radius: 5px; padding: 0.2rem 0.55rem;
+    color: var(--wire-ink); background: #1b2432; border-bottom: 1px solid var(--wire-rule); }
+  .exhibit-b .index-tags .door.tag:hover { border-color: var(--wire-key); color: #fff; }
+
+  /* glossary terms — dotted underline, tooltip on hover/focus/tap */
+  .exhibit-b .gloss { border-bottom: 1px dashed var(--wire-ink-soft); cursor: help; }
+
+  /* the shared describe-card slot + object cards */
+  .exhibit-b .explorer-slot { margin: 0 0 1.1rem; }
+  .exhibit-b .obj-card { border: 1px solid var(--wire-rule); border-left: 3px solid var(--wire-key);
+    border-radius: 8px; background: #10151d; padding: 0.9rem 1rem; margin-top: 0.8rem; }
+  .exhibit-b .obj-head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--wire-ink); }
+  .exhibit-b .obj-kind { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--wire-bg); background: var(--wire-key); padding: 0.12rem 0.45rem; border-radius: 4px; }
+  .exhibit-b .obj-kind.metric { background: var(--mood-disclose); }
+  .exhibit-b .obj-card .obj-meta code { color: var(--wire-ink); }
+  .exhibit-b .obj-close { margin-left: auto; background: none; border: 0; color: var(--wire-ink-soft); cursor: pointer; font-size: 0.9rem; }
+  .exhibit-b .obj-close:hover { color: #fff; }
+  .exhibit-b .obj-note { font-size: 0.86rem; color: var(--wire-ink-soft); margin: 0.5rem 0 0; line-height: 1.5; }
+  .exhibit-b .obj-meta { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; margin-top: 0.6rem;
+    font-family: var(--font-mono); font-size: 0.8rem; color: var(--wire-ink); }
+  .exhibit-b .obj-meta em { font-style: normal; color: var(--wire-ink-soft); margin-right: 0.35rem; }
+  .exhibit-b .obj-meta code { color: var(--wire-string); }
+  .exhibit-b .cone { margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--wire-rule); }
+  .exhibit-b .cone-h { font-family: var(--font-mono); font-size: 0.78rem; color: var(--wire-ink-soft); margin-bottom: 0.35rem; }
+  .exhibit-b .grains { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .exhibit-b .grain { font-family: var(--font-mono); font-size: 0.76rem; padding: 0.12rem 0.45rem;
+    background: #1b2432; border: 1px solid var(--wire-rule); border-radius: 4px; color: var(--wire-ink); }
+  .exhibit-b .barred { margin-top: 0.4rem; font-size: 0.82rem; color: var(--wire-ink); line-height: 1.5; }
+  .exhibit-b .barred-x { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--mood-refuse); border: 1px solid var(--mood-refuse); border-radius: 4px; padding: 0.05rem 0.35rem; margin-right: 0.35rem; }
+  .exhibit-b .barred-why { color: var(--wire-ink-soft); }
+  .exhibit-b .onepager-link { display: inline-block; margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--wire-key); }
+
+  /* engine-detail toggle (verbatim wire detail, one tap away) */
+  .exhibit-b .engine-detail { margin-top: 0.4rem; }
+  .exhibit-b .engine-detail summary { font-family: var(--font-mono); font-size: 0.72rem; color: var(--wire-ink-soft); cursor: pointer; }
+  .exhibit-b .engine-detail-body { font-family: var(--font-mono); font-size: 0.76rem; color: var(--wire-ink-soft);
+    margin-top: 0.3rem; padding-left: 0.6rem; border-left: 1px solid var(--wire-rule); line-height: 1.5; }
+
+  /* the shared glossary tooltip lives on <body> (outside .exhibit-b) */
+  .gloss-tip { position: absolute; z-index: 50; max-width: 20rem; font-family: var(--font-sans); font-size: 0.82rem;
+    line-height: 1.5; color: var(--wire-ink); background: #23304a; border: 1px solid var(--wire-key);
+    border-radius: 6px; padding: 0.6rem 0.75rem; box-shadow: 0 8px 28px rgba(0,0,0,0.55); pointer-events: auto; }
+  .gloss-tip strong { color: #fff; }
+  .gloss-tip a { color: var(--wire-key); margin-left: 0.3rem; }
 </style>
 
 <script>

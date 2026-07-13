@@ -1,0 +1,78 @@
+{
+  "_note": "GOVERNED COMMUNICATIVE LAYER (design-capture ruling e-1, 2026-07-13). Every string here is keyed to a STRUCTURAL fact in the wire — a disclosure/reason CODE, a dimension, a universe/population, a predicate, or a legal BAR — never to the engine's prose. The engine's verbatim `detail` is always one toggle away in the UI. Placeholders in {braces} are filled by the renderer from structural wire fields (column.population, frame.universe, the column's measure name, the measure's family members), NEVER by parsing detail text. Change only by PR with wording approval.",
+
+  "disclosureCodes": {
+    "denominator_population": { "friendly": "This number blends {populations} — so “per what?” has two valid answers. Pin which population you mean to get one." },
+    "freshness": { "friendly": "Served from a cached copy rather than recomputed just now." }
+  },
+
+  "reasonCodes": {
+    "co_anchor_ambiguous": { "friendly": "This is a ratio whose top and bottom come from different populations, so the rate has no single “per what”. Pick which population it should be taken over." },
+    "out_of_universe": { "friendly": "You pinned this to {pinned}, but part of this rate isn’t defined over that population — so there’s honestly nothing to compute. (Which part, and where it does live, is in the engine detail.)" },
+    "unsupported": { "friendly": "This build can’t compute that particular shape yet. A plumbing limit — not an answer about your data." },
+    "unknown": { "friendly": "{measure} comes in more than one form — say which: {members} (e.g. {example})." }
+  },
+
+  "glossary": {
+    "manifold": "The map of everything a dataset can say: its measures, the populations they live in, and the grains they may be asked at.",
+    "measure": "Something the data can report — revenue, orders — plus how it reduces (sum, count, median…).",
+    "anchor": "The coordinates a number is reported at — “by store, by day” — the per-what of an answer.",
+    "universe": "A named population a measure is defined over (e.g. transactions, store_days).",
+    "population": "The exact set of rows an answer is about; two measures in different populations aren’t automatically comparable.",
+    "frame": "One query’s columns evaluated together at a shared anchor — the unit the wire returns.",
+    "pin": "Fixing which population a query runs over when it’d otherwise be ambiguous — written ON UNIVERSE <name>.",
+    "mood": "How an answer reads: serve (just answer), disclose (answer + caveat), clarify (which reading?), refuse (can’t, and why).",
+    "operator": "A verb of the algebra — a reducer collapses a column (sum, last, median); a mapper reshapes it without collapsing. Legality decides which may apply where.",
+    "derived column": "A column defined from others rather than stored — a derived dimension (day → week) or a derived metric (revenue ÷ inventory)."
+  },
+  "glossaryAliases": {
+    "on universe": "pin", "pin": "pin", "pinned": "pin",
+    "universes": "universe", "populations": "population", "measures": "measure",
+    "anchors": "anchor", "moods": "mood", "manifolds": "manifold", "frames": "frame",
+    "operators": "operator", "reducer": "operator", "reducers": "operator", "mapper": "operator", "mappers": "operator"
+  },
+  "derivedMetrics": {
+    "sectionLabel": "derived metric",
+    "cardKind": "derived metric",
+    "formulaLabel": "formula",
+    "sourceLabel": "source",
+    "ambiguityByCode": {
+      "co_anchor_ambiguous": "Its top and bottom live in different populations — which is exactly what the first button demonstrates."
+    }
+  },
+
+  "universes": {
+    "transactions": "One row per sale line — customer × store × product × day. The “sales” population.",
+    "store_days": "One row per store per day it was open (day ≥ opening date). The “inventory” population."
+  },
+  "universeShort": { "transactions": "sales", "store_days": "inventory" },
+
+  "dimLabels": { "cal.week": "week", "cal.month": "month", "cal.quarter": "quarter", "cal.year": "year" },
+  "lineageLabels": {
+    "calendar": "the calendar (week → month → quarter → year)",
+    "store_geo": "geography (store → region)"
+  },
+  "barredReasons": {
+    "level.sum.calendar": "Adding up an end-of-period level across days double-counts stock — the inventory on the 3rd isn’t separate from the inventory on the 4th.",
+    "_fallbackByLineage": {
+      "calendar": "This reduction isn’t valid when rolling up over the calendar.",
+      "store_geo": "This reduction isn’t valid when rolling up over geography."
+    }
+  },
+
+  "derivations": {
+    "sectionLabel": "derived dimensions & rollups",
+    "rollup": "{frm} rolls up to {targets} — via {lineage}",
+    "lineageGloss": {
+      "calendar": "a calendar hierarchy",
+      "store_geo": "a store → region geography"
+    }
+  },
+
+  "foolIt": {
+    "queryShapeRedirect": "That looks like a query — this box checks measure names. Use the buttons above to run full queries.",
+    "describeIntro": "Not a query — here’s what this measure is:"
+  },
+
+  "onePager": { "route": "/how-to-read-the-wire", "linkText": "new to these terms? →" }
+}
