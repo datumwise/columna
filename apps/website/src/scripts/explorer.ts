@@ -14,6 +14,7 @@ export interface ExplorerData {
   describe: {
     manifold: { id: string; universes: Any[]; edges: Any[]; measure_index: string[] };
     measures: Record<string, Any>;
+    derived_metrics?: Record<string, Any>;
   };
   strings: Any;
 }
@@ -21,6 +22,7 @@ export interface ExplorerData {
 // ---- structural lookups -------------------------------------------------------------------
 function measureNames(D: ExplorerData): Set<string> { return new Set(Object.keys(D.describe.measures)); }
 function universeNames(D: ExplorerData): Set<string> { return new Set(D.describe.manifold.universes.map((u) => u.name)); }
+function metricNames(D: ExplorerData): Set<string> { return new Set(Object.keys(D.describe.derived_metrics || {})); }
 function dimLabel(D: ExplorerData, dim: string): string { return D.strings.dimLabels?.[dim] || dim; }
 function uniShort(D: ExplorerData, u: string): string { return D.strings.universeShort?.[u] || u; }
 
@@ -75,9 +77,11 @@ export function linkify(text: string, D: ExplorerData): string {
   const glossary = D.strings.glossary || {};
   const aliases = D.strings.glossaryAliases || {};
   // match identifiers, optionally single-quoted (so ['store_days', 'transactions'] resolves)
+  const metrics = metricNames(D);
   return esc(text).replace(/'?([A-Za-z_][A-Za-z0-9_]*)'?/g, (m, word) => {
     if (measures.has(word)) return door('measure', word);
     if (universes.has(word)) return door('universe', word);
+    if (metrics.has(word)) return door('metric', word);
     const lw = word.toLowerCase();
     const gkey = glossary[lw] ? lw : aliases[lw];
     if (gkey && glossary[gkey]) return `<span class="gloss" data-term="${esc(gkey)}" tabindex="0">${esc(word)}</span>`;
@@ -90,7 +94,29 @@ function door(kind: string, name: string): string {
 
 // ---- object cards (a measure card or a universe card) --------------------------------------
 export function renderObjectCard(kind: string, name: string, D: ExplorerData): HTMLElement {
-  return kind === 'universe' ? universeCard(name, D) : measureCard(name, D);
+  if (kind === 'universe') return universeCard(name, D);
+  if (kind === 'metric') return metricCard(name, D);
+  return measureCard(name, D);
+}
+
+// a demo-defined DERIVED METRIC (v0.2) — sourced from the demo's seeded-query definition, NOT from
+// engine describe wire (it has none). Every field traces to the captured derived_metrics record.
+function metricCard(name: string, D: ExplorerData): HTMLElement {
+  const dm = (D.describe.derived_metrics || {})[name];
+  const s = D.strings.derivedMetrics || {};
+  const card = document.createElement('div');
+  card.className = 'obj-card';
+  if (!dm) { card.innerHTML = `<div class="obj-head"><span class="obj-kind">${esc(s.cardKind || 'derived metric')}</span> <strong>${esc(name)}</strong></div>`; return card; }
+  const parts: string[] = [];
+  parts.push(`<div class="obj-head"><span class="obj-kind metric">${esc(s.cardKind || 'derived metric')}</span> <strong>${esc(name)}</strong>` +
+    `<button class="obj-close" aria-label="close" data-close>✕</button></div>`);
+  parts.push(`<div class="obj-meta"><span><em>${esc(s.formulaLabel || 'formula')}</em> <code>${linkify(dm.formula, D)}</code></span>` +
+    `<span><em>${esc(s.sourceLabel || 'source')}</em> ${esc(dm.source)}</span></div>`);
+  const amb = (s.ambiguityByCode || {})[dm.demonstrates];
+  if (amb) parts.push(`<div class="cone"><div class="barred">${linkify(amb, D)}</div></div>`);
+  parts.push(onePagerLink(D));
+  card.innerHTML = parts.join('');
+  return card;
 }
 
 function measureCard(name: string, D: ExplorerData): HTMLElement {
@@ -104,7 +130,7 @@ function measureCard(name: string, D: ExplorerData): HTMLElement {
     `<button class="obj-close" aria-label="close" data-close>✕</button></div>`);
   // v0.2: family members ARE reducers — label them as the operators they are
   parts.push(`<div class="obj-meta">` +
-    `<span><em>reducers</em> ${esc(m.family_members.join(' · '))}</span>` +
+    `<span><em>${gl('reducers', 'operator', D)}</em> ${esc(m.family_members.join(' · '))}</span>` +
     `<span><em>${gl('universe', 'universe', D)}</em> ${door('universe', uni)}</span>` +
     `<span><em>attested</em> ${esc(m.provenance)}</span></div>`);
 
@@ -196,7 +222,11 @@ function renderDerivations(D: ExplorerData): string {
     // make the from-dim + targets tappable is out of scope; keep the lineage name as a code token
     return `<div class="mf-deriv">${esc(line)}</div>`;
   }).join('');
-  return `<div class="mf-block"><div class="vlabel">${esc(dv.sectionLabel || 'derived dimensions & rollups')}</div>${rows}</div>`;
+  // derived METRICS (v0.2): tappable to their derived-metric cards
+  const metrics = Object.values(D.describe.derived_metrics || {}) as Any[];
+  const metricRows = metrics.map((mm) =>
+    `<div class="mf-deriv">${door('metric', mm.name)} — <code>${esc(mm.formula)}</code> <span class="mf-uni-desc">(${esc((D.strings.derivedMetrics || {}).cardKind || 'derived metric')})</span></div>`).join('');
+  return `<div class="mf-block"><div class="vlabel">${esc(dv.sectionLabel || 'derived dimensions & rollups')}</div>${rows}${metricRows}</div>`;
 }
 
 // ---- glossary tooltip (one shared floating element) -----------------------------------------
