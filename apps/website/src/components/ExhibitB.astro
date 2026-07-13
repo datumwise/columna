@@ -1,0 +1,136 @@
+---
+// Exhibit B — the argument, executed. Renders REAL wire JSON (the JSON is the exhibit).
+//
+// Data source: the CI-generated transcript (every payload produced by the shipped package). The
+// widget attempts the live endpoint first and asserts contract_version=="1"; on failure/timeout/429
+// it degrades to this recorded transcript, clearly stamped. (Live MCP wiring activates once the Fly
+// endpoint is approved + deployed; until then the degrade path — itself a first-class requirement —
+// is what shows, and it is 100% real shipped-package wire.)
+//
+// The clarify round-trip mirrors `demo --play` exactly (WP-2.2 two-hop contract, worklist item 5 —
+// unrealizable alternatives): clarify → pick a population → refuse (the other operand is out of that
+// universe) → the honest resolution is separate columns → disclose.
+import transcript from '../data/transcript.generated.json';
+import seeded from '../data/seeded_queries.json';
+
+const labels = Object.fromEntries(seeded.queries.map((q: any) => [q.id, q.label]));
+// key the round-trip by universe for easy lookup
+const rt: Record<string, any> = {};
+for (const [, v] of Object.entries<any>(transcript.clarify_roundtrip)) {
+  rt[v.apply.universe] = v.wire;
+}
+const data = {
+  meta: transcript.meta,
+  seeded: {
+    clarify: { label: labels.clarify, wire: transcript.seeded.clarify.wire },
+    disclose: { label: labels.disclose, wire: transcript.seeded.disclose.wire },
+    refuse: { label: labels.refuse, wire: transcript.seeded.refuse.wire },
+    serve: { label: labels.serve, wire: transcript.seeded.serve.wire },
+  },
+  roundtrip: rt,
+  foolIt: {
+    wire: transcript.fool_it.wire,
+    measureIndex: transcript.fool_it.measure_index,
+    placeholder: seeded.foolIt.placeholder,
+    template: seeded.foolIt.template,
+  },
+  endpoint: seeded.endpoint,
+};
+const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10);
+---
+<section class="exhibit-b" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
+  <p class="wire-caption mono">this is the actual wire — what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the pair reads.</p>
+
+  <div class="seed-row" role="group" aria-label="ask the system">
+    <button type="button" data-seed="clarify">{data.seeded.clarify.label}</button>
+    <button type="button" data-seed="disclose">{data.seeded.disclose.label}</button>
+    <button type="button" data-seed="refuse">{data.seeded.refuse.label}</button>
+    <button type="button" data-seed="serve">{data.seeded.serve.label}</button>
+  </div>
+
+  <div class="response" data-response aria-live="polite"></div>
+
+  <form class="fool-it" data-fool>
+    <label for="fool-input" class="fool-label mono">try to fool it — ask for a measure by name</label>
+    <div class="fool-row">
+      <input id="fool-input" type="text" autocomplete="off" spellcheck="false" placeholder={data.foolIt.placeholder} />
+      <button type="submit">ask</button>
+    </div>
+    <p class="fool-hint">this exact refusal, captured live, ships in the package.</p>
+  </form>
+
+  <p class="degrade-note mono" data-degrade hidden>
+    live demo temporarily offline — this transcript was generated from the shipped package at build time ({genDate}).
+  </p>
+
+  <script type="application/json" data-exhibit-b set:html={JSON.stringify(data)}></script>
+</section>
+
+<style>
+  .exhibit-b { font-family: var(--font-sans); margin: 2rem 0; border: 1px solid var(--wire-rule);
+    border-radius: 10px; background: var(--wire-bg); color: var(--wire-ink); padding: 1.5rem 1.6rem; }
+  .wire-caption { font-size: 0.8rem; color: var(--wire-ink-soft); line-height: 1.6; margin: 0 0 1.3rem; }
+
+  .seed-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.3rem; }
+  .seed-row button { font-family: var(--font-sans); font-size: 0.82rem; text-align: left; padding: 0.5rem 0.8rem;
+    background: var(--wire-panel); border: 1px solid var(--wire-rule); border-radius: 7px; color: var(--wire-ink); cursor: pointer; }
+  .seed-row button:hover { border-color: var(--wire-ink-soft); }
+  .seed-row button[aria-pressed="true"] { border-color: var(--wire-ink-soft); background: #1b2230; }
+
+  .response { display: grid; gap: 1rem; }
+  .resp-card { border: 1px solid var(--wire-rule); border-radius: 8px; padding: 1rem 1.1rem; background: var(--wire-panel); }
+  .mood-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600;
+    padding: 0.15rem 0.6rem; border-radius: 999px; color: #fff; letter-spacing: 0.02em; }
+  .mood-serve { background: var(--mood-serve); }
+  .mood-disclose { background: var(--mood-disclose); }
+  .mood-clarify { background: var(--mood-clarify); }
+  .mood-refuse { background: var(--mood-refuse); }
+  .mood-error { background: transparent; color: var(--mood-error); border: 1px solid var(--mood-error); }
+
+  .resp-summary { font-size: 0.95rem; margin: 0.7rem 0 0; color: var(--wire-ink); line-height: 1.55; }
+  .resp-values { margin: 0.7rem 0 0; font-family: var(--font-mono); font-size: 0.82rem; color: var(--wire-ink); }
+  .resp-values .vrow { display: flex; justify-content: space-between; gap: 1rem; padding: 0.12rem 0; border-bottom: 1px solid var(--wire-rule); }
+  .resp-values .vrow:last-child { border-bottom: 0; }
+
+  .disc { margin-top: 0.8rem; border-left: 2px solid; padding: 0.4rem 0 0.4rem 0.8rem; font-size: 0.86rem; }
+  .disc-info { border-color: var(--mood-clarify); }
+  .disc-caution { border-color: var(--mood-disclose); }
+  .disc-critical { border-color: var(--mood-refuse); }
+  .disc-code { font-family: var(--font-mono); font-size: 0.78rem; color: var(--wire-ink-soft); }
+
+  .alts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+  .alts button, .resolve-btn { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.4rem 0.7rem;
+    background: transparent; border: 1px solid var(--wire-ink-soft); border-radius: 6px; color: var(--wire-ink); cursor: pointer; }
+  .alts button:hover, .resolve-btn:hover { border-color: var(--wire-ink); }
+  .pick-note { font-size: 0.85rem; color: var(--wire-ink-soft); margin: 0.6rem 0 0; font-style: italic; }
+
+  .audit-toggle { margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--wire-ink-soft);
+    background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0; }
+  .audit-body { margin-top: 0.5rem; }
+
+  .wire-pane { margin-top: 0.9rem; }
+  .wire-pane summary { font-family: var(--font-mono); font-size: 0.74rem; color: var(--wire-ink-soft); cursor: pointer; }
+  .wire-pane pre { margin: 0.5rem 0 0; font-family: var(--font-mono); font-size: 0.74rem; line-height: 1.5;
+    color: var(--wire-ink); background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 6px;
+    padding: 0.8rem; overflow-x: auto; max-height: 22rem; }
+  .wire-pane .k { color: var(--wire-key); }
+  .wire-pane .s { color: var(--wire-string); }
+
+  .fool-it { margin-top: 1.5rem; padding-top: 1.3rem; border-top: 1px solid var(--wire-rule); }
+  .fool-label { display: block; font-size: 0.78rem; color: var(--wire-ink-soft); margin-bottom: 0.5rem; }
+  .fool-row { display: flex; gap: 0.5rem; }
+  .fool-row input { flex: 1; font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.7rem;
+    background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 6px; color: var(--wire-ink); }
+  .fool-row input:focus { outline: none; border-color: var(--wire-ink-soft); }
+  .fool-row button { font-family: var(--font-mono); font-size: 0.82rem; padding: 0 1rem;
+    background: var(--wire-panel); border: 1px solid var(--wire-rule); border-radius: 6px; color: var(--wire-ink); cursor: pointer; }
+  .fool-hint { font-size: 0.76rem; color: var(--wire-ink-soft); margin: 0.5rem 0 0; }
+
+  .degrade-note { margin: 1.2rem 0 0; font-size: 0.74rem; color: var(--mood-disclose); }
+
+  @media (max-width: 40rem) { .seed-row button { font-size: 0.78rem; } }
+</style>
+
+<script>
+  import '../scripts/exhibit-b.ts';
+</script>

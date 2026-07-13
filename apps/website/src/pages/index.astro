@@ -1,0 +1,191 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ExhibitA from '../components/ExhibitA.astro';
+import ExhibitB from '../components/ExhibitB.astro';
+---
+<BaseLayout title="datumwise — a number owes you its assumptions" wide={true}>
+  <!-- §1 — the opening line (sans/mono, demo energy) -->
+  <section class="s1 band">
+    <video class="manifold-bg" src="/media/manifold_loop.mp4"
+           poster="/media/manifold_poster.png"
+           muted loop playsinline disablepictureinpicture
+           preload="metadata" aria-hidden="true" tabindex="-1"></video>
+    <div class="col">
+      <h1 class="opening serif">A number owes you its assumptions.</h1>
+      <p class="sub">
+        Most numbers don't pay. They arrive alone — clean, confident, formatted — and the choices
+        that made them stay behind. For fifty years that was survivable, because the numbers were
+        made by people, and people argue. Now the numbers are made by machines that never argue at all.
+      </p>
+      <p class="sub">This page is one argument, top to bottom. It will take about eight minutes, and twice along the way you will watch it run.</p>
+      <p class="cue"><span class="rule-inline"></span> begin with ninety seconds of data. <a href="#exhibit-b">skip to the running demo ↓</a></p>
+    </div>
+  </section>
+
+  <!-- §2 — Exhibit A: the ninety seconds -->
+  <section class="s2 band" aria-labelledby="s2-h">
+    <div class="col">
+      <h2 id="s2-h" class="visually-hidden">The ninety seconds</h2>
+      <p class="lead-in">Here is a quarter of sales. The whole thing:</p>
+      <ExhibitA />
+      <div class="s2-after">
+        <p>They differ only in what you divided by, and <em>what you divided by</em> is a decision the question never stated, the column name never records, and whatever answered you made silently on your behalf.</p>
+        <p>Ask an AI analyst this question and you will get one of these numbers in less than a second, with a chart, a citation, and no flicker of doubt. Not a hallucination — the SQL is valid, the number is real. Something quieter and worse: <strong>a defensible wrong answer.</strong> The kind no guardrail catches, because by every check anyone has built, it's correct.</p>
+        <p>You have just seen the whole problem. The rest of this page is why it exists — and it goes deeper than you think.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="band-rule" />
+
+  <!-- §3–§5 — the argument (serif, essay measure) -->
+  <section class="argument band" aria-labelledby="s3-h">
+    <div class="col-argument">
+      <h2 id="s3-h">What data is</h2>
+      <p>Start further back than this industry usually starts — not at the tool, not at the query language, but at what data <em>is</em>.</p>
+      <p><strong>Every datum is something said about something else.</strong> A value, said <em>of</em> something. The measure is what is said; the anchor — the set of coordinates it is said at — is what it is said of. A <strong>column</strong> is a measure over its anchor. Not the smallest element of data — a data point is — but the simplest <em>structure</em> of data: the atom of structured data operation.</p>
+      <p>And a table? A table is a container. Form, not substance. Its keys and layouts <em>hint</em> at meaning — but hints are not declarations, and nothing checks them. This is why fifty years of table operations have been necessarily <em>mechanical</em>: you can only do mechanical things to a container, because a container has no aboutness to respect. Operations over columns are <em>substantial</em> — they must honor what the column says, and what it is said of.</p>
+      <p><strong>Tables are how data is stored. Columns are what data says.</strong></p>
+      <p>Your average-order-value question went wrong exactly here. The answer had to be computed <em>over</em> something — lines, orders, customers — and that "over" is a property of the column, not of the table it happened to be stored in. The table couldn't tell you. Tables can't. It isn't their job.</p>
+
+      <h2>The algebra that was never written</h2>
+      <p>Half a century ago — Codd, 1970 — the container got its mathematics. Relational algebra — select, project, join — closed over tables, indifferent to meaning. It was a genuine triumph, and it built everything you use. But it is an algebra of <em>form</em>.</p>
+      <p>The algebra of the substance was never written. The great rebellion against the table — key-value, objects, documents, graphs — reached for substance and won everywhere retrieval rules. But it won everywhere <strong>except where structured data live</strong>: the moment the workload turned analytical, every rebel surrendered back to SQL, or bolted on a map-reduce with no theory of legality at all. Structured analytical data stayed the container's last kingdom — not because tables are right for it, but because nobody had written the substance-side algebra.</p>
+      <p>So we wrote it. The framework is called <strong>Columna</strong>, and the name is the thesis: it stands for <strong>Column Algebra</strong>. Columns and their operators — mappers and reducers — composing into expressions; some grammatically well-formed, some not; and the line between them drawn by the <em>nature</em> of each column, captured in three anchors: where its values live, where they leak and by what mechanism, which directions of reduction are barred. From these, legality <em>follows</em>. Whether you may sum this, roll that up, divide these two — not policy, not convention, not a style guide.</p>
+
+      <h2>Two kinds of metadata</h2>
+      <p>Here is the part the industry will recognize, because it has been paying for the confusion for decades.</p>
+      <p>Metadata was never one thing. Some of it is <strong>load-bearing</strong>: change it and you change what operations are legal, or what value results — which unit an average reduces over, which population a count is drawn from. And some is <strong>communicative</strong>: it exists so that a person — or now a model — can understand. The test is decidable, not aesthetic: <em>does changing it change legality or value?</em></p>
+      <p>For fifty years the two kinds lived fused — some in schema structure, some baked into column names, some in documentation, and the decisive remainder in the analyst's mind. Because the load-bearing kind had no home, the industry forced <em>names</em> to carry it — ARPU forks into ARPPU because a denominator had nowhere else to live — and then built a governance regime to police the names, and called it the semantic layer. Look closely: <strong>it was never semantic.</strong> It was correctness wearing meaning's clothes — and therefore frozen. Governance solves drift. It cannot solve ambiguity. You cannot decree your way out of a grain.</p>
+      <p>Language solved this before we were born: grammar decides well-formedness independent of meaning, and that autonomy is what makes language both checkable and infinitely expressive. Data deserves the same constitution. Put correctness in the <strong>grammar layer</strong> — the algebra above: small, closed, machine-checkable. The moment it has a home, meaning is demobilized: names become pure communication — colloquial, translated, plural, generated — because nothing operational rides on a string anymore.</p>
+      <p>Codd separated logical from physical and called it data independence. This is the sequel: <strong>metadata independence</strong> — meaning separated from correctness so each can finally do its job. One inversion, two liberations.</p>
+
+      <h2>The stakes: the analyst who never hesitates</h2>
+      <p>Now return to the machine that answered in a second.</p>
+      <p>A language model is a semantic engine — magnificent at meaning, constitutionally incapable of guaranteeing correctness. Hand it today's fused metadata and its greatest strength becomes its signature failure: it reads <code>avg_order_value</code> and <em>confidently means something by it</em>. For fifty years, the argument between human analysts was the safety mechanism — three people with three numbers is visible disagreement, and visible disagreement gets caught in the meeting. The AI analyst answers instantly, confidently, singularly. The argument never happens. <strong>The debt came due the day the analyst stopped being human.</strong></p>
+      <p>Split the layers and the model is finally in its element: living entirely in semantics — names, descriptions, intent, conversation — while every operation it proposes is adjudicated by a grammar it cannot touch. Hallucination, injection, drift can corrupt only the semantic layer. <strong>The grammar layer is the blast wall.</strong> The model proposes; the grammar disposes; the human decides among genuine alternatives.</p>
+      <p>And the system's answers gain the vocabulary honesty requires — four moods, as structured data: <strong>serve</strong> the number; <strong>disclose</strong> it with its assumptions attached; <strong>clarify</strong> when the question admits several legitimate readings; <strong>refuse</strong> what the data cannot answer, with the reason. "It depends," said precisely, is often the most correct answer there is.</p>
+      <p class="watch">That is a claim about running software. So watch it run.</p>
+    </div>
+  </section>
+
+  <!-- §7 — Exhibit B: the argument, executed -->
+  <section class="s7 band" aria-labelledby="s7-h">
+    <div class="col-argument">
+      <h2 id="s7-h">The argument, executed</h2>
+      <p class="argument-p">Start with the same question in a different costume — what, exactly, is the denominator? Then ask it the ones it was built to catch.</p>
+    </div>
+    <div class="col">
+      <ExhibitB />
+      <p class="wire-cap-note">This transcript is generated by running the shipped package, <code>columna-server demo --play</code>, at build time. It is never edited by hand. What you see is what installs.</p>
+      <div class="col-argument s7-after">
+        <p>The mood you should test first is the one vendors never demo. Ask it for a metric that sounds plausible and doesn't exist. It will not guess. During our own final pre-launch test, our test script did exactly that — and the system refused, listed what it <em>did</em> have, and asked. The test marked it as a failure. The test was wrong; the refusal was the only correct answer in the room. We fixed the test, and we now assert that refusal forever. <a href="/launch">the whole confession → the launch post.</a> Vigilance fails — it failed the industry, it failed our own benchmark, it failed the very test we wrote. <strong>Structure holds.</strong> That is why the defense is an algebra and not a best practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="band-rule" />
+
+  <!-- §8 — the three doors (sans) -->
+  <section class="s8 band" aria-labelledby="s8-h">
+    <div class="col-wide">
+      <h2 id="s8-h" class="visually-hidden">The three doors</h2>
+      <div class="doors">
+        <div class="door">
+          <h3>Run it.</h3>
+          <p>Two minutes, no arguments, no signup. A clarify, a refuse, and a disclose will print on your machine as real wire JSON.</p>
+          <p class="door-action"><code>pip install columna-core columna-server</code> → <a href="/install">quickstart</a></p>
+        </div>
+        <div class="door">
+          <h3>Read it.</h3>
+          <p>The argument above, at full depth and with its evidence: the Columna Thesis, the metadata-independence essay, and the papers — every claim one click from its verification.</p>
+          <p class="door-action"><a href="/thesis">The Thesis</a> · <a href="/why">Why</a> · <a href="/how-these-documents-relate">how these documents relate</a></p>
+        </div>
+        <div class="door">
+          <h3>Test it.</h3>
+          <p>We keep a public map of the sixty-seven ways a query runs clean and lies — graded against everyone, including us. If a number has ever lied to you by omission, bring us the failure mode you witnessed.</p>
+          <p class="door-action"><a href="/atlas">The Silent Failure Atlas</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .band { padding: 3.5rem 0; }
+  .col { width: min(100% - 3rem, 46rem); margin-inline: auto; }
+  .col-argument { width: min(100% - 3rem, var(--measure)); margin-inline: auto; }
+  .col-wide { width: min(100% - 3rem, 62rem); margin-inline: auto; }
+  .band-rule { border: 0; border-top: 1px solid var(--rule); width: min(100% - 3rem, 46rem); margin: 0 auto; }
+
+  /* §1 */
+  .s1 { min-height: calc(100vh - 6rem); display: grid; align-items: center; padding-top: 0;
+    position: relative; overflow: hidden; }
+  .s1 > .col { position: relative; z-index: 1; }
+  /* ambient manifold texture — decorative, aria-hidden. Paper-register asset (ink lines on the
+     same paper as the site), so it composites cleanly; a gentle vignette fades it at the edges. */
+  .manifold-bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    /* contain (not cover) so the full scene shows — no cropped ceiling/floor; the letterbox is
+       paper, matching the page, so it is invisible. */
+    object-fit: contain;
+    opacity: 0.6; pointer-events: none; z-index: 0;
+    -webkit-mask-image: radial-gradient(135% 105% at 50% 45%, #000 70%, transparent 100%);
+    mask-image: radial-gradient(135% 105% at 50% 45%, #000 70%, transparent 100%);
+  }
+  .opening { font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 1.5rem; }
+  .sub { font-family: var(--font-sans); font-size: 1.05rem; color: var(--ink-soft); max-width: 34rem; }
+  .cue { font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-faint); margin-top: 3rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .rule-inline { display: inline-block; width: 2.5rem; height: 1px; background: var(--rule-strong); }
+  .cue a { color: var(--ink-faint); margin-left: 0.5rem; }
+
+  /* §2 */
+  .lead-in { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; }
+  .s2-after { font-family: var(--font-serif); font-size: 1.14rem; line-height: 1.66; margin-top: 1.5rem; }
+  .s2-after p { margin: 1.1em 0; }
+
+  /* §3–§6 argument register handled by global .argument; add heading rhythm */
+  .argument h2 { font-size: 1.6rem; margin: 2.8rem 0 0.9rem; }
+  .argument h2:first-child { margin-top: 0; }
+  .argument .watch { font-style: italic; color: var(--ink-soft); margin-top: 1.8rem; }
+  .argument code { font-family: var(--font-mono); font-size: 0.85em; background: var(--paper-raised); padding: 0.1em 0.35em; border-radius: 4px; }
+
+  /* §7 */
+  .s7 .col-argument h2 { font-family: var(--font-serif); font-weight: 600; font-size: 1.6rem; margin: 0 0 0.9rem; }
+  .s7 .argument-p { font-family: var(--font-serif); font-size: 1.14rem; line-height: 1.66; }
+  .wire-cap-note { font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-faint); line-height: 1.6; margin: 0.8rem 0 2rem; }
+  .wire-cap-note code { background: var(--paper-raised); padding: 0.05em 0.3em; border-radius: 3px; }
+  .s7-after { font-family: var(--font-serif); font-size: 1.14rem; line-height: 1.66; padding: 0; }
+  .s7-after p { margin: 0; }
+  .s7-after a { color: var(--ink); }
+
+  /* §8 */
+  .doors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; font-family: var(--font-sans); }
+  .door h3 { font-family: var(--font-serif); font-size: 1.35rem; margin: 0 0 0.6rem; }
+  .door p { font-size: 0.95rem; color: var(--ink-soft); margin: 0.5rem 0; }
+  .door-action { font-size: 0.9rem; color: var(--ink); }
+  .door-action code { font-family: var(--font-mono); font-size: 0.82em; }
+  .door-action a { color: var(--ink); }
+
+  @media (max-width: 46rem) {
+    .doors { grid-template-columns: 1fr; gap: 1.8rem; }
+  }
+</style>
+
+<script>
+  // Ambient §1 loop: play only when §1 is in view, and never under reduced-motion (poster stays).
+  const bg = document.querySelector<HTMLVideoElement>('.manifold-bg');
+  const s1 = document.querySelector<HTMLElement>('.s1');
+  if (bg && s1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) bg.play().catch(() => {});
+          else bg.pause();
+        }
+      },
+      { threshold: 0.05 },
+    );
+    io.observe(s1);
+  }
+</script>

@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content as Essay } from '../content/corpus/metadata_independence_essay_v0_2.md';
+import { Content as Seam } from '../content/corpus/silent_seam_companion_v1_0.md';
+---
+<BaseLayout title="Why — datumwise">
+  <div class="page-head">
+    <p class="kicker">Why</p>
+  </div>
+  <article class="prose">
+    <Essay />
+    <hr />
+    <Seam />
+  </article>
+</BaseLayout>
