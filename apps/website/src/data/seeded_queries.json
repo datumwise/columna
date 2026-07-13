@@ -1,5 +1,5 @@
 {
-  "endpoint": "https://demo.datumwise.ai/mcp",
+  "endpoint": "https://demo-endpoint-vercel.vercel.app/query",
   "manifold": "benchmark",
   "contract_version": "1",
   "queries": [
