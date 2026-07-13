@@ -2,8 +2,13 @@
 // endpoint is live, from the MCP endpoint. The clarify round-trip mirrors `demo --play`:
 // clarify → pick a population → refuse → "see them as separate columns" → disclose.
 
+import {
+  initExplorer, renderManifoldPanel, friendlyDisclosure, friendlyReason,
+  linkify, classifyFoolInput, renderObjectCard, type ExplorerData,
+} from './explorer';
+
 type Wire = any;
-interface Data {
+interface Data extends ExplorerData {
   meta: any;
   seeded: Record<'clarify' | 'disclose' | 'refuse' | 'serve', { label: string; wire: Wire }>;
   roundtrip: Record<string, Wire>;
@@ -11,18 +16,28 @@ interface Data {
   endpoint: string;
 }
 
+// module-level handle so the top-level render helpers can reach describe data + governed strings
+let D: Data;
+
 const root = document.querySelector<HTMLElement>('.exhibit-b');
 if (root) init(root);
 
 function init(root: HTMLElement) {
   const dataEl = root.querySelector<HTMLElement>('[data-exhibit-b]');
   const DATA: Data = JSON.parse(dataEl!.textContent!);
+  D = DATA;
   const respEl = root.querySelector<HTMLElement>('[data-response]')!;
   const degradeEl = root.querySelector<HTMLElement>('[data-degrade]');
   const foolForm = root.querySelector<HTMLFormElement>('[data-fool]')!;
   const foolResp = document.createElement('div');
   foolResp.className = 'response fool-response';
   foolForm.querySelector('.fool-hint')!.before(foolResp);
+
+  // Manifold Explorer: render the "what's in this manifold?" panel + wire doorways/glossary/slot.
+  const panelBody = root.querySelector<HTMLElement>('[data-manifold-panel]');
+  if (panelBody) panelBody.innerHTML = renderManifoldPanel(DATA);
+  initExplorer(root, DATA);
+  const openObject = (root as any)._openObject as (kind: string, name: string) => void;
 
   // The free-text fool-it goes LIVE against the read-only demo endpoint (real shipped-package wire).
   // Seeded buttons + the round-trip stay on the build-time transcript (identical, and instant). If a
@@ -55,21 +70,32 @@ function init(root: HTMLElement) {
 
   foolForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const measure = foolInput.value.trim();
-    if (!measure) return;
-    // template exactly as the fool-it contract does: "<name> @ store, day"
-    const frameql = DATA.foolIt.template.replace('%s', () => measure);
+    const raw = foolInput.value.trim();
+    if (!raw) return;
+    const kind = classifyFoolInput(raw, DATA);
 
+    // a bare KNOWN measure name → its describe card (the Explorer's atom), not a served value
+    if (kind === 'measure') {
+      foolResp.innerHTML = `<p class="pick-note">${esc(DATA.strings.foolIt?.describeIntro || 'Here’s what this measure is:')}</p>`;
+      foolResp.append(renderObjectCard('measure', raw, DATA));
+      foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+    // input that looks like a full query → friendly redirect (this box checks names)
+    if (kind === 'query') {
+      foolResp.innerHTML = `<p class="pick-note">${esc(DATA.strings.foolIt?.queryShapeRedirect || 'That looks like a query — use the buttons above.')}</p>`;
+      return;
+    }
+
+    // unknown name → the real, honest refusal from the live endpoint + the (tappable) index
+    const frameql = DATA.foolIt.template.replace('%s', () => raw);
     foolBtn.disabled = true;
     foolResp.innerHTML = '<p class="pick-note">asking the live endpoint…</p>';
     try {
       const wire = await postQuery(DATA.endpoint, frameql);
       if (wire.contract_version !== '1') throw new Error('unexpected contract');
       foolResp.innerHTML = '';
-      const isErr = wire.outcome === 'error' || wire.outcome === 'refuse';
-      foolResp.append(renderCard(wire, isErr
-        ? { ask: DATA.foolIt.measureIndex, heading: `you asked for “${measure}” — here is what came back over the wire:` }
-        : { heading: `you asked for “${measure}”:` }));
+      foolResp.append(renderCard(wire, { ask: DATA.foolIt.measureIndex, heading: `you asked for “${raw}” — here is what came back over the wire:` }));
       foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (err) {
       degradeFool(String(err));
@@ -150,14 +176,14 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
 
   const parts: string[] = [];
   if (opts.heading) parts.push(`<div class="resp-heading">${esc(opts.heading)}</div>`);
-  // header: the mood badge + its one-line reading, grouped and set apart from the data below
-  parts.push(`<div class="resp-head">${moodBadge(outcome)}<p class="resp-summary">${esc(summaryFor(wire))}</p></div>`);
+  // header: the mood badge + its one-line reading (friendly, keyed off the code, with doorways)
+  parts.push(`<div class="resp-head">${moodBadge(outcome)}<p class="resp-summary">${summaryHTML(wire)}</p></div>`);
   parts.push(renderValues(wire));
 
   // disclosures: material inline (severity-styled); immaterial behind the audit trail
   const { material, immaterial } = collectDisclosures(wire);
   if (material.length) {
-    parts.push(`<div class="disc-section"><div class="vlabel">disclosure — travels with the number</div>${material.map(renderDisclosure).join('')}</div>`);
+    parts.push(`<div class="disc-section"><div class="vlabel">disclosure — travels with the number</div>${material.map((m) => renderDisclosure(m, wire)).join('')}</div>`);
   }
 
   card.innerHTML = parts.join('');
@@ -187,8 +213,8 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
   if (opts.ask?.length) {
     const ask = document.createElement('div');
     ask.className = 'resp-index';
-    ask.innerHTML = `<div class="vlabel">the ${opts.ask.length} measures this manifold actually has:</div>` +
-      `<div class="index-tags">${opts.ask.map((m) => `<span class="tag">${esc(m)}</span>`).join('')}</div>`;
+    ask.innerHTML = `<div class="vlabel">the ${opts.ask.length} measures this manifold actually has — tap to describe:</div>` +
+      `<div class="index-tags">${opts.ask.map((m) => `<button type="button" class="door tag" data-door-kind="measure" data-door="${esc(m)}">${esc(m)}</button>`).join('')}</div>`;
     card.append(ask);
   }
 
@@ -200,7 +226,7 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
     const body = document.createElement('div');
     body.className = 'audit-body';
     body.hidden = true;
-    body.innerHTML = immaterial.map(renderDisclosure).join('');
+    body.innerHTML = immaterial.map((m) => renderDisclosure(m, wire)).join('');
     toggle.addEventListener('click', () => { body.hidden = !body.hidden; });
     card.append(toggle, body);
   }
@@ -218,20 +244,36 @@ function moodBadge(outcome: string): string {
   return `<span class="mood-badge mood-${esc(outcome)}">${esc(outcome)}</span>`;
 }
 
-function summaryFor(wire: Wire): string {
+// One-line reading of a response. serve/disclose are fixed prose; clarify/refuse/error use the
+// GOVERNED friendly string keyed off the reason code, with doorways/glossary and an engine-detail
+// toggle carrying the verbatim wire detail.
+function summaryHTML(wire: Wire): string {
   const o = wire.outcome;
-  if (o === 'serve') return 'Fully specified — it just answers.';
-  if (o === 'disclose') return 'It answers — and the assumption rides with the number.';
-  if (o === 'error') return firstDetail(wire) || 'Not a valid query.';
-  // clarify / refuse carry their reason on the wire
-  return firstDetail(wire) || (o === 'clarify' ? 'Several legitimate readings — which did you mean?' : 'Not defined over this data.');
+  if (o === 'serve') return esc('Fully specified — it just answers.');
+  if (o === 'disclose') return esc('It answers — and the assumption rides with the number.');
+  const col = firstNoResultCol(wire);
+  if (col) {
+    const fr = friendlyReason(col, wire, D);
+    if (fr.friendly) return linkify(fr.friendly, D) + engineDetailToggle(fr.detail);
+    if (fr.detail) return linkify(fr.detail, D);
+  }
+  // frame-level syntax error carries its detail on wire.error
+  if (wire.error?.detail) return esc(wire.error.detail);
+  if (o === 'error') return esc('Not a valid query.');
+  return esc(o === 'clarify' ? 'Several legitimate readings — which did you mean?' : 'Not defined over this data.');
 }
 
-function firstDetail(wire: Wire): string | null {
+function firstNoResultCol(wire: Wire): any | null {
   for (const c of wire.columns || []) {
-    if (c.no_result?.detail) return c.no_result.detail;
+    if (c.no_result) return c;
   }
   return null;
+}
+
+// a collapsed "engine detail ▸" carrying the engine's verbatim detail (correctness stays visible)
+function engineDetailToggle(detail: string): string {
+  if (!detail) return '';
+  return `<details class="engine-detail"><summary>engine detail</summary><div class="engine-detail-body">${esc(detail)}</div></details>`;
 }
 
 function firstAlternatives(wire: Wire): any[] {
@@ -251,9 +293,12 @@ function collectDisclosures(wire: Wire): { material: any[]; immaterial: any[] } 
   };
 }
 
-function renderDisclosure(d: any): string {
+function renderDisclosure(d: any, wire: Wire): string {
   const sev = d.severity === 'critical' ? 'critical' : d.severity === 'caution' ? 'caution' : 'info';
-  return `<div class="disc disc-${sev}"><span class="disc-code">${esc(d.code)} · ${esc(d.materiality)} · ${esc(d.severity)}</span><div>${esc(d.detail || '')}</div></div>`;
+  const codeline = `<span class="disc-code">${esc(d.code)} · ${esc(d.materiality)} · ${esc(d.severity)}</span>`;
+  const { friendly, detail } = friendlyDisclosure(d, wire, D);
+  const bodyHTML = friendly ? linkify(friendly, D) + engineDetailToggle(detail) : esc(detail || '');
+  return `<div class="disc disc-${sev}">${codeline}<div>${bodyHTML}</div></div>`;
 }
 
 // ordered anchor-dimension keys present on a column's value rows (everything except `value`)
@@ -299,7 +344,7 @@ function renderValues(wire: Wire): string {
       return `<tr>${dcells}${mcells}</tr>`;
     }).join('');
     const caption = cols.map((c: any) => `${c.name}${c.population ? ` · ${c.population}` : ''}`).join('   ·   ');
-    return `<div class="resp-values"><div class="vlabel">result — ${esc(caption)}</div>` +
+    return `<div class="resp-values"><div class="vlabel">result — ${linkify(caption, D)}</div>` +
       `<table class="wire-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
   }
 
@@ -310,7 +355,7 @@ function renderValues(wire: Wire): string {
     const head = `<tr>${d.map((k) => `<th>${esc(k)}</th>`).join('')}<th${num ? ' class="num"' : ''}>value</th></tr>`;
     const body = c.values.map((v: any) =>
       `<tr>${d.map((k) => `<td>${esc(v[k])}</td>`).join('')}${cell(v.value, num)}</tr>`).join('');
-    return `<div class="resp-values"><div class="vlabel">result — ${esc(c.name)}${c.population ? ` · ${esc(c.population)}` : ''}</div>` +
+    return `<div class="resp-values"><div class="vlabel">result — ${linkify(`${c.name}${c.population ? ` · ${c.population}` : ''}`, D)}</div>` +
       `<table class="wire-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
   }).join('');
 }

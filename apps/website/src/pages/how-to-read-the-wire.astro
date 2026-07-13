@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="How to read the wire — datumwise" description="Six ideas for reading a Columna answer: measure, anchor, population, the result-and-disclosure pair, the four moods, and pinning.">
+  <div class="page-head">
+    <p class="kicker">Reference</p>
+    <h1>How to read the wire</h1>
+    <p class="standfirst">Six ideas. Every Columna answer is built from them — read these once and the demo stops being jargon.</p>
+  </div>
+
+  <article class="prose wire-guide">
+    <!-- schematic: a column = a measure over an anchor, within a population -->
+    <figure class="wire-diagram" aria-label="A column is a measure over an anchor, within a population.">
+      <svg viewBox="0 0 640 220" role="img" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="18" width="604" height="184" rx="10" class="d-universe"/>
+        <text x="34" y="42" class="d-lbl">population (universe) — the set of rows this is about</text>
+        <circle cx="120" cy="130" r="26" class="d-measure"/>
+        <text x="120" y="135" text-anchor="middle" class="d-in">measure</text>
+        <text x="120" y="182" text-anchor="middle" class="d-cap">what is said</text>
+        <text x="196" y="135" class="d-op">over</text>
+        <rect x="270" y="104" width="120" height="52" rx="6" class="d-anchor"/>
+        <text x="330" y="135" text-anchor="middle" class="d-in">anchor</text>
+        <text x="330" y="182" text-anchor="middle" class="d-cap">per what</text>
+        <text x="410" y="135" class="d-op">→</text>
+        <rect x="446" y="96" width="158" height="34" rx="5" class="d-value"/>
+        <text x="525" y="118" text-anchor="middle" class="d-in">the result</text>
+        <rect x="446" y="140" width="158" height="30" rx="5" class="d-disc"/>
+        <text x="525" y="160" text-anchor="middle" class="d-in2">+ its disclosure</text>
+      </svg>
+      <figcaption>A <strong>column</strong> is a <strong>measure</strong> over an <strong>anchor</strong>, inside a <strong>population</strong>. The answer that comes back is always a <strong>pair</strong>: a result and its disclosure.</figcaption>
+    </figure>
+
+    <h2>1 · A column = a measure over an anchor, made and reduced by operators</h2>
+    <p>A <strong>measure</strong> is a thing the data can report — revenue, orders. An <strong>anchor</strong> is the coordinates you report it at — <em>by store, by day</em> — the "per what" of the number. Between them sit the <strong>operators</strong>: the verbs of the algebra. A <em>reducer</em> collapses many rows into one (summed, counted, a median, the last value); a <em>mapper</em> reshapes a column without collapsing it. Put a measure, its anchor, and the operators together and you have a <strong>column</strong>: the atom of a Columna answer. The askable space isn't the list of measures — it's measures <em>times</em> operators, filtered by what's legal. Most wrong numbers come from a hidden anchor — the same revenue "averaged" per order, per line-item, and per customer are three different numbers.</p>
+
+    <h2>2 · Population (universe) — what it's about</h2>
+    <p>Every measure is defined over a <strong>population</strong> — the exact set of rows it speaks about. Columna names populations as <strong>universes</strong> (here: <code>transactions</code>, the sales rows; and <code>store_days</code>, one row per store per day it was open). Two measures from different populations aren't automatically comparable, and a rate that spans two of them has no single "per what" until you say which.</p>
+
+    <h2>3 · The pair — result <em>and</em> disclosure</h2>
+    <p>An answer is never just a number. It's a <strong>pair</strong>: the result, and a <strong>disclosure</strong> that travels with it — the assumption, the caveat, the population it was taken over. The disclosure isn't an error; it's the number being honest about what it took to produce it.</p>
+
+    <h2>4 · The four moods</h2>
+    <p>How the pair reads is the <strong>mood</strong>:</p>
+    <ul>
+      <li><strong>serve</strong> — fully specified; it just answers.</li>
+      <li><strong>disclose</strong> — it answers, with the assumption attached.</li>
+      <li><strong>clarify</strong> — the question has several legitimate readings; which did you mean?</li>
+      <li><strong>refuse</strong> — the data can't answer that, and here's the reason.</li>
+    </ul>
+    <p>"It depends," said precisely, is often the most correct answer there is.</p>
+
+    <h2>5 · The legal cone — what may be asked</h2>
+    <p>For each measure, Columna knows every grain it may lawfully be asked at, and every direction that's <strong>barred</strong> — with the reason. An end-of-period inventory <code>level</code> may be rolled up across stores into a region, but <em>not summed across days</em>: the stock on the 3rd isn't separate from the stock on the 4th, so adding them double-counts. A catalog tells you what exists; the legal cone tells you what may be asked of it — that's what the "what's in this manifold?" panel shows.</p>
+
+    <h2>6 · Pin — resolving ambiguity</h2>
+    <p>When a question could be taken over more than one population, you <strong>pin</strong> it — written <code>ON UNIVERSE &lt;name&gt;</code>. Pinning is how a <em>clarify</em> becomes an answer: you choose the reading, and the grammar holds you to what's actually defined there (which is why pinning the wrong population earns an honest <em>refuse</em>).</p>
+
+    <hr />
+    <p class="back"><a href="/#exhibit-b">← back to the running demo</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .wire-guide h2 { font-size: 1.15rem; margin-top: 2rem; }
+  .standfirst { color: var(--ink-soft, #555); font-size: 1.05rem; line-height: 1.6; }
+  .wire-diagram { margin: 1.5rem 0 2rem; }
+  .wire-diagram svg { width: 100%; height: auto; background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 10px; }
+  .wire-diagram figcaption { font-size: 0.9rem; color: var(--ink-soft, #555); margin-top: 0.6rem; line-height: 1.55; }
+  .d-universe { fill: none; stroke: var(--wire-rule); stroke-dasharray: 4 4; }
+  .d-lbl { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 12px; }
+  .d-measure { fill: var(--mood-serve); opacity: 0.85; }
+  .d-anchor { fill: none; stroke: var(--wire-key); stroke-width: 1.5; }
+  .d-value { fill: var(--wire-panel); stroke: var(--wire-key); }
+  .d-disc { fill: none; stroke: var(--mood-disclose); }
+  .d-in { fill: #fff; font-family: var(--font-mono); font-size: 13px; }
+  .d-in2 { fill: var(--mood-disclose); font-family: var(--font-mono); font-size: 12px; }
+  .d-op { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 15px; }
+  .d-cap { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 11px; }
+</style>
