@@ -219,6 +219,8 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   .exhibit-b .obj-head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--wire-ink); }
   .exhibit-b .obj-kind { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--wire-bg); background: var(--wire-key); padding: 0.12rem 0.45rem; border-radius: 4px; }
+  .exhibit-b .obj-kind.metric { background: var(--mood-disclose); }
+  .exhibit-b .obj-card .obj-meta code { color: var(--wire-ink); }
   .exhibit-b .obj-close { margin-left: auto; background: none; border: 0; color: var(--wire-ink-soft); cursor: pointer; font-size: 0.9rem; }
   .exhibit-b .obj-close:hover { color: #fff; }
   .exhibit-b .obj-note { font-size: 0.86rem; color: var(--wire-ink-soft); margin: 0.5rem 0 0; line-height: 1.5; }

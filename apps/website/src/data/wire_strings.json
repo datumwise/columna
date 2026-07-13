@@ -21,12 +21,24 @@
     "population": "The exact set of rows an answer is about; two measures in different populations aren’t automatically comparable.",
     "frame": "One query’s columns evaluated together at a shared anchor — the unit the wire returns.",
     "pin": "Fixing which population a query runs over when it’d otherwise be ambiguous — written ON UNIVERSE <name>.",
-    "mood": "How an answer reads: serve (just answer), disclose (answer + caveat), clarify (which reading?), refuse (can’t, and why)."
+    "mood": "How an answer reads: serve (just answer), disclose (answer + caveat), clarify (which reading?), refuse (can’t, and why).",
+    "operator": "A verb of the algebra — a reducer collapses a column (sum, last, median); a mapper reshapes it without collapsing. Legality decides which may apply where.",
+    "derived column": "A column defined from others rather than stored — a derived dimension (day → week) or a derived metric (revenue ÷ inventory)."
   },
   "glossaryAliases": {
     "on universe": "pin", "pin": "pin", "pinned": "pin",
     "universes": "universe", "populations": "population", "measures": "measure",
-    "anchors": "anchor", "moods": "mood", "manifolds": "manifold", "frames": "frame"
+    "anchors": "anchor", "moods": "mood", "manifolds": "manifold", "frames": "frame",
+    "operators": "operator", "reducer": "operator", "reducers": "operator", "mapper": "operator", "mappers": "operator"
+  },
+  "derivedMetrics": {
+    "sectionLabel": "derived metric",
+    "cardKind": "derived metric",
+    "formulaLabel": "formula",
+    "sourceLabel": "source",
+    "ambiguityByCode": {
+      "co_anchor_ambiguous": "Its top and bottom live in different populations — which is exactly what the first button demonstrates."
+    }
   },
 
   "universes": {

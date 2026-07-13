@@ -88,6 +88,35 @@ def build_describe(store, dm):
     }
 
 
+def build_derived_metrics(seeded):
+    """Capture the demo's DERIVED-METRIC definitions (v0.2 fork-4, Option B). sell_through_rate is
+    an ad-hoc derived column defined inline in the seeded WEDGE query — the engine has NO describe
+    object for it (describe_measure raises 'unknown measure'), so it is captured from the demo's own
+    seeded-query definition, not from describe wire. Every field still traces to a captured artifact:
+    the formula from the WEDGE definition, `demonstrates` from the REAL clarify wire the query
+    produced, and `source` naming the provenance so a client can tell it apart from engine-describe
+    cards (Huayin, 2026-07-13)."""
+    name, expr = (s.strip() for s in WEDGE.split("@", 1)[0].split(":", 1))
+    clarify_wire = seeded["clarify"]["wire"]
+    reason = None
+    for c in clarify_wire.get("columns", []):
+        if c.get("no_result", {}).get("reason"):
+            reason = c["no_result"]["reason"]
+            break
+    return {
+        name: {
+            "name": name,
+            "formula": expr,                       # verbatim from the seeded-query definition
+            "inputs": [                             # the operands — real, describe-able measures
+                {"measure": "revenue"},
+                {"measure": "level", "member": "last"},
+            ],
+            "demonstrates": reason,                 # the mood this metric's ambiguity produces (captured)
+            "source": "demo seeded-query definition, captured at build",
+        }
+    }
+
+
 def main() -> int:
     store = demo_store()
 
@@ -138,7 +167,8 @@ def main() -> int:
         "fool_it": {"query": FOOL, "wire": fool_wire, "measure_index": measure_index},
         "play_crosscheck": play,
         # the Manifold Explorer's captured describe wire (tier 1) — cards render only from this
-        "describe": build_describe(store, describe),
+        "describe": {**build_describe(store, describe),
+                     "derived_metrics": build_derived_metrics(seeded)},
     }
     json.dump(out, sys.stdout, indent=2)
     return 0
