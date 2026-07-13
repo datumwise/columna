@@ -35,6 +35,59 @@ def run(store, fq, universe=None):
     return T.query(store, MID, fq, universe=universe)
 
 
+def build_describe(store, dm):
+    """Capture describe_manifold + describe_measure and DERIVE each family member's legal cone
+    (may-be-asked-at grains, and barred rollups with the blocking lineage) STRUCTURALLY from the
+    edges + per-member blocked_lineages. Nothing here is hand-written: cone membership follows from
+    the wire; only the human LABELS live in the reviewed strings file (ruling e-1). Per-member cones
+    (ruling e-2)."""
+    edges = [(e["frm"], e["to"], e["lineage"]) for e in dm["edges"]]
+    measures = {}
+    for mc in dm["measures"]:
+        name = mc["name"]
+        d = T.describe_measure(store, MID, name)
+        grain = list(d["v_anchor"]["grain"])
+        gset = set(grain)
+        members = {}
+        for member, anc in d["member_anchors"].items():
+            blocked = set(anc["blocked_lineages"])
+            reachable, barred = [], {}
+            for frm, to, lineage in edges:
+                if frm in gset:
+                    if lineage in blocked:
+                        barred.setdefault(lineage, []).append(to)
+                    else:
+                        reachable.append(to)
+            members[member] = {
+                "blocked_lineages": sorted(blocked),
+                "is_monoid": anc.get("is_monoid"),
+                "order_by": anc.get("order_by"),
+                # the legal cone: base grains you may anchor at + rollups reachable via non-blocked lineages
+                "may_be_asked_at": grain + [t for t in reachable if t not in gset],
+                "barred": [{"lineage": lin, "targets": sorted(set(t))} for lin, t in sorted(barred.items())],
+            }
+        measures[name] = {
+            "name": name,
+            "universe": d["universe"],
+            "dtype": d["dtype"],
+            "family_members": list(d["family"]["members"]),
+            "reducer_kind": d["family"]["reducer_kind"],
+            "grain": grain,
+            "provenance": d["provenance"]["measure"],
+            "members": members,
+        }
+    return {
+        "manifold": {
+            "id": MID,
+            "universes": [{"name": u["name"], "base_dimensions": u["base_dimensions"],
+                           "predicate": u["predicate"]} for u in dm["universes"]],
+            "edges": [{"frm": f, "to": t, "lineage": l} for f, t, l in edges],
+            "measure_index": [m["name"] for m in dm["measures"]],
+        },
+        "measures": measures,
+    }
+
+
 def main() -> int:
     store = demo_store()
 
@@ -84,6 +137,8 @@ def main() -> int:
         "clarify_roundtrip": roundtrip,
         "fool_it": {"query": FOOL, "wire": fool_wire, "measure_index": measure_index},
         "play_crosscheck": play,
+        # the Manifold Explorer's captured describe wire (tier 1) — cards render only from this
+        "describe": build_describe(store, describe),
     }
     json.dump(out, sys.stdout, indent=2)
     return 0
