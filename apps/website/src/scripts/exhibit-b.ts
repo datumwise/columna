@@ -149,20 +149,26 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
   const outcome: string = wire.outcome;
 
   const parts: string[] = [];
-  if (opts.heading) parts.push(`<div class="disc-code">${esc(opts.heading)}</div>`);
-  parts.push(moodBadge(outcome));
-  parts.push(`<p class="resp-summary">${esc(summaryFor(wire))}</p>`);
+  if (opts.heading) parts.push(`<div class="resp-heading">${esc(opts.heading)}</div>`);
+  // header: the mood badge + its one-line reading, grouped and set apart from the data below
+  parts.push(`<div class="resp-head">${moodBadge(outcome)}<p class="resp-summary">${esc(summaryFor(wire))}</p></div>`);
   parts.push(renderValues(wire));
 
   // disclosures: material inline (severity-styled); immaterial behind the audit trail
   const { material, immaterial } = collectDisclosures(wire);
-  material.forEach((d) => parts.push(renderDisclosure(d)));
+  if (material.length) {
+    parts.push(`<div class="disc-section"><div class="vlabel">disclosure — travels with the number</div>${material.map(renderDisclosure).join('')}</div>`);
+  }
 
   card.innerHTML = parts.join('');
 
   // alternatives (clarify/refuse) as buttons
   const alts = firstAlternatives(wire);
   if (alts.length && outcome === 'clarify') {
+    const label = document.createElement('div');
+    label.className = 'vlabel';
+    label.textContent = 'tap the reading you meant →';
+    card.append(label);
     const box = document.createElement('div');
     box.className = 'alts';
     alts.forEach((a: any) => {
@@ -177,12 +183,12 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
     card.append(box);
   }
 
-  // the ASK (fool-it): list what exists
+  // the ASK (fool-it): list what exists, as tappable-looking tags (not a jammed list)
   if (opts.ask?.length) {
     const ask = document.createElement('div');
-    ask.className = 'resp-values';
-    ask.innerHTML = `<div class="disc-code">here is what this manifold has:</div>` +
-      opts.ask.map((m) => `<div class="vrow"><span>${esc(m)}</span><span></span></div>`).join('');
+    ask.className = 'resp-index';
+    ask.innerHTML = `<div class="vlabel">the ${opts.ask.length} measures this manifold actually has:</div>` +
+      `<div class="index-tags">${opts.ask.map((m) => `<span class="tag">${esc(m)}</span>`).join('')}</div>`;
     card.append(ask);
   }
 
@@ -250,15 +256,62 @@ function renderDisclosure(d: any): string {
   return `<div class="disc disc-${sev}"><span class="disc-code">${esc(d.code)} · ${esc(d.materiality)} · ${esc(d.severity)}</span><div>${esc(d.detail || '')}</div></div>`;
 }
 
+// ordered anchor-dimension keys present on a column's value rows (everything except `value`)
+function dimKeys(col: any): string[] {
+  const first = (col.values || [])[0] || {};
+  return Object.keys(first).filter((k) => k !== 'value');
+}
+function colIsNum(col: any): boolean {
+  return (col.values || []).every((v: any) => typeof v.value === 'number');
+}
+function cell(val: any, num: boolean): string {
+  return `<td${num ? ' class="num"' : ''}>${esc(num ? fmt(val) : String(val))}</td>`;
+}
+
+// Render column values as a real HTML table. When several columns share the same anchor
+// dimensions, pivot them into ONE side-by-side table (the "revenue and inventory, by region" case).
 function renderValues(wire: Wire): string {
   const cols = (wire.columns || []).filter((c: any) => (c.values || []).length);
   if (!cols.length) return '';
-  return cols.map((c: any) => {
-    const rows = c.values.map((v: any) => {
-      const label = Object.keys(v).filter((k) => k !== 'value').map((k) => v[k]).join(' · ');
-      return `<div class="vrow"><span>${esc(label)}</span><span>${esc(fmt(v.value))}</span></div>`;
+
+  const dims = dimKeys(cols[0]);
+  const sameDims = dims.length > 0 && cols.every((c: any) => {
+    const d = dimKeys(c);
+    return d.length === dims.length && d.every((k, i) => k === dims[i]);
+  });
+
+  if (sameDims && cols.length > 1) {
+    const rowMap = new Map<string, any>();
+    const order: string[] = [];
+    for (const c of cols) for (const v of c.values) {
+      const key = dims.map((k) => String(v[k])).join('');
+      if (!rowMap.has(key)) { rowMap.set(key, { _dims: dims.map((k) => v[k]) }); order.push(key); }
+      rowMap.get(key)[c.name] = v.value;
+    }
+    const nums = cols.map(colIsNum);
+    const head = `<tr>${dims.map((k) => `<th>${esc(k)}</th>`).join('')}` +
+      cols.map((c: any, i: number) => `<th${nums[i] ? ' class="num"' : ''}>${esc(c.name)}</th>`).join('') + '</tr>';
+    const body = order.map((key) => {
+      const r = rowMap.get(key);
+      const dcells = r._dims.map((d: any) => `<td>${esc(d)}</td>`).join('');
+      const mcells = cols.map((c: any, i: number) =>
+        c.name in r ? cell(r[c.name], nums[i]) : `<td${nums[i] ? ' class="num"' : ''}><span class="nil">—</span></td>`).join('');
+      return `<tr>${dcells}${mcells}</tr>`;
     }).join('');
-    return `<div class="resp-values"><div class="disc-code">${esc(c.name)}${c.population ? ' · ' + esc(c.population) : ''}</div>${rows}</div>`;
+    const caption = cols.map((c: any) => `${c.name}${c.population ? ` · ${c.population}` : ''}`).join('   ·   ');
+    return `<div class="resp-values"><div class="vlabel">result — ${esc(caption)}</div>` +
+      `<table class="wire-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+  }
+
+  // one table per column
+  return cols.map((c: any) => {
+    const d = dimKeys(c);
+    const num = colIsNum(c);
+    const head = `<tr>${d.map((k) => `<th>${esc(k)}</th>`).join('')}<th${num ? ' class="num"' : ''}>value</th></tr>`;
+    const body = c.values.map((v: any) =>
+      `<tr>${d.map((k) => `<td>${esc(v[k])}</td>`).join('')}${cell(v.value, num)}</tr>`).join('');
+    return `<div class="resp-values"><div class="vlabel">result — ${esc(c.name)}${c.population ? ` · ${esc(c.population)}` : ''}</div>` +
+      `<table class="wire-table"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
   }).join('');
 }
 
