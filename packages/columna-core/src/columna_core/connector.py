@@ -8,10 +8,29 @@ The discipline: the backend is asked only to DELIVER columns from ONE table.
 It NEVER combines columns across tables. All relating happens in the engine (transport).
 """
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Protocol, runtime_checkable
 import re
 import duckdb
 import polars as pl
+
+
+@runtime_checkable
+class Connector(Protocol):
+    """The five-method column-delivery surface a Core connector must expose (audit §B1 / WP-C).
+
+    The B1 seam ("the backend delivers columns, never combines them") is structurally enforced by
+    this surface: every method delivers from ONE table (a single `SELECT ... GROUP BY` / DISTINCT);
+    none can join two tables, so combination has no way to be expressed through the API. Today
+    `DuckDBConnector` is the one implementation (Core is single-backend by design, ADR-031 D15);
+    naming the contract as a `Protocol` is purely additive and gives a future second adapter
+    something to implement against, and the parity suite something to range over.
+    """
+
+    def deliver_measure(self, table: str, key_cols: list, aggs, where: Optional[str] = None) -> pl.DataFrame: ...
+    def deliver_base_values(self, table: str, key_cols: list, value_expr: str, where: Optional[str] = None) -> pl.DataFrame: ...
+    def deliver_edge(self, table: str, frm_col: str, to_col: str) -> pl.DataFrame: ...
+    def deliver_attribute(self, table: str, key_col: str, attr_col: str) -> pl.DataFrame: ...
+    def deliver_base_rows(self, table: str, key_cols: list, value_col: str, where: Optional[str] = None) -> pl.DataFrame: ...
 
 # logical (Polars) dtype -> this backend's (DuckDB) physical type
 _LOGICAL_TO_DUCKDB = {
