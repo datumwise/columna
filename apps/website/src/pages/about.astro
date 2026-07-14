@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// ORCID slot (checkpoint reply, awaiting Huayin). null → render the name without a link (no dead
+// link ships); set to the ORCID URL (or a Zenodo profile URL) to wire it.
+const ORCID: string | null = null;
+const COLUMNAR = 'https://columnar.tech';
+const pubs = [
+  { title: 'The Silent Failure Atlas', doi: '10.5281/zenodo.20762839' },
+  { title: 'The Silent Seam', doi: '10.5281/zenodo.20710717' },
+  { title: 'The Two Anchors of a Measure', doi: '10.5281/zenodo.20789318' },
+  { title: 'Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison', doi: '10.5281/zenodo.21349581' },
+];
+---
+<BaseLayout title="About — datumwise" description="datumwise is the work of Huayin Wang, building and stewarding Columna — the grammar layer for AI analytics.">
+  <div class="page-head">
+    <p class="kicker">About</p>
+    <h1>datumwise</h1>
+  </div>
+
+  <article class="prose about">
+    <p>
+      datumwise is the work of <strong>Huayin Wang</strong>{ORCID && (<> (<a href={ORCID} rel="noopener" target="_blank">ORCID →</a>)</>)}, who researches and builds the grammar layer for analytics.
+    </p>
+    <p>
+      It builds and stewards <strong>Columna</strong> — an honest metrics engine: the grammar layer for AI analytics, beside your semantic layer, married to no database.
+    </p>
+    <p>
+      The thinking is public and citable:
+    </p>
+    <ul class="pubs">
+      {pubs.map((p) => (
+        <li><em>{p.title}</em> (<a href={`https://doi.org/${p.doi}`} rel="noopener" target="_blank">DOI {p.doi}</a>)</li>
+      ))}
+    </ul>
+
+    <p class="disambig">
+      Not to be confused with <a href={COLUMNAR} rel="noopener" target="_blank">Columnar</a> (columnar.tech), an Arrow-native connectivity layer one letter from our name. <strong>They move columns fast; we govern what columns say.</strong> If anything, the two compose. <a href="/ladder#the-fast-pipe">More on the Ladder →</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .about .pubs { list-style: none; padding-left: 0; }
+  .about .pubs li { padding: 0.25rem 0; line-height: 1.5; }
+  .about .disambig { margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid var(--wire-rule, #ddd); font-size: 0.95rem; color: var(--ink-soft, #555); }
+</style>

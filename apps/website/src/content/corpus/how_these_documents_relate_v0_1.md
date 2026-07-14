@@ -42,6 +42,10 @@ failure — not a gap better engineering will close. The Seam is diagnosis, not 
 names the shape any cure must take, and the line no cure can cross. (Zenodo, DOI
 10.5281/zenodo.20710717)
 
+The Ladder is the public form of the Seam's defense-depth ladder — its five plain fates (can't be
+written · refused · asked back · labeled · silent) are the reader's-eye view of the Seam's three
+formal rungs (inexpressible · certifiable · disclosable-only). [The Ladder](/ladder)
+
 **The Two Anchors of a Measure** works the heartland of the map formally (the Atlas's family F1,
 where the aggregation failures live). It proves the mechanism: a common class of measures is
 governed by *two* grains — the output anchor everyone states and the input anchor almost no one
@@ -124,5 +128,7 @@ be believed. All of it asks to be checked.
 ---
 
 *The Silent Failure Atlas (DOI 10.5281/zenodo.20762839) · The Silent Seam (DOI
-10.5281/zenodo.20710717) · The Two Anchors of a Measure (DOI 10.5281/zenodo.20789318) · Metadata
-Independence · The Columna Manifesto · The Grain Gap · github.com/datumwise/columna*
+10.5281/zenodo.20710717) · The Two Anchors of a Measure (DOI 10.5281/zenodo.20789318) · Silent
+Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison (DOI
+10.5281/zenodo.21349581) · Metadata Independence · The Columna Manifesto · The Grain Gap ·
+github.com/datumwise/columna*

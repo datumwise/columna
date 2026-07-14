@@ -1,0 +1,278 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Verification targets (the copy's law: every claim one click from evidence).
+const SEAM = 'https://doi.org/10.5281/zenodo.20710717';
+const ATLAS = 'https://doi.org/10.5281/zenodo.20762839';
+const TWO_ANCHORS = 'https://doi.org/10.5281/zenodo.20789318';
+const BENCH = 'https://doi.org/10.5281/zenodo.21349581';
+const COLUMNAR = 'https://columnar.tech';
+const CACHER = '/notes/cacher';
+const ATLAS_GRADING = '/atlas#grading';
+const DEMO = '/#exhibit-b';
+---
+<BaseLayout
+  title="The Ladder — datumwise"
+  description="One way to judge every answer to the wrong-numbers problem — including ours. A measuring stick for semantic layers, text-to-SQL, modeling languages, accelerators, and the grammar layer.">
+  <article class="prose ladder">
+    <header class="ladder-head">
+      <h1>The Ladder</h1>
+      <p class="dek">One way to judge every answer to the wrong-numbers problem. Including ours.</p>
+    </header>
+
+    <p>The most common question we get is some form of "how is this different from X?" — a semantic layer, a text-to-SQL agent, a modeling language, a metrics store. It deserves a better answer than a feature table. It deserves a <strong>measuring stick</strong> — one that applies to us with exactly the force it applies to everyone else.</p>
+
+    <p>Here it is. It starts from the one fact nobody in this industry disputes anymore: analytical systems produce wrong numbers that arrive without errors — silently. The question that separates solutions is not whether they know this. Everyone knows this now. The question is: <strong>when a failure comes, what fate does it meet?</strong></p>
+
+    <h2 id="five-fates">One question, five fates</h2>
+
+    <p>Do not picture a scale. Picture a gauntlet — the gates one question passes through on its way to becoming a number. Take an ordinary one: <em>average order value, by month.</em> Walk it in.</p>
+
+    <p><strong>Before the first gate, some failures simply cannot enter.</strong> In an honest architecture, the join that silently triples revenue has no way to be written — the backend delivers columns and never combines them, so there is no sequence of operations that multiplies. The failure isn't caught; it was never expressible, the way a type system makes certain bugs unwritable.</p>
+
+    <p>Then why not build the whole system this way — every failure impossible? Because making all error unwritable takes a power we should decline even if we had it. Most failure shapes sit one honest choice away from a legitimate question, and a language in which you cannot err is a language in which you can barely speak. Only failures with <strong>no legitimate twin</strong> earn the top treatment — no honest question was ever answered by a silent triple-count, so that door can be bricked shut at no cost to anyone. The rest of the doors stay open, and the gates begin. Even the omnipotent option, famously, left people the freedom to make mistakes. So must we.</p>
+
+    <p><strong>Gate one: is it meaningful here?</strong> A question can be perfectly well-formed and still mean nothing in <em>this</em> data. Linguists have a famous sentence for this — <em>colorless green ideas sleep furiously</em> — flawless grammar, empty meaning, and natural language has to tolerate it. We don't. Ask for a rate over a population where its ingredients don't live, and the request is grammatical, expressible — and not meaningfully executable in this Manifold. It <strong>gets refused</strong>: stopped before anything runs, with the reason and the nearest legitimate alternatives. Natural grammar admits nonsense because it must. A grammar over declared data doesn't, because it needn't. <a class="ev" href={DEMO}>watch it refuse — one tap in the demo →</a></p>
+
+    <p><strong>Gate two: does it mean exactly one thing?</strong> <em>Average order value, by month</em> is meaningful — that's the trouble. It is meaningful several ways: averaged over orders, over customers, over days; the pooled monthly rate or the mean of daily rates. Every reading is legitimate; the question simply never said which. Here the system must not pick one meaning silently — not even the popular one. It <strong>gets asked back</strong>: the readings are enumerated, each a real, runnable alternative, and the one party who knows what was meant chooses. <a class="ev" href={DEMO}>watch it ask back — one tap in the demo →</a></p>
+
+    <p>Stay on this rung a moment, because it is the strange one. Every other rung is prophylactic or confessional — it prevents a number, or it flags one. Asking back is <strong>curative</strong>: the failure is converted into a question before any number exists, and what eventually serves is the answer you actually meant. It is the only rung that ends with the right number. It is also the rung an architecture can't fake: asking requires knowing <em>that</em> you must ask — a completeness check only a grammar can run — and knowing the <em>full</em> set of legal readings — an enumeration only an algebra can make. A model can ask on instinct, and sometimes does. Instinct doesn't know when it's needed, and doesn't know when its list is complete.</p>
+
+    <p><strong>Gate three: does the answer make analytical sense?</strong> The question is meaningful, single, and legal; it executes; a number exists. And still the result may carry an assumption a careful analyst would want said aloud — the frame spans two populations; the value came from a cache as of this morning; the estimate has a known error. The number serves, and the assumption rides with it, structured, on the wire: material ones in your face, the rest filed for audit. It <strong>gets labeled</strong> — not as apology, as completeness. <a class="ev" href={DEMO}>watch it disclose — one tap in the demo →</a></p>
+
+    <p><strong>And past the last gate — one more honesty, about us.</strong> There is a failure family no gate can reach: whether the question you asked is the question you meant. Whether refunds belong in "revenue" is a fact about your business, not your query — no checker can rule on it, ours included, because ruling would require knowing your intent. We decline the omnipotent option at the top of the ladder; at the bottom, we simply lack the omniscient one. For that family, <em>labeled</em> is not the consolation rung. It is the highest rung that exists — for everyone, permanently.</p>
+
+    <p>Between the omnipotence we refuse and the omniscience we lack, three rungs remain — <strong>refuse, ask, disclose</strong> — and those three are exactly what honesty looks like for a machine.</p>
+
+    <p>So, the five fates, top to bottom:</p>
+
+    <ul class="fates">
+      <li><strong>It can't be written.</strong> No path produces it.</li>
+      <li><strong>It gets refused.</strong> Stopped before running, with the reason.</li>
+      <li><strong>It gets asked back.</strong> Converted into a choice before a number exists.</li>
+      <li><strong>It gets labeled.</strong> Served, with its assumptions attached — loudly.</li>
+      <li><strong>It goes silent.</strong> No gate, no gauntlet — the number just arrives.</li>
+    </ul>
+
+    <p>If those middle three sound familiar, they should: they are the system's own answer vocabulary — refuse, clarify, disclose — which is no coincidence. The moods are the rungs, seen from inside a single query's journey. And the stick, in one sentence: <strong>a solution's worth is the set of failures it moves up the ladder.</strong></p>
+
+    <p class="bridge">The research states the rungs formally — inexpressible, certifiable, disclosable-only — in <a href={SEAM} rel="noopener" target="_blank">The Silent Seam</a>.</p>
+
+    <h2 id="failure-kinds">What kinds of failure are there?</h2>
+
+    <p>Fates need patients. At the resolution this page needs, the silent failures of analytics sort into six bands, in three groups. (The full-resolution map is the Silent Failure Atlas: sixty-seven modes, nine families, graded against everyone including us. This page is the teaching zoom; the Atlas is the reference zoom.)</p>
+
+    <p><strong>Failures of form</strong> — these live inside the computation, where a grammar can reach them. They can climb all the way:</p>
+
+    <ul>
+      <li><strong>Fan-out</strong> — the join that silently multiplies.</li>
+      <li><strong>Aggregation legality</strong> — may this be summed, rolled up, divided; the grain that changes the number.</li>
+      <li><strong>Drift</strong> — two teams, two definitions of the same name. <em>(Keep drift distinct from its cousin below: drift is two definitions; ambiguity is one definition that still admits several legitimate numbers.)</em></li>
+      <li><strong>Rollup reuse</strong> — which pre-computed aggregates may lawfully answer which questions; the thirty-year-old open problem behind every acceleration layer.</li>
+    </ul>
+
+    <p><strong>The boundary band</strong> — one band, sitting exactly on the seam between form and meaning:</p>
+
+    <ul>
+      <li><strong>Underdetermined questions</strong> — meaningful several ways at once; the averaging family lives here, and so does the detectable portion of intent-mismatch: the population you didn't pin, the resolution you didn't state. Detectable, because the underdetermination is visible in structure. Resolvable, only by you.</li>
+    </ul>
+
+    <p><strong>Failures of meaning</strong> — these live between the person and the question, where no apparatus reaches:</p>
+
+    <ul>
+      <li><strong>Unspoken intent and world-truth</strong> — the question you meant but didn't ask; whether the data resembles the world it describes. Ceiling: labeled. For everyone.</li>
+    </ul>
+
+    <h2 id="patterns">The technology patterns</h2>
+
+    <p>Now the columns. What follows places <strong>patterns</strong>, not products — you will recognize your stack without our naming it, and the recognition is yours to make. One name appears below, for one reason that will be obvious.</p>
+
+    <p><strong>The bare agent.</strong> A capable model pointed at a warehouse — text-to-SQL, with or without schema in the prompt. Every band stays silent. This is not a criticism of the models: a perfectly accurate reader of an under-specified question still has to pick. It is a statement about where the fix cannot live.</p>
+
+    <p><strong>The documented catalog.</strong> The serious answer most of the industry gives: governed views encoding one authoritative definition per metric, documentation and labels describing every dataset, lineage, access control — the well-run semantic layer. Credit where due: this genuinely moves <strong>drift</strong> up the ladder. One definition, encoded once, consumed everywhere, is a real fix for two-dashboards-two-numbers.</p>
+
+    <p>But watch what carries the correctness: prose and names, read by the same fallible semantic engine the layer was built to protect you from. A view freezes a metric's grain and resolution into SQL text; the documentation <em>describes</em> the freeze; and <strong>underdetermined questions</strong> — one governed name, several legitimate numbers — have nowhere to go. We measured exactly this: nine models, identical well-documented schemas, one shot each — and entire failure families failed identically across every model tested, regardless of vendor or scale. More documentation did not fix it. Better models did not fix it. And half of every model's silent failures weren't arithmetic at all: the model named the right hazard in prose, then filed it under the wrong category. Disclosure without structure. <a class="ev" href={BENCH} rel="noopener" target="_blank">the benchmark →</a></p>
+
+    <p>A newer sub-pattern deserves its own sentence: some catalogs now mine query logs for implicit definitions — if most queries filter a certain way, surface that as the candidate meaning. This promotes <strong>consensus</strong> to canon. But if the popular query divides by the wrong thing, consensus is how the wrong thing becomes official. Consensus is not correctness. Only a grammar knows the difference.</p>
+
+    <p><strong>The redesigned language.</strong> Some projects rethink the query language itself, and the best of them make the analyst's <em>intent</em> dramatically more expressible than SQL ever did — a real contribution, respectfully noted. But expressiveness governs how you ask, not what is legal to compute; beneath the better language, the container model persists. A better grammar <em>of the question</em> is not a grammar <em>of legality</em> — and notably, nothing forces the choice: a lovely question language could sit above a legality grammar.</p>
+
+    <p><strong>The pattern-licensed accelerator.</strong> Every mature platform pre-computes rollups and answers from them, increasingly automatically — watching your query patterns and materializing what's popular. A genuine performance layer. But notice what licenses each shortcut: observed pattern, not proof of legality. Whether a cached rollup may lawfully serve a given question is exactly the <strong>rollup reuse</strong> band — and popularity cannot close it. (Our own answer — a navigator whose every cache hit is a theorem application — is on our roadmap, not in the shipped engine. The ladder grades shipped things. So should you. <a class="ev" href={CACHER}>the roadmap note →</a>)</p>
+
+    <p id="the-fast-pipe"><strong>The fast pipe.</strong> A different layer entirely, included because of a name: <strong><a href={COLUMNAR} rel="noopener" target="_blank">Columnar</a></strong> (columnar.tech) builds Arrow-native connectivity that moves columnar data between systems dramatically faster than the row-oriented standards it replaces. Excellent work, one letter from our name, and not on this ladder at all: connectivity determines how fast a number arrives, not whether it was the right number. <strong>They move columns fast; we govern what columns say.</strong> If anything, the two compose.</p>
+
+    <p><strong>The closed estate.</strong> At the highest end, the most commercially successful version of the diagnosis: a model cannot be trusted with a business's numbers until something anchors it to that business's actual world. Right about the disease — billions of dollars right. The cure is an estate: closed, bespoke, ungradeable from outside. Ours is the opposite wager: that the load-bearing part of "anchoring" is small enough to be an open algebra — checkable by anyone, owned by no one.</p>
+
+    <h2 id="the-map">The map</h2>
+
+    <p>Rungs, bands, patterns. Put them together and the landscape stops being a debate and becomes a picture:</p>
+
+    <figure class="matrix-wrap">
+      <div class="matrix-scroll" role="region" aria-label="The fate matrix — failure bands by technology pattern" tabindex="0">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th scope="col" class="band-col">failure band</th>
+              <th scope="col">the bare agent</th>
+              <th scope="col">the documented catalog</th>
+              <th scope="col">the redesigned language</th>
+              <th scope="col">the pattern-licensed accelerator</th>
+              <th scope="col">the grammar layer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="group"><th scope="rowgroup" colspan="6">failures of form</th></tr>
+            <tr>
+              <th scope="row">fan-out</th>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="chip silent">silent</span><a class="fn" href="#fn1" id="fnref1"><sup>1</sup></a></td>
+              <td><a class="ev" href={DEMO}><span class="chip refused">refused</span></a><a class="fn" href="#fn2" id="fnref2"><sup>2</sup></a></td>
+              <td><span class="na">—</span></td>
+              <td><span class="chip cant">can't be written</span></td>
+            </tr>
+            <tr>
+              <th scope="row">aggregation legality</th>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="chip silent">silent</span><a class="fn" href="#fn3" id="fnref3"><sup>3</sup></a></td>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="na">—</span></td>
+              <td><a class="ev" href={DEMO}><span class="chip refused">refused</span></a></td>
+            </tr>
+            <tr>
+              <th scope="row">drift</th>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="chip refused">refused</span><a class="fn" href="#fn4" id="fnref4"><sup>4</sup></a></td>
+              <td><span class="chip refused">refused</span><a class="fn" href="#fn5" id="fnref5"><sup>5</sup></a></td>
+              <td><span class="na">—</span></td>
+              <td><span class="chip cant">can't be written</span><a class="fn" href="#fn6" id="fnref6"><sup>6</sup></a></td>
+            </tr>
+            <tr>
+              <th scope="row">rollup reuse</th>
+              <td><span class="na">—</span></td>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="na">—</span></td>
+              <td><span class="chip silent">silent</span><a class="fn" href="#fn7" id="fnref7"><sup>7</sup></a></td>
+              <td><a class="ev" href={CACHER}><span class="chip roadmap">refused by proof — <em>roadmap</em></span></a></td>
+            </tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="6">the boundary band</th></tr>
+            <tr>
+              <th scope="row">underdetermined questions</th>
+              <td><span class="chip silent">silent</span><a class="fn" href="#fn8" id="fnref8"><sup>8</sup></a></td>
+              <td><a class="ev" href={BENCH} rel="noopener" target="_blank"><span class="chip silent">silent</span></a></td>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="na">—</span></td>
+              <td><a class="ev" href={DEMO}><span class="chip asked strong">asked back</span></a></td>
+            </tr>
+
+            <tr class="group"><th scope="rowgroup" colspan="6">failures of meaning</th></tr>
+            <tr>
+              <th scope="row">unspoken intent &amp; world-truth</th>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="chip labeled">labeled</span><a class="fn" href="#fn9" id="fnref9"><sup>9</sup></a></td>
+              <td><span class="chip silent">silent</span></td>
+              <td><span class="na">—</span></td>
+              <td><a class="ev" href={DEMO}><span class="chip labeled">labeled</span></a><a class="fn" href="#fn10" id="fnref10"><sup>10</sup></a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="legend" aria-label="Legend">
+        <span class="chip cant">can't be written</span>
+        <span class="chip refused">refused</span>
+        <span class="chip asked">asked back</span>
+        <span class="chip labeled">labeled</span>
+        <span class="chip silent">silent</span>
+        <span class="chip roadmap">roadmap</span>
+        <span class="na-key"><span class="na">—</span> not its job</span>
+      </div>
+
+      <ol class="footnotes">
+        <li id="fn1">curation reduces exposure; nothing rules. <a href="#fnref1" aria-label="back">↩</a></li>
+        <li id="fn2">partial — symmetric-aggregate handling catches some. <a href="#fnref2" aria-label="back">↩</a></li>
+        <li id="fn3">prose warnings, unenforced. <a href="#fnref3" aria-label="back">↩</a></li>
+        <li id="fn4">refused by governance process, not by a checker. <a href="#fnref4" aria-label="back">↩</a></li>
+        <li id="fn5">definitions-as-code reduce forks. <a href="#fnref5" aria-label="back">↩</a></li>
+        <li id="fn6">nothing operational rides on names, so divergence has no carrier. <a href="#fnref6" aria-label="back">↩</a></li>
+        <li id="fn7">licensed by usage pattern, not proof. <a href="#fnref7" aria-label="back">↩</a></li>
+        <li id="fn8">sometimes asks on instinct — untriggered by structure, incomplete alternatives, unreliable under pressure. <a href="#fnref8" aria-label="back">↩</a></li>
+        <li id="fn9">wiki prose, unstructured. <a href="#fnref9" aria-label="back">↩</a></li>
+        <li id="fn10">structured disclosure — the shared ceiling, ours included. <a href="#fnref10" aria-label="back">↩</a></li>
+      </ol>
+    </figure>
+
+    <p>Three things to read off the picture. The red concentrates in one row: <strong>underdetermined questions go silent everywhere</strong> — everywhere but one cell, because asking back is the rung that requires the algebra. The bottom row is the same color for us and for the best of the catalogs — <strong>the ceiling is shared</strong>, and a comparison page that pretended otherwise would be lying about its own author. And our column is not monochrome: a roadmap-hatched cell, a shared amber floor — the mixture is what makes the rest believable. Each cell's claim links to its evidence: the demo's moods by deep link, the <a href={BENCH} rel="noopener" target="_blank">benchmark</a>, the <a href={TWO_ANCHORS} rel="noopener" target="_blank">papers</a>, the <a href={ATLAS_GRADING}>Atlas family</a>, the <a href={CACHER}>roadmap note</a>. Nothing here asks to be believed.</p>
+
+    <h2 id="before-the-question">Before the first question</h2>
+
+    <p>The map grades what happens to a question once it is asked. But the best-run catalogs do a second job the map doesn't measure, and it deserves honest credit: they help people <em>understand the data before forming a question at all</em>. That job matters — most wrong questions are asked against an imagined dataset — and it deserves a better instrument than a directory of tables.</p>
+
+    <p>Ours is the <strong>Manifold Explorer</strong>, and it is live on this site's demo right now. A catalog shows you the containers: tables, schemas, column names, prose about tables — and leaves you to strip the storage away to find the substance. The Explorer shows the substance directly: each measure's universe and family, its operators — the movements the column may legally make — the formulas of the derived, and the walls themselves, the barred directions, shown <em>before</em> you walk into them. A catalog tells you a column exists. The Explorer tells you what it says, of what, and what may lawfully be asked of it. <a class="ev" href={DEMO}>browse the demo Manifold →</a></p>
+
+    <p>Which completes the measuring stick. The ladder measures the fate of failures once born; orientation reduces how many are born at all. <strong>A solution's worth is the set of failures it moves up the ladder — and the set it prevents from being born.</strong></p>
+
+    <h2 id="beside">Beside, not against</h2>
+
+    <p>Keep your semantic layer — it solves drift, and drift is real. Keep your warehouse — we never compute where your data could. Keep your fast pipes. The grammar layer is the layer underneath all of them that was never built: small, closed, checkable — the part of correctness that should never have been asked of names, documentation, or consensus in the first place.</p>
+
+    <p>And if you think we've placed a pattern wrongly — including ours — the <a href={ATLAS_GRADING}>Atlas</a> is open, the <a href={BENCH} rel="noopener" target="_blank">benchmark</a> is public, and the <a href={DEMO}>demo</a> refuses to lie on our behalf. Bring the failure mode.</p>
+  </article>
+</BaseLayout>
+
+<style>
+  .ladder-head { margin-bottom: 2rem; }
+  .ladder .dek { font-size: 1.15rem; line-height: 1.5; color: var(--ink-soft, #555); font-style: italic; margin-top: 0.4rem; }
+  .ladder h2 { margin-top: 2.4rem; }
+  .ladder ul.fates { list-style: none; padding-left: 0; }
+  .ladder ul.fates li { padding: 0.35rem 0; border-bottom: 1px solid var(--wire-rule, #232c3a22); }
+  .ladder .bridge { font-size: 0.92rem; color: var(--ink-soft, #555); border-left: 2px solid var(--wire-rule, #ccc); padding-left: 0.9rem; }
+  .ladder a.ev { font-family: var(--font-mono); font-size: 0.82rem; white-space: nowrap; }
+  .ladder .fn { text-decoration: none; }
+  .ladder .fn sup { font-size: 0.7em; }
+
+  /* ---- the matrix ---- */
+  /* the centerpiece breaks out wider than the reading column on desktop; on narrow screens it
+     stays in-flow and scrolls horizontally with a sticky first column (approved mobile strategy). */
+  .matrix-wrap { margin: 1.8rem 0 2.4rem; }
+  @media (min-width: 58rem) {
+    .matrix-wrap { width: min(60rem, 94vw); position: relative; left: 50%; transform: translateX(-50%); }
+  }
+  .matrix-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--wire-rule, #232c3a); border-radius: 10px; }
+  .matrix { border-collapse: collapse; width: 100%; min-width: 46rem; font-family: var(--font-sans); font-size: 0.82rem; background: var(--wire-bg, #0d1017); color: var(--wire-ink, #ccd6e4); }
+  .matrix thead th { text-align: left; font-weight: 600; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--wire-ink-soft, #8593a6); vertical-align: bottom; color: var(--wire-ink, #ccd6e4); }
+  .matrix tbody th[scope="row"] { text-align: left; font-weight: 600; padding: 0.6rem 0.8rem; color: #fff; white-space: nowrap; }
+  .matrix td { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--wire-rule, #232c3a); vertical-align: middle; }
+  .matrix tbody tr:last-child td, .matrix tbody tr:last-child th { border-bottom: 0; }
+  .matrix tr.group th { padding: 0.9rem 0.8rem 0.4rem; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--wire-ink-soft, #8593a6); border-bottom: 1px solid var(--wire-rule, #232c3a); }
+  /* sticky first column so no column is ever dropped on mobile */
+  .matrix th.band-col, .matrix tbody th[scope="row"], .matrix tr.group th { position: sticky; left: 0; background: var(--wire-bg, #0d1017); z-index: 1; }
+  .matrix thead th.band-col { z-index: 2; }
+  .matrix a.ev { text-decoration: none; }
+
+  .chip { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; padding: 0.18rem 0.5rem; border-radius: 5px; letter-spacing: 0.01em; white-space: nowrap; }
+  /* moods-as-rungs licensed exception: refuse/clarify/disclose reuse the mood colors */
+  .chip.refused { background: var(--mood-refuse, #c2543f); color: #fff; }
+  .chip.asked   { background: var(--mood-clarify, #2f7fc4); color: #fff; }
+  .chip.asked.strong { box-shadow: 0 0 0 2px var(--mood-clarify, #2f7fc4) inset; }
+  .chip.labeled { background: var(--mood-disclose, #c98a2b); color: #fff; }
+  /* can't-be-written: strong-neutral "wall" */
+  .chip.cant    { background: #e8ecf2; color: #0d1017; border: 1px solid #cbd3df; }
+  /* silent: gray/muted-neutral — NOT red (per ruling: silence is nothing-colored, the villain is not confused with mood-red) */
+  .chip.silent  { background: transparent; color: var(--wire-ink-soft, #8593a6); border: 1px dashed var(--wire-ink-soft, #55606f); }
+  /* roadmap: dashed/hatched, visibly provisional */
+  .chip.roadmap { background: repeating-linear-gradient(135deg, #1b2432, #1b2432 5px, #141922 5px, #141922 10px); color: var(--wire-ink, #ccd6e4); border: 1px dashed var(--wire-ink-soft, #8593a6); }
+  .chip.roadmap em { font-style: italic; color: var(--mood-disclose, #c98a2b); }
+  .na { color: var(--wire-ink-soft, #8593a6); }
+
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin: 0.9rem 0 0; font-size: 0.78rem; }
+  .legend .na-key { display: inline-flex; gap: 0.35rem; align-items: center; color: var(--ink-soft, #555); font-family: var(--font-mono); font-size: 0.74rem; }
+  .footnotes { margin-top: 1.1rem; font-size: 0.82rem; color: var(--ink-soft, #555); padding-left: 1.4rem; }
+  .footnotes li { padding: 0.12rem 0; }
+  .footnotes a { text-decoration: none; }
+
+  @media (max-width: 40rem) {
+    .matrix { font-size: 0.78rem; }
+    .ladder a.ev { white-space: normal; }
+  }
+</style>
