@@ -337,7 +337,11 @@ class Planner:
         meas_name, member = self._measure_ref(node)
         if meas_name is not None:
             if meas_name in self.m.derived:
-                return self._infer(ast.parse(self.m.derived[meas_name].formula, mode="eval").body, anchor, population)
+                dshape = self.m.derived[meas_name]
+                # an AT-metric typechecks at its RESOLUTION anchor (where the formula is evaluated),
+                # then the reduction is a downstream engine step — not at the asked anchor.
+                infer_anchor = (dshape.resolution_anchor,) if dshape.resolution_anchor else anchor
+                return self._infer(ast.parse(dshape.formula, mode="eval").body, infer_anchor, population)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
             meas = self.m.measures[meas_name]
@@ -447,7 +451,10 @@ class Planner:
         meas_name, member = self._measure_ref(node)
         if meas_name is not None:
             if meas_name in self.m.derived:
-                return self._node(ast.parse(self.m.derived[meas_name].formula, mode="eval").body,
+                dshape = self.m.derived[meas_name]
+                if dshape.resolution_anchor is not None:
+                    return self._resolve_anchored_metric(meas_name, dshape, anchor, where, trace)
+                return self._node(ast.parse(dshape.formula, mode="eval").body,
                                   anchor, where, trace)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
@@ -497,6 +504,35 @@ class Planner:
             return self._apply(op, lk, lp, ld, ldt, rk, rp, rd, rdt, list(anchor))
 
         raise Refusal("unknown", f"unsupported expression node {type(node).__name__}")
+
+    # ---- resolution-anchor metric (WP-B B-4): a DISTINCT reading, never the pooled sibling ----
+    def _resolve_anchored_metric(self, name, dshape, anchor, where, trace):
+        """`DERIVED <name> = <formula> AT <res> FAMILY { <member> ... }` is a distinct metric: the
+        <member>-reduction of the formula evaluated at <res> (e.g. the mean of daily rates). Evaluate
+        the formula AT the resolution anchor, then reduce by the declared member to the asked level.
+        This is the metric's DECLARED meaning — no interaction with the pooled `<formula> @ anchor`
+        sibling, and the engine NEVER substitutes one reading for the other (never-substitute)."""
+        res = dshape.resolution_anchor
+        if len(anchor) != 1:
+            raise Refusal("unsupported",
+                f"resolution-anchor metric '{name}' is served at a single level — its meaning is a "
+                f"reduction of the '{res}'-resolved series; asked at {anchor}")
+        if len(dshape.members) != 1:
+            raise Refusal("unknown",
+                f"resolution-anchor metric '{name}' needs exactly one reduction member "
+                f"(declared: {list(dshape.members)})")
+        target, member = anchor[0], dshape.members[0]
+        # evaluate the formula AT the resolution anchor — the denotation there (recompute-from-components)
+        k, frame, disc, dtype = self._node(ast.parse(dshape.formula, mode="eval").body,
+                                           (res,), where, trace)
+        if k != "col":
+            raise Refusal("unknown", f"resolution-anchor metric '{name}' formula is not a column")
+        if trace is not None:
+            trace.append(f"resolution-anchor metric '{name}' = {member} of ({dshape.formula})@{res} -> {target}")
+        if target == res:
+            return "col", frame, disc, dtype                # asked AT the anchor: the denotation itself
+        reduced = self.engine.reduce_series(frame, res, target, member, trace)
+        return "col", reduced, disc, dtype
 
     def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys):
         # map operands are typechecked against the umbrella registry's MAP signature (vocabulary)

@@ -51,6 +51,16 @@ acceptance #6). Unchanged for v1. Site treatment: render neutral, labeled "not a
 > (result, disclose) pair; the classification rule ships in the contract text. Mechanical
 > errors leave the outcome channel for the transport error path; semantic non-service is
 > classified as refuse or clarify with reasons. Rationale: this file. No v1 change.
+>
+> **CV2-2 (2026-07-14, WP-B fertility, ruling §5).** An *exercised* UNTESTABLE fertility license
+> would owe a runtime "license is asserted, not proven" disclosure — but v1's closed caveat
+> vocabulary has no code that fits it (checked: `unconfirmed_assumption→input_anchor` is material
+> and means input-anchor choice; `provenance` would conflate asserted with verified; no reserved
+> code matches), and we do NOT mint one (S1a lesson). Ruled deferred: in WP-B, UNTESTABLE licenses
+> are recorded and visible in describe but **never exercised** (the reduce-path optimization runs
+> only under VERIFIED/CORROBORATED), so an asserted license never changes a served number and needs
+> no runtime caveat. The exercised-UNTESTABLE disclosure question waits for the era that can exercise
+> it. No v1 change. (CORROBORATED rides the existing immaterial `provenance` code.)
 
 ## Site touchpoint — APPLIED (exhibit script v0.2, 2026-07-11)
 
