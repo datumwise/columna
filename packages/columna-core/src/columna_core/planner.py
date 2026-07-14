@@ -15,11 +15,12 @@ import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, COVERAGE, B_ANCHOR_CROSSING,
+from .disclosure import (Disclosure, Refusal, Caveat, COVERAGE, B_ANCHOR_CROSSING, TRANSPORT,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
+            ast.MatMult,  # `@` — the INPUT-ANCHOR pin inside an inline reduction (aov@day)
             ast.Call, ast.keyword)
 _OP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
 _V = "_v"
@@ -177,6 +178,66 @@ class Planner:
             return node.id, None
         return None, None
 
+    # inline reduction OF a derivation (capture v0.8; WP-B.1). `avg`/`mean`/`sum`/`min`/`max`/`count`
+    # collapse a finer-resolved series to the frame anchor. Distinct from a SCAN (order-preserving) —
+    # and from the DECLARED AT-metric (this is the same reading expressed inline, no declaration).
+    _INLINE_REDUCERS = {"avg": "mean", "mean": "mean", "sum": "sum",
+                        "min": "min", "max": "max", "count": "count"}
+
+    def _reduction_call(self, node):
+        """Recognize an inline reduction: `R(inner)` or `R(inner @ level)`, R a reducing operator.
+        Returns (reducer, inner_node, pinned_level | None), or None if `node` is not such a call. The
+        `@` (MatMult) PINS the input anchor: pinned ⇒ a definite quantity; unpinned ⇒ the input anchor
+        is structurally underdetermined (an engine clarify — capture v0.8)."""
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+            return None
+        r = self._INLINE_REDUCERS.get(node.func.id)
+        if r is None:
+            return None
+        if len(node.args) != 1 or node.keywords:
+            raise Refusal("unknown",
+                f"inline reduction '{node.func.id}' takes exactly one column argument "
+                f"(e.g. {node.func.id}(aov@day) to pin the input anchor)")
+        arg = node.args[0]
+        if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
+            if not isinstance(arg.right, ast.Name):
+                raise Refusal("unknown",
+                    f"inline reduction input anchor must be a level name, e.g. {node.func.id}(aov@day)")
+            return r, arg.left, arg.right.id
+        return r, arg, None
+
+    @staticmethod
+    def _reducer_out_dtype(reducer: str, in_dt: str) -> str:
+        """Output dtype of an inline reducer over `in_dt` (mean/count are not registry operators)."""
+        if reducer == "mean":
+            return "Float64"
+        if reducer == "count":
+            return "Int64"
+        return in_dt                                            # sum/min/max preserve the input dtype
+
+    def _candidate_input_anchors(self, target: str):
+        """The finer levels a reduction's input anchor could pin: every level with a functional path
+        to the frame anchor. These are the alternatives an unpinned reduction's clarify enumerates."""
+        levels = {e.frm for e in self.m._edges} | {e.to for e in self.m._edges}
+        return sorted(L for L in levels
+                      if L != target and self.m.find_path({L}, target) is not None)
+
+    def _unpinned_reduction_refusal(self, reducer, inner, anchor):
+        """The engine clarify for an inline reduction with no pinned input anchor (capture v0.8): the
+        input anchor is structurally underdetermined, so enumerate the candidate anchors and choose
+        none. Reason `ambiguous_grain` (CLARIFY/AMBIGUOUS) — the closest fit in the closed reason
+        vocabulary; no code minted (the fit is reported to CP-B.1)."""
+        expr = ast.unparse(inner)
+        target = anchor[0] if len(anchor) == 1 else None
+        cands = self._candidate_input_anchors(target) if target else []
+        alts = tuple(f"pin the input anchor to '{L}' (e.g. {reducer}({expr}@{L}))" for L in cands)
+        hint = cands[0] if cands else "<level>"
+        return Refusal("ambiguous_grain",
+            f"inline reduction '{reducer}({expr})' does not pin its input anchor — the grain to "
+            f"resolve '{expr}' at before reducing to {target or anchor} is underdetermined; pin it, "
+            f"e.g. '{reducer}({expr}@{hint})'",
+            discriminator=AMBIGUOUS, alternatives=alts)
+
     def _scan_call(self, node):
         """A SCAN call: scan_op( <measure.member>, n=<int>, by=<level> ). Returns
         (scan_op, arg_node, n, by) when node is a registered scan-kind call, else None.
@@ -210,6 +271,10 @@ class Planner:
         validated (so _scan_call/_measure_ref will not raise here)."""
         if isinstance(node, ast.Constant):
             return []
+        rc = self._reduction_call(node)
+        if rc is not None:
+            _r, inner, _pinned = rc                 # inline reduction: its atoms are the inner's
+            return self._atoms(inner, anchor)
         sc = self._scan_call(node)
         if sc is not None:
             _op, arg, _n, _by = sc
@@ -323,6 +388,18 @@ class Planner:
         engine: every error here is knowable from vocabulary/shape alone."""
         if isinstance(node, ast.Constant):
             return "Float64"
+        rc = self._reduction_call(node)
+        if rc is not None:
+            reducer, inner, pinned = rc
+            if pinned is None:
+                # UNPINNED: the input anchor is structurally underdetermined — a STATIC engine clarify
+                # (capture v0.8), enumerating the candidate input anchors.
+                raise self._unpinned_reduction_refusal(reducer, inner, anchor)
+            if len(anchor) != 1:
+                raise Refusal("unsupported",
+                    f"inline reduction is served at a single frame level; asked at {anchor}")
+            in_dt = self._infer(inner, (pinned,), population)    # typecheck the inner at its input anchor
+            return self._reducer_out_dtype(reducer, in_dt)
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, _n, _by = sc
@@ -429,6 +506,10 @@ class Planner:
         if isinstance(node, ast.Constant):
             return "scalar", float(node.value), Disclosure.clean(), "Float64"
 
+        rc = self._reduction_call(node)
+        if rc is not None:
+            return self._resolve_inline_reduction(rc, anchor, where, trace)
+
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, n, by = sc
@@ -533,6 +614,40 @@ class Planner:
             return "col", frame, disc, dtype                # asked AT the anchor: the denotation itself
         reduced = self.engine.reduce_series(frame, res, target, member, trace)
         return "col", reduced, disc, dtype
+
+    # ---- inline reduction of a derivation (WP-B.1): the same reading, expressed without a name ----
+    def _resolve_inline_reduction(self, rc, anchor, where, trace):
+        """`R(inner @ level)` at frame anchor T: resolve `inner` at its PINNED input anchor `level`,
+        then reduce that series to T by R — a definite quantity (capture v0.8). Served with an
+        IMMATERIAL communicative disclosure naming the reading (the `provenance`/transport code — the
+        closest fit in the closed vocabulary): a user-pinned input anchor is a deliberate, visible
+        choice, so it owes a communicative note, NOT the material `input_anchor` caveat (the
+        input_anchor-fit finding — see the PR/CP-B.1). Unpinned is caught statically in `_infer`;
+        this defends the direct-`_node` path."""
+        reducer, inner, pinned = rc
+        if pinned is None:
+            raise self._unpinned_reduction_refusal(reducer, inner, anchor)
+        if len(anchor) != 1:
+            raise Refusal("unsupported",
+                f"inline reduction is served at a single frame level; asked at {anchor}")
+        target = anchor[0]
+        k, frame, disc, dtype = self._node(inner, (pinned,), where, trace)
+        if k != "col":
+            raise Refusal("unknown", f"inline reduction input '{ast.unparse(inner)}' is not a column")
+        out_dtype = self._reducer_out_dtype(reducer, dtype)
+        reading = f"{reducer} of {ast.unparse(inner)}@{pinned}"
+        if trace is not None:
+            trace.append(f"inline reduction: {reading} -> {target}")
+        if target == pinned:
+            served = frame                                     # asked AT the pinned anchor: no travel
+        else:
+            served = self.engine.reduce_series(frame, pinned, target, reducer, trace)
+        # communicative disclosure naming the reading — IMMATERIAL (provenance/transport), not a caveat
+        note = Caveat(TRANSPORT,
+                      f"'{reading}' reduced to {target} — the {reading} reading (input anchor pinned "
+                      f"to '{pinned}'), not the pooled value at {target}",
+                      source=f"{pinned}->{target}")
+        return "col", served, Disclosure.merge(disc, Disclosure.of(note), population=disc.population), out_dtype
 
     def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys):
         # map operands are typechecked against the umbrella registry's MAP signature (vocabulary)
