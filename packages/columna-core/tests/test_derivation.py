@@ -25,7 +25,7 @@ import pytest
 
 from columna_core import DerivedColumn, ManifoldServer
 from columna_core.disclosure_wire import wire_frame
-from columna_core.parser import parse_manifold
+from columna_core.parser import parse_manifold, ParseError
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _BENCHMARK_CML = os.path.join(_HERE, "fixtures", "benchmark.cml")
@@ -144,3 +144,77 @@ def test_parsed_derived_unknown_family_member_errors_classified(fixture_connecto
     assert nr.get("reason") == "unknown"
     detail = nr.get("detail") or ""
     assert "lasst" in detail and "registry" in detail
+
+
+# =====================================================================================
+# B-2 — the fertility grammar (FERTILE {..} + AT <level>). The parser RECORDS declarations
+# (declared_lineages, resolution_anchor) and constructs NO License; the adjudicator (B-3) is
+# the sole authority that mints a verdict. Fail-closed: a FERTILE/BLOCKED lineage or an AT
+# level that no declaration carries is a well-formedness error.
+# =====================================================================================
+def _parse(extra: str):
+    with open(_BENCHMARK_CML) as f:
+        return parse_manifold(f.read() + "\n" + extra + "\n")
+
+
+def test_fertility_grammar_composes_with_dotted_head_and_at():
+    """The T2 dotted-head fix and the new grammar must compose: a formula with a dotted family ref,
+    an `AT <level>` resolution anchor, and a FAMILY block, all on one declaration."""
+    m = _parse("DERIVED x = revenue / level.last AT day FAMILY { mean FERTILE { } }")
+    d = m.derived["x"]
+    assert d.formula == "revenue / level.last"           # everything up to the top-level AT
+    assert d.resolution_anchor == "day"                  # AT rides the formula line, stripped off
+    assert set(d.family) == {"mean"}                     # the member is declared...
+    assert d.family["mean"].declared_lineages == frozenset()   # ...with no travel (empty FERTILE)
+    assert d.family["mean"].license is None              # parser never mints a License
+
+
+def test_fertile_records_declared_lineages_no_license():
+    """A non-empty FERTILE {..} records exactly those lineages as declared; still no License."""
+    m = _parse("DERIVED net = revenue - orders FAMILY { sum FERTILE { calendar store_geo } }")
+    fm = m.derived["net"].family["sum"]
+    assert fm.declared_lineages == frozenset({"calendar", "store_geo"})
+    assert fm.license is None
+
+
+def test_no_family_block_is_denotation_only():
+    """No FAMILY block ⇒ denotation-only: an empty family, no implied member, no travel."""
+    m = _parse("DERIVED plain = revenue - orders")
+    assert m.derived["plain"].family == {}
+    assert m.derived["plain"].resolution_anchor is None
+
+
+def test_freshly_parsed_manifold_has_no_license_anywhere():
+    """The authority chain, negative pin (B-2 adjustment #1): parsing constructs NO License objects
+    anywhere — on derived members OR measure members. Only the adjudicator mints verdicts."""
+    m = _parse("DERIVED net = revenue - orders AT day\n"
+               "    FAMILY {\n        sum FERTILE { calendar }\n        mean FERTILE { }\n    }")
+    licenses = [fm.license
+                for holder in (list(m.derived.values()) + list(m.measures.values()))
+                for fm in holder.family.values()]
+    assert licenses and all(lic is None for lic in licenses)
+
+
+def test_fertile_lineage_fail_closed():
+    """A FERTILE lineage no declared edge carries is a well-formedness error (opening a door that
+    doesn't exist)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("DERIVED bad = revenue - orders FAMILY { sum FERTILE { nonesuch } }")
+    assert "nonesuch" in str(ei.value) and "FERTILE" in str(ei.value)
+
+
+def test_at_level_fail_closed():
+    """An `AT <level>` naming an undeclared level is a well-formedness error (reachability from the
+    components' universes is the adjudicator's job; existence is the parser's)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("DERIVED bad = revenue / orders AT no_such_level FAMILY { mean FERTILE { } }")
+    assert "no_such_level" in str(ei.value)
+
+
+def test_blocked_lineage_fail_closed_aligned():
+    """B-2 adjustment #3, alignment: the measure BLOCKED validation was previously absent; it now
+    fails closed on the same rule as FERTILE (a BLOCKED lineage no edge carries is an error)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("MEASURE bogus ON transactions FROM transactions AS sum(amount)\n"
+               "    FAMILY {\n        sum BLOCKED { nonesuch }\n    }")
+    assert "nonesuch" in str(ei.value) and "BLOCKED" in str(ei.value)

@@ -112,9 +112,12 @@ class FamilyMember:
     fertility declaration and carries its `license` (closed-by-default; the license opens travel).
     On MEASURE columns `license` is None (measures are open-by-default; the B-anchor closes)."""
     agg: str                              # operator name; looked up in operators.REGISTRY
-    b_anchor: BAnchor = BAnchor()         # column-level: permitted lineages
+    b_anchor: BAnchor = BAnchor()         # measure column-level: BLOCKED (closed) lineages
     order_by: Optional[str] = None        # for ORDERED operators (last/first): the level to order by
-    license: Optional[License] = None     # derived-member fertility license; None on measure members
+    declared_lineages: frozenset = frozenset()  # derived: the DECLARED fertile lineages (FERTILE {..}); the
+                                          #          parser RECORDS these — it never constructs a License
+    license: Optional[License] = None     # derived-member fertility License; constructed ONLY by the
+                                          #          adjudicator at publish. None on parse and on measure members.
 
 @dataclass(frozen=True)
 class MeasureColumn:
