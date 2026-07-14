@@ -1,4 +1,6 @@
 ---
+// Copy source of record: src/content/corpus/ladder_page_v0_3.md — this page is rendered MANUALLY
+// from it (verbatim). Any wording change happens in that file first (with its ruling), then here.
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 // Verification targets (the copy's law: every claim one click from evidence).
@@ -34,9 +36,9 @@ const DEMO = '/#exhibit-b';
 
     <p><strong>Gate one: is it meaningful here?</strong> A question can be perfectly well-formed and still mean nothing in <em>this</em> data. Linguists have a famous sentence for this — <em>colorless green ideas sleep furiously</em> — flawless grammar, empty meaning, and natural language has to tolerate it. We don't. Ask for a rate over a population where its ingredients don't live, and the request is grammatical, expressible — and not meaningfully executable in this Manifold. It <strong>gets refused</strong>: stopped before anything runs, with the reason and the nearest legitimate alternatives. Natural grammar admits nonsense because it must. A grammar over declared data doesn't, because it needn't. <a class="ev" href={DEMO}>watch it refuse — one tap in the demo →</a></p>
 
-    <p><strong>Gate two: does it mean exactly one thing?</strong> <em>Average order value, by month</em> is meaningful — that's the trouble. It is meaningful several ways: averaged over orders, over customers, over days; the pooled monthly rate or the mean of daily rates. Every reading is legitimate; the question simply never said which. Here the system must not pick one meaning silently — not even the popular one. It <strong>gets asked back</strong>: the readings are enumerated, each a real, runnable alternative, and the one party who knows what was meant chooses. <a class="ev" href={DEMO}>watch it ask back — one tap in the demo →</a></p>
+    <p><strong>Gate two: does it mean exactly one thing?</strong> <em>Average order value, by month</em> is meaningful — that's the trouble. It is meaningful several ways, and the ways live in different places. <em>Averaged over what — orders, customers, days?</em> That question was settled the day the metric was declared: to this system, <code>aov</code> is not a name to read meaning into. It is a formula — revenue over orders — inspectable in the Explorer, riding on nothing as fragile as a string. <em>The pooled monthly rate, or the mean of daily rates?</em> That question lives in the gap between your sentence and any expression — they are two different computations, and no grammar can hear which one you said, because you said neither. The asking belongs to the moment of translation, and the Manifold is what arms it: a translator that can <em>see</em> <code>aov</code> is a ratio of aggregates knows there is a question to ask before any expression exists. And some ambiguity survives into the expression itself: a rate whose ingredients live in two different populations is ambiguous <em>in structure</em>, however carefully the question was phrased. There the system must not pick — not even the popular reading. It <strong>gets asked back</strong>: the legal readings are enumerated, each a real, runnable alternative, and the one party who knows what was meant chooses. <a class="ev" href={DEMO}>watch it ask back — one tap in the demo →</a></p>
 
-    <p>Stay on this rung a moment, because it is the strange one. Every other rung is prophylactic or confessional — it prevents a number, or it flags one. Asking back is <strong>curative</strong>: the failure is converted into a question before any number exists, and what eventually serves is the answer you actually meant. It is the only rung that ends with the right number. It is also the rung an architecture can't fake: asking requires knowing <em>that</em> you must ask — a completeness check only a grammar can run — and knowing the <em>full</em> set of legal readings — an enumeration only an algebra can make. A model can ask on instinct, and sometimes does. Instinct doesn't know when it's needed, and doesn't know when its list is complete.</p>
+    <p>Stay on this rung a moment, because it is the strange one. Every other rung is prophylactic or confessional — it prevents a number, or it flags one. Asking back is <strong>curative</strong>: the failure is converted into a question before any number exists, and what eventually serves is the answer you actually meant. It is the only rung that ends with the right number. It is also the rung an architecture can't fake — in the place where structure can see: knowing <em>that</em> you must ask is a completeness check only a grammar can run, and knowing the <em>full</em> set of legal readings is an enumeration only an algebra can make. A model can ask on instinct, and sometimes does. Instinct doesn't know when it's needed, and doesn't know when its list is complete. The division of labor is exact: where the ambiguity is visible in the expression, the grammar asks; where it lives between your sentence and the expression, the asking belongs to the translator — and the Manifold's describe surface is what turns a translator's instinct into knowledge.</p>
 
     <p><strong>Gate three: does the answer make analytical sense?</strong> The question is meaningful, single, and legal; it executes; a number exists. And still the result may carry an assumption a careful analyst would want said aloud — the frame spans two populations; the value came from a cache as of this morning; the estimate has a known error. The number serves, and the assumption rides with it, structured, on the wire: material ones in your face, the rest filed for audit. It <strong>gets labeled</strong> — not as apology, as completeness. <a class="ev" href={DEMO}>watch it disclose — one tap in the demo →</a></p>
 
@@ -74,7 +76,7 @@ const DEMO = '/#exhibit-b';
     <p><strong>The boundary band</strong> — one band, sitting exactly on the seam between form and meaning:</p>
 
     <ul>
-      <li><strong>Underdetermined questions</strong> — meaningful several ways at once; the averaging family lives here, and so does the detectable portion of intent-mismatch: the population you didn't pin, the resolution you didn't state. Detectable, because the underdetermination is visible in structure. Resolvable, only by you.</li>
+      <li><strong>Underdetermined questions</strong> — meaningful several ways at once; the averaging family lives here. Part of the family is visible in structure — the population you didn't pin — and structure asks you back. Part never reaches structure: the resolution your sentence didn't state arrives at the engine as a definite computation, so its defense is orientation and translation, not a gate. Detectable where structural; resolvable, only by you.</li>
     </ul>
 
     <p><strong>Failures of meaning</strong> — these live between the person and the question, where no apparatus reaches:</p>
@@ -162,7 +164,7 @@ const DEMO = '/#exhibit-b';
               <td><a class="ev" href={BENCH} rel="noopener" target="_blank"><span class="chip silent">silent</span></a></td>
               <td><span class="chip silent">silent</span></td>
               <td><span class="na">—</span></td>
-              <td><a class="ev" href={DEMO}><span class="chip asked strong">asked back</span></a></td>
+              <td><a class="ev" href={DEMO}><span class="chip asked strong">asked back</span></a><a class="fn" href="#fn11" id="fnref11"><sup>11</sup></a></td>
             </tr>
 
             <tr class="group"><th scope="rowgroup" colspan="6">failures of meaning</th></tr>
@@ -199,6 +201,7 @@ const DEMO = '/#exhibit-b';
         <li id="fn8">sometimes asks on instinct — untriggered by structure, incomplete alternatives, unreliable under pressure. <a href="#fnref8" aria-label="back">↩</a></li>
         <li id="fn9">wiki prose, unstructured. <a href="#fnref9" aria-label="back">↩</a></li>
         <li id="fn10">structured disclosure — the shared ceiling, ours included. <a href="#fnref10" aria-label="back">↩</a></li>
+        <li id="fn11">the structurally visible portion of the band; sentence-level underdetermination is resolved at declaration or at translation — see gate two. <a href="#fnref11" aria-label="back">↩</a></li>
       </ol>
     </figure>
 
