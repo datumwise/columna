@@ -296,3 +296,33 @@ def test_at_metric_unreachable_target_refuses(fixture_connector):
     nr = (w["columns"][0].get("no_result") or {})
     assert w["outcome"] in ("refuse", "error")
     assert nr.get("reason") in ("out_of_universe", "unsupported", "unknown")
+
+
+# =====================================================================================
+# B-6 — measure-family semantics are UNTOUCHED by WP-B (ruling 4: on measures family = askability,
+# fertility = travel; the License is a DERIVED concept only). Regression pins for the boundary.
+# =====================================================================================
+def test_measure_family_of_one_still_serves(fixture_server):
+    """`med_amount = median(amount)` is a family-of-one MEASURE (the med_amount precedent). WP-B
+    touches derived families only — it still resolves exactly as before."""
+    w = wire_frame(fixture_server.frame("store").column("m", "med_amount").run())
+    assert w["outcome"] in ("serve", "disclose")
+
+
+def test_measures_never_carry_a_license_even_after_publish(fixture_server):
+    """The polarity boundary (ruling 4): a License is minted ONLY on derived members. After a full
+    publish (adjudication ran), every MEASURE member's license is still None — measures are
+    open-by-default and closed by the B-anchor, never by a fertility license."""
+    fixture_server.publish()
+    licenses = [fm.license for mc in fixture_server.m.measures.values() for fm in mc.family.values()]
+    assert licenses and all(lic is None for lic in licenses)
+
+
+def test_measure_blocked_semantics_unchanged(fixture_server):
+    """WP-B added a fail-closed *validation* of measure BLOCKED lineages (B-2) but changed no
+    behavior: the semi-additive `level` still SERVES its blocked-lineage crossing with a critical
+    disclosure (inform-and-serve), not a refusal."""
+    w = wire_frame(fixture_server.frame("store").column("s", "level.sum").run())
+    assert w["outcome"] in ("serve", "disclose")           # served, not refused
+    disc = [d for c in w.get("columns", []) for d in (c.get("disclosures") or [])]
+    assert any(d.get("severity") == "critical" for d in disc), "level.sum@store lost its B-anchor crossing disclosure"
