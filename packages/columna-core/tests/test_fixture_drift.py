@@ -85,3 +85,20 @@ def test_structural_parity_parsed_vs_code(parsed_manifold, hand_manifold):
     assert set(parsed_manifold.levels) == set(hand_manifold.levels)
     assert len(parsed_manifold.edges) == len(hand_manifold.edges)
     assert set(parsed_manifold.derived) == set(hand_manifold.derived)
+
+    # WP-B (B-2 adjustment #4): the parity guard must cover the fertility surface, so the moment a
+    # fertile derived column joins the shipped benchmark the parsed and code-built readings can never
+    # silently diverge on it. Compare the derived surface field-by-field: resolution anchor, member
+    # set, and each member's DECLARED lineages. (No License is compared — the parser never mints one;
+    # the adjudicator does, at publish, downstream of both readings.)
+    for name in parsed_manifold.derived:
+        pd, hd = parsed_manifold.derived[name], hand_manifold.derived[name]
+        assert pd.resolution_anchor == hd.resolution_anchor, f"derived '{name}' resolution-anchor drift"
+        assert set(pd.family) == set(hd.family), f"derived '{name}' member-set drift"
+        for mem in pd.family:
+            assert pd.family[mem].declared_lineages == hd.family[mem].declared_lineages, (
+                f"derived '{name}' member '{mem}' declared-lineage drift"
+            )
+            assert pd.family[mem].license is None and hd.family[mem].license is None, (
+                f"derived '{name}' member '{mem}' carries a License pre-adjudication (parser must not mint)"
+            )

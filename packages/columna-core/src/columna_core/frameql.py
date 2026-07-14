@@ -16,9 +16,15 @@ class ManifoldServer:
     def frame(self, *anchor, where: Optional[str] = None) -> "Frame":
         return Frame(self, tuple(anchor), where)
 
-    def publish(self, trace=None) -> int:
-        """Materialize the witness store: build and store base-grain sketches for every
-        sketch-witness measure, once. Returns the number of witnesses built."""
+    def publish(self, trace=None, attestation: Optional[str] = None) -> int:
+        """Publish the manifold: ADJUDICATE every declared derived-column fertility (attaching the
+        constructed License to each member — the sole place a License is minted), then materialize
+        the witness store. A CONTRADICTED declaration fails closed here: `adjudicate` raises and the
+        manifold does not publish (no witnesses built). Returns the number of witnesses built.
+
+        Adjudication is a no-op for a manifold with no declared fertility (unchanged behavior)."""
+        from .adjudication import adjudicate
+        self.adjudication = adjudicate(self, attestation=attestation, trace=trace)
         return self.engine.publish_witnesses(trace)
 
     @property

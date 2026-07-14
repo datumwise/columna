@@ -50,6 +50,12 @@ class Operator:
     kind: str = REDUCER                  # REDUCER | SCAN | MAP  (the umbrella discriminant)
     witness: str = VALUE                 # REDUCER mechanics: VALUE | SKETCH | ORDERED_W | HOLISTIC
     is_monoid: bool = True               # REDUCER: HOLISTIC => False (reduction-sterile)
+    linear: bool = False                 # ALGEBRAIC (WP-B math channel): preserves linear combinations —
+                                         #   distributes over addition (sum-fertility's symbolic gate).
+                                         #   True for `sum` (additive monoid) and the maps +,-,neg.
+                                         #   `*`,`/` are conditionally linear: only when one operand is a
+                                         #   scalar (literal/declared constant) — the AST scalar-operand
+                                         #   rule handles that, so the operator flag itself stays False.
     accepts: frozenset = ANY             # SIGNATURE (vocabulary): input dtypes this op accepts
     out_rule: str = "same"               # SIGNATURE: output dtype — "same", a dtype tag, or "numeric_widen"
     deliver_sql: Optional[Callable] = None   # REDUCER mechanics: (realized_expr) -> SQL agg (engine-side)
@@ -72,7 +78,7 @@ def output_dtype(op: "Operator", in_dtype: Optional[str]) -> Optional[str]:
 # ── the umbrella registry ────────────────────────────────────────────────────
 REGISTRY: dict = {
     # ---- REDUCERS (found families; reaggregate by monoid structure) ----------
-    "sum":   Operator("sum",   REDUCER, VALUE, True, accepts=NUMERIC | {DURATION}, out_rule="same",
+    "sum":   Operator("sum",   REDUCER, VALUE, True, linear=True, accepts=NUMERIC | {DURATION}, out_rule="same",
                       deliver_sql=lambda p: f"sum({p})",  combine="sum"),
     "count": Operator("count", REDUCER, VALUE, True, accepts=ANY, out_rule="Int64",
                       deliver_sql=lambda p: "count(*)",   combine="sum"),
@@ -103,11 +109,11 @@ REGISTRY: dict = {
     # In the registry so the planner typechecks/routes maps from one contract, not a hardcoded set.
     # Mechanics (the actual arithmetic) are the planner's point-wise evaluator — the one place a
     # map's "how" sits planner-side, because a map is post-agg and anchor-preserving.
-    "+":   Operator("+",   MAP, accepts=NUMERIC, out_rule="numeric_widen"),
-    "-":   Operator("-",   MAP, accepts=NUMERIC, out_rule="numeric_widen"),
-    "*":   Operator("*",   MAP, accepts=NUMERIC, out_rule="numeric_widen"),
-    "/":   Operator("/",   MAP, accepts=NUMERIC, out_rule="Float64"),
-    "neg": Operator("neg", MAP, accepts=NUMERIC, out_rule="same"),
+    "+":   Operator("+",   MAP, linear=True,  accepts=NUMERIC, out_rule="numeric_widen"),
+    "-":   Operator("-",   MAP, linear=True,  accepts=NUMERIC, out_rule="numeric_widen"),
+    "*":   Operator("*",   MAP, linear=False, accepts=NUMERIC, out_rule="numeric_widen"),  # conditional: scalar-operand rule
+    "/":   Operator("/",   MAP, linear=False, accepts=NUMERIC, out_rule="Float64"),        # conditional: scalar divisor rule
+    "neg": Operator("neg", MAP, linear=True,  accepts=NUMERIC, out_rule="same"),
 
     # ---- SCAN functions (order-dependent, anchor-preserving) -----------------
     # The planner does not know how to execute these; it routes them to the engine with a derived

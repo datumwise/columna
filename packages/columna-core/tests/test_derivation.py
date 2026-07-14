@@ -25,7 +25,7 @@ import pytest
 
 from columna_core import DerivedColumn, ManifoldServer
 from columna_core.disclosure_wire import wire_frame
-from columna_core.parser import parse_manifold
+from columna_core.parser import parse_manifold, ParseError
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _BENCHMARK_CML = os.path.join(_HERE, "fixtures", "benchmark.cml")
@@ -144,3 +144,185 @@ def test_parsed_derived_unknown_family_member_errors_classified(fixture_connecto
     assert nr.get("reason") == "unknown"
     detail = nr.get("detail") or ""
     assert "lasst" in detail and "registry" in detail
+
+
+# =====================================================================================
+# B-2 — the fertility grammar (FERTILE {..} + AT <level>). The parser RECORDS declarations
+# (declared_lineages, resolution_anchor) and constructs NO License; the adjudicator (B-3) is
+# the sole authority that mints a verdict. Fail-closed: a FERTILE/BLOCKED lineage or an AT
+# level that no declaration carries is a well-formedness error.
+# =====================================================================================
+def _parse(extra: str):
+    with open(_BENCHMARK_CML) as f:
+        return parse_manifold(f.read() + "\n" + extra + "\n")
+
+
+def test_fertility_grammar_composes_with_dotted_head_and_at():
+    """The T2 dotted-head fix and the new grammar must compose: a formula with a dotted family ref,
+    an `AT <level>` resolution anchor, and a FAMILY block, all on one declaration."""
+    m = _parse("DERIVED x = revenue / level.last AT day FAMILY { mean FERTILE { } }")
+    d = m.derived["x"]
+    assert d.formula == "revenue / level.last"           # everything up to the top-level AT
+    assert d.resolution_anchor == "day"                  # AT rides the formula line, stripped off
+    assert set(d.family) == {"mean"}                     # the member is declared...
+    assert d.family["mean"].declared_lineages == frozenset()   # ...with no travel (empty FERTILE)
+    assert d.family["mean"].license is None              # parser never mints a License
+
+
+def test_fertile_records_declared_lineages_no_license():
+    """A non-empty FERTILE {..} records exactly those lineages as declared; still no License."""
+    m = _parse("DERIVED net = revenue - orders FAMILY { sum FERTILE { calendar store_geo } }")
+    fm = m.derived["net"].family["sum"]
+    assert fm.declared_lineages == frozenset({"calendar", "store_geo"})
+    assert fm.license is None
+
+
+def test_no_family_block_is_denotation_only():
+    """No FAMILY block ⇒ denotation-only: an empty family, no implied member, no travel."""
+    m = _parse("DERIVED plain = revenue - orders")
+    assert m.derived["plain"].family == {}
+    assert m.derived["plain"].resolution_anchor is None
+
+
+def test_freshly_parsed_manifold_has_no_license_anywhere():
+    """The authority chain, negative pin (B-2 adjustment #1): parsing constructs NO License objects
+    anywhere — on derived members OR measure members. Only the adjudicator mints verdicts."""
+    m = _parse("DERIVED net = revenue - orders AT day\n"
+               "    FAMILY {\n        sum FERTILE { calendar }\n        mean FERTILE { }\n    }")
+    licenses = [fm.license
+                for holder in (list(m.derived.values()) + list(m.measures.values()))
+                for fm in holder.family.values()]
+    assert licenses and all(lic is None for lic in licenses)
+
+
+def test_fertile_lineage_fail_closed():
+    """A FERTILE lineage no declared edge carries is a well-formedness error (opening a door that
+    doesn't exist)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("DERIVED bad = revenue - orders FAMILY { sum FERTILE { nonesuch } }")
+    assert "nonesuch" in str(ei.value) and "FERTILE" in str(ei.value)
+
+
+def test_at_level_fail_closed():
+    """An `AT <level>` naming an undeclared level is a well-formedness error (reachability from the
+    components' universes is the adjudicator's job; existence is the parser's)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("DERIVED bad = revenue / orders AT no_such_level FAMILY { mean FERTILE { } }")
+    assert "no_such_level" in str(ei.value)
+
+
+def test_blocked_lineage_fail_closed_aligned():
+    """B-2 adjustment #3, alignment: the measure BLOCKED validation was previously absent; it now
+    fails closed on the same rule as FERTILE (a BLOCKED lineage no edge carries is an error)."""
+    with pytest.raises(ParseError) as ei:
+        _parse("MEASURE bogus ON transactions FROM transactions AS sum(amount)\n"
+               "    FAMILY {\n        sum BLOCKED { nonesuch }\n    }")
+    assert "nonesuch" in str(ei.value) and "BLOCKED" in str(ei.value)
+
+
+# =====================================================================================
+# B-4 — resolution-anchor metric (`AT <level>`): a DISTINCT reading whose meaning embeds the
+# anchor (mean of daily rates), evaluated at the resolution anchor and reduced by the declared
+# member. Never-substitute: no path serves the pooled value for the AT-metric or vice versa.
+# =====================================================================================
+def _srv(fixture_connector, extra: str):
+    with open(_BENCHMARK_CML) as f:
+        cml = f.read() + "\n" + extra + "\n"
+    return ManifoldServer(parse_manifold(cml), fixture_connector)
+
+
+_AT_DEFS = ("DERIVED aov = revenue / orders\n"
+            "DERIVED daily_aov = revenue / orders AT day\n"
+            "    FAMILY {\n        mean FERTILE { }\n    }\n")
+
+
+def test_at_metric_denotation_equals_pooled_at_resolution_anchor(fixture_connector):
+    """At its own resolution anchor the AT-metric IS the formula denotation — identical to the pooled
+    ratio there (no reduction happens; asked AT == resolution)."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    at = s.frame("day").column("daily_aov").run().data.sort("day")
+    pooled = s.frame("day").column("aov").run().data.sort("day")
+    assert at["daily_aov"].to_list() == pooled["aov"].to_list()
+
+
+def test_at_metric_at_coarse_is_mean_of_finer_not_pooled(fixture_connector):
+    """Asked coarser, the AT-metric is the MEAN of the daily rates — a distinct number from the
+    pooled (monthly revenue / monthly orders). Both readings are finally expressible and differ."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    at = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")
+    pooled = s.frame("cal.month").column("aov").run().data.sort("cal.month")
+    # independently recompute the mean-of-daily-rates from the day series
+    day = s.frame("day").column("aov").run().data
+    cal = s.engine.con.deliver_edge("calendar", "day", "month")     # [_frm=day, _to=month]
+    import polars as pl
+    expected = (day.join(cal, left_on="day", right_on="_frm")
+                   .group_by("_to").agg(pl.col("aov").mean().alias("m")).sort("_to"))
+    assert at["daily_aov"].to_list() == pytest.approx(expected["m"].to_list())
+    assert at["daily_aov"].to_list() != pytest.approx(pooled["aov"].to_list())   # never the pooled value
+
+
+def test_never_substitute_via_shared_cache(fixture_connector):
+    """The pooled sibling and the AT-metric resolve through one server (shared engine cache). Asking
+    both at the same coarse anchor must NOT let the cache serve one reading's value for the other —
+    the two numbers stay distinct regardless of resolution order."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    # pooled first, then AT-metric (populate the cache with the pooled measures, then the AT reading)
+    pooled = s.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    at = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")["daily_aov"].to_list()
+    # and the reverse order on a second column set — the AT-metric never collapses to the pooled cache
+    at2 = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")["daily_aov"].to_list()
+    assert at == pytest.approx(at2)                      # AT-metric stable across cache warmings
+    assert at != pytest.approx(pooled)                   # and never substituted by the pooled value
+
+
+def test_declared_fertility_changes_no_shipped_number(fixture_connector):
+    """Ruling 2: declaring fertility adds expressiveness, changes no shipped semantics. A plain
+    (non-anchored) derived ratio serves the SAME pooled number whether or not a fertile family is
+    declared — the license is only the (unexercised-in-Core) reduce-path theorem, never a new value."""
+    plain = _srv(fixture_connector, "DERIVED aov = revenue / orders")
+    declared = _srv(fixture_connector,
+                    "DERIVED aov = revenue / orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
+    a = plain.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    b = declared.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    assert a == pytest.approx(b)
+
+
+def test_at_metric_unreachable_target_refuses(fixture_connector):
+    """The metric is defined AT its resolution anchor; asked at a level not reachable from it
+    (a cross-lineage store level, from a day anchor) it refuses out_of_universe — never a wrong
+    number, never a silent fall-back to the pooled reading."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    w = wire_frame(s.frame("store").column("daily_aov").run())
+    nr = (w["columns"][0].get("no_result") or {})
+    assert w["outcome"] in ("refuse", "error")
+    assert nr.get("reason") in ("out_of_universe", "unsupported", "unknown")
+
+
+# =====================================================================================
+# B-6 — measure-family semantics are UNTOUCHED by WP-B (ruling 4: on measures family = askability,
+# fertility = travel; the License is a DERIVED concept only). Regression pins for the boundary.
+# =====================================================================================
+def test_measure_family_of_one_still_serves(fixture_server):
+    """`med_amount = median(amount)` is a family-of-one MEASURE (the med_amount precedent). WP-B
+    touches derived families only — it still resolves exactly as before."""
+    w = wire_frame(fixture_server.frame("store").column("m", "med_amount").run())
+    assert w["outcome"] in ("serve", "disclose")
+
+
+def test_measures_never_carry_a_license_even_after_publish(fixture_server):
+    """The polarity boundary (ruling 4): a License is minted ONLY on derived members. After a full
+    publish (adjudication ran), every MEASURE member's license is still None — measures are
+    open-by-default and closed by the B-anchor, never by a fertility license."""
+    fixture_server.publish()
+    licenses = [fm.license for mc in fixture_server.m.measures.values() for fm in mc.family.values()]
+    assert licenses and all(lic is None for lic in licenses)
+
+
+def test_measure_blocked_semantics_unchanged(fixture_server):
+    """WP-B added a fail-closed *validation* of measure BLOCKED lineages (B-2) but changed no
+    behavior: the semi-additive `level` still SERVES its blocked-lineage crossing with a critical
+    disclosure (inform-and-serve), not a refusal."""
+    w = wire_frame(fixture_server.frame("store").column("s", "level.sum").run())
+    assert w["outcome"] in ("serve", "disclose")           # served, not refused
+    disc = [d for c in w.get("columns", []) for d in (c.get("disclosures") or [])]
+    assert any(d.get("severity") == "critical" for d in disc), "level.sum@store lost its B-anchor crossing disclosure"
