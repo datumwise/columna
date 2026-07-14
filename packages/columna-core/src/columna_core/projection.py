@@ -35,6 +35,7 @@ is now static, EXPLAIN can show the would-be crossing WITHOUT executing (plan())
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
+from typing import Optional
 from collections import deque
 
 
@@ -74,6 +75,8 @@ class UniverseShape:
 class DerivedShape:
     name: str
     formula: str
+    resolution_anchor: Optional[str] = None   # declared `AT <level>` — routes the distinct AT-metric reading
+    members: tuple = ()                        # declared family member names (shape: which reducers travel)
 
 @dataclass(frozen=True)
 class ShapeEdge:
@@ -93,7 +96,8 @@ class PlannerView:
                          for n, mc in m.measures.items()}
         self.universes = {n: UniverseShape(n, u.base_dimensions)
                           for n, u in m.universes.items()}
-        self.derived = {n: DerivedShape(n, d.formula) for n, d in m.derived.items()}
+        self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
+                        for n, d in m.derived.items()}
         self.non_functional = tuple(m.non_functional)         # (frm, to, detail) — level names only
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.

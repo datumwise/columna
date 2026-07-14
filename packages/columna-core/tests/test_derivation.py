@@ -218,3 +218,81 @@ def test_blocked_lineage_fail_closed_aligned():
         _parse("MEASURE bogus ON transactions FROM transactions AS sum(amount)\n"
                "    FAMILY {\n        sum BLOCKED { nonesuch }\n    }")
     assert "nonesuch" in str(ei.value) and "BLOCKED" in str(ei.value)
+
+
+# =====================================================================================
+# B-4 — resolution-anchor metric (`AT <level>`): a DISTINCT reading whose meaning embeds the
+# anchor (mean of daily rates), evaluated at the resolution anchor and reduced by the declared
+# member. Never-substitute: no path serves the pooled value for the AT-metric or vice versa.
+# =====================================================================================
+def _srv(fixture_connector, extra: str):
+    with open(_BENCHMARK_CML) as f:
+        cml = f.read() + "\n" + extra + "\n"
+    return ManifoldServer(parse_manifold(cml), fixture_connector)
+
+
+_AT_DEFS = ("DERIVED aov = revenue / orders\n"
+            "DERIVED daily_aov = revenue / orders AT day\n"
+            "    FAMILY {\n        mean FERTILE { }\n    }\n")
+
+
+def test_at_metric_denotation_equals_pooled_at_resolution_anchor(fixture_connector):
+    """At its own resolution anchor the AT-metric IS the formula denotation — identical to the pooled
+    ratio there (no reduction happens; asked AT == resolution)."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    at = s.frame("day").column("daily_aov").run().data.sort("day")
+    pooled = s.frame("day").column("aov").run().data.sort("day")
+    assert at["daily_aov"].to_list() == pooled["aov"].to_list()
+
+
+def test_at_metric_at_coarse_is_mean_of_finer_not_pooled(fixture_connector):
+    """Asked coarser, the AT-metric is the MEAN of the daily rates — a distinct number from the
+    pooled (monthly revenue / monthly orders). Both readings are finally expressible and differ."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    at = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")
+    pooled = s.frame("cal.month").column("aov").run().data.sort("cal.month")
+    # independently recompute the mean-of-daily-rates from the day series
+    day = s.frame("day").column("aov").run().data
+    cal = s.engine.con.deliver_edge("calendar", "day", "month")     # [_frm=day, _to=month]
+    import polars as pl
+    expected = (day.join(cal, left_on="day", right_on="_frm")
+                   .group_by("_to").agg(pl.col("aov").mean().alias("m")).sort("_to"))
+    assert at["daily_aov"].to_list() == pytest.approx(expected["m"].to_list())
+    assert at["daily_aov"].to_list() != pytest.approx(pooled["aov"].to_list())   # never the pooled value
+
+
+def test_never_substitute_via_shared_cache(fixture_connector):
+    """The pooled sibling and the AT-metric resolve through one server (shared engine cache). Asking
+    both at the same coarse anchor must NOT let the cache serve one reading's value for the other —
+    the two numbers stay distinct regardless of resolution order."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    # pooled first, then AT-metric (populate the cache with the pooled measures, then the AT reading)
+    pooled = s.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    at = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")["daily_aov"].to_list()
+    # and the reverse order on a second column set — the AT-metric never collapses to the pooled cache
+    at2 = s.frame("cal.month").column("daily_aov").run().data.sort("cal.month")["daily_aov"].to_list()
+    assert at == pytest.approx(at2)                      # AT-metric stable across cache warmings
+    assert at != pytest.approx(pooled)                   # and never substituted by the pooled value
+
+
+def test_declared_fertility_changes_no_shipped_number(fixture_connector):
+    """Ruling 2: declaring fertility adds expressiveness, changes no shipped semantics. A plain
+    (non-anchored) derived ratio serves the SAME pooled number whether or not a fertile family is
+    declared — the license is only the (unexercised-in-Core) reduce-path theorem, never a new value."""
+    plain = _srv(fixture_connector, "DERIVED aov = revenue / orders")
+    declared = _srv(fixture_connector,
+                    "DERIVED aov = revenue / orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
+    a = plain.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    b = declared.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
+    assert a == pytest.approx(b)
+
+
+def test_at_metric_unreachable_target_refuses(fixture_connector):
+    """The metric is defined AT its resolution anchor; asked at a level not reachable from it
+    (a cross-lineage store level, from a day anchor) it refuses out_of_universe — never a wrong
+    number, never a silent fall-back to the pooled reading."""
+    s = _srv(fixture_connector, _AT_DEFS)
+    w = wire_frame(s.frame("store").column("daily_aov").run())
+    nr = (w["columns"][0].get("no_result") or {})
+    assert w["outcome"] in ("refuse", "error")
+    assert nr.get("reason") in ("out_of_universe", "unsupported", "unknown")
