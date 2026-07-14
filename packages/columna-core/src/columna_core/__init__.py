@@ -6,7 +6,7 @@ from .operators import (Operator, REGISTRY, get_operator, signature_ok, output_d
                         VALUE, ORDERED_W as ORDERED, REDUCER, SCAN, MAP, kind_of, reducers)
 from . import types as dtypes
 from .projection import PlannerView, MeasureShape, UniverseShape, DerivedShape, ShapeEdge, OperatorSig
-from .connector import DuckDBConnector
+from .connector import Connector, DuckDBConnector
 from .engine import ColumnEngine
 from .planner import Planner, FrameResult
 from .frameql import ManifoldServer, Frame
@@ -19,7 +19,7 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "DECLARED", "PROVEN", "INFERRED_SAMPLE", "INFERRED_DOCS", "A",
            "Operator", "REGISTRY", "get_operator", "signature_ok", "output_dtype", "VALUE", "ORDERED", "REDUCER", "SCAN", "MAP", "kind_of", "reducers",
            "dtypes", "PlannerView", "MeasureShape", "UniverseShape", "DerivedShape", "ShapeEdge", "OperatorSig",
-           "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
+           "Connector", "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
            "ManifoldServer", "Frame", "Disclosure", "Caveat", "Refusal", "Outcome",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
 __version__ = "0.7.8-core"
