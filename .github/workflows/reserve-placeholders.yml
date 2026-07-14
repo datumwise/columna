@@ -1,0 +1,35 @@
+name: reserve-placeholders
+
+# One-shot PyPI name reservation for datumwise: publishes the honest placeholder packages `trutina`
+# and `trutina-core` (v0.0.0, "name reserved… not yet released; no functionality"). workflow_dispatch
+# ONLY — it never rides an ordinary release. Publishing is OIDC via PyPI Trusted Publishers; no API
+# tokens exist anywhere. Each package's Trusted Publisher must be registered on PyPI as:
+#   owner: datumwise · repo: columna · workflow: reserve-placeholders.yml · environment: (none)
+# Fire it manually (Actions → reserve-placeholders → Run workflow) only after the publishers are
+# registered.
+on:
+  workflow_dispatch:
+
+jobs:
+  reserve:
+    strategy:
+      matrix:
+        pkg: [trutina, trutina-core]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write        # OIDC token for Trusted Publishing — this job only; no secrets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the placeholder dist
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build reserve/${{ matrix.pkg }} --outdir dist
+          twine check dist/*
+      - name: Publish to PyPI (Trusted Publisher / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
