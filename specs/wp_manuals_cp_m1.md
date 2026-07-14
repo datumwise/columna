@@ -89,10 +89,15 @@ M1-a…d ruled (Huayin, 2026-07-14): flat · fenced · docs-local (tiny, harness
    old Chapter 2) moved to a historical-lineage appendix, with the one paragraph noting which ideas
    the shipped grammar absorbed (per-subexpression anchors) and which were declined (`FROM`/`SELECT`,
    container ceremony; ADR-035 D2). **Lineage appendix reserved for Coframe-form material only.**
-6. **Acceptance (worksheet §5, checked line by line at CP-M2):** every Chapter-26 construct one mark;
+6. **First-mention copy law (ratified 2026-07-14):** public surfaces introduce the project as
+   **"Columna, by datumwise."** Check the three manuals' title pages + any first-mention sites
+   conform — likely a no-op or one line each. **Report, do not improvise wording.**
+7. **Acceptance (worksheet §5, checked line by line at CP-M2):** every Chapter-26 construct one mark;
    zero Chapter-6 executable examples that don't run; watermarks cite ADR-035; Appendix B concordance;
    Part VI head-note. Then audit Section E declared CLOSED in the PR; fork registry at zero.
 
-**Gates (unchanged):** full CP-M2 rendered diff for Huayin's edit → the **naming ruling** → merge
-(double-gated; the branch is sweep-ready — if the naming ruling changes names, the sweep runs on this
-branch before merge). No deploys; `docs/**` does not trigger the website workflow (verified).
+**Gates (UPDATED — naming ruled 2026-07-14: *Columna stays, as-is*).** Merge of PR #24 is now gated on
+**CP-M2 approval ONLY**. The naming gate is discharged; **no rename sweep runs** on this branch or
+anywhere, and the sweep-ready protocol **stands down** as a standing capability. Flow: full CP-M2
+rendered diff for Huayin's edit → CP-M2 approval → merge (= publication). No deploys; `docs/**` does
+not trigger the website workflow (verified).
