@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Design note: the Cache(r) — datumwise" description="A design-stage roadmap note: sound aggregate navigation, where a cache hit is a theorem application. Not in the shipped engine.">
+  <div class="page-head">
+    <p class="kicker">Design note</p>
+    <h1>The Cache(r)</h1>
+    <p class="roadmap-banner"><strong>ROADMAP · design-stage.</strong> This describes a role on our roadmap, not in the shipped engine. The Ladder grades shipped things; this note is here so the roadmap cell it links from is one click from what it actually claims.</p>
+  </div>
+
+  <article class="prose cacher">
+    <p><strong>What it is.</strong> Grown organically from three capabilities — caching, column selection (pick the column family at its best input anchor), and usage-driven dynamic optimal caching — the Cache(r) is the sound version of the role OLAP called the aggregate navigator: answer a query from an already-materialized column whenever a lawful path exists. The difference from thirty years of prior art is the proof obligation: a cached column at anchor A serves a request at anchor A′ <strong>iff the algebra certifies the reduction A→A′</strong> — same criterion that gates a fresh query. <strong>A cache hit is a theorem application.</strong> The same anchors that block illegal queries certify legal shortcuts: the governance metadata pays for itself in round-trips saved.</p>
+
+    <h2>Rulings (2026-07-12)</h2>
+    <ul>
+      <li><strong>Name: Cache(r)</strong> — sibling to Combine(r); role-named per the labeling discipline.</li>
+      <li><strong>Substrate: Polars</strong> — same dual-role rule as the Combiner: the library is incidental; the role is what is fixed.</li>
+      <li><strong>Freshness &amp; hot/cold consistency:</strong> general caching obligations, nothing Columna-specific — discharged through the Manifold's existing contract component (data attestation, universe definitions). The cache inherits its obligations from the contract; it does not invent doctrine. Natural test expression: a hot/cold parity suite — cache-hit and cold computation produce identical wire responses modulo freshness metadata.</li>
+      <li><strong>Status: design-stage, to be purpose-built</strong> — including the telemetry posture (usage-driven optimization consumes query logs; scope, retention, and locality of usage stats are part of the deliberate build-out, stated before the role is marketed).</li>
+    </ul>
+
+    <h2>Optimization space (recorded)</h2>
+    <p>The candidate set is structured by the Manifold — (family, anchor) pairs — and pruned by legality: path-independent reductions at coarse anchors have rich legal descendant cones (load-bearing cache entries); a non-commuting reduction's result can serve only itself (a leaf). Cache at the anchors with the richest lawful descendant cones, weighted by observed usage.</p>
+
+    <h2>The layered Cache(r) (large installations serving many Manifolds)</h2>
+    <p>Per-Manifold engines remain the rule; atop them, shared cache layers — enterprise, department, project — are possible <em>because of</em> the grammar: a cached column's identity is its semantic identity (family, input anchor, universe, attestation lineage), checkable by the algebra, so sharing is a theorem about column identity rather than a trust arrangement between teams. Names cannot fragment the cache — a metadata-independence dividend: communicative metadata varies freely while cache keys ride only the load-bearing kind. Promotion into a shared layer is gated by the same vetting/certification machinery that gates everything else.</p>
+
+    <p>Governance consequences (recorded, to shape the build-out):</p>
+    <ol>
+      <li><strong>The shareable cache is exactly as large as the shared grammar</strong> — sharing presupposes common (or explicitly mapped) families and universes at the sharing layer; the enterprise cache's performance payoff becomes the standing economic incentive for semantic convergence across departments.</li>
+      <li><strong>Layer visibility follows data scope; invalidation flows down.</strong> A Manifold reads a shared-layer column only where its scope and universe legitimately contain it; the cache hierarchy respects the scope lattice as well as the reduction lattice. Attestation changes at a shared layer propagate invalidation to every inheriting layer — riding the contract machinery, with the propagation paths made explicit.</li>
+    </ol>
+
+    <p><strong>Origin note.</strong> The role was not designed from the OLAP angle; it precipitated out of the algebra — sound by construction — because the grammar was already carrying exactly the information navigation needs. The container world bolted navigation on and prayed; in the substance world it condenses for free.</p>
+
+    <p class="back"><a href="/ladder#the-map">← back to the Ladder</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .roadmap-banner { margin-top: 0.8rem; font-size: 0.92rem; line-height: 1.55; color: var(--ink-soft, #555);
+    border: 1px dashed var(--wire-ink-soft, #999); border-radius: 8px; padding: 0.7rem 0.9rem;
+    background: repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(0,0,0,0.02) 6px, rgba(0,0,0,0.02) 12px); }
+  .roadmap-banner strong { color: var(--mood-disclose, #c98a2b); }
+  .cacher h2 { margin-top: 1.8rem; font-size: 1.1rem; }
+</style>
