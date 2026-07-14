@@ -91,7 +91,9 @@ def test_unpinned_inline_reduction_clarifies(fixture_connector):
     w = wire_frame(fr)
     assert w["outcome"] == "clarify"
     nr = w["columns"][0].get("no_result") or {}
-    assert nr.get("reason") == "ambiguous_grain" and nr.get("discriminator") == "ambiguous"
+    # OF-1 ruling: its own reason `input_anchor_ambiguous` (one reason per contested dimension),
+    # NOT a reuse of `ambiguous_grain`.
+    assert nr.get("reason") == "input_anchor_ambiguous" and nr.get("discriminator") == "ambiguous"
     # candidate input anchors are enumerated (only `day` rolls up to cal.month in this fixture),
     # and the clarify chooses none.
     alts = nr.get("alternatives") or []
@@ -105,6 +107,15 @@ def test_unpinned_names_a_pinnable_fix(fixture_connector):
     fr = s.frame("cal.month").column("y", "mean(aov)").run()
     detail = (wire_frame(fr)["columns"][0].get("no_result") or {}).get("detail") or ""
     assert "@day" in detail and "does not pin" in detail
+
+
+# ── OF-1: the minted reason lives in the closed vocabulary, distinct from ambiguous_grain ───
+def test_input_anchor_ambiguous_is_a_distinct_clarify_reason():
+    """OF-1 ruling: `input_anchor_ambiguous` is its OWN reason (CLARIFY/AMBIGUOUS), sibling to
+    `co_anchor_ambiguous` — not a reuse of `ambiguous_grain`, whose gloss stays single-meaning."""
+    from columna_core.disclosure import REASON_OUTCOME, CLARIFY, AMBIGUOUS
+    assert REASON_OUTCOME["input_anchor_ambiguous"] == (CLARIFY, AMBIGUOUS)
+    assert "input_anchor_ambiguous" != "ambiguous_grain"          # one reason per contested dimension
 
 
 # ── boundary: multi-arg / bad pin refuse cleanly, never a silent number ─────────────────────
