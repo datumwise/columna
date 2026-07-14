@@ -1,11 +1,15 @@
-"""Unit tests for the envelope grammar parser and the bearer-token check (no server needed)."""
+"""
+test_frameql_parse.py — the Frame-QL envelope grammar parser.
+
+Promoted from columna-server with `parse_frameql` (ADR-035 D3: the query surface is canonical and
+lives under core's test regime). The grammar is UNCHANGED by the promotion; these are the same tests,
+moved with the code. Expression-internal validity is the planner's job, not the envelope's.
+"""
 import pytest
 
-from columna_server.cli import _bearer, verify_token
-from columna_server.frameql import FrameQLSyntaxError, parse_frameql
+from columna_core import parse_frameql, FrameQLSyntaxError
 
 
-# --- envelope grammar -----------------------------------------------------------------------
 def test_bare_expression_names_itself():
     anchor, cols = parse_frameql("revenue @ region")
     assert anchor == ("region",) and cols == [("revenue", "revenue")]
@@ -29,6 +33,14 @@ def test_commas_inside_parens_are_not_top_level_separators():
     assert cols == [("m", "lag(revenue.sum, n=1)")]
 
 
+def test_inner_anchor_pin_is_envelope_transparent():
+    # WP-B.1's inner `@` pin lives INSIDE a column expression (paren-guarded); the envelope's top-level
+    # `@` split must not be confused by it. (Promotion regression guard for the current grammar.)
+    anchor, cols = parse_frameql("x: avg(aov@day) @ cal.month")
+    assert anchor == ("cal.month",)
+    assert cols == [("x", "avg(aov@day)")]
+
+
 @pytest.mark.parametrize("bad", [
     "", "   ", "revenue", "revenue @", "@ region", "a @ b @ c",
     "SELECT * FROM t", "revenue ; drop table t @ region",
@@ -36,22 +48,3 @@ def test_commas_inside_parens_are_not_top_level_separators():
 def test_envelope_violations_raise(bad):
     with pytest.raises(FrameQLSyntaxError):
         parse_frameql(bad)
-
-
-# --- bearer-token check ---------------------------------------------------------------------
-def test_verify_token_no_expected_allows():
-    assert verify_token(None, None) is True
-    assert verify_token("anything", "") is True
-
-
-def test_verify_token_requires_exact_match():
-    assert verify_token("secret", "secret") is True
-    assert verify_token("wrong", "secret") is False
-    assert verify_token(None, "secret") is False
-
-
-def test_bearer_extraction():
-    assert _bearer("Bearer abc123") == "abc123"
-    assert _bearer("bearer abc123") == "abc123"
-    assert _bearer("Basic abc") is None
-    assert _bearer(None) is None
