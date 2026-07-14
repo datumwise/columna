@@ -10,7 +10,7 @@ from .projection import PlannerView, MeasureShape, UniverseShape, DerivedShape, 
 from .connector import Connector, DuckDBConnector
 from .engine import ColumnEngine
 from .planner import Planner, FrameResult
-from .frameql import ManifoldServer, Frame
+from .frameql import ManifoldServer, Frame, parse_frameql, FrameQLSyntaxError
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
 from .adjudication import adjudicate, Contradiction
 from .describe import describe_derived, license_to_dict
@@ -24,7 +24,8 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "Operator", "REGISTRY", "get_operator", "signature_ok", "output_dtype", "VALUE", "ORDERED", "REDUCER", "SCAN", "MAP", "kind_of", "reducers",
            "dtypes", "PlannerView", "MeasureShape", "UniverseShape", "DerivedShape", "ShapeEdge", "OperatorSig",
            "Connector", "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
-           "ManifoldServer", "Frame", "Disclosure", "Caveat", "Refusal", "Outcome",
+           "ManifoldServer", "Frame", "parse_frameql", "FrameQLSyntaxError",
+           "Disclosure", "Caveat", "Refusal", "Outcome",
            "adjudicate", "Contradiction", "describe_derived", "license_to_dict",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
 __version__ = "0.7.8-core"
