@@ -2,7 +2,7 @@
 
 *The formal query language of Columna*
 
-*Frame-QL First Edition — a renamed, lightly-revised continuation of the Coframe-QL Manual, Third Edition (which it supersedes). The Third Edition's content is preserved; this edition renames it to Columna/Frame-QL/Manifold and reconciles a small number of points to the column-foundation redesign (ADR-031) and the Core/Pro split. It inherits the v4 operator model (ADR-009…015), the V/M/B anchor vocabulary (ADR-024), the inform-and-serve outcome model (ADR-020), and the anchor-ascription rule, family-aware scans, macro bindings, EXPLAIN, and the (anchor, universe) grain (ADR-025…028).*
+*Frame-QL First Edition — a renamed, lightly-revised continuation of the Coframe-QL Manual, Third Edition (which it supersedes). The Third Edition's content is preserved; this edition renames it to Columna/Frame-QL/Manifold and reconciles a small number of points to the column-foundation redesign (ADR-031) and the Core/Pro split. It inherits the v4 operator model (ADR-009…015), the V/M/B anchor vocabulary (ADR-024), the inform-and-serve outcome model (ADR-020), and the anchor-ascription rule, family-aware scans, macro bindings, EXPLAIN, and the (anchor, universe) grain (ADR-025…028). Chapter 2's Coframe-QL canonical form is retained as Appendix A (historical lineage); the shipped envelope grammar (`columns @ anchor`, ADR-035) is normative.*
 
 ---
 
