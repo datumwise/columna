@@ -102,15 +102,26 @@ def test_aov_at_month_serves_pooled_undisclosed(fixture_server):
     assert ndisc == 0, "aov @ cal.month gained a disclosure — S1a/WP-B may have landed; update this pin deliberately (audit Fork 3)."
 
 
-# --- (c) the B4 parser finding (flipped to passing by T2) ------------------------------------
-@pytest.mark.xfail(strict=True, reason=(
-    "B4 parser finding: the well-formedness token check (parser.py:266-269) tokenizes 'level.last' "
-    "into 'level' + 'last' with a naive regex and rejects 'last' as an unknown column, so an "
-    "authored DERIVED over a multi-member family is inexpressible — although the identical "
-    "DerivedColumn built in Python plans fine (see the tests above). Fixed and un-xfailed by T2."))
+# --- (c) the B4 parser finding — un-xfailed by T2 (dotted-head token check) ------------------
 def test_derived_dotted_member_reference_parses():
+    """After T2 scoped the well-formedness check to dotted-head names, an authored `DERIVED` over a
+    multi-member family reference parses (was rejected: "references unknown column 'last'")."""
     with open(_BENCHMARK_CML) as f:
         cml = f.read() + "\nDERIVED sell_through = revenue / level.last\n"
-    m = parse_manifold(cml)   # today: raises ParseError("references unknown column 'last'") -> xfail
+    m = parse_manifold(cml)
     assert "sell_through" in m.derived
     assert m.derived["sell_through"].formula == "revenue / level.last"
+
+
+def test_parsed_derived_over_family_plans_like_python_built(fixture_connector):
+    """T2 positive test: the object model already supported a dotted family-member reference in a
+    derived formula; now the DEFINITION LANGUAGE can too — and the parsed manifold's derived ratio
+    resolves identically to the Python-built one (same clarify classification), closing the gap the
+    B4 finding named."""
+    with open(_BENCHMARK_CML) as f:
+        cml = f.read() + "\nDERIVED sell_through = revenue / level.last\n"
+    m = parse_manifold(cml)
+    srv = ManifoldServer(m, fixture_connector)
+    got = _classification(srv.frame("store").column("r", "sell_through").run())
+    assert got == {"outcome": "clarify", "reason": "co_anchor_ambiguous",
+                   "discriminator": "ambiguous", "alternatives": ["store_days", "transactions"]}

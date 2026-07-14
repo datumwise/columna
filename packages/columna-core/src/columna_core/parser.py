@@ -261,12 +261,19 @@ def check_wellformed(m: Manifold) -> list:
                 for ref in (comp.left, comp.right):
                     if not ref.is_literal and ref.table is None and ref.column in m.measures:
                         errs.append(f"universe '{u.name}' predicate references measure '{ref.column}' (impure)")
-    # derived closure: formula names resolve to measures/derived
+    # derived closure: formula names resolve to measures/derived.
+    # Scope the well-formedness check to the dotted-HEAD name: a reference like `level.last` names
+    # the column `level` with a family-member selector `.last` — only the head is a column name, and
+    # member validity is the planner's job (its expression parser handles the same dotted ref, both
+    # inline and for a Python-built DerivedColumn). The old naive tokenizer split `level.last` into
+    # `level` + `last` and rejected `last`, making any authored DERIVED over a multi-member family
+    # inexpressible though the object model supports it. (audit v0.2, B4 parser finding)
     known = set(m.measures) | set(m.derived)
     for d in m.derived.values():
-        for tok in re.findall(r"[A-Za-z_]\w*", d.formula):
-            if tok not in known:
-                errs.append(f"derived '{d.name}' references unknown column '{tok}'")
+        for ref in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", d.formula):
+            head = ref.split(".", 1)[0]
+            if head not in known:
+                errs.append(f"derived '{d.name}' references unknown column '{head}'")
     # operator vocabulary + type signatures (compile-time, not a data fact):
     # each family member's operator must exist in the registry, be a REDUCER (only reducers
     # found families — manual Appendix A), and accept the column's dtype.
