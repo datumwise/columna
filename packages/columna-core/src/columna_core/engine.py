@@ -238,6 +238,48 @@ class ColumnEngine:
                     pl.col("_order").min().alias("_order")]
         raise Refusal("unknown", f"no combine for operator '{op.name}'")
 
+    # ---- resolution-anchor metric reduction (WP-B B-4) ----
+    # A DERIVED ... AT <res> metric means "<member> of the <res>-resolved series". When asked at a
+    # coarser level the engine evaluates the formula at <res> (the planner does that) and reduces the
+    # resulting series here — the SOLE place the manifold's edge provenance (provider/keys) lives.
+    # The whole finer series is remapped to the target key first and aggregated ONCE, so `mean` is a
+    # true mean of the finer values, never a mean-of-means. This reduction is the metric's DECLARED
+    # meaning (ruling 5), applied regardless of license: "infertility bars silent reduction, never
+    # reduction that is the declared meaning."
+    _SERIES_REDUCE = {
+        "sum":   lambda c: c.sum(),
+        "mean":  lambda c: c.mean(),
+        "min":   lambda c: c.min(),
+        "max":   lambda c: c.max(),
+        "count": lambda c: c.count(),
+    }
+
+    def reduce_series(self, frame, from_level: str, target: str, member: str, trace=None):
+        """Reduce a per-`from_level` value series (column `_v`) to a single coarser `target` level by
+        `member`, composing the functional edge maps along the path. Raises Refusal if `target` is not
+        reachable from `from_level` (the metric is defined AT its resolution anchor; a finer or
+        unrelated ask is out of universe) or `member` is not a reducible operator."""
+        if member not in self._SERIES_REDUCE:
+            raise Refusal("unsupported",
+                          f"resolution-anchor metric cannot reduce its series by '{member}'")
+        if target == from_level:
+            return frame
+        path = self.m.find_path({from_level}, target)
+        if path is None or path[0] != from_level:
+            raise Refusal("out_of_universe",
+                          f"'{target}' is not reachable from resolution anchor '{from_level}' — this "
+                          f"metric is defined AT '{from_level}' and cannot be served there")
+        work = frame.rename({from_level: "_key"})
+        for e in path[1]:
+            mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)   # [_frm, _to]
+            work = (work.with_columns(pl.col("_key").cast(pl.Utf8))
+                        .join(mp.with_columns(pl.col("_frm").cast(pl.Utf8)),
+                              left_on="_key", right_on="_frm", how="inner")
+                        .drop("_key").rename({"_to": "_key"}))
+            self._t(trace, f"  reduce series {e.frm}->{e.to} along {e.lineage} (single-pass {member})")
+        agg = self._SERIES_REDUCE[member](pl.col("_v")).alias("_v")
+        return work.group_by("_key").agg(agg).rename({"_key": target})
+
     def _transport_reduce(self, frame, from_col, to_col, mapping, op):
         j = frame.join(mapping, left_on=from_col, right_on="_frm", how="inner")
         j = j.drop(from_col).rename({"_to": to_col})
