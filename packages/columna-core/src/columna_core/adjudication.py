@@ -38,7 +38,7 @@ from typing import Optional
 
 import polars as pl
 
-from .model import License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED
+from .model import License, VERIFIED, CORROBORATED, UNTESTABLE
 from .operators import REGISTRY
 
 # float tolerance policy (ruling §4)
