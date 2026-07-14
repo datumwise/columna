@@ -12,6 +12,7 @@ from .engine import ColumnEngine
 from .planner import Planner, FrameResult
 from .frameql import ManifoldServer, Frame
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
+from .adjudication import adjudicate, Contradiction
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
 
 __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
@@ -23,5 +24,6 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "dtypes", "PlannerView", "MeasureShape", "UniverseShape", "DerivedShape", "ShapeEdge", "OperatorSig",
            "Connector", "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
            "ManifoldServer", "Frame", "Disclosure", "Caveat", "Refusal", "Outcome",
+           "adjudicate", "Contradiction",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
 __version__ = "0.7.8-core"

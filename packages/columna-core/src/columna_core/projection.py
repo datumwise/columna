@@ -62,6 +62,8 @@ class OperatorSig:
     needs_window: bool = False
     in_core: bool = True
     is_monoid: bool = True  # reducer reduces by an associative combine (holistic => False)
+    linear: bool = False    # ALGEBRAIC (WP-B): preserves linear combinations — the sum-fertility
+                            # symbolic gate (sum,+,-,neg True; *,/ conditional via the scalar rule)
 
 @dataclass(frozen=True)
 class UniverseShape:
@@ -96,7 +98,8 @@ class PlannerView:
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,
-                                         op.needs_order, op.needs_window, op.in_core, op.is_monoid)
+                                         op.needs_order, op.needs_window, op.in_core, op.is_monoid,
+                                         op.linear)
                           for n, op in REGISTRY.items()}
 
     def output_dtype(self, op_name: str, in_dtype: str) -> str:
