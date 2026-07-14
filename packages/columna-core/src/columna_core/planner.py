@@ -225,14 +225,15 @@ class Planner:
     def _unpinned_reduction_refusal(self, reducer, inner, anchor):
         """The engine clarify for an inline reduction with no pinned input anchor (capture v0.8): the
         input anchor is structurally underdetermined, so enumerate the candidate anchors and choose
-        none. Reason `ambiguous_grain` (CLARIFY/AMBIGUOUS) — the closest fit in the closed reason
-        vocabulary; no code minted (the fit is reported to CP-B.1)."""
+        none. Reason `input_anchor_ambiguous` (CLARIFY/AMBIGUOUS), sibling to `co_anchor_ambiguous`
+        (OF-1, ruled 2026-07-14: one reason per contested dimension). It names the same dimension the
+        pinned case's immaterial input-anchor note (OF-2) records."""
         expr = ast.unparse(inner)
         target = anchor[0] if len(anchor) == 1 else None
         cands = self._candidate_input_anchors(target) if target else []
         alts = tuple(f"pin the input anchor to '{L}' (e.g. {reducer}({expr}@{L}))" for L in cands)
         hint = cands[0] if cands else "<level>"
-        return Refusal("ambiguous_grain",
+        return Refusal("input_anchor_ambiguous",
             f"inline reduction '{reducer}({expr})' does not pin its input anchor — the grain to "
             f"resolve '{expr}' at before reducing to {target or anchor} is underdetermined; pin it, "
             f"e.g. '{reducer}({expr}@{hint})'",
@@ -619,11 +620,14 @@ class Planner:
     def _resolve_inline_reduction(self, rc, anchor, where, trace):
         """`R(inner @ level)` at frame anchor T: resolve `inner` at its PINNED input anchor `level`,
         then reduce that series to T by R — a definite quantity (capture v0.8). Served with an
-        IMMATERIAL communicative disclosure naming the reading (the `provenance`/transport code — the
-        closest fit in the closed vocabulary): a user-pinned input anchor is a deliberate, visible
-        choice, so it owes a communicative note, NOT the material `input_anchor` caveat (the
-        input_anchor-fit finding — see the PR/CP-B.1). Unpinned is caught statically in `_infer`;
-        this defends the direct-`_node` path."""
+        IMMATERIAL communicative disclosure naming the reading (the `provenance`/transport code).
+
+        OF-2 boundary (ruled 2026-07-14): the material `input_anchor` caveat is for an anchor choice
+        IMPORTED from a name or DEFAULTED — one the reader must weigh. An EXPLICIT pin owes only the
+        immaterial `provenance` note, because the wire's reader may not be the asker: the note names
+        the reading for a downstream reader without asserting a decision-relevant assumption the asker
+        already made deliberately. Unpinned is caught statically in `_infer`; this defends the
+        direct-`_node` path."""
         reducer, inner, pinned = rc
         if pinned is None:
             raise self._unpinned_reduction_refusal(reducer, inner, anchor)
