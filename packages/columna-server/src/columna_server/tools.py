@@ -68,8 +68,14 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
                   "predicate": _render_predicate(u.predicate)} for u in m.universes.values()]
     measures = [{"name": mc.name, "family": list(mc.family), "universe": mc.universe}
                 for mc in m.measures.values()]
+    # WP-B B-5: NAMED derived metrics get describe objects — formula, resolution anchor, and each
+    # member's declared lineages + adjudicated license (verdict/basis/watermark/lineages). The
+    # serialization lives in columna_core.describe (the same interface the Cacher consumes).
+    from columna_core import describe_derived
+    derived = [describe_derived(m, name) for name in m.derived]
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
-            "dimensions": dimensions, "edges": edges, "universes": universes, "measures": measures}
+            "dimensions": dimensions, "edges": edges, "universes": universes,
+            "measures": measures, "derived": derived}
 
 
 # --- tool 3 ---------------------------------------------------------------------------------

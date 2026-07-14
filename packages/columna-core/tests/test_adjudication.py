@@ -19,7 +19,8 @@ import os
 
 import pytest
 
-from columna_core import ManifoldServer, Contradiction, VERIFIED, CORROBORATED, UNTESTABLE
+from columna_core import (ManifoldServer, Contradiction, VERIFIED, CORROBORATED, UNTESTABLE,
+                          describe_derived)
 from columna_core.adjudication import adjudicate, _homogeneous_linear
 from columna_core.parser import parse_manifold
 
@@ -162,6 +163,42 @@ def test_reattestation_flips_corroborated_to_contradicted():
     with pytest.raises(Contradiction) as ei:
         s2.publish()
     assert ei.value.derived == "rr" and ei.value.lineage == "calendar"
+
+
+# ── B-5 describe: NAMED derived metrics expose their licenses ───────────────────────────────
+def test_describe_exposes_license_after_publish(fixture_connector):
+    """A derived describe object carries formula, resolution anchor, and each member's declared
+    lineages + adjudicated license (verdict/basis/watermark). Before publish the license is None
+    (unadjudicated); after publish it is populated — the SAME interface the Cacher consumes."""
+    s = _server(fixture_connector,
+                "DERIVED net = revenue - orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
+    before = describe_derived(s.m, "net")
+    assert before["formula"] == "revenue - orders" and before["denotation_only"] is False
+    assert before["members"]["sum"]["license"] is None                 # unadjudicated
+
+    s.publish()
+    after = describe_derived(s.m, "net")
+    lic = after["members"]["sum"]["license"]
+    assert lic["verdict"] == VERIFIED and lic["timeless"] is True
+    assert lic["lineages"] == ["calendar"] and "homogeneous linear" in lic["basis"]
+
+
+def test_describe_denotation_only_has_no_members(fixture_connector):
+    """A bare formula (no FAMILY) describes as denotation-only with no members — no travel."""
+    s = _server(fixture_connector, "DERIVED plain = revenue - orders")
+    d = describe_derived(s.m, "plain")
+    assert d["denotation_only"] is True and d["members"] == {} and d["resolution_anchor"] is None
+
+
+def test_describe_at_metric_carries_resolution_anchor(fixture_connector):
+    """An AT-metric describe object carries its resolution anchor; its member (an unexercised-as-
+    optimization reduction, empty FERTILE) reports UNTESTABLE — recorded, visible, never exercised."""
+    s = _server(fixture_connector,
+                "DERIVED daily_aov = revenue / orders AT day\n    FAMILY {\n        mean FERTILE { }\n    }")
+    s.publish()
+    d = describe_derived(s.m, "daily_aov")
+    assert d["resolution_anchor"] == "day"
+    assert d["members"]["mean"]["license"]["verdict"] == UNTESTABLE
 
 
 # ── idempotence: adjudicating twice yields the same verdicts (within an attestation) ────────
