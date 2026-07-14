@@ -87,6 +87,16 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
     con = _load_duckdb(os.path.abspath(warehouse))
     server = ManifoldServer(manifold, DuckDBConnector(con))
 
+    # WP-B: adjudicate declared derived-column fertility at load — the publish-time integrity gate.
+    # A CONTRADICTED declaration fails closed here (the manifold does not load), and the constructed
+    # licenses populate the members so describe can expose them. A no-fertility manifold is a no-op.
+    from columna_core import adjudicate, Contradiction
+    try:
+        adjudicate(server)
+    except Contradiction as e:
+        raise ValueError(f"manifold '{manifold_id}' fails adjudication (fertility refuted by the "
+                         f"attested data): {e}")
+
     return LoadedManifold(
         manifold_id=manifold_id,
         name=meta.get("name", manifold_id),
