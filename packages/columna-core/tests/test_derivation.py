@@ -125,3 +125,20 @@ def test_parsed_derived_over_family_plans_like_python_built(fixture_connector):
     got = _classification(srv.frame("store").column("r", "sell_through").run())
     assert got == {"outcome": "clarify", "reason": "co_anchor_ambiguous",
                    "discriminator": "ambiguous", "alternatives": ["store_days", "transactions"]}
+
+
+def test_parsed_derived_unknown_family_member_errors_classified(fixture_connector):
+    """T2 carries its own guarantee (rider): T2 widens what the DEFINITION PARSER admits, so an
+    UNKNOWN family member (`level.lasst`) now reaches the PLANNER instead of being caught at parse.
+    The planner classifies it — `error` / `unknown`, detail naming the bad operator and the registry
+    — never a silent number and never a crash. So the widening does not open a hole."""
+    with open(_BENCHMARK_CML) as f:
+        cml = f.read() + "\nDERIVED bad = revenue / level.lasst\n"
+    m = parse_manifold(cml)   # parses now: head 'level' is known; member validity is the planner's job
+    srv = ManifoldServer(m, fixture_connector)
+    w = wire_frame(srv.frame("store").column("b", "bad").run())
+    assert w["outcome"] == "error"
+    nr = (w["columns"][0].get("no_result") or {})
+    assert nr.get("reason") == "unknown"
+    detail = nr.get("detail") or ""
+    assert "lasst" in detail and "registry" in detail
