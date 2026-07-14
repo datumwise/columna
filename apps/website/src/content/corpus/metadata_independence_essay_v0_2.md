@@ -113,7 +113,7 @@ being necessary.
 A language model is a semantic engine — magnificent at meaning, constitutionally incapable of
 guaranteeing correctness. Hand it today's fused metadata and its greatest strength becomes its
 signature failure: it reads `avg_order_value` and *confidently means something by it*. We
-measured this: in our benchmark, eight frontier models given governed, well-documented schemas
+measured this: in [our benchmark](https://doi.org/10.5281/zenodo.21349581), nine models given identical, well-documented schemas
 still served numbers with hollow caveats precisely on the ambiguous averaging family. More
 documentation did not fix it. Better models did not fix it. The fusion is the failure.
 

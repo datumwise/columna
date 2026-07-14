@@ -1,9 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// ORCID slot (checkpoint reply, awaiting Huayin). null → render the name without a link (no dead
-// link ships); set to the ORCID URL (or a Zenodo profile URL) to wire it.
-const ORCID: string | null = null;
+// Author line is the name only (Huayin's ruling 2026-07-14: no ORCID, no substitute link — the
+// four DOIs below are the provenance).
 const COLUMNAR = 'https://columnar.tech';
 const pubs = [
   { title: 'The Silent Failure Atlas', doi: '10.5281/zenodo.20762839' },
@@ -20,7 +19,7 @@ const pubs = [
 
   <article class="prose about">
     <p>
-      datumwise is the work of <strong>Huayin Wang</strong>{ORCID && (<> (<a href={ORCID} rel="noopener" target="_blank">ORCID →</a>)</>)}, who researches and builds the grammar layer for analytics.
+      datumwise is the work of <strong>Huayin Wang</strong>, who researches and builds the grammar layer for analytics.
     </p>
     <p>
       It builds and stewards <strong>Columna</strong> — an honest metrics engine: the grammar layer for AI analytics, beside your semantic layer, married to no database.
