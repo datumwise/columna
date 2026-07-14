@@ -56,3 +56,43 @@ Watermarks → ADR-035; Appendix B concordance; the Chapter-26 status-mark table
 Frame-QL Chapter 2 rewrite (new prose → CP-M2 for Huayin's edit) + Chapter 6 tagging/regeneration; the
 Coframe canonical form → lineage appendix. All land after M1-a…d are ruled, and arrive at CP-M2 as a
 rendered diff with the harness green in CI and the worksheet §5 acceptance checked item by item.
+
+---
+
+## CP-M2 status & fresh-session handoff (2026-07-14)
+
+M1-a…d ruled (Huayin, 2026-07-14): flat · fenced · docs-local (tiny, harness-only, never in a wheel) ·
+(i) with the **two-tier mark**. CP-M2 is split; **part 1 is done, part 2 goes to a fresh session**
+(Huayin's routing — the prose conditions warrant a clean context; the repo + PR #24 carry the state).
+
+**Part 1 — DONE & pushed** (branch `wp-manuals-alignment`, PR #24; ADR edit on PR #22):
+- Watermarks → "reconciled through ADR-035" (all three); reference Appendix B concordance (ADR-033
+  App A verbatim); Part VI head-note; Chapter 26 head-note + 26.2–26.9 two-tier marks.
+- ADR-035 growth-precedent: tier-one "engine-shipped, surface pending" candidates (WHERE + scan
+  clauses) queued (on PR #22).
+
+**Part 2 — REMAINING (the fresh session):**
+1. **Fold in Huayin's part-1 wording notes** on the marks (he is skimming the part-1 diff and will
+   send them; apply in one pass).
+2. **Frame-QL Chapter 2 rewrite** to the shipped envelope grammar — net-new prose, comes to CP-M2 as
+   a rendered diff *for Huayin's edit* (copy law). Shape: `columns @ anchor`; label form `name: expr`;
+   dotted members; inline `@` input pins (`avg(aov@day) @ month`); the clarifies
+   `co_anchor_ambiguous` / `input_anchor_ambiguous`; D1's grow-by-ruling rule stated in-voice.
+3. **Chapter 6** — tag the executable subset (≈ 6.1–6.6) as ```frameql / ```frameql-output and
+   regenerate via the harness; **two-tier-mark the rest**: WHERE (6.8) + scans (6.11, 6.13) =
+   *engine-shipped, surface pending — enters the grammar by ruling, ADR-035 D1 (not a scheduling
+   promise)*; HAVING (6.9), LIMIT…PER (6.10), WITH/allocation (6.12, 6.14), bracket-filter (6.7) =
+   **[ROADMAP]**.
+4. **Fixture growth — APPROVED, scoped** (Huayin, per the M1-c rider): add a `month` level and a small
+   `product` fixture to `docs/tools/regen_examples.py`. **Tiny, harness-only, never in a wheel.**
+5. **Appendix A** — the Coframe canonical form (Chapter-1.3/1.4 `FROM`/`SELECT`/`AT` ceremony + the
+   old Chapter 2) moved to a historical-lineage appendix, with the one paragraph noting which ideas
+   the shipped grammar absorbed (per-subexpression anchors) and which were declined (`FROM`/`SELECT`,
+   container ceremony; ADR-035 D2). **Lineage appendix reserved for Coframe-form material only.**
+6. **Acceptance (worksheet §5, checked line by line at CP-M2):** every Chapter-26 construct one mark;
+   zero Chapter-6 executable examples that don't run; watermarks cite ADR-035; Appendix B concordance;
+   Part VI head-note. Then audit Section E declared CLOSED in the PR; fork registry at zero.
+
+**Gates (unchanged):** full CP-M2 rendered diff for Huayin's edit → the **naming ruling** → merge
+(double-gated; the branch is sweep-ready — if the naming ruling changes names, the sweep runs on this
+branch before merge). No deploys; `docs/**` does not trigger the website workflow (verified).
