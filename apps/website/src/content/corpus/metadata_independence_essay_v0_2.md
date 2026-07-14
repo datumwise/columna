@@ -76,9 +76,13 @@ rejected the container in favor of substance and won everywhere retrieval rules:
 entities, hierarchies. But it **won everywhere except where structured data live.** The moment
 the workload turned analytical, every rebel either surrendered back to SQL or bolted on a
 map-reduce with no theory of legality at all. Structured analytical data stayed the container's
-last kingdom — not because tables are right for it, but because nobody had written the
-substance-side algebra. That algebra is what our framework is named for — **Columna** stands
-for Column Algebra — and the **Manifold** is its object: the dataset stripped of its
+last kingdom — not because tables are right for it, but because the substance side never got its
+grammar. Not for lack of warnings: summarizability theory (Lenz & Shoshani, 1997) stated when a
+rollup is lawful; the OLAP generation shipped semi-additive behaviors; newer modeling languages
+disarm particular traps one by one. Real fragments — never assembled into a constitution: one
+small, closed algebra in which legality follows from what the columns are, and refusal is an answer
+rather than an accident. That constitution is what our framework is named for — **Columna** stands
+for **Column Algebra** — and the **Manifold** is its object: the dataset stripped of its
 materialized costume, the column set equipped with its grammar and nothing incidental.
 
 This is why we believe the Manifold is the construct an AI agent should meet. Hand a model the
