@@ -87,19 +87,21 @@ def test_named_derived_inherits_b_anchor_crossing(derived_server):
 
 # --- (b) characterization of the unimplemented trichotomy -----------------------------------
 def test_aov_at_month_serves_pooled_undisclosed(fixture_server):
-    # DOCTRINE-DIVERGENT (audit Fork 3): a same-universe derived ratio at a COARSE anchor currently
-    # SERVES the pooled (output-anchor) reading with ZERO resolution-time disclosure. The "mean of
-    # daily rates" reading is inexpressible, and the pooled reading is taken silently rather than
-    # disclosed or asked back. This pins the CURRENT (divergent) behavior ON PURPOSE — it is NOT
-    # xfail — so it FAILS LOUDLY the moment S1a (interim disclose caveat) or WP-B (the trichotomy)
-    # lands, forcing a deliberate update instead of a silent drift. See audit B4 (§ "what genuinely
-    # is missing") and Fork 3(a).
+    # DOCTRINE-CORRECT (Fork 3 RE-RULED 2026-07-14; S1a withdrawn): a same-universe derived ratio at
+    # a COARSE anchor SERVES the pooled (output-anchor) reading CLEAN — no resolution-time disclosure
+    # — and that is the intended behavior. Governing law: the mood follows where the resolution
+    # decision lives. For `aov` (= revenue/orders, a formula), "averaged over what" is settled at
+    # DECLARATION (the formula is inspectable in the Explorer), and the pooled-vs-mean-of-daily choice
+    # lives in TRANSLATION (between the sentence and any expression), not at the gate — so the engine
+    # receives a definite computation and serves it. The interim weighting_grain caveat (S1a) is
+    # WITHDRAWN. A disclosure appearing HERE would be the regression this pins against; the end-state
+    # clarify (WP-B, once the alternative reading is expressible) is a separate, named change.
     fr = fixture_server.frame("cal.month").column("aov", "aov").run()
     w = wire_frame(fr)
-    assert w["outcome"] == "serve", "aov @ cal.month no longer serves — the trichotomy may have landed; update this pin deliberately (audit Fork 3)."
+    assert w["outcome"] == "serve", "aov @ cal.month no longer serves clean — Fork 3 re-ruled serve-clean as correct; investigate."
     ndisc = (sum(len(c.get("disclosures") or []) for c in w.get("columns", []))
              + len(w.get("frame", {}).get("disclosures") or []))
-    assert ndisc == 0, "aov @ cal.month gained a disclosure — S1a/WP-B may have landed; update this pin deliberately (audit Fork 3)."
+    assert ndisc == 0, "aov @ cal.month gained a disclosure — Fork 3 re-ruled serve-clean as correct, so a caveat here is a regression, not S1a."
 
 
 # --- (c) the B4 parser finding — un-xfailed by T2 (dotted-head token check) ------------------
