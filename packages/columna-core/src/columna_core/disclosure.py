@@ -138,10 +138,20 @@ class Disclosure:
 # the planner derives the *verdict* by applying this policy at its single classification
 # chokepoint. This is where "the engine never judges" is made literal: nothing here is decided
 # by the engine — it only reports the reason (and, for analytical no-results, the discriminator).
+#
+# STANDING RULE (Huayin, 2026-07-14, OF-1): one reason per contested dimension. Each clarify reason
+# names exactly one dimension along which the request is under-determined; a distinct dimension gets
+# its own reason rather than broadening an existing one's gloss. So `ambiguous_grain` stays
+# single-meaning (an attribute keyed at several levels), and the input-anchor dimension gets its own
+# `input_anchor_ambiguous` — sibling to `co_anchor_ambiguous`.
 REASON_OUTCOME = {
     "non_functional_transport": (CLARIFY, AMBIGUOUS),   # fan-out (M:N): no single total exists
     "ambiguous_grain":          (CLARIFY, AMBIGUOUS),   # attribute keyed at several levels
     "co_anchor_ambiguous":      (CLARIFY, AMBIGUOUS),   # ratio over >1 population: rate's population ambiguous
+    "input_anchor_ambiguous":   (CLARIFY, AMBIGUOUS),   # inline reduction with no pinned input anchor:
+                                                        #   the grain to resolve the inner at is under-
+                                                        #   determined (names the same dimension OF-2's
+                                                        #   immaterial input-anchor note records)
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
     "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
