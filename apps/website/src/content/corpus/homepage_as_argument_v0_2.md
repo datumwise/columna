@@ -93,20 +93,26 @@ table it happened to be stored in. The table couldn't tell you. Tables can't. It
 
 ---
 
-## §4 — The algebra that was never written
+## §4 — The grammar that was never written
 
 Half a century ago — Codd, 1970 — the container got its mathematics. Relational algebra —
 select, project, join — closed over tables, indifferent to meaning. It was a genuine triumph,
 and it built everything you use. But it is an algebra of *form*.
 
-The algebra of the substance was never written. The great rebellion against the table —
-key-value, objects, documents, graphs — reached for substance and won everywhere retrieval
-rules. But it won everywhere **except where structured data live**: the moment the workload
-turned analytical, every rebel surrendered back to SQL, or bolted on a map-reduce with no theory
-of legality at all. Structured analytical data stayed the container's last kingdom — not because
-tables are right for it, but because nobody had written the substance-side algebra.
+The substance side got theorems, never a grammar. The warnings have been in the literature for
+decades — summarizability theory (Lenz & Shoshani, 1997) stated precisely when a rollup is lawful;
+a generation of OLAP tools shipped semi-additive behaviors; newer modeling languages disarm
+particular traps, one feature at a time. Real fragments — conditions to check, settings to enable,
+disciplines to remember — and never a constitution: one small, closed algebra in which legality
+*follows* from what the columns are, every expression adjudicated before it runs, refusal spoken
+out loud. The great rebellion against the table — key-value, objects, documents, graphs — reached
+for substance and won everywhere retrieval rules. But it won everywhere **except where structured
+data live**: the moment the workload turned analytical, every rebel surrendered back to SQL, or
+bolted on a map-reduce with no theory of legality at all. Structured analytical data stayed the
+container's last kingdom — not because tables are right for it, but because the fragments never
+became a grammar.
 
-So we wrote it. The framework is called **Columna**, and the name is the thesis: it stands for
+So we wrote the grammar. The framework is called **Columna**, and the name is the thesis: it stands for
 **Column Algebra**. Columns and their operators — mappers and reducers — composing into
 expressions; some grammatically well-formed, some not; and the line between them drawn by the
 *nature* of each column, captured in three anchors: where its values live, where they leak and

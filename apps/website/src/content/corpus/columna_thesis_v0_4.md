@@ -1,4 +1,10 @@
-# The Columna Thesis (v0.4)
+# The Columna Thesis (v0.5)
+
+<!-- v0.4 → v0.5 (2026-07-14, S4 grammar reframe): §II close reframed — "the algebra of the
+substance was never written. This is it." → concedes the fragments (summarizability, semi-additive
+handling) in one clause and sharpens the claim to the unification: "…never a grammar … This is that
+grammar." Priority claim no longer overclaims against Lenz & Shoshani 1997 et al. Filename kept
+(v0_4) to avoid an import churn; version tracked in this header. -->
 
 **A number owes you its assumptions.**
 
@@ -35,7 +41,9 @@ its kin under a common reducer. From these, legality *follows*. Whether you may 
 that up, divide these two — not policy, not convention, not a style guide: **theorems.**
 
 Relational algebra was the algebra of containers — select, project, join, closed over tables,
-indifferent to meaning. The algebra of the substance was never written. This is it.
+indifferent to meaning. The substance side got theorems — summarizability said when a rollup is
+lawful; semi-additive handling shipped in tools — but never a grammar: one closed algebra in which
+legality follows and refusal is an answer. This is that grammar.
 
 ## III. The Manifold: the dataset without its costume
 
