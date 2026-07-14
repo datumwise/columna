@@ -14,7 +14,6 @@ The constitutional ladder, exercised end to end:
 
 Fixtures (`hand_manifold`, `fixture_connector`, `parsed_manifold`) come from tests/conftest.py.
 """
-import glob
 import os
 
 import pytest
