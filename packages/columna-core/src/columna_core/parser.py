@@ -119,11 +119,63 @@ def _p_relate(s, M):
     M["non_functional"].append((m.group(1), m.group(2), m.group(4) or ""))
 
 
+def _split_top_at(rest: str):
+    """Split `rest` at a TOP-LEVEL (paren-depth 0) ` AT ` into (formula, level|None).
+    `AT` is the resolution-anchor keyword only at depth 0 — an expression's own parens are
+    transparent — so a dotted family reference (`level.last`) and `AT day` compose unambiguously."""
+    depth, at = 0, -1
+    for i, c in enumerate(rest):
+        if c in "([":
+            depth += 1
+        elif c in ")]":
+            depth -= 1
+        elif depth == 0 and rest[i:i + 4] == " AT ":
+            at = i
+    if at < 0:
+        return rest.strip(), None
+    level = rest[at + 4:].strip()
+    if not re.match(r"^[\w.]+$", level):
+        raise ParseError(f"bad DERIVED resolution anchor: expected 'AT <level>', got {rest[at:]!r}")
+    return rest[:at].strip(), level
+
+
+def _p_fertility_family(name: str, block: str) -> dict:
+    """Parse a derived FAMILY block — mirror of the measure FAMILY, inverted polarity: a member is
+    `<member> FERTILE { <lineages> }`. The parser RECORDS the declaration only (declared_lineages +
+    license=None); the adjudicator at publish is the sole constructor of a License. Empty
+    `FERTILE {}` = a declared member with no travel; no member is ever implied."""
+    family = {}
+    for line in block.splitlines():
+        t = line.strip().rstrip(",")
+        if not t:
+            continue
+        mm = re.match(r"(\w+)\s*FERTILE\s*\{([^}]*)\}\s*$", t)
+        if not mm:
+            raise ParseError(f"bad derived FAMILY member in {name}: {t!r} "
+                             f"(expected '<member> FERTILE {{ <lineages> }}')")
+        member = mm.group(1)
+        lineages = frozenset(x.strip() for x in re.split(r"[,\s]+", mm.group(2)) if x.strip())
+        family[member] = FamilyMember(member, declared_lineages=lineages, license=None)
+    return family
+
+
 def _p_derived(s, M):
-    m = re.match(r"DERIVED\s+(\w+)\s*=\s*(.+)", s, re.S)
+    # DERIVED <name> = <formula> [AT <level>] [FAMILY { <member> FERTILE { <lineages> } ... }]
+    #
+    # Grammar boundary (explicit): the FORMULA is everything after '=' up to a top-level `AT`
+    # keyword or the `FAMILY` block or end-of-line. `AT`/`FAMILY` are keywords only at paren-depth 0.
+    # Authority chain: declare (here) -> adjudicate (publish) -> License. This parser records
+    # declarations; it never fills a verdict, so no .cml can arrive claiming VERIFIED.
+    fam_block = _block(s, "FAMILY")
+    head = s.split("FAMILY", 1)[0] if fam_block is not None else s
+    m = re.match(r"DERIVED\s+(\w+)\s*=\s*(.+)", head, re.S)
     if not m:
         raise ParseError(f"bad DERIVED: {s!r}")
-    M["derived"][m.group(1)] = DerivedColumn(m.group(1), m.group(2).strip())
+    name, rest = m.group(1), m.group(2).strip()
+    formula, res_anchor = _split_top_at(rest)
+    family = _p_fertility_family(name, fam_block) if fam_block is not None else {}
+    M["derived"][name] = DerivedColumn(name, formula.strip(),
+                                       family=family, resolution_anchor=res_anchor)
 
 
 
@@ -293,4 +345,27 @@ def check_wellformed(m: Manifold) -> list:
             if not signature_ok(op, meas.logical_type):
                 errs.append(f"measure '{meas.name}': operator '{op_name}' does not accept logical type "
                             f"'{meas.logical_type}' (accepts {sorted(op.accepts)})")
+
+    # lineage / level well-formedness (WP-B, fail-closed): a lineage named in a FERTILE (or BLOCKED)
+    # block must be carried by a declared edge — opening (or closing) a door that doesn't exist is a
+    # mistake. A resolution anchor must name a declared level; reachability from the components'
+    # universes is the adjudicator's job, not the parser's.
+    edge_lineages = {e.lineage for e in m.edges}
+    for d in m.derived.values():
+        if d.resolution_anchor is not None and d.resolution_anchor not in m.levels:
+            errs.append(f"derived '{d.name}': resolution anchor 'AT {d.resolution_anchor}' names an "
+                        f"unknown level (have {sorted(m.levels)})")
+        for member, fm in d.family.items():
+            for lin in fm.declared_lineages:
+                if lin not in edge_lineages:
+                    errs.append(f"derived '{d.name}' member '{member}': FERTILE lineage '{lin}' is not "
+                                f"carried by any declared edge (have {sorted(edge_lineages)})")
+    # align the measure BLOCKED validation to the same fail-closed rule (previously unchecked —
+    # closing a nonexistent door is harmless, but the asymmetry is worth erasing; see PR note)
+    for meas in m.measures.values():
+        for agg, fm in meas.family.items():
+            for lin in fm.b_anchor.blocked_lineages:
+                if lin not in edge_lineages:
+                    errs.append(f"measure '{meas.name}' member '{agg}': BLOCKED lineage '{lin}' is not "
+                                f"carried by any declared edge (have {sorted(edge_lineages)})")
     return errs
