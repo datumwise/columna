@@ -67,6 +67,36 @@ class FunctionalEdge:
     evidence: str = PROVEN
 
 
+# ---- licenses (the Certificate kernel; WP-B) ---------------------------------
+# Adjudication verdicts (Certificate-kernel shape, per reference manual Part VI).
+VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED = \
+    "verified", "corroborated", "untestable", "contradicted"
+
+
+@dataclass(frozen=True)
+class License:
+    """The adjudicated authority for a declared capability. WP-B's first customer is derived-column
+    *fertility* (a member's reduction along a lineage that both commutes and is permitted); a future
+    HIERARCHY/ASSERT precondition carries the SAME record — that is the Certificate-kernel
+    requirement, so this shape is deliberately generic.
+
+    Constitutional sentence: authority is declared; mathematics may verify; data may only refute or
+    corroborate; the default is closed. Verdicts:
+      VERIFIED     — symbolic proof from the formula tree + operator algebraic properties; timeless
+                     (attestation is None).
+      CORROBORATED — refutation-tested against attested data, no counterexample; watermarked to that
+                     attestation; re-adjudicated on re-attestation (may flip to CONTRADICTED).
+      UNTESTABLE   — stands on authored authority; recorded and visible in describe but NOT exercised
+                     (the reduce-path optimization runs only under VERIFIED/CORROBORATED), so an
+                     asserted license never changes a served number (ruling §5, 2026-07-14).
+    CONTRADICTED never persists past publish — a contradicted declaration fails closed (the manifold
+    does not publish), so it is not a value this record carries at runtime."""
+    verdict: str                          # VERIFIED | CORROBORATED | UNTESTABLE
+    lineages: frozenset = frozenset()     # the declared fertile lineages this license opens
+    basis: str = ""                       # symbolic-proof note | attestation ref + tolerance | author note
+    attestation: Optional[str] = None     # None for VERIFIED/UNTESTABLE; the data-attestation watermark for CORROBORATED
+
+
 # ---- measures ----------------------------------------------------------------
 @dataclass(frozen=True)
 class BAnchor:
@@ -76,10 +106,15 @@ class BAnchor:
 class FamilyMember:
     """Names an operator (reaggregability comes from the operator REGISTRY — operator-level)
     plus this column's B-anchor (which lineages reduction is PERMITTED along — column-level).
-    The two gates compose: reduce iff monoid (possible) AND B-anchor-clear (permitted)."""
+    The two gates compose: reduce iff monoid (possible) AND B-anchor-clear (permitted).
+
+    On DERIVED columns the polarity mirrors: a derived member is created only by an adjudicated
+    fertility declaration and carries its `license` (closed-by-default; the license opens travel).
+    On MEASURE columns `license` is None (measures are open-by-default; the B-anchor closes)."""
     agg: str                              # operator name; looked up in operators.REGISTRY
     b_anchor: BAnchor = BAnchor()         # column-level: permitted lineages
     order_by: Optional[str] = None        # for ORDERED operators (last/first): the level to order by
+    license: Optional[License] = None     # derived-member fertility license; None on measure members
 
 @dataclass(frozen=True)
 class MeasureColumn:
@@ -105,8 +140,16 @@ class MeasureColumn:
 
 @dataclass(frozen=True)
 class DerivedColumn:
+    """A column generated from stored columns through a formula. Closed by default over travel: a
+    bare formula (empty `family`) is DENOTATION-ONLY — its value at an anchor is the formula
+    evaluated over co-anchored atoms there, recomputed from components (never reduced from cached
+    finer values without a license). Fertility is added by declaring `family` members, each carrying
+    a License. `resolution_anchor` (declared `AT <level>`) makes the alternative reading a DISTINCT
+    metric whose meaning embeds the anchor (e.g. mean of daily rates)."""
     name: str
     formula: str                          # post-agg over measure/derived names: "revenue / orders"
+    family: dict = field(default_factory=dict)   # member-name -> FamilyMember (each with a License); empty = denotation-only, no travel
+    resolution_anchor: Optional[str] = None      # declared `AT <level>`; None = output-anchor denotation
 
 
 # ---- the Manifold ------------------------------------------------------------
