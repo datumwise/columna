@@ -11,9 +11,13 @@ surface (Python, MCP, and a natural-language agent).
 ## Quickstart (ten minutes, no source checkout)
 
 ```bash
-pip install columna-core columna-server
+pip install columna
 columna-server demo --play
 ```
+
+`pip install columna` is the canonical install — the metapackage that pulls in `columna-core` (the
+engine) and `columna-server` (the MCP server + agent). You can still install the two directly
+(`pip install columna-core columna-server`) if you want only one.
 
 `demo --play` runs the real wedge end to end and pretty-prints the actual wire JSON for three of the
 four moods in one flow:
