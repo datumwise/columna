@@ -6,7 +6,7 @@
 [AMBIENT CHROME — persists through the entire scroll]
 - Masthead: "datumwise" wordmark, small. Nav, quiet, right-aligned: The Thesis · Why · The Atlas · Run the audit · GitHub. Nothing else.
 - Persistent affordance, bottom-right, small and calm (not a banner): a monospace chip reading
-  `pip install columna-core columna-server` with a copy icon and the caption "run it — two minutes."
+  `pip install columna` with a copy icon and the caption "run it — two minutes."
   Visible at every scroll position. This is the door that must always be at hand.
 - No hero image. No illustration anywhere on this page. Type, tables, and wire JSON only.
 
@@ -214,7 +214,7 @@ lines, and one action. Nothing salesy; the register stays flat and confident.]
 
 **Run it.** Two minutes, no arguments, no signup. A clarify, a refuse, and a disclose will print
 on your machine as real wire JSON.
-`pip install columna-core columna-server` → [GitHub / quickstart]
+`pip install columna` → [GitHub / quickstart]
 
 **Read it.** The argument above, at full depth and with its evidence: the Columna Thesis, the
 metadata-independence essay, and the papers — every claim one click from its verification.
