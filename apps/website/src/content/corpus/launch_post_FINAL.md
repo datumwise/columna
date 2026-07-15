@@ -14,7 +14,7 @@ everyday metric names (*average order value*, *distinct customers*, *sell-throug
 genuinely ambiguous, and today's stacks resolve the ambiguity silently. Columna makes the
 resolution explicit, or makes the system ask.
 
-Try it in two minutes ([repo](https://github.com/datumwise/columna)): `pip install columna-core columna-server`, then
+Try it in two minutes ([repo](https://github.com/datumwise/columna)): `pip install columna`, then
 `columna-server demo --play` — you'll watch a clarify, a refuse, and a disclose print as real
 wire JSON. What follows is the story of why we built it — told through a mistake we kept making
 ourselves.
