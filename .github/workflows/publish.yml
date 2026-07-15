@@ -43,6 +43,10 @@ jobs:
     permissions:
       id-token: write        # OIDC token for Trusted Publishing — this job only
     steps:
+      - uses: actions/checkout@v4              # for scripts/assert_pypi_versions.py + the pyprojects
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v4
         with:
           name: dist
@@ -57,3 +61,9 @@ jobs:
         with:
           packages-dir: dist
           skip-existing: true
+      # Post-publish guard: every package's intended version (from its pyproject) MUST now be live on
+      # PyPI. This is the check skip-existing needs — it can never silently mask a forgotten bump or a
+      # swallowed upload error, because a release that did not actually publish what it claimed fails
+      # here, loudly.
+      - name: Assert every intended version is live on PyPI
+        run: python scripts/assert_pypi_versions.py
