@@ -86,7 +86,7 @@ refuse* — as structured data on one wire contract, identical to a human and to
 exists so no claim above has to be taken on faith:
 
 ```
-pip install columna-core columna-server
+pip install columna
 columna-server demo --play
 ```
 

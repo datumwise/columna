@@ -156,8 +156,7 @@ last fifty years of analytics. Separated, correctness becomes checkable and mean
 free. One inversion, two liberations.
 
 None of this requires taking our word for it. The theory is published. The benchmark is public.
-The algebra runs: Columna is its open reference implementation — `pip install columna-core
-columna-server`, and the four moods will print on your machine in two minutes. The semantic
+The algebra runs: Columna is its open reference implementation — `pip install columna`, and the four moods will print on your machine in two minutes. The semantic
 layer was only ever half the answer. The other half now exists.
 
 ---
