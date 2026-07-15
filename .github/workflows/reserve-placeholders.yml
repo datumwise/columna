@@ -1,21 +1,18 @@
 name: reserve-placeholders
 
-# One-shot PyPI name reservation for datumwise: publishes the honest placeholder packages `trutina`
-# and `trutina-core` (v0.0.0, "name reserved… not yet released; no functionality"). workflow_dispatch
-# ONLY — it never rides an ordinary release. Publishing is OIDC via PyPI Trusted Publishers; no API
-# tokens exist anywhere. Each package's Trusted Publisher must be registered on PyPI as:
-#   owner: datumwise · repo: columna · workflow: reserve-placeholders.yml · environment: (none)
-# Fire it manually (Actions → reserve-placeholders → Run workflow) only after the publishers are
-# registered.
+# One-shot PyPI name reservation for datumwise — the honest placeholder package `trutina` (v0.0.0,
+# "name reserved… not yet released; no functionality"). workflow_dispatch ONLY; OIDC via PyPI Trusted
+# Publishers (no tokens). Trusted Publisher to register:
+#   PyPI project: trutina · owner: datumwise · repo: columna · workflow: reserve-placeholders.yml · environment: (none)
+#
+# `trutina-core` publishes from its OWN workflow (reserve-trutina-core.yml). Why the split: PyPI
+# forbids two PENDING trusted publishers sharing an identical (repo, workflow, environment) config, so
+# each not-yet-existing name needs a distinct workflow file. Once published, each is a real project.
 on:
   workflow_dispatch:
 
 jobs:
   reserve:
-    strategy:
-      matrix:
-        pkg: [trutina, trutina-core]
-      fail-fast: false
     runs-on: ubuntu-latest
     permissions:
       id-token: write        # OIDC token for Trusted Publishing — this job only; no secrets
@@ -27,7 +24,7 @@ jobs:
       - name: Build the placeholder dist
         run: |
           python -m pip install --upgrade pip build twine
-          python -m build reserve/${{ matrix.pkg }} --outdir dist
+          python -m build reserve/trutina --outdir dist
           twine check dist/*
       - name: Publish to PyPI (Trusted Publisher / OIDC)
         uses: pypa/gh-action-pypi-publish@release/v1
