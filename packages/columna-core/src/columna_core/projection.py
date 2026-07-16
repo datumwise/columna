@@ -70,6 +70,7 @@ class OperatorSig:
 class UniverseShape:
     name: str
     base_dimensions: frozenset    # NO predicate (confinement is an engine/resolution concern)
+    basis: Optional[str] = None   # B3 population kind: events|spine|product|registry (absence semantics)
 
 @dataclass(frozen=True)
 class DerivedShape:
@@ -94,7 +95,7 @@ class PlannerView:
                                          {mem: frozenset(fm.b_anchor.blocked_lineages)
                                           for mem, fm in mc.family.items()})
                          for n, mc in m.measures.items()}
-        self.universes = {n: UniverseShape(n, u.base_dimensions)
+        self.universes = {n: UniverseShape(n, u.base_dimensions, u.basis)
                           for n, u in m.universes.items()}
         self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
                         for n, d in m.derived.items()}

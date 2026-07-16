@@ -566,6 +566,30 @@ def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
             "blocked_by": {e: new.blocked_by.get(e, []) for e in newly_blocked}}
 
 
+# ---- B3 BASIS: the testedness record (serving follows the DECLARATION, not this license) ----
+def _prove_basis(basis: str) -> License:
+    """BASIS is a SEMANTIC DECLARATION, not a shortcut license — absence-semantics serving follows the
+    declaration regardless (like a B-anchor bar). This License records only the claim's TESTEDNESS for
+    describe/trust. v1: UNTESTABLE per type (the data-refutation channels need a domain source):
+      · events   — oracle-asymmetric (a false events claim is unrefutable; absence-as-zero and
+                   absence-as-gap look identical), so asserted-and-disclosed.
+      · spine/product — internal-contiguity and completeness both need the level's DOMAIN (min/max/
+                   distinct on the ordered axis); that connector domain-read IS the spine-grid work
+                   (open_forks OF-5), so the refutation channel rides there.
+      · registry — membership is checkable against a source; deferred with the grid (OF-5)."""
+    why = {
+        "events":   "events basis asserted (oracle-asymmetric: a false events claim is unrefutable) — "
+                    "absence renders as zero per the declaration; not data-tested.",
+        "spine":    "spine basis asserted — internal-contiguity/completeness need the ordered axis's "
+                    "domain (the spine-grid, OF-5); serving renders absence as a gap per the declaration.",
+        "product":  "product basis asserted — cartesian completeness needs the domain grid (OF-5); "
+                    "serving renders absence as a gap per the declaration.",
+        "registry": "registry basis asserted — membership is checkable against a source (OF-5); "
+                    "serving follows the declaration.",
+    }[basis]
+    return _license(UNTESTABLE, set(), why)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # entry point
 # ─────────────────────────────────────────────────────────────────────────────
@@ -643,4 +667,14 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
         report["_asserts"] = av
         if degrade:
             report["_cuts"] = cuts
+
+    # ── B3 BASIS: mint the testedness record per declared basis (serving is independent — §2c/B3) ──
+    declared_basis = {n: u for n, u in m.universes.items() if u.basis is not None}
+    if declared_basis:
+        bv = {}
+        for uname, u in declared_basis.items():
+            lic = _prove_basis(u.basis)
+            m.universes[uname] = replace(u, basis_license=lic)
+            bv[uname] = lic.verdict
+        report["_basis"] = bv
     return report
