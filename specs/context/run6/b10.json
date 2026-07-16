@@ -1,0 +1,130 @@
+{
+  "benchmark": "B10",
+  "ground_truth": {
+    "closures": [
+      [
+        "universe",
+        "catalog"
+      ],
+      [
+        "universe",
+        "budget"
+      ]
+    ],
+    "grades": {},
+    "oracle_calls": [
+      "basis: product_catalog=registry, budget=product?"
+    ],
+    "max_checklist": 2
+  },
+  "arms": {
+    "control": [
+      {
+        "bid": "B10",
+        "rep": 0,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 5,
+        "converged": false,
+        "loop_violation": false,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'catalog')]; checklist flooded (3 items > max 2)",
+        "proposals": [
+          {
+            "kind": "universe",
+            "target": "budget",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          }
+        ],
+        "checklist": [
+          "basis: budget rows are targets set per store-day — is a missing store-day a genuine zero-target or just an ungraded gap? absence semantics unconfirmed",
+          "edge: no store table present — store->region etc. cannot be anchored; store exists only as a key in budget",
+          "additivity: target reads as a per-store-day budget AMOUNT (additive). Confirm it is not a per-day rate or ratio — the name 'target' is ambiguous; if it is a rate it is NON-additive"
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 1,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 5,
+        "converged": false,
+        "loop_violation": false,
+        "retries": 2,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'catalog'), ('universe', 'budget')]; checklist flooded (4 items > max 2)",
+        "proposals": [
+          {
+            "kind": "measure",
+            "target": "target",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          }
+        ],
+        "checklist": [
+          "basis: budget is a target-setting spine, not an event log — is a missing (store,day) row a genuine zero target or an unset gap? Declare which before any coverage measure rides on it.",
+          "additivity: 'target' is a budget value at (store,day) grain — additive across stores and across days as a sum-of-plan, but confirm it is a per-day flow and not a restated period snapshot (which would be non-additive over day).",
+          "refutation: store_id has no catalog PK/FK to any store table (no store dimension present) — this edge is inferred by name only; sample store_id values to confirm before trusting, and flag as degraded if unbacked.",
+          "additivity: target is a budget goal per (store,day) — additive across both stores and days, but SUM over days double-counts nothing while comparison to actuals is the intended use; confirm it is a true amount, not a pre-set rate"
+        ]
+      }
+    ],
+    "treatment": [
+      {
+        "bid": "B10",
+        "rep": 0,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 5,
+        "converged": false,
+        "loop_violation": false,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'catalog')]; checklist flooded (4 items > max 2)",
+        "proposals": [
+          {
+            "kind": "universe",
+            "target": "budget",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          }
+        ],
+        "checklist": [
+          "basis: budget has no store catalog table — is store a real spine (declared elsewhere) or only the set of store_ids appearing in budget? A missing store means a gap, not a zero-target.",
+          "additivity: 'target' is a budget figure — additive across stores/days if a true amount, but if it is a rate or per-period snapshot it is NON-additive; confirm the grain-level semantics before summing.",
+          "basis: is a missing (store_id, day) row an unset budget (gap) or a genuine zero target? absence-semantics governs how target aggregates",
+          "additivity: target reads like a planning goal — confirm it is additive across days (a period budget) and not a standing per-day level that would double-count when summed"
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 1,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 3,
+        "converged": false,
+        "loop_violation": true,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'catalog'), ('universe', 'budget')]; checklist flooded (4 items > max 2); loop_violation: revise re-proposed a struck declaration 'edge budget.store_id -> store.store_id' — a settled mark stays settled unless the human reopens it",
+        "proposals": [],
+        "checklist": [
+          "basis: budget rows are per (store_id, day) targets — no store dimension table exists; confirm store is a real spine or just budget's grain.",
+          "basis: no store parent table in catalog — this edge points at an undeclared level; is store's absence a gap (unpopulated dim) or is budget itself the store universe?",
+          "additivity: 'target' is a per-day budget snapshot — additive across stores but summing across day double-counts if targets are restated; confirm day is the atomic period, not a running/restated figure.",
+          "basis: budget is a target spine (planned rows), not an event stream — absence of a (store,day) row is a GAP in the plan, not a zero target"
+        ]
+      }
+    ]
+  }
+}
