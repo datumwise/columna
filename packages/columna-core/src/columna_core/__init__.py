@@ -15,7 +15,7 @@ from .disclosure import Disclosure, Caveat, Refusal, Outcome
 from .adjudication import (adjudicate, Contradiction, AssertContradiction, HierarchyContradiction,
                            AssertNotWellFormed, PublishedScope, scope_from_report, scope_diff)
 from .draft import (Draft, Proposal, PolarityViolation, lower_proposal, DECLARATION_KINDS,
-                    INFERRED_CATALOG, INFERRED_SAMPLE, DECLARED,
+                    INFERRED_CATALOG,          # INFERRED_SAMPLE/DECLARED already bound from .model (same constants)
                     PROPOSED, ACCEPTED, STRUCK, EDITED,
                     SCOPED, PROPOSED_STATE, DECLARED_STATE, ATTESTED, PUBLISHED)
 from .connector import CatalogAperture, APERTURE_SAMPLE_CAP
