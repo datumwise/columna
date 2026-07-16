@@ -79,10 +79,10 @@ def play(out=None) -> int:
     # 3) disclose — served, but WITH a material caveat (a stock summed across a blocked time axis)
     disclose = T.query(store, DEMO_MANIFOLD_ID, DISCLOSE_Q)
     emit(f"[3/4] disclose   query: {DISCLOSE_Q}",
-         "Summing `level` — a stock — across calendar months adds quantities that do not reconcile "
-         "along the blocked day→month axis. Columna serves the per-bucket numbers WITH a material "
-         "caveat that names the blocked lineage and the remedy (`.last` collapses a stock over time) — "
-         "never a silent wrong total:",
+         "Summing `level` — a stock — over days into calendar months adds daily snapshots that do not "
+         "reconcile along the blocked day→month axis. Columna serves the per-bucket numbers WITH a "
+         "material caveat that names the blocked lineage and the remedy (`.last` collapses a stock over "
+         "time) — never a silent wrong total:",
          disclose)
 
     # 4) serve — a well-posed ask over one population
