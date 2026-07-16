@@ -44,12 +44,28 @@ def test_runner_replicates_two_arms_and_writes_durable_artifacts(tmp_path):
 
 
 def test_runner_aborts_loud_on_an_infra_error_never_a_fake_miss(tmp_path):
-    # a provider factory that raises == an API/infra blowup -> InfraAbort, no report (run-5's lesson).
+    # an ANTHROPIC-module error == an API/infra blowup -> InfraAbort, no report (run-5's lesson).
+    class FakeAPIError(Exception):
+        pass
+    FakeAPIError.__module__ = "anthropic"           # classified as infra by _is_infra
+
     def boom(arm, bid, rep):
-        raise RuntimeError("Overloaded")
+        raise FakeAPIError("Overloaded")
     with pytest.raises(InfraAbort):
         run_replicated_ab(arms=ARMS, bids=["B1"], k=2, loop_budget=5, out_dir=str(tmp_path / "x"),
                           provider_for=boom, model_id="scripted", stamp={})
+
+
+def test_runner_scores_a_contract_error_instead_of_aborting(tmp_path):
+    # a CONTRACT/harness error (not from the anthropic tree) is SCORED as a benchmark miss, NOT aborted —
+    # run 6's empty-response bug must never nuke a 44-run session (protection firing is DATA).
+    def boom(arm, bid, rep):
+        raise ValueError("bad output that survived the retry")
+    res = run_replicated_ab(arms=ARMS, bids=["B1"], k=2, loop_budget=5, out_dir=str(tmp_path / "y"),
+                            provider_for=boom, model_id="scripted", stamp={"run_id": "r"})
+    assert res["aggregate"]["control"]["rows"]["B1"]["pass_rate"] == 0.0   # scored a miss, run completed
+    cap = json.loads((tmp_path / "y" / "captured.json").read_text())
+    assert "CONTRACT/HARNESS" in cap["control"][0]["narrative"]
 
 
 def test_runner_refuses_a_temp_out_dir_for_a_real_run():

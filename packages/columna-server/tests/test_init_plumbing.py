@@ -64,6 +64,13 @@ def test_parse_rejects_prose_and_malformed():
             parse_proposals(bad)
 
 
+def test_parse_treats_an_empty_completion_as_no_proposals():
+    # run 6's bug: an empty model completion (common on a revise turn where the mind is done) is NOT a
+    # parse error — it is zero proposals; the loop scores the accumulated draft, never crashes.
+    assert parse_proposals("") == []
+    assert parse_proposals("   \n  ") == []
+
+
 def test_parse_enforces_kind_and_target_grammar_clauses():
     # unknown kind -> malformed (closed vocabulary)
     with pytest.raises(ValueError):

@@ -17,13 +17,22 @@ from __future__ import annotations
 import json
 import os
 
-from .eval import run_benchmark, render_report, RunRecord, SCORER_VERSION
+from .eval import run_benchmark, render_report, RunRecord, BenchmarkResult, SCORER_VERSION
 from .benchmarks import BENCHMARKS
 
 
 class InfraAbort(RuntimeError):
     """A benchmark run blew up on infrastructure (API overload / network) — NOT a mind miss. The run
     aborts rather than recording a fake 0 that would poison the measurement (run-5's overload lesson)."""
+
+
+def _is_infra(e: BaseException) -> bool:
+    """Classify an exception as INFRASTRUCTURE (an API/transport failure — abort the run) vs a
+    CONTRACT/harness failure (score it as a benchmark outcome). An empty completion is already handled at
+    the parse layer (→ no proposals); a persistent malformed reply is the MIND failing the contract, not
+    infra. Anthropic SDK errors (overload/rate/connection/timeout) live in the `anthropic` module tree."""
+    mod = type(e).__module__ or ""
+    return mod.split(".", 1)[0] == "anthropic" or isinstance(e, (ConnectionError, TimeoutError))
 
 
 def _rate(vals) -> float:
@@ -64,8 +73,16 @@ def run_replicated_ab(*, arms, bids, k, loop_budget, out_dir, provider_for, mode
                     prov = provider_for(arm, bid, rep)
                     r = run_benchmark(BENCHMARKS[bid], prov, loop_budget)
                 except Exception as e:
-                    raise InfraAbort(f"[{arm['name']}] {bid} rep{rep}: {type(e).__name__}: {e} — "
-                                     f"infrastructure, not a mind miss; no report written (ruling 3).") from e
+                    if _is_infra(e):                        # a real API error (overload/rate/connection)
+                        raise InfraAbort(f"[{arm['name']}] {bid} rep{rep}: {type(e).__name__}: {e} — "
+                                         f"infrastructure, not a mind miss; no report written (ruling 3).") from e
+                    # a CONTRACT/harness error that survived the provider's retry is a benchmark outcome,
+                    # not infra: SCORE it (protection firing is DATA — never abort a 44-run session on one).
+                    r = BenchmarkResult(benchmark_id=bid, kind=BENCHMARKS[bid].kind, closure=False,
+                                        grade=None, explicitness=False, checklist_concentration=False,
+                                        convergence_cost=loop_budget, loop_budget=loop_budget,
+                                        converged=False, passed=False,
+                                        failure_narrative=f"CONTRACT/HARNESS: {type(e).__name__}: {e}")
                 reps.append(r)
                 captured[arm["name"]].append({
                     "bid": bid, "rep": rep, "passed": r.passed, "closure": r.closure, "grade": r.grade,
