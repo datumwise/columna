@@ -99,6 +99,7 @@ class PlannerView:
         self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
                         for n, d in m.derived.items()}
         self.non_functional = tuple(m.non_functional)         # (frm, to, detail) — level names only
+        self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,
