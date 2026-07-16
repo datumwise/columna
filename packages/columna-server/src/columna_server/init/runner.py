@@ -84,6 +84,11 @@ def run_replicated_ab(*, arms, bids, k, loop_budget, out_dir, provider_for, mode
                                         converged=False, passed=False,
                                         failure_narrative=f"CONTRACT/HARNESS: {type(e).__name__}: {e}")
                 reps.append(r)
+                import sys as _sys                          # per-(arm,bid,rep) progress — closes run-6's
+                print(f"  [{arm['name']}] {bid} rep{rep}: "                 # visibility gap (no stream then)
+                      f"{'PASS' if r.passed else 'fail'} closure={r.closure} "
+                      f"explicit={r.explicitness} flood={not r.checklist_concentration} "
+                      f"lv={r.loop_violation}", file=_sys.stderr, flush=True)
                 captured[arm["name"]].append({
                     "bid": bid, "rep": rep, "passed": r.passed, "closure": r.closure, "grade": r.grade,
                     "explicit": r.explicitness, "concise": r.checklist_concentration,
