@@ -13,7 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-SCORER_VERSION = "0.1"                    # the measurement instrument has versions too (contract §1)
+SCORER_VERSION = "0.2"                    # 0.2 (2026-07-16): deterministic normalization — canonical
+                                          # identity forms + declared synonym maps + keyword ◆-matching;
+                                          # NO mind grading a mind (Huayin's hard line). Old records stay
+                                          # interpretable (the version is on every run record).
 BENCHMARK_LIST_VERSION = "1"             # B1–B11, ratified 2026-07-16
 
 
@@ -39,6 +42,7 @@ class BenchmarkResult:
     converged: bool                      # the censoring flag (amendment 3): passed within budget?
     passed: bool
     failure_narrative: str = ""
+    retries: int = 0                     # malformed-output retries across this benchmark's iterations (convergence data)
 
 
 @dataclass
@@ -69,34 +73,65 @@ class RunRecord:
         }
 
 
-def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResult:
-    """Score one init OUTPUT vs the benchmark's adjudicated ground truth.
+def _canon(s: str) -> str:
+    """Canonical identity form (scorer 0.2, deterministic): lowercase, collapse whitespace, normalize
+    an edge/relate arrow ('a -> b', 'a to b', 'a<->b' -> 'a->b'). NO semantic judgment."""
+    s = " ".join(str(s).strip().lower().split())
+    s = s.replace(" -> ", "->").replace("<->", "->").replace(" to ", "->").replace("--", "-")
+    return s
 
-    `output` = {proposals: [{kind, target, grade, opens_fertility}], checklist: [surfaced ◆ calls],
-                iterations: int}. Hard-fail axes: closure, grade, explicitness (a silent ◆ call fails
-                even when the value is right)."""
+
+def _oracle_key(call: str) -> str:
+    """The canonical TAG of an oracle-asymmetric call — the category before the ':' (basis, universe,
+    m-leak, fertility, refutation, additivity). Explicitness is checked by this KEY appearing in the
+    checklist, not by prose equality (deterministic keyword match, not a mind reading a mind)."""
+    return call.split(":", 1)[0].strip().lower()
+
+
+def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResult:
+    """Score one init OUTPUT vs the benchmark's adjudicated ground truth (scorer 0.2 — deterministic
+    normalization + keyword ◆-matching). `output` = {proposals: [{kind, target, grade}], checklist:
+    [surfaced calls], iterations, retries}. Hard-fail axes: closure, grade, explicitness (a silent ◆
+    call fails even when the value is right)."""
     gt = benchmark.ground_truth
     proposals = output.get("proposals", [])
-    checklist = set(output.get("checklist", []))
+    checklist = list(output.get("checklist", []))
+    syn = {(_canon(k.split(":", 1)[1]) if ":" in k else _canon(k)): {_canon(v) for v in vs}
+           for k, vs in gt.get("synonyms", {}).items()}
     fails = []
 
     opened = [p for p in proposals if p.get("opens_fertility")]
     if opened:
         fails.append("proposed a fertility OPENING (polarity violation)")
-    proposed = {(p["kind"], p["target"]) for p in proposals if not p.get("opens_fertility")}
-    closure_ok = (proposed == set(map(tuple, gt["closures"]))) and not opened
-    if proposed != set(map(tuple, gt["closures"])):
-        fails.append("closures do not match ground truth")
 
-    grade_ok = all(p.get("grade") == gt["grades"].get(f"{p['kind']}:{p['target']}")
-                   for p in proposals if f"{p['kind']}:{p['target']}" in gt["grades"])
+    def _match(kind, tgt, want_kind, want_tgt):
+        if kind != want_kind:
+            return False
+        ct, cw = _canon(tgt), _canon(want_tgt)
+        return ct == cw or ct in syn.get(cw, set())
+
+    want = [tuple(c) for c in gt["closures"]]
+    proposed = [(p["kind"], p.get("target", "")) for p in proposals if not p.get("opens_fertility")]
+    unmatched = [w for w in want if not any(_match(pk, pt, w[0], w[1]) for pk, pt in proposed)]
+    closure_ok = not unmatched and not opened
+    if unmatched:
+        fails.append(f"missing/mismatched closures: {unmatched}")
+
+    grade_ok = True
+    for p in proposals:
+        for w in want:
+            if _match(p["kind"], p.get("target", ""), w[0], w[1]):
+                exp = gt["grades"].get(f"{w[0]}:{w[1]}")
+                if exp and p.get("grade") != exp:
+                    grade_ok = False
     if not grade_ok:
         fails.append("a proposal carries the wrong INFERRED_* grade")
 
-    oracle_calls = set(gt.get("oracle_calls", []))
-    explicit_ok = oracle_calls <= checklist
-    if not explicit_ok:
-        fails.append(f"silent on oracle-asymmetric call(s): {sorted(oracle_calls - checklist)}")
+    blob = _canon(" ".join(checklist))
+    missing_keys = [_oracle_key(c) for c in gt.get("oracle_calls", []) if _oracle_key(c) not in blob]
+    explicit_ok = not missing_keys
+    if missing_keys:
+        fails.append(f"silent on oracle-asymmetric call(s): {sorted(set(missing_keys))}")
 
     max_cl = gt.get("max_checklist", 10 ** 9)
     concentration_ok = explicit_ok and len(checklist) <= max_cl
@@ -110,22 +145,118 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
         benchmark_id=benchmark.id, kind=benchmark.kind, closure=closure_ok, grade=grade_ok,
         explicitness=explicit_ok, checklist_concentration=concentration_ok,
         convergence_cost=iterations, loop_budget=loop_budget, converged=converged,
-        passed=passed, failure_narrative="; ".join(fails))
+        passed=passed, failure_narrative="; ".join(fails), retries=int(output.get("retries", 0)))
 
 
 def _lit(v):
     return "'" + v.replace("'", "''") + "'" if isinstance(v, str) else repr(v)
 
 
+class _ClaimAperture:
+    """A DuckDBConnector whose catalog() ALSO surfaces declared-but-unENFORCED keys (`catalog_claims`).
+    This is how B11 is encoded faithfully: a warehouse routinely DECLARES a key the engine does not
+    enforce, so the sample can violate it — DuckDB won't let us insert a row violating an enforced FK,
+    so the claim rides as catalog metadata over unconstrained data. Everything else delegates."""
+
+    def __init__(self, con, claims: dict):
+        self._c = con
+        self._claims = claims or {}
+
+    def catalog(self):
+        cat = self._c.catalog()
+        for t in cat:
+            for claim in self._claims.get(t["table"], []):
+                t["keys"].append({**claim, "enforced": False, "source": "catalog-declared"})
+        return cat
+
+    def __getattr__(self, name):
+        return getattr(self._c, name)
+
+
 def build_aperture(schema: dict):
-    """A DuckDBConnector over a benchmark's messy schema — the two-ends data wall for the run."""
+    """A DuckDBConnector over a benchmark's schema — the two-ends data wall for the run. Schema shape:
+        {"tables": {name: {"cols":[(n,type)], "pk":[...], "fk":[(col,reftable,refcol)], "rows":[...]}},
+         "catalog_claims": {table: [{"type":"UNIQUE"|"FK", "columns":[...]}]}}      # optional, unenforced
+    Real DECLARED keys (pk/fk) land in catalog() via DuckDB's constraints (so a catalog-graded edge has
+    real catalog evidence); `catalog_claims` ride unenforced for the refutation case."""
     import duckdb
     from columna_core import DuckDBConnector
     con = duckdb.connect()
-    for name, (cols, rows) in schema.items():
-        values = ", ".join("(" + ", ".join(_lit(v) for v in r) + ")" for r in rows)
-        con.execute(f"CREATE TABLE {name} AS SELECT * FROM (VALUES {values}) AS t({', '.join(cols)})")
-    return DuckDBConnector(con)
+    tables = schema["tables"]
+    for name, spec in tables.items():
+        parts = [f'"{c}" {t}' for c, t in spec["cols"]]
+        if spec.get("pk"):
+            parts.append(f"PRIMARY KEY ({', '.join(spec['pk'])})")
+        for col, rt, rc in spec.get("fk", []):
+            parts.append(f"FOREIGN KEY ({col}) REFERENCES {rt}({rc})")
+        con.execute(f'CREATE TABLE "{name}" ({", ".join(parts)})')
+    for name, spec in tables.items():                    # parents first (dict order) — FK insert order
+        for r in spec.get("rows", []):
+            con.execute(f'INSERT INTO "{name}" VALUES ({", ".join(_lit(v) for v in r)})')
+    dc = DuckDBConnector(con)
+    claims = schema.get("catalog_claims")
+    return _ClaimAperture(dc, claims) if claims else dc
+
+
+def benchmark_coherence(benchmark) -> list:
+    """The SELF-COHERENCE meta-check (Huayin, ruling 1): every ground-truth CLOSURE must be derivable
+    from the schema's OWN evidence — catalog()/profile() must actually emit what the ground truth
+    claims. Returns a list of incoherences (empty = coherent). This kills the real-001 failure class
+    STRUCTURALLY (a benchmark whose truth its own aperture cannot support fails the test, not a run)."""
+    ap = build_aperture(benchmark.schema)
+    cat = {t["table"]: t for t in ap.catalog()}
+    gt = benchmark.ground_truth
+    has_fk = any(str(col.get("type", "")).upper().startswith("FOREIGN") for t in cat for col in cat[t]["keys"])
+    _num = lambda ty: any(x in ty.upper() for x in ("INT", "DOUBLE", "DEC", "FLOAT"))
+    numeric_cols = any(_num(c["type"]) for t in cat for c in cat[t]["columns"])
+    cat_cols = any(not _num(c["type"]) and "DATE" not in c["type"].upper() for t in cat for c in cat[t]["columns"])
+    temporal = any("DATE" in c["type"].upper() or "TIME" in c["type"].upper() for t in cat for c in cat[t]["columns"])
+    bad = []
+
+    def _fd_holds(frm, to):
+        for t in cat:
+            names = {c["name"] for c in cat[t]["columns"]}
+            if frm in names and to in names:
+                n = ap.con.execute(f'SELECT count(*) FROM (SELECT "{frm}" FROM "{t}" GROUP BY "{frm}" '
+                                   f'HAVING count(distinct "{to}") > 1)').fetchone()[0]
+                return n == 0
+        return False
+
+    for kind, target in gt["closures"]:
+        if kind == "edge":
+            grade = gt["grades"].get(f"edge:{target}")
+            if grade == "inferred_catalog" and not has_fk:
+                bad.append(f"edge '{target}' is catalog-graded but the schema declares no FK")
+            elif grade == "inferred_sample":
+                frm, to = target.split("->")
+                if not _fd_holds(frm, to):
+                    bad.append(f"edge '{target}' is sample-graded but the data shows no functional {frm}->{to}")
+        elif kind == "hierarchy":
+            if not temporal:
+                bad.append(f"hierarchy '{target}' needs a temporal column to detect a calendar")
+        elif kind == "measure":
+            if not numeric_cols:
+                bad.append(f"measure '{target}' has no numeric column to aggregate in the schema")
+        elif kind == "dimension":
+            if not cat_cols:
+                bad.append(f"dimension '{target}' has no categorical column in the schema")
+        elif kind == "derived":
+            measure_targets = {t for k, t in gt["closures"] if k == "measure"}
+            for need in gt.get("derived_needs", {}).get(target, []):
+                if need not in measure_targets:
+                    bad.append(f"derived '{target}' needs measure '{need}', absent from this benchmark's "
+                               f"measure closures — its ground truth is unformable from the schema")
+        elif kind == "relate":
+            claims = benchmark.schema.get("catalog_claims", {})
+            violated = False
+            for tbl, cs in claims.items():
+                for claim in cs:
+                    col = claim["columns"][0]
+                    nd, nt = ap.con.execute(f'SELECT count(distinct "{col}"), count(*) FROM "{tbl}"').fetchone()
+                    violated = violated or nd < nt
+            if not violated:
+                bad.append(f"relate '{target}' claims a refutation but no catalog-declared key is violated by the data")
+    return bad
 
 
 def _review_from_ground_truth(loop, benchmark) -> None:
@@ -133,11 +264,21 @@ def _review_from_ground_truth(loop, benchmark) -> None:
     proposal not in the ground-truth closures, so the next revise turn addresses it. This is
     search-with-verifier — the harness thesis's shape, with ratified ground truth as the oracle."""
     from columna_core.draft import ACCEPTED, STRUCK, PROPOSED
-    wanted = set(map(tuple, benchmark.ground_truth["closures"]))
+    gt = benchmark.ground_truth
+    syn = {(_canon(k.split(":", 1)[1]) if ":" in k else _canon(k)): {_canon(v) for v in vs}
+           for k, vs in gt.get("synonyms", {}).items()}
+    want = [tuple(c) for c in gt["closures"]]
+
+    def _matches(kind, tgt):
+        for wk, wt in want:
+            if kind == wk and (_canon(tgt) == _canon(wt) or _canon(tgt) in syn.get(_canon(wt), set())):
+                return True
+        return False
+
     for p in loop.draft.proposals:
         if p.review != PROPOSED:
             continue
-        p.review = ACCEPTED if (p.kind, p.target) in wanted else STRUCK
+        p.review = ACCEPTED if _matches(p.kind, p.target) else STRUCK    # normalized (scorer 0.2), not exact
 
 
 def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> BenchmarkResult:
@@ -145,6 +286,7 @@ def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> Benchmark
     adjudicated ground truth. Convergence cost = iterations run; `converged` is censored at the budget."""
     from .loop import InitLoop
     loop = InitLoop(build_aperture(benchmark.schema), provider, benchmark.id)
+    r0 = getattr(provider, "retries", 0)                     # malformed-output retries are convergence data
     result = None
     for i in range(1, loop_budget + 1):
         if i == 1:
@@ -152,7 +294,9 @@ def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> Benchmark
         else:
             _review_from_ground_truth(loop, benchmark)      # the verifier marks; then the mind revises
             loop.revise()
-        result = score(benchmark, loop.output(), loop_budget)
+        out = loop.output()
+        out["retries"] = getattr(provider, "retries", 0) - r0
+        result = score(benchmark, out, loop_budget)
         if result.passed:
             break
     return result
@@ -165,7 +309,7 @@ def render_report(run: RunRecord) -> str:
         f"EVAL RUN {run.run_id or '<unstamped>'}  ·  {run.run_timestamp or '<unstamped>'}",
         f"provider={run.provider}  model={run.model_id}@{run.model_version}  "
         f"sampling={run.sampling}  harness={run.harness_config}",
-        f"kp={run.kp_version}  benchmarks={run.benchmark_list_version}  scorer={run.scorer_version}",
+        f"kp=v{run.kp_version}  benchmark_list=v{run.benchmark_list_version}  scorer=v{run.scorer_version}",
         "",
         f"SUMMARY   passed {s['passed']}/{s['total']}   "
         f"◆-explicitness {s['oracle_explicit']}/{s['oracle_total']}   "
@@ -178,7 +322,8 @@ def render_report(run: RunRecord) -> str:
         axes = (f"closure{'✓' if r.closure else '✗'} grade{'✓' if r.grade else '✗'} "
                 f"explicit{'✓' if r.explicitness else '✗'} concise{'✓' if r.checklist_concentration else '✗'}")
         conv = f"conv {r.convergence_cost}{'' if r.converged else ' (CAPPED)'}"
-        L.append(f"{r.benchmark_id} {r.kind}   {tag}   {axes}   {conv}")
+        rt = f"  retries {r.retries}" if r.retries else ""
+        L.append(f"{r.benchmark_id} {r.kind}   {tag}   {axes}   {conv}{rt}")
         if not r.passed:
             L.append(f"       └ narrative: {r.failure_narrative}")
     L += ["─" * 74,
