@@ -57,5 +57,10 @@ after it. This is the ratchet working exactly as intended.
   (revise-discipline stays passive — 4/0/2 is variance still accumulating, ruling 5); B10 scored under GT v2.
 
 ---
-**Status: DRAFT — awaiting Huayin's ratification of the exact insert text. Nothing goes live, and run 7
-does not fire, until ratification + the standing key-and-go.**
+**Status: RATIFIED AS WRITTEN & LIVE (Huayin, 2026-07-16).** The floored prune is now the final paragraph
+of the sharp-calls block in `system_prompt.md` (KP v0.5); the four salience triggers and everything else
+unchanged. The **dual-enemies closing sentence** ("a long undifferentiated review re-creates the automation
+bias … a silenced sharp call re-creates the meaning-loss …") is now **house doctrine** and should flow back
+into the capture (standing item). KP v0.3 is the run-7 control (git `dc83cee`). Run 7 fires on the standing
+key-and-go with the pre-registered criteria (flood ≤ 4.5 AND ◆-recall ≥ 5.0, or neither ships); read order:
+**refutation (B11), then B1 basis + B4 m-leak** (the run-6 eroded calls).
