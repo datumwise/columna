@@ -14,6 +14,11 @@ from .frameql import ManifoldServer, Frame, parse_frameql, FrameQLSyntaxError
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
 from .adjudication import (adjudicate, Contradiction, AssertContradiction, HierarchyContradiction,
                            AssertNotWellFormed, PublishedScope, scope_from_report, scope_diff)
+from .draft import (Draft, Proposal, PolarityViolation, lower_proposal,
+                    INFERRED_CATALOG, INFERRED_SAMPLE, DECLARED,
+                    PROPOSED, ACCEPTED, STRUCK, EDITED,
+                    SCOPED, PROPOSED_STATE, DECLARED_STATE, ATTESTED, PUBLISHED)
+from .connector import CatalogAperture, APERTURE_SAMPLE_CAP
 from .describe import describe_derived, license_to_dict
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
 
