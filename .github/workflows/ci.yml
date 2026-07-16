@@ -46,13 +46,14 @@ jobs:
       - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
         run: pytest packages/columna-server -q
 
-      # One cheap regression over the whole wedge path: the demo prints its three moods in order.
-      # Post-§2c the tour is clarify -> refuse -> serve (the cross-universe wedge that once drove
-      # disclose is now a category error; the demo was reframed to well-posed asks — demo.py docstring).
-      - name: Demo smoke (demo --play, three moods in order)
+      # One cheap regression over the whole wedge path: the demo prints all four moods in order.
+      # Post-§2c the tour is clarify -> refuse -> disclose -> serve; disclose is driven by
+      # `level.sum @ store*cal.month` (a stock summed across the blocked day->month axis — a material
+      # b_anchor_crossing caveat), the well-posed replacement for the retired cross-universe wedge.
+      - name: Demo smoke (demo --play, four moods in order)
         run: |
           columna-server demo --play | python -c "import sys; s=sys.stdin.read(); \
-          i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','serve')]; \
+          i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose','serve')]; \
           assert -1 not in i and i == sorted(i), i; \
           assert '\"contract_version\": \"1\"' in s; print('demo --play smoke OK:', i)"
 
@@ -77,7 +78,7 @@ jobs:
       - name: demo --play from the installed wheel (package-data proof)
         run: |
           /tmp/demoenv/bin/columna-server demo --play | /tmp/demoenv/bin/python -c "import sys; \
-          s=sys.stdin.read(); i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','serve')]; \
+          s=sys.stdin.read(); i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose','serve')]; \
           assert -1 not in i and i == sorted(i), i; assert '\"contract_version\": \"1\"' in s; \
           print('py3.10 wheel demo --play OK')"
 

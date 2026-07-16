@@ -19,14 +19,17 @@ columna-server demo --play
 engine) and `columna-server` (the MCP server + agent). You can still install the two directly
 (`pip install columna-core columna-server`) if you want only one.
 
-`demo --play` runs three real asks end to end and pretty-prints the actual wire JSON for three of the
-four moods in one flow:
+`demo --play` runs four real asks end to end and pretty-prints the actual wire JSON for all four
+moods in one flow:
 
 - **clarify** — `avg(aov) @ cal.month`: the inline reduction leaves the input anchor for `aov`
   underdetermined; the server names the candidate input anchors as substitutable alternatives instead
   of inventing one.
 - **refuse** — `level.last @ customer`: inventory is keyed by store and day — it has no customers, so
   the ask addresses outside the contracted space and the server refuses with the reason (never a guess).
+- **disclose** — `level.sum @ store*cal.month`: summing a stock across calendar months adds quantities
+  that don't reconcile along the blocked day→month axis; the server returns the numbers **with** a
+  material caveat naming the blocked lineage and the remedy (`.last`), never a silent wrong total.
 - **serve** — `aov @ cal.month`: average order value by calendar month, one population and well posed;
   the server returns the numbers.
 
@@ -50,7 +53,7 @@ path args. To wire it into Claude Desktop, add to `claude_desktop_config.json`:
 (Claude Desktop launches the server from an arbitrary working directory, so `demo` — which needs no
 path — is the reliable choice.) See
 [`packages/columna-server/demos/mcp_claude_desktop.md`](packages/columna-server/demos/mcp_claude_desktop.md)
-for the full config and a real clarify → refuse → serve transcript.
+for the full config and a real clarify → refuse → disclose → serve transcript.
 
 Or talk to it in natural language — Columna's own agent is a true MCP client over the server:
 

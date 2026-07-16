@@ -8,7 +8,7 @@ This is the wedge product: the first metrics MCP server that can say *"it depend
 
 ```bash
 pip install columna-core columna-server
-columna-server demo --play                    # the packaged demo: clarify -> refuse -> serve
+columna-server demo --play                    # the packaged demo: clarify -> refuse -> disclose -> serve
 columna-server demo                           # serve the packaged demo over MCP stdio (no path args)
 columna-server mcp --manifolds <dir>          # serve your own manifolds dir over stdio
 columna-server mcp --manifolds <dir> --http :8000   # streamable-http, gated by COLUMNA_MCP_TOKEN
