@@ -9,13 +9,14 @@ columns, assembles the frame, and folds disclosures. It never sees provenance.
 """
 from __future__ import annotations
 import ast
+import re
 from dataclasses import dataclass, field
 from typing import Optional
 import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, COVERAGE, B_ANCHOR_CROSSING, TRANSPORT,
+from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
@@ -43,6 +44,7 @@ class ColumnResult:
     disclosure: Disclosure
     refusal: Optional[Outcome] = None
     trace: list = field(default_factory=list)
+    universe: Optional[str] = None      # the column's sole universe (§2c) — routes B3 absence semantics
 
 
 @dataclass
@@ -95,6 +97,84 @@ class Planner:
     def __init__(self, view: PlannerView, engine: ColumnEngine):
         self.m = view          # provenance-free PROJECTION (vocabulary/shape only)
         self.engine = engine
+        # the published SCOPE (set by publish/reattest): cut declarations (asserts) and blocked edges
+        # (refuted hierarchies). A column touching a cut refuses `conflicting_data`; a column whose
+        # transport crosses a blocked edge refuses `contradicted_edge`. Serving never outruns the verdicts.
+        self.cut: frozenset = frozenset()
+        self.cut_by: dict = {}
+        self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
+        self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
+
+    def _cut_hit(self, expr: str) -> Optional[str]:
+        """The first CUT declaration a column expression references (measure or derived), or None.
+        Serving never outruns the verdicts: a query into a cut region is withheld."""
+        if not self.cut:
+            return None
+        for ref in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", expr):
+            head = ref.split(".", 1)[0]
+            if head in self.cut:
+                return head
+        return None
+
+    def _blocked_transport(self, node, anchor) -> Optional[tuple]:
+        """The first BLOCKED edge (frm, to) a column's transport crosses, or None. A refuted hierarchy
+        blocks its edge; any measure whose resolution to an anchor level travels that edge refuses."""
+        if not self.blocked_edges:
+            return None
+        for measure, _member in self._atoms(node, anchor):
+            ms = self.m.measures.get(measure)
+            if ms is None:
+                continue
+            base = self.m.universes[ms.universe].base_dimensions
+            for T in anchor:
+                path = self.m.find_path(base, T)
+                if path is None:
+                    continue
+                for e in path[1]:
+                    if (e.frm, e.to) in self.blocked_edges:
+                        return (e.frm, e.to)
+        return None
+
+    def _blocked_transport_refusal(self, edge: tuple) -> "Refusal":
+        rec = (self.blocked_by.get(edge) or [{}])[0]
+        lineage, key = rec.get("lineage"), rec.get("key")
+        return Refusal("contradicted_edge",
+            f"transport along edge {edge[0]}->{edge[1]} (lineage '{lineage}') is BLOCKED: its declared "
+            f"functional dependence is refuted on the attested data (key {key!r} has >1 parent); the "
+            f"reduction across it is withheld — serving never outruns the verdicts.",
+            edge=f"{edge[0]}->{edge[1]}",
+            alternatives=("fix the data and re-attest", "amend the hierarchy", "address at a grain that does not cross this edge"))
+
+    def _check_single_universe(self, node, anchor):
+        """§2c EXPRESSION LAW: a column expression evaluates in ONE universe and never crosses the
+        boundary. Measures from >1 universe in a single expression is a language-law CATEGORY ERROR —
+        the ERROR channel (`cross_universe`), not the four moods — named with the two legal paths."""
+        unis = sorted({self.m.measures[mm].universe for (mm, _) in self._atoms(node, anchor)
+                       if mm in self.m.measures})
+        if len(unis) == 1:
+            return unis[0]                                   # the column's sole universe (routes B3 absence)
+        if not unis:
+            return None
+        raise Refusal("cross_universe",
+                f"this column combines measures from more than one universe {unis} — a column "
+                f"expression evaluates in ONE universe and never crosses the boundary (combining them "
+                f"would assert a single population that does not exist). Two legal paths: juxtapose "
+                f"(ask each measure as its own column — they align on the shared anchor), or declare "
+                f"(define a DERIVED that carries its population, then ask that).",
+                alternatives=("juxtapose: ask each measure as its own column",
+                              "declare: define a DERIVED with its population, then ask it"))
+
+    def _cut_refusal(self, decl: str) -> "Refusal":
+        rec = (self.cut_by.get(decl) or [{}])[0]
+        ce = rec.get("counterexample")
+        who = (f"assert '{rec['assert']}' ON '{rec['universe']}'" if rec.get("assert")
+               else "a declared invariant")
+        coord = f" (counterexample @ {ce.get('anchor')})" if ce else ""
+        return Refusal("conflicting_data",
+            f"'{decl}' is in a CUT region: {who} is violated on the attested data{coord}; serving is "
+            f"withheld here — serving never outruns the verdicts.",
+            measure=decl,
+            alternatives=("fix the data and re-attest", "amend the assert", "accept the reduced scope"))
 
     # ---- typecheck: addressability (fan-out / out-of-universe caught here) --
     def _check_addressable(self, measure: str, T: str):
@@ -175,7 +255,6 @@ class Planner:
     # ---- run a frame -------------------------------------------------------
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> FrameResult:
         results = []
-        universes_seen = set()
         for name, expr in columns:
             trace = []
             try:
@@ -186,7 +265,16 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
+                # mood — checked before typecheck/execution (serving never outruns the verdicts).
+                cut_decl = self._cut_hit(expr)
+                if cut_decl is not None:
+                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
+                col_uni = self._check_single_universe(tree.body, anchor)  # §2c expr law + the column's universe
+                blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
+                if blk is not None:
+                    raise self._blocked_transport_refusal(blk)
                 # B-anchor crossings are STRUCTURAL — detected HERE (compile, shape-only), not in
                 # the engine. Inform-and-serve: they ride into the served disclosure unchanged.
                 crossings = self._frame_crossings(tree.body, anchor)
@@ -194,14 +282,27 @@ class Planner:
                 frame, disc = self._eval(expr, anchor, where, trace)
                 if crossings:
                     disc = Disclosure.merge(disc, Disclosure.of(*crossings), population=disc.population)
-                results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc, trace=trace))
-                if disc.population:
-                    universes_seen.add(disc.population)
+                results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc,
+                                            trace=trace, universe=col_uni))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
+            except Exception as e:
+                # EVERYTHING-CLASSIFIES backstop: an unexpected engine/eval failure must never leak a raw
+                # exception past the planner (the guarantee). Classify as ERROR rather than throw.
+                # DOCTRINE-GAP (doctrine_gaps.md · classify-collapse-with-blocked-transport): today
+                # `level.sum @ cal.month` — collapse a base coordinate while transporting another across a
+                # BLOCKED lineage — lands here (a ColumnNotFoundError on main); it SHOULD serve with a
+                # critical blocked_reduction caveat. The structural fix is engine-side; this backstop
+                # guarantees it is at least CLASSIFIED, never raw, past the gate.
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                    refusal=Refusal("unsupported",
+                        f"this frame could not be resolved in the engine ({type(e).__name__}); the ask is "
+                        f"not supported in this build.").classified(), trace=trace))
 
-        # assemble non-refused columns
+        # assemble non-refused columns — §2c FRAME LAW (juxtaposition): columns may come from DIFFERENT
+        # universes; the result is an ALIGNMENT view (full-outer join on the shared anchor; missing where
+        # a universe has no atom at a cell), each column keeping its own population semantics.
         data = None
         for c in results:
             if c.frame is None:
@@ -210,12 +311,35 @@ class Planner:
         if data is not None:
             data = data.sort(list(anchor))
 
-        # frame-level disclosure; add declared-universe ambiguity if columns span universes (planner-visible)
+        # B3 ABSENCE SEMANTICS (basis-driven). Absence is only definable relative to a DOMAIN; the
+        # juxtaposition (the full-outer align above) supplies one LOCALLY, so a column's null cells here
+        # take meaning from THAT column's own universe basis. Serving follows the DECLARATION — like a
+        # B-anchor bar, it executes regardless of any License (BASIS is a semantic declaration, not a
+        # shortcut). The declared spine-grid (the future domain source) is the single object behind both
+        # single-column fill and the completeness oracle (open_forks OF-5); until it lands, absence is
+        # scoped to the align, so a single-column frame (no nulls) is untouched.
+        if data is not None:
+            for c in results:
+                if c.frame is None or c.universe is None:
+                    continue
+                basis = self.m.universes[c.universe].basis
+                if basis is None:
+                    continue
+                n_absent = data[c.name].null_count()
+                if not n_absent:
+                    continue
+                if basis == "events":                        # absence is the honest ZERO
+                    data = data.with_columns(pl.col(c.name).fill_null(0))
+                    c.disclosure = c.disclosure.with_caveat(Caveat(TRANSPORT,        # immaterial, agent-legible
+                        f"{n_absent} absent cell(s) rendered as 0 per events basis"))
+                elif basis in ("spine", "product"):          # absence is a GAP
+                    c.disclosure = c.disclosure.with_caveat(Caveat(DATA_GAP,
+                        f"{n_absent} absent cell(s) are gaps ({basis} basis) — the data is incomplete here"))
+
+        # No frame-level population caveat: the old multi-universe `coverage` caveat is RETIRED (§2c). Per-
+        # column honesty replaces it — a juxtaposed frame never asserts a single shared population, and
+        # ON UNIVERSE is dead in the query grammar (cross-universe combination is an authoring act).
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.frame is not None])
-        if len(universes_seen) > 1:
-            frame_disc = frame_disc.with_caveat(Caveat(COVERAGE,
-                f"frame spans multiple universes {sorted(universes_seen)} — population is ambiguous; "
-                f"pin it with ON UNIVERSE"))
         return FrameResult(data, frame_disc, results, anchor)
 
     # ---- expression evaluation (post-agg over measure columns) -------------
@@ -411,7 +535,7 @@ class Planner:
         provenance disclosure (engine.dry_disclose) — assembled into the would-be annotation,
         touching no data. This is EXPLAIN-without-execution: an agent sees the critical crossing
         (and the approximation/assumption caveats) before spending a single backend scan."""
-        results, seen_u = [], set()
+        results = []
         for name, expr in columns:
             trace = []
             try:
@@ -419,24 +543,28 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
+                # mood — checked before typecheck/execution (serving never outruns the verdicts).
+                cut_decl = self._cut_hit(expr)
+                if cut_decl is not None:
+                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
+                col_uni = self._check_single_universe(tree.body, anchor)    # §2c expr law + column universe
+                blk = self._blocked_transport(tree.body, anchor)
+                if blk is not None:
+                    raise self._blocked_transport_refusal(blk)
                 disc = Disclosure.clean()
                 for (m, mem) in self._atoms(tree.body, anchor):
                     disc = Disclosure.merge(disc, self.engine.dry_disclose(m, mem, anchor))
                     trace.append(f"plan {m}.{mem} @ {_fmt_anchor(anchor)} (would-be annotation; no execution)")
                 for c in self._frame_crossings(tree.body, anchor):
                     disc = disc.with_caveat(c)
-                results.append(ColumnResult(name, expr, None, disc, trace=trace))
-                if disc.population:
-                    seen_u.add(disc.population)
+                results.append(ColumnResult(name, expr, None, disc, trace=trace, universe=col_uni))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
+        # §2c frame law: no frame-level multi-universe `coverage` caveat (retired) — per-column honesty.
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.refusal is None])
-        if len(seen_u) > 1:
-            frame_disc = frame_disc.with_caveat(Caveat(COVERAGE,
-                f"frame spans multiple universes {sorted(seen_u)} — population is ambiguous; "
-                f"pin it with ON UNIVERSE"))
         return FrameResult(None, frame_disc, results, anchor)
 
     # ---- COMPILE: static type inference + vocabulary checks (no engine) -----
@@ -535,28 +663,10 @@ class Planner:
                     raise Refusal("type_error",
                         f"map '{op}' requires {sorted(sig.accepts)} operands; {side} operand is '{dt}'",
                         alternatives=("apply a numeric-valued operator/measure on that side",))
-            if op == "/":
-                # D5 co-anchoring: a ratio whose numerator and denominator resolve over different
-                # populations (universes) has no single determinate value — which population is the
-                # rate taken over? The engine could produce a number per cell, but the *meaning* is
-                # ambiguous, so the planner clarifies, naming the candidate populations, and never
-                # guesses. This is POPULATION co-anchoring; it is distinct from avg-of-averages,
-                # which is a B-anchor/reaggregability hazard (a served critical caveat), not this.
-                # Not eager: a ratio whose operands share one universe just serves.
-                lu = {self.m.measures[mm].universe for (mm, _) in self._atoms(node.left, anchor)
-                      if mm in self.m.measures}
-                ru = {self.m.measures[mm].universe for (mm, _) in self._atoms(node.right, anchor)
-                      if mm in self.m.measures}
-                unis = lu | ru
-                if len(unis) > 1:
-                    raise Refusal("co_anchor_ambiguous",
-                        f"ratio combines measures over different populations {sorted(unis)} "
-                        f"(numerator over {sorted(lu)}, denominator over {sorted(ru)}) — the rate's "
-                        f"population is ambiguous; which population should the rate be taken over?",
-                        discriminator=AMBIGUOUS,
-                        alternatives=tuple(
-                            f"express both numerator and denominator within universe '{u}'"
-                            for u in sorted(unis)))
+            # NOTE: cross-universe combination (the old D5 co-anchoring clarify) is no longer detected
+            # per-operator here — §2c's EXPRESSION LAW checks the whole column expression once, in
+            # `_check_single_universe` (below), raising the `cross_universe` ERROR. One universe per
+            # expression; the denotation rule leaves nothing ambiguous within it.
             return "Float64" if op == "/" else (ldt if ldt == rdt else "Float64")
         raise Refusal("unknown", f"unsupported expression node {type(node).__name__}")
 

@@ -52,6 +52,9 @@ class Universe:
                                           # 'product' (cartesian; absence always a gap) | 'registry'
                                           # (membership checkable). None = undeclared (today's behavior;
                                           # absence-semantics wiring is inert until a basis is declared).
+    basis_license: Optional["License"] = None   # B3 testedness record minted at publish (serving follows
+                                          # the DECLARATION regardless — BASIS is a semantic declaration, not a
+                                          # shortcut; the license is for describe/trust only). None = unadjudicated.
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------
@@ -161,6 +164,40 @@ class DerivedColumn:
     resolution_anchor: Optional[str] = None      # declared `AT <level>`; None = output-anchor denotation
 
 
+# ---- Track-1 (Certificate customers): asserted invariants + verified hierarchies ------------------
+@dataclass(frozen=True)
+class Assert:
+    """A declared invariant (B1). Two forms: `row` — a predicate every atom of the universe must
+    satisfy (dims/attrs only, the universe-carving grammar); `invariant` — an aggregate relation over
+    MEASURES at an anchor (cross-measure reconciliation). Data-channel only: the adjudicator tests it
+    on attested data at publish, minting the same `License` (CORROBORATED | CONTRADICTED | UNTESTABLE);
+    a violation on re-attestation CUTS the affected scope (never edits the artifact). Names are
+    universe-scoped (like measures), so the same name may recur across universes."""
+    name: str
+    universe: str
+    kind: str                             # "row" | "invariant"
+    predicate: Optional["Predicate"] = None   # row-form: over dims/attrs (universe-carving grammar)
+    anchor: tuple = ()                    # invariant-form: anchor levels (the ruled `*` grammar)
+    left: str = ""                        # invariant-form: LHS expression over measures
+    op: str = ""                          # invariant-form: comparison in {==,<=,>=,<,>}; `==` rides the
+                                          #   WP-B adjudication tolerance (rtol/atol), recorded in the license basis
+    right: str = ""                       # invariant-form: RHS expression over measures
+    license: Optional["License"] = None   # minted by the adjudicator at publish (kernel reuse, Q1)
+
+
+@dataclass(frozen=True)
+class Hierarchy:
+    """A declared functional-dependence chain (B2). SUGAR: it desugars to plain FunctionalEdges that
+    are INDISTINGUISHABLE from hand-declared EDGEs — the edges remain the single truth; this record is
+    communicative PROVENANCE only (it may ride describe) plus the handle for the publish-time FD test
+    (each step a genuine key->key function in the attested data; a violation → CONTRADICTED, fails
+    closed). v1 honest limitation: one VIA table, one column per level."""
+    lineage: str
+    chain: tuple                          # (level_a, level_b, level_c, ...) — the desugared edges connect consecutive pairs
+    via_table: str = ""
+    license: Optional["License"] = None   # minted by the adjudicator at publish (kernel reuse, Q1)
+
+
 # ---- the Manifold ------------------------------------------------------------
 @dataclass
 class Manifold:
@@ -172,6 +209,8 @@ class Manifold:
     measures: dict                        # name -> MeasureColumn
     derived: dict = field(default_factory=dict)
     non_functional: list = field(default_factory=list)  # [(frm_level, to_level, detail)] — M:N, for fan-out diagnostics
+    asserts: list = field(default_factory=list)         # [Assert] — declared invariants (B1), universe-scoped
+    hierarchies: list = field(default_factory=list)     # [Hierarchy] — provenance for the desugared FD chains (B2)
 
     # ---- coordinate graph helpers ----
     def base_of_universe(self, uni: str) -> frozenset:
