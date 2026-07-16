@@ -111,3 +111,53 @@ two families sharing a leaf; the bare level name is the expected form.
 
 **Chapter 6** regenerates against this grammar (the executable subset per M1-d); the `*` anchor is the
 canonical spelling in every `frameql`/`frameql-output` block.
+
+
+## Handoff — §2c universe resolution is now on `main` (the fence INVERTS, from CP-2)
+*(Added 2026-07-16. Shipped via CP-2 — PR [#36](https://github.com/datumwise/columna/pull/36) checkpoint
++ [#37](https://github.com/datumwise/columna/pull/37) the CP-1 §2c increment, both merged. This section
+is CP-2's merge notification into CP-M2's channel, and it INVERTS the fence the anchor-grammar handoff
+set above.)*
+
+**The fence inverts.** The anchor-grammar handoff above marked the §2c universe-resolution material as
+**capture-only, NOT shipped** — "Chapter 2 must not document any of it as behavior." That is now
+**superseded**: the §2c law has SHIPPED on `main`. **Chapter 2's population section now documents it as
+SHIPPED law**, no longer capture-only. The CP-M2 **approval gate still stands UNCHANGED** — full rendered
+diff, Chapter 2's prose for Huayin's edit, worksheet §5 line by line, all before anything merges.
+
+**The shipped §2c law Chapter 2's population section now documents:**
+- **`ON UNIVERSE` is dead in the query grammar.** A population is never named in a query; universe is
+  resolved STRUCTURALLY from the expression. The query-side universe argument is retired (OF-4).
+- **One expression, one universe.** An expression whose members span more than one universe is a
+  **category error** — `cross_universe` on the query-error channel (four-mood wire byte-identical; no new
+  reason code) — NOT a `clarify`/`refuse`. The old cross-universe "wedge" that once *taught* clarify/refuse
+  is retired: it is now an error.
+- **Frame juxtaposition.** A multi-population ask is posed as **separate columns juxtaposed in one frame**,
+  each over its own universe — the well-posed replacement for the retired wedge (this is the demo's
+  `disclose` shape).
+- **Single-universe sugar.** A single-universe manifold needs no universe qualification at all; the bare
+  ask resolves.
+
+**Behavior delta (one line for Chapter 2):** the cross-universe rate that previously produced a
+`clarify`/`refuse` mood now produces a `frameql`/`cross_universe` **error** — the four-mood wire is
+byte-identical; the change is which asks are well-posed.
+
+**Four-mood tour exemplars (for any quickstart references).** The packaged demo/tour is now
+**clarify → refuse → disclose → serve** (all four moods), reframed for §2c:
+- **clarify** — `avg(aov) @ cal.month` (underdetermined input anchor);
+- **refuse** — `level.last @ customer` (out of the contracted space);
+- **disclose** — `level.sum @ store*cal.month` (a stock summed across the blocked day→month axis → a
+  material `b_anchor_crossing` caveat);
+- **serve** — `aov @ cal.month`.
+The old cross-universe-wedge exemplar (`revenue / level.last`) is **RETIRED** — it is a `cross_universe`
+error now, not a mood. Any quickstart reference must use the new exemplars.
+
+**Merge queue open — behind Huayin's CP-M2 pass.** With §2c on `main`, the manuals session's merge queue
+is **open**: Chapter 2 may be written against the shipped §2c law and Chapter 6 regenerated. The gate is
+unchanged — **nothing merges before Huayin's CP-M2 approval** (the rendered diff + §5). Sequencing is
+clear; approval is his, unmoved.
+
+**Site-pipeline note (verified 2026-07-16):** the site drift guard (`apps/website/scripts/gen_transcript.py`)
+now **fails any site build against the new law** — its seeded `clarify` (the retired wedge) resolves to
+`error` under §2c, so the generator exits non-zero and the build fails closed. This is the tripwire working
+as designed; CP-3 rebuilds the site exemplars to the four-mood tour at its beat. Not a manuals action.
