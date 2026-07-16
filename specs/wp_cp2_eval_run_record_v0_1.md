@@ -39,6 +39,21 @@ For each benchmark (B1–B11), the record holds:
 - `failure_narrative` — when not passed, a short human-readable account of WHAT the draft got wrong
   (the diagnostic the report leads with).
 
+## 2a · Amendments 4–5 (Huayin rulings, 2026-07-16, post-baseline)
+- **Scorer 0.4 — closure at the DESUGARED NORMAL FORM (ruling 2).** The closure axis lowers BOTH ground
+  truth and proposal to the edge/level normal form before matching: `HIERARCHY a->b->c` desugars to the
+  edges a->b, b->c by the SHIPPED grammar law, so a hierarchy and its equivalent edges compare EQUAL
+  (B6/B7's cross-kind "miss" was an instrument artifact), while levels-without-travel stays a genuine
+  miss. Grammar-defined, deterministic, no judgment. The grade rides each desugared atom.
+- **Captured output — every result carries its scored proposals + checklist (re-render enablement).** A
+  `BenchmarkResult` now stores `scored_proposals`/`scored_checklist`, so a scorer bump re-renders a prior
+  run LIKE-WITH-LIKE via `rescore_run(run, benchmarks)` with **no re-run and no key**. A pre-capture
+  record (run-4's shape) or a censored loop-violation passes through UNCHANGED and flagged — the
+  re-render never fabricates a closure verdict it cannot derive. **Run-4 gap on record:** its report
+  stored only the scored axes, so run-4 cannot be re-rendered under 0.4 from stored data; a clean run-4
+  baseline under scorer 0.4 requires a re-run (KP v0.2 held), foldable into the run-5 keyed session so
+  run-5-vs-baseline stays like-with-like.
+
 ## 3 · The report — a readable checkpoint deliverable, not a CI artifact (rider 2)
 The first real-provider report comes to Huayin as a readable document; this shape is the standing format:
 ```

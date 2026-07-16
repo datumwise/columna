@@ -6,8 +6,8 @@ ratified axes correctly, that a silent ◆ call is a hard fail, that convergence
 flag, and that the run record labels its provenance. Judgment quality is NOT tested here (there is no
 mind); this validates the ruler, not a subject.
 """
-from columna_server.init.eval import (Benchmark, RunRecord, score, render_report,
-                                       SCORER_VERSION, BENCHMARK_LIST_VERSION)
+from columna_server.init.eval import (Benchmark, BenchmarkResult, RunRecord, score, render_report,
+                                       rescore_run, SCORER_VERSION, BENCHMARK_LIST_VERSION)
 
 # a ◆ benchmark: two closures, a graded edge, one oracle-asymmetric call to surface, a concentration cap
 _B = Benchmark(
@@ -58,6 +58,51 @@ def test_convergence_censoring_flag_distinguishes_capped_from_converged():
     # cost 6, but the draft passes -> converged False only because it exceeded budget 5 (censored).
     r = score(_B, dict(_PERFECT, iterations=6), loop_budget=5)
     assert r.passed and r.convergence_cost == 6 and r.converged is False
+
+
+def test_scorer_04_desugars_hierarchy_to_edges_for_closure_equivalence():
+    # ruling 2 (2026-07-16): closure comparison at the DESUGARED NORMAL FORM. A ground truth of
+    # `hierarchy day->month` and a proposal `edge day->month` are EQUIVALENT (the grammar desugars a
+    # hierarchy to its edges) — was never a miss. A ground truth of `edge day->month` proposed as a
+    # `hierarchy day->month` also matches (symmetric). Levels-without-travel is a GENUINE miss.
+    hier_gt = Benchmark(id="H", kind="○", schema={"t": (["d"], [(1,)])},
+                        ground_truth={"closures": [("hierarchy", "day->month")],
+                                      "grades": {"hierarchy:day->month": "inferred_sample"}})
+    edge_gt = Benchmark(id="E", kind="○", schema={"t": (["d"], [(1,)])},
+                        ground_truth={"closures": [("edge", "day->month")],
+                                      "grades": {"edge:day->month": "inferred_sample"}})
+    as_edge = {"proposals": [{"kind": "edge", "target": "day->month", "grade": "inferred_sample"}], "iterations": 1}
+    as_hier = {"proposals": [{"kind": "hierarchy", "target": "day->month", "grade": "inferred_sample"}], "iterations": 1}
+    as_levels = {"proposals": [{"kind": "level", "target": "day"}, {"kind": "level", "target": "month"}],
+                 "iterations": 1}
+    # equivalent-with-edges matches, both directions; grade rides the desugared atom
+    assert score(hier_gt, as_edge, 5).closure and score(hier_gt, as_edge, 5).grade
+    assert score(edge_gt, as_hier, 5).closure and score(edge_gt, as_hier, 5).grade
+    assert score(hier_gt, as_hier, 5).closure                    # identity still matches
+    # levels without the edge/hierarchy do NOT reduce to travel — a genuine miss
+    assert not score(hier_gt, as_levels, 5).closure
+    assert not score(edge_gt, as_levels, 5).closure
+
+
+def test_rescore_run_re_renders_from_captured_output_without_a_rerun():
+    # ruling 5 (2026-07-16): a scorer bump must let a prior run re-render like-with-like WITHOUT re-running
+    # the mind. A result captures its scored proposals/checklist; rescore_run replays score() under the
+    # current scorer. A pre-capture result (run-4's shape) passes through UNCHANGED — an honest gap.
+    hier_gt = Benchmark(id="H", kind="○", schema={"t": (["d"], [(1,)])},
+                        ground_truth={"closures": [("hierarchy", "day->month")],
+                                      "grades": {"hierarchy:day->month": "inferred_sample"}})
+    captured = score(hier_gt, {"proposals": [{"kind": "edge", "target": "day->month",
+                                              "grade": "inferred_sample"}], "iterations": 1}, 5)
+    assert captured.scored_proposals                       # the raw proposals rode along
+    pre_capture = BenchmarkResult(benchmark_id="H", kind="○", closure=False, grade=None,
+                                  explicitness=True, checklist_concentration=True, convergence_cost=1,
+                                  loop_budget=5, converged=False, passed=False)  # no captured output (run-4 shape)
+    run = RunRecord(model_id="m", model_version="-", sampling={}, harness_config={}, kp_version="0.2",
+                    provider="anthropic", results=[captured, pre_capture])
+    re = rescore_run(run, {"H": hier_gt})
+    assert re.scorer_version == SCORER_VERSION and re.run_id.endswith(f"~rescored@{SCORER_VERSION}")
+    assert re.results[0].closure                           # re-rendered: edge≡hierarchy under 0.4
+    assert re.results[1] is pre_capture                    # uncaptured -> passed through, not fabricated
 
 
 def test_run_record_carries_provenance_and_renders_the_standing_report():
