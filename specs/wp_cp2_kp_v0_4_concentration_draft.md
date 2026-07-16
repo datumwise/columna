@@ -66,6 +66,17 @@ a rule for WHICH surfaced calls earn their line, so the checklist prunes to the 
   records the replicate count k. run_id/timestamp stamped after.
 
 ---
-**Status: DRAFT — awaiting Huayin's ratification of the exact insert text. Nothing goes live, and run 6
-does not fire, until ratification + the standing key-and-go. Queue after v0.4: revise-discipline, which
-run 6's replicated loop-violation measurement may itself resolve.**
+**Status: RATIFIED AS WRITTEN & LIVE (Huayin, 2026-07-16).** The prune gate is now the final paragraph of
+the sharp-calls block in `system_prompt.md` (KP v0.4); the four salience triggers and everything else are
+unchanged. The exemption rider was considered and REJECTED — measure the trade, don't design it out.
+**KP v0.3 archives as the run-6 control** (retrievable at git `dc83cee`, the pre-v0.4 HEAD).
+
+**Reading instruction for run 6 (Huayin):** **refutation (B11) is the most at-risk call** under a strict
+(a)-reading of the gate — first place to look. **Prediction 2's do-not-ship clause governs**: if
+refutation goes silent, the gate is too aggressive — re-tune, do NOT ship. Concentration bought with
+recall is not a win.
+
+Run 6 is AUTHORIZED on the standing clauses: the batched session as drafted (n≥2 per arm, B10's
+proposal-vs-truth captured into `specs/context/run6/`, loop-violations counted across replicates, every
+artifact durable from birth under the retention gate). It fires on the standing key-and-go. Queue after
+v0.4: revise-discipline, which run 6's replicated loop-violation measurement may itself resolve.
