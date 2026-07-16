@@ -3,8 +3,11 @@ columna_server.demo — the packaged demo Manifold + the self-playing three-mood
 
 The demo data (`demo/benchmark/manifold.cml` + `data.toml` + a small `warehouse/`) ships as
 package-data, so `columna-server demo` runs with no path arguments — from a source checkout OR a
-clean-venv wheel install. `--play` runs the proven wedge in-process and pretty-prints the REAL wire
-JSON (never a facsimile): clarify -> refuse -> disclose, three of the four moods in one flow.
+clean-venv wheel install. `--play` runs three real asks in-process and pretty-prints the REAL wire
+JSON (never a facsimile): clarify -> refuse -> serve, three of the four moods in one flow (reframed
+for §2c 2026-07-16 — the cross-universe wedge is now a category error, so the tour teaches the moods
+through well-posed asks: an underdetermined reduction, a structural out-of-universe refusal, and a
+clean serve).
 """
 from __future__ import annotations
 
@@ -16,8 +19,9 @@ from . import tools as T
 from .store import ManifoldStore
 
 DEMO_MANIFOLD_ID = "benchmark"
-WEDGE = "sell_through_rate: revenue / level.last @ store, day"
-SEPARATE = "revenue: revenue, inv: level.last @ store, day"
+CLARIFY_Q = "avg(aov) @ cal.month"      # an inline reduction with no pinned input anchor
+REFUSE_Q  = "level.last @ customer"     # inventory has no customers — out of the contracted space
+SERVE_Q   = "aov @ cal.month"           # a well-posed ask over one population
 
 
 def demo_dir() -> str:
@@ -55,30 +59,29 @@ def play(out=None) -> int:
         print(note, file=out)
         print(json.dumps(wire, indent=2, ensure_ascii=False), file=out)
 
-    print("Columna demo — one question, three of the four moods (real wire JSON).", file=out)
+    print("Columna demo — three asks, three of the four moods (real wire JSON).", file=out)
 
-    # 1) clarify — a rate over two populations has no single determinate value
-    clarify = T.query(store, DEMO_MANIFOLD_ID, WEDGE)
-    emit(f"[1/3] clarify   query: {WEDGE}",
-         "The rate spans two populations, so its population is ambiguous. Columna names the "
-         "candidate populations as substitutable alternatives instead of inventing a number:",
+    # 1) clarify — an inline reduction whose input anchor is underdetermined
+    clarify = T.query(store, DEMO_MANIFOLD_ID, CLARIFY_Q)
+    emit(f"[1/3] clarify   query: {CLARIFY_Q}",
+         "Averaging `aov` to calendar month leaves the grain to resolve `aov` at underdetermined. "
+         "Columna names the candidate input anchors as alternatives instead of inventing one:",
          clarify)
 
-    # 2) refuse — apply a pin token; the other operand is out-of-domain there
-    pin = clarify["columns"][0]["no_result"]["alternatives"][0]["apply"]["universe"]
-    refuse = T.query(store, DEMO_MANIFOLD_ID, WEDGE, universe=pin)
-    emit(f"[2/3] refuse    query: {WEDGE}  ON UNIVERSE '{pin}'",
-         f"Pinning '{pin}' makes the other operand out-of-domain — so there is no faithful rate "
-         "over that population. Columna refuses with the reason (still no guess):",
+    # 2) refuse — an ask outside the contracted space (inventory has no customers)
+    refuse = T.query(store, DEMO_MANIFOLD_ID, REFUSE_Q)
+    emit(f"[2/3] refuse    query: {REFUSE_Q}",
+         "Inventory is keyed by store and day — it has no customers. The ask addresses outside the "
+         "contracted space, so Columna refuses with the reason (never an invented zero):",
          refuse)
 
-    # 3) disclose — reformulate into separate columns over the union population
-    disclose = T.query(store, DEMO_MANIFOLD_ID, SEPARATE)
-    emit(f"[3/3] disclose  query: {SEPARATE}",
-         "Reformulated as separate columns over the union population: the numbers are SERVED, with "
-         "a material coverage caveat riding on the frame (materiality, not severity, makes this "
-         "`disclose`):",
-         disclose)
+    # 3) serve — a well-posed ask over one population
+    serve = T.query(store, DEMO_MANIFOLD_ID, SERVE_Q)
+    emit(f"[3/3] serve     query: {SERVE_Q}",
+         "Average order value by calendar month — one population, well posed. Columna serves the "
+         "numbers:",
+         serve)
 
-    print(_hr("The ambiguity was never guessed away. One contract, every surface."), file=out)
+    print(_hr("Nothing was guessed away, and nothing was answered outside its contract. "
+              "One wire, every surface."), file=out)
     return 0
