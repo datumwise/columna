@@ -475,11 +475,16 @@ def _prove_assert(server, m, a) -> License:
 # ─────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class PublishedScope:
-    """The published manifold's SERVING scope = license-state × cut-state. Cut declarations refuse
-    (the `conflicting_data` mood); everything else serves untouched. Recomputed fresh on every
-    publish/attest from that attestation's verdicts (pure function; no history)."""
+    """The published manifold's SERVING scope — the scope-edit law made concrete, uniform across THREE
+    degrade targets (each toward correctness in its own kind): asserts degrade to CUT (cut declarations
+    refuse `conflicting_data`), licenses degrade to RECOMPUTE (revoked), edges degrade to BLOCKED
+    TRANSPORT (transport across them refuses `contradicted_edge`). Everything else serves untouched.
+    Recomputed fresh on every publish/attest from that attestation's verdicts (pure function; no
+    history — history lives in watermarks and the ledger)."""
     cut: frozenset = frozenset()          # declaration names (measures + their derived cone) that are CUT
     cut_by: dict = field(default_factory=dict)      # cut decl -> [{assert, universe, counterexample}]
+    blocked_edges: frozenset = frozenset()          # (frm, to) whose transport is BLOCKED (refuted hierarchy)
+    blocked_by: dict = field(default_factory=dict)  # (frm, to) -> [{lineage, key}]
     licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
 
 
@@ -524,19 +529,27 @@ def _snapshot_licenses(m) -> dict:
 
 def scope_from_report(m, report: dict) -> PublishedScope:
     """Build the PublishedScope from a (degrade-mode) adjudication report — a pure read of the current
-    verdicts: the union of the cut declarations' cones, with each cut's summoning coordinates."""
+    verdicts: the cut declarations' cones (with coordinates) and the blocked edges (with the refuting
+    key)."""
     cut, cut_by = set(), {}
     for rec in report.get("_cuts", {}).values():
         for decl in rec["cone"]:
             cut.add(decl)
             cut_by.setdefault(decl, []).append({"assert": rec["assert"], "universe": rec["universe"],
                                                 "counterexample": rec["counterexample"]})
-    return PublishedScope(cut=frozenset(cut), cut_by=cut_by, licenses=_snapshot_licenses(m))
+    blocked, blocked_by = set(), {}
+    for edge, rec in report.get("_blocked", {}).items():
+        blocked.add(edge)
+        blocked_by.setdefault(edge, []).append(rec)
+    return PublishedScope(cut=frozenset(cut), cut_by=cut_by,
+                          blocked_edges=frozenset(blocked), blocked_by=blocked_by,
+                          licenses=_snapshot_licenses(m))
 
 
 def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
-    """The authoring-event report: what THIS attestation changed vs the previous scope (never a silent
-    mutation — this diff is what summons the author to the three exits)."""
+    """The authoring-event report: what THIS attestation changed vs the previous scope — cuts/restores
+    (asserts), revocations/re-licenses (licenses), blocked/unblocked edges (hierarchies). Never a silent
+    mutation — this diff is what summons the author to the three exits."""
     revocations, relicenses = [], []
     for k, v in new.licenses.items():
         ov = old.licenses.get(k)
@@ -545,9 +558,12 @@ def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
         elif ov == CONTRADICTED and v in (VERIFIED, CORROBORATED):
             relicenses.append(k)
     cuts = sorted(new.cut - old.cut)
+    newly_blocked = sorted(new.blocked_edges - old.blocked_edges)
     return {"cuts": cuts, "restores": sorted(old.cut - new.cut),
             "revocations": sorted(revocations), "relicenses": sorted(relicenses),
-            "cut_by": {d: new.cut_by.get(d, []) for d in cuts}}
+            "blocked_edges": newly_blocked, "unblocked_edges": sorted(old.blocked_edges - new.blocked_edges),
+            "cut_by": {d: new.cut_by.get(d, []) for d in cuts},
+            "blocked_by": {e: new.blocked_by.get(e, []) for e in newly_blocked}}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -586,16 +602,28 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
         m.derived[dname] = replace(d, family=new_family)
         report[dname] = verdicts
 
-    # ── Track-1 Certificate customers: HIERARCHY (FD, always strict) and ASSERT (invariant/row) ──
+    # ── Track-1 Certificate customers: HIERARCHY (FD) and ASSERT (invariant/row) ──
     # Same kernel: each mints the UNCHANGED License and fails closed via a Contradiction sibling.
+    # Degrade targets are uniform (Huayin, 2026-07-16): asserts→cut, licenses→recompute, edges→blocked
+    # transport — each toward correctness in its own kind.
     if m.hierarchies:
-        new_h, hv = [], {}
+        new_h, hv, blocked = [], {}, {}
         for h in m.hierarchies:
-            lic = _prove_hierarchy(server, m, h)   # HierarchyContradiction propagates even in degrade
+            try:
+                lic = _prove_hierarchy(server, m, h)
+            except HierarchyContradiction as e:    # a step is non-functional on re-attestation
+                if not degrade:
+                    raise                          # first publish: fail closed (geometry, not a scope edit)
+                lic = _license(CONTRADICTED, {h.lineage},
+                    f"hierarchy step {e.frm}->{e.to} non-functional on re-attestation — edge BLOCKED; "
+                    f"transport along it refuses (edges degrade to blocked transport).")
+                blocked[(e.frm, e.to)] = {"lineage": e.lineage, "key": e.key}
             new_h.append(replace(h, license=lic))
             hv[h.lineage] = lic.verdict
         m.hierarchies = new_h
         report["_hierarchies"] = hv
+        if degrade:
+            report["_blocked"] = blocked
     if m.asserts:
         new_a, av, cuts = [], {}, {}
         for a in m.asserts:

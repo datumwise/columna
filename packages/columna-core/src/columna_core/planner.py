@@ -96,10 +96,13 @@ class Planner:
     def __init__(self, view: PlannerView, engine: ColumnEngine):
         self.m = view          # provenance-free PROJECTION (vocabulary/shape only)
         self.engine = engine
-        # B1 cut-state (the published SCOPE, set by publish/reattest): declaration names whose region is
-        # CUT because a declared invariant is violated. A column touching one refuses (conflicting_data).
+        # the published SCOPE (set by publish/reattest): cut declarations (asserts) and blocked edges
+        # (refuted hierarchies). A column touching a cut refuses `conflicting_data`; a column whose
+        # transport crosses a blocked edge refuses `contradicted_edge`. Serving never outruns the verdicts.
         self.cut: frozenset = frozenset()
         self.cut_by: dict = {}
+        self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
+        self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
 
     def _cut_hit(self, expr: str) -> Optional[str]:
         """The first CUT declaration a column expression references (measure or derived), or None.
@@ -111,6 +114,35 @@ class Planner:
             if head in self.cut:
                 return head
         return None
+
+    def _blocked_transport(self, node, anchor) -> Optional[tuple]:
+        """The first BLOCKED edge (frm, to) a column's transport crosses, or None. A refuted hierarchy
+        blocks its edge; any measure whose resolution to an anchor level travels that edge refuses."""
+        if not self.blocked_edges:
+            return None
+        for measure, _member in self._atoms(node, anchor):
+            ms = self.m.measures.get(measure)
+            if ms is None:
+                continue
+            base = self.m.universes[ms.universe].base_dimensions
+            for T in anchor:
+                path = self.m.find_path(base, T)
+                if path is None:
+                    continue
+                for e in path[1]:
+                    if (e.frm, e.to) in self.blocked_edges:
+                        return (e.frm, e.to)
+        return None
+
+    def _blocked_transport_refusal(self, edge: tuple) -> "Refusal":
+        rec = (self.blocked_by.get(edge) or [{}])[0]
+        lineage, key = rec.get("lineage"), rec.get("key")
+        return Refusal("contradicted_edge",
+            f"transport along edge {edge[0]}->{edge[1]} (lineage '{lineage}') is BLOCKED: its declared "
+            f"functional dependence is refuted on the attested data (key {key!r} has >1 parent); the "
+            f"reduction across it is withheld — serving never outruns the verdicts.",
+            edge=f"{edge[0]}->{edge[1]}",
+            alternatives=("fix the data and re-attest", "amend the hierarchy", "address at a grain that does not cross this edge"))
 
     def _cut_refusal(self, decl: str) -> "Refusal":
         rec = (self.cut_by.get(decl) or [{}])[0]
@@ -220,6 +252,9 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
+                blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
+                if blk is not None:
+                    raise self._blocked_transport_refusal(blk)
                 # B-anchor crossings are STRUCTURAL — detected HERE (compile, shape-only), not in
                 # the engine. Inform-and-serve: they ride into the served disclosure unchanged.
                 crossings = self._frame_crossings(tree.body, anchor)
@@ -458,6 +493,9 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
+                blk = self._blocked_transport(tree.body, anchor)
+                if blk is not None:
+                    raise self._blocked_transport_refusal(blk)
                 disc = Disclosure.clean()
                 for (m, mem) in self._atoms(tree.body, anchor):
                     disc = Disclosure.merge(disc, self.engine.dry_disclose(m, mem, anchor))
