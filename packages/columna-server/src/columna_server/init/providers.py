@@ -71,15 +71,30 @@ class AnthropicProvider:
             raise ProviderUnavailable("the anthropic SDK is not installed (the [agent] extra).") from e
         self._client = anthropic.Anthropic()
 
-    def _call(self, aperture, draft) -> list:
+    def _call(self, content: str) -> list:
         resp = self._client.messages.create(
             model=self.model, max_tokens=2048, system=system_prompt(),
-            messages=[{"role": "user", "content": aperture_context(aperture)}])
+            messages=[{"role": "user", "content": content}])
+        self.last_model = getattr(resp, "model", self.model)     # the resolved version (provenance)
         text = "".join(b.text for b in resp.content if b.type == "text").strip()
+        # tolerate a fenced code block around the JSON (a common, harmless model habit — recorded, not hidden)
+        if text.startswith("```"):
+            text = text.strip("`").split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+            if text.startswith("json"):
+                text = text[4:].strip()
         return parse_proposals(text)
 
     def propose(self, aperture, draft):
-        return self._call(aperture, draft)
+        return self._call(aperture_context(aperture))
 
     def revise(self, aperture, draft):
-        return self._call(aperture, draft)
+        from columna_core.draft import STRUCK, PROPOSED
+        struck = [p.body for p in draft.proposals if p.review == STRUCK]
+        kept = [p.body for p in draft.proposals if p.review not in (STRUCK,)]
+        content = (aperture_context(aperture)
+                   + "\n\nReview so far — these were STRUCK (do NOT re-propose them):\n  "
+                   + ("\n  ".join(struck) or "(none)")
+                   + "\nAlready accepted (do not repeat):\n  " + ("\n  ".join(kept) or "(none)")
+                   + "\n\nReturn a JSON array of ONLY the NEW/corrected declarations that address the "
+                     "struck marks. Do not re-propose a struck or accepted declaration.")
+        return self._call(content)
