@@ -123,6 +123,15 @@ universe, M-leak) are general-pretraining doctrines; the silent three (additivit
 are Columna-native — if run 3 confirms the split, the NEXT (separate, measured) KP iteration targets
 salience, not volume.
 
+## KP v0.3 — the salience edit (RATIFIED AS WRITTEN & LIVE 2026-07-16)
+The first measured iteration: a single-variable salience treatment for the four Columna-native doctrines
+(additivity · m-leak · fertility · refutation), each cued off an observable trigger, marked
+COLUMNA-NATIVE / not-in-default-repertoire. Replaces the v0.2 sharp-calls sentence in
+`system_prompt.md`; everything else in the KP is unchanged. Exact text + rationale + the falsifiable
+prediction: `specs/wp_cp2_kp_v0_3_salience_draft.md`. Ruling-1 canonical finding on record: *the mind
+surfaces what pretraining taught and stays silent on what only the KP teaches.* Run 5 measures v0.3
+(treatment) vs a v0.2 control arm, both under scorer 0.4 in one keyed session.
+
 ## Status — RATIFIED & FROZEN 2026-07-16 (§A frame); v0.2 output contract FLAGGED for ratification
 §A wordings are ratified as written and are now under the copy law (change only by ruling). §B carries
 eight skill notes (1–6 plus the ratified additions 7 universe-assignment and 8 M-leak-smells), so the

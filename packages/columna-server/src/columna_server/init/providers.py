@@ -102,8 +102,12 @@ class AnthropicProvider:
 
     name = "anthropic"
 
-    def __init__(self, model: str | None = None):
+    def __init__(self, model: str | None = None, system: str | None = None):
         self.model = model or os.environ.get(MODEL_ENV, DEFAULT_MODEL)
+        # `system` overrides the live KP prompt — used ONLY to run a control arm (a prior KP version)
+        # alongside the live one in one keyed session, so a KP iteration is a clean A/B on the same
+        # model+scorer (the one variable is the prompt). Defaults to the live system_prompt().
+        self._system = system or system_prompt()
         if not os.environ.get(KEY_ENV):
             raise ProviderUnavailable(
                 f"{KEY_ENV} not set — the real mind runs only on an explicit go; hermetic runs use the "
@@ -112,12 +116,15 @@ class AnthropicProvider:
             import anthropic
         except ModuleNotFoundError as e:
             raise ProviderUnavailable("the anthropic SDK is not installed (the [agent] extra).") from e
-        self._client = anthropic.Anthropic()
+        # max_retries lets the SDK back off on transient API errors (429 / 5xx incl. 529 Overloaded)
+        # with exponential backoff — a capacity blip must not read as a mind failure (that would
+        # poison the eval with fake misses). Distinct from the malformed-output retry below.
+        self._client = anthropic.Anthropic(max_retries=8)
         self.retries = 0                                          # malformed-output retries (convergence data)
 
     def _once(self, content: str) -> list:
         resp = self._client.messages.create(
-            model=self.model, max_tokens=2048, system=system_prompt(),
+            model=self.model, max_tokens=2048, system=self._system,
             messages=[{"role": "user", "content": content}])
         self.last_model = getattr(resp, "model", self.model)     # the resolved version (provenance)
         text = "".join(b.text for b in resp.content if b.type == "text").strip()
@@ -129,9 +136,14 @@ class AnthropicProvider:
         return parse_proposals(text)
 
     def _call(self, content: str) -> list:
+        # The bounded retry TEACHES the contract — so it fires ONLY on a CONTRACT/parse failure
+        # (ValueError from parse_proposals / json). A transient API error (overload/rate/5xx) is NOT a
+        # contract breach: the SDK's max_retries already backed off on it, and if it still failed the
+        # error PROPAGATES (the eval records a hard error, never a fake miss). Teaching the contract
+        # cannot fix an overloaded API, and must not burn the one malformed-output retry.
         try:
             return self._once(content)
-        except Exception:                                        # ONE bounded retry — the retry TEACHES the contract
+        except ValueError:                                       # contract/parse breach — teach + retry once
             self.retries += 1
             return self._once(content + "\n\n(Your previous reply broke the output contract. Reply with "
                                         "ONLY a JSON array of proposal specs — each `kind` MUST be one of "

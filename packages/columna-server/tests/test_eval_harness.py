@@ -6,8 +6,10 @@ ratified axes correctly, that a silent ◆ call is a hard fail, that convergence
 flag, and that the run record labels its provenance. Judgment quality is NOT tested here (there is no
 mind); this validates the ruler, not a subject.
 """
+import pytest
+
 from columna_server.init.eval import (Benchmark, BenchmarkResult, RunRecord, score, render_report,
-                                       rescore_run, SCORER_VERSION, BENCHMARK_LIST_VERSION)
+                                       rescore_run, RetentionError, SCORER_VERSION, BENCHMARK_LIST_VERSION)
 
 # a ◆ benchmark: two closures, a graded edge, one oracle-asymmetric call to surface, a concentration cap
 _B = Benchmark(
@@ -103,6 +105,34 @@ def test_rescore_run_re_renders_from_captured_output_without_a_rerun():
     assert re.scorer_version == SCORER_VERSION and re.run_id.endswith(f"~rescored@{SCORER_VERSION}")
     assert re.results[0].closure                           # re-rendered: edge≡hierarchy under 0.4
     assert re.results[1] is pre_capture                    # uncaptured -> passed through, not fabricated
+
+
+def test_retention_gate_refuses_a_real_run_whose_evidence_is_not_durable():
+    # ruling 3 (2026-07-16): a REAL-mind run refuses to render unless its captured evidence is durably in
+    # the repo tree — two losses to /tmp is two, there is no third. Scripted runs render freely.
+    import os
+    res = [score(_B, _PERFECT, 5)]
+    durable = os.path.abspath(__file__)          # a real, non-/tmp, existing path (this test file)
+
+    def real(**kw):
+        return RunRecord(model_id="claude-opus-4-8", model_version="v", sampling={}, harness_config={},
+                         kp_version="0.4", provider="anthropic", results=res, **kw)
+
+    # scripted run with no artifacts -> renders (instrument test, not a measurement to retain)
+    scripted = RunRecord(model_id="scripted", model_version="-", sampling={}, harness_config={},
+                         kp_version="0.4", provider="scripted", results=res)
+    assert "SUMMARY" in render_report(scripted)
+    # real run, NO artifacts -> refuses
+    with pytest.raises(RetentionError):
+        render_report(real())
+    # real run, artifact under /tmp -> refuses (temp is not durable)
+    with pytest.raises(RetentionError):
+        render_report(real(artifacts={"captured": "/tmp/run.json", "report": "specs/context/run.md"}))
+    # real run, captured declared but not on disk -> refuses
+    with pytest.raises(RetentionError):
+        render_report(real(artifacts={"captured": "specs/context/nope.json", "report": "specs/context/r.md"}))
+    # real run whose captured evidence is DURABLY on disk (non-/tmp, exists) -> renders
+    assert "SUMMARY" in render_report(real(artifacts={"captured": durable, "b10": durable, "report": durable}))
 
 
 def test_run_record_carries_provenance_and_renders_the_standing_report():

@@ -54,6 +54,32 @@ For each benchmark (B1–B11), the record holds:
   baseline under scorer 0.4 requires a re-run (KP v0.2 held), foldable into the run-5 keyed session so
   run-5-vs-baseline stays like-with-like.
 
+## 2b · Amendments 6–7 (Huayin rulings 2–3, 2026-07-16, post-run-5)
+- **Retention becomes structure (ruling 3).** The harness writes run artifacts into the REPO TREE from
+  birth; a run is not complete until they are written AND committed. Enforced in code: `RunRecord.artifacts`
+  carries the durable in-repo paths `{captured, b10, report}`, and `render_report` **refuses to render a
+  real-mind run** (`RetentionError`) unless its captured evidence is present and NOT under a temp dir
+  (`_assert_durable`). Scripted/hermetic runs render freely (instrument tests, not measurements). Two
+  losses to `/tmp` is two; there is no third.
+- **The advice channel — fertility is world-side, not an agent ◆ (ruling 2, per A5).** Fertility is the
+  ADJUDICATOR'S advice, never the agent's inference, so it is NOT scored as a call the agent must surface
+  (the agent's silence on it is constitutional obedience). A benchmark declares `advice`
+  (`[{channel, member}]`); the eval checks the advice FIRES deterministically world-side
+  (`benchmark_advice_fires` / folded into `benchmark_coherence`) — fertility fires for a formable derived
+  RATIO of additive measures. **B8 is corrected**: it exits the ◆ set → ○, drops its agent-fertility
+  oracle call, and carries `advice: [{fertility, aov}]`. The remaining agent test on B8 is the mechanical
+  closures + the polarity wall (never proposing an opening, structurally enforced).
+
+## 2c · The first measured iteration is recorded (ruling 5)
+Run 5 (`specs/context/run5_causal_result_v1.md`) is the harness thesis's first measured confirmation:
+KP v0.2 control vs KP v0.3 treatment, one keyed session, scorer 0.4, only the prompt varying —
+**◆-explicitness 4/7 → 6/7, passes 3 → 5**, directional at n=1, m-leak crux confirmed. KP v0.3 is the
+live KP; v0.2 archives as control. **Next measured variable: FLOODING (KP v0.4, concentration), with
+replication n≥2 per arm** batched into ONE keyed session that also (a) captures B10's proposal-vs-truth
+detail into specs (the standing ruling-3 debt) and (b) passively re-measures loop-violations across the
+replicates (the revise-discipline variance question answers itself with n). v0.4's exact text goes to
+Huayin for ratification first.
+
 ## 3 · The report — a readable checkpoint deliverable, not a CI artifact (rider 2)
 The first real-provider report comes to Huayin as a readable document; this shape is the standing format:
 ```
