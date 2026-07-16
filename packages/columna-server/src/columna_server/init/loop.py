@@ -26,7 +26,8 @@ def _spec_to_proposal(s: dict) -> Proposal:
     init literally cannot build a door."""
     return Proposal(kind=s["kind"], body=s["body"], grade=s.get("grade", INFERRED_CATALOG),
                     opens_fertility=s.get("opens_fertility", False),
-                    author_declared=s.get("author_declared", False))
+                    author_declared=s.get("author_declared", False),
+                    target=s.get("target", ""))
 
 
 class ScriptedProvider:
@@ -57,14 +58,30 @@ class InitLoop:
         self.aperture = aperture
         self.provider = provider
         self.draft = Draft(manifold_name)
+        self.iterations = 0                 # generate + revise turns (the convergence-cost counter)
+        self.checklist: list = []           # the review checklist — the sharp calls the agent surfaced
+
+    def _absorb(self, specs) -> None:
+        for s in specs:
+            self.draft.add(_spec_to_proposal(s))            # PolarityViolation here if it tries a door
+            if s.get("review_call"):                        # a surfaced oracle-asymmetric review call
+                self.checklist.append(s["review_call"])
 
     def generate(self) -> Draft:
         # scoped → proposed: the provider proposes declarations, reading through the aperture only.
-        for s in self.provider.propose(self.aperture, self.draft):
-            self.draft.add(_spec_to_proposal(s))            # PolarityViolation here if it tries a door
+        self.iterations += 1
+        self._absorb(self.provider.propose(self.aperture, self.draft))
         if self.draft.state == SCOPED:
             self.draft.advance(PROPOSED_STATE)
         return self.draft
+
+    def output(self) -> dict:
+        """The eval's view of what init produced this run: proposals (non-struck), the surfaced review
+        checklist, and the iteration cost. The scorer grades THIS against the benchmark ground truth."""
+        proposals = [{"kind": p.kind, "target": p.target, "grade": p.grade,
+                      "opens_fertility": p.opens_fertility}
+                     for p in self.draft.proposals if p.review != STRUCK]
+        return {"proposals": proposals, "checklist": list(self.checklist), "iterations": self.iterations}
 
     def review(self, marks: dict) -> Draft:
         """(human) apply review marks {proposal_index: mark}."""
@@ -75,13 +92,15 @@ class InitLoop:
     def revise(self) -> Draft:
         # the provider addresses the marks — but a STRUCK declaration stays struck unless the human
         # reopened it (the revise-turn law); re-proposing one is a harness violation.
+        self.iterations += 1
         struck = {p.body for p in self.draft.proposals if p.review == STRUCK}
-        for s in self.provider.revise(self.aperture, self.draft):
+        specs = list(self.provider.revise(self.aperture, self.draft))
+        for s in specs:
             if s["body"] in struck:
                 raise LoopViolation(
                     f"revise re-proposed a struck declaration {s['body']!r} — a settled mark stays "
                     f"settled unless the human reopens it")
-            self.draft.add(_spec_to_proposal(s))
+        self._absorb(specs)
         return self.draft
 
     # ---- the author's acts (never the agent's) ----

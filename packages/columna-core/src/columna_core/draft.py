@@ -46,6 +46,7 @@ class Proposal:
     review: str = PROPOSED          # the human's review mark
     opens_fertility: bool = False   # is this an OPENING (a fertility declaration)?
     author_declared: bool = False   # the DECLARATION act — set ONLY by the human, never by init
+    target: str = ""                # the declaration's name (measure/universe/edge id) — for eval matching
 
     def __post_init__(self):
         # LAYER 1 — no constructor path yields an INFERRED opening; the object cannot exist.

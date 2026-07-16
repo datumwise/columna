@@ -113,6 +113,51 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
         passed=passed, failure_narrative="; ".join(fails))
 
 
+def _lit(v):
+    return "'" + v.replace("'", "''") + "'" if isinstance(v, str) else repr(v)
+
+
+def build_aperture(schema: dict):
+    """A DuckDBConnector over a benchmark's messy schema — the two-ends data wall for the run."""
+    import duckdb
+    from columna_core import DuckDBConnector
+    con = duckdb.connect()
+    for name, (cols, rows) in schema.items():
+        values = ", ".join("(" + ", ".join(_lit(v) for v in r) + ")" for r in rows)
+        con.execute(f"CREATE TABLE {name} AS SELECT * FROM (VALUES {values}) AS t({', '.join(cols)})")
+    return DuckDBConnector(con)
+
+
+def _review_from_ground_truth(loop, benchmark) -> None:
+    """The eval plays the VERIFIER (the human's role in real use is the ground truth here): strike any
+    proposal not in the ground-truth closures, so the next revise turn addresses it. This is
+    search-with-verifier — the harness thesis's shape, with ratified ground truth as the oracle."""
+    from columna_core.draft import ACCEPTED, STRUCK, PROPOSED
+    wanted = set(map(tuple, benchmark.ground_truth["closures"]))
+    for p in loop.draft.proposals:
+        if p.review != PROPOSED:
+            continue
+        p.review = ACCEPTED if (p.kind, p.target) in wanted else STRUCK
+
+
+def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> BenchmarkResult:
+    """Drive init over one benchmark to convergence (or the budget), scoring each round against the
+    adjudicated ground truth. Convergence cost = iterations run; `converged` is censored at the budget."""
+    from .loop import InitLoop
+    loop = InitLoop(build_aperture(benchmark.schema), provider, benchmark.id)
+    result = None
+    for i in range(1, loop_budget + 1):
+        if i == 1:
+            loop.generate()
+        else:
+            _review_from_ground_truth(loop, benchmark)      # the verifier marks; then the mind revises
+            loop.revise()
+        result = score(benchmark, loop.output(), loop_budget)
+        if result.passed:
+            break
+    return result
+
+
 def render_report(run: RunRecord) -> str:
     """The standing report shape (contract §3) — a readable checkpoint document, not a CI artifact."""
     s = run.summary()
