@@ -41,7 +41,7 @@ import polars as pl
 
 from .model import License, VERIFIED, CORROBORATED, UNTESTABLE
 from .operators import REGISTRY
-from .disclosure_wire import code_for
+from .disclosure_wire import code_for, materiality_for
 
 # float tolerance policy (ruling §4)
 _RTOL = 1e-9
@@ -366,13 +366,22 @@ def _prove_hierarchy(server, m, h) -> License:
 
 
 # ---- B1 ASSERT: invariant tested at its anchor on the attested data ----------
-def _serve_expr(server, anchor: tuple, colname: str, expr: str):
-    """Serve one expression at the anchor via the planner (the recompute path). Returns the frame
-    (anchor levels + `colname`), or None if it does not cleanly serve there."""
-    fr = server.frame(*anchor).column(colname, expr).run()
-    if fr.outcome in ("clarify", "refuse", "error") or fr.data is None:
-        return None
-    return fr.data
+def _serve_fr(server, anchor: tuple, colname: str, expr: str):
+    """Serve one expression at the anchor via the planner (the recompute path). Returns the whole
+    FrameResult (so the caller can read both the data and its disclosures)."""
+    return server.frame(*anchor).column(colname, expr).run()
+
+
+def _material_codes(fr) -> set:
+    """The wire codes of the MATERIAL caveats a served frame carries (critical ones are already
+    excluded upstream by the askability check). The verdict's trial context — cheap honesty."""
+    codes = set()
+    for col in fr.columns:
+        if col.refusal is None:
+            for c in col.disclosure.caveats:
+                if materiality_for(c.category, c.rel_error) == "material":
+                    codes.add(code_for(c.category))
+    return codes
 
 
 def _cmp(l, r, op: str, exact: bool) -> bool:
@@ -439,20 +448,24 @@ def _prove_assert(server, m, a) -> License:
         if reason is not None:
             raise AssertNotWellFormed(a.name, a.universe, side, expr, reason)
     # (2) attestation — needs data; a clean plan that yields no frame is askable-but-unattested
-    left = _serve_expr(server, a.anchor, "_l", a.left)
-    right = _serve_expr(server, a.anchor, "_r", a.right)
-    if left is None or right is None:
+    lfr = _serve_fr(server, a.anchor, "_l", a.left)
+    rfr = _serve_fr(server, a.anchor, "_r", a.right)
+    if lfr.data is None or rfr.data is None:
         return _license(UNTESTABLE, set(),
                         f"assert '{a.name}' is askable but unattested at {a.anchor} (clean plan, no "
                         f"served frame); recorded on authored authority, never exercised.")
-    j = left.join(right, on=list(a.anchor), how="inner")
+    j = lfr.data.join(rfr.data, on=list(a.anchor), how="inner")
     ce = _invariant_counterexample(j, a.op, "_l", "_r", a.anchor)
     if ce is not None:
         raise AssertContradiction(a.name, a.universe, f"{a.left} {a.op} {a.right}", ce)
     _, tol_note = _tol_for(j["_l"].dtype)
-    return _license(CORROBORATED, set(),
-                    f"invariant '{a.left} {a.op} {a.right}' held at {a.anchor} on the attested data "
-                    f"(tol {tol_note}).", attestation=_attest_tables(con, _expr_tables(m, a.left, a.right)))
+    basis = (f"invariant '{a.left} {a.op} {a.right}' held at {a.anchor} on the attested data "
+             f"(tol {tol_note}).")
+    trial = sorted(_material_codes(lfr) | _material_codes(rfr))    # verdict's trial context (optional honesty)
+    if trial:
+        basis += f" Trial values carried material (non-critical) disclosures: {trial}."
+    return _license(CORROBORATED, set(), basis,
+                    attestation=_attest_tables(con, _expr_tables(m, a.left, a.right)))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
