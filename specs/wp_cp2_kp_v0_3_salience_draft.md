@@ -81,5 +81,12 @@ repertoire* so it reaches for them deliberately.
 mind finding). Neither moves until salience is measured and ruled on.
 
 ---
-**Status: DRAFT — awaiting Huayin's ratification of the exact insert text. Nothing goes live, and run 5
-does not fire, until ratification + the standing key-and-go.**
+**Status: RATIFIED AS WRITTEN & LIVE (Huayin, 2026-07-16).** The exact insert text is now in
+`columna_server/init/system_prompt.md` (KP v0.3), replacing the v0.2 sharp-calls sentence; everything
+else in the KP is unchanged. Under the copy law, §A/this block change only by ruling. Run 5 is the
+causal test: a CONTROL arm on KP **v0.2** (retrieved from git) and a TREATMENT arm on KP **v0.3** (live),
+both under scorer 0.4, same model + benchmarks in one keyed session — the single variable is the prompt.
+This subsumes the run-4 re-render provision: the v0.2 arm IS the like-with-like baseline under 0.4
+(run-4's own proposals were never captured; a fresh v0.2 arm is the clean control). B10's
+proposal-vs-ground-truth evidence is captured from run 5 into specs per the evidence-retention rule.
+Run 5 fires on the standing key-and-go.

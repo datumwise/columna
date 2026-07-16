@@ -102,8 +102,12 @@ class AnthropicProvider:
 
     name = "anthropic"
 
-    def __init__(self, model: str | None = None):
+    def __init__(self, model: str | None = None, system: str | None = None):
         self.model = model or os.environ.get(MODEL_ENV, DEFAULT_MODEL)
+        # `system` overrides the live KP prompt — used ONLY to run a control arm (a prior KP version)
+        # alongside the live one in one keyed session, so a KP iteration is a clean A/B on the same
+        # model+scorer (the one variable is the prompt). Defaults to the live system_prompt().
+        self._system = system or system_prompt()
         if not os.environ.get(KEY_ENV):
             raise ProviderUnavailable(
                 f"{KEY_ENV} not set — the real mind runs only on an explicit go; hermetic runs use the "
@@ -117,7 +121,7 @@ class AnthropicProvider:
 
     def _once(self, content: str) -> list:
         resp = self._client.messages.create(
-            model=self.model, max_tokens=2048, system=system_prompt(),
+            model=self.model, max_tokens=2048, system=self._system,
             messages=[{"role": "user", "content": content}])
         self.last_model = getattr(resp, "model", self.model)     # the resolved version (provenance)
         text = "".join(b.text for b in resp.content if b.type == "text").strip()
