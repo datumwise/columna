@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from importlib.resources import files
 
 DEFAULT_MODEL = "claude-opus-4-8"
@@ -38,6 +39,17 @@ def aperture_context(aperture) -> str:
 _OPENING_KINDS = {"fertility", "fertile", "opening", "door"}
 from columna_core.draft import DECLARATION_KINDS
 
+# The output contract is a GRAMMAR (Huayin, 2026-07-16): every deterministically-checkable clause is
+# enforced at parse — a malformed target is a malformed spec, taught by the bounded retry, NEVER
+# laundered scorer-side (real init users inherit the draft, so the artifact must be clean at its birth).
+_ID = re.compile(r"^[A-Za-z_][\w.]*$")                     # a bare declared name (dotted levels allowed)
+_ARROW = re.compile(r"^[A-Za-z_][\w.]*(?:->|<->)[A-Za-z_][\w.]*$")   # edge/relate: frm->to / frm<->to
+
+
+def _target_ok(kind: str, target) -> bool:
+    t = str(target).strip()
+    return bool((_ARROW if kind in ("edge", "relate") else _ID).match(t))
+
 
 def parse_proposals(text: str) -> list:
     """The model's response → proposal specs. It must be a JSON array of {kind, target, body, ...};
@@ -55,10 +67,14 @@ def parse_proposals(text: str) -> list:
         if (s.get("opens_fertility") or str(s.get("kind", "")).lower() in _OPENING_KINDS
                 or "FERTILE" in str(s.get("body", "")).upper()):
             continue                                     # DROP the opening entirely (not the adjudicator's channel)
-        if str(s["kind"]).lower() not in DECLARATION_KINDS:     # CLOSED kind vocabulary (ruling 1)
+        kind = str(s["kind"]).lower()
+        if kind not in DECLARATION_KINDS:                       # CLOSED kind vocabulary (ruling 1)
             raise ValueError(f"unknown declaration kind {s['kind']!r} — use one of {sorted(DECLARATION_KINDS)}")
+        if not _target_ok(kind, s.get("target", "")):           # target SHAPE clause of the grammar
+            raise ValueError(f"malformed target {s.get('target')!r} for kind '{kind}' — use a bare "
+                             f"canonical name (edge/relate as 'frm->to'), not a description")
         s = {k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")}
-        s["kind"] = str(s["kind"]).lower()
+        s["kind"] = kind
         out.append(s)
     return out
 
