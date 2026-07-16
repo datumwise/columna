@@ -138,6 +138,11 @@ Cacher factoring and THE rename (its own WP, after this one).
   draft (Track 3) for my ratification.
 - **CP-3** — describe + Explorer (Track 4), with the `/explorer` copy drafts and the
   sequencing question.
+  - *Note (added 2026-07-16, increment 6):* the CP-3 site beat should CONSIDER adding **BASIS to the
+    demo manifold** — the honest zero in a juxtaposition (events absence rendered as 0, alongside a
+    spine gap) is strong exhibit material for the four moods / the Certificate layer. Decided at CP-3,
+    under Huayin's go, as **one recapture** (adding BASIS moves seeded numbers; the drift-guard is the
+    tripwire, Q5 rider ii). Absence semantics is shipped and inert on the basis-less demo today.
 - **CP-4** — full diff, per-package green suites, the eval suite's first run results.
 - Draft PRs throughout; my approving review per branch protection; forks get durable
   `open_forks.md` rows BEFORE their PR merges; a ruled item leaving scope is a

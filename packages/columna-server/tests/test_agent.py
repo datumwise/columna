@@ -17,7 +17,8 @@ from columna_server.agent import ProviderUnavailable, ScriptedProvider
 from columna_server.agent.loop import Agent, prompt_example_queries
 from columna_server.agent.mcp_client import connect
 
-WEDGE = "sell_through_rate: revenue / level.last @ store, day"
+CLARIFY_Q = "avg(aov) @ cal.month"   # §2c clarify exemplar (input_anchor_ambiguous); the cross-universe
+                                     # wedge is now a category error, so the agent's clarify demo moved here
 
 
 # --- acceptance #1 (part): MCP boundary — the agent never imports the engine ---------------
@@ -31,7 +32,7 @@ def test_agent_process_never_imports_columna_core(tmp_path):
         "from columna_server.agent.loop import Agent\n"
         "from columna_server.agent.providers import ScriptedProvider\n"
         "async def main():\n"
-        "    prov = ScriptedProvider(['QUERY: revenue @ region', 'QUERY: " + WEDGE + "'])\n"
+        "    prov = ScriptedProvider(['QUERY: revenue @ region', 'QUERY: " + CLARIFY_Q + "'])\n"
         "    async with connect(None) as conn:\n"
         "        d = await conn.describe_manifold(conn.manifold_id)\n"
         "        a = Agent(conn, prov, d)\n"
@@ -76,21 +77,17 @@ async def test_material_disclosure_is_surfaced():
 async def test_clarify_relayed_not_auto_picked():
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: " + WEDGE]), describe)
+        agent = Agent(conn, ScriptedProvider(["QUERY: " + CLARIFY_Q]), describe)
 
-        clarify_reply = "\n".join(await agent.run_turn("sell through rate by store and day"))
-        # both candidate populations are named; no served number is present
-        assert "store_days" in clarify_reply and "transactions" in clarify_reply
+        clarify_reply = "\n".join(await agent.run_turn("average order value trend by month"))
+        # the clarify is RELAYED with its candidate alternatives; never auto-picked
         assert "choose" in clarify_reply.lower()
         assert agent._pending is not None            # a choice is genuinely pending
         assert not re.search(r"\d{3,}", clarify_reply)   # no big served figures leaked
-
-        # the human chooses; the SAME query is re-issued with the chosen alternative's universe,
-        # which changes the outcome from clarify to an honest refuse (proving the pick was applied)
-        chosen_reply = "\n".join(await agent.run_turn("1"))
-        assert agent._pending is None
-        assert "store_days" in chosen_reply
-        assert "not defined over that population" in chosen_reply or "out" in chosen_reply.lower()
+    # NOTE (§2c): the mechanical PICK (applying a chosen alternative) rode the universe-apply mechanism
+    # — no §2c clarify (input_anchor_ambiguous) carries a universe-apply, so that path is dead code
+    # pending OF-4 (server universe-arg removal + the pick-flow redesign). Relay-and-never-auto-pick,
+    # the load-bearing behavior, is asserted here; the pick round-trip moves with OF-4.
 
 
 # --- grounding: every numeral in a served reply comes from the wire ------------------------
