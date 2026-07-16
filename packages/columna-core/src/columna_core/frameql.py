@@ -31,6 +31,7 @@ class ManifoldServer:
         self.adjudication = adjudicate(self, attestation=attestation, trace=trace)   # strict; fails closed
         self.published_scope = PublishedScope(licenses=_snapshot_licenses(self.m))   # clean birth: no cuts
         self.planner.cut, self.planner.cut_by = frozenset(), {}
+        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
         return self.engine.publish_witnesses(trace)
 
     def reattest(self, attestation: Optional[str] = None, trace=None) -> dict:
@@ -43,14 +44,16 @@ class ManifoldServer:
         from .adjudication import adjudicate, scope_from_report, scope_diff, PublishedScope
         old = getattr(self, "published_scope", None) or PublishedScope()
         self.engine.cache.clear()          # re-attestation is fresh data — the version-gated cache is stale
-        # the scope is a PURE recomputation (no ratchet): clear the old cut so re-adjudication's own
-        # serves are not blocked by the very cut it is re-deciding.
+        # the scope is a PURE recomputation (no ratchet): clear the old cut/blocks so re-adjudication's
+        # own serves are not blocked by the very scope-edits it is re-deciding.
         self.planner.cut, self.planner.cut_by = frozenset(), {}
+        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
         report = adjudicate(self, attestation=attestation, trace=trace, degrade=True)
         new = scope_from_report(self.m, report)
         diff = scope_diff(old, new)
         self.published_scope = new
         self.planner.cut, self.planner.cut_by = new.cut, new.cut_by
+        self.planner.blocked_edges, self.planner.blocked_by = new.blocked_edges, new.blocked_by
         self.engine.publish_witnesses(trace)                # rebuild witnesses for the served regions
         return diff
 

@@ -78,8 +78,48 @@ def test_reattest_with_no_violation_is_an_empty_authoring_event():
         ("s1", 100.0, 120.0, 20.0)])})
     srv.publish()
     diff = srv.reattest()
-    assert diff == {"cuts": [], "restores": [], "revocations": [], "relicenses": [], "cut_by": {}}
+    assert diff == {"cuts": [], "restores": [], "revocations": [], "relicenses": [],
+                    "blocked_edges": [], "unblocked_edges": [], "cut_by": {}, "blocked_by": {}}
     assert srv.published_scope.cut == frozenset()
+
+
+# ── edges degrade to BLOCKED TRANSPORT (the third degrade target; Huayin 2026-07-16) ───────────────
+_HDEG = """
+MANIFOLD hd VERSION 1
+UNIVERSE sales = day
+LEVEL day   = day   BASE
+LEVEL month = month
+HIERARCHY day -> month ALONG calendar VIA cal(day, month)
+MEASURE revenue ON sales FROM tx AS sum(amount)
+"""
+
+
+def test_hierarchy_degrades_to_blocked_transport_not_manifold_failure():
+    srv, con = _server_con(_HDEG, {
+        "cal": (["day", "month"], [("d1", "m1"), ("d2", "m1")]),          # functional at birth
+        "tx":  (["day", "amount"], [("d1", 10.0), ("d2", 20.0)])})
+    srv.publish()
+    assert srv.published_scope.blocked_edges == frozenset()
+    assert srv.frame("month").column("revenue", "revenue").run().outcome in ("serve", "disclose")
+
+    # the FD breaks on new data: d1 now maps to two months. RE-ATTEST — the edge blocks, nothing else fails.
+    con.execute("INSERT INTO cal VALUES ('d1', 'm2')")
+    diff = srv.reattest()
+    assert ("day", "month") in diff["blocked_edges"]
+    assert diff["blocked_by"][("day", "month")][0]["key"] == "d1"
+    assert diff["cuts"] == []                                              # NOT manifold-level severity
+
+    # transport ACROSS the blocked edge refuses contradicted_edge; the base grain still serves
+    fr = srv.frame("month").column("revenue", "revenue").run()
+    assert fr.outcome == "refuse"
+    assert fr.columns[0].refusal.classified().reason == "contradicted_edge"
+    assert srv.frame("day").column("revenue", "revenue").run().outcome in ("serve", "disclose")
+
+    # fix the data -> symmetric restore (the edge unblocks, transport returns)
+    con.execute("DELETE FROM cal WHERE day = 'd1' AND month = 'm2'")
+    diff2 = srv.reattest()
+    assert ("day", "month") in diff2["unblocked_edges"]
+    assert srv.frame("month").column("revenue", "revenue").run().outcome in ("serve", "disclose")
 
 
 def test_publish_still_fails_closed_on_first_violation():
