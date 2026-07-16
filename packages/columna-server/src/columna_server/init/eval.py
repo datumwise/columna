@@ -10,8 +10,40 @@ so the eval is testable hermetically with scripted outputs (validating the instr
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Optional
+
+
+class RetentionError(RuntimeError):
+    """A real-mind run is NOT complete until its artifacts live at a durable, in-repo location (Huayin
+    ruling 3, 2026-07-16: two losses to /tmp is two; there is no third). The report refuses to render
+    a real run whose captured evidence is missing or parked under a temp dir."""
+
+
+_TEMP_PREFIXES = ("/tmp", "/var/tmp", "/dev/shm", "/run/")
+
+
+def _assert_durable(run) -> None:
+    """The retention gate (ruling 3): a real-mind run must declare its artifact paths, they must NOT be
+    under a temp dir, and the RAW captured evidence must already be written (the report is written last,
+    so it summarizes evidence that already survived). Scripted/hermetic runs are instrument tests, not
+    measurements to retain, so they render freely."""
+    if run.provider != "anthropic":
+        return
+    if not run.artifacts:
+        raise RetentionError("real-mind run carries no artifact paths — declare durable in-repo "
+                             "locations for the captured evidence + report BEFORE rendering (ruling 3).")
+    for name, path in run.artifacts.items():
+        p = str(path)
+        if any(p.startswith(t) for t in _TEMP_PREFIXES):
+            raise RetentionError(f"artifact '{name}' at {p!r} is under a temp dir — write run evidence "
+                                 f"into the repo tree (specs/); /tmp is not durable (ruling 3).")
+    for name in ("captured", "b10"):                      # the raw evidence the report summarizes
+        path = run.artifacts.get(name)
+        if path and not os.path.exists(path):
+            raise RetentionError(f"artifact '{name}' declared at {path!r} but not on disk — write the "
+                                 f"captured evidence to its durable location before the report (ruling 3).")
 
 SCORER_VERSION = "0.4"                    # 0.4 (2026-07-16, Huayin ruling 2): closure comparison at the
                                           # DESUGARED NORMAL FORM — HIERARCHY desugars to edges by the
@@ -66,6 +98,9 @@ class RunRecord:
     results: list = field(default_factory=list)     # [BenchmarkResult]
     run_id: Optional[str] = None         # stamped AFTER the run (never inside the harness)
     run_timestamp: Optional[str] = None
+    artifacts: dict = field(default_factory=dict)   # durable in-repo paths of this run's evidence
+                                                    # {captured, b10, report} — ruling 3: a real run is
+                                                    # not complete until these are written + committed.
 
     def summary(self) -> dict:
         oracle = [r for r in self.results if r.kind == "◆"]
@@ -292,7 +327,36 @@ def benchmark_coherence(benchmark) -> list:
                     violated = violated or nd < nt
             if not violated:
                 bad.append(f"relate '{target}' claims a refutation but no catalog-declared key is violated by the data")
+    # advice channel (ruling 2): a declared adjudicator-advice must be structurally supported world-side.
+    for a in benchmark.ground_truth.get("advice", []):
+        if not _advice_supported(gt, a):
+            bad.append(f"advice {a} declared but not structurally supported — the eval cannot assert the "
+                       f"adjudicator's advice would fire from this benchmark's own closures")
     return bad
+
+
+def _advice_supported(gt: dict, advice: dict) -> bool:
+    """Is an adjudicator-advice entry structurally supported by the benchmark's OWN closures? (ruling 2,
+    deterministic — no mind involved). Fertility fires for a member that is a formable DERIVED RATIO of
+    additive MEASURES: aov = revenue/orders is theorem-provably fertile (recomputes along lineages), so
+    the adjudicator advises it. We check the member is a derived closure whose derived_needs are all
+    measure closures — the grammar-grounded proxy for 'the advice fires'."""
+    member = advice.get("member")
+    if advice.get("channel") != "fertility":
+        return False                                          # only the fertility advice channel is defined here
+    is_derived = any(k == "derived" and t == member for k, t in gt.get("closures", []))
+    measures = {t for k, t in gt.get("closures", []) if k == "measure"}
+    needs = gt.get("derived_needs", {}).get(member, [])
+    return is_derived and bool(needs) and all(n in measures for n in needs)
+
+
+def benchmark_advice_fires(benchmark) -> bool:
+    """Deterministic world-side check (ruling 2): every advice entry a benchmark declares would actually
+    FIRE from the adjudicator (structurally grounded in the benchmark's own closures). True = the advice
+    channel is coherent for this benchmark. This is what replaces the mis-specified agent-fertility ◆:
+    fertility is the adjudicator's advice, and the eval checks IT, not the mind's silence."""
+    advice = benchmark.ground_truth.get("advice", [])
+    return bool(advice) and all(_advice_supported(benchmark.ground_truth, a) for a in advice)
 
 
 def _review_from_ground_truth(loop, benchmark) -> None:
@@ -386,7 +450,10 @@ def rescore_run(run: RunRecord, benchmarks: dict) -> RunRecord:
 
 
 def render_report(run: RunRecord) -> str:
-    """The standing report shape (contract §3) — a readable checkpoint document, not a CI artifact."""
+    """The standing report shape (contract §3) — a readable checkpoint document, not a CI artifact.
+    RETENTION GATE (ruling 3): a real-mind run refuses to render unless its captured evidence is already
+    durably in the repo tree — no report can be produced from data that lives only in /tmp."""
+    _assert_durable(run)
     s = run.summary()
     L = [
         f"EVAL RUN {run.run_id or '<unstamped>'}  ·  {run.run_timestamp or '<unstamped>'}",

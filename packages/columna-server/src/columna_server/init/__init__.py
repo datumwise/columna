@@ -3,12 +3,12 @@ suite. Hermetic by default (the scripted provider); the real mind (AnthropicProv
 explicit go."""
 from .loop import InitLoop, ScriptedProvider, LoopViolation
 from .eval import (Benchmark, BenchmarkResult, RunRecord, score, run_benchmark, render_report,
-                   rescore_run, build_aperture, SCORER_VERSION, BENCHMARK_LIST_VERSION)
+                   rescore_run, build_aperture, RetentionError, SCORER_VERSION, BENCHMARK_LIST_VERSION)
 from .providers import (AnthropicProvider, ProviderUnavailable, parse_proposals, system_prompt,
                         revise_prompt, aperture_context)
 
 __all__ = ["InitLoop", "ScriptedProvider", "LoopViolation",
            "Benchmark", "BenchmarkResult", "RunRecord", "score", "run_benchmark", "render_report",
-           "rescore_run", "build_aperture", "SCORER_VERSION", "BENCHMARK_LIST_VERSION",
+           "rescore_run", "build_aperture", "RetentionError", "SCORER_VERSION", "BENCHMARK_LIST_VERSION",
            "AnthropicProvider", "ProviderUnavailable", "parse_proposals", "system_prompt",
            "revise_prompt", "aperture_context"]

@@ -90,3 +90,10 @@ This subsumes the run-4 re-render provision: the v0.2 arm IS the like-with-like 
 (run-4's own proposals were never captured; a fresh v0.2 arm is the clean control). B10's
 proposal-vs-ground-truth evidence is captured from run 5 into specs per the evidence-retention rule.
 Run 5 fires on the standing key-and-go.
+
+## Outcome — KP v0.3 WON its test (Huayin ruling 1, 2026-07-16)
+Run 5 (recorded, `specs/context/run5_causal_result_v1.md`): **◆-explicitness 4/7 → 6/7, passes 3 → 5**,
+directional at n=1, CRUX-confirmed (m-leak: named-yet-silent in v0.2 → surfaced under trigger — salience
+is scaffolding, not naming). **KP v0.3 is now the live KP; KP v0.2 archives as the control record**
+(retrievable at git `0b95014`). Fertility (B8) resisted → corrected world-side (ruling 2), not iterated
+mind-side. Next measured variable: FLOODING (KP v0.4), with replication — see the run-record spec §2b.
