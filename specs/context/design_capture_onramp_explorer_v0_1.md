@@ -299,8 +299,7 @@ outputs per §1, no adapter framework in v1 (YAGNI guard).
 - **Scope IN (RULED):** (a) licenses + verdicts on derived members — VERIFIED (timeless) ·
   CORROBORATED (watermark shown) · UNTESTABLE (asserted, says so); (b) fertility made
   visible — per member per lineage, askability vs travel, extending the shipped
-  legal-cone display with the license that opens each direction; (c) ALIAS rendering —
-  the wardrobe on the one anchored object; (d) resolution anchors on `AT` metrics;
+  legal-cone display with the license that opens each direction; (c) STRUCK 2026-07-15 — ALIAS cut per §7 C1; (d) resolution anchors on `AT` metrics;
   (e) an Operator Registry panel — kind, monoid, linear: the same facts the adjudicator
   reads (and, per §4, the resolved-name discipline made visible); (f) declare
   `sell_through_rate` as a proper DERIVED in the demo manifold — retiring tier 1's
