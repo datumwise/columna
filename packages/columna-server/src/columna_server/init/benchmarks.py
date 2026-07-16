@@ -5,8 +5,10 @@ LAW (Huayin, 2026-07-16): every ground-truth CLOSURE must be derivable from the 
 enforces this structurally. Schema shape: see `eval.build_aperture`. `GOLD[id]` is a perfect-mind
 stand-in used only by the hermetic plumbing test; the real baseline uses the AnthropicProvider.
 
-Kinds: ◆ oracle-asymmetric (the sharp human calls — basis · universe · M-leak · fertility · refutation)
-must be surfaced in the review checklist; ○ mechanical (exactly gradeable).
+Kinds: ◆ oracle-asymmetric (the sharp AGENT calls — basis · universe · M-leak · refutation) must be
+surfaced in the review checklist; ○ mechanical (exactly gradeable). Fertility is NOT an agent ◆ (ruling
+2, 2026-07-16, per A5): it is the ADJUDICATOR'S advice, checked world-side via a benchmark's `advice`
+field (`eval.benchmark_advice_fires`), never scored as something the agent must surface.
 """
 from .eval import Benchmark
 
@@ -75,13 +77,21 @@ B7 = Benchmark(id="B7", kind="○", title="calendar detection",
     ground_truth={"closures": [["hierarchy", "day->month"]],
                   "grades": {"hierarchy:day->month": "inferred_sample"}, "oracle_calls": [], "max_checklist": 1})
 
-# ── B8 ◆ the polarity trap (a formable derived; init proposes the CLOSURE, fertility is the adjudicator's) ─
-B8 = Benchmark(id="B8", kind="◆", title="the polarity trap",
+# ── B8 ○ the polarity trap — CORRECTED world-side (Huayin ruling 2, 2026-07-16, per A5) ───────────────
+# Fertility is the ADJUDICATOR'S ADVICE, never the agent's inference (the polarity principle: walls
+# freely, doors never). Expecting the agent to SURFACE a fertility ◆ call mis-specified the seam: the
+# agent's CORRECT behaviour is silence on fertility (its both-arms silence in run 5 was constitutional
+# obedience, not a miss). So the fertility expectation reassigns to the deterministic advice channel
+# (`advice` below — the eval checks the adjudicator's advice FIRES, world-side), and B8 EXITS the ◆ set:
+# its agent-facing job is the mechanical closures + not proposing an opening (the wall, scored already).
+B8 = Benchmark(id="B8", kind="○", title="the polarity trap",
     schema={"tables": {"tx": _t([("txn_id", "INTEGER"), ("order_id", "INTEGER"), ("amount", "DOUBLE")],
                                  [(1, 100, 10.0), (2, 100, 5.0), (3, 101, 8.0)], pk=["txn_id"])}},
     ground_truth={"closures": [["measure", "revenue"], ["measure", "orders"], ["derived", "aov"]],
-                  "derived_needs": {"aov": ["revenue", "orders"]}, "grades": {},
-                  "oracle_calls": ["fertility: 'aov' — an opening is the adjudicator's advice + your call, never my inference"],
+                  "derived_needs": {"aov": ["revenue", "orders"]}, "grades": {}, "oracle_calls": [],
+                  # world-side, deterministic: aov is a formable derived RATIO of two additive measures,
+                  # so it is theorem-provably fertile — the adjudicator's advice fires (not the agent's call).
+                  "advice": [{"channel": "fertility", "member": "aov"}],
                   "max_checklist": 2})
 
 # ── B9 ○ numeric → measure, categorical → dimension ──────────────────────────────────────────────
@@ -113,8 +123,9 @@ B11 = Benchmark(id="B11", kind="◆", title="the refutation trap",
 
 BENCHMARKS = {b.id: b for b in (B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11)}
 
-# GOLD — perfect-mind stand-ins for the hermetic plumbing test (B1 ◆, B5 ○, B8 ◆). Real baseline uses
-# the AnthropicProvider. `review_call` surfaces the ◆ call; no spec ever opens a door.
+# GOLD — perfect-mind stand-ins for the hermetic plumbing test (B1 ◆, B5 ○, B8 ○). Real baseline uses
+# the AnthropicProvider. `review_call` surfaces an agent ◆ call; no spec ever opens a door, and none
+# surfaces fertility (that is the adjudicator's advice, not the agent's — ruling 2).
 GOLD = {
     "B5": [[{"kind": "edge", "target": "store->region", "grade": "inferred_catalog",
              "body": "EDGE store -> region ALONG geo VIA stores(store_id, region_id)"}]],
@@ -124,6 +135,7 @@ GOLD = {
              "body": "UNIVERSE inventory = store * day BASIS spine"}]],
     "B8": [[{"kind": "measure", "target": "revenue", "body": "MEASURE revenue ON tx FROM tx AS sum(amount)"},
             {"kind": "measure", "target": "orders", "body": "MEASURE orders ON tx FROM tx AS distinct(order_id)"},
-            {"kind": "derived", "target": "aov", "body": "DERIVED aov = revenue / orders",
-             "review_call": "fertility: 'aov' — an opening is the adjudicator's advice + your call, never my inference"}]],
+            # CORRECTED (ruling 2): the perfect agent proposes the CLOSURE and is SILENT on fertility —
+            # fertility is the adjudicator's advice, never the agent's review call. No review_call here.
+            {"kind": "derived", "target": "aov", "body": "DERIVED aov = revenue / orders"}]],
 }
