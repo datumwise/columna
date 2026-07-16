@@ -33,8 +33,12 @@ class Connector(Protocol):
     def deliver_base_rows(self, table: str, key_cols: list, value_col: str, where: Optional[str] = None) -> pl.DataFrame: ...
 
 
-# The authoring aperture's metered-sample cap: a per-call row cap, CONSTANT and documented here (v1).
-# Session-level budgets + a masking policy are DEFERRED (ledgered for the enterprise era, capture §5).
+# The authoring aperture's metered-sample cap (RATIFIED 2026-07-16). Rationale: sampling is a GOVERNED
+# aperture, not an open pipe — every read is BOUNDED per call so the model perceives a declared shape,
+# never a firehose. 1000 rows is enough to expose a distribution / catch an FK violation while staying a
+# metered read; PROFILE-STATS-FIRST is preferred (use `profile` to settle a question, `sample` only when
+# stats don't). Session-level budgets and a column-masking policy are DEFERRED (ledgered for the
+# enterprise era, capture §5's two-ends precision). Constant and documented, by design.
 APERTURE_SAMPLE_CAP = 1000
 
 
