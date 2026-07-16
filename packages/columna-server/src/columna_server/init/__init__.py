@@ -1,5 +1,12 @@
-"""columna_server.init — the `columna init` authoring on-ramp (Track 2). CP-2 artifact 3: the loop
-harness (hermetic against the scripted provider; a real model is NOT wired here, by design)."""
+"""columna_server.init — the `columna init` authoring on-ramp (Track 2). The loop harness + the eval
+suite. Hermetic by default (the scripted provider); the real mind (AnthropicProvider) runs only on an
+explicit go."""
 from .loop import InitLoop, ScriptedProvider, LoopViolation
+from .eval import (Benchmark, BenchmarkResult, RunRecord, score, run_benchmark, render_report,
+                   build_aperture, SCORER_VERSION, BENCHMARK_LIST_VERSION)
+from .providers import AnthropicProvider, ProviderUnavailable, parse_proposals, system_prompt
 
-__all__ = ["InitLoop", "ScriptedProvider", "LoopViolation"]
+__all__ = ["InitLoop", "ScriptedProvider", "LoopViolation",
+           "Benchmark", "BenchmarkResult", "RunRecord", "score", "run_benchmark", "render_report",
+           "build_aperture", "SCORER_VERSION", "BENCHMARK_LIST_VERSION",
+           "AnthropicProvider", "ProviderUnavailable", "parse_proposals", "system_prompt"]
