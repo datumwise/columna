@@ -10,7 +10,8 @@ import duckdb
 import pytest
 
 from columna_core import (License, CORROBORATED, UNTESTABLE, ManifoldServer, DuckDBConnector,
-                          adjudicate, Contradiction, AssertContradiction, HierarchyContradiction)
+                          adjudicate, Contradiction, AssertContradiction, HierarchyContradiction,
+                          AssertNotWellFormed)
 from columna_core.parser import parse_manifold
 
 
@@ -112,3 +113,66 @@ def test_demo_adjudication_still_clean(fixture_server):
     # the shipped demo has no asserts/hierarchies; the fertility path is unchanged and publishes.
     report = adjudicate(fixture_server)
     assert "_asserts" not in report and "_hierarchies" not in report
+
+
+# ── rider 1: "you may not assert what may not be asked" — ill-posed invariants FAIL CLOSED at ──────
+#            declaration, naming the reason; NEVER UNTESTABLE (that stays for askable-but-unattested).
+_BLOCKED = """
+MANIFOLD b VERSION 1
+UNIVERSE sd = store * day
+LEVEL store = store_id BASE
+LEVEL day   = day      BASE
+LEVEL region = region
+LEVEL month = month
+EDGE store -> region ALONG geo      VIA stores(store_id, region)
+EDGE day   -> month  ALONG calendar VIA cal(day, month)
+MEASURE level ON sd FROM inv VALUE lvl
+    M_ANCHOR { }
+    FAMILY {
+        sum  BLOCKED { calendar }
+        last ORDER day
+    }
+ASSERT r ON sd AT region HOLDS level.sum >= level.last
+"""
+
+
+def test_blocked_reduction_invariant_fails_closed_at_declaration():
+    # level.sum @ region collapses `day` along the BLOCKED calendar lineage — disclose-critical, not a
+    # clean quantity. Must fail publish closed (well-formedness), never UNTESTABLE.
+    srv = _server(_BLOCKED, {"stores": (["store_id", "region"], [("s1", "r1")]),
+                             "cal": (["day", "month"], [("d1", "m1")]),
+                             "inv": (["store_id", "day", "lvl"], [("s1", "d1", 5.0)])})
+    with pytest.raises(AssertNotWellFormed) as ei:
+        adjudicate(srv)
+    assert "blocked_reduction" in str(ei.value) and "LHS" in str(ei.value)
+
+
+_UNPINNED = """
+MANIFOLD u VERSION 1
+UNIVERSE sales = store * day
+LEVEL store = store_id BASE
+LEVEL day   = day      BASE
+LEVEL region = region
+EDGE store -> region ALONG geo VIA stores(store_id, region)
+MEASURE revenue ON sales FROM tx AS sum(amount)
+ASSERT r ON sales AT region HOLDS mean(revenue) >= revenue
+"""
+
+
+def test_unpinned_inline_reduction_invariant_fails_closed():
+    # mean(revenue) @ region does not pin its input anchor -> input_anchor_ambiguous (clarify).
+    srv = _server(_UNPINNED, {"stores": (["store_id", "region"], [("s1", "r1")]),
+                              "tx": (["store_id", "day", "amount"], [("s1", "d1", 10.0)])})
+    with pytest.raises(AssertNotWellFormed) as ei:
+        adjudicate(srv)
+    assert "input_anchor_ambiguous" in str(ei.value)
+
+
+def test_unknown_name_invariant_fails_closed_at_declaration():
+    # the third ill-posed shape: an unknown name. Parses clean (invariants may use inline reductions,
+    # so expression content is the planner's authority), then fails publish closed at adjudication.
+    m = _ASSERT.replace("revenue == gross - discounts", "revenue == nonesuch")
+    srv = _server(m, {"tx": (["store_id", "amount", "gross", "disc"], [("s1", 1.0, 1.0, 0.0)])})
+    with pytest.raises(AssertNotWellFormed) as ei:
+        adjudicate(srv)
+    assert "nonesuch" in str(ei.value) or "unknown" in str(ei.value)

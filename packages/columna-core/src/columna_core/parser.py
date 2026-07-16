@@ -492,8 +492,8 @@ def check_wellformed(m: Manifold) -> list:
                             f"token '{lv}' would reach both (a literal level and the family.level split) "
                             f"— rename one")
 
-    # ── ASSERT well-formedness (B1, fail closed; §2c-qualified resolution refined in a later increment)
-    known_cols = set(m.measures) | set(m.derived)
+    # ── ASSERT well-formedness (B1, fail closed): universe/uniqueness/row-purity here; the invariant
+    #    expression + anchor are the adjudicator's (planner's) authority at publish (rider 1).
     seen_assert = set()
     for a in m.asserts:
         if a.universe not in m.universes:
@@ -511,17 +511,9 @@ def check_wellformed(m: Manifold) -> list:
                         if not ref.is_literal and ref.table is None and ref.column in m.measures:
                             errs.append(f"assert '{a.name}' row predicate references measure "
                                         f"'{ref.column}' (row asserts are over dims/attrs only)")
-        else:                                        # invariant-form
-            for lv in a.anchor:                      # anchor in the ruled `*` grammar (rider 2)
-                resolved = lv if lv in m.levels else (
-                    lv.split(".", 1)[1] if "." in lv and lv.split(".", 1)[1] in m.levels else None)
-                if resolved is None:
-                    errs.append(f"assert '{a.name}' anchor names unknown level '{lv}'")
-                elif not m.level_universe_member(resolved, a.universe):
-                    errs.append(f"assert '{a.name}' anchor level '{lv}' is not in universe '{a.universe}'")
-            for expr in (a.left, a.right):           # invariant is over MEASURES (rider 3 op-set is parse-enforced)
-                for ref in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", expr):
-                    head = ref.split(".", 1)[0]
-                    if head not in known_cols:
-                        errs.append(f"assert '{a.name}' invariant references unknown column '{head}'")
+        # invariant-form: the expression + anchor are validated by the ADJUDICATOR at publish, not here
+        # — the planner is the one authority on askability (rider 1). An invariant that does not serve
+        # cleanly (unknown name, blocked reduction, unpinned inline reduction, bad anchor) fails publish
+        # closed via AssertNotWellFormed, naming the planner's reason. Invariants legitimately use inline
+        # reductions (`mean(revenue)`), so a parse-time column-head check would wrongly reject operators.
     return errs

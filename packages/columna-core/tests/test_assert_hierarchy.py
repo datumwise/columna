@@ -71,16 +71,15 @@ def test_invariant_anchor_comma_still_accepted():
     assert m.asserts[0].anchor == ("store", "day")
 
 
-def test_invariant_unknown_column_fails_closed():
-    with pytest.raises(ParseError) as ei:
-        _m("ASSERT r ON sales AT store HOLDS revenue == nonesuch")
-    assert "unknown column 'nonesuch'" in str(ei.value)
-
-
-def test_invariant_bad_anchor_level_fails_closed():
-    with pytest.raises(ParseError) as ei:
-        _m("ASSERT r ON sales AT nowhere HOLDS revenue <= gross")
-    assert "unknown level 'nowhere'" in str(ei.value)
+def test_invariant_expression_content_is_the_adjudicators_authority():
+    # An invariant's expression/anchor are validated by the planner at PUBLISH (rider 1: you may not
+    # assert what may not be asked), NOT at parse — invariants legitimately use inline reductions like
+    # `mean(revenue)`, so a parse-time column-head check would wrongly reject operators. These PARSE
+    # clean; their well-formedness (unknown name, bad anchor, blocked/unpinned) fails publish closed via
+    # AssertNotWellFormed — see test_track1_adjudication.py.
+    for body in ("revenue == nonesuch", "mean(revenue) >= revenue"):
+        m = _m(f"ASSERT r ON sales AT store HOLDS {body}")
+        assert m.asserts[0].kind == "invariant"
 
 
 def test_not_equal_is_not_in_v1_set():
