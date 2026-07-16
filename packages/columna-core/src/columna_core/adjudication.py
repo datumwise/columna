@@ -34,12 +34,12 @@ from __future__ import annotations
 
 import ast
 import re
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from typing import Optional
 
 import polars as pl
 
-from .model import License, VERIFIED, CORROBORATED, UNTESTABLE
+from .model import License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED
 from .operators import REGISTRY
 from .disclosure_wire import code_for, materiality_for
 
@@ -469,15 +469,103 @@ def _prove_assert(server, m, a) -> License:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# The published SCOPE (B1 scope-edit law): a PURE function of declarations × the CURRENT attestation's
+# verdicts. No ratchet — reattest is symmetric (a now-holding assert restores its region); history
+# lives in watermarks and the ledger, never in scope-state (Huayin, 2026-07-16).
+# ─────────────────────────────────────────────────────────────────────────────
+@dataclass(frozen=True)
+class PublishedScope:
+    """The published manifold's SERVING scope = license-state × cut-state. Cut declarations refuse
+    (the `conflicting_data` mood); everything else serves untouched. Recomputed fresh on every
+    publish/attest from that attestation's verdicts (pure function; no history)."""
+    cut: frozenset = frozenset()          # declaration names (measures + their derived cone) that are CUT
+    cut_by: dict = field(default_factory=dict)      # cut decl -> [{assert, universe, counterexample}]
+    licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
+
+
+def _revoked_license(fm, why: str) -> License:
+    return License(verdict=CONTRADICTED, lineages=frozenset(fm.declared_lineages), basis=why, attestation=None)
+
+
+def _assert_reads(m, a) -> set:
+    """The measure/derived columns an invariant's expression reads (its cut SEED)."""
+    names = set()
+    for expr in (a.left, a.right):
+        for tok in re.findall(r"[A-Za-z_]\w*", expr or ""):
+            if tok in m.measures or tok in m.derived:
+                names.add(tok)
+    return names
+
+
+def _declaration_cone(m, seeds) -> frozenset:
+    """The declaration cone of `seeds`: the seed columns + every derived that transitively references
+    one of them (declaration granularity, B1 v1)."""
+    cone = set(seeds)
+    changed = True
+    while changed:
+        changed = False
+        for dname, d in m.derived.items():
+            if dname in cone:
+                continue
+            refs = {r.split(".", 1)[0] for r in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", d.formula)}
+            if refs & cone:
+                cone.add(dname)
+                changed = True
+    return frozenset(cone)
+
+
+def _snapshot_licenses(m) -> dict:
+    snap = {}
+    for dname, d in m.derived.items():
+        for member, fm in d.family.items():
+            snap[f"{dname}.{member}"] = fm.license.verdict if fm.license else None
+    return snap
+
+
+def scope_from_report(m, report: dict) -> PublishedScope:
+    """Build the PublishedScope from a (degrade-mode) adjudication report — a pure read of the current
+    verdicts: the union of the cut declarations' cones, with each cut's summoning coordinates."""
+    cut, cut_by = set(), {}
+    for rec in report.get("_cuts", {}).values():
+        for decl in rec["cone"]:
+            cut.add(decl)
+            cut_by.setdefault(decl, []).append({"assert": rec["assert"], "universe": rec["universe"],
+                                                "counterexample": rec["counterexample"]})
+    return PublishedScope(cut=frozenset(cut), cut_by=cut_by, licenses=_snapshot_licenses(m))
+
+
+def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
+    """The authoring-event report: what THIS attestation changed vs the previous scope (never a silent
+    mutation — this diff is what summons the author to the three exits)."""
+    revocations, relicenses = [], []
+    for k, v in new.licenses.items():
+        ov = old.licenses.get(k)
+        if ov in (VERIFIED, CORROBORATED) and v == CONTRADICTED:
+            revocations.append(k)
+        elif ov == CONTRADICTED and v in (VERIFIED, CORROBORATED):
+            relicenses.append(k)
+    cuts = sorted(new.cut - old.cut)
+    return {"cuts": cuts, "restores": sorted(old.cut - new.cut),
+            "revocations": sorted(revocations), "relicenses": sorted(relicenses),
+            "cut_by": {d: new.cut_by.get(d, []) for d in cuts}}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # entry point
 # ─────────────────────────────────────────────────────────────────────────────
-def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[list] = None) -> dict:
-    """Adjudicate every declared derived-column fertility on `server.m`, attaching the constructed
-    `License` to each member (rebuilding the frozen dataclasses in place). Returns
-    {derived_name: {member: verdict}}. Raises Contradiction (publish fails closed) on any refutation.
+def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[list] = None,
+               degrade: bool = False) -> dict:
+    """Adjudicate every declared capability on `server.m`, attaching the constructed `License` in
+    place. Returns {derived_name: {member: verdict}} plus `_hierarchies`/`_asserts`/`_cuts`.
 
-    Idempotent within an attestation: re-running re-derives the same verdicts. The math channel runs
-    first and never touches data; the data channel runs only for members math leaves undecided."""
+    `degrade=False` (first PUBLISH): strict — any refutation raises Contradiction (publish fails
+    closed). `degrade=True` (RE-ATTEST): a data refutation is a scope EDIT, not a failure — a violated
+    fertility license is REVOKED (degrade to recompute), a violated ASSERT CUTS its declaration cone
+    (recorded in `_cuts` with counterexample coordinates). HIERARCHY stays strict in both modes: a
+    non-functional coordinate structure is a geometry failure, not a scoped data conflict.
+
+    Idempotent within an attestation. The math channel runs first (no data); the data channel only for
+    members math leaves undecided."""
     m = server.m
     report: dict = {}
     for dname, d in list(m.derived.items()):
@@ -485,28 +573,46 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
             continue
         new_family, verdicts = {}, {}
         for member, fm in d.family.items():
-            lic = _prove_math(m, d, member) or _prove_data(server, m, d, member, attestation, trace)
+            try:
+                lic = _prove_math(m, d, member) or _prove_data(server, m, d, member, attestation, trace)
+            except Contradiction:              # fertility refutation
+                if not degrade:
+                    raise                      # first publish: fail closed
+                lic = _revoked_license(fm, "fertility refuted on re-attestation — license revoked; the "
+                                            "engine recomputes (asserts guard truth costs territory; "
+                                            "licenses guard shortcuts costs speed).")
             new_family[member] = replace(fm, license=lic)
             verdicts[member] = lic.verdict
         m.derived[dname] = replace(d, family=new_family)
         report[dname] = verdicts
 
-    # ── Track-1 Certificate customers: HIERARCHY (FD) and ASSERT (invariant/row) ──
+    # ── Track-1 Certificate customers: HIERARCHY (FD, always strict) and ASSERT (invariant/row) ──
     # Same kernel: each mints the UNCHANGED License and fails closed via a Contradiction sibling.
     if m.hierarchies:
         new_h, hv = [], {}
         for h in m.hierarchies:
-            lic = _prove_hierarchy(server, m, h)
+            lic = _prove_hierarchy(server, m, h)   # HierarchyContradiction propagates even in degrade
             new_h.append(replace(h, license=lic))
             hv[h.lineage] = lic.verdict
         m.hierarchies = new_h
         report["_hierarchies"] = hv
     if m.asserts:
-        new_a, av = [], {}
+        new_a, av, cuts = [], {}, {}
         for a in m.asserts:
-            lic = _prove_assert(server, m, a)
+            try:
+                lic = _prove_assert(server, m, a)
+            except AssertContradiction as e:   # invariant violated by the attested data
+                if not degrade:
+                    raise                      # first publish: fail closed
+                lic = _license(CONTRADICTED, set(),
+                               f"invariant '{a.left} {a.op} {a.right}' violated on re-attestation — "
+                               f"region CUT until fixed/amended/accepted.")
+                cuts[(a.universe, a.name)] = {"assert": a.name, "universe": a.universe,
+                    "counterexample": e.counterexample, "cone": _declaration_cone(m, _assert_reads(m, a))}
             new_a.append(replace(a, license=lic))
             av[f"{a.universe}.{a.name}"] = lic.verdict     # names are universe-scoped
         m.asserts = new_a
         report["_asserts"] = av
+        if degrade:
+            report["_cuts"] = cuts
     return report

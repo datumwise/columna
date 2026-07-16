@@ -13,7 +13,7 @@ from .planner import Planner, FrameResult
 from .frameql import ManifoldServer, Frame, parse_frameql, FrameQLSyntaxError
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
 from .adjudication import (adjudicate, Contradiction, AssertContradiction, HierarchyContradiction,
-                           AssertNotWellFormed)
+                           AssertNotWellFormed, PublishedScope, scope_from_report, scope_diff)
 from .describe import describe_derived, license_to_dict
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
 
@@ -28,6 +28,7 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "ManifoldServer", "Frame", "parse_frameql", "FrameQLSyntaxError",
            "Disclosure", "Caveat", "Refusal", "Outcome",
            "adjudicate", "Contradiction", "AssertContradiction", "HierarchyContradiction",
-           "AssertNotWellFormed", "describe_derived", "license_to_dict",
+           "AssertNotWellFormed", "PublishedScope", "scope_from_report", "scope_diff",
+           "describe_derived", "license_to_dict",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
 __version__ = "0.7.8-core"

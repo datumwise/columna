@@ -9,6 +9,7 @@ columns, assembles the frame, and folds disclosures. It never sees provenance.
 """
 from __future__ import annotations
 import ast
+import re
 from dataclasses import dataclass, field
 from typing import Optional
 import polars as pl
@@ -95,6 +96,33 @@ class Planner:
     def __init__(self, view: PlannerView, engine: ColumnEngine):
         self.m = view          # provenance-free PROJECTION (vocabulary/shape only)
         self.engine = engine
+        # B1 cut-state (the published SCOPE, set by publish/reattest): declaration names whose region is
+        # CUT because a declared invariant is violated. A column touching one refuses (conflicting_data).
+        self.cut: frozenset = frozenset()
+        self.cut_by: dict = {}
+
+    def _cut_hit(self, expr: str) -> Optional[str]:
+        """The first CUT declaration a column expression references (measure or derived), or None.
+        Serving never outruns the verdicts: a query into a cut region is withheld."""
+        if not self.cut:
+            return None
+        for ref in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", expr):
+            head = ref.split(".", 1)[0]
+            if head in self.cut:
+                return head
+        return None
+
+    def _cut_refusal(self, decl: str) -> "Refusal":
+        rec = (self.cut_by.get(decl) or [{}])[0]
+        ce = rec.get("counterexample")
+        who = (f"assert '{rec['assert']}' ON '{rec['universe']}'" if rec.get("assert")
+               else "a declared invariant")
+        coord = f" (counterexample @ {ce.get('anchor')})" if ce else ""
+        return Refusal("conflicting_data",
+            f"'{decl}' is in a CUT region: {who} is violated on the attested data{coord}; serving is "
+            f"withheld here — serving never outruns the verdicts.",
+            measure=decl,
+            alternatives=("fix the data and re-attest", "amend the assert", "accept the reduced scope"))
 
     # ---- typecheck: addressability (fan-out / out-of-universe caught here) --
     def _check_addressable(self, measure: str, T: str):
@@ -186,6 +214,11 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
+                # mood — checked before typecheck/execution (serving never outruns the verdicts).
+                cut_decl = self._cut_hit(expr)
+                if cut_decl is not None:
+                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
                 # B-anchor crossings are STRUCTURAL — detected HERE (compile, shape-only), not in
                 # the engine. Inform-and-serve: they ride into the served disclosure unchanged.
@@ -419,6 +452,11 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
+                # mood — checked before typecheck/execution (serving never outruns the verdicts).
+                cut_decl = self._cut_hit(expr)
+                if cut_decl is not None:
+                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
                 disc = Disclosure.clean()
                 for (m, mem) in self._atoms(tree.body, anchor):
