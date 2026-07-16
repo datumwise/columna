@@ -35,11 +35,15 @@ def aperture_context(aperture) -> str:
     return "\n".join(lines)
 
 
+_OPENING_KINDS = {"fertility", "fertile", "opening", "door"}
+
+
 def parse_proposals(text: str) -> list:
     """The model's response → proposal specs. It must be a JSON array of {kind, target, body, ...};
     prose or the wrong shape is a hard error (grounding — the harness never guesses the mind's intent).
-    A spec that tries to open a door (`opens_fertility`/`author_declared`) is stripped of those keys —
-    the wall is not negotiable from the response side either."""
+    Any OPENING is DROPPED ENTIRELY (Huayin, ruling 2, 2026-07-16): a spec that opens fertility
+    (`opens_fertility`, an opening kind, or a `FERTILE` clause in its body) is not de-flagged — it is
+    removed, because fertility talk belongs to the ADJUDICATOR'S ADVICE channel, never to a proposal."""
     data = json.loads(text)
     if not isinstance(data, list):
         raise ValueError("init provider response must be a JSON array of proposal specs")
@@ -47,8 +51,10 @@ def parse_proposals(text: str) -> list:
     for s in data:
         if not isinstance(s, dict) or "kind" not in s or "body" not in s:
             raise ValueError(f"malformed proposal spec: {s!r}")
-        s = {k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")}
-        out.append(s)
+        if (s.get("opens_fertility") or str(s.get("kind", "")).lower() in _OPENING_KINDS
+                or "FERTILE" in str(s.get("body", "")).upper()):
+            continue                                     # DROP the opening entirely (not the adjudicator's channel)
+        out.append({k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")})
     return out
 
 
@@ -70,8 +76,9 @@ class AnthropicProvider:
         except ModuleNotFoundError as e:
             raise ProviderUnavailable("the anthropic SDK is not installed (the [agent] extra).") from e
         self._client = anthropic.Anthropic()
+        self.retries = 0                                          # malformed-output retries (convergence data)
 
-    def _call(self, content: str) -> list:
+    def _once(self, content: str) -> list:
         resp = self._client.messages.create(
             model=self.model, max_tokens=2048, system=system_prompt(),
             messages=[{"role": "user", "content": content}])
@@ -83,6 +90,14 @@ class AnthropicProvider:
             if text.startswith("json"):
                 text = text[4:].strip()
         return parse_proposals(text)
+
+    def _call(self, content: str) -> list:
+        try:
+            return self._once(content)
+        except Exception:                                        # ONE bounded retry on malformed output
+            self.retries += 1
+            return self._once(content + "\n\n(Your previous reply was not a valid JSON array of "
+                                        "proposal specs. Reply with ONLY the JSON array, no prose.)")
 
     def propose(self, aperture, draft):
         return self._call(aperture_context(aperture))

@@ -46,11 +46,15 @@ def test_report_renders_a_full_run():
     assert "passed 3/3" in report and "B5 ○" in report and "provider=scripted" in report
 
 
-def test_parse_strips_any_door_from_the_response():
-    # the wall on the response side: even if the model returns opens_fertility, the parse strips it.
-    specs = parse_proposals('[{"kind":"derived","target":"r","body":"DERIVED r = a/b",'
-                            ' "opens_fertility": true, "author_declared": true}]')
-    assert specs[0].get("opens_fertility") is None and specs[0].get("author_declared") is None
+def test_parse_drops_any_door_from_the_response():
+    # the wall on the response side (ruling 2): an opening spec is DROPPED ENTIRELY, not de-flagged —
+    # fertility belongs to the adjudicator's advice channel, never a proposal.
+    specs = parse_proposals(
+        '[{"kind":"measure","target":"m","body":"MEASURE m ..."},'
+        ' {"kind":"derived","target":"r","body":"DERIVED r = a/b FERTILE { sum }"},'
+        ' {"kind":"fertility","target":"x","body":"anything"},'
+        ' {"kind":"derived","target":"o","body":"DERIVED o = a/b","opens_fertility": true}]')
+    assert [s["target"] for s in specs] == ["m"]          # only the closure survives; all three doors dropped
 
 
 def test_parse_rejects_prose_and_malformed():
