@@ -1,5 +1,7 @@
-# CP-2 opening — `columna init` + the eval suite: PROPOSED for ratification (v0.1)
-**From: Claude Code, 2026-07-16. For: Huayin's ratification (CP-2 rhythm — propose, ratify, then build).**
+# CP-2 opening — `columna init` + the eval suite: benchmark list RATIFIED (v0.1)
+**From: Claude Code, 2026-07-16. Benchmark list RATIFIED by Huayin 2026-07-16 with three additions
+(B11 the refutation trap; checklist-concentration scored; convergence cost reported from day one) —
+folded in below. Axes confirmed: closure · grade · explicitness (◆ silent = hard fail).**
 **Foundation: capture §5 (the frame, the harness thesis, the two-ends principle, the alternating
 handshake, the polarity principle) + brief Track 2/3 + the CP-0 rulings. Nothing here is built; this
 is the first CP-2 artifact for your ratification.**
@@ -44,12 +46,22 @@ Marked ◆ = oracle-asymmetric (the load-bearing human calls); ○ = mechanical 
 | B8 ◆ | **The polarity trap (adversarial).** A schema where a fertility opening is *tempting* (a measure that looks reducible along a lineage). | propose the closure/bar; surface theorem-provable fertility ONLY as the **adjudicator's advice** ("provably fertile; declare if you mean it") — NEVER as an inferred opening. The draft format must make an inferred opening **unexpressible** (well-formedness). |
 | B9 ○ | **Numeric → measure, categorical → not.** Mixed columns. | propose additive measures from numerics; propose categoricals as dimensions/attributes, never as `sum`-able. |
 | B10 ◆ | **Registry vs product basis.** A `product_catalog` (registry) and a `store×day` spine with a `budget` product table. | propose `registry` for the catalog universe, `product` for the budget; flag the basis calls. |
+| B11 ◆ | **The refutation trap (RATIFIED addition 2026-07-16 — the constitution's spine).** The CATALOG declares a clean FK / uniqueness that the SAMPLE VIOLATES (a store keyed to two regions; a "unique" key with duplicates). | **NOT ride the catalog** — the data channel's refutation OUTRANKS catalog inference ("data may refute what catalogs grant"). Propose the honest alternative (a `RELATE` declared-to-refuse, or a flagged degraded edge), and surface the conflict as a review call. Tests catalog-vs-data conflict — the hierarchy none of B1–B10 exercises. |
 
-**Scoring proposal:** each benchmark yields a per-declaration diff (init's proposal vs ground truth),
-scored on: closure-correctness (did it bar/assign/leak right?), grade-correctness (INFERRED_CATALOG
-vs INFERRED_SAMPLE), and **explicitness** on the ◆ calls (a silent oracle-asymmetric call fails even
-if the value is right — the whole point is to summon the short human review). Aggregate = the ratchet
-metric across versions.
+**Scoring (RATIFIED 2026-07-16):** each benchmark yields a per-declaration diff (init's proposal vs
+ground truth), scored on three axes plus a complement, all REPORTED per benchmark:
+- **closure-correctness** — did it bar/assign/leak/refute right?
+- **grade-correctness** — INFERRED_CATALOG vs INFERRED_SAMPLE (and, for B11, catalog-refuted).
+- **explicitness** — the ◆ oracle-asymmetric calls MUST be surfaced in the review checklist; a silent
+  ◆ call is a **hard fail** even when the value is right (the point is to summon the short human review).
+- **checklist-concentration (explicitness's complement)** — the checklist must not be FLOODED: an
+  undifferentiated forty-item review re-creates the automation bias the harness exists to kill, so
+  **checklist precision is scored, not just ◆ recall** (the ◆ calls surfaced AND the review kept short
+  and differentiated).
+- **convergence cost (recorded metric, not pass/fail)** — loop iterations to a passing draft, per
+  benchmark, REPORTED from the ratchet's first run: it is the harness thesis's open empirical question,
+  measured from day one.
+Aggregate = the ratchet across versions (with convergence cost as its own trend line).
 
 ## 4 · What I need from you (CP-2 checkpoint)
 1. **Ratify / revise the benchmark list** — add/cut schemas, adjust the ground truth, retune the ◆/○
