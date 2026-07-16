@@ -14,7 +14,11 @@ class ManifoldServer:
         self.planner = Planner(PlannerView(manifold), self.engine)
 
     def frame(self, *anchor, where: Optional[str] = None) -> "Frame":
-        return Frame(self, tuple(anchor), where)
+        # Manifold-aware anchor resolution (capture §2b) runs HERE, at frame-build — the string parser
+        # stays manifold-blind. A rejection (universe name in anchor; bad family.level qualification)
+        # raises FrameQLSyntaxError so it rides the EXISTING query-error channel (server -> the
+        # `frameql_syntax` wire error) with no new wire reason code and a byte-identical four-mood wire.
+        return Frame(self, self.planner.resolve_anchor(tuple(anchor)), where)
 
     def publish(self, trace=None, attestation: Optional[str] = None) -> int:
         """Publish the manifold: ADJUDICATE every declared derived-column fertility (attaching the
@@ -72,7 +76,7 @@ class Frame:
 #     <query>   ::= <columns> "@" <anchor>
 #     <columns> ::= <column> ("," <column>)*
 #     <column>  ::= <name> ":" <expr>  |  <expr>          # bare expr -> name defaults to the expr text
-#     <anchor>  ::= <level> ("," <level>)*
+#     <anchor>  ::= <level> (("*" | ",") <level>)*      # `*` canonical (the anchor product); `,` accepted
 # Commas inside parentheses (e.g. `lag(revenue.sum, n=1)`) are NOT top-level separators. No SQL: a
 # query that does not fit this envelope (or whose expression core rejects) is an error, never executed.
 _SQL_HINTS = ("select ", "insert ", "update ", "delete ", "drop ", "create ", "with ", ";")
@@ -83,8 +87,10 @@ class FrameQLSyntaxError(ValueError):
     those come from the planner when the frame runs)."""
 
 
-def _split_top(s: str, delim: str) -> list:
-    """Split on `delim` only at paren-depth 0 (so commas inside `f(a, b)` are preserved)."""
+def _split_top(s: str, delims: str) -> list:
+    """Split on any character in `delims` at paren-depth 0 (so separators inside `f(a, b)` are
+    preserved). One char or several — the anchor accepts both `,` and `*` (the anchor product);
+    the column list accepts `,` alone."""
     out, depth, start = [], 0, 0
     for i, ch in enumerate(s):
         if ch in "([":
@@ -93,7 +99,7 @@ def _split_top(s: str, delim: str) -> list:
             depth -= 1
             if depth < 0:
                 raise FrameQLSyntaxError(f"unbalanced parentheses in {s!r}")
-        elif ch == delim and depth == 0:
+        elif ch in delims and depth == 0:
             out.append(s[start:i])
             start = i + 1
     if depth != 0:
@@ -134,7 +140,9 @@ def parse_frameql(text: str) -> tuple:
                                  "anchor, e.g. \"revenue @ region\"")
     cols_part, anchor_part = parts
 
-    anchor = tuple(s.strip() for s in _split_top(anchor_part, ",") if s.strip())
+    # the anchor product: `*` is the canonical separator (the SAME operator as UNIVERSE a * b * c);
+    # comma is accepted on input through launch (RULED), retiring only in the post-launch hygiene sweep.
+    anchor = tuple(s.strip() for s in _split_top(anchor_part, ",*") if s.strip())
     if not anchor:
         raise FrameQLSyntaxError("the anchor (after '@') must name at least one level")
 
