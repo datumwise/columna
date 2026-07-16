@@ -39,6 +39,22 @@ def aperture_context(aperture) -> str:
 _OPENING_KINDS = {"fertility", "fertile", "opening", "door"}
 from columna_core.draft import DECLARATION_KINDS
 
+
+def revise_prompt(aperture, draft) -> str:
+    """The revise-turn prompt — a MODULE-LEVEL function so it can be RENDERED and inspected hermetically
+    (no key, no network). This is the seam the blindness check (Huayin, ruling 4, 2026-07-16) audits:
+    the struck marks MUST appear here for a re-proposal to be disobedience (mind) rather than blindness
+    (world). It renders each struck body verbatim under a `do NOT re-propose` header."""
+    from columna_core.draft import STRUCK
+    struck = [p.body for p in draft.proposals if p.review == STRUCK]
+    kept = [p.body for p in draft.proposals if p.review != STRUCK]
+    return (aperture_context(aperture)
+            + "\n\nReview so far — these were STRUCK by the author (do NOT re-propose them):\n  "
+            + ("\n  ".join(struck) or "(none)")
+            + "\nAlready accepted (do not repeat):\n  " + ("\n  ".join(kept) or "(none)")
+            + "\n\nReturn a JSON array of ONLY the NEW/corrected declarations that address the struck "
+              "marks. Do not re-propose a struck or accepted declaration (a settled mark stays settled).")
+
 # The output contract is a GRAMMAR (Huayin, 2026-07-16): every deterministically-checkable clause is
 # enforced at parse — a malformed target is a malformed spec, taught by the bounded retry, NEVER
 # laundered scorer-side (real init users inherit the draft, so the artifact must be clean at its birth).
@@ -126,13 +142,4 @@ class AnthropicProvider:
         return self._call(aperture_context(aperture))
 
     def revise(self, aperture, draft):
-        from columna_core.draft import STRUCK, PROPOSED
-        struck = [p.body for p in draft.proposals if p.review == STRUCK]
-        kept = [p.body for p in draft.proposals if p.review not in (STRUCK,)]
-        content = (aperture_context(aperture)
-                   + "\n\nReview so far — these were STRUCK (do NOT re-propose them):\n  "
-                   + ("\n  ".join(struck) or "(none)")
-                   + "\nAlready accepted (do not repeat):\n  " + ("\n  ".join(kept) or "(none)")
-                   + "\n\nReturn a JSON array of ONLY the NEW/corrected declarations that address the "
-                     "struck marks. Do not re-propose a struck or accepted declaration.")
-        return self._call(content)
+        return self._call(revise_prompt(aperture, draft))

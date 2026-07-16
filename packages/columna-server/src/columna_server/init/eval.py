@@ -13,10 +13,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-SCORER_VERSION = "0.3"                    # 0.3 (2026-07-16): 0.2's deterministic normalization + synonym
-                                          # maps, PLUS the grade axis reports n/a (None) when no closure
-                                          # matched — an axis that passes by never being evaluated is the
-                                          # instrument lying politely (Huayin). Old records stay interpretable.
+SCORER_VERSION = "0.4"                    # 0.4 (2026-07-16, Huayin ruling 2): closure comparison at the
+                                          # DESUGARED NORMAL FORM — HIERARCHY desugars to edges by the
+                                          # shipped grammar law, so both ground truth and proposal lower
+                                          # to the edge/level normal form before matching. A hierarchy and
+                                          # its equivalent edges compare EQUAL (B6/B7 was never a miss);
+                                          # levels-without-travel stays a genuine miss. Grammar-defined, no
+                                          # judgment. Inherits 0.3's n/a-grade + 0.2's normalization/synonyms.
 BENCHMARK_LIST_VERSION = "1"             # B1–B11, ratified 2026-07-16
 
 
@@ -44,6 +47,9 @@ class BenchmarkResult:
     failure_narrative: str = ""
     retries: int = 0                     # malformed-output retries across this benchmark's iterations (convergence data)
     loop_violation: bool = False         # the mind re-proposed a struck declaration — the harness law fired (DATA)
+    scored_proposals: list = field(default_factory=list)   # the RAW proposals scored (provenance; enables a
+    scored_checklist: list = field(default_factory=list)   # deterministic re-render under a NEW scorer with
+                                                           # NO re-run — the gap run-4 exposed, closed here.
 
 
 @dataclass
@@ -90,6 +96,21 @@ def _oracle_key(call: str) -> str:
     return call.split(":", 1)[0].strip().lower()
 
 
+def _desugar(kind: str, target) -> list:
+    """Lower a closure to its edge/level NORMAL FORM (scorer 0.4, Huayin ruling 2, 2026-07-16). The
+    grammar's SHIPPED law: `HIERARCHY a->b->c` desugars to the edges a->b, b->c. So a hierarchy and its
+    equivalent edges compare EQUAL, while levels-without-travel (no edge declared) does NOT reduce to an
+    edge and stays a genuine miss. Returns canonicalized (kind, target) atoms. Deterministic; the scorer
+    borrows an equivalence the grammar already defines, not one it invents."""
+    t = _canon(target)
+    if kind == "hierarchy":
+        nodes = [p for p in t.split("->") if p]
+        if len(nodes) >= 2:
+            return [("edge", f"{a}->{b}") for a, b in zip(nodes, nodes[1:])]
+        return [("level", nodes[0])] if nodes else []
+    return [(kind, t)]
+
+
 def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResult:
     """Score one init OUTPUT vs the benchmark's adjudicated ground truth (scorer 0.2 — deterministic
     normalization + keyword ◆-matching). `output` = {proposals: [{kind, target, grade}], checklist:
@@ -106,28 +127,37 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
     if opened:
         fails.append("proposed a fertility OPENING (polarity violation)")
 
-    def _match(kind, tgt, want_kind, want_tgt):
-        if kind != want_kind:
-            return False
-        ct, cw = _canon(tgt), _canon(want_tgt)
-        return ct == cw or ct in syn.get(cw, set())
+    def _atom_match(pk, pt, wk, wt):           # atoms are already canonical (from _desugar)
+        return pk == wk and (pt == wt or pt in syn.get(wt, set()))
 
-    want = [tuple(c) for c in gt["closures"]]
-    proposed = [(p["kind"], p.get("target", "")) for p in proposals if not p.get("opens_fertility")]
-    unmatched = [w for w in want if not any(_match(pk, pt, w[0], w[1]) for pk, pt in proposed)]
+    # scorer 0.4 (ruling 2): desugar BOTH sides to the edge/level normal form before matching.
+    want_atoms = []                            # [(kind, target, grade_or_None)] — grade rides each atom
+    for c in gt["closures"]:
+        g = gt["grades"].get(f"{c[0]}:{c[1]}")
+        for ak, at in _desugar(c[0], c[1]):
+            want_atoms.append((ak, at, g))
+    proposed_atoms = []                        # [(kind, target, grade)]
+    for p in proposals:
+        if p.get("opens_fertility"):
+            continue
+        for ak, at in _desugar(p["kind"], p.get("target", "")):
+            proposed_atoms.append((ak, at, p.get("grade")))
+
+    unmatched = [(wk, wt) for (wk, wt, _wg) in want_atoms
+                 if not any(_atom_match(pk, pt, wk, wt) for pk, pt, _pg in proposed_atoms)]
     closure_ok = not unmatched and not opened
     if unmatched:
-        fails.append(f"missing/mismatched closures: {unmatched}")
+        fails.append(f"missing/mismatched closures (normal form): {unmatched}")
 
     graded_matches, grade_ok = 0, True         # grade is n/a (None) when no GRADED closure matched (scorer 0.3)
-    for p in proposals:
-        for w in want:
-            if _match(p["kind"], p.get("target", ""), w[0], w[1]):
-                exp = gt["grades"].get(f"{w[0]}:{w[1]}")
-                if exp:
-                    graded_matches += 1
-                    if p.get("grade") != exp:
-                        grade_ok = False
+    for (wk, wt, wg) in want_atoms:
+        if not wg:
+            continue
+        for pk, pt, pg in proposed_atoms:
+            if _atom_match(pk, pt, wk, wt):
+                graded_matches += 1
+                if pg != wg:
+                    grade_ok = False
     grade = grade_ok if graded_matches else None
     if grade is False:
         fails.append("a proposal carries the wrong INFERRED_* grade")
@@ -150,7 +180,8 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
         benchmark_id=benchmark.id, kind=benchmark.kind, closure=closure_ok, grade=grade,
         explicitness=explicit_ok, checklist_concentration=concentration_ok,
         convergence_cost=iterations, loop_budget=loop_budget, converged=converged,
-        passed=passed, failure_narrative="; ".join(fails), retries=int(output.get("retries", 0)))
+        passed=passed, failure_narrative="; ".join(fails), retries=int(output.get("retries", 0)),
+        scored_proposals=list(proposals), scored_checklist=list(checklist))
 
 
 def _lit(v):
@@ -272,18 +303,21 @@ def _review_from_ground_truth(loop, benchmark) -> None:
     gt = benchmark.ground_truth
     syn = {(_canon(k.split(":", 1)[1]) if ":" in k else _canon(k)): {_canon(v) for v in vs}
            for k, vs in gt.get("synonyms", {}).items()}
-    want = [tuple(c) for c in gt["closures"]]
+    want_atoms = [atom for c in gt["closures"] for atom in _desugar(c[0], c[1])]   # normal form (scorer 0.4)
+
+    def _atom_in_want(pk, pt):
+        return any(pk == wk and (pt == wt or pt in syn.get(wt, set())) for wk, wt in want_atoms)
 
     def _matches(kind, tgt):
-        for wk, wt in want:
-            if kind == wk and (_canon(tgt) == _canon(wt) or _canon(tgt) in syn.get(_canon(wt), set())):
-                return True
-        return False
+        # a proposal is correct iff ALL its desugared atoms are in the ground truth's normal form — so a
+        # hierarchy and its equivalent edges each ACCEPT, but levels-without-travel does not (ruling 2).
+        atoms = _desugar(kind, tgt)
+        return bool(atoms) and all(_atom_in_want(pk, pt) for pk, pt in atoms)
 
     for p in loop.draft.proposals:
         if p.review != PROPOSED:
             continue
-        p.review = ACCEPTED if _matches(p.kind, p.target) else STRUCK    # normalized (scorer 0.2), not exact
+        p.review = ACCEPTED if _matches(p.kind, p.target) else STRUCK    # normal-form match (scorer 0.4)
 
 
 def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> BenchmarkResult:
@@ -321,6 +355,34 @@ def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> Benchmark
         if result.passed:
             break
     return result
+
+
+def rescore_run(run: RunRecord, benchmarks: dict) -> RunRecord:
+    """Re-render a prior run under the CURRENT scorer from its CAPTURED outputs — no re-run, no key
+    (Huayin, ruling 5, 2026-07-16: keep run-N vs run-N+1 like-with-like when the scorer version moves).
+    Requires each result to carry `scored_proposals`/`scored_checklist` (added this cycle). A result with
+    no captured output (e.g. a loop-violation censored before a score, or a pre-capture record like run-4)
+    is passed through UNCHANGED and flagged, so the re-render never silently fabricates a closure verdict."""
+    fresh = []
+    for r in run.results:
+        b = benchmarks.get(r.benchmark_id)
+        if b is None or (not r.scored_proposals and not r.scored_checklist):
+            fresh.append(r)                                  # cannot re-render — pass through (honest gap)
+            continue
+        out = {"proposals": r.scored_proposals, "checklist": r.scored_checklist,
+               "iterations": r.convergence_cost, "retries": r.retries}
+        nr = score(b, out, r.loop_budget)
+        nr.loop_violation = r.loop_violation                # loop-violation is a harness event, not a score
+        if r.loop_violation:
+            nr.converged = False
+            nr.passed = False
+        fresh.append(nr)
+    return RunRecord(
+        model_id=run.model_id, model_version=run.model_version, sampling=run.sampling,
+        harness_config=run.harness_config, kp_version=run.kp_version, provider=run.provider,
+        benchmark_list_version=run.benchmark_list_version, scorer_version=SCORER_VERSION,
+        results=fresh, run_id=(run.run_id or "") + f"~rescored@{SCORER_VERSION}",
+        run_timestamp=run.run_timestamp)
 
 
 def render_report(run: RunRecord) -> str:

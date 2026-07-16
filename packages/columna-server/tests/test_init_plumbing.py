@@ -9,7 +9,8 @@ response side) without any network.
 import pytest
 
 from columna_server.init import (ScriptedProvider, run_benchmark, render_report, RunRecord,
-                                 parse_proposals, system_prompt, AnthropicProvider, ProviderUnavailable)
+                                 parse_proposals, system_prompt, AnthropicProvider, ProviderUnavailable,
+                                 revise_prompt, build_aperture)
 from columna_server.init.benchmarks import BENCHMARKS, GOLD
 
 
@@ -91,6 +92,25 @@ def test_eval_scores_a_loop_violation_instead_of_crashing():
 def test_system_prompt_loads_and_forbids_doors():
     sp = system_prompt()
     assert "propose doors NEVER" in sp and "DATA MAY SUGGEST, NEVER GRANT" in sp
+
+
+def test_revise_prompt_renders_the_struck_marks_to_the_model():
+    # BLINDNESS CHECK (Huayin, ruling 4, 2026-07-16): a re-proposal is disobedience (mind) only if the
+    # mind SEES what was struck. This pins the seam — the struck body MUST render verbatim, under the
+    # do-NOT-re-propose header, with settled-stays-settled restated. If this ever regresses to silence,
+    # a struck-re-proposal reattributes to a loop-construction bug (world). HERMETIC — no key, no network.
+    from columna_core.draft import Draft, Proposal, STRUCK
+    ap = build_aperture(BENCHMARKS["B5"].schema)
+    d = Draft(manifold_name="blindness-check")
+    d.add(Proposal(kind="edge", target="wrong->place", body="EDGE wrong -> place ALONG x VIA t(a,b)",
+                   review=STRUCK))
+    d.add(Proposal(kind="measure", target="revenue", body="MEASURE revenue = SUM(amount)",
+                   review="accepted"))
+    rendered = revise_prompt(ap, d)
+    assert "EDGE wrong -> place ALONG x VIA t(a,b)" in rendered      # the struck body, verbatim
+    assert "do NOT re-propose" in rendered                          # under the prohibition header
+    assert "settled mark stays settled" in rendered                 # the law restated in the turn
+    assert "MEASURE revenue = SUM(amount)" in rendered              # accepted marks also rendered (do-not-repeat)
 
 
 def test_real_provider_refuses_without_a_key(monkeypatch):
