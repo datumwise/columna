@@ -154,6 +154,17 @@ REASON_OUTCOME = {
                                                         #   immaterial input-anchor note records)
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
+    "conflicting_data":         (REFUSE,  UNSUPPORTED), # a declared invariant (ASSERT) the attested data
+                                                        # VIOLATES: the data's own testimony forbids serving
+                                                        # the cut region (B1 scope-edit). MINTED here per the
+                                                        # one-reason-per-contested-dimension rule (Huayin,
+                                                        # 2026-07-15) — a violated invariant is a genuinely
+                                                        # new contested dimension, sibling to
+                                                        # `contradicted_edge` (a declared edge violated).
+                                                        # Refuse/UNSUPPORTED matches that sibling's pair. The
+                                                        # name is shared with the RESERVED caveat code
+                                                        # (disclosure_wire) — one concept, two channels; the
+                                                        # caveat code stays reserved-and-unwired.
     "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
     "type_error":               (ERROR,   None),        # vocabulary/type failure
     "unknown":                  (ERROR,   None),        # unknown column / operator / construct

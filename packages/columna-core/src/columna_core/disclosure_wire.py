@@ -50,6 +50,12 @@ CATEGORY_TABLE = {
 
 # Reserved codes for authoring-era disclosures — emit-capable now, produced later. Held so the wire
 # vocabulary is closed and stable end to end (WP-2.2 spec; structured_disclosure_capture.md fork B).
+#   · `incomplete_data` — the B3 spine/product-gap CAVEAT; wired when absence-semantics lands (a
+#     CATEGORY_TABLE entry maps an engine gap category to it).
+#   · `conflicting_data` — RETAINED, reserved and UNWIRED as a caveat code (Huayin, 2026-07-15): held
+#     for a possible future soft-assert / disclosed-not-cut path, UNRULED and UNSCHEDULED. The B1 cut
+#     is a REFUSE mood, not a caveat — its `conflicting_data` reason lives in disclosure.REASON_OUTCOME
+#     (one concept, two channels). Reserving costs nothing; un-reserving is the irreversible act.
 RESERVED_CODES = frozenset({
     "stock_reading", "distinct_grain", "weighting_grain", "extremum_grain",
     "incomplete_data", "conflicting_data", "other",
