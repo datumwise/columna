@@ -13,10 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-SCORER_VERSION = "0.2"                    # 0.2 (2026-07-16): deterministic normalization — canonical
-                                          # identity forms + declared synonym maps + keyword ◆-matching;
-                                          # NO mind grading a mind (Huayin's hard line). Old records stay
-                                          # interpretable (the version is on every run record).
+SCORER_VERSION = "0.3"                    # 0.3 (2026-07-16): 0.2's deterministic normalization + synonym
+                                          # maps, PLUS the grade axis reports n/a (None) when no closure
+                                          # matched — an axis that passes by never being evaluated is the
+                                          # instrument lying politely (Huayin). Old records stay interpretable.
 BENCHMARK_LIST_VERSION = "1"             # B1–B11, ratified 2026-07-16
 
 
@@ -34,7 +34,7 @@ class BenchmarkResult:
     benchmark_id: str
     kind: str
     closure: bool
-    grade: bool
+    grade: Optional[bool]                # True | False | None (n/a — no graded closure matched; scorer 0.3)
     explicitness: bool
     checklist_concentration: bool
     convergence_cost: int                # iterations RUN
@@ -117,14 +117,17 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
     if unmatched:
         fails.append(f"missing/mismatched closures: {unmatched}")
 
-    grade_ok = True
+    graded_matches, grade_ok = 0, True         # grade is n/a (None) when no GRADED closure matched (scorer 0.3)
     for p in proposals:
         for w in want:
             if _match(p["kind"], p.get("target", ""), w[0], w[1]):
                 exp = gt["grades"].get(f"{w[0]}:{w[1]}")
-                if exp and p.get("grade") != exp:
-                    grade_ok = False
-    if not grade_ok:
+                if exp:
+                    graded_matches += 1
+                    if p.get("grade") != exp:
+                        grade_ok = False
+    grade = grade_ok if graded_matches else None
+    if grade is False:
         fails.append("a proposal carries the wrong INFERRED_* grade")
 
     blob = _canon(" ".join(checklist))
@@ -139,10 +142,10 @@ def score(benchmark: Benchmark, output: dict, loop_budget: int) -> BenchmarkResu
         fails.append(f"checklist flooded ({len(checklist)} items > max {max_cl})")
 
     iterations = int(output.get("iterations", 1))
-    passed = closure_ok and grade_ok and explicit_ok      # the hard-fail axes
+    passed = closure_ok and (grade is not False) and explicit_ok      # n/a grade doesn't fail; closure gates
     converged = passed and iterations <= loop_budget
     return BenchmarkResult(
-        benchmark_id=benchmark.id, kind=benchmark.kind, closure=closure_ok, grade=grade_ok,
+        benchmark_id=benchmark.id, kind=benchmark.kind, closure=closure_ok, grade=grade,
         explicitness=explicit_ok, checklist_concentration=concentration_ok,
         convergence_cost=iterations, loop_budget=loop_budget, converged=converged,
         passed=passed, failure_narrative="; ".join(fails), retries=int(output.get("retries", 0)))
@@ -237,9 +240,9 @@ def benchmark_coherence(benchmark) -> list:
         elif kind == "measure":
             if not numeric_cols:
                 bad.append(f"measure '{target}' has no numeric column to aggregate in the schema")
-        elif kind == "dimension":
-            if not cat_cols:
-                bad.append(f"dimension '{target}' has no categorical column in the schema")
+        elif kind == "level":
+            if not cat_cols and not numeric_cols:
+                bad.append(f"level '{target}' has no column in the schema to key it")
         elif kind == "derived":
             measure_targets = {t for k, t in gt["closures"] if k == "measure"}
             for need in gt.get("derived_needs", {}).get(target, []):
@@ -319,7 +322,8 @@ def render_report(run: RunRecord) -> str:
     ]
     for r in run.results:
         tag = "PASS" if r.passed else "FAIL"
-        axes = (f"closure{'✓' if r.closure else '✗'} grade{'✓' if r.grade else '✗'} "
+        gmark = "n/a" if r.grade is None else ("✓" if r.grade else "✗")
+        axes = (f"closure{'✓' if r.closure else '✗'} grade{gmark} "
                 f"explicit{'✓' if r.explicitness else '✗'} concise{'✓' if r.checklist_concentration else '✗'}")
         conv = f"conv {r.convergence_cost}{'' if r.converged else ' (CAPPED)'}"
         rt = f"  retries {r.retries}" if r.retries else ""
