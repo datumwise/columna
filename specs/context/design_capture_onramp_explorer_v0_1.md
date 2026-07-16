@@ -78,19 +78,20 @@ gloss.
 
 ## 2b · The anchor expression grammar (RULED 2026-07-15; grammar-growth per ADR-035 D1)
 
-- **Formal names (RULED 2026-07-15): level names are globally unique across dimension
-  families.** Rationale (Huayin): same-short-name levels make `revenue @ week` dubious
-  but UNDETECTABLE — the naming law forces distinct concepts to distinct names
-  (`week` / `fiscal_week`), surfacing ambiguity at authoring as a well-formedness error,
-  never at asking. Dimension families **cover, not partition**: a level belongs to one
-  or more families (`day` ∈ cal and bus_cal — the same level), and **membership is
-  edge-derived** — level ∈ family iff it touches an edge of that lineage; no new
-  declaration exists. `family.level` is qualified-and-usable, validated against
-  edge-derived membership — chiefly a documentation/pinpointing instrument; the bare
-  level name is expected almost everywhere, by its uniqueness. (Contrast: measure
-  families partition their members.) **Anchoring is family-agnostic; travel is not** —
-  the anchor names a position; fertility and B-anchors are per-lineage. The shadowing
-  ban extends: aliases and operator overrides never enter the level namespace.
+- **Signatures and suffix addressing (RULED 2026-07-15; supersedes the global-uniqueness
+  form of this bullet).** Full signatures: dimension `universe.family.level`; metric
+  family `universe.metric_family` — unique within the manifold. **The legal short forms
+  are exactly the suffixes of the full signature** (`family.level`, `level`;
+  `metric_family`) — a suffix resolves iff unambiguous, else the parser demands one
+  segment more, naming the ambiguity. No non-suffix forms (`universe.level` is dead).
+  **Uniqueness is scoped per universe**: leaf names unique within each universe's
+  included levels; the same name MAY recur across universes. Metric families likewise
+  (sales.revenue and finance.revenue are different metrics). **Addresses vs objects:**
+  signatures are addresses; levels are manifold-scope OBJECTS that universes include —
+  sharing is by identity, never by name; `transactions.day` and `store_days.day` address
+  the same day. Dimension families cover, not partition; membership is edge-derived.
+  **Anchoring is family-agnostic; travel is not.** The shadowing ban extends: aliases and
+  operator overrides never enter the level namespace.
 - **The anchor product:** `*` — the SAME operator as `UNIVERSE ... = a * b * c`.
   General form: `revenue @ region*day`. **RULED (a):** keep-both through launch — `*`
   canonical in all system output, comma accepted on input; the comma retires in the
@@ -136,6 +137,37 @@ leaves describe, and universe predicates are rendered logically (no raw `table.c
 references). A standing test enforces the guarantee. Capture item carried with it: levels
 need a logical dtype (today the Map supplies it); declared at the Law level when the
 artifact splits.
+
+## 2c · Universe resolution: one expression, one universe (RULED 2026-07-15; supersedes the combo-law draft)
+
+- **Resolution algorithm (memory-free end to end):** the metric resolves the universe
+  (bare when unique in the manifold; `universe.metric` when duplicated); the anchor's
+  levels must be included in THAT universe (`m @ a`: m and a in the same universe); the
+  metric column `m @ a` is unique in the manifold or written in a longer suffix.
+- **The expression law:** a column expression — math over mappers and reducers of metric
+  columns — evaluates in ONE universe and never crosses the boundary. An attempted
+  cross-universe expression is a language-law violation on the ERROR channel (per the Q1
+  precedent: category errors do not ride the four moods), with a remedy naming the two
+  legal paths: the juxtaposed form, or a proposed declaration snippet — the error that
+  teaches you to legislate.
+- **The frame law (juxtaposition):** a Frame-QL query is a list of column expressions,
+  each from a single universe, possibly different across columns — legit IFF every
+  anchor level is the SAME OBJECT in all participating universes (same-named strangers
+  refuse, both named). The juxtaposed output is an alignment view, not a Frame of the
+  manifold: each column keeps its own population semantics; missing where a universe has
+  no atoms; per-column honesty, no false claim of shared population.
+- **`ON UNIVERSE` is DEAD in the query grammar** — the expression law deleted its last
+  query-side job. Cross-universe combination is an AUTHORING act: the declared derived
+  carries its population choice; population syntax survives only in the definition
+  language, REQUIRED on cross-universe deriveds, fail-closed if absent. (The demo's
+  wedge, `sell_through_rate`, becomes the exemplar: tier-2 item f declares it properly.)
+- **Single-universe sugar:** a one-universe manifold may omit the universe ceremony —
+  implicit universe, `ON` clauses optional. Ratified.
+- **Implementation routing:** capture-only today. Suffix addressing (universe-prefixed
+  forms), per-universe uniqueness beyond the WP's amended item 2, the expression and
+  frame laws, and the definition-language population requirement enter tier-2 CP-1 or a
+  follow-on mini-WP — explicitly NOT the in-flight anchor WP (whose item 2 was amended
+  to per-universe scope by separate instruction).
 
 ## 3 · The Map doctrine (RATIFIED)
 
