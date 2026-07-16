@@ -26,6 +26,15 @@ _OP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
 _V = "_v"
 
 
+def _fmt_anchor(anchor) -> str:
+    """Spell an anchor with the canonical product separator `*` (never a comma). Every surface that
+    WRITES an anchor — the EXPLAIN header, error/clarify messages, traces — routes through here so no
+    output ever emits a comma anchor (capture §2b RULED (a))."""
+    if isinstance(anchor, (tuple, list)):
+        return "*".join(str(a) for a in anchor)
+    return str(anchor)
+
+
 @dataclass
 class ColumnResult:
     name: str
@@ -69,7 +78,7 @@ class FrameResult:
         return SERVE
 
     def explain(self) -> str:
-        lines = [f"EXPLAIN  frame @ {self.anchor}"]
+        lines = [f"EXPLAIN  frame @ {_fmt_anchor(self.anchor)}"]
         for c in self.columns:
             head = f"  • {c.name}" + (f" = {c.expr}" if c.expr != c.name else "")
             lines.append(head)
@@ -114,6 +123,54 @@ class Planner:
             f"(out of domain — undefined, not missing)",
             measure=measure, target=T,
             alternatives=(f"address {measure} only within universe '{uni}'",))
+
+    # ---- anchor resolution (manifold-aware; capture §2b) -------------------
+    def _families_of(self, level: str) -> set:
+        """Edge-derived membership: the dimension families a level belongs to — the lineages of the
+        edges it touches (as `frm` or `to`). No separate declaration; membership IS the edge set."""
+        return {e.lineage for e in self.m._edges if level in (e.frm, e.to)}
+
+    def resolve_anchor(self, anchor: tuple) -> tuple:
+        """Resolve each anchor token to a canonical declared level name, rejecting universe names and
+        invalid family qualifications. Called at frame-build (frameql.ManifoldServer.frame), so a
+        rejection rides the EXISTING query-error channel as FrameQLSyntaxError — never a wire reason
+        code, and the four-mood wire stays byte-identical.
+
+        Resolution order (STANDING law, not transitional): a literal level-name match wins (dotted
+        stored names like the demo's `cal.month` are a legitimate authoring style); otherwise the token
+        splits at the first dot and resolves as `family.level`, validated against edge-derived
+        membership. A bare token that is neither a universe nor a level passes through unchanged, so an
+        unknown level still reaches the same `out_of_universe` addressability mood as before.
+        """
+        from .frameql import FrameQLSyntaxError
+        out = []
+        for tok in anchor:
+            # universes and levels are DISJOINT namespaces — a universe name never anchors (item 4)
+            if tok in self.m.universes and tok not in self.m.levels:
+                raise FrameQLSyntaxError(
+                    f"'{tok}' is a universe, not a level: universe names do not appear in anchors; "
+                    f"populations ride ON UNIVERSE")
+            # literal level-name match wins
+            if tok in self.m.levels:
+                out.append(tok)
+                continue
+            # qualified family.level — split at the FIRST dot, validate edge-derived membership (item 3a)
+            if "." in tok:
+                fam, lev = tok.split(".", 1)
+                if lev not in self.m.levels:
+                    raise FrameQLSyntaxError(
+                        f"anchor '{tok}': no level named '{lev}' — qualify an existing level as "
+                        f"family.level, or name a level directly")
+                fams = self._families_of(lev)
+                if fam not in fams:
+                    raise FrameQLSyntaxError(
+                        f"anchor '{tok}': level '{lev}' is not in dimension family '{fam}' — it belongs "
+                        f"to {sorted(fams) if fams else 'no dimension family'}")
+                out.append(lev)
+                continue
+            # bare, non-universe, non-level token: unchanged — addressability handles the unknown level
+            out.append(tok)
+        return tuple(out)
 
     # ---- run a frame -------------------------------------------------------
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> FrameResult:
@@ -235,7 +292,7 @@ class Planner:
         hint = cands[0] if cands else "<level>"
         return Refusal("input_anchor_ambiguous",
             f"inline reduction '{reducer}({expr})' does not pin its input anchor — the grain to "
-            f"resolve '{expr}' at before reducing to {target or anchor} is underdetermined; pin it, "
+            f"resolve '{expr}' at before reducing to {_fmt_anchor(target or anchor)} is underdetermined; pin it, "
             f"e.g. '{reducer}({expr}@{hint})'",
             discriminator=AMBIGUOUS, alternatives=alts)
 
@@ -366,7 +423,7 @@ class Planner:
                 disc = Disclosure.clean()
                 for (m, mem) in self._atoms(tree.body, anchor):
                     disc = Disclosure.merge(disc, self.engine.dry_disclose(m, mem, anchor))
-                    trace.append(f"plan {m}.{mem} @ {anchor} (would-be annotation; no execution)")
+                    trace.append(f"plan {m}.{mem} @ {_fmt_anchor(anchor)} (would-be annotation; no execution)")
                 for c in self._frame_crossings(tree.body, anchor):
                     disc = disc.with_caveat(c)
                 results.append(ColumnResult(name, expr, None, disc, trace=trace))
@@ -398,7 +455,7 @@ class Planner:
                 raise self._unpinned_reduction_refusal(reducer, inner, anchor)
             if len(anchor) != 1:
                 raise Refusal("unsupported",
-                    f"inline reduction is served at a single frame level; asked at {anchor}")
+                    f"inline reduction is served at a single frame level; asked at {_fmt_anchor(anchor)}")
             in_dt = self._infer(inner, (pinned,), population)    # typecheck the inner at its input anchor
             return self._reducer_out_dtype(reducer, in_dt)
         sc = self._scan_call(node)
@@ -598,7 +655,7 @@ class Planner:
         if len(anchor) != 1:
             raise Refusal("unsupported",
                 f"resolution-anchor metric '{name}' is served at a single level — its meaning is a "
-                f"reduction of the '{res}'-resolved series; asked at {anchor}")
+                f"reduction of the '{res}'-resolved series; asked at {_fmt_anchor(anchor)}")
         if len(dshape.members) != 1:
             raise Refusal("unknown",
                 f"resolution-anchor metric '{name}' needs exactly one reduction member "
@@ -633,7 +690,7 @@ class Planner:
             raise self._unpinned_reduction_refusal(reducer, inner, anchor)
         if len(anchor) != 1:
             raise Refusal("unsupported",
-                f"inline reduction is served at a single frame level; asked at {anchor}")
+                f"inline reduction is served at a single frame level; asked at {_fmt_anchor(anchor)}")
         target = anchor[0]
         k, frame, disc, dtype = self._node(inner, (pinned,), where, trace)
         if k != "col":
