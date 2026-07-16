@@ -97,7 +97,7 @@ def main(argv=None):
         "demo", help="run the packaged demo (no path args needed)",
         description="Run the packaged demo Manifold — the benchmark Manifold over a small bundled "
                     "warehouse. With no flags, serves MCP stdio (connect an agent). With --play, "
-                    "prints the real clarify -> refuse -> disclose wire transcript in-process and exits.")
+                    "prints the real clarify -> refuse -> serve wire transcript in-process and exits.")
     demo_cmd.add_argument("--http", default=None, metavar="HOST:PORT",
                           help="serve streamable-http instead of stdio (gated by COLUMNA_MCP_TOKEN)")
     demo_cmd.add_argument("--play", action="store_true",

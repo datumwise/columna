@@ -15,7 +15,8 @@ four moods as data; `contract_version` `"1"`).
   The envelope grammar is parsed here; every expression is delegated to columna-core (one dialect).
 - **Packaged demo** (`columna-server demo [--play]`): the benchmark Manifold over a small bundled
   warehouse (byte-identical to the core fixtures, drift-guarded), runnable with no path args.
-  `--play` prints the real clarify → refuse → disclose wire transcript.
+  `--play` prints the real clarify → refuse → serve wire transcript (post-§2c: the cross-universe
+  wedge that once drove disclose is now a category error, so the tour uses three well-posed asks).
 - **Natural-language agent** (`columna-server agent`, `[agent]` extra): a true MCP client — spawns
   the server over stdio and speaks the protocol, never importing the engine. Natural language
   becomes a *proposed* Frame-QL query; the four moods drive the conversation (clarifies relayed,
