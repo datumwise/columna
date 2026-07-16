@@ -41,6 +41,7 @@ import polars as pl
 
 from .model import License, VERIFIED, CORROBORATED, UNTESTABLE
 from .operators import REGISTRY
+from .disclosure_wire import code_for
 
 # float tolerance policy (ruling §4)
 _RTOL = 1e-9
@@ -89,6 +90,23 @@ class AssertContradiction(Contradiction):
             f"data. Counterexample @ {counterexample.get('anchor')}: "
             f"{counterexample.get('left')!r} vs {counterexample.get('right')!r} "
             f"(op {counterexample.get('op')}, tol {counterexample.get('tol')}). Publish fails closed."
+        )
+
+
+class AssertNotWellFormed(Exception):
+    """A declared invariant whose expression does not CLEANLY serve at its anchor — ill-posed
+    (clarify/refuse/error) OR served only under a CRITICAL disclosure (e.g. a blocked reduction: the
+    number does not reconcile, so it is not a clean quantity to hold an invariant against). You may not
+    assert what may not be asked: this is a DECLARATION-time well-formedness failure, DISTINCT from
+    UNTESTABLE (which stays reserved for askable-but-unattested). Fails publish closed, naming the
+    underlying planner reason."""
+
+    def __init__(self, name: str, universe: str, side: str, expr: str, reason: str):
+        self.name, self.universe, self.side, self.expr, self.reason = name, universe, side, expr, reason
+        Exception.__init__(
+            self,
+            f"ASSERT '{name}' ON '{universe}' is not well-formed: its {side} '{expr}' does not serve "
+            f"cleanly at the anchor — {reason}. You may not assert what may not be asked; publish fails closed."
         )
 
 
@@ -384,21 +402,49 @@ def _invariant_counterexample(j, op, lcol, rcol, anchor) -> Optional[dict]:
     return None
 
 
+def _clean_serve_reason(fr) -> Optional[str]:
+    """Why an invariant expression is NOT cleanly served at its anchor (for assertion), or None if it
+    is. Not-clean = the plan is ill-posed (clarify/refuse/error — name the planner reason) OR it serves
+    only under a CRITICAL disclosure (name the caveat category). A cleanly-served number is `serve`, or
+    `disclose` with no critical caveat."""
+    if fr.outcome in ("clarify", "refuse", "error"):
+        for col in fr.columns:
+            if col.refusal is not None:
+                return col.refusal.classified().reason
+        return fr.outcome
+    for col in fr.columns:
+        if col.refusal is None:
+            for c in col.disclosure.caveats:
+                if c.severity == "critical":
+                    return f"critically disclosed ({code_for(c.category)})"   # the wire code (e.g. blocked_reduction)
+    return None
+
+
 def _prove_assert(server, m, a) -> License:
-    """Invariant-form: serve LHS and RHS at the anchor, compare per the op (== rides tolerance); a
-    violation ⇒ AssertContradiction (fails closed). Row-form is recorded UNTESTABLE in this build (its
-    base-row data channel is a following increment) — an asserted license changes no served number."""
+    """Invariant-form: (1) ASKABILITY — plan LHS/RHS statically; if either does not serve cleanly the
+    assertion is not well-formed → fail publish CLOSED naming the reason (rider 1: you may not assert
+    what may not be asked; never UNTESTABLE). (2) ATTESTATION — serve both at the anchor, compare per
+    op (== rides the WP-B tolerance); a violation ⇒ AssertContradiction. Askable-but-unattested (no
+    clean frame despite a clean plan) ⇒ UNTESTABLE. Row-form: UNTESTABLE, base-row channel ledgered
+    (open_forks.md · row-assert-data-channel)."""
     if a.kind == "row":
         return _license(UNTESTABLE, set(),
                         "row-predicate assert recorded on authored authority — its base-row data "
-                        "channel is a following increment; visible in describe, never exercised.")
+                        "channel is ledgered (open_forks.md · row-assert-data-channel); visible in "
+                        "describe, never exercised.")
     con = server.engine.con
+    # (1) askability — static, no data; fail publish closed if not cleanly serveable
+    for side, expr in (("LHS", a.left), ("RHS", a.right)):
+        reason = _clean_serve_reason(server.frame(*a.anchor).column("_p", expr).plan())
+        if reason is not None:
+            raise AssertNotWellFormed(a.name, a.universe, side, expr, reason)
+    # (2) attestation — needs data; a clean plan that yields no frame is askable-but-unattested
     left = _serve_expr(server, a.anchor, "_l", a.left)
     right = _serve_expr(server, a.anchor, "_r", a.right)
     if left is None or right is None:
         return _license(UNTESTABLE, set(),
-                        f"assert '{a.name}' invariant did not cleanly serve at {a.anchor} "
-                        f"(no testable frame); recorded on authored authority, never exercised.")
+                        f"assert '{a.name}' is askable but unattested at {a.anchor} (clean plan, no "
+                        f"served frame); recorded on authored authority, never exercised.")
     j = left.join(right, on=list(a.anchor), how="inner")
     ce = _invariant_counterexample(j, a.op, "_l", "_r", a.anchor)
     if ce is not None:
