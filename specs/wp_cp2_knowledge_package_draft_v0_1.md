@@ -1,8 +1,8 @@
-# CP-2 artifact (2) — the authoring agent's knowledge package: DRAFT (v0.1)
-**From: Claude Code, 2026-07-16. PROPOSED for Huayin's ratification under the copy law (a prompt edit
-is a ruling, not a tweak). This is the DRAFT of the authoring agent's system prompt + skill notes —
-proposed BEFORE any prompt is live (CP-2 rhythm). Sourced from capture §5, the CP-0 rulings, and the
-ratified benchmark ground truths. Nothing is wired until this is ratified.**
+# CP-2 artifact (2) — the authoring agent's knowledge package: RATIFIED v0.1 (frozen doctrine)
+**From: Claude Code, 2026-07-16. RATIFIED by Huayin 2026-07-16 with four revisions (skill notes 7/8
+added; the revise-turn loop law added; note 6 renamed to "the definition grammar"; §A wordings ratified
+AS WRITTEN) — folded in below. This is now versioned doctrine under the copy law: §A's wordings change
+only by ruling. Sourced from capture §5, the CP-0 rulings, and the ratified benchmark ground truths.**
 
 Two parts: **A** the system prompt (the mind's instructions), **B** the skill notes (the reference the
 agent consults). Both are versioned doctrine; both change only by ruling.
@@ -66,9 +66,10 @@ exists to kill. Short, differentiated, pointed at the oracle-asymmetric calls �
 
 ### The loop and your outputs
 Work the loop: **generate → (human) review → revise**, until the human publishes. Emit proposals into
-the draft, each carrying its grade and a review-mark slot the human fills. Publish is **never** your
-decision. Use only names the catalog/sample supports — invent no columns, operators, or anchors; use
-the source's own words.
+the draft, each carrying its grade and a review-mark slot the human fills. **On revise turns, address
+the human's review marks; a settled mark stays settled unless the human reopens it** — never re-propose
+what the author already struck. Publish is **never** your decision. Use only names the catalog/sample
+supports — invent no columns, operators, or anchors; use the source's own words.
 
 ---
 
@@ -82,18 +83,26 @@ Short, retrievable notes (not prose to read start-to-finish); each is a ruled fa
 4. **Calendar detection** — date column → hierarchy proposal; the FD test is the adjudicator's.
 5. **The never-infer set** — fertility (always); B-anchor bars propose-only at strongest grade;
    anything the draft schema cannot express.
-6. **Describe grammar** — the manifold surface the agent's proposals must be valid against (kept in
-   sync with the shipped grammar, like the query agent's prompt).
+6. **The definition grammar** — the declaration language the draft LOWERS INTO (MANIFOLD/UNIVERSE/
+   LEVEL/EDGE/RELATE/MEASURE/DERIVED/ASSERT/HIERARCHY/BASIS as shipped); the agent's proposals must be
+   valid against it (kept in sync with the shipped grammar). ("definition", not "describe" — describe
+   is the read-back tool surface; this is the write surface.)
+7. **Universe assignment** — what a reasoned assignment argues from: the fact grain, key coverage (does
+   the table's key cover the population's atoms?), and which population the measures actually describe;
+   plus the review question to pose to the human (an oracle-asymmetric call, so it is surfaced, not silent).
+8. **M-leak smells** — pre-aggregated column names (`avg_*`, `*_rate`, `*_pct`), residence in a rollup/
+   summary table rather than the fact table, and grain evidence beyond the declared key; and what
+   `M_ANCHOR` declares (the columns a measurement's value leaks across beyond its key).
 
 ---
 
-## What I need from you (ratification)
-1. **Ratify / revise the system prompt (A)** — voice, the constitutional framing, the polarity and
-   refutation rules as worded, and whether the sharp-calls list is complete.
-2. **Confirm the skill-notes outline (B)** — which notes exist v1; each becomes a ruled reference doc.
-3. On ratification this becomes the versioned knowledge package; then I bring **artifact (3)** — init's
-   loop running **hermetic against the scripted provider** (no real model), proving the loop, the draft
-   schema's polarity wall, and the connector aperture before a real mind ever enters.
+## Status — RATIFIED & FROZEN 2026-07-16
+§A wordings are ratified as written and are now under the copy law (change only by ruling). §B carries
+eight skill notes (1–6 plus the ratified additions 7 universe-assignment and 8 M-leak-smells), so the
+reference layer now supports all three sharp calls the prompt orders explicit (basis · universe · M-leak).
+The revise-turn loop law is in §A. Next: **artifact (3)** — init's loop running **hermetic against the
+scripted provider** (no real model), proving the loop, the draft schema's polarity wall, and the
+connector aperture before a real mind ever enters.
 
-The prompt's exact interpolation of the manifold's describe (the per-run schema context) lands with the
-build; this draft is the DOCTRINE the build renders against.
+The prompt's per-run interpolation of the manifold's definition context lands with the build; this
+doctrine is what the build renders against.
