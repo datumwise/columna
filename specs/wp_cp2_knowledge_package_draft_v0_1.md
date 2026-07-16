@@ -96,7 +96,15 @@ Short, retrievable notes (not prose to read start-to-finish); each is a ruled fa
 
 ---
 
-## KP v0.2 — the output contract (added 2026-07-16, FLAGGED for ratification)
+## KP v0.2 — the output contract (RATIFIED AS WRITTEN 2026-07-16, frozen under the copy law)
+**Ratified by Huayin 2026-07-16.** Two restraints noted as PRECEDENT — the eval layer's default is now
+**measure-then-adjust, never pre-adjust**: (1) the contract deliberately does NOT enumerate the sharp-call
+categories — a listed category is coached recall, so the ◆ data stays readable against the salience
+hypothesis (the instrument protecting its own subject); (2) the synonym-map mechanism ships EMPTY,
+populated only from run-3 residual evidence (one-variable hygiene). Contract understanding on record:
+`kind` classifies for review/scoring, `body` carries the grammar, and publish's parser judges validity
+fail-closed.
+
 Ruling 1 (2026-07-16): the vocabulary fix lands at three layers — structure (the draft `kind` is a CLOSED
 vocabulary, enforced at `parse_proposals`; unknown kind = malformed → the bounded retry teaches the
 contract), **prompt (this v0.2 bump: an OUTPUT-CONTRACT section only — CONTRACT, not behavioral coaching,
