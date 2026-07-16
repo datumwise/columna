@@ -46,6 +46,12 @@ class Universe:
     name: str
     base_dimensions: frozenset            # base level names bundled into this population
     predicate: Optional["Predicate"] = None   # carves valid points; over dims/attrs, never measures
+    basis: Optional[str] = None           # B3 (capture §7): the population's kind, which DETERMINES what
+                                          # absence means engine-wide — 'events' (absence=ZERO, lawful
+                                          # zero-fill) | 'spine' (absence=GAP, incomplete_data caveat) |
+                                          # 'product' (cartesian; absence always a gap) | 'registry'
+                                          # (membership checkable). None = undeclared (today's behavior;
+                                          # absence-semantics wiring is inert until a basis is declared).
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------
