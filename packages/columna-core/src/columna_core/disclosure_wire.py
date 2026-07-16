@@ -41,6 +41,7 @@ def _approx_materiality(rel_error: Optional[float]) -> str:
 # `approximation`'s materiality is rel_error-dependent, so its value is a callable(rel_error)->str.
 CATEGORY_TABLE = {
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
+    "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
     "coverage":               ("denominator_population", MATERIAL),
     "unconfirmed_assumption": ("input_anchor",           MATERIAL),
     "approximation":          ("approximation",          _approx_materiality),

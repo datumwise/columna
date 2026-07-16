@@ -16,7 +16,7 @@ import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, COVERAGE, B_ANCHOR_CROSSING, TRANSPORT,
+from .disclosure import (Disclosure, Refusal, Caveat, COVERAGE, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
@@ -44,6 +44,7 @@ class ColumnResult:
     disclosure: Disclosure
     refusal: Optional[Outcome] = None
     trace: list = field(default_factory=list)
+    universe: Optional[str] = None      # the column's sole universe (§2c) — routes B3 absence semantics
 
 
 @dataclass
@@ -150,8 +151,11 @@ class Planner:
         the ERROR channel (`cross_universe`), not the four moods — named with the two legal paths."""
         unis = sorted({self.m.measures[mm].universe for (mm, _) in self._atoms(node, anchor)
                        if mm in self.m.measures})
-        if len(unis) > 1:
-            raise Refusal("cross_universe",
+        if len(unis) == 1:
+            return unis[0]                                   # the column's sole universe (routes B3 absence)
+        if not unis:
+            return None
+        raise Refusal("cross_universe",
                 f"this column combines measures from more than one universe {unis} — a column "
                 f"expression evaluates in ONE universe and never crosses the boundary (combining them "
                 f"would assert a single population that does not exist). Two legal paths: juxtapose "
@@ -267,7 +271,7 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
-                self._check_single_universe(tree.body, anchor)            # §2c expression law (one universe/column)
+                col_uni = self._check_single_universe(tree.body, anchor)  # §2c expr law + the column's universe
                 blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
                 if blk is not None:
                     raise self._blocked_transport_refusal(blk)
@@ -278,7 +282,8 @@ class Planner:
                 frame, disc = self._eval(expr, anchor, where, trace)
                 if crossings:
                     disc = Disclosure.merge(disc, Disclosure.of(*crossings), population=disc.population)
-                results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc, trace=trace))
+                results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc,
+                                            trace=trace, universe=col_uni))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
@@ -305,6 +310,31 @@ class Planner:
             data = c.frame if data is None else data.join(c.frame, on=list(anchor), how="full", coalesce=True)
         if data is not None:
             data = data.sort(list(anchor))
+
+        # B3 ABSENCE SEMANTICS (basis-driven). Absence is only definable relative to a DOMAIN; the
+        # juxtaposition (the full-outer align above) supplies one LOCALLY, so a column's null cells here
+        # take meaning from THAT column's own universe basis. Serving follows the DECLARATION — like a
+        # B-anchor bar, it executes regardless of any License (BASIS is a semantic declaration, not a
+        # shortcut). The declared spine-grid (the future domain source) is the single object behind both
+        # single-column fill and the completeness oracle (open_forks OF-5); until it lands, absence is
+        # scoped to the align, so a single-column frame (no nulls) is untouched.
+        if data is not None:
+            for c in results:
+                if c.frame is None or c.universe is None:
+                    continue
+                basis = self.m.universes[c.universe].basis
+                if basis is None:
+                    continue
+                n_absent = data[c.name].null_count()
+                if not n_absent:
+                    continue
+                if basis == "events":                        # absence is the honest ZERO
+                    data = data.with_columns(pl.col(c.name).fill_null(0))
+                    c.disclosure = c.disclosure.with_caveat(Caveat(TRANSPORT,        # immaterial, agent-legible
+                        f"{n_absent} absent cell(s) rendered as 0 per events basis"))
+                elif basis in ("spine", "product"):          # absence is a GAP
+                    c.disclosure = c.disclosure.with_caveat(Caveat(DATA_GAP,
+                        f"{n_absent} absent cell(s) are gaps ({basis} basis) — the data is incomplete here"))
 
         # No frame-level population caveat: the old multi-universe `coverage` caveat is RETIRED (§2c). Per-
         # column honesty replaces it — a juxtaposed frame never asserts a single shared population, and
@@ -519,7 +549,7 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
-                self._check_single_universe(tree.body, anchor)             # §2c expression law
+                col_uni = self._check_single_universe(tree.body, anchor)    # §2c expr law + column universe
                 blk = self._blocked_transport(tree.body, anchor)
                 if blk is not None:
                     raise self._blocked_transport_refusal(blk)
@@ -529,7 +559,7 @@ class Planner:
                     trace.append(f"plan {m}.{mem} @ {_fmt_anchor(anchor)} (would-be annotation; no execution)")
                 for c in self._frame_crossings(tree.body, anchor):
                     disc = disc.with_caveat(c)
-                results.append(ColumnResult(name, expr, None, disc, trace=trace))
+                results.append(ColumnResult(name, expr, None, disc, trace=trace, universe=col_uni))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))

@@ -52,6 +52,9 @@ class Universe:
                                           # 'product' (cartesian; absence always a gap) | 'registry'
                                           # (membership checkable). None = undeclared (today's behavior;
                                           # absence-semantics wiring is inert until a basis is declared).
+    basis_license: Optional["License"] = None   # B3 testedness record minted at publish (serving follows
+                                          # the DECLARATION regardless — BASIS is a semantic declaration, not a
+                                          # shortcut; the license is for describe/trust only). None = unadjudicated.
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------
