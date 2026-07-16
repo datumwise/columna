@@ -27,6 +27,9 @@ from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "EDGE", "RELATE", "MEASURE", "DERIVED")
 
+# B3 (capture §7): the four population bases, each determining what absence MEANS engine-wide.
+BASIS_TYPES = frozenset({"events", "spine", "product", "registry"})
+
 
 class ParseError(Exception):
     pass
@@ -88,13 +91,21 @@ def _p_manifold(s, M):
 
 
 def _p_universe(s, M):
+    # optional trailing `BASIS <type>` (B3) — stripped first so the WHERE predicate parse is undisturbed.
+    basis = None
+    bm = re.search(r"\s+BASIS\s+(\w+)\s*$", s)
+    if bm:
+        basis = bm.group(1)
+        if basis not in BASIS_TYPES:
+            raise ParseError(f"bad UNIVERSE BASIS '{basis}' (one of {sorted(BASIS_TYPES)})")
+        s = s[:bm.start()]
     m = re.match(r"UNIVERSE\s+(\w+)\s*=\s*(.+?)(?:\s+WHERE\s+(.+))?$", s, re.S)
     if not m:
         raise ParseError(f"bad UNIVERSE: {s!r}")
     name = m.group(1)
     dims = frozenset(d.strip() for d in m.group(2).split("*"))
     pred = parse_predicate(m.group(3).strip()) if m.group(3) else None
-    M["universes"][name] = Universe(name, dims, pred)
+    M["universes"][name] = Universe(name, dims, pred, basis)
 
 
 def _p_level(s, M):
