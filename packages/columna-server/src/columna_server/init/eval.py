@@ -43,6 +43,7 @@ class BenchmarkResult:
     passed: bool
     failure_narrative: str = ""
     retries: int = 0                     # malformed-output retries across this benchmark's iterations (convergence data)
+    loop_violation: bool = False         # the mind re-proposed a struck declaration — the harness law fired (DATA)
 
 
 @dataclass
@@ -70,6 +71,7 @@ class RunRecord:
             "oracle_total": len(oracle),
             "mean_convergence_converged_only": round(sum(conv) / len(conv), 1) if conv else None,
             "censored": sum(1 for r in self.results if not r.converged),   # capped-without-passing
+            "loop_violations": sum(1 for r in self.results if r.loop_violation),
         }
 
 
@@ -287,16 +289,32 @@ def _review_from_ground_truth(loop, benchmark) -> None:
 def run_benchmark(benchmark: Benchmark, provider, loop_budget: int) -> BenchmarkResult:
     """Drive init over one benchmark to convergence (or the budget), scoring each round against the
     adjudicated ground truth. Convergence cost = iterations run; `converged` is censored at the budget."""
-    from .loop import InitLoop
+    from .loop import InitLoop, LoopViolation
     loop = InitLoop(build_aperture(benchmark.schema), provider, benchmark.id)
     r0 = getattr(provider, "retries", 0)                     # malformed-output retries are convergence data
     result = None
     for i in range(1, loop_budget + 1):
-        if i == 1:
-            loop.generate()
-        else:
-            _review_from_ground_truth(loop, benchmark)      # the verifier marks; then the mind revises
-            loop.revise()
+        try:
+            if i == 1:
+                loop.generate()
+            else:
+                _review_from_ground_truth(loop, benchmark)  # the verifier marks; then the mind revises
+                loop.revise()
+        except LoopViolation as e:
+            # SCORE, never crash (Huayin, ruling 2): a protection firing is DATA. The revise raised
+            # BEFORE absorbing, so loop.output() is the LAST VALID draft — read the other axes from it
+            # (◆-explicitness especially: a re-proposing mind still surfaced or didn't its sharp calls).
+            out = loop.output()
+            out["retries"] = getattr(provider, "retries", 0) - r0
+            result = score(benchmark, out, loop_budget)
+            result.loop_violation = True
+            result.converged = False                        # censor convergence
+            result.passed = False
+            if not result.failure_narrative:
+                result.failure_narrative = str(e)
+            else:
+                result.failure_narrative += f"; loop_violation: {e}"
+            return result
         out = loop.output()
         out["retries"] = getattr(provider, "retries", 0) - r0
         result = score(benchmark, out, loop_budget)
@@ -317,7 +335,7 @@ def render_report(run: RunRecord) -> str:
         f"SUMMARY   passed {s['passed']}/{s['total']}   "
         f"◆-explicitness {s['oracle_explicit']}/{s['oracle_total']}   "
         f"mean convergence (converged-only) {s['mean_convergence_converged_only']}   "
-        f"censored {s['censored']}",
+        f"censored {s['censored']}   loop-violations {s['loop_violations']}",
         "─" * 74,
     ]
     for r in run.results:
@@ -327,7 +345,8 @@ def render_report(run: RunRecord) -> str:
                 f"explicit{'✓' if r.explicitness else '✗'} concise{'✓' if r.checklist_concentration else '✗'}")
         conv = f"conv {r.convergence_cost}{'' if r.converged else ' (CAPPED)'}"
         rt = f"  retries {r.retries}" if r.retries else ""
-        L.append(f"{r.benchmark_id} {r.kind}   {tag}   {axes}   {conv}{rt}")
+        lv = "  LOOP-VIOLATION" if r.loop_violation else ""
+        L.append(f"{r.benchmark_id} {r.kind}   {tag}   {axes}   {conv}{rt}{lv}")
         if not r.passed:
             L.append(f"       └ narrative: {r.failure_narrative}")
     L += ["─" * 74,

@@ -63,6 +63,31 @@ def test_parse_rejects_prose_and_malformed():
             parse_proposals(bad)
 
 
+def test_parse_enforces_kind_and_target_grammar_clauses():
+    # unknown kind -> malformed (closed vocabulary)
+    with pytest.raises(ValueError):
+        parse_proposals('[{"kind":"cast","target":"x","body":"b"}]')
+    # verbose target -> malformed (the target-shape clause; NOT laundered scorer-side)
+    with pytest.raises(ValueError):
+        parse_proposals('[{"kind":"universe","target":"daily_inventory; grain = one row per (store,day)","body":"b"}]')
+    # canonical bare name passes; edge needs the arrow, a bare id for an edge is rejected
+    assert parse_proposals('[{"kind":"universe","target":"inventory","body":"b"}]')[0]["target"] == "inventory"
+    assert parse_proposals('[{"kind":"edge","target":"store->region","body":"b"}]')[0]["target"] == "store->region"
+    with pytest.raises(ValueError):
+        parse_proposals('[{"kind":"edge","target":"store_region","body":"b"}]')      # edge without an arrow
+
+
+def test_eval_scores_a_loop_violation_instead_of_crashing():
+    # the mind proposes a shape-valid but WRONG closure (struck), then re-proposes it on revise -> the
+    # harness law fires; the eval SCORES it (loop_violation=True, censored), never raises (ruling 2).
+    from columna_server.init.benchmarks import BENCHMARKS
+    bad = {"kind": "edge", "target": "wrong->place", "body": "EDGE wrong -> place ALONG x VIA t(a,b)"}
+    prov = ScriptedProvider([[bad], [bad]])       # propose it, then re-propose the struck one
+    r = run_benchmark(BENCHMARKS["B5"], prov, loop_budget=5)
+    assert r.loop_violation and not r.passed and not r.converged
+    assert "struck" in r.failure_narrative
+
+
 def test_system_prompt_loads_and_forbids_doors():
     sp = system_prompt()
     assert "propose doors NEVER" in sp and "DATA MAY SUGGEST, NEVER GRANT" in sp
