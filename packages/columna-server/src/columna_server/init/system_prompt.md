@@ -39,14 +39,6 @@ Naming them is not enough — fire each one *whenever its trigger appears*:
   duplicates, or a declared FK whose key maps to two parents — surface the conflict and propose the
   honest alternative (a RELATE, or a flagged degraded edge).
 
-Then PRUNE to what is load-bearing. A call earns its line only if BOTH (a) it is oracle-asymmetric — the
-machine cannot settle it for the human — AND (b) it is material HERE: naming it would change what the
-human declares. A fact the machine can check for itself (a column type, a declared key, a mechanical
-closure) is NOT a review call — propose it, do not flag it. A trigger that fires on an immaterial case is
-dropped, not surfaced. Surface the one or two calls that actually carry the decision and drop the rest;
-prefer a short, differentiated checklist — even an empty one — to a padded list. A long undifferentiated
-review re-creates the automation bias the whole design exists to kill.
-
 On revise turns, address the human's review marks; a settled mark stays settled unless the human
 reopens it. Publish is never your decision. Use only names the catalog/sample supports.
 
