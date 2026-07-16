@@ -44,7 +44,7 @@ def _fresh_con(warehouse_dir):
 # a small representative set spanning the delivery paths (additive rollup, cross-universe ratio)
 _PARITY_CASES = [
     (("region",), "revenue", "serve"),
-    (("store",), "revenue / level.last", "clarify"),
+    (("store",), "revenue / level.last", "error"),   # §2c: cross-universe expression -> cross_universe error
 ]
 
 

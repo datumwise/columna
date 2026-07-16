@@ -144,6 +144,22 @@ class Planner:
             edge=f"{edge[0]}->{edge[1]}",
             alternatives=("fix the data and re-attest", "amend the hierarchy", "address at a grain that does not cross this edge"))
 
+    def _check_single_universe(self, node, anchor):
+        """§2c EXPRESSION LAW: a column expression evaluates in ONE universe and never crosses the
+        boundary. Measures from >1 universe in a single expression is a language-law CATEGORY ERROR —
+        the ERROR channel (`cross_universe`), not the four moods — named with the two legal paths."""
+        unis = sorted({self.m.measures[mm].universe for (mm, _) in self._atoms(node, anchor)
+                       if mm in self.m.measures})
+        if len(unis) > 1:
+            raise Refusal("cross_universe",
+                f"this column combines measures from more than one universe {unis} — a column "
+                f"expression evaluates in ONE universe and never crosses the boundary (combining them "
+                f"would assert a single population that does not exist). Two legal paths: juxtapose "
+                f"(ask each measure as its own column — they align on the shared anchor), or declare "
+                f"(define a DERIVED that carries its population, then ask that).",
+                alternatives=("juxtapose: ask each measure as its own column",
+                              "declare: define a DERIVED with its population, then ask it"))
+
     def _cut_refusal(self, decl: str) -> "Refusal":
         rec = (self.cut_by.get(decl) or [{}])[0]
         ce = rec.get("counterexample")
@@ -235,7 +251,6 @@ class Planner:
     # ---- run a frame -------------------------------------------------------
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> FrameResult:
         results = []
-        universes_seen = set()
         for name, expr in columns:
             trace = []
             try:
@@ -252,6 +267,7 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
+                self._check_single_universe(tree.body, anchor)            # §2c expression law (one universe/column)
                 blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
                 if blk is not None:
                     raise self._blocked_transport_refusal(blk)
@@ -263,13 +279,25 @@ class Planner:
                 if crossings:
                     disc = Disclosure.merge(disc, Disclosure.of(*crossings), population=disc.population)
                 results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc, trace=trace))
-                if disc.population:
-                    universes_seen.add(disc.population)
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
+            except Exception as e:
+                # EVERYTHING-CLASSIFIES backstop: an unexpected engine/eval failure must never leak a raw
+                # exception past the planner (the guarantee). Classify as ERROR rather than throw.
+                # DOCTRINE-GAP (doctrine_gaps.md · classify-collapse-with-blocked-transport): today
+                # `level.sum @ cal.month` — collapse a base coordinate while transporting another across a
+                # BLOCKED lineage — lands here (a ColumnNotFoundError on main); it SHOULD serve with a
+                # critical blocked_reduction caveat. The structural fix is engine-side; this backstop
+                # guarantees it is at least CLASSIFIED, never raw, past the gate.
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                    refusal=Refusal("unsupported",
+                        f"this frame could not be resolved in the engine ({type(e).__name__}); the ask is "
+                        f"not supported in this build.").classified(), trace=trace))
 
-        # assemble non-refused columns
+        # assemble non-refused columns — §2c FRAME LAW (juxtaposition): columns may come from DIFFERENT
+        # universes; the result is an ALIGNMENT view (full-outer join on the shared anchor; missing where
+        # a universe has no atom at a cell), each column keeping its own population semantics.
         data = None
         for c in results:
             if c.frame is None:
@@ -278,12 +306,10 @@ class Planner:
         if data is not None:
             data = data.sort(list(anchor))
 
-        # frame-level disclosure; add declared-universe ambiguity if columns span universes (planner-visible)
+        # No frame-level population caveat: the old multi-universe `coverage` caveat is RETIRED (§2c). Per-
+        # column honesty replaces it — a juxtaposed frame never asserts a single shared population, and
+        # ON UNIVERSE is dead in the query grammar (cross-universe combination is an authoring act).
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.frame is not None])
-        if len(universes_seen) > 1:
-            frame_disc = frame_disc.with_caveat(Caveat(COVERAGE,
-                f"frame spans multiple universes {sorted(universes_seen)} — population is ambiguous; "
-                f"pin it with ON UNIVERSE"))
         return FrameResult(data, frame_disc, results, anchor)
 
     # ---- expression evaluation (post-agg over measure columns) -------------
@@ -479,7 +505,7 @@ class Planner:
         provenance disclosure (engine.dry_disclose) — assembled into the would-be annotation,
         touching no data. This is EXPLAIN-without-execution: an agent sees the critical crossing
         (and the approximation/assumption caveats) before spending a single backend scan."""
-        results, seen_u = [], set()
+        results = []
         for name, expr in columns:
             trace = []
             try:
@@ -493,6 +519,7 @@ class Planner:
                 if cut_decl is not None:
                     raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
+                self._check_single_universe(tree.body, anchor)             # §2c expression law
                 blk = self._blocked_transport(tree.body, anchor)
                 if blk is not None:
                     raise self._blocked_transport_refusal(blk)
@@ -503,16 +530,11 @@ class Planner:
                 for c in self._frame_crossings(tree.body, anchor):
                     disc = disc.with_caveat(c)
                 results.append(ColumnResult(name, expr, None, disc, trace=trace))
-                if disc.population:
-                    seen_u.add(disc.population)
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
+        # §2c frame law: no frame-level multi-universe `coverage` caveat (retired) — per-column honesty.
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.refusal is None])
-        if len(seen_u) > 1:
-            frame_disc = frame_disc.with_caveat(Caveat(COVERAGE,
-                f"frame spans multiple universes {sorted(seen_u)} — population is ambiguous; "
-                f"pin it with ON UNIVERSE"))
         return FrameResult(None, frame_disc, results, anchor)
 
     # ---- COMPILE: static type inference + vocabulary checks (no engine) -----
@@ -611,28 +633,10 @@ class Planner:
                     raise Refusal("type_error",
                         f"map '{op}' requires {sorted(sig.accepts)} operands; {side} operand is '{dt}'",
                         alternatives=("apply a numeric-valued operator/measure on that side",))
-            if op == "/":
-                # D5 co-anchoring: a ratio whose numerator and denominator resolve over different
-                # populations (universes) has no single determinate value — which population is the
-                # rate taken over? The engine could produce a number per cell, but the *meaning* is
-                # ambiguous, so the planner clarifies, naming the candidate populations, and never
-                # guesses. This is POPULATION co-anchoring; it is distinct from avg-of-averages,
-                # which is a B-anchor/reaggregability hazard (a served critical caveat), not this.
-                # Not eager: a ratio whose operands share one universe just serves.
-                lu = {self.m.measures[mm].universe for (mm, _) in self._atoms(node.left, anchor)
-                      if mm in self.m.measures}
-                ru = {self.m.measures[mm].universe for (mm, _) in self._atoms(node.right, anchor)
-                      if mm in self.m.measures}
-                unis = lu | ru
-                if len(unis) > 1:
-                    raise Refusal("co_anchor_ambiguous",
-                        f"ratio combines measures over different populations {sorted(unis)} "
-                        f"(numerator over {sorted(lu)}, denominator over {sorted(ru)}) — the rate's "
-                        f"population is ambiguous; which population should the rate be taken over?",
-                        discriminator=AMBIGUOUS,
-                        alternatives=tuple(
-                            f"express both numerator and denominator within universe '{u}'"
-                            for u in sorted(unis)))
+            # NOTE: cross-universe combination (the old D5 co-anchoring clarify) is no longer detected
+            # per-operator here — §2c's EXPRESSION LAW checks the whole column expression once, in
+            # `_check_single_universe` (below), raising the `cross_universe` ERROR. One universe per
+            # expression; the denotation rule leaves nothing ambiguous within it.
             return "Float64" if op == "/" else (ldt if ldt == rdt else "Float64")
         raise Refusal("unknown", f"unsupported expression node {type(node).__name__}")
 

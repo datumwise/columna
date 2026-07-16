@@ -62,15 +62,16 @@ def derived_server(hand_manifold, fixture_connector):
 
 
 # --- (a) hazard inheritance: named == inline ------------------------------------------------
-def test_named_ratio_inherits_coanchor_clarify(derived_server):
-    """D5 co-anchoring: a named cross-universe derived ratio clarifies byte-for-byte identically to
-    the inline expression (recursive expansion before the BinOp/D5 check)."""
+def test_named_ratio_inherits_cross_universe_error(derived_server):
+    """§2c expression law: a named cross-universe derived ratio ERRORS byte-for-byte identically to
+    the inline expression (recursive expansion before the whole-expression universe check). Was a
+    co_anchor clarify pre-§2c; now a `cross_universe` category error (retired 2026-07-16)."""
     named = derived_server.frame("store").column("r", "sell_through").run()
     inline = derived_server.frame("store").column("r", "revenue / level.last").run()
     assert _classification(named) == _classification(inline)
     assert _classification(named) == {
-        "outcome": "clarify", "reason": "co_anchor_ambiguous",
-        "discriminator": "ambiguous", "alternatives": ["store_days", "transactions"],
+        "outcome": "error", "reason": "cross_universe",
+        "discriminator": None, "alternatives": [],   # two-path remedy carries no universe-apply
     }
 
 
@@ -125,8 +126,8 @@ def test_parsed_derived_over_family_plans_like_python_built(fixture_connector):
     m = parse_manifold(cml)
     srv = ManifoldServer(m, fixture_connector)
     got = _classification(srv.frame("store").column("r", "sell_through").run())
-    assert got == {"outcome": "clarify", "reason": "co_anchor_ambiguous",
-                   "discriminator": "ambiguous", "alternatives": ["store_days", "transactions"]}
+    assert got == {"outcome": "error", "reason": "cross_universe",
+                   "discriminator": None, "alternatives": []}
 
 
 def test_parsed_derived_unknown_family_member_errors_classified(fixture_connector):

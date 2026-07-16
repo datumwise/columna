@@ -20,6 +20,7 @@ Grammar (statement-oriented; '#' comments; { } blocks):
 """
 from __future__ import annotations
 import re
+from dataclasses import replace
 from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
@@ -203,7 +204,9 @@ def _p_derived(s, M):
 
 
 def _p_measure(s, M):
-    head = re.match(r"MEASURE\s+(\w+)\s+ON\s+(\w+)\s+FROM\s+(\w+)", s)
+    # §2c single-universe sugar: `ON <universe>` is OPTIONAL; a None universe is filled with the sole
+    # universe in parse_manifold (or errors if the manifold has more than one).
+    head = re.match(r"MEASURE\s+(\w+)(?:\s+ON\s+(\w+))?\s+FROM\s+(\w+)", s)
     if not head:
         raise ParseError(f"bad MEASURE header: {s!r}")
     name, universe, table = head.group(1), head.group(2), head.group(3)
@@ -284,9 +287,10 @@ def _split_invariant(inv: str, name: str):
 def _p_assert(s, M):
     # ASSERT <name> ON <universe> WHERE <predicate>                 (row-level; universe-carving grammar)
     # ASSERT <name> ON <universe> AT <anchor> HOLDS <invariant>     (aggregate over measures at an anchor)
-    head = re.match(r"ASSERT\s+(\w+)\s+ON\s+(\w+)\s+(.+)$", s, re.S)
+    # §2c single-universe sugar: `ON <universe>` is OPTIONAL (filled in parse_manifold when sole).
+    head = re.match(r"ASSERT\s+(\w+)(?:\s+ON\s+(\w+))?\s+(WHERE\s+.+|AT\s+.+)$", s, re.S)
     if not head:
-        raise ParseError(f"bad ASSERT: {s!r} (expected 'ASSERT <name> ON <universe> ...')")
+        raise ParseError(f"bad ASSERT: {s!r} (expected 'ASSERT <name> [ON <universe>] WHERE/AT ...')")
     name, universe, rest = head.group(1), head.group(2), head.group(3).strip()
     wm = re.match(r"WHERE\s+(.+)$", rest, re.S)
     if wm:
@@ -337,6 +341,21 @@ def parse_manifold(text: str) -> Manifold:
         _DISPATCH[kw](stmt, M)
     if M["name"] is None:
         raise ParseError("missing MANIFOLD header")
+    # §2c single-universe sugar: a MEASURE/ASSERT that omitted `ON <universe>` takes the sole universe;
+    # with more than one universe, `ON` is REQUIRED (fail closed, naming the ambiguity).
+    _unis = list(M["universes"])
+    for nm, meas in list(M["measures"].items()):
+        if meas.universe is None:
+            if len(_unis) != 1:
+                raise ParseError(f"MEASURE {nm}: 'ON <universe>' is required — the manifold has "
+                                 f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
+            M["measures"][nm] = replace(meas, universe=_unis[0])
+    for i, a in enumerate(M["asserts"]):
+        if a.universe is None:
+            if len(_unis) != 1:
+                raise ParseError(f"ASSERT {a.name}: 'ON <universe>' is required — the manifold has "
+                                 f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
+            M["asserts"][i] = replace(a, universe=_unis[0])
     manifold = Manifold(M["name"], M["version"], M["universes"], M["levels"],
                         M["edges"], M["measures"], M["derived"], M["non_functional"],
                         M["asserts"], M["hierarchies"])

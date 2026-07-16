@@ -147,7 +147,17 @@ class Disclosure:
 REASON_OUTCOME = {
     "non_functional_transport": (CLARIFY, AMBIGUOUS),   # fan-out (M:N): no single total exists
     "ambiguous_grain":          (CLARIFY, AMBIGUOUS),   # attribute keyed at several levels
-    "co_anchor_ambiguous":      (CLARIFY, AMBIGUOUS),   # ratio over >1 population: rate's population ambiguous
+    # ── TOMBSTONE ── `co_anchor_ambiguous` was (CLARIFY, AMBIGUOUS) — "ratio over >1 population: rate's
+    #   population ambiguous". RETIRED 2026-07-16 (§2c expression law, Huayin's ruling): a cross-universe
+    #   expression is a language-law CATEGORY ERROR, not a clarify (see `cross_universe` below); within one
+    #   universe the denotation rule leaves nothing ambiguous. Its emitter left the language entirely and a
+    #   retirement-pin test asserts it is never emitted. Kept here as a dated tombstone so old transcripts
+    #   and docs remain interpretable — vocabularies grow by rule and shrink by tombstone, never silently.
+    "cross_universe":           (ERROR,   None),        # a column expression combines measures from >1
+                                                        #   universe (§2c expression law: a column evaluates in
+                                                        #   ONE universe, never crosses the boundary). A category
+                                                        #   error — rides the ERROR channel, not the four moods.
+                                                        #   Minted 2026-07-16 (§2c). Remedy: juxtapose or declare.
     "input_anchor_ambiguous":   (CLARIFY, AMBIGUOUS),   # inline reduction with no pinned input anchor:
                                                         #   the grain to resolve the inner at is under-
                                                         #   determined (names the same dimension OF-2's
