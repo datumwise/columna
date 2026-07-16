@@ -88,8 +88,8 @@ B8 = Benchmark(id="B8", kind="◆", title="the polarity trap",
 B9 = Benchmark(id="B9", kind="○", title="numeric → measure, categorical → dimension",
     schema={"tables": {"tx": _t([("txn_id", "INTEGER"), ("amount", "DOUBLE"), ("channel", "VARCHAR")],
                                  [(1, 10.0, "web"), (2, 5.0, "store")], pk=["txn_id"])}},
-    ground_truth={"closures": [["measure", "amount"], ["dimension", "channel"]],
-                  "grades": {"measure:amount": "inferred_catalog", "dimension:channel": "inferred_catalog"},
+    ground_truth={"closures": [["measure", "amount"], ["level", "channel"]],
+                  "grades": {"measure:amount": "inferred_catalog", "level:channel": "inferred_catalog"},
                   "oracle_calls": [], "max_checklist": 2})
 
 # ── B10 ◆ registry vs product basis ──────────────────────────────────────────────────────────────

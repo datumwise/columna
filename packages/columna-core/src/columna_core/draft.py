@@ -17,6 +17,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+# The CLOSED declaration-kind vocabulary (Huayin, ruling 1, 2026-07-16): a proposal's `kind` is exactly
+# the definition grammar's declaration kinds — nothing else. The artifact end of the corridor was
+# under-specified; this closes it. Validated at parse_proposals AND on the Proposal itself.
+DECLARATION_KINDS = frozenset({"universe", "level", "edge", "relate", "measure", "derived",
+                               "assert", "hierarchy"})
+
 # grades — data may suggest, never grant (capture §5)
 INFERRED_CATALOG = "inferred_catalog"   # a catalog fact (declared FK, column type)
 INFERRED_SAMPLE = "inferred_sample"     # a data-observed pattern (an FD, a distribution)
@@ -49,6 +55,10 @@ class Proposal:
     target: str = ""                # the declaration's name (measure/universe/edge id) — for eval matching
 
     def __post_init__(self):
+        # the kind is a CLOSED vocabulary — the definition grammar's declaration kinds only (ruling 1)
+        if self.kind not in DECLARATION_KINDS:
+            raise ValueError(f"proposal kind '{self.kind}' is not a declaration kind "
+                             f"(one of {sorted(DECLARATION_KINDS)})")
         # LAYER 1 — no constructor path yields an INFERRED opening; the object cannot exist.
         if self.opens_fertility and not self.author_declared:
             raise PolarityViolation(

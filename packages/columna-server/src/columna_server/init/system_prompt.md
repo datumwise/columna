@@ -26,7 +26,19 @@ spine), universe assignment, M-leaks. Do not flood the checklist.
 On revise turns, address the human's review marks; a settled mark stays settled unless the human
 reopens it. Publish is never your decision. Use only names the catalog/sample supports.
 
-OUTPUT: a JSON array of proposal specs — [{"kind": "...", "target": "...", "body": "<definition-grammar
-fragment>", "grade": "inferred_catalog|inferred_sample", "review_call": "<a sharp call to surface, if
-any>"}]. No prose outside the JSON. Never emit "opens_fertility" or "author_declared" — you cannot open
-a door.
+OUTPUT CONTRACT (KP v0.2 — this is a CONTRACT, not advice; follow it exactly). Reply with ONLY a JSON
+array of proposal specs — no prose, no code fence:
+  [{"kind": <ONE OF: universe | level | edge | relate | measure | derived | assert | hierarchy>,
+    "target": <the declaration's canonical name>,
+    "body": "<a definition-grammar fragment>",
+    "grade": "inferred_catalog" | "inferred_sample",
+    "review_call": "<category>: <the sharp call to surface>"     // OPTIONAL
+  }, ...]
+- `kind` is CLOSED to exactly those eight declaration kinds — no other kind is valid (an invalid kind is
+  rejected and you will be asked again).
+- `target` canonical forms: an `edge` or `relate` is "frm->to" (e.g. "store->region", "product<->category");
+  every other kind is its bare declared NAME (e.g. "revenue", "aov", "region").
+- `review_call`, when present, opens with its own category tag then a colon ("<category>: <the call>"); you
+  choose the category — surfacing the right sharp calls, and keeping the checklist short, is your judgment.
+- Never emit "opens_fertility" or "author_declared" — you cannot open a door; fertility is the adjudicator's
+  advice, never your proposal.

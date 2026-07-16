@@ -36,6 +36,7 @@ def aperture_context(aperture) -> str:
 
 
 _OPENING_KINDS = {"fertility", "fertile", "opening", "door"}
+from columna_core.draft import DECLARATION_KINDS
 
 
 def parse_proposals(text: str) -> list:
@@ -54,7 +55,11 @@ def parse_proposals(text: str) -> list:
         if (s.get("opens_fertility") or str(s.get("kind", "")).lower() in _OPENING_KINDS
                 or "FERTILE" in str(s.get("body", "")).upper()):
             continue                                     # DROP the opening entirely (not the adjudicator's channel)
-        out.append({k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")})
+        if str(s["kind"]).lower() not in DECLARATION_KINDS:     # CLOSED kind vocabulary (ruling 1)
+            raise ValueError(f"unknown declaration kind {s['kind']!r} — use one of {sorted(DECLARATION_KINDS)}")
+        s = {k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")}
+        s["kind"] = str(s["kind"]).lower()
+        out.append(s)
     return out
 
 
@@ -94,10 +99,12 @@ class AnthropicProvider:
     def _call(self, content: str) -> list:
         try:
             return self._once(content)
-        except Exception:                                        # ONE bounded retry on malformed output
+        except Exception:                                        # ONE bounded retry — the retry TEACHES the contract
             self.retries += 1
-            return self._once(content + "\n\n(Your previous reply was not a valid JSON array of "
-                                        "proposal specs. Reply with ONLY the JSON array, no prose.)")
+            return self._once(content + "\n\n(Your previous reply broke the output contract. Reply with "
+                                        "ONLY a JSON array of proposal specs — each `kind` MUST be one of "
+                                        f"{sorted(DECLARATION_KINDS)}, `target` the declaration's canonical "
+                                        "name (an edge/relate as 'frm->to'). No prose, no fenced block.)")
 
     def propose(self, aperture, draft):
         return self._call(aperture_context(aperture))

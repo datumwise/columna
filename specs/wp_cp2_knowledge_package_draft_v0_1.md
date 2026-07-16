@@ -96,7 +96,26 @@ Short, retrievable notes (not prose to read start-to-finish); each is a ruled fa
 
 ---
 
-## Status — RATIFIED & FROZEN 2026-07-16
+## KP v0.2 — the output contract (added 2026-07-16, FLAGGED for ratification)
+Ruling 1 (2026-07-16): the vocabulary fix lands at three layers — structure (the draft `kind` is a CLOSED
+vocabulary, enforced at `parse_proposals`; unknown kind = malformed → the bounded retry teaches the
+contract), **prompt (this v0.2 bump: an OUTPUT-CONTRACT section only — CONTRACT, not behavioral coaching,
+one-variable per ruling 3)**, and instrument (declared synonym maps, scorer 0.3). The exact contract text
+lives in `columna_server/init/system_prompt.md` and is reproduced here for your ratification:
+- Reply is ONLY a JSON array of proposal specs (no prose, no fence).
+- `kind` is CLOSED to the eight declaration kinds: universe · level · edge · relate · measure · derived ·
+  assert · hierarchy.
+- `target` canonical forms: `edge`/`relate` as "frm->to"; every other kind is its bare declared NAME.
+- `review_call` (optional) opens with its own category tag then a colon — **the categories are NOT
+  enumerated** (that would coach ◆-recall and contaminate the measurement); which sharp calls to surface,
+  and keeping the checklist short, is the mind's judgment.
+- Never emit `opens_fertility`/`author_declared`.
+Salience hypothesis (a reading lens for run 3, NOT an action): the calls the mind surfaced (basis,
+universe, M-leak) are general-pretraining doctrines; the silent three (additivity, fertility, refutation)
+are Columna-native — if run 3 confirms the split, the NEXT (separate, measured) KP iteration targets
+salience, not volume.
+
+## Status — RATIFIED & FROZEN 2026-07-16 (§A frame); v0.2 output contract FLAGGED for ratification
 §A wordings are ratified as written and are now under the copy law (change only by ruling). §B carries
 eight skill notes (1–6 plus the ratified additions 7 universe-assignment and 8 M-leak-smells), so the
 reference layer now supports all three sharp calls the prompt orders explicit (basis · universe · M-leak).
