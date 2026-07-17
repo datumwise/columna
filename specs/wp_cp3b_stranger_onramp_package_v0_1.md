@@ -1,4 +1,11 @@
-# CP-3b — the stranger's on-ramp: the ONE package artifact (v0.1, for ratification)
+# CP-3b — the stranger's on-ramp: the ONE package artifact (v0.1, RATIFIED WHOLE 2026-07-17)
+**RATIFIED by Huayin 2026-07-17, whole, with: [AI-1]'s example corrected (input-grain clarify, folded in
+below); [AI-2]/[AI-3]/llms.txt as drafted; llms-full compose-at-build CONFIRMED (no net-new draft); 5e
+ROUTE as `/docs/reference` CONFIRMED; release notes → link the GitHub Release (no site page);
+`/docs/*` gated on CP-M2 CONFIRMED + the ONE-DEPLOY discipline (the whole beat lands as ONE redeploy when
+BOTH the site package AND CP-M2 have merged — front door, llms files, hub, docs routes light up together,
+no intermediate flip); OF-11 rowed. Manuals CP-M2 Part 2 ASSIGNED TO ME (four riders — see §4).**
+
 **From: Claude Code, 2026-07-17. Pre-launch beat, proposals-first. Division of labor (standing this beat):
 the design desk writes, I wire. Bring one package — the plan, every Tier-1 string drafted, the Tier-2
 routing proposal, the 5e disposition, the manuals status. Huayin ratifies once and whole; then I build;
@@ -83,8 +90,8 @@ law + one example + the invitation. Three placements:
 ```
 Columna's "wire" is the answer format an AI agent receives from a data query: a RESULT paired with its
 CONTEXT, in one of four moods — serve, disclose, clarify, refuse — on one contract (contract_version
-"1"), identical over MCP or a direct API call. Example: asking a rate whose two measures live in
-different populations returns `clarify` (the readings, to pick from), never a guessed number. Explain
+"1"), identical over MCP or a direct API call. Example: asking `avg(aov) @ cal.month` — an average with
+no pinned input grain — returns `clarify` (which grain to average from), never a guessed number. Explain
 this wire format to me, and answer my follow-up questions about it.
 ```
 
