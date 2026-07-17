@@ -40,11 +40,12 @@ function copyBtn(query: string): string {
   return `<button class="mx-copy" data-q="${attr(query)}" type="button">copy as query</button>`;
 }
 
+// triad labels RATIFIED LABELLED (Huayin 2026-07-17): defined as / tested / show me.
 function triad(law: string, lic: License | null | undefined, query: string): string {
   return `<div class="mx-triad">
-    <div class="mx-law">${law}</div>
-    <div class="mx-trial">${badge(lic)}</div>
-    <div class="mx-demo">${copyBtn(query)}</div>
+    <div class="mx-law"><span class="mx-label">defined as</span>${law}</div>
+    <div class="mx-trial"><span class="mx-label">tested</span>${badge(lic)}</div>
+    ${query ? `<div class="mx-demo"><span class="mx-label">show me</span>${copyBtn(query)}</div>` : ''}
   </div>`;
 }
 
