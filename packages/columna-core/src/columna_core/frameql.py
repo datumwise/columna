@@ -57,6 +57,44 @@ class ManifoldServer:
         self.engine.publish_witnesses(trace)                # rebuild witnesses for the served regions
         return diff
 
+    def explain_statement(self, stmt) -> dict:
+        """EXPLAIN <envelope statement>: the canonical DESUGARED form (the exact artifact the planner
+        consumed — desugar()'s output, never a reconstruction) + per-series atom decomposition + the
+        dependency cone WITH CURRENT VERDICTS + the would-be annotation, touching ZERO data. The
+        planner supplies the shape (provenance-free); the SERVER enriches with verdicts read off this
+        Manifold's licenses. The agent's cheap inner loop — exposed on MCP as a tool beside query."""
+        from .disclosure_wire import wire_frame
+        from .describe import license_to_dict, describe_derived
+        p = self.planner
+        before = self.engine.con.fetch_count
+        d = p.desugar(stmt)                                       # rider 1: the consumed artifact
+        fr = p.plan_statement(stmt)                              # would-be annotation (zero fetch)
+        would_be = wire_frame(fr, executed=False, fetches_delta=self.engine.con.fetch_count - before)
+
+        def _lic(meas, member):
+            mc = self.m.measures.get(meas)
+            fm = mc.family.get(member) if (mc and hasattr(mc.family, "get")) else None
+            return license_to_dict(fm.license) if (fm and getattr(fm, "license", None)) else None
+
+        series = []
+        for s, wcol in zip(d.series, would_be["columns"]):
+            atoms, derived_names, edges, cut_decl = p.cone_atoms_and_edges(s.expr, d.anchor)
+            for a in atoms:
+                a["license"] = _lic(a["measure"], a["member"])   # verdict enrichment (Manifold-side)
+            cone = {
+                "atoms": atoms,
+                "derived": [describe_derived(self.m, n) for n in derived_names],
+                "edges": edges,
+                "scope": {"cut": cut_decl, "in_cut_region": cut_decl is not None,
+                          "crosses_blocked_edge": any(e["blocked"] for e in edges)},
+            }
+            series.append({"name": s.alias, "expr": s.expr, "cone": cone,
+                           "would_be": {"status": wcol["status"], "no_result": wcol.get("no_result"),
+                                        "disclosures": wcol.get("disclosures", [])}})
+        return {"contract_version": would_be["contract_version"], "executed": False,
+                "fetches_delta": would_be.get("fetches_delta", 0), "desugared": d.render_canonical(),
+                "outcome": would_be["outcome"], "anchor": list(d.anchor), "series": series}
+
     @property
     def witnesses(self): return self.engine.witnesses
 

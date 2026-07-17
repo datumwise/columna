@@ -604,6 +604,35 @@ class Planner:
         """The would-be assembly without executing (zero backend fetches) — EXPLAIN's engine."""
         return self.run_statement(stmt, execute=False)
 
+    def cone_atoms_and_edges(self, expr: str, anchor: tuple) -> tuple:
+        """SHAPE for EXPLAIN's dependency cone (provenance-free — the planner's remit): the atomic
+        (measure, member, universe) atoms, the derived names referenced, and the edges the transport
+        traverses (with blocked status) + the cut declaration hit. The SERVER enriches with verdicts
+        (licenses live on the Manifold, not the projection). Zero data touched."""
+        engine_expr = self._convert_input_anchor(expr)
+        tree = ast.parse(engine_expr, mode="eval").body
+        atoms = [{"measure": meas, "member": member,
+                  "universe": self.m.measures[meas].universe if meas in self.m.measures else None}
+                 for (meas, member) in self._atoms(tree, anchor)]
+        derived = sorted({n for n in re.findall(r"[A-Za-z_]\w*", engine_expr) if n in self.m.derived})
+        edges, seen = [], set()
+        for (meas, _member) in self._atoms(tree, anchor):
+            mc = self.m.measures.get(meas)
+            if mc is None:
+                continue
+            base = self.m.universes[mc.universe].base_dimensions
+            for T in anchor:
+                path = self.m.find_path(base, T)
+                if path is None:
+                    continue
+                for e in path[1]:
+                    key = (e.frm, e.to, e.lineage)
+                    if key not in seen:
+                        seen.add(key)
+                        edges.append({"frm": e.frm, "to": e.to, "lineage": e.lineage,
+                                      "blocked": (e.frm, e.to) in self.blocked_edges})
+        return atoms, derived, edges, self._cut_hit(engine_expr)
+
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
         tree = ast.parse(expr, mode="eval")
