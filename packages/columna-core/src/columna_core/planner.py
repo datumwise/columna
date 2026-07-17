@@ -411,18 +411,37 @@ class Planner:
         self._synerr(f"series {expr!r} has no unambiguous name — give it one with AS "
                      f"(e.g. SELECT {expr} AS my_name)")
 
-    def _resolve_series(self, stmt) -> list:
-        """Series -> [(name, expr)] with §4 naming + WITH substitution + `@ {..}` conversion. The engine
-        never sees an alias or a brace — one expression dialect."""
+    def _canon_expr(self, expr: str) -> str:
+        """Normalize a series expression's input anchors to the CANONICAL brace form `@ {level}` (rider:
+        `@ {…}` is canonical, bare `@ level` is accepted sugar — grammar §2). Idempotent."""
+        bare = self._convert_input_anchor(expr)                  # any `@ {X}` -> `@ X` first (idempotent)
+        return re.sub(r"@\s*([A-Za-z_][\w.]*)", r"@ {\1}", bare) # then bare -> canonical `@ {X}`
+
+    def desugar(self, stmt):
+        """THE desugaring transform (WP-FrameQL sugars increment, rider 1): rewrite the parsed Statement
+        to CANONICAL form BEFORE planning — one dialect at the planner, and the exact artifact EXPLAIN
+        emits (never a reconstruction). Sugars folded here, each MECHANICAL-or-refused (rider 2), no
+        heuristic middle:
+          • WITH bindings inlined into the series (the canonical form carries no WITH);
+          • input anchors to canonical brace form `@ {level}` (bare `@ level` accepted → braced);
+          • series names resolved (§4: AS alias, else mechanical default; ambiguous → refused);
+          • anchor to canonical declared levels (comma → `*` already normalized by the parser).
+        The single-universe and comma-anchor sugars are already canonical out of the parser. The
+        omitted-input-anchor sugar is left as-is: the planner's existing path clarifies
+        `input_anchor_ambiguous` — the SAME shipped code/channel (rider 3), no re-mint here."""
+        from . import envelope as E
         subs = {}
         for b in stmt.bindings:
-            subs[b.name] = self._convert_input_anchor(self._apply_subs(b.expr, subs))
-        out = []
+            subs[b.name] = self._canon_expr(self._apply_subs(b.expr, subs))
+        series = []
         for s in stmt.series:
-            expr = self._convert_input_anchor(self._apply_subs(s.expr, subs))
-            name = s.alias or self._default_name(expr)
-            out.append((name, expr))
-        return out
+            expr = self._canon_expr(self._apply_subs(s.expr, subs))
+            name = s.alias or self._default_name(self._convert_input_anchor(expr))
+            series.append(E.Series(expr=expr, alias=name))
+        anchor = self.resolve_anchor(stmt.anchor)
+        return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
+                           from_manifold=stmt.from_manifold, bindings=[], where=list(stmt.where),
+                           having=list(stmt.having), order_by=list(stmt.order_by), limit=stmt.limit)
 
     def _check_name_collisions(self, columns: list, anchor: tuple):
         """§4: collisions are REFUSED, never suffixed — incl. a column name vs an anchor-dimension name."""
@@ -563,17 +582,23 @@ class Planner:
                     break
         return out
 
+    def _engine_columns(self, desugared) -> list:
+        """The canonical desugared series -> [(name, expr)] the engine consumes. The ONLY transform is
+        the AST-substrate adapter (canonical `@ {level}` -> `@ level`, since Python's ast can't hold a
+        `{…}` set literal as an anchor) — not a re-sugaring; the desugared Statement remains the artifact."""
+        return [(s.alias, self._convert_input_anchor(s.expr)) for s in desugared.series]
+
     def run_statement(self, stmt, execute: bool = True) -> FrameResult:
-        """Assemble and dispose an envelope Statement (the whole clause set). ON is dead (§2c); universe
-        is resolved structurally per column. Returns a FrameResult exactly like `run`, so every surface
-        reads it uniformly."""
-        columns = self._resolve_series(stmt)                     # §4 naming + WITH + @{..}
-        anchor = self.resolve_anchor(stmt.anchor)
-        self._check_name_collisions(columns, anchor)             # §4 collisions REFUSED
-        where = " AND ".join(stmt.where) if stmt.where else None # per-series pre-reduction (existing plumbing)
-        unreachable = self._where_reachability(columns, stmt.where) if stmt.where else None
-        fr = (self.run if execute else self.plan)(anchor, columns, where, where_unreachable=unreachable)
-        return self._apply_output_clauses(fr, stmt, anchor, columns)
+        """Assemble and dispose an envelope Statement (the whole clause set). Desugars to canonical AST
+        FIRST (one dialect), then plans it. ON is dead (§2c); universe is resolved structurally per
+        column. Returns a FrameResult exactly like `run`, so every surface reads it uniformly."""
+        d = self.desugar(stmt)                                   # canonical AST (EXPLAIN's artifact) — rider 1
+        columns = self._engine_columns(d)
+        self._check_name_collisions(columns, d.anchor)           # §4 collisions REFUSED
+        where = " AND ".join(d.where) if d.where else None       # per-series pre-reduction (existing plumbing)
+        unreachable = self._where_reachability(columns, d.where) if d.where else None
+        fr = (self.run if execute else self.plan)(d.anchor, columns, where, where_unreachable=unreachable)
+        return self._apply_output_clauses(fr, d, d.anchor, columns)
 
     def plan_statement(self, stmt) -> FrameResult:
         """The would-be assembly without executing (zero backend fetches) — EXPLAIN's engine."""
