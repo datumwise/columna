@@ -211,9 +211,15 @@ WITH line = revenue @ {transaction}
 SELECT sum(line)        AS gross,
        avg(aov @ {day}) AS typical
 AT { region * store }
-ORDER BY gross DESC
+ORDER BY region, gross DESC
 LIMIT 3 PER { region }
 ```
+
+_(§7 corrected 2026-07-17, Huayin ruling on flag 3 — FLAGGED: the earlier draft wrote `ORDER BY gross
+DESC`, dropping `region`. **PER's law is BOTH constraints conjoined**, not rivals: PER keys are anchor
+coordinates only (aliases refused) **AND** `PER ⊆ ORDER BY` — PER groups, the remaining ORDER BY keys
+rank within, groups present contiguously. So every PER key must also be an ORDER BY key; `region` is
+restored to ORDER BY, matching the original ratified five-liner and the What-is-FrameQL piece.)_
 
 Reading it:
 - **`AT { region * store }`** — the output anchor is the **product** of two levels; every row is a
@@ -225,11 +231,12 @@ Reading it:
 - **`typical = avg(aov @ {day})`** reads `aov` at **day** grain (its input anchor) and averages to
   (region, store) — a **degeneracy** the edge carries: two different input grains (transaction, day)
   collapsing into one output frame, legal because each series names its own `@`.
-- **`ORDER BY gross DESC`** references the frame's own column `gross`.
-- **`LIMIT 3 PER { region }`** keeps the top 3 rows per `region` — and **`PER {region}` ⊆ the sort's
-  reachable grain**: `region` is an anchor coordinate of the frame, so the per-partition top-N is
-  well-posed. `PER {typical}` would be refused (alias, not a coordinate); `PER {store}` would be a
-  no-op-shaped-but-legal partition of one row each.
+- **`ORDER BY region, gross DESC`** references the frame's own columns; `region` (the PER key) leads so
+  groups are contiguous, `gross DESC` ranks within each.
+- **`LIMIT 3 PER { region }`** keeps the top 3 rows per `region` — **`region` is both an anchor
+  coordinate AND an ORDER BY key** (the conjoined PER law), so the per-partition top-N is well-posed.
+  `PER {typical}` would be refused (alias, not a coordinate); `PER {store}` would be refused unless
+  `store` is added to ORDER BY (PER ⊆ ORDER BY).
 
 This single statement is the acceptance target for the parser+planner increment: parse it, desugar it,
 resolve its atoms, admit its edges, and shape it — every clause exercised.

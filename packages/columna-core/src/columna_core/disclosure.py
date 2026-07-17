@@ -163,6 +163,16 @@ REASON_OUTCOME = {
                                                         #   the grain to resolve the inner at is under-
                                                         #   determined (names the same dimension OF-2's
                                                         #   immaterial input-anchor note records)
+    "filter_unreachable":       (CLARIFY, AMBIGUOUS),   # a WHERE dimension cannot lawfully reach a series'
+                                                        #   input anchor (the filter's grain is not
+                                                        #   addressable in that series' universe). MINTED
+                                                        #   2026-07-17 (WP-FrameQL envelope, Huayin) — the
+                                                        #   envelope's per-series WHERE reachability law; one
+                                                        #   reason per contested dimension (OF-1). Detail
+                                                        #   names the dimension, the series, and the reachable
+                                                        #   alternatives; two-path remedy: restrict the
+                                                        #   predicate to reachable dims, or change the series'
+                                                        #   input anchor. S1a: registry is the source of truth.
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
     "conflicting_data":         (REFUSE,  UNSUPPORTED), # a declared invariant (ASSERT) the attested data

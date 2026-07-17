@@ -253,10 +253,18 @@ class Planner:
         return tuple(out)
 
     # ---- run a frame -------------------------------------------------------
-    def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> FrameResult:
+    def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
+            where_unreachable: Optional[dict] = None) -> FrameResult:
         results = []
         for name, expr in columns:
             trace = []
+            # envelope WHERE reachability (filter_unreachable): a series the planner already adjudicated as
+            # unable to reach a WHERE dimension clarifies here, BEFORE any engine call — per-series, so
+            # reachable siblings still serve (the juxtaposition model).
+            if where_unreachable and name in where_unreachable:
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                                            refusal=where_unreachable[name].classified(), trace=trace))
+                continue
             try:
                 # COMPILE: static typecheck (vocabulary, signatures, addressability, expression
                 # typing) — no engine calls. Operator-not-supported and type errors are caught
@@ -444,6 +452,7 @@ class Planner:
                              f"select it as a column, or add it to the anchor")
         if stmt.limit is not None:
             series_names = frame_cols - set(anchor)              # frame columns that are NOT anchor coordinates
+            order_cols = {k.column for k in stmt.order_by}
             for d in stmt.limit.per:
                 if d in series_names:                            # an alias/series name ⇒ §4 refusal
                     self._synerr(f"PER {{{d}}} names {d!r}, an output column — PER takes ANCHOR "
@@ -451,6 +460,13 @@ class Planner:
                 if d not in anchor:
                     self._synerr(f"PER {{{d}}} names {d!r}, which is not an anchor coordinate — PER "
                                  f"partitions along the frame's grain; add {d!r} to the anchor")
+                # PER ⊆ ORDER BY (the manual's determinism-and-contiguity law, ruled 2026-07-17): PER keys
+                # GROUP, the remaining ORDER BY keys RANK within, and the output presents groups contiguously
+                # — so every PER key must be an ORDER BY key.
+                if d not in order_cols:
+                    self._synerr(f"PER {{{d}}} is not in ORDER BY — PER groups and ORDER BY ranks within "
+                                 f"each group, so the partition key must also sort; add {d!r} to ORDER BY "
+                                 f"(e.g. ORDER BY {d}, …)")
 
     def _predicate_column(self, pred: str) -> str:
         for op, _m in self._CMP:
@@ -518,6 +534,35 @@ class Planner:
                 data = data.head(stmt.limit.n)
         return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
 
+    def _where_reachability(self, columns: list, where_predicates: list) -> dict:
+        """§WHERE reachability (filter_unreachable, minted 2026-07-17): a WHERE dimension must be
+        addressable in each series' OWN universe (the filter binds pre-reduction, at the series' input).
+        Returns {series_name: Outcome} for series that cannot reach some WHERE dimension — a per-series
+        CLARIFY so reachable siblings still serve. Adjudicated HERE, before Polars/engine (directive 7)."""
+        levels = [self._predicate_column(p) for p in where_predicates]
+        out = {}
+        for name, expr in columns:
+            try:
+                uni = self._check_single_universe(ast.parse(expr, mode="eval").body, ())
+            except Exception:
+                continue                                         # a malformed series — let the normal run classify it
+            if uni is None:
+                continue
+            base = self.m.universes[uni].base_dimensions
+            reachable = sorted({lv for lv in ({e.frm for e in self.m._edges} | {e.to for e in self.m._edges} | set(base))
+                                if lv in base or self.m.find_path(base, lv) is not None})
+            for lvl in levels:
+                if lvl not in base and self.m.find_path(base, lvl) is None:
+                    out[name] = Refusal("filter_unreachable",
+                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is not "
+                        f"addressable in that series' universe '{uni}', so the pre-reduction filter has no "
+                        f"grain to bind to; the answer would be silently partial.",
+                        target=lvl, measure=name, discriminator=AMBIGUOUS,
+                        alternatives=(f"restrict the predicate to a reachable dimension ({', '.join(reachable)})",
+                                      f"change series '{name}' to an input anchor that reaches '{lvl}'"))
+                    break
+        return out
+
     def run_statement(self, stmt, execute: bool = True) -> FrameResult:
         """Assemble and dispose an envelope Statement (the whole clause set). ON is dead (§2c); universe
         is resolved structurally per column. Returns a FrameResult exactly like `run`, so every surface
@@ -526,7 +571,8 @@ class Planner:
         anchor = self.resolve_anchor(stmt.anchor)
         self._check_name_collisions(columns, anchor)             # §4 collisions REFUSED
         where = " AND ".join(stmt.where) if stmt.where else None # per-series pre-reduction (existing plumbing)
-        fr = (self.run if execute else self.plan)(anchor, columns, where)
+        unreachable = self._where_reachability(columns, stmt.where) if stmt.where else None
+        fr = (self.run if execute else self.plan)(anchor, columns, where, where_unreachable=unreachable)
         return self._apply_output_clauses(fr, stmt, anchor, columns)
 
     def plan_statement(self, stmt) -> FrameResult:
@@ -721,7 +767,8 @@ class Planner:
         return out
 
     # ---- PLAN: the would-be annotation WITHOUT executing (zero backend fetches) -------------
-    def plan(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> "FrameResult":
+    def plan(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
+             where_unreachable: Optional[dict] = None) -> "FrameResult":
         """Compile-only: typecheck + addressability + structural crossings + the spec-only
         provenance disclosure (engine.dry_disclose) — assembled into the would-be annotation,
         touching no data. This is EXPLAIN-without-execution: an agent sees the critical crossing
@@ -729,6 +776,10 @@ class Planner:
         results = []
         for name, expr in columns:
             trace = []
+            if where_unreachable and name in where_unreachable:  # filter_unreachable clarify, would-be
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                                            refusal=where_unreachable[name].classified(), trace=trace))
+                continue
             try:
                 tree = ast.parse(expr, mode="eval")
                 for n in ast.walk(tree):
