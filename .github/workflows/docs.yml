@@ -25,3 +25,9 @@ jobs:
           pip install ./packages/columna-core ./packages/columna-server
       - name: Regenerate Frame-QL examples by execution (check mode)
         run: python docs/tools/regen_examples.py --check
+      # Standing test riding the manuals merge (from the CP-M2 parser self-verification rider): every
+      # FrameQL example in the manual parses clean against the shipped parser, or is fenced
+      # `frameql-illformed` (deliberately ill-formed). The manual can never document syntax its own
+      # parser rejects. Green once columna-core is 0.9.0 (the envelope parser); this rides the flip.
+      - name: FrameQL manual parses against the shipped parser
+        run: python docs/tools/check_manual_frameql.py
