@@ -19,7 +19,8 @@ from .draft import (Draft, Proposal, PolarityViolation, lower_proposal, DECLARAT
                     PROPOSED, ACCEPTED, STRUCK, EDITED,
                     SCOPED, PROPOSED_STATE, DECLARED_STATE, ATTESTED, PUBLISHED)
 from .connector import CatalogAperture, APERTURE_SAMPLE_CAP
-from .describe import describe_derived, license_to_dict
+from .describe import (describe_derived, license_to_dict, describe_universe, describe_assert,
+                       describe_hierarchy, operator_properties, absence_semantics)
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
 
 __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
@@ -34,6 +35,7 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "Disclosure", "Caveat", "Refusal", "Outcome",
            "adjudicate", "Contradiction", "AssertContradiction", "HierarchyContradiction",
            "AssertNotWellFormed", "PublishedScope", "scope_from_report", "scope_diff",
-           "describe_derived", "license_to_dict",
+           "describe_derived", "license_to_dict", "describe_universe", "describe_assert",
+           "describe_hierarchy", "operator_properties", "absence_semantics",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
 __version__ = "0.7.8-core"
