@@ -21,15 +21,41 @@ class ManifoldServer:
         return Frame(self, self.planner.resolve_anchor(tuple(anchor)), where)
 
     def publish(self, trace=None, attestation: Optional[str] = None) -> int:
-        """Publish the manifold: ADJUDICATE every declared derived-column fertility (attaching the
-        constructed License to each member — the sole place a License is minted), then materialize
-        the witness store. A CONTRADICTED declaration fails closed here: `adjudicate` raises and the
-        manifold does not publish (no witnesses built). Returns the number of witnesses built.
+        """Publish the manifold: ADJUDICATE every declared capability (attaching the constructed License
+        — the sole place a License is minted), then materialize the witness store. A CONTRADICTED
+        declaration fails closed here: `adjudicate` raises and the manifold does not publish (no
+        witnesses built). Returns the number of witnesses built. This is the FIRST-birth act — strict.
 
-        Adjudication is a no-op for a manifold with no declared fertility (unchanged behavior)."""
-        from .adjudication import adjudicate
-        self.adjudication = adjudicate(self, attestation=attestation, trace=trace)
+        Adjudication is a no-op for a manifold with no declared capability (unchanged behavior)."""
+        from .adjudication import adjudicate, PublishedScope, _snapshot_licenses
+        self.adjudication = adjudicate(self, attestation=attestation, trace=trace)   # strict; fails closed
+        self.published_scope = PublishedScope(licenses=_snapshot_licenses(self.m))   # clean birth: no cuts
+        self.planner.cut, self.planner.cut_by = frozenset(), {}
+        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
         return self.engine.publish_witnesses(trace)
+
+    def reattest(self, attestation: Optional[str] = None, trace=None) -> dict:
+        """RE-ATTEST an already-published manifold against fresh data — a constitutionally DIFFERENT
+        act from `publish` (Huayin, 2026-07-16): a data refutation here EDITS THE PUBLISHED SCOPE
+        (degrade), it does not fail closed. Re-adjudicates in degrade mode, recomputes the scope as a
+        PURE function of the new verdicts (symmetric — a now-holding assert RESTORES its region), and
+        RETURNS the authoring-event report (the scope diff: cuts, restores, revocations, re-licenses,
+        counterexample coordinates) that summons the author to the three exits. Never mutates silently."""
+        from .adjudication import adjudicate, scope_from_report, scope_diff, PublishedScope
+        old = getattr(self, "published_scope", None) or PublishedScope()
+        self.engine.cache.clear()          # re-attestation is fresh data — the version-gated cache is stale
+        # the scope is a PURE recomputation (no ratchet): clear the old cut/blocks so re-adjudication's
+        # own serves are not blocked by the very scope-edits it is re-deciding.
+        self.planner.cut, self.planner.cut_by = frozenset(), {}
+        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
+        report = adjudicate(self, attestation=attestation, trace=trace, degrade=True)
+        new = scope_from_report(self.m, report)
+        diff = scope_diff(old, new)
+        self.published_scope = new
+        self.planner.cut, self.planner.cut_by = new.cut, new.cut_by
+        self.planner.blocked_edges, self.planner.blocked_by = new.blocked_edges, new.blocked_by
+        self.engine.publish_witnesses(trace)                # rebuild witnesses for the served regions
+        return diff
 
     @property
     def witnesses(self): return self.engine.witnesses

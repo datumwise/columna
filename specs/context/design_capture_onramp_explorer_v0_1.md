@@ -90,8 +90,8 @@ gloss.
   signatures are addresses; levels are manifold-scope OBJECTS that universes include —
   sharing is by identity, never by name; `transactions.day` and `store_days.day` address
   the same day. Dimension families cover, not partition; membership is edge-derived.
-  **Anchoring is family-agnostic; travel is not.** The shadowing ban extends: aliases and
-  operator overrides never enter the level namespace.
+  **Anchoring is family-agnostic; travel is not.** The shadowing ban extends: operator
+  overrides never enter the level namespace.
 - **The anchor product:** `*` — the SAME operator as `UNIVERSE ... = a * b * c`.
   General form: `revenue @ region*day`. **RULED (a):** keep-both through launch — `*`
   canonical in all system output, comma accepted on input; the comma retires in the
@@ -137,6 +137,10 @@ leaves describe, and universe predicates are rendered logically (no raw `table.c
 references). A standing test enforces the guarantee. Capture item carried with it: levels
 need a logical dtype (today the Map supplies it); declared at the Law level when the
 artifact splits.
+*Precision (CP-3, 2026-07-17, OF-9):* the shipped guarantee is STRUCTURAL — no table names, no
+qualified `table.column`; a bare predicate ATTRIBUTE name renders as authored. Declared logical
+names for predicate terms (the full fix) are a definition-language extension, their own WP (OF-9);
+the standing test tightens to full verification when it lands.
 
 ## 2c · Universe resolution: one expression, one universe (RULED 2026-07-15; supersedes the combo-law draft)
 
@@ -217,13 +221,89 @@ cache; resolve early, remember the costume, key on the substance.
 
 ## 5 · Authoring (RATIFIED doctrine; built later; init is the first slice)
 
+**The frame (RATIFIED 2026-07-15): Authoring IS an AI Agent — and one builds an agent by
+building its world.** Semantic reasoning (meaning recovery from messy human artifacts) is
+legit and is the entire value; the mind is rented from the frontier model; what we build
+is the world: the ARTIFACT (draft format, grades, the Map), the TOOLS (catalog readers,
+samplers, the adjudicator — deterministic software), the LAWS (state machine,
+publish-as-author's-act, the polarity principle), and the KNOWLEDGE (manuals, captures,
+describe — documentation is agent capability). Governing sentence: **agents live at the
+seams; the algebra lives in the core** — the query agent at the meaning-out seam, the
+authoring agent at the meaning-in seam, one algebra between them that neither can corrupt.
+Consequences: A5's never-infer set is enforced as ARTIFACT well-formedness (the draft
+format has no legal way to express an inferred opening — schema, not prompt); the agent's
+knowledge package is doctrine under the copy law (prompt edits are rulings); testing
+splits mind/world — unit tests for tools and laws, EVALS for judgment (golden authoring
+benchmarks); the on-ramp WP's deliverables grow by two: the knowledge package and the
+eval suite.
+
+**The harness thesis (RATIFIED 2026-07-15):** the harnessed agent faces a
+search-with-verifier problem, not a generation problem — the Certificate kernel is a
+partial ORACLE (edges testable, completeness refutable, properties provable/corroborable,
+well-formedness errors as machine-parseable training signal), and the loop converges
+against verdicts. Three learning channels, no weights: within-session (the A4 loop),
+across versions (the knowledge package under the copy law — authoring failures become
+ledgered textbook edits), across time (the eval suite as ratchet; published manifolds as
+worked examples). The mind stays rented; the WORLD learns. Oracle coverage map: verifiable
+claims are largely the load-bearing ones; the unverifiable residue is largely
+communicative (weightless by design); the honest crack — a few meaning-calls are
+load-bearing AND oracle-asymmetric (basis type is the sharp case: a false spine claim is
+refutable, a false events claim is not — absence-as-zero and absence-as-gap look
+identical), plus universe assignment and M-leaks. The harness's deliverable is therefore
+to SHRINK review to a short checklist of exactly these human calls — which also dissolves
+most automation-bias risk (rubber-stamping is a disease of long undifferentiated reviews).
+Strategic corollary: the harness is the compounding proprietary asset — model gains lift
+all competitors equally; world gains accrue only here and improve WITH the rented mind.
+**FIRST CAUSAL CONFIRMATION (run 5, 2026-07-16):** two arms, one variable (KP v0.2 vs
+v0.3 salience edit), same model/scorer/benchmarks — ◆-explicitness 4/7 → 6/7, and the
+crux: m-leak was NAMED in v0.2 yet silent, TRIGGERED in v0.3 and surfaced. Salience is
+scaffolding, not naming. The canonical finding stands measured: the mind surfaces what
+pretraining taught and stays silent on what only the KP teaches — until the world
+teaches it with observable triggers.
+**THE FIRST COMPLETE RATCHET CYCLE (runs 5–7, 2026-07-16, SHIPPED):** v0.3 salience
+(◆ 4/7→6/7, crux confirmed) → v0.4 unfloored prune (flood win, recall cost — caught by
+its own pre-registered do-not-ship clause, banked and REVERTED) → v0.5 floored prune
+(n=3, pre-registered criteria both cleared: flood halved 6.67→3.33 AND recall held at
+5.0; the floor precisely undid v0.4's collateral damage). Ratified → live → measured →
+shipped, one honest revert in the middle. The checklist law, now doctrine (from KP v0.5
+verbatim): **a long undifferentiated review re-creates the automation bias the whole
+design exists to kill; a silenced sharp call re-creates the meaning-loss the whole
+design exists to prevent.** The checklist is exactly the triggered sharp calls — no
+fewer, no more.
+
+**The two-ends principle (RATIFIED 2026-07-15, Huayin's generalization):** the industry's
+principle is human-IN-THE-MIDDLE; Columna's is **human in the middle AND at the two
+ends** — the agent operates inside a corridor whose both walls are human-designed, with
+the middle reserved for contested judgment. Query agent: data end sealed by the Manifold
+(the model perceives only describe metadata and lawful reduced frames — zero raw rows,
+ever); action end sealed by intent-under-user's-control; the middle is CLARIFY —
+human-in-the-middle machinery invoked exactly where intent is contested. Authoring agent:
+data end is the connector's narrow typed API surface (deliver_*-class calls + catalog,
+NOT general SQL — an exfiltrating query is structurally uncomposable); artifact end is
+the draft spec whose schema cannot express an inferred opening; the middle is
+declare-and-publish, the author's acts. **Precision that makes the principle honest: the
+ends are GOVERNED APERTURES, not absolute walls** — the authoring aperture includes
+metered samples (A1), so the claim is never "the model touches no data" but "every
+boundary has a declared shape": bounded rows, profile-stats-first, and a connector-level
+sampling policy w/ column masking (KNOB TO BUILD — ledgered for the enterprise era).
+General form: an agent is never "connected to" anything — it perceives through declared
+apertures, produces into checkable artifacts, and the judgments between belong to humans.
+Positioning corollary (stance-contrast from public materials only): the neighboring bet
+optimizes how fast raw data reaches the model; ours makes sure it never has to.
+
 Huayin's workflow maps 1:1 onto the constitutional sentence: agent inference → PROPOSALS
 carrying `INFERRED_*` grades (*data may suggest, never grant*); human change/approve →
 the DECLARATION act (*authority is declared*); agent verification → the adjudication
 channels (*mathematics may verify; data may only refute or corroborate*); publish →
 default closed (CONTRADICTED fails). **The durable contract is the artifact state
 machine:** `scoped → proposed → declared → attested → published`, grades and verdicts
-riding every declaration. The multi-context module architecture (database / code / docs /
+riding every declaration. **The alternating handshake (Huayin's observation, RATIFIED
+2026-07-15):** the machine is a strict human–agent alternation — human bounds
+(jurisdiction), agent explores (suggestion, graded), human commits (authority), agent
+tests (trial, verdicts), human publishes (commitment). Every agent turn is sandwiched
+between human acts: the two-ends principle applied FRACTALLY, recurring at every step.
+This is the answer to "where is the human in your authoring loop": not somewhere in it —
+at every other step, by construction. The multi-context module architecture (database / code / docs /
 semantic-layer adapters; persona: the data engineer) is the later product; **`columna
 init` is Authoring's database-context slice** — same state machine, one context, two
 outputs per §1, no adapter framework in v1 (YAGNI guard).
@@ -239,38 +319,96 @@ outputs per §1, no adapter framework in v1 (YAGNI guard).
 - **Scope IN (RULED):** (a) licenses + verdicts on derived members — VERIFIED (timeless) ·
   CORROBORATED (watermark shown) · UNTESTABLE (asserted, says so); (b) fertility made
   visible — per member per lineage, askability vs travel, extending the shipped
-  legal-cone display with the license that opens each direction; (c) ALIAS rendering —
-  the wardrobe on the one anchored object; (d) resolution anchors on `AT` metrics;
+  legal-cone display with the license that opens each direction; (c) STRUCK 2026-07-15 — ALIAS cut per §7 C1; (d) resolution anchors on `AT` metrics;
   (e) an Operator Registry panel — kind, monoid, linear: the same facts the adjudicator
   reads (and, per §4, the resolved-name discipline made visible); (f) declare
   `sell_through_rate` as a proper DERIVED in the demo manifold — retiring tier 1's
   provenance-labeled workaround and putting a live verdict badge on the demo's own metric.
 - **Scope OUT:** visual anchor-lattice map (tier 3); query playground beyond the seeded
   set (live-compute era); search/filter polish.
+- **Posture (RULED 2026-07-15): working-user-first, not a demo replacement.** The design
+  goal is the working user; the launch visitor's teaching stays with the demo and the
+  Ladder. Consequence — **the Explorer is a COMPONENT of the product; the site's
+  `/explorer` is its demo-manifold instance.** Design constraint: the component binds to
+  any describe artifact, zero site-specific coupling; the package-served deployment
+  (columna-server offering the Explorer against a live manifold) is the recorded
+  near-future path. IA: reference-first — dense, searchable, measure-first entry; the
+  law/trial/demonstration triad tuned for daily use (one click deep, not narrated);
+  demonstration leg = "copy as query" primary, demo-player wiring only on the site
+  instance. Copy: functional microcopy under the copy law (not narrative corpus prose).
+  Parked thought (Huayin): the Explorer-as-component may eventually influence the demo's
+  future — a file note, not this WP.
 - **Home (RULED):** a standalone **`/explorer`** page; the homepage exhibit keeps a
-  compact entry point linking in. New page copy is corpus-sourced under the copy law and
-  lands before the freeze or explicitly after launch — Huayin's sequencing call at freeze
-  time.
+  compact entry point linking in. Page copy under the copy law lands before the freeze
+  or explicitly after launch — Huayin's sequencing call at CP-3.
 
 ## 7 · Forks remaining for CP-0 of the WP (open; positions sketched)
 
-- **A1 · init inference sources** — catalog only vs catalog + sampled data; what each may
-  propose (universes/levels from tables+keys; edges from FKs + observed functional
-  dependence; measures from numerics; calendar detection).
-- **A3 · draft vs publish-attempt** — position: init emits a draft artifact that cannot
-  publish until reviewed; publish is an explicit act (degradation toward correctness).
-- **A4 · interaction model** — one-shot vs interview vs generate-then-annotate; an agent
-  running init is a first-class caller.
+- **A1 (RULED 2026-07-15):** catalog + scoping, with sampled data attempted — proposals
+  carry the grade their evidence earns (INFERRED_CATALOG vs INFERRED_SAMPLE). Output is a
+  DRAFT.
+- **A3 (RULED 2026-07-15):** no publish until reviewed — the draft artifact cannot
+  publish; publish is an explicit act.
+- **A4 (RULED 2026-07-15):** iterate — generate, review, revise, in a loop; **publish is
+  never an automatic decision: it is an author's act.** An agent running init is a
+  first-class caller of the loop, but the publish act belongs to the author.
 - **A5 · the never-infer set** — enumerate explicitly; fertility is on it always; B-anchor
   bars propose-only at strongest grade.
-- **B1 · ASSERT semantics** — what is assertable; channel mapping; violated-then-revoked
-  disclosure behavior.
-- **B3 · UNIVERSE BASIS** — what each basis type licenses/verifies; material disclosures.
-- **C1 · ALIAS syntax** — `ALIAS <name> FOR <target>`; target kinds; collision law per
-  §4's shadowing ban; chains banned.
-- **D1 · describe schema** — extend the shipped per-kind shape additively; License block
-  reused verbatim across fertility/hierarchy/assert; versioning posture vs the wire
-  contract.
+- **B1 (RULED 2026-07-15).** Assertable v1: row-level predicates on a universe +
+  aggregate invariants at an anchor (cross-measure reconciliation); functional facts are
+  HIERARCHY's, no overlap. Data channel only; UNTESTABLE stands asserted-and-disclosed;
+  CONTRADICTED fails publish closed. **A violation on re-attestation is an AUTHORING
+  EVENT, not a runtime state: it edits the published scope** — the affected region is
+  CUT (queries there refuse; everything else serves untouched). Coverage v1: declaration
+  granularity — the measures the assert's expression reads + their derived cone; the
+  designed refinement is REGION cuts (the adjudicator's counterexamples carry
+  coordinates; recording their extent enables March-refuses-February-serves), deferred
+  until wanted. Wire: the refusal likely fills the RESERVED `conflicting_data` slot —
+  table-check at CP, Huayin confirms the fit (S1a discipline; no minting). The author is
+  summoned with three exits: fix data + re-attest · amend the assert · accept the
+  reduced scope — all authoring acts in the state machine; the Explorer shows published
+  scope vs cut regions (tier-2/3 display consequence, inherited not rediscovered).
+  **General law (COMPLETED 2026-07-16, uniform across all three declaration kinds):
+  adjudication events edit the published scope; serving never outruns the verdicts.**
+  ASSERT guards truth → degrades to CUT (costs territory; `conflicting_data`) · license
+  guards shortcut → degrades to RECOMPUTE (costs speed) · HIERARCHY edge guards geometry
+  → degrades to BLOCKED TRANSPORT (costs the lineage's motion; `contradicted_edge`).
+  First publish stays strict for all three. `reattest` is the distinct verb (Huayin,
+  2026-07-16): pure recomputation of the scope from the current attestation's verdicts —
+  no ratchet, symmetric (fixing the data restores/unblocks/re-licenses) — returning the
+  authoring-event diff that summons the author; history lives in watermarks and the
+  ledger, never in scope-state.
+- **B3 (RULED 2026-07-15): basis-as-absence-semantics is LAW.** The basis type
+  determines what absence means, engine-wide: **events** → absence is ZERO (counts/sums
+  zero-fill lawfully); **spine** → absence is a GAP (`incomplete_data` material caveat;
+  window edge semantics inherit); **product** → cartesian completeness, absence always a
+  gap; **registry** → membership checkable, unknown entities are refutations.
+  Adjudication per type: spine completeness refutable (found gap → CONTRADICTED);
+  registry corroborates against source; an events claim is oracle-asymmetric (the
+  harness thesis's sharp human call) — which is WHY its consequences are maximal law
+  rather than annotation: the unaided call must at least do something the machine
+  enforces everywhere. The honest zero becomes structural. Engine wiring lands with the
+  on-ramp WP's B3 build; the semantics are ruled now.
+- **C1 (RULED 2026-07-15): ALIAS is CUT — Huayin's razor.** SUPERSEDES ADR-034 D2 (record
+  the amendment there). Rationale: (i) manifold granularity IS the vocabulary mechanism —
+  manifolds built as small as the need (department/team/project) put each audience's
+  vocabulary at the DECLARATION level of its own manifold, and the hundred-names promise
+  is delivered ACROSS manifolds by layered-cache semantic identity ("names cannot
+  fragment the cache"), not within one by alias; (ii) session/individual naming (a
+  client-language deliverable) is the consumption side of the button — the agent+user's
+  jurisdiction per the two-ends principle; the parser/planner never sees it; (iii) no
+  saved-query→delivery provenance chain exists for an alias to durably serve. REVISIT
+  TRIGGER (ledgered): if a saved-query surface ever ships, rename-compatibility re-opens
+  by ruling. **The reconciling asymmetry with operator overrides (which stand): you
+  rename what you didn't name — framework operator vocabulary is imported; levels and
+  measures are the author's own words, and what you named needs one name.**
+- **D1 (CLOSED BY ASSEMBLY 2026-07-15)** — the schema is now determined by the rulings
+  above: the shipped per-kind shape extended ADDITIVELY with License blocks verbatim
+  (fertility/hierarchy/assert), signature addressing (universe-qualified where
+  duplication exists), basis type + its absence semantics (B3), published-scope vs cut
+  display (B1), and operator properties (registry describe). No alias block (C1).
+  Versioning: additive under the tool-surface discipline; any shape question at CP is a
+  CV-ledger line, not a redesign.
 - **CP structure** — proposal: CP-0 (this capture + A/B/C/D rulings) → CP-1 syntax +
   adjudication → CP-2 init slice → CP-3 describe + Explorer → CP-4 full diff. Certificate
   kernel reused unchanged; any License schema change is a named checkpoint fork.

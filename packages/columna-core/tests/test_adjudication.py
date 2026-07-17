@@ -206,4 +206,7 @@ def test_adjudicate_is_idempotent(fixture_connector):
                 "DERIVED net = revenue - orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
     r1 = adjudicate(s)
     r2 = adjudicate(s)
-    assert r1 == r2 == {"net": {"sum": "verified"}}
+    # idempotency is the point; the benchmark fixture now declares BASIS, so the report additively
+    # carries `_basis` (UNTESTABLE per type — a semantic declaration, not a served-number change).
+    assert r1 == r2                                  # idempotent
+    assert r1["net"] == {"sum": "verified"}          # the fertility verdict is unchanged by BASIS

@@ -1,0 +1,1848 @@
+{
+  "control": [
+    {
+      "bid": "B1",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 2,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'orders'), ('universe', 'inventory')]; checklist flooded (3 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "basis: daily_inventory is a snapshot spine — is a missing (store_id, day) row a genuine zero stock or an unrecorded reading? Confirm before any zero-fill.",
+        "additivity: `level` is a snapshot — non-additive over the day spine; bar summation across time, aggregate by average or end-of-period instead.",
+        "basis: day is a spine, not an event stream — do not densify missing days to zero"
+      ]
+    },
+    {
+      "bid": "B1",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'orders'), ('universe', 'inventory')]; checklist flooded (8 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "basis: daily_inventory has no fact rows for a store/day with zero stock — is a missing (store,day) a true zero on-hand or an unobserved gap? Declare the spine before treating absence as zero.",
+        "type: day is stored as VARCHAR — confirm it parses to a calendar date before binding to the day spine.",
+        "additivity: on_hand_level is a snapshot (a stock at a point in time) — NON-additive across day; do not SUM over time. It may sum across store within a single day only.",
+        "additivity: order_amount is additive across orders — safe to SUM.",
+        "additivity: on_hand_level is a snapshot stock — NON-additive across day; sum over stores at a fixed day is valid, sum over days is not",
+        "additivity: order_amount is fully additive across orders",
+        "additivity: on_hand_level is a snapshot — non-additive over the day (calendar) axis; sum only across stores at a fixed day, else use avg/period-end",
+        "basis: orders is an event fact (no spine) — absence of an order is a genuine zero/gap, not a missing reading; daily_inventory is spine-shaped (store x day) where absence is a gap"
+      ]
+    },
+    {
+      "bid": "B1",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'inventory')]; checklist flooded (3 items > max 2)",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "orders",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: is a missing store-day row a true zero (no stock) or a gap (no reading taken)? snapshot spine vs event.",
+        "additivity: `level` is a snapshot stock measure — NON-additive across the day axis; summing over days is meaningless.",
+        "additivity: `amount` reads additive across orders — confirm it is a per-order total, not a pre-averaged/rate value."
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "eom_grain_unique",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: inventory_level is a snapshot (eom = end-of-month) — additive across store within a month, NON-additive across month; confirm barred as a semi-additive stock, not a flow",
+        "basis: is eom an event table (only rows where a store reported that month = gaps) or a dense spine (every store x every month)? Absence of a store-month may be a real gap, not a zero inventory."
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "eom",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "eom->store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "eom->month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: is month a dense spine or sparse events? absent (store,month) rows — zero inventory or unrecorded gap?",
+        "additivity: inventory_level is a period-end SNAPSHOT — summable across stores at one month, NOT summable across months; aggregate over time by avg/last, never sum"
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "eom",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "eom->store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "eom->month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: is eom a spine (every store×month present, absence=true zero) or an events table (rows only when measured, absence=gap)? sample to check coverage.",
+        "additivity: inventory_level is a SNAPSHOT — NON-additive across months (summing end-of-month levels over time is meaningless); additive across stores within a single month. bar the time roll-up."
+      ]
+    },
+    {
+      "bid": "B3",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 3,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 2,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'returns')]; silent on oracle-asymmetric call(s): ['universe']; loop_violation: revise re-proposed a struck declaration 'count of returns / count of transactions, per store' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "refutation: returns carries BOTH txn_id and store_id — the transaction already fixes a store. Sample whether returns.store_id ever disagrees with transactions.store_id; if it does, this edge is a degraded/violating path and one of the two must be demoted.",
+        "basis: returns are EVENTS, not a spine — absence of a return is a genuine zero, not a gap. Confirm the reporting spine (all transactions? all stores?) so zeros read correctly.",
+        "additivity: return_rate is a ratio — NON-additive; do not sum across store/region, recompute from return and transaction counts at each level"
+      ]
+    },
+    {
+      "bid": "B3",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "CONTRACT/HARNESS: ValueError: malformed target 'store->region' for kind 'hierarchy' — use a bare canonical name (edge/relate as 'frm->to'), not a description",
+      "proposals": [],
+      "checklist": []
+    },
+    {
+      "bid": "B3",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "CONTRACT/HARNESS: JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+      "proposals": [],
+      "checklist": []
+    },
+    {
+      "bid": "B4",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: store_rollup is a rollup/summary table, not a fact grain — confirm store is a real spine, not merely stores that survived rollup.",
+        "additivity: avg_basket is an AVERAGE — NON-additive across stores; cannot SUM. m-leak: pre-aggregated 'avg_*' value residing in a rollup table, so its true grain (baskets) leaks beyond the store key — the underlying count/total needed to re-weight is absent."
+      ]
+    },
+    {
+      "bid": "B4",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "avg_basket_m_leak",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: avg_basket is an average — NON-additive across stores; do not sum, and re-aggregate from underlying basket totals/counts rather than averaging the averages",
+        "m-leak: avg_basket lives in store_rollup as a pre-aggregated average; the true fact grain (basket) is absent — consider sourcing amount + count at basket grain so the mean is derivable, not stored"
+      ]
+    },
+    {
+      "bid": "B4",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "avg_basket_mleak",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: avg_basket is a per-store average — non-additive; no B-anchor SUM bar is honest here",
+        "m-leak: avg_basket is pre-aggregated in a rollup — recover the basket-grain fact before treating this as a summable measure"
+      ]
+    },
+    {
+      "bid": "B5",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: stores.region_id is a nullable FK (no NOT NULL) — a store with a missing region is a gap, not a zero; confirm whether the edge should tolerate orphans as a flagged degraded edge or require closure."
+      ]
+    },
+    {
+      "bid": "B5",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: store.region_id is NULLABLE — do stores with no region roll up as a real gap, or should they anchor to an 'unassigned' member?"
+      ]
+    },
+    {
+      "bid": "B5",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: stores.region_id is nullable (only store_id is NOT NULL) — confirm whether a store with no region is a real orphan (gap) or should be barred; over-barring is the safe error."
+      ]
+    },
+    {
+      "bid": "B6",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (2 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: is cal a dense day-spine (absence = gap to fill) or an events log (absence = true zero)? declare before anything joins to it",
+        "refutation: catalog gives no key uniqueness — confirm day is actually unique in cal (sample for dup days); if days repeat, day->month is a RELATE not a clean rollup"
+      ]
+    },
+    {
+      "bid": "B6",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 3,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (3 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: is cal a complete date spine (every day present, absence = gap) or only days with events (absence = zero)? sampling needed to confirm continuity",
+        "refutation: day is the presumed grain but nothing in catalog declares it unique — sample to check for duplicate day rows before treating as key",
+        "basis: confirm day->month is functional (each day maps to exactly one month string) — a malformed month value would break the rollup"
+      ]
+    },
+    {
+      "bid": "B6",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 3,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": [
+        "basis: cal looks like a spine (a date dimension) — confirm every calendar day is present so absence reads as a gap, not a zero"
+      ]
+    },
+    {
+      "bid": "B7",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 4,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (3 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: events table is event-grained — absence of a date d means NO event occurred (a true zero), not a missing observation on a spine; confirm this is an events basis, not a calendar spine with gaps.",
+        "additivity: event_count is a COUNT — additive across d and any level; safe to bar.",
+        "basis: events is an event stream — a date d with no rows is a genuine gap, not a zero; any date-level measure must respect events-vs-spine before treating absence as zero"
+      ]
+    },
+    {
+      "bid": "B7",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (3 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: d is an event-timestamp, not a declared date spine — absence of a date = a GAP (no events sampled), NOT a zero. Confirm whether you want a dense calendar spine to distinguish gaps from real zeros.",
+        "additivity: event_count is a COUNT — fully additive across all levels.",
+        "basis: events are discrete occurrences — absence of a row on a date is a GAP, not a zero; do not assume a dense daily spine unless a calendar dimension is declared to carry it"
+      ]
+    },
+    {
+      "bid": "B7",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 1,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (3 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: events table looks like an event log keyed by event_id — is a date with no rows a true zero (no events happened) or a gap (spine day never populated)? A count over an event basis reads absence as zero; confirm no calendar spine is intended before treating gaps as zeroes.",
+        "basis: events over event_id — is a day with no rows a true zero (no events) or a gap (no data)? declare the calendar spine accordingly",
+        "basis: events table is an event-basis — absence of a date means a gap, not a zero; confirm d has no meaningful nulls before treating day as a dense spine"
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 2,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]; checklist flooded (3 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "refutation: order_id has no catalog FK and order_id is not unique in tx (many txns per order) — do not assume a clean parent; confirm the order spine exists before riding this edge",
+        "additivity: amount is a per-txn currency value — additive across all levels; confirm it is a booked amount (not a running balance or snapshot) before summing",
+        "basis: is a missing txn for an order a true zero (no charge) or a gap (unrecorded)? amount aggregates over an events table, not a spine"
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 3,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]; checklist flooded (3 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "basis: order_id has no parent table in catalog and no NOT NULL/FK constraint — is a missing order_id a zero (standalone txn) or a gap (unmodeled order spine)?",
+        "additivity: amount is additive across txn grain — B-anchor bar proposed on stock-smelling monetary column",
+        "basis: is a missing txn a zero or an unobserved gap? tx is an event table — absence should read as a gap, not zero"
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 3,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]; checklist flooded (5 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "basis: order_id references an order table not in the catalog — confirm the parent spine exists or flag this edge as degraded",
+        "additivity: amount is additive across txn_id — propose a B-anchor bar; confirm it is a per-transaction amount and not a pre-aggregated total",
+        "additivity: total_amount is a plain sum over txn_id — fully additive; safe as a B-anchor bar on this stock-smelling money measure",
+        "basis: is a negative amount a legitimate refund/reversal event, or should amounts be constrained non-negative? confirm the sign convention before barring.",
+        "additivity: amount is additive across txn_id; total_amount sums cleanly over all levels"
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 0,
+      "passed": false,
+      "closure": true,
+      "grade": false,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "a proposal carries the wrong INFERRED_* grade; checklist flooded (3 items > max 2)",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: channel dimension only inferred from tx rows — is absence of a channel a true zero or an unseen gap? No channel spine table exists in the catalog.",
+        "additivity: amount is fully additive across txn_id and channel — summable at all levels.",
+        "basis: is tx an event stream (absence = no transaction, a true zero) rather than a snapshot spine? confirm the grain is one row per completed transaction"
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 1,
+      "passed": false,
+      "closure": true,
+      "grade": false,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "a proposal carries the wrong INFERRED_* grade; checklist flooded (3 items > max 2)",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "universe: does `channel` partition one population or fold several (e.g. refunds/reversals) into one table?",
+        "basis: is `amount` signed (refunds negative) — if so absence is a zero on an events basis, not a gap; confirm sign convention",
+        "universe: struck spine used channel as predicate — reproposing on txn_id with amount-presence; confirm this is the settled-transaction population before spining"
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "txn",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "txn->channel",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "amount_bar",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: channel has no table of its own — is the channel set an events-derived spine (only channels that transacted appear) or a declared dimension? Absence of a channel = gap, not zero.",
+        "additivity: amount is additive as a sum across all levels; confirm it is a per-transaction monetary value and not a pre-aggregated/snapshot figure."
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 1,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; checklist flooded (5 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "basis: no store dimension in catalog — store_id only appears in budget; confirm store is a real spine dimension vs. an events-only key",
+        "basis: budget is a target/plan table — is a missing (store,day) row a zero budget or an unbudgeted gap?",
+        "additivity: 'target' is a budget amount — additive across store and day if it is a per-day amount; a plan/quota snapshot would be NON-additive over time — confirm grain semantics",
+        "refutation: store has no catalog table/PK — this edge points at an undeclared parent; propose as flagged degraded edge until store level is declared",
+        "refutation: budget declares no PK — verify (store_id, day) is actually unique before treating as fact grain; duplicates would refute this"
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 2,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; checklist flooded (4 items > max 2); loop_violation: revise re-proposed a struck declaration 'measure target from budget.target, additive across store and day' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "basis: budget references store_id but no store dimension exists in the catalog — declare the store spine or accept store as an orphan key",
+        "basis: budget is a target/plan table keyed by (store,day) — is a missing (store,day) row a genuine zero target or an un-set plan (gap)?",
+        "additivity: target reads as a per-(store,day) budget figure — additive across stores and days IF it is a level amount; flag if it is actually a rate/run-rate, which would be non-additive",
+        "refutation: no key declared on budget — verify (store_id, day) is actually unique before riding it as the grain; duplicates would refute this assertion"
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "checklist flooded (3 items > max 2)",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "budget",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "day",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "product",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "budget->store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "budget->day",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "target",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: budget is an events-vs-spine question — is a missing (store_id, day) row a genuine zero target or just a gap in coverage?",
+        "universe: store has no catalog table — this level is synthesized from budget.store_id alone; declare whether a store dimension should exist independently",
+        "additivity: 'target' reads as a budget amount and appears summable across store and day — but confirm it is a per-day level value and not itself a pre-averaged/rate figure (name is ambiguous)"
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 4,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]",
+      "proposals": [],
+      "checklist": [
+        "refutation: stores.store_id is declared UNIQUE but not enforced (enforced=false) — sample store_id for duplicates before trusting it as a key; if duplicates exist, degrade to a non-unique level or RELATE",
+        "basis: stores.region_id has no NOT NULL — a store may have absent region; is that a zero (unassigned) or a gap? propose flagged degraded edge if sample shows nulls or orphan region_ids"
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 3,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]; checklist flooded (6 items > max 2)",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "refutation: stores.store_id is UNIQUE but enforced=false — sample store_id for duplicates before trusting the key as a level grain",
+        "basis: stores.region_id has no NOT NULL — confirm whether a null region_id means unassigned (gap) or a real orphan store, and whether the edge should be a flagged degraded edge",
+        "refutation: store_id uniqueness is catalog-declared but NOT enforced — sample before riding it; on duplicates propose a RELATE instead",
+        "basis: region_id on stores carries no catalog FK to regions — is a store with null/unmatched region_id a gap or a genuine unassigned store?",
+        "refutation: catalog UNIQUE on store_id is unenforced — sample corroborates (no dupes); confirm before relying on it",
+        "refutation: region_id on stores has no catalog FK — sample corroborates all children resolve to a parent; treat edge as inferred until declared"
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 4,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]",
+      "proposals": [],
+      "checklist": [
+        "refutation: stores.store_id UNIQUE is enforced=False (catalog-declared, unverified) — sample store_id for duplicates before trusting it as a key; propose flagged-degraded level if it dups",
+        "basis: stores.region_id has no NOT NULL and no declared FK — is a null region_id a store awaiting assignment (gap) or an unassigned bucket (zero)? bar polarity depends on the human's call"
+      ]
+    }
+  ],
+  "treatment": [
+    {
+      "bid": "B1",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 2,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'orders'), ('universe', 'inventory')]; checklist flooded (3 items > max 2); loop_violation: revise re-proposed a struck declaration 'amount from orders, summable at order grain' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "basis: daily_inventory is a snapshot spine — is a missing (store_id,day) row a true zero stock or an unrecorded gap? Declare which before absence is read as 0.",
+        "additivity: level is a snapshot (stock-on-hand) — NON-additive across day (summing a store's level over days is meaningless); additive across store within a fixed day. Bar the day rollup.",
+        "additivity: amount reads as a per-order money value — additive across orders; confirm it is an extensive amount, not a pre-averaged figure."
+      ]
+    },
+    {
+      "bid": "B1",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 3,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'orders'), ('universe', 'inventory')]; checklist flooded (3 items > max 2); loop_violation: revise re-proposed a struck declaration 'inventory_level = daily_inventory.level, grain (store_id, day)' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "basis: daily_inventory is a snapshot over a store x day spine — is a missing (store,day) row a zero-on-hand or an unobserved gap? Declare which before treating absence as data.",
+        "additivity: 'level' is a snapshot stock measure — NON-additive across day (summing on-hand over time is meaningless); additive across store within a day. Bar aggregation across the day level.",
+        "additivity: inventory_level is a snapshot stock measure — NON-additive across day (summing a store's level over days double-counts standing stock); additive across store_id within a day. Bar the day-total."
+      ]
+    },
+    {
+      "bid": "B1",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'orders'), ('universe', 'inventory')]; checklist flooded (8 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "additivity: `level` is a snapshot stock measure — NON-additive across `day` (summing a store's daily inventory over time is meaningless); additive across `store` within a single day. B-anchor bar time.",
+        "basis: orders is an events table — absence of an order is a genuine zero, not a gap; daily_inventory is a spine (a level per store per day). Confirm the two do not share a grain.",
+        "basis: daily_inventory is a snapshot spine, not events — a missing (store_id, day) row is a GAP (unobserved), not a zero inventory; confirm the intended reading.",
+        "additivity: NON-additive over day — a snapshot level cannot be summed across days (only across stores within a single day); B-anchor bar time.",
+        "additivity: fully additive across order_id — summable measure, no bar needed.",
+        "additivity: inventory_level is a snapshot — NON-additive across day (sum over time is meaningless); additive across store_id at a fixed day only",
+        "basis: daily_inventory is a snapshot spine — is a missing (store_id, day) row a true zero inventory or an unobserved gap? Declare the basis before absence is read as zero.",
+        "additivity: inventory_level is a snapshot — NON-additive across day (summing a stock level over time is meaningless); additive across store within a fixed day."
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "eom",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "eom_basis",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: inventory_level is a NON-additive snapshot — additive across store_id, but NOT summable across month (period-end stock double-counts through time); bar it against a time roll-up.",
+        "basis: absence in eom — treat missing month rows as gaps, not zero stock, before any period-fill."
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "eom_grain_unique",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: inventory_level is a snapshot (end-of-month level) — NON-additive across month; summing it over time double-counts stock. Additive across store within a fixed month only.",
+        "basis: is eom a dense spine (a row per store per month) or an events table? A missing (store,month) row — is that zero inventory or an unmeasured gap? Determines whether absence reads as 0."
+      ]
+    },
+    {
+      "bid": "B2",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "eom",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "month",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "inventory_level",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: inventory_level is an end-of-month SNAPSHOT — additive across store_id at a point in time, but NON-additive across month (summing months double-counts stock that persists). Bar time-summation; only period-end / average-over-time aggregation is meaningful."
+      ]
+    },
+    {
+      "bid": "B3",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'returns')]; silent on oracle-asymmetric call(s): ['universe']",
+      "proposals": [],
+      "checklist": [
+        "refutation: return carries BOTH a direct store_id and an inherited store_id via txn_id -> transaction.store_id; sample whether return.store_id agrees with its transaction's store — if it diverges the direct edge is a degraded/denormalized shortcut, not a clean parent",
+        "basis: returns are events, not a spine — absence of a return for a transaction is a true zero, not a gap"
+      ]
+    },
+    {
+      "bid": "B3",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'returns')]; silent on oracle-asymmetric call(s): ['universe']",
+      "proposals": [],
+      "checklist": [
+        "basis: returns carries BOTH txn_id and its own store_id — confirm whether return.store_id must agree with transaction.store_id (a return processed at a different store than the sale). If they can diverge, this is a real second edge, not redundant.",
+        "additivity: additive count across store/region/transaction levels."
+      ]
+    },
+    {
+      "bid": "B3",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": false,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 2,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'returns')]; silent on oracle-asymmetric call(s): ['universe']",
+      "proposals": [],
+      "checklist": [
+        "basis: returns carries BOTH a txn_id and its own store_id — confirm whether return.store_id must equal the store reached via txn->store, or whether a return may be booked at a different store than the original sale (return-store vs sale-store are two distinct populations of the same key)"
+      ]
+    },
+    {
+      "bid": "B4",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: avg_basket is an average — NON-additive across stores; do not sum, and re-deriving it needs the underlying basket count and total, absent here",
+        "m-leak: avg_basket is a pre-aggregated value in a rollup table, not at basket/transaction grain — its meaning leaks beyond store_id; the true fact grain (baskets) is not in this catalog"
+      ]
+    },
+    {
+      "bid": "B4",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "avg_basket_mleak",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: avg_basket is an average — NON-additive; it cannot be summed across stores, only re-derived from underlying basket totals and counts.",
+        "m-leak: avg_basket is a pre-aggregated column living in a rollup table, not at the basket fact grain — its value leaks beyond the true measurement key; consider sourcing from basket-level facts."
+      ]
+    },
+    {
+      "bid": "B4",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "assert",
+          "target": "avg_basket",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: avg_basket is an average — NON-additive; it cannot be summed across stores. Re-aggregating requires the underlying basket count and total, which this rollup does not carry.",
+        "m-leak: avg_basket (avg_* name, in a *_rollup table) is a value that leaks beyond its declared store key — the real fact grain (baskets) is absent. Bar this measure pending a source at fact grain."
+      ]
+    },
+    {
+      "bid": "B5",
+      "rep": 0,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": []
+    },
+    {
+      "bid": "B5",
+      "rep": 1,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": []
+    },
+    {
+      "bid": "B5",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": true,
+      "explicit": true,
+      "concise": true,
+      "conv": 1,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "level",
+          "target": "store",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": []
+    },
+    {
+      "bid": "B6",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": [
+        "basis: is `cal` a complete date spine (every day present, so absence of a fact = a true zero) or just the days that happen to appear in data (absence = gap)? Sample the day range for holes before treating it as a spine."
+      ]
+    },
+    {
+      "bid": "B6",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 1,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": [
+        "basis: is cal a dense spine (every day present, absence=zero) or an event log (absence=gap)? sampled reads needed to distinguish before trusting day->month rollup."
+      ]
+    },
+    {
+      "bid": "B6",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": [
+        "basis: is cal a dense date spine or only days with events? absence-as-gap vs absence-as-zero depends on which — confirm the population."
+      ]
+    },
+    {
+      "bid": "B7",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": []
+    },
+    {
+      "bid": "B7",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]; checklist flooded (3 items > max 1)",
+      "proposals": [],
+      "checklist": [
+        "basis: events table has no spine — 'd' is an event timestamp, so absence of a date is a GAP, not a zero; a period with no rows means no data, not zero events. Confirm before any date-bucketed rollup treats missing days as 0.",
+        "basis: events table is an event log keyed by event_id — is 'day' a dense spine or do gaps in d mean absent days? absence here is a gap, not a zero.",
+        "basis: is a day with no events a real zero (event stream) or a missing read (gap)? this governs whether counts-per-day may be trusted as absence"
+      ]
+    },
+    {
+      "bid": "B7",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('edge', 'day->month')]",
+      "proposals": [],
+      "checklist": [
+        "basis: events table is an event log keyed on event_id — is 'day' a dense spine or only the days that happen to carry events? Absence of a day means no-event (gap), not a measured zero. Declare the calendar basis before using 'day' as a spine."
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]",
+      "proposals": [],
+      "checklist": [
+        "additivity: amount is a per-transaction currency value — additive across txn; confirm it is a signed settled amount (refunds/reversals negative) before summing, else the sum misstates net.",
+        "basis: tx is an EVENT table keyed by txn_id with a many-to-one order_id — absence of a txn for an order is a genuine zero, not a gap; but no order table is in the catalog, so this edge targets an undeclared parent — confirm the order spine exists before relying on the FK."
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]; checklist flooded (3 items > max 2)",
+      "proposals": [],
+      "checklist": [
+        "additivity: amount is a per-transaction currency value — additive across txns; confirm it is a flow (summable) not a snapshot balance before summing.",
+        "refutation: order_id is not declared unique/FK in the catalog — if a sampled order_id maps to conflicting parents, prefer a RELATE or flag this edge as degraded rather than riding an undeclared FK.",
+        "refutation: catalog exposes no uniqueness on tx.order_id — an edge would falsely grant one-tx-per-order; propose a RELATE and let the human declare the true cardinality"
+      ]
+    },
+    {
+      "bid": "B8",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('measure', 'revenue'), ('measure', 'orders'), ('derived', 'aov')]",
+      "proposals": [],
+      "checklist": [
+        "basis: order_id has no declared FK or catalog parent table — is this a real edge to an orders spine, or should it be a RELATE? Confirm the parent exists.",
+        "additivity: amount is summable across txns — additive; safe to B-anchor bar."
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 0,
+      "passed": false,
+      "closure": true,
+      "grade": false,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "a proposal carries the wrong INFERRED_* grade",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: amount is a raw per-txn value — additive across channel and txn; sum is safe. Confirm it is a true amount and not a pre-averaged figure."
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 1,
+      "passed": false,
+      "closure": true,
+      "grade": false,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "a proposal carries the wrong INFERRED_* grade",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: amount reads as a per-transaction currency value — additive across channel and txn; confirm it is a true amount, not a pre-averaged figure."
+      ]
+    },
+    {
+      "bid": "B9",
+      "rep": 2,
+      "passed": false,
+      "closure": true,
+      "grade": false,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "a proposal carries the wrong INFERRED_* grade",
+      "proposals": [
+        {
+          "kind": "level",
+          "target": "channel",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        },
+        {
+          "kind": "measure",
+          "target": "amount",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "additivity: amount reads as a per-txn currency value — additive across channel and txn; confirm it's a raw amount, not a pre-blended figure"
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 2,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; loop_violation: revise re-proposed a struck declaration 'measure target = sum(budget.target) grain(store_id, day)' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "basis: budget is a target/plan table — is a store-day with no row a genuine zero (no budget) or a gap (unentered)? A plan spine, if absence means gap, needs its own dimension, not event-derived days.",
+        "additivity: target reads as an additive planned amount at store-day grain — summable across store and day. Confirm it is a currency/quantity level and not a pre-divided rate."
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 2,
+      "converged": false,
+      "loop_violation": true,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; loop_violation: revise re-proposed a struck declaration 'level store key store_id' — a settled mark stays settled unless the human reopens it",
+      "proposals": [],
+      "checklist": [
+        "basis: is budget a per-store-day spine (every store has a target each day) or an events table (rows only where a target was set)? absence-as-zero vs gap depends on this.",
+        "additivity: `target` — summable across store and day? if it is a daily budget it sums; if it is ever a rate/period-normalized figure it is NON-additive. Confirm at the store-day grain."
+      ]
+    },
+    {
+      "bid": "B10",
+      "rep": 2,
+      "passed": true,
+      "closure": true,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 2,
+      "converged": true,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "checklist flooded (4 items > max 2)",
+      "proposals": [
+        {
+          "kind": "universe",
+          "target": "budget",
+          "grade": "inferred_catalog",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: is budget a dense daily spine (every store x day) or a sparse events table? absence of a (store,day) row — zero target or gap? declare the basis.",
+        "additivity: 'target' is a budget figure — additive across store and day IF it is a per-day amount; if it is a period target replicated per row it double-counts on sum. confirm grain before summing.",
+        "refutation: store has no catalog table or PK — store_id is only an unvalidated FK-shaped column in budget. this edge points at an undeclared parent; confirm store exists as a level or degrade the edge.",
+        "basis: budget is a plan/target spine, not observed events — absence of a (store,day) row is a GAP (no plan set), not a zero; do not treat missing targets as 0."
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 0,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": false,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 2,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]; checklist flooded (5 items > max 2)",
+      "proposals": [
+        {
+          "kind": "edge",
+          "target": "store->region",
+          "grade": "inferred_sample",
+          "opens_fertility": false
+        }
+      ],
+      "checklist": [
+        "basis: is every store guaranteed a region_id, or is a NULL region_id a gap (unassigned store) rather than a zero? region_id is not declared NOT NULL on stores — confirm before treating the edge as total.",
+        "refutation: store_id UNIQUE is source=catalog-declared, enforced=false — if a sampled read shows store_id duplicated, do not ride the catalog; propose a flagged degraded edge or a store<->region RELATE instead",
+        "refutation: store_id declared UNIQUE but not-enforced — if the sample shows a store_id mapping to two region_id values, do not ride the catalog: propose a store<->region RELATE or a flagged degraded edge instead",
+        "refutation: store_id is declared UNIQUE but not-enforced — sample must be consulted; if duplicates appear, do not ride the catalog, propose the degraded edge/RELATE instead",
+        "refutation: catalog declares store_id UNIQUE (not-enforced); sample reveals duplicate store_id — do not ride the catalog key; honest alternative is a flagged degraded edge (or a store<->region RELATE if a store legitimately spans regions). Human to declare which."
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 1,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 0,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]",
+      "proposals": [],
+      "checklist": [
+        "refutation: stores.store_id is declared UNIQUE but not enforced (enforced=false) — verify no duplicates in the sample before riding the catalog key; if violated, propose a flagged degraded key.",
+        "refutation: no FK is declared on stores.region_id and the column is nullable — sample it: orphan region_ids or NULLs mean this must be a flagged degraded edge, not a clean roll-up."
+      ]
+    },
+    {
+      "bid": "B11",
+      "rep": 2,
+      "passed": false,
+      "closure": false,
+      "grade": null,
+      "explicit": true,
+      "concise": true,
+      "conv": 5,
+      "converged": false,
+      "loop_violation": false,
+      "retries": 1,
+      "narrative": "missing/mismatched closures (normal form): [('relate', 'store->region')]",
+      "proposals": [],
+      "checklist": [
+        "refutation: store_id UNIQUE is catalog-declared but NOT enforced — sample may carry duplicate store_id; verify before trusting store as a clean level, else propose a flagged degraded edge or RELATE"
+      ]
+    }
+  ]
+}

@@ -7,6 +7,22 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.8.0-core] — the Certificate customers, §2c, BASIS, and the describe extension
+
+Full narrative: `specs/release_notes_v0_8_0.md`.
+
+- **Certificate customers:** ASSERT (invariants) + HIERARCHY (FD chains) adjudicated by the same kernel,
+  minting the unchanged `License`; the **scope-edit law** — ASSERT→cut (`conflicting_data`), license→recompute,
+  edge→blocked transport (`contradicted_edge`); `reattest` recomputes the serving scope (pure, symmetric).
+- **§2c universe resolution:** one expression → one universe; a cross-universe expression is a
+  `cross_universe` category error; `ON UNIVERSE` retired from the query grammar; juxtaposition; single-universe sugar.
+- **BASIS + absence semantics:** universes declare `events`/`spine`/`product`/`registry`; absence means
+  zero (events) vs gap (spine/product, `incomplete_data`) vs membership (registry).
+- **describe extension + the §2b insulation closure:** License blocks across fertility/hierarchy/assert,
+  basis+absence on universes, operator properties, published-scope/cut; **no structural physical identifier
+  crosses describe** (`realized_by` gone, predicates logical) — a standing test enforces it.
+- Wire contract unchanged (`contract_version` "1").
+
 ## [0.7.8-core] — packaging hardening + the disclosure wire adapter
 
 **Packaging / correctness (crediting the WP-0 acceptance audit):**
