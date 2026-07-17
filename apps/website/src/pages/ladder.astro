@@ -2,6 +2,7 @@
 // Copy source of record: src/content/corpus/ladder_page_v0_3.md — this page is rendered MANUALLY
 // from it (verbatim). Any wording change happens in that file first (with its ruling), then here.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import TermChipStrip from '../components/TermChipStrip.astro';
 
 // Verification targets (the copy's law: every claim one click from evidence).
 const SEAM = 'https://doi.org/10.5281/zenodo.20710717';
@@ -221,6 +222,7 @@ const DEMO = '/#exhibit-b';
 
     <p>And if you think we've placed a pattern wrongly — including ours — the <a href={ATLAS_GRADING}>Atlas</a> is open, the <a href={BENCH} rel="noopener" target="_blank">benchmark</a> is public, and the <a href={DEMO}>demo</a> refuses to lie on our behalf. Bring the failure mode.</p>
   </article>
+  <TermChipStrip />
 </BaseLayout>
 
 <style>
