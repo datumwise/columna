@@ -107,6 +107,25 @@ def test_rescore_run_re_renders_from_captured_output_without_a_rerun():
     assert re.results[1] is pre_capture                    # uncaptured -> passed through, not fabricated
 
 
+def test_b10_gt_v2_accepts_either_universe_decomposition():
+    # ruling 4 (2026-07-16, on run-6 evidence): B10's ◆ point is the basis call; the universe split is a
+    # modeling choice. GT v2 requires the budget universe and accepts the catalog EITHER as a universe or
+    # as a level-domain (not declared as a separate universe). Both decompositions pass closure.
+    from columna_server.init.benchmarks import BENCHMARKS
+    b10 = BENCHMARKS["B10"]
+    basis = ["basis: product_catalog=registry, budget=product?"]
+    just_budget = {"proposals": [{"kind": "universe", "target": "budget"}], "checklist": basis, "iterations": 1}
+    both = {"proposals": [{"kind": "universe", "target": "budget"},
+                          {"kind": "universe", "target": "catalog"}], "checklist": basis, "iterations": 1}
+    catalog_as_level = {"proposals": [{"kind": "universe", "target": "budget"},
+                                      {"kind": "level", "target": "catalog"}], "checklist": basis, "iterations": 1}
+    assert score(b10, just_budget, 5).closure and score(b10, just_budget, 5).passed
+    assert score(b10, both, 5).closure                       # extra catalog universe accepted
+    assert score(b10, catalog_as_level, 5).closure           # catalog as a level-domain accepted
+    # the ◆ basis call is still required — silent on it fails
+    assert not score(b10, dict(just_budget, checklist=[]), 5).passed
+
+
 def test_retention_gate_refuses_a_real_run_whose_evidence_is_not_durable():
     # ruling 3 (2026-07-16): a REAL-mind run refuses to render unless its captured evidence is durably in
     # the repo tree — two losses to /tmp is two, there is no third. Scripted runs render freely.

@@ -80,3 +80,13 @@ Run 6 is AUTHORIZED on the standing clauses: the batched session as drafted (n�
 proposal-vs-truth captured into `specs/context/run6/`, loop-violations counted across replicates, every
 artifact durable from birth under the retention gate). It fires on the standing key-and-go. Queue after
 v0.4: revise-discipline, which run 6's replicated loop-violation measurement may itself resolve.
+
+## Outcome — v0.4 MEASURED, DID NOT SHIP (Huayin ruling 1, 2026-07-16, prediction-2 governs)
+Run 6 (`specs/context/run6_causal_result_v1.md`, k=2): the prune gate cut **flooding 7.5 → 4.5** but
+**eroded ◆-recall 5.0 → 4.0** (silencing genuine basis (B1) + m-leak (B4) calls; the watched B11
+refutation HELD). Prediction-2's do-not-ship clause triggered → **the live KP is REVERTED to v0.3** (the
+live KP is always the best-measured KP; concentration bought with recall is not a win). **v0.4 archives as
+a measured intermediate** (retrievable at git `212b499`); its flood result is BANKED as the evidence that
+the prune mechanism works. The re-tune is **KP v0.5** (the prune with an evidence-justified floor —
+`specs/wp_cp2_kp_v0_5_concentration_floor_draft.md`): the six triggered sharp calls become unprunable, the
+prune keeps full force on padding. Run 7 measures v0.5 with pre-registered ship criteria.

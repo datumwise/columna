@@ -73,6 +73,10 @@ def parse_proposals(text: str) -> list:
     Any OPENING is DROPPED ENTIRELY (Huayin, ruling 2, 2026-07-16): a spec that opens fertility
     (`opens_fertility`, an opening kind, or a `FERTILE` clause in its body) is not de-flagged — it is
     removed, because fertility talk belongs to the ADJUDICATOR'S ADVICE channel, never to a proposal."""
+    if not str(text).strip():
+        return []                        # an empty completion = no proposals — legitimate, esp. on a
+                                         # revise turn where the mind has nothing left to correct (it is
+                                         # done). NOT a parse error; the loop scores the accumulated draft.
     data = json.loads(text)
     if not isinstance(data, list):
         raise ValueError("init provider response must be a JSON array of proposal specs")
