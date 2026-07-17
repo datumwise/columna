@@ -248,9 +248,20 @@ resolve its atoms, admit its edges, and shape it — every clause exercised.
 Per the WP sequencing, ratification of §§1–7 gates: parser/AST (four-mood-temperament errors) →
 planner assembly (the planner owns the envelope; multi-series = juxtaposition; `WHERE` per-series
 reachability bound pre-reduction; `HAVING` by name on the assembled frame; `ORDER BY`; `LIMIT PER` with
-`PER ⊆ ORDER BY`) — the engine stays per-column and envelope-blind → sugars → `EXPLAIN` → surface
-migration (demo tour, seeded corpus + drift gate, MCP server, agent prompt with KP conformance edits
-flagged, llms.txt, site query strings). Checkpoints per house pattern; each increment verified.
+`PER ⊆ ORDER BY`) — the engine stays per-column and envelope-blind → sugars → `EXPLAIN` → dependent-pair
+engine increment (flag 1: `{region*store}` transport along the `store→region` edge, native Polars,
+DG-2's family) → surface migration (demo tour, seeded corpus + drift gate, MCP server, agent prompt with
+KP conformance edits flagged, llms.txt, site query strings). Checkpoints per house pattern; each
+increment verified.
+
+**PROSE-COHERENCE TRIPWIRE — rowed into the surface-migration increment (from the #45 incident,
+2026-07-17).** The integrity gate checks seeded *wire* behaviour only; it does not parse the *words*, so
+the CP-3b corpus (envelope-syntax prose) merged and deployed against live 0.8.0 as prose incoherence it
+could never catch. Structural close, built at the flip (not today): add a prose-coherence check to the
+**shipped-coherent** deploy job — extract every FrameQL code block from the corpus pieces + the llms
+files and parse-check them against the *installed shipped* package, so documented syntax the shipped
+parser rejects **fails the deploy**. That test would have caught the #45 merge cold. Standing rule from
+the same incident: publish-gated work travels as a **DRAFT** PR (a lock), never an open mergeable one.
 
 **The manuals convergence rides this WP** (ruled): flags 1 & 3 (Chapter 1's `SELECT`/`FROM`/`AT` grammar;
 Appendix B keywords) become this WP's **documentation increment** — the Coframe→envelope rewrite,
