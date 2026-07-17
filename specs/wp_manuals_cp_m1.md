@@ -59,6 +59,14 @@ rendered diff with the harness green in CI and the worksheet §5 acceptance chec
 
 ---
 
+## CP-M2 Part-2 session RETIRED (2026-07-17)
+**The fresh session handed Part 2 on 2026-07-14 stalled — it produced no commits; `wp-manuals-alignment`
+did not advance past `9b061ae`. It is formally CLOSED. Part 1 (`99deb0e`) stands landed, untouched.**
+Under CP-3b (Huayin, 2026-07-17) Part 2 is **reassigned to the CP-3b builder** as a parallel track, scoped
+**exactly** as specced below (not an invitation to broader manual edits), riding **its own PR on
+`wp-manuals-alignment`** (separate gate from the site beat). The **CP-M2 approval gate is UNCHANGED**: the
+full rendered Chapter 2 diff comes to Huayin's prose pass before anything merges. No zombie tracks.
+
 ## CP-M2 status & fresh-session handoff (2026-07-14)
 
 M1-a…d ruled (Huayin, 2026-07-14): flat · fenced · docs-local (tiny, harness-only, never in a wheel) ·

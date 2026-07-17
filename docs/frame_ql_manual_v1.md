@@ -191,176 +191,164 @@ SELECT max( sum(revenue @ {transaction}) @ {customer, month} ) AS peak_month
 
 ---
 
-## Chapter 2. Series Expressions: The Canonical Form
+## Chapter 2. Frames: `columns @ anchor`
 
-This chapter specifies series expressions in their fully-explicit *canonical form* — the form the framework type-checks against, where every column reference carries its input anchor and every complete expression carries its output anchor. The sugars introduced in Chapter 3 let the writer omit anchors when they are determinable; but the canonical form is the bedrock, and the sugars are defined as expansions to it.
+> **[CP-M2 REWRITE DRAFT, 2026-07-17 — for Huayin's prose pass.]** This chapter is rewritten to the
+> **shipped envelope grammar** (ADR-035), which is now normative. The prior fully-explicit *canonical
+> form* (`operator(col @ a_in, …) AT A`, with `FROM`/`SELECT`/`AT` ceremony) is retained as **Appendix A**,
+> historical lineage. This draft is structurally faithful to the shipped grammar; the voice awaits the
+> prose pass.
 
-### 2.1 The shape of the canonical form
-
-In the canonical form, every series expression has this shape:
-
-```
-operator( col_1 @ a_1, col_2 @ a_2, ... ) AT A
-```
-
-The inputs are column references each carrying an explicit input anchor `@ a_i`. The operator (a reducer, a map function, or a composite of these) is applied to the inputs. The complete expression has an output anchor `AT A`. In a query's `SELECT` list, the `AT A` appears once at the end of the list and applies to all series; within nested expressions, each subexpression has its own anchor.
-
-This form has no ambiguity: every grain is named, every reduction is over an explicit input grain producing an explicit output grain. The framework parses this form directly, type-checks it, and plans the execution. The sugars of Chapter 3 are normalizations to this form.
-
-Two facts give the canonical form its standing, and they are two views of one thing.
-
-**Semantic:** under the anchor-ascription rule (Chapter 1.5), every sub-expression of a canonical-form query has a local, self-contained meaning — *this value, at this anchor* — so the meaning of the whole is the composition of the meanings of the parts, with no ambient context to consult.
-
-**Architectural:** the canonical form is the **planner's decomposition target**. The planner receives a statement, expands and desugars it, and decomposes the plan into **atoms** — single-output metric requests of exactly the canonical shape, `op(input @ a_in) @ a_out`, each carried to the metric engine as a typed retrieval specification (the operator name, the input, the input and output anchors, any order specification, and the resolved missing-behavior) — plus the **map expressions the planner evaluates itself** over the atoms' co-anchored results. The metric engine answers each atom from its cache or, when the cache cannot, by issuing the few specific calls the backend data engine exposes; the engine never sees the query, only atoms. A canonical-form query is therefore not merely a fully-explicit notation: it *is* its own execution decomposition, readable off the text. This is why the canonical form is the bedrock — it is simultaneously the type-checked meaning of the query and the unit of planning — and why `EXPLAIN` (Chapter 1.7) can return the atom decomposition as a faithful account of what execution will do.
-
-### 2.2 Bare names: inputs versus complete expressions
-
-A name like `revenue`, appearing in a query, may be one of two things, distinguished by *where* it appears:
-
-**As an input to an outer expression** — for example, `revenue` inside `sum(revenue) AT A` — a bare name *names the column's family*. It refers to the column under its default family's reducer, sourced from the column's root. The outer expression consumes the family; the framework brings the column from its root to wherever the outer expression needs it, applying the default-family reduction as part of getting there. The input position is well-defined for bare names because the outer expression's output anchor and the column's root together determine what is being consumed.
-
-**As a complete expression** — for example, just `revenue` standing alone as a series in `SELECT` — a bare name is *undefined*. A complete expression must have an output anchor, and a bare name has none. The framework refuses bare names in complete-expression position; the writer must supply an output anchor (and, for non-default reductions, the explicit reducer).
-
-This asymmetry is structural and clean: bare names are well-defined as inputs (they name the family) and ill-defined as outputs (the output anchor is missing). The framework's refusal in the complete-expression case is precise: not "bare name is undefined" universally, but "this position requires an output anchor; supply it."
-
-### 2.3 Single-column reducers
-
-A reducer applied to a column, with explicit input and output anchors:
+A Frame-QL query is a **frame**, and a frame has exactly one shape:
 
 ```
-sum(revenue @ {transaction}) AT {customer}
-max(revenue @ {transaction}) AT {customer}
-mean(revenue @ {customer, day}) AT {customer}
+columns @ anchor
 ```
 
-The first form sums revenue (at transaction grain) up to customer grain — the natural extensive aggregation. The second takes the maximum revenue (at transaction grain) per customer — the maximum transaction's revenue. The third averages revenue (at customer-day grain) per customer — the customer's average daily revenue.
-
-Notice that the third form's choice of input anchor matters. The "average revenue per customer" question is *not well-defined* without specifying what is being averaged: averaged over daily values? over monthly values? over per-transaction values? Each gives a different number. The input anchor `@ {customer, day}` says: average the customer-day revenues. The framework requires this for `mean` because mean is a mule — its result depends on what you're averaging — and the input grain must be specified for the answer to mean something.
-
-This is the central rule the canonical form enforces: **when the answer depends on the input grain, the input anchor must be explicit.** For fertile reducers on columns with a unique path from root to output anchor, the input grain is determined and the framework can resolve it; for mule reducers and for cases where the path is ambiguous, the input anchor must be named.
-
-The same rule governs `count(*)`, which counts rows *at an input anchor*: in a single-series query (or wherever the input grain is unambiguous from co-listed series), the anchor is inferred; in a multi-series query whose series have different input grains, `count(*)` is ambiguous about what is being counted, and the canonical `count(*) @ {anchor}` form is required.
-
-### 2.4 Map expressions
-
-A map expression combines co-anchored columns point by point:
+The **anchor** — the single `@ anchor` at the end — is *where you stand*: the grain the answer is reported
+at. The **columns** — one or more, comma-separated — are *what you ask for* at that grain. That is the
+whole grammar of a query. Everything else in this chapter is what fills those two slots.
 
 ```
-(revenue @ {customer, day}) - (cost @ {customer, day}) AT {customer, day}
-(revenue @ {transaction}) / (orders @ {transaction}) AT {transaction}
+revenue @ region
+revenue, orders @ region
+aov @ cal.month
 ```
 
-The inputs to a map must be co-anchored — same input anchor for all operands. If the operands are natively at different anchors, they must be brought to a common anchor first (by aggregation or broadcast), and the map applies at that common anchor. The framework refuses maps whose operands are not co-anchored.
+The first asks revenue by region; the second asks two columns, revenue and orders, both by region; the
+third asks average order value by calendar month. The anchor is written once and governs the whole frame.
 
-Maps may be combined freely: arithmetic, comparison, logical, and function-application operators all produce co-anchored series from co-anchored inputs. The map's output anchor is the same as its inputs' input anchors — maps preserve the anchor.
+### 2.1 The anchor: where you stand
 
-A map can also appear inside a reducer:
-
-```
-sum( (revenue @ {transaction}) - (cost @ {transaction}) ) AT {customer}
-```
-
-This computes profit per transaction (the map), then sums it to customer grain (the reduction). The input anchor of the map is `{transaction}`; the reduction's output anchor is `{customer}`.
-
-### 2.5 Composite reductions
-
-Two reducers compose when one is applied to the result of another, with an explicit intermediate anchor:
+An anchor is one **level** — a declared coordinate of the Manifold (`region`, `day`, `cal.month`,
+`store`) — or a **product** of levels, written with `*`:
 
 ```
-max( sum(revenue @ {transaction}) @ {customer, month} ) AT {customer}
-mean( sum(revenue @ {transaction}) @ {customer, day} ) AT {customer}
+revenue @ store * cal.month
 ```
 
-The first reads: for each customer, find the maximum monthly revenue. The inner expression `sum(revenue @ {transaction}) @ {customer, month}` produces monthly revenues per customer (summing transactions up to customer-month); the outer `max` reduces those monthlies to one peak per customer.
+This stands at the store-by-month grid: revenue for each (store, month) point. The `*` is the anchor
+product; it is the same operator that builds a universe's base grain (`UNIVERSE u = store * day`), and it
+is the canonical spelling — every surface writes `*`, never a comma between anchor levels. (A comma
+*between columns* is a column separator; a comma is never an anchor separator.)
 
-Composite reductions are the canonical example of where the input anchor on the inner expression is essential: "max revenue per customer" is ambiguous without saying *what kind* of revenue you mean (daily? monthly? transactional?). The intermediate anchor `@ {customer, month}` makes the question precise. The framework requires it whenever the outer reducer's answer depends on the inner grain.
+Level names may be **dotted** where the author qualified them (`cal.month`, `cal.quarter`): a literal
+level-name match wins, so a stored dotted name is a legitimate level. A universe name never appears in an
+anchor — universes and levels are disjoint namespaces (Chapter 1) — and a bare token that names neither a
+level nor a universe reaches the ordinary out-of-domain disposition unchanged.
 
-A point worth noting: composite reductions are not a separate language construct — they are the anchor-ascription rule applied recursively. The inner `sum(revenue @ {transaction}) @ {customer, month}` ascribes a reduction's value to an intermediate grain; the outer `max(...) AT {customer}` consumes that ascribed value and ascribes its own result to the query's output. The framework parses this uniformly — nested ascriptions, each local and self-contained — and the planner reads it directly as two atoms, the inner feeding the outer (Chapter 2.1).
+### 2.2 The columns: measures, members, and labels
 
-### 2.6 Broadcast
-
-When a column is brought to a finer anchor than the grain it arrives at, the operation is a **broadcast** (the prior edition's *fillup*):
-
-```
-(grand_total @ {}) AT {customer}
-```
-
-This takes a coarse value (anchored at `{}`, the Manifold-wide scalar) and makes it available at every customer. Under the anchor-ascription rule there is nothing special to learn here: the ascription names a destination finer than the expression's grain, and broadcast is simply the anchor-action that realizes that direction. Broadcast has a single semantics — **replicate**: every finer point receives the same coarse value, unchanged, whether the value is intensive or extensive. Its purpose is to make a coarse value available at a finer grain for a downstream comparison — the canonical use being a share-of-total (`customer_value / Manifold_total`) or a deviation-from-group-mean — never to *distribute* a total into a finer-grained quantity. Proportional down-allocation of a total is not an operation in the language.
-
-The double-count hazard of replicating an extensive value — spreading a total to many points and then summing it back up — is foreclosed structurally, not by a rule the writer must remember: a broadcast value carries, in the B-anchor of any reducer that would sum it, the dimension family it was broadcast along. An attempt to re-aggregate the replicated value back across that family is caught by the ordinary B-anchor applicability check (Chapter 5.3) and served, if at all, only with the corresponding critical disclosure. There is no allocation rule to supply and none to get wrong.
-
-When the type-checker recognizes that an expression requires a broadcast (a coarse input consumed at a finer anchor), the broadcast is implicit and silent — replication is unambiguous, so no keyword is needed. The explicit `broadcast(...)` form is available where the writer wants the operation visible in the query text.
-
-(Apportioning a value by a partition-of-unity weighting still exists in the framework, but it belongs to the many-to-many *aggregate-across* case — the `WITH allocation` clause of Chapter 4 and Example 6.12 — not to broadcast. Broadcast replicates a coarse value down a functional edge for comparison; allocation reconciles an aggregate up a non-functional relationship. The two are distinct operations and share no machinery.)
-
-### 2.7 Subsetting: the bracket filter
-
-A column reference may carry a bracket-filter predicate that restricts the column to a subset of its domain:
+A column is an expression over the Manifold's **measures** and **derived** columns. In the simplest case
+it is a bare measure name:
 
 ```
-revenue[region = "east"] @ {customer}
-revenue[product_category = "fitness"] @ {customer}
+revenue @ region
 ```
 
-The expression `revenue[region = "east"]` produces a degenerate column carrying its restriction predicate as part of its identity (per the framework manual's Chapter 6). The bracket filter is an expression-level operation that produces a new column-value at query time; it differs from `WHERE` (Chapter 4) in that `WHERE` restricts the *whole query's input*, while a bracket filter restricts an *individual column's reference* within an expression.
-
-A bracket-filtered column may be used like any other column reference, with input anchor specification as needed:
-
-```
-sum( revenue[region = "east"] @ {transaction} ) AT {customer}
-```
-
-This sums east-region revenue per customer. Whether a customer with *no* east-region transactions appears with zero, appears with an absent value, or does not appear at all was historically a hedge; under the (anchor, universe) grain it is a rule (Chapter 1.5): the bracket restricts the *event set*; the **destination universe** decides the rendering. Output landing on an event-projection universe: the emptied customer is not a point, and does not appear. Output pinned `ON` a declared universe containing that customer: the point exists — its `SUM` is a true zero, its mean is absent — per the empty-bucket rule. The resolved universe is disclosed in the annotation either way.
-
-### 2.8 Scans
-
-A scan is an order-dependent map — an anchor-preserving operation whose output at each point depends on an ordering and on neighboring values:
+A measure may be a **family** with several members — a semi-additive stock, for instance, that both
+`sum`s and reads its period-end `last`. A member is named with a **dot**:
 
 ```
-cumsum( revenue @ {customer, day} ) AT {customer, day}
-lag( revenue @ {customer, day}, 1 ) AT {customer, day}
-rolling_mean( revenue @ {customer, day}, window=7d ) AT {customer, day}
+level.last @ store          # the end-of-period inventory snapshot, per store
+level.sum  @ store          # the sum of the stock (see §2.5 on what that means and when it is barred)
 ```
 
-A scan preserves the anchor (the output's anchor equals its input's) but consults an order. The order is derived from the anchor when the anchor contains an orderable axis (day, in these examples — the framework partitions by customer and orders by day within each partition), or named explicitly when the natural order is ambiguous.
+A column may carry a **label**, written `name: expr`, which names the column in the result and lets two
+columns share a frame without collision:
 
-A scan is ill-formed if its order specification is missing and cannot be derived from the anchor. The framework's rule is uniform: order-dependent operations require an order; either it is derivable from the anchor, or the writer must name it.
+```
+revenue: revenue, inv: level.last @ region
+```
 
-#### Family-aware scan parameters
+An unlabeled column takes the expression's own name; a labeled one takes the label. Labels are how a
+frame juxtaposes several readings side by side (see §2.4).
 
-Three scan parameters lean on the Manifold's declared, verified dimension-family structure to express calendar and hierarchy intelligence directly — the analyses conventional tools relegate to fragile idioms:
+### 2.3 Reductions and the input pin
 
-- **`reset = <level>`** — for cumulative scans (`cumsum`, `cumprod`, `cummin`, `cummax`): the accumulation restarts at each boundary of the named coarser level in the order axis's dimension family.
+A reduction reads a quantity at one grain and combines it up to the anchor. Most reductions are
+determined by the anchor and the measure's own grain, and need nothing more:
 
-  ```
-  cumsum( revenue @ {customer, day}, reset = year )  -- year-to-date revenue per customer
-  cumsum( revenue @ {customer, day}, reset = month ) -- month-to-date
-  ```
+```
+revenue @ cal.month         # sum revenue up to the month — the input grain is fixed by the measure
+```
 
-- **`within = <level>`** — for positional scans (`lag`, `lead`, `rank`, `dense_rank`, `row_number`, `pct_change`, and the rolling windows): the scan does not cross boundaries of the named level.
+But some reductions are **not determined by the output anchor alone** — an average, a rate, a snapshot —
+because *what you average over* is a separate choice from *what grain you report at*. For these the input
+grain is pinned **inline**, with an `@` inside the reduction:
 
-  ```
-  rank( revenue @ {salesrep, month}, within = quarter )   -- months ranked within each quarter
-  lag( revenue @ {customer, month}, 1, within = year )    -- prior month; absent at each January
-  ```
+```
+avg( aov @ day ) @ cal.month      # average the DAILY aov, reported by month
+avg( aov @ cal.week ) @ cal.month # average the WEEKLY aov, reported by month — a different number
+```
 
-- **`step = <level>`** — for `lag` and `lead`: the shift unit becomes the named coarser level, holding the finer position within it fixed.
+The inline `@` binds the reduction's *input* anchor; the trailing `@` binds the frame's *output* anchor.
+When an inline reduction is written **without** an input pin and the grain is genuinely
+underdetermined —
 
-  ```
-  lag( revenue @ {customer, month}, 1, step = year )      -- same month, one year earlier (same-period-last-year)
-  ```
+```
+avg( aov ) @ cal.month
+```
 
-  Year-over-year growth at month grain is then an ordinary map over co-anchored series:
+— the framework does not guess. It answers `clarify` on the **`input_anchor_ambiguous`** reason, naming
+the candidate input grains as substitutable alternatives, and waits for the writer to pin one. (Its
+sibling, **`co_anchor_ambiguous`**, is the multi-input case: a reduction over several inputs whose common
+input grain is not determined. One reason per contested dimension.) *The framework never invents an input
+grain; an average with no declared input grain is a question, not an answer.*
 
-  ```
-  ( revenue - lag(revenue, 1, step = year) ) / lag(revenue, 1, step = year) AS yoy_growth
-  ```
+### 2.4 One expression, one universe
 
-**Well-formedness:** the named level must belong to the same dimension family as the scan's order axis and be reachable from the order's grain by declared roll-up edges; otherwise the parameter is underdetermined and the framework asks for clarification. **Mechanics:** no new machinery is involved. `reset` and `within` add a partition coordinate derived by an ordinary climb along the verified hierarchy; `step` reindexes along the climb-derived level, holding the residual position fixed. The planner resolves all three into ordinary partition-and-order specifications over climb-derived levels — the metric engine receives a fully resolved order specification and nothing new — and because the levels are verified hierarchy edges, the same integrity machinery that guards every climb guards these: a scan whose parameter rides a CONTRADICTED edge carries that finding like any other operation.
+Every column expression evaluates inside **exactly one universe**, and never crosses the boundary. This
+is the expression law (ADR-035 / the §2c universe resolution): a single expression that combines measures
+from more than one population is not a hedged answer — it is a **category error**, returned on the
+query-error channel as **`cross_universe`**, naming the two legal paths (ask each population separately;
+or reconcile them into one). The retired cross-universe "wedge" — a single rate whose numerator and
+denominator live in different populations — lands here.
 
-Time is the motivating family, but nothing restricts the parameters to time: `rank( revenue @ {store}, by = revenue, within = region )` ranks stores within their regions along the verified `store → region` edge.
+A frame with **one** universe needs no qualification at all: the population is implicit and the frame just
+resolves (single-universe sugar). When a stranger genuinely needs several populations in one view, the
+frame **juxtaposes** them — separate columns, each evaluating in its own universe, standing together at a
+shared anchor:
 
----
+```
+revenue: revenue, inv: level.last @ region
+```
+
+Here `revenue` evaluates in its population and `inv` in its own; the frame carries both, each honest about
+where it comes from. `ON UNIVERSE` is not part of the query grammar — a population is pinned in
+*definitions*, never re-declared at query time.
+
+### 2.5 Maps: combining co-anchored columns
+
+An expression may combine columns point by point — arithmetic, comparison, a ratio — provided the operands
+share a grain:
+
+```
+revenue / orders @ cal.month        # average order value, as a map over two co-anchored measures
+```
+
+A map preserves the anchor: co-anchored inputs give a co-anchored result. Operands at different native
+grains must first be brought to a common grain (by reduction, or by a broadcast of a coarse value down a
+functional edge — §Appendix A retains the broadcast/allocation distinction in full). A map over operands
+that cannot be co-anchored is refused; a map over operands in different universes is the `cross_universe`
+error of §2.4, not a map failure.
+
+Summing a **stock** across a blocked lineage — `level.sum @ store * cal.month`, totalling an inventory
+snapshot across the months it was measured over — is *served, with a material caveat*: the per-bucket
+numbers are real, but they do not reconcile along the blocked axis, so the frame carries a
+`b_anchor_crossing` disclosure naming the blocked lineage and the remedy (`.last` for a stock over time).
+The number is never silently wrong; it arrives with the note that makes it honest (Chapter 5.3).
+
+### 2.6 The grammar grows by ruling
+
+The shipped envelope grammar is exactly `columns @ anchor` with the constructs above: measures and
+members, labels, inline input pins, maps, the anchor product. It is deliberately small, and it **grows by
+ruling** (ADR-034 D1), not by accretion: a clause enters the language when it is ruled in, and until then
+it does not exist. Chapter 6's examples carry a shipping mark for exactly this reason — an executable
+example runs against the shipped package or it is marked as pending or roadmap; the manual is structurally
+incapable of documenting a query it did not run. What this chapter specifies is the frame as it ships
+today: two slots, one universe per expression, every grain either determined or pinned, and every answer
+one of the four moods.
 
 ## Chapter 3. Sugars
 
