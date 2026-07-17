@@ -116,8 +116,8 @@ def test_limit_bare(fixture_server):
 
 
 def test_limit_per_anchor_coordinate(fixture_server):
-    # top product per region (region*store hits an engine collapse gap; product*region serves)
-    fr = _run(fixture_server, "SELECT revenue AT {product*region} ORDER BY revenue DESC LIMIT 1 PER {region}")
+    # top product per region — PER {region} ⊆ ORDER BY (region leads for group contiguity)
+    fr = _run(fixture_server, "SELECT revenue AT {product*region} ORDER BY region, revenue DESC LIMIT 1 PER {region}")
     assert len(fr.data) == fr.data["region"].n_unique()
 
 
@@ -133,6 +133,13 @@ def test_per_nonanchor_refused(fixture_server):
     assert "not an anchor coordinate" in str(ei.value)
 
 
+def test_per_not_in_order_by_refused(fixture_server):
+    # PER ⊆ ORDER BY (flag 3, conjoined law): region is an anchor coord but NOT an ORDER BY key -> refuse
+    with pytest.raises(FrameQLSyntaxError) as ei:
+        _run(fixture_server, "SELECT revenue AT {product*region} ORDER BY revenue DESC LIMIT 1 PER {region}")
+    assert "not in ORDER BY" in str(ei.value) and "add" in str(ei.value)
+
+
 # --- WHERE pre-reduction (pass-through plumbing) --------------------------------------------------
 def test_where_pre_reduction_runs(fixture_server):
     # WHERE binds pre-reduction via the existing engine plumbing; the frame still serves, and the
@@ -144,6 +151,17 @@ def test_where_pre_reduction_runs(fixture_server):
     fmap = dict(zip(full.data["store"], full.data["r"]))
     for st, v in zip(filt.data["store"], filt.data["r"]):
         assert v <= fmap[st] + 1e-9
+
+
+def test_where_unreachable_clarifies(fixture_server):
+    # filter_unreachable (flag 2, minted): `level` lives in store_days; `customer` is transactions-only,
+    # so the WHERE dimension cannot reach the series' input anchor -> a per-series CLARIFY (adjudicated
+    # before the engine is invoked).
+    w = _wire(fixture_server, "SELECT level.sum AT {store} WHERE customer = 'C001'")
+    assert w["outcome"] == "clarify"
+    nr = w["columns"][0]["no_result"]
+    assert nr["reason"] == "filter_unreachable"
+    assert "customer" in nr["detail"] and len(nr["alternatives"]) >= 1
 
 
 # --- the four moods still reachable through the envelope -----------------------------------------
