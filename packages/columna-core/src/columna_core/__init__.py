@@ -38,4 +38,4 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "describe_derived", "license_to_dict", "describe_universe", "describe_assert",
            "describe_hierarchy", "operator_properties", "absence_semantics",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
-__version__ = "0.7.8-core"
+__version__ = "0.8.0-core"

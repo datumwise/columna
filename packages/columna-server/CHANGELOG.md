@@ -3,6 +3,21 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.2.0] — columna init, the measured KP v0.5, the four-mood tour, and the Explorer describe
+
+Full narrative: `specs/release_notes_v0_8_0.md`.
+
+- **columna init** — the authoring on-ramp: the meaning-in seam between a governed aperture (catalog/
+  profile/metered samples; no exfiltrating read) and a draft with a two-layer polarity wall (proposes
+  closures freely, cannot express an inferred opening). It proposes; the human declares.
+- **The knowledge package ships at v0.5**, reached by a pre-registered eval ratchet (v0.3 salience →
+  v0.4 prune, reverted under its do-not-ship clause → v0.5 floored prune): flooding down AND ◆-recall held.
+- **The four-mood tour** — `demo --play` walks serve/disclose/clarify/refuse on well-posed §2c asks;
+  disclose = a stock summed across a blocked time axis (material caveat, never a silent total).
+- **describe** gains the full C-1 extension (basis/absence, asserts, hierarchies, licenses, scope/cut,
+  operator properties) under the §2b insulation guarantee; the **Manifold Explorer** renders any describe.
+- Wire contract unchanged (`contract_version` "1").
+
 ## [0.1.0] — the MCP server, the packaged demo, and the NL agent
 
 First release. The Columna MCP server and its two front doors, over one contract (ADR-032 D8 — the
