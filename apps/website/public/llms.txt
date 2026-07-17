@@ -24,7 +24,7 @@ Every answer is one of four, returned as structured data on one contract (contra
 - Verdict — the result of checking a described claim against the data: verified, corroborated,
   untestable, or contradicted.
 - FrameQL — the query language against the Manifold, as SQL is to tables: an anchor plus what you ask,
-  `aov @ cal.month`.
+  `SELECT aov AT {cal.month}`.
 - describe — the machine-readable rendering of a Manifold; what an agent reads first.
 - The wire — the answer format: result + context, in one of the four moods; the same contract over MCP
   or straight from the API.

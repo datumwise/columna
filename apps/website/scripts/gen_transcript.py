@@ -35,8 +35,8 @@ SEEDED = {
 }
 
 
-def run(store, fq, universe=None):
-    return T.query(store, MID, fq, universe=universe)
+def run(store, fq, universe=None):  # universe kept in the seed schema for lineage; 0.9.0 ignores it
+    return T.query(store, MID, fq)
 
 
 def build_describe(store, dm):
@@ -97,7 +97,7 @@ def main() -> int:
 
     seeded = {}
     for key, q in SEEDED.items():
-        wire = run(store, q["frameql"], q["universe"])
+        wire = run(store, q["frameql"])
         got = wire.get("outcome")
         if got != q["intended"]:
             print(
