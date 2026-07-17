@@ -69,6 +69,14 @@ jobs:
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
         run: pip install "columna-core==0.8.0" "columna-server==0.2.0"
 
+      # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
+      # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
+      # shipped package — documented syntax the shipped parser rejects fails the deploy. It fails closed
+      # against a package too old to run the documented (envelope) grammar; it goes green once the pin
+      # is the version that ships that grammar. Bump the pin above in the same flip that ships 0.9.0.
+      - name: Prose-coherence tripwire (corpus + llms parse against the shipped package)
+        run: python scripts/check_prose_coherence.py
+
       - name: Generate the integrity transcript from the SHIPPED package (fails closed)
         run: |
           mkdir -p src/data
