@@ -1,5 +1,5 @@
 // CP-3b Tier-1 [AI-3] — the term-chip fills. ONE source, no drift: every field is quoted from the
-// ratified "What is Columna?" front-door glossary + body (specs/context/what_is_columna_draft_v0_4.md,
+// ratified "What is Columna?" front-door glossary + body (specs/context/what_is_columna_draft_v0_5.md,
 // wired verbatim at /what-is-columna). The chip renders the package §1c [AI-3] template:
 //   "In Columna, {TERM} means: {DEFINITION}. The surrounding law: {RULE}. Example: {EXAMPLE}.
 //    Explain {TERM} to me in plain language and answer my follow-up questions."
@@ -35,8 +35,10 @@ export const GLOSSARY: Record<string, GlossTerm> = {
   frameql: {
     term: 'FrameQL',
     definition: 'the query language against the Manifold, as SQL is to tables',
-    rule: 'an anchor (where you stand) plus what you are asking',
-    example: '`aov @ cal.month` — the measure aov, anchored at the calendar month',
+    // Synced to the v0.5 envelope spelling (the terse `aov @ cal.month` output form is RETIRED; @ is
+    // now the input-anchor marker, the output grain rides AT). Huayin's conformance note — flagged, not silent.
+    rule: 'you declare the frame you want — the columns, and the anchor they stand at',
+    example: '`SELECT aov AT {cal.month}` — the frame whose column is aov, standing at calendar month',
   },
   verdict: {
     term: 'Verdict',

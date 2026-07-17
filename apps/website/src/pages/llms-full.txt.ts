@@ -1,10 +1,10 @@
 // llms-full.txt — the fuller agent orientation, COMPOSED AT BUILD from ratified parts only
 // (no net-new prose; Huayin confirmed compose-from-ratified, CP-3b package §1b):
 //   1. the ratified llms.txt index (public/llms.txt, §1a) — read verbatim at build
-//   2. the ratified "What is Columna?" front-door body (what_is_columna_draft_v0_4.md) — verbatim
+//   2. the ratified "What is Columna?" front-door body (what_is_columna_draft_v0_5.md) — verbatim
 //   3. a short "Live demo describe" pointer to the live Explorer (reuses the ratified §1a pointers)
 import fs from 'node:fs';
-import wiBody from '../content/corpus/what_is_columna_draft_v0_4.md?raw';
+import wiBody from '../content/corpus/what_is_columna_draft_v0_5.md?raw';
 
 export const prerender = true;
 
