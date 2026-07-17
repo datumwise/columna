@@ -56,3 +56,108 @@ Watermarks → ADR-035; Appendix B concordance; the Chapter-26 status-mark table
 Frame-QL Chapter 2 rewrite (new prose → CP-M2 for Huayin's edit) + Chapter 6 tagging/regeneration; the
 Coframe canonical form → lineage appendix. All land after M1-a…d are ruled, and arrive at CP-M2 as a
 rendered diff with the harness green in CI and the worksheet §5 acceptance checked item by item.
+
+## Handoff — the anchor grammar is on `main` (from the anchor-grammar WP)
+*(Added 2026-07-16. PR [#33](https://github.com/datumwise/columna/pull/33), merge `4c12a0b`;
+independently verified post-merge and blessed by Huayin. This section is the anchor-grammar WP's
+merge notification into CP-M2's channel.)*
+
+**What discharged, and what did NOT.** The gate the anchor-grammar WP discharged is the **sequencing
+gate** only — the small parser WP landed on `main` **before** the manuals merge, so Chapter 2 now
+writes against ruled, shipped grammar. **The CP-M2 approval gate stands UNCHANGED:** the full rendered
+diff, Chapter 2's prose for Huayin's edit, and worksheet §5 checked line by line — all before anything
+merges. Sequencing cleared; approval is still Huayin's, unmoved.
+
+**Chapter 2 documents shipped law only** (the §2c discipline). The capture's §2c universe-resolution
+material — one-expression/one-universe, the expression law, the frame-juxtaposition law, `ON UNIVERSE`
+dead in the query grammar, universe-qualified/suffix addressing — is **capture-only, NOT shipped**;
+it is the tier-2 WP's scope. Chapter 2 must not document any of it as behavior.
+
+**The shipped grammar Chapter 2 writes against:**
+- **Anchor product `*`** is the canonical anchor separator (`revenue @ region*day`), the same operator
+  as `UNIVERSE a * b * c`; the system writes `*` everywhere. **One sentence** acknowledges that the
+  comma is *accepted on input* — its retirement is a ruled post-launch grammar-hygiene sweep, and the
+  manual does **not** date it.
+- **Resolution order (STANDING law):** a literal level-name match wins (dotted stored names like the
+  demo's `cal.month` are legitimate); otherwise the token splits at the first dot and resolves as
+  `family.level`, validated against **edge-derived** membership (level ∈ family iff it touches an edge
+  of that lineage). Nothing here is transitional.
+- **Leaf-name uniqueness is scoped per universe** (a well-formedness law): within a universe's included
+  levels, two distinct levels may not share a leaf name; the same leaf MAY recur across universes.
+- **Universe names never appear in anchor position** (disjoint namespaces; populations ride
+  `ON UNIVERSE` in definitions).
+- **The one bad state** — a single token that could reach two levels (a literal `A.B` whose
+  `family.level` split also resolves) — is a well-formedness error, fail closed, both sites named.
+- **Bare-unknown pass-through** (the refinement blessed post-merge, finer than the brief drew): a bare,
+  non-universe, non-level token is *not* a resolution error — it flows through to the addressability
+  (`out_of_universe`) mood, unchanged. Resolution errors are scoped to universe-names and bad
+  qualifications only.
+
+**Exact error strings (stable; quote verbatim in examples):**
+- universe in anchor → `'transactions' is a universe, not a level: universe names do not appear in anchors; populations ride ON UNIVERSE`
+- wrong family → `anchor 'cal.region': level 'region' is not in dimension family 'cal' — it belongs to ['geo']`
+- qualified unknown level → `anchor 'geo.nowhere': no level named 'nowhere' — qualify an existing level as family.level, or name a level directly`
+- leaf collision → `universe 'sales': levels ['cal.week', 'fiscal.week'] share the leaf name 'week' — leaf names must be unique within a universe; rename one so distinct concepts carry distinct names`
+- one bad state → `level 'cal.month' collides with level 'month' in family 'cal': the anchor token 'cal.month' would reach both (a literal level and the family.level split) — rename one`
+- duplicate LEVEL → `duplicate LEVEL declaration 'month' — a level name is declared exactly once`
+
+**Behavior delta (Chapter 2 should reflect this, one line):** a universe name in the anchor that
+previously produced an accidental `out_of_universe` **refusal** now produces a `frameql_syntax`
+**error** on the query-error channel — no new wire reason code, four-mood wire byte-identical.
+
+**Docs-local fixture (M1-c):** the `finance` fixture uses **clean dotless level names from birth** —
+no `cal.`-style dotted legacy. Suffix/qualified addressing surfaces only if/when the fixture models
+two families sharing a leaf; the bare level name is the expected form.
+
+**Chapter 6** regenerates against this grammar (the executable subset per M1-d); the `*` anchor is the
+canonical spelling in every `frameql`/`frameql-output` block.
+
+
+## Handoff — §2c universe resolution is now on `main` (the fence INVERTS, from CP-2)
+*(Added 2026-07-16. Shipped via CP-2 — PR [#36](https://github.com/datumwise/columna/pull/36) checkpoint
++ [#37](https://github.com/datumwise/columna/pull/37) the CP-1 §2c increment, both merged. This section
+is CP-2's merge notification into CP-M2's channel, and it INVERTS the fence the anchor-grammar handoff
+set above.)*
+
+**The fence inverts.** The anchor-grammar handoff above marked the §2c universe-resolution material as
+**capture-only, NOT shipped** — "Chapter 2 must not document any of it as behavior." That is now
+**superseded**: the §2c law has SHIPPED on `main`. **Chapter 2's population section now documents it as
+SHIPPED law**, no longer capture-only. The CP-M2 **approval gate still stands UNCHANGED** — full rendered
+diff, Chapter 2's prose for Huayin's edit, worksheet §5 line by line, all before anything merges.
+
+**The shipped §2c law Chapter 2's population section now documents:**
+- **`ON UNIVERSE` is dead in the query grammar.** A population is never named in a query; universe is
+  resolved STRUCTURALLY from the expression. The query-side universe argument is retired (OF-4).
+- **One expression, one universe.** An expression whose members span more than one universe is a
+  **category error** — `cross_universe` on the query-error channel (four-mood wire byte-identical; no new
+  reason code) — NOT a `clarify`/`refuse`. The old cross-universe "wedge" that once *taught* clarify/refuse
+  is retired: it is now an error.
+- **Frame juxtaposition.** A multi-population ask is posed as **separate columns juxtaposed in one frame**,
+  each over its own universe — the well-posed replacement for the retired wedge (this is the demo's
+  `disclose` shape).
+- **Single-universe sugar.** A single-universe manifold needs no universe qualification at all; the bare
+  ask resolves.
+
+**Behavior delta (one line for Chapter 2):** the cross-universe rate that previously produced a
+`clarify`/`refuse` mood now produces a `frameql`/`cross_universe` **error** — the four-mood wire is
+byte-identical; the change is which asks are well-posed.
+
+**Four-mood tour exemplars (for any quickstart references).** The packaged demo/tour is now
+**clarify → refuse → disclose → serve** (all four moods), reframed for §2c:
+- **clarify** — `avg(aov) @ cal.month` (underdetermined input anchor);
+- **refuse** — `level.last @ customer` (out of the contracted space);
+- **disclose** — `level.sum @ store*cal.month` (a stock summed across the blocked day→month axis → a
+  material `b_anchor_crossing` caveat);
+- **serve** — `aov @ cal.month`.
+The old cross-universe-wedge exemplar (`revenue / level.last`) is **RETIRED** — it is a `cross_universe`
+error now, not a mood. Any quickstart reference must use the new exemplars.
+
+**Merge queue open — behind Huayin's CP-M2 pass.** With §2c on `main`, the manuals session's merge queue
+is **open**: Chapter 2 may be written against the shipped §2c law and Chapter 6 regenerated. The gate is
+unchanged — **nothing merges before Huayin's CP-M2 approval** (the rendered diff + §5). Sequencing is
+clear; approval is his, unmoved.
+
+**Site-pipeline note (verified 2026-07-16):** the site drift guard (`apps/website/scripts/gen_transcript.py`)
+now **fails any site build against the new law** — its seeded `clarify` (the retired wedge) resolves to
+`error` under §2c, so the generator exits non-zero and the build fails closed. This is the tripwire working
+as designed; CP-3 rebuilds the site exemplars to the four-mood tour at its beat. Not a manuals action.

@@ -20,12 +20,21 @@ Grammar (statement-oriented; '#' comments; { } blocks):
 """
 from __future__ import annotations
 import re
+from dataclasses import replace
 from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
-                    Ref, Comparison, Predicate)
+                    Ref, Comparison, Predicate, Assert, Hierarchy)
 
-_KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "EDGE", "RELATE", "MEASURE", "DERIVED")
+_KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "EDGE", "RELATE", "MEASURE", "DERIVED",
+       "ASSERT", "HIERARCHY")
+
+# B1 (capture §7): the comparison set an aggregate-invariant ASSERT may use. `==` rides the WP-B
+# adjudication tolerance (one tolerance policy, everywhere); v1 excludes `!=`.
+ASSERT_OPS = ("==", "<=", ">=", "<", ">")
+
+# B3 (capture §7): the four population bases, each determining what absence MEANS engine-wide.
+BASIS_TYPES = frozenset({"events", "spine", "product", "registry"})
 
 
 class ParseError(Exception):
@@ -88,13 +97,21 @@ def _p_manifold(s, M):
 
 
 def _p_universe(s, M):
+    # optional trailing `BASIS <type>` (B3) — stripped first so the WHERE predicate parse is undisturbed.
+    basis = None
+    bm = re.search(r"\s+BASIS\s+(\w+)\s*$", s)
+    if bm:
+        basis = bm.group(1)
+        if basis not in BASIS_TYPES:
+            raise ParseError(f"bad UNIVERSE BASIS '{basis}' (one of {sorted(BASIS_TYPES)})")
+        s = s[:bm.start()]
     m = re.match(r"UNIVERSE\s+(\w+)\s*=\s*(.+?)(?:\s+WHERE\s+(.+))?$", s, re.S)
     if not m:
         raise ParseError(f"bad UNIVERSE: {s!r}")
     name = m.group(1)
     dims = frozenset(d.strip() for d in m.group(2).split("*"))
     pred = parse_predicate(m.group(3).strip()) if m.group(3) else None
-    M["universes"][name] = Universe(name, dims, pred)
+    M["universes"][name] = Universe(name, dims, pred, basis)
 
 
 def _p_level(s, M):
@@ -187,7 +204,9 @@ def _p_derived(s, M):
 
 
 def _p_measure(s, M):
-    head = re.match(r"MEASURE\s+(\w+)\s+ON\s+(\w+)\s+FROM\s+(\w+)", s)
+    # §2c single-universe sugar: `ON <universe>` is OPTIONAL; a None universe is filled with the sole
+    # universe in parse_manifold (or errors if the manifold has more than one).
+    head = re.match(r"MEASURE\s+(\w+)(?:\s+ON\s+(\w+))?\s+FROM\s+(\w+)", s)
     if not head:
         raise ParseError(f"bad MEASURE header: {s!r}")
     name, universe, table = head.group(1), head.group(2), head.group(3)
@@ -245,21 +264,101 @@ def _p_measure(s, M):
                                         distinct_col=distinct_col)
 
 
+def _split_invariant(inv: str, name: str):
+    """Split an aggregate-invariant body at its top-level comparison (paren-transparent). Longer ops
+    win at a position (`<=` before `<`), so `a <= b` never reads as `a < =b`."""
+    depth = 0
+    for i, c in enumerate(inv):
+        if c in "([":
+            depth += 1
+        elif c in ")]":
+            depth -= 1
+        elif depth == 0:
+            for op in ASSERT_OPS:
+                if inv[i:i + len(op)] == op:
+                    left, right = inv[:i].strip(), inv[i + len(op):].strip()
+                    if not left or not right:
+                        raise ParseError(f"bad ASSERT {name!r} invariant: empty side around {op!r}")
+                    return left, op, right
+    raise ParseError(f"bad ASSERT {name!r} invariant {inv!r}: expected a comparison "
+                     f"(one of {list(ASSERT_OPS)})")
+
+
+def _p_assert(s, M):
+    # ASSERT <name> ON <universe> WHERE <predicate>                 (row-level; universe-carving grammar)
+    # ASSERT <name> ON <universe> AT <anchor> HOLDS <invariant>     (aggregate over measures at an anchor)
+    # §2c single-universe sugar: `ON <universe>` is OPTIONAL (filled in parse_manifold when sole).
+    head = re.match(r"ASSERT\s+(\w+)(?:\s+ON\s+(\w+))?\s+(WHERE\s+.+|AT\s+.+)$", s, re.S)
+    if not head:
+        raise ParseError(f"bad ASSERT: {s!r} (expected 'ASSERT <name> [ON <universe>] WHERE/AT ...')")
+    name, universe, rest = head.group(1), head.group(2), head.group(3).strip()
+    wm = re.match(r"WHERE\s+(.+)$", rest, re.S)
+    if wm:
+        M["asserts"].append(Assert(name, universe, "row",
+                                   predicate=parse_predicate(wm.group(1).strip())))
+        return
+    am = re.match(r"AT\s+(.+?)\s+HOLDS\s+(.+)$", rest, re.S)
+    if not am:
+        raise ParseError(f"bad ASSERT {name!r}: expected 'WHERE <predicate>' or "
+                         f"'AT <anchor> HOLDS <invariant>', got {rest!r}")
+    anchor = tuple(a.strip() for a in re.split(r"[*,]", am.group(1)) if a.strip())
+    left, op, right = _split_invariant(am.group(2).strip(), name)
+    M["asserts"].append(Assert(name, universe, "invariant", anchor=anchor,
+                               left=left, op=op, right=right))
+
+
+def _p_hierarchy(s, M):
+    # HIERARCHY <a> -> <b> [-> <c> ...] ALONG <lineage> VIA <table>(<col_a>, <col_b> [, ...])
+    # Desugars to plain FunctionalEdges (indistinguishable from hand-declared) + a provenance record.
+    m = re.match(r"HIERARCHY\s+(.+?)\s+ALONG\s+(\w+)\s+VIA\s+(\w+)\s*\(([^)]*)\)\s*$", s, re.S)
+    if not m:
+        raise ParseError(f"bad HIERARCHY: {s!r} (expected 'HIERARCHY <a> -> <b> [-> ...] "
+                         f"ALONG <lineage> VIA <table>(<col>, ...)')")
+    chain = tuple(x.strip() for x in m.group(1).split("->") if x.strip())
+    lineage, table = m.group(2), m.group(3)
+    cols = [c.strip() for c in m.group(4).split(",") if c.strip()]
+    if len(chain) < 2:
+        raise ParseError(f"bad HIERARCHY along '{lineage}': a chain needs >= 2 levels, got {list(chain)}")
+    if len(cols) != len(chain):
+        raise ParseError(f"bad HIERARCHY along '{lineage}': {len(cols)} VIA columns for {len(chain)} "
+                         f"levels — v1 requires one column per level (single table)")
+    for i in range(len(chain) - 1):     # the edges are the single truth
+        M["edges"].append(FunctionalEdge(chain[i], chain[i + 1], lineage, table, cols[i], cols[i + 1]))
+    M["hierarchies"].append(Hierarchy(lineage, chain, table))   # provenance + FD-obligation handle
+
+
 _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
-             "EDGE": _p_edge, "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived}
+             "EDGE": _p_edge, "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
+             "ASSERT": _p_assert, "HIERARCHY": _p_hierarchy}
 
 
 # ---- public -----------------------------------------------------------------
 def parse_manifold(text: str) -> Manifold:
     M = {"name": None, "version": 1, "universes": {}, "levels": {}, "edges": [],
-         "measures": {}, "derived": {}, "non_functional": []}
+         "measures": {}, "derived": {}, "non_functional": [], "asserts": [], "hierarchies": []}
     for stmt in _statements(text):
         kw = stmt.strip().split()[0]
         _DISPATCH[kw](stmt, M)
     if M["name"] is None:
         raise ParseError("missing MANIFOLD header")
+    # §2c single-universe sugar: a MEASURE/ASSERT that omitted `ON <universe>` takes the sole universe;
+    # with more than one universe, `ON` is REQUIRED (fail closed, naming the ambiguity).
+    _unis = list(M["universes"])
+    for nm, meas in list(M["measures"].items()):
+        if meas.universe is None:
+            if len(_unis) != 1:
+                raise ParseError(f"MEASURE {nm}: 'ON <universe>' is required — the manifold has "
+                                 f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
+            M["measures"][nm] = replace(meas, universe=_unis[0])
+    for i, a in enumerate(M["asserts"]):
+        if a.universe is None:
+            if len(_unis) != 1:
+                raise ParseError(f"ASSERT {a.name}: 'ON <universe>' is required — the manifold has "
+                                 f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
+            M["asserts"][i] = replace(a, universe=_unis[0])
     manifold = Manifold(M["name"], M["version"], M["universes"], M["levels"],
-                        M["edges"], M["measures"], M["derived"], M["non_functional"])
+                        M["edges"], M["measures"], M["derived"], M["non_functional"],
+                        M["asserts"], M["hierarchies"])
     errs = check_wellformed(manifold)
     if errs:
         raise ParseError("not well-formed:\n  - " + "\n  - ".join(errs))
@@ -411,4 +510,29 @@ def check_wellformed(m: Manifold) -> list:
                 errs.append(f"level '{lv}' collides with level '{rest}' in family '{fam}': the anchor "
                             f"token '{lv}' would reach both (a literal level and the family.level split) "
                             f"— rename one")
+
+    # ── ASSERT well-formedness (B1, fail closed): universe/uniqueness/row-purity here; the invariant
+    #    expression + anchor are the adjudicator's (planner's) authority at publish (rider 1).
+    seen_assert = set()
+    for a in m.asserts:
+        if a.universe not in m.universes:
+            errs.append(f"assert '{a.name}' binds unknown universe '{a.universe}'")
+            continue
+        if (a.universe, a.name) in seen_assert:      # names are unique PER UNIVERSE (rider 4)
+            errs.append(f"duplicate ASSERT '{a.name}' in universe '{a.universe}' "
+                        f"(assert names are unique per universe)")
+        seen_assert.add((a.universe, a.name))
+        if a.kind == "row":
+            # purity: a row predicate is over dims/attrs, never a measure (universe-carving grammar, rider 1)
+            if a.predicate:
+                for comp in a.predicate.comparisons:
+                    for ref in (comp.left, comp.right):
+                        if not ref.is_literal and ref.table is None and ref.column in m.measures:
+                            errs.append(f"assert '{a.name}' row predicate references measure "
+                                        f"'{ref.column}' (row asserts are over dims/attrs only)")
+        # invariant-form: the expression + anchor are validated by the ADJUDICATOR at publish, not here
+        # — the planner is the one authority on askability (rider 1). An invariant that does not serve
+        # cleanly (unknown name, blocked reduction, unpinned inline reduction, bad anchor) fails publish
+        # closed via AssertNotWellFormed, naming the planner's reason. Invariants legitimately use inline
+        # reductions (`mean(revenue)`), so a parse-time column-head check would wrongly reject operators.
     return errs

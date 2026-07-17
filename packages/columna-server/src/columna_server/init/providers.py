@@ -1,0 +1,161 @@
+"""
+columna_server.init.providers — the init provider layer. `scripted` (hermetic, the default everywhere)
++ `anthropic` (the real mind, which runs ONLY on an explicit go). The provider reads the aperture,
+assembles a prompt from the FROZEN knowledge package (system_prompt.md), and parses the model's response
+into proposal specs. It cannot open a door: the prompt forbids it and the draft schema refuses it.
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+from importlib.resources import files
+
+DEFAULT_MODEL = "claude-opus-4-8"
+MODEL_ENV = "COLUMNA_INIT_MODEL"
+KEY_ENV = "ANTHROPIC_API_KEY"
+
+
+class ProviderUnavailable(RuntimeError):
+    """The real provider cannot run (no key / SDK) — hermetic runs use the scripted provider."""
+
+
+def system_prompt() -> str:
+    """The live, versioned authoring prompt (rendered from the ratified knowledge package §A)."""
+    return files("columna_server.init").joinpath("system_prompt.md").read_text(encoding="utf-8")
+
+
+def aperture_context(aperture) -> str:
+    """The schema context init reads — CATALOG only here (profile/sample are the model's follow-up
+    calls via the aperture in a real run). No data values leak into the prompt at this step."""
+    lines = ["Catalog:"]
+    for t in aperture.catalog():
+        cols = ", ".join(f"{c['name']}:{c['type']}" for c in t["columns"])
+        keys = f"  keys={t['keys']}" if t["keys"] else ""
+        lines.append(f"  {t['table']}({cols}){keys}")
+    return "\n".join(lines)
+
+
+_OPENING_KINDS = {"fertility", "fertile", "opening", "door"}
+from columna_core.draft import DECLARATION_KINDS
+
+
+def revise_prompt(aperture, draft) -> str:
+    """The revise-turn prompt — a MODULE-LEVEL function so it can be RENDERED and inspected hermetically
+    (no key, no network). This is the seam the blindness check (Huayin, ruling 4, 2026-07-16) audits:
+    the struck marks MUST appear here for a re-proposal to be disobedience (mind) rather than blindness
+    (world). It renders each struck body verbatim under a `do NOT re-propose` header."""
+    from columna_core.draft import STRUCK
+    struck = [p.body for p in draft.proposals if p.review == STRUCK]
+    kept = [p.body for p in draft.proposals if p.review != STRUCK]
+    return (aperture_context(aperture)
+            + "\n\nReview so far — these were STRUCK by the author (do NOT re-propose them):\n  "
+            + ("\n  ".join(struck) or "(none)")
+            + "\nAlready accepted (do not repeat):\n  " + ("\n  ".join(kept) or "(none)")
+            + "\n\nReturn a JSON array of ONLY the NEW/corrected declarations that address the struck "
+              "marks. Do not re-propose a struck or accepted declaration (a settled mark stays settled).")
+
+# The output contract is a GRAMMAR (Huayin, 2026-07-16): every deterministically-checkable clause is
+# enforced at parse — a malformed target is a malformed spec, taught by the bounded retry, NEVER
+# laundered scorer-side (real init users inherit the draft, so the artifact must be clean at its birth).
+_ID = re.compile(r"^[A-Za-z_][\w.]*$")                     # a bare declared name (dotted levels allowed)
+_ARROW = re.compile(r"^[A-Za-z_][\w.]*(?:->|<->)[A-Za-z_][\w.]*$")   # edge/relate: frm->to / frm<->to
+
+
+def _target_ok(kind: str, target) -> bool:
+    t = str(target).strip()
+    return bool((_ARROW if kind in ("edge", "relate") else _ID).match(t))
+
+
+def parse_proposals(text: str) -> list:
+    """The model's response → proposal specs. It must be a JSON array of {kind, target, body, ...};
+    prose or the wrong shape is a hard error (grounding — the harness never guesses the mind's intent).
+    Any OPENING is DROPPED ENTIRELY (Huayin, ruling 2, 2026-07-16): a spec that opens fertility
+    (`opens_fertility`, an opening kind, or a `FERTILE` clause in its body) is not de-flagged — it is
+    removed, because fertility talk belongs to the ADJUDICATOR'S ADVICE channel, never to a proposal."""
+    if not str(text).strip():
+        return []                        # an empty completion = no proposals — legitimate, esp. on a
+                                         # revise turn where the mind has nothing left to correct (it is
+                                         # done). NOT a parse error; the loop scores the accumulated draft.
+    data = json.loads(text)
+    if not isinstance(data, list):
+        raise ValueError("init provider response must be a JSON array of proposal specs")
+    out = []
+    for s in data:
+        if not isinstance(s, dict) or "kind" not in s or "body" not in s:
+            raise ValueError(f"malformed proposal spec: {s!r}")
+        if (s.get("opens_fertility") or str(s.get("kind", "")).lower() in _OPENING_KINDS
+                or "FERTILE" in str(s.get("body", "")).upper()):
+            continue                                     # DROP the opening entirely (not the adjudicator's channel)
+        kind = str(s["kind"]).lower()
+        if kind not in DECLARATION_KINDS:                       # CLOSED kind vocabulary (ruling 1)
+            raise ValueError(f"unknown declaration kind {s['kind']!r} — use one of {sorted(DECLARATION_KINDS)}")
+        if not _target_ok(kind, s.get("target", "")):           # target SHAPE clause of the grammar
+            raise ValueError(f"malformed target {s.get('target')!r} for kind '{kind}' — use a bare "
+                             f"canonical name (edge/relate as 'frm->to'), not a description")
+        s = {k: v for k, v in s.items() if k not in ("opens_fertility", "author_declared")}
+        s["kind"] = kind
+        out.append(s)
+    return out
+
+
+class AnthropicProvider:
+    """The real mind — one `messages.create` per turn, guided by the frozen knowledge package. Runs
+    ONLY when a key is present AND the caller opts in (rider 3: the first real-model run waits for the
+    explicit go). Deps live in the `[agent]` extra."""
+
+    name = "anthropic"
+
+    def __init__(self, model: str | None = None, system: str | None = None):
+        self.model = model or os.environ.get(MODEL_ENV, DEFAULT_MODEL)
+        # `system` overrides the live KP prompt — used ONLY to run a control arm (a prior KP version)
+        # alongside the live one in one keyed session, so a KP iteration is a clean A/B on the same
+        # model+scorer (the one variable is the prompt). Defaults to the live system_prompt().
+        self._system = system or system_prompt()
+        if not os.environ.get(KEY_ENV):
+            raise ProviderUnavailable(
+                f"{KEY_ENV} not set — the real mind runs only on an explicit go; hermetic runs use the "
+                f"scripted provider.")
+        try:
+            import anthropic
+        except ModuleNotFoundError as e:
+            raise ProviderUnavailable("the anthropic SDK is not installed (the [agent] extra).") from e
+        # max_retries lets the SDK back off on transient API errors (429 / 5xx incl. 529 Overloaded)
+        # with exponential backoff — a capacity blip must not read as a mind failure (that would
+        # poison the eval with fake misses). Distinct from the malformed-output retry below.
+        self._client = anthropic.Anthropic(max_retries=8)
+        self.retries = 0                                          # malformed-output retries (convergence data)
+
+    def _once(self, content: str) -> list:
+        resp = self._client.messages.create(
+            model=self.model, max_tokens=2048, system=self._system,
+            messages=[{"role": "user", "content": content}])
+        self.last_model = getattr(resp, "model", self.model)     # the resolved version (provenance)
+        text = "".join(b.text for b in resp.content if b.type == "text").strip()
+        # tolerate a fenced code block around the JSON (a common, harmless model habit — recorded, not hidden)
+        if text.startswith("```"):
+            text = text.strip("`").split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+            if text.startswith("json"):
+                text = text[4:].strip()
+        return parse_proposals(text)
+
+    def _call(self, content: str) -> list:
+        # The bounded retry TEACHES the contract — so it fires ONLY on a CONTRACT/parse failure
+        # (ValueError from parse_proposals / json). A transient API error (overload/rate/5xx) is NOT a
+        # contract breach: the SDK's max_retries already backed off on it, and if it still failed the
+        # error PROPAGATES (the eval records a hard error, never a fake miss). Teaching the contract
+        # cannot fix an overloaded API, and must not burn the one malformed-output retry.
+        try:
+            return self._once(content)
+        except ValueError:                                       # contract/parse breach — teach + retry once
+            self.retries += 1
+            return self._once(content + "\n\n(Your previous reply broke the output contract. Reply with "
+                                        "ONLY a JSON array of proposal specs — each `kind` MUST be one of "
+                                        f"{sorted(DECLARATION_KINDS)}, `target` the declaration's canonical "
+                                        "name (an edge/relate as 'frm->to'). No prose, no fenced block.)")
+
+    def propose(self, aperture, draft):
+        return self._call(aperture_context(aperture))
+
+    def revise(self, aperture, draft):
+        return self._call(revise_prompt(aperture, draft))

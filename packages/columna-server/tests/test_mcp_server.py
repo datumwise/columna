@@ -21,7 +21,9 @@ async def test_list_and_describe_roundtrip(mcp_session):
     measures = [m["name"] for m in dm["measures"]]
     assert "region_label" in measures          # the WP-0 parity canary
     sd = next(u for u in dm["universes"] if u["name"] == "store_days")
-    assert sd["predicate"] == "day >= stores.opened_date"
+    # C-2 insulation (§2b, CP-3): the predicate renders LOGICALLY — the physical `stores.` qualifier
+    # (a shipped leak this test previously codified) no longer crosses describe.
+    assert sd["predicate"] == "day >= opened_date"
 
 
 # --- acceptance #2 --------------------------------------------------------------------------
@@ -38,40 +40,35 @@ async def test_describe_measure_family_triple(mcp_session):
 
 # --- acceptance #3: the wedge -------------------------------------------------------------
 async def test_query_clarify_wedge(mcp_session):
+    # §2c reframe: the clarify exemplar is now an inline reduction with no pinned input anchor (the
+    # cross-universe ratio is a category ERROR, not a clarify).
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark",
-                              frameql="rate: revenue / level.last @ store, day")
+                              frameql="rate: avg(aov) @ cal.month")
     assert w["outcome"] == "clarify"
     col = w["columns"][0]
     assert col["status"] == "clarify"
     nr = col["no_result"]
-    assert nr["reason"] == "co_anchor_ambiguous" and nr["discriminator"] == "ambiguous"
-    assert len(nr["alternatives"]) >= 2
-    assert {a["apply"]["universe"] for a in nr["alternatives"]} == {"transactions", "store_days"}
+    assert nr["reason"] == "input_anchor_ambiguous" and nr["discriminator"] == "ambiguous"
+    assert len(nr["alternatives"]) >= 1
 
 
-# --- acceptance #4: the two-hop round-trip (ruling A2+) -------------------------------------
+# --- acceptance #4: the two-hop round-trip (clarify -> reformulate -> serve), §2c-reframed ----
 async def test_clarify_two_hop_roundtrip(mcp_session):
     async with mcp_session() as client:
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: revenue / level.last @ store, day")
-        pinned_universe = clarify["columns"][0]["no_result"]["alternatives"][0]["apply"]["universe"]
-
-        # hop 1: substitute the pin token -> a non-clarify outcome with an informative refuse reason
-        hop1 = await client.call("query", manifold_id="benchmark",
-                                 frameql="rate: revenue / level.last @ store, day", universe=pinned_universe)
-
-        # hop 2: reformulate per the clarify's detail into separate columns -> serve + coverage caveat
-        hop2 = await client.call("query", manifold_id="benchmark",
-                                 frameql="revenue: revenue, inv: level.last @ store, day")
-
-    assert hop1["outcome"] != "clarify"
-    assert hop1["outcome"] == "refuse"
-    assert hop1["columns"][0]["no_result"]["reason"] == "out_of_universe"
-    # hop 2 serves the numbers but rides a MATERIAL coverage caveat -> the wire outcome is `disclose`
-    # (clarify -> refuse -> disclose is three of the four moods in one flow).
-    assert hop2["outcome"] == "disclose"
-    assert "denominator_population" in [d["code"] for d in hop2["frame"]["disclosures"]]
+                                    frameql="rate: avg(aov) @ cal.month")
+        # hop: reformulate per the clarify — PIN the input anchor -> serve (a definite quantity)
+        hop = await client.call("query", manifold_id="benchmark",
+                                frameql="rate: avg(aov@day) @ cal.month")
+        # and a structural refusal in the same manifold — an ask outside the contracted space
+        refuse = await client.call("query", manifold_id="benchmark",
+                                   frameql="inv: level.last @ customer")
+    assert clarify["outcome"] == "clarify"
+    assert clarify["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"
+    assert hop["outcome"] in ("serve", "disclose")            # the pinned reformulation is a definite quantity
+    assert refuse["outcome"] == "refuse"
+    assert refuse["columns"][0]["no_result"]["reason"] == "out_of_universe"
 
 
 # --- acceptance #5: B-anchor inform-and-serve on the wire -----------------------------------
@@ -160,16 +157,16 @@ async def test_wire_contract_schema_and_scoping(mcp_session):
         serve = await client.call("query", manifold_id="benchmark", frameql="revenue: revenue @ region")
         disclose = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: revenue / level.last @ store, day")
-        hop2 = await client.call("query", manifold_id="benchmark",
-                                 frameql="rev: revenue, inv: level.last @ store, day")
-    for w in (serve, disclose, clarify, hop2):
+                                    frameql="rate: avg(aov) @ cal.month")
+        error = await client.call("query", manifold_id="benchmark",
+                                  frameql="rate: revenue / level.last @ store, day")
+    for w in (serve, disclose, clarify, error):
         _assert_frame_shape(w)
     # outcome derivation: nothing material -> serve; a material caveat -> disclose
     assert serve["outcome"] == "serve"
     assert disclose["outcome"] == "disclose"
-    # scoping: the multi-universe coverage caveat is FRAME-scoped, not on any column
-    frame_codes = [d["code"] for d in hop2["frame"]["disclosures"]]
-    assert "denominator_population" in frame_codes
-    for col in hop2["columns"]:
-        assert "denominator_population" not in [d["code"] for d in col["disclosures"]]
+    assert clarify["outcome"] == "clarify"
+    # §2c: the cross-universe expression is a category ERROR (not a clarify), and juxtaposition carries
+    # NO multi-universe coverage caveat (retired) — the four moods are taught by well-posed asks now.
+    assert error["outcome"] == "error"
+    assert error["columns"][0]["no_result"]["reason"] == "cross_universe"
