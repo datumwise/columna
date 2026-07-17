@@ -186,7 +186,15 @@ def _split_first_top(s: str, delim: str) -> tuple:
 
 
 def parse_frameql(text: str) -> tuple:
-    """Parse a Frame-QL query string into (anchor_levels, [(column_name, column_expr)]).
+    """Parse the RETIRED terse Frame-QL form `<columns> @ <anchor>` into (anchor_levels,
+    [(column_name, column_expr)]).
+
+    ── TOMBSTONE (2026-07-17, WP-FrameQL 0.9.0) ── The terse `cols @ anchor` form is RETIRED from the
+    WIRE: the query surface is the ENVELOPE grammar (`SELECT <series [AS alias]>,… AT {anchor}`,
+    `columna_core.envelope.parse_statement`), where `@` is the INPUT-anchor marker and `AT {…}` the sole
+    output grain — the fragment's two `@`s (output vs input) were why it could not ship as the language.
+    This parser remains only for lineage/interpretability of old transcripts; no shipped surface calls
+    it. Kept as a dated tombstone — vocabularies grow by rule and shrink by tombstone, never silently.
 
     Raises FrameQLSyntaxError on an envelope violation. Does NOT validate expressions or levels —
     the planner does that when the frame runs (one dialect).

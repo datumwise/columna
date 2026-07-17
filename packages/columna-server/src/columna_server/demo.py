@@ -19,10 +19,11 @@ from . import tools as T
 from .store import ManifoldStore
 
 DEMO_MANIFOLD_ID = "benchmark"
-CLARIFY_Q  = "avg(aov) @ cal.month"          # an inline reduction with no pinned input anchor
-REFUSE_Q   = "level.last @ customer"         # inventory has no customers — out of the contracted space
-DISCLOSE_Q = "level.sum @ store*cal.month"   # summing a stock across time — served WITH a material caveat
-SERVE_Q    = "aov @ cal.month"               # a well-posed ask over one population
+# The envelope grammar (0.9.0): `SELECT <series> AT {anchor}`. The terse `cols @ anchor` form is retired.
+CLARIFY_Q  = "SELECT avg(aov) AT {cal.month}"         # an inline reduction with no pinned input anchor
+REFUSE_Q   = "SELECT level.last AT {customer}"        # inventory has no customers — out of the contracted space
+DISCLOSE_Q = "SELECT level.sum AT {store*cal.month}"  # summing a stock across time — served WITH a material caveat
+SERVE_Q    = "SELECT aov AT {cal.month}"              # a well-posed ask over one population
 
 
 def demo_dir() -> str:

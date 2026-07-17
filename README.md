@@ -22,15 +22,15 @@ engine) and `columna-server` (the MCP server + agent). You can still install the
 `demo --play` runs four real asks end to end and pretty-prints the actual wire JSON for all four
 moods in one flow:
 
-- **clarify** — `avg(aov) @ cal.month`: the inline reduction leaves the input anchor for `aov`
+- **clarify** — `SELECT avg(aov) AT {cal.month}`: the inline reduction leaves the input anchor for `aov`
   underdetermined; the server names the candidate input anchors as substitutable alternatives instead
   of inventing one.
-- **refuse** — `level.last @ customer`: inventory is keyed by store and day — it has no customers, so
+- **refuse** — `SELECT level.last AT {customer}`: inventory is keyed by store and day — it has no customers, so
   the ask addresses outside the contracted space and the server refuses with the reason (never a guess).
-- **disclose** — `level.sum @ store*cal.month`: summing a stock across calendar months adds quantities
+- **disclose** — `SELECT level.sum AT {store*cal.month}`: summing a stock across calendar months adds quantities
   that don't reconcile along the blocked day→month axis; the server returns the numbers **with** a
   material caveat naming the blocked lineage and the remedy (`.last`), never a silent wrong total.
-- **serve** — `aov @ cal.month`: average order value by calendar month, one population and well posed;
+- **serve** — `SELECT aov AT {cal.month}`: average order value by calendar month, one population and well posed;
   the server returns the numbers.
 
 That transcript *is* the product. (No path arguments needed — the demo Manifold and a small warehouse
