@@ -1,5 +1,5 @@
 // CP-3b Tier-1 [AI-3] — the term-chip fills. ONE source, no drift: every field is quoted from the
-// ratified "What is Columna?" front-door glossary + body (specs/context/what_is_columna_draft_v0_5.md,
+// ratified "What is Columna?" front-door glossary + body (specs/context/what_is_columna_draft_v0_6.md,
 // wired verbatim at /what-is-columna). The chip renders the package §1c [AI-3] template:
 //   "In Columna, {TERM} means: {DEFINITION}. The surrounding law: {RULE}. Example: {EXAMPLE}.
 //    Explain {TERM} to me in plain language and answer my follow-up questions."
