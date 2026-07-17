@@ -2,8 +2,17 @@
 test_describe_insulation.py — CP-3 C-1/C-2: the D1 describe extension + the §2b insulation guarantee.
 
 The STANDING no-physical-identifier test (C-2 owns the wall): describe (manifold + every measure) for the
-demo carries NO physical identifier — no `realized_by`, no raw `table.column`. If a physical thing ever
-appears in an Explorer, it is a describe bug caught HERE, never an Explorer bug (Huayin, 2026-07-17).
+demo carries no STRUCTURAL physical identifier — no `realized_by`, no table names, no qualified
+`table.column`. If a physical thing ever appears in an Explorer, it is a describe bug caught HERE, never
+an Explorer bug (Huayin, 2026-07-17). The test is STANDING and STRUCTURAL, not example-based: a test that
+asserts current behaviour blesses current bugs (it is why the shipped `stores.opened_date` leak was
+codified, not caught, by the old roundtrip test).
+
+Precision (OF-9): drop-the-qualifier is the shipped guarantee — a bare predicate ATTRIBUTE name still
+renders as the author wrote it (a residue, not a declared logical name). The full fix (declared logical
+names for predicate terms) is a definition-language extension, its own WP (OF-9). Until it lands this
+test asserts exactly what is guaranteed — no structural identifiers — and tightens to full verification
+when OF-9 ships.
 """
 import json
 import re

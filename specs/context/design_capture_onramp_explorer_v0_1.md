@@ -137,6 +137,10 @@ leaves describe, and universe predicates are rendered logically (no raw `table.c
 references). A standing test enforces the guarantee. Capture item carried with it: levels
 need a logical dtype (today the Map supplies it); declared at the Law level when the
 artifact splits.
+*Precision (CP-3, 2026-07-17, OF-9):* the shipped guarantee is STRUCTURAL — no table names, no
+qualified `table.column`; a bare predicate ATTRIBUTE name renders as authored. Declared logical
+names for predicate terms (the full fix) are a definition-language extension, their own WP (OF-9);
+the standing test tightens to full verification when it lands.
 
 ## 2c · Universe resolution: one expression, one universe (RULED 2026-07-15; supersedes the combo-law draft)
 
