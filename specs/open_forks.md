@@ -31,3 +31,7 @@ only its durable form.
   no code change. Boundary recorded here and at the `_resolve_inline_reduction` docstring: material
   `input_anchor` is for imported/defaulted anchor choices; an explicit pin owes only the immaterial
   note, because the wire's reader may not be the asker. **No open forks remain.**
+
+- **OF-11 opened 2026-07-17** (CP-3b). The hosted access point: the demo Manifold as a live
+  socket with an HTTP plug (direct FrameQL, path e) + an MCP plug (agents) on one API. Rowed,
+  not built — post-launch WP; the wire is already the API contract, so the lift is transport + ops.
