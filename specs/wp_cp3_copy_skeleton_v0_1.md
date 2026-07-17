@@ -22,14 +22,15 @@ The exhibit rebuilds on the ratified wheel exemplars (S-2). Button labels name t
 - **[A6] exhibit caption (frame)** · ExhibitB.astro → DRAFT: keep current *"this is the actual wire —
   what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the
   pair reads."*
-- **[A7] fool-it placeholder + help** · → DRAFT placeholder: *"sell_through_rate"* · help: *"a column
-  label, not a measure — watch it refuse."*
+- **[A7] fool-it placeholder + help** · RATIFIED (Huayin 2026-07-17): foil = **`profit_margin`** ·
+  help: *"a plausible column label no one declared — watch it refuse."* (the purge includes the fool-it box).
 
-## B · `sell_through_rate` — the demo's own metric (S-1: declared as a DERIVED, live verdict badge)
-- **[B1] describe-card one-liner** · Explorer/ExhibitB → DRAFT: *"revenue over end-of-period inventory —
-  a ratio; declared, adjudicated, and badged with its verdict."*
-- **[B2] verdict-badge labels** · component `VERDICT_LABEL` → DRAFT: `verified` · `corroborated` ·
-  `untestable` · `contradicted` (lower-case, as-is), badge tooltip = the license basis + attestation.
+## B · verdict badges (S-1 SUPERSEDED — sell_through_rate KILLED, Huayin 2026-07-17)
+- **[B1] ~~sell_through_rate describe-card~~ — CUT.** No card for a metric that doesn't exist.
+- **[B2] verdict-badge labels — SURVIVES** as the Explorer's GENERAL verdict-badge vocabulary (the badges
+  were never sell_through_rate's): `verified` · `corroborated` · `untestable` · `contradicted` (lower-case,
+  as-is), badge tooltip = the license basis + attestation. The Explorer badges every real declared object
+  (asserts, hierarchies, fertility licenses) — the whole manifold wearing verdicts, not a mascot.
 
 ## C · `/explorer` page (`src/pages/explorer.astro`, S-4) + the component microcopy (`src/explorer/manifold-explorer.ts`)
 - **[C1] page title + lede** · explorer.astro → DRAFT title: *"Manifold Explorer"* · lede: *"Every measure,
@@ -56,8 +57,11 @@ Friendly communicative strings for the reason codes the new exemplars + §2c sur
   a caveat. Ask each population separately, or reconcile them first."*
 - **[D2] `b_anchor_crossing` / `blocked_reduction`** · → DRAFT: *"this sums a stock across a blocked axis;
   the per-bucket totals don't reconcile. Served with the caveat, never as a silent total."*
-- **[D3] `incomplete_data` / `data_gap`** · → DRAFT (only if S-5 BASIS lands): *"some expected rows are
-  absent — a gap, not a zero. The figure covers what's present; the gap is disclosed."*
+- **[D3] `incomplete_data` / `data_gap`** · **DOES NOT SHIP this beat.** S-5 BASIS landed
+  (store_days=spine), but the recapture shows the seeded queries hit NO grid gap → no `incomplete_data`
+  surfaces. Per the ruling ("[D3]'s string ships if the grid has gaps"), it's held until a query gaps.
+  DRAFT retained for when it does: *"some expected rows are absent — a gap, not a zero. The figure covers
+  what's present; the gap is disclosed."*
 - **[D4] `input_anchor_ambiguous`** · (the standing CP-M1 gap) → DRAFT: *"this reduction needs to know
   which input grain to read `aov` at — pick one, and the number is exact."*
 
