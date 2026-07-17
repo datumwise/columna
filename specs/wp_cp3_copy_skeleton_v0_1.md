@@ -61,7 +61,10 @@ Friendly communicative strings for the reason codes the new exemplars + §2c sur
   (store_days=spine), but the recapture shows the seeded queries hit NO grid gap → no `incomplete_data`
   surfaces. Per the ruling ("[D3]'s string ships if the grid has gaps"), it's held until a query gaps.
   DRAFT retained for when it does: *"some expected rows are absent — a gap, not a zero. The figure covers
-  what's present; the gap is disclosed."*
+  what's present; the gap is disclosed."* Teaching surface NOT lost meanwhile: C-7's universe cards render
+  the declared absence semantics as TEXT ("absence is a GAP…") even while no query fires them.
+  **Post-launch candidate (Huayin 2026-07-17, recorded not built):** a deliberately-seeded gap exhibit (a
+  store dark for a day) to fire `incomplete_data` live — a launch+ enhancement, not this beat.
 - **[D4] `input_anchor_ambiguous`** · (the standing CP-M1 gap) → DRAFT: *"this reduction needs to know
   which input grain to read `aov` at — pick one, and the number is exact."*
 

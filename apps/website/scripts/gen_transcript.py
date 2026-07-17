@@ -146,6 +146,9 @@ def main() -> int:
         # the Manifold Explorer's captured describe wire — cards render only from this. The old bespoke
         # derived-metric card is gone (S-1 killed); the Explorer badges the real declared objects via describe.
         "describe": build_describe(store, describe),
+        # CP-3 C-3/S-4: the RAW describe_manifold (the C-1 shape) the portable Explorer component binds —
+        # basis/absence, asserts, hierarchies, licenses, scope. The /explorer page mounts against this.
+        "explorer_describe": describe,
     }
     json.dump(out, sys.stdout, indent=2)
     return 0

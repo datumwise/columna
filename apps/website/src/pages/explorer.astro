@@ -1,0 +1,59 @@
+---
+// CP-3 S-4: the /explorer page — the Explorer component's demo-manifold INSTANCE (the component is
+// portable; this page binds it to the demo's describe). Copy [C1] ratified (Huayin 2026-07-17).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import transcript from '../data/transcript.generated.json';
+import { renderManifoldExplorer } from '../explorer/manifold-explorer';
+
+const describe = (transcript as any).explorer_describe;
+const initialHtml = renderManifoldExplorer(describe);   // SSR — the reference reads without JS; JS wires search/copy
+---
+<BaseLayout title="Manifold Explorer — datumwise">
+  <div class="page-head">
+    <p class="kicker">Explorer</p>
+    <h1 class="serif">Manifold Explorer</h1>
+    <p class="lede">Every measure, universe, and edge in the demo Manifold — with the law that defines it,
+      the verdict that tested it, and the query that shows it.</p>
+  </div>
+  <div id="mx-root" set:html={initialHtml}></div>
+</BaseLayout>
+
+<script>
+  import { mountManifoldExplorer } from '../explorer/manifold-explorer';
+  import transcript from '../data/transcript.generated.json';
+  const el = document.getElementById('mx-root');
+  if (el) mountManifoldExplorer(el as HTMLElement, (transcript as any).explorer_describe);
+</script>
+
+<style is:global>
+  /* is:global so the rules reach the SSR'd + JS-mounted component content (Astro would scope them away). */
+  .mx-explorer { margin-top: 1.5rem; }
+  .mx-bar { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .mx-search { flex: 1 1 20rem; padding: 0.5rem 0.75rem; font: inherit; border: 1px solid var(--rule, #d8d2c7);
+    border-radius: 6px; background: var(--paper, #fff); }
+  .mx-scope { margin: 0; font-size: 0.85rem; color: var(--muted, #7a7365); }
+  .mx-scope--cut { color: #a4462b; }
+  .mx-section { margin: 1.75rem 0; }
+  .mx-h { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted, #7a7365);
+    border-bottom: 1px solid var(--rule, #eee); padding-bottom: 0.35rem; margin-bottom: 0.75rem; }
+  .mx-card { padding: 0.65rem 0; border-bottom: 1px solid var(--rule-faint, #f0ece3); }
+  .mx-triad { display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; align-items: center; }
+  .mx-label { display: inline-block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted, #9a9384); margin-right: 0.5rem; vertical-align: middle; }
+  .mx-name { font-weight: 600; margin-right: 0.5rem; }
+  .mx-meta { color: var(--muted, #6b6456); font-size: 0.9rem; }
+  .mx-meta code, .mx-member code { background: var(--code-bg, #f4f1ea); padding: 0.05rem 0.3rem; border-radius: 4px;
+    font-size: 0.85em; }
+  .mx-member { white-space: nowrap; }
+  .mx-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem;
+    font-weight: 600; border: 1px solid transparent; }
+  .mx-badge--verified { background: #e7f3ea; color: #1f6b3a; }
+  .mx-badge--corroborated { background: #eef1fb; color: #33417f; }
+  .mx-badge--untestable { background: #f4f1ea; color: #6b6456; }
+  .mx-badge--contradicted { background: #fbece9; color: #a4462b; }
+  .mx-badge--none { background: transparent; color: #b8b1a2; border-color: #e6e0d5; }
+  .mx-copy { font: inherit; font-size: 0.8rem; padding: 0.25rem 0.6rem; border: 1px solid var(--rule, #d8d2c7);
+    border-radius: 6px; background: var(--paper, #fff); cursor: pointer; }
+  .mx-copy:hover { background: var(--code-bg, #f4f1ea); }
+  @media (max-width: 640px) { .mx-triad { grid-template-columns: 1fr; gap: 0.4rem; } }
+</style>
