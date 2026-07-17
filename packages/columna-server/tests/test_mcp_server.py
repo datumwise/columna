@@ -95,17 +95,18 @@ async def test_out_of_universe_refuse_vs_unknown_error(mcp_session):
     assert ec["no_result"]["kind"] == "error"
 
 
-# --- acceptance #7: explain touches zero data ----------------------------------------------
-async def test_explain_zero_fetch_identical_payload(mcp_session):
+# --- acceptance #7: EXPLAIN (envelope) touches zero data; would-be matches the query -------------
+async def test_explain_envelope_zero_fetch_and_would_be(mcp_session):
     async with mcp_session() as client:
         q = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
-        ex = await client.call("explain", manifold_id="benchmark", frameql="inv: level.sum @ store")
-    assert ex["executed"] is False
-    assert ex["fetches_delta"] == 0
-
-    def caveats(w):
-        return [(d["code"], d["materiality"], d["severity"]) for d in w["columns"][0]["disclosures"]]
-    assert caveats(ex) == caveats(q)
+        ex = await client.call("explain", manifold_id="benchmark", frameql="SELECT level.sum AT {store}")
+    # zero data + the rich EXPLAIN payload (desugared artifact + series/cone)
+    assert ex["executed"] is False and ex["fetches_delta"] == 0
+    assert "level.sum AS level_sum" in ex["desugared"] and ex["outcome"] == q["outcome"]
+    # the would-be disclosures equal the query's actual disclosures (explain is the plan, annotated)
+    q_cav = [(d["code"], d["materiality"], d["severity"]) for d in q["columns"][0]["disclosures"]]
+    ex_cav = [(d["code"], d["materiality"], d["severity"]) for d in ex["series"][0]["would_be"]["disclosures"]]
+    assert ex_cav == q_cav
 
 
 # --- read-only / no-SQL surface ------------------------------------------------------------

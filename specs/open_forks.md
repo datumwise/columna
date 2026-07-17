@@ -82,3 +82,9 @@ only its durable form.
 - **OF-11 opened 2026-07-17** (CP-3b). The hosted access point: the demo Manifold as a live
   socket with an HTTP plug (direct FrameQL, path e) + an MCP plug (agents) on one API. Rowed,
   not built — post-launch WP; the wire is already the API contract, so the lift is transport + ops.
+- **OF-12 opened 2026-07-17** (WP-FrameQL envelope, POST-FLIP beat — Huayin, at the 0.9.0 release-notes
+  gate). A `frameql` **grammar-version field advertised in `describe`**, so any external agent can detect
+  which grammar a server speaks (the terse fragment vs the 0.9.0 envelope). Additive, transition-friendly;
+  its own beat. Explicitly does NOT reopen #49 (the surface-migration increment). The package semver + the
+  dated `parse_frameql` tombstone already carry the break; this is the machine-readable advertisement for
+  a heterogeneous fleet.
