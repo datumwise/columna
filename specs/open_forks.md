@@ -79,6 +79,9 @@ only its durable form.
   the no-physical test is standing and STRUCTURAL, which is why it caught the stores.opened_date leak.)
 - **OF-10 opened 2026-07-17** (CP-3, S-1 superseded). The §2c definition-time-population mechanism
   lost its named customer (sell_through_rate killed) — rowed anyway; rows record designs, not sponsors.
+- **OF-11 opened 2026-07-17** (CP-3b). The hosted access point: the demo Manifold as a live
+  socket with an HTTP plug (direct FrameQL, path e) + an MCP plug (agents) on one API. Rowed,
+  not built — post-launch WP; the wire is already the API contract, so the lift is transport + ops.
 - **OF-12 opened 2026-07-17** (WP-FrameQL envelope, POST-FLIP beat — Huayin, at the 0.9.0 release-notes
   gate). A `frameql` **grammar-version field advertised in `describe`**, so any external agent can detect
   which grammar a server speaks (the terse fragment vs the 0.9.0 envelope). Additive, transition-friendly;
