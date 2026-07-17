@@ -115,7 +115,7 @@ def test_worked_example_top3_per_region():
         "SELECT sum(line)        AS gross,\n"
         "       avg(aov @ {day}) AS typical\n"
         "AT { region * store }\n"
-        "ORDER BY gross DESC\n"
+        "ORDER BY region, gross DESC\n"        # §7 corrected: PER ⊆ ORDER BY (region leads for contiguity)
         "LIMIT 3 PER { region }"
     )
     st = parse_statement(q)
@@ -124,7 +124,8 @@ def test_worked_example_top3_per_region():
     assert st.series == [Series(expr="sum(line)", alias="gross"),
                          Series(expr="avg(aov @ {day})", alias="typical")]
     assert st.anchor == ("region", "store")
-    assert st.order_by == [OrderKey(column="gross", descending=True)]
+    assert st.order_by == [OrderKey(column="region", descending=False),
+                           OrderKey(column="gross", descending=True)]
     assert st.limit == Limit(n=3, per=("region",))
 
 
