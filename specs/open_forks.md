@@ -79,3 +79,9 @@ only its durable form.
   the no-physical test is standing and STRUCTURAL, which is why it caught the stores.opened_date leak.)
 - **OF-10 opened 2026-07-17** (CP-3, S-1 superseded). The §2c definition-time-population mechanism
   lost its named customer (sell_through_rate killed) — rowed anyway; rows record designs, not sponsors.
+- **OF-12 opened 2026-07-17** (WP-FrameQL envelope, POST-FLIP beat — Huayin, at the 0.9.0 release-notes
+  gate). A `frameql` **grammar-version field advertised in `describe`**, so any external agent can detect
+  which grammar a server speaks (the terse fragment vs the 0.9.0 envelope). Additive, transition-friendly;
+  its own beat. Explicitly does NOT reopen #49 (the surface-migration increment). The package semver + the
+  dated `parse_frameql` tombstone already carry the break; this is the machine-readable advertisement for
+  a heterogeneous fleet.
