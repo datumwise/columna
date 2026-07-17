@@ -13,7 +13,7 @@ from typing import Optional
 
 from columna_core import disclosure_wire as dw
 
-from .frameql import FrameQLSyntaxError, parse_frameql
+from .frameql import FrameQLSyntaxError
 from .store import ManifoldStore
 
 CONTRACT_VERSION = dw.CONTRACT_VERSION
@@ -127,43 +127,25 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
     }
 
 
-# --- tools 4 & 5 ----------------------------------------------------------------------------
-def _build_frame(lm, frameql: str, universe: Optional[str]):
-    anchor, columns = parse_frameql(frameql)
-    fb = lm.server.frame(*anchor)
-    for name, expr in columns:
-        fb = fb.column(name, expr)
-    if universe:
-        fb = fb.on_universe(universe)
-    return fb
-
-
+# --- tools 4 & 5 (the ENVELOPE wire) --------------------------------------------------------
 def _syntax_error_wire(detail: str, universe: Optional[str]) -> dict:
     return {"contract_version": CONTRACT_VERSION, "outcome": "error",
             "frame": {"anchor": [], "universe": universe, "rollup_severity": "none", "disclosures": []},
             "columns": [], "error": {"reason": "frameql_syntax", "detail": detail}}
 
 
-def query(store: ManifoldStore, manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
+def query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+    """Execute a FrameQL ENVELOPE statement (`SELECT <series> AT {anchor} [WHERE][HAVING][ORDER BY]
+    [LIMIT]`). The terse `cols @ anchor` form is RETIRED from the wire (0.9.0 tombstone). Returns the
+    four-mood wire contract."""
+    from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
     try:
-        fb = _build_frame(lm, frameql, universe)
-    except FrameQLSyntaxError as e:
-        return _syntax_error_wire(str(e), universe)
-    fr = fb.run()
-    return dw.wire_frame(fr, universe=universe)
-
-
-def explain(store: ManifoldStore, manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
-    lm = _get(store, manifold_id)
-    try:
-        fb = _build_frame(lm, frameql, universe)
-    except FrameQLSyntaxError as e:
-        return _syntax_error_wire(str(e), universe)
-    before = lm.server.fetches
-    fr = fb.plan()                       # would-be annotation, zero backend fetches
-    delta = lm.server.fetches - before
-    return dw.wire_frame(fr, universe=universe, executed=False, fetches_delta=delta)
+        stmt = parse_statement(frameql)
+        fr = lm.server.planner.run_statement(stmt)
+    except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
+        return _syntax_error_wire(str(e), None)
+    return dw.wire_frame(fr)
 
 
 def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) -> dict:
