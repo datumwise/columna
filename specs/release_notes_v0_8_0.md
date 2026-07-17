@@ -1,4 +1,4 @@
-# Columna 0.8.0 — release notes (DRAFT, to Huayin's gate)
+# Columna 0.8.0 — release notes (RATIFIED as marked, Huayin 2026-07-17)
 **From: Claude Code, 2026-07-17. The full span since 0.7.8, in the house register. Commissioned for the
 launch cut so it is ready when Huayin is; to his gate alongside PR #40 (CP-3). Feeds the GitHub Release +
 `columna-core`/`columna-server` CHANGELOGs on ratification.**
@@ -73,5 +73,8 @@ shows it. The whole manifold, wearing its verdicts.
 *Upgrade: `pip install --upgrade columna` (or `columna-core columna-server`). The wire contract is unchanged
 (`contract_version` "1"); 0.8.0 is additive on the surface and deeper underneath.*
 
-**Status: DRAFT — to Huayin's gate. On ratification: cut the GitHub Release from this, and fold the
-per-package lines into the columna-core / columna-server CHANGELOGs.**
+**Status: RATIFIED as marked (Huayin, 2026-07-17).** Version scheme: **columna-core 0.8.0**, **columna
+(meta) 0.8.0** (pins core>=0.8.0, server>=0.2.0), **columna-server 0.2.0** (its own 0.x track). The
+GitHub Release `v0.8.0` is cut from this; the per-package lines are folded into the CHANGELOGs.
+**Cut sequence: merge #40 → tag/Release `v0.8.0` on main → `publish.yml` fires (OIDC → PyPI) → bump the
+website shipped-coherent pin to the published versions → the site deploys.**
