@@ -250,6 +250,22 @@ to SHRINK review to a short checklist of exactly these human calls — which als
 most automation-bias risk (rubber-stamping is a disease of long undifferentiated reviews).
 Strategic corollary: the harness is the compounding proprietary asset — model gains lift
 all competitors equally; world gains accrue only here and improve WITH the rented mind.
+**FIRST CAUSAL CONFIRMATION (run 5, 2026-07-16):** two arms, one variable (KP v0.2 vs
+v0.3 salience edit), same model/scorer/benchmarks — ◆-explicitness 4/7 → 6/7, and the
+crux: m-leak was NAMED in v0.2 yet silent, TRIGGERED in v0.3 and surfaced. Salience is
+scaffolding, not naming. The canonical finding stands measured: the mind surfaces what
+pretraining taught and stays silent on what only the KP teaches — until the world
+teaches it with observable triggers.
+**THE FIRST COMPLETE RATCHET CYCLE (runs 5–7, 2026-07-16, SHIPPED):** v0.3 salience
+(◆ 4/7→6/7, crux confirmed) → v0.4 unfloored prune (flood win, recall cost — caught by
+its own pre-registered do-not-ship clause, banked and REVERTED) → v0.5 floored prune
+(n=3, pre-registered criteria both cleared: flood halved 6.67→3.33 AND recall held at
+5.0; the floor precisely undid v0.4's collateral damage). Ratified → live → measured →
+shipped, one honest revert in the middle. The checklist law, now doctrine (from KP v0.5
+verbatim): **a long undifferentiated review re-creates the automation bias the whole
+design exists to kill; a silenced sharp call re-creates the meaning-loss the whole
+design exists to prevent.** The checklist is exactly the triggered sharp calls — no
+fewer, no more.
 
 **The two-ends principle (RATIFIED 2026-07-15, Huayin's generalization):** the industry's
 principle is human-IN-THE-MIDDLE; Columna's is **human in the middle AND at the two
@@ -348,11 +364,16 @@ outputs per §1, no adapter framework in v1 (YAGNI guard).
   summoned with three exits: fix data + re-attest · amend the assert · accept the
   reduced scope — all authoring acts in the state machine; the Explorer shows published
   scope vs cut regions (tier-2/3 display consequence, inherited not rediscovered).
-  **General law (unifies with fertility revocation): adjudication events edit the
-  published scope; serving never outruns the verdicts.** Degrade targets differ by kind:
-  licenses guard shortcuts, so revocation costs speed (fall back to recompute); asserts
-  guard truth, so violation costs territory (fall back to cut). Both degrade toward
-  correctness.
+  **General law (COMPLETED 2026-07-16, uniform across all three declaration kinds):
+  adjudication events edit the published scope; serving never outruns the verdicts.**
+  ASSERT guards truth → degrades to CUT (costs territory; `conflicting_data`) · license
+  guards shortcut → degrades to RECOMPUTE (costs speed) · HIERARCHY edge guards geometry
+  → degrades to BLOCKED TRANSPORT (costs the lineage's motion; `contradicted_edge`).
+  First publish stays strict for all three. `reattest` is the distinct verb (Huayin,
+  2026-07-16): pure recomputation of the scope from the current attestation's verdicts —
+  no ratchet, symmetric (fixing the data restores/unblocks/re-licenses) — returning the
+  authoring-event diff that summons the author; history lives in watermarks and the
+  ledger, never in scope-state.
 - **B3 (RULED 2026-07-15): basis-as-absence-semantics is LAW.** The basis type
   determines what absence means, engine-wide: **events** → absence is ZERO (counts/sums
   zero-fill lawfully); **spine** → absence is a GAP (`incomplete_data` material caveat;

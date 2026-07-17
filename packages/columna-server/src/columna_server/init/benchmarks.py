@@ -102,12 +102,17 @@ B9 = Benchmark(id="B9", kind="○", title="numeric → measure, categorical → 
                   "grades": {"measure:amount": "inferred_catalog", "level:channel": "inferred_catalog"},
                   "oracle_calls": [], "max_checklist": 2})
 
-# ── B10 ◆ registry vs product basis ──────────────────────────────────────────────────────────────
+# ── B10 ◆ registry vs product basis — GT v2 (Huayin ruling 4, 2026-07-16, on run-6 captured evidence) ──
+# The ◆ POINT is the basis call (registry vs product), which the mind surfaced correctly. The universe
+# DECOMPOSITION is itself a ◆ modeling choice: budget-universe with the catalog as a level-DOMAIN is a
+# legitimate modeling of a registry, as is catalog+budget as two universes. GT v2 accepts EITHER — only
+# the budget universe is REQUIRED; a catalog universe is accepted-but-not-required (the scorer never
+# penalizes an extra proposal, so both decompositions pass closure). The ◆ oracle call is UNCHANGED.
 B10 = Benchmark(id="B10", kind="◆", title="registry vs product basis",
     schema={"tables": {
         "product_catalog": _t([("product_id", "INTEGER"), ("name", "VARCHAR")], [(1, "a"), (2, "b")], pk=["product_id"]),
         "budget": _t([("store_id", "INTEGER"), ("day", "VARCHAR"), ("target", "DOUBLE")], [(1, "d1", 50.0)])}},
-    ground_truth={"closures": [["universe", "catalog"], ["universe", "budget"]], "grades": {},
+    ground_truth={"closures": [["universe", "budget"]], "grades": {},
                   "oracle_calls": ["basis: product_catalog=registry, budget=product?"], "max_checklist": 2})
 
 # ── B11 ◆ the refutation trap (catalog DECLARES a key the SAMPLE violates) ────────────────────────
