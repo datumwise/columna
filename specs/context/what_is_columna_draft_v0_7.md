@@ -116,6 +116,8 @@ Then open the [Explorer](/explorer) to browse the same demo Manifold the tour ju
 
 - **[The Columna framework manual](/docs/framework)** — the full discipline, precisely.
 - **[The FrameQL manual](/docs/frameql)** — the query language, completely.
+- **[What is a Manifold?](/what-is-manifold)** — the artifact at the center: the new data
+  model, up close.
 - **[The Explorer](/explorer)** — the demo Manifold, live.
 - **[Install](/install)** — set up against your own data.
 

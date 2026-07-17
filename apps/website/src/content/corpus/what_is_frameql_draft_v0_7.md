@@ -85,12 +85,14 @@ when the rule can't decide). From there, a column can be a full **mathematical
 expression** — operators over multiple metrics, composed freely (within one population):
 
 ```
-SELECT (revenue - cost) / revenue,
-       revenue / order_count
+SELECT (revenue - cost) / revenue AS margin,
+       revenue / order_count     AS aov_per_order
 AT {region*cal.month}
 ```
 
-A margin and a per-order average, each written as *what it is* — no CTEs, no intermediate
+A margin and a per-order average, each written as *what it is* and named with `AS`
+(composite expressions have no mechanical default name — the language asks you to name
+what you compose) — no CTEs, no intermediate
 views, no re-stating the grain for each piece. The expression's components share the frame's
 anchors and the Manifold's laws travel through the arithmetic: if any piece can't stand
 lawfully at the anchor, the whole column says so instead of quietly computing nonsense.
