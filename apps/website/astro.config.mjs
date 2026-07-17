@@ -8,4 +8,9 @@ export default defineConfig({
   output: 'static',
   build: { inlineStylesheets: 'auto' },
   devToolbar: { enabled: false },
+  vite: {
+    // The /docs/* routes render the manuals from the repo-root docs/ residency (CP-M1) as-is —
+    // they live above the Astro root, so allow the workspace root for the .md imports.
+    server: { fs: { allow: ['../..'] } },
+  },
 });

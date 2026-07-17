@@ -1,0 +1,24 @@
+---
+// CP-3b Tier-1 — the positional-page term strip. Carries the five core terms (Universe · Basis ·
+// four moods · FrameQL · Verdict) as [AI-3] chips that link down into the /what-is-columna glossary
+// and hand a stranger's own agent a self-contained prompt. Placed on thesis · why · ladder · atlas ·
+// grain-gap (package §2c).
+import TermChip from './TermChip.astro';
+import { POSITIONAL_TERMS } from '../data/glossary';
+---
+<aside class="term-strip wayfinding" aria-label="New here? The core terms, explained">
+  <p class="term-strip-lead">
+    New here? These are the load-bearing terms — read them plainly at
+    <a href="/what-is-columna">What is Columna?</a>, or hand the definition straight to your own AI.
+  </p>
+  <div class="term-strip-grid">
+    {POSITIONAL_TERMS.map((t) => <TermChip term={t} />)}
+  </div>
+</aside>
+
+<style>
+  .term-strip { width: min(100% - 3rem, 46rem); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); }
+  .term-strip-lead { font-size: 0.9rem; color: var(--ink-soft); margin: 0 0 1rem; max-width: 40rem; }
+  .term-strip-grid { display: grid; gap: 1rem; }
+</style>
