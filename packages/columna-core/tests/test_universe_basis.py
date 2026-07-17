@@ -45,6 +45,8 @@ def test_unknown_basis_fails_closed():
     assert "eventual" in str(ei.value)
 
 
-def test_shipped_demo_has_no_declared_basis(parsed_manifold):
-    # the demo carries no BASIS today; adding it is a ruled launch-surface change (Q5 rider ii).
-    assert all(u.basis is None for u in parsed_manifold.universes.values())
+def test_shipped_demo_declares_basis(parsed_manifold):
+    # CP-3 S-5 (Huayin ruling, 2026-07-17): the demo now declares BASIS — transactions=events (absence is
+    # a lawful zero), store_days=spine (absence is a gap). Absence semantics go live in the flagship.
+    b = {u.name: u.basis for u in parsed_manifold.universes.values()}
+    assert b == {"transactions": "events", "store_days": "spine"}
