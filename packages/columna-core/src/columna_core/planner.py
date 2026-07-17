@@ -342,6 +342,178 @@ class Planner:
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.frame is not None])
         return FrameResult(data, frame_disc, results, anchor)
 
+    # ==== ENVELOPE assembly (WP-FrameQL increment 2) ==========================================
+    # The PLANNER owns the envelope; the engine stays per-column and envelope-blind. This is where the
+    # naming laws (§4) and the clause-reference law (§5) stop being spec text and become behavior.
+    # Multi-series rides the existing juxtaposition (self.run); WHERE is per-series pre-reduction
+    # (the existing `where` plumbing into the engine); HAVING/ORDER BY/LIMIT PER are POST-assembly on
+    # the frame. `@` is the input anchor inside a series (verbatim to the expression parser); AT is the
+    # sole output grain. Static well-formedness (naming, clause-reference, PER-not-alias) rides the
+    # EXISTING `frameql_syntax` query-error channel (FrameQLSyntaxError) — no new wire reason code.
+    _INPUT_ANCHOR_BRACE = re.compile(r"@\s*\{([^}]*)\}")
+    _CMP = [(">=", "ge"), ("<=", "le"), ("!=", "ne"), ("==", "eq"), (">", "gt"), ("<", "lt"), ("=", "eq")]
+
+    def _synerr(self, msg: str):
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(msg)
+
+    def _apply_subs(self, expr: str, subs: dict) -> str:
+        """Substitute WITH bindings (word-boundary), each wrapped in parens to preserve precedence."""
+        for name, sub in subs.items():
+            expr = re.sub(rf"\b{re.escape(name)}\b", f"({sub})", expr)
+        return expr
+
+    def _convert_input_anchor(self, expr: str) -> str:
+        """`@ {X}` -> `@ X` (the expression parser reads a bare level Name as the input anchor pin).
+        A braced product `@ {a*b}` is refused for now — single-level input anchors this build."""
+        def repl(m):
+            inner = m.group(1).strip()
+            if not inner:
+                self._synerr("an input anchor `@ { }` is empty — name the grain, e.g. avg(aov @ {day})")
+            if "*" in inner or "," in inner:
+                self._synerr(f"multi-level input anchor `@ {{{inner}}}` is not supported in this build — "
+                             f"pin a single level, e.g. avg(aov @ {{day}})")
+            return f"@ {inner}"
+        return self._INPUT_ANCHOR_BRACE.sub(repl, expr)
+
+    def _default_name(self, expr: str) -> str:
+        """§4 mechanical default — only where UNAMBIGUOUS; the input anchor never affects the name.
+        Reduction R(inner) -> `<R>_<base measure>`; bare measure -> the measure; measure.member ->
+        `measure_member`. Anything else unaliased is REFUSED (no name invented)."""
+        try:
+            body = ast.parse(expr, mode="eval").body
+        except SyntaxError:
+            self._synerr(f"cannot name series {expr!r} — give it a name with AS")
+        rc = self._reduction_call(body) if isinstance(body, ast.Call) else None
+        if rc is not None:
+            _canonical, inner, _pin = rc
+            written = body.func.id                     # the reducer AS WRITTEN (avg, not the canonical mean)
+            # the column AS WRITTEN — a derived measure keeps its own name (aov), not its expanded atom
+            m, _mem = self._measure_ref(inner)
+            if m is None:
+                atoms = self._atoms(inner, ())
+                m = atoms[0][0] if atoms else None
+            if m is None:
+                self._synerr(f"cannot name reduction {expr!r} — give it a name with AS")
+            return f"{written}_{m}"
+        if isinstance(body, ast.Name):
+            return body.id
+        if isinstance(body, ast.Attribute) and isinstance(body.value, ast.Name):
+            return f"{body.value.id}_{body.attr}"
+        self._synerr(f"series {expr!r} has no unambiguous name — give it one with AS "
+                     f"(e.g. SELECT {expr} AS my_name)")
+
+    def _resolve_series(self, stmt) -> list:
+        """Series -> [(name, expr)] with §4 naming + WITH substitution + `@ {..}` conversion. The engine
+        never sees an alias or a brace — one expression dialect."""
+        subs = {}
+        for b in stmt.bindings:
+            subs[b.name] = self._convert_input_anchor(self._apply_subs(b.expr, subs))
+        out = []
+        for s in stmt.series:
+            expr = self._convert_input_anchor(self._apply_subs(s.expr, subs))
+            name = s.alias or self._default_name(expr)
+            out.append((name, expr))
+        return out
+
+    def _check_name_collisions(self, columns: list, anchor: tuple):
+        """§4: collisions are REFUSED, never suffixed — incl. a column name vs an anchor-dimension name."""
+        names = [n for n, _ in columns]
+        seen = set()
+        for n in names:
+            if n in seen:
+                self._synerr(f"two columns resolve to the name {n!r} — names must be distinct, never "
+                             f"suffixed; give one an AS alias")
+            seen.add(n)
+        for n in names:
+            if n in anchor:
+                self._synerr(f"column {n!r} collides with the anchor dimension {n!r} — the frame's columns "
+                             f"and its anchor coordinates share one namespace; rename the column with AS")
+
+    def _validate_clause_refs(self, stmt, frame_cols: set, anchor: tuple):
+        """§5 clause-reference law: ORDER BY / HAVING / PER reference the output frame's OWN columns only
+        (named series + anchor coordinates) — no hidden pulls. The remedy names itself."""
+        for pred in stmt.having:
+            col = self._predicate_column(pred)
+            if col not in frame_cols:
+                self._synerr(f"HAVING references {col!r}, which is not a column of the frame — select it "
+                             f"as a column, or add it to the anchor")
+        for k in stmt.order_by:
+            if k.column not in frame_cols:
+                self._synerr(f"ORDER BY references {k.column!r}, which is not a column of the frame — "
+                             f"select it as a column, or add it to the anchor")
+        if stmt.limit is not None:
+            series_names = frame_cols - set(anchor)              # frame columns that are NOT anchor coordinates
+            for d in stmt.limit.per:
+                if d in series_names:                            # an alias/series name ⇒ §4 refusal
+                    self._synerr(f"PER {{{d}}} names {d!r}, an output column — PER takes ANCHOR "
+                                 f"coordinates only; put {d!r} in the anchor to partition by it")
+                if d not in anchor:
+                    self._synerr(f"PER {{{d}}} names {d!r}, which is not an anchor coordinate — PER "
+                                 f"partitions along the frame's grain; add {d!r} to the anchor")
+
+    def _predicate_column(self, pred: str) -> str:
+        for op, _m in self._CMP:
+            if op in pred:
+                return pred.split(op, 1)[0].strip()
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` (op: > < >= <= == !=)")
+
+    def _apply_predicate(self, data, pred: str):
+        for op, method in self._CMP:
+            if op in pred:
+                col, rhs = pred.split(op, 1)
+                col, rhs = col.strip(), rhs.strip()
+                val = self._literal(rhs)
+                return data.filter(getattr(pl.col(col), method)(val))
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value`")
+
+    @staticmethod
+    def _literal(s: str):
+        if (len(s) >= 2 and s[0] in "'\"" and s[-1] == s[0]):
+            return s[1:-1]
+        if re.fullmatch(r"-?\d+", s):
+            return int(s)
+        if re.fullmatch(r"-?\d+\.\d+", s):
+            return float(s)
+        return s
+
+    def _apply_output_clauses(self, fr: FrameResult, stmt, anchor: tuple, columns: list) -> FrameResult:
+        frame_cols = {n for n, _ in columns} | set(anchor)
+        self._validate_clause_refs(stmt, frame_cols, anchor)     # §5 — static, even when the frame refused
+        data = fr.data
+        if data is None:
+            return fr
+        for pred in stmt.having:
+            if self._predicate_column(pred) in data.columns:
+                data = self._apply_predicate(data, pred)
+        if stmt.order_by:
+            data = data.sort(by=[k.column for k in stmt.order_by],
+                             descending=[k.descending for k in stmt.order_by])
+        if stmt.limit is not None:
+            if stmt.limit.per:
+                data = data.group_by(list(stmt.limit.per), maintain_order=True).head(stmt.limit.n)
+                if stmt.order_by:                                # re-apply the sort after per-group truncation
+                    data = data.sort(by=[k.column for k in stmt.order_by],
+                                     descending=[k.descending for k in stmt.order_by])
+            else:
+                data = data.head(stmt.limit.n)
+        return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
+
+    def run_statement(self, stmt, execute: bool = True) -> FrameResult:
+        """Assemble and dispose an envelope Statement (the whole clause set). ON is dead (§2c); universe
+        is resolved structurally per column. Returns a FrameResult exactly like `run`, so every surface
+        reads it uniformly."""
+        columns = self._resolve_series(stmt)                     # §4 naming + WITH + @{..}
+        anchor = self.resolve_anchor(stmt.anchor)
+        self._check_name_collisions(columns, anchor)             # §4 collisions REFUSED
+        where = " AND ".join(stmt.where) if stmt.where else None # per-series pre-reduction (existing plumbing)
+        fr = (self.run if execute else self.plan)(anchor, columns, where)
+        return self._apply_output_clauses(fr, stmt, anchor, columns)
+
+    def plan_statement(self, stmt) -> FrameResult:
+        """The would-be assembly without executing (zero backend fetches) — EXPLAIN's engine."""
+        return self.run_statement(stmt, execute=False)
+
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
         tree = ast.parse(expr, mode="eval")
