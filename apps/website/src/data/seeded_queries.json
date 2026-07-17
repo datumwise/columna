@@ -3,10 +3,10 @@
   "manifold": "benchmark",
   "contract_version": "1",
   "queries": [
-    { "id": "clarify",  "label": "average order value by month — which reading of aov?", "frameql": "avg(aov) @ cal.month",        "universe": null, "intended": "clarify" },
+    { "id": "clarify",  "label": "the average of aov, by month — averaged from which grain?", "frameql": "avg(aov) @ cal.month",        "universe": null, "intended": "clarify" },
     { "id": "refuse",   "label": "last inventory, by customer — but inventory has no customers", "frameql": "level.last @ customer",      "universe": null, "intended": "refuse" },
-    { "id": "disclose", "label": "stock summed over months, per store",                  "frameql": "level.sum @ store*cal.month", "universe": null, "intended": "disclose" },
-    { "id": "serve",    "label": "average order value by month",                         "frameql": "aov @ cal.month",             "universe": null, "intended": "serve" }
+    { "id": "disclose", "label": "stock summed into months, per store",                  "frameql": "level.sum @ store*cal.month", "universe": null, "intended": "disclose" },
+    { "id": "serve",    "label": "average order value (aov), by month",                  "frameql": "aov @ cal.month",             "universe": null, "intended": "serve" }
   ],
   "foolIt": { "placeholder": "profit_margin", "template": "%s @ cal.month" }
 }
