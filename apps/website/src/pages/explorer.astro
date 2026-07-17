@@ -4,19 +4,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import transcript from '../data/transcript.generated.json';
 import { renderManifoldExplorer } from '../explorer/manifold-explorer';
-import AskYourAI from '../components/AskYourAI.astro';
 
 const describe = (transcript as any).explorer_describe;
 const initialHtml = renderManifoldExplorer(describe);   // SSR — the reference reads without JS; JS wires search/copy
-
-// CP-3b [AI-2] — the "describe & verdicts" copy-block, verbatim from the ratified package (§1c). This
-// is the SITE INSTANCE of the explorer page, not the portable component in src/explorer/.
-const askDescribe = `Columna's \`describe\` is the machine-readable rendering of a Manifold — every measure, universe, edge,
-and derived column, each carrying a VERDICT from checking the description against the data (verified,
-corroborated, untestable, contradicted). No physical identifier ever crosses describe — an agent reads
-meaning, never table or column names. Example: a universe declares its BASIS (events → a missing row is
-a real zero; spine → a missing row is a gap), and describe carries that with its tested verdict. Explain
-what describe is and how an agent uses it, and answer my follow-ups.`;
 ---
 <BaseLayout title="Manifold Explorer — datumwise">
   <div class="page-head">
@@ -24,7 +14,6 @@ what describe is and how an agent uses it, and answer my follow-ups.`;
     <h1 class="serif">Manifold Explorer</h1>
     <p class="lede">Every measure, universe, and edge in the demo Manifold — with the law that defines it,
       the verdict that tested it, and the query that shows it.</p>
-    <AskYourAI summary="What is describe? Ask your own AI." text={askDescribe} tone="paper" />
   </div>
   <div id="mx-root" set:html={initialHtml}></div>
 </BaseLayout>
