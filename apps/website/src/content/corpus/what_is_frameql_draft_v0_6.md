@@ -169,5 +169,6 @@ has a copy-as-query button on every measure.)
 
 - **[The FrameQL manual](/docs/frameql)** — the grammar, the semantics, the type rules,
   completely.
+- **[What is a Manifold?](/what-is-manifold)** — the model this language is paired to.
 - **[What is Columna?](/what-is-columna)** — the framework this language speaks to.
 - **[The Explorer](/explorer)** — the demo Manifold, live, with queries to copy.
