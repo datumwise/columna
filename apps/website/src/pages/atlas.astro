@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Content } from '../content/corpus/silent_failure_atlas_article_v1_3.md';
+import TermChipStrip from '../components/TermChipStrip.astro';
 ---
 <BaseLayout title="The Silent Failure Atlas — datumwise">
   <section class="contribute wayfinding" id="grading">
@@ -16,6 +17,7 @@ import { Content } from '../content/corpus/silent_failure_atlas_article_v1_3.md'
   <article class="prose">
     <Content />
   </article>
+  <TermChipStrip />
 </BaseLayout>
 
 <style>
