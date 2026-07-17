@@ -59,6 +59,22 @@ rendered diff with the harness green in CI and the worksheet §5 acceptance chec
 
 ---
 
+## CP-M2 Part-2 shipped-law reconciliation — flags for the prose pass (2026-07-17)
+Per Huayin's amendment (reconcile the shipped-law delta wherever it touches; flag what resists). Done:
+(i) Chapter 1.5 (anchor,universe) — `ON` reconciled to structural resolution / definition-language;
+(ii) the empty-bucket/absence rule rewritten to the shipped B3 basis law (events→zero, spine/product→gap
++`incomplete_data`, registry→membership); (iii) Chapter 7 — the missing `cross_universe` outcome added +
+key cases annotated with shipped reason codes (`input_anchor_ambiguous`/`co_anchor_ambiguous`,
+`non_functional_transport`, `incomplete_data`/`data_gap`, `b_anchor_crossing`); (iv) Appendix B — `ON`
+reclassified as definition-language, the envelope markers `@`/`*`/`:` named. **FLAGGED as resisting a
+clean §2c-only reconciliation (need the prose pass / ride the broader Coframe→envelope rewrite):**
+- **Chapter 1's `SELECT`/`FROM`/`AT` grammar** (incl. line 46's `[ON <universe>]`) is Coframe throughout;
+  reconciling `ON` alone leaves Chapter 1 half-envelope, half-Coframe. Should ride the Appendix-A move.
+- **Chapter 7's "inform-and-serve" doctrine** names the fourth outcome **`inform`** (ADR-020); the shipped
+  wire's fourth mood is **`refuse`**. Renaming throughout is a doctrinal prose call, not mechanical.
+- **Appendix B Coframe keywords** (`FROM`/`SELECT`/`AT`/`{...}`) — entangled with the Coframe→envelope
+  rewrite; not reconciled here.
+
 ## CP-M2 Part-2 session RETIRED (2026-07-17)
 **The fresh session handed Part 2 on 2026-07-14 stalled — it produced no commits; `wp-manuals-alignment`
 did not advance past `9b061ae`. It is formally CLOSED. Part 1 (`99deb0e`) stands landed, untouched.**
