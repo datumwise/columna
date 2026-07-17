@@ -44,7 +44,7 @@ async def test_query_clarify_wedge(mcp_session):
     # cross-universe ratio is a category ERROR, not a clarify).
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark",
-                              frameql="rate: avg(aov) @ cal.month")
+                              frameql="SELECT avg(aov) AS rate AT {cal.month}")
     assert w["outcome"] == "clarify"
     col = w["columns"][0]
     assert col["status"] == "clarify"
@@ -57,13 +57,13 @@ async def test_query_clarify_wedge(mcp_session):
 async def test_clarify_two_hop_roundtrip(mcp_session):
     async with mcp_session() as client:
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: avg(aov) @ cal.month")
+                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
         # hop: reformulate per the clarify — PIN the input anchor -> serve (a definite quantity)
         hop = await client.call("query", manifold_id="benchmark",
-                                frameql="rate: avg(aov@day) @ cal.month")
+                                frameql="SELECT avg(aov@day) AS rate AT {cal.month}")
         # and a structural refusal in the same manifold — an ask outside the contracted space
         refuse = await client.call("query", manifold_id="benchmark",
-                                   frameql="inv: level.last @ customer")
+                                   frameql="SELECT level.last AS inv AT {customer}")
     assert clarify["outcome"] == "clarify"
     assert clarify["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"
     assert hop["outcome"] in ("serve", "disclose")            # the pinned reformulation is a definite quantity
@@ -74,7 +74,7 @@ async def test_clarify_two_hop_roundtrip(mcp_session):
 # --- acceptance #5: B-anchor inform-and-serve on the wire -----------------------------------
 async def test_banchor_served_with_material_critical(mcp_session):
     async with mcp_session() as client:
-        w = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        w = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
     assert w["outcome"] == "disclose"
     col = w["columns"][0]
     assert col["status"] == "served" and "values" in col
@@ -85,8 +85,8 @@ async def test_banchor_served_with_material_critical(mcp_session):
 # --- acceptance #6: refuse vs error are distinguishable ------------------------------------
 async def test_out_of_universe_refuse_vs_unknown_error(mcp_session):
     async with mcp_session() as client:
-        refuse = await client.call("query", manifold_id="benchmark", frameql="i: level.last @ product")
-        err = await client.call("query", manifold_id="benchmark", frameql="z: revenue.zap @ store")
+        refuse = await client.call("query", manifold_id="benchmark", frameql="SELECT level.last AS i AT {product}")
+        err = await client.call("query", manifold_id="benchmark", frameql="SELECT revenue.zap AS z AT {store}")
     rc = refuse["columns"][0]
     assert refuse["outcome"] == "refuse" and rc["status"] == "refuse"
     assert rc["no_result"]["discriminator"] == "unsupported"
@@ -98,7 +98,7 @@ async def test_out_of_universe_refuse_vs_unknown_error(mcp_session):
 # --- acceptance #7: EXPLAIN (envelope) touches zero data; would-be matches the query -------------
 async def test_explain_envelope_zero_fetch_and_would_be(mcp_session):
     async with mcp_session() as client:
-        q = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        q = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
         ex = await client.call("explain", manifold_id="benchmark", frameql="SELECT level.sum AT {store}")
     # zero data + the rich EXPLAIN payload (desugared artifact + series/cone)
     assert ex["executed"] is False and ex["fetches_delta"] == 0
@@ -155,12 +155,12 @@ def _assert_frame_shape(w):
 
 async def test_wire_contract_schema_and_scoping(mcp_session):
     async with mcp_session() as client:
-        serve = await client.call("query", manifold_id="benchmark", frameql="revenue: revenue @ region")
-        disclose = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        serve = await client.call("query", manifold_id="benchmark", frameql="SELECT revenue AS revenue AT {region}")
+        disclose = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: avg(aov) @ cal.month")
+                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
         error = await client.call("query", manifold_id="benchmark",
-                                  frameql="rate: revenue / level.last @ store, day")
+                                  frameql="SELECT revenue / level.last AS rate AT {store*day}")
     for w in (serve, disclose, clarify, error):
         _assert_frame_shape(w)
     # outcome derivation: nothing material -> serve; a material caveat -> disclose
