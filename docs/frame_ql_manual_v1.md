@@ -1,8 +1,16 @@
 # The Frame-QL Manual
 
-*The formal query language of Columna*
+*The formal query language of Columna, by datumwise*
 
 *Frame-QL First Edition — a renamed, lightly-revised continuation of the Coframe-QL Manual, Third Edition (which it supersedes). The Third Edition's content is preserved; this edition renames it to Columna/Frame-QL/Manifold and reconciles it to the column-foundation redesign (ADR-031), the Core/Pro split, and the shipped **envelope grammar** (ADR-035). It inherits the v4 operator model (ADR-009…015), the V/M/B anchor vocabulary (ADR-024), the anchor-ascription rule, family-aware scans, macro bindings, EXPLAIN, and the (anchor, universe) grain (ADR-025…028). The **envelope** — `SELECT <series> [AS <alias>], … AT {anchor}` with its optional `FROM`, `WHERE`, `HAVING`, `ORDER BY`, `LIMIT … PER`, and `WITH` clauses, where `@ {…}` is the input-anchor marker universally and `AT {…}` is the sole output-grain declaration — is the language, and this edition documents it **as implemented** (columna-core 0.9.0). The pre-launch shipped surface was a *fragment* of it — the terse `cols @ anchor` form, where a trailing `@` spelled the output anchor; that fragment is **retired** (its two `@`s meant opposite things) and preserved for lineage in Appendix D. The fourth outcome, named `inform` under ADR-020's inform-and-serve doctrine, ships on the wire as the `refuse` mood; this edition uses **`refuse`** throughout (Chapter 7). The §2c universe law (structural universe resolution; one expression, one universe; `cross_universe`), the shipped B3 basis/absence rule, and the shipped reason codes are reconciled into the semantics they govern.*
+
+*About the examples (stated once): every FrameQL example in this manual is checked against the shipped
+parser (`columna_core.envelope.parse_statement`, columna-core 0.9.0) by `docs/tools/check_manual_frameql.py`,
+which rides the manuals merge as a standing test — the manual can never document syntax its own parser
+rejects. A code block fenced `frameql-illformed` is **deliberately ill-formed**: it shows a syntax the
+parser rejects (a `[SCHEDULED]`/`[ROADMAP]` surface not yet shipped, or a teaching non-example), and the
+check asserts it does **not** parse. Every other FrameQL block parses clean (it may still refuse or
+clarify at plan time — that is semantics, which the four moods report, not grammar).*
 
 ---
 
@@ -63,15 +71,18 @@ The query produces a frame whose anchor is the *output anchor* named in `AT`, wh
 
 ### 1.3 The `FROM` clause
 
-A query may name its Manifold explicitly:
+A query may name its Manifold explicitly (this is the `FROM` clause shown alone, not a whole query):
 
-```
+```text
 FROM finance_manifold
 ```
 
 **`FROM` is optional, and defaults to the bound Manifold.** The demo, the MCP `query` tool, and the agent are each attached to exactly one Manifold, and against a single-Manifold surface a bare `SELECT … AT {…}` resolves against that bound Manifold — no ceremony on the common case. `FROM` earns its keep on a **multi-Manifold surface**: where a surface holds more than one Manifold, a statement that names none is not underdetermined-by-guess, it **refuses**, naming the available Manifolds and asking which. The clause exists so that any surface — a query console, an agent, an MCP client, a planner shared across several Manifolds — can address different Manifolds by naming the target in each statement, **without carrying Manifold identity as ambient session state**. A statement that names its Manifold is self-contained: it means the same thing regardless of who submits it, from where, with what session history — and is therefore reproducible, cacheable, and auditable on its face; and an unnamed one is reproducible all the same, because the resolved identity always rides in the annotation (below).
 
-**Resolved identity is never silent.** A Manifold is a versioned artifact, and the result's annotation always records the resolved identity — `(Manifold, version, refresh, certificate state)` — so that even a statement that named neither the Manifold nor a version is exactly reproducible after the fact, from its own annotation. An `EXPLAIN` shows the resolved identity before anything runs. *(▸ Frame-QL revision, shipped-law: explicit version pinning — a `VERSION n` on `FROM` — is not part of the shipped envelope statement grammar; it is a documented grow-by-ruling candidate (ADR-035 D1). The resolved version is always disclosed; pinning it in the statement enters the language by ruling, not by default.)*
+**Resolved identity is never silent.** A Manifold is a versioned artifact, and the result's annotation always records the resolved identity — `(Manifold, version, refresh, certificate state)` — so that even a statement that named neither the Manifold nor a version is exactly reproducible after the fact, from its own annotation. An `EXPLAIN` shows the resolved identity before anything runs. *(▸ Frame-QL revision, shipped-law — `[SCHEDULED]`: explicit version pinning — a `VERSION n` on `FROM` —
+is **designed but not yet in the shipped envelope grammar**; it enters by ruling (ADR-035 D1), not by
+default. `[SCHEDULED]` (not `[ROADMAP]`) because the surface is designed and committed, only unshipped —
+the resolved version is always disclosed today, so nothing is lost by pinning arriving later.)*
 
 **Surfaces may supply `FROM` on the user's behalf — licensed by disclosure.** A user or client working against a single Manifold should not have to type its name in every statement, and the formal language does not bend to spare them: the resolution is the *surface's* job. A surface whose context makes the target Manifold unambiguous injects the `FROM` clause before submission (the sanctioned sugar of Chapter 8.3). What licenses the injection is the disclosure machinery: the annotation's canonical form carries the statement *as executed*, `FROM` and resolved version included, on every round trip — so the convenience can never become hidden state. The user need not know the clause exists; the record always shows it.
 
@@ -646,9 +657,13 @@ SELECT cumsum( revenue @ {customer, day} ) AS revenue_to_date
 
 Computes the running cumulative revenue per customer, ordered by day. The scan partitions by customer and accumulates by day; the result is co-anchored with the input.
 
-### 6.12 Many-to-many with allocation
+### 6.12 Many-to-many with allocation `[ROADMAP]`
 
-```
+The `WITH allocation <name> = …` form is a **grow-by-ruling** surface (ADR-035 D1): it is not part of the
+shipped envelope grammar, so the block below is marked `frameql-illformed` — the shipped parser rejects
+its `WITH allocation` head, and the manual's self-check asserts exactly that until the form ships.
+
+```frameql-illformed
 FROM product_manifold
 WITH allocation product_to_category = proportional_to(category_weight)
 SELECT sum( revenue @ {product} ) AT {category}
@@ -899,7 +914,7 @@ Scan parameters, passed by keyword: `window` (rolling extent), `n` (shift offset
 
 **`ON` is a DEFINITION-language clause, not a query keyword.** A population is pinned in definitions; the §2c universe law resolves universe structurally at query time (Chapters 1.5, 2.5). An `ON` in a query is a syntax error.
 
-**Grow-by-ruling keywords — documented, not yet in the shipped envelope statement grammar** (they enter by ruling, ADR-035 D1): `VERSION` (the `FROM … VERSION n` pin, Chapter 1.3); the scan-parameter keywords `window`, `n`, `by`, `reset`, `within`, `step` (recognized in scan-argument position, Chapter 2.8 **[ROADMAP]**); the bracket-filter `[...]` syntax on column references (Chapter 2.8 **[ROADMAP]**); and the expression-level `OR`, `NOT`, `IF`, `CASE`, `WHEN`, `THEN`, `ELSE`, `END`, `BETWEEN`, `IN` (series-internal expression text is captured verbatim and delegated to the expression parser at plan time, so its dialect grows independently of the envelope). `WITH allocation` is **[Pro]** (Chapter 4.5).
+**Grow-by-ruling keywords — documented, not yet in the shipped envelope statement grammar** (they enter by ruling, ADR-035 D1): `VERSION` (the `FROM … VERSION n` pin, Chapter 1.3, **[SCHEDULED]**); the scan-parameter keywords `window`, `n`, `by`, `reset`, `within`, `step` (recognized in scan-argument position, Chapter 2.8 **[ROADMAP]**); the bracket-filter `[...]` syntax on column references (Chapter 2.8 **[ROADMAP]**); and the expression-level `OR`, `NOT`, `IF`, `CASE`, `WHEN`, `THEN`, `ELSE`, `END`, `BETWEEN`, `IN` (series-internal expression text is captured verbatim and delegated to the expression parser at plan time, so its dialect grows independently of the envelope). `WITH allocation` is **[Pro]** (Chapter 4.5).
 
 Reserved for future use: `INHERIT`, `JOIN`, `COMPOSE`, `ASSERT`, `ACCESS`.
 
