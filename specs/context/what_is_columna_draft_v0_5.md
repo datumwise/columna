@@ -107,8 +107,8 @@ Then open the [Explorer](/explorer) to browse the same demo Manifold the tour ju
 - **Verdict** — the result of checking a described claim against the data: verified,
   corroborated, untestable, or contradicted.
 - **describe** — the machine-readable rendering of a Manifold; what an agent reads first.
-- **FrameQL** — the query language against the Manifold, as SQL is to tables. An anchor
-  (where you stand) plus what you're asking: `aov @ cal.month`.
+- **FrameQL** — the query language against the Manifold, as SQL is to tables. You declare
+  the frame you want: `SELECT aov AT {cal.month}`.
 - **The wire** — the answer format: result + context, in one of the four moods. The same\n  contract whether it arrives over MCP or straight from the API.
 - **`columna init`** — reads a database and proposes a Manifold; you review and decide.
 
