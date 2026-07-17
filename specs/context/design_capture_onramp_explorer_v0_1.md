@@ -22,6 +22,24 @@ anyway. Either way, the insulation guarantee holds NOW (§2).
 
 ## 2 · The formal representation (RATIFIED) and the insulation guarantee
 
+**THE NAME'S LAW (Huayin, 2026-07-17, on the origin of FrameQL):** start with DataFrame;
+take the Data out and the Frame remains — still everything: a collection of column
+expressions on one anchor. In Columna, columns are expressions of WHAT A THING IS, not
+operational process. FrameQL says the Frame IS the query — a declared assembly, never an
+operational instruction. Corollary, ruled the same day: the shipped single-expression
+`@`-form is a fragment, not the language; the envelope (SELECT … AT … with its clauses,
+ON dead per §2c) is the language, and it ships before launch. The planner assembles the
+frame and owns the envelope's clauses; the engine computes series, envelope-blind.
+
+**PRECISION (CP-3 C-2, 2026-07-16):** the guarantee as SHIPPED: no STRUCTURAL physical
+identifier crosses describe/wire — no table names, no qualified `table.column`;
+predicate attribute names render as the author wrote them (unqualified). Full
+verification — declared logical names for predicate attributes — is OF-9 (a
+definition-language extension, not a rendering fix). Signature addressing on the wire
+is STRUCTURED, never a dotted string: a flattened address would be indistinguishable
+from physicality under the standing no-physical-identifier test. The dotted signature
+remains the human query syntax, untouched.
+
 **Three layers** — the `.cml`'s own organization, ratified as the formalism:
 - **Coordinates** — levels plus functional edges, the *shared* coordinate atlas. A rollup
   (`day → cal.month`) and a cross-table relationship (`store → region`) are the same
@@ -137,10 +155,6 @@ leaves describe, and universe predicates are rendered logically (no raw `table.c
 references). A standing test enforces the guarantee. Capture item carried with it: levels
 need a logical dtype (today the Map supplies it); declared at the Law level when the
 artifact splits.
-*Precision (CP-3, 2026-07-17, OF-9):* the shipped guarantee is STRUCTURAL — no table names, no
-qualified `table.column`; a bare predicate ATTRIBUTE name renders as authored. Declared logical
-names for predicate terms (the full fix) are a definition-language extension, their own WP (OF-9);
-the standing test tightens to full verification when it lands.
 
 ## 2c · Universe resolution: one expression, one universe (RULED 2026-07-15; supersedes the combo-law draft)
 
