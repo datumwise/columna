@@ -1,0 +1,42 @@
+# Columna
+
+> Columna is a framework for describing what your data MEANS, shipped as a Python library. You
+> describe the meaning once — the populations, the measures, which totals are safe to take — and
+> Columna checks that description against the data and serves it to whoever asks: an AI agent over
+> MCP, or you directly. It works one level up from pandas/polars — on what values mean, not the values.
+
+## The four moods
+Every answer is one of four, returned as structured data on one contract (contract_version "1"):
+- serve — here's the number.
+- disclose — here's the number, plus something you should know about it (e.g. you summed a snapshot
+  across months, so you get the per-month figures with a note on why they don't add to a real total).
+- clarify — the question can be read two ways; here are the readings, pick one.
+- refuse — the data can't honestly answer this, and here's why (the classic: inventory by customer —
+  inventory has no customers).
+
+## Core vocabulary
+- Manifold — the described, checked data model that agents (or you) query. Not a database, not a schema.
+- Universe — one population of facts (transactions; store-days). Every expression evaluates in exactly one.
+- Level / edge — the coordinates (grains you can stand at) and the declared paths between them (day→month).
+- Measure / derived — a quantity read from the data; a quantity defined from other measures.
+- Basis — what a missing row MEANS in a universe: a real zero (events), a gap (spine/product), or a
+  membership fact (registry).
+- Verdict — the result of checking a described claim against the data: verified, corroborated,
+  untestable, or contradicted.
+- FrameQL — the query language against the Manifold, as SQL is to tables: an anchor plus what you ask,
+  `aov @ cal.month`.
+- describe — the machine-readable rendering of a Manifold; what an agent reads first.
+- The wire — the answer format: result + context, in one of the four moods; the same contract over MCP
+  or straight from the API.
+
+## Start here
+- What is Columna? (plain-language orientation): /what-is-columna
+- Try it: `pip install columna` then `columna-server demo --play`  (four asks, four moods, seeded data)
+- The Explorer (the demo Manifold, live — every measure with its verdict and a query): /explorer
+- Full agent orientation: /llms-full.txt
+
+## Go deeper
+- The framework manual: /docs/framework
+- The FrameQL manual: /docs/frameql
+- The reference manual: /docs/reference
+- How these documents relate: /how-these-documents-relate
