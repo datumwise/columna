@@ -164,3 +164,17 @@ def explain(store: ManifoldStore, manifold_id: str, frameql: str, universe: Opti
     fr = fb.plan()                       # would-be annotation, zero backend fetches
     delta = lm.server.fetches - before
     return dw.wire_frame(fr, universe=universe, executed=False, fetches_delta=delta)
+
+
+def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) -> dict:
+    """EXPLAIN an envelope statement WITHOUT executing: canonical desugared form + atom decomposition +
+    dependency cone with verdicts + would-be annotation, zero backend fetches. The rich EXPLAIN payload
+    (WP-FrameQL) — distinct from the query wire; a first-class MCP tool beside `query`."""
+    from columna_core.envelope import parse_statement, EnvelopeSyntaxError
+    lm = _get(store, manifold_id)
+    try:
+        stmt = parse_statement(statement)
+        return lm.server.explain_statement(stmt)
+    except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
+        return {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
+                "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}
