@@ -1,0 +1,30 @@
+---
+// CP-3b Tier-1 [AI-3] — a templated term chip: the term, a link to its glossary definition on
+// /what-is-columna, and a paste-into-any-chat "Ask your AI" block filled from the ratified glossary.
+import AskYourAI from './AskYourAI.astro';
+import { GLOSSARY, GLOSSARY_ANCHOR, askText } from '../data/glossary';
+
+export interface Props {
+  term: keyof typeof GLOSSARY;
+}
+const { term } = Astro.props;
+const g = GLOSSARY[term];
+if (!g) throw new Error(`TermChip: unknown term "${String(term)}"`);
+const prompt = askText(g);
+---
+<div class="term-chip">
+  <p class="term-chip-head">
+    <a href={GLOSSARY_ANCHOR} class="term-chip-name">{g.term}</a>
+    <span class="term-chip-def">— {g.definition}.</span>
+  </p>
+  <AskYourAI summary={`Ask your AI: what is ${g.term}?`} text={prompt} tone="paper" />
+</div>
+
+<style>
+  .term-chip { margin: 0; }
+  .term-chip-head { font-family: var(--font-sans); font-size: 0.92rem; margin: 0; color: var(--ink-soft); }
+  .term-chip-name { font-weight: 600; color: var(--ink); text-decoration: underline;
+    text-decoration-color: var(--rule-strong); }
+  .term-chip-name:hover { text-decoration-color: var(--ink-faint); }
+  .term-chip-def { color: var(--ink-soft); }
+</style>
