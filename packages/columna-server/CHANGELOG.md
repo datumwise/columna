@@ -3,6 +3,20 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.3.0] — the envelope wire + EXPLAIN as a first-class tool
+
+Full narrative: `specs/release_notes_v0_9_0.md`.
+
+- **`query` speaks the envelope** (`SELECT … AT {…}`): the terse `cols @ anchor` form is retired from the
+  wire and the `universe` argument is gone (§2c — universe is resolved structurally, never named in a
+  query). The four-mood wire contract is unchanged (`contract_version "1"`).
+- **`explain` is a first-class tool beside `query`:** the canonical desugared form + atom decomposition +
+  the dependency cone with current verdicts + the would-be annotation, touching zero data — the agent's
+  cheap inner loop.
+- **Every speaking surface migrated to the envelope:** the `demo --play` tour, the MCP acceptance suite,
+  and the agent's system prompt (its grammar section rewritten to teach `SELECT`/`AT`, `@`-as-input, and
+  the `WHERE`/`HAVING`/`ORDER BY`/`LIMIT PER`/`WITH` clauses).
+
 ## [0.2.0] — columna init, the measured KP v0.5, the four-mood tour, and the Explorer describe
 
 Full narrative: `specs/release_notes_v0_8_0.md`.

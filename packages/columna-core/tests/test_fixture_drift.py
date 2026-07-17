@@ -52,7 +52,7 @@ def test_mini_warehouse_within_budget():
 def test_import_and_version():
     import columna_core
 
-    assert columna_core.__version__ == "0.8.0-core"
+    assert columna_core.__version__ == "0.9.0-core"
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))
