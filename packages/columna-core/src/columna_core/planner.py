@@ -253,10 +253,18 @@ class Planner:
         return tuple(out)
 
     # ---- run a frame -------------------------------------------------------
-    def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> FrameResult:
+    def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
+            where_unreachable: Optional[dict] = None) -> FrameResult:
         results = []
         for name, expr in columns:
             trace = []
+            # envelope WHERE reachability (filter_unreachable): a series the planner already adjudicated as
+            # unable to reach a WHERE dimension clarifies here, BEFORE any engine call — per-series, so
+            # reachable siblings still serve (the juxtaposition model).
+            if where_unreachable and name in where_unreachable:
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                                            refusal=where_unreachable[name].classified(), trace=trace))
+                continue
             try:
                 # COMPILE: static typecheck (vocabulary, signatures, addressability, expression
                 # typing) — no engine calls. Operator-not-supported and type errors are caught
@@ -341,6 +349,260 @@ class Planner:
         # ON UNIVERSE is dead in the query grammar (cross-universe combination is an authoring act).
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.frame is not None])
         return FrameResult(data, frame_disc, results, anchor)
+
+    # ==== ENVELOPE assembly (WP-FrameQL increment 2) ==========================================
+    # The PLANNER owns the envelope; the engine stays per-column and envelope-blind. This is where the
+    # naming laws (§4) and the clause-reference law (§5) stop being spec text and become behavior.
+    # Multi-series rides the existing juxtaposition (self.run); WHERE is per-series pre-reduction
+    # (the existing `where` plumbing into the engine); HAVING/ORDER BY/LIMIT PER are POST-assembly on
+    # the frame. `@` is the input anchor inside a series (verbatim to the expression parser); AT is the
+    # sole output grain. Static well-formedness (naming, clause-reference, PER-not-alias) rides the
+    # EXISTING `frameql_syntax` query-error channel (FrameQLSyntaxError) — no new wire reason code.
+    _INPUT_ANCHOR_BRACE = re.compile(r"@\s*\{([^}]*)\}")
+    _CMP = [(">=", "ge"), ("<=", "le"), ("!=", "ne"), ("==", "eq"), (">", "gt"), ("<", "lt"), ("=", "eq")]
+
+    def _synerr(self, msg: str):
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(msg)
+
+    def _apply_subs(self, expr: str, subs: dict) -> str:
+        """Substitute WITH bindings (word-boundary), each wrapped in parens to preserve precedence."""
+        for name, sub in subs.items():
+            expr = re.sub(rf"\b{re.escape(name)}\b", f"({sub})", expr)
+        return expr
+
+    def _convert_input_anchor(self, expr: str) -> str:
+        """`@ {X}` -> `@ X` (the expression parser reads a bare level Name as the input anchor pin).
+        A braced product `@ {a*b}` is refused for now — single-level input anchors this build."""
+        def repl(m):
+            inner = m.group(1).strip()
+            if not inner:
+                self._synerr("an input anchor `@ { }` is empty — name the grain, e.g. avg(aov @ {day})")
+            if "*" in inner or "," in inner:
+                self._synerr(f"multi-level input anchor `@ {{{inner}}}` is not supported in this build — "
+                             f"pin a single level, e.g. avg(aov @ {{day}})")
+            return f"@ {inner}"
+        return self._INPUT_ANCHOR_BRACE.sub(repl, expr)
+
+    def _default_name(self, expr: str) -> str:
+        """§4 mechanical default — only where UNAMBIGUOUS; the input anchor never affects the name.
+        Reduction R(inner) -> `<R>_<base measure>`; bare measure -> the measure; measure.member ->
+        `measure_member`. Anything else unaliased is REFUSED (no name invented)."""
+        try:
+            body = ast.parse(expr, mode="eval").body
+        except SyntaxError:
+            self._synerr(f"cannot name series {expr!r} — give it a name with AS")
+        rc = self._reduction_call(body) if isinstance(body, ast.Call) else None
+        if rc is not None:
+            _canonical, inner, _pin = rc
+            written = body.func.id                     # the reducer AS WRITTEN (avg, not the canonical mean)
+            # the column AS WRITTEN — a derived measure keeps its own name (aov), not its expanded atom
+            m, _mem = self._measure_ref(inner)
+            if m is None:
+                atoms = self._atoms(inner, ())
+                m = atoms[0][0] if atoms else None
+            if m is None:
+                self._synerr(f"cannot name reduction {expr!r} — give it a name with AS")
+            return f"{written}_{m}"
+        if isinstance(body, ast.Name):
+            return body.id
+        if isinstance(body, ast.Attribute) and isinstance(body.value, ast.Name):
+            return f"{body.value.id}_{body.attr}"
+        self._synerr(f"series {expr!r} has no unambiguous name — give it one with AS "
+                     f"(e.g. SELECT {expr} AS my_name)")
+
+    def _canon_expr(self, expr: str) -> str:
+        """Normalize a series expression's input anchors to the CANONICAL brace form `@ {level}` (rider:
+        `@ {…}` is canonical, bare `@ level` is accepted sugar — grammar §2). Idempotent."""
+        bare = self._convert_input_anchor(expr)                  # any `@ {X}` -> `@ X` first (idempotent)
+        return re.sub(r"@\s*([A-Za-z_][\w.]*)", r"@ {\1}", bare) # then bare -> canonical `@ {X}`
+
+    def desugar(self, stmt):
+        """THE desugaring transform (WP-FrameQL sugars increment, rider 1): rewrite the parsed Statement
+        to CANONICAL form BEFORE planning — one dialect at the planner, and the exact artifact EXPLAIN
+        emits (never a reconstruction). Sugars folded here, each MECHANICAL-or-refused (rider 2), no
+        heuristic middle:
+          • WITH bindings inlined into the series (the canonical form carries no WITH);
+          • input anchors to canonical brace form `@ {level}` (bare `@ level` accepted → braced);
+          • series names resolved (§4: AS alias, else mechanical default; ambiguous → refused);
+          • anchor to canonical declared levels (comma → `*` already normalized by the parser).
+        The single-universe and comma-anchor sugars are already canonical out of the parser. The
+        omitted-input-anchor sugar is left as-is: the planner's existing path clarifies
+        `input_anchor_ambiguous` — the SAME shipped code/channel (rider 3), no re-mint here."""
+        from . import envelope as E
+        subs = {}
+        for b in stmt.bindings:
+            subs[b.name] = self._canon_expr(self._apply_subs(b.expr, subs))
+        series = []
+        for s in stmt.series:
+            expr = self._canon_expr(self._apply_subs(s.expr, subs))
+            name = s.alias or self._default_name(self._convert_input_anchor(expr))
+            series.append(E.Series(expr=expr, alias=name))
+        anchor = self.resolve_anchor(stmt.anchor)
+        return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
+                           from_manifold=stmt.from_manifold, bindings=[], where=list(stmt.where),
+                           having=list(stmt.having), order_by=list(stmt.order_by), limit=stmt.limit)
+
+    def _check_name_collisions(self, columns: list, anchor: tuple):
+        """§4: collisions are REFUSED, never suffixed — incl. a column name vs an anchor-dimension name."""
+        names = [n for n, _ in columns]
+        seen = set()
+        for n in names:
+            if n in seen:
+                self._synerr(f"two columns resolve to the name {n!r} — names must be distinct, never "
+                             f"suffixed; give one an AS alias")
+            seen.add(n)
+        for n in names:
+            if n in anchor:
+                self._synerr(f"column {n!r} collides with the anchor dimension {n!r} — the frame's columns "
+                             f"and its anchor coordinates share one namespace; rename the column with AS")
+
+    def _validate_clause_refs(self, stmt, frame_cols: set, anchor: tuple):
+        """§5 clause-reference law: ORDER BY / HAVING / PER reference the output frame's OWN columns only
+        (named series + anchor coordinates) — no hidden pulls. The remedy names itself."""
+        for pred in stmt.having:
+            col = self._predicate_column(pred)
+            if col not in frame_cols:
+                self._synerr(f"HAVING references {col!r}, which is not a column of the frame — select it "
+                             f"as a column, or add it to the anchor")
+        for k in stmt.order_by:
+            if k.column not in frame_cols:
+                self._synerr(f"ORDER BY references {k.column!r}, which is not a column of the frame — "
+                             f"select it as a column, or add it to the anchor")
+        if stmt.limit is not None:
+            series_names = frame_cols - set(anchor)              # frame columns that are NOT anchor coordinates
+            order_cols = {k.column for k in stmt.order_by}
+            for d in stmt.limit.per:
+                if d in series_names:                            # an alias/series name ⇒ §4 refusal
+                    self._synerr(f"PER {{{d}}} names {d!r}, an output column — PER takes ANCHOR "
+                                 f"coordinates only; put {d!r} in the anchor to partition by it")
+                if d not in anchor:
+                    self._synerr(f"PER {{{d}}} names {d!r}, which is not an anchor coordinate — PER "
+                                 f"partitions along the frame's grain; add {d!r} to the anchor")
+                # PER ⊆ ORDER BY (the manual's determinism-and-contiguity law, ruled 2026-07-17): PER keys
+                # GROUP, the remaining ORDER BY keys RANK within, and the output presents groups contiguously
+                # — so every PER key must be an ORDER BY key.
+                if d not in order_cols:
+                    self._synerr(f"PER {{{d}}} is not in ORDER BY — PER groups and ORDER BY ranks within "
+                                 f"each group, so the partition key must also sort; add {d!r} to ORDER BY "
+                                 f"(e.g. ORDER BY {d}, …)")
+
+    def _predicate_column(self, pred: str) -> str:
+        for op, _m in self._CMP:
+            if op in pred:
+                return pred.split(op, 1)[0].strip()
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` (op: > < >= <= == !=)")
+
+    def _apply_predicate(self, data, pred: str):
+        for op, method in self._CMP:
+            if op in pred:
+                col, rhs = pred.split(op, 1)
+                col, rhs = col.strip(), rhs.strip()
+                val = self._literal(rhs)
+                return data.filter(getattr(pl.col(col), method)(val))
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value`")
+
+    @staticmethod
+    def _literal(s: str):
+        if (len(s) >= 2 and s[0] in "'\"" and s[-1] == s[0]):
+            return s[1:-1]
+        if re.fullmatch(r"-?\d+", s):
+            return int(s)
+        if re.fullmatch(r"-?\d+\.\d+", s):
+            return float(s)
+        return s
+
+    # Directive 7 (Huayin, 2026-07-17): Polars is the execution substrate. The envelope's frame-level
+    # clauses map onto the assembled Polars DataFrame NATIVELY — HAVING a filter, ORDER BY a sort, LIMIT
+    # n a head, LIMIT n PER {dims} a grouped top-n — never a Python row loop. The boundary (extending the
+    # B3 precedent): Polars EXECUTES what the planner has already adjudicated; a Polars default is never
+    # an accidental law. Every four-mood decision, reachability, refusal, and absence rule is decided
+    # UPSTREAM (in `run`, before this frame exists). Where a Polars behavior matches ruled law, the ruling
+    # is cited below — not the coincidence.
+    def _sort_frame(self, data, order_by):
+        # ORDER BY is Columna's ruled output order. `nulls_last` is set EXPLICITLY, not left to Polars'
+        # sort convention: a gap (null — B3-adjudicated upstream as incomplete_data) has no value to
+        # rank, so it sorts to the bottom. A deliberate default, FLAGGED for Huayin — not a leaked rule.
+        return data.sort(by=[k.column for k in order_by],
+                         descending=[k.descending for k in order_by], nulls_last=True)
+
+    def _apply_output_clauses(self, fr: FrameResult, stmt, anchor: tuple, columns: list) -> FrameResult:
+        frame_cols = {n for n, _ in columns} | set(anchor)
+        self._validate_clause_refs(stmt, frame_cols, anchor)     # §5 — static, even when the frame refused
+        data = fr.data
+        if data is None:
+            return fr
+        # HAVING — one native Polars filter per predicate. A gap (null) cannot satisfy a value predicate,
+        # so it is excluded: Polars' null-drop here MATCHES the ruled "a gap is not a value" (B3, cited
+        # deliberately) — flagged for confirmation, not relied on as a Polars accident.
+        for pred in stmt.having:
+            if self._predicate_column(pred) in data.columns:
+                data = self._apply_predicate(data, pred)
+        # ORDER BY — native Polars sort (the ruled output order).
+        if stmt.order_by:
+            data = self._sort_frame(data, stmt.order_by)
+        # LIMIT — native head; LIMIT n PER {dims} is a native grouped top-n (group_by().head()), the rows
+        # picked in the ruled ORDER BY order (maintain_order preserves THAT order — not a Polars default),
+        # then re-sorted for a stable frame. No Python row loop.
+        if stmt.limit is not None:
+            if stmt.limit.per:
+                data = data.group_by(list(stmt.limit.per), maintain_order=True).head(stmt.limit.n)
+                if stmt.order_by:                                # re-apply the ruled order after per-group truncation
+                    data = self._sort_frame(data, stmt.order_by)
+            else:
+                data = data.head(stmt.limit.n)
+        return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
+
+    def _where_reachability(self, columns: list, where_predicates: list) -> dict:
+        """§WHERE reachability (filter_unreachable, minted 2026-07-17): a WHERE dimension must be
+        addressable in each series' OWN universe (the filter binds pre-reduction, at the series' input).
+        Returns {series_name: Outcome} for series that cannot reach some WHERE dimension — a per-series
+        CLARIFY so reachable siblings still serve. Adjudicated HERE, before Polars/engine (directive 7)."""
+        levels = [self._predicate_column(p) for p in where_predicates]
+        out = {}
+        for name, expr in columns:
+            try:
+                uni = self._check_single_universe(ast.parse(expr, mode="eval").body, ())
+            except Exception:
+                continue                                         # a malformed series — let the normal run classify it
+            if uni is None:
+                continue
+            base = self.m.universes[uni].base_dimensions
+            reachable = sorted({lv for lv in ({e.frm for e in self.m._edges} | {e.to for e in self.m._edges} | set(base))
+                                if lv in base or self.m.find_path(base, lv) is not None})
+            for lvl in levels:
+                if lvl not in base and self.m.find_path(base, lvl) is None:
+                    out[name] = Refusal("filter_unreachable",
+                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is not "
+                        f"addressable in that series' universe '{uni}', so the pre-reduction filter has no "
+                        f"grain to bind to; the answer would be silently partial.",
+                        target=lvl, measure=name, discriminator=AMBIGUOUS,
+                        alternatives=(f"restrict the predicate to a reachable dimension ({', '.join(reachable)})",
+                                      f"change series '{name}' to an input anchor that reaches '{lvl}'"))
+                    break
+        return out
+
+    def _engine_columns(self, desugared) -> list:
+        """The canonical desugared series -> [(name, expr)] the engine consumes. The ONLY transform is
+        the AST-substrate adapter (canonical `@ {level}` -> `@ level`, since Python's ast can't hold a
+        `{…}` set literal as an anchor) — not a re-sugaring; the desugared Statement remains the artifact."""
+        return [(s.alias, self._convert_input_anchor(s.expr)) for s in desugared.series]
+
+    def run_statement(self, stmt, execute: bool = True) -> FrameResult:
+        """Assemble and dispose an envelope Statement (the whole clause set). Desugars to canonical AST
+        FIRST (one dialect), then plans it. ON is dead (§2c); universe is resolved structurally per
+        column. Returns a FrameResult exactly like `run`, so every surface reads it uniformly."""
+        d = self.desugar(stmt)                                   # canonical AST (EXPLAIN's artifact) — rider 1
+        columns = self._engine_columns(d)
+        self._check_name_collisions(columns, d.anchor)           # §4 collisions REFUSED
+        where = " AND ".join(d.where) if d.where else None       # per-series pre-reduction (existing plumbing)
+        unreachable = self._where_reachability(columns, d.where) if d.where else None
+        fr = (self.run if execute else self.plan)(d.anchor, columns, where, where_unreachable=unreachable)
+        return self._apply_output_clauses(fr, d, d.anchor, columns)
+
+    def plan_statement(self, stmt) -> FrameResult:
+        """The would-be assembly without executing (zero backend fetches) — EXPLAIN's engine."""
+        return self.run_statement(stmt, execute=False)
 
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
@@ -530,7 +792,8 @@ class Planner:
         return out
 
     # ---- PLAN: the would-be annotation WITHOUT executing (zero backend fetches) -------------
-    def plan(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None) -> "FrameResult":
+    def plan(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
+             where_unreachable: Optional[dict] = None) -> "FrameResult":
         """Compile-only: typecheck + addressability + structural crossings + the spec-only
         provenance disclosure (engine.dry_disclose) — assembled into the would-be annotation,
         touching no data. This is EXPLAIN-without-execution: an agent sees the critical crossing
@@ -538,6 +801,10 @@ class Planner:
         results = []
         for name, expr in columns:
             trace = []
+            if where_unreachable and name in where_unreachable:  # filter_unreachable clarify, would-be
+                results.append(ColumnResult(name, expr, None, Disclosure.of(population=None),
+                                            refusal=where_unreachable[name].classified(), trace=trace))
+                continue
             try:
                 tree = ast.parse(expr, mode="eval")
                 for n in ast.walk(tree):
