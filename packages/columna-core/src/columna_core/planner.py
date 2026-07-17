@@ -687,6 +687,14 @@ class Planner:
             return "Int64"
         return in_dt                                            # sum/min/max preserve the input dtype
 
+    def _split_dependent(self, target: tuple) -> tuple:
+        """Partition a target anchor into independent REDUCTION targets and functionally-DETERMINED
+        attribute targets (a level fixed by another target level, S->..->T). Shape-only, from the
+        projection's edges — the planner's remit; the engine mirrors this for the actual transport."""
+        dependent = [T for T in target
+                     if any(S != T and self.m.find_path({S}, T) is not None for S in target)]
+        return tuple(T for T in target if T not in dependent), tuple(dependent)
+
     def _candidate_input_anchors(self, target: str):
         """The finer levels a reduction's input anchor could pin: every level with a functional path
         to the frame anchor. These are the alternatives an unpinned reduction's clarify enumerates."""
@@ -877,10 +885,12 @@ class Planner:
                 # UNPINNED: the input anchor is structurally underdetermined — a STATIC engine clarify
                 # (capture v0.8), enumerating the candidate input anchors.
                 raise self._unpinned_reduction_refusal(reducer, inner, anchor)
-            if len(anchor) != 1:
-                raise Refusal("unsupported",
-                    f"inline reduction is served at a single frame level; asked at {_fmt_anchor(anchor)}")
-            in_dt = self._infer(inner, (pinned,), population)    # typecheck the inner at its input anchor
+            # DEPENDENT-PAIR era: an inline reduction serves at a MULTI-level anchor too — the pinned
+            # input anchor pins its lineage, orthogonal output dims join the input grain (see
+            # _resolve_inline_reduction). Typecheck the inner at that augmented grain.
+            reduction, _dep = self._split_dependent(anchor)
+            orthogonal = tuple(t for t in reduction if t != pinned and self.m.find_path({pinned}, t) is None)
+            in_dt = self._infer(inner, (pinned,) + orthogonal, population)
             return self._reducer_out_dtype(reducer, in_dt)
         sc = self._scan_call(node)
         if sc is not None:
@@ -1094,21 +1104,24 @@ class Planner:
         reducer, inner, pinned = rc
         if pinned is None:
             raise self._unpinned_reduction_refusal(reducer, inner, anchor)
-        if len(anchor) != 1:
-            raise Refusal("unsupported",
-                f"inline reduction is served at a single frame level; asked at {_fmt_anchor(anchor)}")
-        target = anchor[0]
-        k, frame, disc, dtype = self._node(inner, (pinned,), where, trace)
+        # DEPENDENT-PAIR era: the pinned input anchor pins ITS lineage's resolution; output reduction
+        # dimensions ORTHOGONAL to it (not reachable from `pinned`) join the input grain so the series
+        # carries them, then everything reduces to the output anchor (dependent levels attached 1:1).
+        reduction, _dependent = self._split_dependent(anchor)
+        orthogonal = tuple(t for t in reduction if t != pinned and self.m.find_path({pinned}, t) is None)
+        input_grain = (pinned,) + orthogonal
+        k, frame, disc, dtype = self._node(inner, input_grain, where, trace)
         if k != "col":
             raise Refusal("unknown", f"inline reduction input '{ast.unparse(inner)}' is not a column")
         out_dtype = self._reducer_out_dtype(reducer, dtype)
         reading = f"{reducer} of {ast.unparse(inner)}@{pinned}"
         if trace is not None:
-            trace.append(f"inline reduction: {reading} -> {target}")
-        if target == pinned:
+            trace.append(f"inline reduction: {reading} -> {_fmt_anchor(anchor)}")
+        if anchor == (pinned,):
             served = frame                                     # asked AT the pinned anchor: no travel
         else:
-            served = self.engine.reduce_series(frame, pinned, target, reducer, trace)
+            served = self.engine.reduce_series_to_anchor(frame, input_grain, anchor, reducer, trace)
+        target = _fmt_anchor(anchor)
         # communicative disclosure naming the reading — IMMATERIAL (provenance/transport), not a caveat
         note = Caveat(TRANSPORT,
                       f"'{reading}' reduced to {target} — the {reading} reading (input anchor pinned "
