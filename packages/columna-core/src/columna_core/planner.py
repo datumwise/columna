@@ -477,24 +477,43 @@ class Planner:
             return float(s)
         return s
 
+    # Directive 7 (Huayin, 2026-07-17): Polars is the execution substrate. The envelope's frame-level
+    # clauses map onto the assembled Polars DataFrame NATIVELY — HAVING a filter, ORDER BY a sort, LIMIT
+    # n a head, LIMIT n PER {dims} a grouped top-n — never a Python row loop. The boundary (extending the
+    # B3 precedent): Polars EXECUTES what the planner has already adjudicated; a Polars default is never
+    # an accidental law. Every four-mood decision, reachability, refusal, and absence rule is decided
+    # UPSTREAM (in `run`, before this frame exists). Where a Polars behavior matches ruled law, the ruling
+    # is cited below — not the coincidence.
+    def _sort_frame(self, data, order_by):
+        # ORDER BY is Columna's ruled output order. `nulls_last` is set EXPLICITLY, not left to Polars'
+        # sort convention: a gap (null — B3-adjudicated upstream as incomplete_data) has no value to
+        # rank, so it sorts to the bottom. A deliberate default, FLAGGED for Huayin — not a leaked rule.
+        return data.sort(by=[k.column for k in order_by],
+                         descending=[k.descending for k in order_by], nulls_last=True)
+
     def _apply_output_clauses(self, fr: FrameResult, stmt, anchor: tuple, columns: list) -> FrameResult:
         frame_cols = {n for n, _ in columns} | set(anchor)
         self._validate_clause_refs(stmt, frame_cols, anchor)     # §5 — static, even when the frame refused
         data = fr.data
         if data is None:
             return fr
+        # HAVING — one native Polars filter per predicate. A gap (null) cannot satisfy a value predicate,
+        # so it is excluded: Polars' null-drop here MATCHES the ruled "a gap is not a value" (B3, cited
+        # deliberately) — flagged for confirmation, not relied on as a Polars accident.
         for pred in stmt.having:
             if self._predicate_column(pred) in data.columns:
                 data = self._apply_predicate(data, pred)
+        # ORDER BY — native Polars sort (the ruled output order).
         if stmt.order_by:
-            data = data.sort(by=[k.column for k in stmt.order_by],
-                             descending=[k.descending for k in stmt.order_by])
+            data = self._sort_frame(data, stmt.order_by)
+        # LIMIT — native head; LIMIT n PER {dims} is a native grouped top-n (group_by().head()), the rows
+        # picked in the ruled ORDER BY order (maintain_order preserves THAT order — not a Polars default),
+        # then re-sorted for a stable frame. No Python row loop.
         if stmt.limit is not None:
             if stmt.limit.per:
                 data = data.group_by(list(stmt.limit.per), maintain_order=True).head(stmt.limit.n)
-                if stmt.order_by:                                # re-apply the sort after per-group truncation
-                    data = data.sort(by=[k.column for k in stmt.order_by],
-                                     descending=[k.descending for k in stmt.order_by])
+                if stmt.order_by:                                # re-apply the ruled order after per-group truncation
+                    data = self._sort_frame(data, stmt.order_by)
             else:
                 data = data.head(stmt.limit.n)
         return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
