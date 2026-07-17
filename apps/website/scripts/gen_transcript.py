@@ -14,18 +14,18 @@ from datetime import datetime, timezone
 from importlib.metadata import version
 
 from columna_server import tools as T
-from columna_server.demo import demo_store, DEMO_MANIFOLD_ID as MID
+from columna_server.demo import (demo_store, DEMO_MANIFOLD_ID as MID,
+                                 CLARIFY_Q, REFUSE_Q, DISCLOSE_Q, SERVE_Q)
 
 # Anchored at `region` so the full wire stays small and legible (the exhibit *shows* the JSON):
 # same measures, same mood, same material caveat — just few rows instead of thousands.
 # CP-3 S-2 (Huayin 2026-07-17): the four-mood exhibit mirrors the shipped `demo --play` wheel tour on the
 # ratified §2c exemplars. The old cross-universe wedge (S-1) is KILLED — a category error now — and the
 # demo's own declared metrics wear their verdicts in the Explorer instead of one bespoke mascot ratio.
-CLARIFY_Q  = "avg(aov) @ cal.month"          # an inline reduction with no pinned input anchor
-REFUSE_Q   = "level.last @ customer"         # inventory has no customers — out of the contracted space
-DISCLOSE_Q = "level.sum @ store*cal.month"   # a stock summed across a blocked time axis — served WITH a caveat
-SERVE_Q    = "aov @ cal.month"               # a well-posed ask over one population
-FOOL       = "profit_margin @ cal.month"     # a plausible column label no one declared -> error/ASK
+# The four-mood queries are IMPORTED from the shipped demo (single source of truth — they migrate to the
+# envelope with the package, so the transcript can never drift from what `demo --play` runs). 0.9.0: they
+# are `SELECT … AT {…}`; the terse form is retired.
+FOOL       = "SELECT profit_margin AT {cal.month}"   # a plausible column no one declared -> error/ASK
 
 SEEDED = {
     "clarify":  {"frameql": CLARIFY_Q,  "universe": None, "intended": "clarify"},
@@ -35,7 +35,7 @@ SEEDED = {
 }
 
 
-def run(store, fq, universe=None):  # universe kept in the seed schema for lineage; 0.9.0 ignores it
+def run(store, fq):                          # 0.9.0: universe is structural (§2c), no longer a query arg
     return T.query(store, MID, fq)
 
 
