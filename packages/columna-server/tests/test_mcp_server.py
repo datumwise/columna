@@ -21,7 +21,9 @@ async def test_list_and_describe_roundtrip(mcp_session):
     measures = [m["name"] for m in dm["measures"]]
     assert "region_label" in measures          # the WP-0 parity canary
     sd = next(u for u in dm["universes"] if u["name"] == "store_days")
-    assert sd["predicate"] == "day >= stores.opened_date"
+    # C-2 insulation (§2b, CP-3): the predicate renders LOGICALLY — the physical `stores.` qualifier
+    # (a shipped leak this test previously codified) no longer crosses describe.
+    assert sd["predicate"] == "day >= opened_date"
 
 
 # --- acceptance #2 --------------------------------------------------------------------------

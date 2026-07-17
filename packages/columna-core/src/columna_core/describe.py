@@ -45,3 +45,62 @@ def describe_derived(m, name: str) -> dict:
         "denotation_only": not d.family,
         "members": members,
     }
+
+
+# ---- CP-3 C-1: the D1 describe extension (additive) ------------------------------------------------
+# Additive to the shipped per-kind shape (capture §7 D1): License blocks verbatim across
+# fertility/hierarchy/assert; basis + absence semantics on universes; operator properties. No alias block.
+# The §2b insulation guarantee is C-2's wall (no physical identifier crosses describe) — these serializers
+# carry only logical facts; a physical leak is a describe bug the standing test catches, never here.
+
+_ABSENCE = {
+    "events":   "absence is a lawful ZERO (zero-fill; immaterial)",
+    "spine":    "absence is a GAP (incomplete_data — material)",
+    "product":  "absence is a GAP (cartesian product; material)",
+    "registry": "membership is a checkable fact (present vs absent)",
+}
+
+
+def absence_semantics(basis) -> str:
+    """The absence meaning a BASIS fixes (B3). None = undeclared (the wiring is inert until declared)."""
+    if basis is None:
+        return "undeclared (absence-semantics inert until a basis is declared)"
+    return _ABSENCE.get(basis, f"unknown basis '{basis}'")
+
+
+def describe_universe(u, predicate_str) -> dict:
+    """A Universe → describe dict: base dims, the LOGICALLY-rendered predicate (insulation — the caller
+    renders it), basis type + its absence semantics (B3), and the basis License (describe/trust only —
+    serving follows the DECLARATION regardless; the license records testedness)."""
+    return {
+        "name": u.name,
+        "base_dimensions": sorted(u.base_dimensions),
+        "predicate": predicate_str,
+        "basis": u.basis,
+        "absence": absence_semantics(u.basis),
+        "basis_license": license_to_dict(u.basis_license),
+    }
+
+
+def describe_assert(a, predicate_str=None) -> dict:
+    """An Assert → describe dict with its adjudicated License (Certificate-kernel reuse, byte-identical).
+    Row-form carries the LOGICALLY-rendered predicate (caller-supplied); invariant-form the measure
+    relation. No physical identifier crosses (§2b)."""
+    form = ({"kind": "row", "predicate": predicate_str} if a.kind == "row"
+            else {"kind": "invariant", "anchor": list(a.anchor), "left": a.left, "op": a.op, "right": a.right})
+    return {"name": a.name, "universe": a.universe, "form": form, "license": license_to_dict(a.license)}
+
+
+def describe_hierarchy(h) -> dict:
+    """A Hierarchy → describe dict: lineage, the level chain, and its adjudicated License. The VIA table
+    is a PHYSICAL identifier and does NOT cross describe (§2b) — provenance the wire never needs."""
+    return {"lineage": h.lineage, "chain": list(h.chain), "license": license_to_dict(h.license)}
+
+
+def operator_properties(sig) -> Optional[dict]:
+    """An OperatorSig → its describe properties (registry describe): the algebraic/routing properties the
+    planner typechecks against — never the engine mechanics. None when the reducer is unknown."""
+    if sig is None:
+        return None
+    return {"kind": sig.kind, "is_monoid": sig.is_monoid, "linear": sig.linear,
+            "needs_order": sig.needs_order, "needs_window": sig.needs_window}
