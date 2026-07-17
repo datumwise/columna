@@ -48,7 +48,7 @@ jobs:
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
       # Post-§2c the tour is clarify -> refuse -> disclose -> serve; disclose is driven by
-      # `level.sum @ store*cal.month` (a stock summed across the blocked day->month axis — a material
+      # `SELECT level.sum AT {store*cal.month}` (a stock summed across the blocked day->month axis — a material
       # b_anchor_crossing caveat), the well-posed replacement for the retired cross-universe wedge.
       - name: Demo smoke (demo --play, four moods in order)
         run: |
