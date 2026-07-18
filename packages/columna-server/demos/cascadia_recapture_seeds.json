@@ -9,7 +9,8 @@
       "mood": "serve",
       "disclosures": [],
       "row_count": 32,
-      "reason_tokens": []
+      "reason_tokens": [],
+      "in_wheel": false
     },
     {
       "id": "E2",
@@ -27,7 +28,8 @@
       "row_count": 554,
       "reason_tokens": [
         "b_anchor_crossing"
-      ]
+      ],
+      "in_wheel": true
     },
     {
       "id": "E3",
@@ -37,7 +39,8 @@
       "mood": "serve",
       "disclosures": [],
       "row_count": 554,
-      "reason_tokens": []
+      "reason_tokens": [],
+      "in_wheel": false
     },
     {
       "id": "E4",
@@ -55,7 +58,8 @@
       "row_count": null,
       "reason_tokens": [
         "input_anchor_ambiguous"
-      ]
+      ],
+      "in_wheel": true
     },
     {
       "id": "E5",
@@ -65,7 +69,8 @@
       "mood": "serve",
       "disclosures": [],
       "row_count": 24,
-      "reason_tokens": []
+      "reason_tokens": [],
+      "in_wheel": true
     },
     {
       "id": "E6",
@@ -83,7 +88,8 @@
       "row_count": null,
       "reason_tokens": [
         "non_functional_transport"
-      ]
+      ],
+      "in_wheel": false
     },
     {
       "id": "E7",
@@ -93,7 +99,8 @@
       "mood": "serve",
       "disclosures": [],
       "row_count": 24,
-      "reason_tokens": []
+      "reason_tokens": [],
+      "in_wheel": false
     },
     {
       "id": "E8",
@@ -111,7 +118,8 @@
       "row_count": null,
       "reason_tokens": [
         "out_of_universe"
-      ]
+      ],
+      "in_wheel": true
     },
     {
       "id": "E9",
@@ -129,7 +137,8 @@
       "row_count": null,
       "reason_tokens": [
         "b_anchor_crossing"
-      ]
+      ],
+      "in_wheel": false
     }
   ],
   "wheel": [

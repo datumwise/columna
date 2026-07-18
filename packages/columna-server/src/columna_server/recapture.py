@@ -90,6 +90,7 @@ def generate(store, server=None) -> dict:
         # RECORD: row count for serves/discloses (from the core engine when available)
         entry["row_count"] = _row_count(server, query)
         entry["reason_tokens"] = sorted({t["token"] for t in entry["disclosures"] if t["token"]})
+        entry["in_wheel"] = eid in WHEEL     # the --play wheel is a SUBSET (E4->E8->E2->E5), marked as such
         # FLAG (never harmonize): mood or reason that lands off the ratified expectation
         if mood != exp_mood:
             flags.append({"id": eid, "expected_mood": exp_mood, "recorded_mood": mood, "wire": entry})

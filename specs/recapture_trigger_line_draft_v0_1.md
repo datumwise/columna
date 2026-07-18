@@ -1,8 +1,8 @@
 # Recapture — the case-resource trigger line (DRAFT for ratification)
 
-**Status: DRAFT · agent-prompt copy under the copy law · Huayin ratifies before it lands in
+**Status: RATIFIED VERBATIM (Huayin, 2026-07-18) · landed in
 `agent/system_prompt.md`.** The MCP mechanism (the `case_chapter` / `case_manifest` tools, the three
-chapters shipped verbatim) is BUILT and green; only this prose awaits the word.
+chapters shipped verbatim) is BUILT and green; the prose below is now appended to the prompt as ratified.
 
 Per the accepted proposal (on-demand per-chapter resource + a triggering pointer) and its three riders:
 (1) a three-descriptor manifest so the trigger knows WHERE to fetch; (2) trigger conditions =

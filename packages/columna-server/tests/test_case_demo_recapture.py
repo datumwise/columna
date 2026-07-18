@@ -86,3 +86,10 @@ def test_corpus_has_no_undeclared_drift(corpus):
 
 def test_wheel_is_the_four_mood_story_order(corpus):
     assert corpus["wheel"] == ["E4", "E8", "E2", "E5"]   # clarify -> refuse -> disclose -> serve
+
+
+def test_corpus_carries_all_nine_with_the_wheel_subset_marked(corpus):
+    # the recorded corpus is the FULL nine E1-E9; the --play wheel is a marked SUBSET of it.
+    assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 10)]
+    marked = {e["id"] for e in corpus["exemplars"] if e["in_wheel"]}
+    assert marked == set(corpus["wheel"]) == {"E2", "E4", "E5", "E8"}
