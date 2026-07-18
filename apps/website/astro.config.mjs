@@ -6,6 +6,10 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://datumwise.ai',
   output: 'static',
+  // Corpus register correction (2026-07-17): "We invented nothing" re-registered as
+  // "Why Columna looks the way it does". The old route is live and may be linked, so it REDIRECTS —
+  // a 404 is not acceptable. Astro emits a static redirect for this in the build.
+  redirects: { '/notes/we-invented-nothing': '/why-columna-looks-this-way' },
   build: { inlineStylesheets: 'auto' },
   devToolbar: { enabled: false },
   vite: {
