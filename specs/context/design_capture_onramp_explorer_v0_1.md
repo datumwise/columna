@@ -20,17 +20,41 @@ form is the inline `FROM`/`VIA` binding fields); the artifact split into separab
 Law/Map lands at the Authoring-era WP, which needs the Map as a first-class concept
 anyway. Either way, the insulation guarantee holds NOW (§2).
 
+## 2b″ · The wall is semantic, not lexical (Huayin, explicit, 2026-07-18)
+
+The insulation principle stated formally: the Manifold is CLOSED UNDER ITS OWN
+INTERPRETATION — every expression in it must be interpretable under the Manifold's
+grammar alone, and under that interpretation the Manifold is self-sufficient. The
+physical→logical map is the interpretation function binding the spec to one
+particular warehouse; the spec must be fully readable by someone who never sees the
+map. Corollaries: (i) spelling coincidence between a logical name and a physical
+column is MEANINGLESS to the wall — `ATTR units = units` is lawful because `units`
+in the spec denotes the declared attribute, regardless of the binding's spelling;
+(ii) the forbidden thing is exactly an expression with a free variable only the
+physical world can bind; (iii) the leak checker's true spec is RESOLUTION, not
+string matching — every identifier resolves within the spec's own namespace, and a
+name that resolves only via a binding is the leak. Description strings are authored
+prose, policed by the folklore rule, not the checker.
+
 ## 2b′ · The case is the knowledge (Huayin, 2026-07-18)
 
 The three case-demo chapters (setup · solutioning · live) double as a ONE-SHOT
 TRAINING DOCUMENT for minds: every doctrine the KP teaches by rule, the case teaches
 by incident attached to an observable — which is the run-5 salience finding (triggers
 beat names) in narrative form. A fresh model session is the new hire; the case is
-folklore-into-the-system for minds. Consequences: (i) the chapters join llms-full at
-the case-demo build — one-shot training deployed as site content; (ii) a ready-made
-ratchet experiment, post-launch: KP v0.5 + case-chapters arm vs v0.5 baseline on the
-existing eval suite — if the case lifts the Columna-native ◆ calls, the KP's future
-format tilts narrative; (iii) rowed, not run, until Huayin's word.
+folklore-into-the-system for minds. CLARIFIED (Huayin): "agent" means BOTH minds —
+the AUTHORING agent (the chapters as craft: requirement → scoping → many-to-1
+resolution → spec, sharp calls attached to incidents) and the END-USER/QUERY agent
+(the chapters as context: why the manifold is shaped this way, what the moods are
+for — the difference between correct relays and good ones). Consequences, per
+surface: (i) the chapters join llms-full at the case-demo build — strangers' agents;
+(ii) the QUERY agent's MCP knowledges gain the case — HOW it rides (always-in-prompt
+vs on-demand document) is a proposal point for the recapture increment, CC proposes,
+Huayin rules; (iii) the ready-made AUTHORING ratchet experiment, post-launch: KP v0.5
++ case-chapters arm vs v0.5 baseline — if the case lifts the Columna-native ◆ calls,
+the KP's future format tilts narrative; a query-side effect (relay/explanation
+quality) is expected but unmeasured — no serving-side eval exists yet; noted, not
+claimed; (iv) all rowed, not run, until Huayin's word.
 
 ## 2a · The minimalist scoping doctrine (Huayin, 2026-07-18, case-demo redesign)
 
