@@ -1,0 +1,206 @@
+{
+  "manager": {
+    "label": "manager",
+    "manifold": "cascadia",
+    "turns": [
+      {
+        "human": "How did the west do last quarter?",
+        "replies": [
+          "The query is valid and \"west\" resolves. Before I run it, I want to get your intent right, since \"last quarter\" and \"how did it do\" are ambiguous.\n\nA few quick questions:\n\n1. **Which quarter?** I have no \"today,\" so I can't resolve \"last quarter.\" Do you want a specific one (e.g. a particular year+quarter), or should I show revenue across all quarters for west so you can see the trend and pick?\n\n2. **What metric(s)?** \"How did it do\" could mean `revenue`, `orders`, `buyers`, `units_sold`, `units_returned`, or `aov` (average order value). Revenue is my default guess — want me to include others?\n\nIf you just want the simplest read, I can run **revenue for west, by quarter** (both years, all quarters) so you can see every quarter side by side. Want me to do that, or would you rather pin a specific quarter and metric?"
+        ]
+      },
+      {
+        "human": "West, Q4 2025.",
+        "replies": [
+          "That isn't a valid query: this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.",
+          "That isn't a valid query: this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.",
+          "(couldn't read that as a grounded reply — the agent may only surface figures from a query result. Try rephrasing your question.)"
+        ]
+      }
+    ],
+    "history": [
+      {
+        "role": "user",
+        "text": "How did the west do last quarter?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll help with that. Let me first understand the manifold and check what \"the west\" and \"last quarter\" can map to."
+      },
+      {
+        "role": "agent",
+        "text": "[call describe_manifold {}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool describe_manifold -> 6 measures]"
+      },
+      {
+        "role": "agent",
+        "text": "\"The west\" isn't a named region value I can see in the manifold—there's a `region` level, but I don't know its members. Also \"last quarter\" needs a specific quarter. Let me note a couple of things:\n\n1. **Region values**: I can filter by `region`, but I don't know if \"west\" is exactly how it's spelled. I'll propose a natural phrasing and let you confirm.\n2. **\"Last quarter\"**: I don't have a notion of \"today,\" so I can't resolve \"last.\" I'll need you to name the quarter, or I can show all quarters for the region so you can pick.\n\nAlso, \"how did it do\" is broad — it could mean revenue, orders, buyers, units, etc.\n\nLet me dry-run a reasonable interpretation: **revenue by quarter for a west region**, so you can see the span and pick."
+      },
+      {
+        "role": "agent",
+        "text": "[call explain {\"frameql\": \"SELECT revenue AT {cal.quarter} WHERE region = 'west'\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool explain -> would-be outcome serve]"
+      },
+      {
+        "role": "agent",
+        "text": "The query is valid and \"west\" resolves. Before I run it, I want to get your intent right, since \"last quarter\" and \"how did it do\" are ambiguous.\n\nA few quick questions:\n\n1. **Which quarter?** I have no \"today,\" so I can't resolve \"last quarter.\" Do you want a specific one (e.g. a particular year+quarter), or should I show revenue across all quarters for west so you can see the trend and pick?\n\n2. **What metric(s)?** \"How did it do\" could mean `revenue`, `orders`, `buyers`, `units_sold`, `units_returned`, or `aov` (average order value). Revenue is my default guess — want me to include others?\n\nIf you just want the simplest read, I can run **revenue for west, by quarter** (both years, all quarters) so you can see every quarter side by side. Want me to do that, or would you rather pin a specific quarter and metric?"
+      },
+      {
+        "role": "user",
+        "text": "West, Q4 2025."
+      },
+      {
+        "role": "agent",
+        "text": "Got it — west region, Q4 2025. I still want to confirm the metric. \"How did it do\" most naturally means **revenue**, so I'll lead with that, and I'll also include **orders** and **buyers** as separate columns for a fuller picture (they align on the same anchor).\n\nLet me verify this runs cleanly first."
+      },
+      {
+        "role": "agent",
+        "text": "[call explain {\"frameql\": \"SELECT revenue, orders, buyers AT {region} WHERE region = 'west' AND cal.quarter = '2025-Q4'\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool explain -> would-be outcome disclose]"
+      },
+      {
+        "role": "agent",
+        "text": "The query runs cleanly and will serve all three metrics for west in Q4 2025. One note before I run it: **buyers** is a distinct count computed via an HLL approximation (an estimate, not exact). Let me surface the definitions and that caveat as I run it."
+      },
+      {
+        "role": "agent",
+        "text": "[call query {\"frameql\": \"SELECT revenue, orders, buyers AT {region} WHERE region = 'west' AND cal.quarter = '2025-Q4'\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "engine: outcome=error; reason=unsupported; detail=this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.. (shown to the human; you do not restate it)"
+      },
+      {
+        "role": "agent",
+        "text": "The engine couldn't resolve that frame. Per my one-reformulation allowance, let me try a cleaner version. The issue may be filtering on `cal.quarter` while anchoring at `{region}` — let me instead anchor at the quarter grain too, so the quarter is part of the output rather than only a filter."
+      },
+      {
+        "role": "agent",
+        "text": "[call explain {\"frameql\": \"SELECT revenue, orders, buyers AT {region*cal.quarter} WHERE region = 'west' AND cal.quarter = '2025-Q4'\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool explain -> would-be outcome disclose]"
+      },
+      {
+        "role": "agent",
+        "text": "This version resolves cleanly with the quarter in the output grain. Running it."
+      },
+      {
+        "role": "agent",
+        "text": "[call query {\"frameql\": \"SELECT revenue, orders, buyers AT {region*cal.quarter} WHERE region = 'west' AND cal.quarter = '2025-Q4'\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "engine: outcome=error; reason=unsupported; detail=this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.. (shown to the human; you do not restate it)"
+      },
+      {
+        "role": "agent",
+        "text": "The engine errored again, so I'll stop retrying as required rather than keep guessing.\n\nThe `explain` dry-run reported both versions as resolvable, but the actual execution failed with a binder error both times — that's a discrepancy on the engine side I can't work around from here. Rather than keep throwing variants at it, I'll pause.\n\nA couple of things that might help us get unstuck — your call:\n\n- Want me to try the **simplest possible** single-metric ask (just `revenue` for west, Q4 2025, nothing else)? Sometimes narrowing to one series sidesteps a binder issue.\n- Or should I drop the region filter and pull **revenue by region for Q4 2025**, so you'd read west off the result?\n\nWhich would you like me to try?"
+      }
+    ]
+  },
+  "new_hire": {
+    "label": "new_hire",
+    "manifold": "cascadia",
+    "turns": [
+      {
+        "human": "How are we doing on returns?",
+        "replies": [
+          "The manifold has `units_returned` (units returned; nulls predate returns tracking and count as no return). There's no dedicated return-rate measure, but we can juxtapose returns against units sold.\n\nA couple of choices that affect the answer:\n- **Grain / time span:** overall total? by month over time? by store or region?\n\nA common, useful framing is returns vs. units sold by month across the available history. Want me to run that, or would you prefer a single grand total, or a breakdown by store/region? Let me know and I'll propose the query."
+        ]
+      },
+      {
+        "human": "By month, this year.",
+        "replies": [
+          "That isn't a valid query: this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.",
+          "That isn't a valid query: this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.",
+          "(couldn't read that as a grounded reply — the agent may only surface figures from a query result. Try rephrasing your question.)"
+        ]
+      }
+    ],
+    "history": [
+      {
+        "role": "user",
+        "text": "How are we doing on returns?"
+      },
+      {
+        "role": "agent",
+        "text": "\"Returns\" is a bit open-ended — let me check what's available."
+      },
+      {
+        "role": "agent",
+        "text": "[call describe_measure {\"measure\": \"units_returned\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool describe_measure -> units_returned on transaction]"
+      },
+      {
+        "role": "agent",
+        "text": "The manifold has `units_returned` (units returned; nulls predate returns tracking and count as no return). There's no dedicated return-rate measure, but we can juxtapose returns against units sold.\n\nA couple of choices that affect the answer:\n- **Grain / time span:** overall total? by month over time? by store or region?\n\nA common, useful framing is returns vs. units sold by month across the available history. Want me to run that, or would you prefer a single grand total, or a breakdown by store/region? Let me know and I'll propose the query."
+      },
+      {
+        "role": "user",
+        "text": "By month, this year."
+      },
+      {
+        "role": "agent",
+        "text": "[call explain {\"frameql\": \"SELECT units_returned, units_sold AT {cal.month} WHERE cal.year = 2024\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool explain -> would-be outcome serve]"
+      },
+      {
+        "role": "agent",
+        "text": "The dry-run confirms this serves cleanly. Note the span is filtered to 2024 (this year), monthly."
+      },
+      {
+        "role": "agent",
+        "text": "[call query {\"frameql\": \"SELECT units_returned, units_sold AT {cal.month} WHERE cal.year = 2024 ORDER BY cal.month\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "engine: outcome=error; reason=unsupported; detail=this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.. (shown to the human; you do not restate it)"
+      },
+      {
+        "role": "agent",
+        "text": "Let me try without the ORDER BY, which appears to be the sticking point."
+      },
+      {
+        "role": "agent",
+        "text": "[call explain {\"frameql\": \"SELECT units_returned, units_sold AT {cal.month} WHERE cal.year = 2024\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "[tool explain -> would-be outcome serve]"
+      },
+      {
+        "role": "agent",
+        "text": "The version without ORDER BY explains as a clean serve."
+      },
+      {
+        "role": "agent",
+        "text": "[call query {\"frameql\": \"SELECT units_returned, units_sold AT {cal.month} WHERE cal.year = 2024\"}]"
+      },
+      {
+        "role": "engine",
+        "text": "engine: outcome=error; reason=unsupported; detail=this frame could not be resolved in the engine (BinderException); the ask is not supported in this build.. (shown to the human; you do not restate it)"
+      },
+      {
+        "role": "agent",
+        "text": "The engine errored again on this frame, and I've already used my one reformulation — so I'll stop here rather than keep retrying.\n\nThe block seems to sit with combining these two measures in one frame under this filter, even though the dry-run predicted a serve. If it'd help, I can instead propose **just `units_returned` by month for 2024** on its own (a single series), which sidesteps the juxtaposition. Want me to try that?"
+      }
+    ]
+  }
+}
