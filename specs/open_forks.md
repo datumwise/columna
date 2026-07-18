@@ -88,3 +88,12 @@ only its durable form.
   its own beat. Explicitly does NOT reopen #49 (the surface-migration increment). The package semver + the
   dated `parse_frameql` tombstone already carry the break; this is the machine-readable advertisement for
   a heterogeneous fleet.
+
+- **OF-13 opened 2026-07-18** (Cascadia case-demo recapture, POST-FLIP fork — Huayin). **Coordinate-value
+  predicates in `WHERE`.** The recapture's manager transcript wanted `SELECT revenue, orders AT
+  {cal.quarter} WHERE region = west` — slice to one region's value — and it does NOT resolve in this build
+  (`unsupported` / BinderException; a query-level `WHERE` cannot filter on a dimension coordinate value,
+  base OR rollup). Working construction today: anchor at `{region, cal.quarter}` and read the row (accepted
+  for the transcript — honest, realistic agent behavior; ch3's prose shows only the NL answer, no edit).
+  But "west only" is bread-and-butter day-one slicing a human WILL type — the case demo exposed a real
+  expressiveness gap. Rowed as its own ruled increment, post-flip; not this WP.

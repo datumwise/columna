@@ -51,4 +51,17 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         — touching ZERO data (`fetches_delta` is 0). A first-class tool beside `query`."""
         return T.explain_statement(store, manifold_id, frameql)
 
+    @mcp.tool()
+    def case_chapter(chapter: str) -> dict:
+        """Fetch ONE case-demo chapter VERBATIM — the on-demand document behind the moods. `chapter` is
+        ch1 (the purpose and the requirement), ch2 (the design's reasons), or ch3 (the behaviors and the
+        moods). Consult it when relaying a clarify/refuse/caveat, or a why/folklore question — not on a
+        plain serve. See `case_manifest` for routing."""
+        return T.case_chapter(chapter)
+
+    @mcp.tool()
+    def case_manifest() -> dict:
+        """The 3-descriptor routing manifest for the case document: which chapter answers which 'why'."""
+        return T.case_manifest()
+
     return mcp

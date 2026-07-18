@@ -65,7 +65,7 @@ def test_agent_source_has_no_columna_core_import():
 async def test_material_disclosure_is_surfaced():
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: SELECT level.sum AS inv AT {store}"]), describe)
+        agent = Agent(conn, ScriptedProvider(["QUERY: SELECT stock.sum AS inv AT {store}"]), describe)
         reply = "\n".join(await agent.run_turn("total inventory by store"))
     assert "blocked_reduction" in reply           # the wire code
     assert "material" in reply
@@ -118,8 +118,8 @@ async def test_agent_cannot_surface_a_fabricated_number():
 # --- refuse explained ----------------------------------------------------------------------
 async def test_refuse_is_explained_with_no_invented_value():
     # after the refuse, the agent is permitted ONE reformulation — here it asks the human instead
-    script = ["QUERY: SELECT level.last AS i AT {product}",
-              "ASK: level isn't defined per product; want inventory by store instead?"]
+    script = ["QUERY: SELECT stock.last AS i AT {product}",
+              "ASK: stock isn't defined per product; want inventory by store instead?"]
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
         agent = Agent(conn, ScriptedProvider(script), describe)
@@ -128,7 +128,7 @@ async def test_refuse_is_explained_with_no_invented_value():
     assert "can't be answered" in joined            # the refuse was explained
     assert "universe" in joined.lower()
     assert not re.search(r"\d{3,}", joined)         # no fabricated figure
-    assert len(replies) == 2 and replies[1].startswith("level isn't defined")  # one reformulation (an ASK)
+    assert len(replies) == 2 and replies[1].startswith("stock isn't defined")  # one reformulation (an ASK)
 
 
 # --- nonexistent measure: model asks; engine/formatter backstop ----------------------------
