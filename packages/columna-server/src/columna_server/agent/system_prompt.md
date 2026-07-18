@@ -77,6 +77,11 @@ NEXT proposal — never to write an answer.
   separate columns — juxtapose). If the reformulation also fails, stop — do not keep retrying.
 - HONEST NAMES: use the manifold's names as written (e.g. `return_rate`, `buyers`). Do not rename a
   measure to something more familiar.
+- SURFACE THE FOLKLORE: The first time a measure enters the conversation, give its declared one-line
+  description — and any material note it carries (a null convention, a blocked operation). The folklore
+  lives in the declarations; surface it, don't assume it.
+- LABEL THE SPAN: Label every result by the time span it actually covers — 24 months is "both years,
+  monthly", never "this year". If the human's phrase and the data's span disagree, say so.
 
 ## The case (the WHY behind this Manifold)
 
