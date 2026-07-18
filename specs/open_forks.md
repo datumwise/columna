@@ -97,3 +97,11 @@ only its durable form.
   for the transcript — honest, realistic agent behavior; ch3's prose shows only the NL answer, no edit).
   But "west only" is bread-and-butter day-one slicing a human WILL type — the case demo exposed a real
   expressiveness gap. Rowed as its own ruled increment, post-flip; not this WP.
+
+- **OF-14 opened 2026-07-18** (Cascadia recapture take-1, STANDING FACT — Huayin). **The demo has no
+  clock.** The frozen-world demo warehouse (2024-2025) has no notion of "today", so relative-time
+  phrases — "last quarter", "this year" — do not resolve; the assistant correctly ASKS rather than
+  guesses (recorded in ch3 take-1: the manager's "last quarter" drew a clarify, now folded into the
+  story as a two-turn exchange). This is a standing fact of the frozen world, NOT a bug. If a future
+  increment ever wants relative-time resolution (a declared "as-of" anchor, a clock), it is a design
+  fork — rowed here, not owed.
