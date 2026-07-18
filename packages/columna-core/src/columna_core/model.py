@@ -58,6 +58,10 @@ class Universe:
     description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
     rejects: tuple = ()                   # MAP-layer: ((physical, reason), ...) — rejected incarnations, ATTESTED
                                           # not adjudicated. BLAST WALL: map-artifact ONLY; NEVER describe/wire.
+    attributes: tuple = ()                # logical ROW-attributes (case-demo c, extended): ((name, binding), ...)
+                                          #   e.g. units -> transactions.units; legal in a ROW-form ASSERT's
+                                          #   predicate. A row-attribute may share its physical spelling when the
+                                          #   physical name already speaks analyst; the map still records the row.
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------

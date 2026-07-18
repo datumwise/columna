@@ -434,6 +434,68 @@ def _clean_serve_reason(fr) -> Optional[str]:
     return None
 
 
+def _sql_ref(r, binding) -> str:
+    """Render a row-predicate Ref to PHYSICAL SQL (for the WHERE probe only — never the license)."""
+    if r.is_literal:
+        return str(r.value)
+    if r.table is None:
+        return binding.get(r.column, r.column)     # row-attribute -> its physical column (share spelling ok)
+    return f"{r.table}.{r.column}"                  # physical residue table.col
+
+
+def _logical_ref(r) -> str:
+    """Render a row-predicate Ref LOGICALLY (for the license basis + counterexample claim)."""
+    if r.is_literal:
+        return str(r.value)
+    return f"{r.table}.{r.column}" if r.table else r.column
+
+
+def _prove_row_assert(server, m, a) -> License:
+    """The row-assert DATA channel (case-demo, closing open_forks · row-assert-data-channel): a row-form
+    predicate is a per-row contract over the population — probe the attested data for ANY violating row.
+    A violation ⇒ AssertContradiction (publish fails closed / reattest degrades). None ⇒ CORROBORATED.
+    NULL comparands (e.g. untracked returns) make the comparison NULL, so `NOT (pred)` excludes them —
+    they are not violations (the folklore: nulls count as no return)."""
+    con = server.engine.con
+    u = m.universes[a.universe]
+    home = next((mc.home_table for mc in m.measures.values() if mc.universe == a.universe), None)
+    if home is None:
+        return _license(UNTESTABLE, set(),
+                        "row-predicate assert: no measure binds this universe to a home table to test "
+                        "against; recorded on authored authority, never exercised.")
+    binding = {n: (b.split(".", 1)[1] if "." in b else b) for n, b in u.attributes}
+    sql = " AND ".join(f"{_sql_ref(c.left, binding)} {c.op} {_sql_ref(c.right, binding)}"
+                       for c in a.predicate.comparisons)
+    claim = " AND ".join(f"{_logical_ref(c.left)} {c.op} {_logical_ref(c.right)}"
+                         for c in a.predicate.comparisons)
+    base_phys = [m.levels[d].realized_by for d in sorted(u.base_dimensions) if d in m.levels]
+    try:
+        rows = con.deliver_base_values(home, base_phys, f"({sql})")   # _value = the row predicate (bool, NULL-safe)
+    except ValueError:
+        return _license(UNTESTABLE, set(),                            # no attested rows (empty population)
+                        f"row predicate '{claim}' is askable but has no attested rows; recorded on "
+                        f"authored authority, never exercised.")
+    except Exception:
+        # the base-row channel probes HOME-TABLE columns and row-attributes; a predicate over a rollup
+        # level (needing a broadcast/join) is not probeable here — recorded, never exercised (ledgered).
+        return _license(UNTESTABLE, set(),
+                        f"row predicate '{claim}' references a term the base-row channel cannot bind "
+                        f"directly (a rollup or joined level); recorded on authored authority, never exercised.")
+    if rows.height == 0:
+        return _license(UNTESTABLE, set(),
+                        f"row predicate '{claim}' is askable but has no attested rows; recorded on "
+                        f"authored authority, never exercised.")
+    bad = rows.filter(pl.col("_value") == False)   # noqa: E712 — null-safe: NULL comparands are not violations
+    if bad.height > 0:
+        first = bad.row(0, named=True)
+        ce = {d: first[m.levels[d].realized_by] for d in sorted(u.base_dimensions)
+              if d in m.levels and m.levels[d].realized_by in first}
+        raise AssertContradiction(a.name, a.universe, claim, ce)
+    return _license(CORROBORATED, set(),
+                    f"row predicate '{claim}' held on every attested row of '{a.universe}'.",
+                    attestation=_attest_tables(con, {home}))
+
+
 def _prove_assert(server, m, a) -> License:
     """Invariant-form: (1) ASKABILITY — plan LHS/RHS statically; if either does not serve cleanly the
     assertion is not well-formed → fail publish CLOSED naming the reason (rider 1: you may not assert
@@ -442,10 +504,7 @@ def _prove_assert(server, m, a) -> License:
     clean frame despite a clean plan) ⇒ UNTESTABLE. Row-form: UNTESTABLE, base-row channel ledgered
     (open_forks.md · row-assert-data-channel)."""
     if a.kind == "row":
-        return _license(UNTESTABLE, set(),
-                        "row-predicate assert recorded on authored authority — its base-row data "
-                        "channel is ledgered (open_forks.md · row-assert-data-channel); visible in "
-                        "describe, never exercised.")
+        return _prove_row_assert(server, m, a)   # the base-row DATA channel (case-demo) — no longer untestable
     con = server.engine.con
     # (1) askability — static, no data; fail publish closed if not cleanly serveable
     for side, expr in (("LHS", a.left), ("RHS", a.right)):
