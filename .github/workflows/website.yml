@@ -45,6 +45,11 @@ jobs:
           python scripts/gen_transcript.py > src/data/transcript.generated.json
           echo "transcript bytes: $(wc -c < src/data/transcript.generated.json)"
 
+      - name: Generate the /case seeds from the BRANCH package (fails closed on exemplar drift)
+        run: |
+          python scripts/gen_case.py > src/data/case.generated.json
+          echo "case bytes: $(wc -c < src/data/case.generated.json)"
+
       - name: Install site dependencies
         run: npm ci
       - name: Build
@@ -67,7 +72,7 @@ jobs:
           cache-dependency-path: apps/website/package-lock.json
 
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna-core==0.9.0" "columna-server==0.3.0"
+        run: pip install "columna-core==0.10.0" "columna-server==0.4.0"
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
@@ -82,6 +87,14 @@ jobs:
           mkdir -p src/data
           python scripts/gen_transcript.py > src/data/transcript.generated.json
           echo "transcript bytes: $(wc -c < src/data/transcript.generated.json)"
+
+      # The /case seeds need the Cascadia code (logical_spec/physical_map/recapture + the cascadia demo),
+      # which ships at the 0.10.0 flip. This step goes green on the deploy path only once the pin above
+      # is 0.10.0 — bump it in the same flip that merges the /case section to main (the draft-lock).
+      - name: Generate the /case seeds from the SHIPPED package (fails closed on exemplar drift)
+        run: |
+          python scripts/gen_case.py > src/data/case.generated.json
+          echo "case bytes: $(wc -c < src/data/case.generated.json)"
 
       - name: Install site dependencies
         run: npm ci

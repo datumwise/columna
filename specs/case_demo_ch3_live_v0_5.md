@@ -113,34 +113,86 @@ assistant's guess — relay it; use the declared names — an answer that rename
 teaches folklore all over again*); and the pointer to `describe` as the source of
 truth. The veteran's context, packaged and transferable.
 
-## The assistant, in conversation
+## The assistant, in conversation — recorded
 
-A regional manager (never wrote SQL in her life):
+What follows is the actual recording: human turns scripted, agent turns live against
+the shipped model, MCP, and prompt — tool calls visible, nothing fabricated. Long
+result frames are abridged with a marked ellipsis; the complete recordings ship in the
+repo, every take preserved.
+
+**The regional manager** (never wrote SQL in her life):
 
 > **Manager:** How did the west do last quarter?
-> **Assistant:** West region, Q2 2025: revenue $412,380 across 3,921 orders — average
-> order value $105.17. *(Basis: transaction population; store→region and calendar
-> paths, both verified. Computed from base data, not summaries.)*
+> **Assistant:** *(couldn't read that as a grounded reply — the agent may only surface
+> figures from a query result. Try rephrasing your question.)*
 
-The new hire, week one:
+Behind that line, the recording shows the agent consulting `describe_manifold` and
+drafting a careful clarifying question — which measure, which quarter (the demo's
+world is frozen; the assistant has no "today," so "last quarter" has no referent).
+The grounding guard, strict about what may surface, suppressed the draft. Ugly UX,
+honest bones: the system would rather say nothing than guess.
+
+> **Manager:** West, Q4 2025.
+> **Assistant:** Here is the answer:
+> revenue: region="west" cal.quarter="2025Q4" = **31,468.78**; region="north"
+> cal.quarter="2025Q2" = 71,424.56; *(… 30 more rows — the full region × quarter
+> frame; abridged here, complete in the recording)*
+
+The scoped question resolves the honest way this language version allows: the agent
+anchors `AT {region*cal.quarter}` and the answer is in the frame — present, grounded,
+and carrying more rows than the question wanted. A native coordinate filter is the
+road ahead (it's on the ledger); this is what truthful agent output looks like this
+side of it.
+
+**The new hire, week one:**
 
 > **New hire:** How are we doing on returns?
-> **Assistant:** Return rate is `units_returned / units_sold` — one definition,
-> declared. Do you want it by month, by product, or both? (One note from the
-> definition: rows before returns tracking began count as no return.)
+> **Assistant:** *(consults `describe_measure`, `describe_manifold`, checks the plan
+> with `explain` — would-be: serve — then queries)* Here is the answer:
+> return_rate: cal.quarter="2024Q1" = 0.0146 … cal.quarter="2025Q4" = 0.0160;
+> units_returned and units_sold alongside *(both years, by quarter; abridged)*
+> · disclosure [freshness, immaterial]: served from cache
+
 > **New hire:** By month, this year.
-> **Assistant:** *(serves the twelve rows, with the note attached.)*
+> **Assistant:** The engine served the return-rate trend by quarter, with returned and
+> sold units alongside — the values are shown above. One heads-up on the span: this
+> covers the full recorded range (both years, quarter by quarter), not just this
+> year — so you're seeing the whole trend, not a single current figure. Want me to
+> narrow it — by region or store, or a specific quarter — or is this the view you
+> needed?
 
-The vague question came back as a question. The folklore came out of the system, not
-out of anyone's head. The veteran and the week-one hire got the same right answers —
-one typed FrameQL, one typed English, and neither needed to know which table is stale.
+The span reconciliation is the prompt's LABEL THE SPAN law firing live. Two warts,
+kept because they happened: the agent fetched the null-convention folklore but served
+without relaying it this take (the SURFACE THE FOLKLORE law is a bias on a mind, not
+a guarantee), and it answered "by month" with the quarterly view it already had. The
+check-before-you-run `explain` call, the honest cache disclosure, and the offer to
+narrow are the machinery working exactly as designed.
 
-## What done looked like
+## How these transcripts were made
 
-Chapter 1 set the bar: right answers with their assumptions attached; ambiguity comes
-back as a question; the impossible gets refused with reasons; the two burns become
-impossible, not discouraged; a new hire gets what the veteran gets. Every clause of
-that is above, in output — not promised, shown.
+Four takes, every one preserved in the repo, none hand-edited: **take 1** surfaced two
+agent-prompt gaps (folklore unrelayed; a span mislabeled) → two laws were ratified
+into the prompt. **Take 2** confirmed the first law and surfaced a third gap (the
+agent's SQL reflex, `WHERE region = 'west'`, isn't this language — a real
+expressiveness gap, now on the ledger as the leading post-launch language increment)
+→ a third law. **Take 3** showed all three laws effective and the remaining limit
+architectural (the frame-weight above). **Take 4 ships** — one re-roll after a
+defective attempt, both preserved; warts documented, not retouched. A law is a bias
+on a rented mind, not a guarantee — which is precisely why every claim in this system
+is checked rather than trusted, minds included.
+
+## What done looked like — the honest scorecard
+
+Chapter 1 set the bar. Where it stands, in recorded output: the two burns are
+**impossible** — the meaningless inventory total cannot pass silently and the stale
+summaries aren't in the answering path at all. One definition of return rate, declared
+once, served everywhere. Ambiguity doesn't produce confident wrong numbers — though
+this take shows the guard suppressing a good clarifying question rather than asking
+it, which is the right instinct wearing rough edges. The folklore lives in the system
+and is served on demand — and one live turn shows the assistant forgetting to volunteer
+it, which is why it lives in the system. A new hire in week one gets the same grounded
+numbers the veteran gets; the polish of the relay — the single clean row, the
+never-missed folklore — is the named, ledgered road ahead, not a promise.
 
 *The whole case — the warehouse, the map, the spec, and every transcript on this
 page — ships in the demo. `pip install columna`, and rerun it yourself.*

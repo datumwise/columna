@@ -3,6 +3,22 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.4.0] — the Cascadia case demo, and the agent grows hands
+
+Full narrative: `specs/release_notes_v0_10_0.md`. Requires `columna-core>=0.10.0`.
+
+- **The demo is Cascadia Retail** (replacing the benchmark): a realistic case — one team, one warehouse,
+  six questions — modeled to a spec, adjudicated live (`demo --play` runs the E4→E8→E2→E5 four-mood
+  wheel over the Cascadia Manifold; `stock`/`buyers` are the Cascadia names).
+- **The case rides as an on-demand MCP resource:** `case_chapter` / `case_manifest` serve the three
+  chapters verbatim — the WHY behind the Manifold, fetched on a triggering pointer, not stuffed in the
+  prompt.
+- **The query agent has hands:** native tool-use — within a turn it calls `describe_manifold`,
+  `describe_measure`, `case_manifest`, `case_chapter`, `explain`, then the terminal `query` — bounded
+  cycles, grounding preserved, the MCP boundary intact.
+- **The recapture seeded corpus** (`columna_server.recapture`): E1-E9 adjudicated expectation-first
+  against the ratified exemplar spec; the drift-gate the site + tripwire bind to.
+
 ## [0.3.0] — the envelope wire + EXPLAIN as a first-class tool
 
 Full narrative: `specs/release_notes_v0_9_0.md`.
