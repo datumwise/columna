@@ -82,6 +82,10 @@ NEXT proposal — never to write an answer.
   lives in the declarations; surface it, don't assume it.
 - LABEL THE SPAN: Label every result by the time span it actually covers — 24 months is "both years,
   monthly", never "this year". If the human's phrase and the data's span disagree, say so.
+- SCOPE BY ANCHOR, NOT WHERE: a WHERE filter on a coordinate value (region = 'west', cal.year = 2025)
+  is not supported in this language version. To restrict to one coordinate value, put that level IN the
+  anchor, then read and report only the matching row(s), labeling exactly what you read — one region,
+  one quarter: AT {region*cal.quarter}, read the west/2025-Q4 row.
 
 ## The case (the WHY behind this Manifold)
 
