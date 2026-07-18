@@ -18,12 +18,13 @@ from importlib.resources import files
 from . import tools as T
 from .store import ManifoldStore
 
-DEMO_MANIFOLD_ID = "benchmark"
-# The envelope grammar (0.9.0): `SELECT <series> AT {anchor}`. The terse `cols @ anchor` form is retired.
-CLARIFY_Q  = "SELECT avg(aov) AT {cal.month}"         # an inline reduction with no pinned input anchor
-REFUSE_Q   = "SELECT level.last AT {customer}"        # inventory has no customers — out of the contracted space
-DISCLOSE_Q = "SELECT level.sum AT {store*cal.month}"  # summing a stock across time — served WITH a material caveat
-SERVE_Q    = "SELECT aov AT {cal.month}"              # a well-posed ask over one population
+DEMO_MANIFOLD_ID = "cascadia"
+# The recapture wheel (exemplar spec v0.1): clarify E4 -> refuse E8 -> disclose E2 -> serve E5, over the
+# Cascadia Manifold. Envelope grammar; `stock`/`buyers` are the Cascadia names (level/visitors retired).
+CLARIFY_Q  = "SELECT avg(aov) AT {cal.year}"          # an inline reduction with no pinned input anchor (E4)
+REFUSE_Q   = "SELECT stock.last AT {customer}"        # inventory has no customers — out of the contracted space (E8)
+DISCLOSE_Q = "SELECT stock.sum AT {store*cal.month}"  # summing a stock across time — served WITH a material caveat (E2)
+SERVE_Q    = "SELECT aov AT {cal.month}"              # a well-posed ask over one population (E5)
 
 
 def demo_dir() -> str:
@@ -80,7 +81,7 @@ def play(out=None) -> int:
     # 3) disclose — served, but WITH a material caveat (a stock summed across a blocked time axis)
     disclose = T.query(store, DEMO_MANIFOLD_ID, DISCLOSE_Q)
     emit(f"[3/4] disclose   query: {DISCLOSE_Q}",
-         "Summing `level` — a stock — over days into calendar months adds daily snapshots that do not "
+         "Summing `stock` over days into calendar months adds daily snapshots that do not "
          "reconcile along the blocked day→month axis. Columna serves the per-bucket numbers WITH a "
          "material caveat that names the blocked lineage and the remedy (`.last` collapses a stock over "
          "time) — never a silent wrong total:",

@@ -171,3 +171,36 @@ def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) ->
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
                 "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}
+
+
+# --- the case as an on-demand document (recapture) ---------------------------------------------------
+# The three case-demo chapters ride as an ON-DEMAND MCP resource (proposal accepted 2026-07-18): a
+# lean base prompt with a TRIGGERING pointer fetches the relevant chapter only when the why is needed
+# (a mood to relay, a folklore/definition-history question). The chapters ship VERBATIM, byte-preserved
+# — the same wire-verbatim discipline as every ratified surface. The 3-descriptor manifest tells the
+# trigger WHERE to fetch: ch1 = the purpose and the requirement; ch2 = the design's reasons; ch3 = the
+# behaviors and the moods.
+import os as _os
+
+_CASE_DIR = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "case")
+CASE_MANIFEST = {
+    "ch1": {"file": "ch1_setup.md",       "descriptor": "the purpose and the requirement"},
+    "ch2": {"file": "ch2_solutioning.md", "descriptor": "the design's reasons"},
+    "ch3": {"file": "ch3_live.md",        "descriptor": "the behaviors and the moods"},
+}
+
+
+def case_manifest() -> dict:
+    """The 3-descriptor routing manifest: which chapter answers which kind of 'why'."""
+    return {"chapters": {k: v["descriptor"] for k, v in CASE_MANIFEST.items()}}
+
+
+def case_chapter(chapter: str) -> dict:
+    """Fetch ONE case-demo chapter VERBATIM (byte-preserved) — the on-demand document. `chapter` is one
+    of ch1/ch2/ch3; the descriptor routes the trigger. Structural miss raises ToolInputError."""
+    entry = CASE_MANIFEST.get(chapter)
+    if entry is None:
+        raise ToolInputError(f"unknown case chapter '{chapter}' (have {sorted(CASE_MANIFEST)})")
+    with open(_os.path.join(_CASE_DIR, entry["file"]), encoding="utf-8") as f:
+        text = f.read()
+    return {"chapter": chapter, "descriptor": entry["descriptor"], "text": text}
