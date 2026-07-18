@@ -9,9 +9,14 @@ written definition is queryable end-to-end.
 Grammar (statement-oriented; '#' comments; { } blocks):
     MANIFOLD <name> VERSION <n>
     UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]
-    LEVEL <name> = <column> [BASE]
+    LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]
     HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }
     RELATE <a> <-> <b> VIA <table> [NOTE "<text>"]
+
+    Any declaration may carry (case-demo b/d):
+      -- "<text>"                     a DESCRIPTION (folklore) — LOGICAL, flows to describe + the wire
+      REJECT <table>.<col> "<reason>" an attested rejected/aside physical incarnation — PHYSICAL,
+                                      map-artifact-ONLY, NEVER crosses describe or the wire (§2b)
     MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)
     MEASURE <name> ON <universe> FROM <table> VALUE <expr>
         [M_ANCHOR { <col>, ... }]
@@ -88,6 +93,32 @@ def _block(text: str, kw: str):
     raise ParseError(f"unbalanced braces after {kw}")
 
 
+# ---- DESCRIPTION + REJECT (case-demo b/d) -----------------------------------
+# Two annotations any declaration may carry. They are opposite sides of the blast wall:
+#   DESCRIPTION  `-- "<text>"`     folklore-into-the-system; LOGICAL — flows to describe + the wire.
+#   REJECT       `REJECT <phys> "<reason>"`   the author's attested record of a physical incarnation
+#                that was surveyed and NOT chosen (or a caveat on the chosen binding, e.g. the eom
+#                fossil). PHYSICAL + map-artifact-only — it NEVER crosses describe or the wire (§2b).
+# `--` (double dash + quote) never collides with a formula minus (single `-`) or the `->` hop arrow.
+_DESC_RE = re.compile(r'--\s*"([^"]*)"')
+_REJECT_RE = re.compile(r'REJECT\s+([\w.]+)\s+"([^"]*)"')
+
+
+def _pop_rejects(s: str):
+    """Strip every REJECT clause off a declaration. Returns (clean_s, rejects) with
+    rejects = ((physical, reason), ...) — attested, NOT adjudicated, map-artifact-only."""
+    rejects = tuple((p, r) for p, r in _REJECT_RE.findall(s))
+    return _REJECT_RE.sub("", s), rejects
+
+
+def _pop_desc(s: str):
+    """Strip the FIRST DESCRIPTION (`-- "text"`) off a line. Returns (clean_s, description)."""
+    m = _DESC_RE.search(s)
+    if not m:
+        return s, ""
+    return (s[:m.start()] + s[m.end():]).rstrip(), m.group(1)
+
+
 # ---- statement parsers ------------------------------------------------------
 def _p_manifold(s, M):
     m = re.match(r"MANIFOLD\s+(\w+)\s+VERSION\s+(\d+)", s)
@@ -97,6 +128,8 @@ def _p_manifold(s, M):
 
 
 def _p_universe(s, M):
+    s, rejects = _pop_rejects(s)          # map-layer incarnations (e.g. inventory's eom fossil note)
+    s, description = _pop_desc(s)
     # optional trailing `BASIS <type>` (B3) — stripped first so the WHERE predicate parse is undisturbed.
     basis = None
     bm = re.search(r"\s+BASIS\s+(\w+)\s*$", s)
@@ -111,10 +144,34 @@ def _p_universe(s, M):
     name = m.group(1)
     dims = frozenset(d.strip() for d in m.group(2).split("*"))
     pred = parse_predicate(m.group(3).strip()) if m.group(3) else None
-    M["universes"][name] = Universe(name, dims, pred, basis)
+    M["universes"][name] = Universe(name, dims, pred, basis, description=description, rejects=rejects)
+
+
+def _parse_attrs(text: str):
+    """Parse an ATTR clause `<name> = <table>.<column> [, <name> = ...]` -> ((name, binding), ...).
+    A logical attribute OF a level (case-demo c, OF-9): the NAME is logical (referenced as
+    `<level>.<name>` in predicates); the `<table>.<column>` binding is physical (map-layer)."""
+    attrs = []
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        am = re.match(r"(\w+)\s*=\s*([\w.]+)\s*$", part)
+        if not am:
+            raise ParseError(f"bad ATTR clause: {part!r} (expected '<name> = <table>.<column>')")
+        attrs.append((am.group(1), am.group(2)))
+    return tuple(attrs)
 
 
 def _p_level(s, M):
+    s, rejects = _pop_rejects(s)          # region's two rejects live here (map-layer)
+    s, description = _pop_desc(s)
+    # optional trailing `ATTR <a> = <table>.<col> [, ...]` (case-demo c) — logical attributes OF the level
+    attributes = ()
+    am = re.search(r"\s+ATTR\s+(.+)$", s, re.S)
+    if am:
+        attributes = _parse_attrs(am.group(1))
+        s = s[:am.start()]
     m = re.match(r"LEVEL\s+([\w.]+)\s*=\s*(\w+)(\s+BASE)?\s*$", s)
     if not m:
         raise ParseError(f"bad LEVEL: {s!r}")
@@ -124,7 +181,8 @@ def _p_level(s, M):
     # would otherwise vanish into one key and escape the check.
     if name in M["levels"]:
         raise ParseError(f"duplicate LEVEL declaration '{name}' — a level name is declared exactly once")
-    M["levels"][name] = DimensionLevel(name, m.group(2), bool(m.group(3)))
+    M["levels"][name] = DimensionLevel(name, m.group(2), bool(m.group(3)),
+                                       description=description, rejects=rejects, attributes=attributes)
 
 
 # EDGE is PURGED (case-demo §2a): an edge is a two-node hierarchy; HIERARCHY is the sole surface for
@@ -211,6 +269,7 @@ def _p_derived(s, M):
     # declarations; it never fills a verdict, so no .cml can arrive claiming VERIFIED.
     fam_block = _block(s, "FAMILY")
     head = s.split("FAMILY", 1)[0] if fam_block is not None else s
+    head, description = _pop_desc(head)     # e.g. return_rate's null-handling folklore
     m = re.match(r"DERIVED\s+(\w+)\s*=\s*(.+)", head, re.S)
     if not m:
         raise ParseError(f"bad DERIVED: {s!r}")
@@ -218,7 +277,8 @@ def _p_derived(s, M):
     formula, res_anchor = _split_top_at(rest)
     family = _p_fertility_family(name, fam_block) if fam_block is not None else {}
     M["derived"][name] = DerivedColumn(name, formula.strip(),
-                                       family=family, resolution_anchor=res_anchor)
+                                       family=family, resolution_anchor=res_anchor,
+                                       description=description)
 
 
 
@@ -226,14 +286,19 @@ def _p_derived(s, M):
 def _p_measure(s, M):
     # §2c single-universe sugar: `ON <universe>` is OPTIONAL; a None universe is filled with the sole
     # universe in parse_manifold (or errors if the manifold has more than one).
-    head = re.match(r"MEASURE\s+(\w+)(?:\s+ON\s+(\w+))?\s+FROM\s+(\w+)", s)
+    s, rejects = _pop_rejects(s)          # rejected physical incarnations (e.g. the stale summary tables)
+    fam_block = _block(s, "FAMILY")
+    man_block = _block(s, "M_ANCHOR")
+    # DESCRIPTION lives on the HEADER, before the FAMILY block; per-member descriptions live inside it.
+    head_portion = s.split("FAMILY", 1)[0] if fam_block is not None else s
+    head_portion, description = _pop_desc(head_portion)
+
+    head = re.match(r"MEASURE\s+(\w+)(?:\s+ON\s+(\w+))?\s+FROM\s+(\w+)", head_portion)
     if not head:
         raise ParseError(f"bad MEASURE header: {s!r}")
     name, universe, table = head.group(1), head.group(2), head.group(3)
 
-    inline = re.search(r"\bAS\s+(\w+)\s*\((.*?)\)", s)
-    fam_block = _block(s, "FAMILY")
-    man_block = _block(s, "M_ANCHOR")
+    inline = re.search(r"\bAS\s+(\w+)\s*\((.*?)\)", head_portion)
 
     distinct_col = None
     family = {}
@@ -251,12 +316,16 @@ def _p_measure(s, M):
             pre_expr = arg
         family = {agg: FamilyMember(agg, BAnchor())}
     else:
-        val = re.search(r"\bVALUE\s+(.+?)(?=\s+M_ANCHOR\b|\s+FAMILY\b|$)", s, re.S)
+        val = re.search(r"\bVALUE\s+(.+?)(?=\s+M_ANCHOR\b|\s+FAMILY\b|$)", head_portion, re.S)
         pre_expr = val.group(1).strip() if val else ""
         if fam_block is None:
             raise ParseError(f"MEASURE {name}: needs AS <agg>(...) or VALUE + FAMILY block")
         for line in fam_block.splitlines():
             t = line.strip().rstrip(",")
+            if not t:
+                continue
+            t, mem_desc = _pop_desc(t)        # per-member folklore (e.g. stock.sum / stock.last)
+            t = t.strip().rstrip(",")
             if not t:
                 continue
             # <agg> [BLOCKED { lineages }] [ORDER <level>]   (tier is operator-level — the registry)
@@ -268,20 +337,21 @@ def _p_measure(s, M):
             order_by = mm.group(3)
             if agg == "distinct":
                 distinct_col = pre_expr
-            family[agg] = FamilyMember(agg, BAnchor(blocked), order_by)
+            family[agg] = FamilyMember(agg, BAnchor(blocked), order_by, description=mem_desc)
 
     m_anchor = frozenset()
     if man_block is not None:
         m_anchor = frozenset(x.strip() for x in man_block.split(",") if x.strip())
 
     # optional logical dtype: "... TYPE Categorical" (default Float64). Vocabulary, not physical.
-    tm = re.search(r"\bTYPE\s+(\w+)", s)
+    tm = re.search(r"\bTYPE\s+(\w+)", head_portion)
     logical_type = tm.group(1) if tm else "Float64"
 
     M["measures"][name] = MeasureColumn(name, universe, table, pre_expr,
                                         logical_type=logical_type,
                                         family=family, m_anchor=m_anchor,
-                                        distinct_col=distinct_col)
+                                        distinct_col=distinct_col,
+                                        description=description, rejects=rejects)
 
 
 def _split_invariant(inv: str, name: str):
@@ -308,6 +378,7 @@ def _p_assert(s, M):
     # ASSERT <name> ON <universe> WHERE <predicate>                 (row-level; universe-carving grammar)
     # ASSERT <name> ON <universe> AT <anchor> HOLDS <invariant>     (aggregate over measures at an anchor)
     # §2c single-universe sugar: `ON <universe>` is OPTIONAL (filled in parse_manifold when sole).
+    s, description = _pop_desc(s)          # e.g. returns_bounded's "the team's data contract" folklore
     head = re.match(r"ASSERT\s+(\w+)(?:\s+ON\s+(\w+))?\s+(WHERE\s+.+|AT\s+.+)$", s, re.S)
     if not head:
         raise ParseError(f"bad ASSERT: {s!r} (expected 'ASSERT <name> [ON <universe>] WHERE/AT ...')")
@@ -315,7 +386,8 @@ def _p_assert(s, M):
     wm = re.match(r"WHERE\s+(.+)$", rest, re.S)
     if wm:
         M["asserts"].append(Assert(name, universe, "row",
-                                   predicate=parse_predicate(wm.group(1).strip())))
+                                   predicate=parse_predicate(wm.group(1).strip()),
+                                   description=description))
         return
     am = re.match(r"AT\s+(.+?)\s+HOLDS\s+(.+)$", rest, re.S)
     if not am:
@@ -324,13 +396,14 @@ def _p_assert(s, M):
     anchor = tuple(a.strip() for a in re.split(r"[*,]", am.group(1)) if a.strip())
     left, op, right = _split_invariant(am.group(2).strip(), name)
     M["asserts"].append(Assert(name, universe, "invariant", anchor=anchor,
-                               left=left, op=op, right=right))
+                               left=left, op=op, right=right, description=description))
 
 
 def _p_hierarchy(s, M):
     # HIERARCHY <lineage> { <a> -> <b> VIA t(a,b) [-> <c> VIA t(b,c)] [; <path2>] }   (§2a)
     # Branching allowed (a small DAG — calendar is chain + week branch). Each hop carries its VIA.
     # Desugars to plain FunctionalEdges (the single internal truth) + a provenance record holding paths.
+    s, description = _pop_desc(s)          # lineage folklore (names a MEANING — location, calendar)
     m = re.match(r"HIERARCHY\s+(\w+)\s*\{(.*)\}\s*$", s, re.S)
     if not m:
         raise ParseError(f"bad HIERARCHY: {s!r} (expected 'HIERARCHY <lineage> {{ <a> -> <b> "
@@ -345,7 +418,7 @@ def _p_hierarchy(s, M):
         paths.append(chain)
     if not paths:
         raise ParseError(f"bad HIERARCHY '{lineage}': no paths in the block")
-    M["hierarchies"].append(Hierarchy(lineage, tuple(paths)))   # provenance + FD-obligation handle (branching)
+    M["hierarchies"].append(Hierarchy(lineage, tuple(paths), description=description))   # provenance + FD handle
 
 
 _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
@@ -437,8 +510,19 @@ def check_wellformed(m: Manifold) -> list:
         if u.predicate:
             for comp in u.predicate.comparisons:
                 for ref in (comp.left, comp.right):
-                    if not ref.is_literal and ref.table is None and ref.column in m.measures:
+                    if ref.is_literal:
+                        continue
+                    if ref.table is None and ref.column in m.measures:
                         errs.append(f"universe '{u.name}' predicate references measure '{ref.column}' (impure)")
+                    # attribute ref (case-demo c): when the head is a DECLARED level, `<level>.<attr>`
+                    # must resolve to a DECLARED logical attribute — `day >= store.opened` needs `store`
+                    # to carry `opened`. A dotted head that is NOT a level is an un-migrated PHYSICAL
+                    # residue (`stores.opened_date`) — allowed for back-compat, not an attribute claim.
+                    if ref.table is not None and ref.table in m.levels:
+                        lvl = m.levels[ref.table]
+                        if ref.column not in {a for a, _ in lvl.attributes}:
+                            errs.append(f"universe '{u.name}' predicate references undeclared attribute "
+                                        f"'{ref.table}.{ref.column}'")
     # derived closure: formula names resolve to measures/derived.
     # Scope the well-formedness check to the dotted-HEAD name: a reference like `level.last` names
     # the column `level` with a family-member selector `.last` — only the head is a column name, and
