@@ -61,6 +61,12 @@ class MCPServerConnection:
             args["universe"] = universe
         return await self._call("explain", **args)
 
+    async def case_manifest(self) -> dict:
+        return await self._call("case_manifest")
+
+    async def case_chapter(self, chapter: str) -> dict:
+        return await self._call("case_chapter", chapter=chapter)
+
 
 @asynccontextmanager
 async def connect(manifolds: str | None = None):

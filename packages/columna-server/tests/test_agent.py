@@ -13,7 +13,8 @@ import sys
 
 import pytest
 
-from columna_server.agent import ProviderUnavailable, ScriptedProvider
+from columna_server.agent import (MAX_TOOL_CYCLES, ProviderUnavailable, ScriptedProvider,
+                                   TextStep, ToolCall, ToolStep)
 from columna_server.agent.loop import Agent, prompt_example_queries
 from columna_server.agent.mcp_client import connect
 
@@ -165,6 +166,89 @@ async def test_live_asks_on_a_plausible_but_fake_metric():
     assert not re.search(r"\d{3,}", reply)                 # no invented figure
     assert ("?" in reply or "isn't a valid query" in low   # it asked, or the engine backstopped a fake
             or "don't have" in low or "which" in low or "no " in low)
+
+
+# --- agent-hands: the loop has HANDS (mid-turn tool calls, bounded) ------------------------
+def _history_texts(agent, role):
+    return [t.text for t in agent.history if t.role == role]
+
+
+async def test_case_chapter_trigger_fires_and_is_executed():
+    """A why/folklore turn drives the agent (scripted) to call the `case_chapter` tool BEFORE it
+    answers. Proves the trigger MECHANISM end-to-end without a live key: the loop executes the wire
+    call and it is recorded in history."""
+    script = [("case_chapter", {"chapter": "ch2"}),               # consult the WHY first
+              "ASK: it's a cross-universe combination — which population did you mean?"]
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, ScriptedProvider(script), describe)
+        replies = await agent.run_turn("why can't I get revenue by category?")
+    joined = "\n".join(replies)
+    # the loop EXECUTED the tool: a visible tool call + an engine note recording the real result
+    calls = _history_texts(agent, "agent")
+    notes = _history_texts(agent, "engine")
+    assert any(c.startswith('[call case_chapter {"chapter": "ch2"}]') for c in calls)
+    assert any("case_chapter -> ch2" in n and "chars)" in n for n in notes)
+    # a real chapter came back over the wire (positive char count in the note)
+    note = next(n for n in notes if "case_chapter -> ch2" in n)
+    assert int(re.search(r"\((\d+) chars\)", note).group(1)) > 0
+    # then it relayed the ASK (final text), never a fabricated number
+    assert joined.endswith("which population did you mean?")
+
+
+async def test_describe_measure_is_fetched_when_a_definition_is_needed():
+    """A turn that needs a definition drives a `describe_measure` call; the loop executes it and
+    records it, then runs the terminal query."""
+    script = [("describe_measure", {"measure": "revenue"}),
+              "QUERY: SELECT revenue AT {region}"]
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, ScriptedProvider(script), describe)
+        replies = await agent.run_turn("what does revenue mean — then show it by region")
+    calls = _history_texts(agent, "agent")
+    notes = _history_texts(agent, "engine")
+    assert any(c.startswith('[call describe_measure {"measure": "revenue"}]') for c in calls)
+    assert any("describe_measure -> revenue" in n for n in notes)
+    # the terminal query still ran and served, verbatim from the wire
+    assert "Here is the answer" in "\n".join(replies)
+
+
+class _AlwaysToolsProvider:
+    """Pathological provider: every step requests a (non-terminal) tool, forever."""
+    name = "loop"
+
+    def __init__(self):
+        self.calls = 0
+
+    def step(self, system, history, user_msg, turn):
+        self.calls += 1
+        return ToolStep([ToolCall(f"t{self.calls}", "case_manifest", {})])
+
+
+async def test_bounded_tool_cycles_stop_at_the_cap():
+    """A provider that keeps requesting tools is stopped at MAX_TOOL_CYCLES — the loop does not run
+    away, and it degrades gracefully."""
+    prov = _AlwaysToolsProvider()
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, prov, describe)
+        replies = await agent.run_turn("loop forever please")
+    assert prov.calls == MAX_TOOL_CYCLES            # exactly the cap — no more
+    assert "tool-call limit" in "\n".join(replies)
+
+
+async def test_ungrounded_model_prose_is_suppressed_after_a_tool_call():
+    """Even after real tool calls, the agent may not surface a figure it didn't get from a query:
+    a fabricated number in the model's final text is grounding-guarded away."""
+    script = [("describe_measure", {"measure": "revenue"}),
+              TextStep("Revenue last quarter was 123456.")]     # fabricated — never queried
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, ScriptedProvider(script), describe)
+        replies = await agent.run_turn("what was revenue?")
+    joined = "\n".join(replies)
+    assert "123456" not in joined
+    assert "couldn't read" in joined.lower()
 
 
 # --- provider missing key -------------------------------------------------------------------
