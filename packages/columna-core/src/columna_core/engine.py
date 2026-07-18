@@ -405,12 +405,18 @@ class ColumnEngine:
 
     # ---- universe confinement (runtime, at base grain) --------------------
     def _predicate_levels(self, pred):
-        """Base-level coordinates the predicate references (must be in the delivery grain)."""
+        """Base-level coordinates the predicate references (must be in the delivery grain). A bare ref
+        names a level directly; a LOGICAL attribute `<level>.<attr>` (OF-9) needs its level in the grain
+        too, so the broadcast can join the attribute onto it."""
         out = []
         for c in pred.comparisons:
             for r in (c.left, c.right):
-                if (not r.is_literal) and r.table is None and r.column in self.m.levels:
+                if r.is_literal:
+                    continue
+                if r.table is None and r.column in self.m.levels:
                     out.append(r.column)
+                elif r.table in self.m.levels:               # logical attribute -> its level anchors the broadcast
+                    out.append(r.table)
         return out
 
     def _confine(self, frame, meas, pred, trace):
@@ -456,6 +462,14 @@ class ColumnEngine:
         column the expr reads (None for a literal), which lets _coerce align dtypes."""
         if ref.is_literal:
             return pl.lit(ref.value), frame, [], None
+        # OF-9 (case-demo c): a LOGICAL attribute `<level>.<attr>` resolves to its physical binding
+        # (`store.opened` -> `stores.opened_date`) and then rides the existing physical broadcast path.
+        if ref.table is not None and ref.table in self.m.levels:
+            binding = dict(self.m.levels[ref.table].attributes).get(ref.column)
+            if binding and "." in binding:
+                from .model import Ref
+                pt, pc = binding.split(".", 1)
+                ref = Ref(False, table=pt, column=pc)
         if ref.table is None:                      # a coordinate/level already in the frame
             return pl.col(ref.column), frame, [], ref.column
         # an attribute T.col -> deliver at its key anchor and BROADCAST onto the frame
