@@ -23,13 +23,16 @@ calls). Nothing fabricated. Every take is preserved — the ladder IS part of th
   answer is present but frame-weighted, not isolated (rowed as OF-13 PRIMARY / OF-15 SECONDARY, post-flip)
   — and the timing/span refinements that became take-4's two law-strengthenings.
 - **Take 4** (`ch3_take4_transcripts.json`) — the ladder CAP, recorded against the strengthened
-  three-law prompt. The laws fire when the query flows: LABEL THE SPAN's reconciliation opens the
-  new-hire's span-mismatched turn ("this covers the full recorded range, both years, not just this
-  year"), and the manager's scoped turn serves via anchor-and-read. One reply is grounding-GUARD
-  SUPPRESSED ("couldn't read that as a grounded reply") — the agent reached to summarize without a
-  grounded query in that turn, and the guard held rather than let it improvise a number. That is the
-  guards winning, recorded honestly, not scripted away. A prior roll (`ch3_take4a_badroll_transcripts.json`,
-  3 suppressions) is preserved beside it: the agent is a rented mind and it is STOCHASTIC — re-recorded
+  three-law prompt. Recorded honestly, WARTS AND ALL — a law in the prompt is a bias on a rented mind,
+  not a guarantee: **LABEL THE SPAN fired** (its reconciliation opens the new-hire's span-mismatched
+  turn — "this covers the full recorded range, both years, not just this year"), the manager's scoped
+  turn **serves via anchor-and-read**, but **SURFACE THE FOLKLORE did NOT fire** this roll — the new hire's
+  first turn fetched the `units_returned` definition yet served the numbers without relaying it first.
+  And one reply is grounding-GUARD SUPPRESSED ("couldn't read that as a grounded reply") — the agent
+  reached to summarize without a grounded query in that turn, and the guard held rather than let it
+  improvise a number. That last is the guards winning; the folklore miss is the mind's own variance.
+  Both recorded, neither scripted away. A prior roll (`ch3_take4a_badroll_transcripts.json`, 3
+  suppressions, no span reconciliation) is preserved beside it: the mind is STOCHASTIC — re-recorded
   once for the defect, per protocol; the better roll ships, the worse roll stays on the record.
 
 Take 4 ships. The ladder's published form: take 1, two gaps; take 2, one law confirmed, one gap;
