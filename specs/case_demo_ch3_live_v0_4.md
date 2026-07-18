@@ -17,11 +17,17 @@ checked against the actual warehouse before anything serves:
 | `location`: store → region is functional (one region per store) | **corroborated** — 24/24 stores, one region each |
 | `calendar`: day → month → quarter → year chains cleanly | **corroborated** — 731/731 days, every hop |
 | `calendar`: day → week (the branch that can't chain) | **corroborated** |
-| product ↔ category is many-to-many | **corroborated** — products found in 1–3 categories |
+| product ↔ category is many-to-many | **recorded** — a declared relationship, on the record so refusals can name it; its multiplicity isn't yet a tried claim |
 | ASSERT `returns_bounded`: units returned ≤ units sold | **corroborated** — holds on every tracked row |
 | `transaction` BASIS events (absence = nothing happened) | **untestable** — the author's call, on the record |
 | `inventory` BASIS spine (absence = a gap) | **untestable** — same |
-| `inventory` carve: day ≥ store.opened | **corroborated** — no snapshot predates its store |
+
+
+And one row from the draft of this table is deliberately gone: the opened-date carve
+(`day >= store.opened`) is not a claim on trial — it's part of the population's
+*definition*. Nothing outside it exists to the Manifold, so there is nothing to test;
+a definition confines, a claim gets tried. (For the record: the raw feed happens to
+contain no pre-open snapshots today anyway.)
 
 Two things to notice. The vocabulary is honest about what data can do: checked claims
 are *corroborated* — the data supports them today; only mathematical facts earn
@@ -38,7 +44,7 @@ someone fixes the data or the declaration.
 ```
 SELECT revenue, orders AT {region, cal.quarter}
 ```
-→ **serve**: sixteen rows, four regions × four quarters. Every answer arrives as a
+→ **serve**: thirty-two rows, four regions × eight quarters — two years of history. Every answer arrives as a
 pair — the numbers, and the basis they stand on (population: transaction; paths:
 location, calendar — both verified).
 
@@ -93,7 +99,9 @@ over the Manifold, which exposes exactly three things:
 
 - **`describe`** — the whole Manifold, machine-readable: every name, description,
   law, and verdict. The assistant reads this first; it's how it knows what `buyers`
-  means and that `stock.sum` is blocked over time.
+  means and that `stock.sum` is blocked over time. And it is all the assistant *can*
+  see — the Manifold is a blast wall by construction, so "no raw access" is
+  architecture, not a policy anyone has to enforce.
 - **`query`** — FrameQL in, the four-mood answer out: result plus disclosure, always.
 - **`explain`** — a dry run: what a query *would* do — its canonical form, the paths
   it takes, the verdicts it relies on, the mood it would return — touching no data.
