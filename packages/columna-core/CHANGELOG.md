@@ -7,6 +7,24 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.10.0-core] — the definition language, taught by a case
+
+Full narrative: `specs/release_notes_v0_10_0.md`.
+
+- **EDGE is purged; HIERARCHY is the sole functional-path surface (§2a):** a functional path is declared
+  only inside a `HIERARCHY <lineage> { <a> -> <b> VIA t(a,b) [-> ...] ; <path> }` block (per-hop VIA,
+  branching), desugaring to the same `FunctionalEdge`s — edges remain the single internal truth.
+- **DESCRIPTION strings** (`-- "text"`) on any declaration and each family member — folklore that flows
+  model → describe → wire.
+- **Logical attributes (OF-9):** `LEVEL store … ATTR opened = stores.opened_date` and universe
+  row-attributes (`ATTR units, units_returned ON transaction`); a predicate references `store.opened`
+  and renders logically, the physical binding never crossing.
+- **The two-artifact projection** (`columna_core.documents`): `logical_spec` (purely logical) and
+  `physical_map` (many-to-one, with attested REJECT rows); `no_physical_leak` makes the blast wall
+  checkable.
+- **The base-row ASSERT data channel:** a row-form predicate is probed against the attested data
+  (holds → corroborated; counterexample → fails closed; NULL comparands are not violations).
+
 ## [0.9.0-core] — the FrameQL envelope becomes the language
 
 Full narrative: `specs/release_notes_v0_9_0.md`.

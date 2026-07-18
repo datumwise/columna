@@ -25,7 +25,7 @@ def test_manifest_carries_the_three_descriptors():
 @pytest.mark.parametrize("chapter,charter", [
     ("ch1", "case_demo_ch1_setup_v0_2.md"),
     ("ch2", "case_demo_ch2_solutioning_v0_6.md"),
-    ("ch3", "case_demo_ch3_live_v0_4.md"),
+    ("ch3", "case_demo_ch3_live_v0_5.md"),
 ])
 def test_chapter_is_served_verbatim_byte_for_byte(chapter, charter):
     served = T.case_chapter(chapter)["text"]

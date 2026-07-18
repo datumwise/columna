@@ -1,5 +1,5 @@
 {
-  "generated_by": "columna-core 0.9.0 / columna-server 0.3.0",
+  "generated_by": "columna-core 0.10.0 / columna-server 0.4.0",
   "manifold": "cascadia",
   "ch1_tables": [
     {
