@@ -131,6 +131,7 @@ class FamilyMember:
     agg: str                              # operator name; looked up in operators.REGISTRY
     b_anchor: BAnchor = BAnchor()         # measure column-level: BLOCKED (closed) lineages
     order_by: Optional[str] = None        # for ORDERED operators (last/first): the level to order by
+    description: str = ""                 # DESCRIPTION string (case-demo b) — per-member folklore; flows to describe/wire
     declared_lineages: frozenset = frozenset()  # derived: the DECLARED fertile lineages (FERTILE {..}); the
                                           #          parser RECORDS these — it never constructs a License
     license: Optional[License] = None     # derived-member fertility License; constructed ONLY by the

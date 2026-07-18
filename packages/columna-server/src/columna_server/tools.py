@@ -35,18 +35,24 @@ def _get(store: ManifoldStore, manifold_id: str):
         raise ToolInputError(f"unknown manifold_id '{manifold_id}' (have {store.ids()})")
 
 
-def _render_ref(ref) -> str:
-    # C-2 insulation (§2b, CP-3): render predicates LOGICALLY — the physical table qualifier NEVER
+def _render_ref(ref, levels=frozenset()) -> str:
+    # C-2 insulation (§2b, CP-3): render predicates LOGICALLY — a PHYSICAL table qualifier NEVER
     # crosses describe (the shipped leak was `stores.opened_date`; the standing test bans any table.column).
+    # OF-9 (case-demo c): a `<level>.<attr>` reference is a DECLARED LOGICAL attribute — both parts are
+    # logical, so it renders WITH its qualifier (`store.opened`). A dotted ref whose head is NOT a declared
+    # level is an un-migrated physical residue → drop the qualifier (the shipped guarantee).
     if ref.is_literal:
         return str(ref.value)
+    if ref.table is not None and ref.table in levels:
+        return f"{ref.table}.{ref.column}"
     return str(ref.column)
 
 
-def _render_predicate(pred) -> Optional[str]:
+def _render_predicate(pred, levels=frozenset()) -> Optional[str]:
     if pred is None or not pred.comparisons:
         return None
-    return " AND ".join(f"{_render_ref(c.left)} {c.op} {_render_ref(c.right)}" for c in pred.comparisons)
+    return " AND ".join(f"{_render_ref(c.left, levels)} {c.op} {_render_ref(c.right, levels)}"
+                        for c in pred.comparisons)
 
 
 # --- tool 1 ---------------------------------------------------------------------------------
@@ -65,18 +71,21 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     m = lm.manifold
     from columna_core import (describe_derived, describe_universe, describe_assert, describe_hierarchy)
     # C-2 insulation (§2b, CP-3): dimensions no longer emit `realized_by` (a physical identifier).
-    dimensions = [{"level": lv.name, "is_base": lv.is_base} for lv in m.levels.values()]
+    # Attributes emit their LOGICAL names only (case-demo c) — the physical binding stays map-side.
+    dimensions = [{"level": lv.name, "is_base": lv.is_base, "description": lv.description,
+                   "attributes": [a for a, _ in lv.attributes]} for lv in m.levels.values()]
     edges = [{"frm": e.frm, "to": e.to, "lineage": e.lineage} for e in m.edges]
     # C-1 (D1, CP-3): universes carry basis + absence semantics + the basis License (predicate rendered
     # logically); asserts + hierarchies get their own describe blocks with the kernel-reused License.
-    universes = [describe_universe(u, _render_predicate(u.predicate)) for u in m.universes.values()]
-    asserts = [describe_assert(a, _render_predicate(a.predicate)) for a in m.asserts]
+    _lv = frozenset(m.levels)
+    universes = [describe_universe(u, _render_predicate(u.predicate, _lv)) for u in m.universes.values()]
+    asserts = [describe_assert(a, _render_predicate(a.predicate, _lv)) for a in m.asserts]
     hierarchies = [describe_hierarchy(h) for h in m.hierarchies]
     # signature addressing (D1): each measure carries its universe qualifier as a STRUCTURED field (a
     # dotted address string would be indistinguishable from a physical `table.column` under the §2b test;
     # the address is (universe, name), and the consumer renders it). Per-member operator props: describe_measure.
-    measures = [{"name": mc.name, "family": list(mc.family), "universe": mc.universe}
-                for mc in m.measures.values()]
+    measures = [{"name": mc.name, "family": list(mc.family), "universe": mc.universe,
+                 "description": mc.description} for mc in m.measures.values()]
     derived = [describe_derived(m, name) for name in m.derived]
     # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
     ps = getattr(lm.server, "published_scope", None)
@@ -108,6 +117,7 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
             "blocked_lineages": sorted(fm.b_anchor.blocked_lineages),
             "order_by": fm.order_by,
             "is_monoid": (sig.is_monoid if sig else None),
+            "description": fm.description,      # per-member folklore (case-demo b) — LOGICAL, flows to the wire
         }
         reducer_kind[member] = (sig.kind if sig else None)
         # D1 operator properties (registry describe): the algebraic/routing properties, no engine
@@ -118,6 +128,7 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
     base_grain = sorted(m.universes[mc.universe].base_dimensions)
     return {
         "contract_version": CONTRACT_VERSION, "manifold_id": manifold_id, "measure": measure,
+        "description": mc.description,       # measure folklore (case-demo b) — LOGICAL, flows to the wire
         "universe": mc.universe, "dtype": mc.logical_type,
         "family": {"root": mc.name, "members": list(mc.family), "reducer_kind": reducer_kind},
         "member_anchors": member_anchors, "signatures": signatures,

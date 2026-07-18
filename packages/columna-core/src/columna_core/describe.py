@@ -41,6 +41,7 @@ def describe_derived(m, name: str) -> dict:
     return {
         "name": d.name,
         "formula": d.formula,
+        "description": d.description,        # folklore (case-demo b) — LOGICAL, flows to describe/wire
         "resolution_anchor": d.resolution_anchor,
         "denotation_only": not d.family,
         "members": members,
@@ -76,6 +77,7 @@ def describe_universe(u, predicate_str) -> dict:
         "name": u.name,
         "base_dimensions": sorted(u.base_dimensions),
         "predicate": predicate_str,
+        "description": u.description,        # folklore (case-demo b) — LOGICAL, flows to describe/wire
         "basis": u.basis,
         "absence": absence_semantics(u.basis),
         "basis_license": license_to_dict(u.basis_license),
@@ -88,14 +90,18 @@ def describe_assert(a, predicate_str=None) -> dict:
     relation. No physical identifier crosses (§2b)."""
     form = ({"kind": "row", "predicate": predicate_str} if a.kind == "row"
             else {"kind": "invariant", "anchor": list(a.anchor), "left": a.left, "op": a.op, "right": a.right})
-    return {"name": a.name, "universe": a.universe, "form": form, "license": license_to_dict(a.license)}
+    return {"name": a.name, "universe": a.universe, "form": form,
+            "description": a.description,   # folklore (case-demo b) — LOGICAL, flows to describe/wire
+            "license": license_to_dict(a.license)}
 
 
 def describe_hierarchy(h) -> dict:
     """A Hierarchy → describe dict: lineage, the level chain, and its adjudicated License. The VIA table
     is a PHYSICAL identifier and does NOT cross describe (§2b) — provenance the wire never needs."""
     return {"lineage": h.lineage, "paths": [list(c) for c in h.paths],
-            "chain": list(h.chain), "license": license_to_dict(h.license)}   # `chain` = primary path (back-compat)
+            "chain": list(h.chain),        # `chain` = primary path (back-compat)
+            "description": h.description,   # lineage folklore (case-demo b) — LOGICAL, flows to describe/wire
+            "license": license_to_dict(h.license)}
 
 
 def operator_properties(sig) -> Optional[dict]:

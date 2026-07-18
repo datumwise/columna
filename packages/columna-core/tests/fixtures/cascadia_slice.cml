@@ -1,0 +1,55 @@
+# cascadia_slice.cml — a faithful SLICE of the Cascadia Retail design (case-demo ch2), authored to
+# exercise increment 1(b)(c)(d): DESCRIPTION strings, logical ATTRibutes in a predicate, and the
+# two-artifact projection (REJECT rows). Parse-only fixture — no connector is bound here.
+MANIFOLD cascadia_slice VERSION 1
+
+# ── levels (grains) — with folklore, a logical attribute, and the map-side rejects ────────────────
+LEVEL store = store_id BASE ATTR opened = stores.opened_date   -- "a retail location"
+LEVEL region = region_id
+    REJECT transactions.customer_region "denormalized copy"
+    REJECT customers.region "the customer's region, not the store's"
+LEVEL customer = customer_id BASE
+LEVEL product = product_id BASE
+LEVEL day = day BASE
+LEVEL cal.week = week
+LEVEL cal.month = month
+LEVEL cal.quarter = quarter
+LEVEL cal.year = year
+
+# ── populations ───────────────────────────────────────────────────────────────────────────────────
+UNIVERSE transaction = customer * store * product * day   BASIS events   -- "a sale line"
+UNIVERSE inventory = store * day   WHERE day >= store.opened   BASIS spine
+    -- "the daily stock snapshot"
+    REJECT eom_inventory "name is a fossil — grain is daily"
+
+# ── the atlas: functional paths (branching calendar — weeks don't nest in months) ─────────────────
+HIERARCHY location { store -> region VIA stores(store_id, region) }   -- "store geography"
+HIERARCHY calendar {
+    day -> cal.month VIA calendar(day, month) -> cal.quarter VIA calendar(month, quarter) -> cal.year VIA calendar(quarter, year)
+    day -> cal.week VIA calendar(day, week)
+}   -- "the reporting calendar"
+
+# ── measures — folklore on every name; stale summaries kept as rejects on the map ─────────────────
+MEASURE revenue ON transaction FROM transactions AS sum(amount)   -- "sale amount, summed"
+    REJECT daily_revenue_summary.revenue "stale"
+MEASURE orders ON transaction FROM transactions AS count(order_id)   -- "count of sale lines"
+    REJECT monthly_avg_order_value.n_txns "stale"
+MEASURE buyers ON transaction FROM transactions AS distinct(customer_id)   -- "distinct customers who bought"
+    REJECT monthly_unique_visitors.visitors "stale"
+MEASURE units_sold ON transaction FROM transactions AS sum(units)   -- "units sold"
+MEASURE units_returned ON transaction FROM transactions AS sum(units_returned)
+    -- "units returned; nulls predate returns tracking and count as no return"
+
+MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level snapshot"
+    FAMILY {
+        sum  BLOCKED { calendar }   -- "stock summed across time doesn't reconcile"
+        last ORDER day              -- "position = the latest snapshot"
+    }
+    REJECT monthly_store_inventory.level "stale rollup"
+
+DERIVED aov = revenue / orders   -- "average order value"
+DERIVED return_rate = units_returned / units_sold
+    -- "returned units over sold units; nulls in returns count as zero"
+
+ASSERT returns_bounded ON transaction AT store HOLDS units_returned <= units_sold
+    -- "the team's data contract, checked against the data, not hoped"
