@@ -69,12 +69,28 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     <!-- Chapter 1 — the setup, with the raw tables the team actually has -->
     <section class="exhibit" aria-label="The warehouse">
       <h2>The data they have <span class="tag">generated</span></h2>
-      <p>Six tables, straight from the bundled warehouse — two facts and the references, plus a stale
-        summary that will be rejected (note its <strong>716</strong> rows against the calendar's 731):</p>
+      <p>Fourteen tables, straight from the bundled warehouse — the same fourteen the chapter
+        inventories. The six that drive the story are expanded; the rest are here in full (note
+        <code>daily_revenue_summary</code>'s <strong>716</strong> rows against the calendar's 731):</p>
       <div class="tables">
-        {caseData.ch1_tables.map((t) => (
+        {caseData.ch1_tables.filter((t) => t.prominent).map((t) => (
           <details class="tbl" open={t.table === 'transactions'}>
             <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span></summary>
+            <div class="tbl-scroll">
+              <table class="rows">
+                <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
+                <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          </details>
+        ))}
+      </div>
+      <p class="more-tables">The other eight — references and the stale summaries the model won't use:</p>
+      <div class="tables">
+        {caseData.ch1_tables.filter((t) => !t.prominent).map((t) => (
+          <details class="tbl compact">
+            <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span>
+              <span class="cols-hint">{t.columns.join(', ')}</span></summary>
             <div class="tbl-scroll">
               <table class="rows">
                 <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
@@ -172,6 +188,10 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     table.rows { border-collapse: collapse; font-size: 0.72rem; font-family: ui-monospace, monospace; width: 100%; }
     table.rows th, table.rows td { border: 1px solid #eee; padding: 0.25rem 0.45rem; white-space: nowrap; text-align: left; }
     table.rows th { background: #f6f4ef; color: #6b675f; font-weight: 600; }
+    .more-tables { font-size: 0.85rem; color: var(--ink-soft); margin: 0.9rem 0 0.4rem; }
+    .tbl.compact summary { font-size: 0.8rem; color: #6b675f; }
+    .tbl.compact .cols-hint { display: block; font-family: ui-monospace, monospace; font-size: 0.68rem;
+      color: #a49e91; margin-top: 0.15rem; white-space: normal; }
 
     /* ch2 two artifacts */
     .wall { font-size: 0.72rem; color: #2f6b34; margin-left: 0.5rem; }
