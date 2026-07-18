@@ -13,8 +13,15 @@ from importlib.metadata import version
 import columna_server
 from columna_server.store import _load_one
 from columna_server import recapture
+from columna_core import logical_spec, physical_map, no_physical_leak
 
 CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
+WAREHOUSE = os.path.join(CASCADIA, "warehouse")
+
+# ch1's schema-and-rows: the raw tables the team actually has (two facts + the reference tables), and
+# a couple of the stale summaries that will be REJECTED — the situation any solution would face.
+CH1_TABLES = ["transactions", "eom_inventory", "stores", "calendar", "product_categories",
+              "daily_revenue_summary"]
 
 
 class _Store:
@@ -45,6 +52,30 @@ def trial_table(m) -> list:
     return rows
 
 
+def ch1_schema_and_rows() -> list:
+    """ch1: each raw table's columns + a few real sample rows, read straight from the bundled warehouse."""
+    import duckdb
+    con = duckdb.connect()
+    tables = []
+    for t in CH1_TABLES:
+        path = os.path.join(WAREHOUSE, f"{t}.parquet")
+        cols = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM read_parquet('{path}')").fetchall()]
+        n = con.execute(f"SELECT count(*) FROM read_parquet('{path}')").fetchone()[0]
+        rows = con.execute(f"SELECT * FROM read_parquet('{path}') LIMIT 3").fetchall()
+        tables.append({"table": t, "columns": cols, "row_count": n,
+                       "sample": [[str(v) for v in row] for row in rows]})
+    return tables
+
+
+def ch2_two_artifacts(m) -> dict:
+    """ch2: the two projections of the one authored graph — the purely-logical spec everyone reads, and
+    the many-to-one physical->logical map with its rejects. The WALL is asserted: no physical leak."""
+    leaks = no_physical_leak(m)
+    if leaks:
+        raise RuntimeError(f"BLAST WALL BREACH — physical identifiers leaked into the logical spec: {leaks}")
+    return {"logical_spec": logical_spec(m), "physical_map": physical_map(m), "wall_holds": True}
+
+
 def main() -> int:
     lm = _load_one("cascadia", CASCADIA)
     lm.server.publish()
@@ -55,6 +86,8 @@ def main() -> int:
     out = {
         "generated_by": f"columna-core {version('columna-core')} / columna-server {version('columna-server')}",
         "manifold": "cascadia",
+        "ch1_tables": ch1_schema_and_rows(),
+        "ch2_artifacts": ch2_two_artifacts(lm.manifold),
         "trial_table": trial_table(lm.manifold),
         "exemplars": corpus["exemplars"],
         "wheel": corpus["wheel"],

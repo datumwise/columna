@@ -1,6 +1,580 @@
 {
   "generated_by": "columna-core 0.9.0 / columna-server 0.3.0",
   "manifold": "cascadia",
+  "ch1_tables": [
+    {
+      "table": "transactions",
+      "columns": [
+        "txn_id",
+        "customer_id",
+        "store_id",
+        "product_id",
+        "day",
+        "amount",
+        "units",
+        "units_returned",
+        "satisfaction",
+        "customer_region"
+      ],
+      "row_count": 19995,
+      "sample": [
+        [
+          "T00000015",
+          "C003262",
+          "S001",
+          "P0512",
+          "2024-01-03",
+          "58.26",
+          "1",
+          "None",
+          "5.7",
+          "north"
+        ],
+        [
+          "T00000030",
+          "C016296",
+          "S001",
+          "P0022",
+          "2024-01-05",
+          "218.18",
+          "12",
+          "0.0",
+          "8.2",
+          "west"
+        ],
+        [
+          "T00000045",
+          "C010086",
+          "S001",
+          "P0511",
+          "2024-01-08",
+          "35.53",
+          "1",
+          "0.0",
+          "None",
+          "east"
+        ]
+      ]
+    },
+    {
+      "table": "eom_inventory",
+      "columns": [
+        "store_id",
+        "day",
+        "level"
+      ],
+      "row_count": 16839,
+      "sample": [
+        [
+          "S001",
+          "2024-01-01",
+          "5693.0"
+        ],
+        [
+          "S001",
+          "2024-01-02",
+          "5630.0"
+        ],
+        [
+          "S001",
+          "2024-01-03",
+          "5622.0"
+        ]
+      ]
+    },
+    {
+      "table": "stores",
+      "columns": [
+        "store_id",
+        "name",
+        "region",
+        "opened_date"
+      ],
+      "row_count": 24,
+      "sample": [
+        [
+          "S001",
+          "Store 001",
+          "east",
+          "2021-09-22"
+        ],
+        [
+          "S002",
+          "Store 002",
+          "south",
+          "2021-09-22"
+        ],
+        [
+          "S003",
+          "Store 003",
+          "east",
+          "2021-09-22"
+        ]
+      ]
+    },
+    {
+      "table": "calendar",
+      "columns": [
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year"
+      ],
+      "row_count": 731,
+      "sample": [
+        [
+          "2024-01-01",
+          "2024-W01",
+          "2024-01",
+          "2024Q1",
+          "2024"
+        ],
+        [
+          "2024-01-02",
+          "2024-W01",
+          "2024-01",
+          "2024Q1",
+          "2024"
+        ],
+        [
+          "2024-01-03",
+          "2024-W01",
+          "2024-01",
+          "2024Q1",
+          "2024"
+        ]
+      ]
+    },
+    {
+      "table": "product_categories",
+      "columns": [
+        "product_id",
+        "category_id"
+      ],
+      "row_count": 870,
+      "sample": [
+        [
+          "P0001",
+          "G07"
+        ],
+        [
+          "P0001",
+          "G12"
+        ],
+        [
+          "P0002",
+          "G09"
+        ]
+      ]
+    },
+    {
+      "table": "daily_revenue_summary",
+      "columns": [
+        "day",
+        "revenue"
+      ],
+      "row_count": 716,
+      "sample": [
+        [
+          "2024-01-01",
+          "28603.29"
+        ],
+        [
+          "2024-01-02",
+          "25400.66"
+        ],
+        [
+          "2024-01-03",
+          "30215.53"
+        ]
+      ]
+    }
+  ],
+  "ch2_artifacts": {
+    "logical_spec": {
+      "manifold": "cascadia",
+      "version": 1,
+      "universes": [
+        {
+          "name": "transaction",
+          "base_dimensions": [
+            "customer",
+            "day",
+            "product",
+            "store"
+          ],
+          "predicate": null,
+          "attributes": [
+            "units",
+            "units_returned"
+          ],
+          "description": "a sale line: one customer, one store, one product, one day",
+          "basis": "events",
+          "absence": "absence is a lawful ZERO (zero-fill; immaterial)",
+          "basis_license": {
+            "verdict": "untestable",
+            "lineages": [],
+            "basis": "events basis asserted (oracle-asymmetric: a false events claim is unrefutable) — absence renders as zero per the declaration; not data-tested.",
+            "attestation": null,
+            "timeless": false
+          }
+        },
+        {
+          "name": "inventory",
+          "base_dimensions": [
+            "day",
+            "store"
+          ],
+          "predicate": "day >= store.opened",
+          "attributes": [],
+          "description": "the daily stock snapshot, per store",
+          "basis": "spine",
+          "absence": "absence is a GAP (incomplete_data — material)",
+          "basis_license": {
+            "verdict": "untestable",
+            "lineages": [],
+            "basis": "spine basis asserted — internal-contiguity/completeness need the ordered axis's domain (the spine-grid, OF-5); serving renders absence as a gap per the declaration.",
+            "attestation": null,
+            "timeless": false
+          }
+        }
+      ],
+      "levels": [
+        {
+          "level": "customer",
+          "is_base": true,
+          "description": "a shopper",
+          "attributes": []
+        },
+        {
+          "level": "store",
+          "is_base": true,
+          "description": "a retail location",
+          "attributes": [
+            "opened"
+          ]
+        },
+        {
+          "level": "product",
+          "is_base": true,
+          "description": "a sellable item",
+          "attributes": []
+        },
+        {
+          "level": "day",
+          "is_base": true,
+          "description": "a calendar day — the finest time grain anyone can ask at",
+          "attributes": []
+        },
+        {
+          "level": "region",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        },
+        {
+          "level": "category",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        },
+        {
+          "level": "cal.week",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        },
+        {
+          "level": "cal.month",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        },
+        {
+          "level": "cal.quarter",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        },
+        {
+          "level": "cal.year",
+          "is_base": false,
+          "description": "",
+          "attributes": []
+        }
+      ],
+      "hierarchies": [
+        {
+          "lineage": "location",
+          "paths": [
+            [
+              "store",
+              "region"
+            ]
+          ],
+          "chain": [
+            "store",
+            "region"
+          ],
+          "description": "store geography",
+          "license": {
+            "verdict": "corroborated",
+            "lineages": [
+              "location"
+            ],
+            "basis": "functional dependence held on the attested data: every hop maps to one parent across store -> region (every branch, so every composition).",
+            "attestation": "attest:stores@stores:24",
+            "timeless": false
+          }
+        },
+        {
+          "lineage": "calendar",
+          "paths": [
+            [
+              "day",
+              "cal.month",
+              "cal.quarter",
+              "cal.year"
+            ],
+            [
+              "day",
+              "cal.week"
+            ]
+          ],
+          "chain": [
+            "day",
+            "cal.month",
+            "cal.quarter",
+            "cal.year"
+          ],
+          "description": "the reporting calendar — weeks hang off day because ISO weeks don't nest in months",
+          "license": {
+            "verdict": "corroborated",
+            "lineages": [
+              "calendar"
+            ],
+            "basis": "functional dependence held on the attested data: every hop maps to one parent across day -> cal.month -> cal.quarter -> cal.year ; day -> cal.week (every branch, so every composition).",
+            "attestation": "attest:calendar@calendar:731",
+            "timeless": false
+          }
+        }
+      ],
+      "measures": [
+        {
+          "name": "revenue",
+          "universe": "transaction",
+          "family": [
+            "sum"
+          ],
+          "description": "sale amount, summed",
+          "members": {
+            "sum": ""
+          }
+        },
+        {
+          "name": "orders",
+          "universe": "transaction",
+          "family": [
+            "count"
+          ],
+          "description": "count of sale lines",
+          "members": {
+            "count": ""
+          }
+        },
+        {
+          "name": "buyers",
+          "universe": "transaction",
+          "family": [
+            "distinct"
+          ],
+          "description": "distinct customers who bought",
+          "members": {
+            "distinct": ""
+          }
+        },
+        {
+          "name": "units_sold",
+          "universe": "transaction",
+          "family": [
+            "sum"
+          ],
+          "description": "units sold",
+          "members": {
+            "sum": ""
+          }
+        },
+        {
+          "name": "units_returned",
+          "universe": "transaction",
+          "family": [
+            "sum"
+          ],
+          "description": "units returned; nulls predate returns tracking and count as no return",
+          "members": {
+            "sum": ""
+          }
+        },
+        {
+          "name": "stock",
+          "universe": "inventory",
+          "family": [
+            "sum",
+            "last"
+          ],
+          "description": "the stock level snapshot",
+          "members": {
+            "sum": "stock summed across time doesn't reconcile — for position, use last",
+            "last": "position = the latest snapshot in the period"
+          }
+        }
+      ],
+      "derived": [
+        {
+          "name": "aov",
+          "formula": "revenue / orders",
+          "description": "average order value = revenue / orders, one definition for everyone",
+          "resolution_anchor": null,
+          "denotation_only": true,
+          "members": {}
+        },
+        {
+          "name": "return_rate",
+          "formula": "units_returned / units_sold",
+          "description": "returned units over sold units; one declared definition",
+          "resolution_anchor": null,
+          "denotation_only": true,
+          "members": {}
+        }
+      ],
+      "asserts": [
+        {
+          "name": "returns_bounded",
+          "universe": "transaction",
+          "form": {
+            "kind": "row",
+            "predicate": "units_returned <= units"
+          },
+          "description": "the team's data contract: you can't return more than you bought — checked, not hoped",
+          "license": {
+            "verdict": "corroborated",
+            "lineages": [],
+            "basis": "row predicate 'units_returned <= units' held on every attested row of 'transaction'.",
+            "attestation": "attest:transactions@transactions:19995",
+            "timeless": false
+          }
+        }
+      ]
+    },
+    "physical_map": [
+      {
+        "logical": "transaction",
+        "binds_to": "transactions",
+        "rejects": []
+      },
+      {
+        "logical": "transaction.units",
+        "binds_to": "transactions.units",
+        "rejects": []
+      },
+      {
+        "logical": "transaction.units_returned",
+        "binds_to": "transactions.units_returned",
+        "rejects": []
+      },
+      {
+        "logical": "inventory",
+        "binds_to": "eom_inventory",
+        "rejects": [
+          [
+            "eom_inventory",
+            "name is a fossil — the rows are one snapshot per store per DAY, not month-end"
+          ]
+        ]
+      },
+      {
+        "logical": "revenue",
+        "binds_to": "sum(amount)",
+        "rejects": [
+          [
+            "daily_revenue_summary.revenue",
+            "a stale rollup; the base fact is authoritative"
+          ]
+        ]
+      },
+      {
+        "logical": "orders",
+        "binds_to": "count(*)",
+        "rejects": [
+          [
+            "monthly_avg_order_value.n_txns",
+            "a stale rollup"
+          ]
+        ]
+      },
+      {
+        "logical": "buyers",
+        "binds_to": "distinct(customer_id)",
+        "rejects": [
+          [
+            "monthly_unique_visitors.visitors",
+            "a stale rollup — and 'visitors' is not the same concept as buyers"
+          ]
+        ]
+      },
+      {
+        "logical": "units_sold",
+        "binds_to": "sum(units)",
+        "rejects": []
+      },
+      {
+        "logical": "units_returned",
+        "binds_to": "sum(units_returned)",
+        "rejects": []
+      },
+      {
+        "logical": "stock",
+        "binds_to": "level",
+        "rejects": [
+          [
+            "monthly_store_inventory.level",
+            "a stale rollup"
+          ]
+        ]
+      },
+      {
+        "logical": "store.opened",
+        "binds_to": "stores.opened_date",
+        "rejects": []
+      },
+      {
+        "logical": "region",
+        "binds_to": "stores.region",
+        "rejects": [
+          [
+            "transactions.customer_region",
+            "a denormalized copy carried on the fact"
+          ],
+          [
+            "customers.region",
+            "the customer's home region, not the store's"
+          ]
+        ]
+      },
+      {
+        "logical": "location paths",
+        "binds_to": "stores(store_id, region)",
+        "rejects": []
+      },
+      {
+        "logical": "calendar paths",
+        "binds_to": "calendar(day, month); calendar(month, quarter); calendar(quarter, year); calendar(day, week)",
+        "rejects": []
+      }
+    ],
+    "wall_holds": true
+  },
   "trial_table": [
     {
       "claim": "`location` hierarchy — every hop functional",

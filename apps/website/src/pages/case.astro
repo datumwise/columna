@@ -66,11 +66,70 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
 
     <hr />
 
-    <!-- The three chapters — verbatim -->
+    <!-- Chapter 1 — the setup, with the raw tables the team actually has -->
+    <section class="exhibit" aria-label="The warehouse">
+      <h2>The data they have <span class="tag">generated</span></h2>
+      <p>Six tables, straight from the bundled warehouse — two facts and the references, plus a stale
+        summary that will be rejected (note its <strong>716</strong> rows against the calendar's 731):</p>
+      <div class="tables">
+        {caseData.ch1_tables.map((t) => (
+          <details class="tbl" open={t.table === 'transactions'}>
+            <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span></summary>
+            <div class="tbl-scroll">
+              <table class="rows">
+                <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
+                <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
     <section class="chapter" id="ch1"><Ch1 /></section>
+
     <hr />
+
+    <!-- Chapter 2 — the two artifacts: the logical spec and the physical->logical map -->
+    <section class="exhibit" aria-label="The two artifacts">
+      <h2>The two artifacts <span class="tag">generated</span>
+        {caseData.ch2_artifacts.wall_holds && <span class="wall">✓ the wall holds</span>}</h2>
+      <p>One authored graph, two projections. The <strong>Manifold spec</strong> is purely logical —
+        every name means something declared in it, nothing physical crosses. The
+        <strong>physical→logical map</strong> is the data team's document: many-to-one, resolving each
+        concept to one authoritative binding, the rejects kept with reasons.</p>
+      <div class="artifacts">
+        <div class="artifact logical">
+          <h3>The Manifold spec <span class="sub">logical — what everyone reads</span></h3>
+          <ul class="spec">
+            {caseData.ch2_artifacts.logical_spec.measures.map((m) => (
+              <li><code>{m.name}</code> <span class="desc">{m.description}</span></li>
+            ))}
+            {caseData.ch2_artifacts.logical_spec.derived.map((dv) => (
+              <li><code>{dv.name}</code> <span class="desc">= {dv.formula}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div class="artifact physical">
+          <h3>The physical→logical map <span class="sub">many-to-one — the plumbing</span></h3>
+          <table class="map">
+            <thead><tr><th>logical</th><th>binds to</th><th>rejected (why)</th></tr></thead>
+            <tbody>
+              {caseData.ch2_artifacts.physical_map.filter((r) => r.binds_to !== '—').map((r) => (
+                <tr>
+                  <td><code>{r.logical}</code></td>
+                  <td><code class="phys">{r.binds_to}</code></td>
+                  <td class="rej">{r.rejects.map((rj) => <div><code>{rj[0]}</code> <em>{rj[1]}</em></div>)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
     <section class="chapter" id="ch2"><Ch2 /></section>
+
     <hr />
+
     <section class="chapter" id="ch3"><Ch3 /></section>
   </article>
 
@@ -103,5 +162,34 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     .mood-reason { font-size: 0.68rem; color: #8a8478; font-family: ui-monospace, monospace; }
     .mood-q { display: block; font-size: 0.8rem; margin: 0.35rem 0; word-break: break-word; }
     .mood-cap { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0; }
+
+    /* ch1 schema-and-rows */
+    .tables { display: grid; gap: 0.5rem; }
+    .tbl { border: 1px solid #e5e2dc; border-radius: 8px; background: #fff; }
+    .tbl summary { cursor: pointer; padding: 0.5rem 0.7rem; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    .tbl .rc { color: #8a8478; font-size: 0.78rem; margin-left: 0.4rem; }
+    .tbl-scroll { overflow-x: auto; }
+    table.rows { border-collapse: collapse; font-size: 0.72rem; font-family: ui-monospace, monospace; width: 100%; }
+    table.rows th, table.rows td { border: 1px solid #eee; padding: 0.25rem 0.45rem; white-space: nowrap; text-align: left; }
+    table.rows th { background: #f6f4ef; color: #6b675f; font-weight: 600; }
+
+    /* ch2 two artifacts */
+    .wall { font-size: 0.72rem; color: #2f6b34; margin-left: 0.5rem; }
+    .artifacts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 760px) { .artifacts { grid-template-columns: 1fr; } }
+    .artifact { border: 1px solid #e5e2dc; border-radius: 8px; padding: 0.7rem 0.9rem; background: #fff; }
+    .artifact.logical { border-left: 4px solid #2456a6; }
+    .artifact.physical { border-left: 4px solid #8a8478; }
+    .artifact h3 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+    .artifact .sub { display: block; font-weight: 400; font-size: 0.72rem; color: #8a8478; text-transform: none; }
+    ul.spec { list-style: none; margin: 0; padding: 0; }
+    ul.spec li { padding: 0.25rem 0; border-bottom: 1px solid #f1efe9; font-size: 0.82rem; }
+    ul.spec .desc { color: var(--ink-soft); }
+    table.map { border-collapse: collapse; width: 100%; font-size: 0.76rem; }
+    table.map th, table.map td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid #f1efe9; vertical-align: top; }
+    table.map th { color: #6b675f; }
+    .phys { color: #7a6f4e; }
+    .rej { font-size: 0.72rem; color: #8a8478; }
+    .rej em { color: #a07a55; font-style: normal; }
   </style>
 </BaseLayout>
