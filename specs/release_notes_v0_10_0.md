@@ -1,9 +1,8 @@
-# Columna 0.10.0 — release notes (DRAFT, for Huayin's gate)
+# Columna 0.10.0 — release notes (RATIFIED, Huayin, 2026-07-18)
 
-**From: Claude Code, 2026-07-18. The span since 0.9.0, in the house register. Drafted for the release
-cut so it is ready when Huayin is; to his gate for ratification. On ratification it feeds the GitHub
-Release + the `columna-core`/`columna-server` CHANGELOGs. This is a DRAFT (a lock): no PR, no merge —
-the words are proposed, not shipped.**
+**From: Claude Code, 2026-07-18. The span since 0.9.0, in the house register. RATIFIED at Huayin's gate
+— this is the body of the GitHub Release and the source of the `columna-core`/`columna-server`
+CHANGELOG entries for 0.10.0 / 0.4.0.**
 
 ---
 
