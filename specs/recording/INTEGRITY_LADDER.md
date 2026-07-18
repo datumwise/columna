@@ -17,8 +17,25 @@ calls). Nothing fabricated. Every take is preserved — the ladder IS part of th
   grounding guard suppressed a would-be ungrounded answer twice rather than let the mind improvise one.
   "Couldn't read that as a grounded reply" is ugly UX with honest bones, and the honest bones are the
   product.*
-- **Take 3** (to come) — recorded against the three-law prompt; ships. LABEL THE SPAN finally gets its
-  live test (the query now survives to reach it).
+- **Take 3** (`ch3_take3_transcripts.json`) — recorded against the three-law prompt: all three laws
+  effective (the manager's scoped turn resolves via anchor-and-read instead of failing; the folklore is
+  relayed). It surfaced the presentation limit — anchor-and-read serves the WHOLE frame, so a coordinate
+  answer is present but frame-weighted, not isolated (rowed as OF-13 PRIMARY / OF-15 SECONDARY, post-flip)
+  — and the timing/span refinements that became take-4's two law-strengthenings.
+- **Take 4** (`ch3_take4_transcripts.json`) — the ladder CAP, recorded against the strengthened
+  three-law prompt. Recorded honestly, WARTS AND ALL — a law in the prompt is a bias on a rented mind,
+  not a guarantee: **LABEL THE SPAN fired** (its reconciliation opens the new-hire's span-mismatched
+  turn — "this covers the full recorded range, both years, not just this year"), the manager's scoped
+  turn **serves via anchor-and-read**, but **SURFACE THE FOLKLORE did NOT fire** this roll — the new hire's
+  first turn fetched the `units_returned` definition yet served the numbers without relaying it first.
+  And one reply is grounding-GUARD SUPPRESSED ("couldn't read that as a grounded reply") — the agent
+  reached to summarize without a grounded query in that turn, and the guard held rather than let it
+  improvise a number. That last is the guards winning; the folklore miss is the mind's own variance.
+  Both recorded, neither scripted away. A prior roll (`ch3_take4a_badroll_transcripts.json`, 3
+  suppressions, no span reconciliation) is preserved beside it: the mind is STOCHASTIC — re-recorded
+  once for the defect, per protocol; the better roll ships, the worse roll stays on the record.
 
-All takes preserved: the defect-of-record beside the ship. This is what "recorded, never hand-edited"
-means when the thing being recorded is a mind we rent and a world we build.
+Take 4 ships. The ladder's published form: take 1, two gaps; take 2, one law confirmed, one gap;
+take 3, three laws effective, presentation and timing refined; take 4 ships; all takes preserved.
+Anything still rough — the occasional guard suppression, the frame-weight of a coordinate answer — is
+honest about the system this side of OF-13, and the fold teaches it as such.
