@@ -105,6 +105,21 @@ only its durable form.
   interim measure is the agent-prompt law **SCOPE BY ANCHOR, NOT WHERE** (ratified 2026-07-18); **when
   OF-13 lands, that prompt law amends** (the anchor-and-read workaround retires as the language grows the
   native filter). Linkage recorded so the two move together.
+  **EVIDENCE UPGRADED AGAIN (2026-07-18, ch3 take-3):** with the anchor-and-read law in place, the agent
+  stopped failing — but the anchor-and-read serves the WHOLE frame (32 region×quarter rows); the answer
+  (west/2025Q4) is present in it but frame-weighted, not isolated. So even the workaround does not yield
+  a clean isolated answer. **OF-13 is the PRIMARY fix (language-first doctrine):** a native coordinate
+  filter fixes EVERY client — including strangers' agents who will never read our prompt — and it is the
+  only fix that yields a clean answer at the language layer. Confirmed the leading candidate for the
+  first post-launch language increment. Post-flip.
+
+- **OF-15 opened 2026-07-18** (Cascadia recapture take-3, SECONDARY fork to OF-13 — Huayin). **Agent
+  read-then-summarize (a non-terminal `query`).** Today `query` is the agent loop's TERMINAL act: it
+  serves the whole frame and ends the turn, so the agent cannot read a served result and report only the
+  matching row(s) in prose. A non-terminal read-then-summarize step would let our agent isolate
+  "west/2025Q4 = $31,468.78, 402 orders" from the served frame. This is SECONDARY to OF-13: it benefits
+  OUR agent only (a stranger's agent gets nothing from it), whereas OF-13's native filter fixes every
+  client at the language layer. Consider only if OF-13's design proves slow. Post-flip.
 
 - **OF-14 opened 2026-07-18** (Cascadia recapture take-1, STANDING FACT — Huayin). **The demo has no
   clock.** The frozen-world demo warehouse (2024-2025) has no notion of "today", so relative-time
