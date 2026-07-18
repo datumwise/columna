@@ -17,6 +17,7 @@
         "customer_region"
       ],
       "row_count": 19995,
+      "prominent": true,
       "sample": [
         [
           "T00000015",
@@ -64,6 +65,7 @@
         "level"
       ],
       "row_count": 16839,
+      "prominent": true,
       "sample": [
         [
           "S001",
@@ -91,6 +93,7 @@
         "opened_date"
       ],
       "row_count": 24,
+      "prominent": true,
       "sample": [
         [
           "S001",
@@ -122,6 +125,7 @@
         "year"
       ],
       "row_count": 731,
+      "prominent": true,
       "sample": [
         [
           "2024-01-01",
@@ -153,6 +157,7 @@
         "category_id"
       ],
       "row_count": 870,
+      "prominent": true,
       "sample": [
         [
           "P0001",
@@ -175,6 +180,7 @@
         "revenue"
       ],
       "row_count": 716,
+      "prominent": true,
       "sample": [
         [
           "2024-01-01",
@@ -187,6 +193,222 @@
         [
           "2024-01-03",
           "30215.53"
+        ]
+      ]
+    },
+    {
+      "table": "customers",
+      "columns": [
+        "customer_id",
+        "name",
+        "segment",
+        "region",
+        "signup_date"
+      ],
+      "row_count": 2000,
+      "prominent": false,
+      "sample": [
+        [
+          "C000001",
+          "Customer 000001",
+          "consumer",
+          "north",
+          "2023-11-06"
+        ],
+        [
+          "C000002",
+          "Customer 000002",
+          "consumer",
+          "west",
+          "2021-08-27"
+        ],
+        [
+          "C000003",
+          "Customer 000003",
+          "premium",
+          "north",
+          "2021-01-16"
+        ]
+      ]
+    },
+    {
+      "table": "products",
+      "columns": [
+        "product_id",
+        "name",
+        "base_price"
+      ],
+      "row_count": 600,
+      "prominent": false,
+      "sample": [
+        [
+          "P0001",
+          "Product 0001",
+          "24.48"
+        ],
+        [
+          "P0002",
+          "Product 0002",
+          "50.74"
+        ],
+        [
+          "P0003",
+          "Product 0003",
+          "28.11"
+        ]
+      ]
+    },
+    {
+      "table": "categories",
+      "columns": [
+        "category_id",
+        "name"
+      ],
+      "row_count": 12,
+      "prominent": false,
+      "sample": [
+        [
+          "G01",
+          "Category A"
+        ],
+        [
+          "G02",
+          "Category B"
+        ],
+        [
+          "G03",
+          "Category C"
+        ]
+      ]
+    },
+    {
+      "table": "monthly_avg_order_value",
+      "columns": [
+        "month",
+        "avg_order_value",
+        "n_txns"
+      ],
+      "row_count": 24,
+      "prominent": false,
+      "sample": [
+        [
+          "2024-01",
+          "131.8772",
+          "9233"
+        ],
+        [
+          "2024-02",
+          "129.9431",
+          "8874"
+        ],
+        [
+          "2024-03",
+          "129.4544",
+          "9732"
+        ]
+      ]
+    },
+    {
+      "table": "monthly_unique_visitors",
+      "columns": [
+        "month",
+        "unique_visitors"
+      ],
+      "row_count": 24,
+      "prominent": false,
+      "sample": [
+        [
+          "2024-01",
+          "6039"
+        ],
+        [
+          "2024-02",
+          "5824"
+        ],
+        [
+          "2024-03",
+          "6245"
+        ]
+      ]
+    },
+    {
+      "table": "monthly_store_inventory",
+      "columns": [
+        "store_id",
+        "month",
+        "total_inventory"
+      ],
+      "row_count": 554,
+      "prominent": false,
+      "sample": [
+        [
+          "S001",
+          "2024-01",
+          "179656.0"
+        ],
+        [
+          "S001",
+          "2024-02",
+          "159713.0"
+        ],
+        [
+          "S001",
+          "2024-03",
+          "171408.0"
+        ]
+      ]
+    },
+    {
+      "table": "support_tickets",
+      "columns": [
+        "ticket_id",
+        "customer_id",
+        "day",
+        "topic"
+      ],
+      "row_count": 500,
+      "prominent": false,
+      "sample": [
+        [
+          "K0000001",
+          "C000003",
+          "2025-09-23",
+          "delivery"
+        ],
+        [
+          "K0000002",
+          "C000003",
+          "2024-06-29",
+          "delivery"
+        ],
+        [
+          "K0000003",
+          "C000005",
+          "2025-10-24",
+          "product"
+        ]
+      ]
+    },
+    {
+      "table": "engagement_scores",
+      "columns": [
+        "customer_id",
+        "score"
+      ],
+      "row_count": 1000,
+      "prominent": false,
+      "sample": [
+        [
+          "C000001",
+          "66.3"
+        ],
+        [
+          "C000003",
+          "93.4"
+        ],
+        [
+          "C000006",
+          "86.0"
         ]
       ]
     }

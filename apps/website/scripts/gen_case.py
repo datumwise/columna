@@ -18,10 +18,15 @@ from columna_core import logical_spec, physical_map, no_physical_leak
 CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 WAREHOUSE = os.path.join(CASCADIA, "warehouse")
 
-# ch1's schema-and-rows: the raw tables the team actually has (two facts + the reference tables), and
-# a couple of the stale summaries that will be REJECTED — the situation any solution would face.
-CH1_TABLES = ["transactions", "eom_inventory", "stores", "calendar", "product_categories",
-              "daily_revenue_summary"]
+# ch1's schema-and-rows: ALL FOURTEEN tables the chapter inventories (reader-discipline — prose says
+# fourteen, the page shows fourteen). The six PROMINENT ones drive the story and render expanded; the
+# other eight render collapsed. (`warehouse_notes` is the chapter's separate "three rows of tribal
+# knowledge", not one of the fourteen data tables.)
+CH1_PROMINENT = ["transactions", "eom_inventory", "stores", "calendar", "product_categories",
+                 "daily_revenue_summary"]
+CH1_TABLES = CH1_PROMINENT + ["customers", "products", "categories", "monthly_avg_order_value",
+                              "monthly_unique_visitors", "monthly_store_inventory",
+                              "support_tickets", "engagement_scores"]
 
 
 class _Store:
@@ -63,6 +68,7 @@ def ch1_schema_and_rows() -> list:
         n = con.execute(f"SELECT count(*) FROM read_parquet('{path}')").fetchone()[0]
         rows = con.execute(f"SELECT * FROM read_parquet('{path}') LIMIT 3").fetchall()
         tables.append({"table": t, "columns": cols, "row_count": n,
+                       "prominent": t in CH1_PROMINENT,
                        "sample": [[str(v) for v in row] for row in rows]})
     return tables
 
