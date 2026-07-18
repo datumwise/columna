@@ -19,7 +19,7 @@ import os
 import re
 
 from .conversation import AGENT, ENGINE, USER, Turn
-from .providers import Provider, TextStep, ToolStep
+from .providers import Provider, TextStep
 
 _PROMPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "system_prompt.md")
 
