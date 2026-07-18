@@ -7,6 +7,40 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.9.0-core] — the FrameQL envelope becomes the language
+
+Full narrative: `specs/release_notes_v0_9_0.md`.
+
+- **The envelope is the language:** `SELECT <series [AS alias]>, … AT {anchor}` with `WHERE`/`HAVING`/
+  `ORDER BY`/`LIMIT n PER {dims}` and `WITH` macros; `@` is the input-anchor marker universally and
+  `AT {…}` is the sole output grain. The Name's Law — the Frame is the query (DataFrame minus Data = Frame).
+- **The terse form is RETIRED:** the shipped `cols @ anchor` fragment leaves the wire (dated tombstone in
+  `columna_core.frameql.parse_frameql`); a top-level `@` no longer spells the output anchor.
+- **EXPLAIN, first-class:** the canonical desugared form (the exact artifact the planner consumed) + atom
+  decomposition + the dependency cone with current verdicts + the would-be annotation, touching zero data.
+- **Dependent-pair transport:** a functionally-determined anchor level (region fixed by store) is attached
+  1:1 along the edge, never reduced; the §7 worked example `AT {region*store}` runs whole.
+- **`filter_unreachable`** clarify minted (a WHERE dimension that cannot reach a series' input); the
+  conjoined `PER` law (anchor-coordinates-only AND `PER ⊆ ORDER BY`). The four-mood wire contract is
+  unchanged (`contract_version "1"`) — the break lives in the accepted query grammar, carried by this
+  version and the tombstone.
+
+## [0.8.0-core] — the Certificate customers, §2c, BASIS, and the describe extension
+
+Full narrative: `specs/release_notes_v0_8_0.md`.
+
+- **Certificate customers:** ASSERT (invariants) + HIERARCHY (FD chains) adjudicated by the same kernel,
+  minting the unchanged `License`; the **scope-edit law** — ASSERT→cut (`conflicting_data`), license→recompute,
+  edge→blocked transport (`contradicted_edge`); `reattest` recomputes the serving scope (pure, symmetric).
+- **§2c universe resolution:** one expression → one universe; a cross-universe expression is a
+  `cross_universe` category error; `ON UNIVERSE` retired from the query grammar; juxtaposition; single-universe sugar.
+- **BASIS + absence semantics:** universes declare `events`/`spine`/`product`/`registry`; absence means
+  zero (events) vs gap (spine/product, `incomplete_data`) vs membership (registry).
+- **describe extension + the §2b insulation closure:** License blocks across fertility/hierarchy/assert,
+  basis+absence on universes, operator properties, published-scope/cut; **no structural physical identifier
+  crosses describe** (`realized_by` gone, predicates logical) — a standing test enforces it.
+- Wire contract unchanged (`contract_version` "1").
+
 ## [0.7.8-core] — packaging hardening + the disclosure wire adapter
 
 **Packaging / correctness (crediting the WP-0 acceptance audit):**

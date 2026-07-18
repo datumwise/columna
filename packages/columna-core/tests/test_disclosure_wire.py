@@ -73,6 +73,8 @@ def test_wire_caveat_approximation_material_by_rel_error():
 
 
 # --- outcome / alternatives (faithful, with derived apply) ----------------------------------
+@pytest.mark.skip(reason="co_anchor_ambiguous RETIRED (§2c, 2026-07-16, tombstone); the on_universe "
+                         "wire-apply mechanism it exercised is dormant, pending OF-4 (server universe-arg removal)")
 def test_wire_outcome_coanchor_derives_universe_apply():
     o = Outcome("co_anchor_ambiguous", "which population is the rate over?",
                 alternatives=("express both numerator and denominator within universe 'store_days'",
@@ -157,15 +159,17 @@ def test_wire_frame_banchor_served_with_material_critical_caveat():
 
 
 def test_wire_frame_clarify_column_carries_no_result():
-    o = Outcome("co_anchor_ambiguous", "ambiguous population",
-                alternatives=("express both numerator and denominator within universe 'transactions'",),
-                discriminator="ambiguous")
-    col = ColumnResult("rate", "revenue / level.last", None, Disclosure.clean(), refusal=o.classified())
+    # a clarify column carries a no_result on the wire (generic encoding; uses an ACTIVE clarify reason
+    # after co_anchor_ambiguous's §2c retirement).
+    o = Outcome("input_anchor_ambiguous", "the input anchor is underdetermined",
+                alternatives=("pin the input anchor to 'day'",), discriminator="ambiguous")
+    col = ColumnResult("rate", "avg(aov)", None, Disclosure.clean(), refusal=o.classified())
     fr = FrameResult(None, Disclosure.clean(), [col], ("store", "day"))
     w = dw.wire_frame(fr)
     assert w["outcome"] == "clarify"
     assert w["columns"][0]["status"] == "clarify"
-    assert w["columns"][0]["no_result"]["alternatives"][0]["apply"] == {"universe": "transactions"}
+    assert w["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"
+    assert w["columns"][0]["no_result"]["alternatives"][0]["token"] == "pin the input anchor to 'day'"
 
 
 def test_wire_frame_surfaces_frame_only_coverage_caveat():

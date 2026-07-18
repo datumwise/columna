@@ -32,6 +32,27 @@ class Connector(Protocol):
     def deliver_attribute(self, table: str, key_col: str, attr_col: str) -> pl.DataFrame: ...
     def deliver_base_rows(self, table: str, key_cols: list, value_col: str, where: Optional[str] = None) -> pl.DataFrame: ...
 
+
+# The authoring aperture's metered-sample cap (RATIFIED 2026-07-16). Rationale: sampling is a GOVERNED
+# aperture, not an open pipe — every read is BOUNDED per call so the model perceives a declared shape,
+# never a firehose. 1000 rows is enough to expose a distribution / catch an FK violation while staying a
+# metered read; PROFILE-STATS-FIRST is preferred (use `profile` to settle a question, `sample` only when
+# stats don't). Session-level budgets and a column-masking policy are DEFERRED (ledgered for the
+# enterprise era, capture §5's two-ends precision). Constant and documented, by design.
+APERTURE_SAMPLE_CAP = 1000
+
+
+@runtime_checkable
+class CatalogAperture(Protocol):
+    """The authoring-side READ surface (the two-ends DATA WALL for `columna init`): catalog metadata,
+    profile statistics, and a METERED sample. Like the delivery Connector, no general query composes
+    here — every call is a single bounded, typed read from ONE table, so an exfiltrating read is
+    structurally impossible (there is no method that takes SQL). `sample` is capped at
+    APERTURE_SAMPLE_CAP rows PER CALL; prefer `profile` first and sample only when stats don't settle."""
+    def catalog(self) -> list: ...                          # [{table, columns:[{name,type}], keys:[...]}]
+    def profile(self, table: str, column: str) -> dict: ...  # {count, distinct, nulls, min, max}
+    def sample(self, table: str, n: int) -> pl.DataFrame: ...  # up to min(n, APERTURE_SAMPLE_CAP) rows
+
 # logical (Polars) dtype -> this backend's (DuckDB) physical type
 _LOGICAL_TO_DUCKDB = {
     "Float64": "DOUBLE", "Int64": "BIGINT", "Decimal": "DECIMAL", "Boolean": "BOOLEAN",
@@ -67,6 +88,35 @@ class DuckDBConnector:
     def table_version(self, table: str) -> str:
         n = self.con.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
         return f"{table}:{n}"
+
+    # ---- the authoring aperture (catalog / profile / metered sample) — no SQL crosses it ----
+    def catalog(self) -> list:
+        cols = self.con.execute(
+            "SELECT table_name, column_name, data_type FROM information_schema.columns "
+            "WHERE table_schema = 'main' ORDER BY table_name, ordinal_position").fetchall()
+        tables: dict = {}
+        for tname, cname, dtype in cols:
+            tables.setdefault(tname, {"table": tname, "columns": [], "keys": []})
+            tables[tname]["columns"].append({"name": cname, "type": dtype})
+        try:                                        # best-effort declared keys (PK/FK/UNIQUE)
+            for t, ctype, ccols in self.con.execute(
+                    "SELECT table_name, constraint_type, constraint_column_names "
+                    "FROM duckdb_constraints()").fetchall():
+                if t in tables:
+                    tables[t]["keys"].append({"type": ctype, "columns": list(ccols)})
+        except Exception:
+            pass
+        return list(tables.values())
+
+    def profile(self, table: str, column: str) -> dict:
+        r = self.con.execute(
+            f'SELECT count(*), count(distinct "{column}"), count(*) - count("{column}"), '
+            f'min("{column}"), max("{column}") FROM "{table}"').fetchone()
+        return {"count": r[0], "distinct": r[1], "nulls": r[2], "min": r[3], "max": r[4]}
+
+    def sample(self, table: str, n: int) -> pl.DataFrame:
+        cap = min(int(n), APERTURE_SAMPLE_CAP)      # metered: a per-call row cap, always enforced
+        return self.con.execute(f'SELECT * FROM "{table}" LIMIT {cap}').pl()
 
     # ---- logical <-> physical type bridge (this is the connector's job) ----
     def physical_type(self, table: str, col: str) -> Optional[str]:

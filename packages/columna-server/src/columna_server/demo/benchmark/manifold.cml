@@ -3,8 +3,8 @@ MANIFOLD benchmark VERSION 1
 # ============================================================================
 # Layer 1 — populations (universes).  predicate carves the real population.
 # ============================================================================
-UNIVERSE transactions = customer * store * product * day
-UNIVERSE store_days   = store * day  WHERE day >= stores.opened_date
+UNIVERSE transactions = customer * store * product * day BASIS events
+UNIVERSE store_days   = store * day  WHERE day >= stores.opened_date BASIS spine
 
 # ============================================================================
 # Layer 2 — coordinate.  Base levels, then functional edges.

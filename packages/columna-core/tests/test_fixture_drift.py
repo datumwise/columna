@@ -18,9 +18,9 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _CML_DEMOS = os.path.join(DEMOS, "benchmark.cml")
 _CML_FIXTURE = os.path.join(_HERE, "fixtures", "benchmark.cml")
 
-# demo -> expected fixture-run check count (the 104 total)
+# demo -> expected fixture-run check count (99 total after the §2c coanchor rewrite; was 104)
 _EXPECTED_COUNTS = {
-    "coanchor_demo": 17,
+    "coanchor_demo": 12,   # §2c rewrite (was 17): cross-universe -> error, juxtaposition, no ON UNIVERSE
     "confine_demo": 12,
     "hll_case_study_demo": 20,
     "holistic_demo": 5,
@@ -52,7 +52,7 @@ def test_mini_warehouse_within_budget():
 def test_import_and_version():
     import columna_core
 
-    assert columna_core.__version__ == "0.7.8-core"
+    assert columna_core.__version__ == "0.9.0-core"
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))
@@ -65,9 +65,10 @@ def test_fixture_demo_check_count(demo, expected):
     )
 
 
-def test_total_fixture_checks_is_104():
+def test_total_fixture_checks_is_99():
+    # was 104; the §2c coanchor rewrite dropped it to 99 (coanchor 17 -> 12).
     total = sum(len(fixture_run(d).names()) for d in _EXPECTED_COUNTS)
-    assert total == 104, f"fixture demos emitted {total} checks total, expected 104"
+    assert total == 99, f"fixture demos emitted {total} checks total, expected 99"
 
 
 def test_structural_parity_parsed_vs_code(parsed_manifold, hand_manifold):

@@ -74,6 +74,7 @@ import ExhibitB from '../components/ExhibitB.astro';
     <div class="col-argument">
       <h2 id="s7-h">The argument, executed</h2>
       <p class="argument-p">Start with the same question in a different costume — what, exactly, is the denominator? Then ask it the ones it was built to catch.</p>
+      <p class="orient-line">New here? <a href="/what-is-columna">What is Columna?</a> — the plain-language orientation. Or browse <a href="/explorer">the Explorer</a>, the demo Manifold live.</p>
     </div>
     <div class="col">
       <ExhibitB />
@@ -94,7 +95,7 @@ import ExhibitB from '../components/ExhibitB.astro';
         <div class="door">
           <h3>Run it.</h3>
           <p>Two minutes, no arguments, no signup. A clarify, a refuse, and a disclose will print on your machine as real wire JSON.</p>
-          <p class="door-action"><code>pip install columna-core columna-server</code> → <a href="/install">quickstart</a></p>
+          <p class="door-action"><code>pip install columna</code> → <a href="/install">quickstart</a></p>
         </div>
         <div class="door">
           <h3>Read it.</h3>
@@ -153,6 +154,8 @@ import ExhibitB from '../components/ExhibitB.astro';
   /* §7 */
   .s7 .col-argument h2 { font-family: var(--font-serif); font-weight: 600; font-size: 1.6rem; margin: 0 0 0.9rem; }
   .s7 .argument-p { font-family: var(--font-serif); font-size: 1.14rem; line-height: 1.66; }
+  .s7 .orient-line { font-family: var(--font-sans); font-size: 0.9rem; color: var(--ink-soft); margin: 0.4rem 0 0; }
+  .s7 .orient-line a { color: var(--ink); }
   .wire-cap-note { font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-faint); line-height: 1.6; margin: 0.8rem 0 2rem; }
   .wire-cap-note code { background: var(--paper-raised); padding: 0.05em 0.3em; border-radius: 3px; }
   .s7-after { font-family: var(--font-serif); font-size: 1.14rem; line-height: 1.66; padding: 0; }
