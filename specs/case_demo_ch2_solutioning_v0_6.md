@@ -135,7 +135,8 @@ MEASURE stock ON inventory               -- "the stock level snapshot"
 DERIVED aov         = revenue / orders
 DERIVED return_rate = units_returned / units_sold
 
-ASSERT returns_bounded ON transaction: units_returned <= units_sold
+ATTR units, units_returned ON transaction    -- "per-row sale quantities"
+ASSERT returns_bounded ON transaction WHERE units_returned <= units
     -- the team's data contract, checked against the data, not hoped
 ```
 
@@ -160,14 +161,24 @@ stock              level                         monthly_store_inventory (stale 
 region             stores.region                 transactions.customer_region (copy);
                                                  customers.region (customer's, not store's)
 store.opened       stores.opened_date
+units (row attr)   units                         (same spelling — a coincidence the
+                                                 map records and the spec never needs)
 calendar paths     calendar(day, ...)            location path: stores(store_id, region)
 ```
 
 So the solutioning produces **two artifacts**: the physical→logical map (many to one —
 the survey of the territory, rejects and all) and the Manifold spec (purely logical —
-the output everyone reads). The wall between them is the same wall the running system
-keeps: agents and readers see meaning; only the map — and the engine — know the
-plumbing.
+the output everyone reads). And the wall between them is not an accident of tidiness —
+**the Manifold is a blast wall, purposely built.** The spec is self-sufficient: every
+name in it means something *declared in it*, so a reader — or an agent — who never
+sees the map loses nothing but plumbing. The map is the only place the two worlds
+touch. Even when a logical name happens to share its spelling with a physical column
+(the row attribute `units`), the spec's `units` means the declared attribute; the
+coincidence lives on the map. Two things follow, and both matter later. Dana's "no
+raw access" constraint costs nothing to enforce — the assistant isn't *forbidden*
+from the tables; from where it stands, the tables don't exist. And the warehouse can
+be re-plumbed — tables renamed, feeds replaced, summaries deleted — without a word of
+the spec changing: re-bind the map, re-run the trials, done.
 
 Three renames from the physical layer, each with a reason: `buyers` (not "visitors" —
 these are customers who bought, and that's what Dana's question 6 says); `units_sold`

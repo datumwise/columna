@@ -3,7 +3,7 @@ test_case_demo_trial.py — Cascadia case-demo increment 2: the full Manifold, l
 
 The Cascadia Manifold (demo/cascadia) is authored to chapter 2's spec and adjudicated against the
 bundled warehouse. This pins THE TRIAL — the chapter-3 verdict table — against reality, and confirms
-the four moods reproduce chapter 3's question section (serve · disclose · refuse).
+the four moods reproduce chapter 3's question section (serve · disclose · clarify).
 
 Flags where reality bends chapter 3 (brought to the desk, not silently absorbed):
   • product ↔ category (M:N) — chapter 3 lists it 'corroborated', but a RELATE is RECORDED, not
@@ -22,6 +22,7 @@ import pytest
 
 import columna_server
 from columna_server.store import _load_one
+from columna_server import tools as T
 
 _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 
@@ -31,6 +32,16 @@ def live():
     lm = _load_one("cascadia", _CASCADIA)   # parse + well-formed + connect + adjudicate
     lm.server.publish()                     # run the trials + build witnesses
     return lm
+
+
+class _Store:
+    """A one-manifold store, so the four-mood WIRE (tools.query) can be exercised."""
+    def __init__(self, lm):
+        self._lm = lm
+    def get(self, mid):
+        if mid != self._lm.manifold_id:
+            raise KeyError(mid)
+        return self._lm
 
 
 # ── THE TRIAL (chapter-3 verdict table) — the adjudicated claims ─────────────────────────────────────
@@ -58,9 +69,10 @@ def test_both_bases_are_untestable_on_the_record(live):
     assert us["inventory"].basis_license.verdict == "untestable"
 
 
-def test_inventory_carve_removes_no_snapshot_that_predates_its_store(live):
-    # ch3 lists this 'corroborated'; there is no standalone verdict (it's a confinement predicate), but the
-    # raw data respects it — proven here by serving stock.last and getting a clean, non-empty position.
+def test_inventory_carve_is_a_definition_not_a_tried_claim(live):
+    # ch3 v0.4: the opened-date carve LEFT the trial table — a definition confines, a claim gets tried;
+    # nothing outside the population exists to test. For the record the raw feed respects it anyway —
+    # proven by serving stock.last and getting a clean, non-empty position.
     r = live.server.frame("store").column("stock", "stock.last").run()
     assert r.data.height > 0 and r.columns[0].refusal is None
 
@@ -79,9 +91,11 @@ def test_stock_sum_over_time_serves_with_a_critical_blocked_caveat(live):
     assert "calendar" in crossing[0].detail
 
 
-def test_revenue_by_category_refuses_naming_the_many_to_many(live):
-    # the question that comes back with its reason attached — the M:N fan-out is refused, edge named.
-    r = live.server.frame("category").column("rev", "revenue.sum").run()
-    ref = r.columns[0].refusal
-    assert ref is not None and ref.reason == "non_functional_transport"
-    assert "category" in ref.detail
+def test_revenue_by_category_clarifies_naming_the_many_to_many(live):
+    # ch3 v0.4: the question that comes back with its reason attached is a CLARIFY (not a refuse) —
+    # the M:N fan-out is underdetermined; the WIRE mood is clarify, and the edge is named.
+    res = T.query(_Store(live), "cascadia", "SELECT revenue AT {category}")
+    assert res["outcome"] == "clarify"
+    # the engine object underneath is the non_functional_transport refusal the planner classifies to clarify
+    ref = live.server.frame("category").column("rev", "revenue.sum").run().columns[0].refusal
+    assert ref is not None and ref.reason == "non_functional_transport" and "category" in ref.detail
