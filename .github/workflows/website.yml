@@ -10,9 +10,9 @@ name: website
 on:
   push:
     branches: [main, wp5.1-website, wp-cp3]
-    paths: ['apps/website/**', '.github/workflows/website.yml', 'packages/**']
+    paths: ['apps/website/**', '.github/workflows/website.yml', 'packages/**', 'docs/**']
   pull_request:
-    paths: ['apps/website/**', '.github/workflows/website.yml', 'packages/**']
+    paths: ['apps/website/**', '.github/workflows/website.yml', 'packages/**', 'docs/**']
 
 defaults:
   run:
