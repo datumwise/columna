@@ -77,6 +77,7 @@ def describe_universe(u, predicate_str) -> dict:
         "name": u.name,
         "base_dimensions": sorted(u.base_dimensions),
         "predicate": predicate_str,
+        "attributes": [a for a, _ in u.attributes],   # logical row-attribute NAMES only (case-demo c ext)
         "description": u.description,        # folklore (case-demo b) — LOGICAL, flows to describe/wire
         "basis": u.basis,
         "absence": absence_semantics(u.basis),

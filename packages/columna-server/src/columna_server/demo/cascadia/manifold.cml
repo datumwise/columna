@@ -1,0 +1,62 @@
+MANIFOLD cascadia VERSION 1
+# Cascadia Retail — the Manifold spec, authored to chapter 2 of the case demo. Purely logical: the
+# tables and columns live in the physical→logical map (data.toml + the map document), never here.
+
+# ── populations ───────────────────────────────────────────────────────────────────────────────────
+UNIVERSE transaction = customer * store * product * day   BASIS events
+    -- "a sale line: one customer, one store, one product, one day"
+UNIVERSE inventory = store * day   WHERE day >= store.opened   BASIS spine
+    -- "the daily stock snapshot, per store"
+    REJECT eom_inventory "name is a fossil — the rows are one snapshot per store per DAY, not month-end"
+
+# row-attributes of the transaction population (share their physical spelling; the map records the row)
+ATTR units, units_returned ON transaction
+
+# ── grains ──────────────────────────────────────────────────────────────────────────────────────────
+LEVEL customer = customer_id BASE   -- "a shopper"
+LEVEL store = store_id BASE ATTR opened = stores.opened_date   -- "a retail location"
+LEVEL product = product_id BASE   -- "a sellable item"
+LEVEL day = day BASE   -- "a calendar day — the finest time grain anyone can ask at"
+LEVEL region = region
+    REJECT transactions.customer_region "a denormalized copy carried on the fact"
+    REJECT customers.region "the customer's home region, not the store's"
+LEVEL category = category_id
+LEVEL cal.week = week
+LEVEL cal.month = month
+LEVEL cal.quarter = quarter
+LEVEL cal.year = year
+
+# ── the atlas: functional paths ──────────────────────────────────────────────────────────────────────
+HIERARCHY location { store -> region VIA stores(store_id, region) }   -- "store geography"
+HIERARCHY calendar {
+    day -> cal.month VIA calendar(day, month) -> cal.quarter VIA calendar(month, quarter) -> cal.year VIA calendar(quarter, year)
+    day -> cal.week VIA calendar(day, week)
+}   -- "the reporting calendar — weeks hang off day because ISO weeks don't nest in months"
+
+# many-to-many (declared so a fan-out refusal can name it, and the refusal can say exactly why)
+RELATE product <-> category VIA product_categories NOTE "a product belongs to up to 3 categories"
+
+# ── measures — folklore on every name; stale summaries kept as rejects on the map ───────────────────
+MEASURE revenue ON transaction FROM transactions AS sum(amount)   -- "sale amount, summed"
+    REJECT daily_revenue_summary.revenue "a stale rollup; the base fact is authoritative"
+MEASURE orders ON transaction FROM transactions AS count(txn_id)   -- "count of sale lines"
+    REJECT monthly_avg_order_value.n_txns "a stale rollup"
+MEASURE buyers ON transaction FROM transactions AS distinct(customer_id)   -- "distinct customers who bought"
+    REJECT monthly_unique_visitors.visitors "a stale rollup — and 'visitors' is not the same concept as buyers"
+MEASURE units_sold ON transaction FROM transactions AS sum(units)   -- "units sold"
+MEASURE units_returned ON transaction FROM transactions AS sum(units_returned)
+    -- "units returned; nulls predate returns tracking and count as no return"
+
+MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level snapshot"
+    FAMILY {
+        sum  BLOCKED { calendar }   -- "stock summed across time doesn't reconcile — for position, use last"
+        last ORDER day              -- "position = the latest snapshot in the period"
+    }
+    REJECT monthly_store_inventory.level "a stale rollup"
+
+DERIVED aov = revenue / orders   -- "average order value = revenue / orders, one definition for everyone"
+DERIVED return_rate = units_returned / units_sold
+    -- "returned units over sold units; one declared definition"
+
+ASSERT returns_bounded ON transaction WHERE units_returned <= units
+    -- "the team's data contract: you can't return more than you bought — checked, not hoped"

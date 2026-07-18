@@ -86,17 +86,30 @@ def _row(logical, binds_to, rejects=()):
             "rejects": [[p, r] for p, r in rejects]}
 
 
+def _universe_home(m, uname) -> str:
+    """The modal home table of the measures bound to a universe (— when none exists)."""
+    tables = [mc.home_table for mc in m.measures.values() if mc.universe == uname]
+    return max(set(tables), key=tables.count) if tables else "—"
+
+
+def _attr_binding(binding, home) -> str:
+    """A row-attribute binding qualifies against the universe home table when it shares its spelling."""
+    return binding if "." in binding else f"{home}.{binding}"
+
+
 def physical_map(m) -> list:
     """Project the Manifold's PHYSICAL→LOGICAL map (many-to-one): every logical name → its ONE
     authoritative physical binding, with rejected/aside incarnations kept with reasons. This is the
     ONLY artifact that carries physical identifiers and rejects."""
     rows = []
 
-    # universes -> their home table (the modal home_table of the measures bound to them) + rejects
+    # universes -> their home table (the modal home_table of the measures bound to them) + rejects;
+    # then each universe ROW-attribute -> its physical column (qualified against the home table).
     for u in m.universes.values():
-        tables = [mc.home_table for mc in m.measures.values() if mc.universe == u.name]
-        binds = max(set(tables), key=tables.count) if tables else "—"
-        rows.append(_row(u.name, binds, u.rejects))
+        home = _universe_home(m, u.name)
+        rows.append(_row(u.name, home, u.rejects))
+        for name, binding in u.attributes:
+            rows.append(_row(f"{u.name}.{name}", _attr_binding(binding, home)))
 
     # measures -> their realization + rejected incarnations (the stale summaries)
     for mc in m.measures.values():
@@ -139,6 +152,9 @@ def physical_vocabulary(m) -> set:
     for u in m.universes.values():
         for p, _ in u.rejects:
             vocab.add(p)
+        home = _universe_home(m, u.name)
+        for _, binding in u.attributes:
+            vocab.add(_attr_binding(binding, home))
     for l in m.levels.values():
         for _, binding in l.attributes:
             vocab.add(binding)

@@ -32,7 +32,7 @@ from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     Ref, Comparison, Predicate, Assert, Hierarchy)
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
-       "ASSERT", "HIERARCHY")   # EDGE purged (§2a) — HIERARCHY is the sole functional-path surface
+       "ASSERT", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ATTR = standalone universe row-attributes
 
 # B1 (capture §7): the comparison set an aggregate-invariant ASSERT may use. `==` rides the WP-B
 # adjudication tolerance (one tolerance policy, everywhere); v1 excludes `!=`.
@@ -421,20 +421,46 @@ def _p_hierarchy(s, M):
     M["hierarchies"].append(Hierarchy(lineage, tuple(paths), description=description))   # provenance + FD handle
 
 
+def _p_attr(s, M):
+    # ATTR <name>[= <table>.<col>][, ...] ON <universe>  — logical ROW-attributes of a universe
+    # (case-demo c extended). Legal in a ROW-form ASSERT's predicate; a row-attribute may SHARE its
+    # physical spelling (no `= binding` -> the name is its own binding, resolved against the home table).
+    m = re.match(r"ATTR\s+(.+?)\s+ON\s+(\w+)\s*$", s, re.S)
+    if not m:
+        raise ParseError(f"bad ATTR: {s!r} (expected 'ATTR <name>[= <table>.<col>][, ...] ON <universe>')")
+    attrs = []
+    for part in m.group(1).split(","):
+        part = part.strip()
+        if not part:
+            continue
+        pm = re.match(r"(\w+)(?:\s*=\s*([\w.]+))?\s*$", part)
+        if not pm:
+            raise ParseError(f"bad ATTR entry: {part!r} (expected '<name>' or '<name> = <table>.<col>')")
+        attrs.append((pm.group(1), pm.group(2) or pm.group(1)))   # share spelling when no binding given
+    M["universe_attrs"].append((m.group(2), tuple(attrs)))
+
+
 _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
              "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
-             "ASSERT": _p_assert, "HIERARCHY": _p_hierarchy}
+             "ASSERT": _p_assert, "HIERARCHY": _p_hierarchy, "ATTR": _p_attr}
 
 
 # ---- public -----------------------------------------------------------------
 def parse_manifold(text: str) -> Manifold:
     M = {"name": None, "version": 1, "universes": {}, "levels": {}, "edges": [],
-         "measures": {}, "derived": {}, "non_functional": [], "asserts": [], "hierarchies": []}
+         "measures": {}, "derived": {}, "non_functional": [], "asserts": [], "hierarchies": [],
+         "universe_attrs": []}
     for stmt in _statements(text):
         kw = stmt.strip().split()[0]
         _DISPATCH[kw](stmt, M)
     if M["name"] is None:
         raise ParseError("missing MANIFOLD header")
+    # merge standalone universe ROW-attributes onto their (frozen) Universe (declared in any order)
+    for uname, attrs in M["universe_attrs"]:
+        if uname not in M["universes"]:
+            raise ParseError(f"ATTR references unknown universe '{uname}'")
+        u = M["universes"][uname]
+        M["universes"][uname] = replace(u, attributes=u.attributes + attrs)
     # §2c single-universe sugar: a MEASURE/ASSERT that omitted `ON <universe>` takes the sole universe;
     # with more than one universe, `ON` is REQUIRED (fail closed, naming the ambiguity).
     _unis = list(M["universes"])
@@ -628,11 +654,17 @@ def check_wellformed(m: Manifold) -> list:
                         f"(assert names are unique per universe)")
         seen_assert.add((a.universe, a.name))
         if a.kind == "row":
-            # purity: a row predicate is over dims/attrs, never a measure (universe-carving grammar, rider 1)
+            # purity: a row predicate is over dims/attrs, never a measure (universe-carving grammar, rider 1).
+            # A declared ROW-ATTRIBUTE wins over a same-named MEASURE (case-demo c): the assert names the
+            # per-row attribute `units_returned`, a DIFFERENT object from the measure `units_returned` — the
+            # spec must not blur them (Huayin's ruling), so the attribute declaration disambiguates here.
             if a.predicate:
+                uni = m.universes.get(a.universe)
+                row_attrs = {n for n, _ in uni.attributes} if uni else set()
                 for comp in a.predicate.comparisons:
                     for ref in (comp.left, comp.right):
-                        if not ref.is_literal and ref.table is None and ref.column in m.measures:
+                        if (not ref.is_literal and ref.table is None
+                                and ref.column in m.measures and ref.column not in row_attrs):
                             errs.append(f"assert '{a.name}' row predicate references measure "
                                         f"'{ref.column}' (row asserts are over dims/attrs only)")
         # invariant-form: the expression + anchor are validated by the ADJUDICATOR at publish, not here

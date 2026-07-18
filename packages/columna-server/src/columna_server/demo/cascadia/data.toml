@@ -1,0 +1,10 @@
+# Cascadia Retail (case demo) — the Manifold over its bundled warehouse. Self-contained: the warehouse
+# path is relative to THIS directory (store.py resolves against the manifold dir), so it ships and runs
+# with no path arguments.
+[manifold]
+name = "Cascadia Retail (case demo)"
+description = "Cascadia Retail's Sales-Ops Manifold — chapters 1-3 of the case demo, over a small bundled warehouse."
+
+[connector]
+type = "duckdb"
+warehouse = "./warehouse"

@@ -101,12 +101,34 @@ ASSERT nonneg ON sales WHERE region >= 0
 """
 
 
-def test_row_assert_is_untestable_in_this_build():
+def test_row_assert_over_a_rollup_level_is_untestable_via_the_base_row_channel():
+    # the base-row DATA channel (case-demo) probes HOME-TABLE columns + row-attributes; a predicate over
+    # a ROLLUP level (region, reached via a hierarchy) needs a broadcast/join and is not probeable here —
+    # so it stays UNTESTABLE (recorded, describe-visible, never exercised), not a crash.
     srv = _server(_ROW, {"tx": (["store_id", "amount"], [("s1", 10.0)]),
                          "stores": (["store_id", "region"], [("s1", "r1")])})
     report = adjudicate(srv)
     assert report["_asserts"]["sales.nonneg"] == UNTESTABLE
     assert srv.m.asserts[0].license.verdict == UNTESTABLE
+
+
+_ROW_DATA = """
+MANIFOLD rd VERSION 1
+UNIVERSE sales = store
+LEVEL store = store_id BASE
+ATTR amount ON sales
+MEASURE revenue ON sales FROM tx AS sum(amount)
+ASSERT nonneg ON sales WHERE amount >= 0
+"""
+
+
+def test_row_assert_over_a_home_column_is_data_tested_corroborated():
+    # a per-row contract over a HOME-TABLE column (declared as a row-attribute) IS now data-tested:
+    # holds on every row -> corroborated (the ledgered row-assert-data-channel, closed).
+    srv = _server(_ROW_DATA, {"tx": (["store_id", "amount"], [("s1", 10.0), ("s1", 0.0)])})
+    report = adjudicate(srv)
+    assert report["_asserts"]["sales.nonneg"] == CORROBORATED
+    assert srv.m.asserts[0].license.verdict == CORROBORATED
 
 
 def test_demo_adjudication_still_clean(fixture_server):
