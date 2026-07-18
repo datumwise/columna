@@ -22,6 +22,8 @@ from .connector import CatalogAperture, APERTURE_SAMPLE_CAP
 from .describe import (describe_derived, license_to_dict, describe_universe, describe_assert,
                        describe_hierarchy, operator_properties, absence_semantics)
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
+from .documents import (logical_spec, physical_map, physical_vocabulary, no_physical_leak,
+                        render_predicate_logical)
 
 __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "DimensionLevel", "FunctionalEdge", "MeasureColumn",
@@ -37,5 +39,7 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "AssertNotWellFormed", "PublishedScope", "scope_from_report", "scope_diff",
            "describe_derived", "license_to_dict", "describe_universe", "describe_assert",
            "describe_hierarchy", "operator_properties", "absence_semantics",
-           "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore"]
+           "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore",
+           "logical_spec", "physical_map", "physical_vocabulary", "no_physical_leak",
+           "render_predicate_logical"]
 __version__ = "0.9.0-core"
