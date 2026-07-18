@@ -45,6 +45,11 @@ jobs:
           python scripts/gen_transcript.py > src/data/transcript.generated.json
           echo "transcript bytes: $(wc -c < src/data/transcript.generated.json)"
 
+      - name: Generate the /case seeds from the BRANCH package (fails closed on exemplar drift)
+        run: |
+          python scripts/gen_case.py > src/data/case.generated.json
+          echo "case bytes: $(wc -c < src/data/case.generated.json)"
+
       - name: Install site dependencies
         run: npm ci
       - name: Build
@@ -82,6 +87,14 @@ jobs:
           mkdir -p src/data
           python scripts/gen_transcript.py > src/data/transcript.generated.json
           echo "transcript bytes: $(wc -c < src/data/transcript.generated.json)"
+
+      # The /case seeds need the Cascadia code (logical_spec/physical_map/recapture + the cascadia demo),
+      # which ships at the 0.10.0 flip. This step goes green on the deploy path only once the pin above
+      # is 0.10.0 — bump it in the same flip that merges the /case section to main (the draft-lock).
+      - name: Generate the /case seeds from the SHIPPED package (fails closed on exemplar drift)
+        run: |
+          python scripts/gen_case.py > src/data/case.generated.json
+          echo "case bytes: $(wc -c < src/data/case.generated.json)"
 
       - name: Install site dependencies
         run: npm ci
