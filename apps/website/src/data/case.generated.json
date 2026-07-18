@@ -1,0 +1,177 @@
+{
+  "generated_by": "columna-core 0.9.0 / columna-server 0.3.0",
+  "manifold": "cascadia",
+  "trial_table": [
+    {
+      "claim": "`location` hierarchy — every hop functional",
+      "verdict": "corroborated"
+    },
+    {
+      "claim": "`calendar` hierarchy — every hop functional",
+      "verdict": "corroborated"
+    },
+    {
+      "claim": "ASSERT `returns_bounded`",
+      "verdict": "corroborated"
+    },
+    {
+      "claim": "`transaction` BASIS events",
+      "verdict": "untestable"
+    },
+    {
+      "claim": "`inventory` BASIS spine",
+      "verdict": "untestable"
+    },
+    {
+      "claim": "product ↔ category (many-to-many)",
+      "verdict": "recorded"
+    }
+  ],
+  "exemplars": [
+    {
+      "id": "E1",
+      "caption": "Priya's serve pair",
+      "query": "SELECT revenue, orders AT {region*cal.quarter}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [],
+      "row_count": 32,
+      "reason_tokens": [],
+      "in_wheel": false
+    },
+    {
+      "id": "E2",
+      "caption": "The first burn, retried",
+      "query": "SELECT stock.sum AT {store*cal.month}",
+      "kind": "query",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "b_anchor_crossing",
+          "severity": "critical",
+          "detail": "stock.sum (sum) coarsens across blocked lineage 'calendar' (edge day->cal.month); per-bucket totals do not reconcile along this axis"
+        }
+      ],
+      "row_count": 554,
+      "reason_tokens": [
+        "b_anchor_crossing"
+      ],
+      "in_wheel": true
+    },
+    {
+      "id": "E3",
+      "caption": "The remedy taken",
+      "query": "SELECT stock.last AT {store*cal.month}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [],
+      "row_count": 554,
+      "reason_tokens": [],
+      "in_wheel": false
+    },
+    {
+      "id": "E4",
+      "caption": "The ambiguous ask",
+      "query": "SELECT avg(aov) AT {cal.year}",
+      "kind": "query",
+      "mood": "clarify",
+      "disclosures": [
+        {
+          "token": "input_anchor_ambiguous",
+          "severity": null,
+          "detail": "inline reduction 'mean(aov)' does not pin its input anchor — the grain to resolve 'aov' at before reducing to cal.year is underdetermined; pin it, e.g. 'mean(aov@cal.month)'"
+        }
+      ],
+      "row_count": null,
+      "reason_tokens": [
+        "input_anchor_ambiguous"
+      ],
+      "in_wheel": true
+    },
+    {
+      "id": "E5",
+      "caption": "The well-posed sibling",
+      "query": "SELECT aov AT {cal.month}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [],
+      "row_count": 24,
+      "reason_tokens": [],
+      "in_wheel": true
+    },
+    {
+      "id": "E6",
+      "caption": "The question with its reason attached",
+      "query": "SELECT revenue AT {category}",
+      "kind": "query",
+      "mood": "clarify",
+      "disclosures": [
+        {
+          "token": "non_functional_transport",
+          "severity": null,
+          "detail": "revenue @ category: relating crosses a non-functional (M:N) edge product↔category (a product belongs to up to 3 categories); this aggregate-across is underdetermined — the measure would be replicated across matches and the total inflated"
+        }
+      ],
+      "row_count": null,
+      "reason_tokens": [
+        "non_functional_transport"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E7",
+      "caption": "The returns question, resolved",
+      "query": "SELECT return_rate AT {cal.month}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [],
+      "row_count": 24,
+      "reason_tokens": [],
+      "in_wheel": false
+    },
+    {
+      "id": "E8",
+      "caption": "A true refuse (the wheel needs one)",
+      "query": "SELECT stock.last AT {customer}",
+      "kind": "query",
+      "mood": "refuse",
+      "disclosures": [
+        {
+          "token": "out_of_universe",
+          "severity": null,
+          "detail": "stock @ customer: 'customer' is not addressable in universe 'inventory' (out of domain — undefined, not missing)"
+        }
+      ],
+      "row_count": null,
+      "reason_tokens": [
+        "out_of_universe"
+      ],
+      "in_wheel": true
+    },
+    {
+      "id": "E9",
+      "caption": "Check before you run",
+      "query": "EXPLAIN SELECT stock.sum AT {store*cal.month}",
+      "kind": "explain",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "b_anchor_crossing",
+          "severity": "critical",
+          "detail": "stock.sum (sum) coarsens across blocked lineage 'calendar' (edge day->cal.month); per-bucket totals do not reconcile along this axis"
+        }
+      ],
+      "row_count": null,
+      "reason_tokens": [
+        "b_anchor_crossing"
+      ],
+      "in_wheel": false
+    }
+  ],
+  "wheel": [
+    "E4",
+    "E8",
+    "E2",
+    "E5"
+  ]
+}
