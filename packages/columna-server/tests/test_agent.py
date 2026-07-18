@@ -17,7 +17,8 @@ from columna_server.agent import ProviderUnavailable, ScriptedProvider
 from columna_server.agent.loop import Agent, prompt_example_queries
 from columna_server.agent.mcp_client import connect
 
-WEDGE = "sell_through_rate: revenue / level.last @ store, day"
+CLARIFY_Q = "SELECT avg(aov) AT {cal.month}"   # §2c clarify exemplar (input_anchor_ambiguous); the cross-universe
+                                     # wedge is now a category error, so the agent's clarify demo moved here
 
 
 # --- acceptance #1 (part): MCP boundary — the agent never imports the engine ---------------
@@ -31,7 +32,7 @@ def test_agent_process_never_imports_columna_core(tmp_path):
         "from columna_server.agent.loop import Agent\n"
         "from columna_server.agent.providers import ScriptedProvider\n"
         "async def main():\n"
-        "    prov = ScriptedProvider(['QUERY: revenue @ region', 'QUERY: " + WEDGE + "'])\n"
+        "    prov = ScriptedProvider(['QUERY: SELECT revenue AT {region}', 'QUERY: " + CLARIFY_Q + "'])\n"
         "    async with connect(None) as conn:\n"
         "        d = await conn.describe_manifold(conn.manifold_id)\n"
         "        a = Agent(conn, prov, d)\n"
@@ -64,7 +65,7 @@ def test_agent_source_has_no_columna_core_import():
 async def test_material_disclosure_is_surfaced():
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: inv: level.sum @ store"]), describe)
+        agent = Agent(conn, ScriptedProvider(["QUERY: SELECT level.sum AS inv AT {store}"]), describe)
         reply = "\n".join(await agent.run_turn("total inventory by store"))
     assert "blocked_reduction" in reply           # the wire code
     assert "material" in reply
@@ -76,30 +77,26 @@ async def test_material_disclosure_is_surfaced():
 async def test_clarify_relayed_not_auto_picked():
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: " + WEDGE]), describe)
+        agent = Agent(conn, ScriptedProvider(["QUERY: " + CLARIFY_Q]), describe)
 
-        clarify_reply = "\n".join(await agent.run_turn("sell through rate by store and day"))
-        # both candidate populations are named; no served number is present
-        assert "store_days" in clarify_reply and "transactions" in clarify_reply
+        clarify_reply = "\n".join(await agent.run_turn("average order value trend by month"))
+        # the clarify is RELAYED with its candidate alternatives; never auto-picked
         assert "choose" in clarify_reply.lower()
         assert agent._pending is not None            # a choice is genuinely pending
         assert not re.search(r"\d{3,}", clarify_reply)   # no big served figures leaked
-
-        # the human chooses; the SAME query is re-issued with the chosen alternative's universe,
-        # which changes the outcome from clarify to an honest refuse (proving the pick was applied)
-        chosen_reply = "\n".join(await agent.run_turn("1"))
-        assert agent._pending is None
-        assert "store_days" in chosen_reply
-        assert "not defined over that population" in chosen_reply or "out" in chosen_reply.lower()
+    # NOTE (§2c): the mechanical PICK (applying a chosen alternative) rode the universe-apply mechanism
+    # — no §2c clarify (input_anchor_ambiguous) carries a universe-apply, so that path is dead code
+    # pending OF-4 (server universe-arg removal + the pick-flow redesign). Relay-and-never-auto-pick,
+    # the load-bearing behavior, is asserted here; the pick round-trip moves with OF-4.
 
 
 # --- grounding: every numeral in a served reply comes from the wire ------------------------
 async def test_grounding_numerals_subset_of_wire():
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: revenue @ region"]), describe)
+        agent = Agent(conn, ScriptedProvider(["QUERY: SELECT revenue AT {region}"]), describe)
         reply = "\n".join(await agent.run_turn("revenue by region"))
-        wire = await conn.query("revenue @ region")
+        wire = await conn.query("SELECT revenue AT {region}")
     wire_blob = repr(wire)
     nums = re.findall(r"-?\d+\.\d+|-?\d+", reply)
     assert nums, "expected served numbers in the reply"
@@ -121,7 +118,7 @@ async def test_agent_cannot_surface_a_fabricated_number():
 # --- refuse explained ----------------------------------------------------------------------
 async def test_refuse_is_explained_with_no_invented_value():
     # after the refuse, the agent is permitted ONE reformulation — here it asks the human instead
-    script = ["QUERY: i: level.last @ product",
+    script = ["QUERY: SELECT level.last AS i AT {product}",
               "ASK: level isn't defined per product; want inventory by store instead?"]
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
@@ -139,7 +136,7 @@ async def test_engine_and_formatter_backstop_a_fabricated_measure():
     """Even if the model fabricates a measure name, the engine rejects it (unknown column) and the
     formatter presents it as an invalid query — no fake number ever reaches the human. This is the
     deterministic backstop behind the live 'model asks instead of inventing' behavior."""
-    script = ["QUERY: churn_rate @ region",
+    script = ["QUERY: SELECT churn_rate AT {region}",
               "ASK: I don't have a churn measure — did you mean revenue by region?"]
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)

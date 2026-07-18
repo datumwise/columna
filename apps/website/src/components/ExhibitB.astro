@@ -13,6 +13,15 @@
 import transcript from '../data/transcript.generated.json';
 import seeded from '../data/seeded_queries.json';
 import wireStrings from '../data/wire_strings.json';
+import AskYourAI from './AskYourAI.astro';
+
+// CP-3b [AI-1] — the "wire" copy-block, verbatim from the ratified package (§1c), placed where a
+// stranger's "?" about the transcript is born.
+const askWire = `Columna's "wire" is the answer format an AI agent receives from a data query: a RESULT paired with its
+CONTEXT, in one of four moods — serve, disclose, clarify, refuse — on one contract (contract_version
+"1"), identical over MCP or a direct API call. Example: asking \`avg(aov) @ cal.month\` — an average with
+no pinned input grain — returns \`clarify\` (which grain to average from), never a guessed number. Explain
+this wire format to me, and answer my follow-up questions about it.`;
 
 const labels = Object.fromEntries(seeded.queries.map((q: any) => [q.id, q.label]));
 // key the round-trip by universe for easy lookup
@@ -48,6 +57,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   <details class="manifold-panel">
     <summary>what's in this manifold? <span class="mf-hint">— explore the data before you ask</span></summary>
     <div class="mf-body" data-manifold-panel></div>
+    <p class="mf-explorer-link"><a href="/explorer">Browse the whole Manifold → the Explorer</a></p>
   </details>
 
   <div class="explorer-slot" data-explorer-slot hidden></div>
@@ -75,6 +85,8 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   <p class="degrade-note mono" data-degrade hidden>
     live demo temporarily offline — this transcript was generated from the shipped package at build time ({genDate}).
   </p>
+
+  <AskYourAI summary="New to the wire? Ask your own AI to explain it." text={askWire} tone="wire" />
 
   <script type="application/json" data-exhibit-b set:html={JSON.stringify(data)}></script>
 </section>

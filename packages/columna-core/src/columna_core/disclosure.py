@@ -34,6 +34,7 @@ COVERAGE = "coverage"
 UNCONFIRMED = "unconfirmed_assumption"
 TRANSPORT = "transport"          # records a faithful transport step (provenance)
 B_ANCHOR_CROSSING = "b_anchor_crossing"   # served, critical: a reduction coarsens a blocked family
+DATA_GAP = "data_gap"            # served, material: absent cells are GAPS (spine/product basis, B3)
 
 # ---- the four planner outcomes, plus error (ADR-032) ------------------------------------
 # serve / disclose are carried by a served frame + Disclosure; clarify / refuse / error are
@@ -147,13 +148,44 @@ class Disclosure:
 REASON_OUTCOME = {
     "non_functional_transport": (CLARIFY, AMBIGUOUS),   # fan-out (M:N): no single total exists
     "ambiguous_grain":          (CLARIFY, AMBIGUOUS),   # attribute keyed at several levels
-    "co_anchor_ambiguous":      (CLARIFY, AMBIGUOUS),   # ratio over >1 population: rate's population ambiguous
+    # ── TOMBSTONE ── `co_anchor_ambiguous` was (CLARIFY, AMBIGUOUS) — "ratio over >1 population: rate's
+    #   population ambiguous". RETIRED 2026-07-16 (§2c expression law, Huayin's ruling): a cross-universe
+    #   expression is a language-law CATEGORY ERROR, not a clarify (see `cross_universe` below); within one
+    #   universe the denotation rule leaves nothing ambiguous. Its emitter left the language entirely and a
+    #   retirement-pin test asserts it is never emitted. Kept here as a dated tombstone so old transcripts
+    #   and docs remain interpretable — vocabularies grow by rule and shrink by tombstone, never silently.
+    "cross_universe":           (ERROR,   None),        # a column expression combines measures from >1
+                                                        #   universe (§2c expression law: a column evaluates in
+                                                        #   ONE universe, never crosses the boundary). A category
+                                                        #   error — rides the ERROR channel, not the four moods.
+                                                        #   Minted 2026-07-16 (§2c). Remedy: juxtapose or declare.
     "input_anchor_ambiguous":   (CLARIFY, AMBIGUOUS),   # inline reduction with no pinned input anchor:
                                                         #   the grain to resolve the inner at is under-
                                                         #   determined (names the same dimension OF-2's
                                                         #   immaterial input-anchor note records)
+    "filter_unreachable":       (CLARIFY, AMBIGUOUS),   # a WHERE dimension cannot lawfully reach a series'
+                                                        #   input anchor (the filter's grain is not
+                                                        #   addressable in that series' universe). MINTED
+                                                        #   2026-07-17 (WP-FrameQL envelope, Huayin) — the
+                                                        #   envelope's per-series WHERE reachability law; one
+                                                        #   reason per contested dimension (OF-1). Detail
+                                                        #   names the dimension, the series, and the reachable
+                                                        #   alternatives; two-path remedy: restrict the
+                                                        #   predicate to reachable dims, or change the series'
+                                                        #   input anchor. S1a: registry is the source of truth.
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
+    "conflicting_data":         (REFUSE,  UNSUPPORTED), # a declared invariant (ASSERT) the attested data
+                                                        # VIOLATES: the data's own testimony forbids serving
+                                                        # the cut region (B1 scope-edit). MINTED here per the
+                                                        # one-reason-per-contested-dimension rule (Huayin,
+                                                        # 2026-07-15) — a violated invariant is a genuinely
+                                                        # new contested dimension, sibling to
+                                                        # `contradicted_edge` (a declared edge violated).
+                                                        # Refuse/UNSUPPORTED matches that sibling's pair. The
+                                                        # name is shared with the RESERVED caveat code
+                                                        # (disclosure_wire) — one concept, two channels; the
+                                                        # caveat code stays reserved-and-unwired.
     "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
     "type_error":               (ERROR,   None),        # vocabulary/type failure
     "unknown":                  (ERROR,   None),        # unknown column / operator / construct

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trutina-core"
+version = "0.0.0"
+description = "Name reserved by datumwise (https://datumwise.ai). Not yet released; no functionality."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Datumwise" }]
+classifiers = [
+    "Development Status :: 1 - Planning",
+]
+
+[project.urls]
+Homepage = "https://datumwise.ai"
+
+[tool.setuptools]
+packages = ["trutina_core"]

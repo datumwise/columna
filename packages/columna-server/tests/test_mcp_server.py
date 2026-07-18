@@ -21,7 +21,9 @@ async def test_list_and_describe_roundtrip(mcp_session):
     measures = [m["name"] for m in dm["measures"]]
     assert "region_label" in measures          # the WP-0 parity canary
     sd = next(u for u in dm["universes"] if u["name"] == "store_days")
-    assert sd["predicate"] == "day >= stores.opened_date"
+    # C-2 insulation (§2b, CP-3): the predicate renders LOGICALLY — the physical `stores.` qualifier
+    # (a shipped leak this test previously codified) no longer crosses describe.
+    assert sd["predicate"] == "day >= opened_date"
 
 
 # --- acceptance #2 --------------------------------------------------------------------------
@@ -38,46 +40,41 @@ async def test_describe_measure_family_triple(mcp_session):
 
 # --- acceptance #3: the wedge -------------------------------------------------------------
 async def test_query_clarify_wedge(mcp_session):
+    # §2c reframe: the clarify exemplar is now an inline reduction with no pinned input anchor (the
+    # cross-universe ratio is a category ERROR, not a clarify).
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark",
-                              frameql="rate: revenue / level.last @ store, day")
+                              frameql="SELECT avg(aov) AS rate AT {cal.month}")
     assert w["outcome"] == "clarify"
     col = w["columns"][0]
     assert col["status"] == "clarify"
     nr = col["no_result"]
-    assert nr["reason"] == "co_anchor_ambiguous" and nr["discriminator"] == "ambiguous"
-    assert len(nr["alternatives"]) >= 2
-    assert {a["apply"]["universe"] for a in nr["alternatives"]} == {"transactions", "store_days"}
+    assert nr["reason"] == "input_anchor_ambiguous" and nr["discriminator"] == "ambiguous"
+    assert len(nr["alternatives"]) >= 1
 
 
-# --- acceptance #4: the two-hop round-trip (ruling A2+) -------------------------------------
+# --- acceptance #4: the two-hop round-trip (clarify -> reformulate -> serve), §2c-reframed ----
 async def test_clarify_two_hop_roundtrip(mcp_session):
     async with mcp_session() as client:
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: revenue / level.last @ store, day")
-        pinned_universe = clarify["columns"][0]["no_result"]["alternatives"][0]["apply"]["universe"]
-
-        # hop 1: substitute the pin token -> a non-clarify outcome with an informative refuse reason
-        hop1 = await client.call("query", manifold_id="benchmark",
-                                 frameql="rate: revenue / level.last @ store, day", universe=pinned_universe)
-
-        # hop 2: reformulate per the clarify's detail into separate columns -> serve + coverage caveat
-        hop2 = await client.call("query", manifold_id="benchmark",
-                                 frameql="revenue: revenue, inv: level.last @ store, day")
-
-    assert hop1["outcome"] != "clarify"
-    assert hop1["outcome"] == "refuse"
-    assert hop1["columns"][0]["no_result"]["reason"] == "out_of_universe"
-    # hop 2 serves the numbers but rides a MATERIAL coverage caveat -> the wire outcome is `disclose`
-    # (clarify -> refuse -> disclose is three of the four moods in one flow).
-    assert hop2["outcome"] == "disclose"
-    assert "denominator_population" in [d["code"] for d in hop2["frame"]["disclosures"]]
+                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
+        # hop: reformulate per the clarify — PIN the input anchor -> serve (a definite quantity)
+        hop = await client.call("query", manifold_id="benchmark",
+                                frameql="SELECT avg(aov@day) AS rate AT {cal.month}")
+        # and a structural refusal in the same manifold — an ask outside the contracted space
+        refuse = await client.call("query", manifold_id="benchmark",
+                                   frameql="SELECT level.last AS inv AT {customer}")
+    assert clarify["outcome"] == "clarify"
+    assert clarify["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"
+    assert hop["outcome"] in ("serve", "disclose")            # the pinned reformulation is a definite quantity
+    assert refuse["outcome"] == "refuse"
+    assert refuse["columns"][0]["no_result"]["reason"] == "out_of_universe"
 
 
 # --- acceptance #5: B-anchor inform-and-serve on the wire -----------------------------------
 async def test_banchor_served_with_material_critical(mcp_session):
     async with mcp_session() as client:
-        w = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        w = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
     assert w["outcome"] == "disclose"
     col = w["columns"][0]
     assert col["status"] == "served" and "values" in col
@@ -88,8 +85,8 @@ async def test_banchor_served_with_material_critical(mcp_session):
 # --- acceptance #6: refuse vs error are distinguishable ------------------------------------
 async def test_out_of_universe_refuse_vs_unknown_error(mcp_session):
     async with mcp_session() as client:
-        refuse = await client.call("query", manifold_id="benchmark", frameql="i: level.last @ product")
-        err = await client.call("query", manifold_id="benchmark", frameql="z: revenue.zap @ store")
+        refuse = await client.call("query", manifold_id="benchmark", frameql="SELECT level.last AS i AT {product}")
+        err = await client.call("query", manifold_id="benchmark", frameql="SELECT revenue.zap AS z AT {store}")
     rc = refuse["columns"][0]
     assert refuse["outcome"] == "refuse" and rc["status"] == "refuse"
     assert rc["no_result"]["discriminator"] == "unsupported"
@@ -98,17 +95,18 @@ async def test_out_of_universe_refuse_vs_unknown_error(mcp_session):
     assert ec["no_result"]["kind"] == "error"
 
 
-# --- acceptance #7: explain touches zero data ----------------------------------------------
-async def test_explain_zero_fetch_identical_payload(mcp_session):
+# --- acceptance #7: EXPLAIN (envelope) touches zero data; would-be matches the query -------------
+async def test_explain_envelope_zero_fetch_and_would_be(mcp_session):
     async with mcp_session() as client:
-        q = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
-        ex = await client.call("explain", manifold_id="benchmark", frameql="inv: level.sum @ store")
-    assert ex["executed"] is False
-    assert ex["fetches_delta"] == 0
-
-    def caveats(w):
-        return [(d["code"], d["materiality"], d["severity"]) for d in w["columns"][0]["disclosures"]]
-    assert caveats(ex) == caveats(q)
+        q = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
+        ex = await client.call("explain", manifold_id="benchmark", frameql="SELECT level.sum AT {store}")
+    # zero data + the rich EXPLAIN payload (desugared artifact + series/cone)
+    assert ex["executed"] is False and ex["fetches_delta"] == 0
+    assert "level.sum AS level_sum" in ex["desugared"] and ex["outcome"] == q["outcome"]
+    # the would-be disclosures equal the query's actual disclosures (explain is the plan, annotated)
+    q_cav = [(d["code"], d["materiality"], d["severity"]) for d in q["columns"][0]["disclosures"]]
+    ex_cav = [(d["code"], d["materiality"], d["severity"]) for d in ex["series"][0]["would_be"]["disclosures"]]
+    assert ex_cav == q_cav
 
 
 # --- read-only / no-SQL surface ------------------------------------------------------------
@@ -157,19 +155,19 @@ def _assert_frame_shape(w):
 
 async def test_wire_contract_schema_and_scoping(mcp_session):
     async with mcp_session() as client:
-        serve = await client.call("query", manifold_id="benchmark", frameql="revenue: revenue @ region")
-        disclose = await client.call("query", manifold_id="benchmark", frameql="inv: level.sum @ store")
+        serve = await client.call("query", manifold_id="benchmark", frameql="SELECT revenue AS revenue AT {region}")
+        disclose = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
         clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="rate: revenue / level.last @ store, day")
-        hop2 = await client.call("query", manifold_id="benchmark",
-                                 frameql="rev: revenue, inv: level.last @ store, day")
-    for w in (serve, disclose, clarify, hop2):
+                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
+        error = await client.call("query", manifold_id="benchmark",
+                                  frameql="SELECT revenue / level.last AS rate AT {store*day}")
+    for w in (serve, disclose, clarify, error):
         _assert_frame_shape(w)
     # outcome derivation: nothing material -> serve; a material caveat -> disclose
     assert serve["outcome"] == "serve"
     assert disclose["outcome"] == "disclose"
-    # scoping: the multi-universe coverage caveat is FRAME-scoped, not on any column
-    frame_codes = [d["code"] for d in hop2["frame"]["disclosures"]]
-    assert "denominator_population" in frame_codes
-    for col in hop2["columns"]:
-        assert "denominator_population" not in [d["code"] for d in col["disclosures"]]
+    assert clarify["outcome"] == "clarify"
+    # §2c: the cross-universe expression is a category ERROR (not a clarify), and juxtaposition carries
+    # NO multi-universe coverage caveat (retired) — the four moods are taught by well-posed asks now.
+    assert error["outcome"] == "error"
+    assert error["columns"][0]["no_result"]["reason"] == "cross_universe"

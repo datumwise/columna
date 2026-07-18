@@ -1,0 +1,194 @@
+{
+  "benchmark": "B10",
+  "ground_truth": {
+    "closures": [
+      [
+        "universe",
+        "budget"
+      ]
+    ],
+    "grades": {},
+    "oracle_calls": [
+      "basis: product_catalog=registry, budget=product?"
+    ],
+    "max_checklist": 2
+  },
+  "arms": {
+    "control": [
+      {
+        "bid": "B10",
+        "rep": 0,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 5,
+        "converged": false,
+        "loop_violation": false,
+        "retries": 1,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; checklist flooded (5 items > max 2)",
+        "proposals": [],
+        "checklist": [
+          "basis: no store dimension in catalog — store_id only appears in budget; confirm store is a real spine dimension vs. an events-only key",
+          "basis: budget is a target/plan table — is a missing (store,day) row a zero budget or an unbudgeted gap?",
+          "additivity: 'target' is a budget amount — additive across store and day if it is a per-day amount; a plan/quota snapshot would be NON-additive over time — confirm grain semantics",
+          "refutation: store has no catalog table/PK — this edge points at an undeclared parent; propose as flagged degraded edge until store level is declared",
+          "refutation: budget declares no PK — verify (store_id, day) is actually unique before treating as fact grain; duplicates would refute this"
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 1,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 2,
+        "converged": false,
+        "loop_violation": true,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; checklist flooded (4 items > max 2); loop_violation: revise re-proposed a struck declaration 'measure target from budget.target, additive across store and day' — a settled mark stays settled unless the human reopens it",
+        "proposals": [],
+        "checklist": [
+          "basis: budget references store_id but no store dimension exists in the catalog — declare the store spine or accept store as an orphan key",
+          "basis: budget is a target/plan table keyed by (store,day) — is a missing (store,day) row a genuine zero target or an un-set plan (gap)?",
+          "additivity: target reads as a per-(store,day) budget figure — additive across stores and days IF it is a level amount; flag if it is actually a rate/run-rate, which would be non-additive",
+          "refutation: no key declared on budget — verify (store_id, day) is actually unique before riding it as the grain; duplicates would refute this assertion"
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 2,
+        "passed": true,
+        "closure": true,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 1,
+        "converged": true,
+        "loop_violation": false,
+        "retries": 0,
+        "narrative": "checklist flooded (3 items > max 2)",
+        "proposals": [
+          {
+            "kind": "universe",
+            "target": "budget",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "level",
+            "target": "store",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "level",
+            "target": "day",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "level",
+            "target": "product",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "edge",
+            "target": "budget->store",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "edge",
+            "target": "budget->day",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          },
+          {
+            "kind": "measure",
+            "target": "target",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          }
+        ],
+        "checklist": [
+          "basis: budget is an events-vs-spine question — is a missing (store_id, day) row a genuine zero target or just a gap in coverage?",
+          "universe: store has no catalog table — this level is synthesized from budget.store_id alone; declare whether a store dimension should exist independently",
+          "additivity: 'target' reads as a budget amount and appears summable across store and day — but confirm it is a per-day level value and not itself a pre-averaged/rate figure (name is ambiguous)"
+        ]
+      }
+    ],
+    "treatment": [
+      {
+        "bid": "B10",
+        "rep": 0,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": true,
+        "conv": 2,
+        "converged": false,
+        "loop_violation": true,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; loop_violation: revise re-proposed a struck declaration 'measure target = sum(budget.target) grain(store_id, day)' — a settled mark stays settled unless the human reopens it",
+        "proposals": [],
+        "checklist": [
+          "basis: budget is a target/plan table — is a store-day with no row a genuine zero (no budget) or a gap (unentered)? A plan spine, if absence means gap, needs its own dimension, not event-derived days.",
+          "additivity: target reads as an additive planned amount at store-day grain — summable across store and day. Confirm it is a currency/quantity level and not a pre-divided rate."
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 1,
+        "passed": false,
+        "closure": false,
+        "grade": null,
+        "explicit": true,
+        "concise": true,
+        "conv": 2,
+        "converged": false,
+        "loop_violation": true,
+        "retries": 0,
+        "narrative": "missing/mismatched closures (normal form): [('universe', 'budget')]; loop_violation: revise re-proposed a struck declaration 'level store key store_id' — a settled mark stays settled unless the human reopens it",
+        "proposals": [],
+        "checklist": [
+          "basis: is budget a per-store-day spine (every store has a target each day) or an events table (rows only where a target was set)? absence-as-zero vs gap depends on this.",
+          "additivity: `target` — summable across store and day? if it is a daily budget it sums; if it is ever a rate/period-normalized figure it is NON-additive. Confirm at the store-day grain."
+        ]
+      },
+      {
+        "bid": "B10",
+        "rep": 2,
+        "passed": true,
+        "closure": true,
+        "grade": null,
+        "explicit": true,
+        "concise": false,
+        "conv": 2,
+        "converged": true,
+        "loop_violation": false,
+        "retries": 0,
+        "narrative": "checklist flooded (4 items > max 2)",
+        "proposals": [
+          {
+            "kind": "universe",
+            "target": "budget",
+            "grade": "inferred_catalog",
+            "opens_fertility": false
+          }
+        ],
+        "checklist": [
+          "basis: is budget a dense daily spine (every store x day) or a sparse events table? absence of a (store,day) row — zero target or gap? declare the basis.",
+          "additivity: 'target' is a budget figure — additive across store and day IF it is a per-day amount; if it is a period target replicated per row it double-counts on sum. confirm grain before summing.",
+          "refutation: store has no catalog table or PK — store_id is only an unvalidated FK-shaped column in budget. this edge points at an undeclared parent; confirm store exists as a level or degrade the edge.",
+          "basis: budget is a plan/target spine, not observed events — absence of a (store,day) row is a GAP (no plan set), not a zero; do not treat missing targets as 0."
+        ]
+      }
+    ]
+  }
+}

@@ -14,25 +14,29 @@ from datetime import datetime, timezone
 from importlib.metadata import version
 
 from columna_server import tools as T
-from columna_server.demo import demo_store, DEMO_MANIFOLD_ID as MID
+from columna_server.demo import (demo_store, DEMO_MANIFOLD_ID as MID,
+                                 CLARIFY_Q, REFUSE_Q, DISCLOSE_Q, SERVE_Q)
 
 # Anchored at `region` so the full wire stays small and legible (the exhibit *shows* the JSON):
 # same measures, same mood, same material caveat — just few rows instead of thousands.
-WEDGE = "sell_through_rate: revenue / level.last @ store, day"
-SEPARATE = "revenue: revenue, inv: level.last @ region"
-SERVE = "revenue @ region"
-FOOL = "sell_through_rate @ store, day"  # a column label, not a measure -> error/ASK
+# CP-3 S-2 (Huayin 2026-07-17): the four-mood exhibit mirrors the shipped `demo --play` wheel tour on the
+# ratified §2c exemplars. The old cross-universe wedge (S-1) is KILLED — a category error now — and the
+# demo's own declared metrics wear their verdicts in the Explorer instead of one bespoke mascot ratio.
+# The four-mood queries are IMPORTED from the shipped demo (single source of truth — they migrate to the
+# envelope with the package, so the transcript can never drift from what `demo --play` runs). 0.9.0: they
+# are `SELECT … AT {…}`; the terse form is retired.
+FOOL       = "SELECT profit_margin AT {cal.month}"   # a plausible column no one declared -> error/ASK
 
 SEEDED = {
-    "clarify":  {"frameql": WEDGE,     "universe": None,           "intended": "clarify"},
-    "refuse":   {"frameql": WEDGE,     "universe": "transactions", "intended": "refuse"},
-    "disclose": {"frameql": SEPARATE,  "universe": None,           "intended": "disclose"},
-    "serve":    {"frameql": SERVE,     "universe": None,           "intended": "serve"},
+    "clarify":  {"frameql": CLARIFY_Q,  "universe": None, "intended": "clarify"},
+    "refuse":   {"frameql": REFUSE_Q,   "universe": None, "intended": "refuse"},
+    "disclose": {"frameql": DISCLOSE_Q, "universe": None, "intended": "disclose"},
+    "serve":    {"frameql": SERVE_Q,    "universe": None, "intended": "serve"},
 }
 
 
-def run(store, fq, universe=None):
-    return T.query(store, MID, fq, universe=universe)
+def run(store, fq):                          # 0.9.0: universe is structural (§2c), no longer a query arg
+    return T.query(store, MID, fq)
 
 
 def build_describe(store, dm):
@@ -88,41 +92,12 @@ def build_describe(store, dm):
     }
 
 
-def build_derived_metrics(seeded):
-    """Capture the demo's DERIVED-METRIC definitions (v0.2 fork-4, Option B). sell_through_rate is
-    an ad-hoc derived column defined inline in the seeded WEDGE query — the engine has NO describe
-    object for it (describe_measure raises 'unknown measure'), so it is captured from the demo's own
-    seeded-query definition, not from describe wire. Every field still traces to a captured artifact:
-    the formula from the WEDGE definition, `demonstrates` from the REAL clarify wire the query
-    produced, and `source` naming the provenance so a client can tell it apart from engine-describe
-    cards (Huayin, 2026-07-13)."""
-    name, expr = (s.strip() for s in WEDGE.split("@", 1)[0].split(":", 1))
-    clarify_wire = seeded["clarify"]["wire"]
-    reason = None
-    for c in clarify_wire.get("columns", []):
-        if c.get("no_result", {}).get("reason"):
-            reason = c["no_result"]["reason"]
-            break
-    return {
-        name: {
-            "name": name,
-            "formula": expr,                       # verbatim from the seeded-query definition
-            "inputs": [                             # the operands — real, describe-able measures
-                {"measure": "revenue"},
-                {"measure": "level", "member": "last"},
-            ],
-            "demonstrates": reason,                 # the mood this metric's ambiguity produces (captured)
-            "source": "demo seeded-query definition, captured at build",
-        }
-    }
-
-
 def main() -> int:
     store = demo_store()
 
     seeded = {}
     for key, q in SEEDED.items():
-        wire = run(store, q["frameql"], q["universe"])
+        wire = run(store, q["frameql"])
         got = wire.get("outcome")
         if got != q["intended"]:
             print(
@@ -133,24 +108,26 @@ def main() -> int:
             return 1
         seeded[key] = {**q, "wire": wire}
 
-    # clarify round-trip: capture what each offered alternative truly resolves to (both refuse —
-    # each pin makes the other operand out-of-universe; the honest resolution is SEPARATE columns).
+    # clarify round-trip: the clarify (an inline reduction with no pinned input anchor) offers input-anchor
+    # alternatives; replay each alternative's re-ask to capture what it truly resolves to. Defensive over
+    # the alternative shape — replays any alt carrying a re-askable `apply.frameql`.
     roundtrip = {}
-    for alt in seeded["clarify"]["wire"]["columns"][0]["no_result"]["alternatives"]:
-        u = (alt.get("apply") or {}).get("universe")
-        if u:
-            roundtrip[alt["token"]] = {"apply": alt["apply"], "wire": run(store, WEDGE, u)}
+    for alt in seeded["clarify"]["wire"]["columns"][0].get("no_result", {}).get("alternatives", []):
+        reask = (alt.get("apply") or {}).get("frameql")
+        if reask:
+            roundtrip[alt.get("token", reask)] = {"apply": alt["apply"], "wire": run(store, reask)}
 
     # fool-it: unknown measure -> error, plus the real measure index (describe touches no data)
     fool_wire = run(store, FOOL)
     describe = T.describe_manifold(store, MID)
     measure_index = [m.get("measure") or m.get("name") for m in describe.get("measures", [])]
 
-    # demo --play cross-check: the three moods the shipped self-player emits
+    # demo --play cross-check: the four moods the shipped self-player emits (the wheel tour)
     play = [
-        {"title": "clarify", "wire": run(store, WEDGE)},
-        {"title": "refuse", "wire": run(store, WEDGE, "transactions")},
-        {"title": "disclose", "wire": run(store, SEPARATE)},
+        {"title": "clarify", "wire": run(store, CLARIFY_Q)},
+        {"title": "refuse", "wire": run(store, REFUSE_Q)},
+        {"title": "disclose", "wire": run(store, DISCLOSE_Q)},
+        {"title": "serve", "wire": run(store, SERVE_Q)},
     ]
 
     out = {
@@ -166,9 +143,12 @@ def main() -> int:
         "clarify_roundtrip": roundtrip,
         "fool_it": {"query": FOOL, "wire": fool_wire, "measure_index": measure_index},
         "play_crosscheck": play,
-        # the Manifold Explorer's captured describe wire (tier 1) — cards render only from this
-        "describe": {**build_describe(store, describe),
-                     "derived_metrics": build_derived_metrics(seeded)},
+        # the Manifold Explorer's captured describe wire — cards render only from this. The old bespoke
+        # derived-metric card is gone (S-1 killed); the Explorer badges the real declared objects via describe.
+        "describe": build_describe(store, describe),
+        # CP-3 C-3/S-4: the RAW describe_manifold (the C-1 shape) the portable Explorer component binds —
+        # basis/absence, asserts, hierarchies, licenses, scope. The /explorer page mounts against this.
+        "explorer_describe": describe,
     }
     json.dump(out, sys.stdout, indent=2)
     return 0

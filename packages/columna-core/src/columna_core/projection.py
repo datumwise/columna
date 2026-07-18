@@ -70,6 +70,7 @@ class OperatorSig:
 class UniverseShape:
     name: str
     base_dimensions: frozenset    # NO predicate (confinement is an engine/resolution concern)
+    basis: Optional[str] = None   # B3 population kind: events|spine|product|registry (absence semantics)
 
 @dataclass(frozen=True)
 class DerivedShape:
@@ -94,11 +95,12 @@ class PlannerView:
                                          {mem: frozenset(fm.b_anchor.blocked_lineages)
                                           for mem, fm in mc.family.items()})
                          for n, mc in m.measures.items()}
-        self.universes = {n: UniverseShape(n, u.base_dimensions)
+        self.universes = {n: UniverseShape(n, u.base_dimensions, u.basis)
                           for n, u in m.universes.items()}
         self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
                         for n, d in m.derived.items()}
         self.non_functional = tuple(m.non_functional)         # (frm, to, detail) — level names only
+        self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,

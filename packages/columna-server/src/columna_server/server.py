@@ -7,8 +7,6 @@ raise, surfaced by MCP as an error result. There is no write tool and no SQL pat
 """
 from __future__ import annotations
 
-from typing import Optional
-
 from mcp.server.fastmcp import FastMCP
 
 from . import tools as T
@@ -38,16 +36,19 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         return T.describe_measure(store, manifold_id, measure)
 
     @mcp.tool()
-    def query(manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
-        """Execute a Frame-QL query (`<columns> @ <anchor>`; never SQL). Returns the wire contract:
-        outcome (serve/disclose/clarify/refuse/error) with per-column values and structured
-        disclosures. `universe` pins the population (ON UNIVERSE)."""
-        return T.query(store, manifold_id, frameql, universe)
+    def query(manifold_id: str, frameql: str) -> dict:
+        """Execute a FrameQL envelope statement (`SELECT <series [AS alias]>,… AT {anchor}` with optional
+        WHERE/HAVING/ORDER BY/LIMIT n PER {dims}; never SQL; the terse `cols @ anchor` form is retired).
+        Returns the wire contract: outcome (serve/disclose/clarify/refuse/error) with per-column values
+        and structured disclosures. Universe is resolved structurally (§2c) — never named in a query."""
+        return T.query(store, manifold_id, frameql)
 
     @mcp.tool()
-    def explain(manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
-        """Explain a Frame-QL query WITHOUT executing it: the would-be outcome + disclosures with
-        zero backend fetches (`fetches_delta` is asserted 0). Same query grammar as `query`."""
-        return T.explain(store, manifold_id, frameql, universe)
+    def explain(manifold_id: str, frameql: str) -> dict:
+        """EXPLAIN a FrameQL envelope statement WITHOUT executing it — the cheap inner loop. Returns the
+        canonical DESUGARED form (the exact artifact the planner consumed), per-series atom
+        decomposition, the dependency cone with current verdicts, and the would-be outcome + disclosures
+        — touching ZERO data (`fetches_delta` is 0). A first-class tool beside `query`."""
+        return T.explain_statement(store, manifold_id, frameql)
 
     return mcp

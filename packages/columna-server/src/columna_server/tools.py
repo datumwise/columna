@@ -13,7 +13,7 @@ from typing import Optional
 
 from columna_core import disclosure_wire as dw
 
-from .frameql import FrameQLSyntaxError, parse_frameql
+from .frameql import FrameQLSyntaxError
 from .store import ManifoldStore
 
 CONTRACT_VERSION = dw.CONTRACT_VERSION
@@ -36,9 +36,11 @@ def _get(store: ManifoldStore, manifold_id: str):
 
 
 def _render_ref(ref) -> str:
+    # C-2 insulation (§2b, CP-3): render predicates LOGICALLY — the physical table qualifier NEVER
+    # crosses describe (the shipped leak was `stores.opened_date`; the standing test bans any table.column).
     if ref.is_literal:
         return str(ref.value)
-    return f"{ref.table}.{ref.column}" if ref.table else str(ref.column)
+    return str(ref.column)
 
 
 def _render_predicate(pred) -> Optional[str]:
@@ -61,21 +63,31 @@ def list_manifolds(store: ManifoldStore) -> dict:
 def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     lm = _get(store, manifold_id)
     m = lm.manifold
-    dimensions = [{"level": lv.name, "realized_by": lv.realized_by, "is_base": lv.is_base}
-                  for lv in m.levels.values()]
+    from columna_core import (describe_derived, describe_universe, describe_assert, describe_hierarchy)
+    # C-2 insulation (§2b, CP-3): dimensions no longer emit `realized_by` (a physical identifier).
+    dimensions = [{"level": lv.name, "is_base": lv.is_base} for lv in m.levels.values()]
     edges = [{"frm": e.frm, "to": e.to, "lineage": e.lineage} for e in m.edges]
-    universes = [{"name": u.name, "base_dimensions": sorted(u.base_dimensions),
-                  "predicate": _render_predicate(u.predicate)} for u in m.universes.values()]
+    # C-1 (D1, CP-3): universes carry basis + absence semantics + the basis License (predicate rendered
+    # logically); asserts + hierarchies get their own describe blocks with the kernel-reused License.
+    universes = [describe_universe(u, _render_predicate(u.predicate)) for u in m.universes.values()]
+    asserts = [describe_assert(a, _render_predicate(a.predicate)) for a in m.asserts]
+    hierarchies = [describe_hierarchy(h) for h in m.hierarchies]
+    # signature addressing (D1): each measure carries its universe qualifier as a STRUCTURED field (a
+    # dotted address string would be indistinguishable from a physical `table.column` under the §2b test;
+    # the address is (universe, name), and the consumer renders it). Per-member operator props: describe_measure.
     measures = [{"name": mc.name, "family": list(mc.family), "universe": mc.universe}
                 for mc in m.measures.values()]
-    # WP-B B-5: NAMED derived metrics get describe objects — formula, resolution anchor, and each
-    # member's declared lineages + adjudicated license (verdict/basis/watermark/lineages). The
-    # serialization lives in columna_core.describe (the same interface the Cacher consumes).
-    from columna_core import describe_derived
     derived = [describe_derived(m, name) for name in m.derived]
+    # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
+    ps = getattr(lm.server, "published_scope", None)
+    scope = {"cut": sorted(ps.cut) if ps else [],
+             "blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
+             "cut_by": {k: v for k, v in (ps.cut_by.items() if ps else [])},
+             "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "dimensions": dimensions, "edges": edges, "universes": universes,
-            "measures": measures, "derived": derived}
+            "asserts": asserts, "hierarchies": hierarchies,
+            "measures": measures, "derived": derived, "published_scope": scope}
 
 
 # --- tool 3 ---------------------------------------------------------------------------------
@@ -88,7 +100,8 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
                              f"(have {sorted(m.measures)})")
     ops = lm.server.planner.m.operators   # OperatorSig registry (kind, is_monoid)
 
-    member_anchors, reducer_kind = {}, {}
+    from columna_core import operator_properties
+    member_anchors, reducer_kind, signatures = {}, {}, {}
     for member, fm in mc.family.items():
         sig = ops.get(member)
         member_anchors[member] = {
@@ -97,53 +110,53 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
             "is_monoid": (sig.is_monoid if sig else None),
         }
         reducer_kind[member] = (sig.kind if sig else None)
+        # D1 operator properties (registry describe): the algebraic/routing properties, no engine
+        # mechanics. Addressing is the STRUCTURED (universe, measure, member) — universe on this dict,
+        # measure is `measure`, member is the key — never a dotted string (§2b test would flag it).
+        signatures[member] = {"operator": operator_properties(sig)}
 
     base_grain = sorted(m.universes[mc.universe].base_dimensions)
     return {
         "contract_version": CONTRACT_VERSION, "manifold_id": manifold_id, "measure": measure,
         "universe": mc.universe, "dtype": mc.logical_type,
         "family": {"root": mc.name, "members": list(mc.family), "reducer_kind": reducer_kind},
-        "member_anchors": member_anchors,
+        "member_anchors": member_anchors, "signatures": signatures,
         "v_anchor": {"universe": mc.universe, "grain": base_grain},   # structured, ruling C
         "m_anchor": {"mechanism": mc.missingness, "columns": sorted(mc.m_anchor)},
         "provenance": {"measure": _PROVENANCE.get(mc.evidence, mc.evidence)},
     }
 
 
-# --- tools 4 & 5 ----------------------------------------------------------------------------
-def _build_frame(lm, frameql: str, universe: Optional[str]):
-    anchor, columns = parse_frameql(frameql)
-    fb = lm.server.frame(*anchor)
-    for name, expr in columns:
-        fb = fb.column(name, expr)
-    if universe:
-        fb = fb.on_universe(universe)
-    return fb
-
-
+# --- tools 4 & 5 (the ENVELOPE wire) --------------------------------------------------------
 def _syntax_error_wire(detail: str, universe: Optional[str]) -> dict:
     return {"contract_version": CONTRACT_VERSION, "outcome": "error",
             "frame": {"anchor": [], "universe": universe, "rollup_severity": "none", "disclosures": []},
             "columns": [], "error": {"reason": "frameql_syntax", "detail": detail}}
 
 
-def query(store: ManifoldStore, manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
+def query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+    """Execute a FrameQL ENVELOPE statement (`SELECT <series> AT {anchor} [WHERE][HAVING][ORDER BY]
+    [LIMIT]`). The terse `cols @ anchor` form is RETIRED from the wire (0.9.0 tombstone). Returns the
+    four-mood wire contract."""
+    from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
     try:
-        fb = _build_frame(lm, frameql, universe)
-    except FrameQLSyntaxError as e:
-        return _syntax_error_wire(str(e), universe)
-    fr = fb.run()
-    return dw.wire_frame(fr, universe=universe)
+        stmt = parse_statement(frameql)
+        fr = lm.server.planner.run_statement(stmt)
+    except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
+        return _syntax_error_wire(str(e), None)
+    return dw.wire_frame(fr)
 
 
-def explain(store: ManifoldStore, manifold_id: str, frameql: str, universe: Optional[str] = None) -> dict:
+def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) -> dict:
+    """EXPLAIN an envelope statement WITHOUT executing: canonical desugared form + atom decomposition +
+    dependency cone with verdicts + would-be annotation, zero backend fetches. The rich EXPLAIN payload
+    (WP-FrameQL) — distinct from the query wire; a first-class MCP tool beside `query`."""
+    from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
     try:
-        fb = _build_frame(lm, frameql, universe)
-    except FrameQLSyntaxError as e:
-        return _syntax_error_wire(str(e), universe)
-    before = lm.server.fetches
-    fr = fb.plan()                       # would-be annotation, zero backend fetches
-    delta = lm.server.fetches - before
-    return dw.wire_frame(fr, universe=universe, executed=False, fetches_delta=delta)
+        stmt = parse_statement(statement)
+        return lm.server.explain_statement(stmt)
+    except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
+        return {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
+                "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}

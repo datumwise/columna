@@ -11,19 +11,27 @@ surface (Python, MCP, and a natural-language agent).
 ## Quickstart (ten minutes, no source checkout)
 
 ```bash
-pip install columna-core columna-server
+pip install columna
 columna-server demo --play
 ```
 
-`demo --play` runs the real wedge end to end and pretty-prints the actual wire JSON for three of the
-four moods in one flow:
+`pip install columna` is the canonical install — the metapackage that pulls in `columna-core` (the
+engine) and `columna-server` (the MCP server + agent). You can still install the two directly
+(`pip install columna-core columna-server`) if you want only one.
 
-- **clarify** — a rate whose two measures span different populations is ambiguous; the server names
-  the candidate populations as substitutable alternatives instead of inventing a number.
-- **refuse** — pin one of those populations and re-ask: the other operand is out-of-domain, so it
-  refuses with the reason (still no guess).
-- **disclose** — reformulate into separate columns over the union population: the numbers are served
-  **with** a material coverage caveat riding on the frame.
+`demo --play` runs four real asks end to end and pretty-prints the actual wire JSON for all four
+moods in one flow:
+
+- **clarify** — `SELECT avg(aov) AT {cal.month}`: the inline reduction leaves the input anchor for `aov`
+  underdetermined; the server names the candidate input anchors as substitutable alternatives instead
+  of inventing one.
+- **refuse** — `SELECT level.last AT {customer}`: inventory is keyed by store and day — it has no customers, so
+  the ask addresses outside the contracted space and the server refuses with the reason (never a guess).
+- **disclose** — `SELECT level.sum AT {store*cal.month}`: summing a stock across calendar months adds quantities
+  that don't reconcile along the blocked day→month axis; the server returns the numbers **with** a
+  material caveat naming the blocked lineage and the remedy (`.last`), never a silent wrong total.
+- **serve** — `SELECT aov AT {cal.month}`: average order value by calendar month, one population and well posed;
+  the server returns the numbers.
 
 That transcript *is* the product. (No path arguments needed — the demo Manifold and a small warehouse
 ship in the package. For a richer run over the full benchmark warehouse, see
@@ -45,7 +53,7 @@ path args. To wire it into Claude Desktop, add to `claude_desktop_config.json`:
 (Claude Desktop launches the server from an arbitrary working directory, so `demo` — which needs no
 path — is the reliable choice.) See
 [`packages/columna-server/demos/mcp_claude_desktop.md`](packages/columna-server/demos/mcp_claude_desktop.md)
-for the full config and a real clarify → refuse → disclose transcript.
+for the full config and a real clarify → refuse → disclose → serve transcript.
 
 Or talk to it in natural language — Columna's own agent is a true MCP client over the server:
 

@@ -17,13 +17,11 @@ def test_demo_play_prints_three_moods_in_order():
     assert proc.returncode == 0, proc.stderr[-2000:]
     out = proc.stdout
     assert '"contract_version": "1"' in out
-    # the three moods appear, in order (clarify -> refuse -> disclose)
+    # the three moods appear, in order (clarify -> refuse -> serve; §2c reframe 2026-07-16)
     i_clar = out.find('"outcome": "clarify"')
     i_ref = out.find('"outcome": "refuse"')
-    i_disc = out.find('"outcome": "disclose"')
-    assert -1 < i_clar < i_ref < i_disc, (i_clar, i_ref, i_disc)
-    # the disclose frame carries the material coverage caveat
-    assert "denominator_population" in out
+    i_serve = out.find('"outcome": "serve"')
+    assert -1 < i_clar < i_ref < i_serve, (i_clar, i_ref, i_serve)
 
 
 async def test_demo_serves_stdio_with_no_path_args():

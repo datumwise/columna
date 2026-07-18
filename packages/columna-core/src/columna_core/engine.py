@@ -215,7 +215,11 @@ class ColumnEngine:
         if grain != base_levels:
             frame = frame.group_by(base_levels).agg(self._combine_exprs(op))
 
-        for T in target:
+        # DEPENDENT-PAIR completion: a target level fixed by another target level (S->..->T functional)
+        # is an ATTRIBUTE, attached 1:1, never a reduction axis (else it collapses its determiner). The
+        # rest reduce as before.
+        reduction, dependent = self._split_dependent_targets(target)
+        for T in reduction:
             cur, path = start[T], paths[T][1]
             for e in path:
                 mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
@@ -223,6 +227,14 @@ class ColumnEngine:
                 self.stats.transports += 1
                 self._t(trace, f"  transport {cur}->{e.to} along {e.lineage} "
                                f"[combine={op.combine}] (in-engine, no join pushdown)")
+                cur = e.to
+        for T in dependent:
+            cur, path = start[T], paths[T][1]
+            for e in path:
+                mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
+                frame = self._transport_attach(frame, cur, e.to, mp)
+                self.stats.transports += 1
+                self._t(trace, f"  attach {cur}->{e.to} along {e.lineage} (functional 1:1, no collapse)")
                 cur = e.to
         return frame.select(list(target) + ["_value"])     # project the witness to the answer
 
@@ -280,11 +292,67 @@ class ColumnEngine:
         agg = self._SERIES_REDUCE[member](pl.col("_v")).alias("_v")
         return work.group_by("_key").agg(agg).rename({"_key": target})
 
+    def reduce_series_to_anchor(self, frame, input_grain: tuple, target: tuple, member: str, trace=None):
+        """Reduce an in-memory value series (column `_v`) keyed by `input_grain` (a tuple of levels) to
+        the multi-level `target` anchor by `member`. Reduction targets reachable from an input level are
+        transported (relabel + collapse); orthogonal targets already present are kept; functionally-
+        DEPENDENT targets are attached 1:1; the remaining input axes (e.g. the pinned input anchor) are
+        collapsed by the reducer. Native Polars; the planner adjudicated the shape upstream (directive 7).
+        Generalizes the single-level reduce_series to the dependent-pair era."""
+        if member not in self._SERIES_REDUCE:
+            raise Refusal("unsupported", f"cannot reduce a series by '{member}'")
+        reduction, dependent = self._split_dependent_targets(target)
+        work, present = frame, set(input_grain)
+        for rt in reduction:                                    # transport each reduction target into place
+            if rt in present:
+                continue
+            src = next((g for g in input_grain if g == rt or self.m.find_path({g}, rt) is not None), None)
+            if src is None:
+                raise Refusal("out_of_universe",
+                              f"'{rt}' is not reachable from the input grain {list(input_grain)}")
+            cur = src
+            for e in self.m.find_path({src}, rt)[1]:
+                mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
+                work = work.join(mp, left_on=cur, right_on="_frm", how="inner").drop(cur).rename({"_to": e.to})
+                cur = e.to
+            present.discard(src); present.add(rt)
+        red = self._SERIES_REDUCE[member](pl.col("_v")).alias("_v")
+        work = (work.group_by(list(reduction)).agg(red) if reduction
+                else work.select(red))                          # empty reduction = grand total
+        self._t(trace, f"  reduce series -> {list(reduction)} by {member} (collapse input axes)")
+        for T in dependent:                                     # attach functionally-determined levels
+            S = next(s for s in reduction if self.m.find_path({s}, T) is not None)
+            cur = S
+            for e in self.m.find_path({S}, T)[1]:
+                mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
+                work = self._transport_attach(work, cur, e.to, mp); cur = e.to
+        return work.select(list(target) + ["_v"])
+
     def _transport_reduce(self, frame, from_col, to_col, mapping, op):
         j = frame.join(mapping, left_on=from_col, right_on="_frm", how="inner")
         j = j.drop(from_col).rename({"_to": to_col})
         keys = [c for c in j.columns if c not in ("_value", "_order")]
         return j.group_by(keys).agg(self._combine_exprs(op))
+
+    def _split_dependent_targets(self, target: tuple) -> tuple:
+        """Partition a target anchor into independent REDUCTION targets and functionally-DETERMINED
+        attribute targets. T is DEPENDENT iff another target level S functionally reaches T (S->..->T):
+        T is coarser and fixed by S, so it is attached 1:1, never reduced (reducing it would collapse
+        its determiner S). DG-2's family — the coordinate machinery completing dependent pairs. The
+        engine stays envelope-blind; this is per-atom transport geometry, decided from the edges."""
+        dependent = [T for T in target
+                     if any(S != T and self.m.find_path([S], T) is not None for S in target)]
+        reduction = tuple(T for T in target if T not in dependent)
+        return reduction, tuple(dependent)
+
+    def _transport_attach(self, frame, from_col, to_col, mapping):
+        """Attach a functionally-DETERMINED attribute level: 1:1 broadcast `to_col` onto each row along
+        the edge, KEEPING `from_col` (no collapse). Every from-key maps to exactly one to-key
+        (functional edge), so there is no row inflation — Huayin's join-and-group along the edge, native
+        Polars. Polars EXECUTES what the planner adjudicated (directive 7): the edge's functionality was
+        settled upstream (its verdict); the left-join here just realizes it, never decides it."""
+        return (frame.join(mapping, left_on=from_col, right_on="_frm", how="left")
+                     .rename({"_to": to_col}))
 
     # ---- holistic recompute-from-base (non-monoid: median, mode) ----------
     def _recompute_holistic(self, meas, fam, op, target, paths, where, trace):
@@ -308,13 +376,20 @@ class ColumnEngine:
         if pred is not None:
             rows = self._confine(rows, meas, pred, trace)
 
-        # broadcast each target coordinate onto the raw rows (relabel keys, keep all rows)
+        # broadcast each target coordinate onto the raw rows (relabel keys, keep all rows). DEPENDENT
+        # target levels (fixed by another target level) are ATTACHED (keep the determiner), independent
+        # ones relabel base->target as before — else a dependent pair collapses its determiner.
+        reduction, dependent = self._split_dependent_targets(target)
         for T in target:
             cur, path = start[T], paths[T][1]
             for e in path:
                 mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
-                rows = rows.join(mp, left_on=cur, right_on="_frm", how="inner").drop(cur).rename({"_to": e.to})
-                self._t(trace, f"  broadcast {cur}->{e.to} onto raw rows (transport, no reduce)")
+                if T in dependent:
+                    rows = self._transport_attach(rows, cur, e.to, mp)
+                    self._t(trace, f"  attach {cur}->{e.to} onto raw rows (functional 1:1, no collapse)")
+                else:
+                    rows = rows.join(mp, left_on=cur, right_on="_frm", how="inner").drop(cur).rename({"_to": e.to})
+                    self._t(trace, f"  broadcast {cur}->{e.to} onto raw rows (transport, no reduce)")
                 cur = e.to
 
         # aggregate holistically in-engine at the target grain (recompute, not reduce)

@@ -16,11 +16,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build sdists + wheels for both packages
+      - name: Build sdists + wheels for all three packages
         run: |
           python -m pip install --upgrade pip build twine
           python -m build packages/columna-core   --outdir dist
           python -m build packages/columna-server --outdir dist
+          python -m build packages/columna        --outdir dist   # the metapackage (lockstep with core)
       - name: Validate metadata
         run: twine check dist/*
       - name: Show dists
@@ -35,18 +36,34 @@ jobs:
     needs: build
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    # MUST match the Trusted Publisher registration on PyPI for BOTH columna-core and
-    # columna-server (owner datumwise, repo columna, workflow publish.yml, environment pypi).
+    # MUST match the Trusted Publisher registration on PyPI for ALL THREE packages — columna-core,
+    # columna-server, and columna (the metapackage) — owner datumwise, repo columna, workflow
+    # publish.yml, environment pypi. PyPI routes each dist to its project by the name in its metadata.
     environment: pypi
     permissions:
       id-token: write        # OIDC token for Trusted Publishing — this job only
     steps:
+      - uses: actions/checkout@v4              # for scripts/assert_pypi_versions.py + the pyprojects
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
       # Uploads every dist in dist/; PyPI routes each file to its project (columna-core /
-      # columna-server) by the name in the package metadata — both have the Trusted Publisher.
+      # columna-server / columna) by the name in the package metadata — all three have the Trusted
+      # Publisher. `skip-existing` is REQUIRED with the lockstep/metapackage layout: a release rebuilds
+      # all three, but a package whose version did not change is already on PyPI (e.g. columna-core /
+      # columna-server when only `columna` is new). Without skip-existing, re-uploading an existing
+      # file 400s and fails the whole job — so the genuinely new dist would never publish.
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          skip-existing: true
+      # Post-publish guard: every package's intended version (from its pyproject) MUST now be live on
+      # PyPI. This is the check skip-existing needs — it can never silently mask a forgotten bump or a
+      # swallowed upload error, because a release that did not actually publish what it claimed fails
+      # here, loudly.
+      - name: Assert every intended version is live on PyPI
+        run: python scripts/assert_pypi_versions.py
