@@ -1,10 +1,16 @@
 """
-columna_server.agent.loop — the agent conversation loop (WP-2.4 architecture #2).
+columna_server.agent.loop — the agent conversation loop (WP-agent-hands).
 
-user NL → provider proposes ONE Frame-QL query (or an ASK) → the MCP `query` tool → the outcome
-routes the turn. The SYSTEM presents every server reply to the human, rendering wire values verbatim
-(so the agent never emits a number — grounding is structural). A clarify is relayed to the human and
-resolved only by their explicit choice (never auto-picked); a refuse permits ONE reformulation.
+The agent has HANDS: within a turn it can call the read-only MCP tools (describe_manifold,
+describe_measure, case_manifest, case_chapter, explain) to investigate, then runs the TERMINAL
+`query` tool to answer. The provider owns the model call and returns a structured step (a tool
+request, or final text); the LOOP owns tool execution (it holds the MCPServerConnection) and feeds
+results back, bounded by a small per-turn cycle cap.
+
+The SYSTEM presents every query reply to the human, rendering wire values verbatim (so the agent
+never emits a number — grounding is structural; the model's own prose is grounding-guarded). A
+clarify is relayed to the human and resolved only by their explicit choice (never auto-picked); a
+refuse is fed back so the model may reformulate, still bounded by the cycle cap.
 """
 from __future__ import annotations
 
@@ -13,9 +19,17 @@ import os
 import re
 
 from .conversation import AGENT, ENGINE, USER, Turn
-from .providers import Provider
+from .providers import Provider, TextStep
 
 _PROMPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "system_prompt.md")
+
+# Bound the tool-call cycles per user turn so a runaway (a model that keeps requesting tools, or
+# keeps reformulating a refused query) stops gracefully instead of looping forever.
+MAX_TOOL_CYCLES = 6
+
+# Cap tool_result payloads handed back to the model (case chapters are a few KB; a describe could be
+# larger). Generous enough to deliver a chapter verbatim, bounded against a pathological payload.
+_RESULT_CAP = 20000
 
 
 def load_system_prompt() -> str:
@@ -52,9 +66,6 @@ def render_manifold_context(describe: dict) -> str:
     return "\n".join(lines)
 
 
-_NUM = re.compile(r"-?\d+(?:\.\d+)?")
-
-
 class Agent:
     """Drives one conversation. `run_turn(user_msg)` returns the human-facing replies for the turn.
 
@@ -88,37 +99,118 @@ class Agent:
                 replies.append(self._present(wire, chosen_universe=universe))
                 return replies
 
-        # (B) fresh proposal — allow exactly ONE reformulation after a refuse/error
-        reformulations_left = 1
-        current = user_msg
-        while True:
-            line = self.provider.propose(self.system, list(self.history), current)
-            self.history.append(Turn(USER, current))
-            self.history.append(Turn(AGENT, line))
-            kind, body = _parse_line(line)
+        # (B) the tool loop — the model investigates, then runs the terminal `query`
+        record: list[Turn] = [Turn(USER, user_msg)]   # history additions, committed at the end
+        turn: list[dict] = []                          # Anthropic-format tool_use / tool_result msgs
+        wire_blob = ""                                 # every query wire seen this turn (grounding source)
 
-            if kind == "ask":
-                replies.append(body)
-                return replies
-            if kind == "invalid":
-                replies.append("(couldn't read that as a Frame-QL query — try rephrasing your question)")
+        for _ in range(MAX_TOOL_CYCLES):
+            step = self.provider.step(self.system, list(self.history), user_msg, turn)
+
+            if isinstance(step, TextStep):
+                record.append(Turn(AGENT, step.text or "(no reply)"))
+                replies.append(self._ground_text(step.text, wire_blob))
+                self.history.extend(record)
                 return replies
 
-            wire = await self.conn.query(body)
-            self.history.append(Turn(ENGINE, self._engine_summary(wire)))
-            replies.append(self._present(wire))
-            outcome = wire["outcome"]
+            # --- a ToolStep: append the assistant turn, then execute each call -------------
+            assistant_content: list[dict] = []
+            if step.text:
+                assistant_content.append({"type": "text", "text": step.text})
+                record.append(Turn(AGENT, step.text))
+            for c in step.calls:
+                assistant_content.append({"type": "tool_use", "id": c.id, "name": c.name, "input": c.input})
+                record.append(Turn(AGENT, f"[call {c.name} {json.dumps(c.input, sort_keys=True)}]"))
+            turn.append({"role": "assistant", "content": assistant_content})
 
-            if outcome == "clarify":
-                self._pending = (self._alternatives(wire), body)
-                return replies
-            if outcome in ("refuse", "error") and reformulations_left > 0:
-                reformulations_left -= 1
-                current = ("[reformulate] The previous query was not answerable (see the engine "
-                           "note). If a reformulation addresses the reason, propose exactly one; "
-                           "otherwise ask the human or stop.")
-                continue
-            return replies
+            results: list[dict] = []
+            for c in step.calls:
+                if c.name == "query":
+                    frameql = c.input.get("frameql", "")
+                    wire = await self.conn.query(frameql)
+                    wire_blob += repr(wire)
+                    record.append(Turn(ENGINE, self._engine_summary(wire)))
+                    replies.append(self._present(wire))
+                    outcome = wire["outcome"]
+                    if outcome == "clarify":
+                        self._pending = (self._alternatives(wire), frameql)
+                        self.history.extend(record)
+                        return replies
+                    if outcome in ("serve", "disclose"):
+                        self.history.extend(record)
+                        return replies
+                    # refuse / error — feed the engine note back so the model may reformulate once
+                    results.append(self._result_block(c.id, self._engine_summary(wire), is_error=True))
+                else:
+                    out, is_error = await self._exec_tool(c)
+                    record.append(Turn(ENGINE, self._tool_note(c.name, out, is_error)))
+                    results.append(self._result_block(c.id, json.dumps(out), is_error=is_error))
+
+            turn.append({"role": "user", "content": results})
+
+        # cycle cap hit — stop gracefully
+        record.append(Turn(AGENT, "[tool-call limit reached]"))
+        replies.append("(stopped — I reached the tool-call limit for this turn without an answer. "
+                       "Try narrowing the question.)")
+        self.history.extend(record)
+        return replies
+
+    # ---- tool execution (the loop holds the MCP connection) -----------------
+    async def _exec_tool(self, call) -> tuple[dict, bool]:
+        """Run a NON-terminal tool over the wire; `manifold_id` is injected here (session-fixed).
+        Returns (result_dict, is_error) — a wire error becomes a tool_result the model can recover from."""
+        mid = self.conn.manifold_id
+        try:
+            if call.name == "describe_manifold":
+                return await self.conn.describe_manifold(mid), False
+            if call.name == "describe_measure":
+                return await self.conn.describe_measure(mid, call.input["measure"]), False
+            if call.name == "case_manifest":
+                return await self.conn.case_manifest(), False
+            if call.name == "case_chapter":
+                return await self.conn.case_chapter(call.input["chapter"]), False
+            if call.name == "explain":
+                return await self.conn.explain(call.input["frameql"]), False
+            return {"error": f"unknown tool '{call.name}'"}, True
+        except KeyError as e:
+            return {"error": f"missing argument {e} for tool '{call.name}'"}, True
+        except RuntimeError as e:                       # an MCP tool error (e.g. unknown measure)
+            return {"error": str(e)}, True
+
+    @staticmethod
+    def _result_block(tool_use_id: str, text: str, is_error: bool) -> dict:
+        return {"type": "tool_result", "tool_use_id": tool_use_id,
+                "content": text[:_RESULT_CAP], "is_error": is_error}
+
+    @staticmethod
+    def _tool_note(name: str, out: dict, is_error: bool) -> str:
+        """A compact, human-readable record of a tool result for the transcript/history."""
+        if is_error:
+            return f"[tool {name} error: {out.get('error', 'unknown')}]"
+        if name == "case_chapter":
+            return f"[tool case_chapter -> {out.get('chapter')} \"{out.get('descriptor')}\" " \
+                   f"({len(out.get('text', ''))} chars)]"
+        if name == "case_manifest":
+            return f"[tool case_manifest -> {sorted((out.get('chapters') or {}))}]"
+        if name == "describe_measure":
+            return f"[tool describe_measure -> {out.get('measure')} on {out.get('universe')}]"
+        if name == "describe_manifold":
+            return f"[tool describe_manifold -> {len(out.get('measures', []))} measures]"
+        if name == "explain":
+            return f"[tool explain -> would-be outcome {out.get('outcome')}]"
+        return f"[tool {name}]"
+
+    # ---- grounding guard on the model's own prose ---------------------------
+    @staticmethod
+    def _ground_text(text: str, wire_blob: str) -> str:
+        """The agent may relay questions/context, but NEVER surface a figure it didn't get from a
+        query. Any multi-digit run in the model's prose that isn't present in this turn's wire
+        results is ungrounded — suppress the whole line rather than leak a fabricated number."""
+        for num in re.findall(r"\d{2,}", text or ""):
+            if num not in wire_blob:
+                return ("(couldn't read that as a grounded reply — the agent may only surface "
+                        "figures from a query result. Try rephrasing your question.)")
+        return text if text else "(no reply)"
 
     # ---- presentation (verbatim from the wire; the agent adds no numbers) ---
     def _present(self, wire: dict, chosen_universe: str | None = None) -> str:
@@ -156,7 +248,7 @@ class Agent:
         err = wire.get("error", {})
         return f"That isn't a valid query: {err.get('detail', 'unknown error')}"
 
-    # ---- engine note (compact context for the model's NEXT proposal) --------
+    # ---- engine note (compact context for the model's NEXT step) ------------
     def _engine_summary(self, wire: dict) -> str:
         outcome = wire["outcome"]
         if outcome in ("serve", "disclose"):
@@ -209,12 +301,3 @@ def _render_values(col: dict) -> str:
 def _s(v) -> str:
     """Verbatim stringification — no rounding, so grounding matches strictly."""
     return json.dumps(v) if isinstance(v, str) else str(v)
-
-
-def _parse_line(line: str) -> tuple[str, str]:
-    s = line.strip()
-    if s.startswith("QUERY:"):
-        return "query", s[len("QUERY:"):].strip()
-    if s.startswith("ASK:"):
-        return "ask", s[len("ASK:"):].strip()
-    return "invalid", s
