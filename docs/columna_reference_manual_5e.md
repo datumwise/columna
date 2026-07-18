@@ -2,7 +2,7 @@
 
 *Companion to the Columna Framework manual — the specification layer*
 
-*Fifth Edition — reconciled through ADR-031 (the column-processing foundation: relating columns is **transport** along functional edges in the engine, the backend delivers columns and never combines them, **fan-out** is inexpressible, and a many-to-many aggregate-across is a **Clarify** rather than a defaulted membership). Renamed (framework → **Columna**, the data-space object → **Manifold**, the query language → **Frame-QL**, the definition-language keyword `COFRAME` → `MANIFOLD`) and repositioned through ADR-029.*
+*Fifth Edition — reconciled through ADR-035 (the column-processing foundation: relating columns is **transport** along functional edges in the engine, the backend delivers columns and never combines them, **fan-out** is inexpressible, and a many-to-many aggregate-across is a **Clarify** rather than a defaulted membership). Renamed (framework → **Columna**, the data-space object → **Manifold**, the query language → **Frame-QL**, the definition-language keyword `COFRAME` → `MANIFOLD`) and repositioned through ADR-029. Reconciled forward from ADR-031 through ADR-032 (the Columna Engine as the runtime unit; the planner/Combiner/Cache(r) register), ADR-033 (vocabulary reconciliation + the Appendix B concordance entry), ADR-034 (the Chapter-26 definition-language scope, marked construct by construct), and ADR-035 (the query surface: the shipped envelope grammar is canonical).*
 
 <!-- Reconciliation pass (Fifth Edition) against ADR-031 D1–D15, kept consistent with the framework manual Sixth Edition. Substantive changes, each marked inline: Ch 4.3 — relating along a roll-up edge is transport in the engine; the backend delivers columns, never combines them (D1/D9). Ch 19.2 — the membership aggregation over an unresolved many-to-many moved from "Serve, with disclosures" to "Clarify," on the determinacy principle (D10), superseding the ADR-020/025 default-to-membership reading; the B-anchor crossing remains serve-and-disclose. Ch 22.5 — the bare aggregate-across is a clarification; membership served only when chosen; allocation [Pro] (D6/D15). Appendix A — allocation bridges marked Pro (not Core), consistent with the registry chapter; the connector-delivers-never-combines contract stated (D1). Appendix B — transport, fan-out, and the M:N→Clarify reclassification added; watermark advanced to ADR-031. -->
 
@@ -1040,6 +1040,8 @@ What composition does *not* automatically preserve — and what the composer mus
 
 ## Part VI — Integrity
 
+> **Shipping status (ADR-034).** The Certificate **kernel** is SHIPPED (WP-B, columna-core post-0.7.8): the `License` record, the four verdicts (VERIFIED · CORROBORATED · UNTESTABLE · CONTRADICTED), publish-time adjudication (symbolic where provable, else data-refutation against the attested data), and fail-closed CONTRADICTED. Its **first customer** is derived-column fertility (`DERIVED … FAMILY { m FERTILE {…} }`). The kernel's further customers — `ASSERT`, verified `HIERARCHY`, `UNIVERSE … BASIS` — arrive per the Chapter-26 marks (SCHEDULED — on-ramp WP), reusing this same kernel unchanged. Preconditions marked SCHEDULED/ROADMAP in Chapter 26 describe the language; the *verification machinery* they will adjudicate through is the shipped kernel this Part specifies.
+
 This is Part VI of the reference manual. Parts I–V specified types and operators, anchors and dimensions, applicability and missingness, degeneracy and coverage, and composition. This part specifies integrity: the layered preconditions whose verification makes a Manifold's analytical claims sound, the certificate that records their state, and the outcome discipline — serve, disclose, clarify, inform — that ties them to query behavior.
 
 A point of framing must come first, because it changes how integrity should be understood: **the integrity preconditions are not Columna's conventions about what makes a Manifold well-formed. They are the data conditions that any correct analysis on the data would require, regardless of what tool performs the analysis.** A functional dependency that fails — customer 19847 mapping to two regions — is a defect in the data, present whether you query it through Columna or any other tool. Columna uncovers and reports such defects because it checks; conventional tools do not check and so produce wrong answers silently. The framework's contribution is not adding rules but *verifying rules that have always been there* — and never producing a silent answer against them: where the data lacks what analysis requires, the defect rides the result, named and quantified. <!-- X1: ADR-020 -->
@@ -1466,11 +1468,25 @@ This is Part VIII of the reference manual, and it is the semantic home the Frame
 
 ### Chapter 26. The Definition Constructs, Specified as a Language
 
+> **Shipping status (ADR-034).** This chapter documents the definition *language*; each construct
+> below carries a shipping-status mark, and **an unmarked construct does not exist**. The marks:
+> **[SHIPPED vX.Y]** — a keyword the shipped package parses and adjudicates today; **[SCHEDULED —
+> <WP>]** — ruled Core, built in the named work package as a Certificate-kernel customer;
+> **[ROADMAP — <note>]** — deliberately unscheduled. The shipped 0.7.8 keyword set is the *short*
+> forms — `MANIFOLD`, `UNIVERSE` (with an inline predicate), `LEVEL`, `EDGE`, `MEASURE` (with inline
+> `M_ANCHOR`/`FAMILY`/`BLOCKED`/`ORDER`), `DERIVED` — which express the same declarations this
+> chapter specifies in long form (`COLUMN`/`DIMENSION`/`BOUNDARIES`); a mark of "SHIPPED via
+> `MEASURE`" means the shipped short form already carries that field. Constructs are demand-driven
+> (ADR-034): a SCHEDULED construct ships when its motion (the on-ramp + Explorer WP) is cut, reusing
+> the Certificate kernel of Part VI unchanged.
+
 #### 26.1 The document, and the round trip
 
 A textual Manifold-definition document is the **source of truth for a Manifold**. Every authoring surface — structured forms, the agent (which proposes diffs to the document, never silently authoring the stored declarations), a raw text editor — is an editor over this one document, and it round-trips losslessly to the Manifold's stored serialization. Committing the document produces a Manifold version (Chapter 15); the version *is* the document plus the verification state the first refresh mints. The definition language and the query language are separate grammars sharing lexical conventions: one defines a Manifold, the other queries one, and no construct belongs to both.
 
 #### 26.2 `MANIFOLD`, `BOUNDARIES`, and `INHERITS … VERSION`
+
+> **[`MANIFOLD`: SHIPPED 0.7.8]** · **[`BOUNDARIES`: SHIPPED 0.7.8 — via the inline `UNIVERSE … WHERE <predicate>` form]** · **[`INHERITS … VERSION`: ROADMAP — layered-cache era (composition waits for the first two-Manifold installation; ADR-034 D4)]**
 
 `MANIFOLD <name>` opens the declaration and names the artifact. `BOUNDARIES <list>` declares the defining boundaries — what this data space is *about* — as a conjunction of constraints (relational, `IN`, `BETWEEN`), frozen at commit. The boundaries are constitutive, not filtering: they are interpreted exactly as Chapter 10 specifies (every column operates within them by definition; `{}` is the boundaries as one anchor point), and they are *not* row-level query restriction — `WHERE` does that, in the other grammar. M-anchor mechanisms, coverage declarations, and missing-behavior are all interpreted relative to this scope.
 
@@ -1478,11 +1494,15 @@ A textual Manifold-definition document is the **source of truth for a Manifold**
 
 #### 26.3 `UNIVERSE … BASIS …`
 
+> **[`UNIVERSE`: SHIPPED 0.7.8]** · **[`… BASIS` (typed point-provenance: `registry`/`spine`/`product`/`events`): SCHEDULED — on-ramp WP]** — the shipped `UNIVERSE` declares the named point set (base dimensions + predicate); the typed `BASIS` provenance is a Certificate-kernel customer, adjudicated at publish (ADR-034 D1).
+
 `UNIVERSE <name> BASIS <basis>` declares a named point set with its account of point provenance, per Chapter 9.2: `registry(<entity_list>)`, `spine(<dimension>, …)`, `product(<universe>, …)`, or `events(<root>[, project = <anchor>])`. The declared universes are Manifold-level, shared objects, referenced by name — which is what makes co-universality verifiable by reference.
 
 The semantics include a prohibition, and it is load-bearing: **a column rooted at its own grain key lands on that root's events projection by derivation, and declaring it is rejected at definition time** (Chapter 9.3) — declaring the derivable is noise, and noise in a source-of-truth document is a defect. The `events(...)` basis form exists for *reuse*: naming a projection (`purchase_days`) so that several columns can reference the same object and be co-universal by reference rather than by coincidence.
 
 #### 26.4 `COLUMN` and the column-spec fields
+
+> **[`COLUMN`: SHIPPED 0.7.8 — via the short form `MEASURE` (a measure column) / `LEVEL` (a dimension column)]**, per field: **`TYPE`, `V_ANCHOR`, `ON`, `M_ANCHOR`, `FAMILY_SET`, `DEFAULT_FAMILY`: SHIPPED via `MEASURE`** (the inline `MEASURE … M_ANCHOR {…} FAMILY { agg BLOCKED {…} / ORDER … }` form carries them) · **`FILL`, `COVERAGE`, `SOURCE`: SCHEDULED — on-ramp WP** (the evidence-grade / coverage carriers, adjudicated per the Certificate kernel; ADR-034 D1). The long form documents the same declarations the short form ships.
 
 `COLUMN <name>` opens a column-spec — the complete declaration Chapter 8.1 enumerates — with these fields:
 
@@ -1498,21 +1518,31 @@ The semantics include a prohibition, and it is load-bearing: **a column rooted a
 
 #### 26.5 `DIMENSION` and `VALUES`
 
+> **[`DIMENSION`: SHIPPED 0.7.8 — via the short form `LEVEL`]** · **[`VALUES` (declared `Enumerated` domain): SCHEDULED — on-ramp WP]** — the shipped `LEVEL` confers the dimension role; the declared value domain (validity/completeness checking, promoted-absence values) is scheduled with the evidence-graded on-ramp.
+
 `DIMENSION <name> TYPE <type> [VALUES {…}]` declares a column expected to serve in the dimension role. `VALUES` declares an `Enumerated` domain, which buys validity checking, completeness checking, and principled empty-bucket handling (Chapter 4.2). Promoted absence values (`UNKNOWN`, `ANONYMOUS` — Chapter 5) must be *declared in the domain*, so that validity checking permits what the binding-time promotion produces. Dimensionhood remains a role conferred by use (Chapter 4.1); the `DIMENSION` keyword is a declaration of intent and a home for the domain, not a type distinction.
 
 #### 26.6 `HIERARCHY`
+
+> **[single functional edge: SHIPPED 0.7.8 — via `EDGE <child> -> <parent> ALONG <lineage> VIA <table>(…)`]** · **[`HIERARCHY` (multi-level chains, refresh-verified): SCHEDULED — on-ramp WP]** — a single `EDGE` (the shipped short form) transports along a functional edge today; multi-level chains that desugar to edges and whose *verification* (edge functional in the data → verdict) is the new content are the Certificate-kernel customer (ADR-034 D1).
 
 `HIERARCHY <name> <child> -> <parent> [-> <grandparent> …]` declares a roll-up chain in a dimension family. Each edge asserts a total functional dependency over the Manifold's boundaries, verified at every refresh (Chapter 4.3); chains commute automatically, and redundantly declared diamonds are checked for commuting (Chapter 4.4). An edge is *both* an assertion and a navigable structure: it enters the certificate like any precondition, *and* it licenses climbs, scan parameters (`reset`/`within`/`step` resolve along it), and derived-dimension resolution. Promoted values must cascade along every hierarchy the dimension participates in (Chapter 5.3); the cascade is declared with the hierarchy. Time-varying dependencies are declared in their period-qualified or split form per Chapter 4.7, not forced into an edge the data will contradict.
 
 #### 26.7 `ALIAS`
 
+> **[`ALIAS`: SCHEDULED — on-ramp + Explorer WP]** — communicative metadata by definition (no legality impact); resolved at parse time, rendered where names render (the Explorer). ADR-034 D2.
+
 `ALIAS <name> = <reducer>` declares a domain-vocabulary name for an operator (`ALIAS total = sum`; `ALIAS unique_visitors = approx_distinct`). Aliases are resolved at parse time and change nothing about behavior; they share the column/dimension namespace, so collisions are rejected at definition time. Children may extend a parent's aliases (Chapter 13.1).
 
 #### 26.8 `ASSERT`
 
+> **[`ASSERT`: SCHEDULED — on-ramp WP]** — a declared integrity precondition (FD form or predicate form), adjudicated at publish through the Certificate kernel; a predicate that fails enters the certificate at CONTRADICTED and fails closed. The kernel's second customer after fertility (ADR-034 D1).
+
 `ASSERT` declares an additional integrity precondition for verification, in two forms. The FD form — `ASSERT <child> -> <parent> IS FUNCTIONAL` — asserts a functional dependency *without* declaring a hierarchy edge, and the difference is exactly the difference between checking and navigating: an **assertion** is a certificate entry (verified at refresh, carrying a verdict, available to the dependency cone), while a **hierarchy edge** is an assertion *plus* a navigable structure that licenses climbs. Use `ASSERT … IS FUNCTIONAL` for dependencies whose validity analyses rely on but which no query should climb (an internal key relationship, a staging invariant); use `HIERARCHY` where navigation is wanted. The predicate form — `ASSERT <predicate>` — declares a domain invariant over the bounded data (non-negativity of a measure, a balance identity), verified at refresh like any checkable precondition, with failures entering the certificate at `CONTRADICTED` and riding the cone into the findings of dependent results.
 
 #### 26.9 `WITHHOLD`, and the governance party
+
+> **[`WITHHOLD`, `ACCESS`: ROADMAP — Pro/enterprise]** — access governance requires an authentication model Core deliberately lacks; no Core keyword is scheduled (ADR-034 D3).
 
 `WITHHOLD` is the author's hard stop — the per-Manifold primitive of the author-governance party in the four-party control model (Frame-QL manual, Chapter 7.5). On a `<family_entry>` it forbids serving that (column, reducer); on a `<column_def>` it forbids the column under any reducer. When a query touches a withheld entry, the engine returns no result for it and **informs**, reporting the rule as the author's declaration, its rationale where given, and the permitted alternative families (Chapter 19.2).
 
@@ -1589,7 +1619,20 @@ The project has renamed deliberately and more than once; the ledger records each
 | (no prior term) replicate-and-sum across a non-functional edge | **fan-out** — an inexpressible transport with no valid target; it denotes no single number | ADR-031 D10; Chapters 19.2, 22.5 |
 | membership aggregation over an unresolved many-to-many (served with disclosure, ADR-020/025) | **Clarify** — the bare aggregate-across is underdetermined; membership is served only when *chosen*, and allocation is **[Pro]** | ADR-031 D10; Chapters 19.2, 22.5 |
 
-Edition watermarks: each document of the set carries its reconciliation state on its title page ("reconciled through ADR-N"); this edition is reconciled through ADR-031.
+**Runtime register (ADR-033).** The execution-positions capture ratified a role register for the runtime; it composes with this manual's terms by containment (ADR-033 D1):
+
+> **Metric Engine** (execution-positions capture, ratified 2026-07-12/14) — the runtime's
+> physical pair: the **Combiner** (execution of combination: cross-column operations,
+> transport, final reductions, post-aggregation map arithmetic, the disclosure-bearing
+> steps) and the **Cache(r)** (sound aggregate navigation; admission law: only the fertile
+> is cached). Equivalent to this manual's "column engine + caching engine" (ADR-032 D1) and,
+> in shipped code prior to the Cacher factoring, to the `ColumnEngine` class. Contained,
+> with the Planner and the Frame-QL API, in the **Columna Engine** — the runtime unit.
+> Post-aggregation map arithmetic is Combiner work by authority regardless of the class
+> that hosts its evaluation (ADR-033 D3). This manual's existing uses of "metric engine"
+> (Frame-QL v1 Ch. 2; reference 5e) are exact under this entry.
+
+Edition watermarks: each document of the set carries its reconciliation state on its title page ("reconciled through ADR-N"); this edition is reconciled through ADR-035.
 
 ---
 
