@@ -97,6 +97,14 @@ only its durable form.
   for the transcript — honest, realistic agent behavior; ch3's prose shows only the NL answer, no edit).
   But "west only" is bread-and-butter day-one slicing a human WILL type — the case demo exposed a real
   expressiveness gap. Rowed as its own ruled increment, post-flip; not this WP.
+  **EVIDENCE UPGRADED (2026-07-18, ch3 take-2):** the gap is not hypothetical — the LIVE query agent hit
+  it TWICE in one recording (manager `WHERE region = 'west' AND cal.quarter = '2025-Q4'`; new-hire
+  `WHERE cal.year = 2024`), both BinderException, both cascading to a suppressed "couldn't read" reply.
+  The WHERE-a-coordinate instinct is UNIVERSAL — it is the SQL reflex; every MCP stranger's agent will
+  reach for it. This is now the **leading candidate for the first post-launch language increment.** The
+  interim measure is the agent-prompt law **SCOPE BY ANCHOR, NOT WHERE** (ratified 2026-07-18); **when
+  OF-13 lands, that prompt law amends** (the anchor-and-read workaround retires as the language grows the
+  native filter). Linkage recorded so the two move together.
 
 - **OF-14 opened 2026-07-18** (Cascadia recapture take-1, STANDING FACT — Huayin). **The demo has no
   clock.** The frozen-world demo warehouse (2024-2025) has no notion of "today", so relative-time
