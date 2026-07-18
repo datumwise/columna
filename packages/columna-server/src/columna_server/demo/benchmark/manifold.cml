@@ -22,11 +22,15 @@ LEVEL cal.quarter = quarter
 LEVEL cal.year    = year
 LEVEL category    = category_id
 
-EDGE store -> region      ALONG store_geo VIA stores(store_id, region)
-EDGE day   -> cal.week    ALONG calendar  VIA calendar(day, week)
-EDGE day   -> cal.month   ALONG calendar  VIA calendar(day, month)
-EDGE day   -> cal.quarter ALONG calendar  VIA calendar(day, quarter)
-EDGE day   -> cal.year    ALONG calendar  VIA calendar(day, year)
+HIERARCHY store_geo {
+    store -> region VIA stores(store_id, region)
+}
+HIERARCHY calendar {
+    day -> cal.week    VIA calendar(day, week) ;
+    day -> cal.month   VIA calendar(day, month) ;
+    day -> cal.quarter VIA calendar(day, quarter) ;
+    day -> cal.year    VIA calendar(day, year)
+}
 
 # non-functional (M:N) — declared only so a fan-out refusal can name the edge.
 RELATE product <-> category VIA product_categories NOTE "a product belongs to up to 3 categories"

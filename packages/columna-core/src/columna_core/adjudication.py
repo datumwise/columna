@@ -346,23 +346,28 @@ def _prove_hierarchy(server, m, h) -> License:
     No connector / no deliverable edge ⇒ UNTESTABLE (recorded, describe-visible, never exercised)."""
     con = server.engine.con
     tables = []
-    for i in range(len(h.chain) - 1):
-        frm, to = h.chain[i], h.chain[i + 1]
-        edge = next((e for e in m.edges if e.frm == frm and e.to == to and e.lineage == h.lineage), None)
-        if edge is None:                                   # desugared edges should always be present
-            return _license(UNTESTABLE, {h.lineage}, f"no edge {frm}->{to} along '{h.lineage}' to test")
-        try:
-            emap = con.deliver_edge(edge.provider_table, edge.frm_col, edge.to_col)   # [_frm, _to]
-        except Exception:
-            return _license(UNTESTABLE, {h.lineage},
-                            f"edge table '{edge.provider_table}' not deliverable — asserted on authored authority.")
-        bad = (emap.group_by("_frm").agg(pl.col("_to").n_unique().alias("_n")).filter(pl.col("_n") > 1))
-        if bad.height > 0:
-            raise HierarchyContradiction(h.lineage, frm, to, bad["_frm"][0], int(bad["_n"][0]))
-        tables.append(edge.provider_table)
+    # Every hop of every branch must be a genuine key->key function (§2a: adjudication tests every hop;
+    # every hop functional ⇒ every chain composition — day->month->quarter — is functional too).
+    for chain in h.paths:
+        for i in range(len(chain) - 1):
+            frm, to = chain[i], chain[i + 1]
+            edge = next((e for e in m.edges if e.frm == frm and e.to == to and e.lineage == h.lineage), None)
+            if edge is None:                               # desugared edges should always be present
+                return _license(UNTESTABLE, {h.lineage}, f"no edge {frm}->{to} along '{h.lineage}' to test")
+            try:
+                emap = con.deliver_edge(edge.provider_table, edge.frm_col, edge.to_col)   # [_frm, _to]
+            except Exception:
+                return _license(UNTESTABLE, {h.lineage},
+                                f"edge table '{edge.provider_table}' not deliverable — asserted on authored authority.")
+            bad = (emap.group_by("_frm").agg(pl.col("_to").n_unique().alias("_n")).filter(pl.col("_n") > 1))
+            if bad.height > 0:
+                raise HierarchyContradiction(h.lineage, frm, to, bad["_frm"][0], int(bad["_n"][0]))
+            tables.append(edge.provider_table)
+    paths_desc = " ; ".join(" -> ".join(c) for c in h.paths)
     return _license(CORROBORATED, {h.lineage},
-                    f"functional dependence held on the attested data: every key maps to one parent "
-                    f"across {' -> '.join(h.chain)}.", attestation=_attest_tables(con, tables))
+                    f"functional dependence held on the attested data: every hop maps to one parent "
+                    f"across {paths_desc} (every branch, so every composition).",
+                    attestation=_attest_tables(con, sorted(set(tables))))
 
 
 # ---- B1 ASSERT: invariant tested at its anchor on the attested data ----------
