@@ -1,0 +1,107 @@
+---
+// The Case — Cascadia Retail, the case demo (inc4). The three chapters render VERBATIM (byte-identical
+// copies of the ratified charter); the TRIAL TABLE and the four-mood wheel are GENERATED from the
+// shipped package (scripts/gen_case.py -> src/data/case.generated.json), never hand-written.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content as Ch1 } from '../content/case/ch1.md';
+import { Content as Ch2 } from '../content/case/ch2.md';
+import { Content as Ch3 } from '../content/case/ch3.md';
+import caseData from '../data/case.generated.json';
+
+const verdictClass = (v) => ({
+  corroborated: 'v-corroborated', verified: 'v-verified',
+  untestable: 'v-untestable', recorded: 'v-recorded', contradicted: 'v-contradicted',
+}[v] || 'v-recorded');
+
+const moodClass = (m) => `mood-${m}`;
+const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id === id));
+---
+<BaseLayout title="The Case — Cascadia Retail — datumwise"
+  description="Cascadia Retail: a realistic case demo of Columna, in three chapters — the requirement, the design, and the Manifold live. Every verdict and mood on this page is generated from the shipped package.">
+  <article class="prose case">
+    <p class="eyebrow">The case demo</p>
+    <h1>Cascadia Retail</h1>
+    <p class="lede">One team, one warehouse, six questions. Three chapters: what was asked, how the
+      Manifold was designed, and what happened when it went live. Everything on this page marked
+      <em>generated</em> comes from the shipped package running against the bundled warehouse — recorded,
+      never hand-edited (<code>{caseData.generated_by}</code>).</p>
+
+    <!-- The trial table — generated -->
+    <section class="exhibit" aria-label="The trial table">
+      <h2>The trials <span class="tag">generated</span></h2>
+      <p>Every claim in the chapter-2 spec, checked against the actual warehouse before anything serves:</p>
+      <table class="trial">
+        <thead><tr><th>Claim</th><th>Verdict</th></tr></thead>
+        <tbody>
+          {caseData.trial_table.map((r) => (
+            <tr>
+              <td set:html={r.claim.replace(/`([^`]+)`/g, '<code>$1</code>')}></td>
+              <td><span class={`verdict ${verdictClass(r.verdict)}`}>{r.verdict}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="foot-note">A definition confines; a claim gets tried. Checked claims are
+        <em>corroborated</em> (only math earns <em>verified</em>); a basis is <em>untestable</em> — a
+        human's call, on the record; a declared M:N relationship is <em>recorded</em> so a refusal can
+        name it. The verdicts are load-bearing: contradict one and it stops serving.</p>
+    </section>
+
+    <!-- The four moods — generated wheel -->
+    <section class="exhibit" aria-label="The four moods">
+      <h2>The four moods <span class="tag">generated</span></h2>
+      <p>The same asks the packaged <code>demo --play</code> runs, in story order — each a real wire
+        outcome:</p>
+      <div class="wheel">
+        {wheel.map((e) => (
+          <div class={`mood-card ${moodClass(e.mood)}`}>
+            <div class="mood-head"><span class="mood-name">{e.mood}</span>
+              {e.reason_tokens.length > 0 && <span class="mood-reason">{e.reason_tokens.join(', ')}</span>}</div>
+            <code class="mood-q">{e.query}</code>
+            <p class="mood-cap">{e.caption}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- The three chapters — verbatim -->
+    <section class="chapter" id="ch1"><Ch1 /></section>
+    <hr />
+    <section class="chapter" id="ch2"><Ch2 /></section>
+    <hr />
+    <section class="chapter" id="ch3"><Ch3 /></section>
+  </article>
+
+  <style>
+    .case .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.78rem;
+      color: var(--ink-soft); margin-bottom: 0.2rem; }
+    .case .lede { font-size: 1.05rem; color: var(--ink-soft); }
+    .exhibit { border: 1px solid var(--rule, #e5e2dc); border-radius: 10px; padding: 1.1rem 1.3rem;
+      margin: 1.6rem 0; background: var(--surface, #faf9f6); }
+    .exhibit h2 { margin-top: 0; }
+    .tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; vertical-align: middle;
+      background: #eceae4; color: #6b675f; border-radius: 4px; padding: 0.1rem 0.4rem; margin-left: 0.4rem; }
+    table.trial { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    table.trial th, table.trial td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid #ece9e3; }
+    .verdict { font-weight: 600; font-size: 0.82rem; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+    .v-corroborated { background: #e6f2e6; color: #2f6b34; }
+    .v-verified { background: #e4eefb; color: #2456a6; }
+    .v-untestable { background: #f2efe6; color: #7a6f4e; }
+    .v-recorded { background: #efeced; color: #6a5f66; }
+    .v-contradicted { background: #fbe6e6; color: #a63030; }
+    .foot-note { font-size: 0.86rem; color: var(--ink-soft); }
+    .wheel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; }
+    .mood-card { border: 1px solid #e5e2dc; border-left: 4px solid #b9b4a9; border-radius: 8px; padding: 0.7rem 0.8rem; background: #fff; }
+    .mood-serve { border-left-color: #2f6b34; }
+    .mood-disclose { border-left-color: #c08a1e; }
+    .mood-clarify { border-left-color: #2456a6; }
+    .mood-refuse { border-left-color: #a63030; }
+    .mood-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.4rem; }
+    .mood-name { font-weight: 700; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.06em; }
+    .mood-reason { font-size: 0.68rem; color: #8a8478; font-family: ui-monospace, monospace; }
+    .mood-q { display: block; font-size: 0.8rem; margin: 0.35rem 0; word-break: break-word; }
+    .mood-cap { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0; }
+  </style>
+</BaseLayout>
