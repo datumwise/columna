@@ -33,8 +33,8 @@ LEVEL store  = store_id BASE
 LEVEL day    = day      BASE
 LEVEL region = region
 LEVEL month  = month
-EDGE store -> region ALONG geo VIA stores(store_id, region)
-EDGE day   -> month  ALONG cal VIA calx(day, month)
+HIERARCHY geo { store -> region VIA stores(store_id, region) }
+HIERARCHY cal { day -> month VIA calx(day, month) }
 MEASURE revenue ON sales FROM sales AS sum(amount)
 """
 
@@ -101,8 +101,8 @@ LEVEL store       = store_id BASE
 LEVEL day         = day      BASE
 LEVEL cal.week    = week
 LEVEL fiscal.week = fweek
-EDGE day -> cal.week    ALONG calendar VIA cal(day, week)
-EDGE day -> fiscal.week ALONG fiscal   VIA fis(day, fweek)
+HIERARCHY calendar { day -> cal.week VIA cal(day, week) }
+HIERARCHY fiscal { day -> fiscal.week VIA fis(day, fweek) }
 MEASURE revenue ON sales FROM sales AS sum(amount)
 """
 
@@ -126,8 +126,8 @@ LEVEL day1     = day1  BASE
 LEVEL day2     = day2  BASE
 LEVEL cal.week = week
 LEVEL fis.week = fweek
-EDGE day1 -> cal.week ALONG calendar VIA t1(day1, week)
-EDGE day2 -> fis.week ALONG fiscal   VIA t2(day2, fweek)
+HIERARCHY calendar { day1 -> cal.week VIA t1(day1, week) }
+HIERARCHY fiscal { day2 -> fis.week VIA t2(day2, fweek) }
 MEASURE r1 ON u1 FROM u1 AS sum(p)
 MEASURE r2 ON u2 FROM u2 AS sum(q)
 """
@@ -159,8 +159,8 @@ LEVEL day1      = day1    BASE
 LEVEL day2      = day2    BASE
 LEVEL month     = monthc
 LEVEL cal.month = cm
-EDGE day1 -> month     ALONG cal   VIA t1(day1, monthc)
-EDGE day2 -> cal.month ALONG other VIA t2(day2, cm)
+HIERARCHY cal { day1 -> month VIA t1(day1, monthc) }
+HIERARCHY other { day2 -> cal.month VIA t2(day2, cm) }
 MEASURE r1 ON u1 FROM u1 AS sum(p)
 MEASURE r2 ON u2 FROM u2 AS sum(q)
 """

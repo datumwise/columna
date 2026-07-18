@@ -10,7 +10,7 @@ Grammar (statement-oriented; '#' comments; { } blocks):
     MANIFOLD <name> VERSION <n>
     UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]
     LEVEL <name> = <column> [BASE]
-    EDGE <from> -> <to> ALONG <lineage> VIA <table>(<from_col>, <to_col>)
+    HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }
     RELATE <a> <-> <b> VIA <table> [NOTE "<text>"]
     MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)
     MEASURE <name> ON <universe> FROM <table> VALUE <expr>
@@ -26,8 +26,8 @@ from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
                     Ref, Comparison, Predicate, Assert, Hierarchy)
 
-_KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "EDGE", "RELATE", "MEASURE", "DERIVED",
-       "ASSERT", "HIERARCHY")
+_KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
+       "ASSERT", "HIERARCHY")   # EDGE purged (§2a) — HIERARCHY is the sole functional-path surface
 
 # B1 (capture §7): the comparison set an aggregate-invariant ASSERT may use. `==` rides the WP-B
 # adjudication tolerance (one tolerance policy, everywhere); v1 excludes `!=`.
@@ -127,12 +127,32 @@ def _p_level(s, M):
     M["levels"][name] = DimensionLevel(name, m.group(2), bool(m.group(3)))
 
 
-def _p_edge(s, M):
-    m = re.match(r"EDGE\s+([\w.]+)\s*->\s*([\w.]+)\s+ALONG\s+(\w+)\s+VIA\s+(\w+)\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)", s)
-    if not m:
-        raise ParseError(f"bad EDGE: {s!r}")
-    M["edges"].append(FunctionalEdge(m.group(1), m.group(2), m.group(3),
-                                     m.group(4), m.group(5), m.group(6)))
+# EDGE is PURGED (case-demo §2a): an edge is a two-node hierarchy; HIERARCHY is the sole surface for
+# functional paths. The desugaring below emits the SAME FunctionalEdges the old EDGE produced — the
+# edges stay the single internal truth (adjudicator/planner/engine untouched).
+_HOP = re.compile(r"->\s*([\w.]+)\s+VIA\s+(\w+)\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)")
+
+
+def _parse_hier_path(path_str: str, lineage: str):
+    """Parse one path `<a> -> <b> VIA t(a,b) [-> <c> VIA t(b,c)] ...` -> (chain, [FunctionalEdge]).
+    Per-hop VIA (§2a). A single-hop path is a plain edge; a multi-hop path is a composable chain."""
+    mstart = re.match(r"\s*([\w.]+)\s*", path_str)
+    if not mstart:
+        raise ParseError(f"bad HIERARCHY path (no start level): {path_str!r}")
+    cur, rest = mstart.group(1), path_str[mstart.end():]
+    chain, edges, pos = [cur], [], 0
+    for hm in _HOP.finditer(rest):
+        if rest[pos:hm.start()].strip():   # only non-whitespace between hops is malformed (§2a: hops may be spaced)
+            raise ParseError(f"bad HIERARCHY hop in {path_str!r} near {rest[pos:hm.start()]!r} "
+                             f"(expected '-> <level> VIA <table>(<col>, <col>)')")
+        to, table, fcol, tcol = hm.group(1), hm.group(2), hm.group(3), hm.group(4)
+        edges.append(FunctionalEdge(cur, to, lineage, table, fcol, tcol))
+        chain.append(to); cur = to; pos = hm.end()
+    if rest[pos:].strip():
+        raise ParseError(f"bad HIERARCHY path tail in {path_str!r}: {rest[pos:].strip()!r}")
+    if len(chain) < 2:
+        raise ParseError(f"bad HIERARCHY along '{lineage}': a path needs >= 2 levels, got {chain}")
+    return tuple(chain), edges
 
 
 def _p_relate(s, M):
@@ -308,27 +328,28 @@ def _p_assert(s, M):
 
 
 def _p_hierarchy(s, M):
-    # HIERARCHY <a> -> <b> [-> <c> ...] ALONG <lineage> VIA <table>(<col_a>, <col_b> [, ...])
-    # Desugars to plain FunctionalEdges (indistinguishable from hand-declared) + a provenance record.
-    m = re.match(r"HIERARCHY\s+(.+?)\s+ALONG\s+(\w+)\s+VIA\s+(\w+)\s*\(([^)]*)\)\s*$", s, re.S)
+    # HIERARCHY <lineage> { <a> -> <b> VIA t(a,b) [-> <c> VIA t(b,c)] [; <path2>] }   (§2a)
+    # Branching allowed (a small DAG — calendar is chain + week branch). Each hop carries its VIA.
+    # Desugars to plain FunctionalEdges (the single internal truth) + a provenance record holding paths.
+    m = re.match(r"HIERARCHY\s+(\w+)\s*\{(.*)\}\s*$", s, re.S)
     if not m:
-        raise ParseError(f"bad HIERARCHY: {s!r} (expected 'HIERARCHY <a> -> <b> [-> ...] "
-                         f"ALONG <lineage> VIA <table>(<col>, ...)')")
-    chain = tuple(x.strip() for x in m.group(1).split("->") if x.strip())
-    lineage, table = m.group(2), m.group(3)
-    cols = [c.strip() for c in m.group(4).split(",") if c.strip()]
-    if len(chain) < 2:
-        raise ParseError(f"bad HIERARCHY along '{lineage}': a chain needs >= 2 levels, got {list(chain)}")
-    if len(cols) != len(chain):
-        raise ParseError(f"bad HIERARCHY along '{lineage}': {len(cols)} VIA columns for {len(chain)} "
-                         f"levels — v1 requires one column per level (single table)")
-    for i in range(len(chain) - 1):     # the edges are the single truth
-        M["edges"].append(FunctionalEdge(chain[i], chain[i + 1], lineage, table, cols[i], cols[i + 1]))
-    M["hierarchies"].append(Hierarchy(lineage, chain, table))   # provenance + FD-obligation handle
+        raise ParseError(f"bad HIERARCHY: {s!r} (expected 'HIERARCHY <lineage> {{ <a> -> <b> "
+                         f"VIA <table>(<col>, <col>) [-> ...] [; <path>] }}')")
+    lineage, body = m.group(1), m.group(2)
+    paths = []
+    for path_str in re.split(r"[;\n]", body):
+        if not path_str.strip():
+            continue
+        chain, edges = _parse_hier_path(path_str.strip(), lineage)
+        M["edges"].extend(edges)        # the edges remain the single truth (indistinguishable from old EDGEs)
+        paths.append(chain)
+    if not paths:
+        raise ParseError(f"bad HIERARCHY '{lineage}': no paths in the block")
+    M["hierarchies"].append(Hierarchy(lineage, tuple(paths)))   # provenance + FD-obligation handle (branching)
 
 
 _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
-             "EDGE": _p_edge, "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
+             "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
              "ASSERT": _p_assert, "HIERARCHY": _p_hierarchy}
 
 

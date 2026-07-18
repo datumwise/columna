@@ -34,7 +34,7 @@ UNIVERSE u = day
 LEVEL day = day BASE
 LEVEL week = week
 LEVEL month = month
-HIERARCHY day -> week -> month ALONG calendar VIA caltbl(day, week, month)
+HIERARCHY calendar { day -> week VIA caltbl(day, week) -> month VIA caltbl(week, month) }
 MEASURE n ON u FROM ev AS count(*)
 """
 
@@ -95,7 +95,7 @@ MANIFOLD r VERSION 1
 UNIVERSE sales = store
 LEVEL store = store_id BASE
 LEVEL region = region
-EDGE store -> region ALONG geo VIA stores(store_id, region)
+HIERARCHY geo { store -> region VIA stores(store_id, region) }
 MEASURE revenue ON sales FROM tx AS sum(amount)
 ASSERT nonneg ON sales WHERE region >= 0
 """
@@ -124,8 +124,8 @@ LEVEL store = store_id BASE
 LEVEL day   = day      BASE
 LEVEL region = region
 LEVEL month = month
-EDGE store -> region ALONG geo      VIA stores(store_id, region)
-EDGE day   -> month  ALONG calendar VIA cal(day, month)
+HIERARCHY geo { store -> region VIA stores(store_id, region) }
+HIERARCHY calendar { day -> month VIA cal(day, month) }
 MEASURE level ON sd FROM inv VALUE lvl
     M_ANCHOR { }
     FAMILY {
@@ -153,7 +153,7 @@ UNIVERSE sales = store * day
 LEVEL store = store_id BASE
 LEVEL day   = day      BASE
 LEVEL region = region
-EDGE store -> region ALONG geo VIA stores(store_id, region)
+HIERARCHY geo { store -> region VIA stores(store_id, region) }
 MEASURE revenue ON sales FROM tx AS sum(amount)
 ASSERT r ON sales AT region HOLDS mean(revenue) >= revenue
 """
