@@ -94,7 +94,8 @@ def describe_assert(a, predicate_str=None) -> dict:
 def describe_hierarchy(h) -> dict:
     """A Hierarchy → describe dict: lineage, the level chain, and its adjudicated License. The VIA table
     is a PHYSICAL identifier and does NOT cross describe (§2b) — provenance the wire never needs."""
-    return {"lineage": h.lineage, "chain": list(h.chain), "license": license_to_dict(h.license)}
+    return {"lineage": h.lineage, "paths": [list(c) for c in h.paths],
+            "chain": list(h.chain), "license": license_to_dict(h.license)}   # `chain` = primary path (back-compat)
 
 
 def operator_properties(sig) -> Optional[dict]:

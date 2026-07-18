@@ -44,7 +44,7 @@ def test_describe_assert_row_and_invariant_forms_carry_the_kernel_license():
 
 def test_describe_hierarchy_carries_license_and_HIDES_the_physical_via_table():
     lic = License(verdict=CORROBORATED, attestation="w1")
-    h = Hierarchy(lineage="calendar", chain=("day", "week", "month"), via_table="caltbl", license=lic)
+    h = Hierarchy(lineage="calendar", paths=(("day", "week", "month"),), license=lic)
     d = describe_hierarchy(h)
     assert d["lineage"] == "calendar" and d["chain"] == ["day", "week", "month"]
     assert d["license"]["verdict"] == "corroborated"

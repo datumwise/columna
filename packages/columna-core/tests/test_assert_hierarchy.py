@@ -22,7 +22,7 @@ LEVEL day   = day      BASE
 LEVEL region = region
 LEVEL week  = week
 LEVEL month = month
-EDGE store -> region ALONG geo VIA stores(store_id, region)
+HIERARCHY geo { store -> region VIA stores(store_id, region) }
 MEASURE revenue   ON sales FROM sales AS sum(amount)
 MEASURE gross     ON sales FROM sales AS sum(gross_amt)
 MEASURE discounts ON sales FROM sales AS sum(disc)
@@ -109,29 +109,33 @@ def test_same_assert_name_across_universes_is_allowed():
 
 # ── HIERARCHY ────────────────────────────────────────────────────────────────────────────────────
 def test_hierarchy_desugars_to_edges_indistinguishable_from_hand_edges():
-    m = _m("HIERARCHY day -> week -> month ALONG calendar VIA caltbl(day, week, month)")
+    m = _m("HIERARCHY calendar { day -> week VIA caltbl(day, week) -> month VIA caltbl(week, month) }")
     # two plain FunctionalEdges, connecting consecutive pairs, ALONG the lineage
     cal = [e for e in m.edges if e.lineage == "calendar"]
     assert {(e.frm, e.to) for e in cal} == {("day", "week"), ("week", "month")}
     assert all(e.provider_table == "caltbl" for e in cal)
     # the single truth: find_path traverses them exactly like hand-declared edges
     assert m.find_path(["day"], "month") is not None
-    # provenance recorded, communicative only
-    h = m.hierarchies[0]
-    assert (h.lineage, h.chain, h.via_table) == ("calendar", ("day", "week", "month"), "caltbl")
+    # provenance recorded, communicative only — the branching-path record (§2a EDGE purge)
+    h = next(h for h in m.hierarchies if h.lineage == "calendar")
+    assert h.paths == (("day", "week", "month"),)
+    assert h.chain == ("day", "week", "month")   # back-compat: the primary path
 
 
-def test_hierarchy_column_count_must_match_levels():
+def test_hierarchy_hop_needs_per_hop_via():
+    # §2a: every hop carries its own VIA(<col>, <col>). Bare arrows with no VIA don't parse as hops.
     with pytest.raises(ParseError) as ei:
-        _m("HIERARCHY day -> week -> month ALONG calendar VIA caltbl(day, week)")
-    assert "one column per level" in str(ei.value)
+        _m("HIERARCHY calendar { day -> week -> month }")
+    assert "HIERARCHY" in str(ei.value)
 
 
-def test_hierarchy_needs_at_least_two_levels():
+def test_hierarchy_path_needs_at_least_two_levels():
     with pytest.raises(ParseError) as ei:
-        _m("HIERARCHY day ALONG calendar VIA caltbl(day)")
+        _m("HIERARCHY calendar { day }")
     assert ">= 2 levels" in str(ei.value)
 
 
 def test_shipped_demo_still_parses_clean(parsed_manifold):
-    assert not parsed_manifold.asserts and not parsed_manifold.hierarchies
+    # post §2a EDGE-purge: the demo declares its functional paths as HIERARCHYs (no asserts)
+    assert not parsed_manifold.asserts
+    assert {h.lineage for h in parsed_manifold.hierarchies} == {"store_geo", "calendar"}

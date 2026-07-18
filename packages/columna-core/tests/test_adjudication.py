@@ -59,6 +59,9 @@ def test_homogeneous_linear_classifier(fixture_connector, formula, is_linear):
 def test_linear_combo_verified_timeless(fixture_connector):
     """A declared linear combination under `sum` is VERIFIED by symbolic proof — timeless
     (attestation None), lineages carried from the declaration."""
+    base = _server(fixture_connector)                    # hierarchies only — their FD tests legitimately fetch
+    adjudicate(base)
+    hier_cost = base.engine.con.fetch_count              # the data cost of the hierarchy channel alone
     s = _server(fixture_connector,
                 "DERIVED net = revenue - orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
     before = s.engine.con.fetch_count
@@ -67,7 +70,9 @@ def test_linear_combo_verified_timeless(fixture_connector):
     assert lic.verdict == VERIFIED
     assert lic.attestation is None                       # timeless — no watermark
     assert lic.lineages == frozenset({"calendar"})
-    assert s.engine.con.fetch_count == before, "math channel must not touch the connector"
+    # math channel touches no data: adjudicating WITH the derived costs exactly the hierarchy FD tests
+    # and nothing more — the linear-combo proof is symbolic.
+    assert s.engine.con.fetch_count - before == hier_cost, "math channel must not touch the connector"
 
 
 def test_scalar_scaling_verified(fixture_connector):
@@ -136,7 +141,7 @@ MANIFOLD flip VERSION 1
 UNIVERSE txn = day
 LEVEL day   = day BASE
 LEVEL month = month
-EDGE day -> month ALONG calendar VIA cal(day, month)
+HIERARCHY calendar { day -> month VIA cal(day, month) }
 MEASURE rev ON txn FROM sales AS sum(amt)
 MEASURE ofl ON txn FROM sales AS sum(oflag)
 DERIVED rr = rev * ofl / ofl

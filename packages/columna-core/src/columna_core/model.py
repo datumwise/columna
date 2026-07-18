@@ -55,6 +55,9 @@ class Universe:
     basis_license: Optional["License"] = None   # B3 testedness record minted at publish (serving follows
                                           # the DECLARATION regardless — BASIS is a semantic declaration, not a
                                           # shortcut; the license is for describe/trust only). None = unadjudicated.
+    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
+    rejects: tuple = ()                   # MAP-layer: ((physical, reason), ...) — rejected incarnations, ATTESTED
+                                          # not adjudicated. BLAST WALL: map-artifact ONLY; NEVER describe/wire.
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------
@@ -63,6 +66,11 @@ class DimensionLevel:
     name: str                             # qualified where forked: "cal.month","fisc.month","day","store"
     realized_by: str                      # the base column key for this level
     is_base: bool = False
+    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
+    rejects: tuple = ()                   # MAP-layer: ((physical, reason), ...) — e.g. region's two rejects.
+                                          # BLAST WALL: map-artifact ONLY; NEVER describe/wire.
+    attributes: tuple = ()                # logical attributes (case-demo c, OF-9): ((name, physical_binding), ...)
+                                          #   e.g. store.opened -> stores.opened_date; legal in universe predicates.
 
 @dataclass(frozen=True)
 class FunctionalEdge:
@@ -141,6 +149,9 @@ class MeasureColumn:
     distinct_col: Optional[str] = None    # for distinct/sketch
     sketch_precision: int = 12            # HLL lg_k for sketch-witness measures; the sketch type is HLLSketch(p)
     evidence: str = PROVEN
+    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
+    rejects: tuple = ()                   # MAP-layer: ((physical, reason), ...) — rejected incarnations, ATTESTED
+                                          # not adjudicated. BLAST WALL: map-artifact ONLY; NEVER describe/wire.
 
     @property
     def is_unconfirmed(self): return self.evidence in _UNCONFIRMED
@@ -162,6 +173,7 @@ class DerivedColumn:
     formula: str                          # post-agg over measure/derived names: "revenue / orders"
     family: dict = field(default_factory=dict)   # member-name -> FamilyMember (each with a License); empty = denotation-only, no travel
     resolution_anchor: Optional[str] = None      # declared `AT <level>`; None = output-anchor denotation
+    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
 
 
 # ---- Track-1 (Certificate customers): asserted invariants + verified hierarchies ------------------
@@ -183,19 +195,28 @@ class Assert:
                                           #   WP-B adjudication tolerance (rtol/atol), recorded in the license basis
     right: str = ""                       # invariant-form: RHS expression over measures
     license: Optional["License"] = None   # minted by the adjudicator at publish (kernel reuse, Q1)
+    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
 
 
 @dataclass(frozen=True)
 class Hierarchy:
-    """A declared functional-dependence chain (B2). SUGAR: it desugars to plain FunctionalEdges that
-    are INDISTINGUISHABLE from hand-declared EDGEs — the edges remain the single truth; this record is
-    communicative PROVENANCE only (it may ride describe) plus the handle for the publish-time FD test
-    (each step a genuine key->key function in the attested data; a violation → CONTRADICTED, fails
-    closed). v1 honest limitation: one VIA table, one column per level."""
+    """A declared functional-dependence lineage (B2). The SOLE surface for functional paths after the
+    EDGE purge (case-demo, §2a): `HIERARCHY <lineage> { path; path }`. Branching allowed — a lineage may
+    be a small DAG (calendar: the day→month→quarter→year chain PLUS the day→week branch, because weeks
+    don't nest in months). SUGAR: it desugars to plain FunctionalEdges that are INDISTINGUISHABLE from
+    the old hand-declared EDGEs — the edges remain the single internal truth (adjudicator/planner/engine
+    vocabulary untouched); this record is communicative PROVENANCE plus the handle for the publish-time
+    FD test (every hop a genuine key->key function; every chain composition holds; a violation →
+    CONTRADICTED, fails closed). A bar `BLOCKED { <lineage> }` addresses the lineage WHOLE (every branch)."""
     lineage: str
-    chain: tuple                          # (level_a, level_b, level_c, ...) — the desugared edges connect consecutive pairs
-    via_table: str = ""
+    paths: tuple = ()                     # (chain, chain, ...); each chain = (level_a, level_b, ...) — the branches
     license: Optional["License"] = None   # minted by the adjudicator at publish (kernel reuse, Q1)
+    description: str = ""                 # DESCRIPTION string (b) — flows to describe (NOT the map's rejects)
+
+    @property
+    def chain(self) -> tuple:
+        """Back-compat: the primary (first) path. Adjudication + describe iterate `paths`."""
+        return self.paths[0] if self.paths else ()
 
 
 # ---- the Manifold ------------------------------------------------------------

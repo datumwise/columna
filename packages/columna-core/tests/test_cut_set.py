@@ -89,7 +89,7 @@ MANIFOLD hd VERSION 1
 UNIVERSE sales = day
 LEVEL day   = day   BASE
 LEVEL month = month
-HIERARCHY day -> month ALONG calendar VIA cal(day, month)
+HIERARCHY calendar { day -> month VIA cal(day, month) }
 MEASURE revenue ON sales FROM tx AS sum(amount)
 """
 

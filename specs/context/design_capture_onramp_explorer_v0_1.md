@@ -20,6 +20,41 @@ form is the inline `FROM`/`VIA` binding fields); the artifact split into separab
 Law/Map lands at the Authoring-era WP, which needs the Map as a first-class concept
 anyway. Either way, the insulation guarantee holds NOW (§2).
 
+## 2b′ · The case is the knowledge (Huayin, 2026-07-18)
+
+The three case-demo chapters (setup · solutioning · live) double as a ONE-SHOT
+TRAINING DOCUMENT for minds: every doctrine the KP teaches by rule, the case teaches
+by incident attached to an observable — which is the run-5 salience finding (triggers
+beat names) in narrative form. A fresh model session is the new hire; the case is
+folklore-into-the-system for minds. Consequences: (i) the chapters join llms-full at
+the case-demo build — one-shot training deployed as site content; (ii) a ready-made
+ratchet experiment, post-launch: KP v0.5 + case-chapters arm vs v0.5 baseline on the
+existing eval suite — if the case lifts the Columna-native ◆ calls, the KP's future
+format tilts narrative; (iii) rowed, not run, until Huayin's word.
+
+## 2a · The minimalist scoping doctrine (Huayin, 2026-07-18, case-demo redesign)
+
+Scoping is a CHARACTERISTIC of Columna, against the enterprise-wide comprehensive-
+coverage instinct of semantic-layer technologies. The principles: identify fact sources
+minimally; reject layered aggregation tables (performance is the metric engine's cache
+job, not a table's); drop stored calculated metrics — compute in Columna in real time;
+prefer calculated dimensions to stored ones; deriveds (metrics and dimensions) are
+SCOPE REDUCERS. And the load-bearing clause: **the universe definition is the upfront
+data-scope contract** — products × predicate × basis declare the population the
+Manifold binds to, which is what lets a stable, near-static Manifold stand safely on
+dynamic physical tables. Naming corollaries ruled the same day: universes carry
+SINGULAR concept names (transaction, inventory) — the universe names a concept, never
+describes records or the basis; lineages name meanings (location, calendar), not
+mechanisms. **Grammar ruling: EDGE is PURGED — subsumed by HIERARCHY** — an edge is a
+two-node hierarchy; `HIERARCHY <lineage> { path; path }` holds branching (weeks don't
+nest in months, so calendar is a small DAG), each edge carries its VIA, adjudication
+tests every edge and chain, bars address the lineage whole. RELATE stays (non-
+functional). Definition-language change: parser + adjudicator + .cml migration = a
+ruled increment of the case-demo build WP. HIERARCHY beat DIMENSION (which names the
+coordinate family, an orthogonal concept) and FD_PATH (the formal name, kept for the
+manual) because it is the analyst's own word — the dual-audience requirement applied
+to the grammar.
+
 ## 2 · The formal representation (RATIFIED) and the insulation guarantee
 
 **THE NAME'S LAW (Huayin, 2026-07-17, on the origin of FrameQL):** start with DataFrame;
