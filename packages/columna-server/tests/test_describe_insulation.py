@@ -20,9 +20,12 @@ import re
 from columna_server import tools as T
 from columna_server.demo import demo_store, DEMO_MANIFOLD_ID as MID
 
-# the demo's physical tables — none may appear as a `table.column` qualifier anywhere in describe
-_PHYSICAL_TABLES = ("stores", "tx", "budget", "product_catalog", "inventory", "orders", "regions",
-                    "customers", "products", "caltbl", "sales")
+# the demo's physical tables — none may appear as a `table.column` qualifier anywhere in describe.
+# Cascadia's bound + reject-referenced tables, plus the legacy benchmark set (harmless supersets).
+_PHYSICAL_TABLES = ("transactions", "eom_inventory", "calendar", "product_categories", "stores",
+                    "customers", "products", "daily_revenue_summary", "monthly_avg_order_value",
+                    "monthly_unique_visitors", "monthly_store_inventory",
+                    "tx", "budget", "product_catalog", "inventory", "orders", "regions", "caltbl", "sales")
 
 
 def _no_physical_identifier(blob: str):
@@ -43,13 +46,15 @@ def test_describe_measure_carries_no_physical_identifier():
         _no_physical_identifier(json.dumps(T.describe_measure(store, MID, meas["name"])))
 
 
-def test_the_stores_opened_date_predicate_leak_is_closed():
-    # the concrete shipped leak: store_days' predicate rendered `day >= stores.opened_date` (table.column).
+def test_the_opened_date_predicate_leak_is_closed_and_of9_renders_the_logical_name():
+    # OF-9 (case-demo) tightens the old residue: Cascadia's `inventory` carve is authored with a LOGICAL
+    # attribute, so the predicate renders `day >= store.opened` — the declared logical name WITH its
+    # qualifier — and the physical binding `stores.opened_date` never crosses.
     store = demo_store()
     dm = T.describe_manifold(store, MID)
-    sd = next(u for u in dm["universes"] if u["name"] == "store_days")
-    assert sd["predicate"] and "stores.opened_date" not in sd["predicate"]   # leak closed
-    assert "opened_date" in sd["predicate"]                                  # rendered logically
+    inv = next(u for u in dm["universes"] if u["name"] == "inventory")
+    assert inv["predicate"] == "day >= store.opened"                         # the declared logical name
+    assert "stores.opened_date" not in inv["predicate"] and "opened_date" not in inv["predicate"]
 
 
 def test_describe_manifold_has_the_d1_extension_blocks():

@@ -67,8 +67,12 @@ async def connect(manifolds: str | None = None):
     """Spawn a columna server over stdio and yield a connected MCPServerConnection.
 
     `manifolds=None` connects to the packaged demo (`columna-server demo`); a path connects to
-    `columna-server mcp --manifolds <path>`. The first hosted manifold is selected by default.
+    `columna-server mcp --manifolds <path>`. The packaged demo's own manifold (Cascadia) is selected
+    when hosted; otherwise the first hosted manifold.
     """
+    # the packaged demo's own manifold (Cascadia), preferred when hosted. A bare STRING, not an import —
+    # the agent process is a TRUE MCP client and must never import the engine (demo.py -> tools -> core).
+    _DEMO_MANIFOLD = "cascadia"
     params = StdioServerParameters(command=sys.executable, args=_server_args(manifolds),
                                    env=dict(os.environ))
     async with stdio_client(params) as (read, write):
@@ -76,5 +80,6 @@ async def connect(manifolds: str | None = None):
             await session.initialize()
             conn = MCPServerConnection(session)
             listed = await conn.list_manifolds()
-            conn.manifold_id = listed["manifolds"][0]["manifold_id"]
+            ids = [m["manifold_id"] for m in listed["manifolds"]]
+            conn.manifold_id = _DEMO_MANIFOLD if _DEMO_MANIFOLD in ids else ids[0]
             yield conn

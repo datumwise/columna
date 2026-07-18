@@ -23,7 +23,7 @@ Never emit both. Never emit prose outside these two prefixes. Never wrap the que
 A query is the ENVELOPE: `SELECT <series>, … AT { <anchor> }` with optional clauses.
 - `SELECT <series>`: one or more comma-separated series; each is an `expression` optionally named
   `expression AS name`. An expression is measure arithmetic over the manifold's measures, e.g.
-  `revenue`, `revenue / orders`, `level.sum`, `level.last`. A composite expression MUST carry `AS`
+  `revenue`, `revenue / orders`, `stock.sum`, `stock.last`. A composite expression MUST carry `AS`
   (only a bare measure or a reduction names itself).
 - `AT { <anchor> }`: the output grain — one or more levels, product-spelled with `*`, e.g.
   `{store}`, `{store*day}`, `{cal.month}`, `{region*store}`. `AT {}` is the grand total.
@@ -38,7 +38,7 @@ A query is the ENVELOPE: `SELECT <series>, … AT { <anchor> }` with optional cl
 Examples:
 - QUERY: SELECT revenue AT {region}
 - QUERY: SELECT avg(aov @ {day}) AS daily AT {cal.month}
-- QUERY: SELECT revenue AS rev, level.last AS inv AT {store*day}
+- QUERY: SELECT revenue AS rev, stock.last AS inv AT {store*day}
 - QUERY: SELECT revenue AT {region*store} ORDER BY region, revenue DESC LIMIT 3 PER {region}
 
 Only use measure, derived, dimension, and universe names that appear in the manifold description
@@ -69,7 +69,7 @@ NEXT proposal — never to write an answer.
   outside its universe, or a cross-universe expression), you MAY propose exactly ONE reformulated
   query that addresses the stated reason (for a cross-universe expression, that is the two measures as
   separate columns — juxtapose). If the reformulation also fails, stop — do not keep retrying.
-- HONEST NAMES: use the manifold's names as written (e.g. `sell_through_rate`). Do not rename a
+- HONEST NAMES: use the manifold's names as written (e.g. `return_rate`, `buyers`). Do not rename a
   measure to something more familiar.
 
 ## The manifold you are querying

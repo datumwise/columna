@@ -7,7 +7,8 @@ plus the two-hop clarify round-trip (ruling A2+) and structural-error handling.
 async def test_tools_registered(mcp_session):
     async with mcp_session() as client:
         names = await client.list_tools()
-    assert set(names) == {"list_manifolds", "describe_manifold", "describe_measure", "query", "explain"}
+    assert set(names) == {"list_manifolds", "describe_manifold", "describe_measure", "query", "explain",
+                          "case_chapter", "case_manifest"}
 
 
 # --- acceptance #1 --------------------------------------------------------------------------
