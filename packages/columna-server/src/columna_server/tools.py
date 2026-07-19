@@ -95,7 +95,14 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     # bridge-table name, nothing physical; the standing §2b insulation test covers relates[] by
     # construction. describe_measure untouched; contract_version stays "1" (additive, per the DESCRIPTION
     # precedent). Born with room for its future: RELATE-adjudication verdicts join these entries additively.
-    relates = [{"frm": frm, "to": to, "note": detail} for (frm, to, detail) in m.non_functional]
+    # faces[] is the real additive projection (Huayin 2026-07-19): declared crossing dispositions ride
+    # describe as DATA so the clarify-menu and any consulting agent see them from the source of truth.
+    # Logical name + scheme + folklore ONLY — the VIA bridge is MAP-LAYER (engine-visible, never here);
+    # the §2b insulation test asserts VIA stays off-wire. contract_version stays "1" (additive).
+    relates = [{"frm": r.frm, "to": r.to, "note": r.detail,
+                "faces": [{"name": f.name, "scheme": f.scheme, "description": f.description}
+                          for f in r.faces]}
+               for r in m.non_functional]
     # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
     ps = getattr(lm.server, "published_scope", None)
     scope = {"cut": sorted(ps.cut) if ps else [],
