@@ -86,6 +86,25 @@ class ShapeEdge:
     lineage: str           # topology + lineage tag only; NO frm_col/to_col/provider_table
 
 
+@dataclass(frozen=True)
+class FaceShape:
+    """A declared crossing face, as SHAPE — name + scheme + folklore, for the clarify-as-menu. NO
+    license and NO VIA bridge (both are engine/adjudication concerns; the planner cannot see provenance)."""
+    name: str
+    scheme: str
+    description: str = ""
+
+@dataclass(frozen=True)
+class RelateShape:
+    """A non-functional (M:N) relationship, as SHAPE — logical endpoints + NOTE + declared faces. The VIA
+    bridge (table/columns) is STRUCTURALLY absent here: the planner reasons about addressability and mints
+    the clarify menu from names alone; the engine (full Manifold) holds the bridge to actually cross."""
+    frm: str
+    to: str
+    detail: str = ""
+    faces: tuple = ()      # (FaceShape, ...)
+
+
 class PlannerView:
     """A provenance-free projection of a Manifold, for the planner."""
 
@@ -99,7 +118,10 @@ class PlannerView:
                           for n, u in m.universes.items()}
         self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
                         for n, d in m.derived.items()}
-        self.non_functional = tuple(m.non_functional)         # (frm, to, detail) — level names only
+        self.non_functional = tuple(                          # RelateShape — level names + face shapes, NO VIA
+            RelateShape(r.frm, r.to, r.detail,
+                        tuple(FaceShape(f.name, f.scheme, f.description) for f in r.faces))
+            for r in m.non_functional)
         self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.

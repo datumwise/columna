@@ -29,7 +29,8 @@ from dataclasses import replace
 from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
-                    Ref, Comparison, Predicate, Assert, Hierarchy)
+                    Ref, Comparison, Predicate, Assert, Hierarchy,
+                    Relate, Face, FACE_SCHEMES, TOUCH)
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
        "ASSERT", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ATTR = standalone universe row-attributes
@@ -213,11 +214,64 @@ def _parse_hier_path(path_str: str, lineage: str):
     return tuple(chain), edges
 
 
+def _p_faces(frm: str, to: str, block: str) -> tuple:
+    """Parse a RELATE FACES block — mirror of the derived FERTILE family, same polarity: each member is
+    `<name> = <SCHEME> [<selection>] -- "<folklore>"`. The parser RECORDS the declaration only (scheme +
+    selection + description; license=None); the adjudicator at publish is the SOLE constructor of a
+    License. DESCRIPTION is mandatory (the folklore rule — a face must say what the crossing does).
+
+    v1 EXECUTES `touch` only; `assign`/`alloc` are known schemes but declared-but-deferred — they parse-
+    error here so no .cml can silently declare an inert face."""
+    faces, seen = [], set()
+    for line in block.splitlines():        # one face per line (mirror the measure FAMILY); ';' is legal in folklore
+        t = line.strip().rstrip(",")
+        if not t:
+            continue
+        t, desc = _pop_desc(t)            # folklore `-- "..."`
+        t = t.strip().rstrip(",")
+        fm = re.match(r"(\w+)\s*=\s*(\w+)(?:\s+(.*))?$", t)
+        if not fm:
+            raise ParseError(f"bad FACE on RELATE {frm}<->{to}: {t!r} "
+                             f"(expected '<name> = <SCHEME> [<selection>] -- \"<folklore>\"')")
+        name, scheme, selection = fm.group(1), fm.group(2).lower(), (fm.group(3) or "").strip()
+        if scheme not in FACE_SCHEMES:
+            raise ParseError(f"FACE {name} on RELATE {frm}<->{to}: unknown scheme {fm.group(2)!r} "
+                             f"(one of {', '.join(x.upper() for x in FACE_SCHEMES)})")
+        if scheme != TOUCH:
+            raise ParseError(f"FACE {name}: scheme {scheme!r} is declared-but-deferred — v1 executes TOUCH "
+                             f"only (assign/alloc are post-launch ledger items)")
+        if not desc:
+            raise ParseError(f"FACE {name} on RELATE {frm}<->{to}: a DESCRIPTION (`-- \"...\"`) is required "
+                             f"(the folklore rule) — say what the crossing does")
+        if name in seen:
+            raise ParseError(f"FACE {name}: declared twice on RELATE {frm}<->{to}")
+        seen.add(name)
+        faces.append(Face(name, scheme, description=desc, selection=selection, license=None))
+    return tuple(faces)
+
+
 def _p_relate(s, M):
-    m = re.match(r'RELATE\s+([\w.]+)\s*<->\s*([\w.]+)\s+VIA\s+(\w+)(?:\s+NOTE\s+"(.*)")?', s)
-    if not m:
-        raise ParseError(f"bad RELATE: {s!r}")
-    M["non_functional"].append((m.group(1), m.group(2), m.group(4) or ""))
+    # RELATE <a> <-> <b> VIA <table>[(<frm_col>, <to_col>)] [FACES { <name> = <SCHEME> -- "..." ; ... }] [NOTE "<text>"]
+    #
+    # The bare `VIA <table>` form (no join columns, no faces) is the SHIPPED grammar — untouched, so
+    # existing manifolds (Cascadia declares no faces) parse byte-identically. A declared FACE REQUIRES the
+    # bridge join columns `VIA <table>(<frm_col>, <to_col>)` (per-hop VIA, copied from HIERARCHY): the
+    # engine needs the bridge keys to join-multiply, so a face without them fails closed at authoring.
+    faces_block = _block(s, "FACES")
+    note_m = re.search(r'NOTE\s+"(.*)"\s*$', s, re.S)
+    note = note_m.group(1) if note_m else ""
+    head = s.split("FACES", 1)[0] if faces_block is not None else s
+    head = re.sub(r'\s+NOTE\s+".*"\s*$', "", head, flags=re.S).strip()   # peel a trailing NOTE off the head
+    hm = re.match(r'RELATE\s+([\w.]+)\s*<->\s*([\w.]+)\s+VIA\s+(\w+)(?:\s*\(\s*(\w+)\s*,\s*(\w+)\s*\))?\s*$', head)
+    if not hm:
+        raise ParseError(f"bad RELATE: {s!r} (expected 'RELATE <a> <-> <b> VIA <table>[(<frm_col>, "
+                         f"<to_col>)] [FACES {{ .. }}] [NOTE \"..\"]')")
+    frm, to, table, fcol, tcol = hm.group(1), hm.group(2), hm.group(3), hm.group(4), hm.group(5)
+    faces = _p_faces(frm, to, faces_block) if faces_block is not None else ()
+    if faces and (fcol is None or tcol is None):
+        raise ParseError(f"RELATE {frm}<->{to}: a declared FACE needs the bridge join columns — write "
+                         f"'VIA {table}(<{frm}_col>, <{to}_col>)' so the engine can cross the edge")
+    M["non_functional"].append(Relate(frm, to, note, faces, table, fcol, tcol))
 
 
 def _split_top_at(rest: str):
@@ -549,6 +603,16 @@ def check_wellformed(m: Manifold) -> list:
                         if ref.column not in {a for a, _ in lvl.attributes}:
                             errs.append(f"universe '{u.name}' predicate references undeclared attribute "
                                         f"'{ref.table}.{ref.column}'")
+    # RELATE well-formedness (fail-closed): endpoints must be declared levels, and a relate carrying a
+    # FACE must carry the bridge join columns (the engine needs them to cross). Face schemes/descriptions
+    # are already enforced at parse; here we guard the structure the planner/engine will resolve against.
+    for rel in m.non_functional:
+        for lv in (rel.frm, rel.to):
+            if lv not in m.levels:
+                errs.append(f"RELATE {rel.frm}<->{rel.to} references unknown level '{lv}'")
+        if rel.faces and (rel.via_frm_col is None or rel.via_to_col is None):
+            errs.append(f"RELATE {rel.frm}<->{rel.to} declares a FACE but has no bridge join columns "
+                        f"(write 'VIA <table>(<frm_col>, <to_col>)')")
     # derived closure: formula names resolve to measures/derived.
     # Scope the well-formedness check to the dotted-HEAD name: a reference like `level.last` names
     # the column `level` with a family-member selector `.last` — only the head is a column name, and

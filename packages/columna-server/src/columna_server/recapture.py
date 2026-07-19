@@ -2,10 +2,14 @@
 columna_server.demo.recapture — the Cascadia recapture: the seeded corpus, built expectation-first
 against the desk's ratified exemplar specification (recapture_exemplar_spec v0.1).
 
-The nine exemplars E1-E9 are the DRIFT-GATE corpus: the seeded-count checks and the site's prose
+The ten exemplars E1-E10 are the DRIFT-GATE corpus: the seeded-count checks and the site's prose
 tripwire bind to exactly this set. Moods, reason codes, and shapes are RATIFIED expectations; numbers
 are RECORDED at generation, never asserted. Any deviation is FLAGGED with wire evidence, never
 harmonized — recorded in `flags` on the generated corpus.
+
+E6/E10 are the RELATE-faces pair (Huayin 2026-07-19, ship-dark revoked): E6 (bare `{category}`) now
+clarifies with the FACE MENU (its `alternatives` list the one declared face + ratified description);
+E10 (`{category.touch}`) is the crossing EXECUTED — disclose, the over_count caution + coverage info.
 """
 from __future__ import annotations
 
@@ -34,6 +38,11 @@ EXEMPLARS = [
      "SELECT stock.last AT {customer}", "refuse", "out_of_universe"),   # code recorded at seeding, flagged back
     ("E9", "Check before you run",
      "EXPLAIN SELECT stock.sum AT {store*cal.month}", "disclose", "b_anchor_crossing"),   # would-be mood; kind=explain
+    # E10 — the RELATE-faces counterpart to E6 (asked -> answered). The crossing EXECUTED. Caption is a
+    # WORKING placeholder: ch3 wording is ratified by the desk AFTER seeds land (ruling 4), from the
+    # recorded E6-menu + E10 wire text. Do not treat as final prose.
+    ("E10", "Revenue by category, answered lawfully (the overlap stated)",
+     "SELECT revenue AT {category.touch}", "disclose", "over_count"),
 ]
 
 # The demo --play wheel (four moods, story order): clarify -> refuse -> disclose -> serve.
@@ -87,6 +96,12 @@ def generate(store, server=None) -> dict:
             tokens = _disclosure_tokens(res)
             entry = {"id": eid, "caption": caption, "query": query, "kind": "query",
                      "mood": mood, "disclosures": tokens}
+            # MENU (the clarify-as-menu, RELATE faces): record the declared-face alternatives verbatim so
+            # the drift gate binds to the menu, not just the reason. Present only on a faced clarify (E6).
+            menu = [a.get("token") for c in res.get("columns", [])
+                    for a in ((c.get("no_result") or {}).get("alternatives") or [])]
+            if menu:
+                entry["menu"] = menu
         # RECORD: row count for serves/discloses (from the core engine when available)
         entry["row_count"] = _row_count(server, query)
         entry["reason_tokens"] = sorted({t["token"] for t in entry["disclosures"] if t["token"]})
