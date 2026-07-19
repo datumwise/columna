@@ -65,10 +65,15 @@ def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
     dm = T.describe_manifold(store, MID)
     assert "relates" in dm, "the additive relates[] surface is missing from describe_manifold"
     rel = next(r for r in dm["relates"] if r["frm"] == "product" and r["to"] == "category")
-    # faces[] is the additive crossing-disposition projection (Huayin 2026-07-19). Cascadia declares no
-    # faces (ship-dark), so faces rides as [] — present in the schema, empty in this manifold.
+    # faces[] is the additive crossing-disposition projection (Huayin 2026-07-19). Ship-dark was REVOKED
+    # for Cascadia: the demo declares FACE touch so the crossing is VISIBLE on describe (the strategic
+    # purpose — an agent sees the disposition from the source of truth before spending the query).
     assert set(rel) == {"frm", "to", "note", "faces"}                        # logical names + note + faces, only
-    assert rel["faces"] == []                                                # ship-dark: no faces declared here
+    face = next(f for f in rel["faces"] if f["name"] == "touch")
+    assert set(face) == {"name", "scheme", "description"}                    # logical face fields only — NO license, NO VIA
+    assert face["scheme"] == "touch"
+    assert face["description"] == ("revenue reaches every category a product sits in — deliberately "
+                                   "multi-counted; totals exceed the grand total")   # ratified text, verbatim
     assert rel["note"] == "a product belongs to up to 3 categories"          # the NOTE rides verbatim
     # VIA is MAP-LAYER (the ruling): the bridge table/columns NEVER cross the wire, even on a faced relate.
     blob = json.dumps(dm)
