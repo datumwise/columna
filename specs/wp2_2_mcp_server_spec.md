@@ -25,6 +25,12 @@ moods as data. This is the wedge product: the first metrics MCP server that can 
 1. `list_manifolds() -> [{manifold_id, name, description, n_measures, universes: [name]}]`
 2. `describe_manifold(manifold_id)` → dimensions + levels, functional edges (with lineage tags),
    universes (name + predicate rendered), measure index (name + family).
+   - **`relates[]`** (additive, ruled B 2026-07-19; `contract_version` stays `"1"` per the DESCRIPTION
+     precedent — additive fields ride): declared M:N relationships as `{frm, to, note}` — logical level
+     names + the NOTE string verbatim, **nothing physical** (no VIA, no bridge-table name; the standing
+     §2b insulation test covers it by construction). A consult-first agent can name the fan-out BEFORE
+     spending the query, instead of the M:N being invisible until tripped. Born with room for future
+     RELATE-adjudication verdicts, which join these entries additively. `describe_measure` untouched.
 3. `describe_measure(manifold_id, measure)` → the **family triple** — `family_root`,
    `member_anchors` (the member-anchor set), `family_reducer` — plus `dtype`, `v_anchor`,
    `m_anchor` (mechanism if declared), `b_anchor` (`blocked_lineages`), `universe`,

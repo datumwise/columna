@@ -50,7 +50,6 @@ COPY = {
     "fork_note": "weeks don't nest — the fork",
     "floor_events": "solid floor = events",
     "floor_spine": "hatched floor = spine (can have gaps)",
-    "relate_suffix": "RELATE — dashed, unclimbable (no functional edge)",
     "hover_intro": ("The hover, shown as a static pair (in the shipped visual, hovering a family "
                     "member paints the stacks by traversability — CSS-only, no JS). Here the "
                     "first burn, taught: the same {measure} over the same {stack} stack, two members."),
@@ -139,15 +138,16 @@ def build_model(dm):
     asserts = dm.get("asserts", [])
     measures = dm["measures"]
     derived = dm.get("derived", [])
-    # orphan non-base levels (a level no functional edge reaches) — the describe-true RELATE geometry
-    reached = {e["to"] for e in dm["edges"]}
-    based = set()
-    for u in universes:
-        based.update(u["base_dimensions"])
-    orphans = [d for d in dm["dimensions"]
-               if not d["is_base"] and d["level"] not in reached]
-    return {"universes": universes, "hierarchies": hiers, "asserts": asserts,
-            "measures": measures, "derived": derived, "orphans": orphans, "edges": dm["edges"]}
+    # RELATE (ruling B, 2026-07-19): declared M:N relationships ride describe as relates[] — drawn as a
+    # dashed connector from the base level to a stackless `to` block, the note quoted verbatim. Fail
+    # closed if a relate names a `to` level describe never declared (a new declaration kind, untaught).
+    relates = dm.get("relates", [])
+    levels = {d["level"] for d in dm["dimensions"]}
+    for r in relates:
+        if r["to"] not in levels or r["frm"] not in levels:
+            raise Fail(f"relate {r['frm']}->{r['to']} names a level absent from describe — teach it")
+    return {"universes": universes, "hierarchies": hiers, "asserts": asserts, "measures": measures,
+            "derived": derived, "relates": relates, "edges": dm["edges"]}
 
 
 # ───────────────────────────── the main figure ─────────────────────────────
@@ -202,8 +202,10 @@ def figure_svg(store, model):
 
     # ── floor = grain ──
     floor_y = 500
+    floor_cx = {}                                          # base level -> its floor block centre
     for i, dim in enumerate(a_only):                       # A-only base blocks (box A lower-left)
         x = 58 + i * 128
+        floor_cx[dim] = x + 48
         parts.append(_rect(x, floor_y, 96, 30, rx=5, fill=PAPER, stroke=RULE, sw=1.2))
         parts.append(_t(x + 48, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
     # shared base blocks in the overlap, ordered so the taller/forked stack sits on the RIGHT
@@ -211,7 +213,7 @@ def figure_svg(store, model):
     sh_slots = {}
     for i, dim in enumerate(order):
         x = 480 + i * 86
-        sh_slots[dim] = x + 36
+        sh_slots[dim] = floor_cx[dim] = x + 36
         parts.append(_rect(x, floor_y, 72, 30, rx=5, fill=PAPER, stroke=INK, sw=1.4))
         parts.append(_t(x + 36, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
 
@@ -247,13 +249,19 @@ def figure_svg(store, model):
         parts.append(_plaque(52, py, asrt, v))
         plaque_bottom = py + 34
 
-    # ── orphan (RELATE-geometry) levels: floating dashed unclimbable blocks ──
-    oy = max(plaque_bottom + 18, 432)
-    for orn in model["orphans"]:
-        parts.append(_rect(176, oy, 88, 28, rx=4, fill=PAPER, stroke=REFUSE, sw=1, dash="4 3"))
-        parts.append(_t(220, oy + 18, esc(orn["level"]), 11, REFUSE, anchor="middle", cls="mono"))
-        parts.append(_t(220, oy + 44, COPY["relate_suffix"], 9.5, FAINT, anchor="middle"))
-        oy += 60
+    # ── RELATE (ruling B): a dashed connector from the base level to a stackless `to` block; the NOTE
+    #    from describe quoted verbatim (dashed = non-functional = visually unclimbable). ──
+    oy = max(plaque_bottom + 20, 430)
+    for r in model["relates"]:
+        tcx = 314                                          # the `to` (stackless) block, box A lower-mid
+        frm_cx = floor_cx.get(r["frm"])                    # dashed connector up from the base block
+        if frm_cx is not None:
+            parts.append(_line(frm_cx, floor_y, tcx - 30, oy + 28, stroke=REFUSE, sw=1.3, dash="5 4"))
+        parts.append(_t(tcx, oy - 6, "RELATE", 8.5, REFUSE, anchor="middle", cls="tag"))
+        parts.append(_rect(tcx - 54, oy, 108, 28, rx=4, fill=PAPER, stroke=REFUSE, sw=1, dash="4 3"))
+        parts.append(_t(tcx, oy + 18, esc(r["to"]), 11, REFUSE, anchor="middle", cls="mono"))
+        parts.append(_t(tcx, oy + 44, esc(r["note"]), 9.5, FAINT, anchor="middle"))
+        oy += 64
 
     parts.append(_legend(28, 588))
     parts.append('</svg>')
