@@ -1,6 +1,7 @@
 """Columna Core — the column-foundation analytic framework (multi-table, transport-based)."""
 from .model import (Manifold, Universe, Predicate, Ref, Comparison, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn, License, Assert, Hierarchy,
+                    Relate, Face, TOUCH, ASSIGN, ALLOC, FACE_SCHEMES,
                     VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
                     ADDITIVE, SKETCH, HOLISTIC, DECLARED, PROVEN, INFERRED_SAMPLE, INFERRED_DOCS, A)
 from .operators import (Operator, REGISTRY, get_operator, signature_ok, output_dtype,
@@ -28,6 +29,7 @@ from .documents import (logical_spec, physical_map, physical_vocabulary, no_phys
 __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "DimensionLevel", "FunctionalEdge", "MeasureColumn",
            "FamilyMember", "BAnchor", "DerivedColumn", "License", "Assert", "Hierarchy",
+           "Relate", "Face", "TOUCH", "ASSIGN", "ALLOC", "FACE_SCHEMES",
            "VERIFIED", "CORROBORATED", "UNTESTABLE", "CONTRADICTED", "ADDITIVE", "SKETCH", "HOLISTIC",
            "DECLARED", "PROVEN", "INFERRED_SAMPLE", "INFERRED_DOCS", "A",
            "Operator", "REGISTRY", "get_operator", "signature_ok", "output_dtype", "VALUE", "ORDERED", "REDUCER", "SCAN", "MAP", "kind_of", "reducers",

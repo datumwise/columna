@@ -184,7 +184,8 @@ class Planner:
         if self.m.find_path(base, T) is not None:
             return
         # fan-out: T reachable only across a non-functional (M:N) edge from this universe
-        for (nf, nt, detail) in self.m.non_functional:
+        for rel in self.m.non_functional:
+            nf, nt, detail = rel.frm, rel.to, rel.detail
             reach_nf = (nf in base) or (self.m.find_path(base, nf) is not None)
             reach_t = (nt == T) or (self.m.find_path([nt], T) is not None)
             if reach_nf and reach_t:
