@@ -3,6 +3,22 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.6.0] — RELATE faces go visible (the crossing served, and shown)
+
+Requires `columna-core>=0.11.0` (the faces mechanism). `contract_version` stays `"1"` — `relates[].faces[]`
+is additive, the DESCRIPTION precedent.
+
+- **`describe_manifold`'s `relates[]` gains `faces[]`:** each declared crossing disposition rides describe
+  as data — `[{name, scheme, description}]` — so a consulting agent (and the clarify-as-menu) sees the
+  disposition from the source of truth before spending the query. Logical fields only; the `VIA` bridge
+  stays MAP-LAYER (engine-visible, never on the wire) — the §2b insulation test asserts it.
+- **Cascadia declares `FACE touch`** on product↔category (ship-dark revoked): the demo now *shows* the
+  crossing. `SELECT revenue AT {category}` clarifies with the **face menu**; `SELECT revenue AT
+  {category.touch}` executes — 12 categories, touch total $3.18M vs grand total $2.21M (the ~$970K
+  overlap disclosed), 600/600 coverage.
+- **The recapture corpus grows to ten (E1–E10):** E6 records the face menu; E10 mints the executed
+  crossing (disclose · over_count · coverage). Zero drift flags.
+
 ## [0.5.0] — RELATE rides the wire (declared M:N as describe data)
 
 Purely additive; `contract_version` stays `"1"` (the DESCRIPTION precedent — additive fields ride).
