@@ -57,10 +57,24 @@ def test_the_opened_date_predicate_leak_is_closed_and_of9_renders_the_logical_na
     assert "stores.opened_date" not in inv["predicate"] and "opened_date" not in inv["predicate"]
 
 
+def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
+    # RELATE on the wire (B, Huayin 2026-07-19): a declared M:N rides describe as data so an agent can
+    # warn about a category rollup BEFORE spending the query. Additive field; logical names + NOTE
+    # verbatim; nothing physical (the standing insulation test above already scans the whole blob).
+    store = demo_store()
+    dm = T.describe_manifold(store, MID)
+    assert "relates" in dm, "the additive relates[] surface is missing from describe_manifold"
+    rel = next(r for r in dm["relates"] if r["frm"] == "product" and r["to"] == "category")
+    assert set(rel) == {"frm", "to", "note"}                                 # logical names + the note, only
+    assert rel["note"] == "a product belongs to up to 3 categories"          # the NOTE rides verbatim
+    # contract_version rides additive (DESCRIPTION precedent) — the field's arrival does not bump it
+    assert dm["contract_version"] == "1"
+
+
 def test_describe_manifold_has_the_d1_extension_blocks():
     store = demo_store()
     dm = T.describe_manifold(store, MID)
-    assert {"asserts", "hierarchies", "universes", "measures", "published_scope"} <= set(dm)
+    assert {"asserts", "hierarchies", "universes", "measures", "relates", "published_scope"} <= set(dm)
     u = dm["universes"][0]
     assert {"basis", "absence", "basis_license", "predicate"} <= set(u)     # C-1 universe extension
     assert "realized_by" not in dm["dimensions"][0]                         # C-2 insulation
