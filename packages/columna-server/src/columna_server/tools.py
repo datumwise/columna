@@ -87,6 +87,15 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     measures = [{"name": mc.name, "family": list(mc.family), "universe": mc.universe,
                  "description": mc.description} for mc in m.measures.values()]
     derived = [describe_derived(m, name) for name in m.derived]
+    # RELATE on the wire (B, Huayin 2026-07-19): declared M:N relationships ride describe as DATA — an
+    # agent consulting describe can warn about a category rollup BEFORE spending the query, and answer
+    # "why can't I get revenue by category" from the source of truth, instead of the M:N being invisible
+    # until tripped (the knowledge previously lived only in the clarify's after-the-fact detail text).
+    # Logical level names + the NOTE verbatim (the "up to 3" the figure quotes IS this note) — no VIA, no
+    # bridge-table name, nothing physical; the standing §2b insulation test covers relates[] by
+    # construction. describe_measure untouched; contract_version stays "1" (additive, per the DESCRIPTION
+    # precedent). Born with room for its future: RELATE-adjudication verdicts join these entries additively.
+    relates = [{"frm": frm, "to": to, "note": detail} for (frm, to, detail) in m.non_functional]
     # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
     ps = getattr(lm.server, "published_scope", None)
     scope = {"cut": sorted(ps.cut) if ps else [],
@@ -95,7 +104,7 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
              "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "dimensions": dimensions, "edges": edges, "universes": universes,
-            "asserts": asserts, "hierarchies": hierarchies,
+            "asserts": asserts, "hierarchies": hierarchies, "relates": relates,
             "measures": measures, "derived": derived, "published_scope": scope}
 
 
