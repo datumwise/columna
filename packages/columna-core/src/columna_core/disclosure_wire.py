@@ -42,6 +42,7 @@ def _approx_materiality(rel_error: Optional[float]) -> str:
 CATEGORY_TABLE = {
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
     "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
+    "over_count":             ("multi_counted",          MATERIAL),   # touch-face M:N crossing: deliberate over-count -> DISCLOSE
     "coverage":               ("denominator_population", MATERIAL),
     "unconfirmed_assumption": ("input_anchor",           MATERIAL),
     "approximation":          ("approximation",          _approx_materiality),
