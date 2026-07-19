@@ -5,6 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import transcript from '../data/transcript.generated.json';
 import { renderManifoldExplorer } from '../explorer/manifold-explorer';
 import AskYourAI from '../components/AskYourAI.astro';
+import UniverseVisual from '../components/UniverseVisual.astro';
 
 const describe = (transcript as any).explorer_describe;
 const initialHtml = renderManifoldExplorer(describe);   // SSR — the reference reads without JS; JS wires search/copy
@@ -26,6 +27,7 @@ what describe is and how an agent uses it, and answer my follow-ups.`;
       the verdict that tested it, and the query that shows it.</p>
     <AskYourAI summary="What is describe? Ask your own AI." text={askDescribe} tone="paper" />
   </div>
+  <UniverseVisual />
   <div id="mx-root" set:html={initialHtml}></div>
 </BaseLayout>
 
