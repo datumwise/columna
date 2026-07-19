@@ -526,6 +526,27 @@ A query that declares one of the three resolutions is computed under it with no 
 
 > **▸ Frame-QL revision (column-foundation).** The paragraph above describes a join-based engine, where the membership aggregation is always computable and so can be *served* with an overlap disclosure. Frame-QL's engine (ADR-031) *transports* a measure along functional edges and never joins; a non-functional (M:N) edge is **not a traversable path**, so the membership aggregation is not expressible at all without one of the three resolutions. The undeclared aggregate-across is therefore caught by the planner as a **well-formedness clarification** — *"this aggregate-across rides a non-functional edge and is underdetermined; supply a membership filter, a primary designation, or `WITH allocation`"* — returned statically, before execution, with **no result**. The three remedies are unchanged; only the outcome class moves, from *serve-with-disclosure* to *clarify*, because the engine cannot fabricate a number it has no path to. A declared resolution makes the query well-formed exactly as before. (This is the one place the inform-and-serve doctrine yields to well-formedness: the engine still never withholds a number it *can* produce — here it genuinely cannot.)
 
+> **▸ Frame-QL revision (RELATE faces, v0.11).** The clarification above is now a **menu**. A relationship may declare **faces** — named crossing dispositions — and the undeclared-aggregate-across clarify *lists the declared faces with their folklore* as its alternatives, so the human re-issues by naming one. A face names the value's **disposition on the trip**, never the selection criterion; the three are a self-teaching verb triad, mutually exclusive and jointly covering the sensible crossings of a many-to-many by an additive quantity:
+>
+> - **`touch`** — the value reaches *every* match. Per-bucket totals overlap and their sum **exceeds** the grand total (and, where the fine side has members in *no* bucket, can also fall **short** of it — both skews disclosed). This is the membership question ("revenue of products *in* each category"), now **executed**, not just described.
+> - **`assign`** — the value goes to *exactly one* match (a declared canonical pick — by a primary flag, first-listed, max-weight — adjudicated as "exactly one per fine entity" regardless of the criterion). Collapses the M:N into a functional edge.
+> - **`alloc`** — the value **splits across** matches (equal shares, or a declared weight); per-bucket totals **reconcile** to the grand total. The `WITH allocation` construct of §6.12 is this face's parameter.
+>
+> A face is **declared on the relationship** (not parameterized per query — `EXPLAIN` stays static and the cache keys the name), described per the folklore rule, and **adjudicated at publish**: a face is closed by default, and its license *opens* the crossing. Faces are addressed as a qualified coordinate, `{<coordinate>.<face>}`:
+>
+> ```
+> RELATE product <-> category VIA product_categories(product_id, category_id)
+>     FACES { touch = TOUCH -- "revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total" }
+>     NOTE "a product belongs to up to 3 categories"
+> ```
+> ```
+> SELECT revenue AT {category.touch}      -- disclose: over_count (caution) + coverage (info)
+> ```
+>
+> The bare `{category}` stays uniformly barred and now clarifies with the face menu; `{category.touch}` executes the join-multiply and serves in **disclose**, carrying the over-count as a material caveat and the coverage (the covered/uncovered count) as an informational one. Naming honesty holds: `category.touch` ≠ `category`, marked in the grain name. **Per-basis licensing, v1 = events only** — on an events population the expansion is honest arithmetic; on a spine/grid, replication would corrupt the grid's own completeness claim, so the crossing is refused there until that thinking lands.
+>
+> **v1 executes `touch` only.** `assign` and `alloc` are declared-but-deferred: the grammar knows them, but declaring one is an honest, fail-closed parse refusal — *"FACE `<name>`: scheme `assign` is declared-but-deferred — v1 executes TOUCH only (assign/alloc are post-launch ledger items)"* — so no manifold can carry an inert face that silently serves nothing.
+
 ### 5.7 Coverage compatibility **[Pro]**
 
 When a query combines columns at a shared anchor, the framework consults the coverage states of the columns:
