@@ -50,6 +50,11 @@ jobs:
           python scripts/gen_case.py > src/data/case.generated.json
           echo "case bytes: $(wc -c < src/data/case.generated.json)"
 
+      - name: Generate the Universe Visual (Figure 1) from the BRANCH package (fails closed)
+        run: |
+          python scripts/gen_universe_visual.py > src/data/universe_visual.generated.json
+          echo "universe-visual bytes: $(wc -c < src/data/universe_visual.generated.json)"
+
       - name: Install site dependencies
         run: npm ci
       - name: Build
@@ -95,6 +100,11 @@ jobs:
         run: |
           python scripts/gen_case.py > src/data/case.generated.json
           echo "case bytes: $(wc -c < src/data/case.generated.json)"
+
+      - name: Generate the Universe Visual (Figure 1) from the SHIPPED package (fails closed)
+        run: |
+          python scripts/gen_universe_visual.py > src/data/universe_visual.generated.json
+          echo "universe-visual bytes: $(wc -c < src/data/universe_visual.generated.json)"
 
       - name: Install site dependencies
         run: npm ci
