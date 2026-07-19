@@ -223,7 +223,7 @@ def _p_faces(frm: str, to: str, block: str) -> tuple:
     v1 EXECUTES `touch` only; `assign`/`alloc` are known schemes but declared-but-deferred — they parse-
     error here so no .cml can silently declare an inert face."""
     faces, seen = [], set()
-    for line in re.split(r"[;\n]", block):
+    for line in block.splitlines():        # one face per line (mirror the measure FAMILY); ';' is legal in folklore
         t = line.strip().rstrip(",")
         if not t:
             continue

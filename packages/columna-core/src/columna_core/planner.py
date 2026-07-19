@@ -18,6 +18,7 @@ from .projection import PlannerView
 from .engine import ColumnEngine
 from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
+from .model import parse_faced
 
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
@@ -183,21 +184,36 @@ class Planner:
         base = self.m.universes[uni].base_dimensions
         if self.m.find_path(base, T) is not None:
             return
-        # fan-out: T reachable only across a non-functional (M:N) edge from this universe
+        # A DECLARED faced coordinate `<coord>.<face>` IS addressable: the face licenses the crossing,
+        # provided the measure reaches the OTHER endpoint (so a value exists to carry over the edge).
+        faced = parse_faced(T, self.m.non_functional)
+        if faced is not None:
+            coord, _fname, rel, _face = faced
+            other = rel.to if coord == rel.frm else rel.frm
+            if (other in base) or (self.m.find_path(base, other) is not None):
+                return   # the engine executes the touch join-multiply
+        # fan-out: the BARE coordinate T is reachable only across a non-functional (M:N) edge — clarify.
         for rel in self.m.non_functional:
             nf, nt, detail = rel.frm, rel.to, rel.detail
             reach_nf = (nf in base) or (self.m.find_path(base, nf) is not None)
             reach_t = (nt == T) or (self.m.find_path([nt], T) is not None)
             if reach_nf and reach_t:
+                # THE CLARIFY-AS-MENU (Huayin 2026-07-19): a relation with declared faces LISTS them with
+                # their folklore — the human re-issues as `T.<face>`. Same shape as the input-anchor
+                # clarify. Ship-dark: no faces -> the standing three-remedy prose, unchanged.
+                if rel.faces:
+                    alternatives = tuple(f"{T}.{f.name} — {f.description}" for f in rel.faces)
+                else:
+                    alternatives = ("membership filter — accept the overlap deliberately ('revenue "
+                                    "touching each "+T+"')",
+                                    "primary designation — make the "+nf+"\u2192"+nt+" edge functional",
+                                    "WITH allocation — supply a partition-of-unity split [Pro]")
                 raise Refusal("non_functional_transport",
                     f"{measure} @ {T}: relating crosses a non-functional (M:N) edge "
                     f"{nf}\u2194{nt} ({detail}); this aggregate-across is underdetermined — the "
                     f"measure would be replicated across matches and the total inflated",
                     measure=f"{measure}@transaction", target=T, edge=f"{nf}\u2194{nt}",
-                    alternatives=("membership filter — accept the overlap deliberately ('revenue "
-                                  "touching each "+T+"')",
-                                  "primary designation — make the "+nf+"\u2192"+nt+" edge functional",
-                                  "WITH allocation — supply a partition-of-unity split [Pro]"))
+                    alternatives=alternatives)
         # otherwise: out of universe (the dimension is not part of this population)
         raise Refusal("out_of_universe",
             f"{measure} @ {T}: '{T}' is not addressable in universe '{uni}' "
@@ -238,17 +254,24 @@ class Planner:
             # qualified family.level — split at the FIRST dot, validate edge-derived membership (item 3a)
             if "." in tok:
                 fam, lev = tok.split(".", 1)
-                if lev not in self.m.levels:
-                    raise FrameQLSyntaxError(
-                        f"anchor '{tok}': no level named '{lev}' — qualify an existing level as "
-                        f"family.level, or name a level directly")
-                fams = self._families_of(lev)
-                if fam not in fams:
-                    raise FrameQLSyntaxError(
-                        f"anchor '{tok}': level '{lev}' is not in dimension family '{fam}' — it belongs "
-                        f"to {sorted(fams) if fams else 'no dimension family'}")
-                out.append(lev)
-                continue
+                if lev in self.m.levels:
+                    fams = self._families_of(lev)
+                    if fam not in fams:
+                        raise FrameQLSyntaxError(
+                            f"anchor '{tok}': level '{lev}' is not in dimension family '{fam}' — it belongs "
+                            f"to {sorted(fams) if fams else 'no dimension family'}")
+                    out.append(lev)
+                    continue
+                # not family.level — a faced coordinate `<coordinate>.<face>`? (the LEFT side resolves, the
+                # right names a declared crossing face). Kept VERBATIM: `category.touch` IS the grain — a
+                # distinct, honestly-named coordinate, not bare `category` (naming honesty, and a distinct
+                # cache key). The engine decodes it to join-multiply; addressability is checked below.
+                if parse_faced(tok, self.m.non_functional) is not None:
+                    out.append(tok)
+                    continue
+                raise FrameQLSyntaxError(
+                    f"anchor '{tok}': no level named '{lev}' — qualify an existing level as "
+                    f"family.level, name a level directly, or address a declared face as coordinate.face")
             # bare, non-universe, non-level token: unchanged — addressability handles the unknown level
             out.append(tok)
         return tuple(out)

@@ -341,3 +341,34 @@ class Manifold:
 # small helper for building anchors as ordered tuples of level names
 def A(*levels) -> tuple:
     return tuple(levels)
+
+
+# ---- faced-coordinate resolution (shared by planner projection + engine) ------------------------
+# A faced anchor coordinate is the verbatim token `<coordinate>.<face>` (e.g. `category.touch`). It is
+# preserved as-is through the whole pipeline (honest grain name; distinct cache key) and decoded only
+# where it must act: the planner (addressability + the clarify-as-menu) and the engine (join-multiply).
+# `find_faced` works on ANY relate list whose items expose .frm/.to/.faces with .name — so the same
+# function serves the full Manifold (model.Relate, VIA present) AND the PlannerView (RelateShape, no VIA).
+def find_faced(non_functional, coord: str, face_name: str):
+    """Return (relate, face) if `coord` is an endpoint of some relate that declares a face named
+    `face_name`, else None. Direction-agnostic: a RELATE is symmetric (<->)."""
+    for rel in non_functional:
+        if coord in (rel.frm, rel.to):
+            for f in rel.faces:
+                if f.name == face_name:
+                    return rel, f
+    return None
+
+
+def parse_faced(tok: str, non_functional):
+    """Decode a faced anchor token `<coord>.<face>` against a relate list. Returns
+    (coord, face_name, relate, face) or None. A dotted token that is not a declared face (e.g. the
+    `family.level` form `cal.month`) returns None, so the caller falls through to ordinary resolution."""
+    if "." not in tok:
+        return None
+    coord, face_name = tok.split(".", 1)
+    hit = find_faced(non_functional, coord, face_name)
+    if hit is None:
+        return None
+    rel, face = hit
+    return coord, face_name, rel, face
