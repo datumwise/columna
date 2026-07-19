@@ -203,6 +203,50 @@ class Assert:
     description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
 
 
+# ---- RELATE (the ANTI-EDGE): non-functional (M:N) relationships + their crossing FACES ----------
+# canonical face schemes (the value's DISPOSITION on the trip across an M:N edge). v1 EXECUTES touch
+# only; assign/alloc are declared-but-deferred (post-launch ledger). A face names what the value DOES,
+# never the selection criterion — the criterion lives in the declaration (assign/alloc `= <selection>`).
+TOUCH, ASSIGN, ALLOC = "touch", "assign", "alloc"
+FACE_SCHEMES = (TOUCH, ASSIGN, ALLOC)
+
+
+@dataclass(frozen=True)
+class Face:
+    """A declared crossing DISPOSITION on a RELATE (M:N) edge — how an additive value behaves on the
+    trip. touch = the value reaches EVERY match (join-multiply; deliberate multi-count; served DISCLOSE).
+    assign = it goes to exactly one; alloc = it splits across (both declared-but-deferred in v1).
+
+    Polarity mirror of FamilyMember (parser.py `_p_fertility_family`): DESCRIPTION is mandatory (the
+    folklore rule), and the `license` is constructed ONLY by the adjudicator at publish — None on parse.
+    A face is closed-by-default: its license OPENS the crossing (per the polarity law, model.py above)."""
+    name: str                             # the addressable face name — the query says <coordinate>.<name>
+    scheme: str                           # disposition kind: one of FACE_SCHEMES
+    description: str = ""                 # mandatory folklore; flows to describe/relates[].faces[] (additive)
+    selection: str = ""                   # assign/alloc parameter from the declaration (weight col, pick rule); '' for touch
+    license: Optional["License"] = None   # basis-license; adjudicator-only at publish. None on parse (closed-by-default).
+
+
+@dataclass(frozen=True)
+class Relate:
+    """A declared non-functional (M:N) relationship — the ANTI-EDGE (HIERARCHY says 'aggregation
+    survives the trip'; RELATE says 'no lawful rollup exists'). Logical endpoints + the NOTE folklore +
+    declared crossing `faces`.
+
+    The VIA bridge (table + join columns) is MAP-LAYER (ruling 2026-07-19, Huayin): ENGINE-VISIBLE
+    (join-multiply needs it), describe-INVISIBLE — it NEVER rides relates[] or any wire, exactly like a
+    universe's `rejects`. The projection strips it; the insulation test asserts it stays off-wire.
+    Per-hop VIA capture copies the shipped HIERARCHY pattern (`VIA table(frm_col, to_col)`)."""
+    frm: str                              # one endpoint level
+    to: str                               # the other endpoint level
+    detail: str = ""                      # the NOTE verbatim (folklore) — flows to relates[].note (additive)
+    faces: tuple = ()                     # (Face, ...) declared crossings; () = today's bare RELATE (no faces)
+    # ---- MAP-LAYER: engine-visible, describe-invisible; NEVER on the wire ----
+    via_table: Optional[str] = None       # the bridge table (physical); None for a bare RELATE
+    via_frm_col: Optional[str] = None     # bridge column carrying the frm key
+    via_to_col: Optional[str] = None      # bridge column carrying the to key
+
+
 @dataclass(frozen=True)
 class Hierarchy:
     """A declared functional-dependence lineage (B2). The SOLE surface for functional paths after the
@@ -234,7 +278,7 @@ class Manifold:
     edges: list                           # [FunctionalEdge]  (the coordinate DAG + relationships)
     measures: dict                        # name -> MeasureColumn
     derived: dict = field(default_factory=dict)
-    non_functional: list = field(default_factory=list)  # [(frm_level, to_level, detail)] — M:N, for fan-out diagnostics
+    non_functional: list = field(default_factory=list)  # [Relate] — M:N relationships (fan-out diagnostics + crossing faces)
     asserts: list = field(default_factory=list)         # [Assert] — declared invariants (B1), universe-scoped
     hierarchies: list = field(default_factory=list)     # [Hierarchy] — provenance for the desugared FD chains (B2)
 
@@ -297,3 +341,34 @@ class Manifold:
 # small helper for building anchors as ordered tuples of level names
 def A(*levels) -> tuple:
     return tuple(levels)
+
+
+# ---- faced-coordinate resolution (shared by planner projection + engine) ------------------------
+# A faced anchor coordinate is the verbatim token `<coordinate>.<face>` (e.g. `category.touch`). It is
+# preserved as-is through the whole pipeline (honest grain name; distinct cache key) and decoded only
+# where it must act: the planner (addressability + the clarify-as-menu) and the engine (join-multiply).
+# `find_faced` works on ANY relate list whose items expose .frm/.to/.faces with .name — so the same
+# function serves the full Manifold (model.Relate, VIA present) AND the PlannerView (RelateShape, no VIA).
+def find_faced(non_functional, coord: str, face_name: str):
+    """Return (relate, face) if `coord` is an endpoint of some relate that declares a face named
+    `face_name`, else None. Direction-agnostic: a RELATE is symmetric (<->)."""
+    for rel in non_functional:
+        if coord in (rel.frm, rel.to):
+            for f in rel.faces:
+                if f.name == face_name:
+                    return rel, f
+    return None
+
+
+def parse_faced(tok: str, non_functional):
+    """Decode a faced anchor token `<coord>.<face>` against a relate list. Returns
+    (coord, face_name, relate, face) or None. A dotted token that is not a declared face (e.g. the
+    `family.level` form `cal.month`) returns None, so the caller falls through to ordinary resolution."""
+    if "." not in tok:
+        return None
+    coord, face_name = tok.split(".", 1)
+    hit = find_faced(non_functional, coord, face_name)
+    if hit is None:
+        return None
+    rel, face = hit
+    return coord, face_name, rel, face

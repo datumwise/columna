@@ -1,10 +1,11 @@
 """
 test_case_demo_recapture.py — Cascadia inc3 (THE RECAPTURE): the seeded corpus is the drift gate.
 
-Built expectation-first against recapture_exemplar_spec v0.1. The nine exemplars' MOODS and REASON
-CODES are ratified expectations, asserted here; the NUMBERS are recorded (asserted as shapes the spec
-fixes: 32 / 24 / 24), never as free values. Any deviation surfaces as a `flags` entry with wire
-evidence — the corpus never harmonizes silently.
+Built expectation-first against recapture_exemplar_spec v0.1 (+ the desk's E6/E10 amendment, 2026-07-19
+— RELATE faces made visible: E6 clarifies with the face MENU, E10 executes the touch crossing). The ten
+exemplars' MOODS and REASON CODES are ratified expectations, asserted here; the NUMBERS are recorded
+(asserted as shapes the spec fixes: 32 / 24 / 24), never as free values. Any deviation surfaces as a
+`flags` entry with wire evidence — the corpus never harmonizes silently.
 
 Recorded-and-flagged findings (brought to the desk in the recapture diff):
   • E8's reason code (left open by the desk) records as `out_of_universe`.
@@ -88,8 +89,29 @@ def test_wheel_is_the_four_mood_story_order(corpus):
     assert corpus["wheel"] == ["E4", "E8", "E2", "E5"]   # clarify -> refuse -> disclose -> serve
 
 
-def test_corpus_carries_all_nine_with_the_wheel_subset_marked(corpus):
-    # the recorded corpus is the FULL nine E1-E9; the --play wheel is a marked SUBSET of it.
-    assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 10)]
+def test_corpus_carries_all_ten_with_the_wheel_subset_marked(corpus):
+    # the recorded corpus is the FULL ten E1-E10 (E10 minted with the RELATE-faces pair); the --play
+    # wheel is a marked SUBSET of it.
+    assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 11)]
     marked = {e["id"] for e in corpus["exemplars"] if e["in_wheel"]}
     assert marked == set(corpus["wheel"]) == {"E2", "E4", "E5", "E8"}
+
+
+def test_e6_clarify_carries_the_face_menu(corpus):
+    # ship-dark revoked: the bare-coordinate clarify now LISTS the declared face + its ratified folklore.
+    e6 = next(e for e in corpus["exemplars"] if e["id"] == "E6")
+    assert e6["mood"] == "clarify" and "non_functional_transport" in e6["reason_tokens"]
+    menu = e6.get("menu") or []
+    assert any(m.startswith("category.touch") for m in menu), f"the face menu is missing: {menu}"
+    assert any("deliberately multi-counted" in m for m in menu)     # the ratified description rides the menu
+
+
+def test_e10_touch_executes_and_discloses_the_overcount(corpus):
+    e10 = next(e for e in corpus["exemplars"] if e["id"] == "E10")
+    assert e10["mood"] == "disclose"                                # the crossing serves, honestly skewed
+    assert "over_count" in e10["reason_tokens"]                     # the deliberate multi-count drives disclose
+    oc = [d for d in e10["disclosures"] if d["token"] == "over_count"]
+    assert oc and oc[0]["severity"] == "caution"
+    cov = [d for d in e10["disclosures"] if d["token"] == "transport" and "coverage" in (d["detail"] or "")]
+    assert cov, "the coverage info caveat is missing"
+    assert e10["row_count"] == 12                                   # 12 categories (recorded)

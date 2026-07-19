@@ -15,7 +15,7 @@ import sys, glob, os
 import duckdb, polars as pl
 
 from columna_core import (Manifold, Universe, DimensionLevel, FunctionalEdge,
-                          MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
+                          MeasureColumn, FamilyMember, BAnchor, DerivedColumn, Relate,
                           ADDITIVE, SKETCH, HOLISTIC, PROVEN,
                           DuckDBConnector, ManifoldServer, Refusal, A)
 from columna_core.parser import parse_predicate
@@ -93,7 +93,7 @@ def build_manifold():
                        family={"mode": FamilyMember("mode", BAnchor())}),
     }
     derived = {"aov": DerivedColumn("aov", "revenue / orders")}
-    non_functional = [("product","category","a product belongs to up to 3 categories")]
+    non_functional = [Relate("product", "category", "a product belongs to up to 3 categories")]
     return Manifold("benchmark", 1, universes, levels, edges, measures, derived, non_functional)
 
 def run_validations(con, srv):

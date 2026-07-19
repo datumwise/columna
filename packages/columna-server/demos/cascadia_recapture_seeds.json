@@ -55,6 +55,11 @@
           "detail": "inline reduction 'mean(aov)' does not pin its input anchor — the grain to resolve 'aov' at before reducing to cal.year is underdetermined; pin it, e.g. 'mean(aov@cal.month)'"
         }
       ],
+      "menu": [
+        "pin the input anchor to 'cal.month' (e.g. mean(aov@cal.month))",
+        "pin the input anchor to 'cal.quarter' (e.g. mean(aov@cal.quarter))",
+        "pin the input anchor to 'day' (e.g. mean(aov@day))"
+      ],
       "row_count": null,
       "reason_tokens": [
         "input_anchor_ambiguous"
@@ -84,6 +89,9 @@
           "severity": null,
           "detail": "revenue @ category: relating crosses a non-functional (M:N) edge product↔category (a product belongs to up to 3 categories); this aggregate-across is underdetermined — the measure would be replicated across matches and the total inflated"
         }
+      ],
+      "menu": [
+        "category.touch — revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total"
       ],
       "row_count": null,
       "reason_tokens": [
@@ -115,6 +123,9 @@
           "detail": "stock @ customer: 'customer' is not addressable in universe 'inventory' (out of domain — undefined, not missing)"
         }
       ],
+      "menu": [
+        "on_universe('inventory')"
+      ],
       "row_count": null,
       "reason_tokens": [
         "out_of_universe"
@@ -137,6 +148,31 @@
       "row_count": null,
       "reason_tokens": [
         "b_anchor_crossing"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E10",
+      "caption": "Revenue by category, answered lawfully (the overlap stated)",
+      "query": "SELECT revenue AT {category.touch}",
+      "kind": "query",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "over_count",
+          "severity": "caution",
+          "detail": "multi-counted by construction across product<->category: revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total"
+        },
+        {
+          "token": "transport",
+          "severity": "info",
+          "detail": "coverage 600/600: every product carrying revenue is categorized (no shortfall; the over-count is the only skew)"
+        }
+      ],
+      "row_count": 12,
+      "reason_tokens": [
+        "over_count",
+        "transport"
       ],
       "in_wheel": false
     }

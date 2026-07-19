@@ -35,6 +35,9 @@ UNCONFIRMED = "unconfirmed_assumption"
 TRANSPORT = "transport"          # records a faithful transport step (provenance)
 B_ANCHOR_CROSSING = "b_anchor_crossing"   # served, critical: a reduction coarsens a blocked family
 DATA_GAP = "data_gap"            # served, material: absent cells are GAPS (spine/product basis, B3)
+OVER_COUNT = "over_count"        # served, MATERIAL: a touch-face crossing multi-counts by construction —
+                                 # the value reaches every match of an M:N edge, so totals deliberately
+                                 # exceed the grand total. Drives DISCLOSE (the honest over-count is the point).
 
 # ---- the four planner outcomes, plus error (ADR-032) ------------------------------------
 # serve / disclose are carried by a served frame + Disclosure; clarify / refuse / error are

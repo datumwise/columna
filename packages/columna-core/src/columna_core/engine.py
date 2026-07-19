@@ -20,11 +20,11 @@ from dataclasses import dataclass
 from typing import Optional
 import polars as pl
 
-from .model import Manifold
+from .model import Manifold, parse_faced
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
-                         FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED)
+                         FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED, OVER_COUNT)
 
 
 @dataclass
@@ -57,6 +57,13 @@ class ColumnEngine:
         base = set(self.m.universes[uni].base_dimensions)
         fam = meas.family[member]
         op = get_operator(fam.agg)              # reaggregability is operator-level (the registry)
+
+        # FACED coordinate — a TOUCH crossing across a non-functional (M:N) edge. The value join-
+        # multiplies through the relation's VIA bridge to the faced grain (deliberate multi-count,
+        # served DISCLOSE). v1 handles a single faced coordinate (the `revenue AT {category.touch}` case).
+        faced = [T for T in target if parse_faced(T, self.m.non_functional) is not None]
+        if faced:
+            return self._resolve_touch(meas, fam, op, target, faced, where, trace)
 
         # paths to each target level
         paths = {}
@@ -237,6 +244,109 @@ class ColumnEngine:
                 self._t(trace, f"  attach {cur}->{e.to} along {e.lineage} (functional 1:1, no collapse)")
                 cur = e.to
         return frame.select(list(target) + ["_value"])     # project the witness to the answer
+
+    # ---- TOUCH: join-multiply across a non-functional (M:N) edge ----------
+    def _resolve_touch(self, meas, fam, op, target, faced, where, trace):
+        """Execute a touch-face crossing: `<measure> AT {<coord>.touch}`. The measure is delivered at the
+        reachable endpoint grain, then JOIN-MULTIPLIED through the relation's VIA bridge to the faced
+        coordinate — a product's value reaches EVERY category it sits in, so the frame is deliberately
+        multi-counted (totals exceed the grand total) and served in DISCLOSE. This reuses the shipped
+        `_transport_reduce` (the M:N bridge just delivers many-per-key pairs instead of one), so the
+        multiply falls out of the same combine the functional path uses."""
+        uni = meas.universe
+        base = set(self.m.universes[uni].base_dimensions)
+        if len(faced) != 1 or len(target) != 1:
+            raise Refusal("unsupported",
+                          "touch v1 resolves a single faced coordinate anchor "
+                          f"(got target {target!r}); mixed/multi-faced anchors are post-launch",
+                          measure=meas.name, target=str(target))
+        T = faced[0]
+        coord, fname, rel, face = parse_faced(T, self.m.non_functional)
+        # BASIS gate — v1 is EVENTS ONLY (Huayin): on events the expansion is honest arithmetic; on a
+        # spine/product grid, replication would corrupt the grid's own completeness claim. Refuse until
+        # that thinking is done. (An UNDECLARED basis keeps today's behavior — the crossing still serves.)
+        basis = self.m.universes[uni].basis
+        if basis is not None and basis != "events":
+            raise Refusal("unsupported",
+                          f"touch across {rel.frm}<->{rel.to} is events-only in v1: universe '{uni}' is "
+                          f"'{basis}' basis, where replication corrupts completeness — declare an events "
+                          f"population or use a functional designation",
+                          measure=meas.name, target=T)
+        if not op.is_monoid or op.witness not in (VALUE,):
+            raise Refusal("unsupported",
+                          f"touch crosses additive (monoid VALUE) measures only in v1 — '{meas.name}.{op.name}' "
+                          f"is not (ordered/holistic/sketch crossings are post-launch)",
+                          measure=meas.name, target=T)
+
+        other = rel.to if coord == rel.frm else rel.frm      # the endpoint the measure reaches
+        p = self.m.find_path(base, other)
+        if p is None:
+            raise Refusal("non_functional_transport",
+                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'",
+                          measure=meas.name, target=T)
+
+        # exact cache — the faced token rides `target`, so touched/untouched key DISTINCTLY (no collision).
+        key = (meas.name, fam.agg, target, uni, where)
+        ver = self.con.table_version(meas.home_table)
+        disc = self._touch_disc(meas, fam, op, uni, rel, face)
+        if key in self.cache and self.cache[key].version == ver:
+            self.stats.cache_hits += 1
+            self._t(trace, "  cache-hit (touch)")
+            return self.cache[key].frame, disc.with_caveat(Caveat(FRESHNESS, "served from cache"))
+
+        # 1) deliver the measure at the reachable endpoint grain (reuse the monoid delivery).
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
+        # 2) deliver the bridge so `_frm` is ALWAYS the measure side (swap columns for the reverse edge),
+        #    then join-multiply + reduce onto the faced grain T (no dedup — the multiply is the point).
+        if other == rel.frm:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)
+        else:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
+        # COVERAGE (the second disclosure of the ratified absence law): a measure-side key in NO bridge
+        # membership is excluded from EVERY faced cell — so the touch total can fall SHORT of the grand
+        # total, the mirror of the over-count. Report the number either way (Huayin): full coverage is
+        # itself the honest statement; a shortfall names the excluded count and the value lost.
+        covered = bridge.select(pl.col("_frm").alias(other)).unique()
+        n_total = frame.height
+        uncovered = frame.join(covered, on=other, how="anti")
+        n_uncov = uncovered.height
+        if n_uncov:
+            lost = uncovered["_value"].sum()
+            disc = disc.with_caveat(Caveat(TRANSPORT,
+                f"{n_uncov} of {n_total} {other} are in no {T.split('.')[0]} — excluded from every cell; "
+                f"the touch total falls short of the grand total by {lost} ({meas.name}). coverage "
+                f"{n_total - n_uncov}/{n_total}", severity="info"))
+        else:
+            disc = disc.with_caveat(Caveat(TRANSPORT,
+                f"coverage {n_total}/{n_total}: every {other} carrying {meas.name} is categorized "
+                f"(no shortfall; the over-count is the only skew)", severity="info"))
+        touched = self._transport_reduce(frame, other, T, bridge, op)
+        self.stats.transports += 1
+        self._t(trace, f"  touch {other} x {T} via {rel.via_table} [join-multiply, combine={op.combine}] "
+                       f"(deliberate over-count; coverage {n_total - n_uncov}/{n_total})")
+        # 3) crossed-grain absence — EVENTS basis: a bridge coordinate with no touched value is a lawful
+        #    ZERO (Huayin ruling: lawful-zero on events universes only). Complete the domain from the
+        #    bridge so every declared category appears; fill 0. Undeclared basis => leave as-is (no domain).
+        if basis == "events":
+            domain = bridge.select(pl.col("_to").alias(T)).unique()
+            before = touched.height
+            touched = domain.join(touched, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
+            n_zero = touched.height - before
+            if n_zero > 0:
+                disc = disc.with_caveat(Caveat(TRANSPORT,
+                    f"{n_zero} {T} with no touched {meas.name} rendered as 0 per events basis"))
+        touched = touched.sort(T).select([T, "_value"])
+        self.cache[key] = CacheEntry(touched, None, ver)
+        return touched, disc
+
+    def _touch_disc(self, meas, fam, op, uni, rel, face):
+        """The touch disclosure — the deliberate over-count as a MATERIAL caveat (drives DISCLOSE), carrying
+        the face's declared folklore verbatim so the answer says WHY it multi-counts."""
+        base = self._disc(meas, fam, op, uni)
+        note = face.description or (f"{meas.name} reaches every {rel.to} a {rel.frm} sits in "
+                                    f"({rel.detail})")
+        return base.with_caveat(Caveat(OVER_COUNT,
+            f"multi-counted by construction across {rel.frm}<->{rel.to}: {note}", severity="caution"))
 
     def _combine_exprs(self, op):
         if op.combine == "sum": return [pl.col("_value").sum().alias("_value")]

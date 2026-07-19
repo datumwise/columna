@@ -34,7 +34,9 @@ HIERARCHY calendar {
 }   -- "the reporting calendar — weeks hang off day because ISO weeks don't nest in months"
 
 # many-to-many (declared so a fan-out refusal can name it, and the refusal can say exactly why)
-RELATE product <-> category VIA product_categories NOTE "a product belongs to up to 3 categories"
+RELATE product <-> category VIA product_categories(product_id, category_id)
+    FACES { touch = TOUCH -- "revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total" }
+    NOTE "a product belongs to up to 3 categories"
 
 # ── measures — folklore on every name; stale summaries kept as rejects on the map ───────────────────
 MEASURE revenue ON transaction FROM transactions AS sum(amount)   -- "sale amount, summed"
