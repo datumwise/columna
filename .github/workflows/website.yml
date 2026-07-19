@@ -77,7 +77,7 @@ jobs:
           cache-dependency-path: apps/website/package-lock.json
 
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna-core==0.10.0" "columna-server==0.4.0"
+        run: pip install "columna-core==0.10.0" "columna-server==0.5.0"
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED

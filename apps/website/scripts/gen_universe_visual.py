@@ -141,7 +141,14 @@ def build_model(dm):
     # RELATE (ruling B, 2026-07-19): declared M:N relationships ride describe as relates[] — drawn as a
     # dashed connector from the base level to a stackless `to` block, the note quoted verbatim. Fail
     # closed if a relate names a `to` level describe never declared (a new declaration kind, untaught).
-    relates = dm.get("relates", [])
+    # The wedge extended to Figure 1 (ruling (i), 2026-07-19): the relates KEY must be PRESENT — an empty
+    # list is a lawful "genuinely no relations", but a MISSING key means the shipped package predates the
+    # RELATE wire (columna-server < 0.5.0) and cannot provide Figure 1's declared M:N. The site is
+    # structurally incapable of deploying a figure the shipped describe can't fully ground — bump the pin.
+    if "relates" not in dm:
+        raise Fail("describe_manifold carries no `relates` key — the shipped package predates the RELATE "
+                   "wire (columna-server < 0.5.0); Figure 1 cannot ground its declared M:N. Bump the pin.")
+    relates = dm["relates"]
     levels = {d["level"] for d in dm["dimensions"]}
     for r in relates:
         if r["to"] not in levels or r["frm"] not in levels:

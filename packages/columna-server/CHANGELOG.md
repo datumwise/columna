@@ -3,6 +3,23 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.5.0] — RELATE rides the wire (declared M:N as describe data)
+
+Purely additive; `contract_version` stays `"1"` (the DESCRIPTION precedent — additive fields ride).
+Requires `columna-core>=0.10.0` (unchanged).
+
+- **`describe_manifold` gains `relates[]`:** declared many-to-many relationships now ride describe as
+  data — `[{frm, to, note}]`, logical level names plus the NOTE string verbatim. Nothing physical (no
+  VIA, no bridge-table name); the standing §2b insulation test covers the new field by construction.
+  `describe_measure` is untouched.
+- **Why it's load-bearing (not decoration):** a consult-first agent can now name a fan-out *before*
+  spending the query — answer "why can't I get revenue by category" from the source of truth — instead
+  of the M:N being invisible until tripped, its reason living only in the clarify's after-the-fact
+  detail text. The RELATE was always declared "so the refusal can name exactly why"; `relates[]` finally
+  puts that on the wire. Multiplicity between logical concepts is substance under §2b″.
+- **Born with room for its future:** when RELATE-adjudication puts multiplicity claims on trial, their
+  verdicts join these entries additively (the allocation-semantics taxonomy's wire foundation).
+
 ## [0.4.0] — the Cascadia case demo, and the agent grows hands
 
 Full narrative: `specs/release_notes_v0_10_0.md`. Requires `columna-core>=0.10.0`.
