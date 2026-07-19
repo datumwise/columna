@@ -110,6 +110,31 @@ def test_bare_coordinate_still_clarifies_with_the_face_menu():
     assert any(a.startswith("category.touch —") for a in menu), f"the face menu is missing: {menu}"
 
 
+def test_touch_reports_full_coverage_when_no_orphans():
+    # every revenue-bearing product (p1,p2,p3) is in the bridge -> full coverage, no shortfall.
+    fr = _touch()
+    rcol = next(c for c in fr.columns if c.name == "revenue")
+    cov = [c for c in rcol.disclosure.caveats if "coverage" in c.detail and c.severity == "info"]
+    assert cov and "no shortfall" in cov[0].detail
+
+
+def test_touch_reports_shortfall_when_a_product_is_uncategorized():
+    # the mirror of the over-count: a product with revenue but in NO category is excluded from every
+    # cell, so the touch total falls SHORT of the grand total by that product's value.
+    tables = {
+        "transactions": (["product_id", "day", "amount"],
+                         [("p1", "d1", 100.0), ("p9", "d1", 25.0)]),   # p9 has revenue
+        "product_categories": (["product_id", "category_id"],
+                               [("p1", "c1")]),                        # p9 is in no category
+    }
+    fr = _server(MANIFOLD, tables).frame("category.touch").column("revenue", "revenue").run()
+    rcol = next(c for c in fr.columns if c.name == "revenue")
+    short = [c for c in rcol.disclosure.caveats if "falls short" in c.detail]
+    assert short, "the uncovered-value shortfall caveat is missing"
+    assert "by 25" in short[0].detail and "1 of 2 product" in short[0].detail
+    assert fr.data["revenue"].sum() == 100.0                          # p9's 25 never reaches a cell
+
+
 def test_adjudication_mints_the_face_license_at_publish():
     # polarity law: a face is closed-by-default (license None on parse); the adjudicator is the SOLE
     # constructor at publish. touch = VERIFIED (membership expansion is exact arithmetic).

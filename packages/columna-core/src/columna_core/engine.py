@@ -302,10 +302,28 @@ class ColumnEngine:
             bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)
         else:
             bridge = self.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
+        # COVERAGE (the second disclosure of the ratified absence law): a measure-side key in NO bridge
+        # membership is excluded from EVERY faced cell — so the touch total can fall SHORT of the grand
+        # total, the mirror of the over-count. Report the number either way (Huayin): full coverage is
+        # itself the honest statement; a shortfall names the excluded count and the value lost.
+        covered = bridge.select(pl.col("_frm").alias(other)).unique()
+        n_total = frame.height
+        uncovered = frame.join(covered, on=other, how="anti")
+        n_uncov = uncovered.height
+        if n_uncov:
+            lost = uncovered["_value"].sum()
+            disc = disc.with_caveat(Caveat(TRANSPORT,
+                f"{n_uncov} of {n_total} {other} are in no {T.split('.')[0]} — excluded from every cell; "
+                f"the touch total falls short of the grand total by {lost} ({meas.name}). coverage "
+                f"{n_total - n_uncov}/{n_total}", severity="info"))
+        else:
+            disc = disc.with_caveat(Caveat(TRANSPORT,
+                f"coverage {n_total}/{n_total}: every {other} carrying {meas.name} is categorized "
+                f"(no shortfall; the over-count is the only skew)", severity="info"))
         touched = self._transport_reduce(frame, other, T, bridge, op)
         self.stats.transports += 1
         self._t(trace, f"  touch {other} x {T} via {rel.via_table} [join-multiply, combine={op.combine}] "
-                       f"(deliberate over-count)")
+                       f"(deliberate over-count; coverage {n_total - n_uncov}/{n_total})")
         # 3) crossed-grain absence — EVENTS basis: a bridge coordinate with no touched value is a lawful
         #    ZERO (Huayin ruling: lawful-zero on events universes only). Complete the domain from the
         #    bridge so every declared category appears; fill 0. Undeclared basis => leave as-is (no domain).
