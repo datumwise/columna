@@ -1,8 +1,9 @@
 node_modules/
 dist/
 .astro/
-# integrity artifact — generated at build time from the shipped package, never committed
+# integrity artifacts — generated at build time from the shipped package, never committed
 src/data/transcript.generated.json
+src/data/universe_visual.generated.json
 .vercel/
 .DS_Store
 .vercel

@@ -1,0 +1,66 @@
+---
+// The Universe Visual — the spec's Figure 1 (design brief, ratified 2026-07-19). A static, GENERATED
+// figure of the demo Manifold's universes: built at site-build by scripts/gen_universe_visual.py from
+// `describe` alone and imported here as data. This component renders that data — it authors no geometry
+// and no labels of its own (every element label is describe-verbatim; the captions are ratified copy
+// carried in the generated payload). SVG strings are trusted: they come from our own build-time
+// generator, never user input.
+import uv from '../data/universe_visual.generated.json';
+
+const fig = (uv as any).figure_svg as string;
+const hover = (uv as any).hover as any;
+const copy = (uv as any).copy as any;
+---
+<section class="uv" data-ref="universe-visual" aria-labelledby="uv-title">
+  <p class="uv-kicker">{copy.kicker}</p>
+  <h2 id="uv-title" class="serif uv-title">{copy.title}</h2>
+  <p class="uv-lede">{copy.lede}</p>
+
+  <figure class="uv-figure" set:html={fig}></figure>
+
+  <p class="uv-hover-intro">{hover.intro}</p>
+  <div class="uv-pair" data-ref="hover-pair">
+    <figure class="uv-panel">
+      <div class="uv-panel-svg" set:html={hover.barred_svg}></div>
+      <figcaption class="uv-cap">{hover.barred_caption}</figcaption>
+    </figure>
+    <figure class="uv-panel">
+      <div class="uv-panel-svg" set:html={hover.travels_svg}></div>
+      <figcaption class="uv-cap">{hover.travels_caption}</figcaption>
+    </figure>
+  </div>
+
+  <p class="uv-leftout">
+    {copy.leftout.split('Manifold spec')[0]}<a href={copy.leftout_spec_route}>Manifold spec</a>{copy.leftout.split('Manifold spec')[1]?.split('physical→logical map')[0]}<a href={copy.leftout_map_route}>physical→logical map</a>{copy.leftout.split('physical→logical map')[1]}
+  </p>
+</section>
+
+<style>
+  /* the hero breaks out of the narrow reading column to a viewport-centered wide band so the
+     1060-wide figure renders at full size (the reading column is ~40rem; the figure needs ~66rem). */
+  .uv { position: relative; left: 50%; transform: translateX(-50%);
+    width: min(100vw - 3rem, 68rem); margin: 0 auto 3rem; }
+  .uv-kicker { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted, #7a7365); margin: 0 0 0.4rem; }
+  .uv-title { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0 0 0.9rem; }
+  .uv-lede { font-size: 1.12rem; line-height: 1.55; color: var(--ink-2, #3a3630);
+    max-width: 42rem; margin: 0 0 1.6rem; }
+  .uv-figure { margin: 0; border: 1px solid var(--rule, #e6e0d5); border-radius: 16px;
+    padding: 1.1rem 1.2rem; background: var(--paper, #faf8f3); overflow-x: auto; }
+  .uv-figure :global(svg) { display: block; min-width: 720px; }
+  .uv-figure :global(.mono), .uv-panel-svg :global(.mono) {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace; }
+  .uv-figure :global(.tag), .uv-panel-svg :global(.tag) {
+    text-transform: uppercase; letter-spacing: 0.06em; }
+  .uv-hover-intro { font-size: 1.02rem; line-height: 1.55; color: var(--ink-2, #3a3630);
+    max-width: 44rem; margin: 2rem 0 1rem; }
+  .uv-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .uv-panel { margin: 0; border: 1px solid var(--rule, #e6e0d5); border-radius: 14px; padding: 1.1rem; }
+  .uv-panel-svg :global(svg) { display: block; }
+  .uv-cap { font-size: 0.88rem; line-height: 1.5; color: var(--ink-2, #3a3630); margin: 0.8rem 0 0; }
+  .uv-cap :global(code) { font-family: 'JetBrains Mono Variable', ui-monospace, monospace; }
+  .uv-leftout { font-size: 0.92rem; line-height: 1.55; color: var(--muted, #7a7365);
+    max-width: 46rem; margin: 1.6rem 0 0; }
+  .uv-leftout a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  @media (max-width: 640px) { .uv-pair { grid-template-columns: 1fr; } }
+</style>
