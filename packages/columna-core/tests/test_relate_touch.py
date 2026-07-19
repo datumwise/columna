@@ -110,6 +110,18 @@ def test_bare_coordinate_still_clarifies_with_the_face_menu():
     assert any(a.startswith("category.touch —") for a in menu), f"the face menu is missing: {menu}"
 
 
+def test_adjudication_mints_the_face_license_at_publish():
+    # polarity law: a face is closed-by-default (license None on parse); the adjudicator is the SOLE
+    # constructor at publish. touch = VERIFIED (membership expansion is exact arithmetic).
+    from columna_core import adjudicate, VERIFIED
+    srv = _server(MANIFOLD, TABLES)
+    assert srv.m.non_functional[0].faces[0].license is None       # closed-by-default on parse
+    report = adjudicate(srv)
+    face = srv.m.non_functional[0].faces[0]
+    assert face.license is not None and face.license.verdict == VERIFIED
+    assert report["_faces"]["product<->category.touch"] == VERIFIED
+
+
 def test_undeclared_face_is_a_query_error_not_a_crash():
     from columna_core.frameql import FrameQLSyntaxError
     try:

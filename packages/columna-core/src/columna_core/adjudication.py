@@ -654,6 +654,23 @@ def _prove_basis(basis: str) -> License:
     return _license(UNTESTABLE, set(), why)
 
 
+# ---- RELATE FACES: the crossing-disposition license (polarity law — closed opens) ----
+def _prove_face(face) -> License:
+    """A crossing FACE is CLOSED by default (the polarity law: `data may suggest walls, never doors`);
+    its License is the door — it OPENS the trip across the non-functional (M:N) edge. Minted only here,
+    at publish (never on parse), mirroring FamilyMember fertility and _prove_basis.
+
+    v1 mints the TOUCH verdict: membership expansion is EXACT arithmetic — the value reaches every match,
+    there is no partition-of-unity to reconcile (unlike `alloc`) and no canonical pick to test (unlike
+    `assign`), so it is VERIFIED (timeless, symbolic; touches no data). The EVENTS-ONLY restriction is a
+    SERVING law (enforced at resolve, like a basis declaration), not a verdict: on a spine the same
+    expansion would corrupt the grid's own completeness claim."""
+    return _license(VERIFIED, set(),
+        f"touch crossing '{face.name}': membership expansion is exact arithmetic (the value reaches every "
+        f"match; no weights to reconcile) — the license opens the trip. Serving is events-only (spine "
+        f"replication corrupts completeness; refused at resolve until that thinking lands).")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # entry point
 # ─────────────────────────────────────────────────────────────────────────────
@@ -741,4 +758,19 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
             m.universes[uname] = replace(u, basis_license=lic)
             bv[uname] = lic.verdict
         report["_basis"] = bv
+
+    # ── RELATE FACES: mint each declared crossing face's license (polarity law; closed opens the trip) ──
+    # The parser records faces with license=None; the adjudicator is the sole constructor (kernel reuse,
+    # same as fertility/basis). Ship-dark: a manifold declaring no faces (Cascadia) adds nothing.
+    if any(r.faces for r in m.non_functional):
+        fv, new_nf = {}, []
+        for r in m.non_functional:
+            if r.faces:
+                faces = tuple(replace(f, license=_prove_face(f)) for f in r.faces)
+                r = replace(r, faces=faces)
+                for f in faces:
+                    fv[f"{r.frm}<->{r.to}.{f.name}"] = f.license.verdict
+            new_nf.append(r)
+        m.non_functional = new_nf
+        report["_faces"] = fv
     return report
