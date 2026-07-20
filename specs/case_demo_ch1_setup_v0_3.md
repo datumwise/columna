@@ -8,7 +8,7 @@ Nothing here is about Columna yet — this is the situation any solution would f
 ## The company
 
 Cascadia Retail runs 24 stores across four regions (north, south, east, west), selling
-about 600 products to a customer base of roughly 2,000 registered accounts. A small data
+about 600 products to a customer base of roughly 10,000 registered accounts. A small data
 team maintains a warehouse; a Sales Operations team lives in it.
 
 ## The data they have
@@ -22,7 +22,7 @@ The warehouse is ordinary — which is to say, it has history. Fourteen tables:
 - `eom_inventory` — daily stock snapshots per store: store, day, level. ~17,000 rows.
 
 **The reference tables:**
-- `stores` (24 — with region and opened_date), `customers` (~2,000 — with segment,
+- `stores` (24 — with region and opened_date), `customers` (~10,000 — with segment,
   region, signup date), `products` (600 — with base price), `categories` (12), and
   `product_categories` — a bridge, because a product can sit in up to three categories.
 - `calendar` — two years of days mapped to week, month, quarter, year.
