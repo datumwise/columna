@@ -3,6 +3,27 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.6.1] — warehouse coherence (data-only)
+
+Patch, DATA-ONLY: no code, no wire, no contract change. Requires `columna-core>=0.11.0` (unchanged).
+
+- **The Cascadia demo warehouse now COHERES with its transaction ground truth.** A stranger-read of the
+  generated exhibits (verified at the desk) found the reference/summary tables had drifted incoherent:
+  FK coverage was 2,051/19,995 (customers held 2,000 of ~10,157 distinct transaction ids) and the
+  summaries ran 10-15× off base truth — which *contradicted the ratified burn story*, where the stale
+  summaries are *plausibly* wrong, never wild. `transactions` and `eom_inventory` are untouched (every
+  recorded number delivers from them); the reference/summary tables are regenerated DERIVED-THEN-
+  DEGRADED, each wearing exactly its one story-sin (`customers` grows to 10,157 = full FK coverage;
+  `daily_revenue_summary` = true daily revenue minus its 15 missing days; `monthly_avg_order_value` =
+  the transaction-for-order substitution; `monthly_unique_visitors` = a per-store double-count;
+  `monthly_store_inventory` = the illegal sum-of-stock-over-time; support/engagement redrawn from the
+  real customer distribution, engagement covering ~half).
+- **A new permanent suite** (`test_warehouse_coherence.py`) makes the class structural — 100% FK
+  coverage, each summary within its declared-sin tolerance of base truth, the engagement ratio.
+- **Byte-stability guarded:** the E1-E10 seeds and both transcripts' numbers are byte-stable across the
+  regen (the served measures deliver only from the untouched facts).
+- Regeneration harness: `scripts/regen_warehouse.py` (deterministic, reproducible).
+
 ## [0.6.0] — RELATE faces go visible (the crossing served, and shown)
 
 Requires `columna-core>=0.11.0` (the faces mechanism). `contract_version` stays `"1"` — `relates[].faces[]`

@@ -5,4 +5,4 @@ This is the metapackage. Installing ``columna`` installs ``columna-core`` (the e
 ``columna_core`` and ``columna_server``. Its version rides in lockstep with ``columna-core``.
 """
 
-__version__ = "0.11.0"
+__version__ = "0.11.1"
