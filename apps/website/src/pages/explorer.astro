@@ -27,6 +27,7 @@ what describe is and how an agent uses it, and answer my follow-ups.`;
       the verdict that tested it, and the query that shows it.</p>
     <AskYourAI summary="What is describe? Ask your own AI." text={askDescribe} tone="paper" />
   </div>
+  <p class="explorer-orient">The Manifold behind the case, browsable — the story lives at <a href="/case">/case</a>.</p>
   <UniverseVisual />
   <div id="mx-root" set:html={initialHtml}></div>
 </BaseLayout>
@@ -40,6 +41,7 @@ what describe is and how an agent uses it, and answer my follow-ups.`;
 
 <style is:global>
   /* is:global so the rules reach the SSR'd + JS-mounted component content (Astro would scope them away). */
+  .explorer-orient { font-size: 0.92rem; color: var(--muted, #7a7365); margin: 0.4rem 0 1.1rem; }
   .mx-explorer { margin-top: 1.5rem; }
   .mx-bar { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
   .mx-search { flex: 1 1 20rem; padding: 0.5rem 0.75rem; font: inherit; border: 1px solid var(--rule, #d8d2c7);
