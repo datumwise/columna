@@ -27,7 +27,9 @@ const cmd = 'pip install columna';
   .chip-copy[data-copied] { color: var(--mood-serve); border-color: var(--mood-serve); }
   .chip-cap { grid-column: 1 / -1; font-size: 0.72rem; color: var(--ink-faint); text-decoration: none; }
   .chip-cap:hover { color: var(--ink-soft); text-decoration: underline; }
-  @media (max-width: 34rem) { .chip-cmd { font-size: 0.7rem; } }
+  /* On phones the fixed chip overlaps the reading content (it covered the §1 cue line), and the
+     install command is one tap away in the nav/page anyway — so hide it on mobile. */
+  @media (max-width: 46rem) { .chip { display: none; } }
 </style>
 
 <script>
