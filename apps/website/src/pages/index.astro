@@ -4,6 +4,10 @@ import ExhibitA from '../components/ExhibitA.astro';
 import ExhibitB from '../components/ExhibitB.astro';
 ---
 <BaseLayout title="datumwise — a number owes you its assumptions" description="datumwise builds and stewards Columna — an open-source data framework (Manifold, FrameQL, an honest engine) that refuses to return a confident wrong number." wide={true}>
+  {/* Launch-day banner — wired INSIDE the draft-locked launch PR (Huayin): launch = one merge, nothing
+      hand-assembled on the day. Links to the canonical announcement URL. */}
+  <a class="launch-banner" href="/announcing-columna">Columna is live — an open-source data framework that refuses to return a confident wrong number. <strong>Read the announcement →</strong></a>
+
   <!-- §1 — the opening line (sans/mono, demo energy) -->
   <section class="s1 band">
     <video class="manifold-bg" src="/media/manifold_loop.mp4"
@@ -113,6 +117,11 @@ import ExhibitB from '../components/ExhibitB.astro';
 </BaseLayout>
 
 <style>
+  .launch-banner { display: block; text-align: center; text-decoration: none; padding: 0.6rem 1.5rem;
+    background: var(--ink, #1c1a17); color: var(--paper, #faf9f6); font-family: var(--font-sans);
+    font-size: 0.9rem; line-height: 1.4; }
+  .launch-banner strong { text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .launch-banner:hover { opacity: 0.92; }
   .band { padding: 3.5rem 0; }
   .col { width: min(100% - 3rem, 46rem); margin-inline: auto; }
   .col-argument { width: min(100% - 3rem, var(--measure)); margin-inline: auto; }
