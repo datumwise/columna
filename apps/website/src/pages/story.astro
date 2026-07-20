@@ -1,0 +1,14 @@
+---
+// /story — "The story behind Columna": the launch companion to /announcing-columna (Huayin, pre-launch).
+// Ships in the SAME draft-locked launch PR (#72); goes live on the launch merge, not before.
+// The companion body is the ratified v6 VERBATIM — it carries its own H1 ("The story behind Columna")
+// and already stamps the launch version (0.11.1), so this page renders it as-is (no page-level h1).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/launch_story_v6.md';
+---
+<BaseLayout title="The story behind Columna — datumwise"
+  description="The story of why we built Columna — told through a mistake we kept making ourselves, and the third time our own system caught us.">
+  <article class="prose story">
+    <Content />
+  </article>
+</BaseLayout>
