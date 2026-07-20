@@ -1,0 +1,15 @@
+---
+// /story — "The story behind Columna": the launch companion to /announcing-columna (Huayin, pre-launch).
+// Ships in the SAME draft-locked launch PR (#72); goes live on the launch merge, not before.
+// The H1 is the ratified page title; the body is the ratified companion VERBATIM (only the footer version
+// stamp is bumped 0.11.0 -> 0.11.1 in the corpus source — the story stamps the version it launches with).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/launch_post_v4_draft.md';
+---
+<BaseLayout title="The story behind Columna — datumwise"
+  description="The story of why we built Columna — told through a mistake we kept making ourselves, and the third time our own system caught us.">
+  <article class="prose story">
+    <h1>The story behind Columna</h1>
+    <Content />
+  </article>
+</BaseLayout>
