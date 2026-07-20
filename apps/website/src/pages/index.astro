@@ -181,6 +181,10 @@ import ExhibitB from '../components/ExhibitB.astro';
 
   @media (max-width: 46rem) {
     .doors { grid-template-columns: 1fr; gap: 1.8rem; }
+    /* On phones the §1 background loop sits directly behind the reading column (there is no
+       whitespace to the side to hold it), which made the body text unreadable. It is purely
+       decorative (aria-hidden), so drop it on small screens — the text wins. */
+    .manifold-bg { display: none; }
   }
 </style>
 

@@ -125,7 +125,12 @@ const year = 2026;
       @media (max-width: 46rem) {
         .footer-grid { grid-template-columns: 1fr; gap: 1.2rem; }
         .foot-right { text-align: left; }
-        .masthead nav { gap: 1rem; font-size: 0.82rem; }
+        /* On phones the 7-item nav row is wider than the viewport, so it forced a horizontal
+           page scroll and clipped the links. Stack the wordmark above the nav and let the nav
+           wrap onto as many lines as it needs — everything stays inside the viewport, no
+           sideways scroll. */
+        .masthead { flex-direction: column; align-items: flex-start; gap: 0.7rem; }
+        .masthead nav { flex-wrap: wrap; gap: 0.55rem 1rem; font-size: 0.82rem; }
       }
     </style>
   </body>
