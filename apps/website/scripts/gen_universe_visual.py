@@ -64,7 +64,7 @@ COPY = {
     "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
     "legend": [("swatch", SERVE, "✓ corroborated hop / travels (serve)"),
                ("box", UNTEST_BG, "untestable basis (honest)"),
-               ("dash", REFUSE, "RELATE — non-functional, unclimbable"),
+               ("dash", REFUSE, "RELATE — non-functional; crossed only by a declared face"),
                ("spine", None, "spine floor (gaps possible)")],
 }
 
@@ -268,6 +268,23 @@ def figure_svg(store, model):
         parts.append(_rect(tcx - 54, oy, 108, 28, rx=4, fill=PAPER, stroke=REFUSE, sw=1, dash="4 3"))
         parts.append(_t(tcx, oy + 18, esc(r["to"]), 11, REFUSE, anchor="middle", cls="mono"))
         parts.append(_t(tcx, oy + 44, esc(r["note"]), 9.5, FAINT, anchor="middle"))
+        # FACES (post-flip defect fix, 2026-07-19): the dashed link is NOT unclimbable — it is crossed by a
+        # DECLARED FACE. A small labeled chip rides ON the dashed connector (the figure's quiet register),
+        # naming the crossing; the describe-VERBATIM description rides as a native <title> hover. The
+        # legend's old "unclimbable" clause is amended in lockstep, and the fail-closed wedge (main) asserts
+        # every declared face reaches the figure.
+        faces = r.get("faces", [])
+        if faces and frm_cx is not None:
+            # sit the chip low on the dashed connector (biased toward the frm end) so it clears the NOTE
+            w = 0.60
+            mx, my = frm_cx * w + (tcx - 30) * (1 - w), floor_y * w + (oy + 28) * (1 - w)
+            names = ", ".join(f["name"] for f in faces)
+            chip = f"↳ {names}"
+            cw = _tw(chip, 6.0) + 16
+            parts.append(f'<g><title>{esc(" · ".join(f["description"] for f in faces))}</title>')
+            parts.append(_rect(mx - cw / 2, my - 8, cw, 16, rx=8, fill=PAPER, stroke=REFUSE, sw=0.9))
+            parts.append(_t(mx, my + 3.5, chip, 8.5, REFUSE, anchor="middle", cls="mono"))
+            parts.append('</g>')
         oy += 64
 
     parts.append(_legend(28, 588))
@@ -382,6 +399,20 @@ def _tw(s, per=7.4):
     return len(str(s)) * per
 
 
+def _wrap(s, width):
+    """Greedy word-wrap into lines of at most `width` chars (SVG <text> does not wrap). Used for the
+    describe-verbatim face description caption — kept whole, only line-broken."""
+    words, lines, cur = str(s).split(), [], ""
+    for w in words:
+        if cur and len(cur) + 1 + len(w) > width:
+            lines.append(cur); cur = w
+        else:
+            cur = f"{cur} {w}" if cur else w
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def _derived_universe(store, d, model):
     """A derived's home universe = the universe of the measures it references (describe-true)."""
     formula = d.get("formula", "")
@@ -484,6 +515,17 @@ def main() -> int:
     try:
         model = build_model(dm)
         fig = figure_svg(store, model)
+        # FAIL-CLOSED SUBFIELD COMPLETENESS (post-flip defect, 2026-07-19). The wedge's LETTER checked the
+        # relates KEY was present (build_model); its SPIRIT — "every declared crossing is ON the figure" —
+        # was unenforced, so faces[] shipped to the describe wire and never reached the SVG (the defect this
+        # PR fixes). Extend the wedge one field deeper: every faces[] entry on the wire (name + verbatim
+        # description) must appear in the generated figure, or the deploy fails closed.
+        for r in model["relates"]:
+            for f in r.get("faces", []):
+                if f["name"] not in fig or esc(f["description"]) not in fig:
+                    raise Fail(f"relate {r['frm']}->{r['to']} face '{f['name']}' is on the describe wire but "
+                               f"absent from the figure — the construction law must render every declared "
+                               f"crossing (subfield-completeness wedge)")
         hover = hover_pair(store, model)
     except Fail as e:
         print(f"universe-visual generation FAILED (fail-closed): {e}", file=sys.stderr)
