@@ -37,7 +37,17 @@ pretending otherwise. And the verdicts aren't documentation — they're
 load-bearing: if the data ever contradicts a claim, that claim stops serving until
 someone fixes the data or the declaration.
 
-## The questions, asked
+## The Explorer
+
+The claims are tried; the Manifold stands. Before using it, look at it:
+everything declared above is browsable. The Explorer renders the Manifold spec — the logical
+document, nothing physical — with every declaration wearing its verdict: the
+universes with their basis and what absence means, the atlas with its two hierarchies,
+each measure with its laws, each claim with its trial. Every fact carries the triad:
+*defined as* (the declaration), *tested* (the verdict), *show me* (a query to copy).
+A new hire's first hour lives here: it's the folklore, out of Priya's head, on a page.
+
+## The questions, asked — what the manifold is FOR
 
 **The veteran's way.** Priya types tersely, in the query language:
 
@@ -71,26 +81,28 @@ the pooled AOV over all transactions are different numbers. The system lists the
 readings; the asker picks; the number is exact. A vague question came back as a
 question — Dana's constraint, working.
 
-**The question that comes back with its reason attached.** "Revenue by category,
-please." → **clarify**: *product ↔ category is many-to-many (a product belongs to up
-to 3 categories); this aggregate is underdetermined — the measure would be replicated
-across matches and the total inflated.* And it offers the only honest readings: accept
-the overlap deliberately ("revenue touching each category," multi-counted and saying
-so) — or stay at product. Nobody gets a silently inflated number; anyone can get the
-deliberate one. The someday question arrived, and the answer was ready years early.
+**The question that comes back with its reason attached — and then gets answered.**
+"Revenue by category, please."
+→ **clarify**: *product ↔ category is many-to-many; this aggregate is underdetermined.*
+And the answer now offers a **menu** of declared, lawful crossings:
+
+> • `category.touch` — revenue reaches every category a product sits in — deliberately
+> multi-counted; totals exceed the grand total
+
+Re-ask the honest way — `SELECT revenue AT {category.touch}` — and it **serves, in
+disclose**: twelve category rows, with the arithmetic of the crossing stated on the
+answer itself: *multi-counted by construction across product↔category … totals exceed
+the grand total* (touch total **$3,182,555.97** against the single-count grand total
+of **$2,212,391.86** — about 1.44×, which is exactly the bridge's average of 870
+memberships over 600 products; the over-count IS the fan-out, and the answer says
+so), plus the coverage line: *600/600 — every product carrying revenue is
+categorized; no shortfall; the over-count is the only skew.* Nobody gets a silently
+inflated number; anyone can get the deliberate one, labeled. The someday question
+arrived years early — and by launch, it had an answer as well as a reason.
 
 **And the second burn?** Nothing to show — which is the point. The stale summary
 tables aren't in the answering path at all; there is one `revenue`, it comes from the
 authoritative binding on the map, and the two-decks meeting can't happen again.
-
-## The Explorer
-
-Everything above is browsable. The Explorer renders the Manifold spec — the logical
-document, nothing physical — with every declaration wearing its verdict: the
-universes with their basis and what absence means, the atlas with its two hierarchies,
-each measure with its laws, each claim with its trial. Every fact carries the triad:
-*defined as* (the declaration), *tested* (the verdict), *show me* (a query to copy).
-A new hire's first hour lives here: it's the folklore, out of Priya's head, on a page.
 
 ## The MCP server
 
