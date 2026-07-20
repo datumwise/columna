@@ -6,17 +6,10 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://datumwise.ai',
   output: 'static',
-  // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static
-  // redirect for each in the build.
-  //  · "We invented nothing" re-registered as "Why Columna looks the way it does" (2026-07-17).
-  //  · /launch RETIRES into the launch cargo (2026-07-20, post-seal ruling): launch_post_FINAL predates
-  //    the framework positioning, the take-ladder precision, and the crossing — post-merge it would be the
-  //    property's last fossil at its most guessable route. It redirects to the canonical launch URL; the
-  //    corpus source is superseded-and-archived (kept, unimported), never deleted.
-  redirects: {
-    '/notes/we-invented-nothing': '/why-columna-looks-this-way',
-    '/launch': '/announcing-columna',
-  },
+  // Corpus register correction (2026-07-17): "We invented nothing" re-registered as
+  // "Why Columna looks the way it does". The old route is live and may be linked, so it REDIRECTS —
+  // a 404 is not acceptable. Astro emits a static redirect for this in the build.
+  redirects: { '/notes/we-invented-nothing': '/why-columna-looks-this-way' },
   build: { inlineStylesheets: 'auto' },
   devToolbar: { enabled: false },
   vite: {

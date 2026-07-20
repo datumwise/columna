@@ -80,6 +80,6 @@ be structural, because vigilance demonstrably fails — it failed the industry, 
 benchmark, and it failed the very test we wrote for the system that finally caught it.**
 
 We've now added "ask for a metric that doesn't exist" to our permanent test suite — asserting the
-refusal, forever. Try it yourself ([quickstart](https://github.com/datumwise/columna#quickstart-ten-minutes-no-source-checkout)): run `columna-server demo`, connect any agent, and ask for
+refusal, forever. Try it yourself ([quickstart](https://github.com/datumwise/columna#quickstart-ten-minutes-no-arguments-no-mcp-client)): run `columna-server demo`, connect any agent, and ask for
 something plausible that isn't there. The most trustworthy thing a metrics system can say is
 sometimes a question.
