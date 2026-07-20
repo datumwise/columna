@@ -14,6 +14,7 @@
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/jetbrains-mono": "^5.2.5",
     "@fontsource-variable/source-serif-4": "^5.2.5",
+    "@vercel/analytics": "^2.0.1",
     "astro": "^4.16.18",
     "marked": "^18.0.6"
   }
