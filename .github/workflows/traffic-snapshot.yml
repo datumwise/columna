@@ -1,0 +1,61 @@
+# Durable GitHub traffic history (freeze item 13). GitHub Insights → Traffic keeps only a 14-day window,
+# which would EAT the launch history. This workflow snapshots the traffic API daily and commits the JSON
+# to an isolated `meta/analytics` branch (off main — never clutters the mainline). Durable + boring by
+# design: one file per day, each holding the last-14-days payload; consecutive daily runs overlap, so the
+# union is a gapless record. Stars/forks need nothing (persisted on the repo itself).
+#
+# JSON shape, per snapshots/<YYYY-MM-DD>.json:
+#   { captured_at, repo, views:{count,uniques,days[]}, clones:{count,uniques,days[]},
+#     referrers:[{referrer,count,uniques}], paths:[{path,title,count,uniques}] }
+name: traffic snapshot
+
+on:
+  schedule:
+    - cron: '17 8 * * *'      # daily 08:17 UTC (off the hour; cron is best-effort on GitHub)
+  workflow_dispatch: {}         # manual trigger for the first snapshot / verification
+
+permissions:
+  contents: write               # the default GITHUB_TOKEN also carries the push access the traffic API needs
+
+concurrency:
+  group: traffic-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch traffic + commit snapshot to meta/analytics
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          day=$(date -u +%Y-%m-%d); ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          api="https://api.github.com/repos/$REPO/traffic"
+          get() { curl -sf -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$1"; }
+          # Traffic API requires push access; the default GITHUB_TOKEN has it. If a run 403s here, add a
+          # repo-scoped PAT as secret TRAFFIC_TOKEN and swap it in — flagged in the PR.
+          views=$(get "$api/views"); clones=$(get "$api/clones")
+          referrers=$(get "$api/popular/referrers"); paths=$(get "$api/popular/paths")
+          snap=$(jq -n --arg ts "$ts" --arg repo "$REPO" \
+            --argjson views "$views" --argjson clones "$clones" \
+            --argjson referrers "$referrers" --argjson paths "$paths" \
+            '{captured_at:$ts, repo:$repo, views:$views, clones:$clones, referrers:$referrers, paths:$paths}')
+
+          url="https://x-access-token:$GH_TOKEN@github.com/$REPO"
+          if git clone --depth 1 --branch meta/analytics "$url" out 2>/dev/null; then
+            :
+          else
+            git clone --depth 1 "$url" out
+            ( cd out && git checkout --orphan meta/analytics && git rm -rf . >/dev/null 2>&1 || true \
+              && printf '%s\n' '# datumwise — traffic snapshots' 'Durable GitHub Insights→Traffic history (14-day API window, snapshotted daily).' > README.md )
+          fi
+          mkdir -p out/snapshots
+          printf '%s\n' "$snap" | jq . > "out/snapshots/$day.json"
+          cd out
+          git config user.name  "datumwise-traffic-bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "traffic snapshot $day" || { echo "no change for $day"; exit 0; }
+          git push "$url" HEAD:meta/analytics
