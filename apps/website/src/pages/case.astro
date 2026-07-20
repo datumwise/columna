@@ -1,12 +1,20 @@
 ---
-// The Case — Cascadia Retail, the case demo (inc4). The three chapters render VERBATIM (byte-identical
-// copies of the ratified charter); the TRIAL TABLE and the four-mood wheel are GENERATED from the
-// shipped package (scripts/gen_case.py -> src/data/case.generated.json), never hand-written.
+// The Case — Cascadia Retail, the case demo. The three chapters render VERBATIM (byte-identical copies
+// of the ratified charter); the generated exhibits (trial table, four-mood wheel, the fourteen tables,
+// the two artifacts, Figure 1) are GENERATED from the shipped package (scripts/gen_case.py ->
+// src/data/case.generated.json), never hand-written.
+//
+// PRESENTATION RESTRUCTURE (Huayin, pre-launch): the reader-discipline law governs PAGE ASSEMBLY — one
+// introduction total, every exhibit seated where the reader has earned it. Each chapter is split at its
+// `## ` headings (render-time only — the .md bytes are untouched, so the three-surface byte-identical
+// re-sync holds) and each generated exhibit mounts right AFTER the heading whose prose introduces it.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { Content as Ch1 } from '../content/case/ch1.md';
-import { Content as Ch2 } from '../content/case/ch2.md';
-import { Content as Ch3 } from '../content/case/ch3.md';
+import { marked } from 'marked';
+import ch1raw from '../content/case/ch1.md?raw';
+import ch2raw from '../content/case/ch2.md?raw';
+import ch3raw from '../content/case/ch3.md?raw';
 import caseData from '../data/case.generated.json';
+import UniverseVisual from '../components/UniverseVisual.astro';
 
 const verdictClass = (v) => ({
   corroborated: 'v-corroborated', verified: 'v-verified',
@@ -15,9 +23,22 @@ const verdictClass = (v) => ({
 
 const moodClass = (m) => `mood-${m}`;
 const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id === id));
+
+// Split a chapter's RAW markdown into sections at `## ` boundaries (the file bytes are never mutated —
+// this is a render-time cut, so the verbatim/byte-identical charter guarantee is preserved). The lead
+// segment (title + intro, before the first `##`) carries heading = null.
+function sections(raw) {
+  return raw.split(/\n(?=## )/).map((part) => {
+    const m = part.match(/^##\s+(.+?)\s*$/m);
+    return { heading: m ? m[1].trim() : null, html: marked.parse(part) };
+  });
+}
+const ch1Sections = sections(ch1raw);
+const ch2Sections = sections(ch2raw);
+const ch3Sections = sections(ch3raw);
 ---
 <BaseLayout title="The Case — Cascadia Retail — datumwise"
-  description="Cascadia Retail: a realistic case demo of Columna, in three chapters — the requirement, the design, and the Manifold live. Every verdict and mood on this page is generated from the shipped package.">
+  description="Cascadia Retail: a realistic case demo of Columna — the company, the data, the ask, the design and its reasons, and the system live. Every number is recorded from the shipped package, never illustrated.">
   <article class="prose case">
     <p class="case-lede">Cascadia Retail is a fictional 24-store chain with an ordinary warehouse and two
       famous bad numbers. This case walks the whole arc — the company, the data, the ask, the design and
@@ -28,132 +49,134 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
       <a href="#ch3">Live</a>
     </nav>
 
-    <!-- The trial table — generated -->
-    <section class="exhibit" aria-label="The trial table">
-      <h2>The trials <span class="tag">generated</span></h2>
-      <p>Every claim in the chapter-2 spec, checked against the actual warehouse before anything serves:</p>
-      <table class="trial">
-        <thead><tr><th>Claim</th><th>Verdict</th></tr></thead>
-        <tbody>
-          {caseData.trial_table.map((r) => (
-            <tr>
-              <td set:html={r.claim.replace(/`([^`]+)`/g, '<code>$1</code>')}></td>
-              <td><span class={`verdict ${verdictClass(r.verdict)}`}>{r.verdict}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p class="foot-note">A definition confines; a claim gets tried. Checked claims are
-        <em>corroborated</em> (only math earns <em>verified</em>); a basis is <em>untestable</em> — a
-        human's call, on the record; a declared M:N relationship is <em>recorded</em> so a refusal can
-        name it. The verdicts are load-bearing: contradict one and it stops serving.</p>
-    </section>
-
-    <!-- The four moods — generated wheel -->
-    <section class="exhibit" aria-label="The four moods">
-      <h2>The four moods <span class="tag">generated</span></h2>
-      <p>The same asks the packaged <code>demo --play</code> runs, in story order — each a real wire
-        outcome:</p>
-      <div class="wheel">
-        {wheel.map((e) => (
-          <div class={`mood-card ${moodClass(e.mood)}`}>
-            <div class="mood-head"><span class="mood-name">{e.mood}</span>
-              {e.reason_tokens.length > 0 && <span class="mood-reason">{e.reason_tokens.join(', ')}</span>}</div>
-            <code class="mood-q">{e.query}</code>
-            <p class="mood-cap">{e.caption}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <hr />
-
-    <!-- Chapter 1 — the setup, with the raw tables the team actually has -->
-    <section class="exhibit" aria-label="The warehouse">
-      <h2>The data they have <span class="tag">generated</span></h2>
-      <p>Fourteen tables, straight from the bundled warehouse — the same fourteen the chapter
-        inventories. The six that drive the story are expanded; the rest are here in full (note
-        <code>daily_revenue_summary</code>'s <strong>716</strong> rows against the calendar's 731):</p>
-      <div class="tables">
-        {caseData.ch1_tables.filter((t) => t.prominent).map((t) => (
-          <details class="tbl" open={t.table === 'transactions'}>
-            <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span></summary>
-            <div class="tbl-scroll">
-              <table class="rows">
-                <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
-                <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
-              </table>
+    <!-- Chapter 1 — the setup; the fourteen tables mount where the data is met -->
+    <section class="chapter" id="ch1">
+      {ch1Sections.map((s) => (
+        <>
+          <Fragment set:html={s.html} />
+          {s.heading === 'The data they have' && (
+            <div class="exhibit-inline" aria-label="The warehouse tables">
+              <p class="ex-cap"><span class="tag">generated</span> Fourteen tables, straight from the bundled
+                warehouse — the six that drive the story expanded, the rest in full (note
+                <code>daily_revenue_summary</code>'s <strong>716</strong> rows against the calendar's 731):</p>
+              <div class="tables">
+                {caseData.ch1_tables.filter((t) => t.prominent).map((t) => (
+                  <details class="tbl" open={t.table === 'transactions'}>
+                    <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span></summary>
+                    <div class="tbl-scroll">
+                      <table class="rows">
+                        <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
+                        <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
+                      </table>
+                    </div>
+                  </details>
+                ))}
+              </div>
+              <p class="more-tables">The other eight — references and the stale summaries the model won't use:</p>
+              <div class="tables">
+                {caseData.ch1_tables.filter((t) => !t.prominent).map((t) => (
+                  <details class="tbl compact">
+                    <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span>
+                      <span class="cols-hint">{t.columns.join(', ')}</span></summary>
+                    <div class="tbl-scroll">
+                      <table class="rows">
+                        <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
+                        <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
+                      </table>
+                    </div>
+                  </details>
+                ))}
+              </div>
             </div>
-          </details>
-        ))}
-      </div>
-      <p class="more-tables">The other eight — references and the stale summaries the model won't use:</p>
-      <div class="tables">
-        {caseData.ch1_tables.filter((t) => !t.prominent).map((t) => (
-          <details class="tbl compact">
-            <summary><code>{t.table}</code> <span class="rc">{t.row_count.toLocaleString()} rows</span>
-              <span class="cols-hint">{t.columns.join(', ')}</span></summary>
-            <div class="tbl-scroll">
-              <table class="rows">
-                <thead><tr>{t.columns.map((c) => <th>{c}</th>)}</tr></thead>
-                <tbody>{t.sample.map((r) => <tr>{r.map((v) => <td>{v}</td>)}</tr>)}</tbody>
-              </table>
+          )}
+        </>
+      ))}
+    </section>
+
+    <hr />
+
+    <!-- Chapter 2 — the two artifacts mount where the design is derived -->
+    <section class="chapter" id="ch2">
+      {ch2Sections.map((s) => (
+        <>
+          <Fragment set:html={s.html} />
+          {s.heading === 'The design' && (
+            <div class="exhibit-inline" aria-label="The two artifacts">
+              <p class="ex-cap"><span class="tag">generated</span> One authored graph, two projections — the
+                logical <strong>Manifold spec</strong> everyone reads, and the many-to-one
+                <strong>physical→logical map</strong> with its rejects kept.
+                {caseData.ch2_artifacts.wall_holds && <span class="wall">✓ the wall holds</span>}</p>
+              <div class="artifacts">
+                <div class="artifact logical">
+                  <h3>The Manifold spec <span class="sub">logical — what everyone reads</span></h3>
+                  <ul class="spec">
+                    {caseData.ch2_artifacts.logical_spec.measures.map((m) => (
+                      <li><code>{m.name}</code> <span class="desc">{m.description}</span></li>
+                    ))}
+                    {caseData.ch2_artifacts.logical_spec.derived.map((dv) => (
+                      <li><code>{dv.name}</code> <span class="desc">= {dv.formula}</span></li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="artifact physical">
+                  <h3>The physical→logical map <span class="sub">many-to-one — the plumbing</span></h3>
+                  <table class="map">
+                    <thead><tr><th>logical</th><th>binds to</th><th>rejected (why)</th></tr></thead>
+                    <tbody>
+                      {caseData.ch2_artifacts.physical_map.filter((r) => r.binds_to !== '—').map((r) => (
+                        <tr>
+                          <td><code>{r.logical}</code></td>
+                          <td><code class="phys">{r.binds_to}</code></td>
+                          <td class="rej">{r.rejects.map((rj) => <div><code>{rj[0]}</code> <em>{rj[1]}</em></div>)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </details>
-        ))}
-      </div>
+          )}
+        </>
+      ))}
     </section>
-    <section class="chapter" id="ch1"><Ch1 /></section>
 
     <hr />
 
-    <!-- Chapter 2 — the two artifacts: the logical spec and the physical->logical map -->
-    <section class="exhibit" aria-label="The two artifacts">
-      <h2>The two artifacts <span class="tag">generated</span>
-        {caseData.ch2_artifacts.wall_holds && <span class="wall">✓ the wall holds</span>}</h2>
-      <p>One authored graph, two projections. The <strong>Manifold spec</strong> is purely logical —
-        every name means something declared in it, nothing physical crosses. The
-        <strong>physical→logical map</strong> is the data team's document: many-to-one, resolving each
-        concept to one authoritative binding, the rejects kept with reasons.</p>
-      <div class="artifacts">
-        <div class="artifact logical">
-          <h3>The Manifold spec <span class="sub">logical — what everyone reads</span></h3>
-          <ul class="spec">
-            {caseData.ch2_artifacts.logical_spec.measures.map((m) => (
-              <li><code>{m.name}</code> <span class="desc">{m.description}</span></li>
-            ))}
-            {caseData.ch2_artifacts.logical_spec.derived.map((dv) => (
-              <li><code>{dv.name}</code> <span class="desc">= {dv.formula}</span></li>
-            ))}
-          </ul>
-        </div>
-        <div class="artifact physical">
-          <h3>The physical→logical map <span class="sub">many-to-one — the plumbing</span></h3>
-          <table class="map">
-            <thead><tr><th>logical</th><th>binds to</th><th>rejected (why)</th></tr></thead>
-            <tbody>
-              {caseData.ch2_artifacts.physical_map.filter((r) => r.binds_to !== '—').map((r) => (
-                <tr>
-                  <td><code>{r.logical}</code></td>
-                  <td><code class="phys">{r.binds_to}</code></td>
-                  <td class="rej">{r.rejects.map((rj) => <div><code>{rj[0]}</code> <em>{rj[1]}</em></div>)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- Chapter 3 — the Manifold live. build -> inspect -> use: the prose carries the trial table; the
+         Explorer (Figure 1 + a pointer) seats between trials and outcomes; the four-mood wheel is the payoff. -->
+    <section class="chapter" id="ch3">
+      {ch3Sections.map((s) => (
+        <>
+          <Fragment set:html={s.html} />
+          {s.heading === 'The Explorer' && (
+            <div class="explorer-inline" aria-label="The Manifold, browsable">
+              <UniverseVisual />
+              <p class="pointer">Browse the whole Manifold live — every declaration with its law, its
+                verdict, and a query to try — at <a href="/explorer">/explorer</a>.</p>
+            </div>
+          )}
+          {s.heading && s.heading.startsWith('The questions, asked') && (
+            <div class="exhibit-inline" aria-label="The four moods">
+              <p class="ex-cap"><span class="tag">generated</span> The same asks the packaged
+                <code>demo --play</code> runs, in story order — each a real wire outcome:</p>
+              <div class="wheel">
+                {wheel.map((e) => (
+                  <div class={`mood-card ${moodClass(e.mood)}`}>
+                    <div class="mood-head"><span class="mood-name">{e.mood}</span>
+                      {e.reason_tokens.length > 0 && <span class="mood-reason">{e.reason_tokens.join(', ')}</span>}</div>
+                    <code class="mood-q">{e.query}</code>
+                    <p class="mood-cap">{e.caption}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ))}
     </section>
-    <section class="chapter" id="ch2"><Ch2 /></section>
-
-    <hr />
-
-    <section class="chapter" id="ch3"><Ch3 /></section>
   </article>
 
   <style>
-    .case .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.78rem;
-      color: var(--ink-soft); margin-bottom: 0.2rem; }
     .case .lede { font-size: 1.05rem; color: var(--ink-soft); }
     /* the case study lede (informational register) + chapter nav — the page's only intro */
     .case .case-lede { font-size: 1.08rem; line-height: 1.55; color: var(--ink); margin-top: 0.2rem; }
@@ -162,20 +185,21 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     .case .chapter-nav a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--rule, #e5e2dc);
       padding-bottom: 1px; }
     .case .chapter-nav a:hover { color: var(--ink); border-bottom-color: currentColor; }
-    .exhibit { border: 1px solid var(--rule, #e5e2dc); border-radius: 10px; padding: 1.1rem 1.3rem;
-      margin: 1.6rem 0; background: var(--surface, #faf9f6); }
-    .exhibit h2 { margin-top: 0; }
+
+    /* an exhibit seated INSIDE a chapter's flow — lighter than a standalone card, so it reads as the
+       recorded evidence for the prose just above it, not a competing section */
+    .exhibit-inline { margin: 1rem 0 1.6rem; }
+    .ex-cap { font-size: 0.9rem; color: var(--ink-soft); margin: 0.2rem 0 0.7rem; }
     .tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; vertical-align: middle;
-      background: #eceae4; color: #6b675f; border-radius: 4px; padding: 0.1rem 0.4rem; margin-left: 0.4rem; }
-    table.trial { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-    table.trial th, table.trial td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid #ece9e3; }
+      background: #eceae4; color: #6b675f; border-radius: 4px; padding: 0.1rem 0.4rem; margin-right: 0.4rem; }
+
     .verdict { font-weight: 600; font-size: 0.82rem; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; }
     .v-corroborated { background: #e6f2e6; color: #2f6b34; }
     .v-verified { background: #e4eefb; color: #2456a6; }
     .v-untestable { background: #f2efe6; color: #7a6f4e; }
     .v-recorded { background: #efeced; color: #6a5f66; }
     .v-contradicted { background: #fbe6e6; color: #a63030; }
-    .foot-note { font-size: 0.86rem; color: var(--ink-soft); }
+
     .wheel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; }
     .mood-card { border: 1px solid #e5e2dc; border-left: 4px solid #b9b4a9; border-radius: 8px; padding: 0.7rem 0.8rem; background: #fff; }
     .mood-serve { border-left-color: #2f6b34; }
@@ -187,6 +211,10 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     .mood-reason { font-size: 0.68rem; color: #8a8478; font-family: ui-monospace, monospace; }
     .mood-q { display: block; font-size: 0.8rem; margin: 0.35rem 0; word-break: break-word; }
     .mood-cap { font-size: 0.85rem; color: var(--ink-soft); margin: 0.2rem 0 0; }
+
+    /* the Explorer pointer — Figure 1 inline + the route (seated between trials and outcomes) */
+    .explorer-inline { margin: 1rem 0 1.6rem; }
+    .explorer-inline .pointer { font-size: 0.92rem; color: var(--ink-soft); margin: 0.6rem 0 0; }
 
     /* ch1 schema-and-rows */
     .tables { display: grid; gap: 0.5rem; }
