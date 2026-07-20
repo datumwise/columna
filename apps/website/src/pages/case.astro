@@ -19,12 +19,14 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
 <BaseLayout title="The Case — Cascadia Retail — datumwise"
   description="Cascadia Retail: a realistic case demo of Columna, in three chapters — the requirement, the design, and the Manifold live. Every verdict and mood on this page is generated from the shipped package.">
   <article class="prose case">
-    <p class="eyebrow">The case demo</p>
-    <h1>Cascadia Retail</h1>
-    <p class="lede">One team, one warehouse, six questions. Three chapters: what was asked, how the
-      Manifold was designed, and what happened when it went live. Everything on this page marked
-      <em>generated</em> comes from the shipped package running against the bundled warehouse — recorded,
-      never hand-edited (<code>{caseData.generated_by}</code>).</p>
+    <p class="case-lede">Cascadia Retail is a fictional 24-store chain with an ordinary warehouse and two
+      famous bad numbers. This case walks the whole arc — the company, the data, the ask, the design and
+      its reasons, and the system live — and every number in it is recorded, never illustrated.</p>
+    <nav class="chapter-nav" aria-label="Chapters">
+      <a href="#ch1">Company &amp; data</a>
+      <a href="#ch2">The design</a>
+      <a href="#ch3">Live</a>
+    </nav>
 
     <!-- The trial table — generated -->
     <section class="exhibit" aria-label="The trial table">
@@ -153,6 +155,13 @@ const wheel = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id ===
     .case .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.78rem;
       color: var(--ink-soft); margin-bottom: 0.2rem; }
     .case .lede { font-size: 1.05rem; color: var(--ink-soft); }
+    /* the case study lede (informational register) + chapter nav — the page's only intro */
+    .case .case-lede { font-size: 1.08rem; line-height: 1.55; color: var(--ink); margin-top: 0.2rem; }
+    .case .chapter-nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin: 0.9rem 0 1.4rem;
+      font-size: 0.9rem; }
+    .case .chapter-nav a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--rule, #e5e2dc);
+      padding-bottom: 1px; }
+    .case .chapter-nav a:hover { color: var(--ink); border-bottom-color: currentColor; }
     .exhibit { border: 1px solid var(--rule, #e5e2dc); border-radius: 10px; padding: 1.1rem 1.3rem;
       margin: 1.6rem 0; background: var(--surface, #faf9f6); }
     .exhibit h2 { margin-top: 0; }
