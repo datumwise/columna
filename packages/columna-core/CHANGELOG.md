@@ -7,6 +7,27 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.11.0-core] — RELATE faces: the many-to-many crossing executes
+
+Full narrative: `specs/release_notes_v0_11_0.md`.
+
+- **`RELATE` gains crossing FACES.** A non-functional (M:N) relationship may declare named crossing
+  dispositions — `RELATE a <-> b VIA t(fcol, tcol) FACES { <name> = <SCHEME> -- "folklore" }`. A face
+  names the value's DISPOSITION on the trip (the self-teaching verb triad `touch`/`assign`/`alloc`),
+  never the selection criterion. The bare `VIA <table>` form is unchanged (back-compat).
+- **`touch` EXECUTES.** `SELECT revenue AT {category.touch}` join-multiplies the measure through the
+  relation's bridge to the crossed grain — the value reaches every match, deliberately multi-counted,
+  served in **disclose** with the over-count as a material caveat. `assign`/`alloc` are declared-but-
+  deferred (fail-closed parse refusal — v1 executes `touch` only).
+- **The two absence disclosures of the crossing.** Over-count (totals exceed the grand total) and its
+  mirror, coverage/shortfall (a fine entity in no bucket is excluded from every cell). Crossed-grain
+  absence is a lawful **zero on events basis only** (a spine refuses the crossing — replication would
+  corrupt the grid's completeness claim).
+- **Adjudication mints the face license at publish** (polarity law — a face is closed by default; its
+  license opens the crossing; `touch` = VERIFIED, membership expansion is exact arithmetic).
+- **Model reshape:** `Manifold.non_functional` is now `list[Relate]` (from a bare tuple); the `VIA`
+  bridge is MAP-LAYER — engine-visible, never on describe/the wire. `contract_version` stays `"1"`.
+
 ## [0.10.0-core] — the definition language, taught by a case
 
 Full narrative: `specs/release_notes_v0_10_0.md`.
