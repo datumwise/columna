@@ -27,15 +27,21 @@ jobs:
     steps:
       - name: Fetch traffic + commit snapshot to meta/analytics
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The repository Traffic API does NOT accept the default Actions GITHUB_TOKEN (verified: it 403s,
+          # while a repo-scoped PAT gets 200). So this needs a PAT secret TRAFFIC_TOKEN — a fine-grained
+          # token with Administration:read + Contents:write (or a classic token with `repo`). Until that
+          # secret exists the job SKIPS cleanly (no red X); once it's added, snapshots start landing.
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "TRAFFIC_TOKEN secret not set — skipping. Add a repo-scoped PAT as TRAFFIC_TOKEN to enable."
+            exit 0
+          fi
           day=$(date -u +%Y-%m-%d); ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           api="https://api.github.com/repos/$REPO/traffic"
           get() { curl -sf -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$1"; }
-          # Traffic API requires push access; the default GITHUB_TOKEN has it. If a run 403s here, add a
-          # repo-scoped PAT as secret TRAFFIC_TOKEN and swap it in — flagged in the PR.
           views=$(get "$api/views"); clones=$(get "$api/clones")
           referrers=$(get "$api/popular/referrers"); paths=$(get "$api/popular/paths")
           snap=$(jq -n --arg ts "$ts" --arg repo "$REPO" \
