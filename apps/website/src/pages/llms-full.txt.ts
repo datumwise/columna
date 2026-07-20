@@ -5,6 +5,9 @@
 //   3. the ratified "Why Columna looks the way it does" body (v0.4) — verbatim (the re-registered essay)
 //   4. a short "Live demo describe" pointer to the live Explorer (reuses the ratified §1a pointers)
 import fs from 'node:fs';
+// The launch announcement joins llms-full AT LAUNCH (Huayin): it ships in the draft-locked launch PR, so
+// it reaches this composed document only when that PR merges on the launch word — not before.
+import announceBody from '../content/corpus/launch_announcement_v1.md?raw';
 import wiBody from '../content/corpus/what_is_columna_draft_v0_7.md?raw';
 import whyBody from '../content/corpus/why_columna_looks_this_way_draft_v0_4.md?raw';
 // The case demo, in three chapters — VERBATIM (byte-identical to the ratified charter). It is a
@@ -30,7 +33,7 @@ four moods are for.
 
 ${ch1.trimEnd()}\n\n---\n\n${ch2.trimEnd()}\n\n---\n\n${ch3.trimEnd()}`;
 
-const body = `${llmsIndex}\n\n---\n\n${wiBody.trimEnd()}\n\n---\n\n${whyBody.trimEnd()}\n\n---\n\n${liveDemo}\n\n---\n\n${theCase}\n`;
+const body = `${llmsIndex}\n\n---\n\n${announceBody.trimEnd()}\n\n---\n\n${wiBody.trimEnd()}\n\n---\n\n${whyBody.trimEnd()}\n\n---\n\n${liveDemo}\n\n---\n\n${theCase}\n`;
 
 export function GET() {
   return new Response(body, {

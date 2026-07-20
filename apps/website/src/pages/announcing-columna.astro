@@ -1,0 +1,15 @@
+---
+// /announcing-columna — the canonical launch URL (Huayin, pre-launch). Renders the ratified launch
+// announcement VERBATIM (byte-identical copy of the corpus source). This page ships in the draft-locked
+// launch PR and goes live on the launch merge — nothing hand-assembled on the day.
+// PENDING the story companion: a footer link "Read the story of why we built it" -> /story is added
+// together with the /story page once that companion is attached (both wait for the launch word anyway).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/launch_announcement_v1.md';
+---
+<BaseLayout title="Announcing Columna — datumwise"
+  description="Columna is now available — an open-source data framework (Manifold, FrameQL, an honest engine) that refuses to return a confident wrong number.">
+  <article class="prose announcement">
+    <Content />
+  </article>
+</BaseLayout>
