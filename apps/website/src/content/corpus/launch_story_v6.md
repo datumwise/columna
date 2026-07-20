@@ -85,7 +85,7 @@ The industry’s most universal double-counting wound, turned into a labeled, la
 
 ---
 
-**Try it yourself** ([quickstart](https://github.com/datumwise/columna#quickstart-ten-minutes-no-arguments-no-mcp-client))  
+**Try it yourself** ([quickstart](https://github.com/datumwise/columna#quickstart-ten-minutes-no-source-checkout))  
 Run `columna-server demo`, connect any agent, and ask for something plausible that isn’t there. Or read the case first and ask it Dana’s questions.
 
 The most trustworthy thing a metrics system can say is sometimes a question.
