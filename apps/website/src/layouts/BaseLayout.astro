@@ -36,6 +36,10 @@ const year = 2026;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {/* Build stamp: makes every deploy's HTML byte-different, so Vercel's edge CDN re-caches every page
+        globally on each production deploy — the fix for stale per-PoP static HTML (a pre-#68 /explorer
+        head lingered at some edge nodes after the positioning sweep). Uses the commit SHA at build. */}
+    <meta name="build" content={import.meta.env.VERCEL_GIT_COMMIT_SHA ?? 'dev'} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
