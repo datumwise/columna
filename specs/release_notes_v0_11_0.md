@@ -46,17 +46,34 @@ lawfully. A relationship may now declare **faces**: named crossing dispositions.
   of truth. Additive; `contract_version` stays `"1"`.
 - **Cascadia declares `FACE touch`.** The demo *shows* the crossing: `SELECT revenue AT {category}`
   clarifies with the face menu; `SELECT revenue AT {category.touch}` executes — **12 categories, touch
-  total $3,182,555.97 vs. grand total $2,212,391.86** (the ~$970K overlap stated), 600/600 coverage.
+  total $3,182,555.97 against the single-count grand total of $2,212,391.86 — about 1.44×**. That ratio
+  is not noise: it is the bridge's own fan-out, 870 memberships over 600 products, made arithmetic. The
+  over-count *is* the fan-out, and the answer says so — plus the coverage line, 600/600, no shortfall.
 - **The recapture corpus grows to ten (E1–E10).** E6 records the face menu (the ask, with its reason and
   the way forward); E10 mints the executed crossing (the answer — disclose, over_count, coverage). Zero
   drift flags.
 
+### The site, re-sequenced (reader-discipline applied to assembly)
+
+The reader-discipline law — narrative order is epistemic order — now governs **page assembly**, not just
+chapter prose. One role per surface, one introduction total, every exhibit seated where the reader has
+earned it: the homepage reduces to a single line and a route (the recording *is* the case); `/case`
+becomes the case study literally, its three chapters the page in order with every generated exhibit
+moved into its story position (the fourteen tables where the data is met; the two artifacts where the
+design is derived; and in the live chapter, **build → inspect → use** — the trials, then the Explorer
+seated between the claims tried and the claims used, then the questions and the four moods as the
+payoff); `/explorer` keeps its role as structure, never a second intro. The exhibits are re-seated by a
+render-time split — the chapters stay byte-identical to the ratified charter across all three surfaces.
+
 ### The honest ledger
 
-`assign` and `alloc` are on the record as the next faces — the crown is `alloc` (the partition-of-unity
-that makes per-bucket totals *reconcile*), and the shipped `WITH allocation` grammar is its parameter.
-The spine-basis crossing (replication on a grid) waits on the spine-grid domain source (OF-5). Both
-named, neither promised.
+The next faces are on the record, not promised: `assign` (the canonical pick) and `alloc` — the crown,
+the partition-of-unity that makes per-bucket totals *reconcile*, with the shipped `WITH allocation`
+grammar as its parameter. The spine-basis crossing (replication on a grid) waits on the spine-grid
+domain source (OF-5). And the **primary** post-launch *language* road, carried forward from 0.10.0,
+remains **OF-13** — native coordinate-value predicates in `WHERE` (`region = 'west'`), the universal SQL
+reflex the interim anchor-and-read prompt law stands in for and retires when the native filter lands.
+Language-first: OF-13 fixes it for every consumer, not just our own agent (OF-15 is its secondary, agent-only, sibling).
 
 *The whole crossing — the declaration, the menu, the executed answer with its overlap stated — ships in
 the Cascadia demo. `pip install columna`, and ask for revenue by category yourself.*
