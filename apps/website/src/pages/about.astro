@@ -4,6 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // Author line is the name only (Huayin's ruling 2026-07-14: no ORCID, no substitute link — the
 // four DOIs below are the provenance).
 const COLUMNAR = 'https://columnar.tech';
+// Contact — single swappable string. Swaps to 'contact@datumwise.ai' in a one-line follow-up once
+// that alias exists (Irena's dashboard, separately in flight).
+const CONTACT_EMAIL = 'datumwise@gmail.com';
 const pubs = [
   { title: 'The Silent Failure Atlas', doi: '10.5281/zenodo.20762839' },
   { title: 'The Silent Seam', doi: '10.5281/zenodo.20710717' },
@@ -21,6 +24,9 @@ const pubs = [
     <p>
       datumwise is the work of <strong>Huayin Wang</strong>, who researches and builds the grammar layer for analytics, with engineering and infrastructure by <strong>Irena Wang</strong>.
     </p>
+    <p class="independence">
+      Columna is an independent open-source research project — Huayin Wang (research), Irena Wang (engineering).
+    </p>
     <p>
       It builds and stewards <strong>Columna</strong> — an honest data framework: the grammar layer for AI analytics, beside your semantic layer, married to no database.
     </p>
@@ -33,6 +39,8 @@ const pubs = [
       ))}
     </ul>
 
+    <p class="contact">Contact: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+
     <p class="disambig">
       Not to be confused with <a href={COLUMNAR} rel="noopener" target="_blank">Columnar</a> (columnar.tech), an Arrow-native connectivity layer one letter from our name. <strong>They move columns fast; we govern what columns say.</strong> If anything, the two compose. <a href="/ladder#the-fast-pipe">More on the Ladder →</a>
     </p>
@@ -42,5 +50,7 @@ const pubs = [
 <style>
   .about .pubs { list-style: none; padding-left: 0; }
   .about .pubs li { padding: 0.25rem 0; line-height: 1.5; }
+  .about .contact { margin-top: 1.4rem; font-size: 0.95rem; color: var(--ink-soft, #555); }
+  .about .contact a { color: var(--ink); }
   .about .disambig { margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid var(--wire-rule, #ddd); font-size: 0.95rem; color: var(--ink-soft, #555); }
 </style>
