@@ -40,7 +40,7 @@ The mistake is this: you ask for a metric **by a name**, and something, somewher
 
 Every data team’s metric catalog carries names like `avg_order_value` and treats them as definitions. But a name is not a definition — it’s a label over a bundle of unstated choices. Average order value *per what*? Per order, per line item, or per customer? Over *which* population?
 
-In one warehouse we studied, `avg_order_value` was computed over data that contained **no order entity at all**. Every number served under that name had silently substituted “transaction” for “order.” Nothing recorded the substitution. The name asserted an anchor the data could not honor. We wrote a paper about exactly this — the input and output grains that common analytics leaves uncaptured — and we thought that meant we understood it.
+The canonical version of the mistake: an `avg_order_value` computed over a warehouse that contains **no order entity at all** — every number served under that name has silently substituted ‘transaction’ for ‘order,’ and nothing records the substitution. The name asserts an anchor the data cannot honor. We wrote a paper about exactly this — the input and output grains that common analytics leaves uncaptured — and we thought that meant we understood it.
 
 ### 2. Our own benchmark
 
