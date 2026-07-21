@@ -8,7 +8,7 @@ import TermChipStrip from '../components/TermChipStrip.astro';
 const SEAM = 'https://doi.org/10.5281/zenodo.20710717';
 const ATLAS = 'https://doi.org/10.5281/zenodo.20762839';
 const TWO_ANCHORS = 'https://doi.org/10.5281/zenodo.20789318';
-const BENCH = 'https://doi.org/10.5281/zenodo.21349581';
+const BENCH = '/benchmark';
 const COLUMNAR = 'https://columnar.tech';
 const CACHER = '/notes/cacher';
 const ATLAS_GRADING = '/atlas#grading';
@@ -94,7 +94,7 @@ const DEMO = '/#exhibit-b';
 
     <p><strong>The documented catalog.</strong> The serious answer most of the industry gives: governed views encoding one authoritative definition per metric, documentation and labels describing every dataset, lineage, access control — the well-run semantic layer. Credit where due: this genuinely moves <strong>drift</strong> up the ladder. One definition, encoded once, consumed everywhere, is a real fix for two-dashboards-two-numbers.</p>
 
-    <p>But watch what carries the correctness: prose and names, read by the same fallible semantic engine the layer was built to protect you from. A view freezes a metric's grain and resolution into SQL text; the documentation <em>describes</em> the freeze; and <strong>underdetermined questions</strong> — one governed name, several legitimate numbers — have nowhere to go. We measured exactly this: nine models, identical well-documented schemas, one shot each — and entire failure families failed identically across every model tested, regardless of vendor or scale. More documentation did not fix it. Better models did not fix it. And half of every model's silent failures weren't arithmetic at all: the model named the right hazard in prose, then filed it under the wrong category. Disclosure without structure. <a class="ev" href={BENCH} rel="noopener" target="_blank">the benchmark →</a></p>
+    <p>But watch what carries the correctness: prose and names, read by the same fallible semantic engine the layer was built to protect you from. A view freezes a metric's grain and resolution into SQL text; the documentation <em>describes</em> the freeze; and <strong>underdetermined questions</strong> — one governed name, several legitimate numbers — have nowhere to go. We measured exactly this: nine models, identical well-documented schemas, one shot each — and entire failure families failed identically across every model tested, regardless of vendor or scale. More documentation did not fix it. Better models did not fix it. And half of every model's silent failures weren't arithmetic at all: the model named the right hazard in prose, then filed it under the wrong category. Disclosure without structure. <a class="ev" href={BENCH}>the benchmark →</a></p>
 
     <p>A newer sub-pattern deserves its own sentence: some catalogs now mine query logs for implicit definitions — if most queries filter a certain way, surface that as the candidate meaning. This promotes <strong>consensus</strong> to canon. But if the popular query divides by the wrong thing, consensus is how the wrong thing becomes official. Consensus is not correctness. Only a grammar knows the difference.</p>
 
@@ -162,7 +162,7 @@ const DEMO = '/#exhibit-b';
             <tr>
               <th scope="row">underdetermined questions</th>
               <td><span class="chip silent">silent</span><a class="fn" href="#fn8" id="fnref8"><sup>8</sup></a></td>
-              <td><a class="ev" href={BENCH} rel="noopener" target="_blank"><span class="chip silent">silent</span></a></td>
+              <td><a class="ev" href={BENCH}><span class="chip silent">silent</span></a></td>
               <td><span class="chip silent">silent</span></td>
               <td><span class="na">—</span></td>
               <td><a class="ev" href={DEMO}><span class="chip asked strong">asked back</span></a><a class="fn" href="#fn11" id="fnref11"><sup>11</sup></a></td>
@@ -206,7 +206,7 @@ const DEMO = '/#exhibit-b';
       </ol>
     </figure>
 
-    <p>Three things to read off the picture. The red concentrates in one row: <strong>underdetermined questions go silent everywhere</strong> — everywhere but one cell, because asking back is the rung that requires the algebra. The bottom row is the same color for us and for the best of the catalogs — <strong>the ceiling is shared</strong>, and a comparison page that pretended otherwise would be lying about its own author. And our column is not monochrome: a roadmap-hatched cell, a shared amber floor — the mixture is what makes the rest believable. Each cell's claim links to its evidence: the demo's moods by deep link, the <a href={BENCH} rel="noopener" target="_blank">benchmark</a>, the <a href={TWO_ANCHORS} rel="noopener" target="_blank">papers</a>, the <a href={ATLAS_GRADING}>Atlas family</a>, the <a href={CACHER}>roadmap note</a>. Nothing here asks to be believed.</p>
+    <p>Three things to read off the picture. The red concentrates in one row: <strong>underdetermined questions go silent everywhere</strong> — everywhere but one cell, because asking back is the rung that requires the algebra. The bottom row is the same color for us and for the best of the catalogs — <strong>the ceiling is shared</strong>, and a comparison page that pretended otherwise would be lying about its own author. And our column is not monochrome: a roadmap-hatched cell, a shared amber floor — the mixture is what makes the rest believable. Each cell's claim links to its evidence: the demo's moods by deep link, the <a href={BENCH}>benchmark</a>, the <a href={TWO_ANCHORS} rel="noopener" target="_blank">papers</a>, the <a href={ATLAS_GRADING}>Atlas family</a>, the <a href={CACHER}>roadmap note</a>. Nothing here asks to be believed.</p>
 
     <h2 id="before-the-question">Before the first question</h2>
 
@@ -220,7 +220,7 @@ const DEMO = '/#exhibit-b';
 
     <p>Keep your semantic layer — it solves drift, and drift is real. Keep your warehouse — we never compute where your data could. Keep your fast pipes. The grammar layer is the layer underneath all of them that was never built: small, closed, checkable — the part of correctness that should never have been asked of names, documentation, or consensus in the first place.</p>
 
-    <p>And if you think we've placed a pattern wrongly — including ours — the <a href={ATLAS_GRADING}>Atlas</a> is open, the <a href={BENCH} rel="noopener" target="_blank">benchmark</a> is public, and the <a href={DEMO}>demo</a> refuses to lie on our behalf. Bring the failure mode.</p>
+    <p>And if you think we've placed a pattern wrongly — including ours — the <a href={ATLAS_GRADING}>Atlas</a> is open, the <a href={BENCH}>benchmark</a> is public, and the <a href={DEMO}>demo</a> refuses to lie on our behalf. Bring the failure mode.</p>
   </article>
   <TermChipStrip />
 </BaseLayout>
