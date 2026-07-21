@@ -1,0 +1,60 @@
+---
+// /benchmark — the Ground Truth benchmark landing (Huayin, ratified copy 2026-07-21).
+// Short, CITING not carrying: what the kit is, the ladder's headline verbatim, the DOI, the
+// public repo link, and the freeze paragraph verbatim (from the kit README). The kit itself
+// lives in the public repo; this page does not reproduce data.
+import BaseLayout from '../layouts/BaseLayout.astro';
+const DOI = 'https://doi.org/10.5281/zenodo.21349581';
+const REPO = 'https://github.com/datumwise/ground-truth-benchmark';
+---
+<BaseLayout title="The Ground Truth benchmark — datumwise"
+  description="A blind, nine-model cross-comparison of single-shot text-to-SQL on one deliberately trap-laden warehouse — and the complete, frozen, reproducible kit behind it.">
+  <div class="page-head">
+    <p class="kicker">Benchmark</p>
+    <h1>The Ground Truth benchmark</h1>
+  </div>
+
+  <article class="prose benchmark">
+    <p>
+      A blind, nine-model cross-comparison of single-shot text-to-SQL on one deliberately
+      trap-laden warehouse — and the complete, frozen kit behind it: generator, harness,
+      the reference instance (warehouse, latent ground truth, 111-question keys), all nine
+      raw answer sets, the scorers, and an independent reproduction. Published to be run,
+      audited, and disagreed with.
+    </p>
+
+    <blockquote>
+      We measured exactly this: nine models, identical well-documented schemas, one shot
+      each — and entire failure families failed identically across every model tested,
+      regardless of vendor or scale. More documentation did not fix it. Better models did
+      not fix it. And half of every model's silent failures weren't arithmetic at all: the
+      model named the right hazard in prose, then filed it under the wrong category.
+    </blockquote>
+
+    <p class="cite">
+      Paper (nine-model study): <a href={DOI} rel="noopener" target="_blank">DOI 10.5281/zenodo.21349581</a><br />
+      Kit + reproduction: <a href={REPO} rel="noopener" target="_blank">github.com/datumwise/ground-truth-benchmark</a>
+    </p>
+
+    <h2>Freeze &amp; contamination policy</h2>
+    <p>
+      v1 is published here in full — questions, ground truth, answer keys, raw model answers —
+      for reproducibility and audit. <strong>It is therefore retired as an evaluation instrument:</strong>
+      once a benchmark's answers are public, future models may absorb them, and scores on it
+      stop meaning what they meant. Future scored runs use a private revision of the benchmark,
+      for the obvious reason. (The sealed competition holdout referenced in <code>benchmark/PICKUP.md</code>
+      remains sealed and is not part of this kit — by design.)
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .benchmark blockquote {
+    margin: 1.6rem 0; padding: 0.6rem 0 0.6rem 1.2rem;
+    border-left: 3px solid var(--rule-strong, #ccc); color: var(--ink-soft, #444);
+    font-family: var(--font-serif); font-size: 1.08rem; line-height: 1.6;
+  }
+  .benchmark .cite { font-size: 0.95rem; color: var(--ink-soft, #555); line-height: 1.9; }
+  .benchmark .cite a { color: var(--ink); }
+  .benchmark h2 { margin-top: 2rem; }
+</style>

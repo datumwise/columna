@@ -8,7 +8,7 @@ import fs from 'node:fs';
 // The launch announcement + its story companion join llms-full AT LAUNCH (Huayin): they ship in the
 // draft-locked launch PR, so they reach this composed document only when that PR merges — not before.
 import announceBody from '../content/corpus/launch_announcement_v2.md?raw';
-import storyBody from '../content/corpus/launch_story_v6.md?raw';
+import storyBody from '../content/corpus/launch_story_v7.md?raw';
 import wiBody from '../content/corpus/what_is_columna_draft_v0_7.md?raw';
 import whyBody from '../content/corpus/why_columna_looks_this_way_draft_v0_4.md?raw';
 // The case demo, in three chapters — VERBATIM (byte-identical to the ratified charter). It is a
