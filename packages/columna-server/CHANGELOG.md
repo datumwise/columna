@@ -3,6 +3,20 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.7.1] — the category-driver descriptions (data-only)
+
+Patch, DATA-ONLY: no code, no wire schema, no contract change. Requires `columna-core>=0.12.0`.
+
+- **The two category-profile driver measures gain their descriptions.** `priority` and `alloc_weight`
+  shipped 0.7.0 with empty describe descriptions — their folklore was written on the line *after* the
+  `MEASURE`, which the parser (DESCRIPTION lives on the header, before the `FAMILY` block) does not
+  read. Moved inline before `FAMILY` and ratified (Huayin 2026-07-24):
+  - `priority` — "the category's assignment rank — 1 ranks first; drives the primary face"
+  - `alloc_weight` — "the category's relative allocation weight — normalized per product at the
+    crossing; drives the split face"
+  So `describe_manifold`, the Explorer, and the spec all carry them. No parser change (the placement was
+  the defect). Verified: both flow to the wire; 135 server tests green.
+
 ## [0.7.0] — the triad on the wire, and the third Cascadia universe
 
 Requires `columna-core>=0.12.0` (the assign/alloc faces + the anchor law).
