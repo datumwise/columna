@@ -168,3 +168,14 @@ every exhibit from the published package). Live-verified: Figure 1's interim two
 sentence on /case + llms-full. RED 1 (regen-check `_FINANCE_CML`, purged-EDGE fixture — fails
 identically on main, untouched by this PR) holds as the dated post-flip micro-PR. **The 0.12 record is
 closed.**
+
+## Occurrence conformance — RULED (Huayin 2026-07-24; rides OF-5)
+
+The three-universe Figure 1 (PR #84) draws two inter-universe edge classes from the DECLARATION
+(describe): the shared-grain **"=" identity** edges (store, day, declared identical across transaction
+and inventory) and the **product↔category frontier + faces**. Their *conformance* is one adjudication
+class — **"occurrence conformance"**: frontier-side `bridge ⊆ members` and identity-seam-side
+`occurrences ⊆ members` (per universe, per shared grain). It is **NOT in the shipped adjudication** and
+is **blocked on OF-5's unbuilt domain-read** (min/max/distinct, membership); BASIS minting `UNTESTABLE`
+is the correct interim truth. **Ruling: a dated micro-PR riding OF-5**, not add-now — it lands when the
+domain source is declarable. The figure needs no engine change: it depicts declarations, not conformance.
