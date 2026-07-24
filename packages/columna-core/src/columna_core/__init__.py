@@ -44,4 +44,4 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore",
            "logical_spec", "physical_map", "physical_vocabulary", "no_physical_leak",
            "render_predicate_logical"]
-__version__ = "0.11.0-core"
+__version__ = "0.12.0-core"

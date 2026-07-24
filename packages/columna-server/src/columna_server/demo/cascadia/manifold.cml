@@ -8,6 +8,9 @@ UNIVERSE transaction = customer * store * product * day   BASIS events
 UNIVERSE inventory = store * day   WHERE day >= store.opened   BASIS spine
     -- "the daily stock snapshot, per store"
     REJECT eom_inventory "name is a fossil — the rows are one snapshot per store per DAY, not month-end"
+UNIVERSE category_profile = category   BASIS spine
+    -- "the category's own profile — a one-grain (degenerate) spine, no time axis: a priority and an
+    --  allocation weight per category, the drivers the RELATE faces cross by (0.12, the third universe)"
 
 # row-attributes of the transaction population (share their physical spelling; the map records the row)
 ATTR units, units_returned ON transaction
@@ -20,7 +23,7 @@ LEVEL day = day BASE   -- "a calendar day — the finest time grain anyone can a
 LEVEL region = region
     REJECT transactions.customer_region "a denormalized copy carried on the fact"
     REJECT customers.region "the customer's home region, not the store's"
-LEVEL category = category_id
+LEVEL category = category_id BASE
 LEVEL cal.week = week
 LEVEL cal.month = month
 LEVEL cal.quarter = quarter
@@ -35,7 +38,11 @@ HIERARCHY calendar {
 
 # many-to-many (declared so a fan-out refusal can name it, and the refusal can say exactly why)
 RELATE product <-> category VIA product_categories(product_id, category_id)
-    FACES { touch = TOUCH -- "revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total" }
+    FACES {
+        touch   = TOUCH -- "revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total"
+        primary = ASSIGN BY priority ORDER MIN -- "revenue will be assigned to each product's top-priority category — single-counted; secondary memberships are not represented; totals match the grand total"
+        split   = ALLOC BY alloc_weight -- "revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights — totals reconcile to the grand total"
+    }
     NOTE "a product belongs to up to 3 categories"
 
 # ── measures — folklore on every name; stale summaries kept as rejects on the map ───────────────────
@@ -48,6 +55,11 @@ MEASURE buyers ON transaction FROM transactions AS distinct(customer_id)   -- "d
 MEASURE units_sold ON transaction FROM transactions AS sum(units)   -- "units sold"
 MEASURE units_returned ON transaction FROM transactions AS sum(units_returned)
     -- "units returned; nulls predate returns tracking and count as no return"
+
+MEASURE priority ON category_profile FROM category_attributes VALUE priority FAMILY { last ORDER category }
+    -- "the category's rank driver (distinct 1..12); the ASSIGN face crosses by it, ORDER MIN = top rank"
+MEASURE alloc_weight ON category_profile FROM category_attributes VALUE alloc_weight FAMILY { last ORDER category }
+    -- "the category's allocation weight (a raw, un-normalized driver); the ALLOC face splits by it, normalized per product"
 
 MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level snapshot"
     FAMILY {

@@ -93,6 +93,7 @@ class FaceShape:
     name: str
     scheme: str
     description: str = ""
+    driver: str = ""       # the driver measure-ref for assign/alloc ('' for touch) — additive to the menu
 
 @dataclass(frozen=True)
 class RelateShape:
@@ -120,7 +121,7 @@ class PlannerView:
                         for n, d in m.derived.items()}
         self.non_functional = tuple(                          # RelateShape — level names + face shapes, NO VIA
             RelateShape(r.frm, r.to, r.detail,
-                        tuple(FaceShape(f.name, f.scheme, f.description) for f in r.faces))
+                        tuple(FaceShape(f.name, f.scheme, f.description, f.selection) for f in r.faces))
             for r in m.non_functional)
         self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)

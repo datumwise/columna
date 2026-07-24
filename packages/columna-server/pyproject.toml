@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "columna-server"
-version = "0.6.1"
+version = "0.7.0"
 description = "Columna MCP server — a library of Manifolds exposed to AI agents over MCP, one contract (the four moods as data)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "columna-core>=0.11.0",
+    "columna-core>=0.12.0",
     "mcp>=1.0",
     "tomli>=2.0; python_version < '3.11'",
     # store.py imports duckdb directly to load the connector's warehouse — declare it explicitly

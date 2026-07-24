@@ -3,6 +3,23 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.7.0] — the triad on the wire, and the third Cascadia universe
+
+Requires `columna-core>=0.12.0` (the assign/alloc faces + the anchor law).
+
+- **Third universe.** Cascadia gains `category_attributes` (12 rows: a distinct `priority` 1..12 and a
+  raw, varied `alloc_weight`, md5-deterministic / byte-reproducible) and `UNIVERSE category_profile =
+  category BASIS spine` with the two driver measures. The RELATE declares two more faces beside `touch`:
+  `primary = ASSIGN BY priority ORDER MIN`, `split = ALLOC BY alloc_weight` (descriptions are DRAFT,
+  ratified at the merge gate).
+- **Wire.** `describe_manifold`'s `relates[].faces[]` gains `driver`; query answers carry the assign
+  **shadow** (`memberships_unrepresented`) and the alloc **reconciliation** badge. Additive — the VIA
+  bridge stays map-layer; `contract_version` stays `"1"`.
+- **Exhibits.** E11 (`revenue AT {category.primary}`) discloses the shadow (270 memberships, total ≡
+  the grand total $2,212,391.86); E12 (`revenue AT {category.split}`) serves with the reconciliation
+  badge (total ≡ the grand total to the cent). Recorded via the standing seed pipeline; the /case copy
+  comes to the desk post-build.
+
 ## [0.6.1] — warehouse coherence (data-only)
 
 Patch, DATA-ONLY: no code, no wire, no contract change. Requires `columna-core>=0.11.0` (unchanged).
