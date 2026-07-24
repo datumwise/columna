@@ -46,11 +46,14 @@ VERDICT_BG = {"corroborated": SERVE_BG, "verified": "#eef1fb", "untestable": UNT
 COPY = {
     "kicker": "THE UNIVERSE VISUAL · FIGURE 1",
     "title": "Cascadia — three universes",
-    # DRAFT caption (Huayin ratifies with his word) — verbatim from the founder's ruling.
-    "caption": ("Cascadia's manifold: three universes — transaction (events), inventory (spine), and "
-                "category_profile (spine), whose measures license the category crossing. Solid edges "
-                "are functional paths; the dotted edge is the product↔category frontier, crossable "
-                "only through its three declared faces."),
+    # CAPTION v3 (Huayin 2026-07-24; DRAFT, held for his word) — verbatim from the desk synthesis.
+    "caption": ("Cascadia's manifold: three universes. Store and day are shared grains — declared "
+                "identical across transaction and inventory (the '=' edges), which is what licenses "
+                "composing their measures. Category is a grain of category_profile only; the dotted "
+                "edge is the product↔category frontier, crossable solely through its three declared "
+                "faces, whose drivers live in the profile. Solid edges are functional paths inside a "
+                "universe; every line between universes is a declared license."),
+    "identity_note": "one declared level, two presences — the '=' marks the shared-atlas declaration",
     "lede": ("Universe-first, and multi-universe as foundational: each population is a first-class "
              "block holding its basis and its metric families. The edges carry the distinction — solid "
              "hops are functional (many-to-one) paths; the one dotted edge is the product↔category "
@@ -69,10 +72,12 @@ COPY = {
                 "caption links the Manifold spec and the physical→logical map."),
     "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
     "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
-    "legend": [("swatch", SERVE, "✓ functional hop (M:1, serve)"),
-               ("box", UNTEST_BG, "untestable basis"),
-               ("dash", REFUSE, "the product↔category frontier"),
-               ("chip", REFUSE, "a declared face + its driver")],
+    # the CLOSED edge grammar (Huayin 2026-07-24): solid = functional (in-box); "=" = declared identity
+    # (cross-box, P1); dotted+chips = the frontier (cross-box, P2). No other inter-box line exists.
+    "legend": [("swatch", SERVE, "solid → = functional hop, in a universe (M:1)"),
+               ("eq", VERIFIED, "= declared identity across universes (shared grain)"),
+               ("dash", REFUSE, "· · · the product↔category frontier + its faces"),
+               ("box", UNTEST_BG, "untestable basis")],
 }
 
 # describe basis kinds this generator knows how to render. Anything else => fail closed.
@@ -209,53 +214,78 @@ def resolve_roles(model):
         if d is not None and d not in profile_measures:
             raise Fail(f"face {f['name']!r} names driver {d!r}, not a measure of the profile universe "
                        f"{profile['name']!r} — the figure cannot ground it (subfield-completeness wedge)")
-    return {"home": home, "profile": profile, "third": third, "relate": r}
+    # CLOSED EDGE GRAMMAR (Huayin 2026-07-24): every wire edge must classify as exactly one known class —
+    # FUNCTIONAL (a hop inside one universe's declared hierarchy), IDENTITY (a base level shared across
+    # universes, derived), or FRONTIER (the relate). Any edge the generator can't place in this closed
+    # grammar refuses to render (absence of a line must mean absence of a passage). Functional edges are
+    # dm['edges']; each must belong to a declared hierarchy lineage — else it is an untaught inter-level
+    # class and the figure fails closed rather than drawing a line whose meaning it doesn't know.
+    hier_pairs = set()
+    for h in model["hierarchies"]:
+        for path in [h.get("chain") or []] + h.get("paths", []):
+            for a, b in zip(path, path[1:]):
+                hier_pairs.add((a, b))
+    for e in model.get("edges", []):
+        if (e["frm"], e["to"]) not in hier_pairs:
+            raise Fail(f"edge {e['frm']}->{e['to']} is not a declared functional hierarchy hop and is "
+                       f"neither the frontier nor an identity seam — an unknown edge class the closed "
+                       f"grammar refuses to render; teach it")
+    return {"home": home, "profile": profile, "third": third, "relate": r,
+            "shared_levels": sorted({d for u in us for d in u["base_dimensions"]
+                                     if sum(d in v["base_dimensions"] for v in us) > 1})}
 
 
 # ───────────────────────────── the main figure (three universes) ─────────────────────────────
 def figure_svg(store, model, roles):
-    """Compose the THREE-UNIVERSE figure (founder's ruling + layout Q&A, Huayin 2026-07-24).
+    """Compose the THREE-UNIVERSE figure (founder's ruling + desk synthesis, Huayin 2026-07-24).
 
-    All three universes are first-class solid-bordered cards. The frontier FEET live INSIDE their own
-    territories — `product` inside the home (transaction) card, `to` (category) inside the profile
-    (category_profile) card — and the single DOTTED frontier edge runs product-block → across the
-    inter-universe gap → category-block, the edge visibly spanning territories (that spanning IS the
-    point). The frontier level belongs to the far territory; what is shared is never the frontier, and
-    what is frontier is never shared. The three FACES ride as chips ON the dotted edge; DRIVER ARROWS
-    run from the profile universe's measures into the faces they power. Solid ✓ hops are the functional
-    (M:1) hierarchies (drawn as the manifold's functional atlas — NOT as a shared-grain seam; that seam
-    is G7's headline, not half-drawn here). Labels verbatim from describe; the caption is ratified prose."""
+    Three first-class solid boxes. The CLOSED edge grammar carries every relationship:
+      • SOLID ✓ = a functional (M:1) hop, INSIDE one universe (the hierarchy chains, drawn in-box);
+      • "="     = a declared identity across universes — a shared grain (store, day) has one declaration
+                  and two presences, linked box-to-box (the shared-atlas license, P1);
+      • DOTTED + chips = the product↔category frontier, crossed only by its declared faces (P2), whose
+                  drivers live in the profile. No other inter-box line exists; absence of a line is the
+                  absence of a passage (resolve_roles fails closed on any unknown edge class).
+    Labels verbatim from describe; the caption is ratified prose (rendered by the page)."""
     home, profile, third = roles["home"], roles["profile"], roles["third"]
     r = roles["relate"]
     faces = r.get("faces", [])
+    shared = roles.get("shared_levels", [])
 
-    W, H = 1180, 760
+    W, H = 1180, 560
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
              f'aria-label="Cascadia manifold, three first-class universes {esc(home["name"])}, '
-             f'{esc(third["name"])}, {esc(profile["name"])}; the dotted {esc(r["frm"])} to {esc(r["to"])} '
-             f'frontier spans from the {esc(home["name"])} block across the gap to the {esc(profile["name"])} '
-             f'block, crossed by declared faces {esc(", ".join(f["name"] for f in faces))}">']
+             f'{esc(third["name"])}, {esc(profile["name"])}; {esc(" and ".join(shared))} are shared grains '
+             f'linked by = identity edges across {esc(home["name"])} and {esc(third["name"])}; the dotted '
+             f'{esc(r["frm"])} to {esc(r["to"])} frontier is crossed by declared faces '
+             f'{esc(", ".join(f["name"] for f in faces))}">']
     parts.append(
         '<defs>'
         f'<marker id="dhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">'
         f'<path d="M0,1 L8,4.5 L0,8 Z" fill="{VERIFIED}"/></marker>'
         '</defs>')
 
-    CARD_Y, CARD_H = 44, 300
-    home_x, home_w = 32, 372
-    third_x, third_w = 428, 270
-    prof_x, prof_w = 740, 300
+    CARD_Y, CARD_H = 36, 356
+    home_x, home_w = 40, 400
+    third_x, third_w = 480, 250
+    prof_x, prof_w = 770, 340
 
     def _mline(x, yy, m):
         return (_t(x, yy, esc(m["name"]) + " ", 13, INK, cls="mono")
                 + _t(x + _tw(m["name"]) + 8, yy, f'[{esc(" · ".join(m["family"]))}]', 13, FAINT, cls="mono"))
 
-    def _card(u, x, w, drivers=False, foot=None, foot_side="right"):
-        """Render one first-class universe card. `foot` (a base level, e.g. product/category) is drawn
-        INSIDE the card at its bottom as the frontier foot, on `foot_side` so it faces the inter-universe
-        gap; returns its exit anchor (bottom-centre)."""
+    # a shared level's two presence anchors: pair_y[level] = (day / store) row centre inside the boxes
+    pair_y = {lvl: CARD_Y + 196 + i * 40 for i, lvl in enumerate(shared)}
+
+    def _shared_chip(lvl, cx):
+        cy = pair_y[lvl] - 15
+        return (f'<g data-ref="grain-{esc(lvl)}"><title>one declared level, two presences — '
+                f'"=" marks the shared-atlas declaration</title>'
+                + _level_block(cx, cy, lvl, w=86, h=30, stroke=INK) + '</g>'), cy + 15
+
+    def _card(u, x, w, drivers=False, foot=None, foot_side="right", shared_side=None):
         g = [f'<g data-ref="universe-{esc(u["name"])}">']
-        g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))   # solid = first-class
+        g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))
         g.append(_t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700))
         g.append(_t(x + 18, CARD_Y + 48, f'BASIS {esc(u["basis"])}', 12, SUB, cls="mono"))
         g.append(_rect(x + w - 90, CARD_Y + 14, 76, 19, rx=10, fill=UNTEST_BG))
@@ -263,32 +293,58 @@ def figure_svg(store, model, roles):
         absc = _absence_short(u)
         if absc:
             g.append(_t(x + 18, CARD_Y + 66, esc(absc), 11, FAINT))
-        g.append(_t(x + 18, CARD_Y + 82, "base " + esc(" · ".join(u["base_dimensions"])), 10.5, FAINT, cls="mono"))
+        hy = CARD_Y + 82
         if u.get("predicate"):
-            g.append(_t(x + 18, CARD_Y + 98, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono"))
+            g.append(_t(x + 18, hy, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono"))
+            hy += 16
+        g.append(_t(x + 18, hy, "base " + esc(" · ".join(u["base_dimensions"])), 10.5, FAINT, cls="mono"))
         ms = [m for m in model["measures"] if m["universe"] == u["name"]]
-        my = CARD_Y + 122
+        my = hy + 26
         g.append(_t(x + 18, my, "MEASURE" + ("S" if len(ms) != 1 else ""), 11, SUB, cls="tag"))
         anchors = {}
-        my += 24
+        my += 22
         for m in ms:
             g.append(_mline(x + 18, my, m))
             if drivers:
                 anchors[m["name"]] = (x + 18 + _tw(m["name"] + " ") + _tw(" · ".join(m["family"])) + 30, my - 4)
-            my += 24
-        if _is_semi_additive(store, u, model):
-            g.append(_t(x + 18, my + 4, "semi-additive — sum barred over", 10.5, FAINT))
-            g.append(_t(x + 18, my + 17, "calendar; last travels (see below)", 10.5, FAINT))
-        # compact ASSERT chip at the card foot (left), narrowed so it clears the frontier foot
-        for asrt in model["asserts"]:
-            if asrt["universe"] != u["name"]:
-                continue
-            v = (asrt.get("license") or {}).get("verdict")
-            col = VERDICT_COLOR.get(v, FAINT)
-            ay = CARD_Y + CARD_H - 40
-            g.append(_rect(x + 16, ay, 224, 32, rx=6, fill=VERDICT_BG.get(v, UNTEST_BG), stroke=SERVE_RULE, sw=1))
-            g.append(_t(x + 26, ay + 14, f'ASSERT · {esc((v or "").upper())}', 10, col, cls="tag"))
-            g.append(_t(x + 26, ay + 27, esc(asrt["name"]), 11, "#33502f", cls="mono"))
+            my += 22
+        # shared-grain presences: a vertical pair at the facing inner edge (the "=" anchors)
+        shared_here = [lvl for lvl in shared if lvl in u["base_dimensions"]]
+        shared_anchor = {}
+        if shared_here and shared_side:
+            scx = (x + w - 59) if shared_side == "right" else (x + 59)
+            g.append(_t(scx, min(pair_y.values()) - 24, "GRAINS", 10, SUB, anchor="middle", cls="tag"))
+            for lvl in shared_here:
+                svg, ymid = _shared_chip(lvl, scx)
+                g.append(svg)
+                edge_x = (scx + 43) if shared_side == "right" else (scx - 43)
+                shared_anchor[lvl] = (edge_x, ymid, shared_side)
+        # functional grains — the coarser levels each lattice reaches, drawn as ONE abbreviated
+        # breadcrumb per chain ("▸" = a corroborated M:1 hop); the "=" edges say the third's are identical.
+        roots = [h for h in model["hierarchies"] if (h.get("chain") or [None])[0] in u["base_dimensions"]]
+        if roots and shared_side == "right":                # home draws the crumbs; third references via "="
+            by = CARD_Y + 250
+            g.append(_t(x + 18, by, "functional grains — ▸ = corroborated M:1 hop ✓", 9.5, FAINT))
+            for hi, h in enumerate(roots):
+                chain = h.get("chain") or []
+                v = (h.get("license") or {}).get("verdict")
+                col = VERDICT_COLOR.get(v, SERVE)
+                by2 = by + 18 + hi * 20
+                crumb = " ▸ ".join(chain)
+                cur = x + 18
+                g.append(_t(cur, by2, esc(crumb), 11, INK, cls="mono"))
+                cur += _tw(crumb, 6.6) + 6
+                g.append(_t(cur, by2, "✓", 11, col))
+                cur += 12
+                for pth in h.get("paths", []):              # fork (weeks don't nest) appended inline
+                    extra = [lv for lv in (pth or []) if lv not in chain]
+                    if extra:
+                        g.append(_t(cur, by2, "· " + esc(" ".join(extra)), 10, FAINT))
+        elif roots and shared_side == "left":               # third: abbreviate (identical by the "=")
+            names = ", ".join(sorted({h["lineage"] for h in roots}))
+            g.append(_t(x + 18, CARD_Y + 288, f"functional grains: {esc(names)} ✓", 9.5, FAINT))
+            g.append(_t(x + 18, CARD_Y + 304, f"identical to {esc(home['name'])} — see the = edges", 9.5, FAINT))
+        # the frontier foot, at the card bottom (non-shared plain grains stay in the header base line)
         foot_anchor = None
         if foot is not None:
             fw = _tw(foot, 7.4) + 34
@@ -299,18 +355,29 @@ def figure_svg(store, model, roles):
             g.append(_t(fcx, fcy + 19, esc(foot), 12.5, INK, anchor="middle", cls="mono"))
             g.append(_t(fcx, fcy - 6, "frontier foot", 8.5, REFUSE, anchor="middle", cls="tag"))
             g.append('</g>')
-            foot_anchor = (fcx, fcy + 30)                  # bottom-centre: the dotted edge exits here
+            foot_anchor = (fcx, fcy + 30)
         g.append('</g>')
-        return g, anchors, foot_anchor
+        return g, anchors, foot_anchor, shared_anchor
 
-    g_home, _, prod_foot = _card(home, home_x, home_w, foot=r["frm"], foot_side="right")
-    g_third, _, _ = _card(third, third_x, third_w)
-    g_prof, driver_anchor, cat_foot = _card(profile, prof_x, prof_w, drivers=True, foot=r["to"], foot_side="left")
+    g_home, _, prod_foot, sa_home = _card(home, home_x, home_w, foot=r["frm"], foot_side="right", shared_side="right")
+    g_third, _, _, sa_third = _card(third, third_x, third_w, shared_side="left")
+    g_prof, driver_anchor, cat_foot, _ = _card(profile, prof_x, prof_w, drivers=True, foot=r["to"], foot_side="left")
     parts += g_home + g_third + g_prof
 
-    # ── the DOTTED frontier edge: product-block → across the inter-universe gap → category-block ──
+    # ── the "=" identity edges: shared grain, one declaration / two presences, box-to-box ──
+    for lvl in shared:
+        if lvl in sa_home and lvl in sa_third:
+            (x1, y1, _), (x2, y2, _) = sa_home[lvl], sa_third[lvl]
+            mx = (x1 + x2) / 2
+            parts.append(f'<g data-ref="identity-{esc(lvl)}"><title>{esc(COPY["identity_note"])}</title>')
+            parts.append(_line(x1, y1 - 3, x2, y2 - 3, stroke=VERIFIED, sw=1.5))
+            parts.append(_line(x1, y1 + 3, x2, y2 + 3, stroke=VERIFIED, sw=1.5))
+            parts.append(_t(mx, y1 - 8, "=", 15, VERIFIED, anchor="middle", weight=700))
+            parts.append('</g>')
+
+    # ── the DOTTED frontier edge: product-block → across the gap → category-block ──
     (px, py), (cx0, cy0) = prod_foot, cat_foot
-    run_y = CARD_Y + CARD_H + 62                            # the horizontal run, safely below every card
+    run_y = CARD_Y + CARD_H + 56
     path = (f'M {px} {py} L {px} {run_y - 6} Q {px} {run_y} {px + 6} {run_y} '
             f'L {cx0 - 6} {run_y} Q {cx0} {run_y} {cx0} {run_y - 6} L {cx0} {cy0}')
     parts.append(f'<path d="{path}" fill="none" stroke="{REFUSE}" stroke-width="1.8" stroke-dasharray="2 5"/>')
@@ -318,8 +385,6 @@ def figure_svg(store, model, roles):
     parts.append(_t(note_cx, run_y - 40, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
     if r.get("note"):
         parts.append(_t(note_cx, run_y + 34, esc(r["note"]), 10, FAINT, anchor="middle"))
-
-    # the FACE chips, riding ON the horizontal run; driver arrows from the profile measures
     n = max(len(faces), 1)
     span0, span1 = px + 70, cx0 - 70
     for i, f in enumerate(faces):
@@ -339,47 +404,7 @@ def figure_svg(store, model, roles):
             parts.append(_t(fx + 12, run_y - 30, "drives", 9, VERIFIED, cls="tag"))
             parts.append('</g>')
 
-    # ── the functional atlas: solid ✓ (M:1) hierarchies, rooted at their base levels. NOT a shared
-    #    seam — day/store carry no universe attribution here (the shared-grain seam is G7's headline). ──
-    PITCH, RH, RW = 66, 28, 90
-    bases = []
-    for h in model["hierarchies"]:
-        chain = h.get("chain") or []
-        if chain and chain[0] not in bases:
-            bases.append(chain[0])
-    atlas_y = run_y + 66
-    parts.append(_t(70, atlas_y - 16, "functional atlas — the M:1 hierarchies (solid ✓ = corroborated)", 10, FAINT))
-    base_cx = {}
-    for i, b in enumerate(bases):
-        bx = 116 + i * 190
-        base_cx[b] = bx
-        parts.append(_level_block(bx, atlas_y, b, w=RW))
-    for h in model["hierarchies"]:
-        chain = h.get("chain") or []
-        base = chain[0] if chain else None
-        if base not in base_cx:
-            continue
-        v = (h.get("license") or {}).get("verdict")
-        color = VERDICT_COLOR.get(v, SERVE)
-        bx = base_cx[base]
-        prev = atlas_y + RH
-        for i, lvl in enumerate(chain[1:]):
-            by = atlas_y + (i + 1) * PITCH
-            parts.append(_line(bx, prev, bx, by, stroke=color, sw=1.6))
-            parts.append(_check(bx - 48, (prev + by) / 2, color))
-            parts.append(_level_block(bx, by, lvl, w=RW))
-            prev = by + RH
-        for pth in h.get("paths", []):
-            if pth == chain or len(pth) < 2 or pth[0] != base:
-                continue
-            fx = bx + 128
-            for j, lvl in enumerate(pth[1:]):
-                fy = atlas_y + (j + 1) * PITCH
-                parts.append(_line(bx + RW / 2 - 6, atlas_y + RH, fx - 40, fy + RH / 2, stroke=color, sw=1.3))
-                parts.append(_level_block(fx, fy, lvl, w=84))
-            parts.append(_t(fx, atlas_y + PITCH + 46, COPY["fork_note"], 9.5, FAINT, anchor="middle"))
-
-    parts.append(_legend(28, H - 30))
+    parts.append(_legend(28, H - 26))
     parts.append('</svg>')
     return "".join(parts)
 
@@ -478,6 +503,9 @@ def _legend(x, y):
             out.append(_rect(cx, y - 9, 13, 13, rx=2, fill=color, stroke=UNTEST, sw=1))
         elif kind == "dash":                       # the dotted frontier edge
             out.append(_line(cx, y - 3, cx + 15, y - 3, stroke=color, sw=1.6, dash="2 4"))
+        elif kind == "eq":                         # the "=" identity edge
+            out.append(_line(cx, y - 6, cx + 15, y - 6, stroke=color, sw=1.4))
+            out.append(_line(cx, y, cx + 15, y, stroke=color, sw=1.4))
         elif kind == "chip":                       # a declared face (pill)
             out.append(_rect(cx, y - 10, 16, 15, rx=7, fill=PAPER, stroke=color, sw=1.3))
         out.append(_t(cx + 22, y, label, 11, SUB))
