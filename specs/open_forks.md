@@ -131,7 +131,7 @@ only its durable form.
 
 ---
 
-## 0.12 "the triad completes" — forks + rowed items (PR: 0.12-triad; awaiting the merge gate)
+## 0.12 "the triad completes" — forks + rowed items (PR #83: 0.12-triad; MERGED + PUBLISHED 2026-07-24)
 
 - **The five user-facing strings — RATIFIED, SEALED, WIRED BYTE-EXACT** (Huayin 2026-07-24, supersede
   all placeholders): the `primary` / `split` face descriptions (`manifold.cml` → menu + wire); the G4
@@ -158,4 +158,13 @@ only its durable form.
 - **Version track — CONFIRMED (Huayin 2026-07-24):** core → 0.12.0, meta → 0.12.0, server → **0.7.0**
   (its own line; "across" = the release spans all three, the track precedent governs).
 
-**The 0.12 record now closes to a single open line: Huayin's merge + publish word.**
+**CLOSED 2026-07-24 — Huayin's word arrived, four-in-one (the ch2 forward-reference sentence, the
+Figure 1 caption ratification, the merge, the publish), executed publish-first:** columna-core 0.12.0 ·
+columna-server 0.7.0 · columna 0.12.0 live on PyPI (OIDC Trusted Publisher + `assert_pypi_versions`
+green; per-version endpoints 200); PR #83 merged to `main` (`f0db0e0`, merge-commit — `v0.12.0` tag in
+history); Vercel prod deployed via the shipped-coherent wedge (installed 0.12 from PyPI, regenerated
+every exhibit from the published package). Live-verified: Figure 1's interim two-universe filter +
+`OMITTED UNIVERSE · INTERIM` ghost + `DISCLOSE · INTERIM` caption band, and the ch2 forward-reference
+sentence on /case + llms-full. RED 1 (regen-check `_FINANCE_CML`, purged-EDGE fixture — fails
+identically on main, untouched by this PR) holds as the dated post-flip micro-PR. **The 0.12 record is
+closed.**
