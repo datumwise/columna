@@ -33,6 +33,7 @@ VERIFIED = "#2456a6"
 REFUSE = "#a63030"
 UNTEST = "#7a6f4e"; UNTEST_BG = "#f2efe6"
 INK = "#1c1a17"; SUB = "#6b675f"; FAINT = "#a49e91"; RULE = "#c9c2b4"; PAPER = "#ffffff"
+BASE = "#3f6d8c"; BASE_BG = "#eaf1f6"      # the block's anchor fact — the base line reads as one (v5)
 
 VERDICT_COLOR = {"corroborated": SERVE, "verified": VERIFIED, "disclose": DISCLOSE,
                  "contradicted": REFUSE, "untestable": UNTEST}
@@ -46,14 +47,18 @@ VERDICT_BG = {"corroborated": SERVE_BG, "verified": "#eef1fb", "untestable": UNT
 COPY = {
     "kicker": "THE UNIVERSE VISUAL · FIGURE 1",
     "title": "Cascadia — three universes",
-    # CAPTION v3 (Huayin 2026-07-24; DRAFT, held for his word) — verbatim from the desk synthesis.
-    "caption": ("Cascadia's manifold: three universes. Store and day are shared grains — declared "
-                "identical across transaction and inventory (the '=' edges), which is what licenses "
-                "composing their measures. Category is a grain of category_profile only; the dotted "
-                "edge is the product↔category frontier, crossable solely through its three declared "
-                "faces, whose drivers live in the profile. Solid edges are functional paths inside a "
-                "universe; every line between universes is a declared license."),
+    # CAPTION v5 (Huayin 2026-07-24; DRAFT, held for his word) — supersedes v3.
+    "caption": ("Cascadia's manifold: three universes. Each block shows its base (colored) and the "
+                "grains its solid, functional edges reach; '=' links shared declarations — store, day, "
+                "and category — across universes. The dotted product↔category edge inside transaction "
+                "is the frontier: an M:N reach, not a functional grain, servable only through its three "
+                "declared faces, whose drivers live in category_profile."),
     "identity_note": "one declared level, two presences — the '=' marks the shared-atlas declaration",
+    "identity_note_conformance": ("one declared level, two presences — the '=' marks the shared-atlas "
+                                   "declaration. Occurrences must conform to members — adjudication dated, rides OF-5."),
+    "presence_note": ("category appears here through the M:N bridge — an occurrence presence, not a "
+                      "functional grain; servable only through a declared face"),
+    "bridge_label": "product_categories(product_id, category_id)",
     "lede": ("Universe-first, and multi-universe as foundational: each population is a first-class "
              "block holding its basis and its metric families. The edges carry the distinction — solid "
              "hops are functional (many-to-one) paths; the one dotted edge is the product↔category "
@@ -72,12 +77,13 @@ COPY = {
                 "caption links the Manifold spec and the physical→logical map."),
     "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
     "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
-    # the CLOSED edge grammar (Huayin 2026-07-24): solid = functional (in-box); "=" = declared identity
-    # (cross-box, P1); dotted+chips = the frontier (cross-box, P2). No other inter-box line exists.
+    # the CLOSED edge grammar (v5, Huayin 2026-07-24): solid = functional hop IN-BOX; dotted = the M:N
+    # frontier reach IN-BOX (faces mandatory); "=" = declared identity ACROSS boxes. Cross-box lines are
+    # "=" only. (Driver arrows are a separate binding annotation, not a structural edge class.)
     "legend": [("swatch", SERVE, "solid → = functional hop, in a universe (M:1)"),
-               ("eq", VERIFIED, "= declared identity across universes (shared grain)"),
-               ("dash", REFUSE, "· · · the product↔category frontier + its faces"),
-               ("box", UNTEST_BG, "untestable basis")],
+               ("dash", REFUSE, "· · · the M:N frontier reach, in-box (faces mandatory)"),
+               ("eq", VERIFIED, "= declared identity across universes"),
+               ("base", BASE, "the block's base (anchor)")],
 }
 
 # describe basis kinds this generator knows how to render. Anything else => fail closed.
@@ -235,174 +241,190 @@ def resolve_roles(model):
                                      if sum(d in v["base_dimensions"] for v in us) > 1})}
 
 
-# ───────────────────────────── the main figure (three universes) ─────────────────────────────
+# ───────────────────────────── the main figure (three universes, v5) ─────────────────────────────
 def figure_svg(store, model, roles):
-    """Compose the THREE-UNIVERSE figure (founder's ruling + desk synthesis, Huayin 2026-07-24).
+    """Compose the THREE-UNIVERSE figure (founder's ruling v5, Huayin 2026-07-24, after live review).
 
-    Three first-class solid boxes. The CLOSED edge grammar carries every relationship:
-      • SOLID ✓ = a functional (M:1) hop, INSIDE one universe (the hierarchy chains, drawn in-box);
-      • "="     = a declared identity across universes — a shared grain (store, day) has one declaration
-                  and two presences, linked box-to-box (the shared-atlas license, P1);
-      • DOTTED + chips = the product↔category frontier, crossed only by its declared faces (P2), whose
-                  drivers live in the profile. No other inter-box line exists; absence of a line is the
-                  absence of a passage (resolve_roles fails closed on any unknown edge class).
-    Labels verbatim from describe; the caption is ratified prose (rendered by the page)."""
+    Block order inventory | transaction | category_profile. Each block shows its BASE (colored — the
+    block's anchor fact) and the grains its solid functional (M:1) edges reach. The FRONTIER is now
+    IN-BOX: inside transaction, `product` reaches a `category` PRESENCE chip by a dotted M:N edge that
+    the three declared faces ride (the product_categories bridge labels it); the presence wears distinct
+    styling — an occurrence, not a functional grain. The CLOSED edge grammar: solid = functional hop
+    in-box; dotted = the M:N frontier reach in-box (faces mandatory); "=" = declared identity ACROSS
+    boxes — and cross-box lines are "=" ONLY. store, day, and category are the shared declarations
+    (category's "=" links transaction's presence to category_profile's base, carrying the dated
+    occurrence-conformance note). Driver arrows (a binding annotation, not a structural edge) run from
+    category_profile's measures to the faces. Labels verbatim from describe; caption is ratified prose."""
     home, profile, third = roles["home"], roles["profile"], roles["third"]
     r = roles["relate"]
     faces = r.get("faces", [])
-    shared = roles.get("shared_levels", [])
+    shared = [lvl for lvl in roles.get("shared_levels", [])]     # store, day
 
-    W, H = 1180, 560
+    W, H = 1160, 560
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
-             f'aria-label="Cascadia manifold, three first-class universes {esc(home["name"])}, '
-             f'{esc(third["name"])}, {esc(profile["name"])}; {esc(" and ".join(shared))} are shared grains '
-             f'linked by = identity edges across {esc(home["name"])} and {esc(third["name"])}; the dotted '
-             f'{esc(r["frm"])} to {esc(r["to"])} frontier is crossed by declared faces '
-             f'{esc(", ".join(f["name"] for f in faces))}">']
+             f'aria-label="Cascadia manifold, three universes {esc(third["name"])}, {esc(home["name"])}, '
+             f'{esc(profile["name"])}; store, day and category are shared declarations linked by = identity '
+             f'edges; the dotted {esc(r["frm"])} to {esc(r["to"])} M:N frontier lives inside {esc(home["name"])} '
+             f'and is crossed only by faces {esc(", ".join(f["name"] for f in faces))}">']
     parts.append(
         '<defs>'
         f'<marker id="dhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">'
-        f'<path d="M0,1 L8,4.5 L0,8 Z" fill="{VERIFIED}"/></marker>'
-        '</defs>')
+        f'<path d="M0,1 L8,4.5 L0,8 Z" fill="{VERIFIED}"/></marker></defs>')
 
-    CARD_Y, CARD_H = 36, 356
-    home_x, home_w = 40, 400
-    third_x, third_w = 480, 250
-    prof_x, prof_w = 770, 340
+    CARD_Y, CARD_H = 36, 400
+    inv_x, inv_w = 32, 232
+    txn_x, txn_w = 304, 486
+    cp_x, cp_w = 830, 300
+    day_y, store_y = 300, 336        # the store/day "=" band
+    frontier_y = 402                 # the in-box frontier + the category "=" band
 
     def _mline(x, yy, m):
         return (_t(x, yy, esc(m["name"]) + " ", 13, INK, cls="mono")
                 + _t(x + _tw(m["name"]) + 8, yy, f'[{esc(" · ".join(m["family"]))}]', 13, FAINT, cls="mono"))
 
-    # a shared level's two presence anchors: pair_y[level] = (day / store) row centre inside the boxes
-    pair_y = {lvl: CARD_Y + 196 + i * 40 for i, lvl in enumerate(shared)}
-
-    def _shared_chip(lvl, cx):
-        cy = pair_y[lvl] - 15
-        return (f'<g data-ref="grain-{esc(lvl)}"><title>one declared level, two presences — '
-                f'"=" marks the shared-atlas declaration</title>'
-                + _level_block(cx, cy, lvl, w=86, h=30, stroke=INK) + '</g>'), cy + 15
-
-    def _card(u, x, w, drivers=False, foot=None, foot_side="right", shared_side=None):
-        g = [f'<g data-ref="universe-{esc(u["name"])}">']
-        g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))
-        g.append(_t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700))
-        g.append(_t(x + 18, CARD_Y + 48, f'BASIS {esc(u["basis"])}', 12, SUB, cls="mono"))
-        g.append(_rect(x + w - 90, CARD_Y + 14, 76, 19, rx=10, fill=UNTEST_BG))
-        g.append(_t(x + w - 52, CARD_Y + 27, "untestable", 10.5, UNTEST, anchor="middle", cls="tag"))
+    def _header(u, x, w):
+        g = [_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7),
+             _t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700),
+             _t(x + 18, CARD_Y + 48, f'BASIS {esc(u["basis"])}', 12, SUB, cls="mono"),
+             _rect(x + w - 90, CARD_Y + 14, 76, 19, rx=10, fill=UNTEST_BG),
+             _t(x + w - 52, CARD_Y + 27, "untestable", 10.5, UNTEST, anchor="middle", cls="tag")]
         absc = _absence_short(u)
+        hy = CARD_Y + 66
         if absc:
-            g.append(_t(x + 18, CARD_Y + 66, esc(absc), 11, FAINT))
-        hy = CARD_Y + 82
+            g.append(_t(x + 18, hy, esc(absc), 11, FAINT)); hy += 16
         if u.get("predicate"):
-            g.append(_t(x + 18, hy, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono"))
-            hy += 16
-        g.append(_t(x + 18, hy, "base " + esc(" · ".join(u["base_dimensions"])), 10.5, FAINT, cls="mono"))
+            g.append(_t(x + 18, hy, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono")); hy += 16
+        # the BASE line — colored, one anchor fact, consistent across all blocks (v5 item 1)
+        g.append(_rect(x + 14, hy - 12, _tw("base: " + " · ".join(u["base_dimensions"]), 6.6) + 20, 18,
+                       rx=4, fill=BASE_BG))
+        g.append(_t(x + 18, hy, "base: ", 11, BASE, weight=700, cls="mono")
+                 + _t(x + 18 + _tw("base: ", 6.6), hy, esc(" · ".join(u["base_dimensions"])), 11, BASE, cls="mono"))
+        return g, hy + 20
+
+    def _measures(u, x, my, drivers=False):
         ms = [m for m in model["measures"] if m["universe"] == u["name"]]
-        my = hy + 26
-        g.append(_t(x + 18, my, "MEASURE" + ("S" if len(ms) != 1 else ""), 11, SUB, cls="tag"))
+        g = [_t(x + 18, my, "MEASURE" + ("S" if len(ms) != 1 else ""), 11, SUB, cls="tag")]
         anchors = {}
-        my += 22
+        yy = my + 22
         for m in ms:
-            g.append(_mline(x + 18, my, m))
+            g.append(_mline(x + 18, yy, m))
             if drivers:
-                anchors[m["name"]] = (x + 18 + _tw(m["name"] + " ") + _tw(" · ".join(m["family"])) + 30, my - 4)
-            my += 22
-        # shared-grain presences: a vertical pair at the facing inner edge (the "=" anchors)
-        shared_here = [lvl for lvl in shared if lvl in u["base_dimensions"]]
-        shared_anchor = {}
-        if shared_here and shared_side:
-            scx = (x + w - 59) if shared_side == "right" else (x + 59)
-            g.append(_t(scx, min(pair_y.values()) - 24, "GRAINS", 10, SUB, anchor="middle", cls="tag"))
-            for lvl in shared_here:
-                svg, ymid = _shared_chip(lvl, scx)
-                g.append(svg)
-                edge_x = (scx + 43) if shared_side == "right" else (scx - 43)
-                shared_anchor[lvl] = (edge_x, ymid, shared_side)
-        # functional grains — the coarser levels each lattice reaches, drawn as ONE abbreviated
-        # breadcrumb per chain ("▸" = a corroborated M:1 hop); the "=" edges say the third's are identical.
-        roots = [h for h in model["hierarchies"] if (h.get("chain") or [None])[0] in u["base_dimensions"]]
-        if roots and shared_side == "right":                # home draws the crumbs; third references via "="
-            by = CARD_Y + 250
-            g.append(_t(x + 18, by, "functional grains — ▸ = corroborated M:1 hop ✓", 9.5, FAINT))
-            for hi, h in enumerate(roots):
-                chain = h.get("chain") or []
-                v = (h.get("license") or {}).get("verdict")
-                col = VERDICT_COLOR.get(v, SERVE)
-                by2 = by + 18 + hi * 20
-                crumb = " ▸ ".join(chain)
-                cur = x + 18
-                g.append(_t(cur, by2, esc(crumb), 11, INK, cls="mono"))
-                cur += _tw(crumb, 6.6) + 6
-                g.append(_t(cur, by2, "✓", 11, col))
-                cur += 12
-                for pth in h.get("paths", []):              # fork (weeks don't nest) appended inline
-                    extra = [lv for lv in (pth or []) if lv not in chain]
-                    if extra:
-                        g.append(_t(cur, by2, "· " + esc(" ".join(extra)), 10, FAINT))
-        elif roots and shared_side == "left":               # third: abbreviate (identical by the "=")
-            names = ", ".join(sorted({h["lineage"] for h in roots}))
-            g.append(_t(x + 18, CARD_Y + 288, f"functional grains: {esc(names)} ✓", 9.5, FAINT))
-            g.append(_t(x + 18, CARD_Y + 304, f"identical to {esc(home['name'])} — see the = edges", 9.5, FAINT))
-        # the frontier foot, at the card bottom (non-shared plain grains stay in the header base line)
-        foot_anchor = None
-        if foot is not None:
-            fw = _tw(foot, 7.4) + 34
-            fcx = (x + w - fw / 2 - 16) if foot_side == "right" else (x + fw / 2 + 16)
-            fcy = CARD_Y + CARD_H - 44
-            g.append(f'<g data-ref="level-{esc(foot)}">')
-            g.append(_rect(fcx - fw / 2, fcy, fw, 30, rx=5, fill=PAPER, stroke=INK, sw=1.5))
-            g.append(_t(fcx, fcy + 19, esc(foot), 12.5, INK, anchor="middle", cls="mono"))
-            g.append(_t(fcx, fcy - 6, "frontier foot", 8.5, REFUSE, anchor="middle", cls="tag"))
-            g.append('</g>')
-            foot_anchor = (fcx, fcy + 30)
-        g.append('</g>')
-        return g, anchors, foot_anchor, shared_anchor
+                anchors[m["name"]] = (x + 18 + _tw(m["name"] + " ") + _tw(" · ".join(m["family"])) + 24, yy - 4)
+            yy += 22
+        return g, anchors, yy
 
-    g_home, _, prod_foot, sa_home = _card(home, home_x, home_w, foot=r["frm"], foot_side="right", shared_side="right")
-    g_third, _, _, sa_third = _card(third, third_x, third_w, shared_side="left")
-    g_prof, driver_anchor, cat_foot, _ = _card(profile, prof_x, prof_w, drivers=True, foot=r["to"], foot_side="left")
-    parts += g_home + g_third + g_prof
+    def _shared_pair(x, side):
+        """the day/store GRAINS presences (the "=" anchors) at a box's facing edge."""
+        g, anch = [], {}
+        cx = (x - 58) if side == "left" else (x + 58)        # x is the facing inner edge
+        g.append(_t(cx, min(day_y, store_y) - 27, "GRAINS", 10, SUB, anchor="middle", cls="tag"))
+        for lvl, cy in (("day", day_y), ("store", store_y)):
+            if lvl not in shared:
+                continue
+            g.append(f'<g data-ref="grain-{esc(lvl)}"><title>{esc(COPY["identity_note"])}</title>'
+                     + _level_block(cx, cy - 15, lvl, w=84, h=30, stroke=INK) + '</g>')
+            anch[lvl] = ((cx + 43) if side == "left" else (cx - 43), cy)   # face the gap, not the far edge
+        return g, anch
 
-    # ── the "=" identity edges: shared grain, one declaration / two presences, box-to-box ──
-    for lvl in shared:
-        if lvl in sa_home and lvl in sa_third:
-            (x1, y1, _), (x2, y2, _) = sa_home[lvl], sa_third[lvl]
-            mx = (x1 + x2) / 2
-            parts.append(f'<g data-ref="identity-{esc(lvl)}"><title>{esc(COPY["identity_note"])}</title>')
-            parts.append(_line(x1, y1 - 3, x2, y2 - 3, stroke=VERIFIED, sw=1.5))
-            parts.append(_line(x1, y1 + 3, x2, y2 + 3, stroke=VERIFIED, sw=1.5))
-            parts.append(_t(mx, y1 - 8, "=", 15, VERIFIED, anchor="middle", weight=700))
-            parts.append('</g>')
+    # ── inventory (left) ──
+    gi, hy_i = _header(third, inv_x, inv_w)
+    gm_i, _, _ = _measures(third, inv_x, hy_i)
+    gs_i, sa_inv = _shared_pair(inv_x + inv_w, "left")        # facing edge = right side of inventory
+    gi += gm_i + gs_i
+    names = ", ".join(sorted({h["lineage"] for h in model["hierarchies"]
+                              if (h.get("chain") or [None])[0] in third["base_dimensions"]}))
+    gi.append(_t(inv_x + 18, frontier_y - 6, f"functional grains: {esc(names)} ✓", 9.5, FAINT))
+    gi.append(_t(inv_x + 18, frontier_y + 8, f"identical to {esc(home['name'])} — see the = edges", 9.5, FAINT))
+    parts += [f'<g data-ref="universe-{esc(third["name"])}">'] + gi + ['</g>']
 
-    # ── the DOTTED frontier edge: product-block → across the gap → category-block ──
-    (px, py), (cx0, cy0) = prod_foot, cat_foot
-    run_y = CARD_Y + CARD_H + 56
-    path = (f'M {px} {py} L {px} {run_y - 6} Q {px} {run_y} {px + 6} {run_y} '
-            f'L {cx0 - 6} {run_y} Q {cx0} {run_y} {cx0} {run_y - 6} L {cx0} {cy0}')
-    parts.append(f'<path d="{path}" fill="none" stroke="{REFUSE}" stroke-width="1.8" stroke-dasharray="2 5"/>')
-    note_cx = (px + cx0) / 2
-    parts.append(_t(note_cx, run_y - 40, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
-    if r.get("note"):
-        parts.append(_t(note_cx, run_y + 34, esc(r["note"]), 10, FAINT, anchor="middle"))
+    # ── transaction (centre) — holds the in-box frontier ──
+    gt, hy_t = _header(home, txn_x, txn_w)
+    gm_t, _, my_end_t = _measures(home, txn_x, hy_t)
+    gs_t, sa_txn = _shared_pair(txn_x, "right")              # facing edge = left side of transaction
+    gt += gm_t + gs_t
+    # functional-grain breadcrumbs (the reached grains) — beside the measures (upper-right of the block)
+    bx0 = txn_x + 180
+    gt.append(_t(bx0, hy_t, "functional grains — ▸ = corroborated M:1 hop", 9.5, FAINT))
+    hi = 0
+    for h in model["hierarchies"]:
+        chain = h.get("chain") or []
+        if chain[0] not in home["base_dimensions"]:
+            continue
+        col = VERDICT_COLOR.get((h.get("license") or {}).get("verdict"), SERVE)
+        yb = hy_t + 22 + hi * 22
+        crumb = " ▸ ".join(chain)
+        gt.append(_t(bx0, yb, esc(crumb), 10.5, INK, cls="mono") + _t(bx0 + _tw(crumb, 6.3) + 6, yb, "✓", 10.5, col))
+        for pth in h.get("paths", []):
+            extra = [lv for lv in (pth or []) if lv not in chain]
+            if extra:
+                gt.append(_t(bx0 + _tw(crumb, 6.3) + 20, yb, "· " + esc(" ".join(extra)), 9.5, FAINT))
+        hi += 1
+    # the IN-BOX frontier: product → dotted M:N edge → category PRESENCE, faces riding it
+    fx_prod = txn_x + 70
+    fx_pres = txn_x + txn_w - 66
+    gt.append(_t(fx_prod - 8, frontier_y - 26, "FRONTIER — the M:N reach (in-box)", 9, REFUSE, cls="tag"))
+    gt.append(_level_block(fx_prod, frontier_y - 15, r["frm"], w=_tw(r["frm"], 7.4) + 30, h=30, stroke=INK))
+    # the presence chip (distinct styling: dashed frontier border + tint) + hover
+    presw = _tw(r["to"], 7.4) + 34
+    gt.append(f'<g data-ref="presence-{esc(r["to"])}"><title>{esc(COPY["presence_note"])}</title>')
+    gt.append(_rect(fx_pres - presw / 2, frontier_y - 15, presw, 30, rx=5, fill="#fbeeee", stroke=REFUSE, sw=1.5, dash="4 3"))
+    gt.append(_t(fx_pres, frontier_y + 5, esc(r["to"]), 12.5, REFUSE, anchor="middle", cls="mono"))
+    gt.append(_t(fx_pres, frontier_y - 21, "presence", 8.5, REFUSE, anchor="middle", cls="tag"))
+    gt.append('</g>')
+    # the dotted edge product→presence + the bridge label riding it
+    gt.append(_line(fx_prod + _tw(r["frm"], 7.4) / 2 + 18, frontier_y, fx_pres - presw / 2 - 4, frontier_y,
+                    stroke=REFUSE, sw=1.7, dash="2 5"))
+    gt.append(_t((fx_prod + fx_pres) / 2, frontier_y + 20, COPY["bridge_label"], 9.5, FAINT, anchor="middle", cls="mono"))
+    # the three face chips ON the dotted edge
+    face_cx = {}
     n = max(len(faces), 1)
-    span0, span1 = px + 70, cx0 - 70
+    span0, span1 = fx_prod + 66, fx_pres - 70
     for i, f in enumerate(faces):
         fx = span0 + (span1 - span0) * ((i + 0.5) / n)
-        name = f["name"]
-        cw = _tw(name, 7.6) + 28
-        parts.append(f'<g data-ref="face-{esc(name)}"><title>{esc(f["description"])}</title>')
-        parts.append(_rect(fx - cw / 2, run_y - 14, cw, 28, rx=14, fill=PAPER, stroke=REFUSE, sw=1.5))
-        parts.append(_t(fx, run_y + 4, esc(name), 13, REFUSE, anchor="middle", weight=600, cls="mono"))
-        parts.append('</g>')
+        face_cx[f["name"]] = fx
+        cw = _tw(f["name"], 7.6) + 26
+        gt.append(f'<g data-ref="face-{esc(f["name"])}"><title>{esc(f["description"])}</title>')
+        gt.append(_rect(fx - cw / 2, frontier_y - 13, cw, 26, rx=13, fill=PAPER, stroke=REFUSE, sw=1.5))
+        gt.append(_t(fx, frontier_y + 4, esc(f["name"]), 12.5, REFUSE, anchor="middle", weight=600, cls="mono"))
+        gt.append('</g>')
+    parts += [f'<g data-ref="universe-{esc(home["name"])}">'] + gt + ['</g>']
+
+    # ── category_profile (right) ──
+    gc, hy_c = _header(profile, cp_x, cp_w)
+    gm_c, driver_anchor, _ = _measures(profile, cp_x, hy_c, drivers=True)
+    gc += gm_c
+    # the category BASE chip (its anchor grain), facing transaction for the "=" edge
+    cat_cx = cp_x + 62
+    gc.append(f'<g data-ref="base-{esc(r["to"])}">'
+              + _level_block(cat_cx, frontier_y - 15, r["to"], w=_tw(r["to"], 7.4) + 30, h=30, stroke=INK)
+              + _t(cat_cx, frontier_y - 21, "base", 8.5, BASE, anchor="middle", cls="tag") + '</g>')
+    parts += [f'<g data-ref="universe-{esc(profile["name"])}">'] + gc + ['</g>']
+
+    # ── the "=" identity edges (the ONLY cross-box lines) ──
+    def _eq(x1, x2, y, note, lvl):
+        mx = (x1 + x2) / 2
+        return (f'<g data-ref="identity-{esc(lvl)}"><title>{esc(note)}</title>'
+                + _line(x1, y - 3, x2, y - 3, stroke=VERIFIED, sw=1.5)
+                + _line(x1, y + 3, x2, y + 3, stroke=VERIFIED, sw=1.5)
+                + _t(mx, y - 8, "=", 15, VERIFIED, anchor="middle", weight=700) + '</g>')
+    for lvl in shared:
+        if lvl in sa_inv and lvl in sa_txn:
+            parts.append(_eq(sa_inv[lvl][0], sa_txn[lvl][0], sa_inv[lvl][1], COPY["identity_note"], lvl))
+    # category: transaction's presence = category_profile's base (with the dated conformance note)
+    parts.append(_eq(fx_pres + presw / 2 + 3, cat_cx - (_tw(r["to"], 7.4) + 30) / 2 - 3, frontier_y,
+                     COPY["identity_note_conformance"], r["to"]))
+
+    # ── driver arrows (binding annotation): profile measures → the faces they power ──
+    for f in faces:
         d = f.get("driver")
-        if d and d in driver_anchor:
+        if d and d in driver_anchor and f["name"] in face_cx:
             sx, sy = driver_anchor[d]
-            parts.append(f'<g data-ref="driver-{esc(d)}-{esc(name)}"><title>{esc(d)} drives {esc(name)}</title>')
-            parts.append(f'<path d="M {sx} {sy} C {sx} {sy + 70}, {fx} {run_y - 74}, {fx} {run_y - 14}" '
-                         f'fill="none" stroke="{VERIFIED}" stroke-width="1.3" marker-end="url(#dhead)"/>')
-            parts.append(_t(fx + 12, run_y - 30, "drives", 9, VERIFIED, cls="tag"))
+            fx = face_cx[f["name"]]
+            parts.append(f'<g data-ref="driver-{esc(d)}-{esc(f["name"])}"><title>{esc(d)} drives {esc(f["name"])}</title>')
+            parts.append(f'<path d="M {sx} {sy} C {sx - 40} {sy + 90}, {fx + 30} {frontier_y - 90}, {fx} {frontier_y - 13}" '
+                         f'fill="none" stroke="{VERIFIED}" stroke-width="1.2" marker-end="url(#dhead)" opacity="0.8"/>')
             parts.append('</g>')
+    # note the driver descriptions are wire-sourced; empty until the manifold carries them (companion PR)
 
     parts.append(_legend(28, H - 26))
     parts.append('</svg>')
@@ -508,6 +530,9 @@ def _legend(x, y):
             out.append(_line(cx, y, cx + 15, y, stroke=color, sw=1.4))
         elif kind == "chip":                       # a declared face (pill)
             out.append(_rect(cx, y - 10, 16, 15, rx=7, fill=PAPER, stroke=color, sw=1.3))
+        elif kind == "base":                       # the colored base line
+            out.append(_t(cx, y, "base:", 11, color, weight=700, cls="mono"))
+            cx += _tw("base:", 6.4) - 22
         out.append(_t(cx + 22, y, label, 11, SUB))
         cx += 32 + _tw(label, 6.2)
     out.append('</g>')
