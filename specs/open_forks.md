@@ -128,3 +128,34 @@ only its durable form.
   story as a two-turn exchange). This is a standing fact of the frozen world, NOT a bug. If a future
   increment ever wants relative-time resolution (a declared "as-of" anchor, a clock), it is a design
   fork — rowed here, not owed.
+
+---
+
+## 0.12 "the triad completes" — forks + rowed items (PR: 0.12-triad; awaiting the merge gate)
+
+- **The five user-facing strings — RATIFIED, SEALED, WIRED BYTE-EXACT** (Huayin 2026-07-24, supersede
+  all placeholders): the `primary` / `split` face descriptions (`manifold.cml` → menu + wire); the G4
+  chain-guard message and the G5 anchor-law refusal (`engine.py`); the ledger re-sequencing note
+  (below). No longer a fork — sealed.
+- **ROWED (Huayin v0.4, non-blocking, no action this increment):** `last ORDER category` on the
+  degenerate `category_profile` spine answers a coarser-than-base ask with a declared-but-arbitrary
+  value (`priority` at the `all` grain = the last category's priority). Acceptable for v1 drivers;
+  profile-spine measures eventually want a **base-grain-only family form**. Joins the ledger beside the
+  crossed-population door.
+- **Acyclicity DAG is VACUOUS in 0.12** (fork/observation): a lawful driver is a spine functionally
+  servable at the frontier, so the face-driver graph is edgeless — a cycle is unexpressible until a
+  driver can be a *crossed* measure (events-derived, 0.13+). The `_prove_faces_acyclic` machinery ships
+  and runs (forward guard); the realizable failure this increment is the driver-must-be-a-spine check
+  (an un-frozen events driver refuses — `test_adjudication_fails_on_an_unfrozen_events_driver`).
+- **G5 SERVE-half deferred to 0.13** (ruled B, on the record, not drifted): distinct-rides-`.touch`
+  (per-member sketch reduce + overlap disclosure) lands beside P1/alignment, where the anchor-exhaustion
+  corollary (notes §6.3) is proven, not asserted. 0.12 ships the refuse-half only — the anchor law.
+- **/case exhibit copy for E11/E12** comes to the desk POST-BUILD (addendum §8); the recapture captions
+  are working placeholders, like E10's.
+- **Ledger re-sequencing note — SEALED (public ledger, dated); byte-exact, single line:**
+  "2026-07: the RELATE face triad (assign/alloc) completes ahead of OF-13 — shipped-surface coherence and the crossing menu's completion graded ahead; OF-13 remains the leading language increment thereafter, joined by multi-universe alignment (P1). The distinct-crossing serve-half was explicitly deferred to the alignment increment — ruled, not drifted."
+  The public-website placement rides the publish deploy.
+- **Version track — CONFIRMED (Huayin 2026-07-24):** core → 0.12.0, meta → 0.12.0, server → **0.7.0**
+  (its own line; "across" = the release spans all three, the track precedent governs).
+
+**The 0.12 record now closes to a single open line: Huayin's merge + publish word.**

@@ -43,6 +43,8 @@ CATEGORY_TABLE = {
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
     "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
     "over_count":             ("multi_counted",          MATERIAL),   # touch-face M:N crossing: deliberate over-count -> DISCLOSE
+    "shadow":                 ("memberships_unrepresented", MATERIAL), # assign-face: single-count drops the non-top memberships -> DISCLOSE
+    "reconciliation":         ("reconciliation",         IMMATERIAL), # alloc-face: the commutation certificate (MATERIAL on shortfall — see wire_caveat)
     "coverage":               ("denominator_population", MATERIAL),
     "unconfirmed_assumption": ("input_anchor",           MATERIAL),
     "approximation":          ("approximation",          _approx_materiality),
@@ -83,9 +85,15 @@ def materiality_for(category: str, rel_error: Optional[float] = None) -> str:
 
 def wire_caveat(c: Caveat) -> dict:
     """One engine `Caveat` -> the wire caveat (WP-2.2 spec §"Wire caveat")."""
-    return {
+    recon = dict(c.reconciliation) if c.reconciliation else None
+    materiality = materiality_for(c.category, c.rel_error)
+    # alloc's reconciliation is an immaterial certificate when it reconciles, MATERIAL on a shortfall
+    # (a coverage gap): "disclosed, never silent" (addendum §5).
+    if recon is not None and recon.get("status") == "shortfall":
+        materiality = MATERIAL
+    d = {
         "code": code_for(c.category),
-        "materiality": materiality_for(c.category, c.rel_error),
+        "materiality": materiality,
         "severity": c.severity,
         "category": c.category,          # engine category preserved alongside the wire code
         "detail": c.detail,
@@ -93,6 +101,12 @@ def wire_caveat(c: Caveat) -> dict:
         "source": c.source,
         "rel_error": c.rel_error,
     }
+    # face-crossing structured payloads (additive; contract_version stays "1"):
+    if c.shadow is not None:
+        d["memberships_unrepresented"] = c.shadow      # assign shadow
+    if recon is not None:
+        d["reconciliation"] = recon                    # alloc badge {crossed_total, base_total, delta, tolerance, status}
+    return d
 
 
 # A universe pin named inside an alternative's prose, e.g. "... within universe 'transactions'" or

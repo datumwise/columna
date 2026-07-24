@@ -43,6 +43,14 @@ EXEMPLARS = [
     # recorded E6-menu + E10 wire text. Do not treat as final prose.
     ("E10", "Revenue by category, answered lawfully (the overlap stated)",
      "SELECT revenue AT {category.touch}", "disclose", "over_count"),
+    # E11/E12 — the triad completes (0.12). ASSIGN single-counts (total ≡ grand total; the shadow of
+    # dropped memberships stated → DISCLOSE); ALLOC splits by the normalized weight (total reconciles to
+    # the cent; the badge certifies it → SERVE with the certificate). Captions are WORKING placeholders;
+    # the ratified /case ch3 wording lands from the desk AFTER seeds (addendum §8), like E10.
+    ("E11", "Revenue by category, single-counted to each product's top priority (the shadow stated)",
+     "SELECT revenue AT {category.primary}", "disclose", "shadow"),
+    ("E12", "Revenue by category, split by declared weight (reconciled to the cent)",
+     "SELECT revenue AT {category.split}", "serve", "reconciliation"),
 ]
 
 # The demo --play wheel (four moods, story order): clarify -> refuse -> disclose -> serve.

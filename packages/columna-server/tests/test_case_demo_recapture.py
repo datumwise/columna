@@ -89,10 +89,11 @@ def test_wheel_is_the_four_mood_story_order(corpus):
     assert corpus["wheel"] == ["E4", "E8", "E2", "E5"]   # clarify -> refuse -> disclose -> serve
 
 
-def test_corpus_carries_all_ten_with_the_wheel_subset_marked(corpus):
-    # the recorded corpus is the FULL ten E1-E10 (E10 minted with the RELATE-faces pair); the --play
+def test_corpus_carries_all_twelve_with_the_wheel_subset_marked(corpus):
+    # the recorded corpus is the FULL twelve E1-E12 (E10/E11/E12 = the RELATE-faces triad:
+    # touch executes, assign single-counts with the shadow, alloc splits with the badge); the --play
     # wheel is a marked SUBSET of it.
-    assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 11)]
+    assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 13)]
     marked = {e["id"] for e in corpus["exemplars"] if e["in_wheel"]}
     assert marked == set(corpus["wheel"]) == {"E2", "E4", "E5", "E8"}
 
