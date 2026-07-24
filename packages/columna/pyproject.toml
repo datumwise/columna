@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "columna"
-version = "0.12.0"
+version = "0.12.1"
 description = "Columna, by datumwise — an honest data framework (Manifold, FrameQL, an honest engine). Metapackage: installs columna-core + columna-server."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "columna-core>=0.12.0",
-    "columna-server>=0.7.0",
+    "columna-server>=0.7.1",
 ]
 
 [project.urls]
