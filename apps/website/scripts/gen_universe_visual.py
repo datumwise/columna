@@ -214,22 +214,27 @@ def resolve_roles(model):
 
 # ───────────────────────────── the main figure (three universes) ─────────────────────────────
 def figure_svg(store, model, roles):
-    """Compose the THREE-UNIVERSE figure (founder's ruling, Huayin 2026-07-24): multi-universe is
-    foundational, so all three universes get identical first-class treatment (solid-bordered cards).
-    The EDGE GRAMMAR carries the entire distinction — solid = corroborated functional (M:1) hops; the
-    single DOTTED edge = the product<->category frontier, crossed only by its three declared FACES,
-    drawn as chips ON the edge. DRIVER ARROWS run from the profile universe's measures into the faces
-    they power. Labels verbatim from describe; the caption is ratified prose (rendered by the page)."""
+    """Compose the THREE-UNIVERSE figure (founder's ruling + layout Q&A, Huayin 2026-07-24).
+
+    All three universes are first-class solid-bordered cards. The frontier FEET live INSIDE their own
+    territories — `product` inside the home (transaction) card, `to` (category) inside the profile
+    (category_profile) card — and the single DOTTED frontier edge runs product-block → across the
+    inter-universe gap → category-block, the edge visibly spanning territories (that spanning IS the
+    point). The frontier level belongs to the far territory; what is shared is never the frontier, and
+    what is frontier is never shared. The three FACES ride as chips ON the dotted edge; DRIVER ARROWS
+    run from the profile universe's measures into the faces they power. Solid ✓ hops are the functional
+    (M:1) hierarchies (drawn as the manifold's functional atlas — NOT as a shared-grain seam; that seam
+    is G7's headline, not half-drawn here). Labels verbatim from describe; the caption is ratified prose."""
     home, profile, third = roles["home"], roles["profile"], roles["third"]
     r = roles["relate"]
     faces = r.get("faces", [])
 
-    W, H = 1180, 772
+    W, H = 1180, 760
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
              f'aria-label="Cascadia manifold, three first-class universes {esc(home["name"])}, '
-             f'{esc(third["name"])}, {esc(profile["name"])}; solid functional edges and the dotted '
-             f'{esc(r["frm"])} to {esc(r["to"])} frontier crossed by declared faces '
-             f'{esc(", ".join(f["name"] for f in faces))}">']
+             f'{esc(third["name"])}, {esc(profile["name"])}; the dotted {esc(r["frm"])} to {esc(r["to"])} '
+             f'frontier spans from the {esc(home["name"])} block across the gap to the {esc(profile["name"])} '
+             f'block, crossed by declared faces {esc(", ".join(f["name"] for f in faces))}">']
     parts.append(
         '<defs>'
         f'<marker id="dhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">'
@@ -245,7 +250,10 @@ def figure_svg(store, model, roles):
         return (_t(x, yy, esc(m["name"]) + " ", 13, INK, cls="mono")
                 + _t(x + _tw(m["name"]) + 8, yy, f'[{esc(" · ".join(m["family"]))}]', 13, FAINT, cls="mono"))
 
-    def _card(u, x, w, drivers=False):
+    def _card(u, x, w, drivers=False, foot=None, foot_side="right"):
+        """Render one first-class universe card. `foot` (a base level, e.g. product/category) is drawn
+        INSIDE the card at its bottom as the frontier foot, on `foot_side` so it faces the inter-universe
+        gap; returns its exit anchor (bottom-centre)."""
         g = [f'<g data-ref="universe-{esc(u["name"])}">']
         g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))   # solid = first-class
         g.append(_t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700))
@@ -271,104 +279,107 @@ def figure_svg(store, model, roles):
         if _is_semi_additive(store, u, model):
             g.append(_t(x + 18, my + 4, "semi-additive — sum barred over", 10.5, FAINT))
             g.append(_t(x + 18, my + 17, "calendar; last travels (see below)", 10.5, FAINT))
-            my += 30
-        # home: the corroborated ASSERT chip, seated at the card foot
+        # compact ASSERT chip at the card foot (left), narrowed so it clears the frontier foot
         for asrt in model["asserts"]:
             if asrt["universe"] != u["name"]:
                 continue
             v = (asrt.get("license") or {}).get("verdict")
-            g.append(_plaque(x + 18, CARD_Y + CARD_H - 40, asrt, v))
+            col = VERDICT_COLOR.get(v, FAINT)
+            ay = CARD_Y + CARD_H - 40
+            g.append(_rect(x + 16, ay, 224, 32, rx=6, fill=VERDICT_BG.get(v, UNTEST_BG), stroke=SERVE_RULE, sw=1))
+            g.append(_t(x + 26, ay + 14, f'ASSERT · {esc((v or "").upper())}', 10, col, cls="tag"))
+            g.append(_t(x + 26, ay + 27, esc(asrt["name"]), 11, "#33502f", cls="mono"))
+        foot_anchor = None
+        if foot is not None:
+            fw = _tw(foot, 7.4) + 34
+            fcx = (x + w - fw / 2 - 16) if foot_side == "right" else (x + fw / 2 + 16)
+            fcy = CARD_Y + CARD_H - 44
+            g.append(f'<g data-ref="level-{esc(foot)}">')
+            g.append(_rect(fcx - fw / 2, fcy, fw, 30, rx=5, fill=PAPER, stroke=INK, sw=1.5))
+            g.append(_t(fcx, fcy + 19, esc(foot), 12.5, INK, anchor="middle", cls="mono"))
+            g.append(_t(fcx, fcy - 6, "frontier foot", 8.5, REFUSE, anchor="middle", cls="tag"))
+            g.append('</g>')
+            foot_anchor = (fcx, fcy + 30)                  # bottom-centre: the dotted edge exits here
         g.append('</g>')
-        return g, anchors
+        return g, anchors, foot_anchor
 
-    g_home, _ = _card(home, home_x, home_w)
-    g_third, _ = _card(third, third_x, third_w)
-    g_prof, driver_anchor = _card(profile, prof_x, prof_w, drivers=True)
+    g_home, _, prod_foot = _card(home, home_x, home_w, foot=r["frm"], foot_side="right")
+    g_third, _, _ = _card(third, third_x, third_w)
+    g_prof, driver_anchor, cat_foot = _card(profile, prof_x, prof_w, drivers=True, foot=r["to"], foot_side="left")
     parts += g_home + g_third + g_prof
 
-    # ── the ATLAS: base levels + solid functional (M:1) stacks + the dotted frontier ──
-    FRONTIER_Y = 396
-    BASE_Y = 488
-    floor_cx = {}
-
-    frm_cx, to_cx = 250, 980
-    for lvl, cx in ((r["frm"], frm_cx), (r["to"], to_cx)):
-        floor_cx[lvl] = cx
-        parts.append(_level_block(cx, FRONTIER_Y - 15, lvl, w=104, h=30, stroke=INK))
-
-    shared_dims = [d for d in home["base_dimensions"]
-                   if d in third["base_dimensions"] and d not in (r["frm"], r["to"])]
-    own_dims = [d for d in home["base_dimensions"]
-                if d not in shared_dims and d not in (r["frm"], r["to"])]
-    x = 110
-    for d in own_dims:
-        floor_cx[d] = x
-        parts.append(_level_block(x, BASE_Y, d, w=96, h=30))
-        x += 118
-    if shared_dims:
-        sh_x0 = 392
-        parts.append(_t(sh_x0, BASE_Y - 16, "shared · " + esc(home["name"]) + " + " + esc(third["name"]),
-                        10, FAINT))
-        for i, d in enumerate(shared_dims):
-            cx = sh_x0 + 42 + i * 132
-            floor_cx[d] = cx
-            parts.append(_level_block(cx, BASE_Y, d, w=96, h=30, stroke=INK))
-
-    # solid functional stacks (corroborated ✓) descending from each rooted base level
-    PITCH, RH, RW = 68, 28, 90
-    for h in model["hierarchies"]:
-        chain = h.get("chain") or []
-        base = chain[0] if chain else None
-        if base not in floor_cx:
-            continue
-        v = (h.get("license") or {}).get("verdict")
-        color = VERDICT_COLOR.get(v, SERVE)
-        cx = floor_cx[base]
-        prev = BASE_Y + 30
-        for i, lvl in enumerate(chain[1:]):
-            by = BASE_Y + (i + 1) * PITCH
-            parts.append(_line(cx, prev, cx, by, stroke=color, sw=1.6))
-            parts.append(_check(cx - 48, (prev + by) / 2, color))
-            parts.append(_level_block(cx, by, lvl, w=RW))
-            prev = by + RH
-        for path in h.get("paths", []):
-            if path == chain or len(path) < 2 or path[0] != base:
-                continue
-            fx = cx - 128
-            for j, lvl in enumerate(path[1:]):
-                fy = BASE_Y + (j + 1) * PITCH
-                parts.append(_line(cx - RW / 2 + 6, BASE_Y + 34, fx + 40, fy + RH / 2, stroke=color, sw=1.3))
-                parts.append(_level_block(fx, fy, lvl, w=84))
-            parts.append(_t(fx, BASE_Y + PITCH + 46, COPY["fork_note"], 9.5, FAINT, anchor="middle"))
-
-    # ── the DOTTED frontier edge with the FACE chips ON it ──
-    fy = FRONTIER_Y
-    parts.append(_line(frm_cx + 54, fy, to_cx - 54, fy, stroke=REFUSE, sw=1.7, dash="2 5"))
-    note_cx = frm_cx + 110                                    # over the product→touch segment, clear of chips/arrows
-    parts.append(_t(note_cx, fy - 44, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
+    # ── the DOTTED frontier edge: product-block → across the inter-universe gap → category-block ──
+    (px, py), (cx0, cy0) = prod_foot, cat_foot
+    run_y = CARD_Y + CARD_H + 62                            # the horizontal run, safely below every card
+    path = (f'M {px} {py} L {px} {run_y - 6} Q {px} {run_y} {px + 6} {run_y} '
+            f'L {cx0 - 6} {run_y} Q {cx0} {run_y} {cx0} {run_y - 6} L {cx0} {cy0}')
+    parts.append(f'<path d="{path}" fill="none" stroke="{REFUSE}" stroke-width="1.8" stroke-dasharray="2 5"/>')
+    note_cx = (px + cx0) / 2
+    parts.append(_t(note_cx, run_y - 40, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
     if r.get("note"):
-        parts.append(_t(note_cx, fy - 30, esc(r["note"]), 10, FAINT, anchor="middle"))
+        parts.append(_t(note_cx, run_y + 34, esc(r["note"]), 10, FAINT, anchor="middle"))
 
+    # the FACE chips, riding ON the horizontal run; driver arrows from the profile measures
     n = max(len(faces), 1)
-    span0, span1 = frm_cx + 120, to_cx - 120
+    span0, span1 = px + 70, cx0 - 70
     for i, f in enumerate(faces):
-        cx = span0 + (span1 - span0) * ((i + 0.5) / n)
+        fx = span0 + (span1 - span0) * ((i + 0.5) / n)
         name = f["name"]
         cw = _tw(name, 7.6) + 28
         parts.append(f'<g data-ref="face-{esc(name)}"><title>{esc(f["description"])}</title>')
-        parts.append(_rect(cx - cw / 2, fy - 14, cw, 28, rx=14, fill=PAPER, stroke=REFUSE, sw=1.5))
-        parts.append(_t(cx, fy + 4, esc(name), 13, REFUSE, anchor="middle", weight=600, cls="mono"))
+        parts.append(_rect(fx - cw / 2, run_y - 14, cw, 28, rx=14, fill=PAPER, stroke=REFUSE, sw=1.5))
+        parts.append(_t(fx, run_y + 4, esc(name), 13, REFUSE, anchor="middle", weight=600, cls="mono"))
         parts.append('</g>')
         d = f.get("driver")
         if d and d in driver_anchor:
             sx, sy = driver_anchor[d]
             parts.append(f'<g data-ref="driver-{esc(d)}-{esc(name)}"><title>{esc(d)} drives {esc(name)}</title>')
-            parts.append(f'<path d="M {sx} {sy} C {sx} {sy + 54}, {cx} {fy - 66}, {cx} {fy - 14}" '
+            parts.append(f'<path d="M {sx} {sy} C {sx} {sy + 70}, {fx} {run_y - 74}, {fx} {run_y - 14}" '
                          f'fill="none" stroke="{VERIFIED}" stroke-width="1.3" marker-end="url(#dhead)"/>')
-            parts.append(_t((sx + cx) / 2 + 4, (sy + fy) / 2 - 4, "drives", 9, VERIFIED, cls="tag"))
+            parts.append(_t(fx + 12, run_y - 30, "drives", 9, VERIFIED, cls="tag"))
             parts.append('</g>')
 
-    parts.append(_legend(28, H - 34))
+    # ── the functional atlas: solid ✓ (M:1) hierarchies, rooted at their base levels. NOT a shared
+    #    seam — day/store carry no universe attribution here (the shared-grain seam is G7's headline). ──
+    PITCH, RH, RW = 66, 28, 90
+    bases = []
+    for h in model["hierarchies"]:
+        chain = h.get("chain") or []
+        if chain and chain[0] not in bases:
+            bases.append(chain[0])
+    atlas_y = run_y + 66
+    parts.append(_t(70, atlas_y - 16, "functional atlas — the M:1 hierarchies (solid ✓ = corroborated)", 10, FAINT))
+    base_cx = {}
+    for i, b in enumerate(bases):
+        bx = 116 + i * 190
+        base_cx[b] = bx
+        parts.append(_level_block(bx, atlas_y, b, w=RW))
+    for h in model["hierarchies"]:
+        chain = h.get("chain") or []
+        base = chain[0] if chain else None
+        if base not in base_cx:
+            continue
+        v = (h.get("license") or {}).get("verdict")
+        color = VERDICT_COLOR.get(v, SERVE)
+        bx = base_cx[base]
+        prev = atlas_y + RH
+        for i, lvl in enumerate(chain[1:]):
+            by = atlas_y + (i + 1) * PITCH
+            parts.append(_line(bx, prev, bx, by, stroke=color, sw=1.6))
+            parts.append(_check(bx - 48, (prev + by) / 2, color))
+            parts.append(_level_block(bx, by, lvl, w=RW))
+            prev = by + RH
+        for pth in h.get("paths", []):
+            if pth == chain or len(pth) < 2 or pth[0] != base:
+                continue
+            fx = bx + 128
+            for j, lvl in enumerate(pth[1:]):
+                fy = atlas_y + (j + 1) * PITCH
+                parts.append(_line(bx + RW / 2 - 6, atlas_y + RH, fx - 40, fy + RH / 2, stroke=color, sw=1.3))
+                parts.append(_level_block(fx, fy, lvl, w=84))
+            parts.append(_t(fx, atlas_y + PITCH + 46, COPY["fork_note"], 9.5, FAINT, anchor="middle"))
+
+    parts.append(_legend(28, H - 30))
     parts.append('</svg>')
     return "".join(parts)
 
