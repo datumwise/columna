@@ -73,6 +73,8 @@ UNIVERSE inventory   = store * day
     WHERE day >= store.opened                       BASIS spine
 ```
 
+(Since 0.12 the manifold declares a third — category_profile, the driver spine behind the category faces; it enters the narrative with the crossing.)
+
 Universe names are **singular concepts** — a universe names what its population is
 *about*, never describes the records or the grid. (Notice the quiet split: the physical
 table is `transactions`, plural; the universe is `transaction`, singular. And the
