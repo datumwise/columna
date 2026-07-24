@@ -125,6 +125,23 @@ def main():
     })
     es.write_parquet(_p("engagement_scores"))
 
+    # ── category_attributes — the THIRD universe's driver profile (0.12 "the triad completes"). 12 rows,
+    #    one per category: a DISTINCT integer `priority` (1..12, a deterministic permutation — a rank-like
+    #    driver, ORDER MIN in the demo) and a positive, varied, NOT-pre-normalized `alloc_weight` (a raw
+    #    driver — normalization is the ALLOC face's declared law, applied by the engine, never stored).
+    #    Deterministic (stable md5 on the id, no RNG → byte-reproducible); ADDITIVE (touches no existing
+    #    table). Drives FACES { primary = ASSIGN BY priority ORDER MIN ; split = ALLOC BY alloc_weight }. ──
+    cat_ids = con.execute(
+        f"SELECT category_id FROM read_parquet('{_p('categories')}') ORDER BY category_id").pl()["category_id"].to_list()
+    prio_order = sorted(cat_ids, key=lambda c: _h("priority", c))       # a deterministic permutation of the 12
+    priority_of = {c: i + 1 for i, c in enumerate(prio_order)}          # distinct integers 1..12 (rank-like)
+    catattr = pl.DataFrame({
+        "category_id": cat_ids,
+        "priority": [priority_of[c] for c in cat_ids],
+        "alloc_weight": [round(0.5 + (_h("weight", c) % 950) / 100.0, 2) for c in cat_ids],  # 0.50..9.99, varied, raw
+    })
+    catattr.write_parquet(_p("category_attributes"))
+
     print(f"regenerated: customers={N}  daily_revenue_summary={drs.height}  "
           f"monthly_avg_order_value={maov.height}  monthly_unique_visitors={muv.height}  "
           f"monthly_store_inventory={msi.height}  support_tickets={st.height}  "

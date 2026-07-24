@@ -20,11 +20,11 @@ from dataclasses import dataclass
 from typing import Optional
 import polars as pl
 
-from .model import Manifold, parse_faced
+from .model import Manifold, parse_faced, ASSIGN, ALLOC, ORDER_MIN
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
-                         FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED, OVER_COUNT)
+                         FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED, OVER_COUNT, SHADOW, RECONCILIATION)
 
 
 @dataclass
@@ -63,7 +63,7 @@ class ColumnEngine:
         # served DISCLOSE). v1 handles a single faced coordinate (the `revenue AT {category.touch}` case).
         faced = [T for T in target if parse_faced(T, self.m.non_functional) is not None]
         if faced:
-            return self._resolve_touch(meas, fam, op, target, faced, where, trace)
+            return self._resolve_faced(meas, fam, op, target, faced, where, trace)
 
         # paths to each target level
         paths = {}
@@ -246,6 +246,168 @@ class ColumnEngine:
         return frame.select(list(target) + ["_value"])     # project the witness to the answer
 
     # ---- TOUCH: join-multiply across a non-functional (M:N) edge ----------
+    def _resolve_faced(self, meas, fam, op, target, faced, where, trace):
+        """Dispatch a faced crossing (M:N passage, notes v0.2 §3 P2) by the declared face scheme, after
+        the crossing guards that are UNIFORM across all three schemes:
+          · G4 the chain guard — a multi-hop face path is not yet licensed (disclosure-stacking undesigned);
+          · the events-only serving law — on a spine, replication/routing corrupts the grid's completeness;
+          · the ANCHOR LAW (G5, value-traversal) — a face crosses ADDITIVE (monoid VALUE) values only; a
+            distinct-class measure's output anchor is SPENT at the frontier grain (its per-member counts
+            cannot be summed, weighted, or routed), so it refuses uniformly for all three schemes. The
+            message speaks the DECLARATION dialect (distinct(...)), never the engine's sketch representation."""
+        # G4 — the chain guard (DRAFT copy; Huayin ratifies at the merge gate).
+        if len(faced) != 1 or len(target) != 1:
+            raise Refusal("chained_crossing",
+                          "this ask would cross two declared faces in sequence; chained crossings are not "
+                          "yet licensed — ask at one frontier at a time.",
+                          measure=meas.name, target=str(target))
+        T = faced[0]
+        coord, fname, rel, face = parse_faced(T, self.m.non_functional)
+        uni = meas.universe
+        basis = self.m.universes[uni].basis
+        if basis is not None and basis != "events":
+            raise Refusal("unsupported",
+                          f"crossing {rel.frm}<->{rel.to} is events-only in v1: universe '{uni}' is "
+                          f"'{basis}' basis, where replication corrupts completeness — declare an events "
+                          f"population or use a functional designation",
+                          measure=meas.name, target=T)
+        # ANCHOR LAW (G5). Additive-VALUE passes; distinct-class refuses with the anchor-law message.
+        if not (op.is_monoid and op.witness == VALUE):
+            if op.witness == OP_SKETCH:   # distinct-class — the spent anchor (DRAFT copy; Huayin's merge batch)
+                poss = meas.name + ("'" if meas.name.endswith("s") else "'s")
+                raise Refusal("anchor_spent",
+                              f"{poss} distinct anchor is spent at {rel.frm} — per-{rel.frm} counts "
+                              f"cannot be summed, weighted, or routed. If a weighted composite of "
+                              f"per-{rel.frm} counts is what you mean, declare it as a value measure; if "
+                              f"distinct {meas.name} per {rel.to} is what you mean, that is a "
+                              f"crossed-population count — coming with the crossing increment.",
+                              measure=meas.name, target=T)
+            raise Refusal("unsupported",
+                          f"faces cross additive (monoid VALUE) measures only — '{meas.name}.{op.name}' is "
+                          f"not (ordered/holistic crossings are post-launch)",
+                          measure=meas.name, target=T)
+        if face.scheme == ASSIGN:
+            return self._resolve_assign(meas, fam, op, target, T, coord, rel, face, where, trace)
+        if face.scheme == ALLOC:
+            return self._resolve_alloc(meas, fam, op, target, T, coord, rel, face, where, trace)
+        return self._resolve_touch(meas, fam, op, target, faced, where, trace)
+
+    def _serve_driver(self, face, frontier):
+        """Serve a face's DRIVER measure at the frontier grain (a single-valued spine read — the driver
+        lemma, notes §4). Returns [frontier, '_drv']. The driver-ref is a DECLARED measure (resolved at
+        publish), so this is the engine's own serve path, one hop."""
+        dmeas = self.m.measures[face.selection]
+        dmember = next(iter(dmeas.family))
+        dframe, _ = self.resolve(face.selection, dmember, (frontier,), None, None)
+        # cast to Float64 — a DECIMAL driver (from the source column) would normalize in decimal space and
+        # ROUND (0.667 -> 0.7), corrupting the split; the partition-of-unity must be full-precision.
+        return dframe.rename({"_value": "_drv"}).with_columns(pl.col("_drv").cast(pl.Float64))
+
+    def _resolve_assign(self, meas, fam, op, target, T, coord, rel, face, where, trace):
+        """ASSIGN: the value goes to exactly ONE member — the top-ranked pair per the declared driver +
+        ORDER direction. Restrict the bridge to each measure-side key's single top pick, then join (no
+        multiply). Total reconciles to the grand total; the SHADOW (memberships not picked) is the honest
+        disclosure. The frontier square commutes in total while redistributing between members (notes §5)."""
+        uni = meas.universe
+        base = set(self.m.universes[uni].base_dimensions)
+        other = rel.to if coord == rel.frm else rel.frm       # the measure-side endpoint (e.g. product)
+        frontier = coord                                       # the crossed level (e.g. category)
+        p = self.m.find_path(base, other)
+        if p is None:
+            raise Refusal("non_functional_transport",
+                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'", measure=meas.name, target=T)
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
+        driver = self._serve_driver(face, frontier)           # [frontier, _drv]
+        if other == rel.frm:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)   # _frm=other, _to=frontier
+        else:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
+        b = bridge.join(driver.rename({frontier: "_to"}), on="_to", how="inner")             # _frm, _to, _drv
+        n_memberships = b.height
+        picked = (b.sort("_drv", descending=(face.order != ORDER_MIN))
+                    .group_by("_frm").first().select(["_frm", "_to"]))                        # one pick per measure-side key
+        n_assigned = picked.height
+        n_shadow = n_memberships - n_assigned
+        # coverage (the absence law): a measure-side key in NO membership is dropped from every cell.
+        covered = picked.select(pl.col("_frm").alias(other)).unique()
+        n_total = frame.height
+        uncovered = frame.join(covered, on=other, how="anti")
+        assigned = self._transport_reduce(frame, other, T, picked, op)                        # single-count join
+        # crossed-grain absence — events basis: complete the domain from the bridge, fill 0.
+        domain = bridge.select(pl.col("_to").alias(T)).unique()
+        assigned = domain.join(assigned, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
+        assigned = assigned.sort(T).select([T, "_value"])
+        self.stats.transports += 1
+        self._t(trace, f"  assign {other}->{T} via {rel.via_table} ORDER {face.order} on {face.selection} "
+                       f"[single-count; shadow {n_shadow}; coverage {n_total - uncovered.height}/{n_total}]")
+        disc = self._assign_disc(meas, fam, op, uni, rel, face, n_shadow, n_total, uncovered)
+        return assigned, disc
+
+    def _assign_disc(self, meas, fam, op, uni, rel, face, n_shadow, n_total, uncovered):
+        base = self._disc(meas, fam, op, uni)
+        note = face.description or (f"{meas.name} goes to each {rel.frm}'s top {face.selection} {rel.to}")
+        base = base.with_caveat(Caveat(SHADOW,
+            f"single-counted to each {rel.frm}'s ORDER {face.order} {face.selection} {rel.to}: "
+            f"{n_shadow} memberships unrepresented (the shadow). {note}", severity="caution", shadow=n_shadow))
+        if uncovered.height:
+            base = base.with_caveat(Caveat(TRANSPORT,
+                f"{uncovered.height} of {n_total} {rel.frm} are in no {rel.to} — dropped from every cell; "
+                f"coverage {n_total - uncovered.height}/{n_total}", severity="info"))
+        return base
+
+    def _resolve_alloc(self, meas, fam, op, target, T, coord, rel, face, where, trace):
+        """ALLOC: the value SPLITS across a measure-side key's members by the NORMALIZED driver
+        (driverᵢ / Σ per member — the declared law, applied here, never stored). Where the driver covers,
+        splitting preserves mass everywhere; the RECONCILIATION badge is the commutation certificate
+        (notes §5, alloc COMMUTES)."""
+        uni = meas.universe
+        base = set(self.m.universes[uni].base_dimensions)
+        other = rel.to if coord == rel.frm else rel.frm
+        frontier = coord
+        p = self.m.find_path(base, other)
+        if p is None:
+            raise Refusal("non_functional_transport",
+                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'", measure=meas.name, target=T)
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
+        driver = self._serve_driver(face, frontier)           # [frontier, _drv]
+        if other == rel.frm:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)
+        else:
+            bridge = self.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
+        b = bridge.join(driver.rename({frontier: "_to"}), on="_to", how="inner")             # _frm, _to, _drv
+        # normalize the driver per measure-side key (partition of unity), then split the value.
+        b = b.with_columns((pl.col("_drv") / pl.col("_drv").sum().over("_frm")).alias("_wt"))
+        j = b.join(frame.rename({other: "_frm"}), on="_frm", how="inner")                     # _frm, _to, _wt, _value
+        j = j.with_columns((pl.col("_value") * pl.col("_wt")).alias("_value"))
+        split = j.group_by("_to").agg(pl.col("_value").sum()).rename({"_to": T})
+        # reconciliation badge — the commutation certificate.
+        base_total = float(frame["_value"].sum())
+        crossed_total = float(split["_value"].sum()) if split.height else 0.0
+        delta = crossed_total - base_total
+        tol = max(1.0, abs(base_total)) * 1e-9
+        status = "reconciles" if abs(delta) <= tol else "shortfall"
+        # crossed-grain absence — events basis: complete the domain, fill 0.
+        domain = bridge.select(pl.col("_to").alias(T)).unique()
+        split = domain.join(split, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
+        split = split.sort(T).select([T, "_value"])
+        self.stats.transports += 1
+        self._t(trace, f"  alloc {other}->{T} via {rel.via_table} by norm({face.selection}) "
+                       f"[split; reconcile {crossed_total:.2f} vs {base_total:.2f} -> {status}]")
+        disc = self._alloc_disc(meas, fam, op, uni, rel, face, crossed_total, base_total, delta, tol, status)
+        return split, disc
+
+    def _alloc_disc(self, meas, fam, op, uni, rel, face, crossed_total, base_total, delta, tol, status):
+        base = self._disc(meas, fam, op, uni)
+        note = face.description or (f"{meas.name} splits across each {rel.frm}'s {rel.to} by "
+                                    f"normalized {face.selection}")
+        recon = (("crossed_total", crossed_total), ("base_total", base_total), ("delta", delta),
+                 ("tolerance", tol), ("status", status))
+        return base.with_caveat(Caveat(RECONCILIATION,
+            f"allocated by normalized {face.selection}: crossed total {crossed_total:.2f} "
+            f"{'reconciles to' if status == 'reconciles' else 'falls short of'} the grand total "
+            f"{base_total:.2f} (delta {delta:.4f}). {note}",
+            severity="info" if status == "reconciles" else "caution", reconciliation=recon))
+
     def _resolve_touch(self, meas, fam, op, target, faced, where, trace):
         """Execute a touch-face crossing: `<measure> AT {<coord>.touch}`. The measure is delivered at the
         reachable endpoint grain, then JOIN-MULTIPLIED through the relation's VIA bridge to the faced

@@ -7,6 +7,33 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## [0.12.0-core] — the RELATE face triad completes (assign · alloc), and the anchor law
+
+The M:N crossing gains its full vocabulary beside the shipped `touch`:
+
+- **Grammar.** `FACE <name> = ASSIGN BY <measure-ref> ORDER MIN|MAX` and `ALLOC BY <measure-ref>`.
+  ORDER is **mandatory on ASSIGN, no default** — "top" is ambiguous across driver kinds (rank-like →
+  MIN, score-like → MAX), and a silent default would be an unrecorded resolution. The driver is a
+  DECLARED measure (resolved at publish, never a physical column). The declared-but-deferred parse
+  refusals retire.
+- **Engine.** `ASSIGN` restricts the bridge to each member's top-ranked pair and single-counts (the
+  total reconciles to the grand total; the **shadow** of dropped memberships is disclosed). `ALLOC`
+  splits by the per-member-normalized driver (the total reconciles to the cent; the **reconciliation
+  badge** is the commutation certificate). `touch` unchanged.
+- **Adjudication (fail-closed, per scheme).** assign — a UNIQUE top per member (a tie names the tied
+  members + affected products); alloc — non-negative driver, strictly-positive per-member sum (a
+  zero-sum member = undefined split); the driver must be a **spine** at the frontier grain (an
+  events-derived driver must be frozen first — derived-then-recorded); a face-driver dependency DAG.
+- **Anchor law (G5).** A **distinct-class** measure refuses at EVERY face, uniformly — its output
+  anchor is spent at the frontier grain (per-member counts cannot be summed, weighted, or routed).
+  The message speaks the DECLARATION dialect (`distinct(...)`), never the engine's sketch representation.
+- **Chain guard (G4).** A multi-hop face path (crossing a crossed result) refuses — one frontier at a time.
+- **Wire (additive; `contract_version` stays `"1"`).** `relates[].faces[]` gains `driver`; assign
+  answers carry `memberships_unrepresented`; alloc answers carry `reconciliation {crossed_total,
+  base_total, delta, tolerance, status}`.
+
+Design history: `docs/proposals/0.12-triad-PROPOSAL.md`.
+
 ## [0.11.0-core] — RELATE faces: the many-to-many crossing executes
 
 Full narrative: `specs/release_notes_v0_11_0.md`.

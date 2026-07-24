@@ -71,6 +71,27 @@ COPY = {
 # describe basis kinds this generator knows how to render. Anything else => fail closed.
 KNOWN_BASIS = {"events", "spine"}
 
+# ── INTERIM two-universe filter (RED 2, ruling B′, Huayin 2026-07-24). 0.12 adds a THIRD universe
+#    (category_profile, the driver spine behind the category faces); the figure layout is still taught
+#    for exactly two. A BARE filter would defeat the fail-closed wedge from the inside — silently
+#    omitting a declared universe draws a confident wrong picture of the manifold. So the interim draws
+#    the two universes it can AND STATES the omission ON THE FIGURE via the ratified caption below. The
+#    interim figure is then true: incomplete and saying so. Replaced by the multi-universe redesign.
+#    Guards (in _apply_interim_filter): (1) the omitted universe must be ISOLATED from the drawn pair —
+#    an omitted universe sharing a dimension would hide a real overlap → fail closed; (2) the wire's
+#    actual omitted set must EQUAL what this caption declares — else the figure would misstate what's
+#    missing → fail closed (the caption cannot drift from describe). The omitted universe's NAME is read
+#    verbatim off the wire; only the CAPTION prose is ratified human copy.
+INTERIM_OMISSION = {
+    "omitted": ["category_profile"],   # the universe(s) the ratified caption declares omitted (0.12)
+    "title": "Cascadia — two population universes",
+    "kicker_suffix": " · INTERIM",
+    "caption": ("Figure 1 shows Cascadia's two population universes — transaction and inventory. "
+                "The third, category_profile (the driver spine behind the category faces), joins "
+                "the picture with the multi-universe redesign."),
+    "band_tag": "DISCLOSE · INTERIM — one universe omitted, stated",
+}
+
 
 def esc(s) -> str:
     return html.escape(str(s), quote=True)
@@ -157,9 +178,48 @@ def build_model(dm):
             "derived": derived, "relates": relates, "edges": dm["edges"]}
 
 
+def _apply_interim_filter(model):
+    """RED 2 ruling B′ (Huayin 2026-07-24): the two-universe layout meets a three-universe manifold.
+
+    Draw the two universes that form the taught overlap; DISCLOSE the rest by name. Returns
+    (drawn_pair, omitted_universes). Fails closed rather than drawing a silent, confident wrong picture:
+      • exactly one overlapping pair must exist (the redesign teaches anything richer),
+      • every omitted universe must be ISOLATED from the drawn pair (no dropped overlap),
+      • the wire's omitted set must EQUAL what the ratified caption declares (no caption drift).
+    """
+    us = model["universes"]
+    if len(us) <= 2:
+        return us, []
+
+    def shared(a, b):
+        return set(a["base_dimensions"]) & set(b["base_dimensions"])
+
+    pairs = [(a, b) for i, a in enumerate(us) for b in us[i + 1:] if shared(a, b)]
+    if len(pairs) != 1:
+        raise Fail(f"interim two-universe filter is taught for exactly one overlapping pair; found "
+                   f"{len(pairs)} — the multi-universe redesign must teach the real layout")
+    a, b = pairs[0]
+    omitted = [u for u in us if u is not a and u is not b]
+    for u in omitted:
+        if shared(u, a) or shared(u, b):
+            raise Fail(f"omitted universe {u['name']!r} shares a dimension with the drawn pair — a "
+                       f"silent filter would hide a real overlap; teach the layout, don't drop it")
+    declared = set(INTERIM_OMISSION["omitted"])
+    actual = {u["name"] for u in omitted}
+    if actual != declared:
+        raise Fail(f"interim omission caption declares {sorted(declared)} but the wire omits "
+                   f"{sorted(actual)} — the figure would misstate what's missing; re-ratify the caption")
+    return [a, b], omitted
+
+
 # ───────────────────────────── the main figure ─────────────────────────────
-def figure_svg(store, model):
-    """Compose the two-universe figure from the model. Two-universe horizontal overlap layout."""
+def figure_svg(store, model, omitted=()):
+    """Compose the two-universe figure from the model. Two-universe horizontal overlap layout.
+
+    `omitted` (interim, ruling B′): universes the shipped manifold declares but this two-universe
+    layout cannot yet draw. They are DISCLOSED on the figure — a dashed ghost block per omitted
+    universe plus the ratified caption band — never silently dropped.
+    """
     us = model["universes"]
     if len(us) != 2:
         raise Fail(f"the figure layout is taught for exactly two universes; got {len(us)} — teach it")
@@ -170,10 +230,12 @@ def figure_svg(store, model):
     a_only = [d for d in a_dims if d not in shared]
     b_only = [d for d in b_dims if d not in shared]
 
-    W, H = 1060, 600
+    W, H = 1060, (676 if omitted else 600)   # interim: taller to seat the disclosed-omission band
+    omit_label = (" — " + esc(", ".join(u["name"] for u in omitted)) + " disclosed, not drawn"
+                  if omitted else "")
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
              f'aria-label="{esc(a["name"])} and {esc(b["name"])} universes, overlapping on '
-             f'{esc(" and ".join(shared))}">']
+             f'{esc(" and ".join(shared))}{omit_label}">']
     # defs: spine hatch + dash marker
     parts.append(
         '<defs>'
@@ -288,6 +350,30 @@ def figure_svg(store, model):
         oy += 64
 
     parts.append(_legend(28, 588))
+
+    # ── interim (ruling B′): disclosed-but-undrawn universes, stated ON the figure itself ──
+    if omitted:
+        DISCLOSE_BG = "#f7edd6"
+        # a dashed ghost block per omitted universe, top-right, marking the gap IN the drawing (name +
+        # basis read verbatim off the wire); the ratified caption rides as a native <title> hover.
+        gx = W - 250
+        for i, u in enumerate(omitted):
+            gy = 18 + i * 40
+            parts.append(f'<g data-ref="universe-omitted-{esc(u["name"])}">'
+                         f'<title>{esc(INTERIM_OMISSION["caption"])}</title>')
+            parts.append(_rect(gx, gy, 222, 30, rx=6, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2, dash="5 4"))
+            parts.append(_t(gx + 10, gy + 12, "OMITTED UNIVERSE · INTERIM", 8.5, DISCLOSE, weight=700, cls="tag"))
+            parts.append(_t(gx + 10, gy + 25, f'{esc(u["name"])} · basis {esc(u["basis"])}', 11, INK, cls="mono"))
+            parts.append('</g>')
+        # the ratified caption band, full width along the bottom — the omission stated in prose.
+        by = 606
+        parts.append(f'<g data-ref="interim-omission-band">')
+        parts.append(_rect(28, by, W - 56, 60, rx=8, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2))
+        parts.append(_t(44, by + 20, INTERIM_OMISSION["band_tag"], 11, DISCLOSE, weight=700, cls="tag"))
+        for j, line in enumerate(_wrap(INTERIM_OMISSION["caption"], 118)):
+            parts.append(_t(44, by + 38 + j * 14, line, 11.5, INK))
+        parts.append('</g>')
+
     parts.append('</svg>')
     return "".join(parts)
 
@@ -498,7 +584,7 @@ def hover_pair(store, model):
     }
 
 
-def _referents(model):
+def _referents(model, omitted=()):
     us = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))
     ents = [{"id": f"universe-{u['name']}", "name": f"{u['name']} universe",
              "aliases": [u["name"]], "anchor": f"[data-ref='universe-{u['name']}']"} for u in us]
@@ -506,6 +592,14 @@ def _referents(model):
                  "anchor": "[data-ref='overlap']"})
     ents.append({"id": "hover-pair", "name": "the semi-additive burn (hover pair)",
                  "aliases": ["hover", "the burn", "stock.sum vs stock.last"], "anchor": "[data-ref='hover-pair']"})
+    for u in omitted:                                   # interim: the disclosed-but-undrawn universe(s)
+        ents.append({"id": f"universe-omitted-{u['name']}", "name": f"{u['name']} universe (omitted, interim)",
+                     "aliases": [u["name"], "the omitted universe", "the third universe"],
+                     "anchor": f"[data-ref='universe-omitted-{u['name']}']"})
+    if omitted:
+        ents.append({"id": "interim-omission-band", "name": "the interim omission caption",
+                     "aliases": ["the omission", "the interim caption", "the disclose band"],
+                     "anchor": "[data-ref='interim-omission-band']"})
     return {"artifact": "universe-visual", "kind": "web", "entries": ents}
 
 
@@ -514,7 +608,9 @@ def main() -> int:
     dm = T.describe_manifold(store, MID)
     try:
         model = build_model(dm)
-        fig = figure_svg(store, model)
+        drawn, omitted = _apply_interim_filter(model)   # ruling B′; fails closed on a silent drop
+        model["universes"] = drawn
+        fig = figure_svg(store, model, omitted=omitted)
         # FAIL-CLOSED SUBFIELD COMPLETENESS (post-flip defect, 2026-07-19). The wedge's LETTER checked the
         # relates KEY was present (build_model); its SPIRIT — "every declared crossing is ON the figure" —
         # was unenforced, so faces[] shipped to the describe wire and never reached the SVG (the defect this
@@ -536,6 +632,16 @@ def main() -> int:
         return 1
     a = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))[0]
     hover_intro = COPY["hover_intro"].format(measure=hover["measure"], stack=hover["stack"])
+    # interim copy (ruling B′): the omission is stated on the figure; the copy block carries it too so
+    # the page can echo it under the figure. When nothing is omitted, the copy is the standard two-universe.
+    copy = {"kicker": COPY["kicker"] + (INTERIM_OMISSION["kicker_suffix"] if omitted else ""),
+            "title": (INTERIM_OMISSION["title"] if omitted else COPY["title"]),
+            "lede": COPY["lede"], "leftout": COPY["leftout"],
+            "leftout_spec_route": COPY["leftout_spec_route"],
+            "leftout_map_route": COPY["leftout_map_route"]}
+    if omitted:
+        copy["interim_omission"] = INTERIM_OMISSION["caption"]
+        copy["interim_omitted_universes"] = [u["name"] for u in omitted]
     out = {
         "generated_by": f"columna-core {version('columna-core')} / columna-server {version('columna-server')}",
         "manifold": MID,
@@ -543,10 +649,8 @@ def main() -> int:
         "hover": {**hover, "intro": hover_intro,
                   "barred_caption": COPY["hover_barred"].format(stack=hover["stack"]),
                   "travels_caption": COPY["hover_travels"]},
-        "copy": {"kicker": COPY["kicker"], "title": COPY["title"], "lede": COPY["lede"],
-                 "leftout": COPY["leftout"], "leftout_spec_route": COPY["leftout_spec_route"],
-                 "leftout_map_route": COPY["leftout_map_route"]},
-        "referents": _referents(model),
+        "copy": copy,
+        "referents": _referents(model, omitted=omitted),
     }
     json.dump(out, sys.stdout, indent=2, ensure_ascii=False)
     return 0

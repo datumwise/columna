@@ -807,6 +807,16 @@ Columna catches this at plan time. The aggregate-across operation has a precondi
 
 The unique contribution here is making the precondition visible. Conventional tools treat many-to-many as a kind of join, with no awareness that aggregating across it is mathematically wrong without allocation. The error happens silently and is essentially never caught.
 
+<!-- 0.12 "the triad completes" — DRAFT integration; the full Chapter-8 rewrite (retiring the "allocation is Pro / bare aggregate-across clarifies" framing above for the executed triad) and the /case exhibit copy are ratified at the merge gate. -->
+
+**The three faces now execute (0.12).** The three resolutions above are no longer only *names the clarify offers* — each is a declared **face** on the RELATE that the engine crosses:
+
+- **touch** — the value reaches every match; deliberately multi-counted, the over-count stated (totals exceed the grand total).
+- **assign** `BY <driver> ORDER MIN|MAX` — the value single-counts to each member's top-ranked pair (ORDER is declared, never defaulted — "top" is rank-min for a rank, score-max for a weight). The total reconciles to the grand total; the **shadow** of unrepresented memberships is stated.
+- **alloc** `BY <driver>` — the value splits by the per-member-normalized driver. The total reconciles to the cent; a **reconciliation badge** certifies the commutation. (Normalization is the face's declared law, applied by the engine — a *raw* driver is declared, never a pre-normalized one: pre-normalized weights are derived truth.)
+
+Legality is the measure's **output anchor** speaking, one law for all three faces: an *additive* value crosses; a **distinct-class** measure **refuses at every face** — its anchor is *spent* at the frontier grain, so per-member counts cannot be summed, weighted, or routed (a customer buying two products is not 1.6 people under a split, nor 2 under a union). The refusal teaches the **two authoring doors**: declare the per-member counts as a **value measure** (its anchors spent by declaration, so every face may serve it), or ask for the crossed-population count directly (the population door — the crossing increment). Every operation in the space has exactly one honest spelling.
+
 ### C.5 Errors from broken hierarchies (FD violations)
 
 A hierarchy edge — customer to region, employee to department, product to category — claims that the relationship is a functional dependency: each child maps to exactly one parent. The claim is almost never checked in conventional tools. A claim that holds in the data when the schema was authored may fail later when data drifts (a customer moved between regions; an employee transferred between departments).
