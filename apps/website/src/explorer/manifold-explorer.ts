@@ -15,8 +15,8 @@ export interface DescribeManifold {
   universes: { name: string; base_dimensions: string[]; predicate: string | null; basis: string | null; absence: string; basis_license: License | null }[];
   asserts: { name: string; universe: string; form: any; license: License | null }[];
   hierarchies: { lineage: string; chain: string[]; license: License | null }[];
-  measures: { name: string; family: string[]; universe: string }[];
-  derived: { name: string; formula: string; resolution_anchor: string | null; denotation_only: boolean; members: Record<string, { declared_lineages: string[]; license: License | null }> }[];
+  measures: { name: string; family: string[]; universe: string; description?: string }[];
+  derived: { name: string; formula: string; resolution_anchor: string | null; denotation_only: boolean; description?: string; members: Record<string, { declared_lineages: string[]; license: License | null }> }[];
   published_scope: { cut: string[]; blocked_edges: string[][]; cut_by?: any; blocked_by?: any };
 }
 
@@ -51,20 +51,24 @@ function triad(law: string, lic: License | null | undefined, query: string): str
 
 // ---- sections (measure-first) ------------------------------------------------------------------
 function measureCard(D: DescribeManifold, m: DescribeManifold['measures'][0]): string {
-  const law = `<span class="mx-name">${esc(m.name)}</span>
+  // the folklore, surfaced: the measure's one-line description renders with its name (verbatim from
+  // describe, no truncation — descriptions are one-liners by law). Ruled 2026-07-24.
+  const desc = m.description ? `<span class="mx-desc">${esc(m.description)}</span>` : '';
+  const law = `<span class="mx-name">${esc(m.name)}</span>${desc}
     <span class="mx-meta">universe <b>${esc(m.universe)}</b> · family ${m.family.map((f) => `<code>${esc(f)}</code>`).join(' ')}</span>`;
   // a measure has no license of its own here; the query demonstrates it at its universe's base grain.
-  return `<article class="mx-card" data-kind="measure" data-search="${attr(m.name + ' ' + m.universe + ' ' + m.family.join(' '))}">
+  return `<article class="mx-card" data-kind="measure" data-search="${attr(m.name + ' ' + m.universe + ' ' + m.family.join(' ') + ' ' + (m.description || ''))}">
     ${triad(law, null, `${m.name} @ ${(D.universes.find((u) => u.name === m.universe)?.base_dimensions || []).join(', ')}`)}
   </article>`;
 }
 function derivedCard(d: DescribeManifold['derived'][0]): string {
   const mem = Object.entries(d.members)
     .map(([name, fm]) => `<span class="mx-member">${esc(name)} ${badge(fm.license)}</span>`).join(' ');
-  const law = `<span class="mx-name">${esc(d.name)}</span>
+  const desc = d.description ? `<span class="mx-desc">${esc(d.description)}</span>` : '';
+  const law = `<span class="mx-name">${esc(d.name)}</span>${desc}
     <span class="mx-meta"><code>${esc(d.formula)}</code>${d.denotation_only ? ' · denotation-only' : ''}${mem ? ' · ' + mem : ''}</span>`;
   const anchor = d.resolution_anchor ? ` @ ${d.resolution_anchor}` : '';
-  return `<article class="mx-card" data-kind="derived" data-search="${attr(d.name + ' ' + d.formula)}">
+  return `<article class="mx-card" data-kind="derived" data-search="${attr(d.name + ' ' + d.formula + ' ' + (d.description || ''))}">
     ${triad(law, null, `${d.name}${anchor}`)}
   </article>`;
 }
