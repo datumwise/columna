@@ -38,18 +38,28 @@ VERDICT_COLOR = {"corroborated": SERVE, "verified": VERIFIED, "disclose": DISCLO
                  "contradicted": REFUSE, "untestable": UNTEST}
 VERDICT_BG = {"corroborated": SERVE_BG, "verified": "#eef1fb", "untestable": UNTEST_BG}
 
-# ── ratified CAPTIONS (Huayin, design gate 2026-07-19). PROSE only — never element labels. ──
+# ── ratified CAPTIONS. PROSE only — never element labels. The main caption is the THREE-UNIVERSE
+#    redesign (founder's ruling, Huayin 2026-07-24): multi-universe is foundational, so all three
+#    universes get identical first-class treatment; the edge grammar (solid = functional M:1, dotted =
+#    the product↔category frontier) carries the entire distinction, and the three faces ride ON the
+#    dotted edge as the licensed passages that govern it. Caption is DRAFT until Huayin's word. ──
 COPY = {
     "kicker": "THE UNIVERSE VISUAL · FIGURE 1",
-    "title": "Cascadia — two universes",
-    "lede": ("Universe-first: each population is a box holding its grain (the floor), its reachable "
-             "stacks, and its metric families. Boxes overlap where they share dimensions; the shared "
-             "stacks are drawn once. Every badge is pinned to a real verdict. Labels are verbatim "
-             "from describe."),
-    "overlap_suffix": "— the overlap IS the shared atlas",
+    "title": "Cascadia — three universes",
+    # CAPTION v3 (Huayin 2026-07-24; DRAFT, held for his word) — verbatim from the desk synthesis.
+    "caption": ("Cascadia's manifold: three universes. Store and day are shared grains — declared "
+                "identical across transaction and inventory (the '=' edges), which is what licenses "
+                "composing their measures. Category is a grain of category_profile only; the dotted "
+                "edge is the product↔category frontier, crossable solely through its three declared "
+                "faces, whose drivers live in the profile. Solid edges are functional paths inside a "
+                "universe; every line between universes is a declared license."),
+    "identity_note": "one declared level, two presences — the '=' marks the shared-atlas declaration",
+    "lede": ("Universe-first, and multi-universe as foundational: each population is a first-class "
+             "block holding its basis and its metric families. The edges carry the distinction — solid "
+             "hops are functional (many-to-one) paths; the one dotted edge is the product↔category "
+             "frontier, crossed only through its three declared faces. Labels are verbatim from describe."),
     "fork_note": "weeks don't nest — the fork",
-    "floor_events": "solid floor = events",
-    "floor_spine": "hatched floor = spine (can have gaps)",
+    "frontier_note": "product ↔ category — the frontier (non-functional; M:N)",
     "hover_intro": ("The hover, shown as a static pair (in the shipped visual, hovering a family "
                     "member paints the stacks by traversability — CSS-only, no JS). Here the "
                     "first burn, taught: the same {measure} over the same {stack} stack, two members."),
@@ -62,35 +72,16 @@ COPY = {
                 "caption links the Manifold spec and the physical→logical map."),
     "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
     "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
-    "legend": [("swatch", SERVE, "✓ corroborated hop / travels (serve)"),
-               ("box", UNTEST_BG, "untestable basis (honest)"),
-               ("dash", REFUSE, "RELATE — non-functional; crossed only by a declared face"),
-               ("spine", None, "spine floor (gaps possible)")],
+    # the CLOSED edge grammar (Huayin 2026-07-24): solid = functional (in-box); "=" = declared identity
+    # (cross-box, P1); dotted+chips = the frontier (cross-box, P2). No other inter-box line exists.
+    "legend": [("swatch", SERVE, "solid → = functional hop, in a universe (M:1)"),
+               ("eq", VERIFIED, "= declared identity across universes (shared grain)"),
+               ("dash", REFUSE, "· · · the product↔category frontier + its faces"),
+               ("box", UNTEST_BG, "untestable basis")],
 }
 
 # describe basis kinds this generator knows how to render. Anything else => fail closed.
 KNOWN_BASIS = {"events", "spine"}
-
-# ── INTERIM two-universe filter (RED 2, ruling B′, Huayin 2026-07-24). 0.12 adds a THIRD universe
-#    (category_profile, the driver spine behind the category faces); the figure layout is still taught
-#    for exactly two. A BARE filter would defeat the fail-closed wedge from the inside — silently
-#    omitting a declared universe draws a confident wrong picture of the manifold. So the interim draws
-#    the two universes it can AND STATES the omission ON THE FIGURE via the ratified caption below. The
-#    interim figure is then true: incomplete and saying so. Replaced by the multi-universe redesign.
-#    Guards (in _apply_interim_filter): (1) the omitted universe must be ISOLATED from the drawn pair —
-#    an omitted universe sharing a dimension would hide a real overlap → fail closed; (2) the wire's
-#    actual omitted set must EQUAL what this caption declares — else the figure would misstate what's
-#    missing → fail closed (the caption cannot drift from describe). The omitted universe's NAME is read
-#    verbatim off the wire; only the CAPTION prose is ratified human copy.
-INTERIM_OMISSION = {
-    "omitted": ["category_profile"],   # the universe(s) the ratified caption declares omitted (0.12)
-    "title": "Cascadia — two population universes",
-    "kicker_suffix": " · INTERIM",
-    "caption": ("Figure 1 shows Cascadia's two population universes — transaction and inventory. "
-                "The third, category_profile (the driver spine behind the category faces), joins "
-                "the picture with the multi-universe redesign."),
-    "band_tag": "DISCLOSE · INTERIM — one universe omitted, stated",
-}
 
 
 def esc(s) -> str:
@@ -178,205 +169,244 @@ def build_model(dm):
             "derived": derived, "relates": relates, "edges": dm["edges"]}
 
 
-def _apply_interim_filter(model):
-    """RED 2 ruling B′ (Huayin 2026-07-24): the two-universe layout meets a three-universe manifold.
-
-    Draw the two universes that form the taught overlap; DISCLOSE the rest by name. Returns
-    (drawn_pair, omitted_universes). Fails closed rather than drawing a silent, confident wrong picture:
-      • exactly one overlapping pair must exist (the redesign teaches anything richer),
-      • every omitted universe must be ISOLATED from the drawn pair (no dropped overlap),
-      • the wire's omitted set must EQUAL what the ratified caption declares (no caption drift).
+def resolve_roles(model):
+    """THREE-UNIVERSE redesign (founder's ruling, Huayin 2026-07-24). Identify each universe's role from
+    the wire — never by name — so the figure is auto-true, and FAIL CLOSED on anything the layout is not
+    taught. The layout is taught for exactly: three universes, one M:N frontier relate, whose `frm` and
+    `to` levels are the base of two DISTINCT universes; the third universe is functionally linked (shares
+    a base dim) to the frontier's home. Roles:
+      • home    — the universe whose base holds the frontier's `frm` (product) level;
+      • profile — the universe whose base holds the frontier's `to` (category) level; its measures drive faces;
+      • third   — the remaining universe (inventory), functionally sharing base dims with home.
+    Every face driver (if present) must be a measure of the profile universe (subfield completeness —
+    a driver on the wire the figure can't ground fails the deploy).
     """
     us = model["universes"]
-    if len(us) <= 2:
-        return us, []
+    if len(us) != 3:
+        raise Fail(f"the figure is taught for exactly three universes; got {len(us)} — teach the layout")
+    relates = model["relates"]
+    if len(relates) != 1:
+        raise Fail(f"the figure is taught for exactly one frontier relate; got {len(relates)} — teach it")
+    r = relates[0]
 
-    def shared(a, b):
-        return set(a["base_dimensions"]) & set(b["base_dimensions"])
+    def base_of(level):
+        found = [u for u in us if level in u["base_dimensions"]]
+        return found[0] if len(found) == 1 else None
 
-    pairs = [(a, b) for i, a in enumerate(us) for b in us[i + 1:] if shared(a, b)]
-    if len(pairs) != 1:
-        raise Fail(f"interim two-universe filter is taught for exactly one overlapping pair; found "
-                   f"{len(pairs)} — the multi-universe redesign must teach the real layout")
-    a, b = pairs[0]
-    omitted = [u for u in us if u is not a and u is not b]
-    for u in omitted:
-        if shared(u, a) or shared(u, b):
-            raise Fail(f"omitted universe {u['name']!r} shares a dimension with the drawn pair — a "
-                       f"silent filter would hide a real overlap; teach the layout, don't drop it")
-    declared = set(INTERIM_OMISSION["omitted"])
-    actual = {u["name"] for u in omitted}
-    if actual != declared:
-        raise Fail(f"interim omission caption declares {sorted(declared)} but the wire omits "
-                   f"{sorted(actual)} — the figure would misstate what's missing; re-ratify the caption")
-    return [a, b], omitted
+    home = base_of(r["frm"])
+    profile = base_of(r["to"])
+    if home is None or profile is None:
+        raise Fail(f"frontier {r['frm']}->{r['to']} does not resolve to exactly one home + one profile "
+                   f"universe — teach the layout")
+    if home is profile:
+        raise Fail(f"frontier {r['frm']}->{r['to']} lands both ends in one universe — not a crossing")
+    others = [u for u in us if u is not home and u is not profile]
+    if len(others) != 1:
+        raise Fail("the figure is taught for exactly one third (functional) universe — teach the layout")
+    third = others[0]
+    if not (set(third["base_dimensions"]) & set(home["base_dimensions"])):
+        raise Fail(f"third universe {third['name']!r} shares no base dimension with the home universe — "
+                   f"the taught layout expects a functional link; teach it")
+    # every declared face driver must be a measure of the profile universe (subfield completeness)
+    profile_measures = {m["name"] for m in model["measures"] if m["universe"] == profile["name"]}
+    for f in r.get("faces", []):
+        d = f.get("driver")
+        if d is not None and d not in profile_measures:
+            raise Fail(f"face {f['name']!r} names driver {d!r}, not a measure of the profile universe "
+                       f"{profile['name']!r} — the figure cannot ground it (subfield-completeness wedge)")
+    # CLOSED EDGE GRAMMAR (Huayin 2026-07-24): every wire edge must classify as exactly one known class —
+    # FUNCTIONAL (a hop inside one universe's declared hierarchy), IDENTITY (a base level shared across
+    # universes, derived), or FRONTIER (the relate). Any edge the generator can't place in this closed
+    # grammar refuses to render (absence of a line must mean absence of a passage). Functional edges are
+    # dm['edges']; each must belong to a declared hierarchy lineage — else it is an untaught inter-level
+    # class and the figure fails closed rather than drawing a line whose meaning it doesn't know.
+    hier_pairs = set()
+    for h in model["hierarchies"]:
+        for path in [h.get("chain") or []] + h.get("paths", []):
+            for a, b in zip(path, path[1:]):
+                hier_pairs.add((a, b))
+    for e in model.get("edges", []):
+        if (e["frm"], e["to"]) not in hier_pairs:
+            raise Fail(f"edge {e['frm']}->{e['to']} is not a declared functional hierarchy hop and is "
+                       f"neither the frontier nor an identity seam — an unknown edge class the closed "
+                       f"grammar refuses to render; teach it")
+    return {"home": home, "profile": profile, "third": third, "relate": r,
+            "shared_levels": sorted({d for u in us for d in u["base_dimensions"]
+                                     if sum(d in v["base_dimensions"] for v in us) > 1})}
 
 
-# ───────────────────────────── the main figure ─────────────────────────────
-def figure_svg(store, model, omitted=()):
-    """Compose the two-universe figure from the model. Two-universe horizontal overlap layout.
+# ───────────────────────────── the main figure (three universes) ─────────────────────────────
+def figure_svg(store, model, roles):
+    """Compose the THREE-UNIVERSE figure (founder's ruling + desk synthesis, Huayin 2026-07-24).
 
-    `omitted` (interim, ruling B′): universes the shipped manifold declares but this two-universe
-    layout cannot yet draw. They are DISCLOSED on the figure — a dashed ghost block per omitted
-    universe plus the ratified caption band — never silently dropped.
-    """
-    us = model["universes"]
-    if len(us) != 2:
-        raise Fail(f"the figure layout is taught for exactly two universes; got {len(us)} — teach it")
-    # order: the wider-grained universe on the left (more base dims), the other overlapping right
-    a, b = sorted(us, key=lambda u: -len(u["base_dimensions"]))
-    a_dims, b_dims = list(a["base_dimensions"]), list(b["base_dimensions"])
-    shared = [d for d in a_dims if d in b_dims]
-    a_only = [d for d in a_dims if d not in shared]
-    b_only = [d for d in b_dims if d not in shared]
+    Three first-class solid boxes. The CLOSED edge grammar carries every relationship:
+      • SOLID ✓ = a functional (M:1) hop, INSIDE one universe (the hierarchy chains, drawn in-box);
+      • "="     = a declared identity across universes — a shared grain (store, day) has one declaration
+                  and two presences, linked box-to-box (the shared-atlas license, P1);
+      • DOTTED + chips = the product↔category frontier, crossed only by its declared faces (P2), whose
+                  drivers live in the profile. No other inter-box line exists; absence of a line is the
+                  absence of a passage (resolve_roles fails closed on any unknown edge class).
+    Labels verbatim from describe; the caption is ratified prose (rendered by the page)."""
+    home, profile, third = roles["home"], roles["profile"], roles["third"]
+    r = roles["relate"]
+    faces = r.get("faces", [])
+    shared = roles.get("shared_levels", [])
 
-    W, H = 1060, (676 if omitted else 600)   # interim: taller to seat the disclosed-omission band
-    omit_label = (" — " + esc(", ".join(u["name"] for u in omitted)) + " disclosed, not drawn"
-                  if omitted else "")
+    W, H = 1180, 560
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
-             f'aria-label="{esc(a["name"])} and {esc(b["name"])} universes, overlapping on '
-             f'{esc(" and ".join(shared))}{omit_label}">']
-    # defs: spine hatch + dash marker
+             f'aria-label="Cascadia manifold, three first-class universes {esc(home["name"])}, '
+             f'{esc(third["name"])}, {esc(profile["name"])}; {esc(" and ".join(shared))} are shared grains '
+             f'linked by = identity edges across {esc(home["name"])} and {esc(third["name"])}; the dotted '
+             f'{esc(r["frm"])} to {esc(r["to"])} frontier is crossed by declared faces '
+             f'{esc(", ".join(f["name"] for f in faces))}">']
     parts.append(
         '<defs>'
-        '<pattern id="spine" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
-        f'<rect width="8" height="8" fill="{PAPER}"/><line x1="0" y1="0" x2="0" y2="8" stroke="#d9d3c6" stroke-width="1"/>'
-        '</pattern>'
-        f'<marker id="dash" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">'
-        f'<path d="M0,0 L6,3.5 L0,7" fill="none" stroke="{REFUSE}" stroke-width="1"/></marker>'
+        f'<marker id="dhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">'
+        f'<path d="M0,1 L8,4.5 L0,8 Z" fill="{VERIFIED}"/></marker>'
         '</defs>')
 
-    # ── box geometry (2-universe template: A left, B overlapping right) ──
-    ax, aw = 34, 620
-    bx, bw = 470, 536
-    ov_x, ov_w = bx, (ax + aw) - bx     # the overlap = where the two boxes cross
-    parts.append(_rect(ax, 70, aw, 486, rx=14, fill=PAPER, stroke=RULE, sw=1.5))
-    parts.append(_rect(bx, 118, bw, 438, rx=14, fill=PAPER, stroke=RULE, sw=1.5))
-    parts.append(_rect(ov_x, 118, ov_w, 438, fill="#f4f1ea", opacity=".7"))
+    CARD_Y, CARD_H = 36, 356
+    home_x, home_w = 40, 400
+    third_x, third_w = 480, 250
+    prof_x, prof_w = 770, 340
 
-    # ── box A header ──
-    parts.append(_t(52, 98, esc(a["name"]), 18, INK, weight=700))
-    parts.append(_t(176, 98, f'BASIS {esc(a["basis"])}', 12.5, SUB, cls="mono"))
-    parts.append(_rect(284, 82, 86, 20, rx=10, fill=UNTEST_BG))
-    parts.append(_t(327, 96, "untestable", 11, UNTEST, anchor="middle", cls="tag"))
-    parts.append(_t(52, 116, esc(_absence_short(a)), 11.5, FAINT))
+    def _mline(x, yy, m):
+        return (_t(x, yy, esc(m["name"]) + " ", 13, INK, cls="mono")
+                + _t(x + _tw(m["name"]) + 8, yy, f'[{esc(" · ".join(m["family"]))}]', 13, FAINT, cls="mono"))
 
-    # ── box B header (stacked vertically in the clear zone, right of the overlap) ──
-    bcx = 852
-    parts.append(_rect(bcx - 43, 120, 86, 20, rx=10, fill=UNTEST_BG))
-    parts.append(_t(bcx, 134, "untestable", 11, UNTEST, anchor="middle", cls="tag"))
-    parts.append(_t(bcx, 166, esc(b["name"]), 18, INK, weight=700, anchor="middle"))
-    parts.append(_t(bcx, 186, f'BASIS {esc(b["basis"])}', 12.5, SUB, anchor="middle", cls="mono"))
-    parts.append(_t(bcx, 203, esc(_absence_short(b)), 11.5, FAINT, anchor="middle"))
+    # a shared level's two presence anchors: pair_y[level] = (day / store) row centre inside the boxes
+    pair_y = {lvl: CARD_Y + 196 + i * 40 for i, lvl in enumerate(shared)}
 
-    # ── floor = grain ──
-    floor_y = 500
-    floor_cx = {}                                          # base level -> its floor block centre
-    for i, dim in enumerate(a_only):                       # A-only base blocks (box A lower-left)
-        x = 58 + i * 128
-        floor_cx[dim] = x + 48
-        parts.append(_rect(x, floor_y, 96, 30, rx=5, fill=PAPER, stroke=RULE, sw=1.2))
-        parts.append(_t(x + 48, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
-    # shared base blocks in the overlap, ordered so the taller/forked stack sits on the RIGHT
-    order = sorted(shared, key=lambda d: _stack_height(model["hierarchies"], d))
-    sh_slots = {}
-    for i, dim in enumerate(order):
-        x = 480 + i * 86
-        sh_slots[dim] = floor_cx[dim] = x + 36
-        parts.append(_rect(x, floor_y, 72, 30, rx=5, fill=PAPER, stroke=INK, sw=1.4))
-        parts.append(_t(x + 36, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
+    def _shared_chip(lvl, cx):
+        cy = pair_y[lvl] - 15
+        return (f'<g data-ref="grain-{esc(lvl)}"><title>one declared level, two presences — '
+                f'"=" marks the shared-atlas declaration</title>'
+                + _level_block(cx, cy, lvl, w=86, h=30, stroke=INK) + '</g>'), cy + 15
 
-    # floor bar + basis textures (A + overlap solid = events; B-only span hatched = spine)
-    parts.append(_rect(46, 546, 608, 6, fill=INK, opacity=".5"))
-    parts.append(_rect(654, 546, 352, 6, fill="url(#spine)", stroke="#d9d3c6", sw=1))
-    parts.append(_t(46, 568, COPY["floor_events"], 10, FAINT))
-    parts.append(_t(1006, 568, COPY["floor_spine"], 10, FAINT, anchor="end"))
-    if b.get("predicate"):                                 # carve clamp-note on the spine box's floor
-        cx = 812
-        parts.append(_rect(cx, 484, 182, 30, rx=6, fill=PAPER, stroke=RULE, sw=1))
-        parts.append(_t(cx + 91, 498, "carve (spine)", 10.5, SUB, anchor="middle"))
-        parts.append(_t(cx + 91, 510, esc(b["predicate"]), 10.5, INK, anchor="middle", cls="mono"))
+    def _card(u, x, w, drivers=False, foot=None, foot_side="right", shared_side=None):
+        g = [f'<g data-ref="universe-{esc(u["name"])}">']
+        g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))
+        g.append(_t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700))
+        g.append(_t(x + 18, CARD_Y + 48, f'BASIS {esc(u["basis"])}', 12, SUB, cls="mono"))
+        g.append(_rect(x + w - 90, CARD_Y + 14, 76, 19, rx=10, fill=UNTEST_BG))
+        g.append(_t(x + w - 52, CARD_Y + 27, "untestable", 10.5, UNTEST, anchor="middle", cls="tag"))
+        absc = _absence_short(u)
+        if absc:
+            g.append(_t(x + 18, CARD_Y + 66, esc(absc), 11, FAINT))
+        hy = CARD_Y + 82
+        if u.get("predicate"):
+            g.append(_t(x + 18, hy, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono"))
+            hy += 16
+        g.append(_t(x + 18, hy, "base " + esc(" · ".join(u["base_dimensions"])), 10.5, FAINT, cls="mono"))
+        ms = [m for m in model["measures"] if m["universe"] == u["name"]]
+        my = hy + 26
+        g.append(_t(x + 18, my, "MEASURE" + ("S" if len(ms) != 1 else ""), 11, SUB, cls="tag"))
+        anchors = {}
+        my += 22
+        for m in ms:
+            g.append(_mline(x + 18, my, m))
+            if drivers:
+                anchors[m["name"]] = (x + 18 + _tw(m["name"] + " ") + _tw(" · ".join(m["family"])) + 30, my - 4)
+            my += 22
+        # shared-grain presences: a vertical pair at the facing inner edge (the "=" anchors)
+        shared_here = [lvl for lvl in shared if lvl in u["base_dimensions"]]
+        shared_anchor = {}
+        if shared_here and shared_side:
+            scx = (x + w - 59) if shared_side == "right" else (x + 59)
+            g.append(_t(scx, min(pair_y.values()) - 24, "GRAINS", 10, SUB, anchor="middle", cls="tag"))
+            for lvl in shared_here:
+                svg, ymid = _shared_chip(lvl, scx)
+                g.append(svg)
+                edge_x = (scx + 43) if shared_side == "right" else (scx - 43)
+                shared_anchor[lvl] = (edge_x, ymid, shared_side)
+        # functional grains — the coarser levels each lattice reaches, drawn as ONE abbreviated
+        # breadcrumb per chain ("▸" = a corroborated M:1 hop); the "=" edges say the third's are identical.
+        roots = [h for h in model["hierarchies"] if (h.get("chain") or [None])[0] in u["base_dimensions"]]
+        if roots and shared_side == "right":                # home draws the crumbs; third references via "="
+            by = CARD_Y + 250
+            g.append(_t(x + 18, by, "functional grains — ▸ = corroborated M:1 hop ✓", 9.5, FAINT))
+            for hi, h in enumerate(roots):
+                chain = h.get("chain") or []
+                v = (h.get("license") or {}).get("verdict")
+                col = VERDICT_COLOR.get(v, SERVE)
+                by2 = by + 18 + hi * 20
+                crumb = " ▸ ".join(chain)
+                cur = x + 18
+                g.append(_t(cur, by2, esc(crumb), 11, INK, cls="mono"))
+                cur += _tw(crumb, 6.6) + 6
+                g.append(_t(cur, by2, "✓", 11, col))
+                cur += 12
+                for pth in h.get("paths", []):              # fork (weeks don't nest) appended inline
+                    extra = [lv for lv in (pth or []) if lv not in chain]
+                    if extra:
+                        g.append(_t(cur, by2, "· " + esc(" ".join(extra)), 10, FAINT))
+        elif roots and shared_side == "left":               # third: abbreviate (identical by the "=")
+            names = ", ".join(sorted({h["lineage"] for h in roots}))
+            g.append(_t(x + 18, CARD_Y + 288, f"functional grains: {esc(names)} ✓", 9.5, FAINT))
+            g.append(_t(x + 18, CARD_Y + 304, f"identical to {esc(home['name'])} — see the = edges", 9.5, FAINT))
+        # the frontier foot, at the card bottom (non-shared plain grains stay in the header base line)
+        foot_anchor = None
+        if foot is not None:
+            fw = _tw(foot, 7.4) + 34
+            fcx = (x + w - fw / 2 - 16) if foot_side == "right" else (x + fw / 2 + 16)
+            fcy = CARD_Y + CARD_H - 44
+            g.append(f'<g data-ref="level-{esc(foot)}">')
+            g.append(_rect(fcx - fw / 2, fcy, fw, 30, rx=5, fill=PAPER, stroke=INK, sw=1.5))
+            g.append(_t(fcx, fcy + 19, esc(foot), 12.5, INK, anchor="middle", cls="mono"))
+            g.append(_t(fcx, fcy - 6, "frontier foot", 8.5, REFUSE, anchor="middle", cls="tag"))
+            g.append('</g>')
+            foot_anchor = (fcx, fcy + 30)
+        g.append('</g>')
+        return g, anchors, foot_anchor, shared_anchor
 
-    # ── the overlap label + the shared stacks (drawn once) ──
-    ov_lineages = " · ".join(h["lineage"] for h in model["hierarchies"]
-                             if h["chain"] and h["chain"][0] in shared)
-    parts.append(_t(480, 222, f'{esc(ov_lineages)} {COPY["overlap_suffix"]}', 11.5, FAINT))
-    parts.append(_stacks(model["hierarchies"], sh_slots, floor_y))
+    g_home, _, prod_foot, sa_home = _card(home, home_x, home_w, foot=r["frm"], foot_side="right", shared_side="right")
+    g_third, _, _, sa_third = _card(third, third_x, third_w, shared_side="left")
+    g_prof, driver_anchor, cat_foot, _ = _card(profile, prof_x, prof_w, drivers=True, foot=r["to"], foot_side="left")
+    parts += g_home + g_third + g_prof
 
-    # ── metric families, homed per universe; box A's plaque + RELATE stack below its families ──
-    fam_a, end_a = _families(store, a, model, 52, 150)
-    parts.append(fam_a)
-    fam_b, _ = _families(store, b, model, 724, 246, right=True)
-    parts.append(fam_b)
-
-    plaque_bottom = 150
-    for asrt in model["asserts"]:                          # asserts plaque(s), homed in box A
-        if asrt["universe"] != a["name"]:
-            continue
-        v = (asrt.get("license") or {}).get("verdict")
-        py = end_a + 14
-        parts.append(_plaque(52, py, asrt, v))
-        plaque_bottom = py + 34
-
-    # ── RELATE (ruling B): a dashed connector from the base level to a stackless `to` block; the NOTE
-    #    from describe quoted verbatim (dashed = non-functional = visually unclimbable). ──
-    oy = max(plaque_bottom + 20, 430)
-    for r in model["relates"]:
-        tcx = 314                                          # the `to` (stackless) block, box A lower-mid
-        frm_cx = floor_cx.get(r["frm"])                    # dashed connector up from the base block
-        if frm_cx is not None:
-            parts.append(_line(frm_cx, floor_y, tcx - 30, oy + 28, stroke=REFUSE, sw=1.3, dash="5 4"))
-        parts.append(_t(tcx, oy - 6, "RELATE", 8.5, REFUSE, anchor="middle", cls="tag"))
-        parts.append(_rect(tcx - 54, oy, 108, 28, rx=4, fill=PAPER, stroke=REFUSE, sw=1, dash="4 3"))
-        parts.append(_t(tcx, oy + 18, esc(r["to"]), 11, REFUSE, anchor="middle", cls="mono"))
-        parts.append(_t(tcx, oy + 44, esc(r["note"]), 9.5, FAINT, anchor="middle"))
-        # FACES (post-flip defect fix, 2026-07-19): the dashed link is NOT unclimbable — it is crossed by a
-        # DECLARED FACE. A small labeled chip rides ON the dashed connector (the figure's quiet register),
-        # naming the crossing; the describe-VERBATIM description rides as a native <title> hover. The
-        # legend's old "unclimbable" clause is amended in lockstep, and the fail-closed wedge (main) asserts
-        # every declared face reaches the figure.
-        faces = r.get("faces", [])
-        if faces and frm_cx is not None:
-            # sit the chip low on the dashed connector (biased toward the frm end) so it clears the NOTE
-            w = 0.60
-            mx, my = frm_cx * w + (tcx - 30) * (1 - w), floor_y * w + (oy + 28) * (1 - w)
-            names = ", ".join(f["name"] for f in faces)
-            chip = f"↳ {names}"
-            cw = _tw(chip, 6.0) + 16
-            parts.append(f'<g><title>{esc(" · ".join(f["description"] for f in faces))}</title>')
-            parts.append(_rect(mx - cw / 2, my - 8, cw, 16, rx=8, fill=PAPER, stroke=REFUSE, sw=0.9))
-            parts.append(_t(mx, my + 3.5, chip, 8.5, REFUSE, anchor="middle", cls="mono"))
+    # ── the "=" identity edges: shared grain, one declaration / two presences, box-to-box ──
+    for lvl in shared:
+        if lvl in sa_home and lvl in sa_third:
+            (x1, y1, _), (x2, y2, _) = sa_home[lvl], sa_third[lvl]
+            mx = (x1 + x2) / 2
+            parts.append(f'<g data-ref="identity-{esc(lvl)}"><title>{esc(COPY["identity_note"])}</title>')
+            parts.append(_line(x1, y1 - 3, x2, y2 - 3, stroke=VERIFIED, sw=1.5))
+            parts.append(_line(x1, y1 + 3, x2, y2 + 3, stroke=VERIFIED, sw=1.5))
+            parts.append(_t(mx, y1 - 8, "=", 15, VERIFIED, anchor="middle", weight=700))
             parts.append('</g>')
-        oy += 64
 
-    parts.append(_legend(28, 588))
-
-    # ── interim (ruling B′): disclosed-but-undrawn universes, stated ON the figure itself ──
-    if omitted:
-        DISCLOSE_BG = "#f7edd6"
-        # a dashed ghost block per omitted universe, top-right, marking the gap IN the drawing (name +
-        # basis read verbatim off the wire); the ratified caption rides as a native <title> hover.
-        gx = W - 250
-        for i, u in enumerate(omitted):
-            gy = 18 + i * 40
-            parts.append(f'<g data-ref="universe-omitted-{esc(u["name"])}">'
-                         f'<title>{esc(INTERIM_OMISSION["caption"])}</title>')
-            parts.append(_rect(gx, gy, 222, 30, rx=6, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2, dash="5 4"))
-            parts.append(_t(gx + 10, gy + 12, "OMITTED UNIVERSE · INTERIM", 8.5, DISCLOSE, weight=700, cls="tag"))
-            parts.append(_t(gx + 10, gy + 25, f'{esc(u["name"])} · basis {esc(u["basis"])}', 11, INK, cls="mono"))
-            parts.append('</g>')
-        # the ratified caption band, full width along the bottom — the omission stated in prose.
-        by = 606
-        parts.append(f'<g data-ref="interim-omission-band">')
-        parts.append(_rect(28, by, W - 56, 60, rx=8, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2))
-        parts.append(_t(44, by + 20, INTERIM_OMISSION["band_tag"], 11, DISCLOSE, weight=700, cls="tag"))
-        for j, line in enumerate(_wrap(INTERIM_OMISSION["caption"], 118)):
-            parts.append(_t(44, by + 38 + j * 14, line, 11.5, INK))
+    # ── the DOTTED frontier edge: product-block → across the gap → category-block ──
+    (px, py), (cx0, cy0) = prod_foot, cat_foot
+    run_y = CARD_Y + CARD_H + 56
+    path = (f'M {px} {py} L {px} {run_y - 6} Q {px} {run_y} {px + 6} {run_y} '
+            f'L {cx0 - 6} {run_y} Q {cx0} {run_y} {cx0} {run_y - 6} L {cx0} {cy0}')
+    parts.append(f'<path d="{path}" fill="none" stroke="{REFUSE}" stroke-width="1.8" stroke-dasharray="2 5"/>')
+    note_cx = (px + cx0) / 2
+    parts.append(_t(note_cx, run_y - 40, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
+    if r.get("note"):
+        parts.append(_t(note_cx, run_y + 34, esc(r["note"]), 10, FAINT, anchor="middle"))
+    n = max(len(faces), 1)
+    span0, span1 = px + 70, cx0 - 70
+    for i, f in enumerate(faces):
+        fx = span0 + (span1 - span0) * ((i + 0.5) / n)
+        name = f["name"]
+        cw = _tw(name, 7.6) + 28
+        parts.append(f'<g data-ref="face-{esc(name)}"><title>{esc(f["description"])}</title>')
+        parts.append(_rect(fx - cw / 2, run_y - 14, cw, 28, rx=14, fill=PAPER, stroke=REFUSE, sw=1.5))
+        parts.append(_t(fx, run_y + 4, esc(name), 13, REFUSE, anchor="middle", weight=600, cls="mono"))
         parts.append('</g>')
+        d = f.get("driver")
+        if d and d in driver_anchor:
+            sx, sy = driver_anchor[d]
+            parts.append(f'<g data-ref="driver-{esc(d)}-{esc(name)}"><title>{esc(d)} drives {esc(name)}</title>')
+            parts.append(f'<path d="M {sx} {sy} C {sx} {sy + 70}, {fx} {run_y - 74}, {fx} {run_y - 14}" '
+                         f'fill="none" stroke="{VERIFIED}" stroke-width="1.3" marker-end="url(#dhead)"/>')
+            parts.append(_t(fx + 12, run_y - 30, "drives", 9, VERIFIED, cls="tag"))
+            parts.append('</g>')
 
+    parts.append(_legend(28, H - 26))
     parts.append('</svg>')
     return "".join(parts)
-
 
 def _absence_short(u):
     s = u.get("absence", "")
@@ -467,15 +497,19 @@ def _legend(x, y):
     cx = x
     for kind, color, label in COPY["legend"]:
         if kind == "swatch":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=color))
+            out.append(_check(cx + 6, y - 3, color))
+            cx += 6
         elif kind == "box":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=color, stroke=UNTEST, sw=1))
-        elif kind == "dash":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=PAPER, stroke=color, sw=1, dash="3 2"))
-        elif kind == "spine":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill="url(#spine)", stroke="#d9d3c6", sw=1))
-        out.append(_t(cx + 18, y, label, 11, SUB))
-        cx += 26 + _tw(label, 6.2)
+            out.append(_rect(cx, y - 9, 13, 13, rx=2, fill=color, stroke=UNTEST, sw=1))
+        elif kind == "dash":                       # the dotted frontier edge
+            out.append(_line(cx, y - 3, cx + 15, y - 3, stroke=color, sw=1.6, dash="2 4"))
+        elif kind == "eq":                         # the "=" identity edge
+            out.append(_line(cx, y - 6, cx + 15, y - 6, stroke=color, sw=1.4))
+            out.append(_line(cx, y, cx + 15, y, stroke=color, sw=1.4))
+        elif kind == "chip":                       # a declared face (pill)
+            out.append(_rect(cx, y - 10, 16, 15, rx=7, fill=PAPER, stroke=color, sw=1.3))
+        out.append(_t(cx + 22, y, label, 11, SUB))
+        cx += 32 + _tw(label, 6.2)
     out.append('</g>')
     return "".join(out)
 
@@ -584,22 +618,22 @@ def hover_pair(store, model):
     }
 
 
-def _referents(model, omitted=()):
+def _referents(model, roles):
     us = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))
     ents = [{"id": f"universe-{u['name']}", "name": f"{u['name']} universe",
              "aliases": [u["name"]], "anchor": f"[data-ref='universe-{u['name']}']"} for u in us]
-    ents.append({"id": "overlap", "name": "the shared atlas (overlap)", "aliases": ["overlap", "shared stacks"],
-                 "anchor": "[data-ref='overlap']"})
+    r = roles["relate"]
+    ents.append({"id": "frontier", "name": f"the {r['frm']}↔{r['to']} frontier (dotted edge)",
+                 "aliases": ["the frontier", "the dotted edge", "the crossing",
+                             f"{r['frm']} to {r['to']}"], "anchor": "[data-ref='face-touch']"})
+    for f in r.get("faces", []):
+        aliases = [f["name"], f"the {f['name']} face"]
+        if f.get("driver"):
+            aliases.append(f"{f['name']} (driven by {f['driver']})")
+        ents.append({"id": f"face-{f['name']}", "name": f"the {f['name']} face",
+                     "aliases": aliases, "anchor": f"[data-ref='face-{f['name']}']"})
     ents.append({"id": "hover-pair", "name": "the semi-additive burn (hover pair)",
                  "aliases": ["hover", "the burn", "stock.sum vs stock.last"], "anchor": "[data-ref='hover-pair']"})
-    for u in omitted:                                   # interim: the disclosed-but-undrawn universe(s)
-        ents.append({"id": f"universe-omitted-{u['name']}", "name": f"{u['name']} universe (omitted, interim)",
-                     "aliases": [u["name"], "the omitted universe", "the third universe"],
-                     "anchor": f"[data-ref='universe-omitted-{u['name']}']"})
-    if omitted:
-        ents.append({"id": "interim-omission-band", "name": "the interim omission caption",
-                     "aliases": ["the omission", "the interim caption", "the disclose band"],
-                     "anchor": "[data-ref='interim-omission-band']"})
     return {"artifact": "universe-visual", "kind": "web", "entries": ents}
 
 
@@ -608,9 +642,8 @@ def main() -> int:
     dm = T.describe_manifold(store, MID)
     try:
         model = build_model(dm)
-        drawn, omitted = _apply_interim_filter(model)   # ruling B′; fails closed on a silent drop
-        model["universes"] = drawn
-        fig = figure_svg(store, model, omitted=omitted)
+        roles = resolve_roles(model)                    # three-universe layout; fails closed on any other shape
+        fig = figure_svg(store, model, roles)
         # FAIL-CLOSED SUBFIELD COMPLETENESS (post-flip defect, 2026-07-19). The wedge's LETTER checked the
         # relates KEY was present (build_model); its SPIRIT — "every declared crossing is ON the figure" —
         # was unenforced, so faces[] shipped to the describe wire and never reached the SVG (the defect this
@@ -630,18 +663,11 @@ def main() -> int:
         print("universe-visual generation FAILED — no semi-additive burn found to teach the hover",
               file=sys.stderr)
         return 1
-    a = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))[0]
     hover_intro = COPY["hover_intro"].format(measure=hover["measure"], stack=hover["stack"])
-    # interim copy (ruling B′): the omission is stated on the figure; the copy block carries it too so
-    # the page can echo it under the figure. When nothing is omitted, the copy is the standard two-universe.
-    copy = {"kicker": COPY["kicker"] + (INTERIM_OMISSION["kicker_suffix"] if omitted else ""),
-            "title": (INTERIM_OMISSION["title"] if omitted else COPY["title"]),
+    copy = {"kicker": COPY["kicker"], "title": COPY["title"], "caption": COPY["caption"],
             "lede": COPY["lede"], "leftout": COPY["leftout"],
             "leftout_spec_route": COPY["leftout_spec_route"],
             "leftout_map_route": COPY["leftout_map_route"]}
-    if omitted:
-        copy["interim_omission"] = INTERIM_OMISSION["caption"]
-        copy["interim_omitted_universes"] = [u["name"] for u in omitted]
     out = {
         "generated_by": f"columna-core {version('columna-core')} / columna-server {version('columna-server')}",
         "manifold": MID,
@@ -650,7 +676,7 @@ def main() -> int:
                   "barred_caption": COPY["hover_barred"].format(stack=hover["stack"]),
                   "travels_caption": COPY["hover_travels"]},
         "copy": copy,
-        "referents": _referents(model, omitted=omitted),
+        "referents": _referents(model, roles),
     }
     json.dump(out, sys.stdout, indent=2, ensure_ascii=False)
     return 0
