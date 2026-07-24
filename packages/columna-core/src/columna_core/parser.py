@@ -30,7 +30,7 @@ from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
                     Ref, Comparison, Predicate, Assert, Hierarchy,
-                    Relate, Face, FACE_SCHEMES, TOUCH)
+                    Relate, Face, FACE_SCHEMES, FACE_ORDERS, TOUCH, ASSIGN)
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
        "ASSERT", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ATTR = standalone universe row-attributes
@@ -220,8 +220,12 @@ def _p_faces(frm: str, to: str, block: str) -> tuple:
     selection + description; license=None); the adjudicator at publish is the SOLE constructor of a
     License. DESCRIPTION is mandatory (the folklore rule — a face must say what the crossing does).
 
-    v1 EXECUTES `touch` only; `assign`/`alloc` are known schemes but declared-but-deferred — they parse-
-    error here so no .cml can silently declare an inert face."""
+    0.12 EXECUTES all three schemes (the triad completes). The selection grammar per scheme:
+      touch  = TOUCH                              (no driver)
+      assign = ASSIGN BY <measure-ref> ORDER MIN|MAX   (ORDER mandatory, no default — ruled)
+      alloc  = ALLOC  BY <measure-ref>            (splits by the normalized driver)
+    `<measure-ref>` is a DECLARED-measure reference, resolved against the manifold at publish (never a
+    physical column). The driver is stored in Face.selection; the ASSIGN direction in Face.order."""
     faces, seen = [], set()
     for line in block.splitlines():        # one face per line (mirror the measure FAMILY); ';' is legal in folklore
         t = line.strip().rstrip(",")
@@ -232,21 +236,43 @@ def _p_faces(frm: str, to: str, block: str) -> tuple:
         fm = re.match(r"(\w+)\s*=\s*(\w+)(?:\s+(.*))?$", t)
         if not fm:
             raise ParseError(f"bad FACE on RELATE {frm}<->{to}: {t!r} "
-                             f"(expected '<name> = <SCHEME> [<selection>] -- \"<folklore>\"')")
-        name, scheme, selection = fm.group(1), fm.group(2).lower(), (fm.group(3) or "").strip()
+                             f"(expected '<name> = <SCHEME> [BY <measure-ref> [ORDER MIN|MAX]] -- \"<folklore>\"')")
+        name, scheme, rest = fm.group(1), fm.group(2).lower(), (fm.group(3) or "").strip()
         if scheme not in FACE_SCHEMES:
             raise ParseError(f"FACE {name} on RELATE {frm}<->{to}: unknown scheme {fm.group(2)!r} "
                              f"(one of {', '.join(x.upper() for x in FACE_SCHEMES)})")
-        if scheme != TOUCH:
-            raise ParseError(f"FACE {name}: scheme {scheme!r} is declared-but-deferred — v1 executes TOUCH "
-                             f"only (assign/alloc are post-launch ledger items)")
+        # per-scheme selection: touch takes none; assign/alloc take a driver measure-ref (BY <ref>);
+        # assign additionally REQUIRES a declared ORDER direction (mandatory, no default — ruled 2026-07-24).
+        driver, order = "", ""
+        if scheme == TOUCH:
+            if rest:
+                raise ParseError(f"FACE {name}: TOUCH takes no driver — write 'touch = TOUCH -- \"...\"'")
+        else:
+            bm = re.match(r"BY\s+(\w+)(?:\s+ORDER\s+(\w+))?\s*$", rest)
+            if not bm:
+                want = "BY <measure-ref> ORDER MIN|MAX" if scheme == ASSIGN else "BY <measure-ref>"
+                raise ParseError(f"FACE {name} ({scheme.upper()}) on RELATE {frm}<->{to}: expected "
+                                 f"'{want}' — got {rest!r}")
+            driver, order_raw = bm.group(1), (bm.group(2) or "").lower()
+            if scheme == ASSIGN:
+                if not order_raw:
+                    raise ParseError(f"FACE {name} (ASSIGN BY {driver}): ORDER is mandatory and has NO "
+                                     f"default — write 'ORDER MIN' (rank-like: smallest wins) or 'ORDER MAX' "
+                                     f"(score-like: largest wins). A silent default would be an unrecorded "
+                                     f"resolution — the precise sin.")
+                if order_raw not in FACE_ORDERS:
+                    raise ParseError(f"FACE {name} (ASSIGN): ORDER must be MIN or MAX, got {bm.group(2)!r}")
+                order = order_raw
+            elif order_raw:  # alloc carries no ORDER — it splits, it does not rank
+                raise ParseError(f"FACE {name} (ALLOC): ORDER does not apply to ALLOC (it splits by weight, "
+                                 f"it does not rank) — write 'ALLOC BY {driver}'")
         if not desc:
             raise ParseError(f"FACE {name} on RELATE {frm}<->{to}: a DESCRIPTION (`-- \"...\"`) is required "
                              f"(the folklore rule) — say what the crossing does")
         if name in seen:
             raise ParseError(f"FACE {name}: declared twice on RELATE {frm}<->{to}")
         seen.add(name)
-        faces.append(Face(name, scheme, description=desc, selection=selection, license=None))
+        faces.append(Face(name, scheme, description=desc, selection=driver, order=order, license=None))
     return tuple(faces)
 
 

@@ -204,11 +204,15 @@ class Assert:
 
 
 # ---- RELATE (the ANTI-EDGE): non-functional (M:N) relationships + their crossing FACES ----------
-# canonical face schemes (the value's DISPOSITION on the trip across an M:N edge). v1 EXECUTES touch
-# only; assign/alloc are declared-but-deferred (post-launch ledger). A face names what the value DOES,
-# never the selection criterion — the criterion lives in the declaration (assign/alloc `= <selection>`).
+# canonical face schemes (the value's DISPOSITION on the trip across an M:N edge). 0.12 EXECUTES all
+# three (the triad completes). A face names what the value DOES, never the selection criterion — the
+# criterion (the driver measure-ref, and for assign the ORDER direction) lives in the declaration.
 TOUCH, ASSIGN, ALLOC = "touch", "assign", "alloc"
 FACE_SCHEMES = (TOUCH, ASSIGN, ALLOC)
+# assign ORDER direction (mandatory on ASSIGN, no default — ruled 2026-07-24): "top" is ambiguous across
+# driver kinds (rank-like → MIN wins; score-like → MAX wins), so the direction is DECLARED, never assumed.
+ORDER_MIN, ORDER_MAX = "min", "max"
+FACE_ORDERS = (ORDER_MIN, ORDER_MAX)
 
 
 @dataclass(frozen=True)
@@ -223,7 +227,8 @@ class Face:
     name: str                             # the addressable face name — the query says <coordinate>.<name>
     scheme: str                           # disposition kind: one of FACE_SCHEMES
     description: str = ""                 # mandatory folklore; flows to describe/relates[].faces[] (additive)
-    selection: str = ""                   # assign/alloc parameter from the declaration (weight col, pick rule); '' for touch
+    selection: str = ""                   # the DRIVER measure-ref for assign/alloc (a declared measure); '' for touch
+    order: str = ""                       # assign ONLY: the declared ORDER direction (one of FACE_ORDERS); '' for touch/alloc
     license: Optional["License"] = None   # basis-license; adjudicator-only at publish. None on parse (closed-by-default).
 
 

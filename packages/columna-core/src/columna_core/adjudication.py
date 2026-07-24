@@ -39,7 +39,8 @@ from typing import Optional
 
 import polars as pl
 
-from .model import License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED
+from .model import (License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
+                    TOUCH, ASSIGN, ORDER_MIN)
 from .operators import REGISTRY
 from .disclosure_wire import code_for, materiality_for
 
@@ -655,20 +656,140 @@ def _prove_basis(basis: str) -> License:
 
 
 # ---- RELATE FACES: the crossing-disposition license (polarity law — closed opens) ----
-def _prove_face(face) -> License:
-    """A crossing FACE is CLOSED by default (the polarity law: `data may suggest walls, never doors`);
-    its License is the door — it OPENS the trip across the non-functional (M:N) edge. Minted only here,
-    at publish (never on parse), mirroring FamilyMember fertility and _prove_basis.
+class FaceContradiction(Contradiction):
+    """A declared crossing FACE whose driver the attested data refutes (a tie at the top for ASSIGN, a
+    zero-sum driver for ALLOC, a missing/non-servable driver, or a dependency cycle). Fails publish
+    closed, naming the offense — same kernel as the fertility/hierarchy/assert channels."""
+    def __init__(self, face_key: str, why: str):
+        self.face_key, self.why = face_key, why
+        # bypass Contradiction's fertility-shaped __init__ (derived/member/lineage/counterexample); keep the
+        # isinstance(., Contradiction) identity so `except Contradiction` catches all four channels.
+        Exception.__init__(self, f"CONTRADICTED: face '{face_key}' — {why}; publish fails closed.")
 
-    v1 mints the TOUCH verdict: membership expansion is EXACT arithmetic — the value reaches every match,
-    there is no partition-of-unity to reconcile (unlike `alloc`) and no canonical pick to test (unlike
-    `assign`), so it is VERIFIED (timeless, symbolic; touches no data). The EVENTS-ONLY restriction is a
-    SERVING law (enforced at resolve, like a basis declaration), not a verdict: on a spine the same
-    expansion would corrupt the grid's own completeness claim."""
-    return _license(VERIFIED, set(),
-        f"touch crossing '{face.name}': membership expansion is exact arithmetic (the value reaches every "
-        f"match; no weights to reconcile) — the license opens the trip. Serving is events-only (spine "
-        f"replication corrupts completeness; refused at resolve until that thinking lands).")
+
+def _face_frontier(m, face, rel) -> str:
+    """The frontier grain the driver is served at — the base level of the driver measure's universe.
+    Must be one of the RELATE's endpoints (the driver lemma: a spine at the frontier grain)."""
+    d = m.measures[face.selection]
+    return next(iter(m.universes[d.universe].base_dimensions))
+
+
+def _prove_face(face, rel, server, m) -> License:
+    """A crossing FACE is CLOSED by default (the polarity law); its License is the door — it OPENS the
+    trip across the non-functional (M:N) edge. Minted only here, at publish, per scheme:
+
+    · touch  — VERIFIED (timeless, symbolic; touches no data): membership expansion is exact arithmetic.
+    · assign — CORROBORATED (touches data): the driver is servable at the frontier grain, present for
+               every member, and yields a UNIQUE TOP per member set (no tie-at-top). A tie fails closed.
+    · alloc  — CORROBORATED: the driver is non-negative and every member's driver-sum is strictly
+               positive (a zero-sum member = undefined split). A violation fails closed.
+    The EVENTS-ONLY restriction is a SERVING law (enforced at resolve), not a verdict."""
+    key = f"{rel.frm}<->{rel.to}.{face.name}"
+    if face.scheme == TOUCH:
+        return _license(VERIFIED, set(),
+            f"touch crossing '{face.name}': membership expansion is exact arithmetic (the value reaches "
+            f"every match; no weights to reconcile). Serving is events-only (spine replication corrupts "
+            f"completeness; refused at resolve).")
+    # assign / alloc — the driver must be a declared, servable measure at the frontier grain.
+    if face.selection not in m.measures:
+        raise FaceContradiction(key, f"{face.scheme.upper()} driver '{face.selection}' is not a declared measure")
+    d_uni = m.universes[m.measures[face.selection].universe]
+    if d_uni.basis is not None and d_uni.basis != "spine":
+        # the driver lemma + the acyclicity object (notes §4): a lawful driver is a SPINE at the frontier
+        # grain. An events-derived driver ("allocate by last year's revenue share") is lawful ONLY once
+        # served and FROZEN as a spine — derived-then-recorded. A raw events measure used as a driver is
+        # the un-frozen dependency the acyclicity law forbids; fail closed here where it is concrete.
+        raise FaceContradiction(key, f"{face.scheme.upper()} driver '{face.selection}' lives on a "
+                                     f"'{d_uni.basis}' universe — a driver must be a SPINE at the frontier "
+                                     f"grain. An events-derived driver must first be served and frozen as a "
+                                     f"spine (derived-then-recorded); a raw events measure has no single "
+                                     f"value per member to rank or weight.")
+    frontier = _face_frontier(m, face, rel)
+    if frontier not in (rel.frm, rel.to):
+        raise FaceContradiction(key, f"driver '{face.selection}' lives at '{frontier}', not a frontier grain "
+                                     f"of {rel.frm}<->{rel.to} (the driver lemma: a spine at the frontier)")
+    eng = server.engine
+    try:
+        driver = eng._serve_driver(face, frontier)                     # [frontier, _drv]
+    except Exception as e:
+        raise FaceContradiction(key, f"driver '{face.selection}' is not servable at '{frontier}': {e}")
+    if frontier == rel.to:
+        bridge = eng.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)   # _frm=frm, _to=to(frontier)
+    else:
+        bridge = eng.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
+    b = bridge.join(driver.rename({frontier: "_to"}), on="_to", how="inner")            # _frm, _to, _drv
+    member_side = rel.frm if frontier == rel.to else rel.to
+    attest = _attest_tables(eng.con, [m.measures[face.selection].home_table, rel.via_table])
+    if face.scheme == ASSIGN:
+        asc = (face.order == ORDER_MIN)
+        top = b.group_by("_frm").agg((pl.col("_drv").min() if asc else pl.col("_drv").max()).alias("_top"))
+        tied = (b.join(top, on="_frm").filter(pl.col("_drv") == pl.col("_top"))
+                 .group_by("_frm").agg(pl.col("_to"), pl.len().alias("_n")).filter(pl.col("_n") > 1))
+        if tied.height:
+            ex = tied.head(3).iter_rows(named=True)
+            detail = "; ".join(f"{member_side} {r['_frm']}: tied {sorted(r['_to'])}" for r in ex)
+            raise FaceContradiction(key, f"ASSIGN ORDER {face.order} on '{face.selection}' has a tie at the top "
+                                         f"for {tied.height} {member_side} — no unique designation: {detail}")
+        return _license(CORROBORATED, {face.selection}, attestation=attest,
+            basis=f"assign crossing '{face.name}': driver '{face.selection}' yields a unique ORDER {face.order} "
+                  f"top per {member_side} (single-count preserves mass; the shadow is disclosed).")
+    # alloc
+    neg = b.filter(pl.col("_drv") < 0)
+    if neg.height:
+        raise FaceContradiction(key, f"ALLOC driver '{face.selection}' is negative for {neg.height} "
+                                     f"membership(s) (e.g. {rel.to} {neg['_to'][0]}) — a weight cannot be negative")
+    zero = b.group_by("_frm").agg(pl.col("_drv").sum().alias("_s")).filter(pl.col("_s") <= 0)
+    if zero.height:
+        raise FaceContradiction(key, f"ALLOC driver '{face.selection}' sums to zero for {zero.height} "
+                                     f"{member_side} (e.g. {zero['_frm'][0]}) — an all-zero driver is an "
+                                     f"undefined split; declare a positive raw driver")
+    return _license(CORROBORATED, {face.selection}, attestation=attest,
+        basis=f"alloc crossing '{face.name}': driver '{face.selection}' is non-negative with a strictly "
+              f"positive sum per {member_side} (splitting preserves mass; the badge certifies it).")
+
+
+def _prove_faces_acyclic(server, m) -> None:
+    """The acyclicity law (notes §4): the dependency graph {face → its driver measure → that measure's
+    universe → any faces serving it would require} must be a DAG. A lawful driver is a spine at the
+    frontier grain (native or functionally reachable), so it requires NO crossing — the graph is edgeless
+    and trivially acyclic. An edge appears only for an events-derived driver NOT frozen as a spine (it
+    could reach the frontier only by crossing a face), which can cycle. Fails publish closed, cycle named."""
+    faces = {f"{r.frm}<->{r.to}.{f.name}": (r, f) for r in m.non_functional for f in r.faces if f.selection}
+    edges = {k: set() for k in faces}
+    for k, (r, f) in faces.items():
+        d = m.measures.get(f.selection)
+        if d is None:
+            continue
+        d_base = set(m.universes[d.universe].base_dimensions)
+        frontier = _face_frontier(m, f, r)
+        # native or functionally reachable ⇒ no crossing ⇒ no edge (the driver lemma, the v1 case).
+        if frontier in d_base or m.find_path(d_base, frontier) is not None:
+            continue
+        # else the driver could only reach the frontier by crossing a face ⇒ edge to every face on a
+        # relate touching the frontier (that crossing is REQUIRED to serve this driver).
+        for k2, (r2, f2) in faces.items():
+            if frontier in (r2.frm, r2.to):
+                edges[k].add(k2)
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = {k: WHITE for k in faces}
+    def dfs(u, stack):
+        color[u] = GRAY
+        for v in edges[u]:
+            if color[v] == GRAY:
+                return stack[stack.index(v):] + [v]
+            if color[v] == WHITE:
+                r = dfs(v, stack + [v])
+                if r:
+                    return r
+        color[u] = BLACK
+        return None
+    for k in faces:
+        if color[k] == WHITE:
+            cyc = dfs(k, [k])
+            if cyc:
+                raise FaceContradiction(cyc[0], "the face-driver dependency graph has a CYCLE: "
+                                        + " → ".join(cyc) + " (an events-derived driver must first be "
+                                        "frozen as a spine at the frontier grain — derived-then-recorded)")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -763,10 +884,11 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
     # The parser records faces with license=None; the adjudicator is the sole constructor (kernel reuse,
     # same as fertility/basis). Ship-dark: a manifold declaring no faces (Cascadia) adds nothing.
     if any(r.faces for r in m.non_functional):
+        _prove_faces_acyclic(server, m)          # the DAG law first — a cycle fails before any per-face proof
         fv, new_nf = {}, []
         for r in m.non_functional:
             if r.faces:
-                faces = tuple(replace(f, license=_prove_face(f)) for f in r.faces)
+                faces = tuple(replace(f, license=_prove_face(f, r, server, m)) for f in r.faces)
                 r = replace(r, faces=faces)
                 for f in faces:
                     fv[f"{r.frm}<->{r.to}.{f.name}"] = f.license.verdict
