@@ -56,10 +56,8 @@ MEASURE units_sold ON transaction FROM transactions AS sum(units)   -- "units so
 MEASURE units_returned ON transaction FROM transactions AS sum(units_returned)
     -- "units returned; nulls predate returns tracking and count as no return"
 
-MEASURE priority ON category_profile FROM category_attributes VALUE priority FAMILY { last ORDER category }
-    -- "the category's rank driver (distinct 1..12); the ASSIGN face crosses by it, ORDER MIN = top rank"
-MEASURE alloc_weight ON category_profile FROM category_attributes VALUE alloc_weight FAMILY { last ORDER category }
-    -- "the category's allocation weight (a raw, un-normalized driver); the ALLOC face splits by it, normalized per product"
+MEASURE priority ON category_profile FROM category_attributes VALUE priority   -- "the category's assignment rank — 1 ranks first; drives the primary face"   FAMILY { last ORDER category }
+MEASURE alloc_weight ON category_profile FROM category_attributes VALUE alloc_weight   -- "the category's relative allocation weight — normalized per product at the crossing; drives the split face"   FAMILY { last ORDER category }
 
 MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level snapshot"
     FAMILY {
