@@ -70,8 +70,9 @@ def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
     # purpose — an agent sees the disposition from the source of truth before spending the query).
     assert set(rel) == {"frm", "to", "note", "faces"}                        # logical names + note + faces, only
     face = next(f for f in rel["faces"] if f["name"] == "touch")
-    assert set(face) == {"name", "scheme", "description"}                    # logical face fields only — NO license, NO VIA
+    assert set(face) == {"name", "scheme", "description", "driver"}          # logical face fields only — NO license, NO VIA
     assert face["scheme"] == "touch"
+    assert face["driver"] is None                                            # touch carries no driver (additive; null for touch)
     assert face["description"] == ("revenue reaches every category a product sits in — deliberately "
                                    "multi-counted; totals exceed the grand total")   # ratified text, verbatim
     assert rel["note"] == "a product belongs to up to 3 categories"          # the NOTE rides verbatim

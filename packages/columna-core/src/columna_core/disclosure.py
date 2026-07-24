@@ -38,6 +38,11 @@ DATA_GAP = "data_gap"            # served, material: absent cells are GAPS (spin
 OVER_COUNT = "over_count"        # served, MATERIAL: a touch-face crossing multi-counts by construction —
                                  # the value reaches every match of an M:N edge, so totals deliberately
                                  # exceed the grand total. Drives DISCLOSE (the honest over-count is the point).
+SHADOW = "shadow"                # served, MATERIAL: an ASSIGN-face crossing single-counts (top pick per
+                                 # member) so the total reconciles to the grand total, but the memberships
+                                 # NOT picked are unrepresented — the shadow. Drives DISCLOSE (the honest drop).
+RECONCILIATION = "reconciliation"  # served: an ALLOC-face crossing splits by the normalized driver — the
+                                 # commutation certificate (crossed_total vs base_total, delta, status).
 
 # ---- the four planner outcomes, plus error (ADR-032) ------------------------------------
 # serve / disclose are carried by a served frame + Disclosure; clarify / refuse / error are
@@ -63,6 +68,8 @@ class Caveat:
     source: Optional[str] = None
     severity: str = "info"
     remedy: Optional[str] = None
+    shadow: Optional[int] = None          # ASSIGN faces: memberships_unrepresented (the shadow count) -> wire
+    reconciliation: Optional[tuple] = None  # ALLOC faces: the badge as (k,v) pairs (hashable) -> wire dict
 
     def render(self) -> str:
         if self.category == APPROXIMATION and self.rel_error is not None:

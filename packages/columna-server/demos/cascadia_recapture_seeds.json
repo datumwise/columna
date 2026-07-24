@@ -91,7 +91,9 @@
         }
       ],
       "menu": [
-        "category.touch — revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total"
+        "category.touch — revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total",
+        "category.primary — revenue will be assigned to each product's top-priority category — single-counted; secondary memberships are not represented; totals match the grand total",
+        "category.split — revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights — totals reconcile to the grand total"
       ],
       "row_count": null,
       "reason_tokens": [
@@ -173,6 +175,44 @@
       "reason_tokens": [
         "over_count",
         "transport"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E11",
+      "caption": "Revenue by category, single-counted to each product's top priority (the shadow stated)",
+      "query": "SELECT revenue AT {category.primary}",
+      "kind": "query",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "shadow",
+          "severity": "caution",
+          "detail": "single-counted to each product's ORDER min priority category: 270 memberships unrepresented (the shadow). revenue will be assigned to each product's top-priority category — single-counted; secondary memberships are not represented; totals match the grand total"
+        }
+      ],
+      "row_count": 12,
+      "reason_tokens": [
+        "shadow"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E12",
+      "caption": "Revenue by category, split by declared weight (reconciled to the cent)",
+      "query": "SELECT revenue AT {category.split}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [
+        {
+          "token": "reconciliation",
+          "severity": "info",
+          "detail": "allocated by normalized alloc_weight: crossed total 2212391.86 reconciles to the grand total 2212391.86 (delta 0.0000). revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights — totals reconcile to the grand total"
+        }
+      ],
+      "row_count": 12,
+      "reason_tokens": [
+        "reconciliation"
       ],
       "in_wheel": false
     }

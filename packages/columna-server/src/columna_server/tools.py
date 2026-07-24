@@ -100,7 +100,8 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     # Logical name + scheme + folklore ONLY — the VIA bridge is MAP-LAYER (engine-visible, never here);
     # the §2b insulation test asserts VIA stays off-wire. contract_version stays "1" (additive).
     relates = [{"frm": r.frm, "to": r.to, "note": r.detail,
-                "faces": [{"name": f.name, "scheme": f.scheme, "description": f.description}
+                "faces": [{"name": f.name, "scheme": f.scheme, "description": f.description,
+                           "driver": f.selection or None}          # the driver measure-ref; null for touch (additive)
                           for f in r.faces]}
                for r in m.non_functional]
     # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
