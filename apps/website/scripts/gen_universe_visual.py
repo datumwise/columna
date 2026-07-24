@@ -38,18 +38,25 @@ VERDICT_COLOR = {"corroborated": SERVE, "verified": VERIFIED, "disclose": DISCLO
                  "contradicted": REFUSE, "untestable": UNTEST}
 VERDICT_BG = {"corroborated": SERVE_BG, "verified": "#eef1fb", "untestable": UNTEST_BG}
 
-# ── ratified CAPTIONS (Huayin, design gate 2026-07-19). PROSE only — never element labels. ──
+# ── ratified CAPTIONS. PROSE only — never element labels. The main caption is the THREE-UNIVERSE
+#    redesign (founder's ruling, Huayin 2026-07-24): multi-universe is foundational, so all three
+#    universes get identical first-class treatment; the edge grammar (solid = functional M:1, dotted =
+#    the product↔category frontier) carries the entire distinction, and the three faces ride ON the
+#    dotted edge as the licensed passages that govern it. Caption is DRAFT until Huayin's word. ──
 COPY = {
     "kicker": "THE UNIVERSE VISUAL · FIGURE 1",
-    "title": "Cascadia — two universes",
-    "lede": ("Universe-first: each population is a box holding its grain (the floor), its reachable "
-             "stacks, and its metric families. Boxes overlap where they share dimensions; the shared "
-             "stacks are drawn once. Every badge is pinned to a real verdict. Labels are verbatim "
-             "from describe."),
-    "overlap_suffix": "— the overlap IS the shared atlas",
+    "title": "Cascadia — three universes",
+    # DRAFT caption (Huayin ratifies with his word) — verbatim from the founder's ruling.
+    "caption": ("Cascadia's manifold: three universes — transaction (events), inventory (spine), and "
+                "category_profile (spine), whose measures license the category crossing. Solid edges "
+                "are functional paths; the dotted edge is the product↔category frontier, crossable "
+                "only through its three declared faces."),
+    "lede": ("Universe-first, and multi-universe as foundational: each population is a first-class "
+             "block holding its basis and its metric families. The edges carry the distinction — solid "
+             "hops are functional (many-to-one) paths; the one dotted edge is the product↔category "
+             "frontier, crossed only through its three declared faces. Labels are verbatim from describe."),
     "fork_note": "weeks don't nest — the fork",
-    "floor_events": "solid floor = events",
-    "floor_spine": "hatched floor = spine (can have gaps)",
+    "frontier_note": "product ↔ category — the frontier (non-functional; M:N)",
     "hover_intro": ("The hover, shown as a static pair (in the shipped visual, hovering a family "
                     "member paints the stacks by traversability — CSS-only, no JS). Here the "
                     "first burn, taught: the same {measure} over the same {stack} stack, two members."),
@@ -62,35 +69,14 @@ COPY = {
                 "caption links the Manifold spec and the physical→logical map."),
     "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
     "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
-    "legend": [("swatch", SERVE, "✓ corroborated hop / travels (serve)"),
-               ("box", UNTEST_BG, "untestable basis (honest)"),
-               ("dash", REFUSE, "RELATE — non-functional; crossed only by a declared face"),
-               ("spine", None, "spine floor (gaps possible)")],
+    "legend": [("swatch", SERVE, "✓ functional hop (M:1, serve)"),
+               ("box", UNTEST_BG, "untestable basis"),
+               ("dash", REFUSE, "the product↔category frontier"),
+               ("chip", REFUSE, "a declared face + its driver")],
 }
 
 # describe basis kinds this generator knows how to render. Anything else => fail closed.
 KNOWN_BASIS = {"events", "spine"}
-
-# ── INTERIM two-universe filter (RED 2, ruling B′, Huayin 2026-07-24). 0.12 adds a THIRD universe
-#    (category_profile, the driver spine behind the category faces); the figure layout is still taught
-#    for exactly two. A BARE filter would defeat the fail-closed wedge from the inside — silently
-#    omitting a declared universe draws a confident wrong picture of the manifold. So the interim draws
-#    the two universes it can AND STATES the omission ON THE FIGURE via the ratified caption below. The
-#    interim figure is then true: incomplete and saying so. Replaced by the multi-universe redesign.
-#    Guards (in _apply_interim_filter): (1) the omitted universe must be ISOLATED from the drawn pair —
-#    an omitted universe sharing a dimension would hide a real overlap → fail closed; (2) the wire's
-#    actual omitted set must EQUAL what this caption declares — else the figure would misstate what's
-#    missing → fail closed (the caption cannot drift from describe). The omitted universe's NAME is read
-#    verbatim off the wire; only the CAPTION prose is ratified human copy.
-INTERIM_OMISSION = {
-    "omitted": ["category_profile"],   # the universe(s) the ratified caption declares omitted (0.12)
-    "title": "Cascadia — two population universes",
-    "kicker_suffix": " · INTERIM",
-    "caption": ("Figure 1 shows Cascadia's two population universes — transaction and inventory. "
-                "The third, category_profile (the driver spine behind the category faces), joins "
-                "the picture with the multi-universe redesign."),
-    "band_tag": "DISCLOSE · INTERIM — one universe omitted, stated",
-}
 
 
 def esc(s) -> str:
@@ -178,205 +164,213 @@ def build_model(dm):
             "derived": derived, "relates": relates, "edges": dm["edges"]}
 
 
-def _apply_interim_filter(model):
-    """RED 2 ruling B′ (Huayin 2026-07-24): the two-universe layout meets a three-universe manifold.
-
-    Draw the two universes that form the taught overlap; DISCLOSE the rest by name. Returns
-    (drawn_pair, omitted_universes). Fails closed rather than drawing a silent, confident wrong picture:
-      • exactly one overlapping pair must exist (the redesign teaches anything richer),
-      • every omitted universe must be ISOLATED from the drawn pair (no dropped overlap),
-      • the wire's omitted set must EQUAL what the ratified caption declares (no caption drift).
+def resolve_roles(model):
+    """THREE-UNIVERSE redesign (founder's ruling, Huayin 2026-07-24). Identify each universe's role from
+    the wire — never by name — so the figure is auto-true, and FAIL CLOSED on anything the layout is not
+    taught. The layout is taught for exactly: three universes, one M:N frontier relate, whose `frm` and
+    `to` levels are the base of two DISTINCT universes; the third universe is functionally linked (shares
+    a base dim) to the frontier's home. Roles:
+      • home    — the universe whose base holds the frontier's `frm` (product) level;
+      • profile — the universe whose base holds the frontier's `to` (category) level; its measures drive faces;
+      • third   — the remaining universe (inventory), functionally sharing base dims with home.
+    Every face driver (if present) must be a measure of the profile universe (subfield completeness —
+    a driver on the wire the figure can't ground fails the deploy).
     """
     us = model["universes"]
-    if len(us) <= 2:
-        return us, []
+    if len(us) != 3:
+        raise Fail(f"the figure is taught for exactly three universes; got {len(us)} — teach the layout")
+    relates = model["relates"]
+    if len(relates) != 1:
+        raise Fail(f"the figure is taught for exactly one frontier relate; got {len(relates)} — teach it")
+    r = relates[0]
 
-    def shared(a, b):
-        return set(a["base_dimensions"]) & set(b["base_dimensions"])
+    def base_of(level):
+        found = [u for u in us if level in u["base_dimensions"]]
+        return found[0] if len(found) == 1 else None
 
-    pairs = [(a, b) for i, a in enumerate(us) for b in us[i + 1:] if shared(a, b)]
-    if len(pairs) != 1:
-        raise Fail(f"interim two-universe filter is taught for exactly one overlapping pair; found "
-                   f"{len(pairs)} — the multi-universe redesign must teach the real layout")
-    a, b = pairs[0]
-    omitted = [u for u in us if u is not a and u is not b]
-    for u in omitted:
-        if shared(u, a) or shared(u, b):
-            raise Fail(f"omitted universe {u['name']!r} shares a dimension with the drawn pair — a "
-                       f"silent filter would hide a real overlap; teach the layout, don't drop it")
-    declared = set(INTERIM_OMISSION["omitted"])
-    actual = {u["name"] for u in omitted}
-    if actual != declared:
-        raise Fail(f"interim omission caption declares {sorted(declared)} but the wire omits "
-                   f"{sorted(actual)} — the figure would misstate what's missing; re-ratify the caption")
-    return [a, b], omitted
+    home = base_of(r["frm"])
+    profile = base_of(r["to"])
+    if home is None or profile is None:
+        raise Fail(f"frontier {r['frm']}->{r['to']} does not resolve to exactly one home + one profile "
+                   f"universe — teach the layout")
+    if home is profile:
+        raise Fail(f"frontier {r['frm']}->{r['to']} lands both ends in one universe — not a crossing")
+    others = [u for u in us if u is not home and u is not profile]
+    if len(others) != 1:
+        raise Fail("the figure is taught for exactly one third (functional) universe — teach the layout")
+    third = others[0]
+    if not (set(third["base_dimensions"]) & set(home["base_dimensions"])):
+        raise Fail(f"third universe {third['name']!r} shares no base dimension with the home universe — "
+                   f"the taught layout expects a functional link; teach it")
+    # every declared face driver must be a measure of the profile universe (subfield completeness)
+    profile_measures = {m["name"] for m in model["measures"] if m["universe"] == profile["name"]}
+    for f in r.get("faces", []):
+        d = f.get("driver")
+        if d is not None and d not in profile_measures:
+            raise Fail(f"face {f['name']!r} names driver {d!r}, not a measure of the profile universe "
+                       f"{profile['name']!r} — the figure cannot ground it (subfield-completeness wedge)")
+    return {"home": home, "profile": profile, "third": third, "relate": r}
 
 
-# ───────────────────────────── the main figure ─────────────────────────────
-def figure_svg(store, model, omitted=()):
-    """Compose the two-universe figure from the model. Two-universe horizontal overlap layout.
+# ───────────────────────────── the main figure (three universes) ─────────────────────────────
+def figure_svg(store, model, roles):
+    """Compose the THREE-UNIVERSE figure (founder's ruling, Huayin 2026-07-24): multi-universe is
+    foundational, so all three universes get identical first-class treatment (solid-bordered cards).
+    The EDGE GRAMMAR carries the entire distinction — solid = corroborated functional (M:1) hops; the
+    single DOTTED edge = the product<->category frontier, crossed only by its three declared FACES,
+    drawn as chips ON the edge. DRIVER ARROWS run from the profile universe's measures into the faces
+    they power. Labels verbatim from describe; the caption is ratified prose (rendered by the page)."""
+    home, profile, third = roles["home"], roles["profile"], roles["third"]
+    r = roles["relate"]
+    faces = r.get("faces", [])
 
-    `omitted` (interim, ruling B′): universes the shipped manifold declares but this two-universe
-    layout cannot yet draw. They are DISCLOSED on the figure — a dashed ghost block per omitted
-    universe plus the ratified caption band — never silently dropped.
-    """
-    us = model["universes"]
-    if len(us) != 2:
-        raise Fail(f"the figure layout is taught for exactly two universes; got {len(us)} — teach it")
-    # order: the wider-grained universe on the left (more base dims), the other overlapping right
-    a, b = sorted(us, key=lambda u: -len(u["base_dimensions"]))
-    a_dims, b_dims = list(a["base_dimensions"]), list(b["base_dimensions"])
-    shared = [d for d in a_dims if d in b_dims]
-    a_only = [d for d in a_dims if d not in shared]
-    b_only = [d for d in b_dims if d not in shared]
-
-    W, H = 1060, (676 if omitted else 600)   # interim: taller to seat the disclosed-omission band
-    omit_label = (" — " + esc(", ".join(u["name"] for u in omitted)) + " disclosed, not drawn"
-                  if omitted else "")
+    W, H = 1180, 772
     parts = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" '
-             f'aria-label="{esc(a["name"])} and {esc(b["name"])} universes, overlapping on '
-             f'{esc(" and ".join(shared))}{omit_label}">']
-    # defs: spine hatch + dash marker
+             f'aria-label="Cascadia manifold, three first-class universes {esc(home["name"])}, '
+             f'{esc(third["name"])}, {esc(profile["name"])}; solid functional edges and the dotted '
+             f'{esc(r["frm"])} to {esc(r["to"])} frontier crossed by declared faces '
+             f'{esc(", ".join(f["name"] for f in faces))}">']
     parts.append(
         '<defs>'
-        '<pattern id="spine" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
-        f'<rect width="8" height="8" fill="{PAPER}"/><line x1="0" y1="0" x2="0" y2="8" stroke="#d9d3c6" stroke-width="1"/>'
-        '</pattern>'
-        f'<marker id="dash" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">'
-        f'<path d="M0,0 L6,3.5 L0,7" fill="none" stroke="{REFUSE}" stroke-width="1"/></marker>'
+        f'<marker id="dhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">'
+        f'<path d="M0,1 L8,4.5 L0,8 Z" fill="{VERIFIED}"/></marker>'
         '</defs>')
 
-    # ── box geometry (2-universe template: A left, B overlapping right) ──
-    ax, aw = 34, 620
-    bx, bw = 470, 536
-    ov_x, ov_w = bx, (ax + aw) - bx     # the overlap = where the two boxes cross
-    parts.append(_rect(ax, 70, aw, 486, rx=14, fill=PAPER, stroke=RULE, sw=1.5))
-    parts.append(_rect(bx, 118, bw, 438, rx=14, fill=PAPER, stroke=RULE, sw=1.5))
-    parts.append(_rect(ov_x, 118, ov_w, 438, fill="#f4f1ea", opacity=".7"))
+    CARD_Y, CARD_H = 44, 300
+    home_x, home_w = 32, 372
+    third_x, third_w = 428, 270
+    prof_x, prof_w = 740, 300
 
-    # ── box A header ──
-    parts.append(_t(52, 98, esc(a["name"]), 18, INK, weight=700))
-    parts.append(_t(176, 98, f'BASIS {esc(a["basis"])}', 12.5, SUB, cls="mono"))
-    parts.append(_rect(284, 82, 86, 20, rx=10, fill=UNTEST_BG))
-    parts.append(_t(327, 96, "untestable", 11, UNTEST, anchor="middle", cls="tag"))
-    parts.append(_t(52, 116, esc(_absence_short(a)), 11.5, FAINT))
+    def _mline(x, yy, m):
+        return (_t(x, yy, esc(m["name"]) + " ", 13, INK, cls="mono")
+                + _t(x + _tw(m["name"]) + 8, yy, f'[{esc(" · ".join(m["family"]))}]', 13, FAINT, cls="mono"))
 
-    # ── box B header (stacked vertically in the clear zone, right of the overlap) ──
-    bcx = 852
-    parts.append(_rect(bcx - 43, 120, 86, 20, rx=10, fill=UNTEST_BG))
-    parts.append(_t(bcx, 134, "untestable", 11, UNTEST, anchor="middle", cls="tag"))
-    parts.append(_t(bcx, 166, esc(b["name"]), 18, INK, weight=700, anchor="middle"))
-    parts.append(_t(bcx, 186, f'BASIS {esc(b["basis"])}', 12.5, SUB, anchor="middle", cls="mono"))
-    parts.append(_t(bcx, 203, esc(_absence_short(b)), 11.5, FAINT, anchor="middle"))
+    def _card(u, x, w, drivers=False):
+        g = [f'<g data-ref="universe-{esc(u["name"])}">']
+        g.append(_rect(x, CARD_Y, w, CARD_H, rx=14, fill=PAPER, stroke=RULE, sw=1.7))   # solid = first-class
+        g.append(_t(x + 18, CARD_Y + 30, esc(u["name"]), 18, INK, weight=700))
+        g.append(_t(x + 18, CARD_Y + 48, f'BASIS {esc(u["basis"])}', 12, SUB, cls="mono"))
+        g.append(_rect(x + w - 90, CARD_Y + 14, 76, 19, rx=10, fill=UNTEST_BG))
+        g.append(_t(x + w - 52, CARD_Y + 27, "untestable", 10.5, UNTEST, anchor="middle", cls="tag"))
+        absc = _absence_short(u)
+        if absc:
+            g.append(_t(x + 18, CARD_Y + 66, esc(absc), 11, FAINT))
+        g.append(_t(x + 18, CARD_Y + 82, "base " + esc(" · ".join(u["base_dimensions"])), 10.5, FAINT, cls="mono"))
+        if u.get("predicate"):
+            g.append(_t(x + 18, CARD_Y + 98, "carve " + esc(u["predicate"]), 10.5, SUB, cls="mono"))
+        ms = [m for m in model["measures"] if m["universe"] == u["name"]]
+        my = CARD_Y + 122
+        g.append(_t(x + 18, my, "MEASURE" + ("S" if len(ms) != 1 else ""), 11, SUB, cls="tag"))
+        anchors = {}
+        my += 24
+        for m in ms:
+            g.append(_mline(x + 18, my, m))
+            if drivers:
+                anchors[m["name"]] = (x + 18 + _tw(m["name"] + " ") + _tw(" · ".join(m["family"])) + 30, my - 4)
+            my += 24
+        if _is_semi_additive(store, u, model):
+            g.append(_t(x + 18, my + 4, "semi-additive — sum barred over", 10.5, FAINT))
+            g.append(_t(x + 18, my + 17, "calendar; last travels (see below)", 10.5, FAINT))
+            my += 30
+        # home: the corroborated ASSERT chip, seated at the card foot
+        for asrt in model["asserts"]:
+            if asrt["universe"] != u["name"]:
+                continue
+            v = (asrt.get("license") or {}).get("verdict")
+            g.append(_plaque(x + 18, CARD_Y + CARD_H - 40, asrt, v))
+        g.append('</g>')
+        return g, anchors
 
-    # ── floor = grain ──
-    floor_y = 500
-    floor_cx = {}                                          # base level -> its floor block centre
-    for i, dim in enumerate(a_only):                       # A-only base blocks (box A lower-left)
-        x = 58 + i * 128
-        floor_cx[dim] = x + 48
-        parts.append(_rect(x, floor_y, 96, 30, rx=5, fill=PAPER, stroke=RULE, sw=1.2))
-        parts.append(_t(x + 48, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
-    # shared base blocks in the overlap, ordered so the taller/forked stack sits on the RIGHT
-    order = sorted(shared, key=lambda d: _stack_height(model["hierarchies"], d))
-    sh_slots = {}
-    for i, dim in enumerate(order):
-        x = 480 + i * 86
-        sh_slots[dim] = floor_cx[dim] = x + 36
-        parts.append(_rect(x, floor_y, 72, 30, rx=5, fill=PAPER, stroke=INK, sw=1.4))
-        parts.append(_t(x + 36, floor_y + 19, esc(dim), 12, INK, anchor="middle", cls="mono"))
+    g_home, _ = _card(home, home_x, home_w)
+    g_third, _ = _card(third, third_x, third_w)
+    g_prof, driver_anchor = _card(profile, prof_x, prof_w, drivers=True)
+    parts += g_home + g_third + g_prof
 
-    # floor bar + basis textures (A + overlap solid = events; B-only span hatched = spine)
-    parts.append(_rect(46, 546, 608, 6, fill=INK, opacity=".5"))
-    parts.append(_rect(654, 546, 352, 6, fill="url(#spine)", stroke="#d9d3c6", sw=1))
-    parts.append(_t(46, 568, COPY["floor_events"], 10, FAINT))
-    parts.append(_t(1006, 568, COPY["floor_spine"], 10, FAINT, anchor="end"))
-    if b.get("predicate"):                                 # carve clamp-note on the spine box's floor
-        cx = 812
-        parts.append(_rect(cx, 484, 182, 30, rx=6, fill=PAPER, stroke=RULE, sw=1))
-        parts.append(_t(cx + 91, 498, "carve (spine)", 10.5, SUB, anchor="middle"))
-        parts.append(_t(cx + 91, 510, esc(b["predicate"]), 10.5, INK, anchor="middle", cls="mono"))
+    # ── the ATLAS: base levels + solid functional (M:1) stacks + the dotted frontier ──
+    FRONTIER_Y = 396
+    BASE_Y = 488
+    floor_cx = {}
 
-    # ── the overlap label + the shared stacks (drawn once) ──
-    ov_lineages = " · ".join(h["lineage"] for h in model["hierarchies"]
-                             if h["chain"] and h["chain"][0] in shared)
-    parts.append(_t(480, 222, f'{esc(ov_lineages)} {COPY["overlap_suffix"]}', 11.5, FAINT))
-    parts.append(_stacks(model["hierarchies"], sh_slots, floor_y))
+    frm_cx, to_cx = 250, 980
+    for lvl, cx in ((r["frm"], frm_cx), (r["to"], to_cx)):
+        floor_cx[lvl] = cx
+        parts.append(_level_block(cx, FRONTIER_Y - 15, lvl, w=104, h=30, stroke=INK))
 
-    # ── metric families, homed per universe; box A's plaque + RELATE stack below its families ──
-    fam_a, end_a = _families(store, a, model, 52, 150)
-    parts.append(fam_a)
-    fam_b, _ = _families(store, b, model, 724, 246, right=True)
-    parts.append(fam_b)
+    shared_dims = [d for d in home["base_dimensions"]
+                   if d in third["base_dimensions"] and d not in (r["frm"], r["to"])]
+    own_dims = [d for d in home["base_dimensions"]
+                if d not in shared_dims and d not in (r["frm"], r["to"])]
+    x = 110
+    for d in own_dims:
+        floor_cx[d] = x
+        parts.append(_level_block(x, BASE_Y, d, w=96, h=30))
+        x += 118
+    if shared_dims:
+        sh_x0 = 392
+        parts.append(_t(sh_x0, BASE_Y - 16, "shared · " + esc(home["name"]) + " + " + esc(third["name"]),
+                        10, FAINT))
+        for i, d in enumerate(shared_dims):
+            cx = sh_x0 + 42 + i * 132
+            floor_cx[d] = cx
+            parts.append(_level_block(cx, BASE_Y, d, w=96, h=30, stroke=INK))
 
-    plaque_bottom = 150
-    for asrt in model["asserts"]:                          # asserts plaque(s), homed in box A
-        if asrt["universe"] != a["name"]:
+    # solid functional stacks (corroborated ✓) descending from each rooted base level
+    PITCH, RH, RW = 68, 28, 90
+    for h in model["hierarchies"]:
+        chain = h.get("chain") or []
+        base = chain[0] if chain else None
+        if base not in floor_cx:
             continue
-        v = (asrt.get("license") or {}).get("verdict")
-        py = end_a + 14
-        parts.append(_plaque(52, py, asrt, v))
-        plaque_bottom = py + 34
+        v = (h.get("license") or {}).get("verdict")
+        color = VERDICT_COLOR.get(v, SERVE)
+        cx = floor_cx[base]
+        prev = BASE_Y + 30
+        for i, lvl in enumerate(chain[1:]):
+            by = BASE_Y + (i + 1) * PITCH
+            parts.append(_line(cx, prev, cx, by, stroke=color, sw=1.6))
+            parts.append(_check(cx - 48, (prev + by) / 2, color))
+            parts.append(_level_block(cx, by, lvl, w=RW))
+            prev = by + RH
+        for path in h.get("paths", []):
+            if path == chain or len(path) < 2 or path[0] != base:
+                continue
+            fx = cx - 128
+            for j, lvl in enumerate(path[1:]):
+                fy = BASE_Y + (j + 1) * PITCH
+                parts.append(_line(cx - RW / 2 + 6, BASE_Y + 34, fx + 40, fy + RH / 2, stroke=color, sw=1.3))
+                parts.append(_level_block(fx, fy, lvl, w=84))
+            parts.append(_t(fx, BASE_Y + PITCH + 46, COPY["fork_note"], 9.5, FAINT, anchor="middle"))
 
-    # ── RELATE (ruling B): a dashed connector from the base level to a stackless `to` block; the NOTE
-    #    from describe quoted verbatim (dashed = non-functional = visually unclimbable). ──
-    oy = max(plaque_bottom + 20, 430)
-    for r in model["relates"]:
-        tcx = 314                                          # the `to` (stackless) block, box A lower-mid
-        frm_cx = floor_cx.get(r["frm"])                    # dashed connector up from the base block
-        if frm_cx is not None:
-            parts.append(_line(frm_cx, floor_y, tcx - 30, oy + 28, stroke=REFUSE, sw=1.3, dash="5 4"))
-        parts.append(_t(tcx, oy - 6, "RELATE", 8.5, REFUSE, anchor="middle", cls="tag"))
-        parts.append(_rect(tcx - 54, oy, 108, 28, rx=4, fill=PAPER, stroke=REFUSE, sw=1, dash="4 3"))
-        parts.append(_t(tcx, oy + 18, esc(r["to"]), 11, REFUSE, anchor="middle", cls="mono"))
-        parts.append(_t(tcx, oy + 44, esc(r["note"]), 9.5, FAINT, anchor="middle"))
-        # FACES (post-flip defect fix, 2026-07-19): the dashed link is NOT unclimbable — it is crossed by a
-        # DECLARED FACE. A small labeled chip rides ON the dashed connector (the figure's quiet register),
-        # naming the crossing; the describe-VERBATIM description rides as a native <title> hover. The
-        # legend's old "unclimbable" clause is amended in lockstep, and the fail-closed wedge (main) asserts
-        # every declared face reaches the figure.
-        faces = r.get("faces", [])
-        if faces and frm_cx is not None:
-            # sit the chip low on the dashed connector (biased toward the frm end) so it clears the NOTE
-            w = 0.60
-            mx, my = frm_cx * w + (tcx - 30) * (1 - w), floor_y * w + (oy + 28) * (1 - w)
-            names = ", ".join(f["name"] for f in faces)
-            chip = f"↳ {names}"
-            cw = _tw(chip, 6.0) + 16
-            parts.append(f'<g><title>{esc(" · ".join(f["description"] for f in faces))}</title>')
-            parts.append(_rect(mx - cw / 2, my - 8, cw, 16, rx=8, fill=PAPER, stroke=REFUSE, sw=0.9))
-            parts.append(_t(mx, my + 3.5, chip, 8.5, REFUSE, anchor="middle", cls="mono"))
-            parts.append('</g>')
-        oy += 64
+    # ── the DOTTED frontier edge with the FACE chips ON it ──
+    fy = FRONTIER_Y
+    parts.append(_line(frm_cx + 54, fy, to_cx - 54, fy, stroke=REFUSE, sw=1.7, dash="2 5"))
+    note_cx = frm_cx + 110                                    # over the product→touch segment, clear of chips/arrows
+    parts.append(_t(note_cx, fy - 44, COPY["frontier_note"], 10.5, REFUSE, anchor="middle"))
+    if r.get("note"):
+        parts.append(_t(note_cx, fy - 30, esc(r["note"]), 10, FAINT, anchor="middle"))
 
-    parts.append(_legend(28, 588))
-
-    # ── interim (ruling B′): disclosed-but-undrawn universes, stated ON the figure itself ──
-    if omitted:
-        DISCLOSE_BG = "#f7edd6"
-        # a dashed ghost block per omitted universe, top-right, marking the gap IN the drawing (name +
-        # basis read verbatim off the wire); the ratified caption rides as a native <title> hover.
-        gx = W - 250
-        for i, u in enumerate(omitted):
-            gy = 18 + i * 40
-            parts.append(f'<g data-ref="universe-omitted-{esc(u["name"])}">'
-                         f'<title>{esc(INTERIM_OMISSION["caption"])}</title>')
-            parts.append(_rect(gx, gy, 222, 30, rx=6, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2, dash="5 4"))
-            parts.append(_t(gx + 10, gy + 12, "OMITTED UNIVERSE · INTERIM", 8.5, DISCLOSE, weight=700, cls="tag"))
-            parts.append(_t(gx + 10, gy + 25, f'{esc(u["name"])} · basis {esc(u["basis"])}', 11, INK, cls="mono"))
-            parts.append('</g>')
-        # the ratified caption band, full width along the bottom — the omission stated in prose.
-        by = 606
-        parts.append(f'<g data-ref="interim-omission-band">')
-        parts.append(_rect(28, by, W - 56, 60, rx=8, fill=DISCLOSE_BG, stroke=DISCLOSE, sw=1.2))
-        parts.append(_t(44, by + 20, INTERIM_OMISSION["band_tag"], 11, DISCLOSE, weight=700, cls="tag"))
-        for j, line in enumerate(_wrap(INTERIM_OMISSION["caption"], 118)):
-            parts.append(_t(44, by + 38 + j * 14, line, 11.5, INK))
+    n = max(len(faces), 1)
+    span0, span1 = frm_cx + 120, to_cx - 120
+    for i, f in enumerate(faces):
+        cx = span0 + (span1 - span0) * ((i + 0.5) / n)
+        name = f["name"]
+        cw = _tw(name, 7.6) + 28
+        parts.append(f'<g data-ref="face-{esc(name)}"><title>{esc(f["description"])}</title>')
+        parts.append(_rect(cx - cw / 2, fy - 14, cw, 28, rx=14, fill=PAPER, stroke=REFUSE, sw=1.5))
+        parts.append(_t(cx, fy + 4, esc(name), 13, REFUSE, anchor="middle", weight=600, cls="mono"))
         parts.append('</g>')
+        d = f.get("driver")
+        if d and d in driver_anchor:
+            sx, sy = driver_anchor[d]
+            parts.append(f'<g data-ref="driver-{esc(d)}-{esc(name)}"><title>{esc(d)} drives {esc(name)}</title>')
+            parts.append(f'<path d="M {sx} {sy} C {sx} {sy + 54}, {cx} {fy - 66}, {cx} {fy - 14}" '
+                         f'fill="none" stroke="{VERIFIED}" stroke-width="1.3" marker-end="url(#dhead)"/>')
+            parts.append(_t((sx + cx) / 2 + 4, (sy + fy) / 2 - 4, "drives", 9, VERIFIED, cls="tag"))
+            parts.append('</g>')
 
+    parts.append(_legend(28, H - 34))
     parts.append('</svg>')
     return "".join(parts)
-
 
 def _absence_short(u):
     s = u.get("absence", "")
@@ -467,15 +461,16 @@ def _legend(x, y):
     cx = x
     for kind, color, label in COPY["legend"]:
         if kind == "swatch":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=color))
+            out.append(_check(cx + 6, y - 3, color))
+            cx += 6
         elif kind == "box":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=color, stroke=UNTEST, sw=1))
-        elif kind == "dash":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill=PAPER, stroke=color, sw=1, dash="3 2"))
-        elif kind == "spine":
-            out.append(_rect(cx, y - 9, 12, 12, rx=2, fill="url(#spine)", stroke="#d9d3c6", sw=1))
-        out.append(_t(cx + 18, y, label, 11, SUB))
-        cx += 26 + _tw(label, 6.2)
+            out.append(_rect(cx, y - 9, 13, 13, rx=2, fill=color, stroke=UNTEST, sw=1))
+        elif kind == "dash":                       # the dotted frontier edge
+            out.append(_line(cx, y - 3, cx + 15, y - 3, stroke=color, sw=1.6, dash="2 4"))
+        elif kind == "chip":                       # a declared face (pill)
+            out.append(_rect(cx, y - 10, 16, 15, rx=7, fill=PAPER, stroke=color, sw=1.3))
+        out.append(_t(cx + 22, y, label, 11, SUB))
+        cx += 32 + _tw(label, 6.2)
     out.append('</g>')
     return "".join(out)
 
@@ -584,22 +579,22 @@ def hover_pair(store, model):
     }
 
 
-def _referents(model, omitted=()):
+def _referents(model, roles):
     us = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))
     ents = [{"id": f"universe-{u['name']}", "name": f"{u['name']} universe",
              "aliases": [u["name"]], "anchor": f"[data-ref='universe-{u['name']}']"} for u in us]
-    ents.append({"id": "overlap", "name": "the shared atlas (overlap)", "aliases": ["overlap", "shared stacks"],
-                 "anchor": "[data-ref='overlap']"})
+    r = roles["relate"]
+    ents.append({"id": "frontier", "name": f"the {r['frm']}↔{r['to']} frontier (dotted edge)",
+                 "aliases": ["the frontier", "the dotted edge", "the crossing",
+                             f"{r['frm']} to {r['to']}"], "anchor": "[data-ref='face-touch']"})
+    for f in r.get("faces", []):
+        aliases = [f["name"], f"the {f['name']} face"]
+        if f.get("driver"):
+            aliases.append(f"{f['name']} (driven by {f['driver']})")
+        ents.append({"id": f"face-{f['name']}", "name": f"the {f['name']} face",
+                     "aliases": aliases, "anchor": f"[data-ref='face-{f['name']}']"})
     ents.append({"id": "hover-pair", "name": "the semi-additive burn (hover pair)",
                  "aliases": ["hover", "the burn", "stock.sum vs stock.last"], "anchor": "[data-ref='hover-pair']"})
-    for u in omitted:                                   # interim: the disclosed-but-undrawn universe(s)
-        ents.append({"id": f"universe-omitted-{u['name']}", "name": f"{u['name']} universe (omitted, interim)",
-                     "aliases": [u["name"], "the omitted universe", "the third universe"],
-                     "anchor": f"[data-ref='universe-omitted-{u['name']}']"})
-    if omitted:
-        ents.append({"id": "interim-omission-band", "name": "the interim omission caption",
-                     "aliases": ["the omission", "the interim caption", "the disclose band"],
-                     "anchor": "[data-ref='interim-omission-band']"})
     return {"artifact": "universe-visual", "kind": "web", "entries": ents}
 
 
@@ -608,9 +603,8 @@ def main() -> int:
     dm = T.describe_manifold(store, MID)
     try:
         model = build_model(dm)
-        drawn, omitted = _apply_interim_filter(model)   # ruling B′; fails closed on a silent drop
-        model["universes"] = drawn
-        fig = figure_svg(store, model, omitted=omitted)
+        roles = resolve_roles(model)                    # three-universe layout; fails closed on any other shape
+        fig = figure_svg(store, model, roles)
         # FAIL-CLOSED SUBFIELD COMPLETENESS (post-flip defect, 2026-07-19). The wedge's LETTER checked the
         # relates KEY was present (build_model); its SPIRIT — "every declared crossing is ON the figure" —
         # was unenforced, so faces[] shipped to the describe wire and never reached the SVG (the defect this
@@ -630,18 +624,11 @@ def main() -> int:
         print("universe-visual generation FAILED — no semi-additive burn found to teach the hover",
               file=sys.stderr)
         return 1
-    a = sorted(model["universes"], key=lambda u: -len(u["base_dimensions"]))[0]
     hover_intro = COPY["hover_intro"].format(measure=hover["measure"], stack=hover["stack"])
-    # interim copy (ruling B′): the omission is stated on the figure; the copy block carries it too so
-    # the page can echo it under the figure. When nothing is omitted, the copy is the standard two-universe.
-    copy = {"kicker": COPY["kicker"] + (INTERIM_OMISSION["kicker_suffix"] if omitted else ""),
-            "title": (INTERIM_OMISSION["title"] if omitted else COPY["title"]),
+    copy = {"kicker": COPY["kicker"], "title": COPY["title"], "caption": COPY["caption"],
             "lede": COPY["lede"], "leftout": COPY["leftout"],
             "leftout_spec_route": COPY["leftout_spec_route"],
             "leftout_map_route": COPY["leftout_map_route"]}
-    if omitted:
-        copy["interim_omission"] = INTERIM_OMISSION["caption"]
-        copy["interim_omitted_universes"] = [u["name"] for u in omitted]
     out = {
         "generated_by": f"columna-core {version('columna-core')} / columna-server {version('columna-server')}",
         "manifold": MID,
@@ -650,7 +637,7 @@ def main() -> int:
                   "barred_caption": COPY["hover_barred"].format(stack=hover["stack"]),
                   "travels_caption": COPY["hover_travels"]},
         "copy": copy,
-        "referents": _referents(model, omitted=omitted),
+        "referents": _referents(model, roles),
     }
     json.dump(out, sys.stdout, indent=2, ensure_ascii=False)
     return 0
