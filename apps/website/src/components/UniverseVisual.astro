@@ -16,7 +16,10 @@ const copy = (uv as any).copy as any;
   <h2 id="uv-title" class="serif uv-title">{copy.title}</h2>
   <p class="uv-lede">{copy.lede}</p>
 
-  <figure class="uv-figure" set:html={fig}></figure>
+  <figure class="uv-figure">
+    <div class="uv-figure-svg" set:html={fig}></div>
+    {copy.caption && <figcaption class="uv-caption">{copy.caption}</figcaption>}
+  </figure>
 
   <p class="uv-hover-intro">{hover.intro}</p>
   <div class="uv-pair" data-ref="hover-pair">
@@ -46,8 +49,11 @@ const copy = (uv as any).copy as any;
   .uv-lede { font-size: 1.12rem; line-height: 1.55; color: var(--ink-2, #3a3630);
     max-width: 42rem; margin: 0 0 1.6rem; }
   .uv-figure { margin: 0; border: 1px solid var(--rule, #e6e0d5); border-radius: 16px;
-    padding: 1.1rem 1.2rem; background: var(--paper, #faf8f3); overflow-x: auto; }
+    padding: 1.1rem 1.2rem; background: var(--paper, #faf8f3); }
+  .uv-figure-svg { overflow-x: auto; }
   .uv-figure :global(svg) { display: block; min-width: 720px; }
+  .uv-caption { font-size: 0.98rem; line-height: 1.55; color: var(--ink-2, #3a3630);
+    max-width: 52rem; margin: 1rem 0 0; padding-top: 0.9rem; border-top: 1px solid var(--rule, #e6e0d5); }
   .uv-figure :global(.mono), .uv-panel-svg :global(.mono) {
     font-family: 'JetBrains Mono Variable', ui-monospace, monospace; }
   .uv-figure :global(.tag), .uv-panel-svg :global(.tag) {
