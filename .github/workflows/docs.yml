@@ -39,3 +39,12 @@ jobs:
       # parser rejects. Green once columna-core is 0.9.0 (the envelope parser); this rides the flip.
       - name: FrameQL manual parses against the shipped parser
         run: python docs/tools/check_manual_frameql.py
+
+      # THE LEDGER HEARTBEAT (Huayin, 2026-07-25). The weekly run prints every OPEN row of both
+      # ledgers into this job's summary, so the ledger ARRIVES instead of waiting to be consulted —
+      # the structural fix for the NON-USE failure (the fossil ruling evaporated while a ledger that
+      # would have caught it sat unread). `always()` on purpose: a red run is precisely when you most
+      # want to see what main owes, so the heartbeat must not be skipped by an earlier failure.
+      - name: Ledger heartbeat — open doctrine gaps + open forks
+        if: always()
+        run: python scripts/print_ledgers.py >> "$GITHUB_STEP_SUMMARY"
