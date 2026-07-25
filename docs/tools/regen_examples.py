@@ -52,7 +52,7 @@ UNIVERSE transactions = customer * day
 LEVEL customer = customer_id BASE
 LEVEL day      = day         BASE
 LEVEL region   = region
-EDGE customer -> region ALONG cust_geo VIA customers(customer_id, region)
+HIERARCHY cust_geo { customer -> region VIA customers(customer_id, region) }
 MEASURE revenue ON transactions FROM txns AS sum(amount)
 MEASURE cost    ON transactions FROM txns AS sum(cost_amount)
 """

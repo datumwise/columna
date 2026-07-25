@@ -26,7 +26,7 @@ def test_loop_runs_generate_review_revise_publish_hermetically():
         [{"kind": "measure", "body": "MEASURE revenue ON sales FROM tx AS sum(amount)"},
          {"kind": "measure", "body": "MEASURE bogus ON sales FROM tx AS sum(amount)"}],
         # generation 2 (revise): address the marks — a NEW closure only (never the struck one)
-        [{"kind": "edge", "body": "EDGE store -> region ALONG geo VIA stores(store_id, region)"}],
+        [{"kind": "edge", "body": "HIERARCHY geo { store -> region VIA stores(store_id, region) }"}],
     ])
     loop = InitLoop(_aperture(), prov, "sales_init")
     loop.generate()
@@ -37,7 +37,7 @@ def test_loop_runs_generate_review_revise_publish_hermetically():
     loop.declare(); loop.attest()                      # (human) authority + attestation
     cml = loop.publish()                               # (human) the author's act
     assert loop.draft.state == PUBLISHED
-    assert "MEASURE revenue" in cml and "EDGE store" in cml
+    assert "MEASURE revenue" in cml and "HIERARCHY geo" in cml
     assert "bogus" not in cml                          # struck -> dropped from the artifact
 
 

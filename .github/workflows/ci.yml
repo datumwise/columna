@@ -82,6 +82,22 @@ jobs:
           assert -1 not in i and i == sorted(i), i; assert '\"contract_version\": \"1\"' in s; \
           print('py3.10 wheel demo --play OK')"
 
+  purged-grammar:
+    name: purged-grammar guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # THE CLASS GUARD (Huayin, 2026-07-25, item 7). Guarding the instances would have fixed a day;
+      # this guards the class. Any reappearance of the purged `EDGE ... ALONG ... VIA` surface fails
+      # here. Deliberate uses mark themselves INTENTIONALLY-PURGED; fossils too large for the PR that
+      # finds them are ROWED against an OPEN fork, and the guard fails if that row is ever closed
+      # while the fossil remains. No path filter — fossils accumulated silently once.
+      - name: No purged grammar anywhere in the repo
+        run: python scripts/check_purged_grammar.py
+
   build:
     name: build wheels + sdists
     runs-on: ubuntu-latest
