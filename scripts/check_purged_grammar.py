@@ -54,7 +54,9 @@ ROWED = {
     # signature without braces or per-hop VIA. That is a manual CONTENT pass, not a fixture rewrite.
     "docs/columna_reference_manual_5e.md": "OF-16",
 }
-LEDGER = ROOT / "specs" / "open_forks.md"
+# Both ledgers are consulted: the AW-class moved to doctrine_gaps.md on 2026-07-25, and a row
+# migrating between ledgers must never silently invalidate an exemption.
+LEDGERS_FOR_ROWS = [ROOT / "specs" / "open_forks.md", ROOT / "specs" / "doctrine_gaps.md"]
 
 # The ledgers DESCRIBE fossils — an OF/DG row has to quote the retired form to be legible about what it
 # is rowing. Quoting is not using, so these files are exempt wholesale. (Same reason this script is
@@ -83,11 +85,12 @@ def iter_files():
 
 def ledger_has_open(fork_id: str) -> bool:
     """A rowed exemption is valid only while its fork is present AND still OPEN in the ledger."""
-    if not LEDGER.exists():
-        return False
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
-        if re.search(rf"\b{re.escape(fork_id)}\b", line) and "**OPEN**" in line:
-            return True
+    for ledger in LEDGERS_FOR_ROWS:
+        if not ledger.exists():
+            continue
+        for line in ledger.read_text(encoding="utf-8").splitlines():
+            if re.search(rf"\b{re.escape(fork_id)}\b", line) and "**OPEN**" in line:
+                return True
     return False
 
 
@@ -119,7 +122,7 @@ def main() -> int:
     if stale_rows:
         print("ROWED EXEMPTION WITHOUT AN OPEN FORK — the row cannot outlive its ledger entry.")
         for fid in stale_rows:
-            print(f"  {fid}: not found as an OPEN row in specs/open_forks.md")
+            print(f"  {fid}: not found as an OPEN row in either ledger")
         print("\nEither the fossil was fixed (drop it from ROWED in this script) or the fork was closed")
         print("prematurely (reopen it). A tracked exemption stops being tracked the moment its row goes.")
         return 1

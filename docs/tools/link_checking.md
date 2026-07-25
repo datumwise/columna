@@ -1,4 +1,28 @@
-# Link checking the site — the Zenodo trap
+# Link checking the site — probe doctrine, and the Zenodo trap
+
+## Probe doctrine: the real path over the rendered text, always
+
+Two checks in one day reported a healthy thing as broken, both for the same reason — the probe was
+aimed at what the page *displayed* rather than at what it actually *referenced*:
+
+- **Rendered text ≠ target.** `/story` cites the refusal capture with link text reading `demos/…`
+  while the `href` points at `packages/columna-server/demos/agent_nonexistent_measure_transcript.md`.
+  A probe of repo-root `demos/` found nothing and a landed launch-checklist item was filed as
+  unlanded. The file was there the whole time, and 200s on GitHub.
+- **A 403 is not a 404.** Every Zenodo DOI returns 403 to an automated User-Agent (below). A checker
+  that reads any non-200 as "dead" condemns the entire research corpus.
+
+So, before reporting anything as missing or broken:
+
+1. Extract the **actual target** — the `href`, the `src`, the resolved path — never the link text,
+   the abbreviation, or the label as rendered.
+2. Follow redirects, and send a real browser User-Agent.
+3. Distinguish *absent* (404 / no such path) from *refused* (403 / bot filter) from *moved* (3xx).
+   Only the first is a broken link; the other two are the probe's problem, not the target's.
+4. When something looks missing, **suspect the probe first**. A wrong path is far likelier than a
+   vanished artifact — and a false "this is broken" costs more trust than a slow check.
+
+## Zenodo UA-filters. A 403 on a DOI is the filter, not a dead link.
 
 There is no automated link checker in this repo yet. When one is written, or when a link sweep is done
 by hand (launch checklist v1, steps 4 and 6 both call for one), read this first.
