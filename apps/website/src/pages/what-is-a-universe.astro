@@ -1,0 +1,24 @@
+---
+// /what-is-a-universe — the fourth what-is piece.
+//
+// The corpus copy is the SITE EDITION (Huayin's 2026-07-25 ruling 1): the attachment's italic
+// preamble was desk provenance — the artifact header, never meant to render — so it is stripped, and
+// the page opens at the H1 and the first line. Its orphaned front-matter divider (`---`) went with it.
+// The body below that first line is otherwise untouched.
+//
+// Per ruling 2 the piece carries NO version stamp: the what-is series is explanatory and undated;
+// only /positions constitutionally wears dates and versions.
+//
+// The DOI footer (Multi-Universe Processing · The Two Great Sources) and the /case pointer are in the
+// file's own bytes. The series nav is structural navigation, mounted at page level (ruling 4).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/what_is_a_universe_v0_2.md';
+import WhatIsSeriesNav from '../components/WhatIsSeriesNav.astro';
+---
+<BaseLayout title="What is a universe? — datumwise"
+  description="A plain-language companion: a universe is a population of records plus everything you can lawfully say about it — a base, its many-to-one closure, and the two declared passages between territories.">
+  <article class="prose">
+    <Content />
+    <WhatIsSeriesNav current="/what-is-a-universe" />
+  </article>
+</BaseLayout>

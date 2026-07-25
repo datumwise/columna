@@ -3,12 +3,19 @@
 // wired VERBATIM (byte-identical copy of the corpus source). It documents the ENVELOPE syntax
 // (SELECT … AT …, @ as the input anchor) and therefore publishes with the envelope flip (0.9.0). No
 // edits to its text. Route reserved per Huayin's ruling.
+// SERIES NAV (Huayin's 2026-07-25 ruling 4): structural navigation is machinery and is
+// authorized on the ratified pieces; the corpus markdown — including this piece's own in-prose
+// sibling cross-references — is NOT touched. The nav mounts below the article.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import WhatIsSeriesNav from '../components/WhatIsSeriesNav.astro';
 import { Content } from '../content/corpus/what_is_frameql_draft_v0_7.md';
+// raw bytes are read ONLY to detect which siblings the prose already links (see the component).
+import raw from '../content/corpus/what_is_frameql_draft_v0_7.md?raw';
 ---
 <BaseLayout title="What is FrameQL — and why? — datumwise"
   description="A plain-language companion to the FrameQL manual — the Frame is the query, the three-part column, and answers that arrive in four moods.">
   <article class="prose">
     <Content />
+    <WhatIsSeriesNav current="/what-is-frameql" body={raw} />
   </article>
 </BaseLayout>
