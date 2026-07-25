@@ -10,6 +10,14 @@ on:
     paths: ['docs/**', '.github/workflows/docs.yml']
   pull_request:
     paths: ['docs/**', '.github/workflows/docs.yml']
+  # THE MASKING FIX (Huayin, 2026-07-25). The path filter above is what let a red `main` hide from
+  # 2026-07-19 to 2026-07-25: regen-check was broken by purged grammar, but nothing touched `docs/**`,
+  # so the job simply never ran and no one saw a failure. A weekly run means the truth about `main`
+  # surfaces on its own schedule, independent of what anyone happens to edit. Same has-to-be-loud
+  # principle as the build-stamp assertion — applied to CI VISIBILITY rather than to a value.
+  schedule:
+    - cron: '17 6 * * 1'        # Mondays 06:17 UTC
+  workflow_dispatch:
 
 jobs:
   regen-check:

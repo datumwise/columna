@@ -75,7 +75,7 @@ Grammar (statement-oriented; `#` comments; `{ }` blocks):
 MANIFOLD <name> VERSION <n>
 UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]
 LEVEL <name> = <column> [BASE]
-EDGE <from> -> <to> ALONG <lineage> VIA <table>(<from_col>, <to_col>)
+HIERARCHY <lineage> { <from> -> <to> VIA <table>(<from_col>, <to_col>) [-> <next> VIA <table>(...)] [; <path>] }
 RELATE <a> <-> <b> VIA <table> [NOTE "<text>"]
 MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)
 MEASURE <name> ON <universe> FROM <table> VALUE <expr>

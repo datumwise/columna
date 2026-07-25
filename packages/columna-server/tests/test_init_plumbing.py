@@ -88,8 +88,14 @@ def test_parse_enforces_kind_and_target_grammar_clauses():
 def test_eval_scores_a_loop_violation_instead_of_crashing():
     # the mind proposes a shape-valid but WRONG closure (struck), then re-proposes it on revise -> the
     # harness law fires; the eval SCORES it (loop_violation=True, censored), never raises (ruling 2).
+    #
+    # The `EDGE ... ALONG ... VIA` bodies in THIS FILE are INTENTIONALLY-PURGED grammar and must stay.
+    # A proposal body is an OPAQUE STRING here — never parsed, only rendered and compared (the accepted
+    # proposal below is `MEASURE revenue = SUM(amount)`, which is not real grammar either). The point is
+    # a deliberately WRONG closure (`wrong->place`), so retired syntax is if anything more faithful.
+    # The repo-wide purged-grammar guard whitelists lines carrying the INTENTIONALLY-PURGED marker.
     from columna_server.init.benchmarks import BENCHMARKS
-    bad = {"kind": "edge", "target": "wrong->place", "body": "EDGE wrong -> place ALONG x VIA t(a,b)"}
+    bad = {"kind": "edge", "target": "wrong->place", "body": "EDGE wrong -> place ALONG x VIA t(a,b)"}  # INTENTIONALLY-PURGED
     prov = ScriptedProvider([[bad], [bad]])       # propose it, then re-propose the struck one
     r = run_benchmark(BENCHMARKS["B5"], prov, loop_budget=5)
     assert r.loop_violation and not r.passed and not r.converged
@@ -109,12 +115,12 @@ def test_revise_prompt_renders_the_struck_marks_to_the_model():
     from columna_core.draft import Draft, Proposal, STRUCK
     ap = build_aperture(BENCHMARKS["B5"].schema)
     d = Draft(manifold_name="blindness-check")
-    d.add(Proposal(kind="edge", target="wrong->place", body="EDGE wrong -> place ALONG x VIA t(a,b)",
+    d.add(Proposal(kind="edge", target="wrong->place", body="EDGE wrong -> place ALONG x VIA t(a,b)",  # INTENTIONALLY-PURGED
                    review=STRUCK))
     d.add(Proposal(kind="measure", target="revenue", body="MEASURE revenue = SUM(amount)",
                    review="accepted"))
     rendered = revise_prompt(ap, d)
-    assert "EDGE wrong -> place ALONG x VIA t(a,b)" in rendered      # the struck body, verbatim
+    assert "EDGE wrong -> place ALONG x VIA t(a,b)" in rendered      # the struck body, verbatim  # INTENTIONALLY-PURGED
     assert "do NOT re-propose" in rendered                          # under the prohibition header
     assert "settled mark stays settled" in rendered                 # the law restated in the turn
     assert "MEASURE revenue = SUM(amount)" in rendered              # accepted marks also rendered (do-not-repeat)
