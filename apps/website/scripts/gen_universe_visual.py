@@ -43,11 +43,13 @@ VERDICT_BG = {"corroborated": SERVE_BG, "verified": "#eef1fb", "untestable": UNT
 #    redesign (founder's ruling, Huayin 2026-07-24): multi-universe is foundational, so all three
 #    universes get identical first-class treatment; the edge grammar (solid = functional M:1, dotted =
 #    the product↔category frontier) carries the entire distinction, and the three faces ride ON the
-#    dotted edge as the licensed passages that govern it. Caption is DRAFT until Huayin's word. ──
+#    dotted edge as the licensed passages that govern it. Caption is RATIFIED (see below). ──
 COPY = {
     "kicker": "THE UNIVERSE VISUAL · FIGURE 1",
     "title": "Cascadia — three universes",
-    # CAPTION v5 (Huayin 2026-07-24; DRAFT, held for his word) — supersedes v3.
+    # CAPTION v5 — RATIFIED (Huayin, the five-in-one word, 2026-07-24); supersedes v3.
+    # It is also the source of Figure 1's bracketed text equivalent in llms-full (read, never
+    # retyped), so edits here change what agent readers get — keep it and the figure in step.
     "caption": ("Cascadia's manifold: three universes. Each block shows its base (colored) and the "
                 "grains its solid, functional edges reach; '=' links shared declarations — store, day, "
                 "and category — across universes. The dotted product↔category edge inside transaction "
