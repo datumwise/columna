@@ -47,4 +47,8 @@ jobs:
       # want to see what main owes, so the heartbeat must not be skipped by an earlier failure.
       - name: Ledger heartbeat — open doctrine gaps + open forks
         if: always()
-        run: python scripts/print_ledgers.py >> "$GITHUB_STEP_SUMMARY"
+        # tee, not >: the summary is the product, but piping it through stdout as well puts the
+        # ledger in the JOB LOG too — so it is readable from the API/CLI and verifiable after the
+        # fact, not only by eye in the run UI. (A redirect alone made the content unreadable
+        # anywhere but the browser, which is a poor property for a thing meant to be checked.)
+        run: python scripts/print_ledgers.py | tee -a "$GITHUB_STEP_SUMMARY"
