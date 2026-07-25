@@ -1,0 +1,46 @@
+---
+// /positions/never-let-the-model-touch-the-database — the blast-wall position, ratified v1.1 (the
+// file's own byline stamps its date + version, so the page renders no second stamp).
+//
+// The body renders VERBATIM (byte-identical to the ratified attachment; see the corpus copy). The 2x2
+// is seated by the SAME render-time cut /case uses: the raw markdown is split at its `## ` boundaries
+// and the figure mounts after the section whose prose introduces it ("...no. Measure it.") — the .md
+// bytes are never mutated, so the byte-identical guarantee holds.
+//
+// Evidence footer is pre-wired IN THE FILE (five DOIs, the benchmark repo, /case, /story) — not
+// re-authored here.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { marked } from 'marked';
+import raw from '../../content/corpus/position_never_let_the_model_v1_1.md?raw';
+import PrecisionRecallFigure from '../../components/PrecisionRecallFigure.astro';
+
+// The section the figure belongs to — matched on the heading text, so a heading reword fails loudly
+// (the figure simply does not mount) rather than silently sliding to the wrong place.
+const FIGURE_AFTER = '"But a wall is narrow" — no. Measure it.';
+
+const sections = raw.split(/\n(?=## )/).map((part) => {
+  const m = part.match(/^##\s+(.+?)\s*$/m);
+  return { heading: m ? m[1].trim() : null, html: marked.parse(part) };
+});
+---
+<BaseLayout title="Never Let the Model Touch the Database — datumwise"
+  description="A position held by datumwise: breach, bill, and fabrication are one architectural mistake, and they retire together the moment the model stops touching the database.">
+  <div class="page-head">
+    <p class="kicker"><a href="/positions">Positions</a></p>
+  </div>
+
+  <article class="prose position">
+    {sections.map((s) => (
+      <>
+        <Fragment set:html={s.html} />
+        {s.heading === FIGURE_AFTER && <PrecisionRecallFigure />}
+      </>
+    ))}
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker a { color: var(--ink-faint); text-decoration: none; }
+  .kicker a:hover { color: var(--ink-soft); }
+</style>

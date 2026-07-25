@@ -3,12 +3,19 @@
 // (byte-identical copy of specs/context/what_is_columna_draft_v0_7.md — re-issued at v0.7 in canonical
 // envelope spelling after the terse-form retirement). No edits to its text, no cross-promotion added,
 // no diagram — the a–e ladder renders as the code block it is (§2a).
+// SERIES NAV (Huayin's 2026-07-25 ruling 4): structural navigation is machinery and is
+// authorized on the ratified pieces; the corpus markdown — including this piece's own in-prose
+// sibling cross-references — is NOT touched. The nav mounts below the article.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import WhatIsSeriesNav from '../components/WhatIsSeriesNav.astro';
 import { Content } from '../content/corpus/what_is_columna_draft_v0_7.md';
+// raw bytes are read ONLY to detect which siblings the prose already links (see the component).
+import raw from '../content/corpus/what_is_columna_draft_v0_7.md?raw';
 ---
 <BaseLayout title="What is Columna? — datumwise"
   description="A plain-language orientation to Columna — a framework for describing what your data means, checked and served in four moods.">
   <article class="prose">
     <Content />
+    <WhatIsSeriesNav current="/what-is-columna" body={raw} />
   </article>
 </BaseLayout>

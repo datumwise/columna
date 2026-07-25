@@ -1,0 +1,45 @@
+---
+// The what-is series nav — STRUCTURAL NAVIGATION, mounted at page level on all four what-is pages.
+//
+// Authorized by Huayin's 2026-07-25 ruling 4, which splits the class: structural navigation (series
+// navs, section indexes, nav-cluster entries) is machinery and may be added freely; PROSE
+// cross-references inside ratified pieces stay HELD. So this component never touches the corpus
+// markdown — the three older pieces keep their in-prose sibling lists exactly as ratified, and this
+// nav sits below the article as separate machinery.
+//
+// Pass the current page's href (filtered out, so no page links to itself) and — for the three older
+// pieces — that piece's RAW markdown. Any sibling the prose ALREADY links is dropped from the nav: the
+// three ratified pieces close on their own in-prose sibling lists, and repeating those links two inches
+// below read as duplication. So on those pages this nav adds only what the prose does not already
+// reach (in practice: the new fourth piece), which is exactly the reverse cross-link that was missing.
+export interface Props { current: string; body?: string }
+const { current, body = '' } = Astro.props;
+
+const SERIES = [
+  { href: '/what-is-columna', title: 'What is Columna?', blurb: 'the framework, in one orientation — and the four moods an answer arrives in.' },
+  { href: '/what-is-frameql', title: 'What is FrameQL?', blurb: 'the language you speak to it.' },
+  { href: '/what-is-manifold', title: 'What is a Manifold?', blurb: 'the structure, up close.' },
+  { href: '/what-is-a-universe', title: 'What is a universe?', blurb: 'the territory a question is asked in, and the two lawful ways to cross between them.' },
+];
+// Markdown link form is `[Title](/href)`, so matching on `(/href)` is precise.
+const others = SERIES.filter((s) => s.href !== current && !body.includes(`(${s.href})`));
+---
+{others.length > 0 && (
+<nav class="series" id="the-what-is-series" aria-label="The what-is series">
+  <p class="series-head">{others.length === SERIES.length - 1 ? 'The what-is series' : 'Also in the what-is series'}</p>
+  <ul>
+    {others.map((s) => (
+      <li><strong><a href={s.href}>{s.title}</a></strong> — {s.blurb}</li>
+    ))}
+  </ul>
+</nav>
+)}
+
+<style>
+  .series { margin-top: 2.8rem; padding-top: 1.4rem; border-top: 1px solid var(--rule); }
+  .series-head { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); margin: 0 0 0.7rem; }
+  .series ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+  .series li { font-size: 0.95rem; color: var(--ink-soft); line-height: 1.55; }
+  .series a { color: var(--ink); }
+</style>
