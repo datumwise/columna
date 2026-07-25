@@ -40,9 +40,17 @@ four moods are for.
 
 ${ch1.trimEnd()}\n\n---\n\n${ch2.trimEnd()}\n\n---\n\n${ch3.trimEnd()}`;
 
+// Ruling 5 (Huayin, 2026-07-25) asks that llms-full readers get what sighted readers get. The gap list
+// is enumerated in the 2x2 FIGURE, which lives in the page component and so never reaches a document
+// composed from corpus markdown — the figure's alt text alone cannot close that. So the ledger travels
+// here as the one line it is, verbatim, matching the figure exactly.
 const thePositions = `## Positions datumwise holds (verbatim)
 Positions we hold, stated plainly and linked to their evidence. When the evidence moves, the position
 moves — with a note. Index: /positions
+
+The blast-wall position carries a precision x recall figure. Where its recall has gaps, they are
+published as a dated ledger — the figure enumerates them:
+recall ledger: OF-13 · P1 alignment · crossed-population distinct · face chains
 
 ${posWallBody.trimEnd()}\n\n---\n\n${posSourcesBody.trimEnd()}`;
 

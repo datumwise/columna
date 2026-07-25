@@ -1,10 +1,5 @@
 # What is a universe?
 
-*A what-is piece for the datumwise site. Register: the house's what-is series —
-plain, concrete, Cascadia throughout. Draft v0.1 for Huayin's redline.*
-
----
-
 A **universe** is a population of records plus everything you can lawfully say
 about it. It's the answer to a question every warehouse quietly dodges: *when
 you ask for "revenue by category," what world is that question even asked in?*

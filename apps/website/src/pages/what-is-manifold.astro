@@ -3,12 +3,19 @@
 // (byte-identical copy of the corpus source). Its centerpiece is the data-model claim (substance where
 // relational was form) and it closes on the grammar-layer / semantic-layer separation. Publishes with
 // the envelope flip (0.9.0) alongside its siblings. No edits to its text. Route reserved per Huayin's ruling.
+// SERIES NAV (Huayin's 2026-07-25 ruling 4): structural navigation is machinery and is
+// authorized on the ratified pieces; the corpus markdown — including this piece's own in-prose
+// sibling cross-references — is NOT touched. The nav mounts below the article.
 import BaseLayout from '../layouts/BaseLayout.astro';
+import WhatIsSeriesNav from '../components/WhatIsSeriesNav.astro';
 import { Content } from '../content/corpus/what_is_manifold_draft_v0_2.md';
+// raw bytes are read ONLY to detect which siblings the prose already links (see the component).
+import raw from '../content/corpus/what_is_manifold_draft_v0_2.md?raw';
 ---
 <BaseLayout title="What is a Manifold? — datumwise"
   description="A plain-language companion to the framework manual — the Manifold as the new data model: substance where the relational model was form, with trials that give its claims teeth.">
   <article class="prose">
     <Content />
+    <WhatIsSeriesNav current="/what-is-manifold" body={raw} />
   </article>
 </BaseLayout>
