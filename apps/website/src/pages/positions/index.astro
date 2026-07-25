@@ -1,0 +1,65 @@
+---
+// /positions — the Positions section index. Framing line is RATIFIED copy, verbatim.
+//
+// Each entry stamps the date + version. NOTE FOR THE DESK: the stamps below are transcribed from each
+// piece's OWN byline ("A position held by datumwise · July 2026 · v1.0"), which is what renders on the
+// pieces themselves. Both ratified files are named v1_1 but carry a v1.0 byline — flagged in the PR
+// card, not silently reconciled. When the desk rules, this const and the two file bylines move together.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const FRAMING = 'Positions we hold, stated plainly and linked to their evidence. When the evidence moves, the position moves — with a note.';
+
+const positions = [
+  {
+    href: '/positions/never-let-the-model-touch-the-database',
+    title: 'Never Let the Model Touch the Database',
+    stamp: 'July 2026 · v1.0',
+    // Verbatim from the piece — its own thesis sentence, not a re-description.
+    pull: 'The model never touches the database. Not directly, not through generated SQL, not through a guardrail that inspects the SQL it generated anyway.',
+  },
+  {
+    href: '/positions/the-two-great-sources-of-silent-analytical-failure',
+    title: 'The Two Great Sources of Silent Analytical Failure',
+    stamp: 'July 2026 · v1.0',
+    // Verbatim from the piece's "The claim, in one breath".
+    pull: 'Every silent failure is the unrecorded resolution of a name across a degree of freedom, and the freedoms number four.',
+  },
+];
+---
+<BaseLayout title="Positions — datumwise"
+  description="Positions datumwise holds, stated plainly and linked to their evidence. When the evidence moves, the position moves — with a note.">
+  <div class="page-head">
+    <p class="kicker">Positions</p>
+    <h1 class="serif">Positions</h1>
+    <p class="lede">{FRAMING}</p>
+  </div>
+
+  <ul class="positions-list">
+    {positions.map((p) => (
+      <li>
+        <a class="p-title" href={p.href}>{p.title}</a>
+        <p class="p-stamp mono">{p.stamp}</p>
+        <p class="p-pull">{p.pull}</p>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, 46rem); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.8rem; }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); max-width: 38rem; }
+
+  .positions-list {
+    width: min(100% - 3rem, 46rem); margin: 2.6rem auto 0;
+    list-style: none; padding: 0; display: grid; gap: 2.2rem;
+  }
+  .positions-list li { display: grid; gap: 0.35rem;
+    padding-top: 1.4rem; border-top: 1px solid var(--rule); }
+  .p-title { font-family: var(--font-sans); font-size: 1.15rem; font-weight: 600; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--rule-strong); width: fit-content; }
+  .p-title:hover { text-decoration-color: var(--ink-faint); }
+  .p-stamp { margin: 0; font-size: 0.75rem; color: var(--ink-faint); letter-spacing: 0.02em; }
+  .p-pull { margin: 0.35rem 0 0; font-family: var(--font-serif); font-size: 1.02rem;
+    line-height: 1.6; color: var(--ink-soft); max-width: 34rem; }
+</style>

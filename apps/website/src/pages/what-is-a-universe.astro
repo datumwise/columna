@@ -1,0 +1,43 @@
+---
+// /what-is-a-universe — the fourth what-is piece, rendered VERBATIM (byte-identical to the ratified
+// attachment). Its DOI footer (Multi-Universe Processing · The Two Great Sources) is pre-wired in the
+// file; its /case pointer likewise.
+//
+// SERIES CROSS-LINKS — a deliberate departure, flagged in the PR card: the three existing what-is
+// pieces each carry their sibling list INSIDE the ratified markdown. This file does not, and adding one
+// would mean editing ratified text. So the series nav is mounted at PAGE level instead, in the same
+// shape the siblings use in-prose. The reverse direction (the three siblings linking BACK to this page)
+// cannot be done without touching their ratified bytes — held for the desk's word, not done silently.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/what_is_a_universe_v0_2.md';
+
+const siblings = [
+  { href: '/what-is-columna', title: 'What is Columna?', blurb: 'the framework, in one orientation — and the four moods an answer arrives in.' },
+  { href: '/what-is-frameql', title: 'What is FrameQL?', blurb: 'the language you speak to it.' },
+  { href: '/what-is-manifold', title: 'What is a Manifold?', blurb: 'the structure, up close.' },
+];
+---
+<BaseLayout title="What is a universe? — datumwise"
+  description="A plain-language companion: a universe is a population of records plus everything you can lawfully say about it — a base, its many-to-one closure, and the two declared passages between territories.">
+  <article class="prose">
+    <Content />
+
+    <nav class="series" aria-label="The what-is series">
+      <p class="series-head">The what-is series</p>
+      <ul>
+        {siblings.map((s) => (
+          <li><strong><a href={s.href}>{s.title}</a></strong> — {s.blurb}</li>
+        ))}
+      </ul>
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  .series { margin-top: 2.8rem; padding-top: 1.4rem; border-top: 1px solid var(--rule); }
+  .series-head { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); margin: 0 0 0.7rem; }
+  .series ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+  .series li { font-size: 0.95rem; color: var(--ink-soft); line-height: 1.55; }
+  .series a { color: var(--ink); }
+</style>

@@ -1,0 +1,111 @@
+---
+// The precision × recall 2×2 — the figure for the blast-wall position ("Never Let the Model Touch
+// the Database"), seated inside its own section ("But a wall is narrow" — no. Measure it.).
+//
+// FIGURE LAW (tokens.css): no illustration, no saturated colour — saturated colour is reserved for
+// the four mood tags and appears nowhere else. This figure is paper-and-ink: rules, dots, and type.
+// Sans for wayfinding (axis + labels), serif for the caption's argument, mono for the recall ledger
+// (it is a ledger, and the wire voice is mono).
+//
+// THE CHART DISCLOSES ITS OWN ASSUMPTIONS (ratified requirement): the positions of the four marks are
+// an ARGUMENT — this piece's argument — not a measurement. The disclosure block under the plot says so
+// in the open, and names the one thing on the chart that IS a published artifact: the recall ledger.
+//
+// The gap list beside Columna is VERBATIM from the ratified copy:
+//   "recall ledger: OF-13 · P1 alignment · crossed-population distinct · face chains"
+---
+<figure class="pr-figure" id="figure-precision-recall" aria-labelledby="pr-fig-cap">
+  <svg viewBox="0 0 720 480" role="img"
+       aria-label="A precision by recall two-by-two. Text-to-SQL sits bottom-right: high apparent recall, low precision. Semantic layers sit mid-left: fair precision, poor recall. Columna sits top-right: high precision and high recall, with a published recall ledger listing OF-13, P1 alignment, crossed-population distinct, and face chains. An arrow drifts from text-to-SQL toward the bottom-left corner, labelled: guardrails, recall spent, precision unearned.">
+    <defs>
+      <marker id="pr-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b8578" />
+      </marker>
+    </defs>
+
+    <!-- quadrant rules (the 2x2 itself) -->
+    <line x1="370" y1="46" x2="370" y2="392" stroke="#e4dfd4" stroke-width="1" stroke-dasharray="3 4" />
+    <line x1="104" y1="219" x2="648" y2="219" stroke="#e4dfd4" stroke-width="1" stroke-dasharray="3 4" />
+
+    <!-- axes -->
+    <line x1="104" y1="392" x2="648" y2="392" stroke="#d3ccbd" stroke-width="1.25" marker-end="url(#pr-arrow)" />
+    <line x1="104" y1="392" x2="104" y2="46" stroke="#d3ccbd" stroke-width="1.25" marker-end="url(#pr-arrow)" />
+
+    <!-- axis titles -->
+    <text x="376" y="428" text-anchor="middle" class="ax-title">recall</text>
+    <text x="376" y="446" text-anchor="middle" class="ax-sub">of the legal inquiries, how many can be served</text>
+    <text x="0" y="0" text-anchor="middle" class="ax-title" transform="translate(38,219) rotate(-90)">precision</text>
+    <text x="0" y="0" text-anchor="middle" class="ax-sub" transform="translate(56,219) rotate(-90)">of the inquiries served, how many were defensible</text>
+
+    <!-- Columna — top right -->
+    <circle cx="566" cy="104" r="7" fill="#1c1b19" />
+    <text x="552" y="94" text-anchor="end" class="mark mark-strong">Columna</text>
+    <line x1="566" y1="116" x2="566" y2="140" stroke="#d3ccbd" stroke-width="1" />
+    <text x="556" y="152" text-anchor="end" class="ledger">recall ledger:</text>
+    <text x="556" y="169" text-anchor="end" class="ledger">OF-13 · P1 alignment ·</text>
+    <text x="556" y="186" text-anchor="end" class="ledger">crossed-population distinct ·</text>
+    <text x="556" y="203" text-anchor="end" class="ledger">face chains</text>
+
+    <!-- Semantic layers — mid left -->
+    <circle cx="196" cy="196" r="6" fill="#57534b" />
+    <text x="196" y="178" text-anchor="middle" class="mark">semantic layers</text>
+    <text x="196" y="163" text-anchor="middle" class="mark-note">a menu, no lawful M:N</text>
+
+    <!-- Text-to-SQL — bottom right. Note sits ABOVE the label (same stacking as semantic layers, and
+         it keeps the drift arrow's tail clear of the type). -->
+    <circle cx="566" cy="330" r="6" fill="#57534b" />
+    <text x="566" y="294" text-anchor="middle" class="mark-note">cannot abstain</text>
+    <text x="566" y="312" text-anchor="middle" class="mark">text-to-SQL</text>
+
+    <!-- the guardrail drift: bottom-right, crossing the midline INTO the bottom-left quadrant -->
+    <path d="M 546 344 Q 470 374 400 380" fill="none" stroke="#8b8578" stroke-width="1.25"
+          stroke-dasharray="5 4" marker-end="url(#pr-arrow)" />
+    <text x="392" y="354" text-anchor="end" class="drift">guardrails: recall spent,</text>
+    <text x="392" y="370" text-anchor="end" class="drift">precision unearned</text>
+  </svg>
+
+  <figcaption id="pr-fig-cap">
+    <p class="disclosure">
+      <span class="tag">the chart discloses its own assumptions</span>
+      The four positions are an <strong>argument</strong> — this piece's argument — not a benchmark
+      result. No axis carries a measured scale, and none is claimed: the ordering is what the linked
+      evidence supports, and the linked evidence is where it should be checked. One thing on this
+      chart is a published artifact rather than a claim — the <strong>recall ledger</strong> beside
+      Columna, the dated list of inquiry classes we cannot yet serve. A vendor who will not draw
+      their own is the reason we drew ours.
+    </p>
+  </figcaption>
+</figure>
+
+<style>
+  .pr-figure { margin: 2.4rem 0 2.2rem; }
+  .pr-figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  .pr-figure :global(text) { font-family: var(--font-sans); fill: var(--ink-soft); }
+  .pr-figure :global(.ax-title) { font-size: 15px; font-weight: 600; fill: var(--ink); letter-spacing: 0.01em; }
+  .pr-figure :global(.ax-sub) { font-size: 11.5px; fill: var(--ink-faint); }
+  .pr-figure :global(.mark) { font-size: 14px; font-weight: 600; fill: var(--ink-soft); }
+  .pr-figure :global(.mark-strong) { font-size: 16px; fill: var(--ink); }
+  .pr-figure :global(.mark-note) { font-size: 11.5px; font-weight: 400; fill: var(--ink-faint); font-style: italic; }
+  .pr-figure :global(.drift) { font-size: 12px; fill: var(--ink-faint); }
+  .pr-figure :global(.ledger) { font-family: var(--font-mono); font-size: 11.5px; fill: var(--ink-soft); }
+
+  .pr-figure figcaption { margin-top: 1.5rem; }
+  .pr-figure .disclosure {
+    font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.6; color: var(--ink-soft);
+    margin: 0; padding: 0.95rem 1.1rem; background: var(--paper-raised);
+    border-left: 2px solid var(--rule-strong); border-radius: 0 6px 6px 0;
+  }
+  .pr-figure .tag {
+    display: inline-block; font-family: var(--font-sans); font-size: 0.68rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint);
+    margin-right: 0.5rem;
+  }
+
+  @media (max-width: 40rem) {
+    .pr-figure :global(.ax-sub) { display: none; }
+    .pr-figure :global(.ledger) { font-size: 13px; }
+    .pr-figure :global(.mark-note) { display: none; }
+  }
+</style>
