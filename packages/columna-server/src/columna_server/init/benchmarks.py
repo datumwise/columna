@@ -133,7 +133,7 @@ BENCHMARKS = {b.id: b for b in (B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11)}
 # surfaces fertility (that is the adjudicator's advice, not the agent's — ruling 2).
 GOLD = {
     "B5": [[{"kind": "edge", "target": "store->region", "grade": "inferred_catalog",
-             "body": "EDGE store -> region ALONG geo VIA stores(store_id, region_id)"}]],
+             "body": "HIERARCHY geo { store -> region VIA stores(store_id, region_id) }"}]],
     "B1": [[{"kind": "universe", "target": "orders", "body": "UNIVERSE orders = order BASIS events",
              "review_call": "basis: orders=events, inventory=spine?"},
             {"kind": "universe", "target": "inventory",

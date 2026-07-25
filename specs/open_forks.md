@@ -30,6 +30,36 @@ only its durable form.
 | OF-9 | 2026-07-17 | **Logical attribute declarations for predicate terms.** C-2 renders universe predicates logically by DROPPING the physical table qualifier (`stores.opened_date` -> `opened_date`), so no STRUCTURAL physical identifier crosses describe — but a bare predicate attribute name still renders as the author wrote it (a residue, not a declared logical name). | **Drop-the-qualifier shipped** (CP-3 C-2): no table names, no qualified `table.column`; predicate attribute names render verbatim. The standing no-physical-identifier test asserts exactly this structural guarantee (not full verification). | (a) a definition-language extension — declared logical names for predicate attributes (a new authoring surface, with init implications); (b) leave drop-the-qualifier as the guarantee. | **(a)** as its OWN WP, NOT improvised before a freeze (Huayin, 2026-07-17). When it lands, describe renders declared names and the standing test tightens from 'no structural identifiers' to full verification. | CP-3 C-2 (`tools.py::_render_ref`); capture §2b insulation guarantee; `test_describe_insulation.py` | **OPEN** |
 | OF-10 | 2026-07-17 | **§2c definition-time-population mechanism.** A DERIVED/expression that spans more than one universe is a `cross_universe` error; §2c says the population pin 'lives in definitions', but the grammar has no definition-time universe pin (only `AT <level>`). Its named customer, `sell_through_rate`, was KILLED (S-1 superseded), so the mechanism has no sponsor. | **Not built.** No definition-time population pin exists; a cross-universe derived fails closed. | (a) a definition-time population/universe pin in the DERIVED grammar (a new authoring surface); (b) leave cross-universe derived as fail-closed errors. | **Rowed, no sponsor** (Huayin, 2026-07-17): rows record designs, not sponsors — revisit if a real within-manifold need appears. | CP-3 S-1 superseded (`wp_cp3_opening_proposal_v0_1.md`); planner `_check_single_universe` | **OPEN** |
 
+| OF-16 | 2026-07-25 | **Reference manual §26.6 `HIERARCHY` is inverted and stale.** Its status annotation reads "single functional edge: SHIPPED 0.7.8 — via `EDGE <child> -> <parent> ALONG <lineage> VIA <table>(…)`" and "`HIERARCHY` … SCHEDULED". The truth is the exact inverse: EDGE is PURGED (case-demo §2a) and HIERARCHY is the sole shipped surface. §26.6's body also gives the signature as `HIERARCHY <name> <child> -> <parent>` — no braces, no per-hop `VIA` — which the shipped parser rejects. | **Left unchanged.** The purge sweep ([PR #90](https://github.com/datumwise/columna/pull/90)) fixed the fixture, the core README, a benchmark fixture and a test; the MANUAL is ratified content and a §26.6 rewrite is a content pass, not a fixture rewrite, so it was rowed rather than improvised. The purged-grammar CI guard carries a ROWED exemption keyed to this fork — it prints the fossil on every run and FAILS if this row is closed while the file still contains it. | (a) desk rewrites §26.6 (status annotation corrected + body signature to `HIERARCHY <lineage> { <a> -> <b> VIA t(a,b) [-> …] [; <path>] }`); (b) agent drafts the correction for ratification; (c) leave until a manuals-alignment WP. | **(a) or (b)** — the annotation is a factual SHIPPED/SCHEDULED claim that is now false in both directions, which is worse than prose drift: a reader following §26.6 writes grammar the parser rejects. Recommend it not wait for a WP. | [PR #90](https://github.com/datumwise/columna/pull/90); `scripts/check_purged_grammar.py` ROWED; `docs/columna_reference_manual_5e.md` §26.6 | **OPEN** |
+
+
+## Authorized work — rulings tracked to verified completion
+
+**The rule** (Huayin, 2026-07-25, minted from the fossil audit): *a work-authorizing ruling enters this
+file at issuance and closes only on verified completion. Rulings that aren't tracked didn't happen.*
+
+It was minted because a ruled micro-PR — migrate the surviving `EDGE … ALONG … VIA` fossils to
+`HIERARCHY` — simply evaporated. Nothing caught it for weeks: the only check that would have
+(`docs.yml`'s regen-check) fires on a `docs/**` path filter and never ran, so a red `main` sat unseen
+from 2026-07-19 to 2026-07-25.
+
+> **Flag for the desk — this mechanism may already exist.** [`doctrine_gaps.md`](doctrine_gaps.md) is
+> defined as *"ratified doctrine the shipped code does not yet match … a ruled item leaving scope is a
+> checkpoint event, surfaced before merge — **never a silent drop**"* — the same remit and very nearly
+> the same words. The fossil ruling evaporated **despite** that ledger existing, which suggests the
+> failure was a ledger not *used*, not a ledger not *present*. Minting a third home risks the same
+> outcome twice. Recommend consolidating: either these rows live in `doctrine_gaps.md` (correct by its
+> own taxonomy: ruled, not yet built) or that file folds into this section. **Not decided here.**
+
+| # | ruled | authorized work | status | evidence |
+|---|---|---|---|---|
+| ~~AW-1~~ | ~2026-07 | Migrate surviving `EDGE … ALONG … VIA` fossils to `HIERARCHY` (the "_FINANCE_CML fossil micro-PR"). | ~~**CLOSED** 2026-07-25~~ | ~~Never landed at issuance — `docs/tools/regen_examples.py` had exactly ONE commit in its history (`93da449`). Closed by [PR #90](https://github.com/datumwise/columna/pull/90): fixture, core README, `benchmarks.py` GOLD B5, `test_init_loop.py` (+ its assertion, which pinned the purged string). regen-check green.~~ |
+| AW-2 | 2026-07-25 | **Launch checklist v1 step 5** — re-run the REPL nonexistent-measure case and commit the verbatim transcript to `demos/`. | **OPEN** | `demos/` **does not exist**. Steps 3 and 7 did land (publish.yml present; `columna-core` and `columna-server` both resolve on PyPI), so the checklist is genuinely part-landed rather than stale. |
+| AW-3 | 2026-07-25 | Swap the site contact string to `contact@datumwise.ai` once the alias exists. | **OPEN** | `about.astro:7` carries the standing note; the string is already a single swappable const, so this is the intended one-line follow-up. Blocked on the alias (Irena's dashboard). |
+| AW-4 | 2026-07-25 | Retire / re-point `GITHUB_TOKEN` so exactly one variable, one identity, one scope does push work. | **OPEN** | Probe 2026-07-25: `GITHUB_TOKEN` → `reeeneeee`, **no** `contents:write`; `DATUMWISE_PUSH_PAT` → `datumwise`, `contents:write` confirmed. Irena's env sitting. |
+| AW-5 | 2026-07-25 | The core README grammar correction reaches PyPI. | **OPEN** | Corrected in-repo by [PR #90](https://github.com/datumwise/columna/pull/90); README ships to PyPI only with a release, so it rides 0.12.2-whenever. **No release minted for prose** (ruled). |
+
+
 ## Log
 - **OF-6 opened 2026-07-16** (CP-2 artifact 3). Draft persistence: the in-memory Draft needs a
   cross-session serialization once the A4 human turns span sessions — which the very next step (a real
