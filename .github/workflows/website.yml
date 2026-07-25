@@ -57,7 +57,13 @@ jobs:
 
       - name: Install site dependencies
         run: npm ci
+      # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
+      # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
+      # carries no commit metadata (it arrives EMPTY, which is what silently disabled the edge
+      # cache-buster before #88). See apps/website/src/lib/buildStamp.ts.
       - name: Build
+        env:
+          SITE_BUILD_SHA: ${{ github.sha }}
         run: npm run build
 
   shipped-coherent:
@@ -108,7 +114,13 @@ jobs:
 
       - name: Install site dependencies
         run: npm ci
+      # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
+      # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
+      # carries no commit metadata (it arrives EMPTY, which is what silently disabled the edge
+      # cache-buster before #88). See apps/website/src/lib/buildStamp.ts.
       - name: Build
+        env:
+          SITE_BUILD_SHA: ${{ github.sha }}
         run: npm run build
 
       - name: Deploy to Vercel (production, prebuilt)
@@ -117,6 +129,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # `vercel build` runs the Astro build AGAIN inside the CLI, so the stamp must be present here
+          # too — this is the build whose output actually ships.
+          SITE_BUILD_SHA: ${{ github.sha }}
         run: |
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
