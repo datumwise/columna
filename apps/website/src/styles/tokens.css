@@ -354,6 +354,22 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
      GENERATED DOCS MUST NAME WHICH ARTIFACT THEY DERIVE THEIR STRUCTURE FROM, AND WHY. /docs/grammar
      takes structure from the parser's docstring (teaching shape), examples from execution, and
      coverage from _KW — three properties, three sources, each stated on the page.
+   · THE CASE LOCKSTEP IS SIX SURFACES (2026-07-26). A case chapter exists in six places, and a
+     byte-identical drift guard (packages/columna-server/tests/test_case_resource.py) asserts the MCP
+     resource against the RATIFIED CHARTER. Edit all six, or sync the five downstream BY COPY:
+        1. specs/case_demo_ch1_setup_v0_3.md          ← SOURCE OF RECORD (the ratified charter)
+        2. specs/case_demo_ch2_solutioning_v0_6.md    ← SOURCE OF RECORD
+        3. specs/case_demo_ch3_live_v0_7.md           ← SOURCE OF RECORD
+        4. packages/columna-server/src/columna_server/case/{ch1_setup,ch2_solutioning,ch3_live}.md
+        5. apps/website/src/content/case/{ch1,ch2,ch3}.md
+        6. llms-full (COMPOSED at build from #5 — no edit, but it inherits)
+     The names differ across surfaces, which is exactly what defeats a naive grep. Sync by copy so the
+     six are byte-identical BY CONSTRUCTION, then verify pairwise with cmp.
+   · Proverb 7: "A GREEN SUITE IS NOT A GREEN JOB — verify the JOB; the guards you cannot infer past
+     are the only ones that catch you." The 0.13.0 retirement passed its suites locally and went red in
+     CI three times: a lint gate (an import orphaned by the removal), a deliberate exact version pin,
+     and the byte-identical charter guard that found a surface the inventory had forgotten. Each was a
+     guard built specifically to be un-inferable. Run the job, not the part of it you thought mattered.
    · The release model (version wiring, 2026-07-25): a DATA-ONLY release legitimately leaves
      columna-core behind. `columna` (umbrella / install version) and `columna-server` (the demo
      data) move; `columna-core` (the engine) does not, because there is no engine change. 0.12.1
