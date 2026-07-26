@@ -1,0 +1,156 @@
+{
+  "generated_by": "columna-core 0.12.0",
+  "structure_source": "columna_core.parser.__doc__ grammar block (teaching shape)",
+  "completeness_source": "columna_core.parser._KW (lexing set)",
+  "note": "A lexing set is not a grammar taxonomy: _KW says what may BEGIN A LINE and is used here only to assert coverage; the page's SHAPE comes from the docstring.",
+  "frame": {
+    "law": "§2b / C-2 insulation",
+    "statement": "A .cml source document co-locates TWO layers. The LOGICAL declarations are what the Manifold is — what an agent sees over describe and the wire. The MAP clauses are how it binds to physical storage, and they are engine-visible ONLY: describe emits logical names, never a realized_by, a VIA bridge, a FROM table, or an expression. This is enforced, not intended — a standing insulation test asserts that physical identifiers never cross describe or the wire.",
+    "map_clauses": [
+      "= <column>",
+      "FROM",
+      "AS",
+      "VALUE",
+      "VIA",
+      "REJECT",
+      "ATTR"
+    ]
+  },
+  "kw_tokens": [
+    "MANIFOLD",
+    "UNIVERSE",
+    "LEVEL",
+    "RELATE",
+    "MEASURE",
+    "DERIVED",
+    "ASSERT",
+    "HIERARCHY",
+    "ATTR"
+  ],
+  "entries": [
+    {
+      "keyword": "MANIFOLD",
+      "signatures": [
+        "MANIFOLD <name> VERSION <n>"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": "UNIVERSE",
+      "signatures": [
+        "UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": "LEVEL",
+      "signatures": [
+        "LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": "HIERARCHY",
+      "signatures": [
+        "HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": "RELATE",
+      "signatures": [
+        "RELATE <a> <-> <b> VIA <table> [NOTE \"<text>\"]"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": null,
+      "signatures": [],
+      "clauses": [],
+      "notes": [
+        "Any declaration may carry (case-demo b/d):",
+        "-- \"<text>\"                     a DESCRIPTION (folklore) — LOGICAL, flows to describe + the wire",
+        "REJECT <table>.<col> \"<reason>\" an attested rejected/aside physical incarnation — PHYSICAL,",
+        "map-artifact-ONLY, NEVER crosses describe or the wire (§2b)"
+      ]
+    },
+    {
+      "keyword": "MEASURE",
+      "signatures": [
+        "MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)",
+        "MEASURE <name> ON <universe> FROM <table> VALUE <expr>"
+      ],
+      "clauses": [
+        "[M_ANCHOR { <col>, ... }]",
+        "[FAMILY { <agg> [: <tier>] [BLOCKED { <lineage>, ... }] ... }]"
+      ],
+      "notes": []
+    },
+    {
+      "keyword": "DERIVED",
+      "signatures": [
+        "DERIVED <name> = <expr>"
+      ],
+      "clauses": [],
+      "notes": []
+    },
+    {
+      "keyword": "ASSERT",
+      "signatures": [
+        "ASSERT <name> [ON <universe>] WHERE <predicate>",
+        "ASSERT <name> [ON <universe>] AT <level> HOLDS <invariant>"
+      ],
+      "clauses": [],
+      "notes": [
+        "Absent from the parser docstring's grammar block (8 of 9 _KW tokens are present); signatures read from the parser's own patterns. The upstream fix — adding ASSERT to that block — is rowed, and this supplement is what keeps the page complete meanwhile."
+      ],
+      "supplemented": true
+    }
+  ],
+  "supplemented": [
+    "ASSERT"
+  ],
+  "examples": [
+    {
+      "keyword": "MANIFOLD",
+      "gloss": "the document header — a name and a version (both required)",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\n"
+    },
+    {
+      "keyword": "UNIVERSE",
+      "gloss": "a population: the product of its base dimensions",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\n"
+    },
+    {
+      "keyword": "LEVEL",
+      "gloss": "a coordinate. The `= <column>` is a MAP clause — engine-side, never crosses describe",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\n"
+    },
+    {
+      "keyword": "LEVEL",
+      "gloss": "with an inline ATTR clause — also map-side (note ATTR is a CLAUSE of LEVEL, not a statement)",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\nLEVEL region = region ATTR name = stores.region_name\n"
+    },
+    {
+      "keyword": "HIERARCHY",
+      "gloss": "a functional roll-up lineage; braces required, and each hop carries its own VIA",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\nLEVEL region = region\nHIERARCHY location { store -> region VIA stores(store_id, region) }\n"
+    },
+    {
+      "keyword": "MEASURE",
+      "gloss": "a quantity, aggregated. `FROM <table> AS <agg>(<expr>)` is a MAP clause",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\nMEASURE revenue ON sales FROM tx AS sum(amount)\n"
+    },
+    {
+      "keyword": "DERIVED",
+      "gloss": "a quantity defined from other measures — no map clause; it is pure logic",
+      "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\nMEASURE revenue ON sales FROM tx AS sum(amount)\nMEASURE orders ON sales FROM tx AS distinct(order_id)\nDERIVED aov = revenue / orders\n"
+    }
+  ],
+  "raw_block": "Grammar (statement-oriented; '#' comments; { } blocks):\n    MANIFOLD <name> VERSION <n>\n    UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]\n    LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]\n    HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }\n    RELATE <a> <-> <b> VIA <table> [NOTE \"<text>\"]\n\n    Any declaration may carry (case-demo b/d):\n      -- \"<text>\"                     a DESCRIPTION (folklore) — LOGICAL, flows to describe + the wire\n      REJECT <table>.<col> \"<reason>\" an attested rejected/aside physical incarnation — PHYSICAL,\n                                      map-artifact-ONLY, NEVER crosses describe or the wire (§2b)\n    MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)\n    MEASURE <name> ON <universe> FROM <table> VALUE <expr>\n        [M_ANCHOR { <col>, ... }]\n        [FAMILY { <agg> [: <tier>] [BLOCKED { <lineage>, ... }] ... }]\n    DERIVED <name> = <expr>"
+}
