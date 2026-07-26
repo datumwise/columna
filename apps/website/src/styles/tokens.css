@@ -137,16 +137,48 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
 .page-head { margin: 1rem 0 2.5rem; }
 .page-head .kicker { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
 
+/* ═════════════════════════════════════════════════════════════════════════════
+   TWO SEMANTIC VOCABULARIES — DISTINCT. DO NOT COLLAPSE THEM, AND DO NOT CARRY A CONSTRAINT ACROSS.
+   (Rowed by Huayin, 2026-07-26, after a scoping question during the mood migration.)
+
+   1. THE MOOD VOCABULARY — how an ANSWER arrives: serve · disclose · clarify · refuse.
+      INK ONLY. "No colour returns, in any form" binds THIS vocabulary. Defined below.
+
+   2. THE VERDICT VOCABULARY — how a declared CLAIM fared when checked against the data:
+      corroborated · verified · untestable · contradicted (plus disclose-as-caveat). This one is
+      COLOUR-ENCODED, in Figure 1 and the /case trial tables, and legitimately so — it is a
+      different semantic system with a different job, and it is explicitly OUT OF SCOPE for the
+      mood migration. Its colours live in scripts/gen_universe_visual.py (SERVE/VERIFIED/UNTEST/
+      REFUSE constants there are VERDICT colours despite the names).
+
+   A mood is about the shape of an answer; a verdict is about the truth of a declaration. Applying
+   the mood vocabulary's ink-only rule to verdicts would erase real information.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
 /* ─────────────────────────────────────────────────────────────────────────────
    THE MOOD VOCABULARY (homepage v2, art direction §3) — the STANDING site-wide semantic system.
-   RATIFIED by Huayin (2026-07-25): OPTION A — four ink treatments — is the site-wide vocabulary.
-     · serve    — plain ink, no marker
-     · disclose — hairline underline
-     · clarify  — dotted underline
-     · refuse   — struck
-   Defined once here, reused EVERYWHERE: the widget, /case exhibits, wire renderings, position
-   figures, and every future exhibit. (Option B — one accent at four intensities — was the gate
-   alternative; not chosen.)
+   RATIFIED by Huayin (2026-07-25): OPTION A — four ink treatments. (Option B — one accent at four
+   intensities — was the gate alternative; not chosen.)
+
+   THE SCALE RULE (Huayin, 2026-07-26) — the vocabulary's DEFINITION, not a special case.
+   Every mood has an INLINE form and a CONTAINER form. One vocabulary at two scales:
+
+     mood      | inline (a word in prose)      | container (badge, card, segment, panel)
+     ----------|-------------------------------|------------------------------------------------
+     serve     | plain ink, no marker          | plain / hairline border
+     disclose  | hairline underline            | solid bottom rule on a hairline container
+     clarify   | dotted underline              | dotted border
+     refuse    | struck                        | heavier rule  AND  struck label
+
+   A refuse CARD therefore carries the heavier container rule *and* a struck label — that is the
+   scale rule applied, NOT a hybrid exception: the container form and the inline form are both
+   present because a card contains both a container and a word.
+
+   Treatment translates to BORDER, never to FILL. A future surface DERIVES its treatment from this
+   table rather than inventing one — that is the whole point of writing the rule down.
+
+   Reused everywhere: the widget, /case exhibits and the four-mood wheel, wire renderings, position
+   figures, and every future exhibit.
 
    MIGRATION IN FLIGHT: the LEGACY saturated mood colours (--mood-serve … --mood-refuse) are still
    used by the shipped widget/ExhibitB, the /case four-mood wheel, /ladder, /how-to-read-the-wire,
@@ -175,13 +207,20 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
    · Three verification proverbs, earned this week — the standing rules for self-checking:
        1. "Verify from the run, not the YAML" — a CI step that passed is not a step whose output
           you have read; pull the actual job output.
-       2. "Probe the EXACT referent — name, path, AND package." Three misses this week, all the
-          same shape: a link's rendered text vs its href; a repo-root path vs the real nested
-          path; and columna-core (0.12.0) reported where columna (0.12.1) was meant. A missing or
-          wrong result is usually a wrong probe, not a broken target — check the probe first.
-          (Subsumes the earlier "real path over rendered text" — same rule, generalised.)
+       2. "Probe the EXACT referent — name, path, package, TREE STATE." Four misses this week, all
+          the same shape: a link's rendered text vs its href; a repo-root path vs the real nested
+          path; columna-core (0.12.0) reported where columna (0.12.1) was meant; and a grep of the
+          WORKING TREE reported a pin as present when the COMMITTED file lacked it (working tree ≠
+          committed file — use `git show <ref>:<path>` when the question is "what shipped?"). A
+          missing or wrong result is usually a wrong probe, not a broken target — check the probe
+          first. (Subsumes the earlier "real path over rendered text" — same rule, generalised.)
        3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
           trusting the edit; a regex that eats a closing brace ships silently.
+       4. "A guard that emits a SENTINEL is not fail-closed — only a non-zero exit is." A generator
+          that caught a missing package and wrote `null` felt safe and shipped 0.12.0 to prod under
+          copy saying 0.12.1. Sentinels get consumed by a downstream fallback and become plausible
+          wrong values; a non-zero exit cannot be. And every guard is verified in BOTH directions —
+          the happy path AND the failure it claims to catch, actually provoked.
    · The release model (version wiring, 2026-07-25): a DATA-ONLY release legitimately leaves
      columna-core behind. `columna` (umbrella / install version) and `columna-server` (the demo
      data) move; `columna-core` (the engine) does not, because there is no engine change. 0.12.1
