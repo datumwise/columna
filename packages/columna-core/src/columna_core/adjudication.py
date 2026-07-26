@@ -349,20 +349,23 @@ def _prove_hierarchy(server, m, h) -> License:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# The published SCOPE (B1 scope-edit law): a PURE function of declarations × the CURRENT attestation's
-# verdicts. No ratchet — reattest is symmetric (a now-holding assert restores its region); history
+# The published SCOPE (the scope-edit law): a PURE function of declarations × the CURRENT attestation's
+# verdicts. No ratchet — reattest is symmetric (a now-functional hierarchy unblocks its edge); history
 # lives in watermarks and the ledger, never in scope-state (Huayin, 2026-07-16).
 # ─────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class PublishedScope:
-    """The published manifold's SERVING scope — the scope-edit law made concrete, uniform across THREE
-    degrade targets (each toward correctness in its own kind): asserts degrade to CUT (cut declarations
-    refuse `conflicting_data`), licenses degrade to RECOMPUTE (revoked), edges degrade to BLOCKED
-    TRANSPORT (transport across them refuses `contradicted_edge`). Everything else serves untouched.
-    Recomputed fresh on every publish/attest from that attestation's verdicts (pure function; no
-    history — history lives in watermarks and the ledger)."""
-    cut: frozenset = frozenset()          # declaration names (measures + their derived cone) that are CUT
-    cut_by: dict = field(default_factory=dict)      # cut decl -> [{assert, universe, counterexample}]
+    """The published manifold's SERVING scope — the scope-edit law made concrete, uniform across its
+    degrade targets (each toward correctness in its own kind): licenses degrade to RECOMPUTE (revoked),
+    edges degrade to BLOCKED TRANSPORT (transport across them refuses `contradicted_edge`). Everything
+    else serves untouched. Recomputed fresh on every publish/attest from that attestation's verdicts
+    (pure function; no history — history lives in watermarks and the ledger).
+
+    A THIRD degrade target stood here: asserts degraded to CUT, and a query into a cut region refused
+    `conflicting_data`. It retired with ASSERT in 0.13.0 (ruling 2026-07-26) — one construct, one
+    degrade target, one refusal reason, all three gone together, because the cut region's sole producer
+    was a violated assert. `conflicting_data` is tombstoned in disclosure.REASON_OUTCOME and pinned as
+    never-emitted."""
     blocked_edges: frozenset = frozenset()          # (frm, to) whose transport is BLOCKED (refuted hierarchy)
     blocked_by: dict = field(default_factory=dict)  # (frm, to) -> [{lineage, key}]
     licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
@@ -382,27 +385,20 @@ def _snapshot_licenses(m) -> dict:
 
 def scope_from_report(m, report: dict) -> PublishedScope:
     """Build the PublishedScope from a (degrade-mode) adjudication report — a pure read of the current
-    verdicts: the cut declarations' cones (with coordinates) and the blocked edges (with the refuting
-    key)."""
-    cut, cut_by = set(), {}
-    for rec in report.get("_cuts", {}).values():
-        for decl in rec["cone"]:
-            cut.add(decl)
-            cut_by.setdefault(decl, []).append({"assert": rec["assert"], "universe": rec["universe"],
-                                                "counterexample": rec["counterexample"]})
+    verdicts: the blocked edges (with the refuting key) and the license snapshot."""
     blocked, blocked_by = set(), {}
     for edge, rec in report.get("_blocked", {}).items():
         blocked.add(edge)
         blocked_by.setdefault(edge, []).append(rec)
-    return PublishedScope(cut=frozenset(cut), cut_by=cut_by,
-                          blocked_edges=frozenset(blocked), blocked_by=blocked_by,
+    return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
                           licenses=_snapshot_licenses(m))
 
 
 def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
-    """The authoring-event report: what THIS attestation changed vs the previous scope — cuts/restores
-    (asserts), revocations/re-licenses (licenses), blocked/unblocked edges (hierarchies). Never a silent
-    mutation — this diff is what summons the author to the three exits."""
+    """The authoring-event report: what THIS attestation changed vs the previous scope —
+    revocations/re-licenses (licenses), blocked/unblocked edges (hierarchies). Never a silent
+    mutation — this diff is what summons the author to the three exits. (`cuts`/`restores`/`cut_by`
+    stood here; they retired with ASSERT in 0.13.0, ruling 2026-07-26.)"""
     revocations, relicenses = [], []
     for k, v in new.licenses.items():
         ov = old.licenses.get(k)
@@ -410,12 +406,9 @@ def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
             revocations.append(k)
         elif ov == CONTRADICTED and v in (VERIFIED, CORROBORATED):
             relicenses.append(k)
-    cuts = sorted(new.cut - old.cut)
     newly_blocked = sorted(new.blocked_edges - old.blocked_edges)
-    return {"cuts": cuts, "restores": sorted(old.cut - new.cut),
-            "revocations": sorted(revocations), "relicenses": sorted(relicenses),
+    return {"revocations": sorted(revocations), "relicenses": sorted(relicenses),
             "blocked_edges": newly_blocked, "unblocked_edges": sorted(old.blocked_edges - new.blocked_edges),
-            "cut_by": {d: new.cut_by.get(d, []) for d in cuts},
             "blocked_by": {e: new.blocked_by.get(e, []) for e in newly_blocked}}
 
 

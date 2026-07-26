@@ -106,11 +106,12 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
                            "driver": f.selection or None}          # the driver measure-ref; null for touch (additive)
                           for f in r.faces]}
                for r in m.non_functional]
-    # published-scope vs cut display (B1): the current serving scope — cut declarations + blocked edges.
+    # published-scope display: the current serving scope — the blocked edges of refuted hierarchies.
+    # (`cut`/`cut_by` stood here. They retired with ASSERT in 0.13.0, ruling 2026-07-26: the cut region's
+    #  sole producer was a violated assert, so the two fields could only ever be empty. Stated in the
+    #  0.13.0 release note with the `asserts` block and the universes' `attributes`.)
     ps = getattr(lm.server, "published_scope", None)
-    scope = {"cut": sorted(ps.cut) if ps else [],
-             "blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
-             "cut_by": {k: v for k, v in (ps.cut_by.items() if ps else [])},
+    scope = {"blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
              "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "dimensions": dimensions, "edges": edges, "universes": universes,

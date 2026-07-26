@@ -29,8 +29,7 @@ class ManifoldServer:
         Adjudication is a no-op for a manifold with no declared capability (unchanged behavior)."""
         from .adjudication import adjudicate, PublishedScope, _snapshot_licenses
         self.adjudication = adjudicate(self, attestation=attestation, trace=trace)   # strict; fails closed
-        self.published_scope = PublishedScope(licenses=_snapshot_licenses(self.m))   # clean birth: no cuts
-        self.planner.cut, self.planner.cut_by = frozenset(), {}
+        self.published_scope = PublishedScope(licenses=_snapshot_licenses(self.m))   # clean birth
         self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
         return self.engine.publish_witnesses(trace)
 
@@ -38,21 +37,20 @@ class ManifoldServer:
         """RE-ATTEST an already-published manifold against fresh data — a constitutionally DIFFERENT
         act from `publish` (Huayin, 2026-07-16): a data refutation here EDITS THE PUBLISHED SCOPE
         (degrade), it does not fail closed. Re-adjudicates in degrade mode, recomputes the scope as a
-        PURE function of the new verdicts (symmetric — a now-holding assert RESTORES its region), and
-        RETURNS the authoring-event report (the scope diff: cuts, restores, revocations, re-licenses,
-        counterexample coordinates) that summons the author to the three exits. Never mutates silently."""
+        PURE function of the new verdicts (symmetric — a now-functional hierarchy UNBLOCKS its edge),
+        and RETURNS the authoring-event report (the scope diff: revocations, re-licenses, blocked and
+        unblocked edges, refuting keys) that summons the author to the three exits. Never mutates
+        silently."""
         from .adjudication import adjudicate, scope_from_report, scope_diff, PublishedScope
         old = getattr(self, "published_scope", None) or PublishedScope()
         self.engine.cache.clear()          # re-attestation is fresh data — the version-gated cache is stale
-        # the scope is a PURE recomputation (no ratchet): clear the old cut/blocks so re-adjudication's
+        # the scope is a PURE recomputation (no ratchet): clear the old blocks so re-adjudication's
         # own serves are not blocked by the very scope-edits it is re-deciding.
-        self.planner.cut, self.planner.cut_by = frozenset(), {}
         self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
         report = adjudicate(self, attestation=attestation, trace=trace, degrade=True)
         new = scope_from_report(self.m, report)
         diff = scope_diff(old, new)
         self.published_scope = new
-        self.planner.cut, self.planner.cut_by = new.cut, new.cut_by
         self.planner.blocked_edges, self.planner.blocked_by = new.blocked_edges, new.blocked_by
         self.engine.publish_witnesses(trace)                # rebuild witnesses for the served regions
         return diff
@@ -78,15 +76,16 @@ class ManifoldServer:
 
         series = []
         for s, wcol in zip(d.series, would_be["columns"]):
-            atoms, derived_names, edges, cut_decl = p.cone_atoms_and_edges(s.expr, d.anchor)
+            atoms, derived_names, edges = p.cone_atoms_and_edges(s.expr, d.anchor)
             for a in atoms:
                 a["license"] = _lic(a["measure"], a["member"])   # verdict enrichment (Manifold-side)
             cone = {
                 "atoms": atoms,
                 "derived": [describe_derived(self.m, n) for n in derived_names],
                 "edges": edges,
-                "scope": {"cut": cut_decl, "in_cut_region": cut_decl is not None,
-                          "crosses_blocked_edge": any(e["blocked"] for e in edges)},
+                # (`cut`/`in_cut_region` stood here — they retired with ASSERT in 0.13.0, ruling
+                #  2026-07-26: with no construct able to cut, the fields could only ever be null/false.)
+                "scope": {"crosses_blocked_edge": any(e["blocked"] for e in edges)},
             }
             series.append({"name": s.alias, "expr": s.expr, "cone": cone,
                            "would_be": {"status": wcol["status"], "no_result": wcol.get("no_result"),

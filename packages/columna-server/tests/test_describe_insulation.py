@@ -93,6 +93,7 @@ def test_describe_manifold_has_the_d1_extension_blocks():
     assert "realized_by" not in dm["dimensions"][0]                         # C-2 insulation
     assert "universe" in dm["measures"][0]                                  # structured universe-qualified address
     ps = dm["published_scope"]
-    assert {"cut", "blocked_edges"} <= set(ps)                              # scope/cut display (B1)
+    assert {"blocked_edges", "blocked_by"} <= set(ps)                       # scope display
+    assert "cut" not in ps and "cut_by" not in ps    # the CUT half retired with ASSERT (ruling 2026-07-26)
     dmeas = T.describe_measure(store, MID, dm["measures"][0]["name"])
     assert "signatures" in dmeas and "operator" in next(iter(dmeas["signatures"].values()))
