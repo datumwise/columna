@@ -138,16 +138,23 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
 .page-head .kicker { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE MOOD VOCABULARY (homepage v2, art direction §3) — documented beside the tokens.
-   The four moods are a SEMANTIC SYSTEM, defined once and reused (widget, /case exhibits,
-   wire renderings, position figures). Two renderings went to the gate:
-     · OPTION A — four ink treatments (built as the default below): serve = plain ink;
-       disclose = hairline underline; clarify = dotted underline; refuse = struck.
-     · OPTION B — one restrained accent at four intensities.
-   PENDING HUAYIN'S PICK at the homepage v2 gate. Whichever is chosen becomes site-wide, and
-   the LEGACY saturated mood colours (--mood-serve … --mood-refuse, still used by the shipped
-   widget/ExhibitB and /case) are unified to it in the follow-up the gate authorises. Until
-   then the widget keeps its shipped colours — deliberately not ripped out before the pick.
+   THE MOOD VOCABULARY (homepage v2, art direction §3) — the STANDING site-wide semantic system.
+   RATIFIED by Huayin (2026-07-25): OPTION A — four ink treatments — is the site-wide vocabulary.
+     · serve    — plain ink, no marker
+     · disclose — hairline underline
+     · clarify  — dotted underline
+     · refuse   — struck
+   Defined once here, reused EVERYWHERE: the widget, /case exhibits, wire renderings, position
+   figures, and every future exhibit. (Option B — one accent at four intensities — was the gate
+   alternative; not chosen.)
+
+   MIGRATION IN FLIGHT: the LEGACY saturated mood colours (--mood-serve … --mood-refuse) are still
+   used by the shipped widget/ExhibitB, the /case four-mood wheel, /ladder, /how-to-read-the-wire,
+   and AmbientChip. Retiring them in favour of A's ink treatments is the IMMEDIATE FOLLOW-UP to the
+   homepage-v2 PR — held separate on purpose: A's treatments were designed for inline WORDS, and
+   applying them to badges/pills/the generated wheel needs design care (a struck pill is not a
+   mechanical swap of a coloured one), which should not be rushed inside the homepage gate.
+   Until it lands, the widget keeps its colours — a documented, accepted, temporary inconsistency.
    ───────────────────────────────────────────────────────────────────────────── */
 .mood { font-weight: 600; }
 .mood-serve { }                                                          /* plain ink */
@@ -168,8 +175,17 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
    · Three verification proverbs, earned this week — the standing rules for self-checking:
        1. "Verify from the run, not the YAML" — a CI step that passed is not a step whose output
           you have read; pull the actual job output.
-       2. "The real path over the rendered text" — probe the href/target, never the label; a
-          403 is not a 404, a missing file is usually a wrong probe.
+       2. "Probe the EXACT referent — name, path, AND package." Three misses this week, all the
+          same shape: a link's rendered text vs its href; a repo-root path vs the real nested
+          path; and columna-core (0.12.0) reported where columna (0.12.1) was meant. A missing or
+          wrong result is usually a wrong probe, not a broken target — check the probe first.
+          (Subsumes the earlier "real path over rendered text" — same rule, generalised.)
        3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
           trusting the edit; a regex that eats a closing brace ships silently.
+   · The release model (version wiring, 2026-07-25): a DATA-ONLY release legitimately leaves
+     columna-core behind. `columna` (umbrella / install version) and `columna-server` (the demo
+     data) move; `columna-core` (the engine) does not, because there is no engine change. 0.12.1
+     was exactly this (server 0.7.1 shipped the category-driver descriptions; core stayed 0.12.0).
+     The site's shown version is the UMBRELLA `columna` — read from transcript meta's `columna`
+     field, NOT `columna_core`. This is the release model, not drift.
    ───────────────────────────────────────────────────────────────────────────── */
