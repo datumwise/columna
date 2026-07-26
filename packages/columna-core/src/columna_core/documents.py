@@ -7,7 +7,7 @@ AUTHORING/document layer:
 
   • LOGICAL SPEC  (`logical_spec`)  — the Manifold spec everyone reads. PURELY LOGICAL: measures,
     derived, universes (concept × predicate × basis), levels + their logical attributes,
-    hierarchies (lineage + paths), asserts — each with its DESCRIPTION (folklore). It carries NO
+    hierarchies (lineage + paths) — each with its DESCRIPTION (folklore). It carries NO
     physical identifier and NO reject. This is the blast wall as a document: what an agent or a
     reader sees.
 
@@ -25,12 +25,12 @@ from __future__ import annotations
 
 import json
 
-from .describe import (describe_universe, describe_assert, describe_hierarchy, describe_derived)
+from .describe import (describe_universe, describe_hierarchy, describe_derived)
 
 
 # ---- logical predicate rendering (core, self-contained; mirrors the server's insulation) ----------
 def render_predicate_logical(pred, levels=frozenset()):
-    """Render a universe/assert predicate LOGICALLY. A `<level>.<attr>` reference (a declared logical
+    """Render a universe predicate LOGICALLY. A `<level>.<attr>` reference (a declared logical
     attribute, case-demo c) renders WITH its qualifier — both parts are logical. A dotted ref whose head
     is not a declared level is an un-migrated physical residue → drop the qualifier (the §2b guarantee)."""
     if pred is None or not pred.comparisons:
@@ -65,7 +65,7 @@ def logical_spec(m) -> dict:
                       "members": {mem: fm.description for mem, fm in mc.family.items()}}
                      for mc in m.measures.values()],
         "derived": [describe_derived(m, name) for name in m.derived],
-        "asserts": [describe_assert(a, render_predicate_logical(a.predicate, lv)) for a in m.asserts],
+        # (an "asserts" block stood here — it retired with ASSERT in 0.13.0, ruling 2026-07-26)
     }
 
 
@@ -92,24 +92,16 @@ def _universe_home(m, uname) -> str:
     return max(set(tables), key=tables.count) if tables else "—"
 
 
-def _attr_binding(binding, home) -> str:
-    """A row-attribute binding qualifies against the universe home table when it shares its spelling."""
-    return binding if "." in binding else f"{home}.{binding}"
-
-
 def physical_map(m) -> list:
     """Project the Manifold's PHYSICAL→LOGICAL map (many-to-one): every logical name → its ONE
     authoritative physical binding, with rejected/aside incarnations kept with reasons. This is the
     ONLY artifact that carries physical identifiers and rejects."""
     rows = []
 
-    # universes -> their home table (the modal home_table of the measures bound to them) + rejects;
-    # then each universe ROW-attribute -> its physical column (qualified against the home table).
+    # universes -> their home table (the modal home_table of the measures bound to them) + rejects.
+    # (Universe ROW-attribute rows stood here; they retired with the standalone ATTR form in 0.13.0.)
     for u in m.universes.values():
-        home = _universe_home(m, u.name)
-        rows.append(_row(u.name, home, u.rejects))
-        for name, binding in u.attributes:
-            rows.append(_row(f"{u.name}.{name}", _attr_binding(binding, home)))
+        rows.append(_row(u.name, _universe_home(m, u.name), u.rejects))
 
     # measures -> their realization + rejected incarnations (the stale summaries)
     for mc in m.measures.values():
@@ -152,9 +144,6 @@ def physical_vocabulary(m) -> set:
     for u in m.universes.values():
         for p, _ in u.rejects:
             vocab.add(p)
-        home = _universe_home(m, u.name)
-        for _, binding in u.attributes:
-            vocab.add(_attr_binding(binding, home))
     for l in m.levels.values():
         for _, binding in l.attributes:
             vocab.add(binding)

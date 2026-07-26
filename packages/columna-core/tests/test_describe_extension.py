@@ -2,13 +2,13 @@
 test_describe_extension.py — the D1 describe extension serializers (CP-3 C-1) + the §2b insulation
 guarantee at the serializer layer (C-2).
 
-Additive to the shipped per-kind shape: License blocks verbatim across fertility/hierarchy/assert, basis
+Additive to the shipped per-kind shape: License blocks verbatim across fertility/hierarchy, basis
 + absence semantics on universes, operator properties. The §2b guarantee — no physical identifier crosses
 describe — is enforced here (the hierarchy's VIA table never appears) and by the standing server test.
 """
-from columna_core import (describe_universe, describe_assert, describe_hierarchy, operator_properties,
-                          absence_semantics, License, CORROBORATED, UNTESTABLE)
-from columna_core.model import Universe, Assert, Hierarchy
+from columna_core import (describe_universe, describe_hierarchy, operator_properties,
+                          absence_semantics, License, CORROBORATED)
+from columna_core.model import Universe, Hierarchy
 from columna_core.projection import OperatorSig
 
 
@@ -27,19 +27,6 @@ def test_describe_universe_carries_basis_absence_and_license():
     assert d["basis"] == "events" and "ZERO" in d["absence"]
     assert d["basis_license"]["verdict"] == "corroborated"
     assert d["predicate"] == "day >= opened_date" and d["base_dimensions"] == ["store"]
-
-
-def test_describe_assert_row_and_invariant_forms_carry_the_kernel_license():
-    lic = License(verdict=UNTESTABLE, basis="author note")
-    row = Assert(name="nonneg", universe="sales", kind="row", license=lic)
-    d = describe_assert(row, "region >= 0")
-    assert d["form"] == {"kind": "row", "predicate": "region >= 0"}
-    assert d["license"]["verdict"] == "untestable"
-    inv = Assert(name="recon", universe="sales", kind="invariant", anchor=("store",),
-                 left="revenue", op="==", right="gross - discounts", license=lic)
-    di = describe_assert(inv)
-    assert di["form"]["kind"] == "invariant" and di["form"]["left"] == "revenue" and di["form"]["op"] == "=="
-    assert di["form"]["anchor"] == ["store"]
 
 
 def test_describe_hierarchy_carries_license_and_HIDES_the_physical_via_table():

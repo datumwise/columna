@@ -1,6 +1,6 @@
 """Columna Core — the column-foundation analytic framework (multi-table, transport-based)."""
 from .model import (Manifold, Universe, Predicate, Ref, Comparison, DimensionLevel, FunctionalEdge,
-                    MeasureColumn, FamilyMember, BAnchor, DerivedColumn, License, Assert, Hierarchy,
+                    MeasureColumn, FamilyMember, BAnchor, DerivedColumn, License, Hierarchy,
                     Relate, Face, TOUCH, ASSIGN, ALLOC, FACE_SCHEMES,
                     VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
                     ADDITIVE, SKETCH, HOLISTIC, DECLARED, PROVEN, INFERRED_SAMPLE, INFERRED_DOCS, A)
@@ -13,14 +13,14 @@ from .engine import ColumnEngine
 from .planner import Planner, FrameResult
 from .frameql import ManifoldServer, Frame, parse_frameql, FrameQLSyntaxError
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
-from .adjudication import (adjudicate, Contradiction, AssertContradiction, HierarchyContradiction,
-                           AssertNotWellFormed, PublishedScope, scope_from_report, scope_diff)
+from .adjudication import (adjudicate, Contradiction, HierarchyContradiction,
+                           PublishedScope, scope_from_report, scope_diff)
 from .draft import (Draft, Proposal, PolarityViolation, lower_proposal, DECLARATION_KINDS,
                     INFERRED_CATALOG,          # INFERRED_SAMPLE/DECLARED already bound from .model (same constants)
                     PROPOSED, ACCEPTED, STRUCK, EDITED,
                     SCOPED, PROPOSED_STATE, DECLARED_STATE, ATTESTED, PUBLISHED)
 from .connector import CatalogAperture, APERTURE_SAMPLE_CAP
-from .describe import (describe_derived, license_to_dict, describe_universe, describe_assert,
+from .describe import (describe_derived, license_to_dict, describe_universe,
                        describe_hierarchy, operator_properties, absence_semantics)
 from .sketch import (hll_count, hll_merge, hll_estimate, hll_merge_pair, rse, Witness, WitnessStore)
 from .documents import (logical_spec, physical_map, physical_vocabulary, no_physical_leak,
@@ -28,7 +28,7 @@ from .documents import (logical_spec, physical_map, physical_vocabulary, no_phys
 
 __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "DimensionLevel", "FunctionalEdge", "MeasureColumn",
-           "FamilyMember", "BAnchor", "DerivedColumn", "License", "Assert", "Hierarchy",
+           "FamilyMember", "BAnchor", "DerivedColumn", "License", "Hierarchy",
            "Relate", "Face", "TOUCH", "ASSIGN", "ALLOC", "FACE_SCHEMES",
            "VERIFIED", "CORROBORATED", "UNTESTABLE", "CONTRADICTED", "ADDITIVE", "SKETCH", "HOLISTIC",
            "DECLARED", "PROVEN", "INFERRED_SAMPLE", "INFERRED_DOCS", "A",
@@ -37,9 +37,9 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "Connector", "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
            "ManifoldServer", "Frame", "parse_frameql", "FrameQLSyntaxError",
            "Disclosure", "Caveat", "Refusal", "Outcome",
-           "adjudicate", "Contradiction", "AssertContradiction", "HierarchyContradiction",
-           "AssertNotWellFormed", "PublishedScope", "scope_from_report", "scope_diff",
-           "describe_derived", "license_to_dict", "describe_universe", "describe_assert",
+           "adjudicate", "Contradiction", "HierarchyContradiction",
+           "PublishedScope", "scope_from_report", "scope_diff",
+           "describe_derived", "license_to_dict", "describe_universe",
            "describe_hierarchy", "operator_properties", "absence_semantics",
            "hll_count", "hll_merge", "hll_estimate", "hll_merge_pair", "rse", "Witness", "WitnessStore",
            "logical_spec", "physical_map", "physical_vocabulary", "no_physical_leak",

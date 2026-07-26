@@ -50,7 +50,7 @@ def describe_derived(m, name: str) -> dict:
 
 # ---- CP-3 C-1: the D1 describe extension (additive) ------------------------------------------------
 # Additive to the shipped per-kind shape (capture §7 D1): License blocks verbatim across
-# fertility/hierarchy/assert; basis + absence semantics on universes; operator properties. No alias block.
+# fertility/hierarchy; basis + absence semantics on universes; operator properties. No alias block.
 # The §2b insulation guarantee is C-2's wall (no physical identifier crosses describe) — these serializers
 # carry only logical facts; a physical leak is a describe bug the standing test catches, never here.
 
@@ -77,7 +77,6 @@ def describe_universe(u, predicate_str) -> dict:
         "name": u.name,
         "base_dimensions": sorted(u.base_dimensions),
         "predicate": predicate_str,
-        "attributes": [a for a, _ in u.attributes],   # logical row-attribute NAMES only (case-demo c ext)
         "description": u.description,        # folklore (case-demo b) — LOGICAL, flows to describe/wire
         "basis": u.basis,
         "absence": absence_semantics(u.basis),
@@ -85,15 +84,10 @@ def describe_universe(u, predicate_str) -> dict:
     }
 
 
-def describe_assert(a, predicate_str=None) -> dict:
-    """An Assert → describe dict with its adjudicated License (Certificate-kernel reuse, byte-identical).
-    Row-form carries the LOGICALLY-rendered predicate (caller-supplied); invariant-form the measure
-    relation. No physical identifier crosses (§2b)."""
-    form = ({"kind": "row", "predicate": predicate_str} if a.kind == "row"
-            else {"kind": "invariant", "anchor": list(a.anchor), "left": a.left, "op": a.op, "right": a.right})
-    return {"name": a.name, "universe": a.universe, "form": form,
-            "description": a.description,   # folklore (case-demo b) — LOGICAL, flows to describe/wire
-            "license": license_to_dict(a.license)}
+# (`describe_assert` stood here. RETIRED with ASSERT in 0.13.0 (ruling 2026-07-26); the describe wire
+#  loses its `asserts` block, and each universe block loses its `attributes` list (the standalone
+#  `ATTR … ON <universe>` cascade). `contract_version` stays "1" — pre-broadcast, zero consumers, and
+#  the 0.13.0 release note states both removals explicitly.)
 
 
 def describe_hierarchy(h) -> dict:
