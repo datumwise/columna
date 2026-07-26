@@ -201,11 +201,15 @@ const ch3Sections = sections(ch3raw);
     .v-contradicted { background: #fbe6e6; color: #a63030; }
 
     .wheel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; }
-    .mood-card { border: 1px solid #e5e2dc; border-left: 4px solid #b9b4a9; border-radius: 8px; padding: 0.7rem 0.8rem; background: #fff; }
-    .mood-serve { border-left-color: #2f6b34; }
-    .mood-disclose { border-left-color: #c08a1e; }
-    .mood-clarify { border-left-color: #2456a6; }
-    .mood-refuse { border-left-color: #a63030; }
+    /* MOOD — container (left-rule) forms per the scale rule; border never fill, ink only. Paper
+       register, so --vocab-ink resolves to paper ink with no override needed. */
+    .mood-card { border: 1px solid var(--rule); border-left: 4px solid var(--vocab-rule); border-radius: 8px; padding: 0.7rem 0.8rem; background: var(--paper); }
+    .mood-serve { border-left: 4px solid var(--vocab-ink); }
+    .mood-disclose { border-left: 4px solid var(--vocab-ink); border-bottom: 2px solid var(--vocab-ink); }
+    .mood-clarify { border-left: 4px dotted var(--vocab-ink); }
+    /* refuse: heavier container rule AND a struck label — the scale rule, both scales present. */
+    .mood-refuse { border-left: 7px solid var(--vocab-ink); }
+    .mood-refuse .mood-name { text-decoration: line-through; text-decoration-thickness: 1.5px; }
     .mood-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.4rem; }
     .mood-name { font-weight: 700; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.06em; }
     .mood-reason { font-size: 0.68rem; color: #8a8478; font-family: ui-monospace, monospace; }

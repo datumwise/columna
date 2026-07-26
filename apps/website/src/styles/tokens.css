@@ -28,12 +28,14 @@
   --wire-key: #7fb0d8;      /* json keys, desaturated */
   --wire-string: #b7c6a8;   /* json strings, desaturated */
 
-  /* the four moods — the only saturated color on the page, used ONLY as mood tags */
-  --mood-serve: #2f9e6b;
-  --mood-disclose: #c98a2b;
-  --mood-clarify: #2f7fc4;
-  --mood-refuse: #c2543f;
-  --mood-error: #6b7280;    /* error is NOT a mood — neutral gray, deliberately */
+  /* THE FOUR MOOD COLOURS ARE RETIRED (2026-07-26). The mood vocabulary is INK ONLY — style encodes
+     kind — so --mood-serve/-disclose/-clarify/-refuse no longer exist. The definitions are DELETED
+     rather than left unused on purpose: a live token is an invitation to reach for it, and a
+     decorative borrow is exactly how a retired vocabulary survives. Anything that needs a mood now
+     uses .mood-* / .mood-box-* / .mood-rule-* (see the vocabulary register).
+     Retired values, for the record only: serve #2f9e6b · disclose #c98a2b · clarify #2f7fc4 ·
+     refuse #c2543f. */
+  --mood-error: #6b7280;    /* error is NOT a mood — a neutral gray UI state, deliberately kept */
 
   /* DISCLOSURE SEVERITY — its own tokens (Huayin's severity ruling part 1, 2026-07-26).
      The values below are IDENTICAL to three mood colours today. That identity is a COINCIDENCE;
@@ -43,15 +45,31 @@
      These are the CURRENT values, preserved byte-for-byte so the decoupling is a no-op visually.
      They are superseded by the ordinal WEIGHT encoding (ruling part 2) once the three rendered
      weights are ratified — at which point severity leaves colour entirely. */
-  --sev-info: #2f7fc4;
-  --sev-caution: #c98a2b;
-  --sev-critical: #c2543f;
+  /* RATIFIED ENCODING (Huayin, 2026-07-26): severity is ORDINAL, so it is carried by WEIGHT, ink
+     only. The ramp is 2 / 4 / 7px — NOT 1/3/6.
+     THE REASON, recorded because it is a rule and not a taste: ABSENCE OF A MARK IS ITSELF
+     MEANINGFUL here (no disclosure = nothing to disclose), so the LOWEST severity must remain
+     visibly PRESENT. At 1px, info and no-disclosure collapse into the same appearance — a silent
+     binding at the visual layer, which is the very failure this system exists to refuse. Quiet is
+     the goal; invisible is a different claim. */
+  --sev-weight-info: 2px;
+  --sev-weight-caution: 4px;
+  --sev-weight-critical: 7px;
+  /* The severity COLOUR tokens are deleted too, for the same reason the mood ones are: a live token
+     is an invitation to reach for it. Keeping them "as a record" would have left a colour severity
+     scale sitting ready to be used again. Retired values, in comment only: info #2f7fc4 ·
+     caution #c98a2b · critical #c2543f. */
 
   /* STRUCTURAL — parts of a message in a diagram (ruling part 3): neither mood nor severity, so
      they carry NO semantic colour. Structural neutrality is REGISTER-DEPENDENT: a paper-register
      diagram takes the paper ink ramp, a wire-register diagram (the dark terminal panel) takes the
      wire ramp — otherwise "neutral ink" is invisible on its own background. Aliases, so a diagram
      declares intent ("this is structure") rather than reaching for a raw ramp value. */
+  /* MOOD/SEVERITY INK, resolved per register (see the register-resolution rule). Paper by default;
+     a wire-register container overrides these, so the same class works on both surfaces. */
+  --vocab-ink: var(--ink);
+  --vocab-rule: var(--rule-strong);
+
   --struct-paper-primary: var(--ink);
   --struct-paper-secondary: var(--ink-soft);
   --struct-paper-faint: var(--ink-faint);
@@ -194,10 +212,28 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
    └────────────┴────────────────────────┴───────────────────────┴─────────────────────────────────┘
 
    Why weight for severity and style for mood: severity is RANKED, and weight reads as ranked with no
-   legend — hairline < medium < heavy is self-evident, which is something colour cannot do (nobody
-   knows whether amber outranks blue). Mood is unordered, so it takes style, where four marks read as
-   four kinds rather than four steps. The channels do not collide, so a single element can legibly
-   carry both a mood and a severity.
+   legend — 2px < 4px < 7px is self-evident, which is something colour cannot do (nobody knows whether
+   amber outranks blue). Mood is unordered, so it takes style, where four marks read as four kinds
+   rather than four steps. The channels do not collide, so a single element can legibly carry both a
+   mood and a severity.
+
+   THE RATIFIED SEVERITY RAMP IS 2 / 4 / 7px — not 1/3/6. Absence of a mark is ITSELF MEANINGFUL in
+   this system (no disclosure = nothing to disclose), so the lowest severity must remain visibly
+   PRESENT: at 1px, info and no-disclosure collapse into the same appearance, which is a silent
+   binding at the visual layer — the exact failure this system exists to refuse. Quiet is the goal;
+   invisible is a different claim.
+
+   THE REGISTER-RESOLUTION RULE: an axis DECLARES ITS ROLE; the register RESOLVES THE VALUE per
+   surface. A class says "this is a refuse container" or "this is structure"; it never reaches for a
+   raw ramp value. Concretely: vocabulary classes read --vocab-ink/--vocab-rule, and a container on
+   the dark terminal panel carries `.vocab-wire`, which rebinds those to the wire ramp. Structural
+   tokens are split the same way (--struct-paper-* / --struct-wire-*). This is why the same
+   .mood-box-refuse works on paper and on the wire without a second class per surface.
+
+   ILLUSTRATIVE EXAMPLE (keep it, and look at it before designing a new surface):
+   docs/design/vocabulary_register_example.html — a `disclose` badge (mood = style) above a critical
+   disclosure (severity = weight), independently legible on one element. That render is the evidence
+   that settled the style/weight split: colour-on-colour could not have done it.
 
    FOOTNOTE 1 — THE NAMING TRAP. In scripts/gen_universe_visual.py the constants SERVE / DISCLOSE /
    VERIFIED / REFUSE / UNTEST are VERDICT colours despite reading like mood names. They are the
@@ -251,19 +287,29 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
    a wire badge, a wheel card, a panel, a diagram segment. Border, never fill; ink only.
    `refuse` gets the heavier rule AND (via .mood-label inside it) a struck label — one vocabulary
    at two scales, because a card contains both a container and a word. */
-.mood-box            { border: 1px solid var(--rule-strong); background: transparent; color: var(--ink); }
-.mood-box-serve      { border: 1px solid var(--rule-strong); }
-.mood-box-disclose   { border: 1px solid var(--rule-strong); border-bottom: 2px solid var(--ink); }
-.mood-box-clarify    { border: 1px dotted var(--ink); }
-.mood-box-refuse     { border: 2px solid var(--ink); }
+.mood-box            { border: 1px solid var(--vocab-rule); background: transparent; color: var(--vocab-ink); }
+.mood-box-serve      { border: 1px solid var(--vocab-rule); }
+.mood-box-disclose   { border: 1px solid var(--vocab-rule); border-bottom: 2px solid var(--vocab-ink); }
+.mood-box-clarify    { border: 1px dotted var(--vocab-ink); }
+.mood-box-refuse     { border: 2px solid var(--vocab-ink); }
 /* the inline form, riding inside a refuse container — the scale rule applied, not an exception */
 .mood-box-refuse .mood-label { text-decoration: line-through; text-decoration-thickness: 1.5px; }
 
 /* left-rule variant, for cards that lead with a rule rather than a full border (the /case wheel) */
-.mood-rule-serve     { border-left: 4px solid var(--ink); }
-.mood-rule-disclose  { border-left: 4px solid var(--ink); border-bottom: 2px solid var(--ink); }
-.mood-rule-clarify   { border-left: 4px dotted var(--ink); }
-.mood-rule-refuse    { border-left: 7px solid var(--ink); }
+.mood-rule-serve     { border-left: 4px solid var(--vocab-ink); }
+.mood-rule-disclose  { border-left: 4px solid var(--vocab-ink); border-bottom: 2px solid var(--vocab-ink); }
+.mood-rule-clarify   { border-left: 4px dotted var(--vocab-ink); }
+.mood-rule-refuse    { border-left: 7px solid var(--vocab-ink); }
+
+/* SEVERITY container forms — ordinal weight, ink only, register-aware (ratified 2/4/7). */
+.sev-info     { border-left: var(--sev-weight-info)     solid var(--vocab-rule); }
+.sev-caution  { border-left: var(--sev-weight-caution)  solid var(--vocab-ink); }
+.sev-critical { border-left: var(--sev-weight-critical) solid var(--vocab-ink); }
+
+/* THE WIRE REGISTER OVERRIDE — put this on any container that renders on the dark terminal panel and
+   every vocabulary class inside it resolves to wire ink. This is the register-resolution rule in one
+   declaration: the class names the ROLE, the register supplies the VALUE. */
+.vocab-wire { --vocab-ink: var(--wire-ink); --vocab-rule: var(--wire-rule); }
 .mood-rule-refuse .mood-label { text-decoration: line-through; text-decoration-thickness: 1.5px; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
