@@ -35,6 +35,30 @@
   --mood-refuse: #c2543f;
   --mood-error: #6b7280;    /* error is NOT a mood — neutral gray, deliberately */
 
+  /* DISCLOSURE SEVERITY — its own tokens (Huayin's severity ruling part 1, 2026-07-26).
+     The values below are IDENTICAL to three mood colours today. That identity is a COINCIDENCE;
+     sharing a token would be a DEPENDENCY — and that coupling is exactly what would have erased a
+     three-level severity scale as a side effect of a mood decision. Decoupled first, on purpose:
+     information-preserving, and it unblocks the mood migration.
+     These are the CURRENT values, preserved byte-for-byte so the decoupling is a no-op visually.
+     They are superseded by the ordinal WEIGHT encoding (ruling part 2) once the three rendered
+     weights are ratified — at which point severity leaves colour entirely. */
+  --sev-info: #2f7fc4;
+  --sev-caution: #c98a2b;
+  --sev-critical: #c2543f;
+
+  /* STRUCTURAL — parts of a message in a diagram (ruling part 3): neither mood nor severity, so
+     they carry NO semantic colour. Structural neutrality is REGISTER-DEPENDENT: a paper-register
+     diagram takes the paper ink ramp, a wire-register diagram (the dark terminal panel) takes the
+     wire ramp — otherwise "neutral ink" is invisible on its own background. Aliases, so a diagram
+     declares intent ("this is structure") rather than reaching for a raw ramp value. */
+  --struct-paper-primary: var(--ink);
+  --struct-paper-secondary: var(--ink-soft);
+  --struct-paper-faint: var(--ink-faint);
+  --struct-wire-primary: var(--wire-ink);
+  --struct-wire-secondary: var(--wire-ink-soft);
+  --struct-wire-accent: var(--wire-key);
+
   /* measure */
   --measure: 34rem;         /* essay column width */
   --measure-wide: 52rem;
@@ -138,21 +162,50 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
 .page-head .kicker { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
 
 /* ═════════════════════════════════════════════════════════════════════════════
-   TWO SEMANTIC VOCABULARIES — DISTINCT. DO NOT COLLAPSE THEM, AND DO NOT CARRY A CONSTRAINT ACROSS.
-   (Rowed by Huayin, 2026-07-26, after a scoping question during the mood migration.)
+   THE VOCABULARY REGISTER — four semantic axes, four visual channels.
 
-   1. THE MOOD VOCABULARY — how an ANSWER arrives: serve · disclose · clarify · refuse.
-      INK ONLY. "No colour returns, in any form" binds THIS vocabulary. Defined below.
+   THE GOVERNING RULE (Huayin, 2026-07-26):
+       STYLE encodes KIND · WEIGHT encodes DEGREE · COLOUR is reserved for VERDICTS.
 
-   2. THE VERDICT VOCABULARY — how a declared CLAIM fared when checked against the data:
-      corroborated · verified · untestable · contradicted (plus disclose-as-caveat). This one is
-      COLOUR-ENCODED, in Figure 1 and the /case trial tables, and legitimately so — it is a
-      different semantic system with a different job, and it is explicitly OUT OF SCOPE for the
-      mood migration. Its colours live in scripts/gen_universe_visual.py (SERVE/VERIFIED/UNTEST/
-      REFUSE constants there are VERDICT colours despite the names).
+   No vocabulary borrows another's tokens. Identical values are a COINCIDENCE; a shared token is a
+   DEPENDENCY — and that coupling is what would have erased a three-level severity scale as a side
+   effect of a mood decision. Each axis below owns its tokens even where values coincide.
 
-   A mood is about the shape of an answer; a verdict is about the truth of a declaration. Applying
-   the mood vocabulary's ink-only rule to verdicts would erase real information.
+   ┌ axis ──────┬ semantics ─────────────┬ channel ──────────────┬ tokens ─────────────────────────┐
+   │ mood       │ NOMINAL — four kinds,  │ STYLE (ink)           │ .mood-* / .mood-box-* /         │
+   │            │ no order: serve ·      │ plain/underline/      │ .mood-rule-*                    │
+   │            │ disclose · clarify ·   │ dotted/struck         │ (ink only — NO colour, ever)     │
+   │            │ refuse                 │                       │                                 │
+   ├────────────┼────────────────────────┼───────────────────────┼─────────────────────────────────┤
+   │ severity   │ ORDINAL — ranked:      │ WEIGHT (ink)          │ --sev-info / --sev-caution /    │
+   │            │ info < caution <       │ hairline/medium/heavy │ --sev-critical                  │
+   │            │ critical               │                       │ (colour today; weight once the  │
+   │            │                        │                       │  three weights are ratified)    │
+   ├────────────┼────────────────────────┼───────────────────────┼─────────────────────────────────┤
+   │ verdict    │ NOMINAL — how a        │ COLOUR                │ constants in                    │
+   │            │ declared claim fared:  │ (figures only)        │ scripts/gen_universe_visual.py  │
+   │            │ corroborated ·         │                       │ OUT OF SCOPE for the mood       │
+   │            │ verified · untestable  │                       │ migration                       │
+   │            │ · contradicted         │                       │                                 │
+   ├────────────┼────────────────────────┼───────────────────────┼─────────────────────────────────┤
+   │ structural │ NOT semantic — parts   │ NEUTRAL INK           │ --struct-paper-* (paper) /      │
+   │            │ of a message in a      │ (register-dependent)  │ --struct-wire-* (dark terminal) │
+   │            │ diagram                │                       │                                 │
+   └────────────┴────────────────────────┴───────────────────────┴─────────────────────────────────┘
+
+   Why weight for severity and style for mood: severity is RANKED, and weight reads as ranked with no
+   legend — hairline < medium < heavy is self-evident, which is something colour cannot do (nobody
+   knows whether amber outranks blue). Mood is unordered, so it takes style, where four marks read as
+   four kinds rather than four steps. The channels do not collide, so a single element can legibly
+   carry both a mood and a severity.
+
+   FOOTNOTE 1 — THE NAMING TRAP. In scripts/gen_universe_visual.py the constants SERVE / DISCLOSE /
+   VERIFIED / REFUSE / UNTEST are VERDICT colours despite reading like mood names. They are the
+   verdict axis, they are legitimately colour, and they are out of scope. A sweep that "unifies" them
+   to the mood vocabulary would erase real information. Read the axis, not the identifier.
+
+   FOOTNOTE 2 — a mood is about the SHAPE OF AN ANSWER; a verdict is about the TRUTH OF A
+   DECLARATION; a severity is about HOW MUCH A DISCLOSURE MATTERS. Three different questions.
    ═════════════════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────────────────────

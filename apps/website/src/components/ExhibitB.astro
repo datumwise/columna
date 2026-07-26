@@ -172,9 +172,11 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
 
   .exhibit-b .disc-section { margin-top: 0.3rem; }
   .exhibit-b .disc { margin-top: 0.6rem; border-left: 2px solid; padding: 0.4rem 0 0.4rem 0.8rem; font-size: 0.86rem; color: var(--wire-ink); line-height: 1.5; }
-  .exhibit-b .disc-info { border-color: var(--mood-clarify); }
-  .exhibit-b .disc-caution { border-color: var(--mood-disclose); }
-  .exhibit-b .disc-critical { border-color: var(--mood-refuse); }
+  /* SEVERITY, not mood — decoupled to its own tokens (severity ruling part 1). Values unchanged
+     today; the ordinal weight encoding lands after the three weights are ratified. */
+  .exhibit-b .disc-info { border-color: var(--sev-info); }
+  .exhibit-b .disc-caution { border-color: var(--sev-caution); }
+  .exhibit-b .disc-critical { border-color: var(--sev-critical); }
   .exhibit-b .disc-code { font-family: var(--font-mono); font-size: 0.74rem; color: var(--wire-ink-soft); display: block; margin-bottom: 0.2rem; }
 
   .exhibit-b .alts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
