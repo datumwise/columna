@@ -41,9 +41,9 @@ export const LATEST: LatestItem[] = [
   },
   {
     kind: 'position',
-    title: 'Never Let the Model Touch the Database',
+    title: 'Never Let Your Agent Touch the Database',
     date: '2026-07-25',
-    href: '/positions/never-let-the-model-touch-the-database',
+    href: '/positions/never-let-your-agent-touch-the-database',
   },
   {
     kind: 'paper',
