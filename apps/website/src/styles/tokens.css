@@ -136,3 +136,40 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
 /* page title block for inner pages */
 .page-head { margin: 1rem 0 2.5rem; }
 .page-head .kicker { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE MOOD VOCABULARY (homepage v2, art direction §3) — documented beside the tokens.
+   The four moods are a SEMANTIC SYSTEM, defined once and reused (widget, /case exhibits,
+   wire renderings, position figures). Two renderings went to the gate:
+     · OPTION A — four ink treatments (built as the default below): serve = plain ink;
+       disclose = hairline underline; clarify = dotted underline; refuse = struck.
+     · OPTION B — one restrained accent at four intensities.
+   PENDING HUAYIN'S PICK at the homepage v2 gate. Whichever is chosen becomes site-wide, and
+   the LEGACY saturated mood colours (--mood-serve … --mood-refuse, still used by the shipped
+   widget/ExhibitB and /case) are unified to it in the follow-up the gate authorises. Until
+   then the widget keeps its shipped colours — deliberately not ripped out before the pick.
+   ───────────────────────────────────────────────────────────────────────────── */
+.mood { font-weight: 600; }
+.mood-serve { }                                                          /* plain ink */
+.mood-disclose { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.mood-clarify { text-decoration: underline dotted; text-underline-offset: 3px; }
+.mood-refuse { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BUILD NOTES (homepage v2)
+   · #try-a-question is a PERMANENT ANCHOR. The moods widget re-seats there; install.astro,
+     how-to-read-the-wire.astro, and ladder.astro's DEMO all link to it. A future re-seat must
+     preserve this id or it silently breaks three pages (it did once, as #exhibit-b). Demo links
+     follow the INSTRUMENT; the essay's own cues follow the essay to /the-argument.
+   · The hero manifold (HeroManifold.astro) renders the `hero_svg` PRESET from
+     scripts/gen_universe_visual.py — the SAME generator as /case's Figure 1, so it regenerates
+     with the shipped package on the deploy path and cannot drift. Verify the hero reflects the
+     live package, not a cached asset.
+   · Three verification proverbs, earned this week — the standing rules for self-checking:
+       1. "Verify from the run, not the YAML" — a CI step that passed is not a step whose output
+          you have read; pull the actual job output.
+       2. "The real path over the rendered text" — probe the href/target, never the label; a
+          403 is not a 404, a missing file is usually a wrong probe.
+       3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
+          trusting the edit; a regex that eats a closing brace ships silently.
+   ───────────────────────────────────────────────────────────────────────────── */

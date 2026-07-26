@@ -664,6 +664,73 @@ def _referents(model, roles):
     return {"artifact": "universe-visual", "kind": "web", "entries": ents}
 
 
+# ───────────────────────────── the HERO preset (homepage v2, Group 3) ─────────────────────────────
+def hero_svg(model, roles):
+    """A simplified, line-art HERO variant of the manifold, from the SAME model as figure_svg — so the
+    hero cannot drift from the shipped package (art direction §1). Ink-only, hairline strokes, no fill,
+    no colour: three universe blocks (name + basis only — no measure lists, no grain breadcrumbs, no
+    caption v5), the `=` identity seams, and the dotted frontier with its face chips. Everything is read
+    from the wire; nothing is hard-coded, so a package change redraws the hero.
+    """
+    home, profile, third = roles["home"], roles["profile"], roles["third"]
+    r = roles["relate"]
+    faces = [f["name"] for f in r.get("faces", [])]
+    shared = roles["shared_levels"]                       # e.g. ['day', 'store'] — the identity seams
+
+    W, H = 640, 440
+    p = ['<svg viewBox="0 0 %d %d" width="100%%" role="img" '
+         'aria-label="The Cascadia demo manifold: three universes — %s, %s and %s — with = identity '
+         'seams on %s and a dotted %s to %s frontier crossed through the %s faces.">'
+         % (W, H, home["name"], third["name"], profile["name"], " and ".join(shared),
+            r["frm"], r["to"], ", ".join(faces))]
+
+    def block(x, y, w, h, name, basis):
+        # hairline outline, no fill; name in ink, basis small and quiet
+        p.append(_rect(x, y, w, h, rx=0, fill="none", stroke=INK, sw=1))
+        p.append(_t(x + w / 2, y + h / 2 - 2, name, size=15, fill=INK, weight="600", anchor="middle",
+                    style="font-family:var(--font-mono, monospace)"))
+        p.append(_t(x + w / 2, y + h / 2 + 16, "basis: " + basis, size=11, fill=SUB, anchor="middle"))
+
+    # layout: home left-centre; third top-right (functional/identity); profile bottom-right (frontier).
+    # Kept roomy so neither the identity seam nor the frontier chips crowd a block corner.
+    hb = (36, 152, 196, 96)      # home
+    tb = (444, 34, 168, 88)      # third
+    pb = (444, 320, 168, 88)     # profile
+    block(*hb, home["name"], home["basis"])
+    block(*tb, third["name"], third["basis"])
+    block(*pb, profile["name"], profile["basis"])
+
+    # identity seams: home ↔ third, one `=` per shared level, labelled
+    hx, hy = hb[0] + hb[2], hb[1] + 24           # right edge of home, upper
+    tx, ty = tb[0], tb[1] + tb[3] / 2            # left edge of third
+    p.append(_line(hx, hy, tx, ty, stroke=RULE, sw=1))
+    mx, my = (hx + tx) / 2, (hy + ty) / 2
+    p.append(_t(mx, my - 6, "=", size=17, fill=INK, weight="700", anchor="middle"))
+    p.append(_t(mx, my + 13, " · ".join(shared), size=10, fill=FAINT, anchor="middle"))
+
+    # the frontier: home ↔ profile, DOTTED, with face chips
+    fx, fy = hb[0] + hb[2], hb[1] + hb[3] - 20    # right edge of home, lower
+    px, py = pb[0], pb[1] + pb[3] / 2             # left edge of profile
+    p.append(_line(fx, fy, px, py, stroke=INK, sw=1, dash="2 5"))
+    # the frontier label sits above the line's midpoint, clear of the home block on its right side
+    lmx, lmy = (fx + px) / 2, (fy + py) / 2
+    p.append(_t(lmx + 8, lmy - 34, "%s ↔ %s" % (r["frm"], r["to"]),
+                size=11, fill=SUB, anchor="middle", style="font-style:italic"))
+    # face chips along the frontier, spread across its middle so none sits on a block corner
+    n = len(faces)
+    for i, name in enumerate(faces):
+        t = 0.30 + (0.40 * (i / (n - 1))) if n > 1 else 0.5
+        cx = fx + (px - fx) * t
+        cy = fy + (py - fy) * t
+        wch = _tw(name, per=6.5) + 14
+        p.append(_rect(cx - wch / 2, cy - 9, wch, 18, rx=0, fill=PAPER, stroke=RULE, sw=1))
+        p.append(_t(cx, cy + 4, name, size=10.5, fill=INK, anchor="middle",
+                    style="font-family:var(--font-mono, monospace)"))
+
+    p.append("</svg>")
+    return "".join(p)
+
+
 def main() -> int:
     store = demo_store()
     dm = T.describe_manifold(store, MID)
@@ -699,6 +766,7 @@ def main() -> int:
         "generated_by": f"columna-core {version('columna-core')} / columna-server {version('columna-server')}",
         "manifold": MID,
         "figure_svg": fig,
+        "hero_svg": hero_svg(model, roles),
         "hover": {**hover, "intro": hover_intro,
                   "barred_caption": COPY["hover_barred"].format(stack=hover["stack"]),
                   "travels_caption": COPY["hover_travels"]},
