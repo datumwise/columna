@@ -50,6 +50,3 @@ MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level 
 DERIVED aov = revenue / orders   -- "average order value"
 DERIVED return_rate = units_returned / units_sold
     -- "returned units over sold units; nulls in returns count as zero"
-
-ASSERT returns_bounded ON transaction AT store HOLDS units_returned <= units_sold
-    -- "the team's data contract, checked against the data, not hoped"

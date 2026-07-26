@@ -86,7 +86,8 @@ def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
 def test_describe_manifold_has_the_d1_extension_blocks():
     store = demo_store()
     dm = T.describe_manifold(store, MID)
-    assert {"asserts", "hierarchies", "universes", "measures", "relates", "published_scope"} <= set(dm)
+    assert {"hierarchies", "universes", "measures", "relates", "published_scope"} <= set(dm)
+    assert "asserts" not in dm            # ASSERT retired in 0.13.0 (ruling 2026-07-26): the field left the wire
     u = dm["universes"][0]
     assert {"basis", "absence", "basis_license", "predicate"} <= set(u)     # C-1 universe extension
     assert "realized_by" not in dm["dimensions"][0]                         # C-2 insulation

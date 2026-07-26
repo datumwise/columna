@@ -69,17 +69,19 @@ def list_manifolds(store: ManifoldStore) -> dict:
 def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     lm = _get(store, manifold_id)
     m = lm.manifold
-    from columna_core import (describe_derived, describe_universe, describe_assert, describe_hierarchy)
+    from columna_core import (describe_derived, describe_universe, describe_hierarchy)
     # C-2 insulation (§2b, CP-3): dimensions no longer emit `realized_by` (a physical identifier).
     # Attributes emit their LOGICAL names only (case-demo c) — the physical binding stays map-side.
     dimensions = [{"level": lv.name, "is_base": lv.is_base, "description": lv.description,
                    "attributes": [a for a, _ in lv.attributes]} for lv in m.levels.values()]
     edges = [{"frm": e.frm, "to": e.to, "lineage": e.lineage} for e in m.edges]
     # C-1 (D1, CP-3): universes carry basis + absence semantics + the basis License (predicate rendered
-    # logically); asserts + hierarchies get their own describe blocks with the kernel-reused License.
+    # logically); hierarchies get their own describe block with the kernel-reused License.
+    # The `asserts` block was REMOVED in 0.13.0 (ASSERT retirement, ruling 2026-07-26) — the first
+    # REMOVAL from this wire; `contract_version` stays "1" (pre-broadcast, zero consumers), and the
+    # 0.13.0 release note states the removal explicitly rather than letting it drift.
     _lv = frozenset(m.levels)
     universes = [describe_universe(u, _render_predicate(u.predicate, _lv)) for u in m.universes.values()]
-    asserts = [describe_assert(a, _render_predicate(a.predicate, _lv)) for a in m.asserts]
     hierarchies = [describe_hierarchy(h) for h in m.hierarchies]
     # signature addressing (D1): each measure carries its universe qualifier as a STRUCTURED field (a
     # dotted address string would be indistinguishable from a physical `table.column` under the §2b test;
@@ -112,7 +114,7 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
              "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "dimensions": dimensions, "edges": edges, "universes": universes,
-            "asserts": asserts, "hierarchies": hierarchies, "relates": relates,
+            "hierarchies": hierarchies, "relates": relates,
             "measures": measures, "derived": derived, "published_scope": scope}
 
 

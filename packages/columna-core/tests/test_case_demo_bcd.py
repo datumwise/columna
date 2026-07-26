@@ -13,7 +13,7 @@ import pytest
 
 from columna_core.parser import parse_file, parse_manifold, ParseError
 from columna_core import (logical_spec, physical_map, no_physical_leak,
-                          describe_universe, describe_assert, describe_hierarchy, describe_derived,
+                          describe_universe, describe_hierarchy, describe_derived,
                           render_predicate_logical)
 
 _FIX = os.path.join(os.path.dirname(__file__), "fixtures", "cascadia_slice.cml")
@@ -33,8 +33,6 @@ def test_descriptions_parse_onto_every_declaration_kind(m):
     assert m.derived["return_rate"].description.startswith("returned units over sold units")
     assert m.universes["inventory"].description == "the daily stock snapshot"
     assert m.levels["store"].description == "a retail location"
-    inv = next(a for a in m.asserts if a.name == "returns_bounded")
-    assert inv.description.startswith("the team's data contract")
     cal = next(h for h in m.hierarchies if h.lineage == "calendar")
     assert cal.description == "the reporting calendar"
 
@@ -46,8 +44,6 @@ def test_descriptions_flow_to_describe(m):
     assert dd["description"].startswith("returned units over sold units")
     dh = describe_hierarchy(next(h for h in m.hierarchies if h.lineage == "calendar"))
     assert dh["description"] == "the reporting calendar"
-    da = describe_assert(next(a for a in m.asserts if a.name == "returns_bounded"))
-    assert da["description"].startswith("the team's data contract")
 
 
 # ── (c) logical attributes in a predicate (OF-9) ─────────────────────────────────────────────────────
