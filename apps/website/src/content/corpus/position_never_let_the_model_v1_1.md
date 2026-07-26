@@ -40,7 +40,7 @@ categories selling three mitigations. Our position is that all three fears
 are one architectural mistake, and they retire together the moment you make
 one decision:
 
-**The model never touches the database. Not directly, not through generated
+**Your agent never touches the database. Not directly, not through generated
 SQL, not through a guardrail that inspects the SQL it generated anyway.**
 
 ## What the market does instead
