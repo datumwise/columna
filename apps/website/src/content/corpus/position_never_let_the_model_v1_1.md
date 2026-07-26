@@ -1,4 +1,4 @@
-# Never Let the Model Touch the Database
+# Never Let Your Agent Touch the Database
 
 *A position held by datumwise · July 2026 · v1.0.
 Evidence-linked throughout; the position moves if the evidence does.*
@@ -6,7 +6,8 @@ Evidence-linked throughout; the position moves if the evidence does.*
 ---
 
 Three different people in your company are currently afraid of the same
-architecture, for three different reasons.
+architecture, for three different reasons — the one where an AI agent holds your
+database credentials and writes its own queries.
 
 Your security lead read the incident write-ups: an LLM with database
 credentials is an attack surface with a natural-language interface — prompt
@@ -39,7 +40,7 @@ categories selling three mitigations. Our position is that all three fears
 are one architectural mistake, and they retire together the moment you make
 one decision:
 
-**The model never touches the database. Not directly, not through generated
+**Your agent never touches the database. Not directly, not through generated
 SQL, not through a guardrail that inspects the SQL it generated anyway.**
 
 ## What the market does instead

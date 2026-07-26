@@ -16,6 +16,14 @@ export default defineConfig({
   redirects: {
     '/notes/we-invented-nothing': '/why-columna-looks-this-way',
     '/launch': '/announcing-columna',
+    //  · The blast-wall position RENAMED (2026-07-26): "the model" collided with Columna's own DATA
+    //    model — the homepage says "data model" three times and "the model" three times eleven lines
+    //    apart, so a stranger could coherently read the entrance as a rule about our own Manifold,
+    //    inverting the pitch at the block designed to convert. This is a PATH redirect, which Astro
+    //    emits statically — unlike the #exhibit-b case, where the fragment never reaches the server
+    //    and only a client-side shim could work.
+    '/positions/never-let-the-model-touch-the-database':
+      '/positions/never-let-your-agent-touch-the-database',
   },
   build: { inlineStylesheets: 'auto' },
   devToolbar: { enabled: false },
