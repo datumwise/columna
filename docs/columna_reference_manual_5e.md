@@ -1473,7 +1473,9 @@ This is Part VIII of the reference manual, and it is the semantic home the Frame
 > **[SHIPPED vX.Y]** — a keyword the shipped package parses and adjudicates today; **[SCHEDULED —
 > <WP>]** — ruled Core, built in the named work package as a Certificate-kernel customer;
 > **[ROADMAP — <note>]** — deliberately unscheduled. The shipped 0.7.8 keyword set is the *short*
-> forms — `MANIFOLD`, `UNIVERSE` (with an inline predicate), `LEVEL`, `EDGE`, `MEASURE` (with inline
+> the shipped keyword set is the *short* forms — `MANIFOLD`, `UNIVERSE` (with an inline
+> predicate), `LEVEL` (with inline `ATTR`), `HIERARCHY`, `RELATE` (with declared faces),
+> `MEASURE` (with inline
 > `M_ANCHOR`/`FAMILY`/`BLOCKED`/`ORDER`), `DERIVED` — which express the same declarations this
 > chapter specifies in long form (`COLUMN`/`DIMENSION`/`BOUNDARIES`); a mark of "SHIPPED via
 > `MEASURE`" means the shipped short form already carries that field. Constructs are demand-driven
@@ -1524,9 +1526,15 @@ The semantics include a prohibition, and it is load-bearing: **a column rooted a
 
 #### 26.6 `HIERARCHY`
 
-> **[single functional edge: SHIPPED 0.7.8 — via `EDGE <child> -> <parent> ALONG <lineage> VIA <table>(…)`]** · **[`HIERARCHY` (multi-level chains, refresh-verified): SCHEDULED — on-ramp WP]** — a single `EDGE` (the shipped short form) transports along a functional edge today; multi-level chains that desugar to edges and whose *verification* (edge functional in the data → verdict) is the new content are the Certificate-kernel customer (ADR-034 D1).
+> **[`HIERARCHY`: SHIPPED 0.12 — the sole surface for functional roll-up]** · **[refresh-verification of edge functionality (edge functional in the data → verdict): SCHEDULED — Certificate-kernel WP]** — `HIERARCHY` declares one or more functional hops as a named lineage; a two-node hierarchy *is* the single edge (the former `EDGE` short form was purged in the case-demo sweep §2a, and the parser no longer carries the keyword). What remains scheduled is not the declaration but its *verification*: the refresh-time check that each declared hop is in fact functional in the bounded data, entering the certificate with a verdict (ADR-034 D1).
 
-`HIERARCHY <name> <child> -> <parent> [-> <grandparent> …]` declares a roll-up chain in a dimension family. Each edge asserts a total functional dependency over the Manifold's boundaries, verified at every refresh (Chapter 4.3); chains commute automatically, and redundantly declared diamonds are checked for commuting (Chapter 4.4). An edge is *both* an assertion and a navigable structure: it enters the certificate like any precondition, *and* it licenses climbs, scan parameters (`reset`/`within`/`step` resolve along it), and derived-dimension resolution. Promoted values must cascade along every hierarchy the dimension participates in (Chapter 5.3); the cascade is declared with the hierarchy. Time-varying dependencies are declared in their period-qualified or split form per Chapter 4.7, not forced into an edge the data will contradict.
+`HIERARCHY <lineage> { <child> -> <parent> VIA <table>(<child_col>, <parent_col>) [-> <grandparent> VIA <table>(…)] [; <second_path> …] }` declares a roll-up lineage in a dimension family. The braces are required; every hop names the physical table and the column pair that carries it, and a semicolon separates additional paths that share the lineage name. Each hop asserts a total functional dependency over the Manifold's boundaries (Chapter 4.3); chains commute automatically, and redundantly declared diamonds are checked for commuting (Chapter 4.4). A hop is *both* an assertion and a navigable structure: it enters the certificate like any precondition, *and* it licenses climbs, scan parameters (`reset`/`within`/`step` resolve along it), and derived-dimension resolution. Promoted values must cascade along every lineage the dimension participates in (Chapter 5.3); the cascade is declared with the lineage. Time-varying dependencies are declared in their period-qualified or split form per Chapter 4.7, not forced into a hop the data will contradict.
+
+*Worked form, from the shipped demo Manifold:*
+
+    HIERARCHY location { store -> region VIA stores(store_id, region) }
+
+*A functional relationship the model asserts but no query should climb is `ASSERT <child> -> <parent> IS FUNCTIONAL` (§26.8) — assertion without navigation. A non-functional (many-to-many) relationship is not a hierarchy at all: it is a `RELATE` with declared faces (Chapter 4.8 / the crossing increment), because no lineage can be honest about a hop that fans out.*
 
 #### 26.7 `ALIAS`
 
