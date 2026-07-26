@@ -107,8 +107,11 @@ const DIRECTORY = [
     <p class="dir-lede prose-col">In the order a reader usually wants them.</p>
     <ol class="dir-list">
       {DIRECTORY.map((d, i) => (
-        <li class="dir-item">
-          <span class="dir-rung mono">{i + 1}</span>
+        <li class={d.mark ? 'dir-item dir-entrance' : 'dir-item'}>
+          {/* The ENTRANCE is deliberately UNNUMBERED (Huayin's numbering ruling (b)): it carries only
+              "start here", so it reads as distinct from the path it opens — and the five rungs that
+              follow number 1–5, which puts the argument at rung 4 exactly as the ruling says. */}
+          <span class="dir-rung mono">{d.mark ? '' : i}</span>
           <div class="dir-body">
             <a class="dir-title" href={d.href}>{d.title}</a>
             {d.mark && <span class="dir-mark mono">{d.mark}</span>}
