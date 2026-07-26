@@ -66,14 +66,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .wire-diagram { margin: 1.5rem 0 2rem; }
   .wire-diagram svg { width: 100%; height: auto; background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 10px; }
   .wire-diagram figcaption { font-size: 0.9rem; color: var(--ink-soft, #555); margin-top: 0.6rem; line-height: 1.55; }
+  /* STRUCTURAL parts of the wire message (severity ruling part 3) — neither mood nor severity;
+     neutral WIRE-register ink, since this diagram sits on the dark terminal panel. */
   .d-universe { fill: none; stroke: var(--wire-rule); stroke-dasharray: 4 4; }
   .d-lbl { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 12px; }
-  .d-measure { fill: var(--mood-serve); opacity: 0.85; }
+  .d-measure { fill: var(--struct-wire-accent); opacity: 0.85; }
   .d-anchor { fill: none; stroke: var(--wire-key); stroke-width: 1.5; }
   .d-value { fill: var(--wire-panel); stroke: var(--wire-key); }
-  .d-disc { fill: none; stroke: var(--mood-disclose); }
+  .d-disc { fill: none; stroke: var(--struct-wire-secondary); }
   .d-in { fill: #fff; font-family: var(--font-mono); font-size: 13px; }
-  .d-in2 { fill: var(--mood-disclose); font-family: var(--font-mono); font-size: 12px; }
+  .d-in2 { fill: var(--struct-wire-secondary); font-family: var(--font-mono); font-size: 12px; }
   .d-op { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 15px; }
   .d-cap { fill: var(--wire-ink-soft); font-family: var(--font-mono); font-size: 11px; }
 </style>

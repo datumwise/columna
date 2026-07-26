@@ -24,7 +24,8 @@ const cmd = 'pip install columna';
   .chip-copy { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0;
     background: transparent; border: 1px solid var(--rule-strong); border-radius: 6px; color: var(--ink-soft); cursor: pointer; }
   .chip-copy:hover { color: var(--ink); border-color: var(--ink-faint); }
-  .chip-copy[data-copied] { color: var(--mood-serve); border-color: var(--mood-serve); }
+  /* the copied-confirmation is a UI state, not a mood — neutral ink, no vocabulary borrow. */
+  .chip-copy[data-copied] { color: var(--ink); border-color: var(--ink); }
   .chip-cap { grid-column: 1 / -1; font-size: 0.72rem; color: var(--ink-faint); text-decoration: none; }
   .chip-cap:hover { color: var(--ink-soft); text-decoration: underline; }
   /* On phones the fixed chip overlaps the reading content (it covered the §1 cue line), and the

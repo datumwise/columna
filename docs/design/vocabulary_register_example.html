@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>The vocabulary register — the two channels, working</title>
+<!--
+  THE REGISTER'S ILLUSTRATIVE EXAMPLE. Kept on purpose (Huayin, 2026-07-26): look at this before
+  designing a new surface, so the two channels are seen working rather than read about.
+
+  Governing rule: STYLE encodes KIND · WEIGHT encodes DEGREE · COLOUR is reserved for VERDICTS.
+  Ratified severity ramp: 2 / 4 / 7px. The 2px floor is deliberate — absence of a mark is itself
+  meaningful in this system, so the lowest severity must remain visibly PRESENT; at 1px, info and
+  no-disclosure collapse into the same appearance, a silent binding at the visual layer.
+
+  Rendered in the WIRE register (the dark terminal panel), because that is where disclosures actually
+  live. Judging these on paper would be the wrong test.
+  Canonical definitions: apps/website/src/styles/tokens.css (the vocabulary register).
+-->
+<style>
+ :root{--paper:#faf8f3;--ink:#1c1b19;--ink-soft:#57534b;--ink-faint:#8b8578;--rule:#e4dfd4;
+  --wire-bg:#0d1017;--wire-panel:#141922;--wire-ink:#ccd6e4;--wire-ink-soft:#8593a6;--wire-rule:#232c3a;
+  --sev-legacy-info:#2f7fc4;--sev-legacy-caution:#c98a2b;--sev-legacy-critical:#c2543f;
+  --sev-weight-info:2px;--sev-weight-caution:4px;--sev-weight-critical:7px;}
+ body{background:var(--paper);color:var(--ink);font-family:"Inter Variable",system-ui,sans-serif;margin:0;padding:40px 52px;}
+ h1{font-family:"Source Serif 4 Variable",Georgia,serif;font-weight:400;font-size:24px;margin:0 0 6px;}
+ .sub{color:var(--ink-soft);font-size:13px;margin:0 0 6px;max-width:80ch;line-height:1.6;}
+ .note{font-family:"JetBrains Mono Variable",monospace;font-size:10.5px;color:var(--ink-faint);margin:0 0 26px;}
+ .cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;max-width:1200px;}
+ h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-faint);border-bottom:1px solid var(--rule);padding-bottom:6px;margin:0 0 14px;}
+ /* the real register: disclosures render on the dark wire panel */
+ .wire{background:var(--wire-bg);border:1px solid var(--wire-rule);border-radius:8px;padding:16px 18px;}
+ .disc{margin-top:.6rem;border-left:2px solid;padding:.4rem 0 .4rem .8rem;font-size:.86rem;color:var(--wire-ink);line-height:1.5;}
+ .disc:first-child{margin-top:0;}
+ .disc-code{font-family:"JetBrains Mono Variable",monospace;font-size:.74rem;color:var(--wire-ink-soft);display:block;margin-bottom:.2rem;}
+ /* A — retired: colour (kept only to show what the ratified encoding replaced) */
+ .c-info{border-color:var(--sev-legacy-info);} .c-caution{border-color:var(--sev-legacy-caution);} .c-critical{border-color:var(--sev-legacy-critical);}
+ /* B — RATIFIED: ordinal weight, ink only */
+ .w-info{border-left:var(--sev-weight-info) solid var(--wire-ink-soft);}
+ .w-caution{border-left:var(--sev-weight-caution) solid var(--wire-ink);}
+ .w-critical{border-left:var(--sev-weight-critical) solid var(--wire-ink);}
+ .legendless{font-size:12px;color:var(--ink-soft);margin-top:16px;line-height:1.6;max-width:46ch;}
+ .mix{margin-top:30px;}
+ .mixnote{font-size:12px;color:var(--ink-soft);max-width:82ch;line-height:1.6;}
+ .badge{display:inline-block;font-family:"JetBrains Mono Variable",monospace;font-size:.78rem;font-weight:700;
+   padding:.2rem .7rem;border-radius:999px;letter-spacing:.03em;text-transform:uppercase;color:var(--wire-ink);background:transparent;border:1px solid var(--wire-rule);}
+ .badge-disclose{border:1px solid var(--wire-rule);border-bottom:2px solid var(--wire-ink);}
+ .badge-refuse{border:2px solid var(--wire-ink);text-decoration:line-through;text-decoration-thickness:1.5px;}
+ .badge-clarify{border:1px dotted var(--wire-ink);}
+ .cap{font-size:11.5px;color:var(--wire-ink-soft);}
+</style></head><body>
+<h1>The vocabulary register — the two channels, working</h1>
+<p class="sub"><em>The register's illustrative example, kept on purpose: look at this before designing a new surface.</em>
+Severity is <strong>ordinal</strong> (info &lt; caution &lt; critical) so it takes <strong>weight</strong>; mood is <strong>nominal</strong> (four kinds, no order) so it takes <strong>style</strong>. Both ink. Colour is reserved for verdicts.</p>
+<p class="sub">Ratified ramp <strong>2 / 4 / 7px</strong> — the 2px floor is deliberate: <strong>absence of a mark is itself meaningful</strong> here, so the lowest severity must stay visibly present. At 1px, info and no-disclosure collapse into one appearance — a silent binding at the visual layer. Quiet is the goal; invisible is a different claim.</p>
+<p class="note">production geometry · border-left → RATIFIED 2/4/7px · padding .4rem 0 .4rem .8rem · font-size .86rem · on --wire-bg (the register disclosures actually live in)</p>
+<div class="cols">
+  <div>
+    <h2>A · retired — colour</h2>
+    <div class="wire">
+      <div class="disc c-info"><span class="disc-code">provenance</span>served from the recorded transcript, not the live endpoint.</div>
+      <div class="disc c-caution"><span class="disc-code">input_anchor</span>averaged from the day grain; the question did not pin one.</div>
+      <div class="disc c-critical"><span class="disc-code">blocked_reduction</span>a stock summed across time does not reconcile.</div>
+    </div>
+    <p class="legendless">Requires a legend: nothing tells you amber outranks blue.</p>
+  </div>
+  <div>
+    <h2>B · ratified — ordinal weight, ink only</h2>
+    <div class="wire">
+      <div class="disc w-info"><span class="disc-code">provenance</span>served from the recorded transcript, not the live endpoint.</div>
+      <div class="disc w-caution"><span class="disc-code">input_anchor</span>averaged from the day grain; the question did not pin one.</div>
+      <div class="disc w-critical"><span class="disc-code">blocked_reduction</span>a stock summed across time does not reconcile.</div>
+    </div>
+    <p class="legendless">Reads as ranked with no legend: 2px &lt; 4px &lt; 7px is self-evident — and info is still <em>there</em>.</p>
+  </div>
+</div>
+<div class="mix">
+  <h2>Both axes on one element — no collision</h2>
+  <div class="wire" style="max-width:620px">
+    <div style="margin-bottom:12px">
+      <span class="badge badge-disclose">disclose</span>
+      <span class="badge badge-clarify">clarify</span>
+      <span class="badge badge-refuse">refuse</span>
+      <span class="cap">← mood = STYLE (underline · dotted · struck)</span>
+    </div>
+    <div class="disc w-critical"><span class="disc-code">blocked_reduction</span>a stock summed across time does not reconcile. <span class="cap">← severity = WEIGHT (heavy)</span></div>
+    <div class="disc w-info"><span class="disc-code">provenance</span>served from the recorded transcript. <span class="cap">← severity = WEIGHT (light, still present)</span></div>
+  </div>
+  <p class="mixnote">A single answer legibly carries a <strong>mood</strong> (style) and a <strong>severity</strong> (weight) at once, because the channels are independent. This is the render that settled the split: colour-on-colour could not have done it — two colour scales on one element compete, and neither reads as ranked.</p>
+</div>
+</body></html>

@@ -260,17 +260,21 @@ const DEMO = '/#try-a-question';
 
   .chip { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; padding: 0.18rem 0.5rem; border-radius: 5px; letter-spacing: 0.01em; white-space: nowrap; }
   /* moods-as-rungs licensed exception: refuse/clarify/disclose reuse the mood colors */
-  .chip.refused { background: var(--mood-refuse, #c2543f); color: #fff; }
-  .chip.asked   { background: var(--mood-clarify, #2f7fc4); color: #fff; }
-  .chip.asked.strong { box-shadow: 0 0 0 2px var(--mood-clarify, #2f7fc4) inset; }
-  .chip.labeled { background: var(--mood-disclose, #c98a2b); color: #fff; }
+  /* MOOD-SEMANTIC chips → container forms (border never fill, ink only). refuse: heavier rule +
+     struck label, per the scale rule. */
+  .chip.refused { background: transparent; color: var(--vocab-ink); border: 2px solid var(--vocab-ink);
+    text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .chip.asked   { background: transparent; color: var(--vocab-ink); border: 1px dotted var(--vocab-ink); }
+  .chip.asked.strong { border-width: 2px; }
+  .chip.labeled { background: transparent; color: var(--vocab-ink);
+    border: 1px solid var(--vocab-rule); border-bottom: 2px solid var(--vocab-ink); }
   /* can't-be-written: strong-neutral "wall" */
   .chip.cant    { background: #e8ecf2; color: #0d1017; border: 1px solid #cbd3df; }
   /* silent: gray/muted-neutral — NOT red (per ruling: silence is nothing-colored, the villain is not confused with mood-red) */
   .chip.silent  { background: transparent; color: var(--wire-ink-soft, #8593a6); border: 1px dashed var(--wire-ink-soft, #55606f); }
   /* roadmap: dashed/hatched, visibly provisional */
   .chip.roadmap { background: repeating-linear-gradient(135deg, #1b2432, #1b2432 5px, #141922 5px, #141922 10px); color: var(--wire-ink, #ccd6e4); border: 1px dashed var(--wire-ink-soft, #8593a6); }
-  .chip.roadmap em { font-style: italic; color: var(--mood-disclose, #c98a2b); }
+  .chip.roadmap em { font-style: italic; color: var(--ink-soft); }
   .na { color: var(--wire-ink-soft, #8593a6); }
 
   .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin: 0.9rem 0 0; font-size: 0.78rem; }
