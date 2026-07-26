@@ -42,7 +42,6 @@ import polars as pl
 from .model import (License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
                     TOUCH, ASSIGN, ORDER_MIN)
 from .operators import REGISTRY
-from .disclosure_wire import code_for, materiality_for
 
 # float tolerance policy (ruling §4)
 _RTOL = 1e-9
