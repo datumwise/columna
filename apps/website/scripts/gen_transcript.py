@@ -130,10 +130,22 @@ def main() -> int:
         {"title": "serve", "wire": run(store, SERVE_Q)},
     ]
 
+    # The UMBRELLA `columna` version (Huayin's version ruling, 2026-07-25). This is the release/install
+    # number — what `pip install columna` gives — and the honest source for the homepage's "currently
+    # at" and the Latest rail. It legitimately DIFFERS from columna_core after a data-only release:
+    # columna and columna-server move, core does not (0.12.1 was exactly this). Reporting all three
+    # makes the relationship visible instead of conflating them. Both deploy paths install the umbrella
+    # (shipped-coherent pins columna==0.12.1; branch-coherent installs it editable), so this resolves;
+    # the guard is defensive only, and null would be a loud "umbrella not installed" rather than a lie.
+    try:
+        umbrella = version("columna")
+    except Exception:
+        umbrella = None
     out = {
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "contract_version": seeded["serve"]["wire"].get("contract_version"),
+            "columna": umbrella,
             "columna_core": version("columna-core"),
             "columna_server": version("columna-server"),
             "manifold": MID,

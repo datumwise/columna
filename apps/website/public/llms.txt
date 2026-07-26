@@ -31,6 +31,7 @@ Every answer is one of four, returned as structured data on one contract (contra
 
 ## Start here
 - What is Columna? (plain-language orientation): /what-is-columna
+- The argument (the eight-minute case for why this exists, with two live exhibits): /the-argument
 - Try it: `pip install columna` then `columna-server demo --play`  (four asks, four moods, seeded data)
 - The Explorer (the demo Manifold, live — every measure with its verdict and a query): /explorer
 - Full agent orientation: /llms-full.txt
