@@ -14,14 +14,19 @@ import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
 const shortDate = (iso: string) =>
   new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
-// The six-item directory (copy spec §5). Described, not sold.
+// §5 is an ORDERED PATH, not a flat list (Huayin's first-read ruling): the same six items sequenced
+// as the ladder a convinced reader actually climbs. The position is rung one and carries the same
+// "start here" mark as the entrance block above, so the two agree. This is also what fixes
+// /the-argument's reachability STRUCTURALLY — it is rung four, reached by readers who have already
+// been convinced, which is who it was written for.
 const DIRECTORY = [
-  { title: 'Run it', href: '/install', blurb: 'install, and a clarify, a refuse, and a disclose print on your machine as wire JSON.' },
+  { title: 'Never Let the Model Touch the Database', href: '/positions/never-let-the-model-touch-the-database', mark: 'start here',
+    blurb: 'the position: why the model should never hold your database credentials, and what to put between them.' },
+  { title: 'Run the demo', href: '/install', blurb: 'install, and a clarify, a refuse, and a disclose print on your machine as wire JSON.' },
   { title: 'Read the case', href: '/case', blurb: 'a complete worked example: a realistic warehouse, the Manifold that serves it, and recorded agent transcripts.' },
   { title: 'Learn the framework', href: '/learn', blurb: 'what Columna, FrameQL, and a Manifold are; the three manuals; the live Explorer.' },
   { title: 'Read the argument', href: '/the-argument', blurb: 'the eight-minute case for why this exists, with two live exhibits.' },
-  { title: 'Positions', href: '/positions', blurb: 'stances we hold, stated plainly and linked to their evidence.' },
-  { title: 'Research', href: '/atlas', blurb: 'six papers, the Silent Failure Atlas, and the public benchmark kit with its frozen answer key.' },
+  { title: 'Positions and research', href: '/positions', blurb: 'every stance we hold with its evidence; six papers, the Silent Failure Atlas, and the public benchmark kit.' },
 ];
 ---
 <BaseLayout title="Columna — an open-source data framework" description="Columna is an open-source data framework — a data model, a query language, and an engine — built so that no layer of it can return a confident wrong number." wide={true}>
@@ -36,6 +41,15 @@ const DIRECTORY = [
           <code class="chip">pip install columna</code>
           <a class="mast-quick" href="/install">quickstart, two minutes →</a>
         </p>
+
+        {/* THE DESIGNATED ENTRANCE (Huayin's first-read ruling). The lobby needs ONE way in, and it
+            is the blast-wall position. A quiet block, NOT a banner: hairline rules above and below,
+            no card, no fill, no accent — the lobby points, it does not argue. */}
+        <div class="start-here">
+          <p class="start-label mono">start here</p>
+          <a class="start-title" href="/positions/never-let-the-model-touch-the-database">Never Let the Model Touch the Database</a>
+          <p class="start-line">Why the model should never hold your database credentials — and what to put between them. Three minutes.</p>
+        </div>
       </div>
       <div class="mast-hero">
         <HeroManifold />
@@ -90,14 +104,19 @@ const DIRECTORY = [
   {/* 5 · Where to go — the directory. Six doors, described not sold. */}
   <section class="directory band" aria-labelledby="dir-h">
     <h2 id="dir-h" class="section-h prose-col">Where to go</h2>
-    <ul class="dir-list">
-      {DIRECTORY.map((d) => (
+    <p class="dir-lede prose-col">In the order a reader usually wants them.</p>
+    <ol class="dir-list">
+      {DIRECTORY.map((d, i) => (
         <li class="dir-item">
-          <a class="dir-title" href={d.href}>{d.title}</a>
-          <span class="dir-blurb">{d.blurb}</span>
+          <span class="dir-rung mono">{i + 1}</span>
+          <div class="dir-body">
+            <a class="dir-title" href={d.href}>{d.title}</a>
+            {d.mark && <span class="dir-mark mono">{d.mark}</span>}
+            <span class="dir-blurb">{d.blurb}</span>
+          </div>
         </li>
       ))}
-    </ul>
+    </ol>
   </section>
 
   <hr class="rule" />
@@ -146,6 +165,18 @@ const DIRECTORY = [
   .chip { font-family: var(--font-mono); font-size: 0.9rem; background: var(--paper-raised);
     border: 1px solid var(--rule-strong); border-radius: 6px; padding: 0.4rem 0.7rem; color: var(--ink); }
   .mast-quick { color: var(--ink-soft); }
+  /* THE DESIGNATED ENTRANCE — hairline rules above and below, no card, no fill, no accent.
+     Quiet enough to be furniture, present enough to be the one way in. */
+  .start-here { margin-top: 1.8rem; padding: 1rem 0; border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule); max-width: 34rem; }
+  .start-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-faint); margin: 0 0 0.4rem; }
+  .start-title { font-family: var(--font-sans); font-size: 1.02rem; font-weight: 600; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--rule-strong); display: inline-block; }
+  .start-title:hover { text-decoration-color: var(--ink-faint); }
+  .start-line { font-family: var(--font-sans); font-size: 0.88rem; color: var(--ink-soft);
+    line-height: 1.5; margin: 0.35rem 0 0; }
+
   .mast-hero { display: flex; flex-direction: column; gap: 0.7rem; }
   .hero-cap { font-size: 0.72rem; color: var(--ink-faint); margin: 0; }
 
@@ -184,9 +215,19 @@ const DIRECTORY = [
 
   /* ── 5 · Directory ───────────────────────────────────────────── */
   .directory .section-h { margin-bottom: 1.4rem; }
+  .dir-lede { font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink-soft);
+    margin: 0 0 1.4rem; }
+  /* an ORDERED path: the rung number carries the sequence, hairline separators carry the rhythm.
+     No cards, no fills — the ladder is legible from the numbers and the order alone. */
   .dir-list { list-style: none; padding: 0; width: min(100% - 3rem, 46rem); margin: 0 auto;
-    display: grid; gap: 1.3rem; }
-  .dir-item { display: grid; gap: 0.2rem; }
+    display: grid; gap: 0; counter-reset: rung; }
+  .dir-item { display: grid; grid-template-columns: 1.9rem 1fr; gap: 0 0.5rem;
+    padding: 1rem 0; border-top: 1px solid var(--rule); }
+  .dir-item:last-child { border-bottom: 1px solid var(--rule); }
+  .dir-rung { font-size: 0.78rem; color: var(--ink-faint); padding-top: 0.15rem; }
+  .dir-body { display: grid; gap: 0.2rem; }
+  .dir-mark { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-faint); }
   .dir-title { font-family: var(--font-sans); font-size: 1.02rem; font-weight: 600; color: var(--ink);
     text-decoration: underline; text-decoration-color: var(--rule-strong); width: fit-content; }
   .dir-title:hover { text-decoration-color: var(--ink-faint); }
