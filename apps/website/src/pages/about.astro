@@ -4,9 +4,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // Author line is the name only (Huayin's ruling 2026-07-14: no ORCID, no substitute link — the
 // four DOIs below are the provenance).
 const COLUMNAR = 'https://columnar.tech';
-// Contact — single swappable string. Swaps to 'contact@datumwise.ai' in a one-line follow-up once
-// that alias exists (Irena's dashboard, separately in flight).
-const CONTACT_EMAIL = 'datumwise@gmail.com';
+// Contact — single swappable string. SWAPPED 2026-07-25 (AW-3 closed): the alias is live, so the
+// site's contact is now the domain address. The swappable-const design paid off — this is the only
+// place the address is authored, and the sweep found no other surface carrying the old one.
+// Note this also RESOLVES a live divergence: llms-full already served `contact@datumwise.ai` via the
+// ratified "Two Great Sources" position piece ("Correspondence: …"), so /about and llms-full were
+// disagreeing about how to reach us until this line changed.
+const CONTACT_EMAIL = 'contact@datumwise.ai';
 const pubs = [
   { title: 'The Silent Failure Atlas', doi: '10.5281/zenodo.20762839' },
   { title: 'The Silent Seam', doi: '10.5281/zenodo.20710717' },
