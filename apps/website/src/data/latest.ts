@@ -11,11 +11,16 @@ import transcript from './transcript.generated.json';
 
 const meta = (transcript as any).meta ?? {};
 // The UMBRELLA `columna` version — the release/install number, what `pip install columna` gives
-// (Huayin's version ruling, 2026-07-25). This is the honest source for "currently at" and the Latest
-// rail. It differs from meta.columna_core after a data-only release (columna + columna-server move,
-// core does not) — so reading columna_core here was the bug that showed 0.12.0. Falls back to core
-// only if the umbrella somehow isn't reported (both deploy paths install it, so it always is).
-export const PACKAGE_VERSION: string = meta.columna ?? meta.columna_core ?? 'dev';
+// (Huayin's version ruling, 2026-07-25). The honest source for "currently at" and the Latest rail.
+// It differs from meta.columna_core after a data-only release (columna + columna-server move, core
+// does not) — reading columna_core here was the bug that shipped 0.12.0 to prod.
+//
+// NO FALLBACK TO columna_core, deliberately. The earlier `?? meta.columna_core` is exactly what
+// turned a missing umbrella into a plausible-looking wrong number instead of a visible failure.
+// gen_transcript.py now FAILS THE BUILD if the umbrella is not installed, so this field is always
+// present on any build that exists — and if it somehow isn't, 'unknown' is the honest thing to
+// render, not a different package's version wearing this one's label.
+export const PACKAGE_VERSION: string = meta.columna ?? 'unknown';
 
 export interface LatestItem {
   kind: string;                 // the small mono label

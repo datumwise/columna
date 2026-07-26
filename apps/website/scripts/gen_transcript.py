@@ -134,13 +134,25 @@ def main() -> int:
     # number — what `pip install columna` gives — and the honest source for the homepage's "currently
     # at" and the Latest rail. It legitimately DIFFERS from columna_core after a data-only release:
     # columna and columna-server move, core does not (0.12.1 was exactly this). Reporting all three
-    # makes the relationship visible instead of conflating them. Both deploy paths install the umbrella
-    # (shipped-coherent pins columna==0.12.1; branch-coherent installs it editable), so this resolves;
-    # the guard is defensive only, and null would be a loud "umbrella not installed" rather than a lie.
+    # makes the relationship visible instead of conflating them.
+    #
+    # FAILS CLOSED, and it has to. The first version of this caught the lookup and emitted null,
+    # reasoning that "null is a loud signal, never a lie". It was not loud: the umbrella pin did not
+    # ship with this generator, the lookup failed, meta carried null, the site fell back to
+    # columna_core, and PROD SERVED 0.12.0 under ratified copy that says 0.12.1 — a silent degrade all
+    # the way to production. A missing umbrella now fails the build, in the same fails-closed spirit as
+    # every other wedge in this file: the site is structurally incapable of publishing a release number
+    # it cannot read from an installed package.
     try:
         umbrella = version("columna")
-    except Exception:
-        umbrella = None
+    except Exception as e:
+        print("transcript generation FAILED (fails closed): the umbrella `columna` package is not "
+              "installed, so the release version cannot be read. The site publishes this as its "
+              "\"currently at\" version and in the Latest rail, so it must come from a real installed "
+              "package — never a fallback. Install it alongside the libs (the deploy pins "
+              "columna==<version>; the branch job installs it editable). Underlying error: "
+              f"{e!r}", file=sys.stderr)
+        return 1
     out = {
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
