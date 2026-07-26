@@ -347,6 +347,13 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           copy saying 0.12.1. Sentinels get consumed by a downstream fallback and become plausible
           wrong values; a non-zero exit cannot be. And every guard is verified in BOTH directions —
           the happy path AND the failure it claims to catch, actually provoked.
+   · A LEXING SET IS NOT A GRAMMAR TAXONOMY (2026-07-26). `parser._KW` is the set of tokens that may
+     BEGIN A LINE; it is the right source for "is nothing missing?" and the wrong source for page
+     STRUCTURE — ATTR is in _KW but is an inline clause of LEVEL, so a page structured from _KW would
+     present it as a false peer of MEASURE: faithful to the parser, misleading to the reader.
+     GENERATED DOCS MUST NAME WHICH ARTIFACT THEY DERIVE THEIR STRUCTURE FROM, AND WHY. /docs/grammar
+     takes structure from the parser's docstring (teaching shape), examples from execution, and
+     coverage from _KW — three properties, three sources, each stated on the page.
    · The release model (version wiring, 2026-07-25): a DATA-ONLY release legitimately leaves
      columna-core behind. `columna` (umbrella / install version) and `columna-server` (the demo
      data) move; `columna-core` (the engine) does not, because there is no engine change. 0.12.1

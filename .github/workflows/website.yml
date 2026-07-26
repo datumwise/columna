@@ -55,6 +55,13 @@ jobs:
       - name: Generate the Universe Visual (Figure 1) from the BRANCH package (fails closed)
         run: |
           python scripts/gen_universe_visual.py > src/data/universe_visual.generated.json
+
+      # The shipped GRAMMAR REFERENCE (/docs/grammar). Fails closed three ways: no docstring grammar
+      # block, an example the parser rejects, or a _KW token documented nowhere on the page.
+      - name: Generate the shipped grammar reference from the BRANCH package (fails closed)
+        run: |
+          python scripts/gen_grammar.py > src/data/grammar.generated.json
+          echo "grammar bytes: $(wc -c < src/data/grammar.generated.json)"
           echo "universe-visual bytes: $(wc -c < src/data/universe_visual.generated.json)"
 
       - name: Install site dependencies
@@ -118,6 +125,13 @@ jobs:
       - name: Generate the Universe Visual (Figure 1) from the SHIPPED package (fails closed)
         run: |
           python scripts/gen_universe_visual.py > src/data/universe_visual.generated.json
+
+      # The shipped GRAMMAR REFERENCE (/docs/grammar). Fails closed three ways: no docstring grammar
+      # block, an example the parser rejects, or a _KW token documented nowhere on the page.
+      - name: Generate the shipped grammar reference from the SHIPPED package (fails closed)
+        run: |
+          python scripts/gen_grammar.py > src/data/grammar.generated.json
+          echo "grammar bytes: $(wc -c < src/data/grammar.generated.json)"
           echo "universe-visual bytes: $(wc -c < src/data/universe_visual.generated.json)"
 
       - name: Install site dependencies

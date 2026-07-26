@@ -28,6 +28,10 @@ const groups = [
       { href: '/docs/framework', title: 'The framework manual (6e)', blurb: 'The full discipline, precisely — the Column-Operator-Frame substrate beneath the tools.' },
       { href: '/docs/frameql', title: 'The FrameQL manual (v1)', blurb: 'The query language against the Manifold, completely.' },
       { href: '/docs/reference', title: 'The reference manual (5e)', blurb: 'A distinct manual — the object model, the definition language, the Certificate layer.' },
+      // Generated from the parser, not written: structure from its docstring, examples verified by
+      // execution, coverage asserted against _KW. Listed with the manuals because that is where a
+      // reader looks for syntax — but it is a sibling, not a section (route ruling 2026-07-26).
+      { href: '/docs/grammar', title: 'The shipped grammar', blurb: 'Read before writing a Manifold — every keyword the shipped parser accepts, with exact signatures and examples verified against the released package at build time.' },
     ],
   },
   {

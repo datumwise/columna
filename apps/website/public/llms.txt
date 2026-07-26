@@ -41,6 +41,9 @@ Every answer is one of four, returned as structured data on one contract (contra
 - The argument (the eight-minute case for why this exists, with two live exhibits): /the-argument
 - Try it: `pip install columna` then `columna-server demo --play`  (four asks, four moods, seeded data)
 - The Explorer (the demo Manifold, live — every measure with its verdict and a query): /explorer
+- Writing a Manifold? Read /docs/grammar FIRST — the shipped keyword set with exact signatures
+  and examples verified against the released parser at build time. Chapter 26 of the reference
+  manual presents long forms as primary; the grammar page shows what the parser actually accepts.
 - Full agent orientation: /llms-full.txt
 
 ## The evidence
