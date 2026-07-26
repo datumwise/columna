@@ -194,6 +194,25 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
 .mood-clarify { text-decoration: underline dotted; text-underline-offset: 3px; }
 .mood-refuse { text-decoration: line-through; text-decoration-thickness: 1px; }
 
+/* CONTAINER FORMS — the scale rule's second column. Applied to any container that carries a mood:
+   a wire badge, a wheel card, a panel, a diagram segment. Border, never fill; ink only.
+   `refuse` gets the heavier rule AND (via .mood-label inside it) a struck label — one vocabulary
+   at two scales, because a card contains both a container and a word. */
+.mood-box            { border: 1px solid var(--rule-strong); background: transparent; color: var(--ink); }
+.mood-box-serve      { border: 1px solid var(--rule-strong); }
+.mood-box-disclose   { border: 1px solid var(--rule-strong); border-bottom: 2px solid var(--ink); }
+.mood-box-clarify    { border: 1px dotted var(--ink); }
+.mood-box-refuse     { border: 2px solid var(--ink); }
+/* the inline form, riding inside a refuse container — the scale rule applied, not an exception */
+.mood-box-refuse .mood-label { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+
+/* left-rule variant, for cards that lead with a rule rather than a full border (the /case wheel) */
+.mood-rule-serve     { border-left: 4px solid var(--ink); }
+.mood-rule-disclose  { border-left: 4px solid var(--ink); border-bottom: 2px solid var(--ink); }
+.mood-rule-clarify   { border-left: 4px dotted var(--ink); }
+.mood-rule-refuse    { border-left: 7px solid var(--ink); }
+.mood-rule-refuse .mood-label { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+
 /* ─────────────────────────────────────────────────────────────────────────────
    BUILD NOTES (homepage v2)
    · #try-a-question is a PERMANENT ANCHOR. The moods widget re-seats there; install.astro,
