@@ -13,7 +13,6 @@ export interface DescribeManifold {
   dimensions: { level: string; is_base: boolean }[];
   edges: { frm: string; to: string; lineage: string }[];
   universes: { name: string; base_dimensions: string[]; predicate: string | null; basis: string | null; absence: string; basis_license: License | null }[];
-  asserts: { name: string; universe: string; form: any; license: License | null }[];
   hierarchies: { lineage: string; chain: string[]; license: License | null }[];
   measures: { name: string; family: string[]; universe: string; description?: string }[];
   derived: { name: string; formula: string; resolution_anchor: string | null; denotation_only: boolean; description?: string; members: Record<string, { declared_lineages: string[]; license: License | null }> }[];
@@ -81,17 +80,9 @@ function universeCard(u: DescribeManifold['universes'][0]): string {
     ${triad(law, u.basis_license, '')}
   </article>`;
 }
-function assertCard(a: DescribeManifold['asserts'][0]): string {
-  const f = a.form || {};
-  const body = f.kind === 'invariant'
-    ? `${esc(f.left)} ${esc(f.op)} ${esc(f.right)} @ ${(f.anchor || []).join(', ')}`
-    : `${esc(f.predicate)}`;
-  const law = `<span class="mx-name">${esc(a.name)}</span>
-    <span class="mx-meta">${esc(f.kind)} · universe <b>${esc(a.universe)}</b> · <code>${body}</code></span>`;
-  return `<article class="mx-card" data-kind="assert" data-search="${attr(a.name + ' ' + a.universe)}">
-    ${triad(law, a.license, '')}
-  </article>`;
-}
+// ASSERT retired in 0.13 (ruling 2026-07-26): describe no longer emits an `asserts` field, so the
+// Explorer has no Asserts section and assertCard is gone. A trial must prove a precondition of
+// something served; the assert provers proved none.
 function hierarchyCard(h: DescribeManifold['hierarchies'][0]): string {
   const law = `<span class="mx-name">${esc(h.lineage)}</span>
     <span class="mx-meta">${h.chain.map((c) => `<code>${esc(c)}</code>`).join(' → ')}</span>`;
@@ -105,7 +96,6 @@ const SECTIONS: [string, string, (D: DescribeManifold) => string][] = [
   ['measures', 'Measures', (D) => D.measures.map((m) => measureCard(D, m)).join('')],
   ['derived', 'Derived', (D) => D.derived.map(derivedCard).join('')],
   ['universes', 'Universes', (D) => D.universes.map(universeCard).join('')],
-  ['asserts', 'Asserts', (D) => D.asserts.map(assertCard).join('')],
   ['hierarchies', 'Hierarchies', (D) => D.hierarchies.map(hierarchyCard).join('')],
 ];
 

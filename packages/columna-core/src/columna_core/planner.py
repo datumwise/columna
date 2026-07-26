@@ -98,24 +98,12 @@ class Planner:
     def __init__(self, view: PlannerView, engine: ColumnEngine):
         self.m = view          # provenance-free PROJECTION (vocabulary/shape only)
         self.engine = engine
-        # the published SCOPE (set by publish/reattest): cut declarations (asserts) and blocked edges
-        # (refuted hierarchies). A column touching a cut refuses `conflicting_data`; a column whose
-        # transport crosses a blocked edge refuses `contradicted_edge`. Serving never outruns the verdicts.
-        self.cut: frozenset = frozenset()
-        self.cut_by: dict = {}
+        # the published SCOPE (set by publish/reattest): the blocked edges of refuted hierarchies. A
+        # column whose transport crosses a blocked edge refuses `contradicted_edge`. Serving never
+        # outruns the verdicts. (The CUT half — declarations withdrawn by a violated ASSERT, refusing
+        # `conflicting_data` — retired with ASSERT in 0.13.0; ruling 2026-07-26.)
         self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
         self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
-
-    def _cut_hit(self, expr: str) -> Optional[str]:
-        """The first CUT declaration a column expression references (measure or derived), or None.
-        Serving never outruns the verdicts: a query into a cut region is withheld."""
-        if not self.cut:
-            return None
-        for ref in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", expr):
-            head = ref.split(".", 1)[0]
-            if head in self.cut:
-                return head
-        return None
 
     def _blocked_transport(self, node, anchor) -> Optional[tuple]:
         """The first BLOCKED edge (frm, to) a column's transport crosses, or None. A refuted hierarchy
@@ -164,18 +152,6 @@ class Planner:
                 f"(define a DERIVED that carries its population, then ask that).",
                 alternatives=("juxtapose: ask each measure as its own column",
                               "declare: define a DERIVED with its population, then ask it"))
-
-    def _cut_refusal(self, decl: str) -> "Refusal":
-        rec = (self.cut_by.get(decl) or [{}])[0]
-        ce = rec.get("counterexample")
-        who = (f"assert '{rec['assert']}' ON '{rec['universe']}'" if rec.get("assert")
-               else "a declared invariant")
-        coord = f" (counterexample @ {ce.get('anchor')})" if ce else ""
-        return Refusal("conflicting_data",
-            f"'{decl}' is in a CUT region: {who} is violated on the attested data{coord}; serving is "
-            f"withheld here — serving never outruns the verdicts.",
-            measure=decl,
-            alternatives=("fix the data and re-attest", "amend the assert", "accept the reduced scope"))
 
     # ---- typecheck: addressability (fan-out / out-of-universe caught here) --
     def _check_addressable(self, measure: str, T: str):
@@ -297,11 +273,6 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
-                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
-                # mood — checked before typecheck/execution (serving never outruns the verdicts).
-                cut_decl = self._cut_hit(expr)
-                if cut_decl is not None:
-                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)
                 col_uni = self._check_single_universe(tree.body, anchor)  # §2c expr law + the column's universe
                 blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
@@ -631,8 +602,9 @@ class Planner:
     def cone_atoms_and_edges(self, expr: str, anchor: tuple) -> tuple:
         """SHAPE for EXPLAIN's dependency cone (provenance-free — the planner's remit): the atomic
         (measure, member, universe) atoms, the derived names referenced, and the edges the transport
-        traverses (with blocked status) + the cut declaration hit. The SERVER enriches with verdicts
-        (licenses live on the Manifold, not the projection). Zero data touched."""
+        traverses (with blocked status). The SERVER enriches with verdicts (licenses live on the
+        Manifold, not the projection). Zero data touched. (A fourth element — the cut declaration hit —
+        left with the ASSERT retirement in 0.13.0; ruling 2026-07-26.)"""
         engine_expr = self._convert_input_anchor(expr)
         tree = ast.parse(engine_expr, mode="eval").body
         atoms = [{"measure": meas, "member": member,
@@ -655,7 +627,7 @@ class Planner:
                         seen.add(key)
                         edges.append({"frm": e.frm, "to": e.to, "lineage": e.lineage,
                                       "blocked": (e.frm, e.to) in self.blocked_edges})
-        return atoms, derived, edges, self._cut_hit(engine_expr)
+        return atoms, derived, edges
 
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
@@ -871,11 +843,6 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
-                # cut-state (B1): a column touching a CUT declaration refuses as the conflicting_data
-                # mood — checked before typecheck/execution (serving never outruns the verdicts).
-                cut_decl = self._cut_hit(expr)
-                if cut_decl is not None:
-                    raise self._cut_refusal(cut_decl)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
                 col_uni = self._check_single_universe(tree.body, anchor)    # §2c expr law + column universe
                 blk = self._blocked_transport(tree.body, anchor)

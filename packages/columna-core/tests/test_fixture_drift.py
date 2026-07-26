@@ -52,7 +52,9 @@ def test_mini_warehouse_within_budget():
 def test_import_and_version():
     import columna_core
 
-    assert columna_core.__version__ == "0.12.0-core"
+    # Deliberately pinned: a version bump is an intentional act, so this test forces the bump to be
+    # made on purpose rather than drifting. 0.13.0 = the ASSERT retirement (breaking, ruling 2026-07-26).
+    assert columna_core.__version__ == "0.13.0-core"
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))

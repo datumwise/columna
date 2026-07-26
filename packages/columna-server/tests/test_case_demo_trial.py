@@ -58,11 +58,6 @@ def test_calendar_hierarchy_is_corroborated_over_every_hop_and_the_week_branch(l
     assert ("day", "cal.week") in h.paths
 
 
-def test_returns_bounded_row_assert_is_corroborated(live):
-    a = next(a for a in live.manifold.asserts if a.name == "returns_bounded")
-    assert a.license.verdict == "corroborated"          # ch3: holds on every tracked row (nulls = no return)
-
-
 def test_both_bases_are_untestable_on_the_record(live):
     us = {u.name: u for u in live.manifold.universes.values()}
     assert us["transaction"].basis_license.verdict == "untestable"   # ch3: the author's call, recorded

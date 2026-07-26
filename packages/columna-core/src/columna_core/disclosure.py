@@ -185,17 +185,17 @@ REASON_OUTCOME = {
                                                         #   input anchor. S1a: registry is the source of truth.
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
-    "conflicting_data":         (REFUSE,  UNSUPPORTED), # a declared invariant (ASSERT) the attested data
-                                                        # VIOLATES: the data's own testimony forbids serving
-                                                        # the cut region (B1 scope-edit). MINTED here per the
-                                                        # one-reason-per-contested-dimension rule (Huayin,
-                                                        # 2026-07-15) — a violated invariant is a genuinely
-                                                        # new contested dimension, sibling to
-                                                        # `contradicted_edge` (a declared edge violated).
-                                                        # Refuse/UNSUPPORTED matches that sibling's pair. The
-                                                        # name is shared with the RESERVED caveat code
-                                                        # (disclosure_wire) — one concept, two channels; the
-                                                        # caveat code stays reserved-and-unwired.
+    # ── TOMBSTONE ── `conflicting_data` was (REFUSE, UNSUPPORTED) — "a declared invariant (ASSERT) the
+    #   attested data VIOLATES: the data's own testimony forbids serving the cut region (B1 scope-edit)".
+    #   RETIRED 2026-07-26 (the ASSERT retirement, Huayin's ruling): its ONLY producer was the cut region,
+    #   and the cut region's only producer was a violated ASSERT — a construct that failed the admission
+    #   test (a construct is admitted iff its prover licenses some serving behavior). With ASSERT gone
+    #   nothing can cut, so nothing can refuse this way; producer, cut branch and reason left together and
+    #   a retirement-pin test asserts it is never emitted. Kept here as a dated tombstone so old transcripts
+    #   and docs remain interpretable — vocabularies grow by rule and shrink by tombstone, never silently.
+    #   🔒 NOT the same referent as the RESERVED caveat code of the same name (disclosure_wire.py): that one
+    #   is RETAINED, reserved and unwired for a possible future soft-assert/disclosed-not-cut path. Same
+    #   string, different channel — probe the referent, not the spelling.
     "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
     "type_error":               (ERROR,   None),        # vocabulary/type failure
     "unknown":                  (ERROR,   None),        # unknown column / operator / construct

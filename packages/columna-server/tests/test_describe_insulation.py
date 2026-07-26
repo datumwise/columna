@@ -86,12 +86,14 @@ def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
 def test_describe_manifold_has_the_d1_extension_blocks():
     store = demo_store()
     dm = T.describe_manifold(store, MID)
-    assert {"asserts", "hierarchies", "universes", "measures", "relates", "published_scope"} <= set(dm)
+    assert {"hierarchies", "universes", "measures", "relates", "published_scope"} <= set(dm)
+    assert "asserts" not in dm            # ASSERT retired in 0.13.0 (ruling 2026-07-26): the field left the wire
     u = dm["universes"][0]
     assert {"basis", "absence", "basis_license", "predicate"} <= set(u)     # C-1 universe extension
     assert "realized_by" not in dm["dimensions"][0]                         # C-2 insulation
     assert "universe" in dm["measures"][0]                                  # structured universe-qualified address
     ps = dm["published_scope"]
-    assert {"cut", "blocked_edges"} <= set(ps)                              # scope/cut display (B1)
+    assert {"blocked_edges", "blocked_by"} <= set(ps)                       # scope display
+    assert "cut" not in ps and "cut_by" not in ps    # the CUT half retired with ASSERT (ruling 2026-07-26)
     dmeas = T.describe_measure(store, MID, dm["measures"][0]["name"])
     assert "signatures" in dmeas and "operator" in next(iter(dmeas["signatures"].values()))

@@ -42,7 +42,6 @@ import polars as pl
 from .model import (License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
                     TOUCH, ASSIGN, ORDER_MIN)
 from .operators import REGISTRY
-from .disclosure_wire import code_for, materiality_for
 
 # float tolerance policy (ruling §4)
 _RTOL = 1e-9
@@ -77,38 +76,9 @@ class Contradiction(Exception):
         )
 
 
-class AssertContradiction(Contradiction):
-    """A declared invariant (ASSERT) the attested data violates at publish. Fails closed. (On
-    RE-attestation the same violation becomes a scope CUT, not a publish failure — the
-    published-scope/cut-set increment; here, at first publish, it fails closed.)"""
-
-    def __init__(self, name: str, universe: str, claim: str, counterexample: dict):
-        self.name, self.universe, self.claim = name, universe, claim
-        self.counterexample = counterexample
-        Exception.__init__(
-            self,
-            f"CONTRADICTED: assert '{name}' ON '{universe}' — {claim} — is violated on the attested "
-            f"data. Counterexample @ {counterexample.get('anchor')}: "
-            f"{counterexample.get('left')!r} vs {counterexample.get('right')!r} "
-            f"(op {counterexample.get('op')}, tol {counterexample.get('tol')}). Publish fails closed."
-        )
-
-
-class AssertNotWellFormed(Exception):
-    """A declared invariant whose expression does not CLEANLY serve at its anchor — ill-posed
-    (clarify/refuse/error) OR served only under a CRITICAL disclosure (e.g. a blocked reduction: the
-    number does not reconcile, so it is not a clean quantity to hold an invariant against). You may not
-    assert what may not be asked: this is a DECLARATION-time well-formedness failure, DISTINCT from
-    UNTESTABLE (which stays reserved for askable-but-unattested). Fails publish closed, naming the
-    underlying planner reason."""
-
-    def __init__(self, name: str, universe: str, side: str, expr: str, reason: str):
-        self.name, self.universe, self.side, self.expr, self.reason = name, universe, side, expr, reason
-        Exception.__init__(
-            self,
-            f"ASSERT '{name}' ON '{universe}' is not well-formed: its {side} '{expr}' does not serve "
-            f"cleanly at the anchor — {reason}. You may not assert what may not be asked; publish fails closed."
-        )
+# (`AssertContradiction` and `AssertNotWellFormed` stood here — the B1 ASSERT channel's fail-closed
+#  siblings. RETIRED with the construct in 0.13.0: the assert provers proved a claim no serving
+#  behavior depended on, so they failed the admission test. Ruling 2026-07-26.)
 
 
 class HierarchyContradiction(Contradiction):
@@ -371,183 +341,30 @@ def _prove_hierarchy(server, m, h) -> License:
                     attestation=_attest_tables(con, sorted(set(tables))))
 
 
-# ---- B1 ASSERT: invariant tested at its anchor on the attested data ----------
-def _serve_fr(server, anchor: tuple, colname: str, expr: str):
-    """Serve one expression at the anchor via the planner (the recompute path). Returns the whole
-    FrameResult (so the caller can read both the data and its disclosures)."""
-    return server.frame(*anchor).column(colname, expr).run()
-
-
-def _material_codes(fr) -> set:
-    """The wire codes of the MATERIAL caveats a served frame carries (critical ones are already
-    excluded upstream by the askability check). The verdict's trial context — cheap honesty."""
-    codes = set()
-    for col in fr.columns:
-        if col.refusal is None:
-            for c in col.disclosure.caveats:
-                if materiality_for(c.category, c.rel_error) == "material":
-                    codes.add(code_for(c.category))
-    return codes
-
-
-def _cmp(l, r, op: str, exact: bool) -> bool:
-    l, r = float(l), float(r)
-    if op == "==":                                         # only equality rides the tolerance (rider 3)
-        return (l == r) if exact else (abs(l - r) <= _ATOL + _RTOL * abs(r))
-    if op == "<=":
-        return l <= r
-    if op == ">=":
-        return l >= r
-    if op == "<":
-        return l < r
-    if op == ">":
-        return l > r
-    return False
-
-
-def _invariant_counterexample(j, op, lcol, rcol, anchor) -> Optional[dict]:
-    exact, tol_desc = _tol_for(j[lcol].dtype)
-    for row in j.iter_rows(named=True):
-        l, r = row[lcol], row[rcol]
-        if l is None or r is None:
-            continue                                       # nothing to test at this cell
-        if not _cmp(l, r, op, exact):
-            return {"anchor": {k: row[k] for k in anchor}, "left": l, "right": r,
-                    "op": op, "tol": tol_desc}
-    return None
-
-
-def _clean_serve_reason(fr) -> Optional[str]:
-    """Why an invariant expression is NOT cleanly served at its anchor (for assertion), or None if it
-    is. Not-clean = the plan is ill-posed (clarify/refuse/error — name the planner reason) OR it serves
-    only under a CRITICAL disclosure (name the caveat category). A cleanly-served number is `serve`, or
-    `disclose` with no critical caveat."""
-    if fr.outcome in ("clarify", "refuse", "error"):
-        for col in fr.columns:
-            if col.refusal is not None:
-                return col.refusal.classified().reason
-        return fr.outcome
-    for col in fr.columns:
-        if col.refusal is None:
-            for c in col.disclosure.caveats:
-                if c.severity == "critical":
-                    return f"critically disclosed ({code_for(c.category)})"   # the wire code (e.g. blocked_reduction)
-    return None
-
-
-def _sql_ref(r, binding) -> str:
-    """Render a row-predicate Ref to PHYSICAL SQL (for the WHERE probe only — never the license)."""
-    if r.is_literal:
-        return str(r.value)
-    if r.table is None:
-        return binding.get(r.column, r.column)     # row-attribute -> its physical column (share spelling ok)
-    return f"{r.table}.{r.column}"                  # physical residue table.col
-
-
-def _logical_ref(r) -> str:
-    """Render a row-predicate Ref LOGICALLY (for the license basis + counterexample claim)."""
-    if r.is_literal:
-        return str(r.value)
-    return f"{r.table}.{r.column}" if r.table else r.column
-
-
-def _prove_row_assert(server, m, a) -> License:
-    """The row-assert DATA channel (case-demo, closing open_forks · row-assert-data-channel): a row-form
-    predicate is a per-row contract over the population — probe the attested data for ANY violating row.
-    A violation ⇒ AssertContradiction (publish fails closed / reattest degrades). None ⇒ CORROBORATED.
-    NULL comparands (e.g. untracked returns) make the comparison NULL, so `NOT (pred)` excludes them —
-    they are not violations (the folklore: nulls count as no return)."""
-    con = server.engine.con
-    u = m.universes[a.universe]
-    home = next((mc.home_table for mc in m.measures.values() if mc.universe == a.universe), None)
-    if home is None:
-        return _license(UNTESTABLE, set(),
-                        "row-predicate assert: no measure binds this universe to a home table to test "
-                        "against; recorded on authored authority, never exercised.")
-    binding = {n: (b.split(".", 1)[1] if "." in b else b) for n, b in u.attributes}
-    sql = " AND ".join(f"{_sql_ref(c.left, binding)} {c.op} {_sql_ref(c.right, binding)}"
-                       for c in a.predicate.comparisons)
-    claim = " AND ".join(f"{_logical_ref(c.left)} {c.op} {_logical_ref(c.right)}"
-                         for c in a.predicate.comparisons)
-    base_phys = [m.levels[d].realized_by for d in sorted(u.base_dimensions) if d in m.levels]
-    try:
-        rows = con.deliver_base_values(home, base_phys, f"({sql})")   # _value = the row predicate (bool, NULL-safe)
-    except ValueError:
-        return _license(UNTESTABLE, set(),                            # no attested rows (empty population)
-                        f"row predicate '{claim}' is askable but has no attested rows; recorded on "
-                        f"authored authority, never exercised.")
-    except Exception:
-        # the base-row channel probes HOME-TABLE columns and row-attributes; a predicate over a rollup
-        # level (needing a broadcast/join) is not probeable here — recorded, never exercised (ledgered).
-        return _license(UNTESTABLE, set(),
-                        f"row predicate '{claim}' references a term the base-row channel cannot bind "
-                        f"directly (a rollup or joined level); recorded on authored authority, never exercised.")
-    if rows.height == 0:
-        return _license(UNTESTABLE, set(),
-                        f"row predicate '{claim}' is askable but has no attested rows; recorded on "
-                        f"authored authority, never exercised.")
-    bad = rows.filter(pl.col("_value") == False)   # noqa: E712 — null-safe: NULL comparands are not violations
-    if bad.height > 0:
-        first = bad.row(0, named=True)
-        ce = {d: first[m.levels[d].realized_by] for d in sorted(u.base_dimensions)
-              if d in m.levels and m.levels[d].realized_by in first}
-        raise AssertContradiction(a.name, a.universe, claim, ce)
-    return _license(CORROBORATED, set(),
-                    f"row predicate '{claim}' held on every attested row of '{a.universe}'.",
-                    attestation=_attest_tables(con, {home}))
-
-
-def _prove_assert(server, m, a) -> License:
-    """Invariant-form: (1) ASKABILITY — plan LHS/RHS statically; if either does not serve cleanly the
-    assertion is not well-formed → fail publish CLOSED naming the reason (rider 1: you may not assert
-    what may not be asked; never UNTESTABLE). (2) ATTESTATION — serve both at the anchor, compare per
-    op (== rides the WP-B tolerance); a violation ⇒ AssertContradiction. Askable-but-unattested (no
-    clean frame despite a clean plan) ⇒ UNTESTABLE. Row-form: UNTESTABLE, base-row channel ledgered
-    (open_forks.md · row-assert-data-channel)."""
-    if a.kind == "row":
-        return _prove_row_assert(server, m, a)   # the base-row DATA channel (case-demo) — no longer untestable
-    con = server.engine.con
-    # (1) askability — static, no data; fail publish closed if not cleanly serveable
-    for side, expr in (("LHS", a.left), ("RHS", a.right)):
-        reason = _clean_serve_reason(server.frame(*a.anchor).column("_p", expr).plan())
-        if reason is not None:
-            raise AssertNotWellFormed(a.name, a.universe, side, expr, reason)
-    # (2) attestation — needs data; a clean plan that yields no frame is askable-but-unattested
-    lfr = _serve_fr(server, a.anchor, "_l", a.left)
-    rfr = _serve_fr(server, a.anchor, "_r", a.right)
-    if lfr.data is None or rfr.data is None:
-        return _license(UNTESTABLE, set(),
-                        f"assert '{a.name}' is askable but unattested at {a.anchor} (clean plan, no "
-                        f"served frame); recorded on authored authority, never exercised.")
-    j = lfr.data.join(rfr.data, on=list(a.anchor), how="inner")
-    ce = _invariant_counterexample(j, a.op, "_l", "_r", a.anchor)
-    if ce is not None:
-        raise AssertContradiction(a.name, a.universe, f"{a.left} {a.op} {a.right}", ce)
-    _, tol_note = _tol_for(j["_l"].dtype)
-    basis = (f"invariant '{a.left} {a.op} {a.right}' held at {a.anchor} on the attested data "
-             f"(tol {tol_note}).")
-    trial = sorted(_material_codes(lfr) | _material_codes(rfr))    # verdict's trial context (optional honesty)
-    if trial:
-        basis += f" Trial values carried material (non-critical) disclosures: {trial}."
-    return _license(CORROBORATED, set(), basis,
-                    attestation=_attest_tables(con, _expr_tables(m, a.left, a.right)))
+# (The B1 ASSERT provers — `_prove_assert`, `_prove_row_assert`, and their serve-at-anchor helpers
+#  `_serve_fr` / `_material_codes` / `_cmp` / `_invariant_counterexample` / `_clean_serve_reason` /
+#  `_sql_ref` / `_logical_ref` — stood here. RETIRED in 0.13.0 (ruling 2026-07-26). Removed, not
+#  mothballed: unreachable machinery is where the next fossil grows.)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# The published SCOPE (B1 scope-edit law): a PURE function of declarations × the CURRENT attestation's
-# verdicts. No ratchet — reattest is symmetric (a now-holding assert restores its region); history
+# The published SCOPE (the scope-edit law): a PURE function of declarations × the CURRENT attestation's
+# verdicts. No ratchet — reattest is symmetric (a now-functional hierarchy unblocks its edge); history
 # lives in watermarks and the ledger, never in scope-state (Huayin, 2026-07-16).
 # ─────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class PublishedScope:
-    """The published manifold's SERVING scope — the scope-edit law made concrete, uniform across THREE
-    degrade targets (each toward correctness in its own kind): asserts degrade to CUT (cut declarations
-    refuse `conflicting_data`), licenses degrade to RECOMPUTE (revoked), edges degrade to BLOCKED
-    TRANSPORT (transport across them refuses `contradicted_edge`). Everything else serves untouched.
-    Recomputed fresh on every publish/attest from that attestation's verdicts (pure function; no
-    history — history lives in watermarks and the ledger)."""
-    cut: frozenset = frozenset()          # declaration names (measures + their derived cone) that are CUT
-    cut_by: dict = field(default_factory=dict)      # cut decl -> [{assert, universe, counterexample}]
+    """The published manifold's SERVING scope — the scope-edit law made concrete, uniform across its
+    degrade targets (each toward correctness in its own kind): licenses degrade to RECOMPUTE (revoked),
+    edges degrade to BLOCKED TRANSPORT (transport across them refuses `contradicted_edge`). Everything
+    else serves untouched. Recomputed fresh on every publish/attest from that attestation's verdicts
+    (pure function; no history — history lives in watermarks and the ledger).
+
+    A THIRD degrade target stood here: asserts degraded to CUT, and a query into a cut region refused
+    `conflicting_data`. It retired with ASSERT in 0.13.0 (ruling 2026-07-26) — one construct, one
+    degrade target, one refusal reason, all three gone together, because the cut region's sole producer
+    was a violated assert. `conflicting_data` is tombstoned in disclosure.REASON_OUTCOME and pinned as
+    never-emitted."""
     blocked_edges: frozenset = frozenset()          # (frm, to) whose transport is BLOCKED (refuted hierarchy)
     blocked_by: dict = field(default_factory=dict)  # (frm, to) -> [{lineage, key}]
     licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
@@ -555,33 +372,6 @@ class PublishedScope:
 
 def _revoked_license(fm, why: str) -> License:
     return License(verdict=CONTRADICTED, lineages=frozenset(fm.declared_lineages), basis=why, attestation=None)
-
-
-def _assert_reads(m, a) -> set:
-    """The measure/derived columns an invariant's expression reads (its cut SEED)."""
-    names = set()
-    for expr in (a.left, a.right):
-        for tok in re.findall(r"[A-Za-z_]\w*", expr or ""):
-            if tok in m.measures or tok in m.derived:
-                names.add(tok)
-    return names
-
-
-def _declaration_cone(m, seeds) -> frozenset:
-    """The declaration cone of `seeds`: the seed columns + every derived that transitively references
-    one of them (declaration granularity, B1 v1)."""
-    cone = set(seeds)
-    changed = True
-    while changed:
-        changed = False
-        for dname, d in m.derived.items():
-            if dname in cone:
-                continue
-            refs = {r.split(".", 1)[0] for r in re.findall(r"[A-Za-z_]\w*(?:\.\w+)*", d.formula)}
-            if refs & cone:
-                cone.add(dname)
-                changed = True
-    return frozenset(cone)
 
 
 def _snapshot_licenses(m) -> dict:
@@ -594,27 +384,20 @@ def _snapshot_licenses(m) -> dict:
 
 def scope_from_report(m, report: dict) -> PublishedScope:
     """Build the PublishedScope from a (degrade-mode) adjudication report — a pure read of the current
-    verdicts: the cut declarations' cones (with coordinates) and the blocked edges (with the refuting
-    key)."""
-    cut, cut_by = set(), {}
-    for rec in report.get("_cuts", {}).values():
-        for decl in rec["cone"]:
-            cut.add(decl)
-            cut_by.setdefault(decl, []).append({"assert": rec["assert"], "universe": rec["universe"],
-                                                "counterexample": rec["counterexample"]})
+    verdicts: the blocked edges (with the refuting key) and the license snapshot."""
     blocked, blocked_by = set(), {}
     for edge, rec in report.get("_blocked", {}).items():
         blocked.add(edge)
         blocked_by.setdefault(edge, []).append(rec)
-    return PublishedScope(cut=frozenset(cut), cut_by=cut_by,
-                          blocked_edges=frozenset(blocked), blocked_by=blocked_by,
+    return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
                           licenses=_snapshot_licenses(m))
 
 
 def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
-    """The authoring-event report: what THIS attestation changed vs the previous scope — cuts/restores
-    (asserts), revocations/re-licenses (licenses), blocked/unblocked edges (hierarchies). Never a silent
-    mutation — this diff is what summons the author to the three exits."""
+    """The authoring-event report: what THIS attestation changed vs the previous scope —
+    revocations/re-licenses (licenses), blocked/unblocked edges (hierarchies). Never a silent
+    mutation — this diff is what summons the author to the three exits. (`cuts`/`restores`/`cut_by`
+    stood here; they retired with ASSERT in 0.13.0, ruling 2026-07-26.)"""
     revocations, relicenses = [], []
     for k, v in new.licenses.items():
         ov = old.licenses.get(k)
@@ -622,12 +405,9 @@ def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
             revocations.append(k)
         elif ov == CONTRADICTED and v in (VERIFIED, CORROBORATED):
             relicenses.append(k)
-    cuts = sorted(new.cut - old.cut)
     newly_blocked = sorted(new.blocked_edges - old.blocked_edges)
-    return {"cuts": cuts, "restores": sorted(old.cut - new.cut),
-            "revocations": sorted(revocations), "relicenses": sorted(relicenses),
+    return {"revocations": sorted(revocations), "relicenses": sorted(relicenses),
             "blocked_edges": newly_blocked, "unblocked_edges": sorted(old.blocked_edges - new.blocked_edges),
-            "cut_by": {d: new.cut_by.get(d, []) for d in cuts},
             "blocked_by": {e: new.blocked_by.get(e, []) for e in newly_blocked}}
 
 
@@ -798,13 +578,12 @@ def _prove_faces_acyclic(server, m) -> None:
 def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[list] = None,
                degrade: bool = False) -> dict:
     """Adjudicate every declared capability on `server.m`, attaching the constructed `License` in
-    place. Returns {derived_name: {member: verdict}} plus `_hierarchies`/`_asserts`/`_cuts`.
+    place. Returns {derived_name: {member: verdict}} plus `_hierarchies`/`_basis`/`_faces`.
 
     `degrade=False` (first PUBLISH): strict — any refutation raises Contradiction (publish fails
     closed). `degrade=True` (RE-ATTEST): a data refutation is a scope EDIT, not a failure — a violated
-    fertility license is REVOKED (degrade to recompute), a violated ASSERT CUTS its declaration cone
-    (recorded in `_cuts` with counterexample coordinates). HIERARCHY stays strict in both modes: a
-    non-functional coordinate structure is a geometry failure, not a scoped data conflict.
+    fertility license is REVOKED (degrade to recompute), and a refuted HIERARCHY blocks transport
+    across its edge (recorded in `_blocked` with the refuting key).
 
     Idempotent within an attestation. The math channel runs first (no data); the data channel only for
     members math leaves undecided."""
@@ -821,17 +600,17 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
                 if not degrade:
                     raise                      # first publish: fail closed
                 lic = _revoked_license(fm, "fertility refuted on re-attestation — license revoked; the "
-                                            "engine recomputes (asserts guard truth costs territory; "
-                                            "licenses guard shortcuts costs speed).")
+                                            "engine recomputes (a license guards a shortcut, so revoking "
+                                            "it costs speed, never correctness).")
             new_family[member] = replace(fm, license=lic)
             verdicts[member] = lic.verdict
         m.derived[dname] = replace(d, family=new_family)
         report[dname] = verdicts
 
-    # ── Track-1 Certificate customers: HIERARCHY (FD) and ASSERT (invariant/row) ──
-    # Same kernel: each mints the UNCHANGED License and fails closed via a Contradiction sibling.
-    # Degrade targets are uniform (Huayin, 2026-07-16): asserts→cut, licenses→recompute, edges→blocked
-    # transport — each toward correctness in its own kind.
+    # ── Track-1 Certificate customer: HIERARCHY (FD) ──
+    # Same kernel: it mints the UNCHANGED License and fails closed via a Contradiction sibling.
+    # Degrade targets are uniform (Huayin, 2026-07-16): licenses→recompute, edges→blocked transport —
+    # each toward correctness in its own kind. (asserts→cut left with ASSERT in 0.13.0.)
     if m.hierarchies:
         new_h, hv, blocked = [], {}, {}
         for h in m.hierarchies:
@@ -850,26 +629,6 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
         report["_hierarchies"] = hv
         if degrade:
             report["_blocked"] = blocked
-    if m.asserts:
-        new_a, av, cuts = [], {}, {}
-        for a in m.asserts:
-            try:
-                lic = _prove_assert(server, m, a)
-            except AssertContradiction as e:   # invariant violated by the attested data
-                if not degrade:
-                    raise                      # first publish: fail closed
-                lic = _license(CONTRADICTED, set(),
-                               f"invariant '{a.left} {a.op} {a.right}' violated on re-attestation — "
-                               f"region CUT until fixed/amended/accepted.")
-                cuts[(a.universe, a.name)] = {"assert": a.name, "universe": a.universe,
-                    "counterexample": e.counterexample, "cone": _declaration_cone(m, _assert_reads(m, a))}
-            new_a.append(replace(a, license=lic))
-            av[f"{a.universe}.{a.name}"] = lic.verdict     # names are universe-scoped
-        m.asserts = new_a
-        report["_asserts"] = av
-        if degrade:
-            report["_cuts"] = cuts
-
     # ── B3 BASIS: mint the testedness record per declared basis (serving is independent — §2c/B3) ──
     declared_basis = {n: u for n, u in m.universes.items() if u.basis is not None}
     if declared_basis:

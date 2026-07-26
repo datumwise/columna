@@ -154,8 +154,7 @@ def build_model(dm):
         universes.append(u)
     # edges by base level -> the stacks that rise from it (with fork paths)
     hiers = dm["hierarchies"]
-    # asserts homed per universe
-    asserts = dm.get("asserts", [])
+    # ASSERT retired in 0.13 (ruling 2026-07-26); describe no longer emits an `asserts` field.
     measures = dm["measures"]
     derived = dm.get("derived", [])
     # RELATE (ruling B, 2026-07-19): declared M:N relationships ride describe as relates[] — drawn as a
@@ -173,7 +172,7 @@ def build_model(dm):
     for r in relates:
         if r["to"] not in levels or r["frm"] not in levels:
             raise Fail(f"relate {r['frm']}->{r['to']} names a level absent from describe — teach it")
-    return {"universes": universes, "hierarchies": hiers, "asserts": asserts, "measures": measures,
+    return {"universes": universes, "hierarchies": hiers, "measures": measures,
             "derived": derived, "relates": relates, "edges": dm["edges"]}
 
 

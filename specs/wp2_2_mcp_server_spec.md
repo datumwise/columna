@@ -125,7 +125,7 @@ with engine-native ones; this table is normative and lives in code as a single d
 | transport | `provenance` | **immaterial** (faithful-step record) |
 
 Reserved codes for authoring-era disclosures (emit-capable now, produced later): `stock_reading`,
-`distinct_grain`, `weighting_grain`, `extremum_grain`, `incomplete_data`, `conflicting_data`,
+`distinct_grain`, `weighting_grain`, `extremum_grain`, `incomplete_data`,
 `other`. The wire schema is the benchmark schema — one vocabulary end to end.
 
 **Clarify round-trip requirement.** `alternatives[].token` MUST be mechanically substitutable: a

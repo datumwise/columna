@@ -26,12 +26,12 @@ So this generator derives its three properties from three different artifacts, d
                   or the build fails. A newly added keyword cannot go silently undocumented, while
                   ATTR still appears in its true role rather than as a false peer.
 
-DOCSTRING GAP (found on the first run, 2026-07-26): `ASSERT` is in `_KW` but ABSENT from the
-docstring's grammar block — 8 of 9 tokens are present. The completeness assertion caught it
-immediately, which is the assertion working. Rather than fail forever on a package-side omission, a
-token may be covered by SUPPLEMENT below: an explicit, visible, auditable entry. The guarantee holds
-because a token in neither the docstring nor the supplement still fails the build; the supplement is
-a declared exception, not a silent one. The upstream fix (add ASSERT to the docstring) is rowed.
+SUPPLEMENT (the declared-exception mechanism): a _KW token the docstring's grammar block does not
+carry may be documented explicitly in SUPPLEMENT below — visible and auditable, never silent. A token
+in NEITHER source still fails the build. Its first and so far only user was ASSERT, which was absent
+from the docstring; ASSERT then RETIRED in 0.13 (ruling 2026-07-26) and the page healed itself on
+regeneration, which is the design working end to end. SUPPLEMENT is now empty and the mechanism
+remains for the next such case.
 
 Usage:  python scripts/gen_grammar.py > src/data/grammar.generated.json
 """
@@ -118,22 +118,10 @@ def kw_tokens() -> list[str]:
 # A token the docstring's grammar block does not carry, documented here EXPLICITLY so it is visible
 # and auditable. Adding a token here is a deliberate, reviewable act; omitting it entirely still
 # fails the build.
-SUPPLEMENT = {
-    "ASSERT": {
-        "keyword": "ASSERT",
-        "signatures": [
-            'ASSERT <name> [ON <universe>] WHERE <predicate>',
-            'ASSERT <name> [ON <universe>] AT <level> HOLDS <invariant>',
-        ],
-        "clauses": [],
-        "notes": [
-            "Absent from the parser docstring's grammar block (8 of 9 _KW tokens are present); "
-            "signatures read from the parser's own patterns. The upstream fix — adding ASSERT to that "
-            "block — is rowed, and this supplement is what keeps the page complete meanwhile.",
-        ],
-        "supplemented": True,
-    },
-}
+# (empty) — ASSERT was the only supplemented token; it RETIRED in 0.13 (ruling 2026-07-26), left _KW,
+# and the page healed itself on regeneration exactly as designed. The mechanism stays: a token in
+# neither the docstring nor this dict still fails the build.
+SUPPLEMENT: dict = {}
 
 # ── MAP-SIDE CLAUSES (§2b / C-2). Labelled, because this is where a reader forms the wrong model ──
 # The architecture is NOT "physical binding is part of the declaration" — it is the opposite, and the
