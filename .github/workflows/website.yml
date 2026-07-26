@@ -98,7 +98,7 @@ jobs:
       # TOGETHER: the generator reporting `columna` without this pin is what produced a null version
       # on prod (2026-07-26) — the generator landed, the pin did not.
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna==0.12.1" "columna-core==0.12.0" "columna-server==0.7.1"
+        run: pip install "columna==0.13.0" "columna-core==0.13.0" "columna-server==0.8.0"
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
