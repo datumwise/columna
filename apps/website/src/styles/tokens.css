@@ -334,7 +334,15 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           first. (Subsumes the earlier "real path over rendered text" — same rule, generalised.)
        3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
           trusting the edit; a regex that eats a closing brace ships silently.
-       4. "A guard that emits a SENTINEL is not fail-closed — only a non-zero exit is." A generator
+       4. "A fixed-string grep cannot see a LINE-WRAPPED occurrence." Sweep for a distinctive SHORT
+          partial, never the full phrase, whenever the target is prose that may wrap. Found twice in
+          one turn during the position rename: a grep for the full title missed the figure component's
+          comment (title wrapped mid-phrase), and then a grep for "the model holds no database
+          credentials" missed line 85 — where the line breaks after "no". Even the shortened partial
+          "holds no database" still spanned the wrap. This is the same failure family as
+          name/path/package/tree-state, in a fifth disguise: the probe did not match the referent's
+          actual shape.
+       5. "A guard that emits a SENTINEL is not fail-closed — only a non-zero exit is." A generator
           that caught a missing package and wrote `null` felt safe and shipped 0.12.0 to prod under
           copy saying 0.12.1. Sentinels get consumed by a downstream fallback and become plausible
           wrong values; a non-zero exit cannot be. And every guard is verified in BOTH directions —

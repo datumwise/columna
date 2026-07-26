@@ -57,7 +57,7 @@ ${ch1.trimEnd()}\n\n---\n\n${ch2.trimEnd()}\n\n---\n\n${ch3WithFigure.trimEnd()}
 // copy (it carries the gap list verbatim); it is not authored here.
 //
 // So the 2x2 equivalent is seated exactly where the figure mounts on the page: after the section
-// headed FIGURE_AFTER, which is the SAME anchor `positions/never-let-the-model-touch-the-database.astro`
+// headed FIGURE_AFTER, which is the SAME anchor `positions/never-let-your-agent-touch-the-database.astro`
 // uses. If that heading is ever reworded, this THROWS and fails the build rather than silently
 // dropping the figure out of llms-full — the page's failure mode is a missing figure, which is visible;
 // this document's would be invisible, so it must be loud.
