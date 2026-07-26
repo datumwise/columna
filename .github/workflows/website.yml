@@ -38,6 +38,8 @@ jobs:
           pip install -e ../../packages/columna-core
           pip install "mcp>=1.0" "tomli>=2.0; python_version < '3.11'"
           pip install --no-deps -e ../../packages/columna-server
+          # the umbrella, editable, so the branch build reports the release version like the deploy does
+          pip install --no-deps -e ../../packages/columna
 
       - name: Generate the integrity transcript from the BRANCH package (fails closed)
         run: |
@@ -82,8 +84,14 @@ jobs:
           cache: npm
           cache-dependency-path: apps/website/package-lock.json
 
+      # The UMBRELLA `columna` is pinned alongside its libs so the generators can report the
+      # release/install version into the site (Huayin's version ruling, 2026-07-25). Verified by
+      # dry-run: columna==0.12.1 resolves to exactly columna-core==0.12.0 + columna-server==0.7.1 —
+      # the versions already pinned, which stay as guards. THE PIN AND THE GENERATOR MUST SHIP
+      # TOGETHER: the generator reporting `columna` without this pin is what produced a null version
+      # on prod (2026-07-26) — the generator landed, the pin did not.
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna-core==0.12.0" "columna-server==0.7.1"
+        run: pip install "columna==0.12.1" "columna-core==0.12.0" "columna-server==0.7.1"
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
