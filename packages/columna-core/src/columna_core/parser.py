@@ -29,15 +29,16 @@ from dataclasses import replace
 from typing import Optional
 from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
-                    Ref, Comparison, Predicate, Assert, Hierarchy,
+                    Ref, Comparison, Predicate, Hierarchy,
                     Relate, Face, FACE_SCHEMES, FACE_ORDERS, TOUCH, ASSIGN)
 
 _KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
-       "ASSERT", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ATTR = standalone universe row-attributes
+       "HIERARCHY", "ATTR")   # EDGE purged (§2a); ASSERT retired (0.13.0); ATTR = the inline LEVEL clause
 
-# B1 (capture §7): the comparison set an aggregate-invariant ASSERT may use. `==` rides the WP-B
-# adjudication tolerance (one tolerance policy, everywhere); v1 excludes `!=`.
-ASSERT_OPS = ("==", "<=", ">=", "<", ">")
+# RETIRED statement heads (0.13.0). Not grammar — held here ONLY so a document written against the
+# old grammar still SPLITS at the retired line and meets the teaching refusal there, instead of
+# dissolving into a confusing complaint about the declaration it happens to follow.
+_RETIRED_KW = ("ASSERT",)
 
 # B3 (capture §7): the four population bases, each determining what absence MEANS engine-wide.
 BASIS_TYPES = frozenset({"events", "spine", "product", "registry"})
@@ -45,6 +46,23 @@ BASIS_TYPES = frozenset({"events", "spine", "product", "registry"})
 
 class ParseError(Exception):
     pass
+
+
+# ---- the teaching refusal (ASSERT retirement, ruling 2026-07-26) -------------
+# The parser's rejection of retired syntax names the RULING, not just the error: an author who wrote
+# a contract into a Manifold is not making a typo, they are making a category mistake, and the refusal
+# is where the doctrine reaches them.
+_ASSERT_RETIRED = (
+    "ASSERT was retired in 0.13 — everything a Manifold's trial proves is a precondition of "
+    "something it serves, and a data contract licenses no serving behavior. Contracts belong to the "
+    "attestation layer, upstream of the Manifold. (Ruling 2026-07-26; see the 0.13.0 release note.)"
+)
+_ATTR_ON_RETIRED = (
+    "standalone 'ATTR <names> ON <universe>' was retired in 0.13 by CASCADE: its sole consumer was "
+    "the row-form ASSERT, and ASSERT was retired because a data contract licenses no serving "
+    "behavior. The inline 'LEVEL <name> = <col> ATTR <attr> = <table>.<column>' form is UNAFFECTED — "
+    "universe predicates load on it. (Ruling 2026-07-26; see the 0.13.0 release note.)"
+)
 
 
 # ---- lexing helpers ---------------------------------------------------------
@@ -66,7 +84,7 @@ def _statements(text: str):
         if not line.strip():
             continue
         first = line.strip().split()[0]
-        if depth == 0 and first in _KW and cur:
+        if depth == 0 and (first in _KW or first in _RETIRED_KW) and cur:
             yield "\n".join(cur); cur = []
         cur.append(line)
         depth += line.count("{") - line.count("}")
@@ -434,51 +452,6 @@ def _p_measure(s, M):
                                         description=description, rejects=rejects)
 
 
-def _split_invariant(inv: str, name: str):
-    """Split an aggregate-invariant body at its top-level comparison (paren-transparent). Longer ops
-    win at a position (`<=` before `<`), so `a <= b` never reads as `a < =b`."""
-    depth = 0
-    for i, c in enumerate(inv):
-        if c in "([":
-            depth += 1
-        elif c in ")]":
-            depth -= 1
-        elif depth == 0:
-            for op in ASSERT_OPS:
-                if inv[i:i + len(op)] == op:
-                    left, right = inv[:i].strip(), inv[i + len(op):].strip()
-                    if not left or not right:
-                        raise ParseError(f"bad ASSERT {name!r} invariant: empty side around {op!r}")
-                    return left, op, right
-    raise ParseError(f"bad ASSERT {name!r} invariant {inv!r}: expected a comparison "
-                     f"(one of {list(ASSERT_OPS)})")
-
-
-def _p_assert(s, M):
-    # ASSERT <name> ON <universe> WHERE <predicate>                 (row-level; universe-carving grammar)
-    # ASSERT <name> ON <universe> AT <anchor> HOLDS <invariant>     (aggregate over measures at an anchor)
-    # §2c single-universe sugar: `ON <universe>` is OPTIONAL (filled in parse_manifold when sole).
-    s, description = _pop_desc(s)          # e.g. returns_bounded's "the team's data contract" folklore
-    head = re.match(r"ASSERT\s+(\w+)(?:\s+ON\s+(\w+))?\s+(WHERE\s+.+|AT\s+.+)$", s, re.S)
-    if not head:
-        raise ParseError(f"bad ASSERT: {s!r} (expected 'ASSERT <name> [ON <universe>] WHERE/AT ...')")
-    name, universe, rest = head.group(1), head.group(2), head.group(3).strip()
-    wm = re.match(r"WHERE\s+(.+)$", rest, re.S)
-    if wm:
-        M["asserts"].append(Assert(name, universe, "row",
-                                   predicate=parse_predicate(wm.group(1).strip()),
-                                   description=description))
-        return
-    am = re.match(r"AT\s+(.+?)\s+HOLDS\s+(.+)$", rest, re.S)
-    if not am:
-        raise ParseError(f"bad ASSERT {name!r}: expected 'WHERE <predicate>' or "
-                         f"'AT <anchor> HOLDS <invariant>', got {rest!r}")
-    anchor = tuple(a.strip() for a in re.split(r"[*,]", am.group(1)) if a.strip())
-    left, op, right = _split_invariant(am.group(2).strip(), name)
-    M["asserts"].append(Assert(name, universe, "invariant", anchor=anchor,
-                               left=left, op=op, right=right, description=description))
-
-
 def _p_hierarchy(s, M):
     # HIERARCHY <lineage> { <a> -> <b> VIA t(a,b) [-> <c> VIA t(b,c)] [; <path2>] }   (§2a)
     # Branching allowed (a small DAG — calendar is chain + week branch). Each hop carries its VIA.
@@ -501,47 +474,35 @@ def _p_hierarchy(s, M):
     M["hierarchies"].append(Hierarchy(lineage, tuple(paths), description=description))   # provenance + FD handle
 
 
-def _p_attr(s, M):
-    # ATTR <name>[= <table>.<col>][, ...] ON <universe>  — logical ROW-attributes of a universe
-    # (case-demo c extended). Legal in a ROW-form ASSERT's predicate; a row-attribute may SHARE its
-    # physical spelling (no `= binding` -> the name is its own binding, resolved against the home table).
-    m = re.match(r"ATTR\s+(.+?)\s+ON\s+(\w+)\s*$", s, re.S)
-    if not m:
-        raise ParseError(f"bad ATTR: {s!r} (expected 'ATTR <name>[= <table>.<col>][, ...] ON <universe>')")
-    attrs = []
-    for part in m.group(1).split(","):
-        part = part.strip()
-        if not part:
-            continue
-        pm = re.match(r"(\w+)(?:\s*=\s*([\w.]+))?\s*$", part)
-        if not pm:
-            raise ParseError(f"bad ATTR entry: {part!r} (expected '<name>' or '<name> = <table>.<col>')")
-        attrs.append((pm.group(1), pm.group(2) or pm.group(1)))   # share spelling when no binding given
-    M["universe_attrs"].append((m.group(2), tuple(attrs)))
+def _p_retired_assert(s, M):
+    """ASSERT (both forms) is RETIRED (0.13.0). Refuse, teaching the ruling."""
+    raise ParseError(_ASSERT_RETIRED)
+
+
+def _p_retired_attr_on(s, M):
+    """A statement whose first token is ATTR is the STANDALONE universe row-attribute form, retired by
+    cascade (0.13.0). The INLINE clause never reaches here — it rides its LEVEL declaration's line, so
+    that statement's first token is `LEVEL` and `_p_level` parses the clause as it always did."""
+    raise ParseError(_ATTR_ON_RETIRED)
 
 
 _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
              "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
-             "ASSERT": _p_assert, "HIERARCHY": _p_hierarchy, "ATTR": _p_attr}
+             "HIERARCHY": _p_hierarchy,
+             # retired heads — kept in the dispatch ONLY to raise the teaching refusal (see above)
+             "ASSERT": _p_retired_assert, "ATTR": _p_retired_attr_on}
 
 
 # ---- public -----------------------------------------------------------------
 def parse_manifold(text: str) -> Manifold:
     M = {"name": None, "version": 1, "universes": {}, "levels": {}, "edges": [],
-         "measures": {}, "derived": {}, "non_functional": [], "asserts": [], "hierarchies": [],
-         "universe_attrs": []}
+         "measures": {}, "derived": {}, "non_functional": [], "hierarchies": []}
     for stmt in _statements(text):
         kw = stmt.strip().split()[0]
         _DISPATCH[kw](stmt, M)
     if M["name"] is None:
         raise ParseError("missing MANIFOLD header")
-    # merge standalone universe ROW-attributes onto their (frozen) Universe (declared in any order)
-    for uname, attrs in M["universe_attrs"]:
-        if uname not in M["universes"]:
-            raise ParseError(f"ATTR references unknown universe '{uname}'")
-        u = M["universes"][uname]
-        M["universes"][uname] = replace(u, attributes=u.attributes + attrs)
-    # §2c single-universe sugar: a MEASURE/ASSERT that omitted `ON <universe>` takes the sole universe;
+    # §2c single-universe sugar: a MEASURE that omitted `ON <universe>` takes the sole universe;
     # with more than one universe, `ON` is REQUIRED (fail closed, naming the ambiguity).
     _unis = list(M["universes"])
     for nm, meas in list(M["measures"].items()):
@@ -550,15 +511,9 @@ def parse_manifold(text: str) -> Manifold:
                 raise ParseError(f"MEASURE {nm}: 'ON <universe>' is required — the manifold has "
                                  f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
             M["measures"][nm] = replace(meas, universe=_unis[0])
-    for i, a in enumerate(M["asserts"]):
-        if a.universe is None:
-            if len(_unis) != 1:
-                raise ParseError(f"ASSERT {a.name}: 'ON <universe>' is required — the manifold has "
-                                 f"{len(_unis)} universes {sorted(_unis)}, so the population is not implicit")
-            M["asserts"][i] = replace(a, universe=_unis[0])
     manifold = Manifold(M["name"], M["version"], M["universes"], M["levels"],
                         M["edges"], M["measures"], M["derived"], M["non_functional"],
-                        M["asserts"], M["hierarchies"])
+                        M["hierarchies"])
     errs = check_wellformed(manifold)
     if errs:
         raise ParseError("not well-formed:\n  - " + "\n  - ".join(errs))
@@ -732,34 +687,8 @@ def check_wellformed(m: Manifold) -> list:
                             f"token '{lv}' would reach both (a literal level and the family.level split) "
                             f"— rename one")
 
-    # ── ASSERT well-formedness (B1, fail closed): universe/uniqueness/row-purity here; the invariant
-    #    expression + anchor are the adjudicator's (planner's) authority at publish (rider 1).
-    seen_assert = set()
-    for a in m.asserts:
-        if a.universe not in m.universes:
-            errs.append(f"assert '{a.name}' binds unknown universe '{a.universe}'")
-            continue
-        if (a.universe, a.name) in seen_assert:      # names are unique PER UNIVERSE (rider 4)
-            errs.append(f"duplicate ASSERT '{a.name}' in universe '{a.universe}' "
-                        f"(assert names are unique per universe)")
-        seen_assert.add((a.universe, a.name))
-        if a.kind == "row":
-            # purity: a row predicate is over dims/attrs, never a measure (universe-carving grammar, rider 1).
-            # A declared ROW-ATTRIBUTE wins over a same-named MEASURE (case-demo c): the assert names the
-            # per-row attribute `units_returned`, a DIFFERENT object from the measure `units_returned` — the
-            # spec must not blur them (Huayin's ruling), so the attribute declaration disambiguates here.
-            if a.predicate:
-                uni = m.universes.get(a.universe)
-                row_attrs = {n for n, _ in uni.attributes} if uni else set()
-                for comp in a.predicate.comparisons:
-                    for ref in (comp.left, comp.right):
-                        if (not ref.is_literal and ref.table is None
-                                and ref.column in m.measures and ref.column not in row_attrs):
-                            errs.append(f"assert '{a.name}' row predicate references measure "
-                                        f"'{ref.column}' (row asserts are over dims/attrs only)")
-        # invariant-form: the expression + anchor are validated by the ADJUDICATOR at publish, not here
-        # — the planner is the one authority on askability (rider 1). An invariant that does not serve
-        # cleanly (unknown name, blocked reduction, unpinned inline reduction, bad anchor) fails publish
-        # closed via AssertNotWellFormed, naming the planner's reason. Invariants legitimately use inline
-        # reductions (`mean(revenue)`), so a parse-time column-head check would wrongly reject operators.
+    # (The B1 ASSERT well-formedness block stood here — universe/uniqueness/row-purity. It retired with
+    #  the construct in 0.13.0, and took the `row_attrs` machinery with it: the assert purity check was
+    #  the ONLY consumer of universe row-attributes in the shipped package, which is how the standalone
+    #  `ATTR … ON <universe>` cascade was found. Ruling 2026-07-26.)
     return errs

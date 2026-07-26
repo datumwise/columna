@@ -12,9 +12,6 @@ UNIVERSE category_profile = category   BASIS spine
     -- "the category's own profile — a one-grain (degenerate) spine, no time axis: a priority and an
     --  allocation weight per category, the drivers the RELATE faces cross by (0.12, the third universe)"
 
-# row-attributes of the transaction population (share their physical spelling; the map records the row)
-ATTR units, units_returned ON transaction
-
 # ── grains ──────────────────────────────────────────────────────────────────────────────────────────
 LEVEL customer = customer_id BASE   -- "a shopper"
 LEVEL store = store_id BASE ATTR opened = stores.opened_date   -- "a retail location"
@@ -69,6 +66,3 @@ MEASURE stock ON inventory FROM eom_inventory VALUE level   -- "the stock level 
 DERIVED aov = revenue / orders   -- "average order value = revenue / orders, one definition for everyone"
 DERIVED return_rate = units_returned / units_sold
     -- "returned units over sold units; one declared definition"
-
-ASSERT returns_bounded ON transaction WHERE units_returned <= units
-    -- "the team's data contract: you can't return more than you bought — checked, not hoped"

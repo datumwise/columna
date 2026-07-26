@@ -18,7 +18,6 @@ checked against the actual warehouse before anything serves:
 | `calendar`: day → month → quarter → year chains cleanly | **corroborated** — 731/731 days, every hop |
 | `calendar`: day → week (the branch that can't chain) | **corroborated** |
 | product ↔ category is many-to-many | **recorded** — a declared relationship, on the record so refusals can name it; its multiplicity isn't yet a tried claim |
-| ASSERT `returns_bounded`: units returned ≤ units sold | **corroborated** — holds on every tracked row |
 | `transaction` BASIS events (absence = nothing happened) | **untestable** — the author's call, on the record |
 | `inventory` BASIS spine (absence = a gap) | **untestable** — same |
 

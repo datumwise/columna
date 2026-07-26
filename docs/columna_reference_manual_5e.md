@@ -1534,7 +1534,7 @@ The semantics include a prohibition, and it is load-bearing: **a column rooted a
 
     HIERARCHY location { store -> region VIA stores(store_id, region) }
 
-*A functional relationship the model asserts but no query should climb is `ASSERT <child> -> <parent> IS FUNCTIONAL` (§26.8) — assertion without navigation. A non-functional (many-to-many) relationship is not a hierarchy at all: it is a `RELATE` with declared faces (Chapter 4.8 / the crossing increment), because no lineage can be honest about a hop that fans out.*
+*A functional relationship the model would attest but no query should climb has no declared form today: a two-node `HIERARCHY` both asserts functionality and licenses the climb — an assertion plus a navigable structure, inseparable as shipped. The distinction is real and recorded: if the assert-only need ever materializes, its home is a declarable block on the hierarchy edge (the planner's `blocked_edges`, today refutation-only) — not a standalone assertion (`ASSERT`: retired, 0.13 — §26.8). A non-functional (many-to-many) relationship is not a hierarchy at all: it is a `RELATE` with declared faces (Chapter 4.8 / the crossing increment), because no lineage can be honest about a hop that fans out.*
 
 #### 26.7 `ALIAS`
 
@@ -1544,9 +1544,7 @@ The semantics include a prohibition, and it is load-bearing: **a column rooted a
 
 #### 26.8 `ASSERT`
 
-> **[`ASSERT`: SCHEDULED — on-ramp WP]** — a declared integrity precondition (FD form or predicate form), adjudicated at publish through the Certificate kernel; a predicate that fails enters the certificate at CONTRADICTED and fails closed. The kernel's second customer after fertility (ADR-034 D1).
-
-`ASSERT` declares an additional integrity precondition for verification, in two forms. The FD form — `ASSERT <child> -> <parent> IS FUNCTIONAL` — asserts a functional dependency *without* declaring a hierarchy edge, and the difference is exactly the difference between checking and navigating: an **assertion** is a certificate entry (verified at refresh, carrying a verdict, available to the dependency cone), while a **hierarchy edge** is an assertion *plus* a navigable structure that licenses climbs. Use `ASSERT … IS FUNCTIONAL` for dependencies whose validity analyses rely on but which no query should climb (an internal key relationship, a staging invariant); use `HIERARCHY` where navigation is wanted. The predicate form — `ASSERT <predicate>` — declares a domain invariant over the bounded data (non-negativity of a measure, a balance identity), verified at refresh like any checkable precondition, with failures entering the certificate at `CONTRADICTED` and riding the cone into the findings of dependent results.
+> **[`ASSERT`: RETIRED — 0.13, ruling 2026-07-26]** — the Manifold's admission test: everything its trial proves is a precondition of something it serves. The shipped assert proved claims no serving behavior depended on; data contracts belong to the attestation layer. Retained for the record: the FD form this section once proposed (`ASSERT <child> -> <parent> IS FUNCTIONAL` — functionality proven for validity analysis, without licensing climbs) is a genuine grammar-level need with no demonstrated use case; if one appears, its home is a declarable block on a hierarchy edge (the planner's `blocked_edges` machinery, today refutation-only), not a revived assert. The assertion-versus-navigation distinction this section taught — an assertion enters the certificate; a hierarchy edge is an assertion plus a navigable structure — remains true and now lives with `HIERARCHY` (§26.6).
 
 #### 26.9 `WITHHOLD`, and the governance party
 

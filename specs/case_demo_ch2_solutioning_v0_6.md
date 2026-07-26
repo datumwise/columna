@@ -68,6 +68,13 @@ each finding became a decision:
 **Two populations (universes):**
 
 ```
+
+One thing this Manifold deliberately does not carry: the team's data contract — "you can't return
+more than you bought." An early draft declared it here, adjudicated like everything else. It was
+retired by a ruling worth stating, because it is the document's admission test: everything a
+Manifold's trial proves is a precondition of something it serves. The contract is true of this
+warehouse — but nothing served depends on proving it, so it is not meaning; it is attestation, and it
+lives upstream. What remains in the Manifold is exactly the set of claims the answers stand on.
 UNIVERSE transaction = customer * store * product * day   BASIS events
 UNIVERSE inventory   = store * day
     WHERE day >= store.opened                       BASIS spine
@@ -137,8 +144,6 @@ MEASURE stock ON inventory               -- "the stock level snapshot"
 DERIVED aov         = revenue / orders
 DERIVED return_rate = units_returned / units_sold
 
-ATTR units, units_returned ON transaction    -- "per-row sale quantities"
-ASSERT returns_bounded ON transaction WHERE units_returned <= units
     -- the team's data contract, checked against the data, not hoped
 ```
 

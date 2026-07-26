@@ -7,6 +7,31 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.13.0 — the ASSERT retirement
+
+**BREAKING.** `ASSERT` (both forms — `ASSERT <n> [ON <u>] WHERE <pred>` and
+`ASSERT <n> [ON <u>] AT <anchor> HOLDS <invariant>`) and the standalone row-attribute form
+`ATTR <names> ON <universe>` are **removed from the definition language**.
+
+**Migration:** delete those lines from your `.cml`. The parser's refusal names this note.
+
+**Rationale — the admission test:** everything a Manifold's trial proves is a precondition of
+something it serves. Seven provers shipped; six prove their own construct's serving preconditions.
+The assert provers alone proved a claim no serving behavior depended on — load-bearing in form,
+unloaded in fact. Data contracts belong to the attestation layer, not the meaning layer. The
+standalone `ATTR … ON` form retires by cascade: its sole consumer was the row-form assert.
+
+The **inline** `LEVEL … ATTR` form is unaffected — universe predicates load on it.
+
+**Wire:** describe no longer emits the `asserts` field, nor universe `attributes`.
+`contract_version` stays `"1"` — pre-broadcast, zero consumers.
+
+**`conflicting_data`** refusals can no longer occur; the reason code is tombstoned (dated comment
+plus a retirement-pin test asserting it is never emitted). The *reserved, unwired caveat code* of the
+same name is untouched — same string, different referent.
+
+Ruling: 2026-07-26. Net effect: a breaking release that removes more code than it adds.
+
 ## [0.12.0-core] — the RELATE face triad completes (assign · alloc), and the anchor law
 
 The M:N crossing gains its full vocabulary beside the shipped `touch`:

@@ -58,10 +58,10 @@ class Universe:
     description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
     rejects: tuple = ()                   # MAP-layer: ((physical, reason), ...) — rejected incarnations, ATTESTED
                                           # not adjudicated. BLAST WALL: map-artifact ONLY; NEVER describe/wire.
-    attributes: tuple = ()                # logical ROW-attributes (case-demo c, extended): ((name, binding), ...)
-                                          #   e.g. units -> transactions.units; legal in a ROW-form ASSERT's
-                                          #   predicate. A row-attribute may share its physical spelling when the
-                                          #   physical name already speaks analyst; the map still records the row.
+                                          # (Universe ROW-attributes stood here — `ATTR <names> ON <universe>`.
+                                          #  They retired with ASSERT in 0.13.0 by cascade: the row-form
+                                          #  assert's purity check was their sole consumer. Ruling 2026-07-26.
+                                          #  LEVEL attributes — the INLINE form — are unaffected; see below.)
 
 
 # ---- Layer 2: coordinate -----------------------------------------------------
@@ -98,7 +98,7 @@ VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED = \
 class License:
     """The adjudicated authority for a declared capability. WP-B's first customer is derived-column
     *fertility* (a member's reduction along a lineage that both commutes and is permitted); a future
-    HIERARCHY/ASSERT precondition carries the SAME record — that is the Certificate-kernel
+    HIERARCHY/BASIS/FACE precondition carries the SAME record — that is the Certificate-kernel
     requirement, so this shape is deliberately generic.
 
     Constitutional sentence: authority is declared; mathematics may verify; data may only refute or
@@ -181,26 +181,11 @@ class DerivedColumn:
     description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
 
 
-# ---- Track-1 (Certificate customers): asserted invariants + verified hierarchies ------------------
-@dataclass(frozen=True)
-class Assert:
-    """A declared invariant (B1). Two forms: `row` — a predicate every atom of the universe must
-    satisfy (dims/attrs only, the universe-carving grammar); `invariant` — an aggregate relation over
-    MEASURES at an anchor (cross-measure reconciliation). Data-channel only: the adjudicator tests it
-    on attested data at publish, minting the same `License` (CORROBORATED | CONTRADICTED | UNTESTABLE);
-    a violation on re-attestation CUTS the affected scope (never edits the artifact). Names are
-    universe-scoped (like measures), so the same name may recur across universes."""
-    name: str
-    universe: str
-    kind: str                             # "row" | "invariant"
-    predicate: Optional["Predicate"] = None   # row-form: over dims/attrs (universe-carving grammar)
-    anchor: tuple = ()                    # invariant-form: anchor levels (the ruled `*` grammar)
-    left: str = ""                        # invariant-form: LHS expression over measures
-    op: str = ""                          # invariant-form: comparison in {==,<=,>=,<,>}; `==` rides the
-                                          #   WP-B adjudication tolerance (rtol/atol), recorded in the license basis
-    right: str = ""                       # invariant-form: RHS expression over measures
-    license: Optional["License"] = None   # minted by the adjudicator at publish (kernel reuse, Q1)
-    description: str = ""                 # DESCRIPTION string (case-demo b) — flows to describe/wire (additive)
+# ---- Track-1 (Certificate customers): verified hierarchies -----------------------------------------
+# (`Assert` — the B1 declared invariant, both forms — stood here. RETIRED in 0.13.0: its provers
+#  licensed no serving behavior, so it failed the admission test (a construct is admitted iff its
+#  prover licenses some serving behavior). Data contracts belong to the attestation layer, upstream of
+#  the Manifold. Ruling 2026-07-26; see the 0.13.0 release note.)
 
 
 # ---- RELATE (the ANTI-EDGE): non-functional (M:N) relationships + their crossing FACES ----------
@@ -284,7 +269,6 @@ class Manifold:
     measures: dict                        # name -> MeasureColumn
     derived: dict = field(default_factory=dict)
     non_functional: list = field(default_factory=list)  # [Relate] — M:N relationships (fan-out diagnostics + crossing faces)
-    asserts: list = field(default_factory=list)         # [Assert] — declared invariants (B1), universe-scoped
     hierarchies: list = field(default_factory=list)     # [Hierarchy] — provenance for the desugared FD chains (B2)
 
     # ---- coordinate graph helpers ----

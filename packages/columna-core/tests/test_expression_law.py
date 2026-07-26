@@ -60,18 +60,17 @@ MANIFOLD s VERSION 1
 UNIVERSE sales = store
 LEVEL store = store_id BASE
 MEASURE revenue FROM tx AS sum(amount)
-ASSERT nonneg WHERE store >= 0
 """
 
 
 def test_single_universe_sugar_fills_the_sole_universe():
+    # ASSERT was the sugar's second customer until 0.13.0 (ruling 2026-07-26); MEASURE is now its only one.
     m = parse_manifold(_ONE_UNI)
     assert m.measures["revenue"].universe == "sales"
-    assert m.asserts[0].universe == "sales"
 
 
 def test_on_universe_required_with_more_than_one():
     two = _ONE_UNI.replace("UNIVERSE sales = store\n", "UNIVERSE sales = store\nUNIVERSE ops = store\n")
     with pytest.raises(ParseError) as ei:
         parse_manifold(two)
-    assert "'ON <universe>' is required" in str(ei.value)
+    assert "'ON <universe>' is required" in str(ei.value) and "MEASURE revenue" in str(ei.value)

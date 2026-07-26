@@ -23,6 +23,24 @@ from typing import Optional
 from .disclosure import Caveat, Outcome
 
 CONTRACT_VERSION = "1"
+# ── THE IN-TREE CONSUMER INVENTORY (Huayin, 2026-07-26) ────────────────────────────────────────────
+# The removal policy for this contract rests on an in-tree-consumers premise: a field may be removed
+# without a version bump while every consumer is inside this repo and moves with it. That premise
+# requires the consumers to be ENUMERABLE — so they are enumerated here, and the next wire change gets
+# a CHECKLIST instead of a grep.
+#
+# The enumeration must span LANGUAGES. The 0.13.0 ASSERT retirement removed `asserts` from describe and
+# a Python-shaped sweep missed `apps/website/src/explorer/manifold-explorer.ts`, which declared the
+# field on a TypeScript type and rendered a section from it; the site build caught it, the inventory
+# did not. A TypeScript type declaration is a wire consumer.
+#
+# KNOWN IN-TREE DESCRIBE CONSUMERS (keep current):
+#   · apps/website/src/explorer/manifold-explorer.ts   — the Explorer (TypeScript; types + sections)
+#   · apps/website/scripts/gen_case.py                 — the /case trial table + seeds
+#   · apps/website/scripts/gen_universe_visual.py      — Figure 1 (fails closed on untaught shapes)
+#   · packages/columna-server/src/columna_server/agent/ — the demo agents
+#   · packages/columna-server/src/columna_server/tools.py — describe itself (the producer)
+# ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 # Materiality is a fixed vocabulary (structured_disclosure_capture.md: the load-bearing field).
 MATERIAL = "material"
