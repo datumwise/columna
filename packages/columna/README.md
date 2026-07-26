@@ -1,6 +1,6 @@
-# Columna, by datumwise — honest metrics engine
+# Columna, by datumwise — honest data framework
 
-**Columna** is an honest metrics engine: a grammar layer for analytics that serves a number *and its
+**Columna** is an honest data framework: a grammar layer for analytics that serves a number *and its
 disclosure together* — serve, disclose, clarify, refuse — so an AI agent (or a person) never receives
 a plausible-but-wrong answer with no way to tell.
 

@@ -2,7 +2,7 @@
 
 Also, read the launch post: why we built this.
 
-**Columna is an honest metrics engine.** It sits between your questions and your warehouse and
+**Columna is an honest data framework.** It sits between your questions and your warehouse and
 refuses to return a confident wrong number: where a metric is ambiguous, non-reconciling, or
 out-of-domain, it says so instead of guessing. Every answer is one of **four moods** — *serve*,
 *disclose*, *clarify*, or *refuse* — returned as structured data on one contract, identical on every

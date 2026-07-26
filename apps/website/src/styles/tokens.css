@@ -322,7 +322,9 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
      scripts/gen_universe_visual.py — the SAME generator as /case's Figure 1, so it regenerates
      with the shipped package on the deploy path and cannot drift. Verify the hero reflects the
      live package, not a cached asset.
-   · Three verification proverbs, earned this week — the standing rules for self-checking:
+   · Verification proverbs — the standing rules for self-checking. (No count in this header: a stale
+     "Three" stood over a list of five for weeks. Headers that carry arithmetic rot; headers that
+     don't, can't. Append freely.)
        1. "Verify from the run, not the YAML" — a CI step that passed is not a step whose output
           you have read; pull the actual job output.
        2. "Probe the EXACT referent — name, path, package, TREE STATE." Four misses this week, all
@@ -332,6 +334,10 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           committed file — use `git show <ref>:<path>` when the question is "what shipped?"). A
           missing or wrong result is usually a wrong probe, not a broken target — check the probe
           first. (Subsumes the earlier "real path over rendered text" — same rule, generalised.)
+          FIFTH AXIS (2026-07-26): A FETCHED REF IS A SNAPSHOT — re-fetch before claiming ABSENCE. The
+          desk reported two records missing from the 0.13.0 flip; both were present on the branch, and
+          the probe had hit a ref state predating them. Absence is the one claim a stale snapshot will
+          always confirm. The axis is name · path · package · tree state · REF FRESHNESS.
        3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
           trusting the edit; a regex that eats a closing brace ships silently.
        4. "A fixed-string grep cannot see a LINE-WRAPPED occurrence." Sweep for a distinctive SHORT
@@ -347,6 +353,19 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           copy saying 0.12.1. Sentinels get consumed by a downstream fallback and become plausible
           wrong values; a non-zero exit cannot be. And every guard is verified in BOTH directions —
           the happy path AND the failure it claims to catch, actually provoked.
+       6. "WRITING IS NOT LANDING — a governance artifact exists when it COMMITS, not when it is
+          written. For CODE the build catches you; for PROSE only the ledger does. Commit on creation."
+          Companion, from the same ruling: "TWO INDEPENDENT READINGS SHARED ONE WRONG ASSUMPTION —
+          readings do not verify each other, EXECUTION does." (Ruled 2026-07-26, the contract-version
+          adjudication.) Landed late, and the delay is its own proof: this proverb was ruled alongside
+          7 and skipped, so the proverb about failing to land failed to land. Recovered only because
+          the gap in the numbering was chased instead of closed.
+       7. "A GREEN SUITE IS NOT A GREEN JOB — verify the JOB; the guards you cannot infer past are the
+          only ones that catch you." The 0.13.0 retirement passed its suites locally and went red in CI
+          three times: a lint gate (an import orphaned by the removal), a deliberate exact version pin,
+          and the byte-identical charter guard that found a surface the inventory had forgotten. Each
+          was a guard built specifically to be un-inferable. Run the job, not the part of it you
+          thought mattered.
    · A LEXING SET IS NOT A GRAMMAR TAXONOMY (2026-07-26). `parser._KW` is the set of tokens that may
      BEGIN A LINE; it is the right source for "is nothing missing?" and the wrong source for page
      STRUCTURE — ATTR is in _KW but is an inline clause of LEVEL, so a page structured from _KW would
@@ -365,11 +384,6 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
         6. llms-full (COMPOSED at build from #5 — no edit, but it inherits)
      The names differ across surfaces, which is exactly what defeats a naive grep. Sync by copy so the
      six are byte-identical BY CONSTRUCTION, then verify pairwise with cmp.
-   · Proverb 7: "A GREEN SUITE IS NOT A GREEN JOB — verify the JOB; the guards you cannot infer past
-     are the only ones that catch you." The 0.13.0 retirement passed its suites locally and went red in
-     CI three times: a lint gate (an import orphaned by the removal), a deliberate exact version pin,
-     and the byte-identical charter guard that found a surface the inventory had forgotten. Each was a
-     guard built specifically to be un-inferable. Run the job, not the part of it you thought mattered.
    · The release model (version wiring, 2026-07-25): a DATA-ONLY release legitimately leaves
      columna-core behind. `columna` (umbrella / install version) and `columna-server` (the demo
      data) move; `columna-core` (the engine) does not, because there is no engine change. 0.12.1
