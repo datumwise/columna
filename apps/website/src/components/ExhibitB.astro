@@ -51,7 +51,7 @@ const data = {
 };
 const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10);
 ---
-<section class="exhibit-b" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
+<section class="exhibit-b vocab-wire" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
   <p class="wire-caption mono">this is the actual wire — what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the pair reads.</p>
 
   <details class="manifold-panel">
@@ -97,7 +97,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   .wire-caption { font-size: 0.8rem; color: var(--wire-ink-soft); line-height: 1.6; margin: 0 0 1.3rem; }
 
   .seed-prompt { font-size: 0.9rem; line-height: 1.55; color: var(--wire-ink); margin: 0 0 1rem;
-    border-left: 2px solid var(--mood-clarify); padding-left: 0.8rem; }
+    border-left: 2px solid var(--struct-wire-secondary); padding-left: 0.8rem; }
   .seed-prompt strong { color: #fff; }
 
   .seed-row { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 1.3rem; }
@@ -105,11 +105,11 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     font-size: 0.84rem; text-align: left; padding: 0.55rem 0.9rem 0.55rem 0.75rem;
     background: #1b2432; border: 1px solid #34425a; border-radius: 8px; color: var(--wire-ink);
     cursor: pointer; transition: background .12s, border-color .12s, transform .05s; }
-  .seed-row button::before { content: "▸"; color: var(--mood-clarify); font-size: 0.8rem; flex: none; }
+  .seed-row button::before { content: "▸"; color: var(--struct-wire-secondary); font-size: 0.8rem; flex: none; }
   .seed-row button:hover { background: #223047; border-color: var(--wire-key); }
   .seed-row button:active { transform: translateY(1px); }
   .seed-row button[aria-pressed="true"] { border-color: var(--wire-key); background: #26364f; box-shadow: inset 0 0 0 1px var(--wire-key); }
-  .seed-row button[aria-pressed="true"]::before { content: "\2713"; color: var(--mood-serve); }
+  .seed-row button[aria-pressed="true"]::before { content: "\2713"; color: var(--struct-wire-primary); }
 
   .response { display: grid; gap: 1rem; }
 
@@ -120,13 +120,13 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 6px; color: var(--wire-ink); }
   .fool-row input:focus { outline: none; border-color: var(--wire-ink-soft); }
   .fool-row button { font-family: var(--font-sans); font-weight: 600; font-size: 0.82rem; padding: 0 1.15rem;
-    background: var(--mood-clarify); border: 1px solid var(--mood-clarify); border-radius: 6px; color: #fff;
+    background: var(--wire-panel); border: 1px solid var(--struct-wire-accent); border-radius: 6px; color: var(--wire-ink);
     cursor: pointer; transition: filter .12s; }
   .fool-row button:hover { filter: brightness(1.12); }
   .fool-row button:disabled { opacity: 0.55; cursor: default; }
   .fool-hint { font-size: 0.76rem; color: var(--wire-ink-soft); margin: 0.5rem 0 0; }
 
-  .degrade-note { margin: 1.2rem 0 0; font-size: 0.74rem; color: var(--mood-disclose); }
+  .degrade-note { margin: 1.2rem 0 0; font-size: 0.74rem; color: var(--struct-wire-secondary); }
 
   @media (max-width: 40rem) { .seed-row button { font-size: 0.78rem; } }
 </style>
@@ -137,11 +137,15 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   .exhibit-b .resp-card { border: 1px solid var(--wire-rule); border-radius: 8px; padding: 1.15rem 1.25rem; background: var(--wire-panel); }
 
   .exhibit-b .mood-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700;
-    padding: 0.2rem 0.7rem; border-radius: 999px; color: #fff; letter-spacing: 0.03em; text-transform: uppercase; }
-  .exhibit-b .mood-serve { background: var(--mood-serve); }
-  .exhibit-b .mood-disclose { background: var(--mood-disclose); }
-  .exhibit-b .mood-clarify { background: var(--mood-clarify); }
-  .exhibit-b .mood-refuse { background: var(--mood-refuse); }
+    padding: 0.2rem 0.7rem; border-radius: 999px; letter-spacing: 0.03em; text-transform: uppercase; }
+  /* MOOD — NOMINAL, so carried by STYLE, border never fill (Option A + the scale rule). These are
+     containers, so they take the CONTAINER forms; refuse gets the heavier rule AND a struck label. */
+  .exhibit-b .mood-badge { color: var(--vocab-ink); background: transparent; }
+  .exhibit-b .mood-serve { border: 1px solid var(--vocab-rule); }
+  .exhibit-b .mood-disclose { border: 1px solid var(--vocab-rule); border-bottom: 2px solid var(--vocab-ink); }
+  .exhibit-b .mood-clarify { border: 1px dotted var(--vocab-ink); }
+  .exhibit-b .mood-refuse { border: 2px solid var(--vocab-ink); text-decoration: line-through;
+    text-decoration-thickness: 1.5px; }
   .exhibit-b .mood-error { background: transparent; color: var(--mood-error); border: 1px solid var(--mood-error); text-transform: none; }
 
   .exhibit-b .resp-heading { font-size: 0.86rem; color: var(--wire-ink-soft); line-height: 1.5; margin-bottom: 0.8rem; }
@@ -172,9 +176,13 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
 
   .exhibit-b .disc-section { margin-top: 0.3rem; }
   .exhibit-b .disc { margin-top: 0.6rem; border-left: 2px solid; padding: 0.4rem 0 0.4rem 0.8rem; font-size: 0.86rem; color: var(--wire-ink); line-height: 1.5; }
-  .exhibit-b .disc-info { border-color: var(--mood-clarify); }
-  .exhibit-b .disc-caution { border-color: var(--mood-disclose); }
-  .exhibit-b .disc-critical { border-color: var(--mood-refuse); }
+  /* SEVERITY — ORDINAL, so carried by WEIGHT, ink only (ratified 2/4/7, 2026-07-26). Colour retired.
+     The 2px floor is deliberate: absence of a mark is meaningful here, so info must stay visibly
+     present rather than collapsing into no-disclosure. Widths come from the tokens; the ink resolves
+     via .vocab-wire on the exhibit root (this panel is the wire register). */
+  .exhibit-b .disc-info { border-left-width: var(--sev-weight-info); border-color: var(--vocab-rule); }
+  .exhibit-b .disc-caution { border-left-width: var(--sev-weight-caution); border-color: var(--vocab-ink); }
+  .exhibit-b .disc-critical { border-left-width: var(--sev-weight-critical); border-color: var(--vocab-ink); }
   .exhibit-b .disc-code { font-family: var(--font-mono); font-size: 0.74rem; color: var(--wire-ink-soft); display: block; margin-bottom: 0.2rem; }
 
   .exhibit-b .alts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
@@ -183,7 +191,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     transition: background .12s, border-color .12s; }
   .exhibit-b .alts button:hover, .exhibit-b .resolve-btn:hover { background: #223047; border-color: var(--wire-key); }
   .exhibit-b .alts button[aria-pressed="true"] { border-color: var(--wire-key); box-shadow: inset 0 0 0 1px var(--wire-key); }
-  .exhibit-b .resolve-btn { margin-top: 0.6rem; border-color: var(--mood-clarify); color: #fff; }
+  .exhibit-b .resolve-btn { margin-top: 0.6rem; border-color: var(--struct-wire-accent); color: var(--wire-ink); }
   .exhibit-b .pick-note { font-size: 0.85rem; color: var(--wire-ink-soft); margin: 0.6rem 0 0; font-style: italic; line-height: 1.5; }
 
   .exhibit-b .audit-toggle { margin-top: 0.9rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--wire-ink-soft);
@@ -231,7 +239,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   .exhibit-b .obj-head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--wire-ink); }
   .exhibit-b .obj-kind { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--wire-bg); background: var(--wire-key); padding: 0.12rem 0.45rem; border-radius: 4px; }
-  .exhibit-b .obj-kind.metric { background: var(--mood-disclose); }
+  .exhibit-b .obj-kind.metric { background: transparent; border: 1px solid var(--struct-wire-secondary); }
   .exhibit-b .obj-card .obj-meta code { color: var(--wire-ink); }
   .exhibit-b .obj-close { margin-left: auto; background: none; border: 0; color: var(--wire-ink-soft); cursor: pointer; font-size: 0.9rem; }
   .exhibit-b .obj-close:hover { color: #fff; }
@@ -247,7 +255,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     background: #1b2432; border: 1px solid var(--wire-rule); border-radius: 4px; color: var(--wire-ink); }
   .exhibit-b .barred { margin-top: 0.4rem; font-size: 0.82rem; color: var(--wire-ink); line-height: 1.5; }
   .exhibit-b .barred-x { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--mood-refuse); border: 1px solid var(--mood-refuse); border-radius: 4px; padding: 0.05rem 0.35rem; margin-right: 0.35rem; }
+    color: var(--vocab-ink); border: 2px solid var(--vocab-ink); border-radius: 4px; padding: 0.05rem 0.35rem; margin-right: 0.35rem; }
   .exhibit-b .barred-why { color: var(--wire-ink-soft); }
   .exhibit-b .onepager-link { display: inline-block; margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--wire-key); }
 
