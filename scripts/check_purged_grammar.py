@@ -49,10 +49,9 @@ MARKER = "INTENTIONALLY-PURGED"
 # in the ledger. So the exemption cannot outlive its row — closing the fork without fixing the file
 # turns the build red. "Rulings that aren't tracked didn't happen" (Huayin, 2026-07-25), enforced.
 ROWED = {
-    # The reference manual's §26.6 status annotation has SHIPPED/SCHEDULED exactly inverted (it calls
-    # EDGE the shipped form and HIERARCHY merely scheduled), and §26.6's body documents a HIERARCHY
-    # signature without braces or per-hop VIA. That is a manual CONTENT pass, not a fixture rewrite.
-    "docs/columna_reference_manual_5e.md": "OF-16",
+    # (empty) — the reference-manual fossil that lived here CLOSED with OF-16/OF-17 (the desk-drafted
+    # §26.6 correction + the Chapter 26 keyword set). The entry is removed rather than left behind: a
+    # ROWED key naming a clean file would report it as a tracked fossil forever.
 }
 # Both ledgers are consulted: the AW-class moved to doctrine_gaps.md on 2026-07-25, and a row
 # migrating between ledgers must never silently invalidate an exemption.
@@ -61,12 +60,18 @@ LEDGERS_FOR_ROWS = [ROOT / "specs" / "open_forks.md", ROOT / "specs" / "doctrine
 # The ledgers DESCRIBE fossils — an OF/DG row has to quote the retired form to be legible about what it
 # is rowing. Quoting is not using, so these files are exempt wholesale. (Same reason this script is
 # exempt from itself: its docstring and regex both contain the pattern.)
-DESCRIBES_FOSSILS = {"specs/open_forks.md", "specs/doctrine_gaps.md"}
+DESCRIBES_FOSSILS = {
+    "specs/open_forks.md", "specs/doctrine_gaps.md",
+    # a correction artifact must quote the form it corrects to be legible about the fix
+    "specs/of16_of17_manual_correction_desk_draft_v0_1.md",
+}
 
 SUFFIXES = {".py", ".md", ".cml", ".txt", ".ts", ".astro", ".yml", ".yaml", ".json", ".toml"}
 SKIP_DIRS = {
     ".git", "node_modules", "dist", ".astro", ".vercel", "__pycache__", ".venv", "venv",
     "build", ".pytest_cache", ".mypy_cache", "eval_runs", "reserve",
+    # an inbox of received files, not repo source: what someone sends us is not our fossil
+    "attachments",
 }
 # This file necessarily contains the pattern (in its own docstring and regex).
 SELF = pathlib.Path(__file__).resolve()
