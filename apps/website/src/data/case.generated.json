@@ -1,5 +1,5 @@
 {
-  "generated_by": "columna-core 0.11.0 / columna-server 0.6.0",
+  "generated_by": "columna-core 0.12.0 / columna-server 0.7.1",
   "manifold": "cascadia",
   "ch1_tables": [
     {
@@ -184,15 +184,15 @@
       "sample": [
         [
           "2024-01-01",
-          "28603.29"
+          "2022.91"
         ],
         [
           "2024-01-02",
-          "25400.66"
+          "1671.58"
         ],
         [
           "2024-01-03",
-          "30215.53"
+          "2538.42"
         ]
       ]
     },
@@ -205,29 +205,29 @@
         "region",
         "signup_date"
       ],
-      "row_count": 2000,
+      "row_count": 10157,
       "prominent": false,
       "sample": [
         [
           "C000001",
           "Customer 000001",
-          "consumer",
-          "north",
-          "2023-11-06"
-        ],
-        [
-          "C000002",
-          "Customer 000002",
-          "consumer",
-          "west",
-          "2021-08-27"
-        ],
-        [
-          "C000003",
-          "Customer 000003",
           "premium",
           "north",
-          "2021-01-16"
+          "2024-05-12"
+        ],
+        [
+          "C000006",
+          "Customer 000006",
+          "business",
+          "north",
+          "2024-06-03"
+        ],
+        [
+          "C000007",
+          "Customer 000007",
+          "consumer",
+          "west",
+          "2024-09-11"
         ]
       ]
     },
@@ -293,18 +293,18 @@
       "sample": [
         [
           "2024-01",
-          "131.8772",
-          "9233"
+          "139.91",
+          "619"
         ],
         [
           "2024-02",
-          "129.9431",
-          "8874"
+          "125.81",
+          "591"
         ],
         [
           "2024-03",
-          "129.4544",
-          "9732"
+          "127.25",
+          "648"
         ]
       ]
     },
@@ -319,15 +319,15 @@
       "sample": [
         [
           "2024-01",
-          "6039"
+          "617"
         ],
         [
           "2024-02",
-          "5824"
+          "589"
         ],
         [
           "2024-03",
-          "6245"
+          "646"
         ]
       ]
     },
@@ -370,22 +370,22 @@
       "prominent": false,
       "sample": [
         [
-          "K0000001",
-          "C000003",
-          "2025-09-23",
-          "delivery"
+          "T00001",
+          "C009003",
+          "2024-02-17",
+          "return"
         ],
         [
-          "K0000002",
-          "C000003",
-          "2024-06-29",
-          "delivery"
+          "T00002",
+          "C005691",
+          "2024-03-10",
+          "account"
         ],
         [
-          "K0000003",
-          "C000005",
-          "2025-10-24",
-          "product"
+          "T00003",
+          "C009177",
+          "2024-12-29",
+          "shipping"
         ]
       ]
     },
@@ -395,20 +395,20 @@
         "customer_id",
         "score"
       ],
-      "row_count": 1000,
+      "row_count": 5028,
       "prominent": false,
       "sample": [
         [
           "C000001",
-          "66.3"
+          "0.771"
         ],
         [
-          "C000003",
-          "93.4"
+          "C000007",
+          "0.989"
         ],
         [
-          "C000006",
-          "86.0"
+          "C000009",
+          "0.321"
         ]
       ]
     }
@@ -427,10 +427,6 @@
             "store"
           ],
           "predicate": null,
-          "attributes": [
-            "units",
-            "units_returned"
-          ],
           "description": "a sale line: one customer, one store, one product, one day",
           "basis": "events",
           "absence": "absence is a lawful ZERO (zero-fill; immaterial)",
@@ -449,8 +445,24 @@
             "store"
           ],
           "predicate": "day >= store.opened",
-          "attributes": [],
           "description": "the daily stock snapshot, per store",
+          "basis": "spine",
+          "absence": "absence is a GAP (incomplete_data — material)",
+          "basis_license": {
+            "verdict": "untestable",
+            "lineages": [],
+            "basis": "spine basis asserted — internal-contiguity/completeness need the ordered axis's domain (the spine-grid, OF-5); serving renders absence as a gap per the declaration.",
+            "attestation": null,
+            "timeless": false
+          }
+        },
+        {
+          "name": "category_profile",
+          "base_dimensions": [
+            "category"
+          ],
+          "predicate": null,
+          "description": "the category's own profile — a one-grain (degenerate) spine, no time axis: a priority and an\n    --  allocation weight per category, the drivers the RELATE faces cross by (0.12, the third universe)",
           "basis": "spine",
           "absence": "absence is a GAP (incomplete_data — material)",
           "basis_license": {
@@ -497,7 +509,7 @@
         },
         {
           "level": "category",
-          "is_base": false,
+          "is_base": true,
           "description": "",
           "attributes": []
         },
@@ -639,6 +651,28 @@
           }
         },
         {
+          "name": "priority",
+          "universe": "category_profile",
+          "family": [
+            "last"
+          ],
+          "description": "the category's assignment rank — 1 ranks first; drives the primary face",
+          "members": {
+            "last": ""
+          }
+        },
+        {
+          "name": "alloc_weight",
+          "universe": "category_profile",
+          "family": [
+            "last"
+          ],
+          "description": "the category's relative allocation weight — normalized per product at the crossing; drives the split face",
+          "members": {
+            "last": ""
+          }
+        },
+        {
           "name": "stock",
           "universe": "inventory",
           "family": [
@@ -669,40 +703,12 @@
           "denotation_only": true,
           "members": {}
         }
-      ],
-      "asserts": [
-        {
-          "name": "returns_bounded",
-          "universe": "transaction",
-          "form": {
-            "kind": "row",
-            "predicate": "units_returned <= units"
-          },
-          "description": "the team's data contract: you can't return more than you bought — checked, not hoped",
-          "license": {
-            "verdict": "corroborated",
-            "lineages": [],
-            "basis": "row predicate 'units_returned <= units' held on every attested row of 'transaction'.",
-            "attestation": "attest:transactions@transactions:19995",
-            "timeless": false
-          }
-        }
       ]
     },
     "physical_map": [
       {
         "logical": "transaction",
         "binds_to": "transactions",
-        "rejects": []
-      },
-      {
-        "logical": "transaction.units",
-        "binds_to": "transactions.units",
-        "rejects": []
-      },
-      {
-        "logical": "transaction.units_returned",
-        "binds_to": "transactions.units_returned",
         "rejects": []
       },
       {
@@ -714,6 +720,11 @@
             "name is a fossil — the rows are one snapshot per store per DAY, not month-end"
           ]
         ]
+      },
+      {
+        "logical": "category_profile",
+        "binds_to": "category_attributes",
+        "rejects": []
       },
       {
         "logical": "revenue",
@@ -753,6 +764,16 @@
       {
         "logical": "units_returned",
         "binds_to": "sum(units_returned)",
+        "rejects": []
+      },
+      {
+        "logical": "priority",
+        "binds_to": "last(priority)",
+        "rejects": []
+      },
+      {
+        "logical": "alloc_weight",
+        "binds_to": "last(alloc_weight)",
         "rejects": []
       },
       {
@@ -807,15 +828,15 @@
       "verdict": "corroborated"
     },
     {
-      "claim": "ASSERT `returns_bounded`",
-      "verdict": "corroborated"
-    },
-    {
       "claim": "`transaction` BASIS events",
       "verdict": "untestable"
     },
     {
       "claim": "`inventory` BASIS spine",
+      "verdict": "untestable"
+    },
+    {
+      "claim": "`category_profile` BASIS spine",
       "verdict": "untestable"
     },
     {
@@ -914,7 +935,9 @@
         }
       ],
       "menu": [
-        "category.touch — revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total"
+        "category.touch — revenue reaches every category a product sits in — deliberately multi-counted; totals exceed the grand total",
+        "category.primary — revenue will be assigned to each product's top-priority category — single-counted; secondary memberships are not represented; totals match the grand total",
+        "category.split — revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights — totals reconcile to the grand total"
       ],
       "row_count": null,
       "reason_tokens": [
@@ -996,6 +1019,44 @@
       "reason_tokens": [
         "over_count",
         "transport"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E11",
+      "caption": "Revenue by category, single-counted to each product's top priority (the shadow stated)",
+      "query": "SELECT revenue AT {category.primary}",
+      "kind": "query",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "shadow",
+          "severity": "caution",
+          "detail": "single-counted to each product's ORDER min priority category: 270 memberships unrepresented (the shadow). revenue will be assigned to each product's top-priority category — single-counted; secondary memberships are not represented; totals match the grand total"
+        }
+      ],
+      "row_count": 12,
+      "reason_tokens": [
+        "shadow"
+      ],
+      "in_wheel": false
+    },
+    {
+      "id": "E12",
+      "caption": "Revenue by category, split by declared weight (reconciled to the cent)",
+      "query": "SELECT revenue AT {category.split}",
+      "kind": "query",
+      "mood": "serve",
+      "disclosures": [
+        {
+          "token": "reconciliation",
+          "severity": "info",
+          "detail": "allocated by normalized alloc_weight: crossed total 2212391.86 reconciles to the grand total 2212391.86 (delta 0.0000). revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights — totals reconcile to the grand total"
+        }
+      ],
+      "row_count": 12,
+      "reason_tokens": [
+        "reconciliation"
       ],
       "in_wheel": false
     }

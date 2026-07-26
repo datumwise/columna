@@ -45,9 +45,8 @@ def trial_table(m) -> list:
     for h in m.hierarchies:
         rows.append({"claim": f"`{h.lineage}` hierarchy — every hop functional",
                      "verdict": h.license.verdict if h.license else None})
-    for a in m.asserts:
-        rows.append({"claim": f"ASSERT `{a.name}`",
-                     "verdict": a.license.verdict if a.license else None})
+    # ASSERT retired in 0.13 (ruling 2026-07-26): a trial must prove a precondition of
+    # something served, and the assert provers proved none. No assert rows remain.
     for u in m.universes.values():
         rows.append({"claim": f"`{u.name}` BASIS {u.basis}",
                      "verdict": u.basis_license.verdict if u.basis_license else None})

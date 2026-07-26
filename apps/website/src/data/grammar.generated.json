@@ -23,7 +23,6 @@
     "RELATE",
     "MEASURE",
     "DERIVED",
-    "ASSERT",
     "HIERARCHY",
     "ATTR"
   ],
@@ -98,23 +97,9 @@
       ],
       "clauses": [],
       "notes": []
-    },
-    {
-      "keyword": "ASSERT",
-      "signatures": [
-        "ASSERT <name> [ON <universe>] WHERE <predicate>",
-        "ASSERT <name> [ON <universe>] AT <level> HOLDS <invariant>"
-      ],
-      "clauses": [],
-      "notes": [
-        "Absent from the parser docstring's grammar block (8 of 9 _KW tokens are present); signatures read from the parser's own patterns. The upstream fix — adding ASSERT to that block — is rowed, and this supplement is what keeps the page complete meanwhile."
-      ],
-      "supplemented": true
     }
   ],
-  "supplemented": [
-    "ASSERT"
-  ],
+  "supplemented": [],
   "examples": [
     {
       "keyword": "MANIFOLD",
