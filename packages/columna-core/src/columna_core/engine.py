@@ -27,6 +27,37 @@ from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
                          FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED, OVER_COUNT, SHADOW, RECONCILIATION)
 
 
+def canonical_delta(delta: float, tol: float) -> float:
+    """Collapse a WITHIN-TOLERANCE reconciliation residue to exactly +0.0.
+
+    THE DEFECT (measured 2026-07-26). The alloc badge rendered `delta 0.0000` on most runs and
+    `-0.0000` on ~20% — same package, same input, same machine. The cause is NOT a signed zero:
+    instrumenting the raw value shows the subtraction alternating between exactly `0.0` and
+    `±4.656612873077393e-10` (2**-31), decided by float SUMMATION ORDER. Against a grand total of
+    ~2.2e6 that residue is ~2e-16 relative — machine epsilon, carrying no information about the data.
+    It reached a byte-preserved recorded exhibit, so an artifact that may change only by re-recording
+    was in fact changing by itself, on a coin flip, every deploy.
+
+    WHY NOT `x if x != 0 else 0.0` (the first prescription): the value is not zero, so that guard
+    passes it through untouched and it still formats as `-0.0000`. Verified — the flap survived that
+    patch at an unchanged rate. Signed zero was the symptom; a non-deterministic sub-epsilon residue
+    is the defect.
+
+    THE RULE. `tol` is the engine's OWN reconciliation tolerance, and `abs(delta) <= tol` is exactly
+    the condition under which it has already ruled `status == "reconciles"`. Once the engine has
+    declared the crossing reconciles, the leftover bits are not a finding — reporting them as a signed
+    quantity is noise that is not even reproducible. So within tolerance the delta IS zero, and says
+    so. Outside tolerance nothing is touched: a real shortfall keeps its exact value and its sign.
+
+    Canonicalized HERE, where the delta is computed, not at the formatting boundary — the structured
+    `reconciliation.delta` on the wire must be canonical too, or a consumer reading the number gets
+    the artifact even when the prose does not.
+
+    Ordered at the #85 preview and again in the 0.12.1 cargo; never landed. Lands 0.13.1.
+    """
+    return 0.0 if abs(delta) <= tol else delta
+
+
 @dataclass
 class CacheEntry:
     frame: pl.DataFrame
@@ -383,8 +414,8 @@ class ColumnEngine:
         # reconciliation badge — the commutation certificate.
         base_total = float(frame["_value"].sum())
         crossed_total = float(split["_value"].sum()) if split.height else 0.0
-        delta = crossed_total - base_total
         tol = max(1.0, abs(base_total)) * 1e-9
+        delta = canonical_delta(crossed_total - base_total, tol)
         status = "reconciles" if abs(delta) <= tol else "shortfall"
         # crossed-grain absence — events basis: complete the domain, fill 0.
         domain = bridge.select(pl.col("_to").alias(T)).unique()
