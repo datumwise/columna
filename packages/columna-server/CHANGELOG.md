@@ -3,6 +3,18 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.8.1] — the declared Python ceiling
+
+**PACKAGING CHANGE, no code change.** `requires-python` moves to `">=3.10,<3.14"`, matching
+`columna-core`; the floor on core rises to `>=0.13.2`. PATCH, not minor: no surface, wire, or
+behaviour changed — `contract_version` stays `"1"`.
+
+Declared here rather than inherited transitively so `pip install columna-server` on its own also
+refuses cleanly on 3.14, instead of discovering the ceiling one dependency deep. Classifiers now
+enumerate 3.10–3.13 (they previously named only `Python :: 3`).
+
+See `columna-core` 0.13.2 for the finding, the doctrine, and the named door (WP-1.1).
+
 ## [0.8.0] — the describe surface follows the ASSERT retirement
 
 Requires `columna-core>=0.13.0` — a FLOOR, not a preference: this release's contract is defined by

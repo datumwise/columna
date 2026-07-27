@@ -12,7 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        # 3.13 added in 0.13.2 alongside the requires-python ceiling: the classifiers now claim
+        # 3.10–3.13, and a claimed version that CI never runs is a claim nobody checked.
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -57,30 +59,57 @@ jobs:
           assert -1 not in i and i == sorted(i), i; \
           assert '\"contract_version\": \"1\"' in s; print('demo --play smoke OK:', i)"
 
-  # Item (c): prove the packaged demo runs from a clean-venv WHEEL install on Python 3.10 — the
-  # weakest case (importlib.resources directory traversal for zipped resources is 3.12+; pip installs
-  # unzipped so 3.10 works, and this job proves it). This is the package-data-ships acceptance.
-  demo-wheel-py310:
-    name: demo wheel install (py3.10)
-    runs-on: ubuntu-latest
+  # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
+  # acceptance. Two legs, and the second one is the point:
+  #
+  #   ubuntu-latest / 3.10 — the weakest Python (importlib.resources directory traversal for zipped
+  #     resources is 3.12+; pip installs unzipped so 3.10 works, and this leg proves it).
+  #   windows-latest / 3.13 — the weakest PLATFORM. Added in 0.13.2 after a Windows fresh-venv pass
+  #     found `pip install columna` detonating into a datasketches C++ source build (no cp314 wheels
+  #     exist for 5.x on any platform, and no win32 wheels at any version). That class — a dependency
+  #     with platform/version wheel gaps — was invisible to a Linux-only CI, which is exactly how the
+  #     finding survived three releases. It is now caught forever, on the platform that catches it.
+  #
+  # Both legs run the SAME assertion file (scripts/assert_demo_play.py) rather than an inline
+  # `python -c`, so they cannot silently drift into proving different things.
+  demo-wheel-install:
+    name: demo wheel install (${{ matrix.os }} / py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+            venv-bin: bin
+          - os: windows-latest
+            python-version: "3.13"
+            venv-bin: Scripts
+    defaults:
+      run:
+        # Git Bash on windows-latest, so one script body serves both legs (globs, `|`, forward
+        # slashes). Only the venv bin directory differs, and that is the matrix's job.
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
       - name: Build wheels and install into a clean venv
         run: |
           python -m pip install --upgrade pip build
           python -m build packages/columna-core
           python -m build packages/columna-server
-          python -m venv /tmp/demoenv
-          /tmp/demoenv/bin/pip install packages/columna-core/dist/*.whl packages/columna-server/dist/*.whl
+          python -m venv demoenv
+          demoenv/${{ matrix.venv-bin }}/python -m pip install --upgrade pip
+          demoenv/${{ matrix.venv-bin }}/python -m pip install \
+            packages/columna-core/dist/*.whl packages/columna-server/dist/*.whl
+      - name: Show what actually resolved (wheel vs source build)
+        run: demoenv/${{ matrix.venv-bin }}/python -m pip list
       - name: demo --play from the installed wheel (package-data proof)
         run: |
-          /tmp/demoenv/bin/columna-server demo --play | /tmp/demoenv/bin/python -c "import sys; \
-          s=sys.stdin.read(); i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose','serve')]; \
-          assert -1 not in i and i == sorted(i), i; assert '\"contract_version\": \"1\"' in s; \
-          print('py3.10 wheel demo --play OK')"
+          demoenv/${{ matrix.venv-bin }}/columna-server demo --play \
+            | demoenv/${{ matrix.venv-bin }}/python scripts/assert_demo_play.py
 
   purged-grammar:
     name: purged-grammar guard
