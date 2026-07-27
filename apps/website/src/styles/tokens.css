@@ -385,6 +385,17 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           and the byte-identical charter guard that found a surface the inventory had forgotten. Each
           was a guard built specifically to be un-inferable. Run the job, not the part of it you
           thought mattered.
+       8. "A GUARD SHIPS ONLY AFTER RUNNING AGAINST THE FULL SET IT GUARDS — not the path its author
+          chose." The flap detector (2026-07-26) was verified against gen_case.py alone and wired into
+          the deploy; its first real run failed the deploy on gen_transcript.py. It was RIGHT — it had
+          found genuine engine non-determinism (OF-23) — but it surprised its own author, who had that
+          same night written proverb 7 about verifying the job rather than the part of it you thought
+          mattered, and proverb 5 about proving a guard in BOTH directions. Author-chosen coverage is
+          the same blind spot in a third disguise: the sample you pick to prove a thing is chosen by
+          the belief you are trying to test. Corollary, from the same run: a guard must DECLARE what it
+          ignores (legitimate variance is DECLARED variance, printed every run, never a silent
+          exclusion) and must never be made stricter than the system it observes — a recording more
+          deterministic than the engine is a lie about the product.
    · A LEXING SET IS NOT A GRAMMAR TAXONOMY (2026-07-26). `parser._KW` is the set of tokens that may
      BEGIN A LINE; it is the right source for "is nothing missing?" and the wrong source for page
      STRUCTURE — ATTR is in _KW but is an inline clause of LEVEL, so a page structured from _KW would
