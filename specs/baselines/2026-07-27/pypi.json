@@ -1,0 +1,52 @@
+{
+  "packages": {
+    "columna": {
+      "downloads_recent": {
+        "last_day": 98,
+        "last_month": 1022,
+        "last_week": 600
+      },
+      "json_api_latest_version": "0.13.2",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.12.0",
+        "0.12.1",
+        "0.13.0",
+        "0.13.1",
+        "0.13.2"
+      ]
+    },
+    "columna-core": {
+      "downloads_recent": {
+        "last_day": 133,
+        "last_month": 1365,
+        "last_week": 664
+      },
+      "json_api_latest_version": "0.13.2",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.11.0",
+        "0.12.0",
+        "0.13.0",
+        "0.13.1",
+        "0.13.2"
+      ]
+    },
+    "columna-server": {
+      "downloads_recent": {
+        "last_day": 130,
+        "last_month": 1509,
+        "last_week": 809
+      },
+      "json_api_latest_version": "0.8.1",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.6.1",
+        "0.7.0",
+        "0.7.1",
+        "0.8.0",
+        "0.8.1"
+      ]
+    }
+  }
+}
