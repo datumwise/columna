@@ -15,7 +15,7 @@ Status ladder: **CONSTRUCTED → EXECUTED → VERIFIED.**
 | 2 | Attack B, engine path | **VERIFIED** (numbers) · **EXECUTED** (both halves) | `attack_b.py` |
 | 3 | The seam test | **VERIFIED** — first certificate | `ir_closure_and_seam.py` |
 | 4 | Class C construction | **EXECUTED** — pair established | `class_c.py` |
-| 5 | P-BLIND | **EXECUTED — PROPERTY FAILS (F5)** | `p_blind.py` |
+| 5 | P-BLIND | **EXECUTED** — property fails as formalized; cause **reclassified → OF-24** | `p_blind.py` |
 | 6 | Beat report | this document | — |
 | A | Class A (v2) | **EXECUTED** — pair frozen | `attack_a.py` |
 
@@ -145,7 +145,7 @@ P0022's revenue.**
 
 ---
 
-## 5 · P-BLIND — **THE PROPERTY FAILS. Finding F5.**
+## 5 · P-BLIND — the property fails as formalized; cause reclassified to OF-24
 
 Four provenance wrappers: `W1` static path · `W2` canonical round-trip · `W3` handcrafted AST ·
 `W4` shuffled warehouse.
