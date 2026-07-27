@@ -120,6 +120,13 @@ copy*. A defect in the single upstream declaration parse is outside this seam.
 
 Route (a) exhausted ⇒ A1's sanctioned route (b), mint the fixture.
 
+> **CONSTRUCTION LEMMA (ratified 2026-07-27).** A *robust* coincidence is useless for M₀→M₁ **precisely
+> because no single row can break it.** G11's coincidence is real and natural, but it rests on
+> priority 1 — the minimum — so nothing can outrank it and no perturbation of one row disturbs it.
+> **Coincidence-fragility is a requirement of the protocol, not an accident of it.** A Class C
+> exhibit must be built on an agreement that one row can destroy; an agreement that survives every
+> row is an invariant wearing a coincidence's clothes.
+
 **The pair.** `revenue AT {category.touch}` vs `revenue AT {category.primary}` — genuinely different
 denotations (the Manifold's own faces say so: touch *"totals exceed the grand total"*, primary
 *"totals match"*).
@@ -176,6 +183,20 @@ script rather than quietly fixed:
 **Had the first draft been reported, it would have said "P-BLIND fails on provenance." That would
 have been a confident wrong finding.** The property does fail — for a different, sharper reason.
 
+> **PROVERB (ratified 2026-07-27, from this near-miss).** *The confound wears the hypothesis's
+> clothes — rotate the order before attributing.* W1 ran first and W2/W3 ran after it, so call order
+> presented itself as provenance sensitivity, wearing exactly the shape the experiment was looking
+> for. The tell was that the ONE thing being varied deliberately (provenance) and the one thing
+> varying incidentally (position in the sequence) were perfectly confounded — and nothing in the
+> result distinguished them until the order was rotated.
+
+> **PROVERB (ratified 2026-07-27, from the seam's negative control).** *A test that has never failed
+> has not been shown to be able to fail — bake the tamper-and-restore control into the artifact.*
+
+**Standing standard, ratified:** structural-exact / numeric-tolerant comparison. **Digest-of-rounded
+is retired** — rounding cannot reliably absorb sub-tolerance noise, because two values a hair apart
+can straddle a boundary and quantize differently.
+
 ---
 
 ## Findings ledger
@@ -187,7 +208,7 @@ have been a confident wrong finding.** The property does fail — for a differen
 | **F3** | A1 v0.1 misdescribed the shipped model three ways; Attack A did not compose | desk defect, owned, patched in v0.2 |
 | **F3b** | A1 v0.2 names `units`; shipped is `units_sold` | desk defect, owned, patched in v0.3 |
 | **F4** | Served values not byte-reproducible for the `split` face (1 ULP) | below tolerance — reproducibility, not correctness |
-| **F5** | **Adjudication depends on attempt count; first call omits the `freshness` disclosure** | **LIVE — P-BLIND violated on the disclosure surface** |
+| **F5** | Adjudication depends on attempt count; first call omits the cache annotation | **RECLASSIFIED → OF-24.** Desk root-cause: the content is *"served from cache"* (`engine.py:131,488`), version-checked, so every call's disclosure is TRUE and values are identical. The defect is a **mislabeled, mischanneled annotation** — mechanical serving-provenance wearing the semantic name FRESHNESS on the semantic channel. **Not launch-blocking.** |
 
 **Four of the six were caught by the beat's own verification layer, including two inside desk
 artifacts and two inside this beat's own instruments.** The instrument corrections (F4's digest, F5's
@@ -201,5 +222,11 @@ wrong once should say so.
 - **A ninth IR node** — none found. Closure holds at its stated rank.
 - **Seam disagreement** — none. The beat continued, as ruled.
 - **Material divergence from the desk's numbers** — none. Twelve of twelve exact.
-- **F5 is a new off-ramp candidate**: a live property failure in shipped code, on the disclosure
-  surface. Not a wrong number, so it does not halt the beat — **it goes to the desk.**
+- **F5 went to the desk and came back reclassified** — not a semantic failure but a channel error,
+  **rowed as OF-24**. The row's design half feeds the program: the kernel's disclosure projection
+  gains a **two-channel split** — *semantic* (call-invariant, **P-BLIND's true jurisdiction**) vs
+  *mechanical* (legitimately variant, possibly not wire-worthy at same-version). Once split, the
+  semantic channel can satisfy the attempt-count clause literally, while the mechanical channel is
+  free to vary because it was never a claim about meaning.
+- **F4's consequence is rowed where it belongs**: OF-23(b) now records that byte-identical
+  certificates and P-ECON's certified-plan cache **inherit** its deterministic-serving requirement.
