@@ -223,6 +223,78 @@ sentence on /case + llms-full. RED 1 (regen-check `_FINANCE_CML`, purged-EDGE fi
 identically on main, untouched by this PR) holds as the dated post-flip micro-PR. **The 0.12 record is
 closed.**
 
+## 0.13.2 "the declared Python floor and ceiling" — the launch-eve packaging row (MERGED + PUBLISHED 2026-07-27)
+
+- **The finding, and how close it came.** A Windows fresh-venv pass on launch eve found `pip install
+  columna` on Python 3.14 **not failing but BUILDING** — a C++ source build of `datasketches`, which
+  core hard-depends on for HLL. `requires-python` was `">=3.10"` on all three packages with **no upper
+  bound**, so pip considered us a match, found no wheel, and fell through to a compiler. Checked
+  against PyPI, the gap is wider than the report: datasketches 5.x publishes **zero cp314 wheels on
+  any platform** (so the ceiling protects Linux and macOS too) and has **never** published a 32-bit
+  Windows wheel at any version. Hence the ratified line: *"Requires Python 3.10–3.13, 64-bit."*
+- **THE DOCTRINE:** *fail closed with a named reason beats rare success for whoever happens to own a
+  compiler.* An unbounded `requires-python` is not permissiveness — it is an untested claim asserting
+  support for every future Python, including ones that did not exist when the claim was written.
+- **The second, unlooked-for defect — `demo --play` crashed on Windows.** Found by the new
+  windows-latest CI leg **on its first run**, which is the entire argument for the leg. Piping or
+  redirecting the demo died with `UnicodeEncodeError: 'charmap' codec can't encode` **on the opening
+  line, before a single mood printed**. Python writes to a Windows *console* through the wide-char
+  API, so an interactive run looks fine; the moment stdout is a pipe or a file it falls back to the
+  locale encoding — cp1252 on default en-US Windows — and our output is legitimately non-ASCII (U+2500
+  rules, em-dashes, wire JSON dumped `ensure_ascii=False` so non-ASCII labels serve as themselves).
+  **THE FIX BELONGS AT THE STREAM, NOT IN THE TEXT.** Stripping the characters to ASCII would have
+  made the demo lie about what the wire carries, and would have left the next non-ASCII value to crash
+  somewhere quieter. `columna-server` now declares UTF-8 on stdout/stderr for every subcommand.
+  Guarded twice: the Windows leg is the real proof, and `test_demo_play_survives_a_cp1252_stdio_locale`
+  reproduces the exact failure on **any** platform via `PYTHONIOENCODING=cp1252` — verified by
+  neutering the fix and watching it reproduce the identical Windows traceback on Linux. That test
+  asserts the rules and em-dashes are still PRESENT, so it fails if anyone "fixes" this by deleting them.
+- **The class guard.** `demo wheel install` now runs **windows-latest / py3.13** beside ubuntu /
+  py3.10. The class is *a dependency with platform or version wheel gaps*; it was invisible to a
+  Linux-only CI, which is how it survived three releases. Both legs run one assertion file
+  (`scripts/assert_demo_play.py`) so they cannot drift into proving different things — and that file
+  is ASCII-only on purpose: **a guard that can be broken by the condition it guards against is not a
+  guard.** (Its first Windows run printed an em-dash only because cp1252 happens to hold one at 0x97;
+  U+2500, four lines earlier in the product's own output, does not. That is exactly where the crash
+  landed.)
+- **THE WEDGE RACE — ROWED, then fixed by choreography, not code.** The deploy resolved **on attempt
+  5 of 5**, the final attempt of its retry budget. It went green with no margin. The cause is ORDER,
+  not budget: merging to `main` triggers the deploy while publish is triggered by the release cut that
+  necessarily *follows* the merge, so the deploy always races the publish. **The fix is the flip
+  choreography the house had already proved twice (0.12.0, 0.13.0): tag the release branch BEFORE
+  merging — publish fires, the verbatim-pin gate clears, THEN merge, so the deploy finds packages
+  already installable.** Recorded as the standing release order in `docs/RELEASE_ORDER.md`; zero code.
+  Belt for a Tuesday emergency: the retry budget widened 5 → 8 (~560s), pre-freeze, one integer.
+- **THE VANTAGE-POINT CLAUSE, RE-PROVED FROM THE OTHER DIRECTION.** At 0.13.1 a developer machine
+  called the pin installable while the CI runner, on another CDN edge, could not resolve it. At 0.13.2
+  the disagreement inverted: `/pypi/columna-core/json` reported 0.13.2 **absent** while `/simple/` —
+  the index pip actually resolves from — was already serving it. A checker trusting the JSON would
+  have declared a live release broken and rolled it back. So the clause is **symmetric**: the JSON API
+  is not a slower mirror of the truth, it is a DIFFERENT VANTAGE POINT that can be stale either way.
+  *Verify installability by installing*, with the resolver a consumer actually uses — never by reading
+  a metadata endpoint that merely describes the package. A convenient observation is still an observation.
+- **THE GUARD PATTERN — FOUR GUARDS, FOUR LIVE FINDINGS, NOT ONE EVER RAN CLEAN.**
+  *(Ratified in this wording by Huayin, 2026-07-27, over the rounder "four first-run catches."*
+  *Precision about our own claims is this house's brand applied to its own mythology: the round*
+  *number would not have survived an auditor, and we are the auditor.)*
+
+  The count was **checked, not assumed** — each guard's introducing commit was traced before the
+  line was written, and the trace is kept here so the claim stays auditable:
+
+  | guard | introduced | what it found, and when |
+  |---|---|---|
+  | `check_generator_determinism.py` (flap detector) | `7e9b613` (0.13.1) | caught `gen_transcript.py` flapping on a later run → **OF-23 rowed** (`95f5fb5`). A real catch after introduction. |
+  | `latest.ts` fail-closed release rail | `4922fec` | landed **after** `v0.13.1`, and its own commit pre-seeded every entry through 0.13.1 — so **0.13.2 was the first version it had never seen, and it fired**, refusing the build until someone wrote what the release IS. Strict first-run catch. |
+  | windows-latest CI leg | `8392372` (0.13.2) | **caught a real product crash on its first run** — the cp1252 `demo --play` death, fixed in `627d8b1`. Strict first-run catch. |
+  | `check_purged_grammar.py` | `483fac1` (2026-07-25) | **a different shape, and the record says so**: born *from* a hand-found fossil sweep and born *carrying* a live ROWED exemption (OF-16). It never had a clean first run to catch anything on, because it was already holding a finding at birth. |
+
+  **So: three strict first-run catches, and a fourth guard that arrived already flagging.** The
+  pattern is not "guards catch things eventually." It is that **every guard this house has added
+  found a live defect at or immediately after introduction — four for four, none ever clean.**
+  That is the argument for adding the next guard *before* it is asked for. It is also the warning
+  underneath it: **the defects were already there, and the only variable was whether anything was
+  looking.** A guard is not what creates the finding; it is what ends the period of not knowing.
+
 ## Occurrence conformance — RULED (Huayin 2026-07-24; rides OF-5)
 
 The three-universe Figure 1 (PR #84) draws two inter-universe edge classes from the DECLARATION
