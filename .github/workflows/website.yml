@@ -97,8 +97,31 @@ jobs:
       # the versions already pinned, which stay as guards. THE PIN AND THE GENERATOR MUST SHIP
       # TOGETHER: the generator reporting `columna` without this pin is what produced a null version
       # on prod (2026-07-26) — the generator landed, the pin did not.
+      # RETRY WITH BACKOFF, FAIL-CLOSED PRESERVED (2026-07-26). The 0.13.1 deploy failed here with
+      # "Could not find a version that satisfies columna==0.13.1" MINUTES AFTER the same pin had been
+      # verified installable from a developer machine. PyPI's index is CDN-distributed: /simple/ and
+      # /pypi/…/json are separately cached, and edges converge at different times. So ONE OBSERVER'S
+      # "installable" IS NOT GLOBAL AVAILABILITY — the runner resolves from a different edge than the
+      # person who checked. Publish-first means installable; this is what makes that claim true for
+      # THIS consumer rather than for the one who happened to look.
+      # The wedge KEEPS ITS JOB: the retry budget is bounded, and exhausting it still exits non-zero.
+      # This buys propagation time; it does not forgive a missing package.
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna==0.13.1" "columna-core==0.13.1" "columna-server==0.8.0"
+        run: |
+          set -euo pipefail
+          PINS=("columna==0.13.1" "columna-core==0.13.1" "columna-server==0.8.0")
+          for attempt in 1 2 3 4 5; do
+            if pip install --no-cache-dir "${PINS[@]}"; then
+              echo "deploy wedge: resolved on attempt ${attempt}"
+              exit 0
+            fi
+            if [ "${attempt}" -eq 5 ]; then break; fi
+            delay=$((attempt * 20))
+            echo "deploy wedge: pin not resolvable yet (attempt ${attempt}/5) — index propagation; retrying in ${delay}s"
+            sleep "${delay}"
+          done
+          echo "::error::deploy wedge FAILED CLOSED — the pinned triad is still not installable after 5 attempts (~200s of backoff). This is not propagation lag; the packages are absent or the pin is wrong. Refusing to build the site against packages it cannot install."
+          exit 1
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
