@@ -7,6 +7,46 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.13.2 — the declared Python floor and ceiling: 3.10–3.13, 64-bit
+
+**PACKAGING CHANGE, no code change.** `requires-python` moves from `">=3.10"` to `">=3.10,<3.14"`
+across all three packages. No engine, wire, or contract behaviour is touched; `contract_version`
+stays `"1"`. The `-core` version line moves to `0.13.2-core`.
+
+**THE FINDING** (Huayin, 2026-07-27, a Windows fresh-venv pass on launch eve). `pip install columna`
+on Python 3.14 did not fail — it *started building*. `datasketches` 5.x publishes **no cp314 wheels
+on any platform**, and **no 32-bit Windows wheels at any Python version**; `columna-core` hard-depends
+on it (`engine.py` imports `sketch.py` at module top, for HLL). With no upper bound declared, pip
+considered us a match, found no wheel, and fell through to a C++ source build — minutes of compiler
+output ending in failure for anyone without a toolchain, which is nearly everyone we are asking to
+try this in two minutes.
+
+**THE DOCTRINE**: *fail closed with a named reason beats rare success for whoever happens to own a
+compiler.* An unbounded `requires-python` is not permissiveness, it is an untested claim — we were
+asserting support for every future Python, including ones that did not exist when the claim was
+written. The bound converts a C++ explosion into pip's one-line `no matching distribution found`,
+which is a sentence a person can act on.
+
+**THE DOOR IS NAMED, NOT CLOSED.** Python 3.14 support arrives when `datasketches` ships cp314
+wheels, or via the optional-extras split (`datasketches`/`duckdb` optional, with a polite refusal at
+point of use) already scoped as **WP-1.1**. That split is rowed, not rushed into launch eve — an
+import-graph restructure for the `PolarsConnector` is not a Monday-morning patch.
+
+- **`requires-python = ">=3.10,<3.14"`** on `columna`, `columna-core`, and `columna-server`. Declared
+  on each rather than inherited transitively, so installing any one of them alone also refuses
+  cleanly (the WP-0 pyarrow lesson: state the constraint where the install actually happens).
+- **Classifiers now name 3.13**, which was supported and shipped but never advertised — the list
+  stopped at 3.12. CI's test matrix gains 3.13 in the same change: a claimed version that CI never
+  runs is a claim nobody checked.
+- **The supported line is now written down** — "Requires Python 3.10–3.13, 64-bit." — on the install
+  page and both front-door READMEs, each with one troubleshooting line pointing the
+  `no matching distribution` symptom at its cause.
+- **THE CLASS GUARD.** The `demo wheel install` CI job gains a **windows-latest / py3.13** leg beside
+  the existing ubuntu / py3.10 one. The class is *a dependency with platform or version wheel gaps*,
+  and it was invisible to a Linux-only CI — which is precisely how this finding survived three
+  releases. Both legs run the same assertion file (`scripts/assert_demo_play.py`) so they cannot
+  drift into proving different things.
+
 ## 0.13.1 — the reconciliation delta reports at the resolution its tolerance warrants
 
 **WIRE CHANGE, named not silent** (standing rule: removal-and-change is always named). Within-tolerance

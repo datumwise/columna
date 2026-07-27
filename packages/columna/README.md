@@ -10,6 +10,16 @@ This package (`columna`) is the **metapackage**: the canonical one-line install 
 pip install columna
 ```
 
+**Requires Python 3.10–3.13, 64-bit.**
+
+> **If pip says "no matching distribution found for columna"** — you are almost certainly on Python
+> 3.14, or on 32-bit Python. `columna-core` depends on `datasketches` for HLL, and datasketches 5.x
+> publishes no 3.14 wheels on any platform and no 32-bit Windows wheels at all. We declare
+> `requires-python = ">=3.10,<3.14"` so pip refuses cleanly instead of dropping you into a C++
+> source build that fails minutes later. Install into a 3.10–3.13 64-bit interpreter.
+> Python 3.14 support arrives when datasketches ships cp314 wheels, or via the optional-extras
+> split already scoped as WP-1.1.
+
 It installs:
 
 - **[`columna-core`](https://pypi.org/project/columna-core/)** — the column-foundation engine

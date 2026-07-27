@@ -4,10 +4,17 @@ build-backend = "hatchling.build"
 
 [project]
 name = "columna-core"
-version = "0.13.1"
+version = "0.13.2"
 description = "Columna Core — the definition language, adjudication, and engine of Columna, by datumwise."
 readme = "README.md"
-requires-python = ">=3.10"
+# CEILING, not caution (Huayin, 2026-07-27; found on a Windows fresh-venv pass). datasketches 5.x
+# publishes NO cp314 wheels on any platform, and no win32 wheels at any Python version. Without the
+# upper bound pip considers us a match on 3.14, then tries to compile datasketches from source — a
+# C++ toolchain explosion for anyone who lacks one, which is nearly everyone. The bound converts that
+# into pip's clean "no matching distribution found" refusal: fail closed with a named reason beats
+# rare success for whoever happens to own a compiler. Lift it when datasketches ships cp314, or when
+# the optional-extras split (WP-1.1) makes the sketch backend optional at install time.
+requires-python = ">=3.10,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Datumwise" }]
@@ -20,6 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Database :: Front-Ends",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
