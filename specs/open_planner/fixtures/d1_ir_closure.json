@@ -1,0 +1,728 @@
+{
+  "closed": true,
+  "corpus_note": "F2: the '111-ask battery' is the Ground Truth benchmark's NATURAL-LANGUAGE questions (verified: 111 records, prose `text`, precomputed scalar `ground_truth`, no SQL/FrameQL anywhere, different warehouse). Not replayable through this planner. Closure runs on the in-repo EXECUTABLE corpora, reported per corpus.",
+  "eight_nodes": [
+    "ANCHOR",
+    "CARVE",
+    "COLUMN",
+    "TRANSPORT",
+    "CROSS",
+    "REDUCE",
+    "ALIGN",
+    "DERIVE"
+  ],
+  "ninth_node_candidates": [],
+  "per_corpus": {
+    "core_tests": {
+      "asks": [
+        {
+          "frameql": "SELECT (revenue AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT * FROM t",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT at_risk_count AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT avg(aov @ day) AS a, revenue AT {store}",
+          "ir_nodes": [
+            "ALIGN",
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov @ day) AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov @ {day*store}) AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT avg(aov @ {day}) AS typical AT {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov @ {day}) AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov) AT {cal.month}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT lag(revenue, n=1) AS lagged AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT level.last AT {customer}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.sum AT {cal.month}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.sum AT {store}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.sum AT {store} WHERE customer = ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT med_amount AT {region*store}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue / level.last AS ratio AT {store}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue / orders AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS a AS b AT {r}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS gross AT {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AS gross AT {region} HAVING orders > 5",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS gross AT {store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AS gross AT {{store}} HAVING gross > {thresh}",
+          "outcome": "refuse"
+        },
+        {
+          "frameql": "SELECT revenue AS r AT {product*region} ORDER BY r DESC LIMIT 1 PER {r}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS r AT {store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AS r AT {store} WHERE day >= ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS region AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS v AT {region*store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AS x, orders AS x AT {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT region",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {geo.nowhere}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {product*region} ORDER BY region, revenue DESC LIMIT 1 PER {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {product*region} ORDER BY revenue DESC LIMIT 1 PER {customer}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {product*region} ORDER BY revenue DESC LIMIT 1 PER {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {product, region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region*store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region*store} ORDER BY region, revenue DESC",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region*store} ORDER BY revenue DESC LIMIT 3 PER {region}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {region, store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region} EXPLAIN",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {region} LIMIT 0",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {region} LIMIT 10",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {region} LIMIT x",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {region} ORDER BY orders DESC",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AT {store} ORDER BY revenue DESC",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {store} ORDER BY revenue DESC LIMIT 3",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {}extra AT {x}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue WHERE x=1 AT {r}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue, orders AT {region}",
+          "ir_nodes": [
+            "ALIGN",
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT sum(line)        AS gross,\\n",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT sum(revenue @ {store}) AS gross, avg(aov @ {day}) AS typical ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT sum(revenue @ {store}) AS v AT {region*store}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT sum(revenue @ {transaction}) AS gross, avg(aov @ {day}) AS typical AT {region}",
+          "outcome": "refuse"
+        },
+        {
+          "frameql": "SELECT sum(revenue) AS gross AT {region} ",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT sum(revenue) AT {}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT x AT {region} HAVING",
+          "outcome": "error"
+        }
+      ],
+      "closed": true,
+      "node_histogram": {
+        "ALIGN": 2,
+        "ANCHOR": 20,
+        "CARVE": 20,
+        "COLUMN": 20,
+        "DERIVE": 4,
+        "REDUCE": 20,
+        "TRANSPORT": 15
+      },
+      "non_served": 38,
+      "outcomes": {
+        "clarify": 3,
+        "error": 33,
+        "refuse": 2,
+        "serve": 20
+      },
+      "served": 20,
+      "total": 58
+    },
+    "demo_wheel": {
+      "asks": [
+        {
+          "frameql": "SELECT aov AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov) AT {cal.year}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT stock.last AT {customer}",
+          "outcome": "refuse"
+        },
+        {
+          "frameql": "SELECT stock.sum AT {store*cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "disclose"
+        }
+      ],
+      "closed": true,
+      "node_histogram": {
+        "ANCHOR": 2,
+        "CARVE": 2,
+        "COLUMN": 2,
+        "DERIVE": 1,
+        "REDUCE": 2,
+        "TRANSPORT": 2
+      },
+      "non_served": 2,
+      "outcomes": {
+        "clarify": 1,
+        "disclose": 1,
+        "refuse": 1,
+        "serve": 1
+      },
+      "served": 2,
+      "total": 4
+    },
+    "recapture_exemplars": {
+      "asks": [
+        {
+          "frameql": "SELECT aov AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT avg(aov) AT {cal.year}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT return_rate AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {category.primary}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "CROSS",
+            "REDUCE"
+          ],
+          "outcome": "disclose"
+        },
+        {
+          "frameql": "SELECT revenue AT {category.split}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "CROSS",
+            "REDUCE"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {category.touch}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "CROSS",
+            "REDUCE"
+          ],
+          "outcome": "disclose"
+        },
+        {
+          "frameql": "SELECT revenue AT {category}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT revenue, orders AT {region*cal.quarter}",
+          "ir_nodes": [
+            "ALIGN",
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT stock.last AT {customer}",
+          "outcome": "refuse"
+        },
+        {
+          "frameql": "SELECT stock.last AT {store*cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT stock.sum AT {store*cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "disclose"
+        }
+      ],
+      "closed": true,
+      "node_histogram": {
+        "ALIGN": 1,
+        "ANCHOR": 8,
+        "CARVE": 8,
+        "COLUMN": 8,
+        "CROSS": 3,
+        "DERIVE": 2,
+        "REDUCE": 8,
+        "TRANSPORT": 5
+      },
+      "non_served": 3,
+      "outcomes": {
+        "clarify": 2,
+        "disclose": 3,
+        "refuse": 1,
+        "serve": 5
+      },
+      "served": 8,
+      "total": 11
+    },
+    "server_tests": {
+      "asks": [
+        {
+          "frameql": "SELECT * FROM transactions",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT avg(aov) AS rate AT {cal.month}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT avg(aov) AT {cal.month}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT avg(aov@day) AS rate AT {cal.month}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "DERIVE",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT count(*) FROM (SELECT DISTINCT customer_id FROM engagement_scores) x ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM (SELECT DISTINCT customer_id FROM transactions) x ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM customers",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM daily_revenue_summary",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM daily_revenue_summary d JOIN ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM monthly_avg_order_value m JOIN ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(*) FROM monthly_store_inventory m JOIN ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(DISTINCT customer_id) FROM engagement_scores",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT count(DISTINCT customer_id) FROM transactions",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.last AS i AT {product}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.last AS inv AT {customer}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.sum AS inv AT {store}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT level.sum AT {store}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT m.unique_visitors, t.true_uv FROM monthly_unique_visitors m JOIN ",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue / level.last AS rate AT {store*day}",
+          "outcome": "error"
+        },
+        {
+          "frameql": "SELECT revenue AS revenue AT {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue AT {category}",
+          "outcome": "clarify"
+        },
+        {
+          "frameql": "SELECT revenue AT {region}",
+          "ir_nodes": [
+            "ANCHOR",
+            "CARVE",
+            "COLUMN",
+            "REDUCE",
+            "TRANSPORT"
+          ],
+          "outcome": "serve"
+        },
+        {
+          "frameql": "SELECT revenue.zap AS z AT {store}",
+          "outcome": "error"
+        }
+      ],
+      "closed": true,
+      "node_histogram": {
+        "ANCHOR": 3,
+        "CARVE": 3,
+        "COLUMN": 3,
+        "DERIVE": 1,
+        "REDUCE": 3,
+        "TRANSPORT": 3
+      },
+      "non_served": 20,
+      "outcomes": {
+        "clarify": 3,
+        "error": 17,
+        "serve": 3
+      },
+      "served": 3,
+      "total": 23
+    }
+  }
+}
