@@ -338,6 +338,13 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           desk reported two records missing from the 0.13.0 flip; both were present on the branch, and
           the probe had hit a ref state predating them. Absence is the one claim a stale snapshot will
           always confirm. The axis is name · path · package · tree state · REF FRESHNESS.
+          SIXTH AXIS (2026-07-26): THE REFERENT MUST BE THE ONE THE CONSUMER USES. PyPI's JSON API
+          reported columna 0.13.0 live while `pip` could not resolve it — `/simple/` and `/pypi/…/json`
+          are separately cached, and the deploy installs with pip. A green reading from the wrong
+          surface would have merged straight into a failed deploy. So PUBLISH-FIRST MEANS INSTALLABLE,
+          not published: the gate is the verbatim deploy pin resolving in one command, not any API
+          agreeing. Same shape: GitHub's repo `permissions` block said `push: true` for a token that
+          could not push — it describes the ACCOUNT's role, not the TOKEN's grant.
        3. "Brace-count, don't assume" — after any CSS/structural removal, verify balance before
           trusting the edit; a regex that eats a closing brace ships silently.
        4. "A fixed-string grep cannot see a LINE-WRAPPED occurrence." Sweep for a distinctive SHORT
@@ -360,6 +367,18 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.15
           adjudication.) Landed late, and the delay is its own proof: this proverb was ruled alongside
           7 and skipped, so the proverb about failing to land failed to land. Recovered only because
           the gap in the numbering was chased instead of closed.
+          THE MIRROR (2026-07-26): cargo that lands by ANOTHER DOOR leaves the original vessel looking
+          unlanded — when the artifact arrives, CLOSE THE VESSEL, or the ledger disagrees with the tree
+          from the other side. PR #100 sat open claiming to add a file already on main, byte-identical;
+          its merge base predated the landing, so its diff read as pending work and its three-dot diff
+          looked like a 871-line revert. Both failure modes end the same way: a ledger that disagrees
+          with the tree.
+          AND THE DESK IS NOT EXEMPT (2026-07-26): "readings do not verify each other" has a second
+          face — A SYMPTOM NAMED IN A REPORT IS STILL A READING. The 0.13.1 defect was reported as "a
+          signed zero", ruled on under that name, and fixed under it; the prescribed fix was
+          implemented and did not work, because the value was never zero (±2**-31, sign decided by
+          summation order). Nobody had looked at the number. Instrument the value before prescribing
+          for the name.
        7. "A GREEN SUITE IS NOT A GREEN JOB — verify the JOB; the guards you cannot infer past are the
           only ones that catch you." The 0.13.0 retirement passed its suites locally and went red in CI
           three times: a lint gate (an import orphaned by the removal), a deliberate exact version pin,
