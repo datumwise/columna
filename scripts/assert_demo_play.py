@@ -34,7 +34,12 @@ def main() -> int:
         print('FAIL: no \'"contract_version": "1"\' in demo --play output')
         return 1
 
-    print("demo --play OK — four moods in contract order, contract_version 1")
+    # ASCII ONLY, deliberately. This file is the harness that proves the product handles non-ASCII
+    # on a legacy codepage; it must not itself depend on one. The first Windows run printed its
+    # em-dash only because cp1252 happens to have one at 0x97 — U+2500, four lines earlier in the
+    # product's own output, does not, which is exactly where the crash landed. A guard that can be
+    # broken by the condition it guards against is not a guard.
+    print("demo --play OK - four moods in contract order, contract_version 1")
     return 0
 
 
