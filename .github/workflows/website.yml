@@ -104,23 +104,43 @@ jobs:
       # "installable" IS NOT GLOBAL AVAILABILITY — the runner resolves from a different edge than the
       # person who checked. Publish-first means installable; this is what makes that claim true for
       # THIS consumer rather than for the one who happened to look.
+      #
+      # RE-PROVED 2026-07-27, FROM THE OTHER DIRECTION. At 0.13.2 the two endpoints disagreed the
+      # opposite way: /pypi/columna-core/json reported 0.13.2 NOT PRESENT while /simple/columna-core/
+      # — the index pip actually resolves from — was already serving it. A checker reading the JSON API
+      # would have declared the release broken and rolled back a release that was, in fact, live.
+      # So the clause is symmetric, and that is the point: the JSON API is not a slower mirror of the
+      # truth, it is a DIFFERENT VANTAGE POINT that can be stale in either direction. Verify
+      # installability with the resolver a consumer actually uses (pip against /simple/), never with
+      # a metadata endpoint that merely describes it. A convenient observation is still an observation.
       # The wedge KEEPS ITS JOB: the retry budget is bounded, and exhausting it still exits non-zero.
       # This buys propagation time; it does not forgive a missing package.
+      #
+      # BUDGET 5 -> 8 (2026-07-27, launch eve). The 0.13.2 deploy resolved ON ATTEMPT 5 OF 5 — the last
+      # one. It did not fail, and that is the problem: a guard that clears on its final attempt has no
+      # margin left to report. THE BELT, NOT THE FIX. The real cause is ORDER, not budget: merging to
+      # main triggers the deploy while publish is triggered by the release cut that necessarily follows
+      # the merge, so the deploy always races the publish. That is fixed by CHOREOGRAPHY, not code —
+      # tag the release branch BEFORE merging, let publish fire and the verbatim-pin gate clear, THEN
+      # merge, so the deploy finds packages already installable. See docs/RELEASE_ORDER.md; it is the
+      # standing release order and it costs nothing. This wider budget is only the belt for a Tuesday
+      # emergency where someone runs the order backwards under pressure.
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
         run: |
           set -euo pipefail
           PINS=("columna==0.13.2" "columna-core==0.13.2" "columna-server==0.8.1")
-          for attempt in 1 2 3 4 5; do
+          ATTEMPTS=8
+          for attempt in $(seq 1 "${ATTEMPTS}"); do
             if pip install --no-cache-dir "${PINS[@]}"; then
               echo "deploy wedge: resolved on attempt ${attempt}"
               exit 0
             fi
-            if [ "${attempt}" -eq 5 ]; then break; fi
+            if [ "${attempt}" -eq "${ATTEMPTS}" ]; then break; fi
             delay=$((attempt * 20))
-            echo "deploy wedge: pin not resolvable yet (attempt ${attempt}/5) — index propagation; retrying in ${delay}s"
+            echo "deploy wedge: pin not resolvable yet (attempt ${attempt}/${ATTEMPTS}) — index propagation; retrying in ${delay}s"
             sleep "${delay}"
           done
-          echo "::error::deploy wedge FAILED CLOSED — the pinned triad is still not installable after 5 attempts (~200s of backoff). This is not propagation lag; the packages are absent or the pin is wrong. Refusing to build the site against packages it cannot install."
+          echo "::error::deploy wedge FAILED CLOSED — the pinned triad is still not installable after ${ATTEMPTS} attempts (~560s of backoff). This is not propagation lag; the packages are absent or the pin is wrong. Refusing to build the site against packages it cannot install."
           exit 1
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
