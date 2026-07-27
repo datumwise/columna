@@ -35,7 +35,7 @@ produced it.
 | `site_state.json` | live version string, all seven primary surfaces + `/`, `/install`, `/llms.txt`: HTTP status, byte size, page title, **SHA-256 of the served bytes** |
 | `github_traffic.json` | repo Traffic API snapshot (views, clones, referrers, paths), from the isolated `meta/analytics` branch |
 | `pypi.json` | per-package `/simple/` versions, JSON-API latest, `requires-python`, and recent download counts |
-| `vercel_web_analytics.json` | **a record of a blockage, not data** — see below |
+| `vercel_web_analytics.json` | **a DECLARED GAP, not data** — plan-gated; ruled not-necessary 2026-07-27; see below |
 | `external_ai_probes/` | Huayin's half; empty but for its README until the answers are pasted |
 
 **Why the page hashes.** A byte count collides trivially; a hash does not. With `sha256` per surface,
@@ -78,24 +78,46 @@ record to date** — checked across every snapshot from 2026-07-20 onward, not j
 
 ---
 
-## ⚠ The gap in this capture, named rather than omitted
+## DECLARED GAP — website analytics, ruled not-necessary (Huayin, 2026-07-27)
 
-**Vercel Web Analytics could not be captured programmatically.** This is a **blockage, not an
-absence**, and the distinction matters: an omitted source reads six weeks later as "zero" or as
-"nobody looked."
+**Status: DECLARED GAP. Dated, ruled, and closed as a question. Nothing waits on it.**
 
-The public API (`/v1/query/web-analytics/events/aggregate`) exists and authenticates correctly with
-the project token, but returns `payment_required — Accessing Analytics custom events requires an
-Enterprise or Pro plan` for **every** grouping dimension, including plain `by=day`. Verified against
-`requestPath`, `referrerHostname`, `utmSource`, `route`, `country`, and `day`.
+> **A named absence is a baseline too.** The post-launch comparison simply starts this row at
+> **"unmeasured before"** — which is a legitimate, diffable starting value. What would *not* be
+> legitimate is a capture that quietly lacked the row, because six weeks later that reads as "zero"
+> or as "nobody looked." The gap is recorded here so that a future reader knows exactly what was
+> asked, what was attempted, why it stopped, and who ruled it fine.
 
-**So the site's own page-counts-by-path, referrers, and the `utm_source=chatgpt.com` row are missing
-from this capture** — which is precisely the analytics half that was asked for, and precisely the row
-most worth having a pre-launch number for.
+**The ruling** (Huayin, 2026-07-27): *not necessary for now.* If the one-minute CSV export ever
+happens it slots straight in as `vercel_web_analytics.csv` and the row acquires a real prior. Until
+then this row's baseline value is, precisely and intentionally, **unmeasured before**.
 
-**To complete it** (about a minute, needs a human on the dashboard): Vercel → project `website` →
-Analytics → CSV export → save here as `vercel_web_analytics.csv`. Alternatively, upgrading the
-project to Pro makes this capture fully automatic on every future run.
+### The finding, attached
+
+**Vercel Web Analytics is not machine-capturable on this account's plan.** The public API
+(`/v1/query/web-analytics/events/aggregate`) exists and **authenticates correctly** with the project
+token — this is not a credential problem — but returns:
+
+```
+payment_required — Accessing Analytics custom events requires an Enterprise or Pro plan
+```
+
+for **every** grouping dimension, including plain `by=day`. Verified against all six of
+`requestPath`, `referrerHostname`, `utmSource`, `route`, `country`, `day`. So the failure is the
+plan, not the query, and no amount of retrying or reshaping the request will change it.
+
+**Consequently absent from this capture:** the site's own page-counts-by-path, its referrers, and the
+`utm_source=chatgpt.com` row.
+
+**A separate, checkable finding about that row.** There is **no `chatgpt.com` referrer anywhere in
+the GitHub traffic record** — checked across every snapshot from 2026-07-20 onward, not merely the
+latest. So the `utm_source=chatgpt.com` row is a **website-side signal only**; it was never going to
+appear in `github_traffic.json`, and a future reader should not go looking for it there or read its
+absence from that file as a change.
+
+**If it is ever wanted:** Vercel → project `website` → Analytics → CSV export → save beside this file
+as `vercel_web_analytics.csv`. Upgrading the project to Pro would make it automatic on every future
+run of `scripts/capture_baseline.py`, which already has the call site written and gated.
 
 ---
 

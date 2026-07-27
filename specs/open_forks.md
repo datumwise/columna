@@ -273,23 +273,27 @@ closed.**
   is not a slower mirror of the truth, it is a DIFFERENT VANTAGE POINT that can be stale either way.
   *Verify installability by installing*, with the resolver a consumer actually uses — never by reading
   a metadata endpoint that merely describes the package. A convenient observation is still an observation.
-- **THE GUARD PATTERN — four guards, and not one of them ever ran clean.** Recorded with the count
-  checked rather than assumed, because this ledger does not keep claims nobody verified:
-  - `check_generator_determinism.py` (flap detector, 0.13.1) — introduced, then caught
-    `gen_transcript.py` flapping on a later run → **OF-23 rowed.** A catch after introduction.
-  - `latest.ts` fail-closed release rail — landed *after* `v0.13.1`, and its own commit pre-seeded
-    every entry through 0.13.1. **0.13.2 was the first version it had never seen, and it fired** —
-    refusing the build until someone wrote what the release IS. A strict first-run catch.
-  - windows-latest CI leg (0.13.2) — **caught a real product crash on its first run.** A strict
-    first-run catch.
-  - `check_purged_grammar.py` (2026-07-25) is a **different shape and the count should say so**: it
-    was born *from* a hand-found fossil sweep and born *carrying* a live ROWED exemption (OF-16). It
-    never had a clean first run to catch anything on, because it was already holding a finding at birth.
+- **THE GUARD PATTERN — FOUR GUARDS, FOUR LIVE FINDINGS, NOT ONE EVER RAN CLEAN.**
+  *(Ratified in this wording by Huayin, 2026-07-27, over the rounder "four first-run catches."*
+  *Precision about our own claims is this house's brand applied to its own mythology: the round*
+  *number would not have survived an auditor, and we are the auditor.)*
+
+  The count was **checked, not assumed** — each guard's introducing commit was traced before the
+  line was written, and the trace is kept here so the claim stays auditable:
+
+  | guard | introduced | what it found, and when |
+  |---|---|---|
+  | `check_generator_determinism.py` (flap detector) | `7e9b613` (0.13.1) | caught `gen_transcript.py` flapping on a later run → **OF-23 rowed** (`95f5fb5`). A real catch after introduction. |
+  | `latest.ts` fail-closed release rail | `4922fec` | landed **after** `v0.13.1`, and its own commit pre-seeded every entry through 0.13.1 — so **0.13.2 was the first version it had never seen, and it fired**, refusing the build until someone wrote what the release IS. Strict first-run catch. |
+  | windows-latest CI leg | `8392372` (0.13.2) | **caught a real product crash on its first run** — the cp1252 `demo --play` death, fixed in `627d8b1`. Strict first-run catch. |
+  | `check_purged_grammar.py` | `483fac1` (2026-07-25) | **a different shape, and the record says so**: born *from* a hand-found fossil sweep and born *carrying* a live ROWED exemption (OF-16). It never had a clean first run to catch anything on, because it was already holding a finding at birth. |
+
   **So: three strict first-run catches, and a fourth guard that arrived already flagging.** The
-  pattern is not "guards catch things eventually" — it is that **every guard this house has added
-  found a live defect at or immediately after introduction, four for four.** Which is the argument
-  for adding the next one before it is asked for, and a warning: the defects were already there,
-  and the only variable was whether anything was looking.
+  pattern is not "guards catch things eventually." It is that **every guard this house has added
+  found a live defect at or immediately after introduction — four for four, none ever clean.**
+  That is the argument for adding the next guard *before* it is asked for. It is also the warning
+  underneath it: **the defects were already there, and the only variable was whether anything was
+  looking.** A guard is not what creates the finding; it is what ends the period of not knowing.
 
 ## Occurrence conformance — RULED (Huayin 2026-07-24; rides OF-5)
 
