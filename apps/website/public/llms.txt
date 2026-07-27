@@ -48,13 +48,14 @@ Every answer is one of four, returned as structured data on one contract (contra
 
 ## The evidence
 Every claim on the site is checkable, and the failures are published alongside the successes.
-- The six papers, chronological, each with a DOI:
+- The seven papers, chronological, each with a DOI:
   - The Silent Failure Atlas — doi:10.5281/zenodo.20762839
   - The Silent Seam — doi:10.5281/zenodo.20710717
   - The Two Anchors of a Measure — doi:10.5281/zenodo.20789318
   - Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison — doi:10.5281/zenodo.21349581
   - Multi-Universe Processing: Territories, Frontiers, and the Lawful Passage of Meaning — doi:10.5281/zenodo.21543584
   - The Two Great Sources of Silent Analytical Failure — doi:10.5281/zenodo.21553379
+  - The Open Planner: Certified Analytical Plans from Untrusted Searchers — research program note (2026) — doi:10.5281/zenodo.21632723
 - The public benchmark kit: https://github.com/datumwise/ground-truth-benchmark — the frozen answer
   key, the raw model answers, the scoring driver, and the published errata. Re-runnable.
 - The case study: /case — a complete worked example (one warehouse, six questions) with recorded
