@@ -1,0 +1,55 @@
+{
+  "clarify_exhibit": {
+    "alternatives": [
+      {
+        "description": "pin the input anchor to 'day' (e.g. mean(revenue@day))",
+        "token": "pin the input anchor to 'day' (e.g. mean(revenue@day))"
+      }
+    ],
+    "detail": "inline reduction 'mean(revenue)' does not pin its input anchor \u2014 the grain to resolve 'revenue' at before reducing to cal.month is underdetermined; pin it, e.g. 'mean(revenue@day)'",
+    "frameql": "SELECT avg(revenue) AT {cal.month}",
+    "outcome": "clarify"
+  },
+  "f1_unfaithful_not_expressible": [
+    {
+      "detail": "multi-level input anchor `@ {store*product*cal.month}` is not supported in this build \u2014 pin a single level, e.g. avg(aov @ {day})",
+      "frameql": "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}",
+      "outcome": "error"
+    },
+    {
+      "detail": "multi-level input anchor `@ {customer*store*product*day}` is not supported in this build \u2014 pin a single level, e.g. avg(aov @ {day})",
+      "frameql": "SELECT avg(revenue @ {customer*store*product*day}) AT {cal.month}",
+      "outcome": "error"
+    }
+  ],
+  "faithful_ask": {
+    "frameql": "SELECT aov AT {cal.month}",
+    "outcome": "serve",
+    "values": {
+      "2024-01": 139.914394184168,
+      "2024-02": 125.80954314720813,
+      "2024-03": 127.25143518518517,
+      "2024-04": 137.9109816971714,
+      "2024-05": 139.13900158478603,
+      "2024-06": 130.56245928338762,
+      "2024-07": 114.11231242312422,
+      "2024-08": 136.19576744186048,
+      "2024-09": 133.38793780687396,
+      "2024-10": 135.4764687975647,
+      "2024-11": 78.63768702290076,
+      "2024-12": 65.37640391550747,
+      "2025-01": 132.0036018237082,
+      "2025-02": 130.30240066225164,
+      "2025-03": 138.8876978417266,
+      "2025-04": 133.00351063829788,
+      "2025-05": 123.93587808417998,
+      "2025-06": 127.56159940209268,
+      "2025-07": 114.47859234234235,
+      "2025-08": 139.7876858345021,
+      "2025-09": 130.5953592814371,
+      "2025-10": 126.22410998552822,
+      "2025-11": 82.18122131754257,
+      "2025-12": 64.01058620689655
+    }
+  }
+}
