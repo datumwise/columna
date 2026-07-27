@@ -84,7 +84,37 @@ def _serve(store, http: Optional[str]):
         mcp.run(transport="stdio")
 
 
+def _force_utf8_stdio() -> None:
+    """Make stdout/stderr UTF-8 regardless of platform locale.
+
+    FOUND BY THE WINDOWS CI LEG, ON ITS FIRST RUN (0.13.2). `columna-server demo --play | ...` died
+    on Windows with UnicodeEncodeError on the FIRST LINE — before a single mood printed. Python
+    writes to a Windows *console* through the wide-char API, so an interactive run looks fine; the
+    moment stdout is a PIPE or a FILE it falls back to the locale encoding, which is cp1252 on a
+    default en-US Windows. Our output is not ASCII and should not have to be: the rules are U+2500,
+    the prose uses em-dashes, and the wire JSON is dumped with `ensure_ascii=False` ON PURPOSE so a
+    Manifold carrying non-ASCII labels serves them as themselves rather than as \\uXXXX escapes.
+
+    So the fix belongs at the STREAM, not in the text. Stripping the characters would make the demo
+    lie about what the wire carries, and would leave the next non-ASCII value to crash somewhere
+    quieter. UTF-8 is declared once, here, for every subcommand.
+
+    `errors="backslashreplace"` is the fail-visible choice: if a stream still cannot represent
+    something, the demo prints an escape and keeps going rather than dying mid-transcript. A
+    truncated transcript is a confident wrong answer about what the system does.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue  # replaced by a StringIO (tests) or a non-text stream — nothing to declare
+        try:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (ValueError, OSError):
+            pass  # a detached or already-closed stream is not worth failing the command over
+
+
 def main(argv=None):
+    _force_utf8_stdio()
     parser = argparse.ArgumentParser(prog="columna-server")
     sub = parser.add_subparsers(dest="command", required=True)
 

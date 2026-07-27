@@ -4,10 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "columna"
-version = "0.13.1"
+version = "0.13.2"
 description = "Columna, by datumwise — an honest data framework (Manifold, FrameQL, an honest engine). Metapackage: installs columna-core + columna-server."
 readme = "README.md"
-requires-python = ">=3.10"
+# Must match columna-core's ceiling exactly — this is the package `pip install columna` resolves
+# first, so it is where the clean refusal has to happen. See columna-core/pyproject.toml for why.
+requires-python = ">=3.10,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Datumwise" }]
@@ -19,12 +21,13 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Database :: Front-Ends",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
-    "columna-core>=0.13.1",
-    "columna-server>=0.8.0",
+    "columna-core>=0.13.2",
+    "columna-server>=0.8.1",
 ]
 
 [project.urls]
