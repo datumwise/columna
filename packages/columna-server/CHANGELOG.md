@@ -3,6 +3,24 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.8.0] — the describe surface follows the ASSERT retirement
+
+Requires `columna-core>=0.13.0` — a FLOOR, not a preference: this release's contract is defined by
+what core 0.13.0 removed, so `>=0.12.0` would admit a resolution whose wire still carries the fields
+this version says are gone.
+
+MINOR, not patch: no server code path changed behaviour by intent, but the DESCRIBE SURFACE CHANGED,
+and a surface change is not a patch even when it arrives by cascade from the engine.
+
+- **Fields removed from the describe wire** (with `ASSERT`, ruling 2026-07-26): the `asserts` block,
+  the universes' `attributes`, and `published_scope.cut` / `cut_by`. The CUT region retired with the
+  construct that defined it.
+- **`contract_version` stays `"1"`.** The retirement is a REMOVAL from a block consumers were never
+  required to read; the envelope and the four moods are untouched.
+- **`conflicting_data` can no longer occur.** Its reason code is tombstoned, not reused.
+- **Guarded, not asserted:** `test_describe_insulation.py` proves the absence in both directions —
+  `asserts` not on the wire, `cut`/`cut_by` not in `published_scope`.
+
 ## [0.7.1] — the category-driver descriptions (data-only)
 
 Patch, DATA-ONLY: no code, no wire schema, no contract change. Requires `columna-core>=0.12.0`.

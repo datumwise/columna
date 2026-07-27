@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "columna-core"
 version = "0.13.0"
-description = "Columna Core — the column-foundation analytic framework (multi-table, transport-based, correctness-governed) over a single backend."
+description = "Columna Core — the definition language, adjudication, and engine of Columna, by datumwise."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
