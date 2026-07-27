@@ -185,6 +185,32 @@ evaporated in the first place.
 - **Version track — CONFIRMED (Huayin 2026-07-24):** core → 0.12.0, meta → 0.12.0, server → **0.7.0**
   (its own line; "across" = the release spans all three, the track precedent governs).
 
+## 0.13 "the ASSERT retirement" — the public ledger row (ruling §6; MERGED + PUBLISHED 2026-07-26/27)
+
+- **Ledger renumbering note — SEALED (public ledger, dated); byte-exact, single line:**
+  "2026-07: 0.13.0 is the ASSERT retirement — ruled, not drifted: the admission test (everything a trial proves is a precondition of something served) removed the one construct that failed it, plus its cascade. Multi-universe alignment (P1), previously 0.13, renumbers to 0.14 unchanged in scope."
+- **0.13.1 — the reconciliation delta, and the doctrine it carries.** *A value below the system's
+  declared tolerance is noise, not a finding — reporting it as a finding is FALSE PRECISION*, which is
+  a species of confident wrong number. The masthead does not say "no *large* wrong numbers." Within
+  tolerance the wire now reports at the resolution its own tolerance warrants; outside tolerance a real
+  shortfall keeps its exact value and sign, asserted by test so the guard can never launder a finding.
+  Wire change NAMED, not silent; no `contract_version` bump.
+- **PROVENANCE of the signed-zero row, kept in full because the ledger keeps honest histories:**
+  flagged at the **#85 preview** → ordered into the **0.12.1 cargo** → **never landed** (ordered-but-
+  unlanded, pre-heartbeat vintage) → resurfaced as a **flap** during the 0.13.0 confirmation re-record,
+  ~20% of runs on an identical package and input → **misdiagnosed twice as a signed zero, once by the
+  builder and once by the desk**, neither having looked at the number → **measured** (the raw value
+  alternates between exactly `0.0` and ±2⁻³¹, decided by float summation order) → **fixed at the true
+  cause**. The prescribed fix `x if x != 0 else 0.0` was implemented and *proven not to work* before the
+  real one was written.
+- **The epistemic record, both directions:** *readings do not verify each other — and a symptom named
+  in a report is still a reading.* The desk ruled on a symptom name rather than a measured value. The
+  desk is not exempt from the epistemics it enforces.
+- **The structural guard** (`check_generator_determinism.py`): every committed-output generator runs
+  twice and must be byte-identical, wired into the deploy. Verified in BOTH directions — provoked
+  against the unpatched engine, where it fails closed naming the generator and the differing byte.
+  A recorded exhibit changes only by re-recording; this enforces that it does not change by *itself*.
+
 **CLOSED 2026-07-24 — Huayin's word arrived, four-in-one (the ch2 forward-reference sentence, the
 Figure 1 caption ratification, the merge, the publish), executed publish-first:** columna-core 0.12.0 ·
 columna-server 0.7.0 · columna 0.12.0 live on PyPI (OIDC Trusted Publisher + `assert_pypi_versions`

@@ -30,12 +30,42 @@ export interface LatestItem {
   external?: boolean;
 }
 
-// Release version comes from PACKAGE_VERSION (data); everything else is curated.
+// THE RELEASE DESCRIPTIONS, KEYED BY VERSION — FAIL-CLOSED (Huayin, 2026-07-26).
+//
+// The version on this rail is DATA (PACKAGE_VERSION, from the shipped package). Its title and date
+// were CURATED beside it, with nothing tying the two together — so 0.13.0 deployed wearing 0.12.0's
+// description: "0.13.0 · the crossing triad: touch, assign, alloc · Jul 24", live on the homepage,
+// the right number over the wrong release's words. A HALF-data-driven row is worse than a fully
+// hand-written one: the moving half makes the stale half look maintained.
+//
+// The fix is structural, not a correction. The description is keyed BY VERSION and an unknown version
+// THROWS AT BUILD TIME, so a release cannot ship until someone writes its line — the rail can never
+// again inherit the previous release's clothes. Fails closed and names its reason (proverb 5): a hard
+// failure, never a placeholder that renders plausibly.
+const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
+  '0.12.0': { title: 'the crossing triad: touch, assign, alloc', date: '2026-07-24' },
+  '0.12.1': { title: 'the category-driver descriptions', date: '2026-07-24' },
+  '0.13.0': { title: "the ASSERT retirement — the language's first removal", date: '2026-07-26' },
+  '0.13.1': { title: 'the reconciliation delta reports at its tolerance', date: '2026-07-27' },
+};
+
+const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
+if (!RELEASE) {
+  throw new Error(
+    `LATEST RAIL: no curated description for shipped version "${PACKAGE_VERSION}". Add an entry to ` +
+    `RELEASE_NOTES in src/data/latest.ts naming what this release IS. This build fails closed on ` +
+    `purpose: the rail must never wear the previous release's clothes (0.13.0 shipped showing ` +
+    `0.12.0's title, publicly, before this guard existed).`
+  );
+}
+
+// Release version comes from PACKAGE_VERSION (data); its description is KEYED to it (fail-closed).
+// Everything else on the rail is curated navigation.
 export const LATEST: LatestItem[] = [
   {
     kind: 'release',
-    title: `${PACKAGE_VERSION} · the crossing triad: touch, assign, alloc`,
-    date: '2026-07-24',
+    title: `${PACKAGE_VERSION} · ${RELEASE.title}`,
+    date: RELEASE.date,
     href: 'https://github.com/datumwise/columna/releases',
     external: true,
   },
