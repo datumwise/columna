@@ -15,6 +15,8 @@ One M:N bridge (product<->category), a driver spine (category_profile), real duc
   priority (rank, ORDER MIN=top): c1=1, c2=2, c3=3, c4=4
   alloc_weight (raw): c1=3.0, c2=1.5, c3=2.0, c4=1.0
 """
+import math
+
 import duckdb
 import polars as pl
 import pytest
@@ -22,6 +24,7 @@ import pytest
 from columna_core import ManifoldServer, DuckDBConnector
 from columna_core.parser import parse_manifold, ParseError
 from columna_core.adjudication import adjudicate, FaceContradiction
+from columna_core.engine import canonical_delta
 
 
 def _lit(v):
@@ -103,6 +106,39 @@ def test_alloc_carries_the_reconciliation_badge():
     assert recon
     d = dict(recon[0].reconciliation)
     assert d["status"] == "reconciles" and abs(d["delta"]) < 1e-6
+
+
+# ---- the reconciliation delta NEVER carries a signed zero (0.13.1) ---------------------------------
+# Ordered at the #85 preview and again in the 0.12.1 cargo; never landed. A delta that is exactly zero
+# rendered as "-0.0000" on ~20% of runs of the IDENTICAL package and input — float summation order,
+# not data. It flapped a byte-preserved recorded exhibit, so a recorded artifact was changing without
+# a re-recording. Guarded in BOTH directions: the helper itself, and the badge path that serves it.
+def test_canonical_delta_collapses_within_tolerance_and_preserves_real_shortfalls():
+    tol = max(1.0, abs(2212391.86)) * 1e-9                      # the engine's own tolerance
+    # both zeros collapse to POSITIVE zero — the signed-zero symptom
+    assert math.copysign(1.0, canonical_delta(-0.0, tol)) == 1.0
+    assert math.copysign(1.0, canonical_delta(0.0, tol)) == 1.0
+    # THE ACTUAL DEFECT: the observed residue is 2**-31, NOT zero, and it flips sign run to run.
+    # `x if x != 0 else 0.0` would pass this straight through and still render "-0.0000".
+    residue = 4.656612873077393e-10
+    assert residue != 0                                          # the premise of the first fix fails
+    assert f"{-residue:.4f}" == "-0.0000"                        # ...and this is what shipped
+    assert canonical_delta(residue, tol) == 0.0
+    assert canonical_delta(-residue, tol) == 0.0
+    assert f"{canonical_delta(-residue, tol):.4f}" == "0.0000"
+    # a REAL shortfall keeps its exact value AND its sign — the guard must not launder findings
+    for x in (-1.5, 1.5, -150.0, 150.0, tol * 10, -tol * 10):
+        assert canonical_delta(x, tol) == x
+
+
+def test_alloc_badge_never_serves_a_signed_zero():
+    fr = _server(TRIAD).frame("category.split").column("revenue", "revenue").run()
+    recon = [c for c in fr.disclosure.caveats if c.category == "reconciliation"]
+    d = dict(recon[0].reconciliation)
+    # the STRUCTURED wire field, not merely the prose — a consumer reading the number must not get -0.0
+    assert math.copysign(1.0, d["delta"]) == 1.0, f"signed zero on the wire: {d['delta']!r}"
+    assert "-0.0000" not in recon[0].detail
+    assert "(delta 0.0000)" in recon[0].detail
 
 
 # ---- ORDER is mandatory on ASSIGN (no silent default) ----------------------------------------------
