@@ -82,9 +82,14 @@ jobs:
           - os: ubuntu-latest
             python-version: "3.10"
             venv-bin: bin
+            exe: ""
           - os: windows-latest
             python-version: "3.13"
             venv-bin: Scripts
+            # pip installs the console script as columna-server.EXE on Windows. Named explicitly
+            # rather than leaning on Git Bash's implicit .exe resolution for an explicit relative
+            # path — the whole point of this leg is to stop guessing about Windows.
+            exe: ".exe"
     defaults:
       run:
         # Git Bash on windows-latest, so one script body serves both legs (globs, `|`, forward
@@ -108,7 +113,7 @@ jobs:
         run: demoenv/${{ matrix.venv-bin }}/python -m pip list
       - name: demo --play from the installed wheel (package-data proof)
         run: |
-          demoenv/${{ matrix.venv-bin }}/columna-server demo --play \
+          demoenv/${{ matrix.venv-bin }}/columna-server${{ matrix.exe }} demo --play \
             | demoenv/${{ matrix.venv-bin }}/python scripts/assert_demo_play.py
 
   purged-grammar:
