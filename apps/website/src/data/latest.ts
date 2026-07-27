@@ -47,6 +47,7 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
   '0.12.1': { title: 'the category-driver descriptions', date: '2026-07-24' },
   '0.13.0': { title: "the ASSERT retirement — the language's first removal", date: '2026-07-26' },
   '0.13.1': { title: 'the reconciliation delta reports at its tolerance', date: '2026-07-27' },
+  '0.13.2': { title: 'the declared Python floor and ceiling: 3.10–3.13, 64-bit', date: '2026-07-27' },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

@@ -3,6 +3,40 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.8.1] — the declared Python ceiling, and the demo survives Windows
+
+**BUG FIX, user-visible: `demo --play` crashed on Windows whenever stdout was not a console.**
+Found by the new windows-latest CI leg **on its first run** — which is the entire argument for
+adding it. `columna-server demo --play | anything` (or `> a file`) died with
+`UnicodeEncodeError: 'charmap' codec can't encode` **on the opening line, before a single mood
+printed**. Python writes to a Windows *console* through the wide-char API, so an interactive run
+looked fine; the moment stdout became a pipe it fell back to the locale encoding — cp1252 on a
+default en-US Windows — and our output is legitimately non-ASCII (U+2500 rules, em-dashes, and wire
+JSON dumped `ensure_ascii=False` so non-ASCII labels serve as themselves rather than `\uXXXX`).
+
+**The fix is at the stream, not in the text**: `columna-server` now declares UTF-8 on stdout/stderr
+for every subcommand, with `errors="backslashreplace"` so an unrepresentable character prints an
+escape rather than truncating the transcript mid-flight. Stripping the characters to ASCII would
+have made the demo lie about what the wire carries, and would have left the next non-ASCII value to
+crash somewhere quieter.
+
+Guarded twice: the Windows CI leg is the real proof, and
+`test_demo_play_survives_a_cp1252_stdio_locale` reproduces the exact failure on **any** platform via
+`PYTHONIOENCODING=cp1252`, so the class fails in the unit suite in under a second. That test asserts
+the rules and em-dashes are still *present* — it fails if someone "fixes" this by removing them.
+
+
+
+**PACKAGING CHANGE, no code change.** `requires-python` moves to `">=3.10,<3.14"`, matching
+`columna-core`; the floor on core rises to `>=0.13.2`. PATCH, not minor: no surface, wire, or
+behaviour changed — `contract_version` stays `"1"`.
+
+Declared here rather than inherited transitively so `pip install columna-server` on its own also
+refuses cleanly on 3.14, instead of discovering the ceiling one dependency deep. Classifiers now
+enumerate 3.10–3.13 (they previously named only `Python :: 3`).
+
+See `columna-core` 0.13.2 for the finding, the doctrine, and the named door (WP-1.1).
+
 ## [0.8.0] — the describe surface follows the ASSERT retirement
 
 Requires `columna-core>=0.13.0` — a FLOOR, not a preference: this release's contract is defined by
