@@ -1,0 +1,118 @@
+{
+  "class_a_pair": {
+    "asked": {
+      "disclosures": [
+        {
+          "category": "reconciliation",
+          "code": "reconciliation",
+          "detail": "allocated by normalized alloc_weight: crossed total 2212391.86 reconciles to the grand total 2212391.86 (delta 0.0000). revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights \u2014 totals reconcile to the grand total",
+          "materiality": "immaterial",
+          "reconciliation": {
+            "base_total": 2212391.86,
+            "crossed_total": 2212391.86,
+            "delta": 0.0,
+            "status": "reconciles",
+            "tolerance": 0.0022123918600000002
+          },
+          "rel_error": null,
+          "remedy": null,
+          "severity": "info",
+          "source": null
+        }
+      ],
+      "error": null,
+      "frameql": "SELECT revenue AT {category.split}",
+      "no_result": null,
+      "outcome": "serve",
+      "population": "transaction",
+      "values": {
+        "G01": 128255.27161742069,
+        "G02": 203301.03230795354,
+        "G03": 133197.3615044557,
+        "G04": 188986.16087236657,
+        "G05": 210976.84702222372,
+        "G06": 297247.25862363144,
+        "G07": 254694.07858494914,
+        "G08": 138992.02226684676,
+        "G09": 137433.35479468715,
+        "G10": 140759.86167097485,
+        "G11": 221038.81715191476,
+        "G12": 157509.79358257563
+      }
+    },
+    "both_lawful": true,
+    "differing_field": "COLUMN.measure_ref",
+    "identical_fields": [
+      "universe (transaction)",
+      "CARVE",
+      "CROSS(product<->category, split)",
+      "REDUCE(@ category)",
+      "ANCHOR(category.split)"
+    ],
+    "substituted": {
+      "disclosures": [
+        {
+          "category": "reconciliation",
+          "code": "reconciliation",
+          "detail": "allocated by normalized alloc_weight: crossed total 97700.00 reconciles to the grand total 97700.00 (delta 0.0000). revenue will be split across a product's categories as a weighted sum, using alloc_weight as relative weights \u2014 totals reconcile to the grand total",
+          "materiality": "immaterial",
+          "reconciliation": {
+            "base_total": 97700.0,
+            "crossed_total": 97700.00000000001,
+            "delta": 0.0,
+            "status": "reconciles",
+            "tolerance": 9.77e-05
+          },
+          "rel_error": null,
+          "remedy": null,
+          "severity": "info",
+          "source": null
+        }
+      ],
+      "error": null,
+      "frameql": "SELECT units_sold AT {category.split}",
+      "no_result": null,
+      "outcome": "serve",
+      "population": "transaction",
+      "values": {
+        "G01": 6177.114435985277,
+        "G02": 7514.841691466758,
+        "G03": 5789.031067138151,
+        "G04": 6916.243642871907,
+        "G05": 8241.845380984456,
+        "G06": 19237.623898018963,
+        "G07": 11442.569807922227,
+        "G08": 5656.770244973348,
+        "G09": 6025.3649715976935,
+        "G10": 7010.952951584358,
+        "G11": 7613.214510271974,
+        "G12": 6074.42739718489
+      }
+    }
+  },
+  "f3b": "A1 v0.2's Attack A line names the measure `units`; the shipped name is `units_sold` (`SELECT units AT {category.split}` -> unknown column). Same written-from-recall disease as F3, harmless, recorded not absorbed.",
+  "lawfulness_exhibit_out_of_domain": {
+    "disclosures": [],
+    "error": null,
+    "frameql": "SELECT stock.sum AT {category}",
+    "no_result": {
+      "alternatives": [
+        {
+          "apply": {
+            "universe": "inventory"
+          },
+          "description": "address stock only within universe 'inventory'",
+          "token": "on_universe('inventory')"
+        }
+      ],
+      "detail": "stock @ category: 'category' is not addressable in universe 'inventory' (out of domain \u2014 undefined, not missing)",
+      "discriminator": "unsupported",
+      "kind": "refuse",
+      "reason": "out_of_universe"
+    },
+    "outcome": "refuse",
+    "population": null,
+    "values": null
+  },
+  "the_lesson": "the out-of-domain plan is killed by LAWFULNESS before faithfulness is consulted; the substituted plan passes lawfulness completely and only FAITHFULNESS catches it. Two obligations, two different deaths."
+}
