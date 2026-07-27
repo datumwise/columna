@@ -93,12 +93,12 @@ jobs:
 
       # The UMBRELLA `columna` is pinned alongside its libs so the generators can report the
       # release/install version into the site (Huayin's version ruling, 2026-07-25). Verified by
-      # dry-run: columna==0.13.0 resolves to exactly columna-core==0.13.0 + columna-server==0.8.0 —
+      # dry-run: columna==0.13.1 resolves to exactly columna-core==0.13.1 + columna-server==0.8.0 —
       # the versions already pinned, which stay as guards. THE PIN AND THE GENERATOR MUST SHIP
       # TOGETHER: the generator reporting `columna` without this pin is what produced a null version
       # on prod (2026-07-26) — the generator landed, the pin did not.
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
-        run: pip install "columna==0.13.0" "columna-core==0.13.0" "columna-server==0.8.0"
+        run: pip install "columna==0.13.1" "columna-core==0.13.1" "columna-server==0.8.0"
 
       # PROSE-COHERENCE TRIPWIRE (from the #45 incident): the integrity gate guards WIRE, not WORDS.
       # This parse-checks every documented FrameQL block in the corpus + llms files against the INSTALLED
@@ -133,6 +133,14 @@ jobs:
           python scripts/gen_grammar.py > src/data/grammar.generated.json
           echo "grammar bytes: $(wc -c < src/data/grammar.generated.json)"
           echo "universe-visual bytes: $(wc -c < src/data/universe_visual.generated.json)"
+
+      # THE FLAP DETECTOR (0.13.1). A recorded exhibit changes ONLY by re-recording — this enforces the
+      # other half: that it does not change by ITSELF. The alloc badge rendered `-0.0000` on ~20% of
+      # runs of an IDENTICAL package and input (float summation order), and it reached a byte-preserved
+      # artifact, so every deploy was a coin flip. Fixed at the cause in core 0.13.1; this is the
+      # structural half, so the CLASS cannot recur silently in any generator.
+      - name: Flap detector — every committed-output generator must be reproducible (fails closed)
+        run: python scripts/check_generator_determinism.py
 
       - name: Install site dependencies
         run: npm ci

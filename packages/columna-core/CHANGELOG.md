@@ -7,6 +7,41 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.13.1 — the reconciliation delta reports at the resolution its tolerance warrants
+
+**WIRE CHANGE, named not silent** (standing rule: removal-and-change is always named). Within-tolerance
+reconciliation deltas now canonicalize to `0.0` — both the prose in the alloc badge and the structured
+`reconciliation.delta` field. In-tree consumers only; **no `contract_version` bump** (the envelope and
+the four moods are untouched).
+
+**THE DOCTRINE**: *a value below the system's declared tolerance is noise, not a finding — reporting it
+as a finding is false precision.* Once the engine has ruled `abs(delta) <= tol` — the exact condition
+of `status: "reconciles"` — the residual bits sit below its own declared resolution of meaning. Serving
+them as data is false precision, which is a species of confident wrong number. The masthead does not
+say "no *large* wrong numbers."
+
+- **The defect.** The alloc badge rendered `delta 0.0000` on most runs and `-0.0000` on ~20% — same
+  package, same input, same machine. Instrumentation showed the raw subtraction alternating between
+  exactly `0.0` and `±4.656612873077393e-10` (2**-31), decided by float SUMMATION ORDER, ~2e-16
+  relative to a $2.2M total. It reached a byte-preserved recorded exhibit, so an artifact that may
+  change only by re-recording was changing by itself, every deploy, on a coin flip.
+- **The fix**, at the point of computation (`canonical_delta`), not at the formatting boundary — the
+  structured field must be canonical too, or a consumer reading the number gets the artifact even when
+  the prose does not.
+- **No laundering.** A delta OUTSIDE tolerance keeps its exact value and its sign. Asserted by test:
+  the guard must never quietly absorb a real shortfall.
+- **Root cause is float summation order**, and it is fixed at the cause. Pinning threads was tried and
+  REJECTED as a fix: it did not remove the flap and in fact inverted its distribution — suppressing a
+  symptom while leaving the class alive.
+- **Structural guard** (site-side, same release): `check_generator_determinism.py` runs every
+  committed-output generator twice and asserts byte-identity, so non-determinism in a recorded
+  artifact is a loud build failure instead of a 20%-of-deploys surprise.
+
+**Provenance, in full** — flagged at the #85 preview, ordered for the 0.12.1 cargo, never landed;
+resurfaced as a flap during the 0.13.0 confirmation re-record; misdiagnosed twice as a signed zero —
+once by the builder, once by the desk, neither having looked at the number — then measured, then fixed
+at the true cause.
+
 ## 0.13.0 — the ASSERT retirement
 
 **BREAKING.** `ASSERT` (both forms — `ASSERT <n> [ON <u>] WHERE <pred>` and
