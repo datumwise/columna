@@ -1,11 +1,27 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+// SITEMAP (2026-07-28). Added on launch eve after `site:datumwise.ai` returned ZERO indexed results
+// and an assistant, unable to retrieve the domain, silently substituted the confusable neighbour
+// `datawise.ai` and read THAT instead. The site was never blocked — every crawler UA gets a 200 with
+// the full page, there is no noindex anywhere, http 308s to https, DNS is clean. It was simply
+// UNDISCOVERED, with neither of the two affordances that get a new domain crawled. This is the
+// cheaper of the two and it stays correct by construction: the sitemap is generated from the real
+// route list at build, so it cannot drift from the pages that actually ship.
+import sitemap from '@astrojs/sitemap';
 
 // Static, typography-forward, no framework islands — exhibits are vanilla client scripts so the
 // page stays text + islands only (Lighthouse ≥ 90 on a text-heavy page).
 export default defineConfig({
   site: 'https://datumwise.ai',
   output: 'static',
+  // `redirects` below are emitted as meta-refresh stubs (OF-22), so they are excluded: a sitemap
+  // should list canonical destinations, never the stubs that point at them.
+  integrations: [sitemap({
+    filter: (page) => ![
+      'https://datumwise.ai/notes/we-invented-nothing/',
+      'https://datumwise.ai/launch/',
+    ].includes(page),
+  })],
   // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static
   // redirect for each in the build.
   //  · "We invented nothing" re-registered as "Why Columna looks the way it does" (2026-07-17).
