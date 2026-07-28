@@ -1,0 +1,42 @@
+# datumwise.ai — robots.txt
+#
+# Added 2026-07-28. There was no robots.txt at all before this (a 404), which blocks nothing but
+# offers nothing either: no sitemap pointer, and no explicit welcome for the AI crawlers that are
+# now a primary discovery path for a project like this one.
+#
+# The posture is deliberately open. Everything here is public by design — Apache-2.0 code, CC-BY
+# papers, and a corpus written to be read by machines (see /llms.txt). We would rather be read
+# accurately than not read at all.
+
+User-agent: *
+Allow: /
+
+# Named explicitly rather than relying on the wildcard, so the intent is legible to a human auditing
+# this file: these are welcome.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://datumwise.ai/sitemap-index.xml
+
+# For agents: /llms.txt is the curated orientation, /llms-full.txt the fuller corpus.
