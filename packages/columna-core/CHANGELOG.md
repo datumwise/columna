@@ -7,6 +7,46 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.13.3 — every dependency gets a ceiling, and a guard that makes it permanent
+
+**PACKAGING CHANGE, no code change.** No engine, wire, or contract behaviour is touched;
+`contract_version` stays `"1"`. The `-core` version line moves to `0.13.3-core`.
+
+The release is driven by `columna-server` 0.8.2 — see that CHANGELOG for the outage: upstream
+`mcp 2.0.0` (2026-07-28 13:45 UTC) moved `mcp.server.fastmcp`, and an uncapped `mcp>=1.0` meant
+every fresh `pip install columna` died at import for ~17 hours. `columna-core` was not the broken
+package; it is bumped because **the cap sweep is repo-wide and a metadata fix that is not published
+does not exist.**
+
+**What changed here:**
+
+- **`pyarrow>=15` → `pyarrow>=15,<26`.** The one genuinely uncapped runtime dependency in core.
+  Flagged honestly: pyarrow ships a major roughly quarterly (15 → 25 in about two years), so this
+  ceiling needs a deliberate lift more often than the others. That is the cost of the guarantee and
+  it is paid on purpose — a quarterly one-line lift beats a stranger's first install detonating on
+  a major nobody here has run.
+- `[test]`: `pytest>=8.0` → `pytest>=8.0,<10.0`.
+- `build-system`: `hatchling` → `hatchling>=1.27,<2.0`. Build dependencies are capped too: a build
+  backend that breaks stops the release that carries the fix, which is as user-visible as a runtime
+  break. The floor is the first hatchling with PEP 639 (`license` + `license-files`), which this
+  package uses.
+- `polars<2.0`, `duckdb<2.0`, `datasketches<6.0` already carried ceilings and are unchanged.
+
+**THE GUARD** — `scripts/assert_dep_caps.py`, in CI on every push and PR: every declared dependency,
+in every package, must carry an upper bound (`<`, `<=`, `==`, `~=` — a `!=` names one bad version,
+not a boundary). It covers `dependencies`, every `optional-dependencies` group, and
+`build-system.requires`, and it strips environment markers before checking, so
+`tomli>=2.0,<3.0; python_version < '3.11'` is judged on its specifier and not on the `<` inside its
+marker. The website's `package.json` is checked too — npm carets are bounded by construction, and
+now that is enforced rather than assumed.
+
+**Twice is a class.** 0.13.2 was an unbounded `requires-python` found by a human on a Windows pass
+the night before launch. 0.8.1 was an unbounded `mcp` found by CI going red on a specs-only merge
+the day after. Both are the same failure: *a claim about versions that do not exist yet, checked by
+nobody.* The doctrine was already written down — **fail closed with a named reason beats rare
+success** — and this release finishes applying it to dependency metadata, by construction rather
+than by vigilance.
+
 ## 0.13.2 — the declared Python floor and ceiling: 3.10–3.13, 64-bit
 
 **PACKAGING CHANGE, no code change.** `requires-python` moves from `">=3.10"` to `">=3.10,<3.14"`
