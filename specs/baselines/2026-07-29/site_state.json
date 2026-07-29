@@ -1,0 +1,76 @@
+{
+  "live_version_string": "0.13.3",
+  "origin": "https://datumwise.ai",
+  "primary_surface_count": 7,
+  "surfaces": {
+    "/": {
+      "bytes": 65444,
+      "primary": false,
+      "sha256": "4556b4297165573f023cfa7b4a4d2895525c49bcfcde39442f5383ba2486d740",
+      "status": 200,
+      "title": "Columna \u2014 an open-source data framework"
+    },
+    "/atlas": {
+      "bytes": 57072,
+      "primary": true,
+      "sha256": "7ce3b2cef6846f119b6dda96c01cd78658afd9f8e3fdbbc3971bef57a98f6500",
+      "status": 200,
+      "title": "The Silent Failure Atlas \u2014 datumwise"
+    },
+    "/case": {
+      "bytes": 87818,
+      "primary": true,
+      "sha256": "cdb50a0c1267d223e6423982853fae3156f39a5926c395dc3c308f8e3d1ebb58",
+      "status": 200,
+      "title": "The Case \u2014 Cascadia Retail \u2014 datumwise"
+    },
+    "/install": {
+      "bytes": 10261,
+      "primary": false,
+      "sha256": "f3fa6a98e4d536ed23b66967537039d7d0cce83179c4e227a14c194342b315d9",
+      "status": 200,
+      "title": "Install \u2014 datumwise"
+    },
+    "/ladder": {
+      "bytes": 44482,
+      "primary": true,
+      "sha256": "96dc6cea4c89b16b89ee0fe52638e2ddbff23d5fc8769f9975ad26ea3967ae85",
+      "status": 200,
+      "title": "The Ladder \u2014 datumwise"
+    },
+    "/learn": {
+      "bytes": 12447,
+      "primary": true,
+      "sha256": "dc370b05c8f8e36094d1dcc8c54ef315bbae7a4089983a9ea74cd700f1279dd7",
+      "status": 200,
+      "title": "Learn \u2014 datumwise"
+    },
+    "/llms.txt": {
+      "bytes": 4657,
+      "primary": false,
+      "sha256": "fd052dce6c81d682d48f972c9e03a3999b8985260ea9f9e5b9bac1f970ade7aa",
+      "status": 200
+    },
+    "/positions": {
+      "bytes": 7402,
+      "primary": true,
+      "sha256": "1a98bc688ec753c7ea42ead0d34b32c22982e77f36d647b397d28db9a51f072e",
+      "status": 200,
+      "title": "Positions \u2014 datumwise"
+    },
+    "/thesis": {
+      "bytes": 23294,
+      "primary": true,
+      "sha256": "197954ac9aeaeae8f88b328467e4ffdbb926d298556f25933605f9bb7ba525b3",
+      "status": 200,
+      "title": "The Columna Thesis \u2014 datumwise"
+    },
+    "/why": {
+      "bytes": 53803,
+      "primary": true,
+      "sha256": "a6e71c293908ac9aa544f8c3ae165ee4180c4fb739a63e3997282a9eea93e033",
+      "status": 200,
+      "title": "Why \u2014 datumwise"
+    }
+  }
+}
