@@ -135,7 +135,21 @@ jobs:
           # while PyPI served 0.13.3. A missing package fails loudly; a SUPERSEDED one resolves.
           # Reading the pins from the pyprojects makes the wedge assert what it always claimed to:
           # the site is built by the packages THIS COMMIT says it shipped. See scripts/release_pins.py.
-          read -r -a PINS <<< "$(python scripts/release_pins.py)"
+          # $GITHUB_WORKSPACE, not a relative path: this job's working-directory is apps/website.
+          PINS_STR="$(python "${GITHUB_WORKSPACE}/scripts/release_pins.py" || true)"
+          # A DERIVATION FAILURE IS NOT PROPAGATION LAG — fail NOW, do not spend the retry budget.
+          # First cut of this used a relative path, produced an empty pin list, and the loop dutifully
+          # retried "pip install <nothing>" eight times over ~560s before failing with a message about
+          # index propagation. It failed closed (right) for a reason it named wrongly (not right).
+          # Retries are for a release that exists and has not propagated; a broken derivation is a
+          # config error and gets an immediate, honestly-labelled death.
+          if [ -z "${PINS_STR}" ]; then
+            echo "::error::deploy wedge: could not DERIVE the pinned triad from the pyprojects " \
+                 "(scripts/release_pins.py produced nothing). This is a config error in the workflow, " \
+                 "not index propagation. Not retrying."
+            exit 1
+          fi
+          read -r -a PINS <<< "${PINS_STR}"
           echo "deploy wedge: pinned triad (derived from pyproject) = ${PINS[*]}"
           ATTEMPTS=8
           for attempt in $(seq 1 "${ATTEMPTS}"); do
