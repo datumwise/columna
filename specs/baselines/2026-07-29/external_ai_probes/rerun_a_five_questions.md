@@ -1,10 +1,8 @@
 # Columna and datumwise.ai: Five Questions — day-2 RE-RUN, 2026-07-29
 
 **Capture:** **A**
-**Assistant:** ⚠️ **UNATTRIBUTED — see `RERUN_INDEX.md`.** The upload carries no assistant name and
-the desk instruction did not state one. Recorded as a lettered capture rather than guessed: the
-2026-07-27 baseline determined search modes *from the transcripts, not by assumption*, and a
-mis-attributed re-run would produce a per-assistant "drift" that is really a mix-up.
+**Assistant:** **ChatGPT** — amended 2026-07-29 by Huayin; filed UNATTRIBUTED (capture A) at first filing.
+**Session:** fresh
 **Captured:** 2026-07-29 (day 2 — ~40 hours after the 2026-07-27 launch-eve baseline)
 **Relayed by:** Huayin — uploaded 2026-07-29 03:46 UTC
 **Source file:** `cd5fac47_columna_five_questions_and_answers.md` · sha256 `3b55b18daa6620b5fe4da2ffbaea8b65554739b98063c3fea302a1121e03a3dc`

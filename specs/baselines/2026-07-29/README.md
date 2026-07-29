@@ -84,9 +84,21 @@ found nothing; this one fills the void fluently. **A confident wrong answer abou
 purpose is preventing confident wrong answers** is the finding of this re-run, and it is not the
 happy half.
 
-**Attribution for all three captures is OPEN** — the uploads carry no assistant names, so they are
-filed as A/B/C rather than guessed. The per-assistant diff, which is most of what a re-run is *for*,
-is blocked on that one piece of desk information.
+**Attribution was amended the same day** (Huayin): **A = ChatGPT · B = Grok · C = Perplexity**, all
+fresh sessions. **And it inverts the headline.** Q2 was answered wrongly on day zero by exactly one
+assistant — **Perplexity** — and forty hours later Perplexity was `not-found-confabulated`: no longer
+answering about us at all. **Nobody corrected Q2.** The improvement in the set is **Grok**, which
+moved from honestly not finding us to finding us and getting it right; ChatGPT was stable and
+deepened. Two assistants, two different events, which average into a sentence true of nobody.
+
+The regression is the more important half and runs against the intuitive story: **Perplexity is the
+search-first engine of the three**, the leading indicator for everything downstream of retrieval.
+With the site live, robots.txt and sitemap added, and seven papers on Zenodo, it went from finding us
+to filling our slot with the confusable cluster.
+
+⚠️ **The day-ZERO attribution is separately in conflict** for Grok vs ChatGPT — see
+`../2026-07-27/external_ai_probes/ATTRIBUTION_CONFLICT.md`. Perplexity agrees in both accounts, so
+the regression above stands regardless; two rows of the movement table are provisional until ruled.
 
 Also recorded: **OF-22's retired "metrics engine" copy reappeared** — inside one of the two *accurate*
 captures — and **nothing yet cites the seventh paper** (DOI `10.5281/zenodo.21632723`, live on
