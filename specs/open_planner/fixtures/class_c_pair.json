@@ -1,0 +1,108 @@
+{
+  "M0": {
+    "description": "shipped warehouse, memberships collapsed to one per product",
+    "outputs_identical": true,
+    "plan_a": {
+      "outcome": "disclose",
+      "values": {
+        "G01": 152293.59,
+        "G02": 143407.01,
+        "G03": 156645.82,
+        "G04": 160539.1,
+        "G05": 197500.23,
+        "G06": 176569.5,
+        "G07": 176483.83,
+        "G08": 169028.39,
+        "G09": 122704.03,
+        "G10": 296930.61,
+        "G11": 301693.5,
+        "G12": 158596.25
+      }
+    },
+    "plan_b": {
+      "outcome": "disclose",
+      "values": {
+        "G01": 152293.59,
+        "G02": 143407.01,
+        "G03": 156645.82,
+        "G04": 160539.1,
+        "G05": 197500.23,
+        "G06": 176569.5,
+        "G07": 176483.83,
+        "G08": 169028.39,
+        "G09": 122704.03,
+        "G10": 296930.61,
+        "G11": 301693.5,
+        "G12": 158596.25
+      }
+    }
+  },
+  "M1": {
+    "description": "M0 + ONE row: product P0022 also in G06 (priority 12 > 2)",
+    "diverged_cells": {
+      "G06": {
+        "plan_a": 245854.96,
+        "plan_b": 176569.5
+      }
+    },
+    "outputs_identical": false,
+    "perturbation_row": {
+      "category_id": "G06",
+      "primary_unchanged_because": "G10 (priority 2) still outranks G06 (priority 12)",
+      "product_id": "P0022",
+      "product_revenue": 69285.45999999996
+    },
+    "plan_a": {
+      "outcome": "disclose",
+      "values": {
+        "G01": 152293.59,
+        "G02": 143407.01,
+        "G03": 156645.82,
+        "G04": 160539.1,
+        "G05": 197500.23,
+        "G06": 245854.96,
+        "G07": 176483.83,
+        "G08": 169028.39,
+        "G09": 122704.03,
+        "G10": 296930.61,
+        "G11": 301693.5,
+        "G12": 158596.25
+      }
+    },
+    "plan_b": {
+      "outcome": "disclose",
+      "values": {
+        "G01": 152293.59,
+        "G02": 143407.01,
+        "G03": 156645.82,
+        "G04": 160539.1,
+        "G05": 197500.23,
+        "G06": 176569.5,
+        "G07": 176483.83,
+        "G08": 169028.39,
+        "G09": 122704.03,
+        "G10": 296930.61,
+        "G11": 301693.5,
+        "G12": 158596.25
+      }
+    }
+  },
+  "class_c_established": true,
+  "natural_coincidence_audit": {
+    "G11_cause": "G11 holds priority 1 (the minimum), so every product touching it has it as primary",
+    "G11_usable_for_perturbation": false,
+    "G11_why_not": "robust -- no category can outrank priority 1, so no single row breaks it",
+    "all_single_membership_categories": [],
+    "conclusion": "route (a) exhausted on this data; A1's sanctioned route (b) taken",
+    "split_vs_primary_coincidences": [],
+    "touch_vs_primary_coincidences": [
+      "G11"
+    ]
+  },
+  "pair": {
+    "denotations_differ": "touch multi-counts across every membership (totals exceed the grand total); primary single-counts to the top-priority category (totals match the grand total) -- the shipped Manifold says so in its own face declarations",
+    "plan_a": "SELECT revenue AT {category.touch}",
+    "plan_b": "SELECT revenue AT {category.primary}"
+  },
+  "the_lesson": "identical outputs on M0, different outputs on M1, from ONE row -- so no finite set of output observations establishes faithfulness. Only plan |= ask separates these two, and it separates them on M0 just as surely as on M1, where the outputs happen to agree."
+}
