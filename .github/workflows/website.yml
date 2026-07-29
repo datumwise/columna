@@ -128,7 +128,15 @@ jobs:
       - name: Install the SHIPPED package from PyPI (pinned) — the deploy wedge
         run: |
           set -euo pipefail
-          PINS=("columna==0.13.2" "columna-core==0.13.2" "columna-server==0.8.1")
+          # DERIVED, NEVER HAND-TYPED (2026-07-29). These pins used to be a literal — a second copy
+          # of the release version kept in sync by memory. On the v0.13.3 flip the copy was stale, so
+          # the wedge installed the PREVIOUS, BROKEN triad (0.13.2 / 0.8.1, the one that died on
+          # mcp 2.0), reported "resolved on attempt 1", and the site published 0.13.2 as current
+          # while PyPI served 0.13.3. A missing package fails loudly; a SUPERSEDED one resolves.
+          # Reading the pins from the pyprojects makes the wedge assert what it always claimed to:
+          # the site is built by the packages THIS COMMIT says it shipped. See scripts/release_pins.py.
+          read -r -a PINS <<< "$(python scripts/release_pins.py)"
+          echo "deploy wedge: pinned triad (derived from pyproject) = ${PINS[*]}"
           ATTEMPTS=8
           for attempt in $(seq 1 "${ATTEMPTS}"); do
             if pip install --no-cache-dir "${PINS[@]}"; then
