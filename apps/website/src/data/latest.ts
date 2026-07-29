@@ -48,6 +48,14 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
   '0.13.0': { title: "the ASSERT retirement — the language's first removal", date: '2026-07-26' },
   '0.13.1': { title: 'the reconciliation delta reports at its tolerance', date: '2026-07-27' },
   '0.13.2': { title: 'the declared Python floor and ceiling: 3.10–3.13, 64-bit', date: '2026-07-27' },
+  // Stated plainly, on purpose (Huayin, 2026-07-29): upstream mcp 2.0 shipped at 13:45 UTC on
+  // 2026-07-28 — hours after our launch — and moved fastmcp; our unbounded `mcp>=1.0` meant fresh
+  // installs broke for ~17 hours. Capped and fixed. A rail that only ever announces features is a
+  // rail nobody has reason to believe; the release that says what went wrong is the asset.
+  '0.13.3': {
+    title: 'upstream mcp 2.0 broke fresh installs for 17 hours — capped, fixed, and guarded',
+    date: '2026-07-29',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

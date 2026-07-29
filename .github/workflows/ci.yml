@@ -27,12 +27,16 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e packages/columna-core
-          # columna-core is a local (not-yet-published) dependency, so install the server without
-          # re-resolving it, and add its runtime + test deps explicitly.
-          pip install "mcp>=1.0" "tomli>=2.0; python_version < '3.11'"
-          pip install --no-deps -e packages/columna-server
-          pip install pytest ruff pytest-asyncio
+          pip install -e "packages/columna-core[test]"
+          # CI RESOLVES THE SERVER'S DEPS FROM ITS OWN METADATA — no hand-copied specs (0.13.3).
+          # This step used to read `pip install "mcp>=1.0" ...`, a transcription of the pyproject
+          # kept in sync by memory. It drifted in the worst possible direction: CI installed mcp
+          # from a spec that was not the shipped one, so the shipped constraint was never the thing
+          # under test. Installing the package itself means a cap can never be right here and wrong
+          # on PyPI. The local editable columna-core already satisfies the server's floor, so pip
+          # does not go to the index for it.
+          pip install -e "packages/columna-server[test]"
+          pip install ruff
 
       # Bare invocations: exit codes count (no pipe through tail/head).
       - name: Ruff (correctness only — F, E9)
@@ -115,6 +119,25 @@ jobs:
         run: |
           demoenv/${{ matrix.venv-bin }}/columna-server${{ matrix.exe }} demo --play \
             | demoenv/${{ matrix.venv-bin }}/python scripts/assert_demo_play.py
+
+  dep-caps:
+    name: dependency cap guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # THE CLASS GUARD FOR DEPENDENCY METADATA (Huayin, 2026-07-29). Twice now an uncapped
+      # dependency has broken users with nothing in this repo changing: datasketches/3.14 on
+      # launch eve (0.13.2, caught by a human on a Windows pass) and `mcp>=1.0` the day after
+      # launch (0.8.1 — mcp 2.0.0 landed 2026-07-28 13:45 UTC and moved fastmcp; every fresh
+      # `pip install columna` died at import). The third instance should be impossible by
+      # construction, not by vigilance. No path filter, and it runs on push as well as PR: this
+      # failure class arrives WITHOUT a diff, so it must be checked on every build, not only on
+      # the ones that touch packaging.
+      - name: Every declared dependency carries an upper bound
+        run: python scripts/assert_dep_caps.py
 
   purged-grammar:
     name: purged-grammar guard
