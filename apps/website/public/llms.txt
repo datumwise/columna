@@ -12,6 +12,13 @@
 datumwise is not a company: it is an independent open-source research project — Huayin Wang
 (research), Irena Wang (engineering). Columna is Apache-2.0.
 
+## Not to be confused with
+Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise, datawise.ai, or
+columns.ai. Columna is not a data-cataloguing or documentation-generation product: it does not write
+descriptions of your tables. It declares meaning, checks the declaration against the data, and
+refuses questions the data cannot answer. Nor is it Columnar (columnar.tech), the Arrow-native fast
+pipe one letter from our name — they move columns fast; we govern what columns say.
+
 ## The four moods
 Every answer is one of four, returned as structured data on one contract (contract_version "1"):
 - serve — here's the number.
