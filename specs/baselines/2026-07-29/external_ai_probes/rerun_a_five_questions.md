@@ -9,6 +9,7 @@ mis-attributed re-run would produce a per-assistant "drift" that is really a mix
 **Relayed by:** Huayin — uploaded 2026-07-29 03:46 UTC
 **Source file:** `cd5fac47_columna_five_questions_and_answers.md` · sha256 `3b55b18daa6620b5fe4da2ffbaea8b65554739b98063c3fea302a1121e03a3dc`
 **Search mode:** **SEARCHED AND FOUND US.** Carries inline `Source:` lines to five distinct datumwise.ai deep URLs — `/thesis`, `/how-these-documents-relate`, `/why` (×3), `/atlas` (×2), and the root.
+**Mode:** `found-and-right` — per `../../PROBE_MODE_SCHEMA.md`. **Basis:** Q2 answered *"No—not as it is publicly presented… an independent open-source research project"*; five distinct datumwise.ai deep URLs cited inline.
 **Provenance:** the body below is the assistant's reply **VERBATIM**, byte-preserved from the
 uploaded file. Nothing is summarized, corrected, or trimmed — including anything wrong. A corrected
 error is one of the clearest drift signals a later capture gives us; so is a new one.
