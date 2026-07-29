@@ -1,0 +1,48 @@
+{
+  "packages": {
+    "columna": {
+      "downloads_recent": {
+        "last_day": 21,
+        "last_month": 1287,
+        "last_week": 622
+      },
+      "json_api_latest_version": "0.13.3",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.12.1",
+        "0.13.0",
+        "0.13.1",
+        "0.13.2",
+        "0.13.3"
+      ]
+    },
+    "columna-core": {
+      "downloads_unavailable_reason": "HTTPError: HTTP Error 429: Too Many Requests",
+      "json_api_latest_version": "0.13.3",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.12.0",
+        "0.13.0",
+        "0.13.1",
+        "0.13.2",
+        "0.13.3"
+      ]
+    },
+    "columna-server": {
+      "downloads_recent": {
+        "last_day": 17,
+        "last_month": 1709,
+        "last_week": 657
+      },
+      "json_api_latest_version": "0.8.2",
+      "requires_python": "<3.14,>=3.10",
+      "simple_index_versions_tail": [
+        "0.7.0",
+        "0.7.1",
+        "0.8.0",
+        "0.8.1",
+        "0.8.2"
+      ]
+    }
+  }
+}
