@@ -4,11 +4,13 @@
 Huayin, uploaded **2026-07-29 03:46 UTC** — roughly **40 hours** after the day-zero battery.
 Bodies preserved **verbatim**; the PDF is byte-identical to what was handed over.
 
-| capture | file | found us? | Q2 "is datumwise a company?" |
+**Modes per `../../PROBE_MODE_SCHEMA.md`** (ratified 2026-07-29, minted from this re-run).
+
+| capture | file | mode | Q2 "is datumwise a company?" |
 |---|---|---|---|
-| **A** | `rerun_a_five_questions.md` | ✅ **yes** — five distinct deep URLs | **No** — *"independent open-source research project"* ✅ |
-| **B** | `rerun_b_overview.md` | ✅ **yes** — deep URLs + a correct Zenodo DOI | **No** — *"not described as a formal company"* ✅ |
-| **C** | `rerun_c_what_is_columna.pdf` (10pp, 66 citations) | ❌ **no** — and **answered anyway** | not asked; the whole capture is about a different product |
+| **A** | `rerun_a_five_questions.md` | ✅ **found-and-right** — five distinct deep URLs | **No** — *"independent open-source research project"* ✅ |
+| **B** | `rerun_b_overview.md` | ✅ **found-and-right** — deep URLs + a correct Zenodo DOI | **No** — *"not described as a formal company"* ✅ |
+| **C** | `rerun_c_what_is_columna.pdf` (10pp, 66 citations) | ❌ **not-found-confabulated** | not asked; the whole capture is about a different product |
 
 ---
 
@@ -144,3 +146,19 @@ the next capture.
 These are single-shot captures of non-deterministic systems. **One capture is an observation, not a
 measurement**; a difference between two captures may be drift or may be sampling. That is exactly why
 bodies are preserved verbatim and hashed: the record has to outlive our current reading of it.
+
+---
+
+## Two rows minted from this re-run (Huayin, 2026-07-29)
+
+1. **DISAMBIGUATION — shipped.** `llms.txt`, the site footer, and `/about` now carry one explicit
+   line: *"Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise,
+   datawise.ai, or columns.ai."* Cheap, serves humans and retrieval alike. The neighbour names are
+   **deliberately not hyperlinked** — the point is to separate from the cluster, not to feed it.
+2. **PROBE-MODE SCHEMA — ratified.** `../../PROBE_MODE_SCHEMA.md`. Capture C proves accuracy alone
+   under-describes the space: scored on accuracy it is the same row as day-zero Grok, and the two are
+   not remotely the same event. The mode taxonomy is our moods vocabulary pointed outward.
+
+**Not actioned, by ruling:** OF-22's echo (in-repo copy is clean; external echoes decay on their own
+clock) and paper 7 uncited at 40h (expected indexing lag — re-check at the next probe). Public
+recognition-claims stay out of the repo README until a re-run comes back clean end-to-end.

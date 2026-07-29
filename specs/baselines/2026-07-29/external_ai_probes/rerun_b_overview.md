@@ -9,6 +9,7 @@ mis-attributed re-run would produce a per-assistant "drift" that is really a mix
 **Relayed by:** Huayin — uploaded 2026-07-29 03:46 UTC
 **Source file:** `cef1849d_Columna_Overview.md` · sha256 `7c271d7da1b273cd59b3eca578b568b5d4be512c21cdecc062ba385a9bdf3aef`
 **Search mode:** **SEARCHED AND FOUND US.** Self-dated *"as of July 28-29, 2026"*. Links `/announcing-columna`, `/atlas`, `/why`, the GitHub repo, and cites a real Zenodo DOI (`10.5281/zenodo.20762839` — the Silent Failure Atlas, Wang, Huayin, 2026-06-19; verified against the Zenodo API on filing).
+**Mode:** `found-and-right` — per `../../PROBE_MODE_SCHEMA.md`, *with a carried error*. **Basis:** Q2 answered *"No. Datumwise is not described as a formal company"*; deep URLs plus a correct Zenodo DOI. The carried error is OF-22's retired copy: *"also described as a metrics engine"*.
 **Provenance:** the body below is the assistant's reply **VERBATIM**, byte-preserved from the
 uploaded file. Nothing is summarized, corrected, or trimmed — including anything wrong. A corrected
 error is one of the clearest drift signals a later capture gives us; so is a new one.
