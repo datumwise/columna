@@ -14,33 +14,65 @@ Bodies preserved **verbatim**; the PDF is byte-identical to what was handed over
 
 ---
 
-## ⚠ ATTRIBUTION IS OPEN — read before diffing
+## ATTRIBUTION — AMENDED 2026-07-29 (Huayin), and the per-assistant diff it unlocks
 
-**None of the three uploads names its assistant, and this file does not guess.** They are filed as
-captures **A / B / C**.
+Filed A/B/C; amended the same day by the desk:
 
-This is not pedantry, it is the difference between a measurement and a story. The day-zero battery
-determined search modes *"from the transcripts, not assumed"*, and the whole value of a re-run is the
-**per-assistant** diff: *did Perplexity's wrong "yes, a company" entrench or correct?* That question
-cannot be answered by three unlabelled files. Attributed wrongly, capture C would read as a
-catastrophic regression by whichever assistant got day-zero right — a finding manufactured entirely
-by a filing error.
+| capture | assistant | session | mode |
+|---|---|---|---|
+| **A** `rerun_a_five_questions.md` | **ChatGPT** | fresh | `found-and-right` |
+| **B** `rerun_b_overview.md` | **Grok** | fresh | `found-and-right`, carrying OF-22 |
+| **C** `rerun_c_what_is_columna.pdf` | **Perplexity** | fresh | `not-found-confabulated` |
 
-**What is needed from the desk:** which assistant produced A, B, and C, and in which mode (default
-chat, search, deep-research, or a fresh vs. continuing conversation — day zero found *primed-by-context*
-answers to be a third category, and it will recur).
+B being a **fresh** session resolves its self-dated *"as of July 28-29"* span as a date range rather
+than a continuing conversation — the primed-by-context worry does not apply here.
 
-Fingerprints, offered as evidence and explicitly **not** as identifications:
+### ⚠ THE HEADLINE INVERTS: the assistant that was wrong on day zero did not correct. It got worse.
 
-- **A** — `Source: [label](url)` lines inline under each section; no numbered reference list; the
-  same five-question structure as the day-zero battery.
-- **B** — self-dated *"Compiled from research and discussion as of July 28-29, 2026"*, a closing
-  "Key Resources" table, and a **`July 28-29` span**, which suggests a conversation carried across
-  days — i.e. **possibly context-bearing**, the day-zero Grok caveat repeating in a new place.
-- **C** — 10-page PDF export, **66 numbered citations**, bracketed markers `[1]`, `[2]`… in-body.
-  Search-first by construction.
+The 40-hour story told without attribution was *"Q2 corrected across assistants."* With names on the
+captures, that reading does not survive:
 
----
+| assistant | 2026-07-27 (day 0) | 2026-07-29 (day 2) | movement |
+|---|---|---|---|
+| **ChatGPT** | `found-and-right` — Q2 correct | `found-and-right` — Q2 correct, now with five deep-URL citations | **stable, deepened** |
+| **Grok** | `not-found-honest` — *"the searches… returned no usable results"* | `found-and-right` — deep URLs + a correct Zenodo DOI | **the real correction** ✅ |
+| **Perplexity** | `found-and-wrong` — *"**Yes**, Datumwise is described as a company"*, citing `/about` while contradicting it | **`not-found-confabulated`** — 66 citations, a different product, none of our pages | **REGRESSION** ❌ |
+
+**Nobody corrected Q2.** Q2 was answered wrongly on day zero by exactly one assistant — Perplexity —
+and forty hours later Perplexity was no longer answering the question about us at all. The
+improvement in the set comes from **Grok**, which moved from *honestly not finding us* to *finding us
+and getting it right*. Two different assistants; two different events. Averaged into "the assistants
+corrected", they cancel into a sentence that is true of nobody.
+
+**The regression is the more important half, and it runs against the intuitive story.** Perplexity is
+the **search-first** engine of the three — the one whose answers are constructed from retrieval at
+query time, and therefore the leading indicator for everything downstream of search. On launch eve it
+found us and mis-read us. Two days after launch — with the site live, `robots.txt` and `sitemap.xml`
+added (#112), and seven papers on Zenodo — it stopped finding us **and filled the gap with the
+confusable cluster**. Whatever is happening in that index is moving away from us, not toward us, and
+it is the one surface where the disambiguation line has to earn its keep.
+
+That single fact is what the disambiguation row (shipped 2026-07-29 in `llms.txt`, the site footer,
+and `/about`) is now up against. **The next probe re-tests Perplexity first.**
+
+### ⚠ AND: the day-zero attribution is in conflict — unresolved, deliberately
+
+The desk's day-zero list disagrees with what `../2026-07-27/external_ai_probes/` has **already
+filed**, for two of the three captures. Perplexity agrees in both accounts. **Grok and ChatGPT are
+swapped.** See `../2026-07-27/external_ai_probes/ATTRIBUTION_CONFLICT.md` for the byte-level evidence.
+
+**Which findings survive the conflict, and which do not:**
+
+| claim | robust to the swap? |
+|---|---|
+| **Perplexity: `found-and-wrong` → `not-found-confabulated`** | ✅ **YES** — Perplexity is consistent in both accounts. The headline regression stands regardless. |
+| One assistant moved `not-found-honest` → `found-and-right` | ✅ yes — but **which one** depends on the ruling |
+| One assistant was stable `found-and-right` | ✅ yes — likewise |
+| **Grok carries OF-22's "metrics engine"** on day 2 | ✅ yes — day-2 attribution is not in dispute |
+| *"Grok was the primed-by-context capture on day zero"* (published in #111) | ❌ **NO** — under the desk's list that capture is **ChatGPT's** |
+
+Until the conflict is ruled, the middle two rows of the movement table above are **provisional**, and
+this file says so rather than presenting a clean diff built on an unresolved mapping.
 
 ## FINDING 1 — the corpus is working, and the day-zero identity error is corrected
 

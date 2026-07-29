@@ -9,6 +9,14 @@ launch eve, **before any announcement**. Relayed by Huayin; bodies preserved **v
 | Perplexity | `perplexity.md` | **searched** — search-first by construction; carries citation markers |
 | Grok | `grok.md` | **searched and found nothing** — see the caveat below |
 
+## ⚠⚠ THE ASSISTANT NAMES IN THIS FILE ARE DISPUTED (raised 2026-07-29)
+
+The desk's attribution list disagrees with this filing for **two of three** captures: `chatgpt.md`
+and `grok.md` appear **swapped**. `perplexity.md` is agreed. Nothing has been renamed pending a
+ruling — a baseline is not edited on an open question. **Every assistant name below should be read as
+provisional**, including the primed-by-context caveat that follows, which under the desk's list
+belongs to ChatGPT rather than Grok. Byte-level evidence: `ATTRIBUTION_CONFLICT.md`.
+
 ## ⚠ Read this before treating the set as three clean baselines
 
 **Grok's transcript is not a clean external baseline for Q2–Q5.** It could not find us:

@@ -152,9 +152,10 @@ filed beside it, and every later measurement still counts from here.
 
 The 40-hour diff, in short — full detail in `../2026-07-29/external_ai_probes/RERUN_INDEX.md`:
 
-- ✅ **The day-zero identity error corrected.** Both captures that found us answer Q2 *"is datumwise a
-  company?"* with **No — an independent open-source research project**, the answer two of three
-  assistants got wrong on launch eve.
+- ❌ **The day-zero identity error was NOT corrected — it regressed.** With attribution amended
+  (2026-07-29), Q2 was wrong on day zero for exactly one assistant, **Perplexity**, and 40 hours later
+  Perplexity was `not-found-confabulated`: no longer answering about us at all. The set's improvement
+  is **Grok** (`not-found-honest` → `found-and-right`); **ChatGPT** was stable and deepened.
 - ✅ **Deep-URL citations, not homepage summaries** — `/thesis`, `/why`, `/atlas`,
   `/how-these-documents-relate`, `/announcing-columna` — plus a **correct Zenodo DOI** for the Silent
   Failure Atlas. The corpus strategy, measurably working.
@@ -163,5 +164,6 @@ The 40-hour diff, in short — full detail in `../2026-07-29/external_ai_probes/
   Datumwise/**Datawise**"* — built entirely from the confusable neighbours flagged above. Strictly
   worse than day zero's Grok, which found nothing and **said so**.
 - ⚠️ **OF-22 reappeared** ("metrics engine"), inside one of the *accurate* captures.
-- ⚠️ **Attribution of the three re-run captures is OPEN** — the uploads carry no assistant names, so
-  the per-assistant diff is blocked pending the desk's confirmation.
+- ⚠️ **The day-ZERO attribution in this directory is in CONFLICT** with the desk's list — Grok and
+  ChatGPT appear swapped; Perplexity agrees. Nothing here is renamed pending a ruling. See
+  `external_ai_probes/ATTRIBUTION_CONFLICT.md`.
