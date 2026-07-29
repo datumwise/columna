@@ -1,5 +1,8 @@
 # Probe-mode schema — the required field on every external-AI capture
 
+> **DORMANT — the probe program was CLOSED 2026-07-29 by ratifier ruling.** Day 0 and day 2 are
+> archived; no further runs are scheduled. **This schema is preserved, not retired** — it is how a revival would file, not a live process. See `README.md`.
+
 **Ratified 2026-07-29 (Huayin), minted from the day-2 re-run.** Every capture filed under
 `specs/baselines/<date>/external_ai_probes/` records a **mode**, alongside the assistant, the
 session type, and the date. Not optional, and not derived later from a reading of the body.

@@ -1,5 +1,8 @@
 # Baseline capture — 2026-07-27 (launch eve)
 
+> **DORMANT — the probe program was CLOSED 2026-07-29 by ratifier ruling.** Day 0 and day 2 are
+> archived; no further runs are scheduled. This file is preserved as filed. See `../README.md`.
+
 **The §5 baseline captures.** The dated record the launch is measured against. Its whole purpose:
 **post-launch drift becomes measurable.** Six weeks from now, "traffic is up" and "the wording
 changed" are opinions unless there is a dated artifact to diff against. This is that artifact.

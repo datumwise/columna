@@ -1,5 +1,8 @@
 # RE-RUN capture — 2026-07-29 (day 2)
 
+> **DORMANT — the probe program was CLOSED 2026-07-29 by ratifier ruling.** Day 0 and day 2 are
+> archived; no further runs are scheduled. This file is preserved as filed. See `../README.md`.
+
 **This is a RE-RUN, not a baseline.** The baseline is `../2026-07-27/` — launch eve, `0.13.2`, the
 dated artifact everything is measured against. This directory is the first diff against it, taken
 ~40 hours later, and it is filed **beside** the baseline rather than merged into it. A baseline that
