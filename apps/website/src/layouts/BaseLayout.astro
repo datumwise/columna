@@ -35,6 +35,65 @@ const nav = [
   { label: 'GitHub', href: 'https://github.com/datumwise/columna', external: true },
 ];
 const year = 2026;
+
+// STRUCTURED IDENTITY (schema.org JSON-LD) — the machine-readable half of the disambiguation row
+// (Huayin, 2026-07-29). The prose line in the footer and on /about tells a person we are not Datawise;
+// this tells a crawler, in the vocabulary crawlers actually consume.
+//
+// It is aimed at a specific, measured failure. On 2026-07-29 a search-first assistant answered
+// "what is Columna (datumwise.ai)?" with ten pages and sixty-six citations describing a
+// "self-documenting semantic layer product from Datumwise/Datawise" — none of the citations ours.
+// Forty hours earlier the same engine had found us. Prose alone did not hold that slot; an
+// unambiguous @id, a codeRepository, and an explicit non-affiliation line are the cheapest available
+// counter-pressure. See specs/baselines/2026-07-29/external_ai_probes/RERUN_INDEX.md.
+//
+// HOUSE RULE APPLIES HERE TOO: every claim below is one we can defend. No aggregateRating, no
+// invented awards, no "company" we are not. The confusable names appear ONLY inside
+// disambiguatingDescription — never as alternateName, which would assert the opposite of the point.
+const ORIGIN = 'https://datumwise.ai';
+const structuredIdentity = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${ORIGIN}/#datumwise`,
+      name: 'datumwise',
+      url: ORIGIN,
+      description:
+        'An independent open-source research project — not a company. It builds and stewards Columna, ' +
+        'the grammar layer for AI analytics.',
+      disambiguatingDescription:
+        'datumwise (datumwise.ai) is not affiliated with Datawise, datawise.ai, or columns.ai.',
+      email: 'contact@datumwise.ai',
+      sameAs: ['https://github.com/datumwise', 'https://github.com/datumwise/columna'],
+      member: [
+        { '@type': 'Person', name: 'Huayin Wang', jobTitle: 'Research' },
+        { '@type': 'Person', name: 'Irena Wang', jobTitle: 'Engineering' },
+      ],
+    },
+    {
+      '@type': 'SoftwareSourceCode',
+      '@id': `${ORIGIN}/#columna`,
+      name: 'Columna',
+      url: ORIGIN,
+      codeRepository: 'https://github.com/datumwise/columna',
+      programmingLanguage: 'Python',
+      license: 'https://www.apache.org/licenses/LICENSE-2.0',
+      author: { '@id': `${ORIGIN}/#datumwise` },
+      description:
+        'An open-source data framework — a data model (Manifold), a query language (FrameQL), and an ' +
+        'engine — built so that no layer of it can return a confident wrong number. Every answer is ' +
+        'one of four moods: serve, disclose, clarify, refuse.',
+      disambiguatingDescription:
+        'Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise, datawise.ai, ' +
+        'or columns.ai. It is not a data-cataloguing or documentation-generation product: it does not ' +
+        'write descriptions of your tables. It declares meaning, checks the declaration against the ' +
+        'data, and refuses questions the data cannot answer. It is also not Columnar (columnar.tech), ' +
+        'the Arrow-native connectivity layer one letter from the name.',
+      installUrl: 'https://pypi.org/project/columna/',
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -54,6 +113,9 @@ const year = 2026;
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    {/* Structured identity — see the frontmatter for why this row exists. set:html because Astro
+        must emit the JSON verbatim; JSON.stringify output contains no closing-script sequence. */}
+    <script type="application/ld+json" set:html={JSON.stringify(structuredIdentity)} is:inline />
     <Analytics />
   </head>
   <body>

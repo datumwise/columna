@@ -1,4 +1,10 @@
-# ⚠ OPEN — the day-zero attribution is in conflict for two of three captures
+# ⚠ DISPUTED — PERMANENTLY. The day-zero attribution conflicts for two of three captures.
+
+> **This stays open, by ruling (2026-07-29).** The probe program is closed and **no future run
+> depends on resolving it**, so `DISPUTED` is not a to-do awaiting attention — it is the **permanent,
+> honest label** on this pair of captures. Do not quietly pick one later. An unresolvable question
+> recorded as unresolved is a better record than a plausible guess that reads as settled: the same
+> rule the engine applies when it refuses, applied to our own archive.
 
 **Raised 2026-07-29.** The desk's attribution list, given when amending the day-2 re-run, disagrees
 with what this directory filed in #111. **Perplexity agrees in both accounts. Grok and ChatGPT are
@@ -35,7 +41,7 @@ be settled from the bodies alone:
   conversation — the profile #111 attributed to Grok, and equally an assistant with cross-session
   memory of the same project.
 
-## What the ruling changes
+## What a ruling WOULD have changed (there will not be one)
 
 - **The primed-by-context finding changes owner.** #111 published *"Grok answered Q2–Q5 from a prior
   conversation"*. Under the desk's list, that capture is **ChatGPT's**, and the published caveat names
@@ -59,3 +65,18 @@ conversation"* is listed by the desk as a **fresh session** — which means the 
 cross-session memory, not a continuing thread. Freshness is a property of the window; **the Basis
 quotation is the only evidence of what the model actually brought with it.** Recorded in
 `../../PROBE_MODE_SCHEMA.md`.
+
+---
+
+## Closed as DISPUTED — what that costs, stated plainly
+
+Two things stay unknown in the archive, permanently, and are labelled rather than fixed:
+
+1. **`chatgpt.md` and `grok.md` may carry each other's names.** Both files are byte-preserved and
+   correct as *captures*; only the two labels are in question.
+2. **The primed-by-context caveat published in #111 may name the wrong assistant.** Under the desk's
+   list it belongs to ChatGPT, not Grok.
+
+**What it does not cost:** the finding that mattered. Perplexity is agreed in both accounts, so
+`found-and-wrong` → `not-found-confabulated` — the regression the re-run turned on — does not depend
+on this at all.

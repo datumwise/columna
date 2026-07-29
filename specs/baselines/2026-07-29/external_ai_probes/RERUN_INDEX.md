@@ -1,5 +1,8 @@
 # External-AI probe battery — 2026-07-29 — **RE-RUN** (day 2)
 
+> **DORMANT — the probe program was CLOSED 2026-07-29 by ratifier ruling.** Day 0 and day 2 are
+> archived; no further runs are scheduled. This file is preserved as filed. See `../../README.md`.
+
 **The first re-probe against the 2026-07-27 launch-eve baseline.** Three captures, relayed by
 Huayin, uploaded **2026-07-29 03:46 UTC** — roughly **40 hours** after the day-zero battery.
 Bodies preserved **verbatim**; the PDF is byte-identical to what was handed over.
