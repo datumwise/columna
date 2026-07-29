@@ -24,7 +24,7 @@ produced it.
 | half | who | contents | status |
 |---|---|---|---|
 | Machine-capturable state | **agent** | site state, GitHub traffic, PyPI | ✅ in this directory |
-| Five-probe external-AI battery | **Huayin** | verbatim answers from ≥3 assistants | ⬜ awaiting paste — see `external_ai_probes/` |
+| Five-probe external-AI battery | **Huayin** | verbatim answers from 3 assistants | ✅ **FILED 2026-07-27** — ChatGPT · Perplexity · Grok; see `external_ai_probes/INDEX.md` |
 
 ---
 
@@ -36,7 +36,7 @@ produced it.
 | `github_traffic.json` | repo Traffic API snapshot (views, clones, referrers, paths), from the isolated `meta/analytics` branch |
 | `pypi.json` | per-package `/simple/` versions, JSON-API latest, `requires-python`, and recent download counts |
 | `vercel_web_analytics.json` | **a DECLARED GAP, not data** — plan-gated; ruled not-necessary 2026-07-27; see below |
-| `external_ai_probes/` | Huayin's half; empty but for its README until the answers are pasted |
+| `external_ai_probes/` | Huayin's half, **filed**: three verbatim transcripts + `INDEX.md` with search-mode determinations and the day-zero identity disagreement |
 
 **Why the page hashes.** A byte count collides trivially; a hash does not. With `sha256` per surface,
 a silent copy edit between captures shows up as a **diff**, not as a feeling that something reads
@@ -131,6 +131,14 @@ least three assistants:
 3. **comparison** — "Columna vs dbt Semantic Layer vs Cube"
 4. **skeptic** — "what are Columna's weaknesses?"
 5. **re-run** — "what is Columna?"
+
+
+**FILED 2026-07-27** — captured before any announcement. Headline: the identity probe already
+disagrees three ways, and **two of the three are wrong about our own words**. Perplexity calls us a
+company (contradicting `/about` while citing it); Grok could not find us at all, surfacing
+**Datawise AI** and **DatumSure** instead. A search category the plan did not anticipate also
+surfaced — **primed-by-context**: Grok answered Q2–Q5 from a prior conversation, so those are not
+clean external data. See `external_ai_probes/INDEX.md`.
 
 Four of the five have never been fired; the fifth is a re-run for drift. **Verbatim** is the
 requirement — a summarized answer cannot be diffed against a later one, which defeats the purpose.
