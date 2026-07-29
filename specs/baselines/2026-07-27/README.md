@@ -142,3 +142,26 @@ clean external data. See `external_ai_probes/INDEX.md`.
 
 Four of the five have never been fired; the fifth is a re-run for drift. **Verbatim** is the
 requirement — a summarized answer cannot be diffed against a later one, which defeats the purpose.
+
+---
+
+## → The first re-run is filed: `../2026-07-29/` (day 2)
+
+**This directory is not edited by it.** A baseline that gets updated is not a baseline; the re-run is
+filed beside it, and every later measurement still counts from here.
+
+The 40-hour diff, in short — full detail in `../2026-07-29/external_ai_probes/RERUN_INDEX.md`:
+
+- ✅ **The day-zero identity error corrected.** Both captures that found us answer Q2 *"is datumwise a
+  company?"* with **No — an independent open-source research project**, the answer two of three
+  assistants got wrong on launch eve.
+- ✅ **Deep-URL citations, not homepage summaries** — `/thesis`, `/why`, `/atlas`,
+  `/how-these-documents-relate`, `/announcing-columna` — plus a **correct Zenodo DOI** for the Silent
+  Failure Atlas. The corpus strategy, measurably working.
+- ❌ **And not uniform.** A third capture never found us and **answered anyway**: 10 pages, 66
+  citations, describing Columna as a *"self-documenting semantic layer product from
+  Datumwise/**Datawise**"* — built entirely from the confusable neighbours flagged above. Strictly
+  worse than day zero's Grok, which found nothing and **said so**.
+- ⚠️ **OF-22 reappeared** ("metrics engine"), inside one of the *accurate* captures.
+- ⚠️ **Attribution of the three re-run captures is OPEN** — the uploads carry no assistant names, so
+  the per-assistant diff is blocked pending the desk's confirmation.

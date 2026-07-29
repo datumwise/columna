@@ -1,0 +1,7 @@
+{
+  "api": "https://api.vercel.com/v1/query/web-analytics/events/aggregate",
+  "consequence": "site page-counts-by-path, referrers, and the utm_source=chatgpt.com row cannot be captured programmatically on the current plan",
+  "observed_error": "payment_required: Accessing Analytics custom events requires an Enterprise or Pro plan (returned for every `by` dimension, incl. `day`)",
+  "status": "BLOCKED \u2014 plan-gated, not missing",
+  "workaround": "Vercel dashboard \u2192 project `website` \u2192 Analytics \u2192 CSV export, saved beside this file as vercel_web_analytics.csv"
+}
