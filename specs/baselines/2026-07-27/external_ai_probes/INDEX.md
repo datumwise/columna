@@ -1,5 +1,8 @@
 # External-AI probe battery — 2026-07-27 — FILED
 
+> **DORMANT — the probe program was CLOSED 2026-07-29 by ratifier ruling.** Day 0 and day 2 are
+> archived; no further runs are scheduled. This file is preserved as filed. See `../../README.md`.
+
 **Huayin's half of the §5 baseline capture. Complete.** Three assistants × five probes, captured on
 launch eve, **before any announcement**. Relayed by Huayin; bodies preserved **verbatim**.
 
