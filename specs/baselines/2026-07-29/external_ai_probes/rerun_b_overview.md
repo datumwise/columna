@@ -1,10 +1,8 @@
 # Columna (datumwise.ai) — Complete Overview — day-2 RE-RUN, 2026-07-29
 
 **Capture:** **B**
-**Assistant:** ⚠️ **UNATTRIBUTED — see `RERUN_INDEX.md`.** The upload carries no assistant name and
-the desk instruction did not state one. Recorded as a lettered capture rather than guessed: the
-2026-07-27 baseline determined search modes *from the transcripts, not by assumption*, and a
-mis-attributed re-run would produce a per-assistant "drift" that is really a mix-up.
+**Assistant:** **Grok** — amended 2026-07-29 by Huayin; filed UNATTRIBUTED (capture B) at first filing.
+**Session:** fresh — which resolves this capture's *"as of July 28-29"* span as a date range, not a continuing conversation.
 **Captured:** 2026-07-29 (day 2 — ~40 hours after the 2026-07-27 launch-eve baseline)
 **Relayed by:** Huayin — uploaded 2026-07-29 03:46 UTC
 **Source file:** `cef1849d_Columna_Overview.md` · sha256 `7c271d7da1b273cd59b3eca578b568b5d4be512c21cdecc062ba385a9bdf3aef`

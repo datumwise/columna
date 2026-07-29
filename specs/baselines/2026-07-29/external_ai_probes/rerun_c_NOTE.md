@@ -6,8 +6,8 @@ carries the header the other two captures carry in their own bytes; a PDF cannot
 being modified, and modifying it would end its verbatim status.
 
 **Capture:** **C**
-**Assistant:** ⚠️ **UNATTRIBUTED — never guessed.** See `RERUN_INDEX.md`.
-**Session:** unknown
+**Assistant:** **Perplexity** — amended 2026-07-29 by Huayin; filed UNATTRIBUTED (capture C) at first filing.
+**Session:** fresh
 **Captured:** 2026-07-29 (day 2 — ~40 hours after the 2026-07-27 launch-eve baseline)
 **Relayed by:** Huayin — uploaded 2026-07-29 03:46 UTC
 **Source file:** `5fa81e8e_What_is_Columna__datumwise.ai__.pdf` · sha256
