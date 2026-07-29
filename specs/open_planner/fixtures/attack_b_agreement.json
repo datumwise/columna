@@ -1,0 +1,107 @@
+{
+  "all_agree": true,
+  "months": {
+    "2024-01": {
+      "agrees": true,
+      "ask_faithful": 139.914394184168,
+      "desk": {
+        "faithful": 139.91,
+        "unfaithful": 164.03
+      },
+      "direct": {
+        "faithful": 139.91439418416803,
+        "unfaithful": 164.02842803030308
+      },
+      "ir": {
+        "faithful": 139.914394184168,
+        "unfaithful": 164.028428030303
+      }
+    },
+    "2024-02": {
+      "agrees": true,
+      "ask_faithful": 125.80954314720813,
+      "desk": {
+        "faithful": 125.81,
+        "unfaithful": 145.22
+      },
+      "direct": {
+        "faithful": 125.80954314720813,
+        "unfaithful": 145.22156249999995
+      },
+      "ir": {
+        "faithful": 125.8095431472081,
+        "unfaithful": 145.22156249999995
+      }
+    },
+    "2024-03": {
+      "agrees": true,
+      "ask_faithful": 127.25143518518517,
+      "desk": {
+        "faithful": 127.25,
+        "unfaithful": 149.38
+      },
+      "direct": {
+        "faithful": 127.25143518518522,
+        "unfaithful": 149.3821195652174
+      },
+      "ir": {
+        "faithful": 127.25143518518517,
+        "unfaithful": 149.38211956521738
+      }
+    },
+    "2024-04": {
+      "agrees": true,
+      "ask_faithful": 137.9109816971714,
+      "desk": {
+        "faithful": 137.91,
+        "unfaithful": 156.09
+      },
+      "direct": {
+        "faithful": 137.9109816971714,
+        "unfaithful": 156.09133709981168
+      },
+      "ir": {
+        "faithful": 137.9109816971713,
+        "unfaithful": 156.09133709981162
+      }
+    },
+    "2024-05": {
+      "agrees": true,
+      "ask_faithful": 139.13900158478603,
+      "desk": {
+        "faithful": 139.14,
+        "unfaithful": 158.48
+      },
+      "direct": {
+        "faithful": 139.1390015847861,
+        "unfaithful": 158.4778158844765
+      },
+      "ir": {
+        "faithful": 139.13900158478603,
+        "unfaithful": 158.47781588447657
+      }
+    },
+    "2024-06": {
+      "agrees": true,
+      "ask_faithful": 130.56245928338762,
+      "desk": {
+        "faithful": 130.56,
+        "unfaithful": 152.41
+      },
+      "direct": {
+        "faithful": 130.5624592833876,
+        "unfaithful": 152.40560836501902
+      },
+      "ir": {
+        "faithful": 130.56245928338762,
+        "unfaithful": 152.405608365019
+      }
+    }
+  },
+  "overall": {
+    "agrees": true,
+    "desk_ratio": 1.21,
+    "direct_ratio": 1.2099975792786255,
+    "ir_ratio": 1.2099975792786253
+  }
+}

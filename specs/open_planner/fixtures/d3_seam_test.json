@@ -1,0 +1,1084 @@
+{
+  "agree": true,
+  "comparisons": 56,
+  "disagreements": [],
+  "independence_note": "The two derivations are separate BFS implementations over separate edge collections: PlannerView.find_path walks self._edges (provenance-free ShapeEdge tuples, built at projection.py:127) with self._out; Manifold.find_path walks functional edges carrying physical columns with self.out_edges. NOT a delegation \u2014 checked. Honest bound: the shape edges are COPY-DERIVED from the Manifold's at projection time, so what this certifies is that the two TRAVERSALS agree, including across that copy. A defect shared by the single upstream declaration parse is outside this seam.",
+  "negative_control": {
+    "baseline_agrees": true,
+    "control_valid": true,
+    "note": "tampered the planner-side lineage only; the test must disagree while tampered and agree once restored",
+    "perturbed_agrees": false,
+    "restored_agrees": true
+  },
+  "rows": [
+    {
+      "agree": true,
+      "column": "aov",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT aov AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "aov",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT aov AT {cal.month}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "return_rate",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT return_rate AT {cal.month}",
+      "measure": "units_returned",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "return_rate",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT return_rate AT {cal.month}",
+      "measure": "units_sold",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "recapture_exemplars",
+      "engine_edges": null,
+      "frameql": "SELECT revenue AT {category.primary}",
+      "measure": "revenue",
+      "planner_edges": null,
+      "target": "category.primary",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "recapture_exemplars",
+      "engine_edges": null,
+      "frameql": "SELECT revenue AT {category.split}",
+      "measure": "revenue",
+      "planner_edges": null,
+      "target": "category.split",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "recapture_exemplars",
+      "engine_edges": null,
+      "frameql": "SELECT revenue AT {category.touch}",
+      "measure": "revenue",
+      "planner_edges": null,
+      "target": "category.touch",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region*cal.quarter}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ],
+        [
+          "cal.month",
+          "cal.quarter",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region*cal.quarter}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ],
+        [
+          "cal.month",
+          "cal.quarter",
+          "calendar"
+        ]
+      ],
+      "target": "cal.quarter",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "orders",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region*cal.quarter}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "orders",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ],
+        [
+          "cal.month",
+          "cal.quarter",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region*cal.quarter}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ],
+        [
+          "cal.month",
+          "cal.quarter",
+          "calendar"
+        ]
+      ],
+      "target": "cal.quarter",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "stock_last",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [],
+      "frameql": "SELECT stock.last AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "stock_last",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT stock.last AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "stock_sum",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [],
+      "frameql": "SELECT stock.sum AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "stock_sum",
+      "corpus": "recapture_exemplars",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT stock.sum AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "aov",
+      "corpus": "demo_wheel",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT aov AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "aov",
+      "corpus": "demo_wheel",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT aov AT {cal.month}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "stock_sum",
+      "corpus": "demo_wheel",
+      "engine_edges": [],
+      "frameql": "SELECT stock.sum AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "stock_sum",
+      "corpus": "demo_wheel",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT stock.sum AT {store*cal.month}",
+      "measure": "stock",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "inventory"
+    },
+    {
+      "agree": true,
+      "column": "a",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT avg(aov @ day) AS a, revenue AT {store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "a",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT avg(aov @ day) AS a, revenue AT {store}",
+      "measure": "orders",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT avg(aov @ day) AS a, revenue AT {store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "avg_aov",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ day) AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "avg_aov",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ day) AT {cal.month}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "typical",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ {day}) AS typical AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "typical",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ {day}) AS typical AT {region}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "avg_aov",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ {day}) AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "avg_aov",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov @ {day}) AT {cal.month}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "lagged",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT lag(revenue, n=1) AS lagged AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "gross",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AS gross AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "gross",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AS gross AT {store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "r",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AS r AT {store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "v",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AS v AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "v",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AS v AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {product*region} ORDER BY region, revenue DESC LIMIT 1 PER {region}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "product",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {product*region} ORDER BY region, revenue DESC LIMIT 1 PER {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {product, region}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "product",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {product, region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region*store} ORDER BY region, revenue DESC",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {region*store} ORDER BY region, revenue DESC",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region, store}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {region, store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region} LIMIT 10",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {store} ORDER BY revenue DESC",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT revenue AT {store} ORDER BY revenue DESC LIMIT 3",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "orders",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue, orders AT {region}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "v",
+      "corpus": "core_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT sum(revenue @ {store}) AS v AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "v",
+      "corpus": "core_tests",
+      "engine_edges": [],
+      "frameql": "SELECT sum(revenue @ {store}) AS v AT {region*store}",
+      "measure": "revenue",
+      "planner_edges": [],
+      "target": "store",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "rate",
+      "corpus": "server_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov@day) AS rate AT {cal.month}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "rate",
+      "corpus": "server_tests",
+      "engine_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "frameql": "SELECT avg(aov@day) AS rate AT {cal.month}",
+      "measure": "orders",
+      "planner_edges": [
+        [
+          "day",
+          "cal.month",
+          "calendar"
+        ]
+      ],
+      "target": "cal.month",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "server_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AS revenue AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    },
+    {
+      "agree": true,
+      "column": "revenue",
+      "corpus": "server_tests",
+      "engine_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "frameql": "SELECT revenue AT {region}",
+      "measure": "revenue",
+      "planner_edges": [
+        [
+          "store",
+          "region",
+          "location"
+        ]
+      ],
+      "target": "region",
+      "universe": "transaction"
+    }
+  ],
+  "what_is_certified": "planner-derived edges (PlannerView.find_path, via cone_atoms_and_edges planner.py:602-630) == engine-mirrored transports (Manifold.find_path, via ColumnEngine.resolve engine.py:84+). planner.py:689: 'the engine mirrors this'."
+}
