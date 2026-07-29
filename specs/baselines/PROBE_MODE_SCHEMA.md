@@ -63,9 +63,17 @@ costs the per-assistant diff until the desk amends it. Mis-attribution manufactu
 capture C, attributed wrongly, reads as a catastrophic regression by whichever assistant got day zero
 right.
 
-**`continuing` is not a footnote.** Day zero found *primed-by-context* answers — Grok answering Q2–Q5
-from a prior conversation, i.e. measuring our own words handed back to us. A capture that does not
-record session type cannot be told apart from discovery later.
+**`continuing` is not a footnote.** Day zero found *primed-by-context* answers — one assistant
+answering Q2-Q5 from a prior conversation, i.e. measuring our own words handed back to us. A capture
+that does not record session type cannot be told apart from discovery later.
+
+**⚠ AND `fresh` DOES NOT MEAN UNPRIMED.** The day-zero capture that referenced *"the Columna/Open
+Planner project we were discussing in your earlier conversation"* is listed by the desk as a **fresh
+session**. Both can be true: the window was new, and the assistant carried the project in
+cross-session memory. **Freshness is a property of the window, not of the model's knowledge.** So
+`Session: fresh` is never sufficient on its own — the **`Basis` quotation is the only evidence of
+what the model actually brought with it**, and a capture whose body references prior conversation is
+primed no matter what the session field says. Record both; believe the quotation.
 
 ---
 
@@ -73,14 +81,18 @@ record session type cannot be told apart from discovery later.
 
 | capture | assistant | session | mode |
 |---|---|---|---|
-| 2026-07-27 `chatgpt.md` | ChatGPT | fresh | **found-and-right** (Q2 correct, quotes `/about`) |
-| 2026-07-27 `perplexity.md` | Perplexity | fresh | **found-and-wrong** (*"Yes… a company"*, citing the page that says otherwise) |
-| 2026-07-27 `grok.md` Q1 | Grok | fresh | **not-found-honest** (*"returned no usable results"*) |
-| 2026-07-27 `grok.md` Q2–Q5 | Grok | **continuing** | *not scoreable* — primed-by-context |
-| 2026-07-29 `rerun_a_five_questions.md` | UNATTRIBUTED (A) | unknown | **found-and-right** (five deep URLs; Q2 correct) |
-| 2026-07-29 `rerun_b_overview.md` | UNATTRIBUTED (B) | unknown, possibly continuing | **found-and-right** (deep URLs + correct Zenodo DOI), *carrying OF-22's retired "metrics engine" copy* |
-| 2026-07-29 `rerun_c_what_is_columna.pdf` | UNATTRIBUTED (C) | unknown | **not-found-confabulated** |
+| 2026-07-27 `chatgpt.md` | ⚠️ **DISPUTED** — ChatGPT or Grok | fresh | **found-and-right** (Q2 correct; closing `Sources:` line) |
+| 2026-07-27 `perplexity.md` | Perplexity *(agreed)* | fresh | **found-and-wrong** (*"Yes… a company"*, citing the page that says otherwise) |
+| 2026-07-27 `grok.md` Q1 | ⚠️ **DISPUTED** — Grok or ChatGPT | fresh *(but primed — see above)* | **not-found-honest** (*"returned no usable results"*) |
+| 2026-07-27 `grok.md` Q2–Q5 | ⚠️ **DISPUTED** | fresh window, **primed by cross-session memory** | *not scoreable* — primed-by-context |
+| 2026-07-29 `rerun_a_five_questions.md` | **ChatGPT** | fresh | **found-and-right** (five deep URLs; Q2 correct) |
+| 2026-07-29 `rerun_b_overview.md` | **Grok** | fresh | **found-and-right** (deep URLs + correct Zenodo DOI), *carrying OF-22's retired "metrics engine" copy* |
+| 2026-07-29 `rerun_c_what_is_columna.pdf` | **Perplexity** | fresh | **not-found-confabulated** |
 
-The one mode-transition worth watching next capture: **found-and-wrong → found-and-right** on the
-identity probe (day zero's Perplexity error, corrected 40 hours later by *some* assistant — which one
-is precisely what the open attribution is blocking).
+The two day-zero rows are **disputed, not unknown** — see
+`2026-07-27/external_ai_probes/ATTRIBUTION_CONFLICT.md`. Perplexity is agreed in both accounts, so
+the transition that matters most is firm:
+
+**`found-and-wrong` → `not-found-confabulated` (Perplexity, 40 hours).** The identity error of day
+zero was never corrected; the assistant that made it stopped finding us at all. Watching that single
+cell is the next probe's first job.
