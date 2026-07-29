@@ -1,0 +1,238 @@
+{
+  "snapshot": {
+    "captured_at": "2026-07-28T16:09:59Z",
+    "clones": {
+      "clones": [
+        {
+          "count": 507,
+          "timestamp": "2026-07-14T00:00:00Z",
+          "uniques": 109
+        },
+        {
+          "count": 195,
+          "timestamp": "2026-07-15T00:00:00Z",
+          "uniques": 51
+        },
+        {
+          "count": 337,
+          "timestamp": "2026-07-16T00:00:00Z",
+          "uniques": 74
+        },
+        {
+          "count": 734,
+          "timestamp": "2026-07-17T00:00:00Z",
+          "uniques": 134
+        },
+        {
+          "count": 657,
+          "timestamp": "2026-07-18T00:00:00Z",
+          "uniques": 126
+        },
+        {
+          "count": 64,
+          "timestamp": "2026-07-19T00:00:00Z",
+          "uniques": 15
+        },
+        {
+          "count": 333,
+          "timestamp": "2026-07-20T00:00:00Z",
+          "uniques": 67
+        },
+        {
+          "count": 80,
+          "timestamp": "2026-07-21T00:00:00Z",
+          "uniques": 27
+        },
+        {
+          "count": 11,
+          "timestamp": "2026-07-22T00:00:00Z",
+          "uniques": 10
+        },
+        {
+          "count": 18,
+          "timestamp": "2026-07-23T00:00:00Z",
+          "uniques": 15
+        },
+        {
+          "count": 253,
+          "timestamp": "2026-07-24T00:00:00Z",
+          "uniques": 60
+        },
+        {
+          "count": 123,
+          "timestamp": "2026-07-25T00:00:00Z",
+          "uniques": 23
+        },
+        {
+          "count": 337,
+          "timestamp": "2026-07-26T00:00:00Z",
+          "uniques": 63
+        },
+        {
+          "count": 322,
+          "timestamp": "2026-07-27T00:00:00Z",
+          "uniques": 69
+        }
+      ],
+      "count": 3971,
+      "uniques": 515
+    },
+    "paths": [
+      {
+        "count": 84,
+        "path": "/datumwise/columna/pulls",
+        "title": "/pulls",
+        "uniques": 1
+      },
+      {
+        "count": 21,
+        "path": "/datumwise/columna",
+        "title": "Overview",
+        "uniques": 7
+      },
+      {
+        "count": 8,
+        "path": "/datumwise/columna/compare/wp-release-notes-0-9-0",
+        "title": "/compare/wp-release-notes-0-9-0",
+        "uniques": 1
+      },
+      {
+        "count": 6,
+        "path": "/datumwise/columna/pull/36",
+        "title": "/pull/36",
+        "uniques": 1
+      },
+      {
+        "count": 5,
+        "path": "/datumwise/columna/pull/46",
+        "title": "/pull/46",
+        "uniques": 1
+      },
+      {
+        "count": 5,
+        "path": "/datumwise/columna/pull/50",
+        "title": "/pull/50",
+        "uniques": 1
+      },
+      {
+        "count": 4,
+        "path": "/datumwise/columna/blob/wp-explorer-tier3/specs/explorer_t3_mockups/atlas.png",
+        "title": "/blob/wp-explorer-tier3/specs/explorer_t3_mockups/atlas.png",
+        "uniques": 1
+      },
+      {
+        "count": 4,
+        "path": "/datumwise/columna/compare/wp-manuals-alignment",
+        "title": "/compare/wp-manuals-alignment",
+        "uniques": 1
+      },
+      {
+        "count": 4,
+        "path": "/datumwise/columna/pull/49",
+        "title": "/pull/49",
+        "uniques": 1
+      },
+      {
+        "count": 4,
+        "path": "/datumwise/columna/releases/tag/v0.9.0",
+        "title": "/releases/tag/v0.9.0",
+        "uniques": 1
+      }
+    ],
+    "referrers": [
+      {
+        "count": 12,
+        "referrer": "github.com",
+        "uniques": 4
+      },
+      {
+        "count": 7,
+        "referrer": "datumwise.ai",
+        "uniques": 2
+      },
+      {
+        "count": 1,
+        "referrer": "pypi.org",
+        "uniques": 1
+      }
+    ],
+    "repo": "datumwise/columna",
+    "views": {
+      "count": 326,
+      "uniques": 10,
+      "views": [
+        {
+          "count": 38,
+          "timestamp": "2026-07-14T00:00:00Z",
+          "uniques": 2
+        },
+        {
+          "count": 10,
+          "timestamp": "2026-07-15T00:00:00Z",
+          "uniques": 3
+        },
+        {
+          "count": 24,
+          "timestamp": "2026-07-16T00:00:00Z",
+          "uniques": 1
+        },
+        {
+          "count": 51,
+          "timestamp": "2026-07-17T00:00:00Z",
+          "uniques": 1
+        },
+        {
+          "count": 60,
+          "timestamp": "2026-07-18T00:00:00Z",
+          "uniques": 2
+        },
+        {
+          "count": 72,
+          "timestamp": "2026-07-19T00:00:00Z",
+          "uniques": 2
+        },
+        {
+          "count": 23,
+          "timestamp": "2026-07-20T00:00:00Z",
+          "uniques": 1
+        },
+        {
+          "count": 20,
+          "timestamp": "2026-07-21T00:00:00Z",
+          "uniques": 1
+        },
+        {
+          "count": 0,
+          "timestamp": "2026-07-22T00:00:00Z",
+          "uniques": 0
+        },
+        {
+          "count": 0,
+          "timestamp": "2026-07-23T00:00:00Z",
+          "uniques": 0
+        },
+        {
+          "count": 2,
+          "timestamp": "2026-07-24T00:00:00Z",
+          "uniques": 2
+        },
+        {
+          "count": 1,
+          "timestamp": "2026-07-25T00:00:00Z",
+          "uniques": 1
+        },
+        {
+          "count": 12,
+          "timestamp": "2026-07-26T00:00:00Z",
+          "uniques": 2
+        },
+        {
+          "count": 13,
+          "timestamp": "2026-07-27T00:00:00Z",
+          "uniques": 2
+        }
+      ]
+    }
+  },
+  "source_file": "snapshots/2026-07-28.json"
+}
