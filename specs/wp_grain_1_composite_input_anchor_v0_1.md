@@ -55,29 +55,34 @@ For every pair `(p, a) ∈ P × A`, exactly one of five relations holds:
 |---|---|---|
 | **same** `p == a` | *"pin fixes this coordinate, output stands at it"* | present in `input_grain` and `target` — group-by axis (already: `present`/`_transport_attach`) |
 | **finer** `p → a` (`p` reaches `a`, `p ≠ a`) | *"resolve at `p`, then reduce along the `p→a` transport"* | reduction axis (already: `reduce_series_to_anchor` transports `src` to `rt`) |
-| **coarser** `a → p` (`a` reaches `p`, `p ≠ a`) | ⚠️ **refusable** — a coarser pin cannot reach a finer output | see law 1 below |
+| **coarser** `a → p` (`a` reaches `p`, `p ≠ a`) | ⚠️ **refusable** — a coarser pin cannot reach a finer output | see law 1 below (new reason `pin_coarser_than_output`) |
 | **orthogonal** (no path either way) | *"pin's axis is collapsed by the reducer to grand total for that axis while `a` is joined into the frame"* | already handled: `orthogonal = tuple(t ... if find_path({pinned}, t) is None)` — generalizes trivially |
 | **face-crossing** `p` and `a` are joined only by a RELATE FACE (touch / primary / split / alloc / assign) | *"the pin's transport crosses a face — the statistic is face-defined"* | see law 3 below |
 
-### Law 1 — no coarser-than-output level in `P` (**refuse**, `out_of_universe`)
+### Law 1 — no coarser-than-output level in `P` (**refuse**, `pin_coarser_than_output`)
 
 If any `p ∈ P` is functionally REACHED by some `a ∈ A` (i.e. `a → p`), that `p` pins a grain coarser
 than what the output asks for; the pinned resolution cannot serve the output without inventing
 finer rows. Refuse, name the offending pair, and offer the two lawful edits:
 
 ```
-Refusal("out_of_universe",
-  f"pin '{p}' is COARSER than output level '{a}' — the pin's grain cannot resolve at the "
-  f"output's grain (a coarser pin cannot serve a finer output); either replace '{p}' with a level "
-  f"finer than or equal to '{a}', or drop it if another pin already reaches '{a}'",
+Refusal("pin_coarser_than_output",
+  f"pin '{p}' is COARSER than output level '{a}' — the pin fixes a grain that cannot resolve "
+  f"at the output's grain (a coarser pin cannot serve a finer output, so the reduced value at "
+  f"'{a}' would be inventing rows the pin does not distinguish); either replace '{p}' with a "
+  f"level finer than or equal to '{a}', or drop it if another pin already reaches '{a}'",
   measure=..., target=_fmt_anchor(A),
   alternatives=(f"replace @ {{...{p}...}} with a level finer than '{a}'",
                 f"drop '{p}' from the pin (another pin reaches '{a}')"))
 ```
 
-Same shape as the existing `out_of_universe` refusal in `reduce_series_to_anchor:614`, which
-already fires when a target is unreachable from the input grain — this law promotes that check to
-the pin, before execution.
+Same geometry as the existing `out_of_universe` refusal in `reduce_series_to_anchor:614` (which
+fires when a target is unreachable from the input grain during execution), but a **distinct
+dimension**: this one is about the *pin* choosing an ill-fitting grain relative to the *output*,
+not about a plan discovering unreachability at run-time. Per OF-1's standing rule (**one reason
+per contested dimension**, 2026-07-14), that dimension mints its own reason and its own
+pin-specific teaching message. The check runs statically at the planner chokepoint, before
+execution.
 
 ### Law 2 — no two levels in `P` are cross-comparable (**refuse**, `redundant_pin` sibling to `ambiguous_grain`)
 
@@ -182,9 +187,12 @@ what F1 ruled the surface owes the reader.
 | add laws 1–3 as static planner checks — refusals classified at the existing chokepoints | lifting the restriction on SCAN input anchors (`_scan_call` — separate WP if wanted) |
 | generalize the TRANSPORT-caveat rendering (law 4) | the composite input × faced output combinatorics beyond the natural extension of `serve_touch_crossing` (rowed as a future finding if a real case arrives) |
 
-**Wire contract:** unchanged. `contract_version = "1"`. Every existing reason code is reused; the
-one new reason `redundant_pin` sits inside the existing `REASON_OUTCOME` shape and follows the
-OF-1 pattern.
+**Wire contract:** unchanged. `contract_version = "1"`. Two new reasons —
+`pin_coarser_than_output` (Law 1, REFUSE/`out_of_universe`-family) and `redundant_pin` (Law 2,
+CLARIFY/`AMBIGUOUS`-family) — sit inside the existing `REASON_OUTCOME` shape and follow the OF-1
+pattern (**one reason per contested dimension**). Adding a reason code does not bump
+`contract_version`: the envelope shape is unchanged; readers on `"1"` see the new reasons as
+opaque strings and route them by outcome as they already do.
 
 ---
 
@@ -193,8 +201,9 @@ OF-1 pattern.
 1. **F1 ASK-surface transcript serves.** Both queries from `attack_b.py:127-128` return
    `outcome = disclose`, values byte-equal to `attack_b_ir.json` on the corresponding IR row, and
    carry the TRANSPORT caveat rendered per law 4. This is the headline test.
-2. **Law 1 test:** `avg(revenue @ {cal.month}) AT {store*day}` refuses with `out_of_universe`
-   naming `cal.month` (coarser than `day`).
+2. **Law 1 test:** `avg(revenue @ {cal.month}) AT {store*day}` refuses with
+   `pin_coarser_than_output` naming `cal.month` (coarser than `day`), with the pin-specific
+   teaching message and two alternatives (replace `cal.month`, or drop it).
 3. **Law 2 test:** `avg(revenue @ {day*cal.month}) AT {cal.month}` clarifies with `redundant_pin`,
    alternatives offering `@{day}` and `@{cal.month}`.
 4. **Law 3 test:** `sum(revenue @ {product*category.touch}) AT {category.touch}` serves with the
