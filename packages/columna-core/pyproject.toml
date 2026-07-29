@@ -1,10 +1,12 @@
 [build-system]
-requires = ["hatchling"]
+# Capped like every other dependency (the cap guard, 0.13.3). Floor 1.27 = first hatchling with
+# PEP 639 `license` + `license-files`, which this file uses.
+requires = ["hatchling>=1.27,<2.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "columna-core"
-version = "0.13.2"
+version = "0.13.3"
 description = "Columna Core — the definition language, adjudication, and engine of Columna, by datumwise."
 readme = "README.md"
 # CEILING, not caution (Huayin, 2026-07-27; found on a Windows fresh-venv pass). datasketches 5.x
@@ -41,11 +43,15 @@ dependencies = [
     "datasketches>=5.0,<6.0",
     # Hard runtime dep: connector.py does pl.from_arrow(con.execute(q).arrow()) on every fetch,
     # and polars does not pull pyarrow transitively.
-    "pyarrow>=15",
+    # Capped at the next major (0.13.3). pyarrow ships a major roughly quarterly — 15 to 25 in
+    # about two years — so this ceiling needs a deliberate lift more often than the others. That
+    # is the cost of the guarantee, and it is paid on purpose: a quarterly one-line lift beats a
+    # stranger's fresh install detonating on a major nobody has run.
+    "pyarrow>=15,<26",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=8.0"]
+test = ["pytest>=8.0,<10.0"]
 
 [project.urls]
 Homepage = "https://github.com/datumwise/columna"

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77,<84"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "columna"
-version = "0.13.2"
+version = "0.13.3"
 description = "Columna, by datumwise — an honest data framework (Manifold, FrameQL, an honest engine). Metapackage: installs columna-core + columna-server."
 readme = "README.md"
 # Must match columna-core's ceiling exactly — this is the package `pip install columna` resolves
@@ -26,8 +26,11 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
-    "columna-core>=0.13.2",
-    "columna-server>=0.8.1",
+    # FLOORS carry the contract; the caps are at the MAJOR (see columna-server/pyproject.toml for
+    # why not the minor). The floor on columna-server is what makes the mcp<2.0 fix reach a
+    # stranger: `pip install columna` must not be allowed to resolve to the broken 0.8.1.
+    "columna-core>=0.13.3,<1.0",
+    "columna-server>=0.8.2,<1.0",
 ]
 
 [project.urls]

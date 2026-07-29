@@ -1,10 +1,13 @@
 [build-system]
-requires = ["hatchling"]
+# Build deps are capped too: a build backend that breaks stops the release that carries the fix,
+# which is as user-visible as a runtime break. Floor 1.27 = the first hatchling with PEP 639
+# (`license` string + `license-files`), which this file uses.
+requires = ["hatchling>=1.27,<2.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "columna-server"
-version = "0.8.1"
+version = "0.8.2"
 description = "Columna MCP server — a library of Manifolds exposed to AI agents over MCP, one contract (the four moods as data)."
 readme = "README.md"
 # Matches columna-core's ceiling — see that file for why. Declared here too rather than inherited
@@ -23,18 +26,27 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "columna-core>=0.13.2",
-    "mcp>=1.0",
-    "tomli>=2.0; python_version < '3.11'",
+    # Internal deps are capped at the MAJOR, deliberately not the minor. A `<0.14` here would
+    # deadlock the house's own lockstep: core moves to 0.14.0 while this server needs no change,
+    # and the umbrella — which requires both — becomes unresolvable. The floor is what carries the
+    # contract (see 0.8.0: "a FLOOR, not a preference"); the cap is the wholesale-break boundary.
+    "columna-core>=0.13.3,<1.0",
+    # CAPPED 2026-07-29 AFTER A LIVE BREAK. `mcp>=1.0` was unbounded; `mcp 2.0.0` published
+    # 2026-07-28 13:45 UTC (four minutes after 1.29.0, hours after our public launch) moved
+    # `mcp.server.fastmcp`, and every fresh `pip install columna` from that minute resolved to it
+    # and died at import. Lift to `<3.0` only after server.py is ported to the 2.x import path and
+    # the stdio acceptance suite is green against it.
+    "mcp>=1.0,<2.0",
+    "tomli>=2.0,<3.0; python_version < '3.11'",
     # store.py imports duckdb directly to load the connector's warehouse — declare it explicitly
     # rather than rely on columna-core pulling it transitively (the WP-0 pyarrow lesson).
     "duckdb>=1.0,<2.0",
 ]
 
 [project.optional-dependencies]
-http = ["uvicorn>=0.23", "starlette>=0.37"]
-agent = ["anthropic>=0.40"]
-test = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+http = ["uvicorn>=0.23,<1.0", "starlette>=0.37,<2.0"]
+agent = ["anthropic>=0.40,<1.0"]
+test = ["pytest>=8.0,<10.0", "pytest-asyncio>=0.23,<2.0"]
 
 [project.scripts]
 columna-server = "columna_server.cli:main"

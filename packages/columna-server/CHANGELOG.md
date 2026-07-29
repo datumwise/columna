@@ -3,6 +3,71 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [0.8.2] — mcp 2.0 broke every fresh install; the cap is the fix, the guard is the point
+
+**BUG FIX, user-visible and total: for roughly 17 hours, `pip install columna` produced a package
+that could not start.** No code in this repository changed. The break arrived by resolver.
+
+**THE TIMELINE, plainly** (all UTC):
+
+| when | what |
+|---|---|
+| 2026-07-27 | 0.13.2 published; public launch. `columna-server` declares `mcp>=1.0` — **no ceiling**. |
+| 2026-07-28 **13:41:40** | upstream publishes `mcp 1.29.0` — the last of the 1.x line. |
+| 2026-07-28 **13:45:28** | upstream publishes **`mcp 2.0.0`**, four minutes later. It moves/removes `mcp.server.fastmcp`. |
+| 2026-07-28 ~13:45 → 2026-07-29 | every *fresh* install resolves `mcp>=1.0` to 2.0.0. `columna-server demo --play` dies on `from mcp.server.fastmcp import FastMCP` — `ModuleNotFoundError`, exit 1, **before a single mood prints**. |
+| 2026-07-29 **03:47** | our own CI goes red on `main` — on a **specs-only merge** (PR #110, no code). The red was the upstream break surfacing, not the PR. |
+| 2026-07-29 | 0.8.2: `mcp>=1.0,<2.0`. Fixed. |
+
+Anyone who installed before 13:45 on the 28th has a working environment and is unaffected; their
+resolver already picked a 1.x. The victim is precisely the person the quickstart is written for —
+a stranger, arriving after launch, typing the command on the install page for the first time.
+
+**THE FIX**: `mcp>=1.0,<2.0` — which resolves to `mcp 1.29.0`, published four minutes before the
+break. The floor stays at 1.0: nothing about our use of the 1.x surface changed.
+
+**THE DOOR IS NAMED, NOT CLOSED.** The cap lifts to `<3.0` when `server.py` is ported to the 2.x
+import path *and* the MCP stdio acceptance suite is green against it — a port, on its own beat, not
+a hotfix at speed. A cap is not a refusal to move; it is a refusal to move by accident, on a
+stranger's machine, at install time.
+
+**THE DOCTRINE — an uncapped dependency is an UNTESTED CLAIM.** `mcp>=1.0` asserted that every
+future major version of somebody else's package would keep our contract. That claim was made before
+those versions existed, and it was checked by nobody. This is the *same* doctrine 0.13.2 wrote down
+for `requires-python` (*fail closed with a named reason beats rare success*), applied where it
+should have been applied at the same time. Twice is a class.
+
+**SO THE REAL SHIP IS THE GUARD, NOT THE CAP** — `scripts/assert_dep_caps.py`, wired into CI on
+every push and PR: **every dependency, in every package, must carry an upper bound**, including
+`optional-dependencies` and `build-system.requires`. It fails, naming the offender. It runs with no
+path filter and on push as well as PR, because this failure class arrives *without a diff* — the
+repo that breaks is byte-identical to the repo that worked yesterday. Guarding the instance fixes a
+day; guarding the class is why there will not be a third.
+
+**AND ONE MORE THING THE OUTAGE EXPOSED, which the cap alone would have hidden.** `ci.yml` installed
+the server's dependencies from a **hand-copied** spec (`pip install "mcp>=1.0" ...`) rather than from
+the package metadata. So CI was never testing the shipped constraint — a cap could be right in
+`pyproject.toml` and wrong in CI, indefinitely, with everything green. CI now installs
+`-e "packages/columna-server[test]"` and resolves from the real metadata. The install path under
+test is the install path that ships.
+
+**The full cap sweep, this release** (nothing else changed; no surface, wire, or behaviour —
+`contract_version` stays `"1"`):
+
+- `mcp>=1.0` → **`mcp>=1.0,<2.0`** ← the fix
+- `tomli>=2.0` → `tomli>=2.0,<3.0`
+- `columna-core>=0.13.2` → `columna-core>=0.13.3,<1.0`
+- `[http]`: `uvicorn>=0.23,<1.0`, `starlette>=0.37,<2.0`
+- `[agent]`: `anthropic>=0.40,<1.0`
+- `[test]`: `pytest>=8.0,<10.0`, `pytest-asyncio>=0.23,<2.0`
+- `build-system`: `hatchling` → `hatchling>=1.27,<2.0`
+
+**Internal caps sit at the MAJOR, deliberately not the minor.** `columna-core>=0.13.3,<0.14` would
+deadlock our own lockstep — core moves to 0.14.0 while this server needs no change, and the
+umbrella, which requires both, becomes unresolvable. For internal packages the **floor** carries the
+contract (0.8.0: *"a FLOOR, not a preference"*); the cap marks the wholesale-break boundary. A cap
+that can brick an install is not a safety measure.
+
 ## [0.8.1] — the declared Python ceiling, and the demo survives Windows
 
 **BUG FIX, user-visible: `demo --play` crashed on Windows whenever stdout was not a console.**
