@@ -123,3 +123,159 @@ def test_bad_input_anchor_pin_refuses(fixture_connector):
     s = _srv(fixture_connector)
     w = wire_frame(s.frame("cal.month").column("z", "avg(aov@nonesuch)").run())
     assert w["outcome"] in ("refuse", "error")
+
+
+# ════════════════════════════════════════════════════════════════════════════════════════════
+# WP-GRAIN-1 — the COMPOSITE input anchor (doctrine ratified Huayin 2026-07-29; 0.13.4).
+#
+# `R(inner @ {a*b*c})` pins a PRODUCT grain, not a single level. The engine's
+# `reduce_series_to_anchor` is already composite-grain-native; the planner lifts the single-level
+# restriction and adds the pin × output-anchor lattice's laws. Reason codes minted: Law 1 REFUSE
+# `pin_coarser_than_output` (its own dimension per OF-1), Law 2 CLARIFY `redundant_pin`.
+# ════════════════════════════════════════════════════════════════════════════════════════════
+from columna_core.envelope import parse_statement                       # noqa: E402
+
+
+def _stmt(s, q):
+    """The real ask surface: parse → desugar/plan → wire (composite pins carry `{a*b}` braces, which
+    only the statement path converts; the low-level `.column()` API expects pre-converted syntax)."""
+    return wire_frame(s.planner.run_statement(parse_statement(q)))
+
+
+def _note(wire, col=0):
+    discs = wire["columns"][col].get("disclosures") or []
+    return [(d.get("code"), d.get("materiality"), d.get("detail")) for d in discs]
+
+
+def _no_result(wire, col=0):
+    c = wire["columns"][col]
+    return c.get("no_result") or wire.get("error") or {}
+
+
+# ── Law 1 (REFUSE `pin_coarser_than_output`): a pin coarser than the output cannot resolve ──
+def test_law1_pin_coarser_than_output_refuses(fixture_connector):
+    """`avg(revenue @ {cal.month}) AT {store*day}` — the output asks at `day`, but the pin fixes
+    `cal.month`, which `day` reaches (day -> cal.month): a coarser pin cannot serve a finer output."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(revenue @ {cal.month}) AT {store*day}")
+    assert w["outcome"] == "refuse"
+    nr = _no_result(w)
+    assert nr.get("reason") == "pin_coarser_than_output"
+    assert "COARSER" in nr.get("detail", "") and "cal.month" in nr["detail"] and "day" in nr["detail"]
+    alts = [a.get("description") for a in (nr.get("alternatives") or [])]
+    assert len(alts) == 2                                   # replace the pin, or drop it
+
+
+def test_law1_is_its_own_dimension_per_of1():
+    """OF-1 (one reason per contested dimension): Law 1 mints its OWN reason, REFUSE family, distinct
+    from `out_of_universe` (which owns the run-time-unreachability dimension)."""
+    from columna_core.disclosure import REASON_OUTCOME, REFUSE, UNSUPPORTED
+    assert REASON_OUTCOME["pin_coarser_than_output"] == (REFUSE, UNSUPPORTED)
+    assert "pin_coarser_than_output" != "out_of_universe"
+
+
+# ── Law 2 (CLARIFY `redundant_pin`): two cross-comparable pin levels fix one axis, not two ──
+def test_law2_redundant_pin_clarifies(fixture_connector):
+    """`avg(revenue @ {day*cal.month}) AT {cal.month}` — `day` determines `cal.month`, so the pair
+    fixes one axis; a CLARIFY offering the two admissible pins, never a refuse."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(revenue @ {day*cal.month}) AT {cal.month}")
+    assert w["outcome"] == "clarify"
+    nr = _no_result(w)
+    assert nr.get("reason") == "redundant_pin"
+    alts = [a.get("description") for a in (nr.get("alternatives") or [])]
+    assert any("{day}" in a for a in alts) and any("{cal.month}" in a for a in alts)
+
+
+def test_law2_is_a_clarify_sibling_of_ambiguous_grain():
+    from columna_core.disclosure import REASON_OUTCOME, CLARIFY, AMBIGUOUS
+    assert REASON_OUTCOME["redundant_pin"] == (CLARIFY, AMBIGUOUS)
+
+
+# ── Law 4 rendering: the two-stage-statistic disclosure, generalized to the composite pin ──
+def test_composite_pin_serves_with_rider_when_pin_axis_is_in_output(fixture_connector):
+    """`avg(revenue @ {store*product*cal.month}) AT {cal.month}` — a pin axis (`cal.month`) is the
+    output's own; the immaterial note names it as the fixed axis and the rest as reduced-over."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
+    assert w["outcome"] == "serve"                          # immaterial note ⇒ serve (Law 4: "serve with TRANSPORT, always")
+    (code, mat, detail), = _note(w)
+    assert (code, mat) == ("provenance", "immaterial")
+    assert detail == ("'mean of revenue@{store*product*cal.month}' reduced to cal.month — "
+                      "pin fixes cal.month, reduces over store, product")
+
+
+def test_composite_pin_serves_with_standard_note_when_no_pin_axis_in_output(fixture_connector):
+    """A composite pin whose levels are all orthogonal to / finer than the output renders the
+    generalized STANDARD note (the pin as a braced product), not the rider."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(revenue @ {store*product}) AT {cal.month}")
+    assert w["outcome"] == "serve"
+    (code, mat, detail), = _note(w)
+    assert (code, mat) == ("provenance", "immaterial")
+    assert detail == ("'mean of revenue@{store*product}' reduced to cal.month — the mean of "
+                      "revenue@{store*product} reading (input anchor pinned to '{store*product}'), "
+                      "not the pooled value at cal.month")
+
+
+# ── byte-regression: the single-level path is the composite grammar at n=1, unchanged ──
+def test_single_level_note_is_byte_identical(fixture_connector):
+    """Criterion 6: no regression on the single-level path. The rendered note for `avg(aov@day)` is
+    byte-for-byte what it was before WP-GRAIN-1 (bare `@day`, `pinned to 'day'`, no rider)."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(aov @ {day}) AT {cal.month}")
+    (code, mat, detail), = _note(w)
+    assert (code, mat) == ("provenance", "immaterial")
+    assert detail == ("'mean of aov@day' reduced to cal.month — the mean of aov@day reading "
+                      "(input anchor pinned to 'day'), not the pooled value at cal.month")
+
+
+def test_single_level_pin_equal_output_is_still_standard_form(fixture_connector):
+    """`avg(aov@day) AT {day}` — a single-level pin equal to the output keeps the STANDARD note (the
+    rider is composite-only), so this case is byte-identical to the pre-WP-GRAIN-1 form."""
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(aov @ {day}) AT {day}")
+    (code, mat, detail), = _note(w)
+    assert detail == ("'mean of aov@day' reduced to day — the mean of aov@day reading "
+                      "(input anchor pinned to 'day'), not the pooled value at day")
+
+
+# ── wire contract unchanged: adding reason codes does NOT bump the contract version ──
+def test_wire_contract_version_unchanged_on_composite(fixture_connector):
+    from columna_core.disclosure_wire import CONTRACT_VERSION
+    assert CONTRACT_VERSION == "1"
+    s = _srv(fixture_connector)
+    w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
+    assert w["contract_version"] == "1"
+
+
+# ── the composite pin denotes a DIFFERENT statistic than the atom-grain reading (F1's point) ──
+def test_composite_pin_is_not_the_faithful_atom_reading(fixture_connector):
+    """The whole F1 exhibit: `mean of revenue@{store*product*cal.month}` (mean of sums) is a
+    different number than the atom-grain mean — two well-formed asks that disagree."""
+    s = _srv(fixture_connector)
+    coarse = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
+    fine = _stmt(s, "SELECT avg(revenue @ {store*product*day}) AT {cal.month}")
+    cv = [v["value"] for v in coarse["columns"][0]["values"]]
+    fv = [v["value"] for v in fine["columns"][0]["values"]]
+    assert cv != fv                                         # the composition denotes a different statistic
+
+
+# ── Law 3 boundary (composite input × FACED output): the rowed future finding, refused honestly ──
+def test_law3_composite_faced_pin_refuses_at_the_chain_guard():
+    """WP-GRAIN-1 scope note (spec §"scope, precisely", last row): the composite-input × faced-output
+    combinatoric is BEYOND the natural extension of `serve_touch_crossing`. Pinning both a base level
+    and a faced coordinate (`{product*category.touch}`) resolves the inner at a faced-composite grain,
+    which the existing G4 chain guard refuses with `chained_crossing` — an honest, named refusal, never
+    a silent wrong number. The face-crossing SERVE path for a pinned reduction is the rowed future
+    finding (see PR discussion / Huayin ruling at the 0.13.4 gate)."""
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import test_relate_touch as TR
+    srv = TR._server(TR.MANIFOLD, TR.TABLES)
+    w = _stmt(srv, "SELECT sum(revenue @ {product*category.touch}) AT {category.touch}")
+    assert w["outcome"] in ("refuse", "error")
+    assert _no_result(w).get("reason") == "chained_crossing"
+    # and the PLAIN faced output (no inline-reduction pin) still SERVES — no regression to the face path
+    plain = wire_frame(srv.frame("category.touch").column("revenue", "revenue").run())
+    assert plain["outcome"] in ("serve", "disclose")

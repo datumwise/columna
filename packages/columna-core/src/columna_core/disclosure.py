@@ -173,6 +173,13 @@ REASON_OUTCOME = {
                                                         #   the grain to resolve the inner at is under-
                                                         #   determined (names the same dimension OF-2's
                                                         #   immaterial input-anchor note records)
+    "redundant_pin":            (CLARIFY, AMBIGUOUS),   # WP-GRAIN-1 Law 2: a composite input anchor pins
+                                                        #   two levels where one functionally determines the
+                                                        #   other (p_i -> p_j), so the pair fixes ONE axis,
+                                                        #   not two — a CLARIFY (the reader picks between two
+                                                        #   admissible pins), never a refuse. Sibling to
+                                                        #   `ambiguous_grain`; own reason per OF-1 (one reason
+                                                        #   per contested dimension). MINTED 2026-07-30.
     "filter_unreachable":       (CLARIFY, AMBIGUOUS),   # a WHERE dimension cannot lawfully reach a series'
                                                         #   input anchor (the filter's grain is not
                                                         #   addressable in that series' universe). MINTED
@@ -184,6 +191,15 @@ REASON_OUTCOME = {
                                                         #   predicate to reachable dims, or change the series'
                                                         #   input anchor. S1a: registry is the source of truth.
     "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
+    "pin_coarser_than_output":  (REFUSE,  UNSUPPORTED), # WP-GRAIN-1 Law 1: a composite input anchor pins a
+                                                        #   level COARSER than the output grain (output level
+                                                        #   `a` reaches pin `p`, a -> p) — a coarser pin cannot
+                                                        #   resolve at a finer output without inventing rows it
+                                                        #   does not distinguish. Same REFUSE family as
+                                                        #   `out_of_universe`, but its OWN dimension per OF-1
+                                                        #   (the pin choosing an ill-fitting grain vs a plan
+                                                        #   discovering unreachability at run-time), with a
+                                                        #   pin-specific teaching message. MINTED 2026-07-30.
     "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
     # ── TOMBSTONE ── `conflicting_data` was (REFUSE, UNSUPPORTED) — "a declared invariant (ASSERT) the
     #   attested data VIOLATES: the data's own testimony forbids serving the cut region (B1 scope-edit)".

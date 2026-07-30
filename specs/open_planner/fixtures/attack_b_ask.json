@@ -10,16 +10,68 @@
     "frameql": "SELECT avg(revenue) AT {cal.month}",
     "outcome": "clarify"
   },
-  "f1_unfaithful_not_expressible": [
+  "f1_unfaithful_now_expressible": [
     {
-      "detail": "multi-level input anchor `@ {store*product*cal.month}` is not supported in this build \u2014 pin a single level, e.g. avg(aov @ {day})",
       "frameql": "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}",
-      "outcome": "error"
+      "note": "'mean of revenue@{store*product*cal.month}' reduced to cal.month \u2014 pin fixes cal.month, reduces over store, product",
+      "outcome": "serve",
+      "values": {
+        "2024-01": 164.02842803030305,
+        "2024-02": 145.2215625,
+        "2024-03": 149.38211956521732,
+        "2024-04": 156.09133709981174,
+        "2024-05": 158.4778158844765,
+        "2024-06": 152.40560836501905,
+        "2024-07": 139.09041979010493,
+        "2024-08": 158.8540144665462,
+        "2024-09": 152.62177902621724,
+        "2024-10": 154.79659130434783,
+        "2024-11": 98.3909933142311,
+        "2024-12": 89.42607470049325,
+        "2025-01": 152.11623467600694,
+        "2025-02": 150.4830783938815,
+        "2025-03": 160.3437707641195,
+        "2025-04": 151.67471403812814,
+        "2025-05": 144.48700507614214,
+        "2025-06": 149.71703508771927,
+        "2025-07": 133.75919736842107,
+        "2025-08": 160.7558387096774,
+        "2025-09": 155.50392156862745,
+        "2025-10": 147.33253378378384,
+        "2025-11": 104.84119924457039,
+        "2025-12": 86.62765999999999
+      }
     },
     {
-      "detail": "multi-level input anchor `@ {customer*store*product*day}` is not supported in this build \u2014 pin a single level, e.g. avg(aov @ {day})",
       "frameql": "SELECT avg(revenue @ {customer*store*product*day}) AT {cal.month}",
-      "outcome": "error"
+      "note": "'mean of revenue@{customer*store*product*day}' reduced to cal.month \u2014 the mean of revenue@{customer*store*product*day} reading (input anchor pinned to '{customer*store*product*day}'), not the pooled value at cal.month",
+      "outcome": "serve",
+      "values": {
+        "2024-01": 139.91439418416795,
+        "2024-02": 125.80954314720807,
+        "2024-03": 127.25143518518516,
+        "2024-04": 137.9109816971714,
+        "2024-05": 139.13900158478603,
+        "2024-06": 130.5624592833876,
+        "2024-07": 114.11231242312427,
+        "2024-08": 136.19576744186048,
+        "2024-09": 133.38793780687396,
+        "2024-10": 135.47646879756473,
+        "2024-11": 78.63768702290072,
+        "2024-12": 65.37640391550745,
+        "2025-01": 132.0036018237082,
+        "2025-02": 130.30240066225167,
+        "2025-03": 138.8876978417266,
+        "2025-04": 133.0035106382979,
+        "2025-05": 123.93587808417993,
+        "2025-06": 127.56159940209267,
+        "2025-07": 114.4785923423423,
+        "2025-08": 139.78768583450216,
+        "2025-09": 130.59535928143706,
+        "2025-10": 126.22410998552824,
+        "2025-11": 82.18122131754258,
+        "2025-12": 64.04213405618533
+      }
     }
   ],
   "faithful_ask": {

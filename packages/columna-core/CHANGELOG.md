@@ -7,6 +7,39 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.13.4 — the composite input anchor: a product grain is a first-class pin
+
+**ENGINE/GRAMMAR ADDITION, no wire change.** `contract_version` stays `"1"`; the JSON envelope shape
+is unchanged. The `-core` version line moves to `0.13.4-core`. Two reason codes are minted inside the
+existing `REASON_OUTCOME` vocabulary (adding a reason does not bump the contract — readers on `"1"`
+route the new reasons by outcome, as they already do).
+
+Realizes **WP-GRAIN-1** (ratified Huayin 2026-07-29). An inline reduction's input anchor may now pin a
+PRODUCT of levels — `avg(revenue @ {store*product*cal.month})` — not just a single level. The engine's
+`reduce_series_to_anchor` was already composite-grain-native; this lifts the planner's single-level
+restriction and adjudicates the pin × output-anchor lattice.
+
+**What changed here:**
+
+- **Composite input anchor.** `@ {a*b*c}` (and the `{a,b}` spelling, folded to `*` in canonical form)
+  parses to a product-grain pin; `_reduction_call` returns the pin as a tuple of levels. The
+  single-level path is the n=1 case and is byte-identical (bare `@day`, `pinned to 'day'`, no rider).
+- **Law 1 — `pin_coarser_than_output` (REFUSE, minted).** A pin level coarser than the output grain
+  (an output level reaches it) is refused with a pin-specific teaching message and two lawful edits.
+  Its OWN dimension per OF-1 (the pin choosing an ill-fitting grain), distinct from `out_of_universe`
+  (run-time unreachability).
+- **Law 2 — `redundant_pin` (CLARIFY, minted).** Two cross-comparable pin levels (one determines the
+  other) fix one axis, not two — a clarify offering the two admissible pins, never a refuse.
+- **Law 4 — the two-stage-statistic disclosure, generalized.** The immaterial `provenance`/`TRANSPORT`
+  note names the composite pin as a braced product; when a pin axis is the output's own, a rider names
+  it as fixed and the rest as reduced-over. Still an immaterial note ⇒ **serve** (OF-2).
+- **F1 flip.** The lawful-but-unfaithful two-stage statistic is now a well-formed ask that serves and
+  agrees (to float precision) with the below-surface IR it composes — confirming the minted doctrine
+  that an expressible pinned ask is its own faithful denotation.
+
+Out of scope (rowed as a future finding): the composite-input × FACED-output combinatoric, which meets
+the existing G4 chain guard and refuses honestly with `chained_crossing` rather than serving.
+
 ## 0.13.3 — every dependency gets a ceiling, and a guard that makes it permanent
 
 **PACKAGING CHANGE, no code change.** No engine, wire, or contract behaviour is touched;
