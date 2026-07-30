@@ -56,6 +56,10 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'upstream mcp 2.0 broke fresh installs for 17 hours — capped, fixed, and guarded',
     date: '2026-07-29',
   },
+  '0.13.4': {
+    title: 'the composite input anchor: a product grain is a first-class pin',
+    date: '2026-07-30',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
