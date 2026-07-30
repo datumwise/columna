@@ -12,11 +12,15 @@ import storyBody from '../content/corpus/launch_story_v7.md?raw';
 import wiBody from '../content/corpus/what_is_columna_draft_v0_7.md?raw';
 import whyBody from '../content/corpus/why_columna_looks_this_way_draft_v0_4.md?raw';
 // The content consolidation (2026-07-25): the fourth what-is piece and the two ratified Positions
-// join the composed document. All three are VERBATIM ratified bodies — same compose-from-ratified rule
+// join the composed document. All are VERBATIM ratified bodies — same compose-from-ratified rule
 // (no net-new prose here); each already carries its own evidence/DOI footer in its bytes.
+// 2026-07-30: the two FOUNDATIONS positions join too (verbatim, same rule). No P/R figure on either —
+// they are foundations pieces, not product pieces — so they need no figure-equivalent seating.
 import universeBody from '../content/corpus/what_is_a_universe_v0_2.md?raw';
 import posWallBody from '../content/corpus/position_never_let_the_model_v1_1.md?raw';
 import posSourcesBody from '../content/corpus/position_two_great_sources_site_v1_1.md?raw';
+import posPracticeBody from '../content/corpus/position_practice_needs_a_theory_v1_1.md?raw';
+import posRowTableBody from '../content/corpus/position_row_table_join_no_longer_primitives_v1_1.md?raw';
 // The case demo, in three chapters — VERBATIM (byte-identical to the ratified charter). It is a
 // one-shot training document for minds: every doctrine the KP teaches by rule, the case teaches by
 // incident attached to an observable (capture §2b′). Strangers' agents read it here.
@@ -89,7 +93,7 @@ const thePositions = `## Positions datumwise holds (verbatim)
 Positions we hold, stated plainly and linked to their evidence. When the evidence moves, the position
 moves — with a note. Index: /positions
 
-${posWallWithFigure.trimEnd()}\n\n---\n\n${posSourcesBody.trimEnd()}`;
+${posWallWithFigure.trimEnd()}\n\n---\n\n${posSourcesBody.trimEnd()}\n\n---\n\n${posPracticeBody.trimEnd()}\n\n---\n\n${posRowTableBody.trimEnd()}`;
 
 const body = `${llmsIndex}\n\n---\n\n${announceBody.trimEnd()}\n\n---\n\n${storyBody.trimEnd()}\n\n---\n\n${wiBody.trimEnd()}\n\n---\n\n${whyBody.trimEnd()}\n\n---\n\n${universeBody.trimEnd()}\n\n---\n\n${thePositions}\n\n---\n\n${liveDemo}\n\n---\n\n${theCase}\n`;
 

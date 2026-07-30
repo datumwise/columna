@@ -98,6 +98,14 @@ the whole corpus. The benchmark is graded *against* the Atlas: its coverage of t
 published openly, gaps named, including the families our own tooling does not address. **The map
 grades the exam; the exam never defines the map.** The same standard applies to us first.
 
+## The root: The Theory of Data
+
+The foundations note — The Theory of Data (10.5281/zenodo.21696104) — states what everything above
+assumes: what data is, where meaning attaches, and what makes a transformation lawful; its technical
+companion (10.5281/zenodo.21707018) carries the full construction. The Atlas catalogs the failures;
+the Two Anchors and Multi-Universe papers state two of the laws; the benchmark measures the
+consequences; the Open Planner extends the laws to plans. This is where the chain is anchored.
+
 ## The entry point
 
 If you read one thing, read **The Grain Gap** — the ninety-second version of the whole problem:
