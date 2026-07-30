@@ -18,7 +18,8 @@ def test_desugared_is_the_consumed_artifact(fixture_server):
     ex = _explain(fixture_server, q)
     consumed = fixture_server.planner.desugar(parse_statement(q)).render_canonical()
     assert ex["desugared"] == consumed                       # the artifact, not a reconstruction
-    assert "avg(aov @ {day}) AS avg_aov" in ex["desugared"]  # canonical braces + resolved name
+    assert "avg(aov @ {day})" in ex["desugared"]           # WP-NAME-1: key IS the canonical expression
+    assert " AS " not in ex["desugared"]                    # no redundant `X AS X` — the expression names itself
 
 
 # --- zero data touched ---------------------------------------------------------------------------

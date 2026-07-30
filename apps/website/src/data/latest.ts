@@ -60,6 +60,10 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'the composite input anchor: a product grain is a first-class pin',
     date: '2026-07-30',
   },
+  '0.14.0': {
+    title: 'column identity is the canonical expression, not a mechanical default (wire contract 2)',
+    date: '2026-07-30',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
