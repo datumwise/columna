@@ -23,6 +23,8 @@ from .model import parse_faced
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
             ast.MatMult,  # `@` — the INPUT-ANCHOR pin inside an inline reduction (aov@day)
+            ast.Tuple,    # a COMPOSITE input anchor `@ {a*b}` desugars to `@ (a, b)` (WP-GRAIN-1); a
+                          # Tuple anywhere else is caught semantically by _infer ("unsupported node")
             ast.Call, ast.keyword)
 _OP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
 _V = "_v"
@@ -367,16 +369,24 @@ class Planner:
         return expr
 
     def _convert_input_anchor(self, expr: str) -> str:
-        """`@ {X}` -> `@ X` (the expression parser reads a bare level Name as the input anchor pin).
-        A braced product `@ {a*b}` is refused for now — single-level input anchors this build."""
+        """`@ {X}` -> a form the expression parser reads as the input-anchor pin (WP-GRAIN-1):
+          • single level `@ {day}` -> `@ day`         (bare Name/Attribute — the legacy shape, unchanged)
+          • composite `@ {a*b}` / `@ {a,b}` -> `@ (a, b)`  (a Python tuple literal the AST carries as a
+            `Tuple` of Name/Attribute nodes; `_reduction_call` recovers the pin levels from it).
+        The composite input anchor denotes a PRODUCT grain (a tuple of levels); `*` and `,` are two
+        spellings of the same product, so both normalize here. Order is preserved; exact duplicates
+        collapse. This lifts the single-level restriction (formerly refused at this chokepoint)."""
         def repl(m):
             inner = m.group(1).strip()
             if not inner:
                 self._synerr("an input anchor `@ { }` is empty — name the grain, e.g. avg(aov @ {day})")
-            if "*" in inner or "," in inner:
-                self._synerr(f"multi-level input anchor `@ {{{inner}}}` is not supported in this build — "
-                             f"pin a single level, e.g. avg(aov @ {{day}})")
-            return f"@ {inner}"
+            levels = [t.strip() for t in re.split(r"[*,]", inner)]
+            if any(not t for t in levels):
+                self._synerr(f"malformed input anchor `@ {{{inner}}}` — name each level, "
+                             f"e.g. avg(aov @ {{store*day}})")
+            if len(levels) == 1:
+                return f"@ {levels[0]}"                       # legacy single-level shape (bare)
+            return "@ (" + ", ".join(levels) + ")"           # composite -> tuple literal
         return self._INPUT_ANCHOR_BRACE.sub(repl, expr)
 
     def _default_name(self, expr: str) -> str:
@@ -407,10 +417,16 @@ class Planner:
                      f"(e.g. SELECT {expr} AS my_name)")
 
     def _canon_expr(self, expr: str) -> str:
-        """Normalize a series expression's input anchors to the CANONICAL brace form `@ {level}` (rider:
-        `@ {…}` is canonical, bare `@ level` is accepted sugar — grammar §2). Idempotent."""
-        bare = self._convert_input_anchor(expr)                  # any `@ {X}` -> `@ X` first (idempotent)
-        return re.sub(r"@\s*([A-Za-z_][\w.]*)", r"@ {\1}", bare) # then bare -> canonical `@ {X}`
+        """Normalize a series expression's input anchors to the CANONICAL brace form (rider:
+        `@ {…}` is canonical, bare `@ level` and `@ (a, b)` are accepted sugar — grammar §2). A
+        composite pin canonicalizes with `*` (the product spelling; comma is folded to it, mirroring
+        the anchor parser). Idempotent."""
+        bare = self._convert_input_anchor(expr)                  # `@ {X}` -> bare / tuple first (idempotent)
+        # composite tuple `@ (a, b, c)` -> canonical `@ {a*b*c}`
+        bare = re.sub(r"@\s*\(([^)]*)\)",
+                      lambda m: "@ {" + "*".join(t.strip() for t in m.group(1).split(",") if t.strip()) + "}",
+                      bare)
+        return re.sub(r"@\s*([A-Za-z_][\w.]*)", r"@ {\1}", bare) # then bare single -> canonical `@ {X}`
 
     def desugar(self, stmt):
         """THE desugaring transform (WP-FrameQL sugars increment, rider 1): rewrite the parsed Statement
@@ -652,11 +668,23 @@ class Planner:
     _INLINE_REDUCERS = {"avg": "mean", "mean": "mean", "sum": "sum",
                         "min": "min", "max": "max", "count": "count"}
 
+    @staticmethod
+    def _level_name(node):
+        """A level name from an AST leaf: `day` (Name) or `cal.month` (Attribute). None if neither —
+        so the pin's level names round-trip verbatim, dotted or not (WP-GRAIN-1)."""
+        if isinstance(node, ast.Name):
+            return node.id
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            return f"{node.value.id}.{node.attr}"
+        return None
+
     def _reduction_call(self, node):
-        """Recognize an inline reduction: `R(inner)` or `R(inner @ level)`, R a reducing operator.
-        Returns (reducer, inner_node, pinned_level | None), or None if `node` is not such a call. The
-        `@` (MatMult) PINS the input anchor: pinned ⇒ a definite quantity; unpinned ⇒ the input anchor
-        is structurally underdetermined (an engine clarify — capture v0.8)."""
+        """Recognize an inline reduction: `R(inner)` or `R(inner @ pin)`, R a reducing operator.
+        Returns (reducer, inner_node, pinned | None), or None if `node` is not such a call. The `@`
+        (MatMult) PINS the input anchor; `pinned` is a TUPLE of level names — a single-level pin is a
+        1-tuple, a composite (product) pin `@ {a*b}` is an n-tuple (WP-GRAIN-1; the pin is a product
+        grain). Unpinned ⇒ None ⇒ the input anchor is structurally underdetermined (an engine
+        clarify — capture v0.8)."""
         if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
             return None
         r = self._INLINE_REDUCERS.get(node.func.id)
@@ -668,11 +696,74 @@ class Planner:
                 f"(e.g. {node.func.id}(aov@day) to pin the input anchor)")
         arg = node.args[0]
         if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
-            if not isinstance(arg.right, ast.Name):
+            right = arg.right
+            elts = right.elts if isinstance(right, ast.Tuple) else [right]
+            levels = [self._level_name(e) for e in elts]
+            if any(lv is None for lv in levels):
                 raise Refusal("unknown",
-                    f"inline reduction input anchor must be a level name, e.g. {node.func.id}(aov@day)")
-            return r, arg.left, arg.right.id
+                    f"inline reduction input anchor must be level name(s), "
+                    f"e.g. {node.func.id}(aov@{{day}}) or {node.func.id}(aov@{{store*day}})")
+            return r, arg.left, tuple(dict.fromkeys(levels))     # order-preserving; exact dups collapse
         return r, arg, None
+
+    @staticmethod
+    def _fmt_pin(pinned: tuple) -> str:
+        """A composite pin's surface form: a single level bare (`day`), a product braced (`{a*b}`) —
+        so single-level rendering is byte-identical to the pre-WP-GRAIN-1 form (regression), and a
+        composite reads as one product grain."""
+        return pinned[0] if len(pinned) == 1 else "{" + "*".join(pinned) + "}"
+
+    def _pin_input_grain(self, pinned: tuple, anchor: tuple) -> tuple:
+        """The composite input grain a pinned reduction resolves its inner at (WP-GRAIN-1): the pinned
+        levels, plus the output's ORTHOGONAL reduction targets (those no pin level reaches) joined in
+        so the series carries them. Generalizes `(pinned,) + orthogonal` from the single-level era; the
+        engine's `reduce_series_to_anchor` is already composite-grain-native over this tuple."""
+        reduction, _dependent = self._split_dependent(anchor)
+        orthogonal = tuple(t for t in reduction
+                           if t not in pinned
+                           and not any(self.m.find_path({p}, t) is not None for p in pinned))
+        return tuple(dict.fromkeys(tuple(pinned) + orthogonal))
+
+    def _check_pin_laws(self, pinned: tuple, anchor: tuple):
+        """WP-GRAIN-1 Laws 1 & 2, as STATIC planner checks over the pin × output-anchor lattice
+        (ratified 2026-07-29). Both name exactly one contested dimension (OF-1):
+
+          Law 1 (REFUSE `pin_coarser_than_output`): an output level `a` functionally reaches a pin
+            level `p` (a -> p) — the pin fixes a grain COARSER than the output, which cannot resolve at
+            the output's grain without inventing rows the pin does not distinguish.
+          Law 2 (CLARIFY `redundant_pin`): a pin level `p_i` functionally determines another pin level
+            `p_j` (p_i -> p_j) — the pair fixes ONE axis, not two; the reader picks which pin they mean.
+        """
+        # Law 1 — no coarser-than-output level in the pin.
+        for p in pinned:
+            for a in anchor:
+                if a != p and self.m.find_path({a}, p) is not None:
+                    keep = "*".join(x for x in pinned if x != p)
+                    raise Refusal("pin_coarser_than_output",
+                        f"pin '{p}' is COARSER than output level '{a}' — the pin fixes a grain that "
+                        f"cannot resolve at the output's grain (a coarser pin cannot serve a finer "
+                        f"output, so the reduced value at '{a}' would be inventing rows the pin does "
+                        f"not distinguish); either replace '{p}' with a level finer than or equal to "
+                        f"'{a}', or drop it if another pin already reaches '{a}'",
+                        target=_fmt_anchor(anchor),
+                        alternatives=(f"replace @ {{{self._fmt_pin(pinned)}}} — use a level finer than '{a}' in place of '{p}'"
+                                      if len(pinned) == 1 else
+                                      f"replace '{p}' with a level finer than or equal to '{a}'",
+                                      f"drop '{p}' from the pin"
+                                      + (f" (pin @ {{{keep}}} — another pin reaches '{a}')" if keep else "")))
+        # Law 2 — no two pin levels cross-comparable.
+        for pj in pinned:
+            for pi in pinned:
+                if pi != pj and self.m.find_path({pi}, pj) is not None:
+                    fine_only = "*".join(x for x in pinned if x != pj)   # keeps the finer determiner p_i
+                    coarse_only = "*".join(x for x in pinned if x != pi) # keeps the coarser determined p_j
+                    raise Refusal("redundant_pin",
+                        f"pin includes both '{pj}' and '{pi}', but '{pi}' functionally determines "
+                        f"'{pj}' (a finer level fixes a coarser one) — the pair fixes one axis, not "
+                        f"two; write @ {{{fine_only}}} alone",
+                        discriminator=AMBIGUOUS,
+                        alternatives=(f"pin @ {{{fine_only}}} (the finer level)",
+                                      f"pin @ {{{coarse_only}}} (the coarser level — a different denotation)"))
 
     @staticmethod
     def _reducer_out_dtype(reducer: str, in_dt: str) -> str:
@@ -876,12 +967,13 @@ class Planner:
                 # UNPINNED: the input anchor is structurally underdetermined — a STATIC engine clarify
                 # (capture v0.8), enumerating the candidate input anchors.
                 raise self._unpinned_reduction_refusal(reducer, inner, anchor)
-            # DEPENDENT-PAIR era: an inline reduction serves at a MULTI-level anchor too — the pinned
-            # input anchor pins its lineage, orthogonal output dims join the input grain (see
-            # _resolve_inline_reduction). Typecheck the inner at that augmented grain.
-            reduction, _dep = self._split_dependent(anchor)
-            orthogonal = tuple(t for t in reduction if t != pinned and self.m.find_path({pinned}, t) is None)
-            in_dt = self._infer(inner, (pinned,) + orthogonal, population)
+            # WP-GRAIN-1: a pinned reduction serves at a MULTI-level anchor with a COMPOSITE input
+            # anchor. Laws 1 & 2 are static checks over the pin × output lattice (refuse coarser-than-
+            # output pins; clarify cross-comparable pins), classified here at the static chokepoint.
+            self._check_pin_laws(pinned, anchor)
+            # The pinned levels pin their lineage; orthogonal output dims join the input grain (see
+            # _resolve_inline_reduction). Typecheck the inner at that composite grain.
+            in_dt = self._infer(inner, self._pin_input_grain(pinned, anchor), population)
             return self._reducer_out_dtype(reducer, in_dt)
         sc = self._scan_call(node)
         if sc is not None:
@@ -1095,29 +1187,38 @@ class Planner:
         reducer, inner, pinned = rc
         if pinned is None:
             raise self._unpinned_reduction_refusal(reducer, inner, anchor)
-        # DEPENDENT-PAIR era: the pinned input anchor pins ITS lineage's resolution; output reduction
-        # dimensions ORTHOGONAL to it (not reachable from `pinned`) join the input grain so the series
-        # carries them, then everything reduces to the output anchor (dependent levels attached 1:1).
-        reduction, _dependent = self._split_dependent(anchor)
-        orthogonal = tuple(t for t in reduction if t != pinned and self.m.find_path({pinned}, t) is None)
-        input_grain = (pinned,) + orthogonal
+        self._check_pin_laws(pinned, anchor)                   # defends the direct-_node path (see _infer)
+        # WP-GRAIN-1: the pinned levels pin THEIR lineage's resolution; output reduction dimensions
+        # ORTHOGONAL to the pin (reachable from no pin level) join the input grain so the series carries
+        # them, then everything reduces to the output anchor (dependent levels attached 1:1).
+        input_grain = self._pin_input_grain(pinned, anchor)
         k, frame, disc, dtype = self._node(inner, input_grain, where, trace)
         if k != "col":
             raise Refusal("unknown", f"inline reduction input '{ast.unparse(inner)}' is not a column")
         out_dtype = self._reducer_out_dtype(reducer, dtype)
-        reading = f"{reducer} of {ast.unparse(inner)}@{pinned}"
+        pin_str = self._fmt_pin(pinned)
+        reading = f"{reducer} of {ast.unparse(inner)}@{pin_str}"
         if trace is not None:
             trace.append(f"inline reduction: {reading} -> {_fmt_anchor(anchor)}")
-        if anchor == (pinned,):
+        if anchor == tuple(pinned):
             served = frame                                     # asked AT the pinned anchor: no travel
         else:
             served = self.engine.reduce_series_to_anchor(frame, input_grain, anchor, reducer, trace)
         target = _fmt_anchor(anchor)
-        # communicative disclosure naming the reading — IMMATERIAL (provenance/transport), not a caveat
-        note = Caveat(TRANSPORT,
-                      f"'{reading}' reduced to {target} — the {reading} reading (input anchor pinned "
-                      f"to '{pinned}'), not the pooled value at {target}",
-                      source=f"{pinned}->{target}")
+        # Law 4 — the two-stage-statistic disclosure, IMMATERIAL (provenance/transport), never a caveat.
+        # Rider: a COMPOSITE pin whose levels include an axis PRESENT in the output names it as the fixed
+        # axis and the others as reduced, so the reader sees which coordinate is fixed vs reduced over.
+        fixed = [p for p in pinned if p in anchor]
+        if len(pinned) > 1 and fixed:
+            reduced = [p for p in pinned if p not in anchor]
+            clause = f"pin fixes {', '.join(fixed)}"
+            if reduced:
+                clause += f", reduces over {', '.join(reduced)}"
+            text = f"'{reading}' reduced to {target} — {clause}"
+        else:
+            text = (f"'{reading}' reduced to {target} — the {reading} reading (input anchor pinned "
+                    f"to '{pin_str}'), not the pooled value at {target}")
+        note = Caveat(TRANSPORT, text, source=f"{pin_str}->{target}")
         return "col", served, Disclosure.merge(disc, Disclosure.of(note), population=disc.population), out_dtype
 
     def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys):
