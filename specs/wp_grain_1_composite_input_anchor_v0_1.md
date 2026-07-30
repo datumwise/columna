@@ -199,15 +199,38 @@ opaque strings and route them by outcome as they already do.
 ## Acceptance criteria (a spec is a promise; make it checkable)
 
 1. **F1 ASK-surface transcript serves.** Both queries from `attack_b.py:127-128` return
-   `outcome = disclose`, values byte-equal to `attack_b_ir.json` on the corresponding IR row, and
-   carry the TRANSPORT caveat rendered per law 4. This is the headline test.
+   `outcome = serve`, values agreeing with `attack_b_ir.json` on the corresponding IR row to float
+   precision (the two are reached by independent paths — the planner vs the raw engine primitives —
+   so a residual at aggregation-order non-associativity, ~5.7e-14 relative, is NOISE not a finding
+   per the 0.13.1 tolerance doctrine, the same law that classified F4; the number is recorded), and
+   carry the immaterial `provenance`/`TRANSPORT` note rendered per law 4. This is the headline test.
+
+   > **Amendment (ruled Huayin 2026-07-30): `serve`, not `disclose` — the criterion text stood
+   > corrected, not the code.** The Two Anchors law itself decides the grade: an explicit pin is the
+   > asker's *uttered* denotation — sum-then-mean at `store*product` is what they asked — so announcing
+   > it back rises only to `provenance` (immaterial, serve-with-note). `disclose` is reserved for when
+   > the system chose something the asker did *not* utter (the unpinned default, the clarify-then-pin
+   > path). **Disclosure grade tracks who chose** — the mood contract's pragmatics, and F5's two-channel
+   > logic again: what the asker said is semantic ground truth; what the system volunteers about its own
+   > construction grades by materiality. The desk wrote "disclose" before this week's faithful-by-utterance
+   > doctrine matured — the acceptance table was ahead of its own law.
 2. **Law 1 test:** `avg(revenue @ {cal.month}) AT {store*day}` refuses with
    `pin_coarser_than_output` naming `cal.month` (coarser than `day`), with the pin-specific
    teaching message and two alternatives (replace `cal.month`, or drop it).
 3. **Law 2 test:** `avg(revenue @ {day*cal.month}) AT {cal.month}` clarifies with `redundant_pin`,
    alternatives offering `@{day}` and `@{cal.month}`.
-4. **Law 3 test:** `sum(revenue @ {product*category.touch}) AT {category.touch}` serves with the
-   face-crossing CRITICAL caveat (`b_anchor_crossing` — existing).
+4. **Law 3 test:** `sum(revenue @ {product*category.touch}) AT {category.touch}`.
+
+   > **Amendment (ruled Huayin 2026-07-30): DOCTRINE-LANDED / EXECUTION-DEFERRED.** The Law 3 doctrine
+   > (the face-crossing caveat propagates to the pin) is ratified. The *executable* case — a composite
+   > pin that includes both a base level and a faced coordinate — resolves the inner at a base+faced
+   > composite grain, which the existing **G4 chain guard** refuses `chained_crossing`: a lawful shape
+   > we cannot yet derive gets a NAMED refusal, never a silent number — gate 4 doing its job on the
+   > corner the scope table (§"scope, precisely", last row) already rowed out. Forcing new engine work
+   > into a green release to chase one criterion is exactly the discipline we keep. The plain faced
+   > output (`revenue AT {category.touch}`) still serves unchanged (no regression). The deferred corner
+   > gets its own dated ledger row (`composite pin × faced output`) and OF-26 — a struck row must not
+   > silently swallow a surviving sub-gap. Test asserts the honest `chained_crossing` refusal.
 5. **Law 4 rendering test:** a hermetic golden of the generalized `TRANSPORT` caveat text under all
    four surface variants (`{a*b}`, `{a,b}`, single-level `{a}` regression, orthogonal-pin case).
 6. **Existing suite passes byte-identical** on the single-level path — no regression on
