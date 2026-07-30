@@ -1,0 +1,27 @@
+---
+// /positions/row-table-join-no-longer-primitives — a foundations position, ratified. Renders VERBATIM
+// (byte-identical to the ratified attachment; see the corpus copy). The file's own byline stamps its
+// date ("A position from datumwise · 2026-07-30"); the page renders no second stamp.
+//
+// FOUNDATIONS piece, not a product piece: the P/R figure is deliberately absent (Huayin, 2026-07-30),
+// so this uses the plain <Content /> render — no figure seam, no evidence footer re-authored here (the
+// body carries its own DOI links).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content } from '../../content/corpus/position_row_table_join_no_longer_primitives_v1_1.md';
+---
+<BaseLayout title="Row, Table, Join: No Longer Primitives — datumwise"
+  description="A position held by datumwise: row, table, and join are not data's primitives but projections of the physical world's ontology — data has its own, and it has now been written down.">
+  <div class="page-head">
+    <p class="kicker"><a href="/positions">Positions</a></p>
+  </div>
+
+  <article class="prose position">
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker a { color: var(--ink-faint); text-decoration: none; }
+  .kicker a:hover { color: var(--ink-soft); }
+</style>

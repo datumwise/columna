@@ -7,9 +7,9 @@ in this directory changes any product surface, and no code here ships in a relea
 
 | # | file | what it is |
 |---|---|---|
-| 1 | `open_planner_fork_v0_8.md` | **the fork document** — the development brief. DESIGN, pre-implementation. Governs. |
+| 1 | `open_planner_fork_v0_11.md` | **the fork document** — the development brief. DESIGN, pre-implementation. Governs. *(Supersedes v0.8, moved to `superseded/`; the filing annotation at its head records the 2026-07-30 staleness catch — 0.13.4 lifted F1's restriction, 0.14.0 retired mechanical identity.)* |
 | 2 | `open_planner_artifact_A1_v0_1.md` | **Artifact A1** — the eight-node Plan IR extracted (not invented) from the shipped planner, file:line pinned, plus the Cascadia attack set A/B/C. |
-| 3 | `open_planner_deposit_v1_0.md` | **the published program note** — v1.0, 2026-07-27, CC-BY 4.0, **DOI [10.5281/zenodo.21632723](https://doi.org/10.5281/zenodo.21632723)**. Source of the deposited PDF. |
+| 3 | `open_planner_deposit_v1_3.md` | **the published program note** — v1.3, 2026-07-29, CC-BY 4.0, **DOI [10.5281/zenodo.21632723](https://doi.org/10.5281/zenodo.21632723)**. Source of the deposited PDF. *(v1.0 remains in place as the prior version; the deposit's own version line carries the v1.0→v1.3 history.)* |
 
 Where they disagree, the earlier number wins.
 
