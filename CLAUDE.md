@@ -1,3 +1,15 @@
+# ⚙️ OPS — read first
+
+**Pushing / opening PRs on `datumwise/columna`: use the `DATUMWISE_PUSH_PAT` token, NOT `GITHUB_TOKEN`.**
+The ambient `GITHUB_TOKEN` authenticates as a collaborator (`reeeneeee`) whose fine-grained PAT lacks
+`Contents: write` here, so `git push` / ref-writes 403 ("Resource not accessible by personal access
+token") even though the repo reports `push:true`. `DATUMWISE_PUSH_PAT` authenticates as `datumwise`
+and has write. Push with:
+`git push "https://x-access-token:${DATUMWISE_PUSH_PAT}@github.com/datumwise/columna.git" HEAD:<branch>`
+and run `gh pr create` with `GH_TOKEN="$DATUMWISE_PUSH_PAT"`.
+
+---
+
 # Phase 2 — CODE-COMPLETE ✅ (2026-07-08, tag `phase-2`)
 
 All Phase-2 work packages are merged: **WP-0** (repo/tests/packaging/CI for columna-core), **WP-2.2**
