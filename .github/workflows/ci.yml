@@ -61,7 +61,7 @@ jobs:
           columna-server demo --play | python -c "import sys; s=sys.stdin.read(); \
           i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose','serve')]; \
           assert -1 not in i and i == sorted(i), i; \
-          assert '\"contract_version\": \"1\"' in s; print('demo --play smoke OK:', i)"
+          assert '\"contract_version\": \"2\"' in s; print('demo --play smoke OK:', i)"
 
   # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
   # acceptance. Two legs, and the second one is the point:

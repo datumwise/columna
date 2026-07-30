@@ -30,8 +30,8 @@ def main() -> int:
         print("FAIL: moods appeared out of contract order: %s" % ordering)
         return 1
 
-    if '"contract_version": "1"' not in payload:
-        print('FAIL: no \'"contract_version": "1"\' in demo --play output')
+    if '"contract_version": "2"' not in payload:
+        print('FAIL: no \'"contract_version": "2"\' in demo --play output')
         return 1
 
     # ASCII ONLY, deliberately. This file is the harness that proves the product handles non-ASCII
