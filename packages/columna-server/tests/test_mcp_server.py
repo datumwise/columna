@@ -16,7 +16,7 @@ async def test_list_and_describe_roundtrip(mcp_session):
     async with mcp_session() as client:
         lst = await client.call("list_manifolds")
         dm = await client.call("describe_manifold", manifold_id="benchmark")
-    assert lst["contract_version"] == "1"
+    assert lst["contract_version"] == "2"
     bm = next(m for m in lst["manifolds"] if m["manifold_id"] == "benchmark")
     assert bm["n_measures"] == 6 and set(bm["universes"]) == {"transactions", "store_days"}
     measures = [m["name"] for m in dm["measures"]]
@@ -103,7 +103,9 @@ async def test_explain_envelope_zero_fetch_and_would_be(mcp_session):
         ex = await client.call("explain", manifold_id="benchmark", frameql="SELECT level.sum AT {store}")
     # zero data + the rich EXPLAIN payload (desugared artifact + series/cone)
     assert ex["executed"] is False and ex["fetches_delta"] == 0
-    assert "level.sum AS level_sum" in ex["desugared"] and ex["outcome"] == q["outcome"]
+    # WP-NAME-1 (0.14.0): the key IS the canonical expression `level.sum` (no `level_sum` mangle, and
+    # no redundant `X AS X` — the expression names itself).
+    assert "level.sum" in ex["desugared"] and " AS " not in ex["desugared"] and ex["outcome"] == q["outcome"]
     # the would-be disclosures equal the query's actual disclosures (explain is the plan, annotated)
     q_cav = [(d["code"], d["materiality"], d["severity"]) for d in q["columns"][0]["disclosures"]]
     ex_cav = [(d["code"], d["materiality"], d["severity"]) for d in ex["series"][0]["would_be"]["disclosures"]]
@@ -133,7 +135,7 @@ def _assert_caveat_shape(d):
 
 
 def _assert_frame_shape(w):
-    assert w["contract_version"] == "1"
+    assert w["contract_version"] == "2"
     assert w["outcome"] in ("serve", "disclose", "clarify", "refuse", "error")
     fr = w["frame"]
     assert set(fr) >= {"anchor", "universe", "rollup_severity", "disclosures"}

@@ -26,7 +26,8 @@ def _wire(server, q):
 # --- rider 1: the transform produces a faithful canonical artifact -------------------------------
 def test_desugar_fills_alias_and_braces(fixture_server):
     d = _desugar(fixture_server, "SELECT avg(aov @ day) AT {cal.month}")
-    assert d.series == [Series(expr="avg(aov @ {day})", alias="avg_aov")]   # bare @ -> canonical braces; name resolved
+    # WP-NAME-1 (0.14.0): bare @ -> canonical braces; the identity IS the canonical expression (no mechanical `avg_aov`)
+    assert d.series == [Series(expr="avg(aov @ {day})", alias="avg(aov @ {day})")]
     assert d.anchor == ("cal.month",) and d.bindings == []
 
 
@@ -88,11 +89,12 @@ def test_unaliased_complex_expr_refused(fixture_server):
 def test_composite_input_anchor_desugars_mechanically(fixture_server):
     # WP-GRAIN-1 (ratified 2026-07-29): a product input anchor is no longer refused at the sugar layer —
     # it is a first-class COMPOSITE pin. `*` and `,` are two spellings of the one product grain, folded
-    # to `*` in canonical form (mirroring the anchor parser); the name is pin-independent. The refusals
-    # moved to the SEMANTIC laws (pin_coarser_than_output / redundant_pin), tested in test_inline_reduction.
+    # to `*` in canonical form (mirroring the anchor parser). The refusals moved to the SEMANTIC laws
+    # (pin_coarser_than_output / redundant_pin), tested in test_inline_reduction.
+    # WP-NAME-1 (0.14.0): the key IS the canonical expression — the composite pin is visible in it.
     star = _desugar(fixture_server, "SELECT avg(aov @ {day*store}) AT {region}")
     comma = _desugar(fixture_server, "SELECT avg(aov @ {day, store}) AT {region}")
-    assert star.series == [Series(expr="avg(aov @ {day*store})", alias="avg_aov")]
+    assert star.series == [Series(expr="avg(aov @ {day*store})", alias="avg(aov @ {day*store})")]
     assert comma.series == star.series                          # comma folds to the product spelling
     assert "avg(aov @ {day*store})" in star.render_canonical()  # canonical carries the braced product
 

@@ -119,7 +119,7 @@ def test_wire_frame_served_scalar_and_vector():
     wv = dw.wire_frame(fv)
     assert ws["columns"][0]["value"] == 42.0
     assert wv["columns"][0]["values"] == [{"region": "east", "value": 10.0}, {"region": "west", "value": 20.0}]
-    assert ws["contract_version"] == "1"
+    assert ws["contract_version"] == "2"                           # WP-NAME-1 (0.14.0): canonical column identity
     assert ws["outcome"] == "serve" and wv["outcome"] == "serve"   # nothing material -> serve
 
 

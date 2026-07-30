@@ -1,5 +1,5 @@
 {
-  "generated_by": "columna-core 0.13.4",
+  "generated_by": "columna-core 0.14.0",
   "structure_source": "columna_core.parser.__doc__ grammar block (teaching shape)",
   "completeness_source": "columna_core.parser._KW (lexing set)",
   "note": "A lexing set is not a grammar taxonomy: _KW says what may BEGIN A LINE and is used here only to assert coverage; the page's SHAPE comes from the docstring.",

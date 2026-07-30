@@ -390,30 +390,40 @@ class Planner:
         return self._INPUT_ANCHOR_BRACE.sub(repl, expr)
 
     def _default_name(self, expr: str) -> str:
-        """§4 mechanical default — only where UNAMBIGUOUS; the input anchor never affects the name.
-        Reduction R(inner) -> `<R>_<base measure>`; bare measure -> the measure; measure.member ->
-        `measure_member`. Anything else unaliased is REFUSED (no name invented)."""
+        """§4 column identity (WP-NAME-1, 0.14.0): an unaliased series is keyed by its CANONICAL
+        EXPRESSION, verbatim — never a mechanical default. `expr` arrives ALREADY canonical (from
+        `_canon_expr`); for the cases the framework can identify by rule it is returned unchanged:
+
+          • bare measure          `revenue`               -> `revenue`
+          • measure.member        `revenue.sum`           -> `revenue.sum`  (NOT `revenue_sum` — the
+                                                             dot-to-underscore mangle was itself an
+                                                             invention; it retires with the default)
+          • single inline reduction `avg(revenue @ {day})` -> `avg(revenue @ {day})`
+
+        No name is INVENTED (the `<R>_<measure>` default is gone) and none is MANGLED. §4's own law —
+        *derived by rule or refused, never invented* — completes: the canonical expression IS the
+        derivation. A composite/nested/map/bracket expression is still REFUSED for a name (the
+        author owns it with AS — an author-owned name never changes under any future rule)."""
         try:
-            body = ast.parse(expr, mode="eval").body
+            body = ast.parse(self._convert_input_anchor(expr), mode="eval").body
         except SyntaxError:
             self._synerr(f"cannot name series {expr!r} — give it a name with AS")
         rc = self._reduction_call(body) if isinstance(body, ast.Call) else None
         if rc is not None:
-            _canonical, inner, _pin = rc
-            written = body.func.id                     # the reducer AS WRITTEN (avg, not the canonical mean)
-            # the column AS WRITTEN — a derived measure keeps its own name (aov), not its expanded atom
-            m, _mem = self._measure_ref(inner)
-            if m is None:
-                atoms = self._atoms(inner, ())
-                m = atoms[0][0] if atoms else None
-            if m is None:
-                self._synerr(f"cannot name reduction {expr!r} — give it a name with AS")
-            return f"{written}_{m}"
+            _reducer, inner, _pin = rc
+            # A SINGLE reduction of a single measure atom is identifiable by its canonical expression.
+            # A composite/nested reduction (inner is itself a call or a map expression) is refused — no
+            # canonical single-atom identity, so the author names it with AS (Chapter 1.6, unchanged).
+            if isinstance(inner, ast.Name) or (isinstance(inner, ast.Attribute)
+                                               and isinstance(inner.value, ast.Name)):
+                return expr                            # the canonical expression IS the identity
+            self._synerr(f"composite reduction {expr!r} has no derivable name — give it one with AS "
+                         f"(e.g. SELECT {expr} AS my_name)")
         if isinstance(body, ast.Name):
-            return body.id
+            return body.id                             # bare measure: trivially its own expression
         if isinstance(body, ast.Attribute) and isinstance(body.value, ast.Name):
-            return f"{body.value.id}_{body.attr}"
-        self._synerr(f"series {expr!r} has no unambiguous name — give it one with AS "
+            return f"{body.value.id}.{body.attr}"      # member access: verbatim dotted, no mangle
+        self._synerr(f"series {expr!r} has no derivable name — give it one with AS "
                      f"(e.g. SELECT {expr} AS my_name)")
 
     def _canon_expr(self, expr: str) -> str:
@@ -435,7 +445,7 @@ class Planner:
         heuristic middle:
           • WITH bindings inlined into the series (the canonical form carries no WITH);
           • input anchors to canonical brace form `@ {level}` (bare `@ level` accepted → braced);
-          • series names resolved (§4: AS alias, else mechanical default; ambiguous → refused);
+          • series names resolved (§4: AS alias, else the canonical expression itself; unnameable → refused);
           • anchor to canonical declared levels (comma → `*` already normalized by the parser).
         The single-universe and comma-anchor sugars are already canonical out of the parser. The
         omitted-input-anchor sugar is left as-is: the planner's existing path clarifies
@@ -447,7 +457,7 @@ class Planner:
         series = []
         for s in stmt.series:
             expr = self._canon_expr(self._apply_subs(s.expr, subs))
-            name = s.alias or self._default_name(self._convert_input_anchor(expr))
+            name = s.alias or self._default_name(expr)   # canonical expression IS the identity (WP-NAME-1)
             series.append(E.Series(expr=expr, alias=name))
         anchor = self.resolve_anchor(stmt.anchor)
         return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
