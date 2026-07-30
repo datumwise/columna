@@ -142,22 +142,26 @@ SELECT revenue AS total_revenue,
        AT {customer}
 ```
 
-When `AS` is not provided, the framework derives a default name from the expression. The derivation rules are mechanical and produce a name only in the cases where one is unambiguous:
+When `AS` is not provided, the framework names the column by its **canonical expression** — verbatim, not a mechanical rewrite. A column's identity is *what it is*: either the name you give it with `AS`, or the expression itself. No name is invented, and none is mangled.
 
-**Bare column reference.** Defaults to the column's name. `revenue` → `revenue`.
+**Bare column reference.** The column's own name. `revenue` → `revenue`.
 
-**Single reducer applied to a column.** Defaults to `<reducer>_<column>`. `sum(revenue)` → `sum_revenue`; `max(revenue @ {customer, month})` → `max_revenue` (the input anchor does not affect the default name — it affects how the value is computed, not what it is named).
+**Member access.** The dotted reference, verbatim. `revenue.sum` → `revenue.sum` (not `revenue_sum` — the framework does not rewrite the dot; the key is the expression).
 
-**Any other expression.** No default. The writer must supply `AS`. This includes:
+**Single reducer applied to a column.** The reduction, verbatim, input anchor and all. `avg(revenue @ {day})` → `avg(revenue @ {day})`; `max(revenue @ {customer*month})` → `max(revenue @ {customer*month})`. The input anchor is part of the column's identity (per the Two Anchors law), so it appears in the key — two reductions that differ only in their pin are different columns with different keys, never a collision on an invented name.
+
+**Any other expression.** No derivable identity. The writer must supply `AS`. This includes:
 
 - Arithmetic and other map expressions: `revenue - cost`, `revenue / orders`.
 - Conditional expressions: `if(...)`, `case ... end`.
 - Bracket-filtered column references: `revenue[region = "east"]`.
 - Composite reductions: `max(sum(revenue @ {transaction}) @ {customer, month})`.
 
-For these the framework cannot produce a defensible automatic name, so the query is ill-formed without `AS`.
+For these the canonical expression is not a single-atom identity the framework will key on, so the query is ill-formed without `AS`.
 
-**Name collisions are refused, not silently resolved.** If two series in the same query would default to the same name (e.g., `sum(revenue)` and `sum(revenue[region="east"])` would both default to `sum_revenue`, though the latter actually requires `AS` because it is bracket-filtered), the query is refused with a structured error naming the collision. The framework does not append disambiguating suffixes or otherwise guess; the writer must declare an alias for at least one of the colliding series. The same rule applies if a series's default or aliased name collides with an anchor dimension's name (anchor dimensions appear automatically as leading columns of the output frame and own their names).
+**Name collisions are refused, not silently resolved.** If two series in the same query resolve to the same key — the same canonical expression with no `AS` on either — the query is refused with a structured error naming the collision. The framework does not append disambiguating suffixes or otherwise guess; the writer must declare an alias for at least one of the colliding series. The same rule applies if a series's key (canonical or aliased) collides with an anchor dimension's name (anchor dimensions appear automatically as leading columns of the output frame and own their names).
+
+**Keying on names across versions.** Because an unaliased column's key *is* its canonical expression, it will change if you rewrite the expression — and the mechanical defaults of earlier versions (`sum_revenue`, `revenue_sum`) are gone (`contract_version` `"2"`, 0.14.0). A consumer that needs a stable handle should key on an `AS` alias: an alias is author-owned and will never change under any future rule.
 
 **Alias visibility.** An alias declared in `SELECT` is visible in:
 
@@ -172,7 +176,7 @@ An alias is *not* visible in:
 
 **Valid alias names.** An alias is an identifier subject to the same rules as a column name: alphanumeric with underscores, not starting with a digit, not a reserved keyword. The alias must not collide with anchor dimension names, with another series's alias or default name, or with reserved identifiers in the Manifold's namespace.
 
-The aliasing rules are designed to require explicitness exactly where ambiguity could arise (composite expressions, bracket filters, name collisions) and to permit default names exactly where the framework can produce one without guessing (bare columns and simple reductions). The writer is asked to name a series whenever the framework cannot do so unambiguously.
+The aliasing rules require explicitness exactly where the canonical expression is not a single-atom identity (composite expressions, bracket filters, name collisions) and key by the expression itself everywhere else (bare columns, member access, single reductions). The writer is asked to name a series only when the framework cannot identify it by its own expression.
 
 (One mechanism deliberately complements the alias rules: the **macro binding** of Chapter 4.5, `WITH name = expression`, which provides the expression *reuse* that aliases do not — an alias names an output column after reduction; a macro names an expression template before everything.)
 

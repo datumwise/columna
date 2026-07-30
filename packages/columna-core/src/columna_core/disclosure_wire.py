@@ -22,7 +22,15 @@ from typing import Optional
 
 from .disclosure import Caveat, Outcome
 
-CONTRACT_VERSION = "1"
+CONTRACT_VERSION = "2"
+# ── VERSION HISTORY ─────────────────────────────────────────────────────────────────────────────────
+# "1" → "2" (WP-NAME-1, 0.14.0, 2026-07-30): the default column KEY changed for the same utterance.
+#   An unaliased series is now keyed by its CANONICAL EXPRESSION, not a mechanical default:
+#   `avg_revenue` → `avg(revenue)`, `revenue_sum` → `revenue.sum`. No values, moods, disclosures, or
+#   reason codes changed — only the `name` field of unaliased columns. This bumps the contract because
+#   a changed default key for an unchanged utterance is a breaking wire change (a name-keyed consumer
+#   reads a different key). Durable advice: key on AS aliases — author-owned, and never changed by any
+#   future rule. See specs/wp_name_1_column_identity_v0_1.md.
 # ── THE IN-TREE CONSUMER INVENTORY (Huayin, 2026-07-26) ────────────────────────────────────────────
 # The removal policy for this contract rests on an in-tree-consumers premise: a field may be removed
 # without a version bump while every consumer is inside this repo and moves with it. That premise

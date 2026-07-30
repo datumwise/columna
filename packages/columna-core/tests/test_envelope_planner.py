@@ -41,20 +41,22 @@ def test_as_alias_names_the_column(fixture_server):
     assert fr.columns[0].name == "gross" and "gross" in fr.data.columns
 
 
-def test_mechanical_default_reducer_column(fixture_server):
-    # avg(aov @ {day}) -> the default name is `avg_aov`; the input anchor never affects the name
+def test_reduction_column_keyed_by_canonical_expression(fixture_server):
+    # WP-NAME-1 (0.14.0): an unaliased reduction is keyed by its CANONICAL EXPRESSION, not a
+    # mechanical `avg_aov` default — no invented name. The input anchor is now VISIBLE in the key.
     fr = _run(fixture_server, "SELECT avg(aov @ {day}) AT {cal.month}")
-    assert fr.columns[0].name == "avg_aov"
+    assert fr.columns[0].name == "avg(aov @ {day})"
 
 
 def test_bare_measure_names_itself(fixture_server):
     assert _run(fixture_server, "SELECT revenue AT {region}").columns[0].name == "revenue"
 
 
-def test_member_default_name(fixture_server):
-    # level.sum -> `level_sum` (measure_member)
+def test_member_access_key_is_verbatim_dotted(fixture_server):
+    # WP-NAME-1 (0.14.0): `level.sum` keys as `level.sum`, verbatim — the dot-to-underscore mangle
+    # (`level_sum`) was itself an invention and retires with the mechanical default.
     fr = _run(fixture_server, "SELECT level.sum AT {store}")
-    assert fr.columns[0].name == "level_sum"
+    assert fr.columns[0].name == "level.sum"
 
 
 def test_collision_refused_not_suffixed(fixture_server):

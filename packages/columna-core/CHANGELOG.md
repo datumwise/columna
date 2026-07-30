@@ -7,6 +7,37 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.14.0 — column identity is the canonical expression, not a mechanical default
+
+**WIRE CONTRACT BUMP: `contract_version` `"1"` → `"2"`.** No values, moods, disclosures, or reason
+codes change — this bump is for exactly one thing: the default column **key** changed for the same
+utterance. The `-core` version line moves to `0.14.0-core`. A `contract_version` bump is what a
+pre-1.0 minor exists to signal, so this ships as its own minor.
+
+Realizes **WP-NAME-1** (ratified Huayin 2026-07-30). The §4 mechanical default (`<reducer>_<measure>`)
+dropped the input anchor — half a pinned reduction's denotation, per the Two Anchors law — and, after
+0.13.4's composite pins, two distinct asks collided on one invented name. Retired. An unaliased series
+is now keyed by its **canonical expression**, verbatim; no name is invented and none is mangled.
+
+**What changed here:**
+
+- **Unaliased column keys are the canonical expression.** `avg(revenue @ {day})` keys as
+  `avg(revenue @ {day})` (the pin is now visible in the key); a bare measure keys as `revenue`; member
+  access keys as `revenue.sum` — **verbatim dotted**, the dot-to-underscore mangle (`revenue_sum`) was
+  itself an invention and retires with the default. One rule: identity = canonical expression, or an
+  `AS` alias; a composite/nested/map/bracket expression is still refused for a name (author names it).
+- **`EXPLAIN` / canonical form** emits no redundant `X AS X` — a series whose key equals its expression
+  prints without an `AS` clause; only a distinct, author-owned alias prints.
+- **`contract_version` → `"2"`.**
+
+### Migration — for consumers keying on column names
+
+`contract_version` is now `"2"`. Unaliased column keys changed from mechanical defaults to canonical
+expressions: `avg_revenue` → `avg(revenue)`, `revenue_sum` → `revenue.sum`. **Consumers who key on
+column names should key on `AS` aliases** — an alias is author-owned and will never change under any
+future rule. That is the durable advice and the whole naming philosophy in one line: the framework
+names a column by *what it is*; if you need a stable handle, you *give* it one.
+
 ## 0.13.4 — the composite input anchor: a product grain is a first-class pin
 
 **ENGINE/GRAMMAR ADDITION, no wire change.** `contract_version` stays `"1"`; the JSON envelope shape
