@@ -98,7 +98,10 @@ class Statement:
             out.append(f"FROM {self.from_manifold}")
         for b in self.bindings:
             out.append(f"WITH {b.name} = {b.expr}")
-        cols = ", ".join(s.expr + (f" AS {s.alias}" if s.alias else "") for s in self.series)
+        # WP-NAME-1 (0.14.0): an unaliased series is keyed by its canonical expression, so its resolved
+        # `alias` equals `expr` — emit no redundant `X AS X`. Only a DISTINCT (author-owned) alias prints.
+        cols = ", ".join(s.expr + (f" AS {s.alias}" if s.alias and s.alias != s.expr else "")
+                         for s in self.series)
         out.append(f"SELECT {cols}")
         out.append("AT {" + "*".join(self.anchor) + "}")
         if self.where:

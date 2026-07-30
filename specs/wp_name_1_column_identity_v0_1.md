@@ -1,8 +1,27 @@
-# WP-NAME-1 — column identity is the canonical expression, not a pin-eliding default (v0.1, PROPOSAL)
+# WP-NAME-1 — column identity is the canonical expression, not a pin-eliding default (v0.1)
 
-*Status: PROPOSAL, filed 2026-07-30, queued behind WP-GRAIN-1 (columna-core 0.13.4). Awaiting
-Huayin's ruling. Nothing here ships until ratified; this document states the doctrine and its
-wire-visible blast radius so ratification is a checkable act.*
+*Status: **RATIFIED & LANDED** in columna-core 0.14.0 (Huayin, 2026-07-30). Filed 2026-07-30 as a
+proposal; all three open questions ruled and the code shipped in the same window. See OF-27 (struck)
+and the CHANGELOG. Rulings folded in below.*
+
+> **Rulings (Huayin, 2026-07-30).**
+> 1. **Leaf case — uniform, no exceptions.** The canonical expression is the identity for *every*
+>    unaliased series, including leaves: a bare measure keys as `revenue`, and member access ships
+>    verbatim as `revenue.sub`-style dotted — the dot-to-underscore mangle (`revenue_sub`) was itself
+>    an invention and retires with its sibling. §4's law (*derived by rule or refused, never invented*)
+>    completes rather than gains an exception. Dotted keys are legal JSON and legal dataframe columns;
+>    ORDER BY/HAVING accept the dotted reference through the existing attribute parsing; the collision
+>    guard already covers key-vs-dimension conflicts.
+> 2. **Vehicle — its own release, 0.14.0.** A `contract_version` bump is what a pre-1.0 minor exists to
+>    signal; batching with a future wire-WP means waiting on a partner with no date while the
+>    name-keyed consumer base grows daily — the cheapest day for this change is always today. Server
+>    stays 0.8.2 (the wire-schema text `CONTRACT_VERSION` lives in columna-core and the server
+>    re-exports it — reported and confirmed).
+> 3. **Migration note — teach the principle, not just the diff.** Release notes + wire docs carry:
+>    `contract_version` is now `"2"`; unaliased column keys changed from mechanical defaults to
+>    canonical expressions (`avg_revenue` → `avg(revenue)`, `revenue_sub` → `revenue.sub`); consumers
+>    who key on names should key on **AS aliases, which are author-owned and will never change under
+>    any future rule** — the durable advice and the whole naming philosophy in one line.
 
 ## The finding
 

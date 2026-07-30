@@ -16,7 +16,7 @@ def test_demo_play_prints_three_moods_in_order():
                           capture_output=True, text=True, timeout=120, env=dict(os.environ))
     assert proc.returncode == 0, proc.stderr[-2000:]
     out = proc.stdout
-    assert '"contract_version": "1"' in out
+    assert '"contract_version": "2"' in out
     # the three moods appear, in order (clarify -> refuse -> serve; §2c reframe 2026-07-16)
     i_clar = out.find('"outcome": "clarify"')
     i_ref = out.find('"outcome": "refuse"')

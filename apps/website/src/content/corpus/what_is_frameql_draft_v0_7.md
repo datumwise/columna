@@ -91,7 +91,7 @@ AT {region*cal.month}
 ```
 
 A margin and a per-order average, each written as *what it is* and named with `AS`
-(composite expressions have no mechanical default name — the language asks you to name
+(a composite expression has no single-atom identity to key on — the language asks you to name
 what you compose) — no CTEs, no intermediate
 views, no re-stating the grain for each piece. The expression's components share the frame's
 anchors and the Manifold's laws travel through the arithmetic: if any piece can't stand
@@ -133,8 +133,9 @@ so instead of quietly doubling rows.
   lawfully reach some series' input, you get a clarify, never a silently partial answer.
 - **`HAVING`** filters the *output frame*, by column name, after reduction — name a
   column with `AS` (`SELECT sum(revenue) AS total AT {customer} HAVING total > 10000`), or
-  use the mechanical default (`sum(revenue)` answers to `sum_revenue`). The old distinction,
-  made precise: `WHERE` restricts what is reduced; `HAVING` restricts what is shown.
+  reference it by its canonical expression, which is the key of an unaliased column
+  (`sum(revenue)` answers to `sum(revenue)`). The old distinction, made precise: `WHERE`
+  restricts what is reduced; `HAVING` restricts what is shown.
 - **`ORDER BY` / `LIMIT`** as above — with the `PER` rules pinned down so results are
   deterministic.
 

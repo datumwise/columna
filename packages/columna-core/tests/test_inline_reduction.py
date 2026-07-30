@@ -240,13 +240,18 @@ def test_single_level_pin_equal_output_is_still_standard_form(fixture_connector)
                       "(input anchor pinned to 'day'), not the pooled value at day")
 
 
-# ── wire contract unchanged: adding reason codes does NOT bump the contract version ──
-def test_wire_contract_version_unchanged_on_composite(fixture_connector):
+# ── wire contract: WP-GRAIN-1 added reason codes WITHOUT a bump; WP-NAME-1 (0.14.0) bumped to "2" ──
+def test_wire_contract_version_is_2_after_wp_name_1(fixture_connector):
+    # WP-GRAIN-1 added `pin_coarser_than_output`/`redundant_pin` inside the existing vocabulary — no bump
+    # (readers on the contract route by outcome). WP-NAME-1 changed the default column KEY for the same
+    # utterance (canonical expression identity), which IS a breaking wire change -> contract "2".
     from columna_core.disclosure_wire import CONTRACT_VERSION
-    assert CONTRACT_VERSION == "1"
+    assert CONTRACT_VERSION == "2"
     s = _srv(fixture_connector)
     w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
-    assert w["contract_version"] == "1"
+    assert w["contract_version"] == "2"
+    # the composite pin's reduction column is keyed by its canonical expression (WP-NAME-1)
+    assert w["columns"][0]["name"] == "avg(revenue @ {store*product*cal.month})"
 
 
 # ── the composite pin denotes a DIFFERENT statistic than the atom-grain reading (F1's point) ──
