@@ -225,9 +225,11 @@ def main(argv: list[str]) -> int:
     # F1 FLIP (WP-GRAIN-1): the unfaithful UNFAITHFUL_GRAIN ask now SERVES, and its per-month values
     # name the SAME statistic as the IR composition it stands for — the surface and the below-surface
     # layer agree. The two are reached by INDEPENDENT paths (the planner's `_resolve_inline_reduction`
-    # vs the raw `resolve` + `reduce_series_to_anchor`), so a residual at float precision (~1e-13) is
-    # aggregation-ORDER non-associativity, not a denotational gap; agreement is asserted to float
-    # precision, and the residual is reported so it stays visible rather than hidden by a loose bound.
+    # vs the raw `resolve` + `reduce_series_to_anchor`), so a residual at float precision (~5.7e-14
+    # relative) is aggregation-ORDER non-associativity, not a denotational gap — NOISE, not a finding,
+    # per the 0.13.1 tolerance doctrine (the same law that classified F4). "Serves, agrees within
+    # noise" is a PASS; the residual is RECORDED (max_residual, below) so the number stays visible
+    # rather than hidden by a loose bound (ruled Huayin 2026-07-30).
     ask_f1 = ask["f1_unfaithful_now_expressible"][0]          # the {store*product*cal.month} query
     ir_unfaithful = ir["unfaithful_ir"]["values"]
     months = sorted(set(ask_f1["values"]) & set(ir_unfaithful))
