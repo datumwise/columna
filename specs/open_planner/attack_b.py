@@ -19,20 +19,24 @@ THE THREE PATHS, and why all three are run rather than one:
   (1) DIRECT   — duckdb over the parquet, mirroring the two IR compositions. Reproduces the desk's
                  published numbers on an INDEPENDENT path. This is the verification of the arithmetic.
   (2) ASK      — the shipped FrameQL ask surface. The faithful half is reachable (as `aov`); the
-                 unfaithful half is NOT — see FINDING F1 below.
+                 unfaithful half is NOW ALSO reachable, as its own well-formed ask — see FINDING F1.
   (3) IR       — the engine's own primitives, composed BELOW the ask surface: engine.resolve(...)
                  then engine.reduce_series_to_anchor(...). This is the attack's NATIVE layer, because
                  the threat model is a searcher emitting IR, not a human typing an ask.
 
 Agreement across all three is the point: the same statistic, reached by three independent routes.
 
-FINDING F1 (recall row, not a safety bug — ruled Huayin 2026-07-27). The unfaithful plan needs a
-MULTI-LEVEL input anchor, and this build refuses one by name (`planner.py:371`, "A braced product
-`@ {a*b}` is refused for now — single-level input anchors this build"). So the attack is not
-utterable from the ask surface. That is the grammar working, not the kernel working — and it is
-exactly why the kernel is needed: searchers do not speak grammar, they speak plans.
+FINDING F1 — RESOLVED by WP-GRAIN-1 (ratified Huayin 2026-07-29; shipped 0.13.4). Originally a
+recall row (not a safety bug — ruled Huayin 2026-07-27): the unfaithful plan needs a MULTI-LEVEL
+input anchor, which the build refused by name. WP-GRAIN-1 lifts that restriction — the composite
+input anchor is now a first-class pin — so the two-stage statistic is now UTTERABLE, and when
+uttered it SERVES, carrying the immaterial provenance note that names the reading. This does not
+weaken the exhibit; it CONFIRMS the doctrine below: once askable, the ask is its own faithful
+denotation, and the ask-surface value now equals the below-surface IR value it composes. The
+searcher's channel is still where the kernel begins — the grammar's protection is about the gap
+between plan and ask, and an ask cannot be unfaithful to itself.
 
-THE DOCTRINE THIS EXHIBIT MINTS (Huayin, 2026-07-27, verbatim — for v1.1):
+THE DOCTRINE THIS EXHIBIT MINTS (Huayin, 2026-07-27, verbatim — realized in WP-GRAIN-1):
 
     An expressible pinned ask is its own denotation — avg(revenue @ {store*product*month}), once
     askable, is a different question, faithfully answered. No ask can be unfaithful to itself;
@@ -122,14 +126,20 @@ def run_ask(store) -> dict:
         "alternatives": (col.get("no_result") or {}).get("alternatives"),
     }
 
-    # F1 — the unfaithful half, refused at the grammar.
-    out["f1_unfaithful_not_expressible"] = []
+    # F1 — the unfaithful half, NOW EXPRESSIBLE (WP-GRAIN-1, ratified 2026-07-29; 0.13.4). The
+    # composite input anchor lifts the single-level restriction: the two-stage statistic is now a
+    # well-formed ask that SERVES, carrying the immaterial provenance note that names the reading.
+    # No ask can be unfaithful to itself (the minted doctrine) — the ask-surface value now equals the
+    # below-surface IR value it composes, which is the whole point of the flip.
+    out["f1_unfaithful_now_expressible"] = []
     for q in ("SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}",
               "SELECT avg(revenue @ {customer*store*product*day}) AT {cal.month}"):
         r = T.query(store, "cascadia", q)
-        out["f1_unfaithful_not_expressible"].append({
+        col = r["columns"][0] if r.get("columns") else {}
+        out["f1_unfaithful_now_expressible"].append({
             "frameql": q, "outcome": r["outcome"],
-            "detail": (r.get("error") or {}).get("detail"),
+            "note": next((d.get("detail") for d in (col.get("disclosures") or [])), None),
+            "values": {v["cal.month"]: v["value"] for v in (col.get("values") or [])},
         })
     return out
 
@@ -211,6 +221,28 @@ def main(argv: list[str]) -> int:
         "agrees": abs(direct["overall"]["ratio"] - DESK_OVERALL_RATIO) < 0.005
         and abs(ir["overall"]["ratio"] - DESK_OVERALL_RATIO) < 0.005,
     }
+
+    # F1 FLIP (WP-GRAIN-1): the unfaithful UNFAITHFUL_GRAIN ask now SERVES, and its per-month values
+    # name the SAME statistic as the IR composition it stands for — the surface and the below-surface
+    # layer agree. The two are reached by INDEPENDENT paths (the planner's `_resolve_inline_reduction`
+    # vs the raw `resolve` + `reduce_series_to_anchor`), so a residual at float precision (~5.7e-14
+    # relative) is aggregation-ORDER non-associativity, not a denotational gap — NOISE, not a finding,
+    # per the 0.13.1 tolerance doctrine (the same law that classified F4). "Serves, agrees within
+    # noise" is a PASS; the residual is RECORDED (max_residual, below) so the number stays visible
+    # rather than hidden by a loose bound (ruled Huayin 2026-07-30).
+    ask_f1 = ask["f1_unfaithful_now_expressible"][0]          # the {store*product*cal.month} query
+    ir_unfaithful = ir["unfaithful_ir"]["values"]
+    months = sorted(set(ask_f1["values"]) & set(ir_unfaithful))
+    max_residual = max((abs(ask_f1["values"][m] - ir_unfaithful[m]) for m in months), default=None)
+    agreement["f1_ask_equals_ir"] = {
+        "frameql": ask_f1["frameql"], "outcome": ask_f1["outcome"],
+        "same_months": set(ask_f1["values"]) == set(ir_unfaithful),
+        "max_residual": max_residual,                         # float-precision residual, reported not hidden
+        "agrees_to_float_precision": ask_f1["outcome"] in ("serve", "disclose")
+        and set(ask_f1["values"]) == set(ir_unfaithful)
+        and max_residual is not None and max_residual < 1e-9, # a residual this small is float order, not a gap
+    }
+    agreement["all_agree"] &= agreement["f1_ask_equals_ir"]["agrees_to_float_precision"]
 
     for name, payload in [("attack_b_direct.json", direct), ("attack_b_ask.json", ask),
                           ("attack_b_ir.json", ir), ("attack_b_agreement.json", agreement)]:

@@ -85,11 +85,16 @@ def test_unaliased_complex_expr_refused(fixture_server):
     assert "AS" in str(ei.value)
 
 
-def test_multi_level_input_anchor_refused(fixture_server):
-    # the bare `@ level` sugar is single-level; a product input anchor is refused, not guessed
-    with pytest.raises(FrameQLSyntaxError) as ei:
-        _desugar(fixture_server, "SELECT avg(aov @ {day*store}) AT {region}")
-    assert "multi-level input anchor" in str(ei.value)
+def test_composite_input_anchor_desugars_mechanically(fixture_server):
+    # WP-GRAIN-1 (ratified 2026-07-29): a product input anchor is no longer refused at the sugar layer —
+    # it is a first-class COMPOSITE pin. `*` and `,` are two spellings of the one product grain, folded
+    # to `*` in canonical form (mirroring the anchor parser); the name is pin-independent. The refusals
+    # moved to the SEMANTIC laws (pin_coarser_than_output / redundant_pin), tested in test_inline_reduction.
+    star = _desugar(fixture_server, "SELECT avg(aov @ {day*store}) AT {region}")
+    comma = _desugar(fixture_server, "SELECT avg(aov @ {day, store}) AT {region}")
+    assert star.series == [Series(expr="avg(aov @ {day*store})", alias="avg_aov")]
+    assert comma.series == star.series                          # comma folds to the product spelling
+    assert "avg(aov @ {day*store})" in star.render_canonical()  # canonical carries the braced product
 
 
 def test_single_universe_sugar_refusal_is_cross_universe(fixture_server):
