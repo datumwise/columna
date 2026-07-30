@@ -1,5 +1,12 @@
 {
   "all_agree": true,
+  "f1_ask_equals_ir": {
+    "agrees_to_float_precision": true,
+    "frameql": "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}",
+    "max_residual": 5.684341886080802e-14,
+    "outcome": "serve",
+    "same_months": true
+  },
   "months": {
     "2024-01": {
       "agrees": true,
@@ -9,12 +16,12 @@
         "unfaithful": 164.03
       },
       "direct": {
-        "faithful": 139.91439418416803,
-        "unfaithful": 164.02842803030308
+        "faithful": 139.91439418416812,
+        "unfaithful": 164.02842803030302
       },
       "ir": {
-        "faithful": 139.914394184168,
-        "unfaithful": 164.028428030303
+        "faithful": 139.91439418416795,
+        "unfaithful": 164.02842803030305
       }
     },
     "2024-02": {
@@ -26,11 +33,11 @@
       },
       "direct": {
         "faithful": 125.80954314720813,
-        "unfaithful": 145.22156249999995
+        "unfaithful": 145.2215625
       },
       "ir": {
-        "faithful": 125.8095431472081,
-        "unfaithful": 145.22156249999995
+        "faithful": 125.80954314720807,
+        "unfaithful": 145.22156249999998
       }
     },
     "2024-03": {
@@ -42,11 +49,11 @@
       },
       "direct": {
         "faithful": 127.25143518518522,
-        "unfaithful": 149.3821195652174
+        "unfaithful": 149.38211956521735
       },
       "ir": {
-        "faithful": 127.25143518518517,
-        "unfaithful": 149.38211956521738
+        "faithful": 127.25143518518516,
+        "unfaithful": 149.38211956521732
       }
     },
     "2024-04": {
@@ -57,12 +64,12 @@
         "unfaithful": 156.09
       },
       "direct": {
-        "faithful": 137.9109816971714,
-        "unfaithful": 156.09133709981168
+        "faithful": 137.91098169717134,
+        "unfaithful": 156.09133709981165
       },
       "ir": {
-        "faithful": 137.9109816971713,
-        "unfaithful": 156.09133709981162
+        "faithful": 137.9109816971714,
+        "unfaithful": 156.0913370998118
       }
     },
     "2024-05": {
@@ -74,11 +81,11 @@
       },
       "direct": {
         "faithful": 139.1390015847861,
-        "unfaithful": 158.4778158844765
+        "unfaithful": 158.47781588447654
       },
       "ir": {
         "faithful": 139.13900158478603,
-        "unfaithful": 158.47781588447657
+        "unfaithful": 158.4778158844765
       }
     },
     "2024-06": {
@@ -93,15 +100,15 @@
         "unfaithful": 152.40560836501902
       },
       "ir": {
-        "faithful": 130.56245928338762,
-        "unfaithful": 152.405608365019
+        "faithful": 130.5624592833876,
+        "unfaithful": 152.40560836501902
       }
     }
   },
   "overall": {
     "agrees": true,
     "desk_ratio": 1.21,
-    "direct_ratio": 1.2099975792786255,
+    "direct_ratio": 1.2099975792786235,
     "ir_ratio": 1.2099975792786253
   }
 }
