@@ -3,7 +3,7 @@
 check_manual_frameql.py — the manual verifies itself against the shipped parser (standing test).
 
 The prose-coherence tripwire's principle applied to the manual, PRE-MERGE: every FrameQL example in
-`docs/frame_ql_manual_v1.md` either parses clean against `columna_core.envelope.parse_statement` OR is
+`docs/frame_ql_manual_v2.md` either parses clean against `columna_core.envelope.parse_statement` OR is
 deliberately marked ill-formed-for-teaching. The manual can never again document syntax its own parser
 rejects; Huayin's sitting is spent on prose and doctrine, never on a syntax typo the parser catches free.
 
@@ -28,7 +28,7 @@ except ModuleNotFoundError:                                    # pragma: no cove
     sys.stderr.write("columna_core.envelope not importable — install columna-core (0.9.0+) first.\n")
     sys.exit(2)
 
-MANUAL = pathlib.Path(__file__).resolve().parents[1] / "frame_ql_manual_v1.md"
+MANUAL = pathlib.Path(__file__).resolve().parents[1] / "frame_ql_manual_v2.md"
 _FENCE = re.compile(r"^(\s*)```([A-Za-z0-9_-]*)\s*$")
 _STMT_START = re.compile(r"^\s*(EXPLAIN|FROM|WITH|SELECT)\b", re.IGNORECASE)
 
