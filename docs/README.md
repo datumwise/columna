@@ -8,7 +8,8 @@ upload after that.
 - [`columna_reference_manual_5e.md`](columna_reference_manual_5e.md) — the reference manual (5th ed.):
   the object model, the definition language (Chapter 26), the Certificate layer (Part VI).
 - [`columna_framework_manual_6e.md`](columna_framework_manual_6e.md) — the framework manual (6th ed.).
-- [`frame_ql_manual_v1.md`](frame_ql_manual_v1.md) — the Frame-QL query-language manual (v1).
+- [`frame_ql_manual_v2.md`](frame_ql_manual_v2.md) — the Frame-QL query-language manual (Second Edition;
+  supersedes the First Edition — mechanically reconciled to columna-core 0.14.0 / wire contract `"2"`).
 
 Each construct in the reference manual's Chapter 26 carries a shipping status mark
 (**[SHIPPED vX.Y]** · **[SCHEDULED — <WP>]** · **[ROADMAP — <note>]**); unmarked constructs do not
