@@ -15,6 +15,10 @@ MARKING CONVENTION (stated once, here and in the manual's harness note):
     to name what the parser rejects). This check asserts it does NOT parse — a marked example that starts
     parsing is itself a failure (the teaching went stale). This is the ONLY way to exempt a query block.
   • Any other fence (```text, ```frameql-output, ```cml, …) is prose/output and is not checked.
+  • REACH (2026-07-31): a fence INSIDE a `>` blockquote is checked exactly like a top-level one — the
+    ▸-revision notes carry live examples (the RELATE-faces block, the composite-pin corner), and the rule
+    is every example, quoted or not. A trailing `-- …` annotation on an example line is an illustrative
+    note, not grammar: it is stripped before the statement is handed to the parser.
 
 Run: `python docs/tools/check_manual_frameql.py`  → exit 0 iff every example is clean-or-marked.
 """
@@ -31,11 +35,16 @@ except ModuleNotFoundError:                                    # pragma: no cove
 MANUAL = pathlib.Path(__file__).resolve().parents[1] / "frame_ql_manual_v2.md"
 _FENCE = re.compile(r"^(\s*)```([A-Za-z0-9_-]*)\s*$")
 _STMT_START = re.compile(r"^\s*(EXPLAIN|FROM|WITH|SELECT)\b", re.IGNORECASE)
+_BQ = re.compile(r"^\s{0,3}> ?")                                # one level of Markdown blockquote marker
+_COMMENT = re.compile(r"\s*--.*$")                             # illustrative `-- …` annotation (not grammar)
 
 
 def _fenced_blocks(text: str):
-    """Yield (lineno, info_string, body) for every fenced block."""
-    out, i, lines = [], 0, text.splitlines()
+    """Yield (lineno, info_string, body) for every fenced block. Blockquote markers (`> `) are stripped
+    per line FIRST, so an example fenced INSIDE a `>` blockquote (the ▸-revision notes carry several) is
+    detected and checked exactly like a top-level one — the parser rule applies to EVERY example, quoted
+    or not. Without this, a blockquoted `SELECT … AT {…}` was invisible to the guard and could drift."""
+    out, i, lines = [], 0, [_BQ.sub("", ln) for ln in text.splitlines()]
     while i < len(lines):
         m = _FENCE.match(lines[i])
         if m:
@@ -58,6 +67,7 @@ def _statements(body: str):
     AFTER the current statement already has its SELECT (i.e. the prior one is complete)."""
     stmts, cur, has_select, depth = [], [], False, 0
     for ln in body.splitlines():
+        ln = _COMMENT.sub("", ln)                              # strip trailing `-- …` annotation FIRST
         at_start = depth == 0 and bool(_STMT_START.match(ln))
         if at_start and has_select and cur:                    # the prior statement ended; start a new one
             stmts.append("\n".join(cur).strip()); cur, has_select = [], False
