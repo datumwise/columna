@@ -78,8 +78,10 @@ the TCB against our own oracle**, never per-plan against a stranger (custody law
 
 ## Ledger deltas (feed D5)
 
-- **BLOCK-1 → status update.** DuckDB stays deferred-not-dropped; its row now reads "enters as the second
-  consumer under the C1 harness when reachable — the cross-consumer inheritance test."
+- **BLOCK-1 → status update.** DuckDB is the second consumer under the C1 harness — the cross-consumer
+  inheritance test. *(▸ correction 2026-08-01: the earlier "unreachable / egress" framing was wrong; the
+  extension is merely unpublished for DuckDB 1.5.5, resolved by a consumer pin `duckdb==1.1.3`, no
+  environment change — the test is **un-gated**. See BLOCK-1.)*
 - **No new NOT-LOWERABLE found in C1** (expected — C1 is the friendly shape). The NL rows (sketch-distinct,
   exact median/mode) and the CROSS disclosure-mint non-delegability await their own pilots.
 

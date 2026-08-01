@@ -31,6 +31,16 @@ present for the installed DuckDB **1.5.5**. There is no pip-installable `duckdb-
 wheel either. So `duckdb.get_substrait` / `from_substrait` do not exist in this sandbox, and a
 DuckDB-consumer pilot is **not runnable here as specified**.
 
+> **▸ CORRECTION (2026-08-01, ratifier word — this finding was mis-diagnosed).** The "HTTP 403" above
+> was a **CDN error page misread as a firewall block**. It is **NOT an egress/allowlist problem** — the
+> network reaches `extensions.duckdb.org` fine. Falsified by direct `curl` (the CDN serves the extension
+> for other DuckDB versions) + a throwaway venv: on **`duckdb==1.1.3`**, `INSTALL substrait; LOAD
+> substrait` **succeeds** and `get_substrait`/`from_substrait` round-trips. The real cause: the substrait
+> extension is **unpublished for DuckDB 1.5.5/1.3.2** (HTTP **404**), published for 1.1.3. **Resolution:
+> a consumer version pin `duckdb==1.1.3`** (inside core's `<2.0` ceiling), in an isolated venv — **no
+> environment change ever needed.** The DuckDB inheritance test is therefore **un-gated**. (Acero
+> remains C1's first consumer as ruled; see the corrected BLOCK-1 row in §3.)
+
 **The offline path that DOES work — proposed substitution for the desk.** Producer + consumer are both
 available and were exercised **end-to-end** before writing this:
 
@@ -67,7 +77,7 @@ A study that finds nothing unliftable has not looked. Rows below are **findings*
 | **Q-1** | cargo note (minor) | CARVE · `WHERE` literal dialect | the `WHERE` is injected verbatim into duckdb, so its literal dialect is SQL's (single-quote strings serve; double-quote → identifier); the cargo must record the canonical predicate, not the raw SQL string, so a `FilterRel` lowering inherits no quoting ambiguity |
 | **VER-1** | version-pin risk | Substrait **0.46.0** | pinned via the producer; Rel/function vocabulary is version-scoped; drift across versions is a finding, not a surprise (charter §8) |
 | **VER-2** | pin-fragility | producer proto pin | `substrait` 0.30.0 (current default) breaks `ibis-substrait` 4.0.1 (`__substrait_version__`); pinned `substrait==0.16.0` to resolve — record so the toolchain is reproducible |
-| **BLOCK-1** | environmental blocker — **DEFERRED-NOT-DROPPED** (ruled 2026-07-31) | DuckDB substrait extension | HTTP 403 on `extensions.duckdb.org` for DuckDB 1.5.5, rowed as **environment/egress config, not engineering**; Acero granted as C1's first consumer; DuckDB **enters as the SECOND consumer under the C1 harness when reachable** — the study's first cross-consumer inheritance test |
+| **BLOCK-1** | ~~environmental blocker (egress)~~ **RE-DIAGNOSED & CORRECTED (2026-08-01, ratifier word)** | DuckDB substrait extension | ~~"HTTP 403 / egress config"~~ was a **CDN error page misread as a firewall — NOT egress.** Real cause: the substrait extension is **unpublished for DuckDB 1.5.5/1.3.2** (HTTP **404**), published for 1.1.3. **Resolved by a consumer version pin `duckdb==1.1.3`** (inside core's `<2.0` ceiling), isolated venv — **no environment change needed.** Falsified by `curl` + a throwaway venv (INSTALL+LOAD substrait and `from_substrait` round-trip succeed on 1.1.3). Acero stays C1's first consumer; DuckDB is the **second consumer** — the inheritance test, **UN-GATED**, and the first live instance of M2's backend version band |
 
 ## 4 · Findings from D1 worth the desk's eye (detail in `D1_lowering_table_v0_1.md` §Findings)
 

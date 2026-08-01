@@ -25,10 +25,11 @@ deliverables. **D2 (certificate cargo schema) is the desk's, drafted in parallel
 | `C2_and_v0_2_conformance_v0_1.md` | steps 1–3 report — rule certs, C1 re-emit, C2 pilot, amortization | — | complete |
 
 **Sequence (charter):** D1 skeleton + D3 harness → pre-D4 report → **ruling** → D4 pilot. All done.
-Ruling (2026-07-31): **Acero (`pyarrow.substrait`) is C1's first consumer** (the DuckDB extension is
-unreachable here — HTTP 403; deferred-not-dropped, enters later as the second consumer under the same
-harness = the cross-consumer inheritance test). CARVE's WHERE gap was closed by amendment; D1's left
-column is 100%-attested-no-asterisks.
+Ruling (2026-07-31): **Acero (`pyarrow.substrait`) is C1's first consumer** (DuckDB is the second
+consumer — the cross-consumer inheritance test, **un-gated**; the earlier "HTTP 403 / egress" was
+corrected 2026-08-01: the substrait extension is merely unpublished for DuckDB 1.5.5, resolved by a
+consumer pin `duckdb==1.1.3`, no environment change — see BLOCK-1). CARVE's WHERE gap was closed by
+amendment; D1's left column is 100%-attested-no-asterisks.
 
 Toolchain (study, pinned): Substrait **0.46.0** · columna-core **0.14.0** · Polars **1.43.1** ·
 producer `ibis-substrait` 4.0.1 / `substrait` proto 0.16.0 · consumer `pyarrow.substrait` (Acero) 25.0.0.
