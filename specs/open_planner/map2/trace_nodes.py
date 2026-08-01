@@ -120,14 +120,40 @@ def _wrap(owner, name):
     setattr(owner, name, wrapper)
 
 
+_CONNECTOR_METHODS = ["deliver_measure", "deliver_base_values", "deliver_base_rows", "deliver_attribute"]
+
+
+def _wrap_connector(owner, name):
+    """Attest CARVE's base scan (and its pushed-down WHERE) — a duckdb read BELOW Polars, so it never
+    appears in the Polars op-log. `where` is passed as SQL to the connector (planner.py:619)."""
+    orig = getattr(owner, name)
+    _ORIG[(owner, name)] = orig
+
+    def wrapper(self, *args, **kwargs):
+        if _RECORDING:
+            where = kwargs.get("where")
+            if where is None and len(args) >= 4 and isinstance(args[-1], str):
+                where = args[-1]
+            op = "scan+filter" if where else "scan"
+            TRACE.append({"op": op, "node": "CARVE", "site": f"connector.py:{name}",
+                          "args": [], "where_pushdown": where})
+        return orig(self, *args, **kwargs)
+
+    setattr(owner, name, wrapper)
+
+
 def _install():
     from polars.dataframe.group_by import GroupBy
+    from columna_core.connector import DuckDBConnector
     for m in _DF_METHODS:
         if hasattr(pl.DataFrame, m):
             _wrap(pl.DataFrame, m)
     for m in _GB_METHODS:
         if hasattr(GroupBy, m):
             _wrap(GroupBy, m)
+    for m in _CONNECTOR_METHODS:
+        if hasattr(DuckDBConnector, m):
+            _wrap_connector(DuckDBConnector, m)
 
 
 def _restore():
@@ -153,6 +179,12 @@ ASKS = [
      "SELECT revenue, stock.last AT {store}"),
     ("derive_ratio", ["ANCHOR", "CARVE", "COLUMN", "DERIVE", "REDUCE"],
      "SELECT aov AT {cal.month}"),
+    # CARVE with a query-level WHERE predicate — the population restriction, pushed to the connector as
+    # SQL (single-quote literals; FrameQL double-quotes reach duckdb as identifiers — see the D5 note).
+    ("carve_where_predicate", ["ANCHOR", "CARVE", "COLUMN", "REDUCE"],
+     "SELECT revenue AT {store} WHERE day >= '2024-06-01'"),
+    ("carve_where_range", ["ANCHOR", "CARVE", "COLUMN", "TRANSPORT", "REDUCE"],
+     "SELECT revenue AT {region} WHERE day >= '2024-01-01' AND day <= '2024-06-30'"),
     # the two named COMPOSITIONS (charter §4 D1 rows):
     ("COMPOSITION_transport_shaped", ["TRANSPORT", "REDUCE"],
      "SELECT sum(revenue @ {store*product*cal.month}) AT {cal.month}"),
