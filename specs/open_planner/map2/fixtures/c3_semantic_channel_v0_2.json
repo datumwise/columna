@@ -1,0 +1,120 @@
+{
+  "S10_perimeter": "Cascadia \u00b7 revenue crossed product\u2192category via the touch face (stay-home bridge join-multiply + multi_counted minting), summed to category on Acero \u00b7 the vertical seam: home CROSS feeds a lowered substrate REDUCE \u00b7 covers THIS plan; CROSS itself is never lowered (D1 verdict stands).",
+  "S1_schema_version": "columna-certificate/1",
+  "S2_model": {
+    "adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+    "name": "cascadia",
+    "version": 1
+  },
+  "S3_ask": {
+    "parse_digest": "sha256:fb637136132883fc456544ed59e5f0339edf90075a938419c2186a0fe58b2d9a",
+    "text": "SELECT revenue AT {category.touch}"
+  },
+  "S4_plan": {
+    "digest": "sha256:6deff27dd0edd6e0a44a18ed2526ebb522f34e003227ebf27f4ba7b43fc311a0",
+    "nodes": [
+      {
+        "id": "n0",
+        "node": "CARVE",
+        "universe": "transaction"
+      },
+      {
+        "family": "sum",
+        "id": "n1",
+        "measure": "revenue",
+        "node": "COLUMN"
+      },
+      {
+        "at": [
+          "product"
+        ],
+        "id": "n2",
+        "locus": "home (CROSS input prep)",
+        "node": "REDUCE",
+        "op": "sum"
+      },
+      {
+        "face": "touch",
+        "id": "n3",
+        "locus": "STAY_HOME",
+        "node": "CROSS",
+        "note": "bridge join-multiply + multi_counted minting; never lowered",
+        "relate": "product<->category"
+      },
+      {
+        "at": [
+          "category.touch"
+        ],
+        "id": "n4",
+        "locus": "SUBSTRATE (Acero)",
+        "node": "REDUCE",
+        "op": "sum"
+      },
+      {
+        "coords": [
+          "category.touch"
+        ],
+        "id": "n5",
+        "node": "ANCHOR"
+      }
+    ]
+  },
+  "S5_obligations": [
+    {
+      "clause": "the lowered REDUCE conserves",
+      "law_id": "conservation/c3-substrate-sum",
+      "mode": "embed_with_digest",
+      "ref": "M3.oracle_run",
+      "verdict": "discharged"
+    },
+    {
+      "clause": "CROSS not lowered; disclosure minted home",
+      "law_id": "cross/touch:stay_home",
+      "mode": "ref",
+      "ref": "S7[0]",
+      "verdict": "custody-preserved"
+    }
+  ],
+  "S6_edge_attestations": [],
+  "S7_face_spends": [
+    {
+      "conservation_claim": "multi_counted \u2014 over-count by construction; the sum EXCEEDS the grand total; NOT a partition (touch is the membership question)",
+      "face_id": "product<->category:touch",
+      "scheme": "touch"
+    }
+  ],
+  "S8_disclosure_projection": [
+    {
+      "code": "multi_counted",
+      "detail": "multi-counted by construction across product<->category: revenue reaches every category a product sits in \u2014 deliberately multi-counted; totals exceed the grand total",
+      "kind": "crossing_caveat",
+      "seam_note": "minted at HOME (the CROSS); survives to the final answer though the sum ran on Acero",
+      "severity": "material"
+    }
+  ],
+  "S9_lowering_map": {
+    "notation": "RelRoot-relative child-index path + stay_home tags",
+    "spans": [
+      {
+        "engine": "home (metrics)",
+        "node": "CROSS",
+        "stay_home": true,
+        "why": "D1: CROSS arithmetic per-shape at best; disclosure minting never delegable"
+      },
+      {
+        "node": "REDUCE",
+        "rel_kind": "aggregate",
+        "rel_span": [],
+        "stay_home": false
+      },
+      {
+        "node": "CARVE",
+        "rel_kind": "read",
+        "rel_span": [
+          0
+        ],
+        "stay_home": false
+      }
+    ]
+  }
+}
