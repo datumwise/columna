@@ -64,11 +64,12 @@ plan cert *points, never copies*; the second time a rule is needed it costs a re
 ## What this unlocks
 
 Two rule certificates now live in the published adjudication record. **Step 4 — the DuckDB
-second-consumer inheritance test (queued on egress)** — becomes checkable the moment the extension is
-reachable: does DuckDB inherit `>=25,<26`-band… no — does it mint its *own* backend-band certificate
-for these two rules, or does engine drift **refuse** them (V4: no cover, no lowering — falls home,
-never "lowers with a warning")? The harness, the oracle, the rule certs, and the two rules under test
-are all in place; only the consumer is gated.
+second-consumer inheritance test** — is **UN-GATED** (▸ correction 2026-08-01: the earlier "queued on
+egress" was wrong — see BLOCK-1; the extension is merely unpublished for DuckDB 1.5.5, resolved by a
+consumer pin `duckdb==1.1.3`, no environment change). It asks: does DuckDB mint its *own* backend-band
+certificate for these two rules, or does engine drift **refuse** them (V4: no cover, no lowering — falls
+home, never "lowers with a warning")? The harness, the oracle, the rule certs, and the two rules under
+test are all in place; the consumer is a version pin away.
 
 ## Open, carried to v0.3 (per schema §6)
 
@@ -77,4 +78,4 @@ across backend bands** is exactly what the DuckDB run will pressure-test; whethe
 severity grades** (C1/C2 disclosures are all `immaterial` — a material one would test the field).
 
 *— CC. Steps 1–3 executed and verified. On your word: v0.3 (a CROSS pilot for S7) or step 4 (DuckDB
-inheritance) when egress opens — whichever you call.*
+inheritance, un-gated) — whichever you call.*
