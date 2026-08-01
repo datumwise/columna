@@ -1,0 +1,74 @@
+{
+  "experiment": "B \u2014 DuckDB second-consumer inheritance (the horizontal seam)",
+  "B1_verdict_matrix": [
+    {
+      "rule_id": "c1-transport-shaped-sum",
+      "ask": "SELECT sum(revenue @ {store*product*cal.month}) AT {cal.month}",
+      "verdict": "PASS-with-new-certificate",
+      "duckdb": {
+        "consumer": "duckdb",
+        "duckdb_version": "1.1.3",
+        "rows": 24,
+        "worst_delta": 4.3655745685100555e-11,
+        "key_mismatch": 0,
+        "pass": true
+      },
+      "consumer_wallclock_s": 0.234
+    },
+    {
+      "rule_id": "c2-reduce-mean-decomposition",
+      "ask": "SELECT avg(revenue @ {store*cal.month}) AT {cal.month} WHERE day >= '2024-04-01'",
+      "verdict": "PASS-with-new-certificate",
+      "duckdb": {
+        "consumer": "duckdb",
+        "duckdb_version": "1.1.3",
+        "rows": 21,
+        "worst_delta": 9.094947017729282e-13,
+        "key_mismatch": 0,
+        "pass": true
+      },
+      "consumer_wallclock_s": 0.205
+    }
+  ],
+  "B1_summary": "2/2 rules transfer",
+  "B2_band_mechanics": {
+    "duckdb_band": {
+      "identity": "duckdb",
+      "version_band": ">=1.1,<1.2",
+      "substrait_ext": "be71387",
+      "tested_version": "1.1.3"
+    },
+    "finding": "both rules inherit under the duckdb 1.1.x band; band width is a schema-v0.3 question \u2014 a rule cert is identity-addressed by (rule \u00d7 band \u00d7 perimeter), so a band that is too wide would claim untested versions and a re-proof trigger is a new tested_version outside the band. First evidence: the >=25,<26 Acero band and the >=1.1,<1.2 duckdb band each carry one tested version; widening is unproven.",
+    "no_drift_specimen": "both rules live in territory the engines AGREE on \u2014 monoid sum and the (sum,count) mean decomposition are core relational algebra; drift risk concentrates where D1's NOT-LOWERABLE verdicts already sit (sketch-distinct, exact median/mode), untested here by construction."
+  },
+  "B3_inheritance_economics": {
+    "consumer_2_wallclock_s": {
+      "c1-transport-shaped-sum": 0.234,
+      "c2-reduce-mean-decomposition": 0.205
+    },
+    "steps_to_certify_consumer_2": [
+      "pin duckdb==1.1.3 + substrait ext (one venv)",
+      "register the 2 base views",
+      "from_substrait(plan) per rule",
+      "oracle-compare via the unchanged D3 protocol",
+      "mint the band cert"
+    ],
+    "claim_first_datum": "consumer #2 certified in seconds of wall-clock over the SAME plans and the SAME harness \u2014 a harness run, not a connector project. Consumer #1 (Acero) was the pilot BUILD (the harness + lowerings authored once); consumer #2 reused all of it. The amortization claim has its number."
+  },
+  "duckdb_rule_certificates_minted": [
+    {
+      "rule_id": "c1-transport-shaped-sum",
+      "backend": "duckdb",
+      "digest": "sha256:9e0f68d17febeed51feb32dccffae6897b0be7de31cef4522175ca50ff78fc86",
+      "acero_digest": "sha256:02ed755e627a9e5062391525f5eadf91f360eca85246bee0161f8e022cc2c2d7",
+      "same_identity_diff_band": true
+    },
+    {
+      "rule_id": "c2-reduce-mean-decomposition",
+      "backend": "duckdb",
+      "digest": "sha256:51d929954e3177d6b8de688ec468b0330435f8137af338cf6d8bd52caf406449",
+      "acero_digest": "sha256:99afe22f6a9183c7142175cd2df93685f1e4a87b270b47039ff2806c0fa55251",
+      "same_identity_diff_band": true
+    }
+  ]
+}
