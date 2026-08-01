@@ -13,7 +13,9 @@ deliverables. **D2 (certificate cargo schema) is the desk's, drafted in parallel
 | `PRE_D4_REPORT_and_D5_ledger_v0_1.md` | the pre-D4 report (sequence gate) + D5 ledger rows as found | — | ruled 2026-07-31 (Acero granted; CARVE gap closed) |
 | `pilot_c1.py` | D4 — the C1 pilot: lower → Substrait 0.46.0 → Acero → oracle-compare | `python pilot_c1.py fixtures/` | **ACCEPTED** |
 | `fixtures/d4_c1_pilot_certificate.json` | the pilot's conservation certificate (evidence) | — | `ACCEPTED: true` |
-| `D4_C1_pilot_v0_1.md` | D4 report — acceptance table, Attack B / Class C, perimeter | — | complete |
+| `D4_C1_pilot_v0_1.md` | D4 report — acceptance table, Attack B / Class C, perimeter, V1/V3 | — | complete |
+| `fixtures/d4_c1_semantic_channel.json` | the certificate's SEMANTIC channel (byte-stable; V3 diffs this) | — | invariant across runs |
+| `D2_reconciliation_notes_v0_1.md` | D2 reconciliation — V1 ✔, V3 ✔ (channel split); field-by-field held for the D2 text | — | **D2 file not received — re-attach** |
 
 **Sequence (charter):** D1 skeleton + D3 harness → pre-D4 report → **ruling** → D4 pilot. All done.
 Ruling (2026-07-31): **Acero (`pyarrow.substrait`) is C1's first consumer** (the DuckDB extension is

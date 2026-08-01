@@ -62,6 +62,20 @@ the TCB against our own oracle**, never per-plan against a stranger (custody law
 - **The fan-out hazard is real and catchable.** The double-count tamper — a lawful Rel composition — is
   exactly what an uncertified `JoinRel` on a non-functional key would produce, and the harness kills it.
 
+## D2 reconciliation outcome (V1, V3 — checked hard; detail in `D2_reconciliation_notes_v0_1.md`)
+
+- **V1 — every TRANSPORT carries its edge attestation:** the certificate now emits
+  `semantic.edge_attestation` for its day→cal.month climb (D1's founding finding as a first-class
+  field: the calendar `JoinRel` conserves — attested by the conservation PASS *and* the fan-out tamper
+  being distinguishable).
+- **V3 — the channel test caught a real flap and now passes:** two runs of the v0.1 flat certificate
+  differed (raw `worst_delta` / `max_gap` flap by float summation order). The certificate is now split
+  into a **semantic** channel (call-invariant facts; the conservation claim is `within_tolerance: true`,
+  never a raw delta) and a **mechanical** channel (the varying measurements, labelled as such). Two runs
+  of `d4_c1_semantic_channel.json` are **byte-identical**; the mechanical channel varies, as the F5 law
+  allows. (The D2 schema file did not reach this environment — the field-by-field pass is held for
+  its re-attachment; see the reconciliation notes §0.)
+
 ## Ledger deltas (feed D5)
 
 - **BLOCK-1 → status update.** DuckDB stays deferred-not-dropped; its row now reads "enters as the second
