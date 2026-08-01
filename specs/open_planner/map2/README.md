@@ -15,7 +15,7 @@ deliverables. **D2 (certificate cargo schema) is the desk's, drafted in parallel
 | `fixtures/d4_c1_pilot_certificate.json` | the pilot's conservation certificate (evidence) | — | `ACCEPTED: true` |
 | `D4_C1_pilot_v0_1.md` | D4 report — acceptance table, Attack B / Class C, perimeter, V1/V3 | — | complete |
 | `fixtures/d4_c1_semantic_channel.json` | the certificate's SEMANTIC channel (byte-stable; V3 diffs this) | — | invariant across runs |
-| `certificate_cargo_schema_v0_1.md` / `_v0_2.md` | D2 — the certificate cargo schema (desk; v0.2 adjudicated: §4b rule cert, S6 list, channel correction) | — | v0.2 in force |
+| `certificate_cargo_schema_v0_3.md` (v0_1/v0_2 = lineage) | D2 — the certificate cargo schema. **v0.3 in force** (S7 settled; M3 gains `retries` under the execution-error razor — never for mismatches; band width → v0.4). | — | v0.3 in force |
 | `D2_reconciliation_notes_v0_1.md` | D2 reconciliation — full field-by-field (V1 ✔, V3 ✔; S/M/V map + §6 answers, all adopted) | — | adjudicated |
 | `cert_v0_2.py` | the v0.2 certificate library — digests, plan-cert + rule-cert builders, S9 plan walker | (imported) | — |
 | `emit_c1_v0_2.py` | steps 1–2 — mint C1 rule cert + re-emit C1 plan cert v0.2-conformant + channel test | `python emit_c1_v0_2.py .` | green |
