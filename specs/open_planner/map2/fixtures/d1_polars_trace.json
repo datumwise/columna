@@ -1,0 +1,1323 @@
+{
+  "core_version": "0.14.0-core",
+  "polars_version": "1.43.1",
+  "method_node_map": {
+    "_confine": "CARVE",
+    "resolve": "COLUMN",
+    "_deliver_and_transport_monoid": "COLUMN",
+    "_combine_exprs": "REDUCE",
+    "_transport_reduce": "TRANSPORT",
+    "_transport_attach": "TRANSPORT",
+    "_split_dependent_targets": "TRANSPORT",
+    "reduce_series": "REDUCE",
+    "reduce_series_to_anchor": "REDUCE",
+    "_recompute_holistic": "REDUCE",
+    "_resolve_sketch": "REDUCE",
+    "_build_base_sketches": "REDUCE",
+    "_resolve_faced": "CROSS",
+    "_resolve_assign": "CROSS",
+    "_resolve_alloc": "CROSS",
+    "_resolve_touch": "CROSS",
+    "_serve_driver": "CROSS",
+    "_touch_disc": "CROSS",
+    "_ref_expr": "COLUMN",
+    "_confine_or_scan": "CARVE"
+  },
+  "attestation": "every op below was recorded live from the engine's execution; none written from memory",
+  "per_ask": [
+    {
+      "label": "simple_aggregation",
+      "frameql": "SELECT revenue AT {store}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "REDUCE"
+      ],
+      "ops_total": 5,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "store"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "transport_climb",
+      "frameql": "SELECT revenue AT {region}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "TRANSPORT",
+        "REDUCE"
+      ],
+      "ops_total": 9,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "region",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "reduce_to_month",
+      "frameql": "SELECT revenue AT {cal.month}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "TRANSPORT",
+        "REDUCE"
+      ],
+      "ops_total": 9,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "cal.month",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "cross_touch",
+      "frameql": "SELECT revenue AT {category.touch}",
+      "outcome": "disclose",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "CROSS",
+        "REDUCE"
+      ],
+      "ops_total": 18,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "CROSS": {
+          "join": 2,
+          "select": 3,
+          "sort": 1,
+          "unique": 2,
+          "with_columns": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "product",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "select",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": []
+        },
+        {
+          "op": "unique",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": [
+            "<DF 1c>",
+            {
+              "on": "product"
+            }
+          ],
+          "how": "anti"
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "category.touch"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": []
+        },
+        {
+          "op": "unique",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": "category.touch"
+            }
+          ],
+          "how": "left"
+        },
+        {
+          "op": "with_columns",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": [
+            "category.touch"
+          ]
+        },
+        {
+          "op": "select",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_touch",
+          "args": [
+            [
+              "category.touch",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "category.touch"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "cross_alloc",
+      "frameql": "SELECT revenue AT {category.split}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "CROSS",
+        "REDUCE"
+      ],
+      "ops_total": 24,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 2,
+          "select": 2
+        },
+        "CROSS": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 3,
+          "rename": 4,
+          "select": 2,
+          "sort": 1,
+          "unique": 1,
+          "with_columns": 4
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "product",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "category",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "CROSS",
+          "site": "engine.py:_serve_driver",
+          "args": []
+        },
+        {
+          "op": "with_columns",
+          "node": "CROSS",
+          "site": "engine.py:_serve_driver",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": "_to"
+            }
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "with_columns",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": "_frm"
+            }
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "with_columns",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            "_to"
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "unique",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": "category.split"
+            }
+          ],
+          "how": "left"
+        },
+        {
+          "op": "with_columns",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            "category.split"
+          ]
+        },
+        {
+          "op": "select",
+          "node": "CROSS",
+          "site": "engine.py:_resolve_alloc",
+          "args": [
+            [
+              "category.split",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "category.split"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "align_cross_universe",
+      "frameql": "SELECT revenue, stock.last AT {store}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "ALIGN",
+        "REDUCE"
+      ],
+      "ops_total": 16,
+      "ops_by_node": {
+        "COLUMN": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 3,
+          "select": 3
+        },
+        "ALIGN": {
+          "join": 1,
+          "rename": 4
+        },
+        "CARVE": {
+          "filter": 1
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_ref_expr",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_ref_expr",
+          "args": [
+            [
+              "_key",
+              "stores.opened_date"
+            ]
+          ]
+        },
+        {
+          "op": "join",
+          "node": "COLUMN",
+          "site": "engine.py:_ref_expr",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "left"
+        },
+        {
+          "op": "filter",
+          "node": "CARVE",
+          "site": "engine.py:_confine",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": [
+                "store"
+              ]
+            }
+          ],
+          "how": "full"
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "store"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "derive_ratio",
+      "frameql": "SELECT aov AT {cal.month}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "DERIVE",
+        "REDUCE"
+      ],
+      "ops_total": 19,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 2,
+          "select": 2
+        },
+        "TRANSPORT": {
+          "agg": 2,
+          "group_by": 2,
+          "join": 2,
+          "rename": 2
+        },
+        "ALIGN": {
+          "rename": 3
+        },
+        "DERIVE": {
+          "join": 1,
+          "select": 1,
+          "with_columns": 1
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "cal.month",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "cal.month",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "DERIVE",
+          "site": "planner.py:_apply",
+          "args": [
+            "<DF 2c>",
+            {
+              "on": [
+                "cal.month"
+              ]
+            }
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "with_columns",
+          "node": "DERIVE",
+          "site": "planner.py:_apply",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "DERIVE",
+          "site": "planner.py:_apply",
+          "args": [
+            [
+              "cal.month",
+              "_v"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "COMPOSITION_transport_shaped",
+      "frameql": "SELECT sum(revenue @ {store*product*cal.month}) AT {cal.month}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "TRANSPORT",
+        "REDUCE"
+      ],
+      "ops_total": 12,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        },
+        "REDUCE": {
+          "agg": 1,
+          "group_by": 1,
+          "select": 1
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "store",
+              "product",
+              "cal.month"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store",
+              "product",
+              "cal.month",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "REDUCE",
+          "site": "engine.py:reduce_series_to_anchor",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "REDUCE",
+          "site": "engine.py:reduce_series_to_anchor",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "REDUCE",
+          "site": "engine.py:reduce_series_to_anchor",
+          "args": [
+            [
+              "cal.month",
+              "_v"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "cal.month"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "COMPOSITION_full_spine",
+      "frameql": "SELECT revenue AT {region}",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "CARVE",
+        "COLUMN",
+        "TRANSPORT",
+        "REDUCE"
+      ],
+      "ops_total": 9,
+      "ops_by_node": {
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "region",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "node_op_profile": {
+    "ANCHOR": {
+      "(no Polars op \u2014 output grain is a declaration, materialized as the group keys of the final REDUCE)": 9
+    },
+    "CARVE": {
+      "filter": 1
+    },
+    "COLUMN": {
+      "agg": 1,
+      "group_by": 1,
+      "join": 1,
+      "rename": 13,
+      "select": 13
+    },
+    "TRANSPORT": {
+      "agg": 7,
+      "group_by": 7,
+      "join": 7,
+      "rename": 7
+    },
+    "CROSS": {
+      "agg": 1,
+      "group_by": 1,
+      "join": 5,
+      "rename": 4,
+      "select": 5,
+      "sort": 2,
+      "unique": 3,
+      "with_columns": 5
+    },
+    "REDUCE": {
+      "agg": 1,
+      "group_by": 1,
+      "select": 1
+    },
+    "ALIGN": {
+      "join": 1,
+      "rename": 21
+    },
+    "DERIVE": {
+      "join": 1,
+      "select": 1,
+      "with_columns": 1
+    }
+  },
+  "envelope_ops": {
+    "sort": 9
+  },
+  "unmapped_engine_ops": [],
+  "ninth_node_finding": false
+}
