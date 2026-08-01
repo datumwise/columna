@@ -1,0 +1,234 @@
+{
+  "mechanical": {
+    "M1_lowering_attestation": {
+      "lowering_rule_ids": [
+        "c2-reduce-mean-decomposition",
+        "c1-transport-shaped-sum"
+      ],
+      "producer": "ibis-substrait 4.0.1",
+      "proto_pin": "substrait 0.16.0",
+      "rule_cert_refs": {
+        "c1-transport-shaped-sum": "sha256:02ed755e627a9e5062391525f5eadf91f360eca85246bee0161f8e022cc2c2d7",
+        "c2-reduce-mean-decomposition": "sha256:99afe22f6a9183c7142175cd2df93685f1e4a87b270b47039ff2806c0fa55251"
+      },
+      "substrait_version": "0.46.0"
+    },
+    "M2_backend": {
+      "consumer": "pyarrow.substrait (Acero)",
+      "version": "25.0.0",
+      "version_band": ">=25,<26"
+    },
+    "M3_oracle_run": {
+      "N": 509,
+      "date": "2026-08-01",
+      "harness_version": "map2/oracle_harness+pilot_c2 v0.1",
+      "tamper_status": "valid",
+      "tested_version": "25.0.0",
+      "tolerance": 1e-06,
+      "worst_delta": 5.4569682106375694e-12
+    },
+    "M4_serving": {
+      "note": "n/a \u2014 pilot, not a serve"
+    }
+  },
+  "semantic": {
+    "S10_perimeter": "Cascadia \u00b7 transaction universe \u00b7 revenue=sum(amount) filtered to day>='2024-04-01' joined to calendar on day \u00b7 the mean of per-(store,cal.month) revenue at cal.month, the mule lowered via sufficient statistics (sum,count)+divide \u00b7 executed on Acero \u00b7 covers THIS plan; the inner sum reuses the C1 rule certificate.",
+    "S1_schema_version": "columna-certificate/1",
+    "S2_model": {
+      "adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+      "name": "cascadia",
+      "version": 1
+    },
+    "S3_ask": {
+      "parse_digest": "sha256:91f7ce984bc05fc989aa6d82f3fccfe26dcd10bbbf71d0f507dc90c635a20646",
+      "text": "SELECT avg(revenue @ {store*cal.month}) AT {cal.month} WHERE day >= '2024-04-01'"
+    },
+    "S4_plan": {
+      "digest": "sha256:bdd584dcf2fc2c9585e6135fa573670407587e4c267319f5a9545dc2cc37ab7e",
+      "nodes": [
+        {
+          "id": "n0",
+          "node": "CARVE",
+          "universe": "transaction",
+          "where": "day >= '2024-04-01'"
+        },
+        {
+          "family": "sum",
+          "id": "n1",
+          "measure": "revenue",
+          "node": "COLUMN"
+        },
+        {
+          "from_level": "day",
+          "id": "n2",
+          "node": "TRANSPORT",
+          "to_level": "cal.month",
+          "via": "calendar"
+        },
+        {
+          "at": [
+            "store",
+            "cal.month"
+          ],
+          "id": "n3",
+          "node": "REDUCE",
+          "op": "sum"
+        },
+        {
+          "at": [
+            "cal.month"
+          ],
+          "id": "n4",
+          "node": "REDUCE",
+          "op": "mean",
+          "via": "sufficient_statistics(sum,count)"
+        },
+        {
+          "coords": [
+            "cal.month"
+          ],
+          "id": "n5",
+          "node": "ANCHOR"
+        }
+      ]
+    },
+    "S5_obligations": [
+      {
+        "clause": "\u27e6L(mean)\u27e7 = \u27e6mean\u27e7 via (sum,count) decomposition",
+        "law_id": "conservation/c2-reduce-mean-decomposition",
+        "mode": "ref",
+        "ref": "sha256:99afe22f6a9183c7142175cd2df93685f1e4a87b270b47039ff2806c0fa55251",
+        "verdict": "discharged \u2014 the mean lowering conserves the denotation"
+      },
+      {
+        "clause": "the inner sum reuses the TRANSPORT-shaped rule (amortized)",
+        "law_id": "conservation/c1-transport-shaped-sum",
+        "mode": "ref",
+        "ref": "sha256:02ed755e627a9e5062391525f5eadf91f360eca85246bee0161f8e022cc2c2d7",
+        "verdict": "inherited"
+      },
+      {
+        "clause": "mule; fertile sufficient-statistics decomposition (sum,count)",
+        "law_id": "family/mean",
+        "mode": "embed_with_digest",
+        "ref": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+        "verdict": "licensed"
+      },
+      {
+        "clause": "population restriction pushed to the read as a FilterRel",
+        "law_id": "carve/where",
+        "mode": "embed_with_digest",
+        "ref": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+        "verdict": "licensed"
+      },
+      {
+        "clause": "corroborated functional edge (no fan-out)",
+        "law_id": "edge/day->cal.month",
+        "mode": "ref",
+        "ref": "S6[0]",
+        "verdict": "proven"
+      }
+    ],
+    "S6_edge_attestations": [
+      {
+        "corroboration_verdict_ref": {
+          "mode": "embed_with_digest",
+          "model_adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+          "verdict": "proven"
+        },
+        "edge_id": "day->cal.month@calendar",
+        "from_level": "day",
+        "to_level": "cal.month"
+      }
+    ],
+    "S7_face_spends": [],
+    "S8_disclosure_projection": [
+      {
+        "code": "freshness",
+        "detail": "served from cache",
+        "kind": "mean_decomposition",
+        "severity": "immaterial"
+      },
+      {
+        "code": "provenance",
+        "detail": "'mean of revenue@{store*cal.month}' reduced to cal.month \u2014 pin fixes cal.month, reduces over store",
+        "kind": "mean_decomposition",
+        "severity": "immaterial"
+      }
+    ],
+    "S9_lowering_map": {
+      "notation": "RelRoot-relative child-index path",
+      "spans": [
+        {
+          "node": "COLUMN",
+          "rel_kind": "project",
+          "rel_span": [],
+          "stay_home": false
+        },
+        {
+          "node": "REDUCE",
+          "rel_kind": "aggregate",
+          "rel_span": [
+            0
+          ],
+          "stay_home": false
+        },
+        {
+          "node": "REDUCE",
+          "rel_kind": "aggregate",
+          "rel_span": [
+            0,
+            0
+          ],
+          "stay_home": false
+        },
+        {
+          "node": "TRANSPORT",
+          "rel_kind": "join",
+          "rel_span": [
+            0,
+            0,
+            0
+          ],
+          "stay_home": false
+        },
+        {
+          "node": "CARVE",
+          "rel_kind": "filter",
+          "rel_span": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "stay_home": false
+        },
+        {
+          "node": "CARVE",
+          "rel_kind": "read",
+          "rel_span": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "stay_home": false
+        },
+        {
+          "node": "CARVE",
+          "rel_kind": "read",
+          "rel_span": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "stay_home": false
+        }
+      ]
+    }
+  },
+  "semantic_channel_digest": "sha256:f932f43fb873217739095623af3e59a23b772a3a55ae6e5523ee5ae275c20754",
+  "urn": "urn:columna:certificate:v1"
+}

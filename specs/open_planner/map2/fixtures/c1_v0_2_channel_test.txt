@@ -1,0 +1,4 @@
+V3 channel test — two independent emissions of the C1 semantic channel:
+  byte-identical: True
+  semantic_channel_digest: sha256:0837e77bbf87a25b0f47aeab29448dee31a394055c618f89c1035c4eac95afa8
+  (mechanical channel carries N/tolerance/worst_delta/date and MAY vary; not diffed)
