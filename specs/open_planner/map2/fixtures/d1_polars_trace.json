@@ -35,8 +35,11 @@
         "COLUMN",
         "REDUCE"
       ],
-      "ops_total": 5,
+      "ops_total": 6,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -46,6 +49,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -98,8 +108,11 @@
         "TRANSPORT",
         "REDUCE"
       ],
-      "ops_total": 9,
+      "ops_total": 10,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -115,6 +128,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -198,8 +218,11 @@
         "TRANSPORT",
         "REDUCE"
       ],
-      "ops_total": 9,
+      "ops_total": 10,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -215,6 +238,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -298,8 +328,11 @@
         "CROSS",
         "REDUCE"
       ],
-      "ops_total": 18,
+      "ops_total": 19,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -322,6 +355,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -478,8 +518,12 @@
         "CROSS",
         "REDUCE"
       ],
-      "ops_total": 24,
+      "ops_total": 26,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1,
+          "scan+filter": 1
+        },
         "COLUMN": {
           "rename": 2,
           "select": 2
@@ -500,6 +544,13 @@
       },
       "raw_ops": [
         {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
+        {
           "op": "rename",
           "node": "COLUMN",
           "site": "engine.py:_deliver_and_transport_monoid",
@@ -515,6 +566,13 @@
               "_value"
             ]
           ]
+        },
+        {
+          "op": "scan+filter",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": "(alloc_weight) IS NOT NULL"
         },
         {
           "op": "rename",
@@ -697,8 +755,13 @@
         "ALIGN",
         "REDUCE"
       ],
-      "ops_total": 16,
+      "ops_total": 19,
       "ops_by_node": {
+        "CARVE": {
+          "filter": 1,
+          "scan": 2,
+          "scan+filter": 1
+        },
         "COLUMN": {
           "agg": 1,
           "group_by": 1,
@@ -709,12 +772,16 @@
         "ALIGN": {
           "join": 1,
           "rename": 4
-        },
-        "CARVE": {
-          "filter": 1
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -745,10 +812,24 @@
           "args": []
         },
         {
+          "op": "scan+filter",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": "(level) IS NOT NULL"
+        },
+        {
           "op": "rename",
           "node": "COLUMN",
           "site": "engine.py:_deliver_and_transport_monoid",
           "args": []
+        },
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_attribute",
+          "args": [],
+          "where_pushdown": null
         },
         {
           "op": "rename",
@@ -858,8 +939,11 @@
         "DERIVE",
         "REDUCE"
       ],
-      "ops_total": 19,
+      "ops_total": 21,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 2
+        },
         "COLUMN": {
           "rename": 2,
           "select": 2
@@ -880,6 +964,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -933,6 +1024,13 @@
           "node": "ALIGN",
           "site": "planner.py:_node",
           "args": []
+        },
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
         },
         {
           "op": "rename",
@@ -1038,6 +1136,188 @@
       ]
     },
     {
+      "label": "carve_where_predicate",
+      "frameql": "SELECT revenue AT {store} WHERE day >= '2024-06-01'",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "REDUCE"
+      ],
+      "ops_total": 6,
+      "ops_by_node": {
+        "CARVE": {
+          "scan+filter": 1
+        },
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "scan+filter",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": "day >= '2024-06-01'"
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "store",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "store"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "label": "carve_where_range",
+      "frameql": "SELECT revenue AT {region} WHERE day >= '2024-01-01' AND day <= '2024-06-30'",
+      "outcome": "serve",
+      "meant_to_exercise": [
+        "ANCHOR",
+        "CARVE",
+        "COLUMN",
+        "TRANSPORT",
+        "REDUCE"
+      ],
+      "ops_total": 10,
+      "ops_by_node": {
+        "CARVE": {
+          "scan+filter": 1
+        },
+        "COLUMN": {
+          "rename": 1,
+          "select": 1
+        },
+        "TRANSPORT": {
+          "agg": 1,
+          "group_by": 1,
+          "join": 1,
+          "rename": 1
+        },
+        "ALIGN": {
+          "rename": 2
+        }
+      },
+      "raw_ops": [
+        {
+          "op": "scan+filter",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": "day >= '2024-01-01' AND day <= '2024-06-30'"
+        },
+        {
+          "op": "rename",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": []
+        },
+        {
+          "op": "join",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            "<DF 2c>"
+          ],
+          "how": "inner"
+        },
+        {
+          "op": "rename",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "group_by",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        },
+        {
+          "op": "agg",
+          "node": "TRANSPORT",
+          "site": "engine.py:_transport_reduce",
+          "args": []
+        },
+        {
+          "op": "select",
+          "node": "COLUMN",
+          "site": "engine.py:_deliver_and_transport_monoid",
+          "args": [
+            [
+              "region",
+              "_value"
+            ]
+          ]
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:_node",
+          "args": []
+        },
+        {
+          "op": "rename",
+          "node": "ALIGN",
+          "site": "planner.py:run",
+          "args": []
+        },
+        {
+          "op": "sort",
+          "node": "ORDER",
+          "site": "planner.py:run",
+          "args": [
+            [
+              "region"
+            ]
+          ]
+        }
+      ]
+    },
+    {
       "label": "COMPOSITION_transport_shaped",
       "frameql": "SELECT sum(revenue @ {store*product*cal.month}) AT {cal.month}",
       "outcome": "serve",
@@ -1045,8 +1325,11 @@
         "TRANSPORT",
         "REDUCE"
       ],
-      "ops_total": 12,
+      "ops_total": 13,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -1067,6 +1350,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -1180,8 +1470,11 @@
         "TRANSPORT",
         "REDUCE"
       ],
-      "ops_total": 9,
+      "ops_total": 10,
       "ops_by_node": {
+        "CARVE": {
+          "scan": 1
+        },
         "COLUMN": {
           "rename": 1,
           "select": 1
@@ -1197,6 +1490,13 @@
         }
       },
       "raw_ops": [
+        {
+          "op": "scan",
+          "node": "CARVE",
+          "site": "connector.py:deliver_measure",
+          "args": [],
+          "where_pushdown": null
+        },
         {
           "op": "rename",
           "node": "COLUMN",
@@ -1272,23 +1572,25 @@
   ],
   "node_op_profile": {
     "ANCHOR": {
-      "(no Polars op \u2014 output grain is a declaration, materialized as the group keys of the final REDUCE)": 9
+      "(no Polars op \u2014 output grain is a declaration, materialized as the group keys of the final REDUCE)": 11
     },
     "CARVE": {
-      "filter": 1
+      "filter": 1,
+      "scan": 11,
+      "scan+filter": 4
     },
     "COLUMN": {
       "agg": 1,
       "group_by": 1,
       "join": 1,
-      "rename": 13,
-      "select": 13
+      "rename": 15,
+      "select": 15
     },
     "TRANSPORT": {
-      "agg": 7,
-      "group_by": 7,
-      "join": 7,
-      "rename": 7
+      "agg": 8,
+      "group_by": 8,
+      "join": 8,
+      "rename": 8
     },
     "CROSS": {
       "agg": 1,
@@ -1307,7 +1609,7 @@
     },
     "ALIGN": {
       "join": 1,
-      "rename": 21
+      "rename": 25
     },
     "DERIVE": {
       "join": 1,
@@ -1316,7 +1618,7 @@
     }
   },
   "envelope_ops": {
-    "sort": 9
+    "sort": 11
   },
   "unmapped_engine_ops": [],
   "ninth_node_finding": false
