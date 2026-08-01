@@ -1,0 +1,164 @@
+{
+  "mechanical": {
+    "M1_lowering_attestation": {
+      "lowering_rule_ids": [
+        "substrate-sum-over-handoff"
+      ],
+      "producer": "ibis-substrait 4.0.1",
+      "proto_pin": "substrait 0.16.0",
+      "rule_cert_refs": {},
+      "substrait_version": "0.46.0"
+    },
+    "M2_backend": {
+      "consumer": "pyarrow.substrait (Acero)",
+      "version": "25.0.0",
+      "version_band": ">=25,<26"
+    },
+    "M3_oracle_run": {
+      "N": 882,
+      "date": "2026-08-01",
+      "harness_version": "map2/pilot_c3 v0.1",
+      "seam_break_modes": [
+        "wrong_grain_intermediate",
+        "dropped_rows_pre_sum"
+      ],
+      "tamper_status": "valid",
+      "tolerance": 1e-06,
+      "worst_delta": 5.820766091346741e-11
+    },
+    "M4_serving": {
+      "a3_split_verification": {
+        "cross_stayed_home": true,
+        "joins": 0,
+        "note": "the substrate received only the post-cross span (one ReadRel over the handoff) and performs one AggregateRel[sum]; zero JoinRel \u2014 the bridge never left home",
+        "reads": 1,
+        "rel_kinds": [
+          "aggregate",
+          "read"
+        ]
+      }
+    }
+  },
+  "semantic": {
+    "S10_perimeter": "Cascadia \u00b7 revenue crossed product\u2192category via the touch face (stay-home bridge join-multiply + multi_counted minting), summed to category on Acero \u00b7 the vertical seam: home CROSS feeds a lowered substrate REDUCE \u00b7 covers THIS plan; CROSS itself is never lowered (D1 verdict stands).",
+    "S1_schema_version": "columna-certificate/1",
+    "S2_model": {
+      "adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+      "name": "cascadia",
+      "version": 1
+    },
+    "S3_ask": {
+      "parse_digest": "sha256:fb637136132883fc456544ed59e5f0339edf90075a938419c2186a0fe58b2d9a",
+      "text": "SELECT revenue AT {category.touch}"
+    },
+    "S4_plan": {
+      "digest": "sha256:6deff27dd0edd6e0a44a18ed2526ebb522f34e003227ebf27f4ba7b43fc311a0",
+      "nodes": [
+        {
+          "id": "n0",
+          "node": "CARVE",
+          "universe": "transaction"
+        },
+        {
+          "family": "sum",
+          "id": "n1",
+          "measure": "revenue",
+          "node": "COLUMN"
+        },
+        {
+          "at": [
+            "product"
+          ],
+          "id": "n2",
+          "locus": "home (CROSS input prep)",
+          "node": "REDUCE",
+          "op": "sum"
+        },
+        {
+          "face": "touch",
+          "id": "n3",
+          "locus": "STAY_HOME",
+          "node": "CROSS",
+          "note": "bridge join-multiply + multi_counted minting; never lowered",
+          "relate": "product<->category"
+        },
+        {
+          "at": [
+            "category.touch"
+          ],
+          "id": "n4",
+          "locus": "SUBSTRATE (Acero)",
+          "node": "REDUCE",
+          "op": "sum"
+        },
+        {
+          "coords": [
+            "category.touch"
+          ],
+          "id": "n5",
+          "node": "ANCHOR"
+        }
+      ]
+    },
+    "S5_obligations": [
+      {
+        "clause": "the lowered REDUCE conserves",
+        "law_id": "conservation/c3-substrate-sum",
+        "mode": "embed_with_digest",
+        "ref": "M3.oracle_run",
+        "verdict": "discharged"
+      },
+      {
+        "clause": "CROSS not lowered; disclosure minted home",
+        "law_id": "cross/touch:stay_home",
+        "mode": "ref",
+        "ref": "S7[0]",
+        "verdict": "custody-preserved"
+      }
+    ],
+    "S6_edge_attestations": [],
+    "S7_face_spends": [
+      {
+        "conservation_claim": "multi_counted \u2014 over-count by construction; the sum EXCEEDS the grand total; NOT a partition (touch is the membership question)",
+        "face_id": "product<->category:touch",
+        "scheme": "touch"
+      }
+    ],
+    "S8_disclosure_projection": [
+      {
+        "code": "multi_counted",
+        "detail": "multi-counted by construction across product<->category: revenue reaches every category a product sits in \u2014 deliberately multi-counted; totals exceed the grand total",
+        "kind": "crossing_caveat",
+        "seam_note": "minted at HOME (the CROSS); survives to the final answer though the sum ran on Acero",
+        "severity": "material"
+      }
+    ],
+    "S9_lowering_map": {
+      "notation": "RelRoot-relative child-index path + stay_home tags",
+      "spans": [
+        {
+          "engine": "home (metrics)",
+          "node": "CROSS",
+          "stay_home": true,
+          "why": "D1: CROSS arithmetic per-shape at best; disclosure minting never delegable"
+        },
+        {
+          "node": "REDUCE",
+          "rel_kind": "aggregate",
+          "rel_span": [],
+          "stay_home": false
+        },
+        {
+          "node": "CARVE",
+          "rel_kind": "read",
+          "rel_span": [
+            0
+          ],
+          "stay_home": false
+        }
+      ]
+    }
+  },
+  "semantic_channel_digest": "sha256:a26b632fa709c380d0d1b9a13411192c6f00c401d8d088d1be89ffbef3a460a7",
+  "urn": "urn:columna:certificate:v1"
+}

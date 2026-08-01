@@ -23,6 +23,12 @@ deliverables. **D2 (certificate cargo schema) is the desk's, drafted in parallel
 | `adjudication_record/rule_*.json` | the rule certificates (C1 TRANSPORT-shaped-sum; C2 REDUCE-mean) — M1 points here | — | 2 minted |
 | `fixtures/c1_*_v0_2.json`, `c2_*_v0_2.json` | v0.2 plan certs + semantic channels (V3 byte-stable) | — | conformant |
 | `C2_and_v0_2_conformance_v0_1.md` | steps 1–3 report — rule certs, C1 re-emit, C2 pilot, amortization | — | complete |
+| **beat 3 — the two seams** | | | |
+| `pilot_c3.py` | Experiment A — C3 CROSS-bearing pilot (vertical seam); home CROSS + lowered substrate sum; split stretch | `python pilot_c3.py .` | **ACCEPTED** |
+| `duckdb_consumer.py` / `emit_b_duckdb.py` | Experiment B — DuckDB second-consumer inheritance (horizontal seam) | `DUCKDB_CONSUMER_PYTHON=… python emit_b_duckdb.py .` | **2/2 transfer** |
+| `adjudication_record/rule_*__duckdb.json` | DuckDB backend-band rule certs (same identity, band `>=1.1,<1.2`) | — | 2 minted |
+| `fixtures/c3_*_v0_2.json`, `c3_split_stretch.json`, `b_duckdb_inheritance_v0_1.json` | C3 cert + stretch + B verdict matrix/economics | — | conformant |
+| `beat3_report_v0_1.md` | beat-3 report — A + B, the G4 measured boundary (OF-26), D5 rows | — | complete |
 
 **Sequence (charter):** D1 skeleton + D3 harness → pre-D4 report → **ruling** → D4 pilot. All done.
 Ruling (2026-07-31): **Acero (`pyarrow.substrait`) is C1's first consumer** (DuckDB is the second

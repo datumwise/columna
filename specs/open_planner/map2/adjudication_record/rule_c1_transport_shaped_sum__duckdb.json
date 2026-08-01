@@ -1,0 +1,21 @@
+{
+  "backend": {
+    "identity": "duckdb",
+    "substrait_ext": "be71387",
+    "tested_version": "1.1.3",
+    "version_band": ">=1.1,<1.2"
+  },
+  "digest": "sha256:9e0f68d17febeed51feb32dccffae6897b0be7de31cef4522175ca50ff78fc86",
+  "oracle_run": {
+    "N": 24,
+    "date": "2026-08-01",
+    "harness_version": "map2/duckdb_consumer v0.1",
+    "tamper_status": "n/a (inherited proof)",
+    "tolerance": 1e-06,
+    "worst_delta": 4.3655745685100555e-11
+  },
+  "perimeter": "the TRANSPORT-shaped monoid-sum lowering rule on Acero, over a corroborated functional edge; per-rule proof amortized by every plan that reuses it.",
+  "rule_id": "c1-transport-shaped-sum",
+  "rule_statement": "a monoid SUM delivered through a CORROBORATED FUNCTIONAL hierarchy edge (Substrait: INNER JoinRel on the from-key + AggregateRel[sum]) conserves the extensive denotation; the roll-up of the intermediate grain is sum-of-sums, associative. Covers sum/count/min/max monoids; NOT mules, sketches, or non-functional edges.",
+  "schema": "urn:columna:rule-certificate:v1"
+}

@@ -1,0 +1,8 @@
+{
+  "oracle_match": true,
+  "cells": 12,
+  "reconciles_across_seam": true,
+  "base_total": 2212391.8599999975,
+  "crossed_total": 2212391.86,
+  "reconciliation_delta": 2.3283064365386963e-09
+}
