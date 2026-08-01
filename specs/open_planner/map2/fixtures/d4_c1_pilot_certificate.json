@@ -1,0 +1,43 @@
+{
+  "certificate": "urn:columna:mapping-study:c1-pilot:v0.1",
+  "perimeter": "Cascadia warehouse \u00b7 transaction universe \u00b7 revenue = sum(amount) joined to calendar on day \u00b7 the TRANSPORT-shaped sum at (store,product,cal.month) and its roll-up to cal.month \u00b7 lowered to Substrait via ibis-substrait, executed on Acero",
+  "versions": {
+    "substrait": [
+      "0.46.0"
+    ],
+    "substrait_declared": "0.46.0",
+    "producer": "ibis-substrait 4.0.1 / substrait proto 0.16.0",
+    "consumer": "pyarrow.substrait (Acero) 25.0.0",
+    "core": "0.14.0-core",
+    "polars_oracle": "1.43.1"
+  },
+  "tolerance_abs": 1e-06,
+  "N_comparisons": 16548,
+  "N_ge_30": true,
+  "conservation": {
+    "conservation \u00b7 sum @ (store,product,cal.month)": {
+      "passed": true,
+      "cells": 16524,
+      "worst_delta": 1.1368683772161603e-13
+    },
+    "conservation \u00b7 sum @ cal.month (roll-up)": {
+      "passed": true,
+      "cells": 24,
+      "worst_delta": 2.6193447411060333e-10
+    }
+  },
+  "conservation_worst_delta": 2.6193447411060333e-10,
+  "tamper_control": {
+    "in_pilot_broken_lowering_fails": true,
+    "d3_oracle_negative_control_valid": true
+  },
+  "attack_b_stress": {
+    "faithful_lowering_agrees": true,
+    "unfaithful_lowering_self_consistent": true,
+    "unfaithful_distinguishable_from_faithful": true,
+    "max_faithful_vs_unfaithful_gap": 24.978107366980524,
+    "class_c_ok": true,
+    "lesson": "we certify the computation, never the coincidence of outputs"
+  },
+  "ACCEPTED": true
+}
