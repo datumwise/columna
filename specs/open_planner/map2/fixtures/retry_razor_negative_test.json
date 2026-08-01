@@ -1,0 +1,11 @@
+{
+  "razor": "execution-error retry only; comparison mismatch never retries",
+  "positive_control_pass": true,
+  "negative_fails_without_retry": true,
+  "negative_detail": {
+    "pass": false,
+    "execution_attempts": 1,
+    "worst_delta": 129941.49000000008
+  },
+  "upheld": true
+}
