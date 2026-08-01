@@ -15,8 +15,14 @@ deliverables. **D2 (certificate cargo schema) is the desk's, drafted in parallel
 | `fixtures/d4_c1_pilot_certificate.json` | the pilot's conservation certificate (evidence) | — | `ACCEPTED: true` |
 | `D4_C1_pilot_v0_1.md` | D4 report — acceptance table, Attack B / Class C, perimeter, V1/V3 | — | complete |
 | `fixtures/d4_c1_semantic_channel.json` | the certificate's SEMANTIC channel (byte-stable; V3 diffs this) | — | invariant across runs |
-| `certificate_cargo_schema_v0_1.md` | D2 — the certificate cargo schema (desk-drafted; S1–S10 / M1–M4 / V1–V6) | — | filed; v0.2-pending |
-| `D2_reconciliation_notes_v0_1.md` | D2 reconciliation — full field-by-field (V1 ✔, V3 ✔; S/M/V map + §6 answers) | — | returned for adjudication |
+| `certificate_cargo_schema_v0_1.md` / `_v0_2.md` | D2 — the certificate cargo schema (desk; v0.2 adjudicated: §4b rule cert, S6 list, channel correction) | — | v0.2 in force |
+| `D2_reconciliation_notes_v0_1.md` | D2 reconciliation — full field-by-field (V1 ✔, V3 ✔; S/M/V map + §6 answers, all adopted) | — | adjudicated |
+| `cert_v0_2.py` | the v0.2 certificate library — digests, plan-cert + rule-cert builders, S9 plan walker | (imported) | — |
+| `emit_c1_v0_2.py` | steps 1–2 — mint C1 rule cert + re-emit C1 plan cert v0.2-conformant + channel test | `python emit_c1_v0_2.py .` | green |
+| `pilot_c2.py` | step 3 — C2 pilot (full spine + WHERE-CARVE + mean-via-(sum,count)); emits v0.2 NATIVELY | `python pilot_c2.py .` | **ACCEPTED** (schema acceptance test passed) |
+| `adjudication_record/rule_*.json` | the rule certificates (C1 TRANSPORT-shaped-sum; C2 REDUCE-mean) — M1 points here | — | 2 minted |
+| `fixtures/c1_*_v0_2.json`, `c2_*_v0_2.json` | v0.2 plan certs + semantic channels (V3 byte-stable) | — | conformant |
+| `C2_and_v0_2_conformance_v0_1.md` | steps 1–3 report — rule certs, C1 re-emit, C2 pilot, amortization | — | complete |
 
 **Sequence (charter):** D1 skeleton + D3 harness → pre-D4 report → **ruling** → D4 pilot. All done.
 Ruling (2026-07-31): **Acero (`pyarrow.substrait`) is C1's first consumer** (the DuckDB extension is

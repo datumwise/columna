@@ -1,0 +1,20 @@
+{
+  "backend": {
+    "identity": "pyarrow.substrait (Acero)",
+    "version_band": ">=25,<26"
+  },
+  "digest": "sha256:02ed755e627a9e5062391525f5eadf91f360eca85246bee0161f8e022cc2c2d7",
+  "oracle_run": {
+    "N": 16548,
+    "date": "2026-08-01",
+    "harness_version": "map2/oracle_harness+pilot_c1 v0.1",
+    "tamper_status": "valid",
+    "tested_version": "25.0.0",
+    "tolerance": 1e-06,
+    "worst_delta": 2.6193447411060333e-10
+  },
+  "perimeter": "the TRANSPORT-shaped monoid-sum lowering rule on Acero, over a corroborated functional edge; per-rule proof amortized by every plan that reuses it.",
+  "rule_id": "c1-transport-shaped-sum",
+  "rule_statement": "a monoid SUM delivered through a CORROBORATED FUNCTIONAL hierarchy edge (Substrait: INNER JoinRel on the from-key + AggregateRel[sum]) conserves the extensive denotation; the roll-up of the intermediate grain is sum-of-sums, associative. Covers sum/count/min/max monoids; NOT mules, sketches, or non-functional edges.",
+  "schema": "urn:columna:rule-certificate:v1"
+}
