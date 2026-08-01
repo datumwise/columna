@@ -399,6 +399,8 @@ This computes per-customer revenue *over transactions where region is east and d
 
 `WHERE` is a query-time expression-level restriction, not a Manifold-level state change. The Manifold's columns retain their declared coverage; the query's *result* is restricted to what the predicate permits.
 
+> **▸ Second-Edition sync (literal quoting at `WHERE`, shipped behavior).** A `WHERE` predicate is currently evaluated by the backend, so its **string literals follow the backend's literal dialect**: on the shipped DuckDB connector a string literal is **single-quoted** (`WHERE day >= '2024-06-01'`), and a double-quoted token is read as an *identifier*, not a string — so `day >= "2024-06-01"` fails to bind. Normalizing FrameQL's own literal quoting at the `WHERE` boundary is a rowed follow-up; until then, single-quote string literals in `WHERE`.
+
 **When series have different input grains, the predicate applies per series, at each series' own input grain.** A query whose series draw from `{transaction}` and from `{warehouse, day}` under `WHERE region = "east"` restricts each series' input independently: each predicate dimension must be reachable from that series' input anchor (directly as a coordinate, or through a verified hierarchy edge — `region` reached from `transaction` via `transaction → customer → region`). If a predicate dimension is not reachable from some series' input anchor, the query is underdetermined for that series — there is no defensible way to apply the restriction — and the framework asks for clarification rather than silently applying the predicate to some series and not others.
 
 ### 4.2 The `HAVING` clause: post-query output filtering
