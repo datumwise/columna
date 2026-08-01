@@ -19,24 +19,29 @@ is a violation. No cell in the *Polars ops (attested)* column was written from m
 
 ## Attestation summary (from `fixtures/d1_polars_trace.json`)
 
-Nine asks, run **cold** (engine cache cleared before each), covering all eight nodes plus the two named
-compositions. **Ninth-node candidates: 0** — every Polars operation the engine issued was accounted for
-by one of the eight nodes (the connector's base scan is a duckdb read *below* Polars; `ORDER BY` is an
-envelope clause, tracked separately). This is IR closure re-confirmed at the *Polars-operation* level,
-one layer below beat-1's node-set closure.
+Eleven asks, run **cold** (engine cache cleared before each), covering all eight nodes plus the two
+named compositions — **including two query-level `WHERE` asks** so CARVE's predicate row is attested,
+not described (charter amendment, ruled 2026-07-31). **Ninth-node candidates: 0** — every operation the
+engine issued was accounted for by one of the eight nodes. The connector's base read and its pushed-down
+`WHERE` are duckdb operations *below* Polars, attested by wrapping the connector's deliver methods;
+`ORDER BY` is an envelope clause, tracked separately. This is IR closure re-confirmed at the
+*operation* level, one layer below beat-1's node-set closure.
 
-Attested per-node Polars-op profile (counts across the ask set):
+Attested per-node op profile (counts across the ask set):
 
 ```
-ANCHOR     (no Polars op — output grain is a declaration, realized as the group keys of the terminal REDUCE)
-CARVE      filter ×1            (+ the connector duckdb base scan, below Polars — see note F-b)
-COLUMN     join ×1  group_by ×1  agg ×1  select ×13  rename ×13
-TRANSPORT  join ×7  group_by ×7  agg ×7  rename ×7
+ANCHOR     (no op — output grain is a declaration, realized as the group keys of the terminal REDUCE)
+CARVE      scan ×11   scan+filter ×4   filter ×1
+             ├─ scan        : the connector duckdb base read (universe/population selection) — below Polars
+             ├─ scan+filter : a base read with a query-WHERE pushed down as SQL — below Polars
+             └─ filter      : the engine-side _confine (a universe/attribute predicate) — a Polars op
+COLUMN     join ×1  group_by ×1  agg ×1  select ×15  rename ×15
+TRANSPORT  join ×8  group_by ×8  agg ×8  rename ×8
 CROSS      join ×5  group_by ×1  agg ×1  unique ×3  with_columns ×5  select ×5  sort ×2  rename ×4
 REDUCE     group_by ×1  agg ×1  select ×1
-ALIGN      join ×1  rename ×21
+ALIGN      join ×1  rename ×25
 DERIVE     join ×1  with_columns ×1  select ×1
-ORDER(env) sort ×9             (envelope clause — NOT one of the eight nodes)
+ORDER(env) sort ×11            (envelope clause — NOT one of the eight nodes)
 ```
 
 ## The table
@@ -48,7 +53,7 @@ boundary lands here). Every verdict carries its one-sentence reason in the per-n
 | # | node | Polars ops (attested) | proposed Rel composition (Substrait 0.46.0) | what the Rels **lose** | cargo required | verdict (proposed) |
 |---|---|---|---|---|---|---|
 | 1 | **ANCHOR**(coords) | (declaration; = terminal group keys) | grouping keys of the terminal `AggregateRel` + `RelRoot.names` | that these fields are *anchor coordinates* (grain) vs value series; the (coords, **universe**) identity; lattice order | `(coords, universe)` grain identity; which output fields are anchor dims | **PR** |
-| 2 | **CARVE**(universe, pred?) | `filter` + connector duckdb scan | `ReadRel` (named/virtual table) [ + `FilterRel` for a predicate ] | that the read is a **universe** with a *basis* (events/spine/product/registry) and its absence-law (zero vs gap); that the filter is a lawful population restriction, not an arbitrary mask | universe id + **basis** (B3 absence law); resolved (Manifold, version); predicate provenance | **PR** |
+| 2 | **CARVE**(universe, pred?) | `scan` ×11, `scan+filter` ×4 (connector, below Polars), `filter` ×1 (`_confine`) | `ReadRel` (named/virtual table) + `FilterRel` for the predicate (the WHERE pushes down into the read as SQL) | that the read is a **universe** with a *basis* (events/spine/product/registry) and its absence-law (zero vs gap); that the filter is a lawful population restriction, not an arbitrary mask | universe id + **basis** (B3 absence law); resolved (Manifold, version); predicate provenance | **PR** |
 | 3 | **COLUMN**(name, measure_ref, family) | `join` `group_by` `agg` `select` `rename` | `ProjectRel` (measure, alias) over the `ReadRel`; `AggregateRel` for the family's monoid delivery when the root is finer | that the projected column is a **measure of a family** (default reducer, fertile/mule); the binding of `measure_ref` to the ask's measure atom (**Attack A**); the V/M/B anchors | measure_ref bound to the ask atom; family (default op, fertility); V/M/B anchors | **PR** |
 | 4 | **TRANSPORT**(frm→to, lineage) | `join` `group_by` `agg` `rename` | `JoinRel` (INNER, on the from-key, against the hierarchy table) + `AggregateRel` to the coarser grain; **or** `ProjectRel` when the coarser level is a 1:1 functional attribute (dependent attach) | **that the JoinRel rides a *corroborated functional edge*** — a bare `JoinRel` on a non-functional key silently **fans out**; the whole faithfulness of TRANSPORT (no fan-out) is the edge's adjudication, which the Rel cannot see; the edge verdict and lineage | edge `(frm, to, lineage)` + certificate **verdict** (VERIFIED/CORROBORATED/CONTRADICTED); the functionality guarantee | **PR** (faithful *only under* the certified-edge precondition — the study's honest center) |
 | 5 | **CROSS**(relate, face) | `join` `unique` `with_columns` `select` `sort` `group_by` `agg` `rename` | touch → `JoinRel`(M:N)+`AggregateRel`; assign → `JoinRel`+`FilterRel`(top-per-member)+`AggregateRel`; alloc → `JoinRel`+`ProjectRel`(×normalized weight)+`AggregateRel` | **the face LAW has no Rel vocabulary**: a fanning `JoinRel` *is* the forbidden double-count — the Rel cannot say the over-count is *licensed & disclosed* (touch), or that the pick is the *adjudicated unique top* (assign), or that the weights are a *partition of unity that reconciles* (alloc); the reconciliation certificate and the shadow are arithmetic the Rels perform but do not know they owe | face scheme + adjudication (touch over_count; assign driver+ORDER+shadow `memberships_unrepresented`; alloc driver + reconciliation badge); the disclosure obligations (F5) | **PS** (arithmetic per-shape; **disclosure minting is NOT delegable** — custody law) |
@@ -65,9 +70,14 @@ boundary lands here). Every verdict carries its one-sentence reason in the per-n
 identically every time; the only thing the Rels drop — that these fields are anchor coordinates on a
 declared universe — is recorded once as cargo.
 
-**2 · CARVE — PR.** A `ReadRel` (optionally a `FilterRel`) faithfully realizes population selection.
-*Reason:* the read itself is a faithful table scan; the **basis** (events/spine/product/registry) and its
-absence-law are not expressible in `ReadRel` and ride as cargo — a per-rule obligation, not a per-plan one.
+**2 · CARVE — PR (finalized; attestation now 100%, no asterisk).** A `ReadRel` (with a `FilterRel` for a
+predicate) faithfully realizes population selection. *Reason:* the read is a faithful table scan and the
+`WHERE` pushes down into it as SQL (attested: `scan` for the bare read, `scan+filter` for the pushed
+predicate, and one engine-side `_confine` Polars `filter` for a universe/attribute predicate); the
+**basis** (events/spine/product/registry) and its absence-law are not expressible in `ReadRel`/`FilterRel`
+and ride as cargo — a per-rule obligation. (The prior D1 v0.1 draft carried an attestation gap here
+because the Cascadia serving corpus was not exercising a query `WHERE`; the amendment minted two
+`WHERE` asks — see finding F-d, now RESOLVED — and CARVE's row returns to attested-no-asterisks.)
 
 **3 · COLUMN — PR.** `ProjectRel` + the family's monoid `AggregateRel` deliver the measure. *Reason:* the
 projection is faithful, but **Attack A** proved the load-bearing loss: no Rel binds `measure_ref` to the
@@ -92,7 +102,12 @@ awkwardly — flagged for D4/D5.)
 **PR**; `mean` lowers **PR** *only* via its sufficient-statistics decomposition `(sum, count)` then a
 `ProjectRel` divide — the mean-of-means theorem promoted from attack to **lowering constraint**;
 sketch-based `approx_distinct` (engine-specific HLL/witness state) and exact `median`/`mode` (holistic, no
-fertile carrier) are **NL at v1** — they stay home and the pushdown boundary lands at the reducer.
+fertile carrier) are **NL at v1** — they stay home and the pushdown boundary lands at the reducer. This
+split is not ad-hoc: it is exactly the **published theory's family-state classification** — *fertile*
+(monoid carrier), *mule* (recomputed from a fertile decomposition, e.g. mean from sum+count), and
+*sketch / holistic* (no fertile carrier, reduction-sterile) — from the Theory of Data (DOI
+10.5281/zenodo.21707018) and the reducer-family model of the *Columna Reference Manual*. The lowering
+verdict inherits the state: fertile → PR, mule-with-decomposition → PR, holistic/sketch → NL.
 
 **7 · ALIGN — PR.** A FULL-OUTER `JoinRel` on the anchor coordinates realizes the juxtaposition. *Reason:*
 faithful in shape; the single loss is null *meaning* — the Rel cannot distinguish an events-zero from a
@@ -119,11 +134,22 @@ functions drop to **PS** and force per-backend proof.
 - **F-c · `ORDER BY` is an envelope clause, not a node.** Every ask emitted one `sort` at
   `planner.py:run`; ORDER/LIMIT are envelope surface (they lower to `SortRel`/`FetchRel`) and are
   correctly **not** counted among the eight IR nodes — and are **not** ninth-node candidates.
-- **F-d · The WHERE→filter (`_confine`) path is under-exercised by the Cascadia serving corpus.** Every
-  `WHERE` variant attempted either hit a region binder error or a `filter_unreachable` clarify, so CARVE's
-  predicate-filter sub-path was exercised only once (the align ask). The `ReadRel`+`FilterRel` proposal
-  stands on the code path (engine.py `_confine`), but its execution attestation is thin → a D5 row asks
-  for a fixture with a reachable predicate before CARVE's filter lowering is certified.
+- **F-d · The WHERE→filter path — RESOLVED (amendment, ruled 2026-07-31).** The v0.1 draft left CARVE's
+  predicate row thinly attested because the first `WHERE` variants tried all errored. Root cause found:
+  the query `WHERE` predicate is passed to the connector as **raw SQL** (`planner.py:619` →
+  `connector.py:151` `q += f" WHERE {where}"`), so a FrameQL double-quoted literal (`"2024-06-01"`)
+  reaches duckdb as an **identifier** and binder-errors — a **single-quoted** SQL literal serves. Two
+  `WHERE` asks were minted into the trace corpus (`day >= '2024-06-01'`; a `BETWEEN`-style range to
+  `{region}`), and CARVE's row is now attested end to end: `scan` (base read → `ReadRel`), `scan+filter`
+  (WHERE pushed down → `ReadRel`+`FilterRel`), and one engine-side `_confine` `filter`. CARVE's verdict is
+  finalized **PR**, no asterisk. (The connector reads two paths — pushdown SQL for the query `WHERE`,
+  engine-side `_confine` for a universe/attribute predicate — a detail the cargo must name so the
+  `FilterRel` lowering is certified for the path that actually ran.)
+- **F-e · FrameQL `WHERE` literal quoting is SQL-passthrough (minor, for D2/cargo).** Because the `WHERE`
+  is injected verbatim into duckdb, its literal dialect is *SQL's*, not FrameQL's: single-quote strings
+  serve, double-quote strings become identifiers. For the lowering this matters only as a cargo note (the
+  predicate provenance must record the canonical predicate, not the raw SQL string) — recorded so a
+  `FilterRel` lowering does not inherit a quoting ambiguity. (Filed as D5 · Q-1.)
 
 *— CC, D1 v0.1, for desk adjudication of the verdict column. The Rel compositions are proposals grounded
 in the Substrait 0.46.0 Rel set; the pilot (D4) will attest C1 end-to-end before any verdict is treated
