@@ -1,0 +1,159 @@
+{
+  "S10_perimeter": "Cascadia \u00b7 transaction universe \u00b7 revenue=sum(amount) joined to calendar on day \u00b7 the TRANSPORT-shaped sum at (store,product,cal.month) rolled up to cal.month \u00b7 lowered to Substrait, executed on Acero \u00b7 covers THIS plan only; other nodes' lowerings stand as D1 proposals until piloted.",
+  "S1_schema_version": "columna-certificate/1",
+  "S2_model": {
+    "adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+    "name": "cascadia",
+    "version": 1
+  },
+  "S3_ask": {
+    "parse_digest": "sha256:a3373d96cbca687487d4c67af06f1391b06ae3084f38a662977231971a1ed99c",
+    "text": "SELECT sum(revenue @ {store*product*cal.month}) AT {cal.month}"
+  },
+  "S4_plan": {
+    "digest": "sha256:467df5d539b18e7760c20495cd8523d96ffa16cd5c4d92520d9cf3c12caceb90",
+    "nodes": [
+      {
+        "id": "n0",
+        "node": "CARVE",
+        "universe": "transaction"
+      },
+      {
+        "family": "sum",
+        "id": "n1",
+        "measure": "revenue",
+        "node": "COLUMN"
+      },
+      {
+        "from_level": "day",
+        "id": "n2",
+        "node": "TRANSPORT",
+        "to_level": "cal.month",
+        "via": "calendar"
+      },
+      {
+        "at": [
+          "store",
+          "product",
+          "cal.month"
+        ],
+        "id": "n3",
+        "node": "REDUCE",
+        "op": "sum"
+      },
+      {
+        "at": [
+          "cal.month"
+        ],
+        "id": "n4",
+        "node": "REDUCE",
+        "op": "sum"
+      },
+      {
+        "coords": [
+          "cal.month"
+        ],
+        "id": "n5",
+        "node": "ANCHOR"
+      }
+    ]
+  },
+  "S5_obligations": [
+    {
+      "clause": "\u27e6L(N)\u27e7 = \u27e6N\u27e7 on the declared model",
+      "law_id": "conservation/c1-transport-shaped-sum",
+      "mode": "ref",
+      "ref": "sha256:02ed755e627a9e5062391525f5eadf91f360eca85246bee0161f8e022cc2c2d7",
+      "verdict": "discharged \u2014 this lowering conserves the denotation"
+    },
+    {
+      "clause": "fertile extensive monoid; delivery and roll-up associative",
+      "law_id": "family/sum",
+      "mode": "embed_with_digest",
+      "ref": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+      "verdict": "licensed"
+    },
+    {
+      "clause": "corroborated functional edge (no fan-out)",
+      "law_id": "edge/day->cal.month",
+      "mode": "ref",
+      "ref": "S6[0]",
+      "verdict": "proven"
+    }
+  ],
+  "S6_edge_attestations": [
+    {
+      "corroboration_verdict_ref": {
+        "mode": "embed_with_digest",
+        "model_adjudication_digest": "sha256:a1526cc37bf2198ca41d981c80d4303875afa1844c7ba059f1838d25f0b4f102",
+        "verdict": "proven"
+      },
+      "edge_id": "day->cal.month@calendar",
+      "from_level": "day",
+      "to_level": "cal.month"
+    }
+  ],
+  "S7_face_spends": [],
+  "S8_disclosure_projection": [
+    {
+      "code": "freshness",
+      "detail": "served from cache",
+      "kind": "two_stage_statistic",
+      "severity": "immaterial"
+    },
+    {
+      "code": "provenance",
+      "detail": "'sum of revenue@{store*product*cal.month}' reduced to cal.month \u2014 pin fixes cal.month, reduces over store, product",
+      "kind": "two_stage_statistic",
+      "severity": "immaterial"
+    }
+  ],
+  "S9_lowering_map": {
+    "notation": "RelRoot-relative child-index path",
+    "spans": [
+      {
+        "node": "REDUCE",
+        "rel_kind": "aggregate",
+        "rel_span": [],
+        "stay_home": false
+      },
+      {
+        "node": "REDUCE",
+        "rel_kind": "aggregate",
+        "rel_span": [
+          0
+        ],
+        "stay_home": false
+      },
+      {
+        "node": "TRANSPORT",
+        "rel_kind": "join",
+        "rel_span": [
+          0,
+          0
+        ],
+        "stay_home": false
+      },
+      {
+        "node": "CARVE",
+        "rel_kind": "read",
+        "rel_span": [
+          0,
+          0,
+          0
+        ],
+        "stay_home": false
+      },
+      {
+        "node": "CARVE",
+        "rel_kind": "read",
+        "rel_span": [
+          0,
+          0,
+          1
+        ],
+        "stay_home": false
+      }
+    ]
+  }
+}

@@ -215,34 +215,64 @@ def main(argv):
     worst = max((getattr(c, "_worst_delta", 0.0) for c in conservation), default=0.0)
     accepted = bool(all_conserve and N >= 30 and tamper_valid and d3_ctrl["control_valid"] and class_c_ok)
 
-    certificate = {
+    # V1 (schema law, checked hard): every TRANSPORT carries its edge attestation. The pilot's TRANSPORT
+    # is the day->cal.month climb realized by the calendar JoinRel; the attestation is the founding
+    # finding of D1 made a first-class field (the bare-JoinRel fan-out is caught, not assumed away).
+    edge_attestation = {
+        "node": "TRANSPORT", "frm": "day", "to": "cal.month", "via": "calendar",
+        "kind": "functional_climb (INNER join on the from-key; no fan-out)",
+        "verdict": "CONSERVES",
+        "evidence": ("conservation PASS at both grains within tolerance AND the fan-out tamper "
+                     "(double-count) is distinguishable — a bare JoinRel on a non-functional key would "
+                     "double-count and the harness kills it"),
+        "law": "V1 — every TRANSPORT carries its edge attestation (D1's founding finding as schema law)",
+    }
+
+    # The F5 TWO-CHANNEL split (the law the charter cites and D2 is built on), checked hard by V3:
+    #   • SEMANTIC — call-invariant facts. NOTHING here may vary run-to-run (V3). Booleans/ints/strings.
+    #   • MECHANICAL — legitimately variant diagnostics (float measurements that flap by summation ORDER).
+    # Raw worst_delta / max_gap are MEASUREMENTS, not claims: they belong on the mechanical channel. The
+    # semantic claim is `within_tolerance: true` (invariant), never the raw delta (0.13.1 doctrine).
+    semantic = {
         "certificate": "urn:columna:mapping-study:c1-pilot:v0.1",
         "perimeter": ("Cascadia warehouse · transaction universe · revenue = sum(amount) joined to "
                       "calendar on day · the TRANSPORT-shaped sum at (store,product,cal.month) and its "
                       "roll-up to cal.month · lowered to Substrait via ibis-substrait, executed on Acero"),
-        "versions": {"substrait": sorted(plan_versions), "substrait_declared": SUBSTRAIT_VERSION,
-                     "producer": "ibis-substrait 4.0.1 / substrait proto 0.16.0",
-                     "consumer": "pyarrow.substrait (Acero) 25.0.0", "core": "0.14.0-core",
-                     "polars_oracle": pl.__version__},
+        "substrait_version": sorted(plan_versions),
+        "toolchain": {"producer": "ibis-substrait 4.0.1 / substrait proto 0.16.0",
+                      "consumer": "pyarrow.substrait (Acero) 25.0.0", "core": "0.14.0-core",
+                      "oracle_polars": pl.__version__},
         "tolerance_abs": TOL,
         "N_comparisons": N,
         "N_ge_30": N >= 30,
-        "conservation": {c.label: {"passed": c.passed, "cells": c.n_cells,
-                                   "worst_delta": getattr(c, "_worst_delta", None)} for c in conservation},
-        "conservation_worst_delta": worst,
+        "conservation": {c.label: {"passed": c.passed, "cells": c.n_cells, "within_tolerance": c.passed}
+                         for c in conservation},
+        "conservation_within_tolerance": all_conserve,
+        "edge_attestation": edge_attestation,
         "tamper_control": {"in_pilot_broken_lowering_fails": tamper_valid,
                            "d3_oracle_negative_control_valid": d3_ctrl["control_valid"]},
         "attack_b_stress": {
             "faithful_lowering_agrees": ab_faithful_agrees.passed,
             "unfaithful_lowering_self_consistent": ab_unfaithful_selfconsistent.passed,
             "unfaithful_distinguishable_from_faithful": not ab_distinguishable.passed,
-            "max_faithful_vs_unfaithful_gap": max_ab_gap,
             "class_c_ok": class_c_ok,
             "lesson": "we certify the computation, never the coincidence of outputs",
         },
         "ACCEPTED": accepted,
     }
+    mechanical = {
+        "note": ("diagnostics — MAY vary run-to-run by float summation ORDER; NOT on the semantic "
+                 "channel (V3 / the F5 two-channel law). The semantic claim is `within_tolerance`, "
+                 "never these raw measurements."),
+        "conservation_worst_delta_observed": worst,
+        "attack_b_max_gap_observed": max_ab_gap,
+    }
+    certificate = {"semantic": semantic, "mechanical": mechanical}
     (outdir / "d4_c1_pilot_certificate.json").write_text(json.dumps(certificate, indent=2) + "\n")
+    # V3 self-check: the SEMANTIC channel must be byte-stable. Emit its canonical serialization so a
+    # two-run diff of this file's `semantic` block is provably empty.
+    (outdir / "d4_c1_semantic_channel.json").write_text(
+        json.dumps(semantic, indent=2, sort_keys=True) + "\n")
 
     print("\n=== C1 PILOT CERTIFICATE ===")
     print(f"  N comparisons          : {N}  (>=30: {N >= 30})")

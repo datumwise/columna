@@ -1,0 +1,51 @@
+{
+  "ACCEPTED": true,
+  "N_comparisons": 16548,
+  "N_ge_30": true,
+  "attack_b_stress": {
+    "class_c_ok": true,
+    "faithful_lowering_agrees": true,
+    "lesson": "we certify the computation, never the coincidence of outputs",
+    "unfaithful_distinguishable_from_faithful": true,
+    "unfaithful_lowering_self_consistent": true
+  },
+  "certificate": "urn:columna:mapping-study:c1-pilot:v0.1",
+  "conservation": {
+    "conservation \u00b7 sum @ (store,product,cal.month)": {
+      "cells": 16524,
+      "passed": true,
+      "within_tolerance": true
+    },
+    "conservation \u00b7 sum @ cal.month (roll-up)": {
+      "cells": 24,
+      "passed": true,
+      "within_tolerance": true
+    }
+  },
+  "conservation_within_tolerance": true,
+  "edge_attestation": {
+    "evidence": "conservation PASS at both grains within tolerance AND the fan-out tamper (double-count) is distinguishable \u2014 a bare JoinRel on a non-functional key would double-count and the harness kills it",
+    "frm": "day",
+    "kind": "functional_climb (INNER join on the from-key; no fan-out)",
+    "law": "V1 \u2014 every TRANSPORT carries its edge attestation (D1's founding finding as schema law)",
+    "node": "TRANSPORT",
+    "to": "cal.month",
+    "verdict": "CONSERVES",
+    "via": "calendar"
+  },
+  "perimeter": "Cascadia warehouse \u00b7 transaction universe \u00b7 revenue = sum(amount) joined to calendar on day \u00b7 the TRANSPORT-shaped sum at (store,product,cal.month) and its roll-up to cal.month \u00b7 lowered to Substrait via ibis-substrait, executed on Acero",
+  "substrait_version": [
+    "0.46.0"
+  ],
+  "tamper_control": {
+    "d3_oracle_negative_control_valid": true,
+    "in_pilot_broken_lowering_fails": true
+  },
+  "tolerance_abs": 1e-06,
+  "toolchain": {
+    "consumer": "pyarrow.substrait (Acero) 25.0.0",
+    "core": "0.14.0-core",
+    "oracle_polars": "1.43.1",
+    "producer": "ibis-substrait 4.0.1 / substrait proto 0.16.0"
+  }
+}
