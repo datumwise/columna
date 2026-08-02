@@ -59,7 +59,7 @@ Structured data deserves the same constitution. The load-bearing stratum wants t
 **grammar layer**: small, closed, machine-checkable — an algebra, not a style guide.
 
 The algebra exists. Its primitive is the **column** — a measure over its anchor. Not the
-smallest element of data (a data point is), but the simplest *structure* of data: the atom of
+smallest element of data (a data point is), but the simplest *structure* of data: the unit of
 structured data operation, the least thing that still *says something of something*. (A table,
 by contrast, is a container: form, not substance.) Its operators are mappers and reducers; its
 expressions compose; and the nature of each column — captured in three anchors: where its

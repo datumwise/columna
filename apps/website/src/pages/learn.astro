@@ -3,8 +3,14 @@
 // the three manuals, the live Explorer, install, and the release. Release notes link the GitHub
 // Release directly — no site page (package §2b, ratified).
 import BaseLayout from '../layouts/BaseLayout.astro';
+// The release entry is GENERATED, not typed: PACKAGE_VERSION comes from the shipped package's
+// integrity transcript (src/data/latest.ts → transcript.generated.json meta), regenerated at build
+// time by running the shipped package — the same source the homepage's Latest rail uses. A
+// hand-written release number on THIS site would contradict its own structural-honesty promise, so
+// it is derived here and cannot drift from what shipped (§2.5, ontology-sync package 2026-08-02).
+import { PACKAGE_VERSION } from '../data/latest.ts';
 
-const RELEASE_URL = 'https://github.com/datumwise/columna/releases/tag/v0.11.0';
+const RELEASE_URL = `https://github.com/datumwise/columna/releases/tag/v${PACKAGE_VERSION}`;
 
 const groups = [
   {
@@ -52,7 +58,7 @@ const groups = [
       // convinced, which is who it was written for.
       { href: '/the-argument', title: 'the argument', blurb: 'The eight-minute case for why Columna exists, with two live exhibits.' },
       { href: '/how-these-documents-relate', title: 'How these documents relate', blurb: 'The corpus map — how the thesis, the essays, the papers, and the manuals fit together.' },
-      { href: RELEASE_URL, title: 'Release 0.11.0', blurb: 'The GitHub Release — the many-to-many crossing executes — what shipped, on PyPI.', external: true },
+      { href: RELEASE_URL, title: `Release ${PACKAGE_VERSION}`, blurb: 'The GitHub Release — what shipped, on PyPI.', external: true },
     ],
   },
 ];

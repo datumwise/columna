@@ -34,7 +34,7 @@ This is the part of the position that is an announcement. We dug down to the def
 
 **The foundations note** — short, for the curious: what data is (a typed value at a typed location), why the column and not the table is the smallest unit with real structure, where meaning attaches, and what makes a transformation lawful. Five pages. [doi.org/10.5281/zenodo.21696104](https://doi.org/10.5281/zenodo.21696104)
 
-**The technical construction** — complete, for the serious: the typed coordinate structure, particles and atoms, universes with their laws of existence, the anchor calculus, the aggregator algebra, and lawful movement defined as a decidable conjunction. Thirty-nine pages, formal throughout. [doi.org/10.5281/zenodo.21707018](https://doi.org/10.5281/zenodo.21707018)
+**The technical construction** — complete, for the serious: the typed coordinate structure, particles and atoms, universes with their laws of existence, the anchor calculus, the aggregator algebra, and lawful movement defined as a decidable conjunction. *The Theory of Data*, Version 3.1 — the canonical revision, formal throughout, the atom-family ontology included. [doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)
 
 We will not repeat the theory here — that is what the papers are for, and a position piece that restates its own citations is padding. Two sentences to orient you, no more. *A datum is a value of a variable at typed coordinates, and the column — not the table — is the smallest unit of data with internal structure: single values are smaller, but they are simple; structure begins at the column, and so do the laws.* And: *we have been calling tables "structured data" for fifty years — the structure was never in the table.*
 
@@ -53,5 +53,12 @@ Three things, in order of arrival.
 We build [Columna](https://github.com/datumwise/columna) as the working implementation of these foundations — open source, papers and benchmark included. But the position stands independently of the product: **the industry has spent twenty years buying better engines to run on a foundation that cannot state its own laws. The next move is not faster. The next move is firmer.**
 
 Read the foundations. Tell us where they break.
+
+**Note, 2026-08-02.** The theory moved, so the words moved. *The Theory of Data*, Version 3.1
+([doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)) sharpens the ontology
+this page was written under: the measure — `revenue` — is an **atom**, a governed family; a column
+realizes one **member** of it. The position is unchanged. Its central term got more precise, and we
+updated the page rather than pretend we always said it this way. The paper edition of this position
+travels with the same vocabulary.
 
 *— datumwise*

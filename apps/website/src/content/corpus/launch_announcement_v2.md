@@ -10,7 +10,7 @@ Columna changes that.
 
 ## What Columna is
 
-Columna is a framework in the same sense the relational model was: a data model, a query language, and an engine, under one law. The data model — the **Manifold** — holds what your data *means*: measures over anchors (columns as the true atomic unit of analysis, not tables as containers), populations with declared absence semantics, hierarchies that are checked against the data, and operations barred where the arithmetic doesn't survive the trip. The query language — **FrameQL** — can only ask for meaning the model declares. The engine serves nothing the model can't defend. Three parts, one law: nothing answers unless the model has already justified it against the data.
+Columna is a framework in the same sense the relational model was: a data model, a query language, and an engine, under one law. The data model — the **Manifold** — holds what your data *means*: measures over anchors (columns as the smallest carrier of analytical meaning, not tables as containers), populations with declared absence semantics, hierarchies that are checked against the data, and operations barred where the arithmetic doesn't survive the trip. The query language — **FrameQL** — can only ask for meaning the model declares. The engine serves nothing the model can't defend. Three parts, one law: nothing answers unless the model has already justified it against the data.
 
 The result is structural honesty. Every answer comes back in one of **four moods**, on one wire contract:
 
