@@ -8,6 +8,14 @@ and has write. Push with:
 `git push "https://x-access-token:${DATUMWISE_PUSH_PAT}@github.com/datumwise/columna.git" HEAD:<branch>`
 and run `gh pr create` with `GH_TOKEN="$DATUMWISE_PUSH_PAT"`.
 
+**Commit authorship: never commit as `Claude <noreply@anthropic.com>`.** Claude is the tool, not the
+committer (same as we wouldn't register `curl` as a committer). Author + committer must be a real human/org
+account — default `Irena Wang <reeeneeee@users.noreply.github.com>` (reeneee), or `datumwise
+<datumwise@gmail.com>`. Set it before committing: `git config user.name "Irena Wang" && git config
+user.email "reeeneeee@users.noreply.github.com"`. Claude stays credited via the
+`Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` trailer only. (History was re-attributed once on
+2026-08-02 — 326 Claude-authored commits → reeneee — to fix the Insights contributor graph.)
+
 ---
 
 # Phase 2 — CODE-COMPLETE ✅ (2026-07-08, tag `phase-2`)
