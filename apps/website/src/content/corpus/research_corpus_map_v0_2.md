@@ -2,7 +2,7 @@
 
 *how these documents relate*
 
-**v0.2 · August 2026**
+**v0.3 · August 2026**
 
 ---
 
@@ -10,7 +10,7 @@ Everything below is published, versioned, and DOI'd. Nothing here asks to be bel
 
 ### The root
 
-***The Theory of Data*** — Version 3.1 ([doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)) — states what everything else assumes: what data *is*, where meaning attaches, and what makes a transformation lawful. Its vocabulary is the corpus's vocabulary. An **atom** is a governed measure family — `revenue`. An **atom member** is one anchored realization of it — transaction revenue; customer-month revenue. A column realizes a member. And **closure** is the question every calculation must answer: did this produce another member, synthesize a new atom, or produce a number with no governed identity at all? The original foundations note ([10.5281/zenodo.21696104](https://doi.org/10.5281/zenodo.21696104)) remains as the origin record.
+***The Theory of Data*** — Version 4.0 ([doi.org/10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032)), the canonical manuscript (Version 3.1 remains in the version chain) — states what everything else assumes: what data *is*, where meaning attaches, and what makes a transformation lawful. Its vocabulary is the corpus's vocabulary. The measure — `revenue` — is the governed family. A column realizes one **member** of it: a governed **series**, the family at one grain. Transaction revenue and customer-month revenue are two members of one measure. And **closure** is the question every calculation must answer: did this produce another member, synthesize a new measure, or produce a number with no governed identity at all? The original foundations note ([10.5281/zenodo.21696104](https://doi.org/10.5281/zenodo.21696104)) remains as the origin record.
 
 ### The kernel: what is proved
 
@@ -40,17 +40,22 @@ The working tools and the earlier evidence. ***The Silent Failure Atlas*** ([10.
 
 **The skeptic:** [the Atlas](/atlas) → [the benchmark](https://doi.org/10.5281/zenodo.21349581) → [run the demo](/install) — see the failures, see them measured, watch the refusal print on your machine.
 **The practitioner:** [the case](/case) → [Learn](/learn) → the manuals — a working warehouse end to end.
-**The researcher:** [the Theory, V3.1](https://doi.org/10.5281/zenodo.21760008) → [the Calculus](https://doi.org/10.5281/zenodo.21752373) → [the ripples](https://doi.org/10.5281/zenodo.21760508) — definitions, theorems, and the program.
+**The researcher:** [the Theory, V4.0](https://doi.org/10.5281/zenodo.21774032) → [the Calculus](https://doi.org/10.5281/zenodo.21752373) → [the ripples](https://doi.org/10.5281/zenodo.21760508) — definitions, theorems, and the program.
 **The agent-builder:** [Never Let Your Agent Touch the Database](/positions/never-let-your-agent-touch-the-database) → [Frame-QL: An Introduction](/learn/frameql-an-introduction) → the wire over MCP.
 
 **✦ New to the corpus? Ask your own AI to walk you through it.**
 
 ```
 datumwise publishes an open research corpus about governed analytical data. The root is "The Theory
-of Data" v3.1 (doi:10.5281/zenodo.21760008): an atom is a governed measure family, a column realizes
-one member of it, and "closure" asks whether a calculation produced a governed object at all. A proved
+of Data" v4.0 (doi:10.5281/zenodo.21774032): a measure is a governed family, a column realizes one
+member of it (a governed series), and "closure" asks whether a calculation produced a governed object
+at all. A proved
 kernel (doi:10.5281/zenodo.21752373) makes a fragment of the laws machine-checkable theorems. The open-
 source engine Columna (github.com/datumwise/columna) is the executable form: four answer moods — serve,
 disclose, clarify, refuse — on one wire. Explain this project to me, then help me pick a first paper
 to read based on what I do.
 ```
+
+---
+
+**Note, 2026-08-03.** The theory's vocabulary moved again, and this time the move retired a word. *The Theory of Data*, Version 4.0 ([10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032)) replaces *atom* with **measure** — the governed family — because the old word named smallestness while the object is a family with laws. A column realizes a **member**: a governed **series**. The map is unchanged; a family is constituted by its law, and so, it turns out, is a vocabulary.

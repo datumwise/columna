@@ -1,15 +1,16 @@
-# The Columna Thesis (v0.6)
+# The Columna Thesis (v0.7)
 
 <!-- v0.4 → v0.5 (2026-07-14, S4 grammar reframe): §II close reframed — "the algebra of the
 substance was never written. This is it." → concedes the fragments (summarizability, semi-additive
 handling) in one clause and sharpens the claim to the unification: "…never a grammar … This is that
 grammar." Priority claim no longer overclaims against Lenz & Shoshani 1997 et al. Filename kept
 (v0_4) to avoid an import churn; version tracked in this header. -->
-<!-- v0.5 → v0.6 (2026-08-02, ontology sync to Theory of Data v3.1): §I central sentence "the true
-atom of analytical meaning" → "the smallest carrier of analytical meaning" (the column-not-table
-claim keeps full force; only the noun moves). §I gains the two-tier paragraph: the measure is an
-atom (a governed family); each column realizes one member of it. §II gains "The algebra is the
-family law, made executable." Evidence-moved note appended at foot. Filename kept (v0_4). -->
+<!-- v0.5 → v0.6 (2026-08-02): ontology sync to Theory of Data v3.1. See git history for detail. -->
+<!-- v0.6 → v0.7 (2026-08-03, measure migration to Theory of Data v4.0, 10.5281/zenodo.21774032): the
+retired measure-noun is gone from the prose — the measure is the governed family; a column realizes a
+member, a governed series. §I central sentence demotes the column to physical carrier ("carries a
+measure"); the two-tier paragraph rewritten to the v4.0 canonical form; foot note replaced with the
+v4.0 evidence-moved note. Filename kept (v0_4). -->
 
 **A number owes you its assumptions.**
 
@@ -19,7 +20,7 @@ at the tool, not at the query language, but at what data *is*.
 ## I. Data is something about something else
 
 Every datum is a predication: a value said *of* something. The measure is what is said; the
-anchor — a set of coordinate dimensions — is what it is said of. A **column** is a measure over
+anchor — a set of coordinate dimensions — is what it is said of. A **column** carries a measure over
 its anchor: the smallest carrier of analytical meaning.
 
 And a table? A table is a container. Form, not substance. Its keys and layouts *hint* at
@@ -32,11 +33,10 @@ the column says, and what it is said of.
 
 **Tables are how data is stored. Columns are what data says.**
 
-The published theory sharpens the grain. The measure itself — `revenue` — is an **atom**: a
-governed family with laws. Each column realizes one **member** of it — the family at one grain,
-in one population. Transaction revenue and customer-month revenue are two members of one atom; no
-single column ever *is* the atom. The table never enters at all. (*The Theory of Data*, Version
-3.1 — [doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008).)
+The published theory sharpens the grain. The measure — `revenue` — is the governed family. A column
+realizes one **member** of it: a governed **series**, the family at one grain. Transaction revenue
+and customer-month revenue are two members of one measure. The table never enters at all. (*The
+Theory of Data*, Version 4.0 — [doi.org/10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032).)
 
 ## II. ColumnA: the algebra of substance
 
@@ -133,8 +133,8 @@ If a number has ever lied to you by omission, this movement is yours.
 
 ---
 
-**Note, 2026-08-02.** The theory moved, so the words moved. *The Theory of Data*, Version 3.1
-([doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)) sharpens the ontology
-this page was written under: the measure — `revenue` — is an **atom**, a governed family; a column
-realizes one **member** of it. The position is unchanged. Its central term got more precise, and we
-updated the page rather than pretend we always said it this way.
+**Note, 2026-08-03.** The theory's vocabulary moved again, and this time the move retired a word.
+*The Theory of Data*, Version 4.0 ([doi.org/10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032))
+replaces *atom* with **measure** — the governed family — because the old word named smallestness while
+the object is a family with laws. A column realizes a **member**: a governed **series**. The thesis is
+unchanged; a family is constituted by its law, and so, it turns out, is a vocabulary.

@@ -1,25 +1,45 @@
 ---
-// /learn/what-is-the-theory-of-data — the Theory of Data, the accessible introduction (v1.0), the
-// "theory rung" of the Learn ladder (what-is → introduction → the papers/Manual). Renders the
-// introduction from the corpus source; the piece's own header block carries its version + own DOI
-// (doi:10.5281/zenodo.21763395), and its references cite the canonical Version 3.1 manuscript
-// (doi:10.5281/zenodo.21760008). Prose-first by design — no math on the page.
+// /learn/what-is-the-theory-of-data — hosts the v1.1 source (measure migration, 2026-08-03), kept
+// BYTE-CONSISTENT with the Zenodo record: the markdown is byte-identical to the delivered/deposited
+// file. Title + subtitle come from the file's front-matter; the record's own DOI (21763395 — the
+// version chain covers v1.1) and the vocabulary-move note are page chrome rendered here, so nothing
+// is injected into the hosted markdown. Supersedes the v1 source swept out in this pass.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content } from '../../content/corpus/theory_of_data_an_introduction_v1.md';
+import { Content, frontmatter } from '../../content/corpus/theory_of_data_an_introduction_v1_1.md';
+const DOI = '10.5281/zenodo.21763395';
 ---
 <BaseLayout title="What is the Theory of Data? — datumwise"
-  description="The accessible introduction to the Theory of Data — particles, atoms and their members, frames, the Manifold, lawful transformation, and certification. The bridge to the canonical Version 3.1.">
+  description="The accessible introduction to the Theory of Data — datums, measures and their members (governed series), frames, the Manifold, lawful transformation, and certification. The bridge to the canonical Version 4.0.">
   <div class="page-head">
     <p class="kicker"><a href="/learn">Learn</a></p>
+    <h1 class="serif">{frontmatter.title}</h1>
+    <p class="lede">{frontmatter.subtitle}</p>
+    <p class="doi mono"><a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose">
     <Content />
   </article>
+
+  <p class="evidence-note">
+    <strong>Note, 2026-08-03.</strong> The theory's vocabulary moved again, and this time the move
+    retired a word. <em>The Theory of Data</em>, Version 4.0
+    (<a href="https://doi.org/10.5281/zenodo.21774032" rel="noopener" target="_blank">10.5281/zenodo.21774032</a>)
+    replaces <em>atom</em> with <strong>measure</strong> — the governed family — because the old word
+    named smallestness while the object is a family with laws. A column realizes a <strong>member</strong>:
+    a governed <strong>series</strong>. The account is unchanged; a family is constituted by its law,
+    and so, it turns out, is a vocabulary.
+  </p>
 </BaseLayout>
 
 <style>
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.5rem; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); }
+  .doi { font-size: 0.8rem; margin-top: 0.4rem; }
+  .doi a { color: var(--ink-faint); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
 </style>

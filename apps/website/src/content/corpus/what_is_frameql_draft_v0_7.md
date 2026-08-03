@@ -91,7 +91,7 @@ AT {region*cal.month}
 ```
 
 A margin and a per-order average, each written as *what it is* and named with `AS`
-(a composite expression has no single-atom identity to key on — the language asks you to name
+(a composite expression has no single canonical identity to key on — the language asks you to name
 what you compose) — no CTEs, no intermediate
 views, no re-stating the grain for each piece. The expression's components share the frame's
 anchors and the Manifold's laws travel through the arithmetic: if any piece can't stand

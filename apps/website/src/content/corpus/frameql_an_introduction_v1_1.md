@@ -1,14 +1,19 @@
-# Frame-QL: An Introduction
-
-*Query by Declaring the Result*
+---
+title: "Frame-QL: An Introduction"
+subtitle: "Query by Declaring the Result"
+author: "Huayin Wang"
+date: "2026-08-02"
+lang: en-US
+geometry: margin=0.82in
+fontsize: 11pt
+papersize: letter
+---
 
 **datumwise, an independent open-source research project**
 
-**Version 1.0**
+**Version 1.1**
 
-**DOI:** [doi.org/10.5281/zenodo.21763321](https://doi.org/10.5281/zenodo.21763321)
-
-**Keywords:** Frame-QL; analytical query language; Theory of Data; atom; atom member; frame; Manifold; governed analytics; analytical intent; AI agents; SQL; certification
+**Keywords:** Frame-QL; analytical query language; Theory of Data; measure; member; frame; Manifold; governed analytics; analytical intent; AI agents; SQL; certification
 
 ---
 
@@ -16,11 +21,11 @@
 
 Frame-QL is a language for declaring a governed analytical result. The requester names the analytical objects to be returned, declares the anchor at which their requested members should exist, and states the conditions that shape the result. The requester does not prescribe the relational operations or physical commands used to produce it.
 
-This design follows from the ontology of the Theory of Data. An **atom** is a stable governed measure family, such as revenue, inventory level, or order count. An **atom member** is one governed realization of that atom at a particular analytical location under a member contract. A **frame** is an assembly of co-anchored fields at one output anchor; in the fully governed case, every field is an atom member. A **Manifold** records the atoms, root members, family laws, populations, boundaries, evidence, lineage, and physical bindings required to adjudicate the class of member derivations it supports.
+This design follows from the ontology of the Theory of Data. A **measure** is a stable governed family, such as revenue, inventory level, or order count. A **member** is one governed realization of that measure at a particular analytical location under a member contract. A **frame** is an assembly of co-anchored fields at one output anchor; in the fully governed case, every field is a member. A **Manifold** records the measures, root members, family laws, populations, boundaries, evidence, lineage, and physical bindings required to adjudicate the class of member derivations it supports.
 
-Because that knowledge is governed outside the query, a requester can ask for the customer-month member of the revenue atom without writing the path that constructs it. The planner resolves and certifies the request; a trusted engine may then realize it through SQL, dataframe operations, a cache, an API, or another backend.
+Because that knowledge is governed outside the query, a requester can ask for the customer-month member of the revenue measure without writing the path that constructs it. The planner resolves and certifies the request; a trusted engine may then realize it through SQL, dataframe operations, a cache, an API, or another backend.
 
-This paper develops the governing idea of Frame-QL: the output frame is the query. It explains why rows, tables, joins, and GROUP BY are not primitives of the request interface; how atom identity differs from a physical column; how ambiguity becomes clarification rather than silent choice; and why Frame-QL gives AI agents a useful interpretive role without granting them authority over analytical law or database execution. The Frame-QL Manual remains authoritative for syntax and shipped behavior.
+This paper develops the governing idea of Frame-QL: the output frame is the query. It explains why rows, tables, joins, and GROUP BY are not primitives of the request interface; how measure identity differs from a physical column; how ambiguity becomes clarification rather than silent choice; and why Frame-QL gives AI agents a useful interpretive role without granting them authority over analytical law or database execution. The Frame-QL Manual remains authoritative for syntax and shipped behavior.
 
 ## About this introduction
 
@@ -48,7 +53,7 @@ AT {customer, cal.month}
 
 The surface is deliberately familiar. A SQL-literate reader can see a source, a selected measure, and an output location. But the statement is not a compressed relational program.
 
-`revenue` names a governed analytical identity. `AT {customer, cal.month}` declares where the requested result should live. The query asks for the customer-month member of the revenue atom and for the frame that contains it.
+`revenue` names a governed analytical identity. `AT {customer, cal.month}` declares where the requested result should live. The query asks for the customer-month member of the revenue measure and for the frame that contains it.
 
 It does not name a transaction table. It does not identify a customer key, choose a date column, write a join, specify a grouping procedure, or decide whether the result should be read from detail, a materialization, a cache, or an external service. It does not assume that the backend is relational.
 
@@ -58,15 +63,15 @@ This is the governing reversal of Frame-QL:
 
 > **The requester declares the result. The governed system owns the derivation.**
 
-The distinction is easiest to see by separating an atom from its members.
+The distinction is easiest to see by separating a measure from its members.
 
-# 2. The atom is named; the member is requested
+# 2. The measure is named; the member is requested
 
-An atom is a stable governed measure identity together with the family laws that determine its lawful members.
+A measure is a stable governed measure identity together with the family laws that determine its lawful members.
 
-Revenue is an atom. It is not identical to a particular column in an orders table, a particular SQL expression, or a particular stored grain. Its identity is intended to survive changes in physical representation.
+Revenue is a measure. It is not identical to a particular column in an orders table, a particular SQL expression, or a particular stored grain. Its identity is intended to survive changes in physical representation.
 
-An atom member is one governed realization of that atom at a particular anchor in a particular universe under a complete member contract. Conceptually, the revenue atom may have lawful members such as:
+A member is one governed realization of that measure at a particular anchor in a particular universe under a complete member contract. Conceptually, the revenue measure may have lawful members such as:
 
 ```text
 revenue at transaction
@@ -74,11 +79,11 @@ revenue at customer-month
 revenue at region-quarter
 ```
 
-When the revenue family admits the required movement, these are not unrelated columns that happen to share a label. They are members of one governed measure family.
+When the revenue family admits the required movement, these are not unrelated columns that happen to share a label. They are members of one governed family.
 
 A frame assembles fields at one output anchor; in the fully governed case, every field is a member. The query above returns customer and month as the frame's coordinates, together with the requested revenue member at that same anchor. A served frame may also carry explicitly labeled provisional fields; their status rides the result annotation (see Section 5.2).
 
-A physical column may realize one member. It is not the atom itself. The same member may be obtained from a normalized table, a wide analytical table, a materialized aggregate, a cached sufficient state, an event stream, or an API. Conversely, a physical column does not become a governed member merely because it contains plausible values. Atom membership depends on the member contract and the atom's family law, not on storage shape.
+A physical column may realize one member. It is not the measure itself. The same member may be obtained from a normalized table, a wide analytical table, a materialized aggregate, a cached sufficient state, an event stream, or an API. Conversely, a physical column does not become a governed member merely because it contains plausible values. Membership depends on the member contract and the measure's family law, not on storage shape.
 
 ## 2.1 An anchor is necessary, but not always sufficient
 
@@ -114,14 +119,14 @@ A language can ask only for the result when some other part of the system alread
 
 That role belongs to the Manifold.
 
-A Manifold is a versioned governed environment for analytical objects. It contains the declarations needed to identify those objects and adjudicate the class of transformations the system supports. For an atom such as revenue, the Manifold may record:
+A Manifold is a versioned governed environment for analytical objects. It contains the declarations needed to identify those objects and adjudicate the class of transformations the system supports. For a measure such as revenue, the Manifold may record:
 
-- the stable atom identity and its root member;
+- the stable measure identity and its root member;
 - value type, units, anchor, universe, eligibility, and observed support;
 - default and alternative operator subfamilies;
 - sufficient state required for exact composition;
-- movements that preserve the atom's identity;
-- movements that require a different atom or do not close;
+- movements that preserve the measure's identity;
+- movements that require a different measure or do not close;
 - relationship functionality, assignment, allocation, and conservation rules;
 - observation conditions, evidence, and lineage;
 - physical bindings through which members may be realized.
@@ -194,7 +199,7 @@ SELECT revenue, order_count
 AT {region, cal.month}
 ```
 
-A bare name resolves to an atom and requests a member at the query's output anchor when the applicable family and path are uniquely determined.
+A bare name resolves to a measure and requests a member at the query's output anchor when the applicable family and path are uniquely determined.
 
 A map expression can construct a different analytical quantity:
 
@@ -203,7 +208,7 @@ SELECT (revenue / order_count) AS average_order_value
 AT {region, cal.month}
 ```
 
-The expression is syntactically valid, and `AS average_order_value` gives the output field a stable name. The alias does not, by itself, mint or prove an atom. The result is a governed member of an `average_order_value` atom only if the Manifold and certification layer can establish a complete output contract and bind the expression to that identity. Otherwise the values may remain a provisional field whose status is explicit.
+The expression is syntactically valid, and `AS average_order_value` gives the output field a stable name. The alias does not, by itself, mint or prove a measure. The result is a governed member of an `average_order_value` measure only if the Manifold and certification layer can establish a complete output contract and bind the expression to that identity. Otherwise the values may remain a provisional field whose status is explicit.
 
 This distinction prevents a familiar name from doing more work than the declarations support.
 
@@ -235,11 +240,11 @@ Other clauses similarly describe the requested result: post-result conditions, o
 
 The brevity of the query does not mean the system performs little reasoning. It means the reasoning has been centralized.
 
-For the revenue request, the planner first resolves the name to a versioned atom in the selected Manifold. It identifies the root member, the relevant operator subfamily, the population, and the candidate path to the requested anchor.
+For the revenue request, the planner first resolves the name to a versioned measure in the selected Manifold. It identifies the root member, the relevant operator subfamily, the population, and the candidate path to the requested anchor.
 
 It then determines the member being requested. The output anchor, any input ascriptions, conditions, order, and participation rules must jointly identify one analytical result. When several lawful members remain possible, the declaration is incomplete.
 
-Next comes the identity judgment. A lawful reduction from transaction revenue to customer-month revenue may produce another member of the same revenue atom. A ratio of revenue to order count may produce a member of a different average-order-value atom if a complete new contract is established. A calculation may also produce values without closing as a governed member of any atom.
+Next comes the identity judgment. A lawful reduction from transaction revenue to customer-month revenue may produce another member of the same revenue measure. A ratio of revenue to order count may produce a member of a different average-order-value measure if a complete new contract is established. A calculation may also produce values without closing as a governed member of any measure.
 
 The certification layer checks the obligations represented by the supported calculus and the Manifold declarations. Depending on the request, those obligations may concern value types, anchors, universes, support, sufficient state, order, multiplicity, allocation, observation conditions, contract-inheritance boundaries, evidence, authorization, and faithfulness to the ask.
 
@@ -247,7 +252,7 @@ These obligations are not an aspirational checklist. A growing fragment of them 
 
 Only after that analytical work does the engine construct or select a physical plan. The plan may contain joins, grouping, windows, scans, cache reads, materialized aggregates, or backend-specific SQL. Those operations are real, but they are engine-owned consequences of the declaration rather than instructions authored by the requester.
 
-The result can therefore carry more than values. Its annotation can record the resolved Manifold, atom and member identities, anchors and universes, canonical query, evidence state, disclosures, and lineage relevant to the served frame.
+The result can therefore carry more than values. Its annotation can record the resolved Manifold, measure and member identities, anchors and universes, canonical query, evidence state, disclosures, and lineage relevant to the served frame.
 
 `EXPLAIN` makes the interpretation visible without executing the data request:
 
@@ -262,19 +267,19 @@ For a person, this exposes how the statement was resolved. For an agent, it crea
 
 # 7. The language does not silently choose another meaning
 
-The distinction among atom, member, and field gives Frame-QL a precise way to handle transformations.
+The distinction among measure, member, and field gives Frame-QL a precise way to handle transformations.
 
 ## 7.1 Member closure
 
-A lawful transformation may produce another member of the same atom:
+A lawful transformation may produce another member of the same measure:
 
 ```text
 transaction revenue -> customer-month revenue
 ```
 
-This is member closure. The output changes analytical location while preserving the revenue identity under the revenue atom's family law.
+This is member closure. The output changes analytical location while preserving the revenue identity under the revenue measure's family law.
 
-## 7.2 Atom synthesis
+## 7.2 Measure synthesis
 
 A transformation may create a different analytical identity:
 
@@ -282,11 +287,11 @@ A transformation may create a different analytical identity:
 revenue / order count -> average order value
 ```
 
-This is atom synthesis only when a complete output contract is established for the new atom and its member. The formula and output alias alone are not sufficient.
+This is measure synthesis only when a complete output contract is established for the new measure and its member. The formula and output alias alone are not sufficient.
 
 ## 7.3 Non-closure
 
-A transformation may produce computable values without producing a complete governed identity. Summing inventory levels through time, for example, does not remain within the inventory-level atom. It could become a different exposure or observation-summary atom under an explicit contract. Without that contract, the output is non-closing even if the arithmetic is executable.
+A transformation may produce computable values without producing a complete governed identity. Summing inventory levels through time, for example, does not remain within the inventory-level measure. It could become a different exposure or observation-summary measure under an explicit contract. Without that contract, the output is non-closing even if the arithmetic is executable.
 
 These three outcomes separate computation from governed identity. All may appear physically as numeric columns. Their analytical status is different.
 
@@ -300,7 +305,7 @@ One clarification prevents a misreading across the paper family: non-closure is 
 
 AI agents make this division of responsibility especially useful.
 
-A language model is well suited to interaction. It can converse in the user's vocabulary, search a governed model, identify candidate atoms, compare plausible readings, ask for missing domain judgment, propose a Frame-QL statement, and explain the resolved result.
+A language model is well suited to interaction. It can converse in the user's vocabulary, search a governed model, identify candidate measures, compare plausible readings, ask for missing domain judgment, propose a Frame-QL statement, and explain the resolved result.
 
 It does not need database credentials or authority to write executable SQL.
 
@@ -333,7 +338,7 @@ This is not merely post-generation SQL validation. In a guardrailed text-to-SQL 
 
 Operational controls remain necessary: access control, budgets, timeouts, auditing, and ordinary database security do not disappear. The narrower architectural gain is that model output is not the final authority over either analytical meaning or database behavior.
 
-Clarification also becomes productive rather than exceptional. When the planner reports that a mean lacks an input anchor, the agent can ask what units should be averaged. When a category passage requires assignment or allocation, it can explain the alternatives in domain language. When no requested atom exists, it can distinguish a vocabulary mismatch from a request to define a genuinely new analytical identity.
+Clarification also becomes productive rather than exceptional. When the planner reports that a mean lacks an input anchor, the agent can ask what units should be averaged. When a category passage requires assignment or allocation, it can explain the alternatives in domain language. When no requested measure exists, it can distinguish a vocabulary mismatch from a request to define a genuinely new analytical identity.
 
 The model remains an interpreter and searcher. The governed system remains the authority.
 
@@ -341,7 +346,7 @@ The model remains an interpreter and searcher. The governed system remains the a
 
 Once the requested output becomes the unit of declaration, several responsibilities move to more appropriate places.
 
-Analytical knowledge moves out of individual queries and into governed atom and member contracts. The relationship among measure, population, anchor, operator family, sufficient state, passage law, and evidence is declared once rather than reconstructed by every query author.
+Analytical knowledge moves out of individual queries and into governed measure and member contracts. The relationship among measure, population, anchor, operator family, sufficient state, passage law, and evidence is declared once rather than reconstructed by every query author.
 
 Plan ownership becomes explicit. The requester owns the analytical intention. The governed planner owns member derivation. The trusted engine owns physical realization.
 
@@ -349,7 +354,7 @@ Requests become more stable. A statement that names analytical identity can surv
 
 Results become more self-describing. A frame can carry its resolved member identities, anchors, universes, Manifold version, canonical declaration, evidence conditions, disclosures, and lineage together with its values.
 
-Failures become more precise. The system can distinguish an unknown name from an ambiguous member, a blocked same-atom derivation from a possible new atom, a cross-population expression from a lawful juxtaposition, and a computable field from a governed result.
+Failures become more precise. The system can distinguish an unknown name from an ambiguous member, a blocked same-measure derivation from a possible new measure, a cross-population expression from a lawful juxtaposition, and a computable field from a governed result.
 
 These are not incidental benefits of shorter syntax. They follow from changing what the query is allowed to mean.
 
@@ -359,15 +364,15 @@ Frame-QL is one executable language built against the Theory of Data. The Theory
 
 The current implementation supports a defined grammar, operator set, and outcome contract. Some theoretical distinctions remain outside the shipped surface or require further formal work. This introduction does not promote planned syntax to implemented behavior, and it does not claim that every analytical question can already be resolved.
 
-The Frame-QL Manual, Second Edition is authoritative on syntax, canonical form, operators, outcomes, and version-specific behavior. It is distributed with the public Columna repository, and every Frame-QL example in it is verified against the running parser rather than written from memory. The canonical Theory of Data is authoritative on atoms, members, frames, lawful transformation, and certification.
+The Frame-QL Manual, Second Edition is authoritative on syntax, canonical form, operators, outcomes, and version-specific behavior. It is distributed with the public Columna repository, and every Frame-QL example in it is verified against the running parser rather than written from memory. The canonical Theory of Data is authoritative on measures, members, frames, lawful transformation, and certification.
 
 # 10. Closing perspective
 
 Frame-QL begins from a simple consequence of governing data independently of storage.
 
-Revenue is not exhausted by one physical column at one grain. It is a governed atom whose lawful members may exist at transaction, customer-month, region-quarter, or other declared analytical locations. A frame assembles the fields requested at one output anchor.
+Revenue is not exhausted by one physical column at one grain. It is a governed measure whose lawful members may exist at transaction, customer-month, region-quarter, or other declared analytical locations. A frame assembles the fields requested at one output anchor.
 
-Once a Manifold records those atoms, root members, family laws, populations, boundaries, evidence, and bindings, the requester no longer needs to reproduce the production procedure. The requester names the atoms, declares the output anchor, and states the conditions. The governed system determines whether the members are identified, whether their derivations close within an atom, whether a different atom can be synthesized, and which physical plan may execute.
+Once a Manifold records those measures, root members, family laws, populations, boundaries, evidence, and bindings, the requester no longer needs to reproduce the production procedure. The requester names the measures, declares the output anchor, and states the conditions. The governed system determines whether the members are identified, whether their derivations close within a measure, whether a different measure can be synthesized, and which physical plan may execute.
 
 That is why Frame-QL contains no query-time joins and no `GROUP BY`. Their absence is not a denial of relational execution. It marks the abstraction boundary between analytical declaration and physical realization.
 
@@ -379,6 +384,6 @@ The frame is the query because the frame is the thing the requester wants.
 
 ## References
 
-Wang, Huayin. 2026. *The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification*. Version 3.1. datumwise. DOI: [https://doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)
+Wang, Huayin. 2026. *The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification*. Version 4.0. datumwise. DOI: [https://doi.org/10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032)
 
 Wang, Huayin. 2026. *The Frame-QL Manual*. Second Edition. datumwise. Documentation of columna-core 0.14.0, distributed with the public Columna repository. https://github.com/datumwise/columna

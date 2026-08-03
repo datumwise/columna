@@ -74,7 +74,7 @@ function init(root: HTMLElement) {
     if (!raw) return;
     const kind = classifyFoolInput(raw, DATA);
 
-    // a bare KNOWN measure name → its describe card (the Explorer's atom), not a served value
+    // a bare KNOWN measure name → its describe card (the Explorer's measure card), not a served value
     if (kind === 'measure') {
       foolResp.innerHTML = `<p class="pick-note">${esc(DATA.strings.foolIt?.describeIntro || 'Here’s what this measure is:')}</p>`;
       foolResp.append(renderObjectCard('measure', raw, DATA));

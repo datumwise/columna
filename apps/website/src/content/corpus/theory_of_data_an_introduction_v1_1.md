@@ -1,14 +1,19 @@
-# The Theory of Data: An Introduction
-
-*Analytical Meaning, Lawful Transformation, and Governed Results*
+---
+title: "The Theory of Data: An Introduction"
+subtitle: "Analytical Meaning, Lawful Transformation, and Governed Results"
+author: "Huayin Wang"
+date: "2026-08-02"
+lang: en-US
+geometry: margin=0.82in
+fontsize: 11pt
+papersize: letter
+---
 
 **datumwise, an independent open-source research project**
 
-**Version 1.0**
+**Version 1.1**
 
-**DOI:** [doi.org/10.5281/zenodo.21763395](https://doi.org/10.5281/zenodo.21763395)
-
-**Keywords:** Theory of Data; analytical identity; atom; atom member; frame; Manifold; lawful transformation; certification; Frame-QL; SQL; AI-assisted analytics
+**Keywords:** Theory of Data; analytical identity; measure; member; frame; Manifold; lawful transformation; certification; Frame-QL; SQL; AI-assisted analytics
 
 ---
 
@@ -16,11 +21,11 @@
 
 The Theory of Data begins from a distinction that analytical systems often leave implicit: producing values is not the same as establishing what governed analytical object those values represent.
 
-The Theory describes analytical data independently of its current physical storage. A **particle** is one typed value at one analytical location. An **atom member** is one governed realization of a measure at a particular anchor in a particular universe. An **atom** is the stable governed measure family whose laws determine which members share one analytical identity. A **frame** is an assembly of co-anchored fields, each carrying its own status; a fully governed frame is one whose fields are all members.
+The Theory describes analytical data independently of its current physical storage. A **datum** is one typed value at one analytical location. A **member** is one governed realization of a measure at a particular anchor in a particular universe. A **measure** is the stable governed family whose laws determine which members share one analytical identity. A **frame** is an assembly of co-anchored fields, each carrying its own status; a fully governed frame is one whose fields are all members.
 
-This ontology makes three transformation outcomes explicit. A calculation may derive another member of the same atom, synthesize a member of a different atom, or produce a useful field without establishing a complete governed identity. Transaction revenue reduced to customer-month revenue may remain within the revenue atom. Revenue divided by order count may synthesize average order value. Inventory levels summed through time may produce numbers without producing another inventory-level member.
+This ontology makes three transformation outcomes explicit. A calculation may derive another member of the same measure, synthesize a member of a different measure, or produce a useful field without establishing a complete governed identity. Transaction revenue reduced to customer-month revenue may remain within the revenue measure. Revenue divided by order count may synthesize average order value. Inventory levels summed through time may produce numbers without producing another inventory-level member.
 
-A **Manifold** records atoms, root members, universes, anchors, family laws, observation rules, evidence, lineage, and physical bindings. It also records the conditions under which supported transformations are admitted. A requester can therefore declare a desired frame while a planner derives candidate members, a trusted kernel certifies the obligations it supports, and an execution engine realizes the admitted plan through SQL or another backend.
+A **Manifold** records measures, root members, universes, anchors, family laws, observation rules, evidence, lineage, and physical bindings. It also records the conditions under which supported transformations are admitted. A requester can therefore declare a desired frame while a planner derives candidate members, a trusted kernel certifies the obligations it supports, and an execution engine realizes the admitted plan through SQL or another backend.
 
 The central claim is not that every business fact can be formalized or that every analytical question can be answered automatically. It is narrower and more operational: the governance information required to identify analytical objects and adjudicate a supported class of transformations can be represented systematically, checked where the calculus is defined, and carried with the result.
 
@@ -38,9 +43,9 @@ The paper uses several familiar expressions as teaching bridges:
 
 | Familiar expression | Formal expression | Important qualification |
 |---|---|---|
-| value at a key | particle | the key is a complete typed analytical point |
-| governed column at one grain | atom member | one realization, not the whole measure identity |
-| measure | atom | stable governed family of lawful members |
+| value at a key | datum | the key is a complete typed analytical point |
+| column at one grain | member | the column realizes the member — one realization, not the whole measure identity |
+| measure | measure | stable governed family of lawful members |
 | grain or analytical location | anchor | typed coordinate structure, possibly with logical order |
 | population | universe | governed population together with an existence law |
 | requested result table | frame | coherent assembly of co-anchored fields |
@@ -79,47 +84,47 @@ The Theory therefore does not begin with `ROW`, `TABLE`, `SCHEMA`, or `JOIN` as 
 
 The Theory begins with values at analytical locations and builds upward.
 
-## 2.1 Particle
+## 2.1 Datum
 
-A **particle** is one typed value at one typed analytical point.
+A **datum** is one typed value at one typed analytical point.
 
 ```text
 (customer = C17, month = 2026-07) -> USD 420
 ```
 
-The particle is not merely the number `420`. Its analytical content includes the nominal value type and the point at which the value is defined. A database key may implement that point, but a particular primary-key layout does not define the analytical location.
+The datum is not merely the number `420`. Its analytical content includes the nominal value type and the point at which the value is defined. A database key may implement that point, but a particular primary-key layout does not define the analytical location.
 
-## 2.2 Atom member
+## 2.2 Member
 
-An **atom member** is one governed anchored realization of a measure family.
+A **member** is one governed anchored realization of a measure family.
 
-Customer-month revenue is one member. Transaction revenue is another. A member has more than values. Its contract includes an atom identity, an output anchor, a universe, participation and coverage conditions, observation behavior, sufficient state, boundaries, evidence, and lineage. Ordered or approximate members carry the corresponding additional contracts.
+Customer-month revenue is one member. Transaction revenue is another. A member has more than values. Its contract includes a measure identity, an output anchor, a universe, participation and coverage conditions, observation behavior, sufficient state, boundaries, evidence, and lineage. Ordered or approximate members carry the corresponding additional contracts.
 
-A physical column may realize one atom member. It is not the atom itself, and it is not automatically a governed member merely because it has a stable name. A column can mix populations, locations, or observation states; its physical type may be too weak; or the system may not know which transformations preserve its identity.
+A physical column may realize one member. It is not the measure itself, and it is not automatically a governed member merely because it has a stable name. A column can mix populations, locations, or observation states; its physical type may be too weak; or the system may not know which transformations preserve its identity.
 
-## 2.3 Atom
+## 2.3 Measure
 
-An **atom** is a stable governed measure family.
+A **measure** is a stable governed family.
 
-`revenue` is an atom. Its members may include transaction revenue, customer-month revenue, store-day revenue, and region-quarter revenue.
+`revenue` is a measure. Its members may include transaction revenue, customer-month revenue, store-day revenue, and region-quarter revenue.
 
 Those members share one analytical identity only when the family law admits the relevant derivations and the required value, population, support, multiplicity, boundary, and evidence conditions are satisfied.
 
-The atom therefore owns more than a metric label. It owns the laws that determine which anchored realizations remain members of the same measure family.
+The measure therefore owns more than a metric label. It owns the laws that determine which anchored realizations remain members of the same measure family.
 
-> **The atom is not one column at one grain. A column may realize one member of the atom.**
+> **The measure is not one column at one grain. A column may realize one member of the measure.**
 
 ## 2.4 Frame
 
 A **frame** is a coherent assembly of fields at one declared output anchor.
 
-A frame at `{customer, month}` might contain customer-month revenue, customer-month order count, and customer-month average order value. The fields are co-anchored, but they need not belong to the same atom or share the same transformation family.
+A frame at `{customer, month}` might contain customer-month revenue, customer-month order count, and customer-month average order value. The fields are co-anchored, but they need not belong to the same measure or share the same transformation family.
 
 A physical table can represent such a frame. It can also represent an incoherent mixture of values that merely happen to occupy adjacent columns. Co-location is a presentation and execution fact. It does not establish composability.
 
-# 3. One atom can have many members
+# 3. One measure can have many members
 
-The atom-member distinction explains how a measure can remain stable while its analytical location changes.
+The measure-member distinction explains how a measure can remain stable while its analytical location changes.
 
 Consider transaction revenue:
 
@@ -133,9 +138,9 @@ Suppose each transaction belongs to one customer and one calendar month, the rel
 revenue at {customer, month}
 ```
 
-The output is not a new measure merely because its values now live at a different anchor. It is another member of the revenue atom.
+The output is not a new measure merely because its values now live at a different anchor. It is another member of the revenue measure.
 
-The transformation changed the member while preserving the atom. This is **member closure**.
+The transformation changed the member while preserving the measure. This is **member closure**.
 
 The same idea applies to non-additive families. A daily inventory-level member may yield a month-end inventory-level member through a `last` subfamily when the logical order, participation rule, support, and boundary conditions are satisfied. The member changes; the measure family remains inventory level.
 
@@ -155,7 +160,7 @@ inventory_level at {store, month}
 
 The intended monthly member could be first, last, maximum, average observed level, or another governed interpretation. The output anchor identifies where the values should exist. It does not by itself identify which family law produces them.
 
-A fully resolved member may require the atom, operator subfamily, output anchor, universe, participation or coverage policy, logical order, and approximation contract. A system may omit a field from the surface request only when the Manifold resolves it uniquely and records whether the field was supplied by the requester or selected by a declared default.
+A fully resolved member may require the measure, operator subfamily, output anchor, universe, participation or coverage policy, logical order, and approximation contract. A system may omit a field from the surface request only when the Manifold resolves it uniquely and records whether the field was supplied by the requester or selected by a declared default.
 
 This is not verbosity for its own sake. A short request is precise when the omitted information is recoverable without an unrecorded choice.
 
@@ -167,7 +172,7 @@ Revenue might move from day to quarter directly, or from day to month and then f
 
 The Theory therefore separates **member identity** from **certificate history**.
 
-The member's identity is determined by the stable analytical facts that define the requested realization: the atom, admitted family, output anchor, universe, participation and coverage policy with its referent, and any required order or approximation contract. The input anchor, physical route, evidence chain, and lineage describe how a particular certificate reached that member. They do not multiply the member merely because the path differs.
+The member's identity is determined by the stable analytical facts that define the requested realization: the measure, admitted family, output anchor, universe, participation and coverage policy with its referent, and any required order or approximation contract. The input anchor, physical route, evidence chain, and lineage describe how a particular certificate reached that member. They do not multiply the member merely because the path differs.
 
 This distinction matters operationally. A direct derivation and a staged derivation may identify one member while carrying different lineage or different evidence strength. The serving system may prefer the stronger certificate without pretending that it discovered a different measure.
 
@@ -183,9 +188,9 @@ The principle is compact:
 
 Analytical systems often treat every successful expression as another reusable column. The Theory separates evaluation from analytical identity.
 
-## 4.1 Same-atom member closure
+## 4.1 Same-measure member closure
 
-A lawful transformation may produce another member of the same atom:
+A lawful transformation may produce another member of the same measure:
 
 ```text
 transaction revenue
@@ -196,7 +201,7 @@ The system must establish that the revenue identity survives the movement. Numer
 
 When they do, the result may re-enter later governed transformations as revenue.
 
-## 4.2 New-atom synthesis
+## 4.2 New-measure synthesis
 
 A transformation may establish a different analytical identity:
 
@@ -205,9 +210,9 @@ revenue / order_count
     -> average_order_value
 ```
 
-Average order value is not a member of the revenue atom or the order-count atom. It belongs to another atom.
+Average order value is not a member of the revenue measure or the order-count measure. It belongs to another measure.
 
-Creating it requires more than naming an expression. The system needs a complete output contract: value type, anchor, universe, denominator-zero policy, participation and support behavior, sufficient state for later composition, boundaries, evidence, and lineage. An output alias may name the field; it does not create or prove the atom.
+Creating it requires more than naming an expression. The system needs a complete output contract: value type, anchor, universe, denominator-zero policy, participation and support behavior, sufficient state for later composition, boundaries, evidence, and lineage. An output alias may name the field; it does not create or prove the measure.
 
 The same pattern applies to transformations such as:
 
@@ -216,11 +221,11 @@ revenue - cost -> profit
 inventory_level * duration -> inventory_exposure
 ```
 
-They may synthesize new atoms when complete contracts and admitted synthesis laws exist.
+They may synthesize new measures when complete contracts and admitted synthesis laws exist.
 
 ## 4.3 Non-closure
 
-A calculation may be executable without producing a governed member of either an existing atom or a new one.
+A calculation may be executable without producing a governed member of either an existing measure or a new one.
 
 The familiar example is inventory summed through time:
 
@@ -240,7 +245,7 @@ A displayed value may contain less information than its family requires for exac
 
 A mean is one scalar. Exact recombination generally requires at least `(sum, count)`. Averaging subgroup means does not reconstruct the overall mean unless the required weighting state is preserved.
 
-This is not merely advice about avoiding "mean of means." It is part of the atom's law. The law states which state is sufficient, how it combines, when finalization is valid, and whether a finalized display value remains fertile — retains the state its family requires — for later transformation.
+This is not merely advice about avoiding "mean of means." It is part of the measure's law. The law states which state is sufficient, how it combines, when finalization is valid, and whether a finalized display value remains fertile — retains the state its family requires — for later transformation.
 
 The same distinction appears in distinct counts, rates, quantiles, sketches, coverage-aware reductions, and ordered selections. The result's right to continue through the system depends on the state and contract it carries, not only on the scalar displayed to a user.
 
@@ -254,7 +259,7 @@ A **Manifold** provides that governed environment.
 
 For the supported analytical domain, it can record:
 
-- stable atom identities and vocabulary;
+- stable measure identities and vocabulary;
 - root member contracts and originated physical bindings;
 - value types, units, and typed operations;
 - universes, eligibility, and observed support;
@@ -265,7 +270,7 @@ For the supported analytical domain, it can record:
 - capability-resolved inheritance boundaries;
 - evidence, lineage, and versioned physical realizations.
 
-The Manifold is not merely a metric name attached to a SQL expression. A SQL expression states how values can be constructed under one physical arrangement. An atom declaration states what analytical identity the values belong to, which members may be derived, what conditions preserve that identity, and which transformations establish another identity.
+The Manifold is not merely a metric name attached to a SQL expression. A SQL expression states how values can be constructed under one physical arrangement. A measure declaration states what analytical identity the values belong to, which members may be derived, what conditions preserve that identity, and which transformations establish another identity.
 
 The SQL may change while the member remains stable. Conversely, identical SQL text may support different analytical claims under different populations, observation rules, or family contracts.
 
@@ -293,20 +298,20 @@ This makes governance executable without pretending that judgment or uncertainty
 
 # 6. Certification connects the broad theory to the proved kernel
 
-The Theory is broader than the current formal calculus. That breadth creates a responsibility: the atom-family layer may add interpretation, but it may not override the rules proved for a supported fragment.
+The Theory is broader than the current formal calculus. That breadth creates a responsibility: the family layer may add interpretation, but it may not override the rules proved for a supported fragment.
 
-Where a transformation is representable in the contract calculus, the broad same-atom transformer must factor through fragment certification. If the fragment refuses the local transformation because a boundary is spent, coverage is unsupported, eligible totality fails, weights are inexact, or another stated side condition is not met, the atom-family law cannot license the same movement by assertion.
+Where a transformation is representable in the contract calculus, the broad same-measure transformer must factor through fragment certification. If the fragment refuses the local transformation because a boundary is spent, coverage is unsupported, eligible totality fails, weights are inexact, or another stated side condition is not met, the family law cannot license the same movement by assertion.
 
 This is **projection coherence**.
 
-The broad member contract contains more than the local fragment contract. It may carry atom identity, observation-process declarations, evidence, and lineage that the fragment suppresses. But the extension is non-interfering: it may enrich the certified result; it may not alter the local components the fragment has already adjudicated.
+The broad member contract contains more than the local fragment contract. It may carry measure identity, observation-process declarations, evidence, and lineage that the fragment suppresses. But the extension is non-interfering: it may enrich the certified result; it may not alter the local components the fragment has already adjudicated.
 
 The asymmetry is deliberate:
 
 - the kernel may certify a local value-and-contract transformation that the family declines to classify as a member;
 - the family may not certify a governed member whose local projection the kernel refuses.
 
-The first case is a locally certified but family-unclassified output. It may be useful, but it has not closed as a member of the atom. The second case would allow the broad ontology to bypass its own proved safety layer and is therefore disallowed.
+The first case is a locally certified but family-unclassified output. It may be useful, but it has not closed as a member of the measure. The second case would allow the broad ontology to bypass its own proved safety layer and is therefore disallowed.
 
 Capability-resolved boundaries support the same rule. A boundary attaches to the underlying analytical capability, not merely to one operator spelling. Renaming `sum`, wrapping it in a subfamily, or registering an alias cannot make a blocked movement lawful. Member-level boundaries may strengthen the family floor; they may not weaken it except through a separately registered transformer that produces a new member under a new contract.
 
@@ -314,7 +319,7 @@ The claim-status architecture keeps this account honest. Some statements in the 
 
 # 7. Querying becomes declaration of a frame
 
-Once atoms and their family laws are represented independently of storage, the query interface can change.
+Once measures and their family laws are represented independently of storage, the query interface can change.
 
 Instead of telling the system how to manipulate rows, the requester can declare which members should appear in the output frame.
 
@@ -346,7 +351,7 @@ Omission is safe only when the omitted information can be resolved uniquely or t
 
 The same boundary prevents a requester or planner from overriding analytical law with a plausible procedure.
 
-A surface request cannot silently choose an undeclared many-to-many interpretation, replace one universe with another, select a physical first when a logical first is required, weaken a capability boundary through an alias, or turn a provisional field into a governed atom member by assigning an output name.
+A surface request cannot silently choose an undeclared many-to-many interpretation, replace one universe with another, select a physical first when a logical first is required, weaken a capability boundary through an alias, or turn a provisional field into a governed member by assigning an output name.
 
 The user declares the desired analytical object. The governed system owns the derivation, certification, physical binding, and execution authority.
 
@@ -363,7 +368,7 @@ The division of responsibility is:
 ```text
 person states an analytical need
     -> AI proposes a resolved frame request
-    -> the Manifold identifies atoms and candidate members
+    -> the Manifold identifies measures and candidate members
     -> the trusted kernel certifies supported obligations
     -> the engine binds sources and executes the admitted plan
     -> the result returns with identity, conditions, evidence, and lineage
@@ -385,7 +390,7 @@ The broad Theory is larger than those proofs. Projection coherence states how th
 
 Several limits remain important.
 
-The current atom model begins from a single root member. That is a genuine scope restriction. An enterprise measure such as revenue may originate from billing, point-of-sale, and partner systems. Reconciling several roots into one governed family requires additional identity, equivalence, and evidence rules.
+The current measure model begins from a single root member. That is a genuine scope restriction. An enterprise measure such as revenue may originate from billing, point-of-sale, and partner systems. Reconciling several roots into one governed family requires additional identity, equivalence, and evidence rules.
 
 The proved population fragment is strongest for image-generated universes. Independent spine universes - expected store-days, registered customers, contractual reporting periods - require the next population extension. Richer observation-process transport, non-thin hierarchy structures, partial ordered reducers, approximation composition, and a complete evidence calculus also remain open.
 
@@ -401,9 +406,9 @@ The ordinary starting point is the container. Data is presented as rows and colu
 
 The Theory begins with analytical identity.
 
-A typed value at an analytical point is a particle. A governed anchored realization is an atom member. A stable family of lawful members is an atom. A coherent requested assembly is a frame.
+A typed value at an analytical point is a datum. A governed anchored realization is a member. A stable family of lawful members is a measure. A coherent requested assembly is a frame.
 
-Transformations are judged not only by whether an engine can execute them, but by their identity outcome. A transformation may preserve an atom by deriving another member, establish a different atom through synthesis, or produce a field that remains provisional or terminal.
+Transformations are judged not only by whether an engine can execute them, but by their identity outcome. A transformation may preserve a measure by deriving another member, establish a different measure through synthesis, or produce a field that remains provisional or terminal.
 
 Different derivation paths do not automatically create different members. When their canonical contracts agree and the required continuation state is preserved, they are certificates for one analytical object. Physical materializations attach to that object when their contracts agree; they do not redefine it.
 
@@ -415,7 +420,7 @@ This is not a proposal to discard databases, SQL, statistics, dimensional models
 
 The core vision is compact:
 
-> **Separate analytical identity from physical storage. Represent measures as governed atom families. Treat their anchored realizations as members. Request coherent frames. Derive and certify the process behind the boundary.**
+> **Separate analytical identity from physical storage. Represent measures as governed measure families. Treat their anchored realizations as members. Request coherent frames. Derive and certify the process behind the boundary.**
 
 ---
 
@@ -423,27 +428,28 @@ The core vision is compact:
 
 | Term | Meaning in the Theory |
 |---|---|
-| **Particle** | One typed value at one typed analytical point |
-| **Atom member** | One governed anchored realization of a measure family |
-| **Root member** | The originated member from which same-atom derivations begin in the current model |
-| **Atom** | Stable governed measure family and the laws of its members |
+| **Datum** | One typed value at one typed analytical point |
+| **Series** | A homogeneous typed binding of datums over one anchor; the shape, prior to governance |
+| **Member** | One governed anchored realization of a measure family |
+| **Root member** | The originated member from which same-measure derivations begin in the current model |
+| **Measure** | Stable governed family and the laws of its members |
 | **Anchor** | Typed analytical coordinate structure at which a member exists |
 | **Universe** | Governed population together with its existence law |
 | **Operator subfamily** | A named family of admitted operations, state, movement, boundaries, and output rules |
 | **Canonical member identity** | Path-independent analytical identity used to determine whether derivations denote the same member |
 | **Certificate** | Evidence, lineage, resolved defaults, and adjudicated obligations supporting one realization or derivation |
-| **Member closure** | Lawful derivation of another member of the same atom |
-| **Atom synthesis** | Establishment of a member of a different atom under a complete new contract |
-| **Non-closure** | Production of values without complete same-atom closure or new-atom synthesis |
+| **Member closure** | Lawful derivation of another member of the same measure |
+| **Measure synthesis** | Establishment of a member of a different measure under a complete new contract |
+| **Non-closure** | Production of values without complete same-measure closure or new-measure synthesis |
 | **Frame** | Coherent assembly of fields at one declared output anchor |
-| **Manifold** | Versioned governed environment containing atoms, laws, evidence, and physical bindings |
+| **Manifold** | Versioned governed environment containing measures, laws, evidence, and physical bindings |
 | **Projection coherence** | Requirement that the broad family layer cannot admit a transformation rejected by an applicable proved fragment |
 
 ---
 
 ## References
 
-Wang, Huayin. 2026. *The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification*. Version 3.1. datumwise. DOI: [https://doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)
+Wang, Huayin. 2026. *The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification*. Version 4.0. datumwise. DOI: [https://doi.org/10.5281/zenodo.21774032](https://doi.org/10.5281/zenodo.21774032)
 
 Wang, Huayin. 2026. *A Contract Calculus for Governed Analytical Transformation: Totality, Partiality, Population, Expansion, and Fan-Out*. Version 1.0. Zenodo. DOI: 10.5281/zenodo.21752373.
 

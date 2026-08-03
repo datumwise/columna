@@ -1,21 +1,35 @@
 ---
-// /learn/frameql-an-introduction — Frame-QL: An Introduction (v1.0), the middle rung of the FrameQL
-// ladder: /what-is-frameql (5 min) → this introduction (25 min) → the Manual (/docs/frameql, the
-// reference). Renders the introduction from the corpus source; the piece's own header carries its
-// version + own DOI (doi:10.5281/zenodo.21763321). Prose-first by design — no math on the page.
-// The ```frameql code fences fall back to plaintext under the site's Shiki (no highlighter error).
+// /learn/frameql-an-introduction — hosts the v1.1 source (measure migration, 2026-08-03), byte-
+// consistent with the Zenodo record. Title/subtitle from front-matter; the record's own DOI (21763321,
+// version chain covers v1.1) and the vocabulary-move note are page chrome. Middle rung of the FrameQL
+// ladder: /what-is-frameql (5 min) → this introduction (25 min) → the Manual (/docs/frameql). The
+// ```frameql fences fall back to plaintext under the site's Shiki (no highlighter error).
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content } from '../../content/corpus/frameql_an_introduction_v1.md';
+import { Content, frontmatter } from '../../content/corpus/frameql_an_introduction_v1_1.md';
+const DOI = '10.5281/zenodo.21763321';
 ---
 <BaseLayout title="Frame-QL: An Introduction — datumwise"
   description="The introduction to Frame-QL — the output frame is the query. Why rows, tables, joins, and GROUP BY are not primitives of the request interface, and where AI belongs at the intent boundary.">
   <div class="page-head">
     <p class="kicker"><a href="/learn">Learn</a></p>
+    <h1 class="serif">{frontmatter.title}</h1>
+    <p class="lede">{frontmatter.subtitle}</p>
+    <p class="doi mono"><a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose">
     <Content />
   </article>
+
+  <p class="evidence-note">
+    <strong>Note, 2026-08-03.</strong> The theory's vocabulary moved again, and this time the move
+    retired a word. <em>The Theory of Data</em>, Version 4.0
+    (<a href="https://doi.org/10.5281/zenodo.21774032" rel="noopener" target="_blank">10.5281/zenodo.21774032</a>)
+    replaces <em>atom</em> with <strong>measure</strong> — the governed family — because the old word
+    named smallestness while the object is a family with laws. A column realizes a <strong>member</strong>:
+    a governed <strong>series</strong>. The account is unchanged; a family is constituted by its law,
+    and so, it turns out, is a vocabulary.
+  </p>
 
   <p class="engage wayfinding">
     Lighter first: <a href="/what-is-frameql">What is FrameQL — and why?</a> ·
@@ -25,8 +39,14 @@ import { Content } from '../../content/corpus/frameql_an_introduction_v1.md';
 
 <style>
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.5rem; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }
-  .engage { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
-    border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--ink-soft); }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); }
+  .doi { font-size: 0.8rem; margin-top: 0.4rem; }
+  .doi a { color: var(--ink-faint); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+  .engage { width: min(100% - 3rem, var(--measure)); margin: 1.5rem auto 0;
+    font-size: 0.92rem; color: var(--ink-soft); }
 </style>
