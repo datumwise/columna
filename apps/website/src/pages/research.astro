@@ -1,0 +1,22 @@
+---
+// /research — the research corpus (corpus map v0.2). Promoted to a top-level nav slot in the 2026-08-03
+// reorg; supersedes the v0.1 that lived at /how-these-documents-relate (which now 301s here). Body is
+// the corpus-map v0.2 text, rendered from the corpus source; every claim is one click from its DOI.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/research_corpus_map_v0_2.md';
+---
+<BaseLayout title="The research corpus — datumwise"
+  description="How the datumwise documents relate — the research corpus, mapped: the theory, the proved kernel, the introductions, the positions, the ripples, and the engine, every claim one click from its DOI.">
+  <div class="page-head">
+    <p class="kicker">Research</p>
+  </div>
+
+  <article class="prose research">
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker { color: var(--ink-faint); }
+</style>

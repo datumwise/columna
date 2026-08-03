@@ -53,6 +53,14 @@ const positions = [
     <p class="lede">{FRAMING}</p>
   </div>
 
+  <section class="doctrine">
+    <h2>The doctrine</h2>
+    <p class="doctrine-framing">The stances below rest on a doctrine. It has four short statements.</p>
+    <p class="doctrine-links">
+      <a href="/thesis">The Thesis</a> · <a href="/why">Why</a> · <a href="/ladder">The Ladder</a> · <a href="/the-argument">The Argument</a>
+    </p>
+  </section>
+
   <ul class="positions-list">
     {positions.map((p) => (
       <li>
@@ -68,6 +76,16 @@ const positions = [
   .page-head { width: min(100% - 3rem, 46rem); margin: 0 auto; }
   .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.8rem; }
   .lede { font-size: 1.05rem; color: var(--ink-soft); max-width: 38rem; }
+
+  .doctrine { width: min(100% - 3rem, 46rem); margin: 2.4rem auto 0;
+    padding-top: 1.4rem; border-top: 1px solid var(--rule); }
+  .doctrine h2 { font-family: var(--font-sans); font-size: 0.95rem; font-weight: 600;
+    letter-spacing: 0.02em; margin: 0 0 0.4rem; color: var(--ink); }
+  .doctrine-framing { margin: 0; font-size: 0.95rem; color: var(--ink-soft); }
+  .doctrine-links { margin: 0.5rem 0 0; font-size: 0.95rem; }
+  .doctrine-links a { color: var(--ink); text-decoration: underline;
+    text-decoration-color: var(--rule-strong); }
+  .doctrine-links a:hover { text-decoration-color: var(--ink-faint); }
 
   .positions-list {
     width: min(100% - 3rem, 46rem); margin: 2.6rem auto 0;
