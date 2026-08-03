@@ -1,6 +1,6 @@
 # How these documents relate
 
-**datumwise · draft v0.1 — a map of the corpus**
+**datumwise · draft v0.1.1 — ontology sync, 2026-08-02 — a map of the corpus**
 
 This project publishes several documents, and they are not interchangeable. Each does one job,
 holds itself to one standard of evidence, and deliberately refuses to do the jobs of the others.
@@ -77,8 +77,9 @@ in four minutes, disagree with by paragraph, and sign. It begins where the whole
 Doctrine that cannot run is opinion. **Columna** is the open reference implementation of the
 grammar layer (Apache-2.0, [github.com/datumwise/columna](https://github.com/datumwise/columna)).
 The name is the thesis — *Columna* stands for **Column Algebra**, because the column, not the
-table, is the atom of analytical meaning: a measure over its anchor, something said *of*
-something. What the engine serves is the **Manifold** — the dataset as a column set, stripped of
+table, is where analytical meaning lives: a measure over its anchor, something said *of*
+something. (The theory's finer grain: the measure is an **atom** — a governed family — and each
+column realizes one **member** of it.) What the engine serves is the **Manifold** — the dataset as a column set, stripped of
 its materialized form. This is why we believe the Manifold is the construct an AI agent should
 meet: all of the essence of the dataset, none of the distraction of the arbitrary forms it
 happens to be stored in. Over it runs Frame-QL and the four moods — *serve, disclose, clarify,
@@ -100,11 +101,20 @@ grades the exam; the exam never defines the map.** The same standard applies to 
 
 ## The root: The Theory of Data
 
-The foundations note — The Theory of Data (10.5281/zenodo.21696104) — states what everything above
-assumes: what data is, where meaning attaches, and what makes a transformation lawful; its technical
-companion (10.5281/zenodo.21707018) carries the full construction. The Atlas catalogs the failures;
-the Two Anchors and Multi-Universe papers state two of the laws; the benchmark measures the
-consequences; the Open Planner extends the laws to plans. This is where the chain is anchored.
+*The Theory of Data* (Version 3.1, [10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008))
+states what everything above assumes: what data is, where meaning attaches, and what makes a
+transformation lawful. Its vocabulary is now the corpus's vocabulary — an **atom** is a governed
+measure family; an **atom member** is one anchored realization; closure asks which of the two, if
+either, a calculation has produced. Behind it stands the proved kernel: *A Contract Calculus for
+Governed Analytical Transformation* ([10.5281/zenodo.21752373](https://doi.org/10.5281/zenodo.21752373)),
+with its technical supplement collection ([10.5281/zenodo.21752681](https://doi.org/10.5281/zenodo.21752681))
+— a growing fragment of the framework's laws as machine-checkable theorems. Within the fragments,
+"deterministic, plausible, and not the thing it claims to be" is a verdict, not a review comment. The
+original foundations note ([10.5281/zenodo.21696104](https://doi.org/10.5281/zenodo.21696104)) remains
+as the origin record; Version 3.1 is the canonical revision of the technical construction. The Atlas
+catalogs the failures; the Two Anchors and Multi-Universe papers state two of the laws; the benchmark
+measures the consequences; the Open Planner extends the laws to plans. This is where the chain is
+anchored — and now, in part, proved.
 
 ## The entry point
 
@@ -132,6 +142,12 @@ that concludes, an instrument that proves, and a benchmark graded by the map rat
 grading it — is the project's own thesis applied to itself. Keep the layers apart, hold each to
 its own standard, and let every belief sit one click from its verification. Nothing here asks to
 be believed. All of it asks to be checked.
+
+**Note, 2026-08-02.** The theory moved, so the words moved. *The Theory of Data*, Version 3.1
+([doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)) sharpens the ontology
+this page was written under: the measure — `revenue` — is an **atom**, a governed family; a column
+realizes one **member** of it. The position is unchanged. Its central term got more precise, and we
+updated the page rather than pretend we always said it this way.
 
 ---
 

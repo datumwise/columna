@@ -1,10 +1,15 @@
-# The Columna Thesis (v0.5)
+# The Columna Thesis (v0.6)
 
 <!-- v0.4 → v0.5 (2026-07-14, S4 grammar reframe): §II close reframed — "the algebra of the
 substance was never written. This is it." → concedes the fragments (summarizability, semi-additive
 handling) in one clause and sharpens the claim to the unification: "…never a grammar … This is that
 grammar." Priority claim no longer overclaims against Lenz & Shoshani 1997 et al. Filename kept
 (v0_4) to avoid an import churn; version tracked in this header. -->
+<!-- v0.5 → v0.6 (2026-08-02, ontology sync to Theory of Data v3.1): §I central sentence "the true
+atom of analytical meaning" → "the smallest carrier of analytical meaning" (the column-not-table
+claim keeps full force; only the noun moves). §I gains the two-tier paragraph: the measure is an
+atom (a governed family); each column realizes one member of it. §II gains "The algebra is the
+family law, made executable." Evidence-moved note appended at foot. Filename kept (v0_4). -->
 
 **A number owes you its assumptions.**
 
@@ -15,7 +20,7 @@ at the tool, not at the query language, but at what data *is*.
 
 Every datum is a predication: a value said *of* something. The measure is what is said; the
 anchor — a set of coordinate dimensions — is what it is said of. A **column** is a measure over
-its anchor: the true atom of analytical meaning.
+its anchor: the smallest carrier of analytical meaning.
 
 And a table? A table is a container. Form, not substance. Its keys and layouts *hint* at
 meaning — but hints are not declarations, and nothing checks them. (Others have circled this
@@ -27,9 +32,16 @@ the column says, and what it is said of.
 
 **Tables are how data is stored. Columns are what data says.**
 
+The published theory sharpens the grain. The measure itself — `revenue` — is an **atom**: a
+governed family with laws. Each column realizes one **member** of it — the family at one grain,
+in one population. Transaction revenue and customer-month revenue are two members of one atom; no
+single column ever *is* the atom. The table never enters at all. (*The Theory of Data*, Version
+3.1 — [doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008).)
+
 ## II. ColumnA: the algebra of substance
 
-The name is the thesis: **Columna stands for Column Algebra.** The essence of data operation is
+The name is the thesis: **Columna stands for Column Algebra.** The algebra is the family law, made
+executable. The essence of data operation is
 columns and their operators — mappers and reducers — composing into expressions. Some
 expressions are grammatically well-formed; some are not. The algebra draws that line — and only
 that line. Meaning it deliberately leaves free.
@@ -118,3 +130,11 @@ implementation of the algebra, open, so no one has to take our word for anything
 If a number has ever lied to you by omission, this movement is yours.
 
 *Sign it. Practice it. Bring us the failure modes you've witnessed.*
+
+---
+
+**Note, 2026-08-02.** The theory moved, so the words moved. *The Theory of Data*, Version 3.1
+([doi.org/10.5281/zenodo.21760008](https://doi.org/10.5281/zenodo.21760008)) sharpens the ontology
+this page was written under: the measure — `revenue` — is an **atom**, a governed family; a column
+realizes one **member** of it. The position is unchanged. Its central term got more precise, and we
+updated the page rather than pretend we always said it this way.

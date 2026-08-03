@@ -87,6 +87,29 @@ export const LATEST: LatestItem[] = [
     external: true,
   },
   {
+    // The vision suite, published 2026-08-02: the three position papers + the two introductions
+    // (Theory of Data, Frame-QL). One combined line rather than five rows, to keep the rail from
+    // flooding (editorial choice, ontology-sync addendum). Anchored at /positions.
+    kind: 'papers',
+    title: 'The vision suite: from failure catalog to the intent boundary — five papers',
+    date: '2026-08-02',
+    href: '/positions',
+  },
+  {
+    kind: 'paper',
+    title: 'Missingness Has a Universe — Version 1.0',
+    date: '2026-08-02',
+    href: 'https://doi.org/10.5281/zenodo.21760508',
+    external: true,
+  },
+  {
+    kind: 'paper',
+    title: 'The Theory of Data — Version 3.1, the atom-family revision',
+    date: '2026-08-02',
+    href: 'https://doi.org/10.5281/zenodo.21760008',
+    external: true,
+  },
+  {
     kind: 'position',
     title: 'Never Let Your Agent Touch the Database',
     date: '2026-07-25',

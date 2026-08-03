@@ -1,7 +1,7 @@
 # Never Let Your Agent Touch the Database
 
 *A position held by datumwise · July 2026 · v1.0.
-Evidence-linked throughout; the position moves if the evidence does.*
+Evidence-linked throughout; the position moves if the evidence does. This is the site edition; the paper edition lives on Zenodo ([doi.org/10.5281/zenodo.21765252](https://doi.org/10.5281/zenodo.21765252)).*
 
 ---
 
