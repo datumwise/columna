@@ -7,9 +7,10 @@ upload after that.
 ## The manuals
 - [`columna_reference_manual_5e.md`](columna_reference_manual_5e.md) — the reference manual (5th ed.):
   the object model, the definition language (Chapter 26), the Certificate layer (Part VI).
-- [`columna_framework_manual_6f.md`](columna_framework_manual_6f.md) — the framework manual (6th ed.,
-  revision 6f; ontology aligned with Theory of Data v3.1, 2026-08-02).
-  [`columna_framework_manual_6e.md`](columna_framework_manual_6e.md) is retained as the prior-edition record.
+- [`columna_framework_manual_6g.md`](columna_framework_manual_6g.md) — the framework manual (6th ed.,
+  revision 6g; terminology aligned with Theory of Data v4.0 — measure/member/series, 2026-08-03).
+  [`columna_framework_manual_6f.md`](columna_framework_manual_6f.md) (v3.1) and
+  [`columna_framework_manual_6e.md`](columna_framework_manual_6e.md) are retained as prior-edition records.
 - [`frame_ql_manual_v2.md`](frame_ql_manual_v2.md) — the Frame-QL query-language manual (Second Edition;
   supersedes the First Edition — mechanically reconciled to columna-core 0.14.0 / wire contract `"2"`).
 
