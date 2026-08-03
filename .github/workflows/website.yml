@@ -231,3 +231,46 @@ jobs:
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
           npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      # POST-DEPLOY EDGE VERIFICATION (2026-08-03). The wedge above guarantees the site cannot BUILD a
+      # transcript it did not generate from the shipped package. This closes the other end: the site
+      # cannot silently SERVE a build it did not just deploy. The failure it exists for is real and
+      # observed — after the #133/#134 deploys, an edge PoP kept serving the pre-deploy HTML for ~7
+      # hours (x-vercel-cache HIT, age 25382) while the deploy job reported success. A green deploy that
+      # leaves stale bytes at the edge is exactly the class of silent failure this whole project opposes.
+      #
+      # It curls the PRODUCTION URL a real visitor hits (no cache-busting query — a query mints a
+      # different cache key and would mask a stale no-query path) and asserts the served <meta name=
+      # "build"> equals THIS deploy's commit. On persistent mismatch it forces ONE re-deploy — a fresh
+      # immutable deployment + alias flip is the only global edge flush available from here — then
+      # re-verifies, and fails loudly if the edge is still stale.
+      - name: Post-deploy edge verification — prod must serve THIS build, not a stale one
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SITE_BUILD_SHA: ${{ github.sha }}
+        run: |
+          set -uo pipefail
+          URL="https://datumwise.ai/"
+          EXPECT="${SITE_BUILD_SHA}"
+          served() {
+            curl -fsS -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' "${URL}" \
+              | grep -oE '<meta name="build" content="[0-9a-f]{40}"' | grep -oE '[0-9a-f]{40}' | head -1
+          }
+          verify() {
+            for attempt in 1 2 3 4 5; do
+              GOT="$(served || true)"
+              if [ "${GOT}" = "${EXPECT}" ]; then
+                echo "post-deploy: production serves ${GOT} == this deploy ✓"; return 0
+              fi
+              echo "post-deploy: prod serves '${GOT:-<none>}', expected '${EXPECT}' (attempt ${attempt}/5) — edge not flushed yet; backing off"
+              sleep $((attempt * 15))
+            done
+            return 1
+          }
+          if verify; then exit 0; fi
+          echo "post-deploy: edge still stale after backoff — forcing ONE re-deploy to flush it"
+          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" || true
+          if verify; then exit 0; fi
+          echo "::error::POST-DEPLOY VERIFICATION FAILED — production is serving build '${GOT:-<none>}' but this run deployed '${EXPECT}'. The edge is stale even after a forced re-deploy. This site cannot demo what it did not ship; it must not silently serve stale either. Failing loudly so a human looks now, not in 7 hours."
+          exit 1
