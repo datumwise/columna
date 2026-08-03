@@ -3,13 +3,17 @@
 // is SWAPPED to the delivered v1.1 paper edition (byte-consistent with the Zenodo record), replacing
 // the earlier distinct site essay — the canonical replacement, not a sweep. The file carries its own
 // title + byline (Version 1.1 · 3 August 2026); the vocabulary-move note is page chrome below.
+// The page hosts the v1.1 paper, so it cites the v1.1 record DOI (21774589) — page chrome, keeping
+// the hosted markdown byte-consistent with Zenodo.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { Content } from '../../content/corpus/position_practice_needs_firmer_foundation_v1_1.md';
+const DOI = '10.5281/zenodo.21774589';
 ---
 <BaseLayout title="Practice Needs a Firmer Foundation — datumwise"
   description="A position held by datumwise: tooling cannot fix a foundation problem — recurring, nameable failure shapes are the symptom of a foundational defect, and the theory of data is now written down.">
   <div class="page-head">
     <p class="kicker"><a href="/positions">Positions</a></p>
+    <p class="doi mono">Paper of record — Version 1.1: <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose position">
@@ -31,6 +35,8 @@ import { Content } from '../../content/corpus/position_practice_needs_firmer_fou
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }
+  .doi { font-size: 0.8rem; margin-top: 0.3rem; }
+  .doi a { color: var(--ink-faint); }
   .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
     border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
 </style>
