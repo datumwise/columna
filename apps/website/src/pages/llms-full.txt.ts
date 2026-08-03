@@ -17,9 +17,9 @@ import whyBody from '../content/corpus/why_columna_looks_this_way_draft_v0_4.md?
 // 2026-07-30: the two FOUNDATIONS positions join too (verbatim, same rule). No P/R figure on either —
 // they are foundations pieces, not product pieces — so they need no figure-equivalent seating.
 import universeBody from '../content/corpus/what_is_a_universe_v0_2.md?raw';
-import posWallBody from '../content/corpus/position_never_let_the_model_v1_1.md?raw';
+import posWallBody from '../content/corpus/position_never_let_your_agent_v1_1.md?raw';
 import posSourcesBody from '../content/corpus/position_two_great_sources_site_v1_1.md?raw';
-import posPracticeBody from '../content/corpus/position_practice_needs_a_theory_v1_1.md?raw';
+import posPracticeBody from '../content/corpus/position_practice_needs_firmer_foundation_v1_1.md?raw';
 import posRowTableBody from '../content/corpus/position_row_table_join_no_longer_primitives_v1_1.md?raw';
 // The case demo, in three chapters — VERBATIM (byte-identical to the ratified charter). It is a
 // one-shot training document for minds: every doctrine the KP teaches by rule, the case teaches by
@@ -56,21 +56,10 @@ four moods are for.
 ${ch1.trimEnd()}\n\n---\n\n${ch2.trimEnd()}\n\n---\n\n${ch3WithFigure.trimEnd()}`;
 
 // THE FIGURE-EQUIVALENT RULE (Huayin, 2026-07-25, minted on the record): figures on ratified pages
-// enter llms-full as BRACKETED TEXT EQUIVALENTS at their reading-order position — composition
-// representing what sighted readers get, never loose prose. The transcription below is desk-ratified
-// copy (it carries the gap list verbatim); it is not authored here.
-//
-// So the 2x2 equivalent is seated exactly where the figure mounts on the page: after the section
-// headed FIGURE_AFTER, which is the SAME anchor `positions/never-let-your-agent-touch-the-database.astro`
-// uses. If that heading is ever reworded, this THROWS and fails the build rather than silently
-// dropping the figure out of llms-full — the page's failure mode is a missing figure, which is visible;
-// this document's would be invisible, so it must be loud.
-const FIGURE_AFTER = '"But a wall is narrow" — no. Measure it.';
-const FIGURE_EQUIV =
-  '[Figure — precision × recall: text-to-SQL fails precision; semantic layers fail recall; ' +
-  'guardrails drift toward both failures; Columna top-right. ' +
-  'Recall ledger: OF-13 · P1 alignment · crossed-population distinct · face chains.]';
-
+// enter llms-full as BRACKETED TEXT EQUIVALENTS at their reading-order position. Still in force for
+// /case's Figure 1 (ch3WithFigure, below). The never-let page's precision/recall 2×2 equivalent was
+// RETIRED on 2026-08-03: the measure migration swapped that page's source from the site essay to the
+// v1.1 paper edition, which has no such figure — so there is nothing to seat into posWallBody anymore.
 function seatFigure(raw: string, headingText: string, equivalent: string): string {
   const parts = raw.split(/\n(?=## )/);
   const idx = parts.findIndex((p) => {
@@ -87,7 +76,7 @@ function seatFigure(raw: string, headingText: string, equivalent: string): strin
   return parts.join('\n');
 }
 
-const posWallWithFigure = seatFigure(posWallBody, FIGURE_AFTER, FIGURE_EQUIV);
+const posWallWithFigure = posWallBody;
 
 const thePositions = `## Positions datumwise holds (verbatim)
 Positions we hold, stated plainly and linked to their evidence. When the evidence moves, the position

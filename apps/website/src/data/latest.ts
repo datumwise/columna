@@ -87,6 +87,15 @@ export const LATEST: LatestItem[] = [
     external: true,
   },
   {
+    // Theory of Data V4.0 — the terminology revision that this whole site pass migrates to.
+    // Newest entry (2026-08-03), above the vision-suite line.
+    kind: 'paper',
+    title: 'The Theory of Data — Version 4.0, the terminology revision',
+    date: '2026-08-03',
+    href: 'https://doi.org/10.5281/zenodo.21774032',
+    external: true,
+  },
+  {
     // The vision suite, published 2026-08-02: the three position papers + the two introductions
     // (Theory of Data, Frame-QL). One combined line rather than five rows, to keep the rail from
     // flooding (editorial choice, ontology-sync addendum). Anchored at /positions.

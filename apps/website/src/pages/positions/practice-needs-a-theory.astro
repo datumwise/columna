@@ -1,13 +1,10 @@
 ---
-// /positions/practice-needs-a-theory — a foundations position, ratified. Renders VERBATIM
-// (byte-identical to the ratified attachment; see the corpus copy). The file's own byline stamps its
-// date ("A position from datumwise · 2026-07-30"); the page renders no second stamp.
-//
-// FOUNDATIONS piece, not a product piece: the P/R figure is deliberately absent (Huayin, 2026-07-30),
-// so this uses the plain <Content /> render — no figure seam, no evidence footer re-authored here (the
-// body carries its own DOI links).
+// /positions/practice-needs-a-theory — measure migration (2026-08-03, pack #4 B.2.4): the page source
+// is SWAPPED to the delivered v1.1 paper edition (byte-consistent with the Zenodo record), replacing
+// the earlier distinct site essay — the canonical replacement, not a sweep. The file carries its own
+// title + byline (Version 1.1 · 3 August 2026); the vocabulary-move note is page chrome below.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content } from '../../content/corpus/position_practice_needs_a_theory_v1_1.md';
+import { Content } from '../../content/corpus/position_practice_needs_firmer_foundation_v1_1.md';
 ---
 <BaseLayout title="Practice Needs a Firmer Foundation — datumwise"
   description="A position held by datumwise: tooling cannot fix a foundation problem — recurring, nameable failure shapes are the symptom of a foundational defect, and the theory of data is now written down.">
@@ -18,10 +15,22 @@ import { Content } from '../../content/corpus/position_practice_needs_a_theory_v
   <article class="prose position">
     <Content />
   </article>
+
+  <p class="evidence-note">
+    <strong>Note, 2026-08-03.</strong> The theory's vocabulary moved again, and this time the move
+    retired a word. <em>The Theory of Data</em>, Version 4.0
+    (<a href="https://doi.org/10.5281/zenodo.21774032" rel="noopener" target="_blank">10.5281/zenodo.21774032</a>)
+    replaces <em>atom</em> with <strong>measure</strong> — the governed family — because the old word
+    named smallestness while the object is a family with laws. A column realizes a <strong>member</strong>:
+    a governed <strong>series</strong>. The position is unchanged; a family is constituted by its law,
+    and so, it turns out, is a vocabulary.
+  </p>
 </BaseLayout>
 
 <style>
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
 </style>
