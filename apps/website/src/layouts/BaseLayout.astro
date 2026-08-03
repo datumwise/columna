@@ -24,13 +24,14 @@ const {
   wide = false,
 } = Astro.props;
 
+// Nav consolidated 8 → 6 (2026-08-03 reorg): The Thesis / Why / The Ladder leave the top nav (they
+// remain live at their URLs, gathered into the doctrine block on /positions); Research is promoted to
+// top level. Order: Learn · The Case · Positions · Research · The Atlas · GitHub.
 const nav = [
   { label: 'Learn', href: '/learn' },
   { label: 'The Case', href: '/case' },
   { label: 'Positions', href: '/positions' },
-  { label: 'The Thesis', href: '/thesis' },
-  { label: 'Why', href: '/why' },
-  { label: 'The Ladder', href: '/ladder' },
+  { label: 'Research', href: '/research' },
   { label: 'The Atlas', href: '/atlas' },
   { label: 'GitHub', href: 'https://github.com/datumwise/columna', external: true },
 ];
@@ -166,7 +167,7 @@ const structuredIdentity = {
         Every transcript and every number on this page is generated at build time by running the
         shipped package. This site is structurally incapable of demoing something it did not ship.
       </p>
-      <p class="foot-meta">© {year} datumwise · <a href="/how-these-documents-relate">Research</a> · <a href="/how-these-documents-relate">How these documents relate</a> · <a href="/about">About</a></p>
+      <p class="foot-meta">© {year} datumwise · <a href="/research">Research</a> · <a href="/about">About</a></p>
       {/* Analytics honesty line (freeze item 13, ratified): the brand requires the site say what it does. */}
       <p class="foot-privacy">We count page views without cookies. No personal data, no ads.</p>
     </footer>

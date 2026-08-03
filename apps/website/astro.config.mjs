@@ -40,6 +40,9 @@ export default defineConfig({
     //    and only a client-side shim could work.
     '/positions/never-let-the-model-touch-the-database':
       '/positions/never-let-your-agent-touch-the-database',
+    //  · Corpus-map v0.1 → v0.2 promotion (2026-08-03 reorg): the map moves to a top-level /research
+    //    route. The old path 301s so external links and the retired footer entry keep landing.
+    '/how-these-documents-relate': '/research',
   },
   build: { inlineStylesheets: 'auto' },
   devToolbar: { enabled: false },
