@@ -87,6 +87,15 @@ export const LATEST: LatestItem[] = [
     external: true,
   },
   {
+    // The vision suite, published 2026-08-02: the three position papers + the two introductions
+    // (Theory of Data, Frame-QL). One combined line rather than five rows, to keep the rail from
+    // flooding (editorial choice, ontology-sync addendum). Anchored at /positions.
+    kind: 'papers',
+    title: 'The vision suite: from failure catalog to the intent boundary — five papers',
+    date: '2026-08-02',
+    href: '/positions',
+  },
+  {
     kind: 'paper',
     title: 'Missingness Has a Universe — Version 1.0',
     date: '2026-08-02',
