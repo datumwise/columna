@@ -1,0 +1,25 @@
+---
+// /learn/what-is-the-theory-of-data — the Theory of Data, the accessible introduction (v1.0), the
+// "theory rung" of the Learn ladder (what-is → introduction → the papers/Manual). Renders the
+// introduction from the corpus source; the piece's own header block carries its version + own DOI
+// (doi:10.5281/zenodo.21763395), and its references cite the canonical Version 3.1 manuscript
+// (doi:10.5281/zenodo.21760008). Prose-first by design — no math on the page.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content } from '../../content/corpus/theory_of_data_an_introduction_v1.md';
+---
+<BaseLayout title="What is the Theory of Data? — datumwise"
+  description="The accessible introduction to the Theory of Data — particles, atoms and their members, frames, the Manifold, lawful transformation, and certification. The bridge to the canonical Version 3.1.">
+  <div class="page-head">
+    <p class="kicker"><a href="/learn">Learn</a></p>
+  </div>
+
+  <article class="prose">
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker a { color: var(--ink-faint); text-decoration: none; }
+  .kicker a:hover { color: var(--ink-soft); }
+</style>

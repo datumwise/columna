@@ -17,5 +17,14 @@ import raw from '../content/corpus/what_is_frameql_draft_v0_7.md?raw';
   <article class="prose">
     <Content />
     <WhatIsSeriesNav current="/what-is-frameql" body={raw} />
+    <p class="engage wayfinding">
+      Ready for depth? <a href="/learn/frameql-an-introduction">the full introduction →</a>
+      — twenty-five minutes, then the <a href="/docs/frameql">Manual</a> for reference.
+    </p>
   </article>
 </BaseLayout>
+
+<style>
+  .engage { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
+    font-size: 0.92rem; color: var(--ink-soft); }
+</style>

@@ -1,0 +1,32 @@
+---
+// /learn/frameql-an-introduction — Frame-QL: An Introduction (v1.0), the middle rung of the FrameQL
+// ladder: /what-is-frameql (5 min) → this introduction (25 min) → the Manual (/docs/frameql, the
+// reference). Renders the introduction from the corpus source; the piece's own header carries its
+// version + own DOI (doi:10.5281/zenodo.21763321). Prose-first by design — no math on the page.
+// The ```frameql code fences fall back to plaintext under the site's Shiki (no highlighter error).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content } from '../../content/corpus/frameql_an_introduction_v1.md';
+---
+<BaseLayout title="Frame-QL: An Introduction — datumwise"
+  description="The introduction to Frame-QL — the output frame is the query. Why rows, tables, joins, and GROUP BY are not primitives of the request interface, and where AI belongs at the intent boundary.">
+  <div class="page-head">
+    <p class="kicker"><a href="/learn">Learn</a></p>
+  </div>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  <p class="engage wayfinding">
+    Lighter first: <a href="/what-is-frameql">What is FrameQL — and why?</a> ·
+    The reference, complete: <a href="/docs/frameql">the FrameQL Manual</a>.
+  </p>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker a { color: var(--ink-faint); text-decoration: none; }
+  .kicker a:hover { color: var(--ink-soft); }
+  .engage { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--ink-soft); }
+</style>
