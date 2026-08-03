@@ -9,11 +9,13 @@
 // dropped with the swap, as B.2.4 intends ("do not sweep old text that has a canonical replacement").
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { Content } from '../../content/corpus/position_never_let_your_agent_v1_1.md';
+const DOI = '10.5281/zenodo.21774490';
 ---
 <BaseLayout title="Never Let Your Agent Touch the Database — datumwise"
   description="A position held by datumwise: breach, bill, and fabrication are one architectural mistake, and they retire together the moment the model stops touching the database.">
   <div class="page-head">
     <p class="kicker"><a href="/positions">Positions</a></p>
+    <p class="doi mono">Paper of record — Version 1.1: <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose position">
@@ -35,6 +37,8 @@ import { Content } from '../../content/corpus/position_never_let_your_agent_v1_1
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }
+  .doi { font-size: 0.8rem; margin-top: 0.3rem; }
+  .doi a { color: var(--ink-faint); }
   .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
     border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
 </style>

@@ -1,6 +1,6 @@
 # Row, Table, Join: No Longer Primitives
 
-*A position from datumwise · 2026-07-30. This is the site edition; the paper edition — fuller and formal — lives on Zenodo ([doi.org/10.5281/zenodo.21763488](https://doi.org/10.5281/zenodo.21763488)).*
+*A position from datumwise · 2026-07-30. This is the site edition; the paper edition — fuller and formal, Version 1.1 — lives on Zenodo ([doi.org/10.5281/zenodo.21774555](https://doi.org/10.5281/zenodo.21774555)).*
 
 For twenty years, one movement has been quietly taking the database apart — layer by layer, from the bottom up. It never had a manifesto. It has a pattern, and the pattern has now reached the last layer.
 

@@ -18,15 +18,15 @@ Doctrine that cannot run is opinion. Doctrine that cannot be checked is also opi
 
 ### The bridges
 
-Two introductions, written to be read before anything formal. ***The Theory of Data: An Introduction*** ([10.5281/zenodo.21763395](https://doi.org/10.5281/zenodo.21763395)) — also here on the site: [What is the Theory of Data?](/learn/what-is-the-theory-of-data). ***Frame-QL: An Introduction*** ([10.5281/zenodo.21763321](https://doi.org/10.5281/zenodo.21763321)) — also here: [the full introduction](/learn/frameql-an-introduction), the middle rung between [What is FrameQL](/what-is-frameql) and the Manual.
+Two introductions, written to be read before anything formal. ***The Theory of Data: An Introduction*** ([10.5281/zenodo.21774630](https://doi.org/10.5281/zenodo.21774630)) — also here on the site: [What is the Theory of Data?](/learn/what-is-the-theory-of-data). ***Frame-QL: An Introduction*** ([10.5281/zenodo.21774643](https://doi.org/10.5281/zenodo.21774643)) — also here: [the full introduction](/learn/frameql-an-introduction), the middle rung between [What is FrameQL](/what-is-frameql) and the Manual.
 
 ### The positions
 
-Every stance, with its site edition and its citable paper edition. ***Analytical Practice Needs a Firmer Foundation*** ([10.5281/zenodo.21763451](https://doi.org/10.5281/zenodo.21763451) · [site edition](/positions/practice-needs-a-theory)) — the failures are symptoms; the defect is foundational. ***Row, Table, and Join Are Not the Foundations of Analytical Meaning*** ([10.5281/zenodo.21763488](https://doi.org/10.5281/zenodo.21763488) · site edition: [No Longer Primitives](/positions/row-table-join-no-longer-primitives)) — the machines noticed before the theory did. ***Never Let Your Agent Touch the Database*** ([10.5281/zenodo.21765252](https://doi.org/10.5281/zenodo.21765252) · [site edition](/positions/never-let-your-agent-touch-the-database)) — the intent boundary. ***The Two Great Sources of Silent Analytical Failure*** ([10.5281/zenodo.21553379](https://doi.org/10.5281/zenodo.21553379) · [site edition](/positions/the-two-great-sources-of-silent-analytical-failure)).
+Every stance, with its site edition and its citable paper edition. ***Analytical Practice Needs a Firmer Foundation*** ([10.5281/zenodo.21774589](https://doi.org/10.5281/zenodo.21774589) · [site edition](/positions/practice-needs-a-theory)) — the failures are symptoms; the defect is foundational. ***Row, Table, and Join Are Not the Foundations of Analytical Meaning*** ([10.5281/zenodo.21774555](https://doi.org/10.5281/zenodo.21774555) · site edition: [No Longer Primitives](/positions/row-table-join-no-longer-primitives)) — the machines noticed before the theory did. ***Never Let Your Agent Touch the Database*** ([10.5281/zenodo.21774490](https://doi.org/10.5281/zenodo.21774490) · [site edition](/positions/never-let-your-agent-touch-the-database)) — the intent boundary. ***The Two Great Sources of Silent Analytical Failure*** ([10.5281/zenodo.21553379](https://doi.org/10.5281/zenodo.21553379) · [site edition](/positions/the-two-great-sources-of-silent-analytical-failure)).
 
 ### The ripples
 
-The theory leaves home. Each ripple paper walks into an established field and re-derives its foundations under governed objects. First: ***Missingness Has a Universe*** ([10.5281/zenodo.21760508](https://doi.org/10.5281/zenodo.21760508)) — missingness is defined only after an eligible universe point exists, and it is a compositional law that must transform with the member. Next in the series: the frame paper (in review), and a statistics-and-machine-learning companion. The series has one shape: the field's hardest folklore, stated as law, with the checkable part checked.
+The theory leaves home. Each ripple paper walks into an established field and re-derives its foundations under governed objects. First: ***Missingness Has a Universe*** ([10.5281/zenodo.21774667](https://doi.org/10.5281/zenodo.21774667)) — missingness is defined only after an eligible universe point exists, and it is a compositional law that must transform with the member. Next in the series: the frame paper (in review), and a statistics-and-machine-learning companion. The series has one shape: the field's hardest folklore, stated as law, with the checkable part checked.
 
 ### The instruments
 
@@ -40,7 +40,7 @@ The working tools and the earlier evidence. ***The Silent Failure Atlas*** ([10.
 
 **The skeptic:** [the Atlas](/atlas) → [the benchmark](https://doi.org/10.5281/zenodo.21349581) → [run the demo](/install) — see the failures, see them measured, watch the refusal print on your machine.
 **The practitioner:** [the case](/case) → [Learn](/learn) → the manuals — a working warehouse end to end.
-**The researcher:** [the Theory, V4.0](https://doi.org/10.5281/zenodo.21774032) → [the Calculus](https://doi.org/10.5281/zenodo.21752373) → [the ripples](https://doi.org/10.5281/zenodo.21760508) — definitions, theorems, and the program.
+**The researcher:** [the Theory, V4.0](https://doi.org/10.5281/zenodo.21774032) → [the Calculus](https://doi.org/10.5281/zenodo.21752373) → [the ripples](https://doi.org/10.5281/zenodo.21774667) — definitions, theorems, and the program.
 **The agent-builder:** [Never Let Your Agent Touch the Database](/positions/never-let-your-agent-touch-the-database) → [Frame-QL: An Introduction](/learn/frameql-an-introduction) → the wire over MCP.
 
 **✦ New to the corpus? Ask your own AI to walk you through it.**
