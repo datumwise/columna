@@ -1,0 +1,230 @@
+{
+  "captured_at": "2026-08-05T15:51:21Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 83,
+    "uniques": 12,
+    "views": [
+      {
+        "timestamp": "2026-07-22T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-07-23T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-07-24T00:00:00Z",
+        "count": 2,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-07-25T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-07-26T00:00:00Z",
+        "count": 12,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-07-27T00:00:00Z",
+        "count": 13,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-07-28T00:00:00Z",
+        "count": 2,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-07-29T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-07-30T00:00:00Z",
+        "count": 9,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-07-31T00:00:00Z",
+        "count": 21,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-08-01T00:00:00Z",
+        "count": 17,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-02T00:00:00Z",
+        "count": 4,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-03T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-04T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      }
+    ]
+  },
+  "clones": {
+    "count": 2260,
+    "uniques": 337,
+    "clones": [
+      {
+        "timestamp": "2026-07-22T00:00:00Z",
+        "count": 11,
+        "uniques": 10
+      },
+      {
+        "timestamp": "2026-07-23T00:00:00Z",
+        "count": 18,
+        "uniques": 15
+      },
+      {
+        "timestamp": "2026-07-24T00:00:00Z",
+        "count": 253,
+        "uniques": 60
+      },
+      {
+        "timestamp": "2026-07-25T00:00:00Z",
+        "count": 123,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-07-26T00:00:00Z",
+        "count": 337,
+        "uniques": 63
+      },
+      {
+        "timestamp": "2026-07-27T00:00:00Z",
+        "count": 322,
+        "uniques": 69
+      },
+      {
+        "timestamp": "2026-07-28T00:00:00Z",
+        "count": 59,
+        "uniques": 25
+      },
+      {
+        "timestamp": "2026-07-29T00:00:00Z",
+        "count": 253,
+        "uniques": 40
+      },
+      {
+        "timestamp": "2026-07-30T00:00:00Z",
+        "count": 234,
+        "uniques": 49
+      },
+      {
+        "timestamp": "2026-07-31T00:00:00Z",
+        "count": 57,
+        "uniques": 14
+      },
+      {
+        "timestamp": "2026-08-01T00:00:00Z",
+        "count": 212,
+        "uniques": 36
+      },
+      {
+        "timestamp": "2026-08-02T00:00:00Z",
+        "count": 73,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-08-03T00:00:00Z",
+        "count": 304,
+        "uniques": 39
+      },
+      {
+        "timestamp": "2026-08-04T00:00:00Z",
+        "count": 4,
+        "uniques": 4
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "datumwise.ai",
+      "count": 13,
+      "uniques": 6
+    },
+    {
+      "referrer": "github.com",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna/pulls",
+      "title": "/pulls",
+      "count": 26,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 19,
+      "uniques": 8
+    },
+    {
+      "path": "/datumwise/columna/pulse",
+      "title": "/pulse",
+      "count": 5,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/ece8a399a944326cec9abf239e82392fcb9f76b0/.github/workflows/publish.yml",
+      "title": "/blob/ece8a399a944326cec9abf239e82392fcb9f76b0/.github/workflows/publish.yml",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/pull/127",
+      "title": "/pull/127",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/128",
+      "title": "/pull/128",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/130",
+      "title": "/pull/130",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/92",
+      "title": "/pull/92",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/actions",
+      "title": "/actions",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/actions/runs/29824610540",
+      "title": "/actions/runs/29824610540",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
