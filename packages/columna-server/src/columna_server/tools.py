@@ -193,6 +193,118 @@ def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) ->
                 "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}
 
 
+# --- the no-engine tools: introspection + validation, zero data -----------------------------
+# Every one of these touches the manifold model only. `check_frame_query` plans without executing
+# (zero backend fetches, asserted); the rest read the declared model. Logical names only (the §2b
+# insulation test covers them); structural misses raise ToolInputError; an ill-posed-but-grammatical
+# query is a MOOD in the wire, never an exception. There is no SQL path here or anywhere.
+
+def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+    """Validate a FrameQL statement against a manifold WITHOUT executing it. Parse (grammar), then plan
+    (typecheck, addressability, single-universe §2c, pin laws) touching ZERO data, and return the
+    would-be mood: serve/disclose/clarify/refuse/error. A syntax error is an `error` wire; a
+    grammatical-but-ill-posed query returns clarify/refuse with alternatives. The cheap pre-flight —
+    thinner than `explain` (no cone/atom decomposition), just: is this askable, and how would it land?"""
+    from columna_core.envelope import EnvelopeSyntaxError, parse_statement
+    lm = _get(store, manifold_id)
+    try:
+        stmt = parse_statement(frameql)
+    except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
+        return _syntax_error_wire(str(e), None)
+    before = lm.server.fetches
+    fr = lm.server.planner.plan_statement(stmt)
+    delta = lm.server.fetches - before
+    return dw.wire_frame(fr, executed=False, fetches_delta=delta)
+
+
+def frame_ql_grammar() -> dict:
+    """The FrameQL (envelope) query grammar, verbatim, with the columna-core version it came from. The
+    language the ask is written in — `[EXPLAIN] [FROM m] [WITH …] SELECT <series [AS alias]>,… AT
+    {anchor} [WHERE][HAVING][ORDER BY][LIMIT n [PER {dims}]]` — so a caller writes a query rather than
+    guessing the shape. Touches no manifold and no data."""
+    from importlib.metadata import version
+
+    from columna_core import envelope as _env
+    return {"contract_version": CONTRACT_VERSION,
+            "grammar": (_env.__doc__ or "").strip(),
+            "generated_by": f"columna-core {version('columna-core')}"}
+
+
+def discovery(store: ManifoldStore, manifold_id: str) -> dict:
+    """What can be asked of this manifold, WITHOUT touching data: the measures (each with its reducer
+    family and the universe/grain it lives at) and the anchors (universes with their base grain) that a
+    `SELECT <measure> AT {anchor}` can name. Logical names only; the universe is resolved structurally,
+    never named in a query (§2c)."""
+    lm = _get(store, manifold_id)
+    m = lm.manifold
+    measures = [{"measure": mc.name, "universe": mc.universe, "reducers": list(mc.family),
+                 "grain": sorted(m.universes[mc.universe].base_dimensions),
+                 "description": mc.description} for mc in m.measures.values()]
+    anchors = [{"universe": u.name, "basis": u.basis,
+                "grain": sorted(u.base_dimensions)} for u in m.universes.values()]
+    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+            "measures": measures, "anchors": anchors, "levels": [lv.name for lv in m.levels.values()],
+            "ask_form": "SELECT <measure> AT {<levels>} — the universe is structural, never named"}
+
+
+def manifold_status(store: ManifoldStore, manifold_id: str) -> dict:
+    """The manifold's health at a glance, WITHOUT touching data: counts (measures, universes, levels,
+    hierarchies, relations, edges, derived), the published serving scope (edges blocked by refuted
+    hierarchies), and the evidence standing (how many adjudicated Licenses are verified / corroborated /
+    untestable)."""
+    lm = _get(store, manifold_id)
+    m = lm.manifold
+    ps = getattr(lm.server, "published_scope", None)
+    licenses = getattr(ps, "licenses", None) if ps else None
+    lic_list = list(licenses.values()) if isinstance(licenses, dict) else (list(licenses) if licenses else [])
+    verdicts: dict[str, int] = {}
+    for lic in lic_list:
+        v = getattr(lic, "verdict", None)
+        if v:
+            verdicts[v] = verdicts.get(v, 0) + 1
+    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+            "counts": {"measures": len(m.measures), "universes": len(m.universes),
+                       "levels": len(m.levels), "hierarchies": len(m.hierarchies),
+                       "relations": len(m.non_functional), "edges": len(m.edges),
+                       "derived": len(m.derived)},
+            "published_scope": {
+                "blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else []},
+            "evidence": {"licenses": len(lic_list), "verdicts": verdicts}}
+
+
+def get_evidence(store: ManifoldStore, manifold_id: str, measure: Optional[str] = None) -> dict:
+    """The evidence behind a manifold's claims, WITHOUT touching data: each measure's declared evidence
+    grade and each functional edge's, plus the adjudicated Licenses (verdict, lineages, basis,
+    attestation) minted at publish. With `measure`, scoped to that measure's family and universe."""
+    from columna_core.describe import license_to_dict
+    lm = _get(store, manifold_id)
+    m = lm.manifold
+
+    def _lic(lic: object) -> Optional[dict]:
+        return license_to_dict(lic) if lic is not None else None
+
+    if measure is not None:
+        mc = m.measures.get(measure)
+        if mc is None:
+            raise ToolInputError(f"unknown measure '{measure}' in manifold '{manifold_id}' "
+                                 f"(have {sorted(m.measures)})")
+        u = m.universes[mc.universe]
+        return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id, "measure": measure,
+                "evidence": _PROVENANCE.get(mc.evidence, mc.evidence),
+                "members": {mem: {"license": _lic(getattr(fm, "license", None))}
+                            for mem, fm in mc.family.items()},
+                "universe": {"name": u.name, "basis": u.basis,
+                             "basis_license": _lic(getattr(u, "basis_license", None))}}
+
+    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+            "measures": {name: _PROVENANCE.get(mc.evidence, mc.evidence)
+                         for name, mc in m.measures.items()},
+            "edges": [{"frm": e.frm, "to": e.to, "evidence": _PROVENANCE.get(e.evidence, e.evidence)}
+                      for e in m.edges],
+            "hierarchy_licenses": [_lic(getattr(h, "license", None)) for h in m.hierarchies
+                                   if getattr(h, "license", None)]}
+
+
 # --- the case as an on-demand document (recapture) ---------------------------------------------------
 # The three case-demo chapters ride as an ON-DEMAND MCP resource (proposal accepted 2026-07-18): a
 # lean base prompt with a TRIGGERING pointer fetches the relevant chapter only when the why is needed
