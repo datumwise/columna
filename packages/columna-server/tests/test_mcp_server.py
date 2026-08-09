@@ -8,7 +8,8 @@ async def test_tools_registered(mcp_session):
     async with mcp_session() as client:
         names = await client.list_tools()
     assert set(names) == {"list_manifolds", "describe_manifold", "describe_measure", "query", "explain",
-                          "case_chapter", "case_manifest"}
+                          "check_frame_query", "frame_ql_grammar", "discovery", "manifold_status",
+                          "get_evidence", "case_chapter", "case_manifest"}
 
 
 # --- acceptance #1 --------------------------------------------------------------------------
@@ -174,3 +175,67 @@ async def test_wire_contract_schema_and_scoping(mcp_session):
     # NO multi-universe coverage caveat (retired) — the four moods are taught by well-posed asks now.
     assert error["outcome"] == "error"
     assert error["columns"][0]["no_result"]["reason"] == "cross_universe"
+
+
+# --- the no-engine tools -----------------------------------------------------------------
+async def test_check_frame_query_is_zero_fetch_and_returns_a_mood(mcp_session):
+    async with mcp_session() as client:
+        ok = await client.call("check_frame_query", manifold_id="benchmark",
+                              frameql="SELECT revenue AT {day}")
+        bad = await client.call("check_frame_query", manifold_id="benchmark", frameql="SELECT AT")
+    # the whole point: planned, not executed — zero backend fetches
+    assert ok["executed"] is False and ok["fetches_delta"] == 0
+    assert ok["outcome"] in {"serve", "disclose", "clarify", "refuse", "error"}
+    assert ok["contract_version"] == "2"
+    # a syntax error is an error wire, never an exception
+    assert bad["outcome"] == "error" and bad["error"]["reason"] == "frameql_syntax"
+
+
+async def test_frame_ql_grammar_is_verbatim_and_versioned(mcp_session):
+    async with mcp_session() as client:
+        g = await client.call("frame_ql_grammar")
+    assert "SELECT" in g["grammar"] and "AT {" in g["grammar"]
+    assert g["generated_by"].startswith("columna-core ")
+    assert g["contract_version"] == "2"
+
+
+async def test_discovery_lists_askable_measures_and_anchors(mcp_session):
+    async with mcp_session() as client:
+        d = await client.call("discovery", manifold_id="benchmark")
+    measures = {m["measure"] for m in d["measures"]}
+    assert {"revenue", "level"} <= measures
+    rev = next(m for m in d["measures"] if m["measure"] == "revenue")
+    assert rev["universe"] and rev["grain"] and "sum" in rev["reducers"]
+    assert {a["universe"] for a in d["anchors"]} == {"transactions", "store_days"}
+
+
+async def test_manifold_status_counts(mcp_session):
+    async with mcp_session() as client:
+        s = await client.call("manifold_status", manifold_id="benchmark")
+    assert s["counts"]["measures"] == 6
+    assert s["counts"]["universes"] == 2
+    assert "verdicts" in s["evidence"]
+
+
+async def test_get_evidence_grades_and_scoped(mcp_session):
+    async with mcp_session() as client:
+        whole = await client.call("get_evidence", manifold_id="benchmark")
+        one = await client.call("get_evidence", manifold_id="benchmark", measure="revenue")
+    assert whole["measures"]["revenue"] in {"data_attested", "declared", "inferred"}
+    assert one["measure"] == "revenue" and "sum" in one["members"]
+    assert "basis" in one["universe"]
+
+
+async def test_no_engine_tools_reject_unknown_manifold(mcp_session):
+    # a structural miss RAISES (MCP error), it is not a mood
+    async with mcp_session() as client:
+        for name in ("discovery", "manifold_status", "get_evidence", "check_frame_query"):
+            args = {"manifold_id": "nope"}
+            if name == "check_frame_query":
+                args["frameql"] = "SELECT revenue AT {day}"
+            raised = False
+            try:
+                await client.call(name, **args)
+            except Exception:
+                raised = True
+            assert raised, f"{name} should raise on unknown manifold"

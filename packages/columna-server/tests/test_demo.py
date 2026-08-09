@@ -33,8 +33,9 @@ async def test_demo_serves_stdio_with_no_path_args():
             tools = sorted(t.name for t in (await session.list_tools()).tools)
             res = await session.call_tool("list_manifolds", {})
             manifolds = json.loads(res.content[0].text)["manifolds"]
-    assert tools == ["case_chapter", "case_manifest", "describe_manifold", "describe_measure",
-                     "explain", "list_manifolds", "query"]
+    assert tools == ["case_chapter", "case_manifest", "check_frame_query", "describe_manifold",
+                     "describe_measure", "discovery", "explain", "frame_ql_grammar", "get_evidence",
+                     "list_manifolds", "manifold_status", "query"]
     assert "cascadia" in [m["manifold_id"] for m in manifolds]   # the case demo's own manifold is hosted
 
 

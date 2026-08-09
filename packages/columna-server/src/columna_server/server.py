@@ -1,9 +1,11 @@
 """
 columna_server.server — the MCP server wiring.
 
-Registers the five read-only tools on a FastMCP instance over a ManifoldStore. Each tool returns
-the wire-contract dict (FastMCP serializes it to a JSON content block); structural input errors
-raise, surfaced by MCP as an error result. There is no write tool and no SQL path.
+Registers the read-only tools on a FastMCP instance over a ManifoldStore. The engine tools (`query`,
+`explain`) plus the no-engine half — `discovery`, `check_frame_query`, `frame_ql_grammar`,
+`get_evidence`, `manifold_status` — which introspect and validate WITHOUT touching data. Each tool
+returns the wire-contract dict (FastMCP serializes it to a JSON content block); structural input
+errors raise, surfaced by MCP as an error result. There is no write tool and no SQL path.
 """
 from __future__ import annotations
 
@@ -50,6 +52,41 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         decomposition, the dependency cone with current verdicts, and the would-be outcome + disclosures
         — touching ZERO data (`fetches_delta` is 0). A first-class tool beside `query`."""
         return T.explain_statement(store, manifold_id, frameql)
+
+    @mcp.tool()
+    def check_frame_query(manifold_id: str, frameql: str) -> dict:
+        """Validate a FrameQL statement over a manifold WITHOUT executing it — the cheap pre-flight.
+        Parse + plan (typecheck, addressability, single-universe, pin laws) touching ZERO data, and
+        return the would-be mood (serve/disclose/clarify/refuse/error) with alternatives for an
+        ill-posed ask. A syntax error is an `error` wire. Thinner than `explain` (no cone)."""
+        return T.check_frame_query(store, manifold_id, frameql)
+
+    @mcp.tool()
+    def frame_ql_grammar() -> dict:
+        """The FrameQL (envelope) query grammar VERBATIM, with the columna-core version it came from —
+        so a caller writes a valid query rather than guessing its shape. Touches no manifold, no data."""
+        return T.frame_ql_grammar()
+
+    @mcp.tool()
+    def discovery(manifold_id: str) -> dict:
+        """What can be asked of this manifold WITHOUT touching data: the measures (with their reducer
+        family and universe/grain) and the anchors (universes with base grain) a `SELECT <measure> AT
+        {anchor}` can name. The starting point before any query. Logical names only."""
+        return T.discovery(store, manifold_id)
+
+    @mcp.tool()
+    def manifold_status(manifold_id: str) -> dict:
+        """The manifold's health at a glance WITHOUT touching data: counts (measures, universes, levels,
+        hierarchies, relations, edges, derived), the published serving scope (edges blocked by refuted
+        hierarchies), and the evidence standing (Licenses verified / corroborated / untestable)."""
+        return T.manifold_status(store, manifold_id)
+
+    @mcp.tool()
+    def get_evidence(manifold_id: str, measure: str | None = None) -> dict:
+        """The evidence behind a manifold's claims WITHOUT touching data: each measure's declared
+        evidence grade and each functional edge's, plus the adjudicated Licenses (verdict, lineages,
+        basis, attestation). With `measure`, scoped to that measure's family and universe."""
+        return T.get_evidence(store, manifold_id, measure)
 
     @mcp.tool()
     def case_chapter(chapter: str) -> dict:
