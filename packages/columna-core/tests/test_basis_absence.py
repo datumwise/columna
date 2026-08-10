@@ -5,7 +5,9 @@ The basis type determines what ABSENCE means, and serving follows the DECLARATIO
 bar, independent of any License). Absence is only definable relative to a DOMAIN; the juxtaposition
 (the full-outer align of columns from different universes) supplies one locally, so a column's null
 cells take meaning from THAT column's own universe basis:
-  · events   -> absence is the honest ZERO (zero-fill + an immaterial note)
+  · events   -> absence is zero-filled + a MATERIAL `zero_filled` disclosure (D4, 2026-08-09): the 0 is
+                exact for an event-derived measure but may be fictitious for a state-valued one the engine
+                cannot yet distinguish, so it must reach the mood, not ride as an immaterial note
   · spine/product -> absence is a GAP (a material `incomplete_data` caveat)
   · registry / undeclared -> no serving change
 One characterization pin per basis type (rider i). Adjudication mints an UNTESTABLE testedness record
@@ -53,13 +55,21 @@ def _cell(data, day, colname):
     return data.filter((pl.col("store") == "s1") & (pl.col("day") == day))[colname][0]
 
 
-def test_events_absence_is_zero_filled_with_an_immaterial_note():
+def test_events_absence_is_zero_filled_with_a_MATERIAL_disclosure():
+    # D4 (decided 2026-08-09): the zero-fill stays, but the caveat is now MATERIAL, not the old immaterial
+    # `transport` note — a 0 that may be fictitious (a state-valued measure the engine can't distinguish
+    # from an event-derived one) must reach the mood and per-field status, so a caller cannot miss it.
     fr = _server(_mk(), _TABLES).frame("store", "day").column("orders", "orders").column("level", "level").run()
     ocol = next(c for c in fr.columns if c.name == "orders")
-    # the absent (s1,d2) events cell is rendered as 0 (the honest zero), not null
+    # the absent (s1,d2) events cell is still rendered as 0, not null
     assert _cell(fr.data, "d2", "orders") == 0
-    note = [cav for cav in ocol.disclosure.caveats if "rendered as 0 per events basis" in cav.detail]
-    assert note and note[0].severity != "critical"          # immaterial, agent-legible
+    note = [cav for cav in ocol.disclosure.caveats if cav.category == "zero_fill"]
+    assert note and "may be wrong for a state-valued one" in note[0].detail
+    wcav = next(w for w in dw.wire_frame(fr)["columns"] if w["name"] == "orders")["disclosures"]
+    zf = next(d for d in wcav if d["category"] == "zero_fill")
+    assert zf["code"] == "zero_filled" and zf["materiality"] == "material"   # reaches the wire as material
+    # and the material zero-fill drives the frame mood to disclose (materiality, not severity)
+    assert dw.wire_frame(fr)["outcome"] == "disclose"
 
 
 def test_spine_absence_is_a_material_gap():

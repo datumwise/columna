@@ -85,8 +85,15 @@ def test_touch_multi_counts_through_the_bridge():
 def test_touch_zero_fills_absent_crossed_grain_on_events_basis():
     # c4 is in the bridge but touched only by p4, which has no revenue: on events basis absence is a
     # lawful ZERO (Huayin: events-only), so c4 appears as 0 rather than vanishing.
-    data = _touch().data
-    assert _by(data, "category.touch", "c4") == 0.0
+    fr = _touch()
+    assert _by(fr.data, "category.touch", "c4") == 0.0
+    # D4 (decided 2026-08-09): that zero-fill is now a MATERIAL `zero_fill` caveat, not an immaterial
+    # `transport` note — the 0 may be fictitious for a state-valued measure the engine can't distinguish.
+    rcol = next(c for c in fr.columns if c.name == "revenue")
+    zf = [cav for cav in rcol.disclosure.caveats if cav.category == "zero_fill"]
+    assert zf and "may be wrong for a state-valued one" in zf[0].detail
+    wzf = next(d for d in dw.wire_frame(fr)["columns"][0]["disclosures"] if d["category"] == "zero_fill")
+    assert wzf["code"] == "zero_filled" and wzf["materiality"] == "material"
 
 
 def test_touch_serves_in_disclose_with_the_overcount_folklore():

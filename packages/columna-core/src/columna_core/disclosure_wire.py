@@ -68,6 +68,7 @@ def _approx_materiality(rel_error: Optional[float]) -> str:
 CATEGORY_TABLE = {
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
     "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
+    "zero_fill":              ("zero_filled",            MATERIAL),   # D4: events-basis 0-fill may be fictitious for a state measure
     "over_count":             ("multi_counted",          MATERIAL),   # touch-face M:N crossing: deliberate over-count -> DISCLOSE
     "shadow":                 ("memberships_unrepresented", MATERIAL), # assign-face: single-count drops the non-top memberships -> DISCLOSE
     "reconciliation":         ("reconciliation",         IMMATERIAL), # alloc-face: the commutation certificate (MATERIAL on shortfall — see wire_caveat)
