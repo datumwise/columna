@@ -68,7 +68,12 @@ def _approx_materiality(rel_error: Optional[float]) -> str:
 CATEGORY_TABLE = {
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
     "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
-    "zero_fill":              ("zero_filled",            MATERIAL),   # D4: events-basis 0-fill may be fictitious for a state measure
+    "zero_fill":              ("zero_filled",            MATERIAL),   # D4 (retired producer): events-basis 0-fill
+    # Φ_v fill-rule dispositions (columna#143 step 3) — absence follows the declared member rule
+    "declared_fill":          ("filled",                 IMMATERIAL), # declared `zero` — a correct nil, not fictitious
+    "unknown_absence":        ("unknown",                MATERIAL),   # declared `unknown` — value existed, unrecorded
+    "out_of_population":      ("out_of_population",       IMMATERIAL), # declared `undefined` — outside the population
+    "undeclared_absence":     ("undeclared_absence",     MATERIAL),   # NO rule — engine discloses, does not fill
     "over_count":             ("multi_counted",          MATERIAL),   # touch-face M:N crossing: deliberate over-count -> DISCLOSE
     "shadow":                 ("memberships_unrepresented", MATERIAL), # assign-face: single-count drops the non-top memberships -> DISCLOSE
     "reconciliation":         ("reconciliation",         IMMATERIAL), # alloc-face: the commutation certificate (MATERIAL on shortfall — see wire_caveat)

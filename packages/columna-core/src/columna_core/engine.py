@@ -24,8 +24,8 @@ from .model import Manifold, parse_faced, ASSIGN, ALLOC, ORDER_MIN
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
-                         FRESHNESS, APPROXIMATION, TRANSPORT, ZERO_FILL, UNCONFIRMED, OVER_COUNT, SHADOW,
-                         RECONCILIATION)
+                         FRESHNESS, APPROXIMATION, TRANSPORT, DECLARED_FILL, UNKNOWN_ABSENCE, UNCONFIRMED,
+                         OVER_COUNT, SHADOW, RECONCILIATION)
 
 
 def canonical_delta(delta: float, tol: float) -> float:
@@ -518,19 +518,27 @@ class ColumnEngine:
         self.stats.transports += 1
         self._t(trace, f"  touch {other} x {T} via {rel.via_table} [join-multiply, combine={op.combine}] "
                        f"(deliberate over-count; coverage {n_total - n_uncov}/{n_total})")
-        # 3) crossed-grain absence — EVENTS basis: a bridge coordinate with no touched value is a lawful
-        #    ZERO (Huayin ruling: lawful-zero on events universes only). Complete the domain from the
-        #    bridge so every declared category appears; fill 0. Undeclared basis => leave as-is (no domain).
-        if basis == "events":
+        # 3) crossed-grain absence — driven by the touched measure's DECLARED fill rule Φ_v (columna#143
+        #    step 3), NOT by universe basis (that default is retired). A bridge coordinate with no touched
+        #    value is completed from the bridge domain so every declared category appears, then:
+        #    `zero` fills 0 (declared nil); `unknown` leaves it null and discloses (a value existed,
+        #    unrecorded). undefined/undeclared do not fabricate rows — the coverage-shortfall caveat above
+        #    already discloses the uncovered categories.
+        phi = getattr(meas, "fill_rule", None)
+        if phi in ("zero", "unknown"):
             domain = bridge.select(pl.col("_to").alias(T)).unique()
             before = touched.height
-            touched = domain.join(touched, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
-            n_zero = touched.height - before
-            if n_zero > 0:                               # D4: MATERIAL — the 0 may be fictitious (state measure)
-                disc = disc.with_caveat(Caveat(ZERO_FILL, severity="caution", detail=(
-                    f"{n_zero} {T} with no touched {meas.name} filled with 0 on an events basis — correct "
-                    f"for an event-derived measure, may be wrong for a state-valued one, and the engine "
-                    f"cannot currently tell them apart")))
+            touched = domain.join(touched, on=T, how="left")
+            n_absent = touched.height - before
+            if phi == "zero":
+                touched = touched.with_columns(pl.col("_value").fill_null(0))
+                if n_absent > 0:
+                    disc = disc.with_caveat(Caveat(DECLARED_FILL, severity="info", detail=(
+                        f"{n_absent} {T} with no touched {meas.name} filled with 0 per the declared fill rule")))
+            elif n_absent > 0:
+                disc = disc.with_caveat(Caveat(UNKNOWN_ABSENCE, severity="caution", detail=(
+                    f"{n_absent} {T} with no touched {meas.name} left unknown per the declared fill rule — a "
+                    f"value existed but was not recorded; not filled")))
         touched = touched.sort(T).select([T, "_value"])
         self.cache[key] = CacheEntry(touched, None, ver)
         return touched, disc
