@@ -231,8 +231,9 @@ def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
     """A `FrameResult` -> the full wire contract (WP-2.2 spec §"Wire contract").
 
     `universe` is the population pin the caller supplied (the `query`/`explain` `universe` arg), echoed
-    into `frame.universe`. `executed=False` (from `explain`) and `fetches_delta` annotate the
-    zero-fetch guarantee for the EXPLAIN surface.
+    into `frame.universe`. `executed` is emitted on every frame — `true` for an executed run
+    (`execute_frame_query`), `false` for a plan (`check_frame_query`/`explain`) — and `fetches_delta`,
+    when supplied, is the backend fetch count the call cost (0 asserts the zero-fetch guarantee).
     """
     columns = [wire_column(c) for c in fr.columns]
     frame_disclosures = [wire_caveat(c) for c in _frame_only_caveats(fr)]
@@ -251,8 +252,7 @@ def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
         },
         "columns": columns,
     }
-    if not executed:
-        out["executed"] = False
+    out["executed"] = executed          # emitted on BOTH paths now: true for a run, false for a plan
     if fetches_delta is not None:
         out["fetches_delta"] = fetches_delta
     return out
