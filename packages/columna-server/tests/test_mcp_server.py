@@ -7,9 +7,9 @@ plus the two-hop clarify round-trip (ruling A2+) and structural-error handling.
 async def test_tools_registered(mcp_session):
     async with mcp_session() as client:
         names = await client.list_tools()
-    assert set(names) == {"list_manifolds", "describe_manifold", "describe_measure", "query", "explain",
-                          "check_frame_query", "frame_ql_grammar", "discovery", "manifold_status",
-                          "get_evidence", "case_chapter", "case_manifest"}
+    assert set(names) == {"list_manifolds", "describe_manifold", "describe_measure", "execute_frame_query",
+                          "query", "explain", "check_frame_query", "frame_ql_grammar", "discovery",
+                          "manifold_status", "get_evidence", "case_chapter", "case_manifest"}
 
 
 # --- acceptance #1 --------------------------------------------------------------------------
@@ -224,6 +224,33 @@ async def test_get_evidence_grades_and_scoped(mcp_session):
     assert whole["measures"]["revenue"] in {"data_attested", "declared", "inferred"}
     assert one["measure"] == "revenue" and "sum" in one["members"]
     assert "basis" in one["universe"]
+
+
+# --- the executing tool: rename + annotation, deprecated alias --------------------------------
+async def test_execute_frame_query_annotates_executed_and_fetch_delta(mcp_session):
+    # the executing counterpart of check_frame_query: it runs, so executed is TRUE and fetches happened
+    async with mcp_session() as client:
+        w = await client.call("execute_frame_query", manifold_id="benchmark",
+                              frameql="SELECT revenue AS revenue AT {region}")
+    assert w["outcome"] == "serve" and w["columns"][0]["status"] == "served"
+    assert w["executed"] is True                       # emitted on the executing path now
+    assert isinstance(w["fetches_delta"], int) and w["fetches_delta"] >= 1   # it actually touched data
+    assert w["contract_version"] == "2"
+
+
+async def test_query_is_a_deprecated_alias_with_identical_wire(mcp_session):
+    async with mcp_session() as client:
+        new = await client.call("execute_frame_query", manifold_id="benchmark",
+                                frameql="SELECT level.sum AS inv AT {store}")
+        old = await client.call("query", manifold_id="benchmark",
+                                frameql="SELECT level.sum AS inv AT {store}")
+    # the alias forwards to the executing path: both run (executed True), same mood, same served values.
+    # (Full-dict equality is not asserted — the second read is served-from-cache and carries an extra
+    #  immaterial `freshness` disclosure; the forward is what this test proves, not cache state.)
+    assert old["executed"] is True and new["executed"] is True
+    assert old["outcome"] == new["outcome"]
+    identity = lambda w: [(c["name"], c["status"], c.get("values"), c.get("value")) for c in w["columns"]]
+    assert identity(old) == identity(new)
 
 
 async def test_no_engine_tools_reject_unknown_manifold(mcp_session):

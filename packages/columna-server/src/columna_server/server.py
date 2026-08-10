@@ -1,9 +1,10 @@
 """
 columna_server.server — the MCP server wiring.
 
-Registers the read-only tools on a FastMCP instance over a ManifoldStore. The engine tools (`query`,
-`explain`) plus the no-engine half — `discovery`, `check_frame_query`, `frame_ql_grammar`,
-`get_evidence`, `manifold_status` — which introspect and validate WITHOUT touching data. Each tool
+Registers the read-only tools on a FastMCP instance over a ManifoldStore. The engine tool
+(`execute_frame_query`, with `query` as a deprecated alias) plus the no-engine half — `discovery`,
+`check_frame_query`, `frame_ql_grammar`, `explain`, `get_evidence`, `manifold_status` — which
+introspect and validate WITHOUT touching data. Each tool
 returns the wire-contract dict (FastMCP serializes it to a JSON content block); structural input
 errors raise, surfaced by MCP as an error result. There is no write tool and no SQL path.
 """
@@ -38,11 +39,18 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         return T.describe_measure(store, manifold_id, measure)
 
     @mcp.tool()
-    def query(manifold_id: str, frameql: str) -> dict:
+    def execute_frame_query(manifold_id: str, frameql: str) -> dict:
         """Execute a FrameQL envelope statement (`SELECT <series [AS alias]>,… AT {anchor}` with optional
-        WHERE/HAVING/ORDER BY/LIMIT n PER {dims}; never SQL; the terse `cols @ anchor` form is retired).
-        Returns the wire contract: outcome (serve/disclose/clarify/refuse/error) with per-column values
-        and structured disclosures. Universe is resolved structurally (§2c) — never named in a query."""
+        WHERE/HAVING/ORDER BY/LIMIT n PER {dims}; never SQL; the terse `cols @ anchor` form is retired)
+        OVER REAL DATA. Returns the wire contract: outcome (serve/disclose/clarify/refuse/error) with
+        per-column values and structured disclosures, annotated `executed: true` + `fetches_delta`. The
+        executing counterpart to `check_frame_query`. Universe is resolved structurally (§2c)."""
+        return T.execute_frame_query(store, manifold_id, frameql)
+
+    @mcp.tool()
+    def query(manifold_id: str, frameql: str) -> dict:
+        """DEPRECATED alias for `execute_frame_query` (removed after 0.9.x); the wire is identical.
+        Retained one release so existing clients do not break — prefer `execute_frame_query`."""
         return T.query(store, manifold_id, frameql)
 
     @mcp.tool()

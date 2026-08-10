@@ -165,18 +165,28 @@ def _syntax_error_wire(detail: str, universe: Optional[str]) -> dict:
             "columns": [], "error": {"reason": "frameql_syntax", "detail": detail}}
 
 
-def query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
     """Execute a FrameQL ENVELOPE statement (`SELECT <series> AT {anchor} [WHERE][HAVING][ORDER BY]
-    [LIMIT]`). The terse `cols @ anchor` form is RETIRED from the wire (0.9.0 tombstone). Returns the
-    four-mood wire contract."""
+    [LIMIT]`) over real data. The terse `cols @ anchor` form is RETIRED from the wire (0.9.0 tombstone).
+    Returns the four-mood wire contract annotated with `executed: true` and `fetches_delta` (the backend
+    fetches this run cost) — the executing counterpart of `check_frame_query`'s zero-fetch pre-flight."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
+    before = lm.server.fetches
     try:
         stmt = parse_statement(frameql)
         fr = lm.server.planner.run_statement(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return _syntax_error_wire(str(e), None)
-    return dw.wire_frame(fr)
+    delta = lm.server.fetches - before
+    return dw.wire_frame(fr, executed=True, fetches_delta=delta)
+
+
+def query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+    """DEPRECATED (0.9.x) alias for `execute_frame_query`; the wire is byte-identical. Retained for one
+    release so existing clients do not break. New callers use `execute_frame_query`, which pairs by name
+    with `check_frame_query` (execute vs check, the same statement)."""
+    return execute_frame_query(store, manifold_id, frameql)
 
 
 def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) -> dict:
