@@ -42,6 +42,9 @@ _RETIRED_KW = ("ASSERT",)
 
 # B3 (capture §7): the four population bases, each determining what absence MEANS engine-wide.
 BASIS_TYPES = frozenset({"events", "spine", "product", "registry"})
+# Φ_v, the M-contract fill rule (columna#143) — a per-MEASURE clause on the .cml MEASURE header.
+# Absent = UNDECLARED (legitimate): the engine discloses, never fills.
+FILL_RULES = frozenset({"zero", "unknown", "undefined"})
 
 
 class ParseError(Exception):
@@ -391,6 +394,16 @@ def _p_measure(s, M):
     head_portion = s.split("FAMILY", 1)[0] if fam_block is not None else s
     head_portion, description = _pop_desc(head_portion)
 
+    # optional trailing `FILL <rule>` (Φ_v, columna#143) — stripped first, like BASIS on a UNIVERSE, so
+    # the AS/VALUE/TYPE parse below is undisturbed. Absent = undeclared (the engine discloses, never fills).
+    fill_rule = None
+    fillm = re.search(r"\bFILL\s+(\w+)", head_portion)
+    if fillm:
+        fill_rule = fillm.group(1)
+        if fill_rule not in FILL_RULES:
+            raise ParseError(f"MEASURE: bad FILL '{fill_rule}' (one of {sorted(FILL_RULES)})")
+        head_portion = head_portion[:fillm.start()] + head_portion[fillm.end():]
+
     head = re.match(r"MEASURE\s+(\w+)(?:\s+ON\s+(\w+))?\s+FROM\s+(\w+)", head_portion)
     if not head:
         raise ParseError(f"bad MEASURE header: {s!r}")
@@ -447,7 +460,7 @@ def _p_measure(s, M):
 
     M["measures"][name] = MeasureColumn(name, universe, table, pre_expr,
                                         logical_type=logical_type,
-                                        family=family, m_anchor=m_anchor,
+                                        family=family, fill_rule=fill_rule, m_anchor=m_anchor,
                                         distinct_col=distinct_col,
                                         description=description, rejects=rejects)
 

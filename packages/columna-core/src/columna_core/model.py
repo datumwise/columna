@@ -46,12 +46,13 @@ class Universe:
     name: str
     base_dimensions: frozenset            # base level names bundled into this population
     predicate: Optional["Predicate"] = None   # carves valid points; over dims/attrs, never measures
-    basis: Optional[str] = None           # B3 (capture §7): the population's kind, which DETERMINES what
-                                          # absence means engine-wide — 'events' (absence=ZERO, lawful
-                                          # zero-fill) | 'spine' (absence=GAP, incomplete_data caveat) |
-                                          # 'product' (cartesian; absence always a gap) | 'registry'
-                                          # (membership checkable). None = undeclared (today's behavior;
-                                          # absence-semantics wiring is inert until a basis is declared).
+    basis: Optional[str] = None           # B3 (capture §7): the population's kind — 'events' | 'spine' |
+                                          # 'product' | 'registry'. As of columna#143 step 3 basis NO LONGER
+                                          # drives absence semantics (that keyed default is retired — it was a
+                                          # silent wrong zero for state-valued measures, D4). Absence now follows
+                                          # the per-member fill rule Φ_v (MeasureColumn.fill_rule). basis stays a
+                                          # declared property for describe/trust and broadcast-safety (replication
+                                          # over a non-events population corrupts completeness). None = undeclared.
     basis_license: Optional["License"] = None   # B3 testedness record minted at publish (serving follows
                                           # the DECLARATION regardless — BASIS is a semantic declaration, not a
                                           # shortcut; the license is for describe/trust only). None = unadjudicated.
@@ -150,6 +151,13 @@ class MeasureColumn:
                                           # (no casts — the connector realizes logical_type -> physical)
     logical_type: str = "Float64"         # declared logical (Polars) dtype — the representation promise
     family: dict = field(default_factory=dict)   # agg-name -> FamilyMember
+    fill_rule: Optional[str] = None       # Φ_v, the M-contract fill rule (columna#143): what an eligible
+                                          # point with NO observed value denotes — 'zero' (existed, nil),
+                                          # 'unknown' (a value existed, unrecorded — state-valued), or
+                                          # 'undefined' (outside the member's population). None = UNDECLARED,
+                                          # and undeclared is a LEGITIMATE state: the engine DISCLOSES and
+                                          # does NOT fill (never keyed on universe basis — that default is
+                                          # retired; #147's interim made permanent for the undeclared case).
     m_anchor: frozenset = frozenset()     # missingness structure: empty=MCAR, others=MAR, self=MNAR
     distinct_col: Optional[str] = None    # for distinct/sketch
     sketch_precision: int = 12            # HLL lg_k for sketch-witness measures; the sketch type is HLLSketch(p)

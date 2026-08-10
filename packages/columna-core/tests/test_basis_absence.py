@@ -1,25 +1,24 @@
-"""
-test_basis_absence.py — B3 absence semantics (WP on-ramp/Explorer tier-2, CP-1 increment 6).
+"""Absence semantics — driven by the DECLARED member fill rule Φ_v (columna#143 step 3), NOT by
+universe basis. The basis-keyed default is retired: a 0-fill keyed on basis alone was a silent wrong
+number for a state-valued measure (D4). A measure's `FILL` clause now decides what an absent cell means:
 
-The basis type determines what ABSENCE means, and serving follows the DECLARATION (like a B-anchor
-bar, independent of any License). Absence is only definable relative to a DOMAIN; the juxtaposition
-(the full-outer align of columns from different universes) supplies one locally, so a column's null
-cells take meaning from THAT column's own universe basis:
-  · events   -> absence is zero-filled + a MATERIAL `zero_filled` disclosure (D4, 2026-08-09): the 0 is
-                exact for an event-derived measure but may be fictitious for a state-valued one the engine
-                cannot yet distinguish, so it must reach the mood, not ride as an immaterial note
-  · spine/product -> absence is a GAP (a material `incomplete_data` caveat)
-  · registry / undeclared -> no serving change
-One characterization pin per basis type (rider i). Adjudication mints an UNTESTABLE testedness record
-per type; the live refutation channels (spine internal-contiguity, completeness) ride the spine-grid
-(open_forks OF-5). The demo stays basis-less this increment (rider ii).
+  · FILL zero      -> absent cell 0-filled (declared nil) + an IMMATERIAL note (a correct value)
+  · FILL unknown   -> LEFT NULL + a MATERIAL note (a value existed but was not recorded)
+  · FILL undefined -> LEFT NULL + an IMMATERIAL note (outside the member's population)
+  · (no FILL)      -> UNDECLARED: LEFT NULL + a MATERIAL note — the engine discloses, never fills.
+
+Absence is only definable relative to a DOMAIN; the juxtaposition (the full-outer align of two columns
+from different universes) supplies one locally, so a column's null cells take meaning from THAT column's
+own fill rule. Basis remains a declared universe property (describe/trust, broadcast-safety), but it no
+longer drives absence.
 """
 import duckdb
 import polars as pl
+import pytest
 
 from columna_core import ManifoldServer, DuckDBConnector, UNTESTABLE, adjudicate
 from columna_core import disclosure_wire as dw
-from columna_core.parser import parse_manifold
+from columna_core.parser import ParseError, parse_manifold
 
 
 def _lit(v):
@@ -34,15 +33,19 @@ def _server(text, tables):
     return ManifoldServer(parse_manifold(text), DuckDBConnector(con))
 
 
-def _mk(ev_basis="events", sp_basis="spine"):
+def _mk(orders_fill="", level_fill=""):
+    """Two universes over the same grain; orders on the events one, level on the spine one. The FILL
+    clause on each MEASURE is what now decides absence — basis is declared but inert for absence."""
+    of = f" FILL {orders_fill}" if orders_fill else ""
+    lf = f" FILL {level_fill}" if level_fill else ""
     return f"""
 MANIFOLD b VERSION 1
-UNIVERSE ev = store * day BASIS {ev_basis}
-UNIVERSE sp = store * day BASIS {sp_basis}
+UNIVERSE ev = store * day BASIS events
+UNIVERSE sp = store * day BASIS spine
 LEVEL store = store_id BASE
 LEVEL day   = day      BASE
-MEASURE orders ON ev FROM tx  AS count(*)
-MEASURE level  ON sp FROM inv AS sum(lvl)
+MEASURE orders ON ev FROM tx  AS count(*){of}
+MEASURE level  ON sp FROM inv AS sum(lvl){lf}
 """
 
 
@@ -51,58 +54,96 @@ _TABLES = {"tx":  (["store_id", "day"], [("s1", "d1")]),
            "inv": (["store_id", "day", "lvl"], [("s1", "d2", 5.0)])}
 
 
+def _frame(text):
+    return _server(text, _TABLES).frame("store", "day").column("orders", "orders").column("level", "level").run()
+
+
 def _cell(data, day, colname):
     return data.filter((pl.col("store") == "s1") & (pl.col("day") == day))[colname][0]
 
 
-def test_events_absence_is_zero_filled_with_a_MATERIAL_disclosure():
-    # D4 (decided 2026-08-09): the zero-fill stays, but the caveat is now MATERIAL, not the old immaterial
-    # `transport` note — a 0 that may be fictitious (a state-valued measure the engine can't distinguish
-    # from an event-derived one) must reach the mood and per-field status, so a caller cannot miss it.
-    fr = _server(_mk(), _TABLES).frame("store", "day").column("orders", "orders").column("level", "level").run()
-    ocol = next(c for c in fr.columns if c.name == "orders")
-    # the absent (s1,d2) events cell is still rendered as 0, not null
+def _caveats(fr, name):
+    col = next(c for c in fr.columns if c.name == name)
+    return col.disclosure.caveats
+
+
+def test_declared_zero_fills_with_an_immaterial_note():
+    fr = _frame(_mk(orders_fill="zero", level_fill="zero"))
+    # the absent (s1,d2) orders cell is rendered as 0 per the DECLARED rule (not basis)
     assert _cell(fr.data, "d2", "orders") == 0
-    note = [cav for cav in ocol.disclosure.caveats if cav.category == "zero_fill"]
-    assert note and "may be wrong for a state-valued one" in note[0].detail
-    wcav = next(w for w in dw.wire_frame(fr)["columns"] if w["name"] == "orders")["disclosures"]
-    zf = next(d for d in wcav if d["category"] == "zero_fill")
-    assert zf["code"] == "zero_filled" and zf["materiality"] == "material"   # reaches the wire as material
-    # and the material zero-fill drives the frame mood to disclose (materiality, not severity)
-    assert dw.wire_frame(fr)["outcome"] == "disclose"
+    note = [c for c in _caveats(fr, "orders") if c.category == "declared_fill"]
+    assert note and "existed and was nil" in note[0].detail
+    # a declared zero is a correct value — immaterial, so the frame SERVES (both columns declared zero)
+    w = dw.wire_frame(fr)
+    zf = next(d for col in w["columns"] for d in col["disclosures"] if d["category"] == "declared_fill")
+    assert zf["materiality"] == "immaterial"
+    assert w["outcome"] == "serve"
 
 
-def test_spine_absence_is_a_material_gap():
-    fr = _server(_mk(), _TABLES).frame("store", "day").column("orders", "orders").column("level", "level").run()
-    lcol = next(c for c in fr.columns if c.name == "level")
-    assert any(cav.category == "data_gap" for cav in lcol.disclosure.caveats)
-    # a MATERIAL gap caveat drives the wire outcome to disclose (materiality, not severity)
-    assert dw.wire_frame(fr)["outcome"] == "disclose"
+def test_declared_unknown_is_left_null_and_discloses_materially():
+    fr = _frame(_mk(orders_fill="zero", level_fill="unknown"))
+    # the absent (s1,d1) level cell is LEFT NULL — a value existed but was not recorded
+    assert _cell(fr.data, "d1", "level") is None
+    note = [c for c in _caveats(fr, "level") if c.category == "unknown_absence"]
+    assert note and "not filled" in note[0].detail
+    w = dw.wire_frame(fr)
+    ua = next(d for col in w["columns"] for d in col["disclosures"] if d["category"] == "unknown_absence")
+    assert ua["materiality"] == "material" and w["outcome"] == "disclose"
 
 
-def test_product_basis_shares_spines_gap_semantics():
-    fr = _server(_mk(sp_basis="product"), _TABLES).frame("store", "day").column(
-        "orders", "orders").column("level", "level").run()
-    lcol = next(c for c in fr.columns if c.name == "level")
-    assert any(cav.category == "data_gap" for cav in lcol.disclosure.caveats)
+def test_undeclared_discloses_and_does_not_fill_even_on_events_basis():
+    # THE D4 FIX: orders is over an events universe but declares NO fill rule. It must NOT silently
+    # zero-fill (the retired basis default) — it discloses the absence and leaves it null.
+    fr = _frame(_mk(orders_fill="", level_fill="zero"))
+    assert _cell(fr.data, "d2", "orders") is None          # left null, NOT 0
+    note = [c for c in _caveats(fr, "orders") if c.category == "undeclared_absence"]
+    assert note and "no declared fill rule" in note[0].detail
+    w = dw.wire_frame(fr)
+    ud = next(d for col in w["columns"] for d in col["disclosures"] if d["category"] == "undeclared_absence")
+    assert ud["materiality"] == "material" and w["outcome"] == "disclose"
 
 
-def test_registry_and_undeclared_basis_do_not_touch_serving():
-    for sp in ("registry", "events"):     # registry: no gap/fill; events on both: no gap (zero instead)
-        fr = _server(_mk(sp_basis=sp), _TABLES).frame("store", "day").column(
-            "orders", "orders").column("level", "level").run()
-        lcol = next(c for c in fr.columns if c.name == "level")
-        assert not any(cav.category == "data_gap" for cav in lcol.disclosure.caveats)
+def test_declared_undefined_is_out_of_population_and_immaterial():
+    fr = _frame(_mk(orders_fill="zero", level_fill="undefined"))
+    assert _cell(fr.data, "d1", "level") is None           # outside the population — a restriction, left null
+    note = [c for c in _caveats(fr, "level") if c.category == "out_of_population"]
+    assert note and "outside this measure's population" in note[0].detail
+    w = dw.wire_frame(fr)
+    op = next(d for col in w["columns"] for d in col["disclosures"] if d["category"] == "out_of_population")
+    assert op["materiality"] == "immaterial" and w["outcome"] == "serve"
+
+
+def test_basis_is_inert_for_absence_events_and_spine_behave_alike_when_undeclared():
+    # basis no longer drives: an undeclared measure discloses the same way whether its universe is
+    # events or spine. (Contrast the retired law, where events zero-filled and spine gapped.)
+    fr = _frame(_mk(orders_fill="", level_fill=""))
+    for name, day in (("orders", "d2"), ("level", "d1")):
+        assert _cell(fr.data, day, name) is None
+        assert any(c.category == "undeclared_absence" for c in _caveats(fr, name))
 
 
 def test_single_column_frame_has_no_absence_edit():
-    # no juxtaposition -> no local domain -> no null cells -> no fill/gap (absence rides the spine-grid).
-    fr = _server(_mk(), _TABLES).frame("store", "day").column("orders", "orders").run()
+    # no juxtaposition -> no local domain -> no null cells -> no fill/disclosure edit.
+    fr = _server(_mk(orders_fill="zero"), _TABLES).frame("store", "day").column("orders", "orders").run()
     ocol = next(c for c in fr.columns if c.name == "orders")
-    assert not any("events basis" in cav.detail for cav in ocol.disclosure.caveats)
+    assert not any(c.category in ("declared_fill", "undeclared_absence") for c in ocol.disclosure.caveats)
 
 
-def test_basis_adjudication_mints_untestable_per_type():
+def test_fill_clause_parses_onto_the_measure_and_is_optional():
+    m = parse_manifold(_mk(orders_fill="zero", level_fill="unknown"))
+    assert m.measures["orders"].fill_rule == "zero"
+    assert m.measures["level"].fill_rule == "unknown"
+    m2 = parse_manifold(_mk())  # no FILL -> undeclared (a legitimate state, not an error)
+    assert m2.measures["orders"].fill_rule is None
+
+
+def test_a_bad_fill_rule_is_a_parse_error():
+    with pytest.raises(ParseError, match="bad FILL"):
+        parse_manifold(_mk(orders_fill="nil"))   # not zero|unknown|undefined
+
+
+def test_basis_adjudication_still_mints_untestable_per_type():
+    # basis stays a declared universe property (describe/trust) even though it no longer drives absence.
     srv = _server(_mk(), _TABLES)
     report = adjudicate(srv)
     assert report["_basis"] == {"ev": UNTESTABLE, "sp": UNTESTABLE}

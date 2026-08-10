@@ -16,7 +16,8 @@ import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP, ZERO_FILL,
+from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT,
+                         DECLARED_FILL, UNKNOWN_ABSENCE, OUT_OF_POPULATION, UNDECLARED_ABSENCE,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced
 
@@ -47,7 +48,9 @@ class ColumnResult:
     disclosure: Disclosure
     refusal: Optional[Outcome] = None
     trace: list = field(default_factory=list)
-    universe: Optional[str] = None      # the column's sole universe (§2c) — routes B3 absence semantics
+    universe: Optional[str] = None      # the column's sole universe (§2c)
+    fill_rule: Optional[str] = None     # Φ_v resolved from the member contract (columna#143) — drives
+                                        # absence semantics. None = undeclared (disclose, never fill).
 
 
 @dataclass
@@ -288,7 +291,8 @@ class Planner:
                 if crossings:
                     disc = Disclosure.merge(disc, Disclosure.of(*crossings), population=disc.population)
                 results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc,
-                                            trace=trace, universe=col_uni))
+                                            trace=trace, universe=col_uni,
+                                            fill_rule=self._column_fill_rule(tree.body, anchor)))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))
@@ -316,32 +320,39 @@ class Planner:
         if data is not None:
             data = data.sort(list(anchor))
 
-        # B3 ABSENCE SEMANTICS (basis-driven). Absence is only definable relative to a DOMAIN; the
-        # juxtaposition (the full-outer align above) supplies one LOCALLY, so a column's null cells here
-        # take meaning from THAT column's own universe basis. Serving follows the DECLARATION — like a
-        # B-anchor bar, it executes regardless of any License (BASIS is a semantic declaration, not a
-        # shortcut). The declared spine-grid (the future domain source) is the single object behind both
-        # single-column fill and the completeness oracle (open_forks OF-5); until it lands, absence is
-        # scoped to the align, so a single-column frame (no nulls) is untouched.
+        # ABSENCE SEMANTICS — driven by the DECLARED member fill rule Φ_v (columna#143 step 3), NOT by
+        # universe basis (that default is retired: a 0-fill keyed on basis alone was a silent wrong number
+        # for a state-valued measure, D4). Absence is only definable relative to a DOMAIN; the juxtaposition
+        # (the full-outer align above) supplies one LOCALLY, so a column's null cells take meaning from THAT
+        # column's own member rule. A single-column frame (no nulls) is untouched. The four dispositions:
+        #   zero      -> fill 0 (declared: existed and was nil) — a correct value, immaterial note
+        #   unknown   -> LEAVE NULL, MATERIAL note (a value existed but was not recorded)
+        #   undefined -> LEAVE NULL, immaterial note (outside the member's population — a restriction)
+        #   None      -> UNDECLARED: LEAVE NULL, MATERIAL note (the engine discloses, never chooses).
         if data is not None:
             for c in results:
                 if c.frame is None or c.universe is None:
                     continue
-                basis = self.m.universes[c.universe].basis
-                if basis is None:
-                    continue
                 n_absent = data[c.name].null_count()
                 if not n_absent:
                     continue
-                if basis == "events":                        # absence 0-filled — MATERIAL: may be fictitious (D4)
+                phi = c.fill_rule
+                if phi == "zero":
                     data = data.with_columns(pl.col(c.name).fill_null(0))
-                    c.disclosure = c.disclosure.with_caveat(Caveat(ZERO_FILL, severity="caution", detail=(
-                        f"{n_absent} absent cell(s) filled with 0 on an events basis — correct for an "
-                        f"event-derived measure, may be wrong for a state-valued one, and the engine "
-                        f"cannot currently tell them apart")))
-                elif basis in ("spine", "product"):          # absence is a GAP
-                    c.disclosure = c.disclosure.with_caveat(Caveat(DATA_GAP,
-                        f"{n_absent} absent cell(s) are gaps ({basis} basis) — the data is incomplete here"))
+                    c.disclosure = c.disclosure.with_caveat(Caveat(DECLARED_FILL, severity="info", detail=(
+                        f"{n_absent} absent cell(s) filled with 0 per the declared fill rule — the quantity "
+                        f"existed and was nil")))
+                elif phi == "unknown":
+                    c.disclosure = c.disclosure.with_caveat(Caveat(UNKNOWN_ABSENCE, severity="caution", detail=(
+                        f"{n_absent} absent cell(s) left unknown per the declared fill rule — a value existed "
+                        f"but was not recorded; not filled")))
+                elif phi == "undefined":
+                    c.disclosure = c.disclosure.with_caveat(Caveat(OUT_OF_POPULATION, severity="info", detail=(
+                        f"{n_absent} cell(s) are outside this measure's population per the declared fill rule")))
+                else:  # UNDECLARED — disclose and do NOT fill (#147's interim, now permanent)
+                    c.disclosure = c.disclosure.with_caveat(Caveat(UNDECLARED_ABSENCE, severity="caution", detail=(
+                        f"{n_absent} absent cell(s) with no declared fill rule — the engine discloses the "
+                        f"absence rather than choose a value; declare FILL on the measure to resolve it")))
 
         # No frame-level population caveat: the old multi-universe `coverage` caveat is RETIRED (§2c). Per-
         # column honesty replaces it — a juxtaposed frame never asserts a single shared population, and
@@ -917,6 +928,15 @@ class Planner:
                                f"reconciling family member (e.g. '.last')"))
         return cav
 
+    def _column_fill_rule(self, node, anchor):
+        """Φ_v for a column: the fill rule of its member(s) (columna#143). A column resolves to ONE
+        universe (§2c); if all its measure atoms agree on a single declared rule, that is the column's
+        rule. A conflict between atoms — or no declared rule — is UNDECLARED, and undeclared means the
+        engine discloses the absence rather than choose a value (never keyed on basis)."""
+        rules = {getattr(self.m.measures.get(m), "fill_rule", None)
+                 for (m, _mem) in self._atoms(node, anchor)}
+        return next(iter(rules)) if len(rules) == 1 else None
+
     def _frame_crossings(self, node, anchor):
         """All crossing caveats for an expression, deduplicated across its atoms."""
         seen, out = set(), []
@@ -957,7 +977,8 @@ class Planner:
                     trace.append(f"plan {m}.{mem} @ {_fmt_anchor(anchor)} (would-be annotation; no execution)")
                 for c in self._frame_crossings(tree.body, anchor):
                     disc = disc.with_caveat(c)
-                results.append(ColumnResult(name, expr, None, disc, trace=trace, universe=col_uni))
+                results.append(ColumnResult(name, expr, None, disc, trace=trace, universe=col_uni,
+                                            fill_rule=self._column_fill_rule(tree.body, anchor)))
             except Refusal as r:
                 results.append(ColumnResult(name, expr, None,
                                 Disclosure.of(population=None), refusal=r.classified(), trace=trace))

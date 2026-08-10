@@ -47,6 +47,8 @@ class MeasureShape:
     logical_type: str = "Float64"   # the DECLARED logical dtype (vocabulary) — not the physical type
     blocked: dict = field(default_factory=dict)   # member -> frozenset(blocked_lineages): the B-anchor,
                                                   # as SHAPE (which axes the reducer does not reconcile along)
+    fill_rule: Optional[str] = None   # Φ_v, the M-contract fill rule (columna#143) — SHAPE the planner reads
+                                      # to drive absence semantics; None = undeclared (disclose, never fill)
 
 @dataclass(frozen=True)
 class OperatorSig:
@@ -113,7 +115,8 @@ class PlannerView:
         from .operators import REGISTRY
         self.measures = {n: MeasureShape(n, mc.universe, tuple(mc.family), mc.logical_type,
                                          {mem: frozenset(fm.b_anchor.blocked_lineages)
-                                          for mem, fm in mc.family.items()})
+                                          for mem, fm in mc.family.items()},
+                                         fill_rule=mc.fill_rule)
                          for n, mc in m.measures.items()}
         self.universes = {n: UniverseShape(n, u.base_dimensions, u.basis)
                           for n, u in m.universes.items()}

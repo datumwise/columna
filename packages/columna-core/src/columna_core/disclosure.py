@@ -35,9 +35,19 @@ UNCONFIRMED = "unconfirmed_assumption"
 TRANSPORT = "transport"          # records a faithful transport step (provenance)
 B_ANCHOR_CROSSING = "b_anchor_crossing"   # served, critical: a reduction coarsens a blocked family
 DATA_GAP = "data_gap"            # served, material: absent cells are GAPS (spine/product basis, B3)
-ZERO_FILL = "zero_fill"          # served, MATERIAL (D4): absence 0-filled on an events basis — exact for
-                                 # an event-derived measure, possibly FICTITIOUS for a state-valued one,
-                                 # and the engine cannot yet tell them apart. Was immaterial `transport`.
+ZERO_FILL = "zero_fill"          # RETIRED as a producer (columna#143 step 3): the basis-keyed events
+                                 # zero-fill is gone. Constant kept so the wire mapping and any archived
+                                 # caveat still resolve; the four fill-rule dispositions below replace it.
+# Φ_v, the M-contract fill rule (columna#143 step 3) — absence semantics now follow the DECLARED member
+# rule, never the universe basis. Four dispositions:
+DECLARED_FILL = "declared_fill"      # served, IMMATERIAL: absence filled per a DECLARED `zero` rule — the
+                                     # quantity existed and was nil; a correct value, not a fictitious one.
+UNKNOWN_ABSENCE = "unknown_absence"  # served, MATERIAL: `unknown` rule — a value existed but was not
+                                     # recorded (state-valued); LEFT NULL, disclosed, never filled.
+OUT_OF_POPULATION = "out_of_population"  # served, IMMATERIAL: `undefined` rule — the point is outside the
+                                     # member's population; a restriction, not an absence.
+UNDECLARED_ABSENCE = "undeclared_absence"  # served, MATERIAL: NO fill rule declared — the engine discloses
+                                     # the absence rather than choose (never fills). #147's interim, permanent.
 OVER_COUNT = "over_count"        # served, MATERIAL: a touch-face crossing multi-counts by construction —
                                  # the value reaches every match of an M:N edge, so totals deliberately
                                  # exceed the grand total. Drives DISCLOSE (the honest over-count is the point).
