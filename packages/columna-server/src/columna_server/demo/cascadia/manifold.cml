@@ -1,4 +1,7 @@
 MANIFOLD cascadia VERSION 1
+# LEGACY (columna#150): this file is a hand-authored example of the engine's COMPILED input. Under
+# columna#150 a .cml is GENERATED from a published Manifold (the source of truth); hand-authoring one
+# is a legacy path — read this as compiled output, not as the canonical way to define a manifold.
 # Cascadia Retail — the Manifold spec, authored to chapter 2 of the case demo. Purely logical: the
 # tables and columns live in the physical→logical map (data.toml + the map document), never here.
 

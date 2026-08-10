@@ -1,4 +1,7 @@
 MANIFOLD benchmark VERSION 1
+# LEGACY (columna#150): this file is a hand-authored example of the engine's COMPILED input. Under
+# columna#150 a .cml is GENERATED from a published Manifold (the source of truth); hand-authoring one
+# is a legacy path — read this as compiled output, not as the canonical way to define a manifold.
 
 # ============================================================================
 # Layer 1 — populations (universes).  predicate carves the real population.
