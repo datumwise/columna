@@ -35,6 +35,9 @@ UNCONFIRMED = "unconfirmed_assumption"
 TRANSPORT = "transport"          # records a faithful transport step (provenance)
 B_ANCHOR_CROSSING = "b_anchor_crossing"   # served, critical: a reduction coarsens a blocked family
 DATA_GAP = "data_gap"            # served, material: absent cells are GAPS (spine/product basis, B3)
+ZERO_FILL = "zero_fill"          # served, MATERIAL (D4): absence 0-filled on an events basis — exact for
+                                 # an event-derived measure, possibly FICTITIOUS for a state-valued one,
+                                 # and the engine cannot yet tell them apart. Was immaterial `transport`.
 OVER_COUNT = "over_count"        # served, MATERIAL: a touch-face crossing multi-counts by construction —
                                  # the value reaches every match of an M:N edge, so totals deliberately
                                  # exceed the grand total. Drives DISCLOSE (the honest over-count is the point).

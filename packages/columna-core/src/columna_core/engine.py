@@ -24,7 +24,8 @@ from .model import Manifold, parse_faced, ASSIGN, ALLOC, ORDER_MIN
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
-                         FRESHNESS, APPROXIMATION, TRANSPORT, UNCONFIRMED, OVER_COUNT, SHADOW, RECONCILIATION)
+                         FRESHNESS, APPROXIMATION, TRANSPORT, ZERO_FILL, UNCONFIRMED, OVER_COUNT, SHADOW,
+                         RECONCILIATION)
 
 
 def canonical_delta(delta: float, tol: float) -> float:
@@ -525,9 +526,11 @@ class ColumnEngine:
             before = touched.height
             touched = domain.join(touched, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
             n_zero = touched.height - before
-            if n_zero > 0:
-                disc = disc.with_caveat(Caveat(TRANSPORT,
-                    f"{n_zero} {T} with no touched {meas.name} rendered as 0 per events basis"))
+            if n_zero > 0:                               # D4: MATERIAL — the 0 may be fictitious (state measure)
+                disc = disc.with_caveat(Caveat(ZERO_FILL, severity="caution", detail=(
+                    f"{n_zero} {T} with no touched {meas.name} filled with 0 on an events basis — correct "
+                    f"for an event-derived measure, may be wrong for a state-valued one, and the engine "
+                    f"cannot currently tell them apart")))
         touched = touched.sort(T).select([T, "_value"])
         self.cache[key] = CacheEntry(touched, None, ver)
         return touched, disc

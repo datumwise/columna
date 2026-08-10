@@ -16,7 +16,7 @@ import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP,
+from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT, DATA_GAP, ZERO_FILL,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced
 
@@ -333,10 +333,12 @@ class Planner:
                 n_absent = data[c.name].null_count()
                 if not n_absent:
                     continue
-                if basis == "events":                        # absence is the honest ZERO
+                if basis == "events":                        # absence 0-filled — MATERIAL: may be fictitious (D4)
                     data = data.with_columns(pl.col(c.name).fill_null(0))
-                    c.disclosure = c.disclosure.with_caveat(Caveat(TRANSPORT,        # immaterial, agent-legible
-                        f"{n_absent} absent cell(s) rendered as 0 per events basis"))
+                    c.disclosure = c.disclosure.with_caveat(Caveat(ZERO_FILL, severity="caution", detail=(
+                        f"{n_absent} absent cell(s) filled with 0 on an events basis — correct for an "
+                        f"event-derived measure, may be wrong for a state-valued one, and the engine "
+                        f"cannot currently tell them apart")))
                 elif basis in ("spine", "product"):          # absence is a GAP
                     c.disclosure = c.disclosure.with_caveat(Caveat(DATA_GAP,
                         f"{n_absent} absent cell(s) are gaps ({basis} basis) — the data is incomplete here"))
