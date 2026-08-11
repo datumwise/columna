@@ -32,7 +32,9 @@ def _lit(v):
 
 
 def _server(faces, cat_attrs="('c1',1,3.0),('c2',2,1.5),('c3',3,2.0),('c4',4,1.0)",
-            bridge="('p1','c1'),('p1','c2'),('p2','c2'),('p3','c1'),('p3','c2'),('p3','c3'),('p4','c4')"):
+            bridge="('p1','c1'),('p1','c2'),('p2','c2'),('p3','c1'),('p3','c2'),('p3','c3'),('p4','c4')",
+            revenue_fill=""):
+    _fill = f" FILL {revenue_fill}" if revenue_fill else ""
     con = duckdb.connect()
     con.execute("CREATE TABLE transactions AS SELECT * FROM (VALUES "
                 "('p1','d1',60.0),('p1','d2',40.0),('p2','d1',40.0),('p3','d1',10.0)) AS t(product_id,day,amount)")
@@ -49,7 +51,7 @@ RELATE product <-> category VIA product_categories(product_id, category_id)
     FACES {{
 {faces}
     }}
-MEASURE revenue ON sales FROM transactions AS sum(amount)
+MEASURE revenue ON sales FROM transactions AS sum(amount){_fill}
 MEASURE buyers ON sales FROM transactions AS distinct(product_id)
 MEASURE priority ON category_profile FROM category_attributes VALUE priority FAMILY {{ last ORDER category }}
 MEASURE alloc_weight ON category_profile FROM category_attributes VALUE alloc_weight FAMILY {{ last ORDER category }}
@@ -73,7 +75,9 @@ def test_assign_single_counts_to_the_top_rank_and_totals_reconcile():
     # ORDER MIN: p1->c1(1), p2->c2(2), p3->c1(1), p4->(no revenue). Single-count, no multiply.
     assert _by(data, "category.primary", "c1") == 110.0    # p1 + p3
     assert _by(data, "category.primary", "c2") == 40.0     # p2 only (p1,p3 went to c1)
-    assert _by(data, "category.primary", "c3") == 0.0      # nobody's top
+    # c3 is nobody's top: the transport COMPLETES the domain (c3 appears) but no longer self-fills 0
+    # (columna#149). revenue declares no fill rule, so its absence is DISCLOSED, not filled — null.
+    assert _by(data, "category.primary", "c3") is None
     assert data["revenue"].sum() == 150.0                  # ≡ the grand total (single-count preserves mass)
 
 
@@ -85,10 +89,44 @@ def test_assign_states_the_shadow_of_dropped_memberships():
 
 def test_assign_order_max_flips_the_pick():
     data = _server(TRIAD.replace("ORDER MIN", "ORDER MAX")).frame("category.primary").column("revenue", "revenue").run().data
-    # ORDER MAX: p1->c2(2), p3->c3(3). c1 now gets nobody.
-    assert _by(data, "category.primary", "c1") == 0.0
+    # ORDER MAX: p1->c2(2), p3->c3(3). c1 now gets nobody — absent, and revenue has no fill rule, so null
+    # (columna#149: the transport completes the domain but does not fill 0 itself).
+    assert _by(data, "category.primary", "c1") is None
     assert _by(data, "category.primary", "c3") == 10.0     # p3's max-priority category
     assert data["revenue"].sum() == 150.0
+
+
+# ---- crossed-grain absence follows the measure's Φ, not a transport self-fill (columna#149) ---------
+# A transport COMPLETES the target domain (every category appears) but no longer fills 0 itself. A
+# target no product maps to — c4, whose only member p4 carries no revenue — is the target member's
+# absence, governed by the measure's declared fill rule Φ, applied by the planner AFTER the engine
+# returns. `touch` was already Φ-aware; `assign`/`alloc` were not — that inconsistency was the tell.
+
+@pytest.mark.parametrize("faced", ["category.primary", "category.split"])
+def test_transport_absence_undeclared_discloses_never_fills(faced):
+    # revenue declares no fill rule: the absent target is DISCLOSED (null), never a fabricated 0.
+    fr = _server(TRIAD).frame(faced).column("revenue", "revenue").run()
+    assert _by(fr.data, faced, "c4") is None
+    assert any(c.category == "undeclared_absence" for c in fr.disclosure.caveats)
+
+
+@pytest.mark.parametrize("faced", ["category.primary", "category.split"])
+def test_transport_absence_unknown_survives_the_crossing_as_unknown(faced):
+    # THE case #149 exists for, and the assertion BITES: before the fix the transport's fill_null(0)
+    # turned an `unknown` measure's absent cell into a fabricated 0. It must stay null and disclose.
+    fr = _server(TRIAD, revenue_fill="unknown").frame(faced).column("revenue", "revenue").run()
+    assert _by(fr.data, faced, "c4") is None
+    assert any(c.category == "unknown_absence" for c in fr.disclosure.caveats)
+    assert not any(c.category == "declared_fill" for c in fr.disclosure.caveats)
+
+
+@pytest.mark.parametrize("faced", ["category.primary", "category.split"])
+def test_transport_absence_zero_fills_from_the_declared_rule_not_the_transport(faced):
+    # the flow case: a declared `zero` rule DOES fill 0 at the absent target — now via the planner's
+    # member Φ (declared_fill), not the transport. The right value, now for the right reason.
+    fr = _server(TRIAD, revenue_fill="zero").frame(faced).column("revenue", "revenue").run()
+    assert _by(fr.data, faced, "c4") == 0.0
+    assert any(c.category == "declared_fill" for c in fr.disclosure.caveats)
 
 
 # ---- ALLOC executes (split, the reconciliation badge) ----------------------------------------------
