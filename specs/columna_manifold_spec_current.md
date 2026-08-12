@@ -3,9 +3,10 @@
 **As-built reference for `columna-core` `0.15.0-core` (wire `contract_version` `"2"`).**
 Generated from the code, not from prophecy: every construct below is what the parser
 (`columna_core.parser`) accepts and the object model (`columna_core.model`) holds *today*.
-Where a construct was retired, that is stated. A short **§9 Not yet implemented** marks the
-proposed-but-absent work (notably P0(c)) so this document is never read as promising more than
-the engine does.
+Where a construct was retired, that is stated. The authored logical Manifold's governed population
+meaning is **complete as of P0(c)** (§8); a short **§10 Not yet implemented** marks the remaining
+proposed-but-absent work (**P1 — faithful physical realization**) so this document is never read as
+promising more than the system does.
 
 > **Constitutional sentence.** *Data is property at a point. The anchor names the coordinates;
 > the universe defines the points.* Addressing is the anchor's job; existence is the universe's.
@@ -309,7 +310,85 @@ stay separate even when values coincide.
 
 ---
 
-## 8. Version & compatibility
+## 8. The authored Manifold — governed logical meaning (P0(c), as-built)
+
+Two Manifolds stand behind this document. The **authored Manifold** (`manifold_agent.Manifold`, the
+Studio superset of §5) is the human-governed **logical world**; the **columna runtime artifact** (the
+`.cml` / engine object of §§1–7) is what that world lowers to. **P0(c) completes the authored
+Manifold's governed *logical* population meaning.** It does not yet fully realize that meaning into the
+engine artifact — that boundary is **P1** (§10). The columna-core runtime is unchanged by P0(c): the
+`.cml` continues to carry only `BASIS` + `WHERE`, and the engine object stays at `0.15.0-core`.
+
+> **The authored Manifold defines the logical world; the private mapping realizes it.**
+
+### 8.1 The logical layer, now first-class
+
+The authored universe's existence law (`λ_U`) is no longer a free-text `law` string. It is a
+structured, logical-only object:
+
+- **First-class logical `attribute`.** An attribute is a citizen of the authored Manifold's logical
+  namespace — a named logical property of a level, addressable *by that logical name* inside the
+  existence law — not merely the physical `<table>.<column>` binding that later realizes it.
+- **Four-way `basis`.** The population's grounding is a typed logical property with exactly four kinds —
+  **`events | spine | product | registry`** (`type → basis`). A semantic declaration of the
+  population's world, carried in the authored logical law.
+- **Structured logical `restriction`.** The carving predicate is a structured AST — AND-ed comparisons
+  over logical dimensions/attributes — not free text. It is what the runtime `WHERE` predicate
+  (§2.2, §3) is the lowered shadow of.
+- **Logical-only reference resolution.** Cross-declaration references inside the existence law resolve
+  **purely in the logical namespace**. Resolution never consults physical identity, and an ambiguous
+  reference **refuses** (fail-closed) rather than guessing.
+- **The physical-identity blast wall.** Physical incarnations and physical identity **never** enter
+  logical resolution or the logical existence law. The logical world is sealed from physical binding —
+  the authored-side counterpart of the runtime map-layer blast wall (§4).
+
+The result is a **complete, logically-resolvable governed population meaning** authored entirely in
+logical vocabulary.
+
+### 8.2 `existence_law_ratification` — declaration-level authority
+
+Ratification is **declaration-level authority metadata** attached to a governed universe — **not part
+of the universe law itself**. It records that a *human* has ratified the **current resolved logical
+existence law**.
+
+- **`elf-1` (behavioral).** Ratification **binds the current resolved logical existence law** and
+  becomes **stale** when that resolved meaning changes. (`elf-1` is the canonical fingerprint of the
+  resolved law; behaviorally, all this spec needs is: same resolved meaning ⇒ ratification still
+  current; changed meaning ⇒ stale.)
+- **Derived states.** A governed universe's existence law is therefore one of:
+  - **`UNRATIFIED`** — no human ratification on record;
+  - **`RATIFIED`** — a ratification binds the *current* resolved meaning;
+  - **`STALE`** — a ratification exists, but the resolved meaning has since changed.
+
+  These states are **derived** from the ratification and the current resolved law; they are not
+  independently stored flags.
+
+### 8.3 The governed publish rule
+
+> **A current governed universe cannot publish unless its structured existence law is logically
+> resolvable and has a current human ratification. Publish consumes ratification; it never creates it.**
+
+Publish is fail-closed on both conditions: an unresolvable law refuses, and an `UNRATIFIED` or `STALE`
+law refuses. Publish **reads** ratification; nothing in the publish path can **mint** it.
+
+### 8.4 Legacy migration
+
+> **Legacy vocabulary may be recovered, but migration never creates ratification.**
+
+A universe authored in the pre-P0(c) free-text vocabulary can be migrated forward into the structured
+logical law, but that migration leaves it **`UNRATIFIED`** — recovery of *meaning* never manufactures
+*authority*. A human must ratify the migrated law before it can publish.
+
+### 8.5 The boundary this section records
+
+Everything above is **logical**. **Physical realization is still outside the authored Manifold.** The
+private mapping and combined lowerer that turn this complete logical law into a faithful engine
+artifact are **not yet built** — that is P1 (§10). P0(c)'s guarantee is *complete governed logical
+meaning*, not *faithful physical realization*.
+
+---
+
+## 9. Version & compatibility
 
 - `columna_core.__version__` = **`0.15.0-core`**. Wire `contract_version` = **`"2"`**.
 - `0.15.0` added the additive `SOURCE_MANIFOLD` statement (no wire change).
@@ -318,16 +397,26 @@ stay separate even when values coincide.
 
 ---
 
-## 9. Not yet implemented (proposed, **not** current)
+## 10. Not yet implemented (proposed, **not** current)
 
 Flagged so this document is never over-read:
 
-- **P0(c) — structured universe existence law + explicit completeness.** Today a universe can carry
-  `basis = None` (undeclared) and still lower, and the Studio-side existence law (`λ_U`) is a
-  **free-text** `law` field with no structured restriction and no completeness state. The proposed
-  fail-closed rule — *a universe may lower only when it has a declared basis and its structured
-  existence law is explicitly established as complete* — is **under design, not built**. When it lands,
-  completeness will be **authored-Manifold state that licenses lowering**, not a new runtime `.cml`
-  law (the `.cml` continues to carry only `BASIS` + `WHERE`).
+- **P1 — faithful physical realization.** P0(c) establishes complete governed population meaning in the
+  authored logical Manifold (§8). The private mapping and combined lowerer do not yet fully realize that
+  logical law into the engine artifact. P1 will establish **attribute realization**, **predicate
+  lowering**, **measure/root realization**, and the **fail-closed check that no engine artifact is
+  emitted when a logical law cannot be faithfully represented**.
+
+  ```text
+  P0(c):
+  complete governed logical meaning
+          ↓
+  P1:
+  faithful private realization
+  ```
+
+  No P1 syntax or mapping structure is documented here: as with the attribute work, those should come
+  from the implementation trace, not be designed prematurely in the as-built spec.
+
 - **Two-format note.** The `.cml` text and the engine YAML are distinct serializations; unifying /
   formally reconciling them is not done here.
