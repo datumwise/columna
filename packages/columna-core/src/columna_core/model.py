@@ -279,6 +279,19 @@ class Manifold:
     non_functional: list = field(default_factory=list)  # [Relate] — M:N relationships (fan-out diagnostics + crossing faces)
     hierarchies: list = field(default_factory=list)     # [Hierarchy] — provenance for the desugared FD chains (B2)
 
+    # ---- source identity (columna#150, P0(b)) ------------------------------------------------------
+    # The PUBLISHED governed Manifold this engine artifact was lowered from — a REFERENCE the .cml
+    # carries so a served engine can name what it is running (§3.6: provenance stays behind in Studio,
+    # a reference to it is carried into the artifact). This is a THIRD, distinct identity dimension:
+    #   • `version` above  = this engine artifact's integer engine/cache revision (unchanged, unrelated);
+    #   • `source_manifold_id`      = the stable published id of the governed Manifold;
+    #   • `source_manifold_version` = its SEMANTIC publish version (`major.minor.patch`), retained verbatim.
+    # Never derived one from the other (the source id is NOT `name`); an atomic pair (the `SOURCE_MANIFOLD`
+    # statement carries both or the grammar rejects it). None on a legacy artifact — "no retained source
+    # identity", not an invented one.
+    source_manifold_id: Optional[str] = None
+    source_manifold_version: Optional[str] = None
+
     # ---- coordinate graph helpers ----
     def base_of_universe(self, uni: str) -> frozenset:
         return self.universes[uni].base_dimensions

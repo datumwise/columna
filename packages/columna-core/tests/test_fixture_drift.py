@@ -53,8 +53,9 @@ def test_import_and_version():
     import columna_core
 
     # Deliberately pinned: a version bump is an intentional act, so this test forces the bump to be
-    # made on purpose rather than drifting. 0.13.0 = the ASSERT retirement (breaking, ruling 2026-07-26).
-    assert columna_core.__version__ == "0.14.0-core"
+    # made on purpose rather than drifting. 0.13.0 = the ASSERT retirement (breaking, ruling 2026-07-26);
+    # 0.15.0 = the additive SOURCE_MANIFOLD source-identity statement (columna#150 P0(b)).
+    assert columna_core.__version__ == "0.15.0-core"
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))

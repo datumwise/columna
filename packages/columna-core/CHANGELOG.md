@@ -7,6 +7,35 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.15.0 — an additive source-identity reference in the `.cml` (columna#150 P0(b))
+
+**No wire change** (`contract_version` stays `"2"`); this is an authoring-grammar addition only. The
+`-core` line moves to `0.15.0-core`.
+
+The lowered engine artifact can now carry a REFERENCE to the published governed Manifold it was
+lowered from, so a served engine can name what it is running (§3.6: provenance stays behind in Studio;
+a reference to it is carried into the artifact). Grammar ruling (Huayin, 2026-08-10):
+
+- **`MANIFOLD ... VERSION <int>` is unchanged** — it remains this engine artifact and its integer
+  engine/cache revision. The integer `VERSION` was deliberately NOT widened into semver.
+- **New optional statement `SOURCE_MANIFOLD <id> VERSION <semver>`** — the source identity is a PAIR,
+  a stable published id **and** a semantic version, retained verbatim and opaquely (columna does not
+  interpret Studio semantics). It is a third, distinct identity dimension, never derived from the
+  MANIFOLD name or version.
+
+Guardrails:
+
+- **Atomic pair.** The single statement carries both id and version, or it is ungrammatical —
+  id-without-version and version-without-id cannot be written (structural, not a remembered rule).
+- **Legacy artifacts load unchanged.** A `.cml` without the statement parses; its retained source
+  identity is `None` — "no retained source identity", never an invented one.
+- **Fail closed.** A malformed reference (bare integer where a semver belongs, whitespace in the id, a
+  duplicate `SOURCE_MANIFOLD`) is refused, not silently kept.
+
+Retained on the model as `Manifold.source_manifold_id` / `Manifold.source_manifold_version`
+(`None` by default). The complementary rule — a Studio *lowering* MUST stamp the pair (it knows it is
+minting a governed artifact) — lives in the Studio publisher, not the parser.
+
 ## 0.14.0 — column identity is the canonical expression, not a mechanical default
 
 **WIRE CONTRACT BUMP: `contract_version` `"1"` → `"2"`.** No values, moods, disclosures, or reason
