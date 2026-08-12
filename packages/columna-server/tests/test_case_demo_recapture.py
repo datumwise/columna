@@ -27,14 +27,14 @@ _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "casc
 @pytest.fixture(scope="module")
 def corpus():
     lm = _load_one("cascadia", _CASCADIA)
-    lm.server.publish()
+    lm.provider.runtime.publish()
 
     class _Store:
         def get(self, mid):
             if mid != "cascadia":
                 raise KeyError(mid)
             return lm
-    return recapture.generate(_Store(), lm.server)
+    return recapture.generate(_Store(), lm.provider)
 
 
 def test_every_exemplar_lands_on_its_ratified_mood(corpus):

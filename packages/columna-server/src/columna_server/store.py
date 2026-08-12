@@ -18,7 +18,8 @@ Layout (per WP-2.2 spec):
 
 Every Manifold is parsed and its backend loaded ONCE at startup. `list_manifolds` / `describe_*`
 read from the parsed object and never touch data; `query` / `explain` go through the per-Manifold
-`ManifoldServer`. `explain` uses `plan()` and must not increment the connector's fetch count.
+`ExecutionProvider` (a `CoreExecutionProvider` over `ManifoldServer` today). `explain` uses `plan()`
+and must not increment the connector's fetch count.
 """
 from __future__ import annotations
 
@@ -34,14 +35,17 @@ except ModuleNotFoundError:  # py3.10
 from columna_core import DuckDBConnector, ManifoldServer
 from columna_core.parser import parse_file
 
+from .provider import CoreExecutionProvider, ExecutionProvider
+
 
 @dataclass
 class LoadedManifold:
     manifold_id: str
     name: str
     description: str
-    manifold: object          # columna_core.model.Manifold
-    server: ManifoldServer
+    manifold: object              # columna_core.model.Manifold — the logical/read model
+    provider: ExecutionProvider   # execution capability (the seam); the concrete Core
+    #                               runtime lives on CoreExecutionProvider.runtime, not here
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -102,7 +106,7 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         name=meta.get("name", manifold_id),
         description=meta.get("description", ""),
         manifold=manifold,
-        server=server,
+        provider=CoreExecutionProvider(server),
     )
 
 

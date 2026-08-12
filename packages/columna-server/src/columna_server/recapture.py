@@ -70,20 +70,20 @@ def _disclosure_tokens(res: dict):
     return out
 
 
-def _row_count(server, query: str):
-    """Recompute the served row count from the core planner (the wire carries mood, not the frame body).
-    None for explain/clarify/refuse (no served frame) or when the ask does not resolve."""
-    if server is None or query.startswith("EXPLAIN"):
+def _row_count(provider, query: str):
+    """Recompute the served row count through the execution provider (the wire carries mood, not the
+    frame body). None for explain/clarify/refuse (no served frame) or when the ask does not resolve."""
+    if provider is None or query.startswith("EXPLAIN"):
         return None
     try:
         from columna_core.envelope import parse_statement
-        r = server.planner.run_statement(parse_statement(query))
+        r = provider.run(parse_statement(query))
         return r.data.height if getattr(r, "data", None) is not None else None
     except Exception:
         return None
 
 
-def generate(store, server=None) -> dict:
+def generate(store, provider=None) -> dict:
     """Run every exemplar against the live manifold; RECORD mood/reason/shape; FLAG any deviation from
     the ratified expectation with its wire evidence. Returns the seeded corpus (numbers recorded)."""
     corpus, flags = [], []
@@ -111,7 +111,7 @@ def generate(store, server=None) -> dict:
             if menu:
                 entry["menu"] = menu
         # RECORD: row count for serves/discloses (from the core engine when available)
-        entry["row_count"] = _row_count(server, query)
+        entry["row_count"] = _row_count(provider, query)
         entry["reason_tokens"] = sorted({t["token"] for t in entry["disclosures"] if t["token"]})
         entry["in_wheel"] = eid in WHEEL     # the --play wheel is a SUBSET (E4->E8->E2->E5), marked as such
         # FLAG (never harmonize): mood or reason that lands off the ratified expectation
