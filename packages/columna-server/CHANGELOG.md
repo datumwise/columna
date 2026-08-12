@@ -3,21 +3,31 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — the ExecutionProvider seam (S1.1)
+## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2)
 
 **Internal seam; no behavior change, no wire change, no API change.** The MCP serving surface no
 longer knows that its execution provider is `ManifoldServer + ColumnEngine`. A new
 `columna_server.provider.ExecutionProvider` protocol carries the per-Manifold execution capability
-(`run` / `plan` / `explain` / `operators` / `published_scope` / `fetches`); the sole implementation,
+(`run` / `plan` / `explain` / `operators` / `published_scope`); the sole implementation,
 `CoreExecutionProvider`, is a 1:1 adapter over today's Core runtime and is the only server-side object
 that knows `ManifoldServer`. `LoadedManifold` now exposes `.provider` (execution) and `.manifold`
 (logical/read model) and **no longer has a `.server` field** — so `tools.py`/`recapture.py` cannot
 reach a concrete runtime through it. Result shapes stay opaque at the seam (the wire duck-types them),
 so a future non-Core provider need not instantiate any `columna-core` dataclass. Every governed
-result, refusal, disclosure, plan, explanation, operator exposure, published scope, and fetch metric
-is unchanged (the full wire/recapture/trial/MCP suites pass byte-identical). `operators` /
-`published_scope` / `fetches` are provisional on the provider; the `fetches`/`fetches_delta` cleanup is
-S1.2.
+result, refusal, disclosure, plan, explanation, operator exposure, and published scope is unchanged
+(the full wire/recapture/trial/MCP suites pass byte-identical).
+
+**S1.2 — execution diagnostics are optional.** The `fetches` metric that backs the wire's optional
+`fetches_delta` is no longer a mandatory provider capability. A separate, optional protocol
+`SupportsExecutionDiagnostics` exposes `execution_diagnostics() -> Mapping[str, int]` (cumulative,
+provider-defined counters; Core reports `{"fetches": N}`). The server derives `fetches_delta` only
+when the provider reports a `fetches` counter, and emits nothing otherwise — **absent ≠ zero**: it
+means the provider exposes no such diagnostic, never "zero", "unknown", or "failure". Core's
+`fetches_delta` (and the zero-fetch guarantee on plan/explain/check) is byte-identical. No wire
+object, no contract-version bump, no generalized telemetry field; the Core-internal `explain` path is
+untouched. Diagnostics observe execution; they never participate in analytical adjudication (proven by
+a test that removes the capability and gets the same frame/mood/disclosures, only the diagnostic field
+changing). `operators` / `published_scope` remain provisional on the provider.
 
 ## [0.8.2] — mcp 2.0 broke every fresh install; the cap is the fix, the guard is the point
 
