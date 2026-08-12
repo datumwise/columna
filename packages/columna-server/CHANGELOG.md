@@ -3,7 +3,31 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2)
+## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1)
+
+**S2.1 — shared Manifold identity, internal only (no wire/API change).** A Manifold is now identified
+by a governed publication, not a folder layout or a `.cml` runtime artifact. New `columna_server.registry`:
+`ManifoldSelector{id, version?}` (a convenience input; `version=None` ⇒ latest) resolves to a
+`ManifoldRef{id, concrete version}` — **never ambiguous**; no implicit `None` survives resolution.
+`GovernedPublication{ref, logical, authority}` is immutable meaning — a physical-clean logical
+projection (`logical_spec`) plus publication authority/provenance — and deliberately **excludes**
+runtime standing (`PublishedScope`, adjudication, attestation, provider availability). A
+`ManifoldRegistry` (`list`/`resolve`/`latest`; "latest" = highest semantic version, never lexical or
+filesystem recency) answers *WHICH*; the store answers *HOW* via `ResolvedManifold{publication,
+provider?}` (`provider is None` ⇒ **not realizable here**, an availability state distinct from
+`publication_not_found`, never routed through the four analytical moods). `ManifoldStore` becomes the
+first local implementation (`FolderManifoldRegistry` over parsed `.cml` folders): a `.cml` carrying a
+complete `SOURCE_MANIFOLD id VERSION semver` is a governed publication; a source-identity-less `.cml`
+stays a **legacy runtime entry** — compatibility-served, id-only, never promoted and never given an
+invented id/version/ratification (the P0(c) "recover access, never manufacture governance" rule). The
+compatibility surface (`get`/`ids`/`all`) and every existing server behavior are unchanged.
+*Deferred/recorded:* the P0(c) ratification record lives in the Studio publication bundle, not the
+`.cml`; a registry over bare `.cml` carries source identity but not the ratification record
+(`authority.ratification` is left `None`, not fabricated) — ingesting publication bundles is a later
+step. The public MCP/API surface (optional `version`, resolved-version disclosure, `not_realizable_here`
+behavior) is S2.2.
+
+
 
 **Internal seam; no behavior change, no wire change, no API change.** The MCP serving surface no
 longer knows that its execution provider is `ManifoldServer + ColumnEngine`. A new

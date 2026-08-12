@@ -26,6 +26,7 @@ from __future__ import annotations
 import glob
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 try:                       # py3.11+
     import tomllib
@@ -36,6 +37,15 @@ from columna_core import DuckDBConnector, ManifoldServer
 from columna_core.parser import parse_file
 
 from .provider import CoreExecutionProvider, ExecutionProvider
+from .registry import (
+    FolderManifoldRegistry,
+    GovernedPublication,
+    ManifoldRef,
+    ManifoldRegistry,
+    ManifoldSelector,
+    ResolvedManifold,
+    governed_publication_from_manifold,
+)
 
 
 @dataclass
@@ -46,6 +56,10 @@ class LoadedManifold:
     manifold: object              # columna_core.model.Manifold — the logical/read model
     provider: ExecutionProvider   # execution capability (the seam); the concrete Core
     #                               runtime lives on CoreExecutionProvider.runtime, not here
+    # Governed identity (S2.1). Set when the .cml carries a complete SOURCE_MANIFOLD id+version;
+    # None for a legacy (source-identity-less) runtime entry — never fabricated.
+    publication: Optional[GovernedPublication] = None
+    ref: Optional[ManifoldRef] = None
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -101,12 +115,18 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         raise ValueError(f"manifold '{manifold_id}' fails adjudication (fertility refuted by the "
                          f"attested data): {e}")
 
+    # Governed identity (S2.1): a .cml carrying a complete SOURCE_MANIFOLD id+version is a governed
+    # publication; a source-identity-less .cml stays a legacy runtime entry (publication None) — the
+    # compatibility path recovers access, it never manufactures governance.
+    publication = governed_publication_from_manifold(manifold)
     return LoadedManifold(
         manifold_id=manifold_id,
         name=meta.get("name", manifold_id),
         description=meta.get("description", ""),
         manifold=manifold,
         provider=CoreExecutionProvider(server),
+        publication=publication,
+        ref=(publication.ref if publication is not None else None),
     )
 
 
@@ -125,6 +145,18 @@ class ManifoldStore:
         if not self._loaded:
             raise FileNotFoundError(f"no manifolds (<id>/manifold.cml) found under {self.dir}")
 
+        # The governed-publication registry (WHICH), plus this installation's provider realizations
+        # (HOW), derived from the loaded entries. Legacy entries carry no publication and are absent
+        # from the registry; they remain reachable through the compatibility get()/ids()/all() below.
+        pubs: dict[ManifoldRef, GovernedPublication] = {}
+        self._providers_by_ref: dict[ManifoldRef, ExecutionProvider] = {}
+        for lm in self._loaded.values():
+            if lm.publication is not None and lm.ref is not None:
+                pubs[lm.ref] = lm.publication
+                self._providers_by_ref[lm.ref] = lm.provider
+        self._registry: ManifoldRegistry = FolderManifoldRegistry(pubs)
+
+    # ── compatibility surface (unchanged; folder-keyed) ──────────────────────────────────────────
     def ids(self) -> list[str]:
         return list(self._loaded)
 
@@ -136,3 +168,18 @@ class ManifoldStore:
 
     def all(self) -> list[LoadedManifold]:
         return list(self._loaded.values())
+
+    # ── governed identity surface (S2.1; additive — no wire/API change) ──────────────────────────
+    def registry(self) -> ManifoldRegistry:
+        """The governed-publication registry (WHICH). Governed publications only; legacy entries are
+        not published governance and are absent from it."""
+        return self._registry
+
+    def resolve(self, selector: ManifoldSelector) -> ResolvedManifold:
+        """Serving resolution: join WHICH (the governed publication, from the registry) with HOW (this
+        installation's provider for its ref). ``provider is None`` on the result means *not realizable
+        here* — the publication exists but this installation cannot serve it. Raises
+        ``PublicationNotFound`` when no such governed publication exists."""
+        publication = self._registry.resolve(selector)
+        provider = self._providers_by_ref.get(publication.ref)
+        return ResolvedManifold(publication=publication, provider=provider)
