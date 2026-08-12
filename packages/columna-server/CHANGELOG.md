@@ -3,6 +3,22 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [Unreleased] — the ExecutionProvider seam (S1.1)
+
+**Internal seam; no behavior change, no wire change, no API change.** The MCP serving surface no
+longer knows that its execution provider is `ManifoldServer + ColumnEngine`. A new
+`columna_server.provider.ExecutionProvider` protocol carries the per-Manifold execution capability
+(`run` / `plan` / `explain` / `operators` / `published_scope` / `fetches`); the sole implementation,
+`CoreExecutionProvider`, is a 1:1 adapter over today's Core runtime and is the only server-side object
+that knows `ManifoldServer`. `LoadedManifold` now exposes `.provider` (execution) and `.manifold`
+(logical/read model) and **no longer has a `.server` field** — so `tools.py`/`recapture.py` cannot
+reach a concrete runtime through it. Result shapes stay opaque at the seam (the wire duck-types them),
+so a future non-Core provider need not instantiate any `columna-core` dataclass. Every governed
+result, refusal, disclosure, plan, explanation, operator exposure, published scope, and fetch metric
+is unchanged (the full wire/recapture/trial/MCP suites pass byte-identical). `operators` /
+`published_scope` / `fetches` are provisional on the provider; the `fetches`/`fetches_delta` cleanup is
+S1.2.
+
 ## [0.8.2] — mcp 2.0 broke every fresh install; the cap is the fix, the guard is the point
 
 **BUG FIX, user-visible and total: for roughly 17 hours, `pip install columna` produced a package

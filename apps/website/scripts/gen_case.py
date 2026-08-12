@@ -83,8 +83,8 @@ def ch2_two_artifacts(m) -> dict:
 
 def main() -> int:
     lm = _load_one("cascadia", CASCADIA)
-    lm.server.publish()
-    corpus = recapture.generate(_Store(lm), lm.server)
+    lm.provider.runtime.publish()
+    corpus = recapture.generate(_Store(lm), lm.provider)
     if corpus["flags"]:
         print(f"case generation FAILED — exemplar drift: {corpus['flags']}", file=sys.stderr)
         return 1

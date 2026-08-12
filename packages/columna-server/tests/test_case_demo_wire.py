@@ -12,6 +12,7 @@ import duckdb
 from columna_core import ManifoldServer, DuckDBConnector
 from columna_core.parser import parse_manifold
 from columna_server.store import LoadedManifold
+from columna_server.provider import CoreExecutionProvider
 from columna_server import tools as T
 
 _CML = """MANIFOLD w VERSION 1
@@ -44,7 +45,7 @@ def _store():
     con.execute("CREATE TABLE snap(day VARCHAR, level DOUBLE)")
     m = parse_manifold(_CML)
     server = ManifoldServer(m, DuckDBConnector(con))
-    return _Store(LoadedManifold("w", "W", "", m, server))
+    return _Store(LoadedManifold("w", "W", "", m, CoreExecutionProvider(server)))
 
 
 def test_measure_description_flows_to_the_wire():

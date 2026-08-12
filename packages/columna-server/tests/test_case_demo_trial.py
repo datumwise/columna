@@ -30,7 +30,7 @@ _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "casc
 @pytest.fixture(scope="module")
 def live():
     lm = _load_one("cascadia", _CASCADIA)   # parse + well-formed + connect + adjudicate
-    lm.server.publish()                     # run the trials + build witnesses
+    lm.provider.runtime.publish()                     # run the trials + build witnesses
     return lm
 
 
@@ -68,19 +68,19 @@ def test_inventory_carve_is_a_definition_not_a_tried_claim(live):
     # ch3 v0.4: the opened-date carve LEFT the trial table — a definition confines, a claim gets tried;
     # nothing outside the population exists to test. For the record the raw feed respects it anyway —
     # proven by serving stock.last and getting a clean, non-empty position.
-    r = live.server.frame("store").column("stock", "stock.last").run()
+    r = live.provider.runtime.frame("store").column("stock", "stock.last").run()
     assert r.data.height > 0 and r.columns[0].refusal is None
 
 
 # ── THE FOUR MOODS (chapter-3 question section) — shape/mood, never a seeded number ──────────────────
 def test_serve_revenue_and_orders_by_region_and_quarter(live):
-    r = live.server.frame("region", "cal.quarter").column("rev", "revenue.sum").column("ord", "orders").run()
+    r = live.provider.runtime.frame("region", "cal.quarter").column("rev", "revenue.sum").column("ord", "orders").run()
     assert r.data.height > 0 and not r.disclosure.caveats and r.columns[0].refusal is None
 
 
 def test_stock_sum_over_time_serves_with_a_critical_blocked_caveat(live):
     # the first burn, retried: stock.sum across the blocked calendar SERVES but wears a critical caveat.
-    r = live.server.frame("store", "cal.month").column("stock", "stock.sum").run()
+    r = live.provider.runtime.frame("store", "cal.month").column("stock", "stock.sum").run()
     crossing = [c for c in r.disclosure.caveats if c.category == "b_anchor_crossing"]
     assert crossing and crossing[0].severity == "critical"
     assert "calendar" in crossing[0].detail
@@ -92,5 +92,5 @@ def test_revenue_by_category_clarifies_naming_the_many_to_many(live):
     res = T.query(_Store(live), "cascadia", "SELECT revenue AT {category}")
     assert res["outcome"] == "clarify"
     # the engine object underneath is the non_functional_transport refusal the planner classifies to clarify
-    ref = live.server.frame("category").column("rev", "revenue.sum").run().columns[0].refusal
+    ref = live.provider.runtime.frame("category").column("rev", "revenue.sum").run().columns[0].refusal
     assert ref is not None and ref.reason == "non_functional_transport" and "category" in ref.detail

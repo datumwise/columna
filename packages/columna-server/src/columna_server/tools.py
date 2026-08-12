@@ -110,7 +110,7 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     # (`cut`/`cut_by` stood here. They retired with ASSERT in 0.13.0, ruling 2026-07-26: the cut region's
     #  sole producer was a violated assert, so the two fields could only ever be empty. Stated in the
     #  0.13.0 release note with the `asserts` block and the universes' `attributes`.)
-    ps = getattr(lm.server, "published_scope", None)
+    ps = lm.provider.published_scope()
     scope = {"blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
              "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
@@ -127,7 +127,7 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
     if mc is None:
         raise ToolInputError(f"unknown measure '{measure}' in manifold '{manifold_id}' "
                              f"(have {sorted(m.measures)})")
-    ops = lm.server.planner.m.operators   # OperatorSig registry (kind, is_monoid)
+    ops = lm.provider.operators()   # OperatorSig registry (kind, is_monoid)
 
     from columna_core import operator_properties
     member_anchors, reducer_kind, signatures = {}, {}, {}
@@ -172,13 +172,13 @@ def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) ->
     fetches this run cost) — the executing counterpart of `check_frame_query`'s zero-fetch pre-flight."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
-    before = lm.server.fetches
+    before = lm.provider.fetches()
     try:
         stmt = parse_statement(frameql)
-        fr = lm.server.planner.run_statement(stmt)
+        fr = lm.provider.run(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return _syntax_error_wire(str(e), None)
-    delta = lm.server.fetches - before
+    delta = lm.provider.fetches() - before
     return dw.wire_frame(fr, executed=True, fetches_delta=delta)
 
 
@@ -197,7 +197,7 @@ def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) ->
     lm = _get(store, manifold_id)
     try:
         stmt = parse_statement(statement)
-        return lm.server.explain_statement(stmt)
+        return lm.provider.explain(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
                 "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}
@@ -221,9 +221,9 @@ def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> d
         stmt = parse_statement(frameql)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return _syntax_error_wire(str(e), None)
-    before = lm.server.fetches
-    fr = lm.server.planner.plan_statement(stmt)
-    delta = lm.server.fetches - before
+    before = lm.provider.fetches()
+    fr = lm.provider.plan(stmt)
+    delta = lm.provider.fetches() - before
     return dw.wire_frame(fr, executed=False, fetches_delta=delta)
 
 
@@ -264,7 +264,7 @@ def manifold_status(store: ManifoldStore, manifold_id: str) -> dict:
     untestable)."""
     lm = _get(store, manifold_id)
     m = lm.manifold
-    ps = getattr(lm.server, "published_scope", None)
+    ps = lm.provider.published_scope()
     licenses = getattr(ps, "licenses", None) if ps else None
     lic_list = list(licenses.values()) if isinstance(licenses, dict) else (list(licenses) if licenses else [])
     verdicts: dict[str, int] = {}
