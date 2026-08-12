@@ -7,7 +7,12 @@ planner/engine already run on the object; the parser removes hand-construction s
 written definition is queryable end-to-end.
 
 Grammar (statement-oriented; '#' comments; { } blocks):
-    MANIFOLD <name> VERSION <n>
+    MANIFOLD <name> VERSION <n>              this engine artifact + its integer engine/cache revision
+    SOURCE_MANIFOLD <id> VERSION <semver>    OPTIONAL — the published governed Manifold this artifact was
+                                             lowered from (columna#150 P0(b)). A distinct identity: a
+                                             stable id AND a semantic version, an atomic pair. Additive —
+                                             a legacy .cml omits it (no retained source identity). Never
+                                             derived from the MANIFOLD name/version.
     UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]
     LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]
     HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }
@@ -32,8 +37,8 @@ from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     Ref, Comparison, Predicate, Hierarchy,
                     Relate, Face, FACE_SCHEMES, FACE_ORDERS, TOUCH, ASSIGN)
 
-_KW = ("MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE", "DERIVED",
-       "HIERARCHY", "ATTR")   # EDGE purged (§2a); ASSERT retired (0.13.0); ATTR = the inline LEVEL clause
+_KW = ("MANIFOLD", "SOURCE_MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE",
+       "DERIVED", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ASSERT retired (0.13.0); ATTR = the inline LEVEL clause
 
 # RETIRED statement heads (0.13.0). Not grammar — held here ONLY so a document written against the
 # old grammar still SPLITS at the retired line and meets the teaching refusal there, instead of
@@ -147,6 +152,33 @@ def _p_manifold(s, M):
     if not m:
         raise ParseError(f"bad MANIFOLD header: {s!r}")
     M["name"], M["version"] = m.group(1), int(m.group(2))
+
+
+# SOURCE_MANIFOLD <id> VERSION <semver> — the OPTIONAL source-identity reference (columna#150 P0(b)).
+# A distinct identity dimension from the MANIFOLD header: `<id>` is the stable published id and
+# `<semver>` its SEMANTIC publish version — an ATOMIC PAIR (this single statement carries both, so id
+# without version or version without id is ungrammatical; nothing to remember). Columna retains the
+# pair OPAQUELY (never interpreting Studio semantics, never deriving it from the MANIFOLD name/version)
+# but fails closed on a malformed reference — the id token must not contain whitespace, and the
+# version must be a `major.minor.patch` core (optional -prerelease / +build, kept verbatim).
+def _p_source_manifold(s, M):
+    if M.get("source_manifold_id") is not None:
+        raise ParseError(
+            "duplicate SOURCE_MANIFOLD — a lowered artifact references exactly one source Manifold "
+            f"(already {M['source_manifold_id']!r}); a second is a category error, not an override"
+        )
+    m = re.match(
+        r"SOURCE_MANIFOLD\s+([\w.:@/-]+)\s+VERSION\s+"
+        r"(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)\s*$",
+        s,
+    )
+    if not m:
+        raise ParseError(
+            f"bad SOURCE_MANIFOLD reference: {s!r} — expected "
+            "'SOURCE_MANIFOLD <id> VERSION <major.minor.patch>' (id and semantic version are an "
+            "atomic pair; the integer MANIFOLD ... VERSION is a different identity)"
+        )
+    M["source_manifold_id"], M["source_manifold_version"] = m.group(1), m.group(2)
 
 
 def _p_universe(s, M):
@@ -499,7 +531,8 @@ def _p_retired_attr_on(s, M):
     raise ParseError(_ATTR_ON_RETIRED)
 
 
-_DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level,
+_DISPATCH = {"MANIFOLD": _p_manifold, "SOURCE_MANIFOLD": _p_source_manifold,
+             "UNIVERSE": _p_universe, "LEVEL": _p_level,
              "RELATE": _p_relate, "MEASURE": _p_measure, "DERIVED": _p_derived,
              "HIERARCHY": _p_hierarchy,
              # retired heads — kept in the dispatch ONLY to raise the teaching refusal (see above)
@@ -509,7 +542,8 @@ _DISPATCH = {"MANIFOLD": _p_manifold, "UNIVERSE": _p_universe, "LEVEL": _p_level
 # ---- public -----------------------------------------------------------------
 def parse_manifold(text: str) -> Manifold:
     M = {"name": None, "version": 1, "universes": {}, "levels": {}, "edges": [],
-         "measures": {}, "derived": {}, "non_functional": [], "hierarchies": []}
+         "measures": {}, "derived": {}, "non_functional": [], "hierarchies": [],
+         "source_manifold_id": None, "source_manifold_version": None}
     for stmt in _statements(text):
         kw = stmt.strip().split()[0]
         _DISPATCH[kw](stmt, M)
@@ -526,7 +560,9 @@ def parse_manifold(text: str) -> Manifold:
             M["measures"][nm] = replace(meas, universe=_unis[0])
     manifold = Manifold(M["name"], M["version"], M["universes"], M["levels"],
                         M["edges"], M["measures"], M["derived"], M["non_functional"],
-                        M["hierarchies"])
+                        M["hierarchies"],
+                        source_manifold_id=M["source_manifold_id"],
+                        source_manifold_version=M["source_manifold_version"])
     errs = check_wellformed(manifold)
     if errs:
         raise ParseError("not well-formed:\n  - " + "\n  - ".join(errs))
