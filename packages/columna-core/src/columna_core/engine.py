@@ -365,9 +365,15 @@ class ColumnEngine:
         n_total = frame.height
         uncovered = frame.join(covered, on=other, how="anti")
         assigned = self._transport_reduce(frame, other, T, picked, op)                        # single-count join
-        # crossed-grain absence — events basis: complete the domain from the bridge, fill 0.
+        # crossed-grain absence (columna#149): complete the domain from the bridge so every target
+        # category appears, then LEAVE the absent cells null. A target a transport CREATES — a `T` that
+        # no measure-side key maps to — is the TARGET member's absence, governed by the measure's fill
+        # rule Φ, which the planner applies after the engine returns (member Φ-fill: zero fills 0,
+        # unknown/undeclared disclose). The transport does not fill 0 itself: that unconditional self-fill
+        # zero-filled an `unknown` measure before Φ was ever consulted (touch was already Φ-aware; assign
+        # and alloc were not — the inconsistency that made this an oversight, not a design).
         domain = bridge.select(pl.col("_to").alias(T)).unique()
-        assigned = domain.join(assigned, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
+        assigned = domain.join(assigned, on=T, how="left")
         assigned = assigned.sort(T).select([T, "_value"])
         self.stats.transports += 1
         self._t(trace, f"  assign {other}->{T} via {rel.via_table} ORDER {face.order} on {face.selection} "
@@ -418,9 +424,12 @@ class ColumnEngine:
         tol = max(1.0, abs(base_total)) * 1e-9
         delta = canonical_delta(crossed_total - base_total, tol)
         status = "reconciles" if abs(delta) <= tol else "shortfall"
-        # crossed-grain absence — events basis: complete the domain, fill 0.
+        # crossed-grain absence (columna#149): complete the domain so every target category appears,
+        # then LEAVE the absent cells null — a target no measure-side key allocates to is the target
+        # member's absence, governed by the measure's fill rule Φ (applied by the planner after the
+        # engine returns). The transport does not fill 0 itself (see the note in _resolve_assign).
         domain = bridge.select(pl.col("_to").alias(T)).unique()
-        split = domain.join(split, on=T, how="left").with_columns(pl.col("_value").fill_null(0))
+        split = domain.join(split, on=T, how="left")
         split = split.sort(T).select([T, "_value"])
         self.stats.transports += 1
         self._t(trace, f"  alloc {other}->{T} via {rel.via_table} by norm({face.selection}) "
