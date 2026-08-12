@@ -221,3 +221,22 @@ Analytical meaning is decided in the **shared semantic core**: the authored Mani
 **Mechanical execution may move downward whenever the lower layer can faithfully execute an already-adjudicated operation without acquiring decision authority.** The `Connector`'s no-join discipline is strong evidence of the current separation, and it lets Core add/multiply source backends — but moving *more* computation source-side still requires preserving operator, state, absence, ordering, and certificate semantics, so it is not unconditional. Execution **cannot** move into a swapped internal substrate until each of the ~19 embedded decisions is made explicit as a ruled directive *above* the substrate (LAW → DIRECTIVE → SUBSTRATE); until then the substrate would acquire (or silently duplicate) decision authority. And the identity/composition authority the vision wants downward **does not exist yet** to move: it must be *authored into being* (the missing Core compiler; a real member-identity layer), not extracted from today's implementation keys.
 
 **One-line:** the split is not a disentangling problem — it is a *contract-definition* problem across domains that are already separated, with one contract entirely missing (the Core compiler) and one decision-locus (the ~19 Polars sites) that must be hoisted before any substrate moves.
+
+---
+
+## Post-F0 addenda
+
+*Marked additions after the reconnaissance was frozen. The reconnaissance body above is unchanged.*
+
+### C2/C3 parity hazard — floating-point aggregation order (recorded from S1.2, 2026-08-12)
+
+Independent executions of the same governed measure may differ at the **raw floating-point bit
+level** because aggregation (summation) order is substrate/execution-dependent. Observed while
+building an S1.2 test: the same governed value came back as `90001.27` from one aggregation and
+`90001.26999999999` from an independent one over identical data.
+
+This does **not** indicate a defect — it is exactly the sub-epsilon reconciliation residue the engine
+already canonicalizes internally (`canonical_delta`, §4). It is preserved here as a **substrate-migration hazard**: future **Polars→DuckDB** parity work (C2/C3) must compare governed/**canonical**
+values according to Columna's numeric law (canonicalization / tolerance), **not** demand raw
+floating-point byte identity where the law already defines canonicalization. Recorded so the substrate
+work does not rediscover it; not a generalization beyond what the current code supports.
