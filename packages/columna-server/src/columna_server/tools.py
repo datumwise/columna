@@ -14,9 +14,22 @@ from typing import Optional
 from columna_core import disclosure_wire as dw
 
 from .frameql import FrameQLSyntaxError
+from .provider import SupportsExecutionDiagnostics
 from .store import ManifoldStore
 
 CONTRACT_VERSION = dw.CONTRACT_VERSION
+
+
+def _fetch_count(provider) -> Optional[int]:
+    """The provider's cumulative backend-fetch counter, or None if it exposes no such diagnostic.
+
+    None is NOT zero: it means this provider does not expose the Core `fetches` diagnostic, so the
+    server emits no `fetches_delta`. Only a provider that reports `fetches` gets the (Core-specific)
+    `fetches_delta` wire annotation — no fetch concept is fabricated for providers that lack one.
+    """
+    if isinstance(provider, SupportsExecutionDiagnostics):
+        return provider.execution_diagnostics().get("fetches")
+    return None
 
 # evidence grade (model.py) -> wire provenance vocabulary (WP-2.2 ruling C)
 _PROVENANCE = {"proven": "data_attested", "declared": "declared",
@@ -172,13 +185,14 @@ def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) ->
     fetches this run cost) — the executing counterpart of `check_frame_query`'s zero-fetch pre-flight."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm = _get(store, manifold_id)
-    before = lm.provider.fetches()
+    before = _fetch_count(lm.provider)
     try:
         stmt = parse_statement(frameql)
         fr = lm.provider.run(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return _syntax_error_wire(str(e), None)
-    delta = lm.provider.fetches() - before
+    after = _fetch_count(lm.provider)
+    delta = (after - before) if (before is not None and after is not None) else None
     return dw.wire_frame(fr, executed=True, fetches_delta=delta)
 
 
@@ -221,9 +235,10 @@ def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> d
         stmt = parse_statement(frameql)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
         return _syntax_error_wire(str(e), None)
-    before = lm.provider.fetches()
+    before = _fetch_count(lm.provider)
     fr = lm.provider.plan(stmt)
-    delta = lm.provider.fetches() - before
+    after = _fetch_count(lm.provider)
+    delta = (after - before) if (before is not None and after is not None) else None
     return dw.wire_frame(fr, executed=False, fetches_delta=delta)
 
 
