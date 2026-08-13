@@ -3,7 +3,32 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1)
+## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2)
+
+**S2.2b-2 — governed publication catalog (WIRE `contract_version` `"2"` → `"3"`).** `list_manifolds`
+is now a governed publication **lineage** catalog, not a runtime-folder inventory: one row per
+governed `manifold_id` with `versions[]` + `latest_version` (publication facts) and per-version
+`realizable` (an installation fact — publication existence and local realizability are separate),
+plus explicitly classified `legacy` / `authority_incomplete` compatibility runtimes (keyed by
+`runtime_id`; the latter carries `source_ref` + stable `conditions[]` from a fixed code vocabulary —
+never raw details/paths/exception text). Rows are deterministically ordered (governed by
+`manifold_id`, then legacy, then authority-incomplete by `runtime_id`); `versions[]` ascending semver.
+Per-realization fields (`name`/`description`/`n_measures`/`universes`) were dropped — `describe` is the
+detail surface. `list_versions` was deliberately not added.
+
+**S2.2b-1 — version-aware public selection + resolved-publication disclosure (additive; contract still
+`"2"` at the time).** The 9 publication/execution-scoped tools take an optional `version`; resolution
+is governed-first (a governed lineage outranks a same-named compatibility folder, deterministically),
+and every governed response discloses the concrete `{manifold_id, manifold_version}`. Compatibility
+runtimes stay unversioned (no fabricated version). Two request-time structural errors:
+`publication_not_found`, `not_realizable_here`.
+
+**S2.2a-3 — server ingests the governed publication artifact.** `GovernedPublication.{ref,logical,
+authority}` come exclusively from a co-located `governed-publication.json` (read with stdlib JSON; no
+`manifold_agent` dependency), never from `logical_spec(.cml)`. A Core provider binds only when
+`artifact.ref == .cml SOURCE_MANIFOLD` (else `RealizationIdentityMismatch`, no bind). Three runtime
+kinds: `legacy`, `source_referenced_incomplete` (authority-incomplete, compatibility-served, never
+governed), `governed`. Observable `store.conditions()`.
 
 **S2.1 — shared Manifold identity, internal only (no wire/API change).** A Manifold is now identified
 by a governed publication, not a folder layout or a `.cml` runtime artifact. New `columna_server.registry`:

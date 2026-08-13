@@ -16,7 +16,7 @@ def test_demo_play_prints_three_moods_in_order():
                           capture_output=True, text=True, timeout=120, env=dict(os.environ))
     assert proc.returncode == 0, proc.stderr[-2000:]
     out = proc.stdout
-    assert '"contract_version": "2"' in out
+    assert '"contract_version": "3"' in out
     # the three moods appear, in order (clarify -> refuse -> serve; §2c reframe 2026-07-16)
     i_clar = out.find('"outcome": "clarify"')
     i_ref = out.find('"outcome": "refuse"')
@@ -36,7 +36,8 @@ async def test_demo_serves_stdio_with_no_path_args():
     assert tools == ["case_chapter", "case_manifest", "check_frame_query", "describe_manifold",
                      "describe_measure", "discovery", "execute_frame_query", "explain",
                      "frame_ql_grammar", "get_evidence", "list_manifolds", "manifold_status", "query"]
-    assert "cascadia" in [m["manifold_id"] for m in manifolds]   # the case demo's own manifold is hosted
+    # the case demo's cascadia .cml carries no SOURCE_MANIFOLD → a legacy runtime row (runtime_id)
+    assert "cascadia" in [m.get("runtime_id") for m in manifolds]
 
 
 # ---- THE cp1252 CLASS GUARD (0.13.2) -----------------------------------------------------------

@@ -7,6 +7,19 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## Unreleased — wire `contract_version` `"2"` → `"3"` (S2.2b-2 governed catalog semantics)
+
+**WIRE CONTRACT BUMP: `contract_version` `"2"` → `"3"`.** `list_manifolds` changed from a
+runtime-**folder** inventory (one row per loaded folder, each with name/description/n_measures/
+universes) to a governed publication **lineage** catalog: one row per governed `manifold_id` with
+`versions[]` + `latest_version` (publication facts) and per-version `realizable` (an installation
+fact), plus explicitly classified `legacy` / `authority_incomplete` compatibility runtimes. The row
+meaning and cardinality changed and the per-realization fields were dropped — a breaking
+catalog-semantics change, so the contract bumps. `CONTRACT_VERSION` is global, so
+query/check/explain/describe now report `"3"` too; **no analytical behavior changed** in those
+surfaces (this is not caused by S2.2b-1's additive resolved `manifold_id`/`manifold_version`, which
+were compatible under `"2"`). See `disclosure_wire.py` version history.
+
 ## 0.15.0 — an additive source-identity reference in the `.cml` (columna#150 P0(b))
 
 **No wire change** (`contract_version` stays `"2"`); this is an authoring-grammar addition only. The

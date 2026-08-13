@@ -21,8 +21,11 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
 
     @mcp.tool()
     def list_manifolds() -> dict:
-        """List the Manifolds this server hosts (id, name, description, measure count, universes).
-        Touches no data."""
+        """The installation catalog: governed publication LINEAGES (one row per manifold_id with its
+        versions[] + latest_version, and per-version `realizable` — publication existence vs local
+        realizability are separate facts) plus explicitly classified `legacy` / `authority_incomplete`
+        compatibility runtimes (keyed by runtime_id; the latter carries source_ref + stable deployment
+        `conditions`). Read-model detail (measures, universes) lives on `describe`. Touches no data."""
         return T.list_manifolds(store)
 
     @mcp.tool()

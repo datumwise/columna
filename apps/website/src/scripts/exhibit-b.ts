@@ -93,7 +93,7 @@ function init(root: HTMLElement) {
     foolResp.innerHTML = '<p class="pick-note">asking the live endpoint…</p>';
     try {
       const wire = await postQuery(DATA.endpoint, frameql);
-      if (wire.contract_version !== '1') throw new Error('unexpected contract');
+      if (wire.contract_version !== '3') throw new Error('unexpected contract');
       foolResp.innerHTML = '';
       foolResp.append(renderCard(wire, { ask: DATA.foolIt.measureIndex, heading: `you asked for “${raw}” — here is what came back over the wire:` }));
       foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

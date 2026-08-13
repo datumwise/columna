@@ -22,8 +22,18 @@ from typing import Optional
 
 from .disclosure import Caveat, Outcome
 
-CONTRACT_VERSION = "2"
+CONTRACT_VERSION = "3"
 # ── VERSION HISTORY ─────────────────────────────────────────────────────────────────────────────────
+# "2" → "3" (S2.2b-2): list_manifolds catalog semantics changed. `manifolds[]` was a runtime-FOLDER
+#   inventory (one row per loaded folder, each with name/description/n_measures/universes); it is now a
+#   governed publication LINEAGE catalog — one row per governed `manifold_id` with `versions[]` +
+#   `latest_version` (publication facts) and per-version `realizable` (an installation fact), PLUS
+#   explicitly classified `legacy` / `authority_incomplete` compatibility runtimes (keyed by
+#   `runtime_id`, the latter carrying `source_ref` + stable `conditions`). The row meaning and
+#   cardinality changed and the per-realization fields were dropped — a breaking catalog-semantics
+#   change, so the contract bumps. (NOT caused by b-1's additive resolved manifold_id/version fields —
+#   those were compatible under "2".) `CONTRACT_VERSION` is global, so query/check/explain/describe now
+#   report "3" too; no analytical behavior changed. See S2.2b-2.
 # "1" → "2" (WP-NAME-1, 0.14.0, 2026-07-30): the default column KEY changed for the same utterance.
 #   An unaliased series is now keyed by its CANONICAL EXPRESSION, not a mechanical default:
 #   `avg_revenue` → `avg(revenue)`, `revenue_sum` → `revenue.sum`. No values, moods, disclosures, or
@@ -48,6 +58,16 @@ CONTRACT_VERSION = "2"
 #   · apps/website/scripts/gen_universe_visual.py      — Figure 1 (fails closed on untaught shapes)
 #   · packages/columna-server/src/columna_server/agent/ — the demo agents
 #   · packages/columna-server/src/columna_server/tools.py — describe itself (the producer)
+#
+# KNOWN IN-TREE list_manifolds CONSUMERS (added S2.2b-2; the v3 catalog is per-lineage, not per-folder):
+#   · packages/columna-server/src/columna_server/agent/mcp_client.py — connect() picks a servable id
+#     from governed `manifold_id` + compat `runtime_id` rows
+#   · packages/columna-server/tests/test_mcp_server.py, test_demo.py — catalog-shape assertions
+#
+# KNOWN IN-TREE contract_version LITERAL CONSUMERS (any bump must sweep these):
+#   · apps/website/src/scripts/exhibit-b.ts            — the live-demo query endpoint gate
+#   · scripts/assert_demo_play.py, .github/workflows/ci.yml — the demo --play smoke
+#   · apps/demo-endpoint-vercel/scripts/generate.py    — bakes T.CONTRACT_VERSION into _META (auto)
 # ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 # Materiality is a fixed vocabulary (structured_disclosure_capture.md: the load-bearing field).

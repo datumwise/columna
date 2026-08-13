@@ -241,15 +241,17 @@ def test_single_level_pin_equal_output_is_still_standard_form(fixture_connector)
 
 
 # ── wire contract: WP-GRAIN-1 added reason codes WITHOUT a bump; WP-NAME-1 (0.14.0) bumped to "2" ──
-def test_wire_contract_version_is_2_after_wp_name_1(fixture_connector):
+def test_wire_contract_version_is_current(fixture_connector):
     # WP-GRAIN-1 added `pin_coarser_than_output`/`redundant_pin` inside the existing vocabulary — no bump
     # (readers on the contract route by outcome). WP-NAME-1 changed the default column KEY for the same
-    # utterance (canonical expression identity), which IS a breaking wire change -> contract "2".
+    # utterance (canonical expression identity) -> contract "2". S2.2b-2 changed list_manifolds catalog
+    # semantics (per-lineage, not per-folder) -> contract "3"; the bump is global, so this frame wire
+    # reports "3" too though no analytical behavior changed here.
     from columna_core.disclosure_wire import CONTRACT_VERSION
-    assert CONTRACT_VERSION == "2"
+    assert CONTRACT_VERSION == "3"
     s = _srv(fixture_connector)
     w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
-    assert w["contract_version"] == "2"
+    assert w["contract_version"] == "3"
     # the composite pin's reduction column is keyed by its canonical expression (WP-NAME-1)
     assert w["columns"][0]["name"] == "avg(revenue @ {store*product*cal.month})"
 
