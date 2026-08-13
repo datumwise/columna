@@ -42,6 +42,15 @@ class _Store:
         if mid != self._lm.manifold_id:
             raise KeyError(mid)
         return self._lm
+    def ids(self):
+        return [self._lm.manifold_id]
+    def governed_ids(self):
+        return []
+    def resolve_public(self, mid, version=None):
+        if version is not None:
+            from columna_server.registry import PublicationNotFound
+            raise PublicationNotFound(f"{mid}@{version}")
+        return self.get(mid), None
 
 
 # ── THE TRIAL (chapter-3 verdict table) — the adjudicated claims ─────────────────────────────────────

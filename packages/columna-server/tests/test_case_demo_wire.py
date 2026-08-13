@@ -38,6 +38,18 @@ class _Store:
             raise KeyError(mid)
         return self._lm
 
+    def ids(self):
+        return [self._lm.manifold_id]
+
+    def governed_ids(self):
+        return []
+
+    def resolve_public(self, mid, version=None):
+        if version is not None:
+            from columna_server.registry import PublicationNotFound
+            raise PublicationNotFound(f"{mid}@{version}")
+        return self.get(mid), None
+
 
 def _store():
     con = duckdb.connect()

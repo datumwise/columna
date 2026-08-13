@@ -26,48 +26,53 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         return T.list_manifolds(store)
 
     @mcp.tool()
-    def describe_manifold(manifold_id: str) -> dict:
+    def describe_manifold(manifold_id: str, version: str | None = None) -> dict:
         """Describe a Manifold: dimensions/levels, functional edges (with lineage), universes
-        (name + rendered predicate), and the measure index. Touches no data."""
-        return T.describe_manifold(store, manifold_id)
+        (name + rendered predicate), and the measure index. Touches no data. `version` selects a
+        governed publication (omitted ⇒ latest published); the response discloses the resolved
+        `manifold_version`."""
+        return T.describe_manifold(store, manifold_id, version)
 
     @mcp.tool()
-    def describe_measure(manifold_id: str, measure: str) -> dict:
+    def describe_measure(manifold_id: str, measure: str, version: str | None = None) -> dict:
         """Describe one measure: the family (root, members, reducer kinds), per-member anchors
         (blocked lineages, order-by, monoid), dtype, v-anchor {universe, grain}, m-anchor, and
-        provenance. Touches no data."""
-        return T.describe_measure(store, manifold_id, measure)
+        provenance. Touches no data. `version` selects a governed publication (omitted ⇒ latest)."""
+        return T.describe_measure(store, manifold_id, measure, version)
 
     @mcp.tool()
-    def execute_frame_query(manifold_id: str, frameql: str) -> dict:
+    def execute_frame_query(manifold_id: str, frameql: str, version: str | None = None) -> dict:
         """Execute a FrameQL envelope statement (`SELECT <series [AS alias]>,… AT {anchor}` with optional
         WHERE/HAVING/ORDER BY/LIMIT n PER {dims}; never SQL; the terse `cols @ anchor` form is retired)
         OVER REAL DATA. Returns the wire contract: outcome (serve/disclose/clarify/refuse/error) with
-        per-column values and structured disclosures, annotated `executed: true` + `fetches_delta`. The
-        executing counterpart to `check_frame_query`. Universe is resolved structurally (§2c)."""
-        return T.execute_frame_query(store, manifold_id, frameql)
+        per-column values and structured disclosures, annotated `executed: true` + `fetches_delta`, plus
+        the resolved `manifold_id`/`manifold_version`. The executing counterpart to `check_frame_query`.
+        `version` selects a governed publication (omitted ⇒ latest). Universe is resolved structurally."""
+        return T.execute_frame_query(store, manifold_id, frameql, version)
 
     @mcp.tool()
-    def query(manifold_id: str, frameql: str) -> dict:
+    def query(manifold_id: str, frameql: str, version: str | None = None) -> dict:
         """DEPRECATED alias for `execute_frame_query` (removed after 0.9.x); the wire is identical.
         Retained one release so existing clients do not break — prefer `execute_frame_query`."""
-        return T.query(store, manifold_id, frameql)
+        return T.query(store, manifold_id, frameql, version)
 
     @mcp.tool()
-    def explain(manifold_id: str, frameql: str) -> dict:
+    def explain(manifold_id: str, frameql: str, version: str | None = None) -> dict:
         """EXPLAIN a FrameQL envelope statement WITHOUT executing it — the cheap inner loop. Returns the
         canonical DESUGARED form (the exact artifact the planner consumed), per-series atom
         decomposition, the dependency cone with current verdicts, and the would-be outcome + disclosures
-        — touching ZERO data (`fetches_delta` is 0). A first-class tool beside `query`."""
-        return T.explain_statement(store, manifold_id, frameql)
+        — touching ZERO data (`fetches_delta` is 0). A first-class tool beside `query`. `version`
+        selects a governed publication (omitted ⇒ latest)."""
+        return T.explain_statement(store, manifold_id, frameql, version)
 
     @mcp.tool()
-    def check_frame_query(manifold_id: str, frameql: str) -> dict:
+    def check_frame_query(manifold_id: str, frameql: str, version: str | None = None) -> dict:
         """Validate a FrameQL statement over a manifold WITHOUT executing it — the cheap pre-flight.
         Parse + plan (typecheck, addressability, single-universe, pin laws) touching ZERO data, and
         return the would-be mood (serve/disclose/clarify/refuse/error) with alternatives for an
-        ill-posed ask. A syntax error is an `error` wire. Thinner than `explain` (no cone)."""
-        return T.check_frame_query(store, manifold_id, frameql)
+        ill-posed ask. A syntax error is an `error` wire. Thinner than `explain` (no cone). `version`
+        selects a governed publication (omitted ⇒ latest)."""
+        return T.check_frame_query(store, manifold_id, frameql, version)
 
     @mcp.tool()
     def frame_ql_grammar() -> dict:
@@ -76,25 +81,28 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
         return T.frame_ql_grammar()
 
     @mcp.tool()
-    def discovery(manifold_id: str) -> dict:
+    def discovery(manifold_id: str, version: str | None = None) -> dict:
         """What can be asked of this manifold WITHOUT touching data: the measures (with their reducer
         family and universe/grain) and the anchors (universes with base grain) a `SELECT <measure> AT
-        {anchor}` can name. The starting point before any query. Logical names only."""
-        return T.discovery(store, manifold_id)
+        {anchor}` can name. The starting point before any query. Logical names only. `version` selects
+        a governed publication (omitted ⇒ latest)."""
+        return T.discovery(store, manifold_id, version)
 
     @mcp.tool()
-    def manifold_status(manifold_id: str) -> dict:
+    def manifold_status(manifold_id: str, version: str | None = None) -> dict:
         """The manifold's health at a glance WITHOUT touching data: counts (measures, universes, levels,
         hierarchies, relations, edges, derived), the published serving scope (edges blocked by refuted
-        hierarchies), and the evidence standing (Licenses verified / corroborated / untestable)."""
-        return T.manifold_status(store, manifold_id)
+        hierarchies), and the evidence standing (Licenses verified / corroborated / untestable).
+        `version` selects a governed publication (omitted ⇒ latest)."""
+        return T.manifold_status(store, manifold_id, version)
 
     @mcp.tool()
-    def get_evidence(manifold_id: str, measure: str | None = None) -> dict:
+    def get_evidence(manifold_id: str, measure: str | None = None, version: str | None = None) -> dict:
         """The evidence behind a manifold's claims WITHOUT touching data: each measure's declared
         evidence grade and each functional edge's, plus the adjudicated Licenses (verdict, lineages,
-        basis, attestation). With `measure`, scoped to that measure's family and universe."""
-        return T.get_evidence(store, manifold_id, measure)
+        basis, attestation). With `measure`, scoped to that measure's family and universe. `version`
+        selects a governed publication (omitted ⇒ latest)."""
+        return T.get_evidence(store, manifold_id, measure, version)
 
     @mcp.tool()
     def case_chapter(chapter: str) -> dict:
