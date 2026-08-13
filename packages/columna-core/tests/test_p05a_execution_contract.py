@@ -212,3 +212,80 @@ def test_engine_refuses_to_transport_without_a_planned_route():
     with pytest.raises(Refusal) as ei:
         srv.engine.resolve("revenue", "sum", ("month",))        # no routes= handed down
     assert ei.value.reason == "uncertified_edge"
+
+
+# ══ ORDER AXIS — declared structure may not create an executable capability ═══════════════════════
+# Ruling 2026-08-11: an order axis is execution-relevant (it fixes the sort a scan walks, so it moves
+# shipped numbers). A declared-but-uncertified temporal hierarchy therefore confers no axis: it may
+# inform conservative diagnosis, but it may not turn "no lawful axis -> refuse" into "one -> serve".
+_SCAN_MANIFOLD = """
+MANIFOLD sc VERSION 1
+UNIVERSE sales = day
+LEVEL day = day BASE
+LEVEL cal.month = month
+HIERARCHY calendar { day -> cal.month VIA cal(day, month) }
+MEASURE revenue ON sales FROM tx AS sum(amount)
+"""
+_SCAN_TABLES_OK = {
+    "cal": (["day", "month"], [("d1", "m1"), ("d2", "m2"), ("d3", "m3")]),
+    "tx":  (["day", "amount"], [("d1", 10.0), ("d2", 20.0), ("d3", 30.0)]),
+}
+# same topology, but the VIA table does not exist -> the hierarchy is UNTESTABLE, never admitted
+_SCAN_TABLES_UNCERTIFIED = {"tx": _SCAN_TABLES_OK["tx"]}
+
+
+def test_uncertified_temporal_hierarchy_confers_no_order_axis():
+    """Anchored on the BASE level `day`, so NO transport is involved and the order axis is the only
+    thing under test. The one thing that could make `day` an order axis is the `calendar` hierarchy it
+    sits on. Leave that UNCERTIFIED (undeliverable VIA table -> UNTESTABLE, publish still succeeds) and
+    the scan must refuse for want of a lawful axis — never quietly pick one off the declared graph."""
+    from columna_core.model import UNTESTABLE
+    srv, _con = _server_con(_SCAN_MANIFOLD, _SCAN_TABLES_UNCERTIFIED)
+    srv.publish()                                              # untestable, not refuted
+    assert srv.m.hierarchies[0].license.verdict == UNTESTABLE
+    assert srv.planner.m.orderable_levels() == frozenset(), "an uncertified lineage conferred an axis"
+
+    fr = srv.frame("day").column("c", "cumsum(revenue.sum)").run()
+    assert fr.outcome in ("refuse", "error"), f"scanned on an uncertified order axis ({fr.outcome})"
+    assert fr.data is None
+    # ...and specifically for want of a CERTIFIED axis — not because anything failed to transport
+    detail = str(fr.columns[0].refusal)
+    assert "order axis" in detail and "CERTIFIED" in detail, detail
+    assert "uncertified_edge" not in detail, f"refused for transport, not the axis: {detail}"
+
+    # ...but the gate is on DERIVING an axis from uncertified structure, not on scanning as such:
+    # `by=` is the author naming the axis explicitly, and the base grain crosses no edge, so it serves.
+    named = srv.frame("day").column("c", "cumsum(revenue.sum, by='day')").run()
+    assert named.outcome in ("serve", "disclose"), named.outcome
+    assert {r["day"]: float(r["c"]) for r in named.data.iter_rows(named=True)} == \
+        {"d1": 10.0, "d2": 30.0, "d3": 60.0}
+
+
+def test_certified_temporal_hierarchy_yields_a_planned_axis_the_engine_uses():
+    """Same manifold, same topology, same query, same anchor — the edge now CORROBORATED. The planner
+    selects the axis and the engine walks exactly it. Certification is the ONLY difference between this
+    and the test above, which is the whole point."""
+    srv, _con = _server_con(_SCAN_MANIFOLD, _SCAN_TABLES_OK)
+    srv.publish()
+    assert "day" in srv.planner.m.orderable_levels()
+    assert srv.planner.plan_order_axis("cumsum", "revenue", ("day",)) == "day"
+
+    fr = srv.frame("day").column("c", "cumsum(revenue.sum)").run()
+    assert fr.outcome in ("serve", "disclose"), fr.outcome
+    rows = {r["day"]: float(r["c"]) for r in fr.data.iter_rows(named=True)}
+    assert rows == {"d1": 10.0, "d2": 30.0, "d3": 60.0}, rows      # the cumulative walk, in order
+
+    trace = srv.frame("day").column("c", "cumsum(revenue.sum)").explain().splitlines()
+    assert any("ordered by 'day'" in ln for ln in trace), trace
+
+
+def test_engine_refuses_to_scan_without_a_planned_order_axis():
+    """The backstop, symmetric with the transport one: handed no axis, the engine refuses rather than
+    inferring one from the declared graph. There is no fallback."""
+    from columna_core.disclosure import Refusal
+    srv, _con = _server_con(_SCAN_MANIFOLD, _SCAN_TABLES_OK)
+    srv.publish()
+    routes, split = srv.planner.plan_routes("revenue", ("day",))
+    with pytest.raises(Refusal):
+        srv.engine.scan("revenue", "sum", ("day",), "cumsum",
+                        routes=routes, split=split)               # no order_axis= handed down

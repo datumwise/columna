@@ -156,21 +156,16 @@ class ColumnEngine:
         return frame, self._disc(meas, fam, op, uni)
 
     # ---- public: resolve one SCAN (order-dependent, anchor-preserving) ----
-    _TEMPORAL_LINEAGES = {"calendar", "fiscal"}
-
-    def _orderable_levels(self) -> set:
-        """Levels that carry a natural order — those on a temporal lineage. The manual's
-        'typically a temporal dimension'; Core reads it off the edge lineages."""
-        lv = set()
-        for e in self.m.edges:
-            if e.lineage in self._TEMPORAL_LINEAGES:
-                lv.add(e.frm); lv.add(e.to)
-        return lv
+    # (`_TEMPORAL_LINEAGES` / `_orderable_levels` stood here. RETIRED 2026-08-13 with the P0.5a
+    #  order-axis ruling: deriving the axis from `self.m.edges` let a declared-but-UNCERTIFIED
+    #  hierarchy make an axis derivable — turning "no lawful axis -> refuse" into "exactly one ->
+    #  serve", which changes shipped numbers. The axis is now chosen by the planner over admitted
+    #  structure (`PlannerView.orderable_levels` / `Planner.plan_order_axis`) and handed down.)
 
     def scan(self, measure: str, member: str, target: tuple, scan_op: str,
              n: int = 1, by: Optional[str] = None,
              where: Optional[str] = None, trace: Optional[list] = None, *,
-             routes=None, split=None):
+             routes=None, split=None, order_axis=None):
         """A scan is an order-dependent map: it reduces the measure to `target` (the reducer
         atom — anchor-preserving), derives an order from the anchor (or `by=`), partitions by
         the rest, and walks the order. The planner routes here knowing only the name/kind/
@@ -189,20 +184,17 @@ class ColumnEngine:
         frame, disc = self.resolve(measure, member, target, where, trace, routes=routes,
                                    split=split)
 
-        # 2) derive the order axis (manual ch.2.8 / 5.5): one orderable anchor level, or by=.
-        orderable = self._orderable_levels() & set(target)
-        if by is not None:
-            order_axis = by
-        elif len(orderable) == 1:
-            order_axis = next(iter(orderable))
-        elif not orderable:
+        # 2) the ORDER AXIS is the PLANNER's decision (P0.5a, ruling 2026-08-11): it is derived from
+        #    positively-admitted hierarchy structure, because an axis fixes the sort this scan walks
+        #    and therefore moves shipped numbers. The engine consumes the handed axis and infers
+        #    nothing — no fallback to the declared graph.
+        if order_axis is None:
             raise Refusal("unknown",
-                f"scan '{scan_op}' @ {target} has no derivable order axis (no temporal level in "
-                f"the anchor); name it with by=<level>", measure=measure, target=str(target))
-        else:
-            raise Refusal("unknown",
-                f"scan '{scan_op}' @ {target} order axis is ambiguous ({sorted(orderable)}); "
-                f"name it with by=<level>", measure=measure, target=str(target))
+                f"scan '{scan_op}' @ {target}: no lawful order axis was planned, so there is nothing "
+                f"the engine may order by. A declared-but-uncertified hierarchy confers no axis.",
+                measure=measure, target=str(target),
+                alternatives=("name the axis explicitly with by=<level>",
+                              "publish/adjudicate so the temporal hierarchy is certified"))
 
         partition = [d for d in target if d != order_axis]
         f = frame.sort(partition + [order_axis]) if partition else frame.sort(order_axis)

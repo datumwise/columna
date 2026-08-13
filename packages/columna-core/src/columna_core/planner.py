@@ -187,6 +187,31 @@ class Planner:
         """A certified shape path -> the wire the engine consumes: (start, (EdgeKey, ...))."""
         return (path[0], tuple(e.key for e in path[1]))
 
+    def plan_order_axis(self, scan_op: str, measure: str, anchor: tuple, by=None) -> str:
+        """The lawful ORDER AXIS for a scan @ anchor — the planner's decision, not the engine's.
+
+        P0.5a: the axis is execution-relevant (it fixes the sort the scan walks, so it moves shipped
+        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only. An explicit
+        `by=` is the author naming the axis and is honoured as before."""
+        if by is not None:
+            return by
+        orderable = self.m.orderable_levels() & set(anchor)
+        if len(orderable) == 1:
+            return next(iter(orderable))
+        if not orderable:
+            raise Refusal("unknown",
+                f"scan '{scan_op}' @ {anchor} has no derivable order axis (no CERTIFIED temporal "
+                f"level in the anchor); name it with by=<level>. A declared-but-uncertified "
+                f"hierarchy confers no order axis — declaration makes structure eligible for "
+                f"certification, not executable.",
+                measure=measure, target=str(anchor),
+                alternatives=("name the axis explicitly with by=<level>",
+                              "publish/adjudicate so the temporal hierarchy is certified"))
+        raise Refusal("unknown",
+            f"scan '{scan_op}' @ {anchor} order axis is ambiguous ({sorted(orderable)}); "
+            f"name it with by=<level>", measure=measure, target=str(anchor),
+            alternatives=("name the axis explicitly with by=<level>",))
+
     def plan_routes(self, measure: str, anchor: tuple):
         """PUBLIC: the certified route plan for `measure` @ `anchor`, as (routes, split).
 
@@ -1233,9 +1258,11 @@ class Planner:
             routes = {}                                        # P0.5a: plan, then execute the plan
             for T in anchor:
                 self._check_addressable(m_name, T, routes)
+            order_axis = self.plan_order_axis(scan_op, m_name, anchor, by)
             frame, disc = self.engine.scan(m_name, member, anchor, scan_op,
                                            n=n, by=by, where=where, trace=trace,
-                                           routes=routes, split=self._split_dependent(anchor))
+                                           routes=routes, split=self._split_dependent(anchor),
+                                           order_axis=order_axis)
             return "col", frame.rename({"_value": _V}), disc, out_dtype
 
         meas_name, member = self._measure_ref(node)

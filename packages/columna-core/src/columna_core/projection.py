@@ -196,6 +196,24 @@ class PlannerView:
     def _out_certified(self, level):                           # P0.5a — ADMITTED edges only
         return [e for e in self._edges if e.frm == level and self._admitted(e)]
 
+    # P0.5a (ruling 2026-08-11): a temporal lineage confers an ORDER AXIS, and the axis is
+    # execution-relevant — it decides the sort a scan walks, so it changes shipped numbers. Declared
+    # structure may therefore inform caution, but it may not CREATE this capability: an order axis
+    # exists only where the hierarchy that would confer it is positively admitted.
+    TEMPORAL_LINEAGES = frozenset({"calendar", "fiscal"})
+
+    def orderable_levels(self) -> frozenset:
+        """Levels carrying a natural (temporal) order, over ADMITTED edges only.
+
+        The manual's "typically a temporal dimension", read off the certified lineages. An
+        uncertified hierarchy contributes nothing: it cannot make an axis derivable and so cannot
+        turn "no lawful order axis -> refuse" into "exactly one -> serve"."""
+        lv = set()
+        for e in self._edges:
+            if e.lineage in self.TEMPORAL_LINEAGES and self._admitted(e):
+                lv.add(e.frm); lv.add(e.to)
+        return frozenset(lv)
+
     def out_edges(self, level):
         """Public: the shape edges leaving a level (frm, to, lineage). Used by B-anchor crossing
         detection to see which lineages a collapsed base dimension exits along — STRUCTURAL (all declared
