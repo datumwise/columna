@@ -61,10 +61,10 @@ emit · Q4 mapping sufficient? · Q5 `.cml` grammar sufficient? · Q6 gap class.
 |---|---|---|---|---|---|---|
 | **measure** | `value_type`, `root_member`; opt `fill_rule`, `default_reduction` (`validate.py:85,110,127`) | `Binding.root_evaluator` = physical reducer `agg(table.col)`, never invented (`mapping.py:42-50`) | `MEASURE`→`MeasureColumn` (`parser.py:419`; `model.py:145`) | ✅ | ✅ | **C** for holistic reducers |
 | **member** | `measure`,`anchor`,`universe` (`validate.py:86`) | central `Binding(member,connection,schema,table,column,grain,universe)` (`mapping.py:157-191`) | `FAMILY` member→`FamilyMember` (`parser.py:466`; `model.py:127`) | ✅ | ✅ | **C** for holistic/sketch |
-| **anchor** | `components[{name,type}]` (`validate.py:69`; `logical.py:71`) | anchor-grain `Binding` from `unique_at`: `grain=PK`, `column=None` (`mapping.py:154,174`) | no statement; query arg, built from `LEVEL`+`A()` (`A1:45`; `model.py:352`) | ✅ (grain) | ⚠️ | **VERIFY** (see ruling 6) |
+| **anchor** | `components[{name,type}]` (`validate.py:69`; `logical.py:71`) | anchor-grain `Binding` from `unique_at`: `grain=PK`, `column=None` (`mapping.py:154,174`) | no statement; query arg, built from `LEVEL`+`A()` (`A1:45`; `model.py:352`) | ✅ (grain) | ✅ | **VERIFY→CLEAR** (see verification below) |
 | **universe** | `basis`,`anchor`; opt structured `restriction` AST; ratification in `authority.*` not body (`validate.py:83,176`; `publication.py:223`) | none dedicated — `coverage` only stamps `universe` on a member binding; restriction predicate unrealized (`mapping.py:157-165`) | `UNIVERSE`+`WHERE`+`BASIS`→`Universe` (`parser.py:184`; `model.py:44`) | ❌ | ✅ | **M**+**C** (restriction realization + predicate lowering) |
 | **relationship** | `from`,`to`,`functionality`,`disposition` (`validate.py:86`) | **none** — `build_mapping` skips; join keys stranded in `evidence.subject` (`mapping.py:161-165`) | `RELATE`+`FACES`→`Relate`/`Face` (`parser.py:332,270`; `model.py:228`) | ❌ | ✅ | **M** (join keys) + **C** (face-law disclosure non-delegable) |
-| **boundary** | `measure`,`forbidden`,`across` — additivity law (`validate.py:88`) | none (purely logical) | no `BOUNDARY` kw; candidate realization via family `BLOCKED` anchors (`benchmark.cml:54`; `parser.py:466`) | ✅ n/a | ⚠️ | **VERIFY** (BLOCKED-equivalence, ruling 5) |
+| **boundary** | `measure`,`forbidden`,`across` — additivity law (`validate.py:88`) | none inherently physical | no faithful current Core construct — `BLOCKED`/`BAnchor.blocked_lineages` cannot hold `across` (`model.py:123-125`) | n/a | ❌ | **G** — `across` + scoped/product prohibition unrepresentable → **DEFER** (verified below) |
 | **hierarchy** | `levels`(child,parent),`direction` (`validate.py:87,262`) | **none** — skipped like relationship; level cols in `evidence` only (`mapping.py:161-165`) | `HIERARCHY`→`FunctionalEdge` (`parser.py:500,515`; `model.py:248`) | ❌ | ✅ | **M** (level cols) + **C** (fan-out unless certified edge) |
 | **crosswalk** | `from_coords`,`to_coords`,`correspondence`; "format-only, logic later", no synthesis path (`validate.py:89`; `manifold.py:95`) | none | no `CROSSWALK` kw; would be forced into `HIERARCHY` or `RELATE VIA` (`spec:28-32`; `parser.py:344`) | ❌ | ❌ | **L** first → **M/G deferred behind L** (ruling 3) |
 | **attribute** | `of`,`value_type`; identity `<of>.<name>`; physical keys forbidden (`validate.py:82,152`) | **none** — no attribute `Binding`; deferred to P1 (`manifold.py:44-50`; spec §10) | inline `LEVEL…ATTR` only; standalone `ATTR ON` **retired** (`parser.py:204,527`; `model.py:77`) | ❌ | ⚠️ | **M** (attribute realization) + **G** for non-level |
@@ -89,6 +89,68 @@ The old-P1 D1 loss table attests these are lost in a naive lowering and must rid
 The old **8-node Plan IR** (`open_planner_artifact_A1_v0_3.md`) and **D1 loss table**
 (`map2/D1_lowering_table_v0_1.md`) are **evidence/checklist only** — not a settled Core-P1 API
 (D1 self-labels its nodes/verdicts "proposed").
+
+---
+
+## Verification results (2026-08-13)
+
+### Anchor cargo audit → VERIFY resolves CLEAR (ruling 6)
+
+Core execution/planning consumes coordinate **identity** (`DimensionLevel.name`,
+`planner.resolve_anchor` reasons over names, `planner.py:211-258`), **product composition**
+(`Universe.base_dimensions`, `model.py:47`; `parser.py:199`), **universe association** (computed via
+`level_universe_member`, `model.py:321-325`), and **grain realization** (`DimensionLevel.realized_by`,
+`engine.py:233,244`) — all retained and used. The only dropped item is coordinate **type**
+(`components[].type`); `DimensionLevel` has no type field (`model.py:69-79`) and Core never plans or
+executes on it (all typechecking is measure-typed, `planner.py:1066`). Per ruling 6's criterion (dropped
+info retained authoritatively in the artifact + never needed by Core execution), **anchor stays clean —
+no G-gap, no new `ANCHOR` grammar.** The compiler must still carry the retained identity as explicit
+cargo (it must not degrade to a bare list of physical group-by columns).
+
+### BOUNDARY → BLOCKED equivalence → NOT equivalent; boundary DEFERRED (ruling 5)
+
+Durable verdict:
+```
+boundary logical law:  measure · forbidden · across
+current Core target:   FamilyMember → BAnchor.blocked_lineages   (model.py:123-137)
+verdict:               NOT equivalent
+primary gap:           G — Core execution grammar/runtime
+reasons:               (1) `across` has NO representation anywhere in .cml grammar / model /
+                           planner (BAnchor has a single field `blocked_lineages`);
+                       (2) product/context-scoped forbiddance COLLAPSES — blocked_lineages is a
+                           flat whole-lineage set, so two boundaries differing only in `across`
+                           map to the same triple.
+```
+This is representational, not compiler-coverage: no lowering can target a slot that does not exist. A
+compiler may **not** erase `across`, reinterpret it as documentation, stuff it into evidence, encode it
+through `M_ANCHOR`, invent `BLOCKED` naming conventions, or split product prohibition into unconditional
+lineage prohibitions. The authored law stays authoritative; Core must eventually gain a representation
+that carries it, or refuse to compile it.
+
+**`BLOCKED` is reusable implementation evidence for boundary-crossing *detection*, not a faithful
+serialization of the authored boundary law.** Its crossing-detection machinery (`planner._crossings`,
+`planner.py:887-929`) may be reused; its present data model and action semantics must not be assumed to
+settle the authored law.
+
+### BOUNDARY-SEMANTICS — open question (separate; not a compiler decision)
+
+```
+authoring surface:     boundary / forbidden / across  (appears to state "may not aggregate")
+current Core behavior:  detect crossing exactly, then critical DISCLOSE-AND-SERVE
+                        (inform-and-serve, never a refusal — projection.py:32-34, planner.py:906-928)
+required ruling:        prohibition/refusal  vs  computable-but-non-additive disclosure
+```
+These are different analytical laws; field naming alone is not authority to rewrite shipped Frame-QL
+behavior. Do **not** change `b_anchor_crossing` from inform-and-serve to refuse as part of Core-P1. Before
+touching planner behavior, trace the authoritative authored-Manifold semantics and the current
+Frame-QL/manual doctrine for B-anchor / non-additivity. **This question does not reopen the
+representational verdict** — even if inform-and-serve is ruled correct, `BLOCKED` still cannot carry
+`across`, so boundary remains deferred either way.
+
+Two deferred boundary requirements carried forward:
+1. **representation** — Core must preserve `measure + forbidden + across` without flattening
+   contextual/product distinctions;
+2. **enforcement** — shared semantics must decide refuse vs critical inform-and-serve.
 
 ---
 
@@ -158,17 +220,18 @@ without inventing law. (In-scope ≠ one PR; it means they belong to Core-P1 rat
 shared-theory design first.)
 
 ```
-IN SCOPE FOR FIRST COMPILER
+FIRST COMPILER CANDIDATES
   measure
   member
-  anchor         — subject to cargo verification (ruling 6)
-  universe       — after restriction realization is added
-  relationship   — after mapping extension (ruling 1)
-  hierarchy      — after mapping extension (ruling 1)
-  attribute      — after mapping extension (ruling 2)
-  boundary       — after BLOCKED-equivalence verification (ruling 5)
+  anchor         — cargo verification CLEAR (2026-08-13); carry identity as explicit cargo
+  attribute      — pending mapping extension (ruling 2)
+  universe       — pending restriction-reference realization
+  relationship   — pending mapping extension (ruling 1)
+  hierarchy      — pending mapping extension (ruling 1)
 DEFERRED
-  crosswalk      — until its logical correspondence semantics are sufficient (ruling 3)
+  boundary       — G-gap: no faithful Core representation (`across` unrepresentable);
+                   + enforcement semantics requires a separate alignment ruling
+  crosswalk      — L-gap first: insufficient shared correspondence semantics (ruling 3)
 ```
 
 ---
