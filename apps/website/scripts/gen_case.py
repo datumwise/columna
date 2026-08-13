@@ -30,6 +30,8 @@ CH1_TABLES = CH1_PROMINENT + ["customers", "products", "categories", "monthly_av
 
 
 class _Store:
+    """A compat-only store double (the cascadia demo is a legacy runtime, no governed lineage)."""
+
     def __init__(self, lm):
         self._lm = lm
 
@@ -37,6 +39,18 @@ class _Store:
         if mid != "cascadia":
             raise KeyError(mid)
         return self._lm
+
+    def ids(self):
+        return ["cascadia"]
+
+    def governed_ids(self):
+        return []
+
+    def resolve_public(self, mid, version=None):
+        if version is not None:  # no governed lineage here → an explicit version cannot resolve
+            from columna_server.registry import PublicationNotFound
+            raise PublicationNotFound(f"{mid}@{version}")
+        return self.get(mid), None  # compatibility runtime — unversioned
 
 
 def trial_table(m) -> list:
