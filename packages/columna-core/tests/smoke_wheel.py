@@ -39,6 +39,7 @@ def main():
         con.execute(f"CREATE TABLE {os.path.basename(f)[:-8]} AS SELECT * FROM read_parquet('{f}')")
 
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()          # P0.5a: transport serves only across positively-admitted edges
     # revenue@region transports store->region and fetches via pl.from_arrow — the pyarrow path.
     res = srv.frame("region").column("revenue", "revenue.sum").run()
     rows = list(res.data.iter_rows(named=True))
