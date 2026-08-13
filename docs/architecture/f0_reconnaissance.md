@@ -68,6 +68,28 @@ mapping.yaml (private)                 Polars / DuckDB(source) / Arrow
 
 **Architectural consequence:** the split does not require untangling a dependency knot — it requires *defining the contract that is currently absent* between two already-separated domains.
 
+### 0.1.1 Update (S2.2a-1..3): the governed-publication artifact contract now exists; two handoffs remain
+
+The absent contract is now partly defined — as an explicit, self-contained **governed-publication artifact**, produced by governed authoring and consumed by serving as plain data:
+
+- **manifold-agent v0.12.0** defines `GovernedPublicationArtifact` (`manifold_agent.publication`): a concrete `ref`, a physical-clean logical projection in authoring vocabulary (declaration-native `{kind,name,body}`), and publication authority (per-universe ratifications). Deterministic JSON; `publication_format_version="1"`; structural authority transfer, not cryptographic authenticity.
+- **columna-studio** (pinned to v0.12.0) emits it into `library/<id>/<version>/governed-publication.json` during governed publish, after the P0(c) gate — a serializer of already-adjudicated authority.
+- **columna-server** (S2.2a-3) ingests it with the stdlib only (no `manifold_agent` import): `GovernedPublication.{ref,logical,authority}` come **exclusively** from the artifact, never from `.cml.logical_spec()`. A Core provider attaches only when `artifact.ref == .cml SOURCE_MANIFOLD ref` (else `RealizationIdentityMismatch`, no bind). Three runtime kinds: legacy (no `SOURCE_MANIFOLD`); **source-referenced-but-authority-incomplete** (`SOURCE_MANIFOLD` present, artifact absent — compatibility-served, never governed); governed (artifact present + matching ref).
+
+The runtime **deployment contract** for artifact-backed Core serving is now:
+
+```
+<runtime-manifold>/
+    governed-publication.json    # shared governed publication authority + logical meaning
+    manifold.cml                 # private Core realization (claims a SOURCE_MANIFOLD ref)
+    data.toml                    # connector/source config
+```
+
+**Two handoffs still missing** (the `⌀ NO HANDOFF` boundary is narrowed, not closed):
+
+1. **Core-P1 lowering** — nothing yet turns (authored Manifold + mapping) into the runtime `.cml`; Studio still emits a dead-end `manifold.columna.yaml`, and the served `.cml` has no governed producer.
+2. **Deployment provisioning** — nothing yet places `governed-publication.json` + its `.cml` realization together in a runtime folder. The server consumes them when co-located; it must never crawl Studio workspaces to find them. Who assembles the runtime unit is deliberately unresolved until the Core compiler/deployment handoff is designed.
+
 ## 1. Headline
 
 1. **The Core compiler is not decoupled — it does not exist yet.** No code turns (authored Manifold + mapping) into the runtime `.cml` the engine reads. Studio's governed lowering emits a dead-end YAML; the engine runs a `.cml` with no governed/authored source.

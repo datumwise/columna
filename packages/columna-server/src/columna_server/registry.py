@@ -36,10 +36,14 @@ fabricated. Ingesting publication bundles (so serving carries the ratification r
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol, runtime_checkable
 
-from columna_core import logical_spec
+#: The publication-artifact format major this server understands (matches
+#: manifold_agent.publication.PUBLICATION_FORMAT_VERSION's major). Its own dimension — unrelated to
+#: the wire CONTRACT_VERSION, columna-core's engine VERSION, or the Manifold's semantic version.
+SUPPORTED_PUBLICATION_FORMAT_MAJOR = 1
 
 
 # ── identity ─────────────────────────────────────────────────────────────────────────────────────
@@ -80,7 +84,8 @@ class PublicationAuthority:
 @dataclass(frozen=True)
 class GovernedPublication:
     """One immutable governed publication: a concrete ``ref``, a physical-clean logical projection
-    (``logical_spec`` — no table/column/reject/realization), and immutable authority/provenance."""
+    (from the governed-publication artifact — no table/column/reject/realization), and immutable
+    authority/provenance. All three come from ``governed-publication.json``, never from the ``.cml``."""
 
     ref: ManifoldRef
     logical: dict
@@ -104,6 +109,36 @@ class NotRealizableHere(Exception):
     """The publication exists but this installation has no provider/realization for it. This is
     availability/capability state — NOT an analytical refusal mood; do not route it through the wire's
     four moods."""
+
+
+class RealizationIdentityMismatch(Exception):
+    """A governed-publication artifact and a co-located ``.cml`` realization claim DISAGREE on the
+    concrete ``ManifoldRef`` (``artifact.ref`` != ``.cml SOURCE_MANIFOLD``). The provider must not
+    attach as the realization of that publication — an invalid realization binding, never an
+    authority-selection rule, never auto-repaired."""
+
+
+class PublicationArtifactError(Exception):
+    """Base for problems reading a ``governed-publication.json`` — a pre-adjudication serving/ingest
+    condition, never an analytical mood."""
+
+
+class PublicationArtifactMissing(PublicationArtifactError):
+    """A runtime carries a concrete ``SOURCE_MANIFOLD`` ref but no ``governed-publication.json`` — a
+    source-referenced runtime with INCOMPLETE publication authority. It may stay compatibility-served,
+    but it must never become a ``GovernedPublication`` (missing authority never manufactures one)."""
+
+
+class PublicationArtifactInvalid(PublicationArtifactError):
+    """The artifact claims a supported format but is malformed or structurally inconsistent (bad JSON,
+    missing/!concrete ref, wrong declaration/authority shape, ratification keys that do not correspond
+    to universes). A deployment/artifact defect — distinct from an unsupported format."""
+
+
+class UnsupportedPublicationFormat(PublicationArtifactError):
+    """The artifact may be perfectly valid but its ``publication_format_version`` major is one this
+    server does not understand — a server/artifact version-compatibility problem, distinct from a
+    malformed artifact."""
 
 
 @dataclass
@@ -185,17 +220,118 @@ class FolderManifoldRegistry:
         return pub
 
 
-def governed_publication_from_manifold(manifold: Any) -> Optional[GovernedPublication]:
-    """Build a ``GovernedPublication`` from a parsed ``columna_core`` Manifold IFF it carries a
-    complete source identity (P0(b)). Returns ``None`` for a source-identity-less (legacy) manifold —
-    never fabricating an id/version. The logical projection is ``logical_spec`` (physical-clean)."""
+# ── the governed-publication artifact (S2.2a-3: authoring authority, consumed as plain data) ───────
+@dataclass(frozen=True)
+class PublicationArtifactData:
+    """The server's minimal, plain-data reading of a ``governed-publication.json`` — the durable
+    output of the governed-publish path (manifold_agent v0.12.0). Read with the stdlib only; the
+    server never imports ``manifold_agent`` and never re-runs authored-Manifold governance."""
+
+    format_version: str
+    ref: ManifoldRef
+    logical: dict          # the artifact's physical-clean logical projection, AUTHORING vocabulary
+    authority: dict        # {published_by, published_at, ratifications{universe -> record}}
+
+
+def _artifact_major(version: str) -> int:
+    try:
+        return int(str(version).split(".", 1)[0])
+    except (ValueError, AttributeError) as exc:
+        raise PublicationArtifactInvalid(
+            f"unreadable publication_format_version {version!r}: expected 'MAJOR.MINOR'"
+        ) from exc
+
+
+def parse_publication_artifact(data: Any) -> PublicationArtifactData:
+    """Structurally validate a governed-publication artifact and return its plain-data reading.
+
+    This checks ARTIFACT STRUCTURE only — supported format major, a concrete ref, the
+    declaration-native ``logical`` shape (``kind``/``name``/``body``), the ``authority`` shape, and
+    the format-contract correspondence ``{universe names} == {ratification keys}``. It NEVER re-runs
+    authored-declaration semantics, universe-law resolution, ``elf-1`` fingerprinting, or
+    RATIFIED/STALE currency — authoring already adjudicated those; serving consumes them.
+
+    Raises ``UnsupportedPublicationFormat`` for an unknown format major, ``PublicationArtifactInvalid``
+    for any structural defect.
+    """
+    if not isinstance(data, dict):
+        raise PublicationArtifactInvalid("artifact is not a JSON object")
+    fmt = data.get("publication_format_version")
+    if not isinstance(fmt, str) or not fmt:
+        raise PublicationArtifactInvalid("missing publication_format_version")
+    if _artifact_major(fmt) != SUPPORTED_PUBLICATION_FORMAT_MAJOR:
+        raise UnsupportedPublicationFormat(
+            f"publication_format_version {fmt!r} has an unsupported major (this server supports "
+            f"major {SUPPORTED_PUBLICATION_FORMAT_MAJOR})"
+        )
+    ref = data.get("ref")
+    if not isinstance(ref, dict):
+        raise PublicationArtifactInvalid("missing ref object")
+    mid, ver = ref.get("manifold_id"), ref.get("version")
+    if not isinstance(mid, str) or not mid or not isinstance(ver, str) or not ver:
+        raise PublicationArtifactInvalid("ref must carry a concrete manifold_id and version")
+
+    logical = data.get("logical")
+    if not isinstance(logical, dict) or not isinstance(logical.get("declarations"), list):
+        raise PublicationArtifactInvalid("logical.declarations must be a list")
+    universe_names: list[str] = []
+    for decl in logical["declarations"]:
+        if (not isinstance(decl, dict) or not isinstance(decl.get("kind"), str)
+                or not isinstance(decl.get("name"), str) or not isinstance(decl.get("body"), dict)):
+            raise PublicationArtifactInvalid("each logical declaration needs kind/name/body")
+        if decl["kind"] == "universe":
+            universe_names.append(decl["name"])
+
+    authority = data.get("authority")
+    if not isinstance(authority, dict):
+        raise PublicationArtifactInvalid("missing authority object")
+    rats = authority.get("ratifications")
+    if not isinstance(rats, dict):
+        raise PublicationArtifactInvalid("authority.ratifications must be an object")
+    if set(rats) != set(universe_names):
+        raise PublicationArtifactInvalid(
+            "ratification keys must correspond exactly to the logical universe names "
+            f"({sorted(set(rats) ^ set(universe_names))!r} differ)"
+        )
+    return PublicationArtifactData(format_version=fmt, ref=ManifoldRef(mid, ver),
+                                   logical=logical, authority=authority)
+
+
+def load_publication_artifact(path: str) -> PublicationArtifactData:
+    """Read + structurally validate a ``governed-publication.json`` from disk (stdlib JSON only).
+    Malformed JSON is a ``PublicationArtifactInvalid`` like any other structural defect."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = json.load(f)
+    except json.JSONDecodeError as exc:
+        raise PublicationArtifactInvalid(f"artifact is not valid JSON: {exc}") from exc
+    return parse_publication_artifact(raw)
+
+
+def governed_publication_from_artifact(artifact: PublicationArtifactData) -> GovernedPublication:
+    """Build the immutable ``GovernedPublication`` from the artifact — its ``ref``, ``logical``, and
+    ``authority`` come EXCLUSIVELY from ``governed-publication.json``, never from ``logical_spec(.cml)``,
+    the folder name, ``data.toml``, or Core model metadata. The ``.cml``'s ``SOURCE_MANIFOLD`` is a
+    realization claim checked separately, not publication authority."""
+    return GovernedPublication(
+        ref=artifact.ref,
+        logical=artifact.logical,
+        authority=PublicationAuthority(
+            source_manifold_id=artifact.ref.manifold_id,
+            source_manifold_version=artifact.ref.version,
+            ratification=artifact.authority.get("ratifications"),
+            actor=artifact.authority.get("published_by"),
+            at=artifact.authority.get("published_at"),
+        ),
+    )
+
+
+def source_ref_of(manifold: Any) -> Optional[ManifoldRef]:
+    """The concrete ``ManifoldRef`` a ``.cml`` CLAIMS to realize (its ``SOURCE_MANIFOLD id VERSION``),
+    or ``None`` when it carries no source identity (a legacy runtime). A reference/claim of origin —
+    NOT established publication authority (that lives in the artifact)."""
     sid = getattr(manifold, "source_manifold_id", None)
     sver = getattr(manifold, "source_manifold_version", None)
     if not sid or not sver:
         return None
-    ref = ManifoldRef(sid, sver)
-    return GovernedPublication(
-        ref=ref,
-        logical=logical_spec(manifold),
-        authority=PublicationAuthority(source_manifold_id=sid, source_manifold_version=sver),
-    )
+    return ManifoldRef(sid, sver)
