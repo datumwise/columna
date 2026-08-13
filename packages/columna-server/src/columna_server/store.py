@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import glob
 import os
+import os.path as _osp
 from dataclasses import dataclass
 from typing import Optional
 
@@ -43,9 +44,41 @@ from .registry import (
     ManifoldRef,
     ManifoldRegistry,
     ManifoldSelector,
+    PublicationArtifactError,
     ResolvedManifold,
-    governed_publication_from_manifold,
+    governed_publication_from_artifact,
+    load_publication_artifact,
+    source_ref_of,
 )
+
+#: The publication-authority artifact retained beside a governed .cml realization (S2.2a-2/-3). The
+#: runtime deployment contract for artifact-backed Core serving is:
+#:     <runtime-manifold>/{governed-publication.json, manifold.cml, data.toml}
+PUBLICATION_ARTIFACT = "governed-publication.json"
+
+# ── the three runtime-entry kinds (S2.2a-3) ────────────────────────────────────────────────────────
+#: no SOURCE_MANIFOLD — an id-only legacy runtime, compatibility-served, never governed.
+ENTRY_LEGACY = "legacy"
+#: a concrete SOURCE_MANIFOLD but no (or unusable) governed-publication.json — a *source-referenced
+#: runtime with incomplete publication authority*. Compatibility-served for now; NEVER a
+#: GovernedPublication, NEVER in the governed registry. Missing authority never manufactures a
+#: publication (the P0(c) migration discipline).
+ENTRY_SOURCE_REFERENCED_INCOMPLETE = "source_referenced_incomplete"
+#: governed-publication.json present AND its ref matches the .cml SOURCE_MANIFOLD — a real governed
+#: publication with a Core realization bound by concrete ManifoldRef.
+ENTRY_GOVERNED = "governed"
+
+
+@dataclass(frozen=True)
+class LoadCondition:
+    """An observable per-runtime ingest condition — the deployment gap made visible, never silently
+    swallowed. ``kind`` is the class name of the underlying registry condition
+    (PublicationArtifactMissing / PublicationArtifactInvalid / UnsupportedPublicationFormat /
+    RealizationIdentityMismatch)."""
+
+    manifold_id: str
+    kind: str
+    detail: str
 
 
 @dataclass
@@ -56,10 +89,14 @@ class LoadedManifold:
     manifold: object              # columna_core.model.Manifold — the logical/read model
     provider: ExecutionProvider   # execution capability (the seam); the concrete Core
     #                               runtime lives on CoreExecutionProvider.runtime, not here
-    # Governed identity (S2.1). Set when the .cml carries a complete SOURCE_MANIFOLD id+version;
-    # None for a legacy (source-identity-less) runtime entry — never fabricated.
+    # Governed identity (S2.2a-3). ``publication``/``ref`` are set ONLY for a governed entry —
+    # an artifact present AND matching the .cml SOURCE_MANIFOLD. Its ref/logical/authority come
+    # from governed-publication.json, never from the .cml. A source-referenced-but-incomplete or
+    # legacy entry carries no publication (never fabricated).
     publication: Optional[GovernedPublication] = None
     ref: Optional[ManifoldRef] = None
+    entry_kind: str = ENTRY_LEGACY
+    condition: Optional[LoadCondition] = None
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -115,10 +152,46 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         raise ValueError(f"manifold '{manifold_id}' fails adjudication (fertility refuted by the "
                          f"attested data): {e}")
 
-    # Governed identity (S2.1): a .cml carrying a complete SOURCE_MANIFOLD id+version is a governed
-    # publication; a source-identity-less .cml stays a legacy runtime entry (publication None) — the
-    # compatibility path recovers access, it never manufactures governance.
-    publication = governed_publication_from_manifold(manifold)
+    # Governed identity (S2.2a-3): three-way classification. A GovernedPublication is built ONLY from
+    # a co-located governed-publication.json whose ref matches the .cml's SOURCE_MANIFOLD claim — its
+    # ref/logical/authority come from the artifact, never from the .cml. A .cml with a SOURCE_MANIFOLD
+    # but no (or unusable) artifact is source-referenced-but-authority-incomplete: still
+    # compatibility-served, never promoted to governance. A .cml without SOURCE_MANIFOLD is legacy.
+    src_ref = source_ref_of(manifold)
+    artifact_path = _osp.join(mdir, PUBLICATION_ARTIFACT)
+    publication: Optional[GovernedPublication] = None
+    ref: Optional[ManifoldRef] = None
+    entry_kind = ENTRY_LEGACY
+    condition: Optional[LoadCondition] = None
+
+    if _osp.isfile(artifact_path):
+        try:
+            artifact = load_publication_artifact(artifact_path)
+        except PublicationArtifactError as e:
+            # Present but unusable (malformed/unsupported): observable, not fatal to the install.
+            entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE if src_ref else ENTRY_LEGACY
+            condition = LoadCondition(manifold_id, type(e).__name__, str(e))
+        else:
+            if src_ref is None or src_ref != artifact.ref:
+                # The .cml does not (or wrongly) claim to realize this publication: do not bind.
+                claimed = "no SOURCE_MANIFOLD" if src_ref is None else f"{src_ref.manifold_id}@{src_ref.version}"
+                entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE if src_ref else ENTRY_LEGACY
+                condition = LoadCondition(
+                    manifold_id, "RealizationIdentityMismatch",
+                    f"artifact ref {artifact.ref.manifold_id}@{artifact.ref.version} != .cml {claimed}",
+                )
+            else:
+                publication = governed_publication_from_artifact(artifact)
+                ref = artifact.ref
+                entry_kind = ENTRY_GOVERNED
+    elif src_ref is not None:
+        # Source-referenced runtime with incomplete publication authority (no artifact present).
+        entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE
+        condition = LoadCondition(
+            manifold_id, "PublicationArtifactMissing",
+            f"{src_ref.manifold_id}@{src_ref.version} has no {PUBLICATION_ARTIFACT}",
+        )
+
     return LoadedManifold(
         manifold_id=manifold_id,
         name=meta.get("name", manifold_id),
@@ -126,7 +199,9 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         manifold=manifold,
         provider=CoreExecutionProvider(server),
         publication=publication,
-        ref=(publication.ref if publication is not None else None),
+        ref=ref,
+        entry_kind=entry_kind,
+        condition=condition,
     )
 
 
@@ -146,11 +221,17 @@ class ManifoldStore:
             raise FileNotFoundError(f"no manifolds (<id>/manifold.cml) found under {self.dir}")
 
         # The governed-publication registry (WHICH), plus this installation's provider realizations
-        # (HOW), derived from the loaded entries. Legacy entries carry no publication and are absent
-        # from the registry; they remain reachable through the compatibility get()/ids()/all() below.
+        # (HOW), derived from the loaded entries. ONLY governed entries (artifact present AND matching
+        # the .cml SOURCE_MANIFOLD) enter the registry and bind a provider — the exact-ref-match gate
+        # was already applied in _load_one, so a mismatch never reaches this point with a publication.
+        # Legacy and source-referenced-but-incomplete entries carry no publication and are absent from
+        # the registry; they remain reachable through the compatibility get()/ids()/all() below.
         pubs: dict[ManifoldRef, GovernedPublication] = {}
         self._providers_by_ref: dict[ManifoldRef, ExecutionProvider] = {}
+        self._conditions: list[LoadCondition] = []
         for lm in self._loaded.values():
+            if lm.condition is not None:
+                self._conditions.append(lm.condition)
             if lm.publication is not None and lm.ref is not None:
                 pubs[lm.ref] = lm.publication
                 self._providers_by_ref[lm.ref] = lm.provider
@@ -169,11 +250,18 @@ class ManifoldStore:
     def all(self) -> list[LoadedManifold]:
         return list(self._loaded.values())
 
-    # ── governed identity surface (S2.1; additive — no wire/API change) ──────────────────────────
+    # ── governed identity surface (S2.1/S2.2a-3; additive — no wire/API change) ───────────────────
     def registry(self) -> ManifoldRegistry:
-        """The governed-publication registry (WHICH). Governed publications only; legacy entries are
-        not published governance and are absent from it."""
+        """The governed-publication registry (WHICH). Governed publications only; legacy and
+        source-referenced-but-authority-incomplete entries are not published governance and are absent
+        from it."""
         return self._registry
+
+    def conditions(self) -> list[LoadCondition]:
+        """The observable per-runtime ingest conditions (S2.2a-3) — missing/invalid/unsupported
+        artifacts and realization-identity mismatches. Preserved so the deployment gap (an artifact
+        not yet co-located with its realization) is visible, never silently swallowed."""
+        return list(self._conditions)
 
     def resolve(self, selector: ManifoldSelector) -> ResolvedManifold:
         """Serving resolution: join WHICH (the governed publication, from the registry) with HOW (this
