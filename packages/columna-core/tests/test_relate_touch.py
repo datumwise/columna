@@ -16,6 +16,7 @@ import polars as pl
 
 from columna_core import ManifoldServer, DuckDBConnector
 from columna_core import disclosure_wire as dw
+from columna_core.adjudication import adjudicate
 from columna_core.parser import parse_manifold
 
 
@@ -23,12 +24,19 @@ def _lit(v):
     return "'" + v.replace("'", "''") + "'" if isinstance(v, str) else repr(v)
 
 
-def _server(text, tables):
+def _server(text, tables, certify=True):
+    """P0.5a closed-by-default: a DECLARED face is only ELIGIBLE for certification — it does not serve
+    until adjudication positively admits it. These tests are about what a certified face DOES, so the
+    helper certifies by default (`adjudicate` = the publish-time gate); `certify=False` reaches the
+    uncertified state deliberately (see the negative proof below)."""
     con = duckdb.connect()
     for name, (cols, rows) in tables.items():
         values = ", ".join("(" + ", ".join(_lit(v) for v in r) + ")" for r in rows)
         con.execute(f"CREATE TABLE {name} AS SELECT * FROM (VALUES {values}) AS t({', '.join(cols)})")
-    return ManifoldServer(parse_manifold(text), DuckDBConnector(con))
+    srv = ManifoldServer(parse_manifold(text), DuckDBConnector(con))
+    if certify:
+        adjudicate(srv)
+    return srv
 
 
 MANIFOLD = """
@@ -145,12 +153,28 @@ def test_adjudication_mints_the_face_license_at_publish():
     # polarity law: a face is closed-by-default (license None on parse); the adjudicator is the SOLE
     # constructor at publish. touch = VERIFIED (membership expansion is exact arithmetic).
     from columna_core import adjudicate, VERIFIED
-    srv = _server(MANIFOLD, TABLES)
+    srv = _server(MANIFOLD, TABLES, certify=False)
     assert srv.m.non_functional[0].faces[0].license is None       # closed-by-default on parse
     report = adjudicate(srv)
     face = srv.m.non_functional[0].faces[0]
     assert face.license is not None and face.license.verdict == VERIFIED
     assert report["_faces"]["product<->category.touch"] == VERIFIED
+
+
+def test_declared_but_uncertified_face_refuses_it_never_fails_open():
+    """P0.5a polarity, the negative half of every test above: the SAME frame that serves once adjudicated
+    REFUSES while the face is merely declared. Declaration = eligibility, not executability; absence from
+    `certified_faces` is CLOSED, so the crossing never serves a number on an unadmitted claim."""
+    srv = _server(MANIFOLD, TABLES, certify=False)
+    fr = srv.frame("category.touch").column("revenue", "revenue").run()
+    assert fr.data is None, "an uncertified face must not serve data"
+    rcol = next(c for c in fr.columns if c.name == "revenue")
+    assert rcol.refusal is not None and rcol.refusal.reason == "uncertified_face"
+    assert rcol.refusal.edge == "product<->category"
+    assert rcol.refusal.alternatives, "the refusal must name the way out (publish/adjudicate)"
+    # and the gate is the SCOPE, not a parse-time flag: certifying the same manifold opens it
+    adjudicate(srv)
+    assert srv.frame("category.touch").column("revenue", "revenue").run().data is not None
 
 
 def test_undeclared_face_is_a_query_error_not_a_crash():

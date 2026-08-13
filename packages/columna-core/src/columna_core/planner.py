@@ -109,6 +109,19 @@ class Planner:
         # `conflicting_data` — retired with ASSERT in 0.13.0; ruling 2026-07-26.)
         self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
         self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
+        # P0.5a POSITIVE ADMISSION: crossing faces admitted by adjudication ("frm<->to.name"). Absence =
+        # closed. The certified EDGE set lives on the view (drives find_path); faces are checked here at
+        # the addressability chokepoint. Both installed together via install_scope (one boundary).
+        self.certified_faces: frozenset = frozenset()
+
+    def install_scope(self, scope) -> None:
+        """P0.5a: install a complete PublishedScope as the planner's serving authority — ONE assignment
+        boundary (never mutated piecemeal around fallible work). The certified edge set is pushed onto the
+        view (it gates find_path); certified faces + the negative explanation sets live here."""
+        self.m.install_certified_edges(getattr(scope, "certified_edges", frozenset()))
+        self.certified_faces = getattr(scope, "certified_faces", frozenset())
+        self.blocked_edges = getattr(scope, "blocked_edges", frozenset())
+        self.blocked_by = getattr(scope, "blocked_by", {})
 
     def _blocked_transport(self, node, anchor) -> Optional[tuple]:
         """The first BLOCKED edge (frm, to) a column's transport crosses, or None. A refuted hierarchy
@@ -170,6 +183,16 @@ class Planner:
         faced = parse_faced(T, self.m.non_functional)
         if faced is not None:
             coord, _fname, rel, _face = faced
+            # P0.5a: parse_faced names the DECLARATION; it does not license execution. The crossing serves
+            # only if adjudication positively ADMITTED this face (VERIFIED touch / CORROBORATED assign|alloc).
+            if not self.m.probing and f"{rel.frm}<->{rel.to}.{_fname}" not in self.certified_faces:
+                raise Refusal("uncertified_face",
+                    f"{measure} @ {T}: the crossing face '{_fname}' on {rel.frm}<->{rel.to} is not "
+                    f"certified for governed use — a declaration makes a crossing eligible for "
+                    f"certification, not executable. Adjudication must positively admit it before it serves.",
+                    measure=measure, target=T, edge=f"{rel.frm}<->{rel.to}",
+                    alternatives=("publish/adjudicate so the face is certified on the attested data",
+                                  "if the face was refuted on the data, fix the data and re-attest"))
             other = rel.to if coord == rel.frm else rel.frm
             if (other in base) or (self.m.find_path(base, other) is not None):
                 return   # the engine executes the touch join-multiply
@@ -195,6 +218,25 @@ class Planner:
                     f"measure would be replicated across matches and the total inflated",
                     measure=f"{measure}@transaction", target=T, edge=f"{nf}\u2194{nt}",
                     alternatives=alternatives)
+        # P0.5a: T is reachable via a DECLARED functional edge that is NOT certified (UNTESTABLE /
+        # unadjudicated / contradicted) — the transport exists in the declaration but is not governed-usable.
+        # Distinguish it from out-of-universe (no declared path at all); name a contradiction specifically
+        # when we hold the refuting detail (a stronger factual claim than 'uncertified').
+        declared = self.m.find_path_any(base, T)
+        if declared is not None and declared[1]:
+            for e in declared[1]:
+                if (e.frm, e.to) in self.blocked_edges:            # tested + refuted → the stronger claim
+                    raise self._blocked_transport_refusal((e.frm, e.to))
+            offending = next((e for e in declared[1] if not self.m._admitted(e)), declared[1][0])
+            raise Refusal("uncertified_edge",
+                f"{measure} @ {T}: transport crosses the declared functional edge "
+                f"{offending.frm}->{offending.to} (lineage '{offending.lineage}'), which is NOT certified for "
+                f"governed use — a declaration makes an edge eligible for certification, not executable. "
+                f"Adjudication must positively admit it (CORROBORATED on the attested data) before transport "
+                f"across it can serve.",
+                measure=measure, target=T, edge=f"{offending.frm}->{offending.to}",
+                alternatives=("publish/adjudicate so the edge is certified on the attested data",
+                              "address at a grain that does not cross this edge"))
         # otherwise: out of universe (the dimension is not part of this population)
         raise Refusal("out_of_universe",
             f"{measure} @ {T}: '{T}' is not addressable in universe '{uni}' "

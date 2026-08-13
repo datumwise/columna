@@ -33,7 +33,11 @@ def _lit(v):
 
 def _server(faces, cat_attrs="('c1',1,3.0),('c2',2,1.5),('c3',3,2.0),('c4',4,1.0)",
             bridge="('p1','c1'),('p1','c2'),('p2','c2'),('p3','c1'),('p3','c2'),('p3','c3'),('p4','c4')",
-            revenue_fill=""):
+            revenue_fill="", certify=True):
+    """P0.5a closed-by-default: a declared face is ELIGIBLE, not executable — it serves only once
+    adjudication positively admits it. These tests exercise certified behaviour, so the helper
+    certifies by default; `certify=False` is for the tests that adjudicate themselves (or that must
+    observe the pre-adjudication state)."""
     _fill = f" FILL {revenue_fill}" if revenue_fill else ""
     con = duckdb.connect()
     con.execute("CREATE TABLE transactions AS SELECT * FROM (VALUES "
@@ -56,7 +60,10 @@ MEASURE buyers ON sales FROM transactions AS distinct(product_id)
 MEASURE priority ON category_profile FROM category_attributes VALUE priority FAMILY {{ last ORDER category }}
 MEASURE alloc_weight ON category_profile FROM category_attributes VALUE alloc_weight FAMILY {{ last ORDER category }}
 """
-    return ManifoldServer(parse_manifold(M), DuckDBConnector(con))
+    srv = ManifoldServer(parse_manifold(M), DuckDBConnector(con))
+    if certify:
+        adjudicate(srv)
+    return srv
 
 
 TRIAD = ('        touch   = TOUCH -- "reaches every category"\n'
@@ -195,28 +202,45 @@ def test_adjudication_fails_on_a_tie_at_the_top():
     # c1,c2 share priority 1; p1 has both -> no unique top
     with pytest.raises(FaceContradiction, match="tie at the top"):
         adjudicate(_server('        primary = ASSIGN BY priority ORDER MIN -- "x"',
-                           cat_attrs="('c1',1,3.0),('c2',1,1.5),('c3',3,2.0),('c4',4,1.0)"))
+                           cat_attrs="('c1',1,3.0),('c2',1,1.5),('c3',3,2.0),('c4',4,1.0)",
+                           certify=False))
 
 
 def test_adjudication_fails_on_a_zero_sum_driver():
     # p1's categories c1,c2 both weight 0 -> undefined split
     with pytest.raises(FaceContradiction, match="sums to zero"):
         adjudicate(_server('        split = ALLOC BY alloc_weight -- "x"',
-                           cat_attrs="('c1',1,0.0),('c2',2,0.0),('c3',3,2.0),('c4',4,1.0)"))
+                           cat_attrs="('c1',1,0.0),('c2',2,0.0),('c3',3,2.0),('c4',4,1.0)",
+                           certify=False))
 
 
 def test_adjudication_fails_on_an_unfrozen_events_driver():
     # revenue is an EVENTS measure — an un-frozen driver; the acyclicity object (derived-then-recorded).
     with pytest.raises(FaceContradiction, match="must be a SPINE"):
-        adjudicate(_server('        primary = ASSIGN BY revenue ORDER MAX -- "x"'))
+        adjudicate(_server('        primary = ASSIGN BY revenue ORDER MAX -- "x"', certify=False))
 
 
 def test_valid_triad_publishes_with_the_right_verdicts():
-    rep = adjudicate(_server(TRIAD))
+    rep = adjudicate(_server(TRIAD, certify=False))
     fv = rep["_faces"]
     assert fv["product<->category.touch"] == "verified"        # symbolic, timeless
     assert fv["product<->category.primary"] == "corroborated"  # data-tested (distinctness)
     assert fv["product<->category.split"] == "corroborated"    # data-tested (non-neg, positive sum)
+
+
+# ---- P0.5a: the negative half — a declared-but-uncertified face NEVER fails open -------------------
+@pytest.mark.parametrize("face", ["touch", "primary", "split"])
+def test_uncertified_face_refuses_at_every_scheme(face):
+    """Closed-by-default is uniform across the triad: TOUCH (symbolic) is admitted no more freely than
+    ASSIGN/ALLOC (data-tested). Every scheme owes a positive verdict before it serves a number."""
+    srv = _server(TRIAD, certify=False)
+    fr = srv.frame(f"category.{face}").column("revenue", "revenue").run()
+    assert fr.data is None, f"the uncertified {face} face must not serve data"
+    ref = fr.columns[0].refusal
+    assert ref is not None and ref.reason == "uncertified_face"
+    assert ref.target == f"category.{face}" and ref.edge == "product<->category"
+    adjudicate(srv)                                            # the same manifold, now certified
+    assert srv.frame(f"category.{face}").column("revenue", "revenue").run().data is not None
 
 
 # ---- G5: the ANCHOR LAW — a distinct-class measure refuses at EVERY face, uniformly ---------------

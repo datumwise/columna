@@ -368,6 +368,11 @@ class PublishedScope:
     blocked_edges: frozenset = frozenset()          # (frm, to) whose transport is BLOCKED (refuted hierarchy)
     blocked_by: dict = field(default_factory=dict)  # (frm, to) -> [{lineage, key}]
     licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
+    # ── P0.5a POSITIVE ADMISSION (the allow-list is authority; the block-list is explanation) ──────────
+    # Absence from these sets = CLOSED. A declaration makes a capability eligible for certification; only a
+    # positive VERIFIED/CORROBORATED verdict admits it here, and serving consults ONLY these positive sets.
+    certified_edges: frozenset = frozenset()        # (frm, to) whose functional transport is ADMITTED
+    certified_faces: frozenset = frozenset()        # "frm<->to.name" crossing faces that are ADMITTED
 
 
 def _revoked_license(fm, why: str) -> License:
@@ -383,14 +388,42 @@ def _snapshot_licenses(m) -> dict:
 
 
 def scope_from_report(m, report: dict) -> PublishedScope:
-    """Build the PublishedScope from a (degrade-mode) adjudication report — a pure read of the current
-    verdicts: the blocked edges (with the refuting key) and the license snapshot."""
+    """Build the PublishedScope from an adjudication report — a pure read of the current verdicts. Works
+    for BOTH first publish (strict) and re-attest (degrade): the POSITIVE admission sets are derived from
+    the per-capability verdicts (`_hierarchies`, `_faces`) that adjudicate always records; the negative
+    `_blocked` detail (present only under degrade) is retained for explanation, never for the gate.
+
+    P0.5a polarity: a functional edge is ADMITTED iff its hierarchy proved CORROBORATED; a crossing face
+    is ADMITTED iff VERIFIED (touch) or CORROBORATED (assign/alloc). UNTESTABLE / CONTRADICTED / no-verdict
+    do not admit. Absence from the certified set means closed."""
     blocked, blocked_by = set(), {}
     for edge, rec in report.get("_blocked", {}).items():
         blocked.add(edge)
         blocked_by.setdefault(edge, []).append(rec)
+    hv = report.get("_hierarchies", {})                       # lineage -> verdict
+    # POSITIVE admission of FD-claimed transport: an edge governed by a HIERARCHY is admitted iff that
+    # hierarchy proved CORROBORATED on the attested data (UNTESTABLE / CONTRADICTED close). Edges with no
+    # governing hierarchy carry no FD claim and are not certification-dependent — the view admits them
+    # structurally (see PlannerView._gated_edges), so they need not appear here.
+    certified_edges = frozenset((e.frm, e.to) for e in m.edges if hv.get(e.lineage) == CORROBORATED)
+    certified_faces = frozenset(k for k, v in report.get("_faces", {}).items()
+                                if v in (VERIFIED, CORROBORATED))
     return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
-                          licenses=_snapshot_licenses(m))
+                          licenses=_snapshot_licenses(m),
+                          certified_edges=certified_edges, certified_faces=certified_faces)
+
+
+def _establish_scope(server, report: dict) -> PublishedScope:
+    """P0.5a: derive the PublishedScope from the report and INSTALL it as the planner's serving authority —
+    ONE adjudication, ONE scope derivation, ONE installation, shared by publish, re-attest, and store load.
+    Single assignment boundary (the planner/view never observe a half-built scope). Called as adjudicate's
+    final atomic step: a strict contradiction raises before it, installing nothing (no serving scope)."""
+    scope = scope_from_report(server.m, report)
+    planner = getattr(server, "planner", None)
+    if planner is not None:
+        planner.install_scope(scope)
+    server.published_scope = scope
+    return scope
 
 
 def scope_diff(old: PublishedScope, new: PublishedScope) -> dict:
@@ -577,6 +610,24 @@ def _prove_faces_acyclic(server, m) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[list] = None,
                degrade: bool = False) -> dict:
+    """P0.5a: run the adjudication under the PROBE window (the gate is lifted for adjudication's own
+    queries) and install the resulting scope.
+
+    Why the window is necessary and not a loophole: the fertility data channel proves a claim by asking
+    the planner for the same number two ways across the very edge under test. Under closed-by-default
+    that query refuses — so without this window every data-tested claim would fall to UNTESTABLE and
+    NOTHING could ever certify (the proof needs the transport the proof is what admits). The probe's
+    results never reach a caller; they become verdicts. It is scoped, re-entrant, restores on
+    Contradiction, and is unreachable from the query path."""
+    view = getattr(getattr(server, "planner", None), "m", None)
+    if view is None or not hasattr(view, "probe"):
+        return _adjudicate(server, attestation=attestation, trace=trace, degrade=degrade)
+    with view.probe():
+        return _adjudicate(server, attestation=attestation, trace=trace, degrade=degrade)
+
+
+def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[list] = None,
+                degrade: bool = False) -> dict:
     """Adjudicate every declared capability on `server.m`, attaching the constructed `License` in
     place. Returns {derived_name: {member: verdict}} plus `_hierarchies`/`_basis`/`_faces`.
 
@@ -643,15 +694,46 @@ def adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[lis
     # The parser records faces with license=None; the adjudicator is the sole constructor (kernel reuse,
     # same as fertility/basis). Ship-dark: a manifold declaring no faces (Cascadia) adds nothing.
     if any(r.faces for r in m.non_functional):
-        _prove_faces_acyclic(server, m)          # the DAG law first — a cycle fails before any per-face proof
+        # The DAG law first — a cycle fails before any per-face proof. Under degrade (re-attest) a
+        # contradiction is a coherent scope EDIT (the face degrades CLOSED), not an uncaught exception —
+        # symmetric with hierarchy (P0.5a: face re-attestation must participate in coherent scope
+        # construction, never escape the degrade path leaving serving state ambiguous).
+        acyclic_ok = True
+        try:
+            _prove_faces_acyclic(server, m)      # the DAG law first
+        except FaceContradiction:
+            if not degrade:
+                raise                            # first publish: fail closed (structure, not a scope edit)
+            acyclic_ok = False
         fv, new_nf = {}, []
         for r in m.non_functional:
             if r.faces:
-                faces = tuple(replace(f, license=_prove_face(f, r, server, m)) for f in r.faces)
-                r = replace(r, faces=faces)
-                for f in faces:
+                proven = []
+                for f in r.faces:
+                    if acyclic_ok:
+                        try:
+                            lic = _prove_face(f, r, server, m)
+                        except FaceContradiction as e:
+                            if not degrade:
+                                raise            # first publish: fail closed
+                            lic = _license(CONTRADICTED, frozenset(),
+                                f"crossing face '{f.name}' contradicted on re-attestation "
+                                f"({e}) — the crossing degrades CLOSED (faces degrade like edges).")
+                    else:
+                        lic = _license(CONTRADICTED, frozenset(),
+                            f"crossing face '{f.name}' not certifiable — the face DAG is cyclic on "
+                            f"re-attestation; the crossing degrades CLOSED.")
+                    proven.append(replace(f, license=lic))
+                r = replace(r, faces=tuple(proven))
+                for f in r.faces:
                     fv[f"{r.frm}<->{r.to}.{f.name}"] = f.license.verdict
             new_nf.append(r)
         m.non_functional = new_nf
         report["_faces"] = fv
+    # P0.5a: establish the positive serving scope as the FINAL, atomic step (compute-then-swap). The proof
+    # loops above run inside the caller's PROBE window (see `adjudicate`), so the planner's closed-by-default
+    # state cannot starve the very queries that mint the verdicts. On success the computed scope becomes the
+    # planner's serving authority; a strict contradiction raises ABOVE this line, installing no scope —
+    # and the window closes on the way out either way, so a failed publish never leaves the shape open.
+    _establish_scope(server, report)
     return report

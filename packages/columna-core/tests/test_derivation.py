@@ -24,6 +24,7 @@ import os
 import pytest
 
 from columna_core import DerivedColumn, ManifoldServer
+from columna_core.adjudication import adjudicate, Contradiction
 from columna_core.disclosure_wire import wire_frame
 from columna_core.parser import parse_manifold, ParseError
 
@@ -226,10 +227,15 @@ def test_blocked_lineage_fail_closed_aligned():
 # anchor (mean of daily rates), evaluated at the resolution anchor and reduced by the declared
 # member. Never-substitute: no path serves the pooled value for the AT-metric or vice versa.
 # =====================================================================================
-def _srv(fixture_connector, extra: str):
+def _srv(fixture_connector, extra: str, certify=True):
+    """P0.5a closed-by-default: travel over an FD-claimed edge serves only once its hierarchy is
+    CORROBORATED, so these B-4 anchor tests certify first (adjudicate = the publish gate)."""
     with open(_BENCHMARK_CML) as f:
         cml = f.read() + "\n" + extra + "\n"
-    return ManifoldServer(parse_manifold(cml), fixture_connector)
+    srv = ManifoldServer(parse_manifold(cml), fixture_connector)
+    if certify:
+        adjudicate(srv)
+    return srv
 
 
 _AT_DEFS = ("DERIVED aov = revenue / orders\n"
@@ -279,13 +285,30 @@ def test_never_substitute_via_shared_cache(fixture_connector):
 def test_declared_fertility_changes_no_shipped_number(fixture_connector):
     """Ruling 2: declaring fertility adds expressiveness, changes no shipped semantics. A plain
     (non-anchored) derived ratio serves the SAME pooled number whether or not a fertile family is
-    declared — the license is only the (unexercised-in-Core) reduce-path theorem, never a new value."""
+    declared — the license is only the (unexercised-in-Core) reduce-path theorem, never a new value.
+
+    Under P0.5a the ruling carries a precondition: the declaration must SURVIVE adjudication. A
+    declaration that does survive (here vacuously — a fertile member claiming no lineage) ships the
+    identical number; a refuted one ships nothing at all (see the companion test below)."""
     plain = _srv(fixture_connector, "DERIVED aov = revenue / orders")
     declared = _srv(fixture_connector,
-                    "DERIVED aov = revenue / orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
+                    "DERIVED aov = revenue / orders\n    FAMILY {\n        mean FERTILE { }\n    }")
     a = plain.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
     b = declared.frame("cal.month").column("aov").run().data.sort("cal.month")["aov"].to_list()
     assert a == pytest.approx(b)
+
+
+def test_false_fertility_claim_fails_closed_at_publish(fixture_connector):
+    """The other half of ruling 2 under P0.5a: expressiveness is not a free pass. `sum FERTILE` on a
+    RATIO is empirically false — summing daily AOV is not the month's AOV — and adjudication refutes
+    it on the attested data with a counterexample rather than serving a wrong number. Publish fails
+    closed; this is the pin that the data channel actually runs, not just the face check."""
+    with pytest.raises(Contradiction) as ei:
+        _srv(fixture_connector,
+             "DERIVED aov = revenue / orders\n    FAMILY {\n        sum FERTILE { calendar }\n    }")
+    msg = str(ei.value)
+    assert "aov" in msg and "sum" in msg and "calendar" in msg
+    assert "reduce=" in msg and "recompute=" in msg      # a counterexample, not a bare assertion
 
 
 def test_at_metric_unreachable_target_refuses(fixture_connector):
