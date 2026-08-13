@@ -97,22 +97,45 @@ hierarchy realization
   typed realization is designed. The mapping must never hold an arbitrary join path whose meaning exists
   nowhere in the logical Manifold.
 
-### A3. attribute realization — APPROVED; column alone may be insufficient (attachment VERIFY)
+### A3. attribute realization — APPROVED; attachment resolved → co-located vs cross-table SPLIT
 
 Authored body stays physical-clean `{of, value_type}`. Mapping needs at least:
 ```
 attribute realization
     attribute_ref = <of>.<name>
     physical value endpoint { connection, schema, table, column }
-    attachment  ← VERIFY (see below)
+    attachment  → co-located | governed-path
 ```
-Open question before freezing: **how does the physical value attach to the coordinate named by `of`?**
-If co-located on the coordinate's own level table/key, existing coordinate realization makes attachment
-unambiguous. If it lives elsewhere, `table+column` alone does not tell the compiler how to obtain **one
-value per governed coordinate** — the design must then reference an already-governed relationship/path to
-the owning coordinate, **not** duplicate ad-hoc join keys inside the attribute. Preserved distinction:
-*physical mapping says where an attribute value comes from; it does not prove the coordinate
-functionally determines one value* — that proof/license is separate.
+**Verified (2026-08-13):** an attribute may legally be **cross-table** — the inline `ATTR` form accepts any
+`table.column` and reaches it by broadcast (`parser.py:205,582,589`); the stored form carries no join key
+back to the coordinate (`model.py:77`). So `{table,column}` alone cannot guarantee one value per
+coordinate. Resulting **split**:
+- **co-located attribute** — physically available on the coordinate's own realized level/key relation,
+  requiring no independent transport → **Core-P1 candidate**. Support condition is not merely
+  `attr.table == coord.table`; the compiler must know the value is keyed at the coordinate's governed
+  key/grain.
+- **cross-table attribute** — needs a governed attachment route (an existing governed relationship /
+  functional path) to the owning coordinate; **not** ad-hoc join keys inside the attribute. That route is
+  itself a `FunctionalEdge`/relate → so it inherits the **certification** question below and stays blocked
+  until that path can be governed and licensed.
+Preserved distinction: *physical mapping says where an attribute value comes from; it does not prove the
+coordinate functionally determines one value* — that proof/license is separate.
+
+### A-coord. anchor-component realization — APPROVED (new; required for composite anchors)
+
+The anchor binding today is `{table, grain=tuple(keys), column=None}` (`mapping.py:154-156,174`) with **no**
+named `coordinate → physical-key-column` association; for a composite grain it is simply absent (only
+incidentally 1:1 for a single key, by position). columna-core proves the concept one layer down
+(`DimensionLevel.realized_by`, `model.py:70`). Add:
+```
+anchor component realization
+    anchor_ref
+    component_name
+    physical endpoint { connection, schema, table, column }
+```
+Do not rely on tuple position. Require completeness — every authored anchor component maps to exactly one
+realization; reject missing / duplicate / unknown components. The mapping realizes coordinate identity; it
+does not redefine the anchor.
 
 ### A4. restriction reference realization — REMOVED (do not persist)
 
@@ -125,11 +148,10 @@ restriction AST → logical ref resolution → coordinate|attribute object
 Duplicating a column into a `universe_ref/ref_path/column` record would create two mapping truths for the
 same object and force a precedence rule. The mapping realizes **logical objects**, not every place they
 are referenced.
-- **Coordinate refs — VERIFY:** today `unique_at` gives `{table, grain=keys, column=None}`
-  (`mapping.py:154-156`). If the existing grain/level mapping yields an unambiguous
-  `coordinate-name → physical-key-column`, reuse it. If not, add an explicit **anchor-component /
-  coordinate realization** to the mapping model — but never solve it with universe-specific A4 entries.
-- **Attribute refs:** resolve through A3.
+- **Coordinate refs — RESOLVED:** every restriction ref bottoms out in exactly a coordinate or a
+  `coordinate.attribute` (no third target, no physical fallback — `validate.py:133-136,328-349`;
+  `ratification.py:106-115`). Lowering = `compose(realization(coord|attr))`. Coordinate refs resolve
+  through **A-coord** (added above); attribute refs through **A3**. No per-universe record.
 
 ---
 
@@ -144,36 +166,99 @@ lowering outcome). The four gap categories stay distinct — never collapse into
 | `MappingIncomplete` (**M**) | do we know how that meaning maps to physical data? |
 | `UnsupportedCoreCapability` (**C**) | can the existing Core compiler/runtime perform the required operation faithfully? |
 | `ExecutionRepresentationGap` (**G**) | can the Core execution image represent the required law at all? |
-| `GovernedAuthorityMissing` (**auth**) | *conditional* — introduced ONLY if the authority verification (below) proves the artifact lacks compiler-required certification. A publication-authority gap, cured **above** Core-P1, never in mapping. |
+| `GovernedCertificationMissing` (**cert**, prov.; a.k.a. `GovernedAuthorityMissing`) | **confirmed real** by the B/C verification — meaning + realization + Core capability all present, but the governed verdict required to *license* execution is not established/carried. **Belongs to the admission/adjudication phase, not assumed to fire from `compile()`** (see phase split below). Cured **above** Core-P1; never in mapping. |
 
 `InputIdentityMismatch` — mapping ref ≠ artifact ref. (Absent artifact/mapping = invalid invocation.)
 
-### Authority-source verification (BLOCKS relationship/hierarchy "supported" status)
+### Authority-source verification → Outcome B confirmed; but immutable-artifact home NOT assumed
 
-The compiler is forbidden to read `Declaration.evidence`/gate counts. So: does emitting Core `FACES` /
-`FunctionalEdge` assert something **stronger** than the published logical fields the artifact carries?
-- **Outcome A — logical law sufficient:** `HIERARCHY`/`FACES` translate faithfully+deterministically from
-  already-published fields (`functionality, disposition, levels, direction`). Document the proof; no extra
-  authority cargo.
-- **Outcome B — prior certified verdict required:** emitting the Core construct asserts a data-corroborated
-  verdict the artifact does not carry (lives only in gate evidence). Then the shared publication lacks
-  compiler-required authority cargo → `GovernedAuthorityMissing`, and the cure (durable governed
-  certification in the publication artifact) belongs **above** Core-P1. **Stop** if so.
+Verified (2026-08-13), both Outcome B:
+- **Relationship `FACES {assign|alloc}`** asserts a data-corroborated face **License** minted at publish by
+  `columna_core.adjudication._prove_face` (`adjudication.py:457-528`: assign = unique-top/no-tie
+  single-count; alloc = non-negative partition-of-unity). A `Face` is closed-by-default; the license opens
+  the crossing (`model.py:218-225`). The artifact carries only `{from,to,functionality,disposition}` + per-
+  **universe** ratifications — no face license. (`touch` is data-free/VERIFIED but its face + folklore
+  aren't carried either — a lesser carriage gap.)
+- **Hierarchy `FunctionalEdge`** asserts a truly-functional child→parent map; the planner assumes it
+  (`find_path` is a bare BFS, `model.py:302-319`) and the only guard is the adjudication FD verdict applied
+  at runtime (`_prove_hierarchy`, `adjudication.py:314-341`; `blocked_edges`, `planner.py:110`). The
+  artifact carries `{levels,direction}` + universe ratifications only — no FD verdict.
 
-Language discipline: the compiler must say *"translate an established face license / functional-edge
-certification into Core representation,"* never *"mint / originate"* one. It encodes established law; it
-may not originate law.
+> **Outcome B confirmed: faced relationships and hierarchy transport require governed certification not
+> presently carried across the shared/Core boundary. The correct lifecycle and durable carrier remain
+> UNRESOLVED; because these verdicts are data/realization-dependent, the immutable
+> `GovernedPublicationArtifact` is NOT assumed to be their home.**
 
-### Per-kind status (after this pass, pending authority verification)
+The trace proved certification is *required*; it did **not** prove certification is part of immutable
+publication identity. These verdicts (FD holds? order-top unique? weights non-negative & positive-sum?)
+depend on physical realization + attested data + sometimes driver values, and can change while the logical
+publication is unchanged. So `retail@1.3.0` realized against environment A (FD holds) vs B (FD
+contradicted) has one publication meaning but two certification results — storing a `CORROBORATED` verdict
+in the immutable artifact would turn a realization/data fact into a publication fact. **Do not do that.**
+
+Two DIFFERENT gaps for faces, kept separate:
+- **A — logical-publication carriage gap:** the face *declaration itself* (name/scheme/driver/order/
+  folklore) is not carried in `GovernedPublicationArtifact.logical`. The compiler cannot even know which
+  face law was declared. Fix above Core-P1 in the shared **logical** publication (not by putting Core
+  `License` into `authority`, not by pretending `disposition` prose defines a face).
+- **B — certification:** for `assign`/`alloc` the adjudicator establishes whether the declared face is
+  currently licensed on the realization. This is the certification-lifecycle question below.
+
+### Refusal taxonomy split by PHASE (candidate shape)
+
+A compiler answers "can I faithfully translate governed law into the Core execution representation?";
+adjudication answers "is this execution path licensed on this realization/data state?" — different
+questions. Candidate split (names not frozen):
+```
+COMPILATION                      GOVERNED ADMISSION / ADJUDICATION
+  InputIdentityMismatch            GovernedCertificationMissing        (a.k.a. GovernedAuthorityMissing)
+  LogicalMeaningMissing            GovernedCertificationContradicted
+  MappingIncomplete                GovernedCertificationUntestable
+  UnsupportedCoreCapability
+  ExecutionRepresentationGap
+```
+`GovernedCertificationMissing` is a **real** category — meaning exists, realization exists, Core can
+represent the op, but the governed verdict required to *license* execution is not established/carried at the
+boundary where it is needed. **It is NOT yet ruled to fire from `compile()`** — whether certification is
+required *before compilation* or *after compilation, before governed serving* is exactly what the next
+workstream settles. Likely two-phase lifecycle to test against the existing Core:
+```
+compile(publication, mapping) → CLOSED execution image
+adjudicate(image, provider/data) → governed certification (data-bound licenses)
+serve() → requires the applicable license
+```
+The face trace already hints this is real (parse → `license=None` closed-by-default → adjudicator sole
+License constructor → planner crosses only when licensed). If consistently enforced, a face License does
+NOT belong in the compiler input: the **compiler** needs the logical face declaration; the **adjudicator**
+needs the physical realization + data.
+
+Language discipline: the compiler *"translates an established face license / functional-edge certification
+into Core representation"* — it never *"mints / originates"* one. **Mapping realizes law; it cannot certify
+law. The compiler translates authority; it cannot manufacture authority.**
+
+### Per-kind status (after this pass)
 
 | kind | status |
 |---|---|
-| measure, member, anchor, universe, attribute | classified per current mapping/capability findings (see per-kind table in `core_p1_compiler_input.md`); attribute pending A3 attachment |
-| **relationship** | mapping design understood; **authority/certification source = VERIFY** |
-| **hierarchy** | mapping design understood; **authority/certification source = VERIFY** |
-| boundary | DEFERRED — **G** gap (no faithful representation of `across`) + enforcement alignment |
-| crosswalk | DEFERRED — **L** gap (insufficient shared correspondence semantics) |
+| measure, member, anchor, universe | authority-independent kernel (below); measure/member C-refuse holistic/sketch |
+| **attribute** | **co-located** = kernel candidate; **cross-table** = blocked behind governed attachment path + certification |
+| **relationship** | **bare M:N `RELATE`** = kernel candidate (must stay non-functional transport); **faced assign/alloc** = certification gap (+ face carriage gap A); `touch` = carriage gap |
+| **hierarchy** | declared `{levels,direction}` may suffice to emit a CLOSED edge **iff** the runtime is closed-by-default; certification required before serving — **VERIFY lifecycle** (next workstream) |
+| boundary | DEFERRED — **G** gap (`across`) + enforcement alignment |
+| crosswalk | DEFERRED — **L** gap |
 | holistic / sketch reducers | explicit **C** refusal (`median`, `mode`, `sketch distinct`) |
+
+### Authority-independent compiler kernel (persist; NOT an implementation GO)
+
+```
+KERNEL (translatable without the unresolved certification layer)
+  measure · member · anchor · universe · bare relationship · co-located attribute
+```
+Mapping extensions the kernel needs: `A0 publication_ref`, `A1` (relationship join/bridge), `A3`
+(co-located attribute), `A-coord` (anchor components). This is what can be translated *without* the
+certification layer — it is **not** a green light to write compiler code, because the certification
+lifecycle may change the contract from `compile → fully-licensed image` to `compile → closed image;
+adjudicate → governed state`. Settle that first.
 
 ---
 
@@ -187,16 +272,39 @@ it and the representation does not consume it, the compiler has reduced law.
 
 ---
 
-## Final narrow checkpoint (required before ANY compiler code)
+## Next workstream: governed-certification lifecycle (pre-Core-P1)
 
-1. **A** — exact mapping schema candidate, including coordinate/attribute **attachment**.
-2. **B** — relationship `FACES` authority source (Outcome A or B).
-3. **C** — hierarchy `FunctionalEdge` authority source (Outcome A or B).
-4. **D** — proof that restriction refs resolve **entirely** through reusable coordinate/attribute mappings.
-5. **E** — exact supported/refused Core-P1 set after B/C.
+The A–E checkpoint is resolved (B/C = Outcome B; D = compositional YES; A refined with A-coord + attribute
+split). The blocking question is no longer a compiler-schema question — it is the **certification
+lifecycle**. Scope this next; do not park it (it gates hierarchy, faced relationships, cross-table
+attributes, *and* the compiler/adjudication boundary). Working label: **Core-P0.5 — governed certification
+lifecycle**. Design only — no implementation, no provisioning, no promotion of gate evidence, no
+Core-specific `License` in the shared artifact.
 
-Introduce `GovernedAuthorityMissing` only if B or C proves it necessary. No compiler implementation until
-this checkpoint is reviewed.
+Checkpoint questions to answer:
+1. What is immutable publication law vs realization-bound certification?
+2. Exactly where are face declarations authored today? If nowhere in the shared logical model, what
+   logical extension is required (carriage gap A)?
+3. Can Core compile faces **closed** and adjudicate them later?
+4. Can Core compile hierarchy edges **closed** and adjudicate them later? (Decisive sub-question: can a
+   parsed-but-uncorroborated `FunctionalEdge` ever become an addressable transport path? If yes → fail-open
+   defect to fix; if no → compile-closed is faithful.)
+5. Per-verdict behavior today for VERIFIED / CORROBORATED / CONTRADICTED / UNTESTABLE / no-adjudication —
+   for both faces and hierarchy.
+6. What identity/watermark must bind a data-derived certificate so it cannot transfer across realization or
+   data state? (Investigate binding to: `publication_ref` · realization identity / mapping fingerprint ·
+   attestation watermark · certification subject · claim · verdict · established_at. **Invariant:** a
+   certificate proven against realization A must never silently license realization B; one proven at a data
+   attestation must not claim timeless validity unless its law is genuinely timeless — `touch` may be
+   timeless, `assign`/`alloc` are not.)
+7. Does a new shared certification artifact/state need to exist, or can existing runtime adjudication state
+   be the correct carrier?
+8. Only in shared/theory terms — never expose `columna_core.model.License` / `blocked_edges` / Core parser
+   objects as the shared representation. Core derives its runtime `License` from a shared governed
+   certification. **Two physical runtimes are acceptable; two meanings of certification are not.**
+9. After those answers: the real production compiler API and first supported set.
+
+No compiler implementation until this lifecycle checkpoint is reviewed and ruled.
 
 ---
 
