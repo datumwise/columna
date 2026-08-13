@@ -16,7 +16,29 @@ from columna_core import disclosure_wire as dw
 from .frameql import FrameQLSyntaxError
 from .provider import SupportsExecutionDiagnostics
 from .registry import NotRealizableHere, PublicationNotFound
-from .store import ManifoldStore
+from .store import (
+    ENTRY_GOVERNED,
+    ENTRY_LEGACY,
+    ENTRY_SOURCE_REFERENCED_INCOMPLETE,
+    ManifoldStore,
+)
+
+#: LoadCondition.kind (a registry exception class name) → the STABLE public condition code exposed in
+#: the v3 catalog. Only these codes cross the wire — never raw details, parser text, paths, or reprs.
+_CONDITION_CODE = {
+    "PublicationArtifactMissing": "publication_artifact_missing",
+    "PublicationArtifactInvalid": "publication_artifact_invalid",
+    "UnsupportedPublicationFormat": "unsupported_publication_format",
+    "RealizationIdentityMismatch": "realization_identity_mismatch",
+}
+
+#: entry_kind → the public catalog `kind` (source-referenced-but-incomplete surfaces as
+#: "authority_incomplete" publicly — it references a publication origin but lacks the authority).
+_PUBLIC_KIND = {
+    ENTRY_GOVERNED: "governed",
+    ENTRY_LEGACY: "legacy",
+    ENTRY_SOURCE_REFERENCED_INCOMPLETE: "authority_incomplete",
+}
 
 CONTRACT_VERSION = dw.CONTRACT_VERSION
 
@@ -101,12 +123,50 @@ def _render_predicate(pred, levels=frozenset()) -> Optional[str]:
 
 # --- tool 1 ---------------------------------------------------------------------------------
 def list_manifolds(store: ManifoldStore) -> dict:
-    out = []
+    """The installation catalog (contract v3): governed publication LINEAGES + explicitly classified
+    compatibility runtimes. A governed row is one lineage per ``manifold_id`` with its concrete
+    ``versions[]`` and ``latest_version`` (publication facts) and per-version ``realizable`` (an
+    installation fact — distinct from publication existence). Legacy and authority-incomplete runtimes
+    are separate rows keyed by ``runtime_id``; the latter carries its ``source_ref`` (a runtime CLAIM of
+    origin, not governed identity) and any stable deployment ``conditions``. Presentation/read-model
+    detail (measures, universes, …) lives on ``describe``, never here. Deterministic order:
+    governed (by manifold_id) → legacy (by runtime_id) → authority-incomplete (by runtime_id)."""
+    realizable = store.realizable_refs()
+    conditions_by_id: dict[str, list[str]] = {}
+    for c in store.conditions():
+        code = _CONDITION_CODE.get(c.kind)
+        if code is not None:
+            conditions_by_id.setdefault(c.manifold_id, []).append(code)
+
+    # governed lineages — registry.list() is already sorted by (manifold_id, ascending semver)
+    versions_by_id: dict[str, list[dict]] = {}
+    for ref in store.registry().list():
+        versions_by_id.setdefault(ref.manifold_id, []).append(
+            {"version": ref.version, "realizable": ref in realizable})
+    governed = [
+        {"manifold_id": mid, "kind": "governed",
+         "latest_version": store.registry().latest(mid),   # publication fact — highest semver, always
+         "versions": versions_by_id[mid]}
+        for mid in sorted(versions_by_id)
+    ]
+
+    # compatibility runtimes — legacy first, then authority-incomplete; each sorted by runtime_id
+    legacy, incomplete = [], []
     for lm in store.all():
-        m = lm.manifold
-        out.append({"manifold_id": lm.manifold_id, "name": lm.name, "description": lm.description,
-                    "n_measures": len(m.measures), "universes": list(m.universes)})
-    return {"contract_version": CONTRACT_VERSION, "manifolds": out}
+        if lm.entry_kind == ENTRY_GOVERNED:
+            continue
+        row: dict = {"runtime_id": lm.manifold_id, "kind": _PUBLIC_KIND[lm.entry_kind]}
+        if lm.entry_kind == ENTRY_SOURCE_REFERENCED_INCOMPLETE and lm.source_ref is not None:
+            row["source_ref"] = {"manifold_id": lm.source_ref.manifold_id,
+                                 "version": lm.source_ref.version}
+        codes = conditions_by_id.get(lm.manifold_id)
+        if codes:                                          # omit when empty (optional-field convention)
+            row["conditions"] = codes
+        (incomplete if lm.entry_kind == ENTRY_SOURCE_REFERENCED_INCOMPLETE else legacy).append(row)
+    legacy.sort(key=lambda r: r["runtime_id"])
+    incomplete.sort(key=lambda r: r["runtime_id"])
+
+    return {"contract_version": CONTRACT_VERSION, "manifolds": governed + legacy + incomplete}
 
 
 # --- tool 2 ---------------------------------------------------------------------------------

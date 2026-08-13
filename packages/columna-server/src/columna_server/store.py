@@ -99,6 +99,10 @@ class LoadedManifold:
     ref: Optional[ManifoldRef] = None
     entry_kind: str = ENTRY_LEGACY
     condition: Optional[LoadCondition] = None
+    # The concrete ManifoldRef the .cml CLAIMS to realize (its SOURCE_MANIFOLD), or None for a
+    # legacy runtime. A runtime's claim about publication origin — NOT established authority; for a
+    # governed entry it equals ``ref``, for an authority-incomplete entry it is the row's source_ref.
+    source_ref: Optional[ManifoldRef] = None
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -204,6 +208,7 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         ref=ref,
         entry_kind=entry_kind,
         condition=condition,
+        source_ref=src_ref,
     )
 
 
@@ -279,6 +284,11 @@ class ManifoldStore:
     def governed_ids(self) -> list[str]:
         """The stable ids of the known governed publication lineages (each has ≥1 published version)."""
         return sorted({r.manifold_id for r in self._registry.list()})
+
+    def realizable_refs(self) -> set[ManifoldRef]:
+        """The concrete governed refs this installation can realize (has a bound provider for) — an
+        INSTALLATION fact, distinct from publication existence in the registry."""
+        return set(self._providers_by_ref)
 
     def resolve_public(
         self, manifold_id: str, version: Optional[str] = None

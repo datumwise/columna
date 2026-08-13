@@ -39,7 +39,7 @@ and connected once at startup.
 
 | tool | touches data? | returns |
 |---|---|---|
-| `list_manifolds()` | no | id, name, description, measure count, universes |
+| `list_manifolds()` | no | the catalog: governed publication lineages (`manifold_id`, `latest_version`, `versions[]` with per-version `realizable`) + classified `legacy`/`authority_incomplete` compatibility runtimes |
 | `describe_manifold(manifold_id)` | no | dimensions/levels, edges (+ lineage), universes (+ predicate), measure index |
 | `describe_measure(manifold_id, measure)` | no | family triple, per-member anchors, dtype, v-anchor `{universe, grain}`, m-anchor, provenance |
 | `query(manifold_id, frameql, universe?)` | yes | the wire contract (serve/disclose/clarify/refuse/error) |

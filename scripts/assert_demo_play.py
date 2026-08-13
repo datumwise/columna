@@ -5,7 +5,7 @@ leg (0.13.2). The inline form depended on POSIX shell quoting; a file does not, 
 assertion runs byte-identically on ubuntu-latest and windows-latest. One check, two platforms —
 if the two legs could drift, the Windows leg would prove less than it appears to.
 
-Asserts: all four moods present, in contract order, on contract version 1.
+Asserts: all four moods present, in contract order, on contract version 3.
 """
 
 import sys
@@ -30,8 +30,8 @@ def main() -> int:
         print("FAIL: moods appeared out of contract order: %s" % ordering)
         return 1
 
-    if '"contract_version": "2"' not in payload:
-        print('FAIL: no \'"contract_version": "2"\' in demo --play output')
+    if '"contract_version": "3"' not in payload:
+        print('FAIL: no \'"contract_version": "3"\' in demo --play output')
         return 1
 
     # ASCII ONLY, deliberately. This file is the harness that proves the product handles non-ASCII
@@ -39,7 +39,7 @@ def main() -> int:
     # em-dash only because cp1252 happens to have one at 0x97 — U+2500, four lines earlier in the
     # product's own output, does not, which is exactly where the crash landed. A guard that can be
     # broken by the condition it guards against is not a guard.
-    print("demo --play OK - four moods in contract order, contract_version 1")
+    print("demo --play OK - four moods in contract order, contract_version 3")
     return 0
 
 

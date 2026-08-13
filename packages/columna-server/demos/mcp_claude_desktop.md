@@ -50,7 +50,7 @@ query(manifold_id="benchmark", frameql="sell_through_rate: revenue / level.last 
 
 ```json
 {
-  "contract_version": "2",
+  "contract_version": "3",
   "outcome": "clarify",
   "columns": [{
     "name": "sell_through_rate", "status": "clarify",

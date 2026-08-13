@@ -86,6 +86,10 @@ async def connect(manifolds: str | None = None):
             await session.initialize()
             conn = MCPServerConnection(session)
             listed = await conn.list_manifolds()
-            ids = [m["manifold_id"] for m in listed["manifolds"]]
+            # v3 catalog: a governed lineage exposes `manifold_id`; a compatibility runtime (legacy /
+            # authority-incomplete) exposes `runtime_id`. Both are usable ids — the server contract
+            # decides which resolve (governed-first, then compat); the agent just picks one.
+            ids = [m.get("manifold_id") or m.get("runtime_id") for m in listed["manifolds"]]
+            ids = [i for i in ids if i]
             conn.manifold_id = _DEMO_MANIFOLD if _DEMO_MANIFOLD in ids else ids[0]
             yield conn
