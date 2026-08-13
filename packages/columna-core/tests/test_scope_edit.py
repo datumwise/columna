@@ -15,6 +15,7 @@ refuted fertility claim — covered in test_adjudication.py).
 import duckdb
 
 from columna_core import ManifoldServer, DuckDBConnector
+from columna_core.model import EdgeKey
 from columna_core.parser import parse_manifold
 
 
@@ -52,8 +53,8 @@ def test_hierarchy_degrades_to_blocked_transport_not_manifold_failure():
     # the FD breaks on new data: d1 now maps to two months. RE-ATTEST — the edge blocks, nothing else fails.
     con.execute("INSERT INTO cal VALUES ('d1', 'm2')")
     diff = srv.reattest()
-    assert ("day", "month") in diff["blocked_edges"]
-    assert diff["blocked_by"][("day", "month")][0]["key"] == "d1"
+    assert EdgeKey("calendar", "day", "month") in diff["blocked_edges"]   # lineage-keyed (P0.5a)
+    assert diff["blocked_by"][EdgeKey("calendar", "day", "month")][0]["key"] == "d1"
 
     # transport ACROSS the blocked edge refuses contradicted_edge; the base grain still serves
     fr = srv.frame("month").column("revenue", "revenue").run()
@@ -64,7 +65,7 @@ def test_hierarchy_degrades_to_blocked_transport_not_manifold_failure():
     # fix the data -> symmetric restore (the edge unblocks, transport returns)
     con.execute("DELETE FROM cal WHERE day = 'd1' AND month = 'm2'")
     diff2 = srv.reattest()
-    assert ("day", "month") in diff2["unblocked_edges"]
+    assert EdgeKey("calendar", "day", "month") in diff2["unblocked_edges"]
     assert srv.frame("month").column("revenue", "revenue").run().outcome in ("serve", "disclose")
 
 
@@ -97,8 +98,10 @@ def test_untestable_hierarchy_does_not_establish_addressability():
         "tx": (["day", "amount"], [("d1", 10.0), ("d2", 20.0)])})
     srv.publish()                                            # does NOT raise — untestable, not refuted
     assert srv.m.hierarchies[0].license.verdict == UNTESTABLE
-    assert ("day", "month") not in srv.published_scope.certified_edges, "untestable must not admit"
-    assert ("day", "month") not in srv.published_scope.blocked_edges, "untestable is not a refutation"
+    assert EdgeKey("calendar", "day", "month") not in srv.published_scope.certified_edges, \
+        "untestable must not admit"
+    assert EdgeKey("calendar", "day", "month") not in srv.published_scope.blocked_edges, \
+        "untestable is not a refutation"
 
     fr = srv.frame("month").column("revenue", "revenue").run()
     assert fr.outcome == "refuse"

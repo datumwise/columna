@@ -61,7 +61,10 @@ def main():
 
     # (2) the DAG the planner traverses is topology-only — no physical columns on its edges
     print("\n(2) the planner's transport paths are topology+lineage, with NO physical columns")
-    path = pv.find_path(frozenset({"store", "day"}), "region")
+    # find_path_any = the DECLARED shape DAG. This check is about what a shape edge CARRIES (topology
+    # + lineage, no physical columns), not about admission — and a bare PlannerView has certified
+    # nothing, so the certified find_path is correctly empty here (P0.5a closed-by-default).
+    path = pv.find_path_any(frozenset({"store", "day"}), "region")
     edge = path[1][0]
     check("a shape edge has frm/to/lineage", edge.frm == "store" and edge.to == "region" and edge.lineage)
     check("a shape edge has NO 'frm_col'/'to_col'/'provider_table'",
@@ -87,6 +90,7 @@ def main():
     print("\n(4) from shape alone the planner still refuses statically and resolves the rest")
     con = load()
     srv = ManifoldServer(m, DuckDBConnector(con))
+    srv.publish()
     r_fan = srv.frame("category").column("rev", "revenue").run().columns[0].refusal
     check("fan-out (revenue@category) refused by the planner from topology",
           r_fan is not None and r_fan.reason == "non_functional_transport")

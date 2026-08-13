@@ -34,6 +34,7 @@ def main():
     # ── POSITIVE: the benchmark is consistent ──
     print("\n(1) the benchmark Manifold — measures on a universe must share support")
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()
     findings = srv.engine.validate_universe_support()
     check("benchmark is universe-consistent (transactions' measures reconcile to one support)",
           not findings, "no findings")
@@ -53,6 +54,7 @@ def main():
         "sparse_lvl", "store_days", "sparse_inv", "TRY_CAST(level AS DOUBLE)",
         family={"sum": FamilyMember("sum", BAnchor(frozenset({"calendar"})))})
     srv2 = ManifoldServer(m2, DuckDBConnector(con))
+    srv2.publish()
     findings2 = srv2.engine.validate_universe_support()
     check("mis-declared measure is FLAGGED — supports on store_days don't reconcile",
           len(findings2) > 0, f"{len(findings2)} finding(s)")

@@ -15,7 +15,7 @@ import sys, glob, os
 import duckdb, polars as pl
 
 from columna_core import (Manifold, Universe, DimensionLevel, FunctionalEdge,
-                          MeasureColumn, FamilyMember, BAnchor, DerivedColumn, Relate,
+                          MeasureColumn, FamilyMember, BAnchor, DerivedColumn, Relate, Hierarchy,
                           ADDITIVE, SKETCH, HOLISTIC, PROVEN,
                           DuckDBConnector, ManifoldServer, Refusal, A)
 from columna_core.parser import parse_predicate
@@ -65,6 +65,16 @@ def build_manifold():
         FunctionalEdge("day","cal.quarter","calendar","calendar","day","quarter"),
         FunctionalEdge("day","cal.year","calendar","calendar","day","year"),
     ]
+    # P0.5a (ruling 2026-08-11): the hand-built twin must carry the SAME hierarchy/adjudication structure
+    # as the parsed .cml. Previously this manifold declared edges with no hierarchies, so every edge was
+    # ungated and the whole fixture-backed suite was structurally exempt from closed-by-default serving —
+    # the tests that prove the law must exercise the lifecycle production uses. These mirror
+    # tests/fixtures/benchmark.cml exactly (the drift guard compares the two).
+    hierarchies = [
+        Hierarchy("store_geo", (("store", "region"),)),
+        Hierarchy("calendar", (("day", "cal.week"), ("day", "cal.month"),
+                               ("day", "cal.quarter"), ("day", "cal.year"))),
+    ]
     measures = {
         "revenue": MeasureColumn("revenue","transactions","transactions","amount",
                        logical_type="Float64",
@@ -94,7 +104,8 @@ def build_manifold():
     }
     derived = {"aov": DerivedColumn("aov", "revenue / orders")}
     non_functional = [Relate("product", "category", "a product belongs to up to 3 categories")]
-    return Manifold("benchmark", 1, universes, levels, edges, measures, derived, non_functional)
+    return Manifold("benchmark", 1, universes, levels, edges, measures, derived, non_functional,
+                    hierarchies=hierarchies)
 
 def run_validations(con, srv):
     global _P, _F
@@ -205,6 +216,7 @@ def main():
     print("="*80)
     con = load()
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()          # P0.5a: transport serves only once adjudication admits the edges
     sys.exit(1 if run_validations(con, srv) else 0)
 
 if __name__ == "__main__":

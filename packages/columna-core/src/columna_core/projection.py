@@ -88,6 +88,13 @@ class ShapeEdge:
     to: str
     lineage: str           # topology + lineage tag only; NO frm_col/to_col/provider_table
 
+    @property
+    def key(self):
+        """This edge's certification identity — the SAME EdgeKey the full FunctionalEdge yields, so the
+        planner's shape view and the adjudicator's verdicts name the same subject (P0.5a GAP 3)."""
+        from .model import EdgeKey
+        return EdgeKey(self.lineage, self.frm, self.to)
+
 
 @dataclass(frozen=True)
 class FaceShape:
@@ -129,14 +136,14 @@ class PlannerView:
             for r in m.non_functional)
         self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
-        # P0.5a CLOSED-BY-DEFAULT TRANSPORT. Only edges carrying an FD claim (governed by a HIERARCHY) are
-        # certification-dependent; they are CLOSED until adjudication positively admits them (CORROBORATED).
-        # Edges with no governing hierarchy assert no data-provable functional dependence and are admitted
-        # structurally (never gated). In the governed .cml path HIERARCHY is the sole edge surface, so every
-        # real functional edge is gated; directly-built (demo/test) edges without a hierarchy are not.
-        _hier_lineages = {h.lineage for h in m.hierarchies}
-        self._gated_edges: frozenset = frozenset((e.frm, e.to) for e in m.edges if e.lineage in _hier_lineages)
-        self.certified_edges: frozenset = frozenset()          # admitted FD-claimed edges (from PublishedScope)
+        # P0.5a CLOSED-BY-DEFAULT TRANSPORT. EVERY FunctionalEdge is certification-dependent: transport
+        # serves only across an edge adjudication positively ADMITTED. There is deliberately no
+        # "this edge carries no hierarchy, therefore admit it" branch — that was a second, silent
+        # authority model (ruling 2026-08-11), and since HIERARCHY is the parser's only FunctionalEdge
+        # surface a governed .cml never needed it. A Manifold built directly in Python with no
+        # hierarchies now certifies nothing and therefore transports nothing: legacy construction does
+        # not inherit governed status by omission.
+        self.certified_edges: frozenset = frozenset()          # EdgeKey(lineage, frm, to) — admitted transport
         # P0.5a ADJUDICATION PROBE. The adjudicator ESTABLISHES certification by querying across the very
         # edges/faces it is testing — under the serving gate it could never certify anything (the claim is
         # closed until proven, and the proof needs the transport). So adjudication runs against the DECLARED
@@ -179,12 +186,14 @@ class PlannerView:
         return [e for e in self._edges if e.frm == level]
 
     def _admitted(self, e) -> bool:                            # P0.5a — usable for governed transport?
+        """Positively admitted for governed transport? Closed unless certified — no structural
+        exemption, and the key is the LINEAGE-bearing EdgeKey so one lineage's verdict can never
+        license another's edge over the same level pair."""
         if self.probing:
             return True                                        # adjudication tests the DECLARED shape
-        key = (e.frm, e.to)
-        return key not in self._gated_edges or key in self.certified_edges
+        return e.key in self.certified_edges
 
-    def _out_certified(self, level):                           # P0.5a — structural edges + admitted FD edges
+    def _out_certified(self, level):                           # P0.5a — ADMITTED edges only
         return [e for e in self._edges if e.frm == level and self._admitted(e)]
 
     def out_edges(self, level):

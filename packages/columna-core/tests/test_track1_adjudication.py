@@ -62,6 +62,9 @@ def test_hierarchy_fd_violation_fails_closed():
 
 
 def test_demo_adjudication_still_clean(fixture_server):
-    # the shipped demo declares no hierarchies; the fertility path is unchanged and publishes.
+    # P0.5a: the shipped demo now declares the SAME hierarchies as its .cml twin (before, the hand-built
+    # manifold carried none, which left its edges ungated and the fixture suite exempt from the
+    # certification law). Both lineages corroborate on the attested data, and the fertility path is
+    # unchanged: adjudication is clean and the manifold publishes.
     report = adjudicate(fixture_server)
-    assert "_hierarchies" not in report
+    assert report["_hierarchies"] == {"store_geo": "corroborated", "calendar": "corroborated"}

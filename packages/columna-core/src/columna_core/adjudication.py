@@ -40,7 +40,7 @@ from typing import Optional
 import polars as pl
 
 from .model import (License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
-                    TOUCH, ASSIGN, ORDER_MIN)
+                    TOUCH, ASSIGN, ORDER_MIN, EdgeKey)
 from .operators import REGISTRY
 
 # float tolerance policy (ruling §4)
@@ -365,8 +365,8 @@ class PublishedScope:
     degrade target, one refusal reason, all three gone together, because the cut region's sole producer
     was a violated assert. `conflicting_data` is tombstoned in disclosure.REASON_OUTCOME and pinned as
     never-emitted."""
-    blocked_edges: frozenset = frozenset()          # (frm, to) whose transport is BLOCKED (refuted hierarchy)
-    blocked_by: dict = field(default_factory=dict)  # (frm, to) -> [{lineage, key}]
+    blocked_edges: frozenset = frozenset()          # EdgeKey whose transport is BLOCKED (refuted hierarchy)
+    blocked_by: dict = field(default_factory=dict)  # EdgeKey -> [{lineage, key}]
     licenses: dict = field(default_factory=dict)    # "derived.member" -> verdict (license-state snapshot)
     # ── P0.5a POSITIVE ADMISSION (the allow-list is authority; the block-list is explanation) ──────────
     # Absence from these sets = CLOSED. A declaration makes a capability eligible for certification; only a
@@ -405,7 +405,7 @@ def scope_from_report(m, report: dict) -> PublishedScope:
     # hierarchy proved CORROBORATED on the attested data (UNTESTABLE / CONTRADICTED close). Edges with no
     # governing hierarchy carry no FD claim and are not certification-dependent — the view admits them
     # structurally (see PlannerView._gated_edges), so they need not appear here.
-    certified_edges = frozenset((e.frm, e.to) for e in m.edges if hv.get(e.lineage) == CORROBORATED)
+    certified_edges = frozenset(e.key for e in m.edges if hv.get(e.lineage) == CORROBORATED)
     certified_faces = frozenset(k for k, v in report.get("_faces", {}).items()
                                 if v in (VERIFIED, CORROBORATED))
     return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
@@ -523,7 +523,10 @@ def _prove_face(face, rel, server, m) -> License:
                                      f"of {rel.frm}<->{rel.to} (the driver lemma: a spine at the frontier)")
     eng = server.engine
     try:
-        driver = eng._serve_driver(face, frontier)                     # [frontier, _drv]
+        # P0.5a: even adjudication's own driver probe executes a PLANNED route (inside the probe
+        # window, so the plan is over the declared shape — the proof is what mints admission).
+        _routes, _ = server.planner.plan_routes(face.selection, (frontier,))
+        driver = eng._serve_driver(face, frontier, _routes)            # [frontier, _drv]
     except Exception as e:
         raise FaceContradiction(key, f"driver '{face.selection}' is not servable at '{frontier}': {e}")
     if frontier == rel.to:
@@ -673,7 +676,10 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
                 lic = _license(CONTRADICTED, {h.lineage},
                     f"hierarchy step {e.frm}->{e.to} non-functional on re-attestation — edge BLOCKED; "
                     f"transport along it refuses (edges degrade to blocked transport).")
-                blocked[(e.frm, e.to)] = {"lineage": e.lineage, "key": e.key}
+                # keyed by the LINEAGE-bearing EdgeKey (P0.5a): refuting `calendar` must not block a
+                # co-located `fiscal` hop. (`e.key` here is the refuting DATA key — the exception's, not
+                # the edge's.)
+                blocked[EdgeKey(e.lineage, e.frm, e.to)] = {"lineage": e.lineage, "key": e.key}
             new_h.append(replace(h, license=lic))
             hv[h.lineage] = lic.verdict
         m.hierarchies = new_h

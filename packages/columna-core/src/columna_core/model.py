@@ -12,7 +12,7 @@ key->key mapping (single-table distinct). The B-anchor blocks transport per-line
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import NamedTuple, Optional
 
 # reaggregation tiers (the transport mechanism)
 ADDITIVE, SKETCH, HOLISTIC = "additive", "sketch", "holistic"
@@ -87,6 +87,32 @@ class FunctionalEdge:
     frm_col: str                          # column in provider_table for frm key
     to_col: str                           # column in provider_table for to key
     evidence: str = PROVEN
+
+    @property
+    def key(self) -> "EdgeKey":
+        """This edge's CERTIFICATION IDENTITY (P0.5a)."""
+        return EdgeKey(self.lineage, self.frm, self.to)
+
+
+class EdgeKey(NamedTuple):
+    """The identity of a certified/refuted transport subject (P0.5a, ruling 2026-08-11).
+
+    A verdict is reached per LINEAGE — `_prove_hierarchy` corroborates or refutes a HIERARCHY, and two
+    lineages may declare the same level pair over different provider tables. Keying admission on
+    `(frm, to)` alone therefore let one lineage's evidence license another lineage's edge (GAP 3): a
+    CORROBORATED `calendar` silently admitted an UNTESTABLE `fiscal` over the same hop.
+
+    Physical identity (provider_table / frm_col / to_col) is deliberately NOT part of this key — binding
+    certification to realization identity is P0.5b's subject. This key is the LOGICAL edge.
+
+    Field order is (lineage, frm, to) so `sorted()` groups a lineage's edges together; the wire
+    projects back to the historical [frm, to] pair shape, so no public shape changes."""
+    lineage: str
+    frm: str
+    to: str
+
+    def __str__(self) -> str:
+        return f"{self.frm}->{self.to} (lineage '{self.lineage}')"
 
 
 # ---- licenses (the Certificate kernel; WP-B) ---------------------------------
@@ -299,9 +325,27 @@ class Manifold:
     def out_edges(self, level: str):
         return [e for e in self.edges if e.frm == level]
 
+    def edge_for(self, key: "EdgeKey") -> FunctionalEdge:
+        """Resolve an EdgeKey to the FunctionalEdge that realizes it (P0.5a).
+
+        This is the planner→engine seam. The planner reasons over provenance-free ShapeEdges and hands
+        the engine an ordered tuple of EdgeKeys — logical identity only; the engine resolves each to the
+        physical edge (provider_table / frm_col / to_col) it will actually deliver. The planner therefore
+        never sees physical columns, and the engine never CHOOSES a route."""
+        idx = getattr(self, "_edge_index", None)
+        if idx is None or len(idx) != len(self.edges):
+            idx = {e.key: e for e in self.edges}
+            object.__setattr__(self, "_edge_index", idx)
+        return idx[key]
+
     def find_path(self, from_levels, target: str):
         """BFS over functional edges from any of from_levels to target.
-        Returns (start_level, [edges]) or None. Empty path if target in from_levels."""
+        Returns (start_level, [edges]) or None. Empty path if target in from_levels.
+
+        P0.5a WARNING: this traverses the FULL DECLARED graph and knows nothing of certification. It is
+        for authoring-time validation and adjudication's own proofs ONLY. No law-bearing serving path may
+        call it to pick a transport route — the planner selects the route over the CERTIFIED graph
+        (`PlannerView.find_path`) and hands it down. See `ColumnEngine._planned_path`."""
         if target in from_levels:
             return (target, [])
         # BFS

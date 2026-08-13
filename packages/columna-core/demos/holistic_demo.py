@@ -33,6 +33,7 @@ def main():
     print("="*80)
     con = load()
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()
 
     # ── (A) last: ORDERED monoid (carried witness) — works where sum is blocked ──
     print("\n(A) level.last @ (store, cal.month) — ORDERED monoid: carry day, reduce by argmax")

@@ -38,6 +38,7 @@ def main():
     print("COLUMNA CORE — §2c expression law (one universe per column) + frame law (juxtaposition)")
     print("=" * 80)
     srv = ManifoldServer(build_manifold(), DuckDBConnector(load()))
+    srv.publish()
     A = ("store", "day")   # both universes (transactions, store_days) are addressable here
 
     print("\n(A) same-universe ratio serves; cross-universe ratio is a category ERROR")

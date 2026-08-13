@@ -54,6 +54,7 @@ def test_parity_skeleton(cxn_name, factory, fixture_warehouse_dir, hand_manifold
     the expected wire outcomes. (Skeleton: with one connector this guards that connector; the
     parametrization is the seam a second backend plugs into.)"""
     srv = ManifoldServer(hand_manifold, factory(_fresh_con(fixture_warehouse_dir)))
+    srv.publish()          # P0.5a: parity is over a CERTIFIED manifold — the lifecycle production runs
     for anchor, expr, expected in _PARITY_CASES:
         w = wire_frame(srv.frame(*anchor).column("c", expr).run())
         assert w["outcome"] == expected, f"[{cxn_name}] {expr} @ {anchor} -> {w['outcome']} (expected {expected})"
