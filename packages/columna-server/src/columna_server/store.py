@@ -44,7 +44,9 @@ from .registry import (
     ManifoldRef,
     ManifoldRegistry,
     ManifoldSelector,
+    NotRealizableHere,
     PublicationArtifactError,
+    PublicationNotFound,
     ResolvedManifold,
     governed_publication_from_artifact,
     load_publication_artifact,
@@ -228,6 +230,7 @@ class ManifoldStore:
         # the registry; they remain reachable through the compatibility get()/ids()/all() below.
         pubs: dict[ManifoldRef, GovernedPublication] = {}
         self._providers_by_ref: dict[ManifoldRef, ExecutionProvider] = {}
+        self._loaded_by_ref: dict[ManifoldRef, LoadedManifold] = {}
         self._conditions: list[LoadCondition] = []
         for lm in self._loaded.values():
             if lm.condition is not None:
@@ -235,6 +238,7 @@ class ManifoldStore:
             if lm.publication is not None and lm.ref is not None:
                 pubs[lm.ref] = lm.publication
                 self._providers_by_ref[lm.ref] = lm.provider
+                self._loaded_by_ref[lm.ref] = lm
         self._registry: ManifoldRegistry = FolderManifoldRegistry(pubs)
 
     # ── compatibility surface (unchanged; folder-keyed) ──────────────────────────────────────────
@@ -271,3 +275,33 @@ class ManifoldStore:
         publication = self._registry.resolve(selector)
         provider = self._providers_by_ref.get(publication.ref)
         return ResolvedManifold(publication=publication, provider=provider)
+
+    def governed_ids(self) -> list[str]:
+        """The stable ids of the known governed publication lineages (each has ≥1 published version)."""
+        return sorted({r.manifold_id for r in self._registry.list()})
+
+    def resolve_public(
+        self, manifold_id: str, version: Optional[str] = None
+    ) -> "tuple[LoadedManifold, Optional[ManifoldRef]]":
+        """Governed-first PUBLIC resolution (S2.2b-1). Returns ``(loaded, resolved_ref)`` where
+        ``resolved_ref`` is the concrete governed ``ManifoldRef`` (disclose its version) or ``None`` for
+        a compatibility runtime (unversioned — nothing to disclose).
+
+        The deterministic rule — governed publication identity OUTRANKS compatibility-folder identity
+        for the same logical id; no filesystem/load-order choice is ever made:
+
+            manifold_id names a governed lineage
+                → resolve through the registry (exact version, or highest published semver)
+                → raises PublicationNotFound (unknown version) / NotRealizableHere (no provider here)
+            else, version supplied      → PublicationNotFound (compatibility runtimes are unversioned)
+            else, version omitted       → compatibility store.get(manifold_id) (raises KeyError if none)
+        """
+        if self._registry.latest(manifold_id) is not None:
+            resolved = self.resolve(ManifoldSelector(manifold_id, version))  # raises PublicationNotFound
+            if resolved.provider is None:
+                ref = resolved.publication.ref
+                raise NotRealizableHere(f"{ref.manifold_id}@{ref.version}")
+            return self._loaded_by_ref[resolved.publication.ref], resolved.publication.ref
+        if version is not None:
+            raise PublicationNotFound(f"{manifold_id}@{version}")
+        return self.get(manifold_id), None  # compatibility fallback (raises KeyError if unknown)

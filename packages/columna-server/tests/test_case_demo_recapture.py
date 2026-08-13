@@ -34,6 +34,18 @@ def corpus():
             if mid != "cascadia":
                 raise KeyError(mid)
             return lm
+
+        def ids(self):
+            return ["cascadia"]
+
+        def governed_ids(self):
+            return []
+
+        def resolve_public(self, mid, version=None):
+            if version is not None:
+                from columna_server.registry import PublicationNotFound
+                raise PublicationNotFound(f"{mid}@{version}")
+            return self.get(mid), None
     return recapture.generate(_Store(), lm.provider)
 
 

@@ -15,6 +15,7 @@ from columna_core import disclosure_wire as dw
 
 from .frameql import FrameQLSyntaxError
 from .provider import SupportsExecutionDiagnostics
+from .registry import NotRealizableHere, PublicationNotFound
 from .store import ManifoldStore
 
 CONTRACT_VERSION = dw.CONTRACT_VERSION
@@ -41,11 +42,41 @@ class ToolInputError(ValueError):
     layer as an error result, distinct from an analytical `error` outcome carried in the wire."""
 
 
-def _get(store: ManifoldStore, manifold_id: str):
+def _resolve(store: ManifoldStore, manifold_id: str, version: Optional[str] = None):
+    """Governed-first public resolution (S2.2b-1) → ``(LoadedManifold, resolved_ref)``.
+
+    ``resolved_ref`` is the concrete governed ``ManifoldRef`` (disclose its version) or ``None`` for a
+    compatibility runtime (unversioned). Registry serving conditions are surfaced through the STRUCTURAL
+    MCP-error channel (raise → MCP error result), distinct from an analytical `error` wire outcome:
+      * ``publication_not_found`` — no such governed publication (unknown id/version), or an explicit
+        version on a non-governed id;
+      * ``not_realizable_here``   — the governed publication exists but has no provider realization here.
+    Both are pre-adjudication: analytical adjudication begins only after resolution succeeds.
+    """
     try:
-        return store.get(manifold_id)
+        return store.resolve_public(manifold_id, version)
+    except PublicationNotFound:
+        v = f"@{version}" if version else ""
+        raise ToolInputError(
+            f"publication_not_found: no governed publication '{manifold_id}{v}' "
+            f"(governed lineages: {store.governed_ids()}; compatibility runtimes: {store.ids()})")
+    except NotRealizableHere as e:
+        raise ToolInputError(
+            f"not_realizable_here: governed publication '{e}' exists but has no provider realization "
+            f"in this installation")
     except KeyError:
         raise ToolInputError(f"unknown manifold_id '{manifold_id}' (have {store.ids()})")
+
+
+def _disclose(result: dict, manifold_id: str, ref) -> dict:
+    """Make the resolved governed publication observable (S2.2b-1): echo ``manifold_id`` and, for an
+    artifact-backed governed publication, the concrete resolved ``manifold_version``. A compatibility
+    (legacy / authority-incomplete) runtime is unversioned — ``manifold_version`` is ABSENT, never
+    fabricated as `"legacy"`/`"unknown"` or a source-ref claim promoted into a governed version."""
+    result["manifold_id"] = manifold_id
+    if ref is not None:
+        result["manifold_version"] = ref.version
+    return result
 
 
 def _render_ref(ref, levels=frozenset()) -> str:
@@ -79,8 +110,8 @@ def list_manifolds(store: ManifoldStore) -> dict:
 
 
 # --- tool 2 ---------------------------------------------------------------------------------
-def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
-    lm = _get(store, manifold_id)
+def describe_manifold(store: ManifoldStore, manifold_id: str, version: Optional[str] = None) -> dict:
+    lm, ref = _resolve(store, manifold_id, version)
     m = lm.manifold
     from columna_core import (describe_derived, describe_universe, describe_hierarchy)
     # C-2 insulation (§2b, CP-3): dimensions no longer emit `realized_by` (a physical identifier).
@@ -126,15 +157,17 @@ def describe_manifold(store: ManifoldStore, manifold_id: str) -> dict:
     ps = lm.provider.published_scope()
     scope = {"blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
              "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
-    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
-            "dimensions": dimensions, "edges": edges, "universes": universes,
-            "hierarchies": hierarchies, "relates": relates,
-            "measures": measures, "derived": derived, "published_scope": scope}
+    return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+                      "dimensions": dimensions, "edges": edges, "universes": universes,
+                      "hierarchies": hierarchies, "relates": relates,
+                      "measures": measures, "derived": derived, "published_scope": scope},
+                     manifold_id, ref)
 
 
 # --- tool 3 ---------------------------------------------------------------------------------
-def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> dict:
-    lm = _get(store, manifold_id)
+def describe_measure(store: ManifoldStore, manifold_id: str, measure: str,
+                     version: Optional[str] = None) -> dict:
+    lm, ref = _resolve(store, manifold_id, version)
     m = lm.manifold
     mc = m.measures.get(measure)
     if mc is None:
@@ -159,7 +192,7 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
         signatures[member] = {"operator": operator_properties(sig)}
 
     base_grain = sorted(m.universes[mc.universe].base_dimensions)
-    return {
+    return _disclose({
         "contract_version": CONTRACT_VERSION, "manifold_id": manifold_id, "measure": measure,
         "description": mc.description,       # measure folklore (case-demo b) — LOGICAL, flows to the wire
         "universe": mc.universe, "dtype": mc.logical_type,
@@ -168,7 +201,7 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str) -> di
         "v_anchor": {"universe": mc.universe, "grain": base_grain},   # structured, ruling C
         "m_anchor": {"mechanism": mc.missingness, "columns": sorted(mc.m_anchor)},
         "provenance": {"measure": _PROVENANCE.get(mc.evidence, mc.evidence)},
-    }
+    }, manifold_id, ref)
 
 
 # --- tools 4 & 5 (the ENVELOPE wire) --------------------------------------------------------
@@ -178,43 +211,46 @@ def _syntax_error_wire(detail: str, universe: Optional[str]) -> dict:
             "columns": [], "error": {"reason": "frameql_syntax", "detail": detail}}
 
 
-def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
+                        version: Optional[str] = None) -> dict:
     """Execute a FrameQL ENVELOPE statement (`SELECT <series> AT {anchor} [WHERE][HAVING][ORDER BY]
     [LIMIT]`) over real data. The terse `cols @ anchor` form is RETIRED from the wire (0.9.0 tombstone).
     Returns the four-mood wire contract annotated with `executed: true` and `fetches_delta` (the backend
     fetches this run cost) — the executing counterpart of `check_frame_query`'s zero-fetch pre-flight."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     before = _fetch_count(lm.provider)
     try:
         stmt = parse_statement(frameql)
         fr = lm.provider.run(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return _syntax_error_wire(str(e), None)
+        return _disclose(_syntax_error_wire(str(e), None), manifold_id, ref)
     after = _fetch_count(lm.provider)
     delta = (after - before) if (before is not None and after is not None) else None
-    return dw.wire_frame(fr, executed=True, fetches_delta=delta)
+    return _disclose(dw.wire_frame(fr, executed=True, fetches_delta=delta), manifold_id, ref)
 
 
-def query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+def query(store: ManifoldStore, manifold_id: str, frameql: str, version: Optional[str] = None) -> dict:
     """DEPRECATED (0.9.x) alias for `execute_frame_query`; the wire is byte-identical. Retained for one
     release so existing clients do not break. New callers use `execute_frame_query`, which pairs by name
     with `check_frame_query` (execute vs check, the same statement)."""
-    return execute_frame_query(store, manifold_id, frameql)
+    return execute_frame_query(store, manifold_id, frameql, version)
 
 
-def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) -> dict:
+def explain_statement(store: ManifoldStore, manifold_id: str, statement: str,
+                      version: Optional[str] = None) -> dict:
     """EXPLAIN an envelope statement WITHOUT executing: canonical desugared form + atom decomposition +
     dependency cone with verdicts + would-be annotation, zero backend fetches. The rich EXPLAIN payload
     (WP-FrameQL) — distinct from the query wire; a first-class MCP tool beside `query`."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     try:
         stmt = parse_statement(statement)
-        return lm.provider.explain(stmt)
+        return _disclose(lm.provider.explain(stmt), manifold_id, ref)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
-                "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}}
+        return _disclose({"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
+                          "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}},
+                         manifold_id, ref)
 
 
 # --- the no-engine tools: introspection + validation, zero data -----------------------------
@@ -223,23 +259,24 @@ def explain_statement(store: ManifoldStore, manifold_id: str, statement: str) ->
 # insulation test covers them); structural misses raise ToolInputError; an ill-posed-but-grammatical
 # query is a MOOD in the wire, never an exception. There is no SQL path here or anywhere.
 
-def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str) -> dict:
+def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
+                      version: Optional[str] = None) -> dict:
     """Validate a FrameQL statement against a manifold WITHOUT executing it. Parse (grammar), then plan
     (typecheck, addressability, single-universe §2c, pin laws) touching ZERO data, and return the
     would-be mood: serve/disclose/clarify/refuse/error. A syntax error is an `error` wire; a
     grammatical-but-ill-posed query returns clarify/refuse with alternatives. The cheap pre-flight —
     thinner than `explain` (no cone/atom decomposition), just: is this askable, and how would it land?"""
     from columna_core.envelope import EnvelopeSyntaxError, parse_statement
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     try:
         stmt = parse_statement(frameql)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return _syntax_error_wire(str(e), None)
+        return _disclose(_syntax_error_wire(str(e), None), manifold_id, ref)
     before = _fetch_count(lm.provider)
     fr = lm.provider.plan(stmt)
     after = _fetch_count(lm.provider)
     delta = (after - before) if (before is not None and after is not None) else None
-    return dw.wire_frame(fr, executed=False, fetches_delta=delta)
+    return _disclose(dw.wire_frame(fr, executed=False, fetches_delta=delta), manifold_id, ref)
 
 
 def frame_ql_grammar() -> dict:
@@ -255,29 +292,31 @@ def frame_ql_grammar() -> dict:
             "generated_by": f"columna-core {version('columna-core')}"}
 
 
-def discovery(store: ManifoldStore, manifold_id: str) -> dict:
+def discovery(store: ManifoldStore, manifold_id: str, version: Optional[str] = None) -> dict:
     """What can be asked of this manifold, WITHOUT touching data: the measures (each with its reducer
     family and the universe/grain it lives at) and the anchors (universes with their base grain) that a
     `SELECT <measure> AT {anchor}` can name. Logical names only; the universe is resolved structurally,
     never named in a query (§2c)."""
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     m = lm.manifold
     measures = [{"measure": mc.name, "universe": mc.universe, "reducers": list(mc.family),
                  "grain": sorted(m.universes[mc.universe].base_dimensions),
                  "description": mc.description} for mc in m.measures.values()]
     anchors = [{"universe": u.name, "basis": u.basis,
                 "grain": sorted(u.base_dimensions)} for u in m.universes.values()]
-    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
-            "measures": measures, "anchors": anchors, "levels": [lv.name for lv in m.levels.values()],
-            "ask_form": "SELECT <measure> AT {<levels>} — the universe is structural, never named"}
+    return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+                      "measures": measures, "anchors": anchors,
+                      "levels": [lv.name for lv in m.levels.values()],
+                      "ask_form": "SELECT <measure> AT {<levels>} — the universe is structural, "
+                                  "never named"}, manifold_id, ref)
 
 
-def manifold_status(store: ManifoldStore, manifold_id: str) -> dict:
+def manifold_status(store: ManifoldStore, manifold_id: str, version: Optional[str] = None) -> dict:
     """The manifold's health at a glance, WITHOUT touching data: counts (measures, universes, levels,
     hierarchies, relations, edges, derived), the published serving scope (edges blocked by refuted
     hierarchies), and the evidence standing (how many adjudicated Licenses are verified / corroborated /
     untestable)."""
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     m = lm.manifold
     ps = lm.provider.published_scope()
     licenses = getattr(ps, "licenses", None) if ps else None
@@ -287,22 +326,23 @@ def manifold_status(store: ManifoldStore, manifold_id: str) -> dict:
         v = getattr(lic, "verdict", None)
         if v:
             verdicts[v] = verdicts.get(v, 0) + 1
-    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+    return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "counts": {"measures": len(m.measures), "universes": len(m.universes),
                        "levels": len(m.levels), "hierarchies": len(m.hierarchies),
                        "relations": len(m.non_functional), "edges": len(m.edges),
                        "derived": len(m.derived)},
             "published_scope": {
                 "blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else []},
-            "evidence": {"licenses": len(lic_list), "verdicts": verdicts}}
+            "evidence": {"licenses": len(lic_list), "verdicts": verdicts}}, manifold_id, ref)
 
 
-def get_evidence(store: ManifoldStore, manifold_id: str, measure: Optional[str] = None) -> dict:
+def get_evidence(store: ManifoldStore, manifold_id: str, measure: Optional[str] = None,
+                 version: Optional[str] = None) -> dict:
     """The evidence behind a manifold's claims, WITHOUT touching data: each measure's declared evidence
     grade and each functional edge's, plus the adjudicated Licenses (verdict, lineages, basis,
     attestation) minted at publish. With `measure`, scoped to that measure's family and universe."""
     from columna_core.describe import license_to_dict
-    lm = _get(store, manifold_id)
+    lm, ref = _resolve(store, manifold_id, version)
     m = lm.manifold
 
     def _lic(lic: object) -> Optional[dict]:
@@ -314,20 +354,22 @@ def get_evidence(store: ManifoldStore, manifold_id: str, measure: Optional[str] 
             raise ToolInputError(f"unknown measure '{measure}' in manifold '{manifold_id}' "
                                  f"(have {sorted(m.measures)})")
         u = m.universes[mc.universe]
-        return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id, "measure": measure,
+        return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+                "measure": measure,
                 "evidence": _PROVENANCE.get(mc.evidence, mc.evidence),
                 "members": {mem: {"license": _lic(getattr(fm, "license", None))}
                             for mem, fm in mc.family.items()},
                 "universe": {"name": u.name, "basis": u.basis,
-                             "basis_license": _lic(getattr(u, "basis_license", None))}}
+                             "basis_license": _lic(getattr(u, "basis_license", None))}},
+                manifold_id, ref)
 
-    return {"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+    return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "measures": {name: _PROVENANCE.get(mc.evidence, mc.evidence)
                          for name, mc in m.measures.items()},
             "edges": [{"frm": e.frm, "to": e.to, "evidence": _PROVENANCE.get(e.evidence, e.evidence)}
                       for e in m.edges],
             "hierarchy_licenses": [_lic(getattr(h, "license", None)) for h in m.hierarchies
-                                   if getattr(h, "license", None)]}
+                                   if getattr(h, "license", None)]}, manifold_id, ref)
 
 
 # --- the case as an on-demand document (recapture) ---------------------------------------------------

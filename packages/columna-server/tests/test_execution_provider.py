@@ -31,6 +31,8 @@ _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "casc
 
 
 class _OneStore:
+    """A compat-only store double (one legacy/cascadia runtime, no governed lineage)."""
+
     def __init__(self, lm):
         self._lm = lm
 
@@ -38,6 +40,18 @@ class _OneStore:
         if mid != self._lm.manifold_id:
             raise KeyError(mid)
         return self._lm
+
+    def ids(self):
+        return [self._lm.manifold_id]
+
+    def governed_ids(self):
+        return []
+
+    def resolve_public(self, mid, version=None):
+        if version is not None:  # no governed lineage here → an explicit version cannot resolve
+            from columna_server.registry import PublicationNotFound
+            raise PublicationNotFound(f"{mid}@{version}")
+        return self.get(mid), None  # compatibility runtime — unversioned, no ref to disclose
 
 
 # 1. conformance ---------------------------------------------------------------------------
