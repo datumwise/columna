@@ -61,7 +61,7 @@ class ManifoldServer:
         # live. The adjudicator's own proof-serves use engine/model ops, so the still-live old scope never
         # blocks them.
         try:
-            report = adjudicate(self, attestation=attestation, trace=trace, degrade=True)
+            adjudicate(self, attestation=attestation, trace=trace, degrade=True)
         except Exception:
             self._install_closed_scope()
             raise
