@@ -38,6 +38,7 @@ def main():
 
     print()
     srv = ManifoldServer(parsed, DuckDBConnector(con))
+    srv.publish()          # P0.5a: certify transport before serving
     failed = run_validations(con, srv)
     sys.exit(1 if (failed or not parity) else 0)
 

@@ -24,6 +24,7 @@ def crossings(disc):
     return [c for c in disc.caveats if c.category == "b_anchor_crossing"]
 
 srv = ManifoldServer(build_manifold(), DuckDBConnector(load()))
+srv.publish()
 
 print("=" * 80)
 print("B-ANCHOR LOCUS REFINEMENT — crossing detection hoisted to the planner; EXPLAIN dry-runs")
@@ -41,7 +42,9 @@ check("the crossing names the reconciling alternative (.last)", cr and ".last" i
 
 # ── (2) DETECTION now lives in the planner — the engine's own disclosure has no crossing ─
 print("\n(2) locus moved — the engine no longer detects the crossing; the planner does")
-_frame, edisc = srv.engine.resolve("level", "sum", ("store",))
+# P0.5a: the planner owns route selection — a direct engine drive asks it for the certified plan
+_routes, _split = srv.planner.plan_routes("level", ("store",))
+_frame, edisc = srv.engine.resolve("level", "sum", ("store",), routes=_routes, split=_split)
 check("engine.resolve('level','sum',@store) returns a disclosure with NO crossing (engine doesn't detect)",
       len(crossings(edisc)) == 0, "the engine serves; it no longer decides the crossing")
 check("the planner's served result DOES carry it (detection is the planner's job now)",

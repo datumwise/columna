@@ -213,7 +213,15 @@ REASON_OUTCOME = {
                                                         #   (the pin choosing an ill-fitting grain vs a plan
                                                         #   discovering unreachability at run-time), with a
                                                         #   pin-specific teaching message. MINTED 2026-07-30.
-    "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge
+    "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge (tested+refuted)
+    "uncertified_edge":         (REFUSE,  UNSUPPORTED), # P0.5a: a declared functional edge that is NOT positively
+                                                        #   certified (UNTESTABLE / unadjudicated) — declaration makes
+                                                        #   a capability eligible for certification, not executable.
+                                                        #   Distinct from `contradicted_edge` (a stronger factual claim:
+                                                        #   tested and refuted). MINTED 2026-08-13.
+    "uncertified_face":         (REFUSE,  UNSUPPORTED), # P0.5a: a declared crossing face that is NOT positively
+                                                        #   admitted (license=None / no adjudication / not
+                                                        #   VERIFIED|CORROBORATED). Same polarity law as edges.
     # ── TOMBSTONE ── `conflicting_data` was (REFUSE, UNSUPPORTED) — "a declared invariant (ASSERT) the
     #   attested data VIOLATES: the data's own testimony forbids serving the cut region (B1 scope-edit)".
     #   RETIRED 2026-07-26 (the ASSERT retirement, Huayin's ruling): its ONLY producer was the cut region,

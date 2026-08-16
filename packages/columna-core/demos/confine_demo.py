@@ -59,6 +59,7 @@ def main():
 
     # (A) WITH the universe predicate — confinement excludes the bogus point
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()                              # P0.5a: certify the edges before transporting
     got_conf, res = cell(srv)
     check("WITH predicate: engine EXCLUDES the out-of-domain stock (matches confined truth)",
           abs(got_conf - cell_confined) < 1e-3, f"engine={got_conf:.0f}  truth={cell_confined:.0f}")
@@ -72,6 +73,7 @@ def main():
     m2 = build_manifold()
     m2.universes["store_days"] = Universe("store_days", frozenset({"store", "day"}), predicate=None)
     srv2 = ManifoldServer(m2, DuckDBConnector(con))
+    srv2.publish()
     got_unconf, _ = cell(srv2)
     check("WITHOUT predicate: engine SILENTLY INCLUDES the bogus stock (the failure confinement prevents)",
           abs(got_unconf - cell_unconfined) < 1e-3, f"engine={got_unconf:.0f}  inflated truth={cell_unconfined:.0f}")

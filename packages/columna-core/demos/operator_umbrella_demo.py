@@ -34,6 +34,7 @@ def main():
     print("=" * 80)
     con = load()
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()
 
     # ── (A) one registry, three kinds, each with a signature ────────────────
     print("\n(A) the registry is one umbrella with three kinds")

@@ -82,11 +82,34 @@ class ColumnEngine:
         self.stats = EngineStats()
 
     # ---- public: resolve one canonical atom -------------------------------
+    # ---- P0.5a: the planner-to-engine ROUTE CONTRACT ---------------------------------------------
+    # ONE routing authority. The planner selects a transport route over the CERTIFIED graph and hands
+    # it down as an ordered tuple of EdgeKeys; the engine resolves those to physical edges and executes
+    # EXACTLY them. The engine no longer BFSes `Manifold.find_path` on any law-bearing path, and there
+    # is deliberately NO "if no planned route: find_path(...)" fallback -- absence of an admitted route
+    # is CLOSED (ruling 2026-08-11).
+    def _planned_path(self, routes, measure: str, level: str):
+        """The route the planner admitted for (measure -> level), as (start, (FunctionalEdge, ...)).
+
+        Fails closed: a missing route is a planner/engine contract breach, never an invitation to pick
+        one. This is the structural guarantee that the executed route IS the certified route."""
+        entry = (routes or {}).get((measure, level))
+        if entry is None:
+            raise Refusal("uncertified_edge",
+                f"'{measure}' @ '{level}': no positively-admitted transport route was planned for this "
+                f"transport, so there is nothing the engine may lawfully execute. A declaration makes an "
+                f"edge eligible for certification, not executable.",
+                measure=measure, target=level,
+                alternatives=("publish/adjudicate so the edge is certified on the attested data",
+                              "address at a grain that does not cross this edge"))
+        start, keys = entry
+        return (start, tuple(self.m.edge_for(k) for k in keys))
+
     def resolve(self, measure: str, member: str, target: tuple,
-                where: Optional[str] = None, trace: Optional[list] = None):
+                where: Optional[str] = None, trace: Optional[list] = None, *,
+                routes=None, split=None):
         meas = self.m.measures[measure]
         uni = meas.universe
-        base = set(self.m.universes[uni].base_dimensions)
         fam = meas.family[member]
         op = get_operator(fam.agg)              # reaggregability is operator-level (the registry)
 
@@ -95,26 +118,13 @@ class ColumnEngine:
         # served DISCLOSE). v1 handles a single faced coordinate (the `revenue AT {category.touch}` case).
         faced = [T for T in target if parse_faced(T, self.m.non_functional) is not None]
         if faced:
-            return self._resolve_faced(meas, fam, op, target, faced, where, trace)
+            return self._resolve_faced(meas, fam, op, target, faced, where, trace, routes=routes,
+                                       split=split)
 
-        # paths to each target level
-        paths = {}
-        for T in target:
-            p = self.m.find_path(base, T)
-            if p is None:
-                # No functional path = an aggregate-across a non-traversable (M:N) edge: fan-out.
-                # This is a PLANNER clarification (the query is underdetermined), not analytical
-                # withholding — transport != join, so the membership number is not expressible
-                # without one of the three declared resolutions.
-                raise Refusal("non_functional_transport",
-                              f"'{measure}' cannot be aggregated across to '{T}': the edge into "
-                              f"'{T}' is non-functional (M:N). This aggregate-across is "
-                              f"underdetermined without a declared resolution",
-                              measure=measure, target=str(target),
-                              alternatives=("membership filter (accept the overlap deliberately)",
-                                            "primary designation (make the edge functional)",
-                                            "WITH allocation (supply a partition-of-unity) [Pro]"))
-            paths[T] = p
+        # P0.5a: routes to each target level come from the PLANNER (certified), never a BFS here.
+        # A target with no admitted route never reaches this line -- the planner refuses first
+        # (non_functional_transport / uncertified_edge / contradicted_edge / out_of_universe).
+        paths = {T: self._planned_path(routes, measure, T) for T in target}
 
         # B-anchor crossing DETECTION has moved to the planner (it is structural — shape, not
         # provenance — so it lives in the shape projection, alongside fan-out / out-of-universe).
@@ -137,28 +147,25 @@ class ColumnEngine:
             frame, sk = self._resolve_sketch(meas, member, target, paths, where, trace)
             self.cache[key] = CacheEntry(frame, sk, ver)
         elif op.witness == OP_HOLISTIC:
-            frame = self._recompute_holistic(meas, fam, op, target, paths, where, trace)
+            frame = self._recompute_holistic(meas, fam, op, target, paths, where, trace, split=split)
             self.cache[key] = CacheEntry(frame, None, ver)     # exact-memoize only; not a reduction seed
         else:   # VALUE or ORDERED — both reduce in witness-space
-            frame = self._deliver_and_transport_monoid(meas, fam, op, target, paths, where, trace)
+            frame = self._deliver_and_transport_monoid(meas, fam, op, target, paths, where, trace,
+                                                       split=split)
             self.cache[key] = CacheEntry(frame, None, ver)
         return frame, self._disc(meas, fam, op, uni)
 
     # ---- public: resolve one SCAN (order-dependent, anchor-preserving) ----
-    _TEMPORAL_LINEAGES = {"calendar", "fiscal"}
-
-    def _orderable_levels(self) -> set:
-        """Levels that carry a natural order — those on a temporal lineage. The manual's
-        'typically a temporal dimension'; Core reads it off the edge lineages."""
-        lv = set()
-        for e in self.m.edges:
-            if e.lineage in self._TEMPORAL_LINEAGES:
-                lv.add(e.frm); lv.add(e.to)
-        return lv
+    # (`_TEMPORAL_LINEAGES` / `_orderable_levels` stood here. RETIRED 2026-08-13 with the P0.5a
+    #  order-axis ruling: deriving the axis from `self.m.edges` let a declared-but-UNCERTIFIED
+    #  hierarchy make an axis derivable — turning "no lawful axis -> refuse" into "exactly one ->
+    #  serve", which changes shipped numbers. The axis is now chosen by the planner over admitted
+    #  structure (`PlannerView.orderable_levels` / `Planner.plan_order_axis`) and handed down.)
 
     def scan(self, measure: str, member: str, target: tuple, scan_op: str,
              n: int = 1, by: Optional[str] = None,
-             where: Optional[str] = None, trace: Optional[list] = None):
+             where: Optional[str] = None, trace: Optional[list] = None, *,
+             routes=None, split=None, order_axis=None):
         """A scan is an order-dependent map: it reduces the measure to `target` (the reducer
         atom — anchor-preserving), derives an order from the anchor (or `by=`), partitions by
         the rest, and walks the order. The planner routes here knowing only the name/kind/
@@ -174,22 +181,20 @@ class ColumnEngine:
 
         # 1) the scan input IS the reducer atom served at the (preserved) anchor — and it carries
         #    its own disclosure (e.g. a B-anchor crossing on the underlying reduction rides through).
-        frame, disc = self.resolve(measure, member, target, where, trace)
+        frame, disc = self.resolve(measure, member, target, where, trace, routes=routes,
+                                   split=split)
 
-        # 2) derive the order axis (manual ch.2.8 / 5.5): one orderable anchor level, or by=.
-        orderable = self._orderable_levels() & set(target)
-        if by is not None:
-            order_axis = by
-        elif len(orderable) == 1:
-            order_axis = next(iter(orderable))
-        elif not orderable:
+        # 2) the ORDER AXIS is the PLANNER's decision (P0.5a, ruling 2026-08-11): it is derived from
+        #    positively-admitted hierarchy structure, because an axis fixes the sort this scan walks
+        #    and therefore moves shipped numbers. The engine consumes the handed axis and infers
+        #    nothing — no fallback to the declared graph.
+        if order_axis is None:
             raise Refusal("unknown",
-                f"scan '{scan_op}' @ {target} has no derivable order axis (no temporal level in "
-                f"the anchor); name it with by=<level>", measure=measure, target=str(target))
-        else:
-            raise Refusal("unknown",
-                f"scan '{scan_op}' @ {target} order axis is ambiguous ({sorted(orderable)}); "
-                f"name it with by=<level>", measure=measure, target=str(target))
+                f"scan '{scan_op}' @ {target}: no lawful order axis was planned, so there is nothing "
+                f"the engine may order by. A declared-but-uncertified hierarchy confers no axis.",
+                measure=measure, target=str(target),
+                alternatives=("name the axis explicitly with by=<level>",
+                              "publish/adjudicate so the temporal hierarchy is certified"))
 
         partition = [d for d in target if d != order_axis]
         f = frame.sort(partition + [order_axis]) if partition else frame.sort(order_axis)
@@ -207,7 +212,7 @@ class ColumnEngine:
         return f, disc
 
     # ---- monoid delivery + reduce (VALUE and ORDERED) ---------------------
-    def _deliver_and_transport_monoid(self, meas, fam, op, target, paths, where, trace):
+    def _deliver_and_transport_monoid(self, meas, fam, op, target, paths, where, trace, *, split=None):
         start = {T: paths[T][0] for T in target}
         base_levels = list(dict.fromkeys(start.values()))
         realized = self.con.realize(meas.home_table, meas.pre_expr, meas.logical_type)
@@ -257,7 +262,7 @@ class ColumnEngine:
         # DEPENDENT-PAIR completion: a target level fixed by another target level (S->..->T functional)
         # is an ATTRIBUTE, attached 1:1, never a reduction axis (else it collapses its determiner). The
         # rest reduce as before.
-        reduction, dependent = self._split_dependent_targets(target)
+        reduction, dependent = self._split_dependent_targets(target, split=split)
         for T in reduction:
             cur, path = start[T], paths[T][1]
             for e in path:
@@ -278,7 +283,7 @@ class ColumnEngine:
         return frame.select(list(target) + ["_value"])     # project the witness to the answer
 
     # ---- TOUCH: join-multiply across a non-functional (M:N) edge ----------
-    def _resolve_faced(self, meas, fam, op, target, faced, where, trace):
+    def _resolve_faced(self, meas, fam, op, target, faced, where, trace, *, routes=None, split=None):
         """Dispatch a faced crossing (M:N passage, notes v0.2 §3 P2) by the declared face scheme, after
         the crossing guards that are UNIFORM across all three schemes:
           · G4 the chain guard — a multi-hop face path is not yet licensed (disclosure-stacking undesigned);
@@ -319,37 +324,44 @@ class ColumnEngine:
                           f"not (ordered/holistic crossings are post-launch)",
                           measure=meas.name, target=T)
         if face.scheme == ASSIGN:
-            return self._resolve_assign(meas, fam, op, target, T, coord, rel, face, where, trace)
+            return self._resolve_assign(meas, fam, op, target, T, coord, rel, face, where, trace,
+                                        routes=routes, split=split)
         if face.scheme == ALLOC:
-            return self._resolve_alloc(meas, fam, op, target, T, coord, rel, face, where, trace)
-        return self._resolve_touch(meas, fam, op, target, faced, where, trace)
+            return self._resolve_alloc(meas, fam, op, target, T, coord, rel, face, where, trace,
+                                       routes=routes, split=split)
+        return self._resolve_touch(meas, fam, op, target, faced, where, trace, routes=routes,
+                                   split=split)
 
-    def _serve_driver(self, face, frontier):
+    def _serve_driver(self, face, frontier, routes=None):
         """Serve a face's DRIVER measure at the frontier grain (a single-valued spine read — the driver
         lemma, notes §4). Returns [frontier, '_drv']. The driver-ref is a DECLARED measure (resolved at
         publish), so this is the engine's own serve path, one hop."""
         dmeas = self.m.measures[face.selection]
         dmember = next(iter(dmeas.family))
-        dframe, _ = self.resolve(face.selection, dmember, (frontier,), None, None)
+        # P0.5a: the DRIVER is a second serving path the planner cannot see from the outside, so the
+        # planner pre-plans its route when it admits the face (see Planner._check_addressable).
+        dframe, _ = self.resolve(face.selection, dmember, (frontier,), None, None, routes=routes,
+                                 split=((frontier,), ()))
         # cast to Float64 — a DECIMAL driver (from the source column) would normalize in decimal space and
         # ROUND (0.667 -> 0.7), corrupting the split; the partition-of-unity must be full-precision.
         return dframe.rename({"_value": "_drv"}).with_columns(pl.col("_drv").cast(pl.Float64))
 
-    def _resolve_assign(self, meas, fam, op, target, T, coord, rel, face, where, trace):
+    def _resolve_assign(self, meas, fam, op, target, T, coord, rel, face, where, trace, *,
+            routes=None, split=None):
         """ASSIGN: the value goes to exactly ONE member — the top-ranked pair per the declared driver +
         ORDER direction. Restrict the bridge to each measure-side key's single top pick, then join (no
         multiply). Total reconciles to the grand total; the SHADOW (memberships not picked) is the honest
         disclosure. The frontier square commutes in total while redistributing between members (notes §5)."""
         uni = meas.universe
-        base = set(self.m.universes[uni].base_dimensions)
         other = rel.to if coord == rel.frm else rel.frm       # the measure-side endpoint (e.g. product)
         frontier = coord                                       # the crossed level (e.g. category)
-        p = self.m.find_path(base, other)
-        if p is None:
-            raise Refusal("non_functional_transport",
-                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'", measure=meas.name, target=T)
-        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
-        driver = self._serve_driver(face, frontier)           # [frontier, _drv]
+        # P0.5a: the route to the measure-side endpoint is the PLANNER's (certified), not a BFS here.
+        p = self._planned_path(routes, meas.name, other)
+        # the pre-crossing frame is delivered at the single endpoint grain: one level, so the
+        # reduce/attach partition is trivially all-reduction (nothing can determine itself).
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace,
+                                                   split=((other,), ()))
+        driver = self._serve_driver(face, frontier, routes)           # [frontier, _drv]
         if other == rel.frm:
             bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)   # _frm=other, _to=frontier
         else:
@@ -393,21 +405,22 @@ class ColumnEngine:
                 f"coverage {n_total - uncovered.height}/{n_total}", severity="info"))
         return base
 
-    def _resolve_alloc(self, meas, fam, op, target, T, coord, rel, face, where, trace):
+    def _resolve_alloc(self, meas, fam, op, target, T, coord, rel, face, where, trace, *,
+            routes=None, split=None):
         """ALLOC: the value SPLITS across a measure-side key's members by the NORMALIZED driver
         (driverᵢ / Σ per member — the declared law, applied here, never stored). Where the driver covers,
         splitting preserves mass everywhere; the RECONCILIATION badge is the commutation certificate
         (notes §5, alloc COMMUTES)."""
         uni = meas.universe
-        base = set(self.m.universes[uni].base_dimensions)
         other = rel.to if coord == rel.frm else rel.frm
         frontier = coord
-        p = self.m.find_path(base, other)
-        if p is None:
-            raise Refusal("non_functional_transport",
-                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'", measure=meas.name, target=T)
-        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
-        driver = self._serve_driver(face, frontier)           # [frontier, _drv]
+        # P0.5a: the route to the measure-side endpoint is the PLANNER's (certified), not a BFS here.
+        p = self._planned_path(routes, meas.name, other)
+        # the pre-crossing frame is delivered at the single endpoint grain: one level, so the
+        # reduce/attach partition is trivially all-reduction (nothing can determine itself).
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace,
+                                                   split=((other,), ()))
+        driver = self._serve_driver(face, frontier, routes)           # [frontier, _drv]
         if other == rel.frm:
             bridge = self.con.deliver_edge(rel.via_table, rel.via_frm_col, rel.via_to_col)
         else:
@@ -449,7 +462,7 @@ class ColumnEngine:
             f"{base_total:.2f} (delta {delta:.4f}). {note}",
             severity="info" if status == "reconciles" else "caution", reconciliation=recon))
 
-    def _resolve_touch(self, meas, fam, op, target, faced, where, trace):
+    def _resolve_touch(self, meas, fam, op, target, faced, where, trace, *, routes=None, split=None):
         """Execute a touch-face crossing: `<measure> AT {<coord>.touch}`. The measure is delivered at the
         reachable endpoint grain, then JOIN-MULTIPLIED through the relation's VIA bridge to the faced
         coordinate — a product's value reaches EVERY category it sits in, so the frame is deliberately
@@ -457,7 +470,6 @@ class ColumnEngine:
         `_transport_reduce` (the M:N bridge just delivers many-per-key pairs instead of one), so the
         multiply falls out of the same combine the functional path uses."""
         uni = meas.universe
-        base = set(self.m.universes[uni].base_dimensions)
         if len(faced) != 1 or len(target) != 1:
             raise Refusal("unsupported",
                           "touch v1 resolves a single faced coordinate anchor "
@@ -482,11 +494,8 @@ class ColumnEngine:
                           measure=meas.name, target=T)
 
         other = rel.to if coord == rel.frm else rel.frm      # the endpoint the measure reaches
-        p = self.m.find_path(base, other)
-        if p is None:
-            raise Refusal("non_functional_transport",
-                          f"'{meas.name}' cannot reach '{other}' to cross to '{T}'",
-                          measure=meas.name, target=T)
+        # P0.5a: the route to the measure-side endpoint is the PLANNER's (certified), not a BFS here.
+        p = self._planned_path(routes, meas.name, other)
 
         # exact cache — the faced token rides `target`, so touched/untouched key DISTINCTLY (no collision).
         key = (meas.name, fam.agg, target, uni, where)
@@ -498,7 +507,10 @@ class ColumnEngine:
             return self.cache[key].frame, disc.with_caveat(Caveat(FRESHNESS, "served from cache"))
 
         # 1) deliver the measure at the reachable endpoint grain (reuse the monoid delivery).
-        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace)
+        # the pre-crossing frame is delivered at the single endpoint grain: one level, so the
+        # reduce/attach partition is trivially all-reduction (nothing can determine itself).
+        frame = self._deliver_and_transport_monoid(meas, fam, op, (other,), {other: p}, where, trace,
+                                                   split=((other,), ()))
         # 2) deliver the bridge so `_frm` is ALWAYS the measure side (swap columns for the reverse edge),
         #    then join-multiply + reduce onto the faced grain T (no dedup — the multiply is the point).
         if other == rel.frm:
@@ -589,7 +601,8 @@ class ColumnEngine:
         "count": lambda c: c.count(),
     }
 
-    def reduce_series(self, frame, from_level: str, target: str, member: str, trace=None):
+    def reduce_series(self, frame, from_level: str, target: str, member: str, trace=None, *,
+                      route=None):
         """Reduce a per-`from_level` value series (column `_v`) to a single coarser `target` level by
         `member`, composing the functional edge maps along the path. Raises Refusal if `target` is not
         reachable from `from_level` (the metric is defined AT its resolution anchor; a finer or
@@ -599,11 +612,15 @@ class ColumnEngine:
                           f"resolution-anchor metric cannot reduce its series by '{member}'")
         if target == from_level:
             return frame
-        path = self.m.find_path({from_level}, target)
-        if path is None or path[0] != from_level:
-            raise Refusal("out_of_universe",
-                          f"'{target}' is not reachable from resolution anchor '{from_level}' — this "
-                          f"metric is defined AT '{from_level}' and cannot be served there")
+        # P0.5a (GAP 1): the AT-metric travels the route the planner ADMITTED from the resolution
+        # anchor to the ASKED anchor. The planner refuses `uncertified_edge` before we get here when
+        # no such route exists, so an AT-metric can never travel where the plain metric may not.
+        path = (from_level, tuple(self.m.edge_for(k) for k in route)) if route is not None else None
+        if path is None:
+            raise Refusal("uncertified_edge",
+                          f"reducing to '{target}' needs a positively-admitted route from "
+                          f"'{from_level}'; none was planned, so nothing may be executed.",
+                          target=target)
         work = frame.rename({from_level: "_key"})
         for e in path[1]:
             mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)   # [_frm, _to]
@@ -615,7 +632,8 @@ class ColumnEngine:
         agg = self._SERIES_REDUCE[member](pl.col("_v")).alias("_v")
         return work.group_by("_key").agg(agg).rename({"_key": target})
 
-    def reduce_series_to_anchor(self, frame, input_grain: tuple, target: tuple, member: str, trace=None):
+    def reduce_series_to_anchor(self, frame, input_grain: tuple, target: tuple, member: str, trace=None,
+                                *, reduction_routes=None, attach_routes=None, split=None):
         """Reduce an in-memory value series (column `_v`) keyed by `input_grain` (a tuple of levels) to
         the multi-level `target` anchor by `member`. Reduction targets reachable from an input level are
         transported (relabel + collapse); orthogonal targets already present are kept; functionally-
@@ -624,17 +642,21 @@ class ColumnEngine:
         Generalizes the single-level reduce_series to the dependent-pair era."""
         if member not in self._SERIES_REDUCE:
             raise Refusal("unsupported", f"cannot reduce a series by '{member}'")
-        reduction, dependent = self._split_dependent_targets(target)
+        reduction, dependent = self._split_dependent_targets(target, split=split)
         work, present = frame, set(input_grain)
         for rt in reduction:                                    # transport each reduction target into place
             if rt in present:
                 continue
-            src = next((g for g in input_grain if g == rt or self.m.find_path({g}, rt) is not None), None)
-            if src is None:
-                raise Refusal("out_of_universe",
-                              f"'{rt}' is not reachable from the input grain {list(input_grain)}")
+            # P0.5a: source axis AND route are the planner's choice, handed down; no re-BFS.
+            planned = (reduction_routes or {}).get(rt)
+            if planned is None:
+                raise Refusal("uncertified_edge",
+                              f"no positively-admitted route was planned to reduce onto '{rt}' from "
+                              f"the input grain {list(input_grain)}; nothing may be executed.",
+                              target=rt)
+            src, _keys = planned
             cur = src
-            for e in self.m.find_path({src}, rt)[1]:
+            for e in (self.m.edge_for(k) for k in _keys):
                 mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
                 work = work.join(mp, left_on=cur, right_on="_frm", how="inner").drop(cur).rename({"_to": e.to})
                 cur = e.to
@@ -644,9 +666,14 @@ class ColumnEngine:
                 else work.select(red))                          # empty reduction = grand total
         self._t(trace, f"  reduce series -> {list(reduction)} by {member} (collapse input axes)")
         for T in dependent:                                     # attach functionally-determined levels
-            S = next(s for s in reduction if self.m.find_path({s}, T) is not None)
+            planned = (attach_routes or {}).get(T)
+            if planned is None:
+                raise Refusal("uncertified_edge",
+                              f"no positively-admitted route was planned to attach '{T}'; "
+                              f"nothing may be executed.", target=T)
+            S, _keys = planned
             cur = S
-            for e in self.m.find_path({S}, T)[1]:
+            for e in (self.m.edge_for(k) for k in _keys):
                 mp = self.con.deliver_edge(e.provider_table, e.frm_col, e.to_col)
                 work = self._transport_attach(work, cur, e.to, mp); cur = e.to
         return work.select(list(target) + ["_v"])
@@ -657,16 +684,21 @@ class ColumnEngine:
         keys = [c for c in j.columns if c not in ("_value", "_order")]
         return j.group_by(keys).agg(self._combine_exprs(op))
 
-    def _split_dependent_targets(self, target: tuple) -> tuple:
+    def _split_dependent_targets(self, target: tuple, split=None) -> tuple:
         """Partition a target anchor into independent REDUCTION targets and functionally-DETERMINED
         attribute targets. T is DEPENDENT iff another target level S functionally reaches T (S->..->T):
         T is coarser and fixed by S, so it is attached 1:1, never reduced (reducing it would collapse
         its determiner S). DG-2's family — the coordinate machinery completing dependent pairs. The
         engine stays envelope-blind; this is per-atom transport geometry, decided from the edges."""
-        dependent = [T for T in target
-                     if any(S != T and self.m.find_path([S], T) is not None for S in target)]
-        reduction = tuple(T for T in target if T not in dependent)
-        return reduction, tuple(dependent)
+        # P0.5a: reduce-vs-attach is VALUE-BEARING (a group_by collapse vs a 1:1 broadcast), so the
+        # partition is the PLANNER's -- computed over the certified graph and handed down. An
+        # uncertified edge must not be able to promote a level from reduction axis to attached
+        # attribute. Absent a handed split we fail closed rather than re-deriving it here.
+        if split is not None:
+            return split
+        raise Refusal("uncertified_edge",
+                      f"no planned reduce/attach partition for {list(target)}; the engine does not "
+                      f"derive transport geometry from the declared graph.")
 
     def _transport_attach(self, frame, from_col, to_col, mapping):
         """Attach a functionally-DETERMINED attribute level: 1:1 broadcast `to_col` onto each row along
@@ -678,7 +710,7 @@ class ColumnEngine:
                      .rename({"_to": to_col}))
 
     # ---- holistic recompute-from-base (non-monoid: median, mode) ----------
-    def _recompute_holistic(self, meas, fam, op, target, paths, where, trace):
+    def _recompute_holistic(self, meas, fam, op, target, paths, where, trace, *, split=None):
         """A non-monoid op cannot reduce. Recompute from base at the target grain:
         deliver raw base rows (one table), broadcast the target coordinate keys onto them
         by transport, then aggregate in-engine. No cached/finer result is a candidate."""
@@ -702,7 +734,7 @@ class ColumnEngine:
         # broadcast each target coordinate onto the raw rows (relabel keys, keep all rows). DEPENDENT
         # target levels (fixed by another target level) are ATTACHED (keep the determiner), independent
         # ones relabel base->target as before — else a dependent pair collapses its determiner.
-        reduction, dependent = self._split_dependent_targets(target)
+        reduction, dependent = self._split_dependent_targets(target, split=split)
         for T in target:
             cur, path = start[T], paths[T][1]
             for e in path:

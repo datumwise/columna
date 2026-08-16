@@ -45,6 +45,7 @@ def main():
     # ── (2) operator-not-supported is refused at the PLANNER, before the engine ──
     print("\n(2) an unknown operator is refused at compile time — the engine is never asked")
     srv = ManifoldServer(build_manifold(), DuckDBConnector(con))
+    srv.publish()
     before = srv.fetches
     res = srv.frame("region").column("x", "revenue.stddev").run()
     ref = res.columns[0].refusal
@@ -60,6 +61,7 @@ def main():
                                               "customer_region", logical_type="Categorical",
                                               family={"mode": FamilyMember("mode")})
     srv2 = ManifoldServer(m, DuckDBConnector(con))
+    srv2.publish()
     before = srv2.fetches
     res = srv2.frame("region").column("bad", "revenue / cust_region.mode").run()
     ref = res.columns[0].refusal

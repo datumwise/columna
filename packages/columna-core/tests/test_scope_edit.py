@@ -15,6 +15,7 @@ refuted fertility claim — covered in test_adjudication.py).
 import duckdb
 
 from columna_core import ManifoldServer, DuckDBConnector
+from columna_core.model import EdgeKey
 from columna_core.parser import parse_manifold
 
 
@@ -52,8 +53,8 @@ def test_hierarchy_degrades_to_blocked_transport_not_manifold_failure():
     # the FD breaks on new data: d1 now maps to two months. RE-ATTEST — the edge blocks, nothing else fails.
     con.execute("INSERT INTO cal VALUES ('d1', 'm2')")
     diff = srv.reattest()
-    assert ("day", "month") in diff["blocked_edges"]
-    assert diff["blocked_by"][("day", "month")][0]["key"] == "d1"
+    assert EdgeKey("calendar", "day", "month") in diff["blocked_edges"]   # lineage-keyed (P0.5a)
+    assert diff["blocked_by"][EdgeKey("calendar", "day", "month")][0]["key"] == "d1"
 
     # transport ACROSS the blocked edge refuses contradicted_edge; the base grain still serves
     fr = srv.frame("month").column("revenue", "revenue").run()
@@ -64,8 +65,69 @@ def test_hierarchy_degrades_to_blocked_transport_not_manifold_failure():
     # fix the data -> symmetric restore (the edge unblocks, transport returns)
     con.execute("DELETE FROM cal WHERE day = 'd1' AND month = 'm2'")
     diff2 = srv.reattest()
-    assert ("day", "month") in diff2["unblocked_edges"]
+    assert EdgeKey("calendar", "day", "month") in diff2["unblocked_edges"]
     assert srv.frame("month").column("revenue", "revenue").run().outcome in ("serve", "disclose")
+
+
+# ── P0.5a: the POSITIVE-ADMISSION half — absence of a verdict is CLOSED, never permission ─────────
+def test_declared_but_unadjudicated_edge_refuses_transport():
+    """The polarity law on the hierarchy channel: a HIERARCHY that has merely been DECLARED does not
+    establish addressability. Before publish, transport day->month refuses `uncertified_edge` — a
+    distinct, weaker claim than `contradicted_edge` (which asserts the data refuted the FD). Publishing
+    the identical manifold opens it, so the gate is the SCOPE, not a parse-time property."""
+    srv, _con = _server_con(_HDEG, {
+        "cal": (["day", "month"], [("d1", "m1"), ("d2", "m1")]),
+        "tx":  (["day", "amount"], [("d1", 10.0), ("d2", 20.0)])})
+    fr = srv.frame("month").column("revenue", "revenue").run()
+    assert fr.outcome == "refuse", "an unadjudicated FD-claimed edge must not serve a number"
+    ref = fr.columns[0].refusal.classified()
+    assert ref.reason == "uncertified_edge"
+    assert ref.reason != "contradicted_edge", "nothing was refuted — only uncertified"
+
+    srv.publish()                                            # the same manifold, now certified
+    assert srv.frame("month").column("revenue", "revenue").run().outcome in ("serve", "disclose")
+
+
+def test_untestable_hierarchy_does_not_establish_addressability():
+    """The sharpest edge of P0.5a. An UNDELIVERABLE edge table makes the hierarchy UNTESTABLE — publish
+    SUCCEEDS (untestable is recorded and describe-visible, never a contradiction), but the transport is
+    still NOT admitted. Before P0.5a 'asserted on authored authority' silently served; now only a
+    positive CORROBORATED verdict admits. This is the pin that no-verdict != permission."""
+    from columna_core.model import UNTESTABLE
+    srv, _con = _server_con(_HDEG, {                         # note: no `cal` table -> not deliverable
+        "tx": (["day", "amount"], [("d1", 10.0), ("d2", 20.0)])})
+    srv.publish()                                            # does NOT raise — untestable, not refuted
+    assert srv.m.hierarchies[0].license.verdict == UNTESTABLE
+    assert EdgeKey("calendar", "day", "month") not in srv.published_scope.certified_edges, \
+        "untestable must not admit"
+    assert EdgeKey("calendar", "day", "month") not in srv.published_scope.blocked_edges, \
+        "untestable is not a refutation"
+
+    fr = srv.frame("month").column("revenue", "revenue").run()
+    assert fr.outcome == "refuse"
+    assert fr.columns[0].refusal.classified().reason == "uncertified_edge"
+    # ...and the base grain — which crosses no FD-claimed edge — is untouched. Closed-by-default gates
+    # TRANSPORT, not computation: there is no global "must publish before anything" rule.
+    assert srv.frame("day").column("revenue", "revenue").run().outcome in ("serve", "disclose")
+
+
+def test_failed_publish_leaves_nothing_open():
+    """The probe window lifts the gate for adjudication's own proof queries. Prove it restores on the
+    failure path: a manifold whose FD is refuted at birth raises, and the shape is left CLOSED — a
+    failed publish must never leave the probe's open state behind for a caller to serve through."""
+    from columna_core.adjudication import HierarchyContradiction
+    srv, _con = _server_con(_HDEG, {
+        "cal": (["day", "month"], [("d1", "m1"), ("d1", "m2")]),   # d1 has two parents at birth
+        "tx":  (["day", "amount"], [("d1", 10.0)])})
+    try:
+        srv.publish()
+    except HierarchyContradiction:
+        pass
+    else:
+        raise AssertionError("a refuted FD must fail publish closed")
+    assert srv.planner.m.probing is False, "the probe window must restore on the exception path"
+    fr = srv.frame("month").column("revenue", "revenue").run()
+    assert fr.outcome == "refuse", "a failed publish must not leave transport open"
 
 
 # ── RETIREMENT PIN: the tombstoned `conflicting_data` reason is never emitted ──────────────────────

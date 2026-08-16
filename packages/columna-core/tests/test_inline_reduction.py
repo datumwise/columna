@@ -20,6 +20,7 @@ import os
 import pytest
 
 from columna_core import ManifoldServer
+from columna_core.adjudication import adjudicate
 from columna_core.disclosure_wire import wire_frame
 from columna_core.parser import parse_manifold
 
@@ -31,9 +32,15 @@ _DEFS = ("DERIVED aov = revenue / orders\n"
          "    FAMILY {\n        mean FERTILE { }\n    }\n")
 
 
-def _srv(fixture_connector):
+def _srv(fixture_connector, certify=True):
+    """P0.5a closed-by-default: travel over an FD-claimed edge (day -> cal.month) serves only once the
+    governing hierarchy is CORROBORATED on the attested data. These tests are about inline-reduction
+    semantics, so the helper certifies first (`adjudicate` = the publish gate)."""
     with open(_BENCHMARK_CML) as f:
-        return ManifoldServer(parse_manifold(f.read() + "\n" + _DEFS), fixture_connector)
+        srv = ManifoldServer(parse_manifold(f.read() + "\n" + _DEFS), fixture_connector)
+    if certify:
+        adjudicate(srv)
+    return srv
 
 
 def _vals(srv, anchor, expr):

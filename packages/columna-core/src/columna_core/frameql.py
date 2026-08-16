@@ -27,11 +27,20 @@ class ManifoldServer:
         witnesses built). Returns the number of witnesses built. This is the FIRST-birth act — strict.
 
         Adjudication is a no-op for a manifold with no declared capability (unchanged behavior)."""
-        from .adjudication import adjudicate, PublishedScope, _snapshot_licenses
-        self.adjudication = adjudicate(self, attestation=attestation, trace=trace)   # strict; fails closed
-        self.published_scope = PublishedScope(licenses=_snapshot_licenses(self.m))   # clean birth
-        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
+        from .adjudication import adjudicate
+        # strict; fails closed. adjudicate establishes the positive PublishedScope (certified edges/faces)
+        # as its final atomic step and installs it on the planner — the single governed-serve-ready step.
+        self.adjudication = adjudicate(self, attestation=attestation, trace=trace)
         return self.engine.publish_witnesses(trace)
+
+    def _install_closed_scope(self) -> None:
+        """P0.5a fail-closed: install an empty PublishedScope (no capability admitted). Used when
+        re-attestation cannot produce a coherent result — a stale/ambiguous certification must never
+        remain live; governed transport/crossing serving becomes unavailable until a clean adjudication."""
+        from .adjudication import PublishedScope
+        closed = PublishedScope()
+        self.published_scope = closed
+        self.planner.install_scope(closed)
 
     def reattest(self, attestation: Optional[str] = None, trace=None) -> dict:
         """RE-ATTEST an already-published manifold against fresh data — a constitutionally DIFFERENT
@@ -41,17 +50,23 @@ class ManifoldServer:
         and RETURNS the authoring-event report (the scope diff: revocations, re-licenses, blocked and
         unblocked edges, refuting keys) that summons the author to the three exits. Never mutates
         silently."""
-        from .adjudication import adjudicate, scope_from_report, scope_diff, PublishedScope
+        from .adjudication import adjudicate, scope_diff, PublishedScope
         old = getattr(self, "published_scope", None) or PublishedScope()
         self.engine.cache.clear()          # re-attestation is fresh data — the version-gated cache is stale
-        # the scope is a PURE recomputation (no ratchet): clear the old blocks so re-adjudication's
-        # own serves are not blocked by the very scope-edits it is re-deciding.
-        self.planner.blocked_edges, self.planner.blocked_by = frozenset(), {}
-        report = adjudicate(self, attestation=attestation, trace=trace, degrade=True)
-        new = scope_from_report(self.m, report)
+        # P0.5a COMPUTE-THEN-SWAP: do NOT clear the live scope before recomputing (the old bug: a
+        # clear-before-recompute plus an uncaught face contradiction resurrected blocked edges into
+        # serving). adjudicate computes the COMPLETE new verdicts — faces and edges degrade CLOSED, never
+        # throw — and installs the coherent new scope atomically at its end. If re-attestation cannot
+        # produce a coherent result at all, FAIL CLOSED: a stale/ambiguous certification must never remain
+        # live. The adjudicator's own proof-serves use engine/model ops, so the still-live old scope never
+        # blocks them.
+        try:
+            adjudicate(self, attestation=attestation, trace=trace, degrade=True)
+        except Exception:
+            self._install_closed_scope()
+            raise
+        new = self.published_scope                          # installed by adjudicate (atomic swap)
         diff = scope_diff(old, new)
-        self.published_scope = new
-        self.planner.blocked_edges, self.planner.blocked_by = new.blocked_edges, new.blocked_by
         self.engine.publish_witnesses(trace)                # rebuild witnesses for the served regions
         return diff
 

@@ -91,7 +91,24 @@ def parsed_manifold():
 
 @pytest.fixture
 def fixture_server(fixture_connector, hand_manifold):
-    """A ManifoldServer over the mini-warehouse, ready to answer frames."""
+    """A PUBLISHED ManifoldServer over the mini-warehouse, ready to answer frames.
+
+    P0.5a (ruling 2026-08-11): this fixture now runs the same lifecycle production runs — construct,
+    then `publish()` (the first-birth act: adjudicate strictly, then build witnesses). Before P0.5a it
+    served unpublished, which under closed-by-default would mean no certified transport at all; and
+    because the hand-built manifold used to carry no hierarchies, its edges were ungated and the whole
+    fixture-backed suite was exempt from the certification law it is meant to police."""
+    from columna_core import ManifoldServer
+
+    srv = ManifoldServer(hand_manifold, fixture_connector)
+    srv.publish()
+    return srv
+
+
+@pytest.fixture
+def unpublished_fixture_server(fixture_connector, hand_manifold):
+    """The same server BEFORE publish — for tests that must observe the pre-adjudication state
+    (closed-by-default refusals, license=None on parse, the mint-at-publish transition)."""
     from columna_core import ManifoldServer
 
     return ManifoldServer(hand_manifold, fixture_connector)

@@ -37,6 +37,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 from collections import deque
+from contextlib import contextmanager
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,13 @@ class ShapeEdge:
     to: str
     lineage: str           # topology + lineage tag only; NO frm_col/to_col/provider_table
 
+    @property
+    def key(self):
+        """This edge's certification identity — the SAME EdgeKey the full FunctionalEdge yields, so the
+        planner's shape view and the adjudicator's verdicts name the same subject (P0.5a GAP 3)."""
+        from .model import EdgeKey
+        return EdgeKey(self.lineage, self.frm, self.to)
+
 
 @dataclass(frozen=True)
 class FaceShape:
@@ -128,6 +136,20 @@ class PlannerView:
             for r in m.non_functional)
         self.levels = frozenset(m.levels)                      # declared level names (incl. edgeless base levels)
         self._edges = tuple(ShapeEdge(e.frm, e.to, e.lineage) for e in m.edges)
+        # P0.5a CLOSED-BY-DEFAULT TRANSPORT. EVERY FunctionalEdge is certification-dependent: transport
+        # serves only across an edge adjudication positively ADMITTED. There is deliberately no
+        # "this edge carries no hierarchy, therefore admit it" branch — that was a second, silent
+        # authority model (ruling 2026-08-11), and since HIERARCHY is the parser's only FunctionalEdge
+        # surface a governed .cml never needed it. A Manifold built directly in Python with no
+        # hierarchies now certifies nothing and therefore transports nothing: legacy construction does
+        # not inherit governed status by omission.
+        self.certified_edges: frozenset = frozenset()          # EdgeKey(lineage, frm, to) — admitted transport
+        # P0.5a ADJUDICATION PROBE. The adjudicator ESTABLISHES certification by querying across the very
+        # edges/faces it is testing — under the serving gate it could never certify anything (the claim is
+        # closed until proven, and the proof needs the transport). So adjudication runs against the DECLARED
+        # shape, in this explicitly-scoped window, and its results never reach a caller: they become verdicts.
+        # This is the ONLY bypass, it is not reachable from the query path, and it always restores.
+        self._probing: int = 0
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,
                                          op.needs_order, op.needs_window, op.in_core, op.is_monoid,
@@ -138,27 +160,90 @@ class PlannerView:
         sig = self.operators[op_name]
         return in_dtype if sig.out_rule == "same" else sig.out_rule
 
-    def _out(self, level):
+    def install_certified_edges(self, certified: frozenset):
+        """P0.5a: install the positive edge-admission set (from the PublishedScope). One assignment
+        boundary — the planner never mutates this piecemeal around fallible work."""
+        self.certified_edges = frozenset(certified)
+
+    @property
+    def probing(self) -> bool:
+        """True inside an adjudication probe window — the gate is lifted because the query IS the test
+        that mints the verdict. Never true on a serving path."""
+        return self._probing > 0
+
+    @contextmanager
+    def probe(self):
+        """Scoped, re-entrant lift of the certification gate for adjudication's own probe queries.
+        Always restores (finally), including on Contradiction — a failed publish must not leave the
+        shape open."""
+        self._probing += 1
+        try:
+            yield self
+        finally:
+            self._probing -= 1
+
+    def _out(self, level):                                     # STRUCTURAL — all declared edges
         return [e for e in self._edges if e.frm == level]
+
+    def _admitted(self, e) -> bool:                            # P0.5a — usable for governed transport?
+        """Positively admitted for governed transport? Closed unless certified — no structural
+        exemption, and the key is the LINEAGE-bearing EdgeKey so one lineage's verdict can never
+        license another's edge over the same level pair."""
+        if self.probing:
+            return True                                        # adjudication tests the DECLARED shape
+        return e.key in self.certified_edges
+
+    def _out_certified(self, level):                           # P0.5a — ADMITTED edges only
+        return [e for e in self._edges if e.frm == level and self._admitted(e)]
+
+    # P0.5a (ruling 2026-08-11): a temporal lineage confers an ORDER AXIS, and the axis is
+    # execution-relevant — it decides the sort a scan walks, so it changes shipped numbers. Declared
+    # structure may therefore inform caution, but it may not CREATE this capability: an order axis
+    # exists only where the hierarchy that would confer it is positively admitted.
+    TEMPORAL_LINEAGES = frozenset({"calendar", "fiscal"})
+
+    def orderable_levels(self) -> frozenset:
+        """Levels carrying a natural (temporal) order, over ADMITTED edges only.
+
+        The manual's "typically a temporal dimension", read off the certified lineages. An
+        uncertified hierarchy contributes nothing: it cannot make an axis derivable and so cannot
+        turn "no lawful order axis -> refuse" into "exactly one -> serve"."""
+        lv = set()
+        for e in self._edges:
+            if e.lineage in self.TEMPORAL_LINEAGES and self._admitted(e):
+                lv.add(e.frm); lv.add(e.to)
+        return frozenset(lv)
 
     def out_edges(self, level):
         """Public: the shape edges leaving a level (frm, to, lineage). Used by B-anchor crossing
-        detection to see which lineages a collapsed base dimension exits along."""
+        detection to see which lineages a collapsed base dimension exits along — STRUCTURAL (all declared
+        edges), independent of certification."""
         return self._out(level)
 
-    def find_path(self, from_levels, target):
-        """Existence/topology BFS over the SHAPE DAG. Returns a shape path (start, edges)
-        with NO physical columns, or None. The planner only ever checks `is not None`."""
+    def _bfs(self, from_levels, target, out):
         if target in from_levels:
             return (target, ())
         q = deque((b, b, ()) for b in from_levels)
         seen = set(from_levels)
         while q:
             start, cur, path = q.popleft()
-            for e in self._out(cur):
+            for e in out(cur):
                 if e.to == target:
                     return (start, path + (e,))
                 if e.to not in seen:
                     seen.add(e.to)
                     q.append((start, e.to, path + (e,)))
         return None
+
+    def find_path(self, from_levels, target):
+        """Existence/topology BFS over the CERTIFIED shape DAG (P0.5a). Returns a shape path (start,
+        edges) with NO physical columns, or None. Traverses ONLY positively-admitted edges, so an
+        uncertified FunctionalEdge does not establish an addressable transport path. The planner only ever
+        checks `is not None`."""
+        return self._bfs(from_levels, target, self._out_certified)
+
+    def find_path_any(self, from_levels, target):
+        """Existence/topology BFS over the FULL declared shape DAG (ignores certification). Diagnosis
+        only: lets the planner distinguish 'declared-but-uncertified transport' (→ uncertified_edge /
+        contradicted_edge) from 'out of universe' (no declared path at all)."""
+        return self._bfs(from_levels, target, self._out)

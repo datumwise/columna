@@ -19,7 +19,7 @@ from .engine import ColumnEngine
 from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT,
                          DECLARED_FILL, UNKNOWN_ABSENCE, OUT_OF_POPULATION, UNDECLARED_ABSENCE,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
-from .model import parse_faced
+from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
 
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
@@ -109,10 +109,31 @@ class Planner:
         # `conflicting_data` — retired with ASSERT in 0.13.0; ruling 2026-07-26.)
         self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
         self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
+        # P0.5a POSITIVE ADMISSION: crossing faces admitted by adjudication ("frm<->to.name"). Absence =
+        # closed. The certified EDGE set lives on the view (drives find_path); faces are checked here at
+        # the addressability chokepoint. Both installed together via install_scope (one boundary).
+        self.certified_faces: frozenset = frozenset()
 
-    def _blocked_transport(self, node, anchor) -> Optional[tuple]:
-        """The first BLOCKED edge (frm, to) a column's transport crosses, or None. A refuted hierarchy
-        blocks its edge; any measure whose resolution to an anchor level travels that edge refuses."""
+    def install_scope(self, scope) -> None:
+        """P0.5a: install a complete PublishedScope as the planner's serving authority — ONE assignment
+        boundary (never mutated piecemeal around fallible work). The certified edge set is pushed onto the
+        view (it gates find_path); certified faces + the negative explanation sets live here."""
+        self.m.install_certified_edges(getattr(scope, "certified_edges", frozenset()))
+        self.certified_faces = getattr(scope, "certified_faces", frozenset())
+        self.blocked_edges = getattr(scope, "blocked_edges", frozenset())
+        self.blocked_by = getattr(scope, "blocked_by", {})
+
+    def _blocked_transport(self, node, anchor) -> Optional["EdgeKey"]:
+        """The BLOCKED edge that explains why a column cannot travel, or None.
+
+        P0.5a (ruling 2026-08-11): the invariant is NOT "refuse if any contradicted edge exists" — it is
+        "never execute an edge that is not positively admitted". So a blocked edge is only an
+        EXPLANATION, consulted when no CERTIFIED route exists. If a certified route does exist the query
+        travels it and answers correctly, even though some other declared route was refuted.
+
+        (A blocked edge can never appear ON a certified route: CONTRADICTED is not CORROBORATED, so it
+        is never admitted. Scanning the certified path for blocked edges — as this did before — was
+        therefore vacuous, and was how GAP 2 hid.)"""
         if not self.blocked_edges:
             return None
         for measure, _member in self._atoms(node, anchor):
@@ -121,22 +142,24 @@ class Planner:
                 continue
             base = self.m.universes[ms.universe].base_dimensions
             for T in anchor:
-                path = self.m.find_path(base, T)
-                if path is None:
+                if self.m.find_path(base, T) is not None:
+                    continue                                    # a certified route exists — travel it
+                declared = self.m.find_path_any(base, T)         # else: why not? name the refutation
+                if declared is None:
                     continue
-                for e in path[1]:
-                    if (e.frm, e.to) in self.blocked_edges:
-                        return (e.frm, e.to)
+                for e in declared[1]:
+                    if e.key in self.blocked_edges:
+                        return e.key
         return None
 
-    def _blocked_transport_refusal(self, edge: tuple) -> "Refusal":
+    def _blocked_transport_refusal(self, edge) -> "Refusal":
         rec = (self.blocked_by.get(edge) or [{}])[0]
-        lineage, key = rec.get("lineage"), rec.get("key")
+        lineage, key = rec.get("lineage", edge.lineage), rec.get("key")
         return Refusal("contradicted_edge",
-            f"transport along edge {edge[0]}->{edge[1]} (lineage '{lineage}') is BLOCKED: its declared "
+            f"transport along edge {edge.frm}->{edge.to} (lineage '{lineage}') is BLOCKED: its declared "
             f"functional dependence is refuted on the attested data (key {key!r} has >1 parent); the "
             f"reduction across it is withheld — serving never outruns the verdicts.",
-            edge=f"{edge[0]}->{edge[1]}",
+            edge=f"{edge.frm}->{edge.to}",
             alternatives=("fix the data and re-attest", "amend the hierarchy", "address at a grain that does not cross this edge"))
 
     def _check_single_universe(self, node, anchor):
@@ -158,21 +181,119 @@ class Planner:
                 alternatives=("juxtapose: ask each measure as its own column",
                               "declare: define a DERIVED with its population, then ask it"))
 
+    # ---- the ROUTE PLAN (P0.5a): the planner selects, the engine executes ---------------------
+    @staticmethod
+    def _route(path):
+        """A certified shape path -> the wire the engine consumes: (start, (EdgeKey, ...))."""
+        return (path[0], tuple(e.key for e in path[1]))
+
+    def plan_order_axis(self, scan_op: str, measure: str, anchor: tuple, by=None) -> str:
+        """The lawful ORDER AXIS for a scan @ anchor — the planner's decision, not the engine's.
+
+        P0.5a: the axis is execution-relevant (it fixes the sort the scan walks, so it moves shipped
+        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only. An explicit
+        `by=` is the author naming the axis and is honoured as before."""
+        if by is not None:
+            return by
+        orderable = self.m.orderable_levels() & set(anchor)
+        if len(orderable) == 1:
+            return next(iter(orderable))
+        if not orderable:
+            raise Refusal("unknown",
+                f"scan '{scan_op}' @ {anchor} has no derivable order axis (no CERTIFIED temporal "
+                f"level in the anchor); name it with by=<level>. A declared-but-uncertified "
+                f"hierarchy confers no order axis — declaration makes structure eligible for "
+                f"certification, not executable.",
+                measure=measure, target=str(anchor),
+                alternatives=("name the axis explicitly with by=<level>",
+                              "publish/adjudicate so the temporal hierarchy is certified"))
+        raise Refusal("unknown",
+            f"scan '{scan_op}' @ {anchor} order axis is ambiguous ({sorted(orderable)}); "
+            f"name it with by=<level>", measure=measure, target=str(anchor),
+            alternatives=("name the axis explicitly with by=<level>",))
+
+    def plan_routes(self, measure: str, anchor: tuple):
+        """PUBLIC: the certified route plan for `measure` @ `anchor`, as (routes, split).
+
+        The planner owns route selection, so a caller that drives `ColumnEngine` directly (a demo, a
+        spec harness, an embedder) asks the planner for a plan rather than bypassing it. This is the
+        supported way to reach the engine below the ask surface — it cannot manufacture admission,
+        because it refuses exactly where a served query would."""
+        routes = {}
+        for T in anchor:
+            self._check_addressable(measure, T, routes)
+        return routes, self._split_dependent(anchor)
+
+    def _plan_route(self, routes, measure: str, level: str, base):
+        """Record the CERTIFIED route measure->level in `routes`, or return False if none exists.
+
+        This is the single place a transport route is chosen. Everything the engine later executes
+        comes from here, so "the route that is certified and planned is the route that executes" is
+        true by construction rather than by keeping two searches in sync."""
+        path = self.m.find_path(base, level)
+        if path is None:
+            return False
+        if routes is not None:
+            routes[(measure, level)] = self._route(path)
+        return True
+
+    def _refuse_uncertified_travel(self, what: str, frm: str, to: str):
+        """No positively-admitted route from `frm` to `to`. Name the refutation when we hold one
+        (contradicted_edge, the stronger factual claim), else uncertified_edge."""
+        declared = self.m.find_path_any({frm}, to) if frm in self.m.levels else None
+        if declared is not None:
+            for e in declared[1]:
+                if e.key in self.blocked_edges:
+                    raise self._blocked_transport_refusal(e.key)
+        if declared is None:
+            # no DECLARED route either: the target is simply not addressable from here. That is the
+            # out-of-universe claim (undefined, not withheld) — never dress it as a certification gap.
+            raise Refusal("out_of_universe",
+                f"{what} @ {to}: '{to}' is not reachable from '{frm}' "
+                f"(out of domain — undefined, not missing)",
+                measure=what, target=to,
+                alternatives=(f"address {what} at a level reachable from '{frm}'",))
+        raise Refusal("uncertified_edge",
+            f"{what} @ {to}: travelling from '{frm}' to '{to}' needs a positively-admitted "
+            f"functional route; none is certified, so the reduction is withheld. A declaration makes "
+            f"an edge eligible for certification, not executable.",
+            measure=what, target=to,
+            alternatives=("publish/adjudicate so the edge is certified on the attested data",
+                          "address at a grain that does not cross this edge"))
+
     # ---- typecheck: addressability (fan-out / out-of-universe caught here) --
-    def _check_addressable(self, measure: str, T: str):
+    def _check_addressable(self, measure: str, T: str, routes=None):
         meas = self.m.measures[measure]
         uni = meas.universe
         base = self.m.universes[uni].base_dimensions
-        if self.m.find_path(base, T) is not None:
+        if self._plan_route(routes, measure, T, base):
             return
         # A DECLARED faced coordinate `<coord>.<face>` IS addressable: the face licenses the crossing,
         # provided the measure reaches the OTHER endpoint (so a value exists to carry over the edge).
         faced = parse_faced(T, self.m.non_functional)
         if faced is not None:
             coord, _fname, rel, _face = faced
+            # P0.5a: parse_faced names the DECLARATION; it does not license execution. The crossing serves
+            # only if adjudication positively ADMITTED this face (VERIFIED touch / CORROBORATED assign|alloc).
+            if not self.m.probing and f"{rel.frm}<->{rel.to}.{_fname}" not in self.certified_faces:
+                raise Refusal("uncertified_face",
+                    f"{measure} @ {T}: the crossing face '{_fname}' on {rel.frm}<->{rel.to} is not "
+                    f"certified for governed use — a declaration makes a crossing eligible for "
+                    f"certification, not executable. Adjudication must positively admit it before it serves.",
+                    measure=measure, target=T, edge=f"{rel.frm}<->{rel.to}",
+                    alternatives=("publish/adjudicate so the face is certified on the attested data",
+                                  "if the face was refuted on the data, fix the data and re-attest"))
             other = rel.to if coord == rel.frm else rel.frm
-            if (other in base) or (self.m.find_path(base, other) is not None):
-                return   # the engine executes the touch join-multiply
+            if self._plan_route(routes, measure, other, base):
+                # The DRIVER measure (ASSIGN/ALLOC) is served by the engine on its own second path,
+                # below the planner. Plan its route here, while we hold the admitted face, so that
+                # path also executes a certified route instead of choosing one (P0.5a).
+                # NB the SHAPE calls it `driver`; the full Face model calls it `selection`.
+                drv = getattr(_face, "driver", None) or getattr(_face, "selection", None)
+                if drv and drv in self.m.measures:
+                    dbase = self.m.universes[self.m.measures[drv].universe].base_dimensions
+                    self._plan_route(routes, drv, coord, dbase)
+                return   # the engine executes the crossing
         # fan-out: the BARE coordinate T is reachable only across a non-functional (M:N) edge — clarify.
         for rel in self.m.non_functional:
             nf, nt, detail = rel.frm, rel.to, rel.detail
@@ -195,6 +316,25 @@ class Planner:
                     f"measure would be replicated across matches and the total inflated",
                     measure=f"{measure}@transaction", target=T, edge=f"{nf}\u2194{nt}",
                     alternatives=alternatives)
+        # P0.5a: T is reachable via a DECLARED functional edge that is NOT certified (UNTESTABLE /
+        # unadjudicated / contradicted) — the transport exists in the declaration but is not governed-usable.
+        # Distinguish it from out-of-universe (no declared path at all); name a contradiction specifically
+        # when we hold the refuting detail (a stronger factual claim than 'uncertified').
+        declared = self.m.find_path_any(base, T)
+        if declared is not None and declared[1]:
+            for e in declared[1]:
+                if e.key in self.blocked_edges:                    # tested + refuted → the stronger claim
+                    raise self._blocked_transport_refusal(e.key)
+            offending = next((e for e in declared[1] if not self.m._admitted(e)), declared[1][0])
+            raise Refusal("uncertified_edge",
+                f"{measure} @ {T}: transport crosses the declared functional edge "
+                f"{offending.frm}->{offending.to} (lineage '{offending.lineage}'), which is NOT certified for "
+                f"governed use — a declaration makes an edge eligible for certification, not executable. "
+                f"Adjudication must positively admit it (CORROBORATED on the attested data) before transport "
+                f"across it can serve.",
+                measure=measure, target=T, edge=f"{offending.frm}->{offending.to}",
+                alternatives=("publish/adjudicate so the edge is certified on the attested data",
+                              "address at a grain that does not cross this edge"))
         # otherwise: out of universe (the dimension is not part of this population)
         raise Refusal("out_of_universe",
             f"{measure} @ {T}: '{T}' is not addressable in universe '{uni}' "
@@ -1115,8 +1255,14 @@ class Planner:
                     raise Refusal("unknown",
                         f"'{m_name}' has a family {list(meas.family)} — specify a member to scan")
             out_dtype = self.m.output_dtype(scan_op, self.m.output_dtype(member, meas.logical_type))
+            routes = {}                                        # P0.5a: plan, then execute the plan
+            for T in anchor:
+                self._check_addressable(m_name, T, routes)
+            order_axis = self.plan_order_axis(scan_op, m_name, anchor, by)
             frame, disc = self.engine.scan(m_name, member, anchor, scan_op,
-                                           n=n, by=by, where=where, trace=trace)
+                                           n=n, by=by, where=where, trace=trace,
+                                           routes=routes, split=self._split_dependent(anchor),
+                                           order_axis=order_axis)
             return "col", frame.rename({"_value": _V}), disc, out_dtype
 
         meas_name, member = self._measure_ref(node)
@@ -1155,11 +1301,14 @@ class Planner:
                     f"'{meas.logical_type}' (accepts {sorted(sig.accepts)})",
                     measure=meas_name,
                     alternatives=("use an operator whose signature accepts this type",))
-            # addressability (fan-out / out-of-universe) — also static, also pre-engine
+            # addressability (fan-out / out-of-universe) — also static, also pre-engine. P0.5a: the
+            # same pass RECORDS the certified route for each target; the engine executes exactly it.
+            routes = {}
             for T in anchor:
-                self._check_addressable(meas_name, T)
+                self._check_addressable(meas_name, T, routes)
             out_dtype = self.m.output_dtype(member, meas.logical_type)
-            frame, disc = self.engine.resolve(meas_name, member, anchor, where, trace)
+            frame, disc = self.engine.resolve(meas_name, member, anchor, where, trace,
+                                              routes=routes, split=self._split_dependent(anchor))
             return "col", frame.rename({"_value": _V}), disc, out_dtype
 
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
@@ -1202,7 +1351,15 @@ class Planner:
             trace.append(f"resolution-anchor metric '{name}' = {member} of ({dshape.formula})@{res} -> {target}")
         if target == res:
             return "col", frame, disc, dtype                # asked AT the anchor: the denotation itself
-        reduced = self.engine.reduce_series(frame, res, target, member, trace)
+        # P0.5a GAP 1 (ruling 2026-08-11): the RESOLUTION anchor says where the metric is FORMED; the
+        # REQUESTED anchor says where it must lawfully travel. `_infer` recurses at the resolution
+        # anchor, which is right for typing but erases the travel obligation — so establish it here.
+        # An AT-metric must never serve where the equivalent ordinary metric refuses.
+        path = self.m.find_path({res}, target)
+        if path is None:
+            self._refuse_uncertified_travel(name, res, target)
+        reduced = self.engine.reduce_series(frame, res, target, member, trace,
+                                            route=tuple(e.key for e in path[1]))
         return "col", reduced, disc, dtype
 
     # ---- inline reduction of a derivation (WP-B.1): the same reading, expressed without a name ----
@@ -1236,7 +1393,26 @@ class Planner:
         if anchor == tuple(pinned):
             served = frame                                     # asked AT the pinned anchor: no travel
         else:
-            served = self.engine.reduce_series_to_anchor(frame, input_grain, anchor, reducer, trace)
+            # P0.5a: the planner chooses BOTH the source axis and the route for every reduction and
+            # attach target, over the certified graph. The engine executes them and picks nothing.
+            split = self._split_dependent(anchor)
+            red_routes, att_routes = {}, {}
+            for rt in split[0]:
+                if rt in input_grain:
+                    continue
+                src = next((g for g in input_grain
+                            if g == rt or self.m.find_path({g}, rt) is not None), None)
+                if src is None:
+                    self._refuse_uncertified_travel(ast.unparse(inner), str(list(input_grain)), rt)
+                red_routes[rt] = self._route(self.m.find_path({src}, rt))
+            for T in split[1]:
+                S = next((x for x in split[0] if self.m.find_path({x}, T) is not None), None)
+                if S is None:
+                    self._refuse_uncertified_travel(ast.unparse(inner), str(list(split[0])), T)
+                att_routes[T] = self._route(self.m.find_path({S}, T))
+            served = self.engine.reduce_series_to_anchor(frame, input_grain, anchor, reducer, trace,
+                                                         reduction_routes=red_routes,
+                                                         attach_routes=att_routes, split=split)
         target = _fmt_anchor(anchor)
         # Law 4 — the two-stage-statistic disclosure, IMMATERIAL (provenance/transport), never a caveat.
         # Rider: a COMPOSITE pin whose levels include an axis PRESENT in the output names it as the fixed

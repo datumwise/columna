@@ -32,8 +32,17 @@ def check(name, cond, detail=""):
     ok = bool(cond); PASS += ok; FAIL += (not ok)
     print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  — {detail}" if detail else ""))
 
-def server():
-    return ManifoldServer(build_manifold(), DuckDBConnector(load()))
+def server(witnesses=True):
+    """P0.5a: a served manifold is always CERTIFIED (adjudicated) — transport is closed otherwise.
+    `witnesses=False` adjudicates WITHOUT building witnesses, which is the contrast this case study
+    needs: same certified transport, no witness store, so the query must scan base rows."""
+    from columna_core import adjudicate
+    _s = ManifoldServer(build_manifold(), DuckDBConnector(load()))
+    if witnesses:
+        _s.publish()
+    else:
+        adjudicate(_s)
+    return _s
 
 
 print("=" * 80)
@@ -82,11 +91,11 @@ worst = max(abs(est[k] - truth[k]) / truth[k] for k in truth)
 check("witness-merged distinct@region ≈ exact distinct (within 5%)", worst < 0.05,
       f"max rel err {worst*100:.1f}%; e.g. {sorted(est)[0]}: est {est[sorted(est)[0]]:.0f} / true {truth[sorted(est)[0]]}")
 
-# contrast: a fresh, UN-published server must scan base rows for the same query
-fresh = server()
+# contrast: a certified server with NO WITNESSES must scan base rows for the same query
+fresh = server(witnesses=False)
 b0 = fresh.stats.deliveries
 fresh.frame("region").column("visitors", "visitors.distinct").run()
-check("an UN-published server does a base scan for the same query (the witness made the difference)",
+check("a witness-less server does a base scan for the same query (the witness made the difference)",
       fresh.stats.deliveries - b0 >= 1, f"base deliveries without witness = {fresh.stats.deliveries - b0}")
 
 # ── (c) precision is type identity; a raw sketch is opaque to arithmetic ──────
@@ -123,6 +132,7 @@ check("the caveat names the sketch type HLLSketch(12)", "HLLSketch(12)" in appro
 m = build_manifold()
 m.measures["visitors"] = replace(m.measures["visitors"], sketch_precision=14)
 srv14 = ManifoldServer(m, DuckDBConnector(load()))
+srv14.publish()
 srv14.publish()
 res14 = srv14.frame("region").column("visitors", "visitors.distinct").run()
 ap14 = [c for c in res14.columns[0].disclosure.caveats if c.category == "approximation"][0]

@@ -215,8 +215,11 @@ def describe_manifold(store: ManifoldStore, manifold_id: str, version: Optional[
     #  sole producer was a violated assert, so the two fields could only ever be empty. Stated in the
     #  0.13.0 release note with the `asserts` block and the universes' `attributes`.)
     ps = lm.provider.published_scope()
-    scope = {"blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else [],
-             "blocked_by": {f"{k[0]}->{k[1]}": v for k, v in (ps.blocked_by.items() if ps else [])}}
+    # P0.5a: the scope's internal identity is EdgeKey(lineage, frm, to), but the wire keeps its historical
+    # [frm, to] pair shape — no wire change in this work package (ruling 2026-08-11). Dedupe: two refuted
+    # lineages over one level pair are one blocked pair on the wire.
+    scope = {"blocked_edges": [list(e) for e in sorted({(k.frm, k.to) for k in ps.blocked_edges})] if ps else [],
+             "blocked_by": {f"{k.frm}->{k.to}": v for k, v in (ps.blocked_by.items() if ps else [])}}
     return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
                       "dimensions": dimensions, "edges": edges, "universes": universes,
                       "hierarchies": hierarchies, "relates": relates,
@@ -391,8 +394,8 @@ def manifold_status(store: ManifoldStore, manifold_id: str, version: Optional[st
                        "levels": len(m.levels), "hierarchies": len(m.hierarchies),
                        "relations": len(m.non_functional), "edges": len(m.edges),
                        "derived": len(m.derived)},
-            "published_scope": {
-                "blocked_edges": [list(e) for e in sorted(ps.blocked_edges)] if ps else []},
+            "published_scope": {                             # EdgeKey -> historical [frm, to] wire shape
+                "blocked_edges": [list(e) for e in sorted({(k.frm, k.to) for k in ps.blocked_edges})] if ps else []},
             "evidence": {"licenses": len(lic_list), "verdicts": verdicts}}, manifold_id, ref)
 
 
