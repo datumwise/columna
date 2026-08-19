@@ -1,0 +1,147 @@
+---
+/**
+ * ThreeQuestions — section 2. PAPER register (implementation brief §6).
+ *
+ * Three territories sharing one continuous field. NOT cards: the dividers are faint rules and
+ * space, because a card grid would turn three first-principles obligations into three product
+ * features (visual direction §9).
+ *
+ * PILLAR-UNIT LOCK: each pillar is one semantic unit — question + answer + mark — and may not be
+ * rewritten by borrowing language from a neighbour. Two protections in particular:
+ *
+ *  · the Intelligence answer is LOCKED to `Interpretation is useful. Interpretation is not
+ *    authority.` The approved composition board renders it as "We derive inside the declared
+ *    jurisdiction—never beyond it", which is DERIVATION DISCIPLINE and belongs to the Data pillar.
+ *    The markdown doctrine outranks the board pixels, so the board's line is not used here;
+ *  · Data / Evidence / Intelligence are different JURISDICTIONS, not three planes of one lattice,
+ *    so each mark stays inside its own jurisdiction: a lattice/partition for Data, a governed
+ *    passage for Evidence, an authority gate for Intelligence. No untyped edge crosses between
+ *    them.
+ *
+ * Rendered as an ordered list so a machine reader recovers three distinct, ordered obligations —
+ * and every question/answer pair is default-visible: nothing foundational hides behind hover,
+ * accordion, or tab state.
+ */
+const PILLARS = [
+  {
+    id: 'data',
+    word: 'Data',
+    question: 'What is the analytical object?',
+    answer: 'Establish what exists, where it lives, and which transformations preserve its identity.',
+    mark: 'F @ A',
+    markLabel: 'analytical identity',
+  },
+  {
+    id: 'evidence',
+    word: 'Evidence',
+    question: 'What does the evidence support?',
+    answer: 'Evidence licenses claims only through an explicit governed passage.',
+    mark: 'evidence → inference → claim',
+    markLabel: 'the governed passage',
+  },
+  {
+    id: 'intelligence',
+    word: 'Intelligence',
+    question: 'What may reason and act on it?',
+    answer: 'Interpretation is useful. Interpretation is not authority.',
+    support: 'A human or machine may interpret, propose, explain, and clarify. Execution requires governed authorization.',
+    mark: 'intent → candidate → authority',
+    markLabel: 'the authority boundary',
+  },
+];
+---
+
+<section id="three-questions" class="questions ds ds-paper ds-section" aria-labelledby="questions-heading">
+  <div class="ds-measure-wide">
+    <h2 id="questions-heading" class="ds-label">Three foundational questions</h2>
+
+    <ol class="field">
+      {PILLARS.map((p, i) => (
+        <li class="territory" id={`pillar-${p.id}`}>
+          <p class="ordinal" aria-hidden="true">{i + 1}</p>
+          <h3 class="word">{p.word}</h3>
+          <p class="question">{p.question}</p>
+          <p class="answer ds-body">{p.answer}</p>
+          {p.support && <p class="support ds-body">{p.support}</p>}
+
+          <p class="mark">
+            <span class="ds-mark">{p.mark}</span>
+            <span class="mark-label">{p.markLabel}</span>
+          </p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .field {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+  }
+  /* one continuous field: hairline separators, no boxes, no fills */
+  .territory {
+    padding: 0 clamp(1rem, 0.4rem + 1.6vw, 2.25rem);
+    border-left: 1px solid var(--ds-rule);
+    display: flex;
+    flex-direction: column;
+  }
+  .territory:first-child { padding-left: 0; border-left: 0; }
+  .territory:last-child { padding-right: 0; }
+
+  .ordinal {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .word {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .question {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.28;
+    color: var(--ink);
+    margin: var(--ds-space-2) 0 0;
+    text-wrap: balance;
+  }
+  .answer { margin: var(--ds-space-3) 0 0; }
+  .support { margin: var(--ds-space-2) 0 0; font-size: 0.9375rem; color: var(--ink-faint); }
+
+  .mark {
+    margin: auto 0 0;
+    padding-top: var(--ds-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .mark-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+  }
+  .ds-mark { white-space: pre-wrap; }
+
+  /* Mobile: three full-width chapters, all default-expanded. Never accordions — these are the
+     foundational questions, not utility detail. */
+  @media (max-width: 56rem) {
+    .field { grid-template-columns: 1fr; }
+    .territory {
+      padding: var(--ds-space-4) 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--ds-rule);
+    }
+    .territory:first-child { padding-top: 0; border-top: 0; }
+    .mark { padding-top: var(--ds-space-3); }
+  }
+</style>

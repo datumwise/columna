@@ -1,0 +1,162 @@
+/* ─────────────────────────────────────────────────────────────────────────────────────────────
+   redesign.css — the SHARED LAYER for the datumwise.ai redesign (slice 1).
+
+   This is deliberately not a design system. It is the smallest shared vocabulary that stops the
+   redesign from becoming another set of page-local CSS islands (implementation brief §3).
+
+   It sits ON TOP of tokens.css and reuses its registers rather than restating them: `--paper`,
+   `--ink`, `--ink-soft`, `--rule`, `--wire-bg`, `--wire-ink`, `--font-serif/sans/mono` all come
+   from there. What is new here is the part tokens.css never had — a type SCALE, a spacing rhythm,
+   named measures, one restrained accent, and a focus treatment — plus the two register primitives
+   the doctrine protects.
+
+   PROTECTED RULE (visual direction §2.3): never flatten paper and wire into one visual system for
+   consistency. Their difference is the consistency. Paper and wire are REGISTERS, not themes —
+   there is no light/dark toggle here, and the wire register is never ambient decoration.
+   ───────────────────────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── editorial type scale ──────────────────────────────────────────────────────────────────
+     Identity comes from SCALE CONTRAST, not weight or decoration (visual direction §3.4). Fluid
+     between a 375px phone and a 1440px desktop so the hero never needs a breakpoint to breathe. */
+  --ds-hero:      clamp(2.75rem, 1.30rem + 6.2vw, 6.25rem);   /* hero thesis */
+  --ds-display:   clamp(2.10rem, 1.35rem + 3.2vw, 3.75rem);   /* section proposition */
+  --ds-pillar:    clamp(1.60rem, 1.15rem + 1.9vw, 2.50rem);   /* pillar word / question */
+  --ds-lead:      clamp(1.15rem, 1.02rem + 0.55vw, 1.45rem);  /* lede + proof obligation */
+  --ds-body:      1.0625rem;                                   /* editorial body */
+  --ds-meta:      0.8125rem;                                   /* sans metadata / labels */
+  --ds-mono:      0.875rem;                                    /* formal objects, wire */
+  --ds-mono-sm:   0.78125rem;                                  /* wire metadata */
+  --ds-verdict:   clamp(1.20rem, 1.05rem + 0.7vw, 1.60rem);    /* a verdict must read as state */
+
+  /* ── spacing rhythm ────────────────────────────────────────────────────────────────────────
+     Large gaps before conceptual turns, quieter gaps inside one argument (visual direction §5.2). */
+  --ds-space-1: 0.5rem;
+  --ds-space-2: 1rem;
+  --ds-space-3: 1.75rem;
+  --ds-space-4: 3rem;
+  --ds-space-5: 5rem;
+  --ds-turn:    clamp(5rem, 3rem + 7vw, 9rem);   /* between narrative chapters */
+
+  /* ── measures ──────────────────────────────────────────────────────────────────────────────
+     Three widths, deliberately not one centred container (visual direction §5.1). */
+  --ds-narrow: 24rem;   /* proof lines, thesis statements */
+  --ds-essay:  34rem;   /* explanatory prose — matches the site's existing --measure */
+  --ds-wide:   72rem;   /* diagrams, exhibits, register crossings */
+  --ds-gutter: clamp(1.25rem, 0.6rem + 2.6vw, 3.5rem);
+
+  /* ── one restrained accent ─────────────────────────────────────────────────────────────────
+     Used for orientation only (active state, crossing edge). NEVER for mood semantics: mapping a
+     verdict to success-green / failure-red would teach the opposite of the thesis, because Refuse
+     is governance functioning correctly (visual direction §4). */
+  --ds-accent:      #7a5c2e;
+  --ds-accent-wire: #c9a86a;
+
+  --ds-rule:        var(--rule);
+  --ds-rule-strong: var(--rule-strong);
+  --ds-focus:       2px solid var(--ds-accent);
+  --ds-focus-wire:  2px solid var(--ds-accent-wire);
+}
+
+/* ── focus: visible everywhere, in both registers ──────────────────────────────────────────── */
+.ds :where(a, button, summary, [tabindex]):focus-visible {
+  outline: var(--ds-focus);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+.ds-wire :where(a, button, summary, [tabindex]):focus-visible { outline: var(--ds-focus-wire); }
+
+/* ── PAPER register ────────────────────────────────────────────────────────────────────────── */
+.ds-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+.ds-section {
+  padding-inline: var(--ds-gutter);
+  padding-block: var(--ds-turn);
+}
+.ds-measure-narrow { max-width: var(--ds-narrow); }
+.ds-measure-essay  { max-width: var(--ds-essay); }
+.ds-measure-wide   { max-width: var(--ds-wide); margin-inline: auto; }
+
+/* the small sans label that names a section without competing with it */
+.ds-label {
+  font-family: var(--font-sans);
+  font-size: var(--ds-meta);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 var(--ds-space-3);
+}
+.ds-wire .ds-label { color: var(--wire-ink-soft); }
+
+/* a proposition: the editorial voice making a claim */
+.ds-proposition {
+  font-family: var(--font-serif);
+  font-size: var(--ds-display);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+.ds-body {
+  font-family: var(--font-serif);
+  font-size: var(--ds-body);
+  line-height: var(--lh-body, 1.62);
+  color: var(--ink-soft);
+}
+
+/* FORMAL MARK — a quotation from the wire, set in paper. It is mono because it is a formal object,
+   but it is NOT a miniature wire panel: no dark ground, no chrome (implementation brief §1.3). */
+.ds-mark {
+  font-family: var(--font-mono);
+  font-size: var(--ds-mono);
+  color: var(--ink-soft);
+  background: none;
+  white-space: nowrap;
+}
+
+/* editorial links: textual, never button-heavy (visual direction §2.1) */
+.ds-link {
+  font-family: var(--font-sans);
+  font-size: var(--ds-meta);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ds-rule-strong);
+  padding-bottom: 2px;
+}
+.ds-link:hover { border-bottom-color: var(--ink); }
+.ds-wire .ds-link { color: var(--wire-ink); border-bottom-color: var(--wire-rule); }
+.ds-wire .ds-link:hover { border-bottom-color: var(--wire-ink); }
+
+/* ── WIRE register ─────────────────────────────────────────────────────────────────────────── */
+.ds-wire {
+  background: var(--wire-bg);
+  color: var(--wire-ink);
+}
+.ds-wire-ink-soft { color: var(--wire-ink-soft); }
+.ds-mono {
+  font-family: var(--font-mono);
+  font-size: var(--ds-mono);
+  line-height: 1.55;
+}
+.ds-mono-sm {
+  font-family: var(--font-mono);
+  font-size: var(--ds-mono-sm);
+  letter-spacing: 0.04em;
+}
+
+/* THE CROSSING EDGE — paper→wire is a jurisdictional boundary, so it has a LOCATION
+   (visual direction §2.3 boundary-location rule). A hard edge and a stated crossing, never a
+   dissolve: a crossfade would read as ambient mood lighting rather than as an event. */
+.ds-crossing {
+  border-top: 1px solid var(--wire-rule);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds *, .ds *::before, .ds *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,201 @@
+---
+/**
+ * GovernedCase — ONE case atom of Exhibit A.
+ *
+ * THE CASE IS THE ATOM, NOT THE VERDICT CARD (visual direction §10). Request, governed context,
+ * verdict, finding and result are rendered inside a single <article> and never separated: there is
+ * no arrangement of this component that puts one shared request beside several detached verdicts,
+ * because each instance carries its own request. The four cases are four DIFFERENT requests.
+ *
+ * MOOD PRESENTATION (implementation brief §1.5, §7.6): the mood WORD is the mark. No ✓ for Serve,
+ * no × for Refuse, no warning triangle for Disclose, no traffic-light mapping. All four verdicts
+ * render with identical typographic authority and share one accent, because Refuse is governance
+ * functioning correctly — not an error state. The approved composition board's mood legend does
+ * show ✓/○/?/× glyphs; the markdown doctrine forbids them and outranks the board.
+ *
+ * Everything below is generated wire output (see src/lib/exhibitA.ts). No reason text is written
+ * for the page: the codes and detail sentences are the system's own.
+ */
+import type { GovernedCase } from '../../lib/exhibitA';
+
+export interface Props {
+  data: GovernedCase;
+  index: number;
+}
+const { data, index } = Astro.props;
+const id = `case-${data.mood}`;
+---
+
+<article class="case" id={id} aria-labelledby={`${id}-verdict`} data-mood={data.mood}>
+  <div class="ask">
+    <h4 class="field-label">Request</h4>
+    <pre class="request ds-mono"><code>{data.request}</code></pre>
+
+    <h4 class="field-label">Governed context</h4>
+    <dl class="context">
+      {data.context.map((c) => (
+        <div class="ctx-row">
+          <dt>{c.label}</dt>
+          <dd class="ds-mono-sm">{c.value}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <p class="causality ds-mono-sm" aria-hidden="true">request + context → adjudication → verdict</p>
+  </div>
+
+  <div class="answer">
+    <h4 class="field-label">Verdict</h4>
+    <p class="verdict" id={`${id}-verdict`}>
+      <span class="verdict-word">{data.mood}</span>
+      <span class="verdict-note">earned by case {index + 1} of 4</span>
+    </p>
+
+    <h4 class="field-label">Finding</h4>
+    {data.findings.map((f) => (
+      <div class="finding">
+        <p class="code ds-mono-sm">{f.code}</p>
+        <p class="detail">{f.detail}</p>
+        {f.remedy && <p class="remedy"><span class="remedy-label">remedy</span> {f.remedy}</p>}
+      </div>
+    ))}
+
+    <h4 class="field-label">Result</h4>
+    {data.result ? (
+      <div class="result">
+        <table class="rows ds-mono-sm">
+          <caption class="sr-only">
+            First {data.result.rows.length} of {data.result.total} returned rows
+          </caption>
+          <thead>
+            <tr>{data.result.columns.map((c) => <th scope="col">{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {data.result.rows.map((r) => (
+              <tr>{r.map((cell) => <td>{cell}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="rowcount">{data.result.rows.length} of {data.result.total} rows returned</p>
+      </div>
+    ) : (
+      <div class="result">
+        <p class="no-result">{data.noResult?.statement}</p>
+        <ul class="offers">
+          {data.noResult?.offers.map((o) => <li class="ds-mono-sm">{o}</li>)}
+        </ul>
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  /* `hidden` is set by the progressive-enhancement script. An explicit `display` in author CSS
+     beats the UA stylesheet's [hidden]{display:none}, so it has to be restated here — otherwise the
+     "focus one case" enhancement silently does nothing. */
+  .case[hidden] { display: none; }
+  .case {
+    display: grid;
+    grid-template-columns: 45fr 55fr;
+    gap: clamp(1.5rem, 0.8rem + 2.6vw, 3.5rem);
+    padding: var(--ds-space-4) 0;
+    border-top: 1px solid var(--wire-rule);
+  }
+
+  .field-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    font-weight: 400;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--wire-ink-soft);
+    margin: var(--ds-space-3) 0 var(--ds-space-1);
+  }
+  .ask .field-label:first-child,
+  .answer .field-label:first-child { margin-top: 0; }
+
+  .request {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    background: var(--wire-panel);
+    border-left: 2px solid var(--ds-accent-wire);
+    color: var(--wire-ink);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .context { margin: 0; }
+  .ctx-row { display: flex; gap: 0.75rem; padding: 0.3rem 0; border-bottom: 1px solid var(--wire-rule); }
+  .ctx-row dt {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--wire-ink-soft);
+    min-width: 6.5rem;
+  }
+  .ctx-row dd { margin: 0; color: var(--wire-ink); }
+
+  .causality { margin: var(--ds-space-3) 0 0; color: var(--wire-ink-soft); opacity: 0.75; }
+
+  /* THE VERDICT. One treatment for all four moods — the word carries the state. */
+  .verdict { margin: 0; display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap; }
+  .verdict-word {
+    font-family: var(--font-mono);
+    font-size: var(--ds-verdict);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ds-accent-wire);
+    border-bottom: 1px solid var(--ds-accent-wire);
+    padding-bottom: 2px;
+  }
+  .verdict-note {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--wire-ink-soft);
+  }
+
+  .finding + .finding { margin-top: var(--ds-space-2); }
+  .code { color: var(--ds-accent-wire); margin: 0 0 0.3rem; }
+  .detail, .remedy, .no-result {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--wire-ink);
+    margin: 0;
+  }
+  .remedy { margin-top: 0.4rem; color: var(--wire-ink-soft); }
+  .remedy-label {
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    color: var(--ds-accent-wire);
+    margin-right: 0.35rem;
+  }
+
+  .rows { width: 100%; border-collapse: collapse; color: var(--wire-ink); }
+  .rows th, .rows td {
+    text-align: left;
+    padding: 0.3rem 0.9rem 0.3rem 0;
+    border-bottom: 1px solid var(--wire-rule);
+    white-space: nowrap;
+  }
+  .rows th { color: var(--wire-ink-soft); font-weight: 400; }
+  .rowcount, .offers {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--wire-ink-soft);
+  }
+  .rowcount { margin: var(--ds-space-1) 0 0; }
+  .offers { margin: var(--ds-space-2) 0 0; padding-left: 1.1rem; }
+  .offers li { margin: 0.25rem 0; color: var(--wire-ink); }
+  .no-result { color: var(--wire-ink); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  @media (max-width: 56rem) {
+    .case { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .rows th, .rows td { white-space: normal; }
+  }
+</style>

@@ -1,0 +1,141 @@
+---
+/**
+ * Hero — section 1. PAPER register only (implementation brief §5).
+ *
+ * No dark panel, no faux terminal, no card. The first screen is a proposition, not a campaign, and
+ * it should feel almost under-filled by commercial-site standards (visual direction §8).
+ *
+ * The proof obligation is the load-bearing line: "First Principles" is too widely used to position
+ * anything on its own, so the first screen makes one FALSIFIABLE commitment that the rest of the
+ * page has to start discharging immediately. The word `silently` is doctrine-locked — a system may
+ * be wrong; what it may not be is quietly wrong.
+ *
+ * The formal mark is GENERATED, not typed here: `transcript.hero_mark` is executed against the
+ * shipped package by scripts/gen_transcript.py and asserted to serve. The brief's candidate mark
+ * (`revenue @ {store, month}`) is not shipped-valid — the terse `@` form was retired in 0.9.0 and
+ * the level is `cal.month` — so this substitutes the verified concrete address, exactly as §5
+ * instructs when the candidate does not hold.
+ */
+import HeroLattice from './HeroLattice.astro';
+import transcript from '../../data/transcript.generated.json';
+
+const mark = (transcript as any).hero_mark;
+if (!mark?.frameql || mark.outcome !== 'serve') {
+  throw new Error(
+    'Hero integrity failure: the hero formal mark is not a request the shipped package serves. ' +
+    'Regenerate the transcript (scripts/gen_transcript.py). The hero must not quote a retired or ' +
+    'invalid Frame-QL form.'
+  );
+}
+---
+
+<section class="hero ds ds-paper ds-section" aria-labelledby="thesis">
+  <div class="grid ds-measure-wide">
+    <div class="claim">
+      <h1 id="thesis">First Principles — <span class="territory-word">Analytics</span></h1>
+
+      <p class="territories">Data · Evidence · Intelligence</p>
+
+      <p class="lede ds-body">
+        datumwise develops first-principles foundations, languages, and systems for analytics
+        across data, evidence, and intelligence.
+      </p>
+
+      <div class="commitment">
+        <p class="obligation">
+          Built so that no layer can <em>silently</em> return a confident wrong number.
+        </p>
+        <p class="obligation-label">Falsifiable commitment.</p>
+      </div>
+
+      <p class="actions">
+        <a class="ds-link" href="#three-questions">See the case ↓</a>
+        <a class="ds-link" href="/columna">Meet Columna →</a>
+      </p>
+    </div>
+
+    <div class="mark-side">
+      <HeroLattice />
+      <p class="mark-line">
+        <span class="mark-label">Example address, in the data world</span>
+        <code class="ds-mark">{mark.frameql}</code>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { padding-block: clamp(3.5rem, 2rem + 8vw, 8rem) var(--ds-turn); }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 5vw, 6rem);
+    align-items: start;
+  }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-size: var(--ds-hero);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+  }
+  /* `Analytics` carries the territory being claimed; the emphasis is scale and italic, not weight
+     (visual direction §8) — and it never imitates a competitor's lockup. */
+  .territory-word { font-style: italic; }
+
+  .territories {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    color: var(--ink);
+    margin: var(--ds-space-3) 0 0;
+    letter-spacing: 0.01em;
+  }
+
+  .lede { margin: var(--ds-space-3) 0 0; max-width: var(--ds-essay); }
+
+  /* The proof obligation is visually SEPARATED from the descriptive sentence — it is a different
+     kind of statement, and the separation is the point. */
+  .commitment {
+    margin-top: var(--ds-space-4);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+    max-width: 30rem;
+  }
+  .obligation {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.32;
+    color: var(--ink);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .obligation em { font-style: italic; }
+  .obligation-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+    margin: var(--ds-space-2) 0 0;
+  }
+
+  .actions { display: flex; gap: var(--ds-space-3); margin: var(--ds-space-4) 0 0; flex-wrap: wrap; }
+
+  .mark-side { padding-top: 0.75rem; }
+  .mark-line { margin: var(--ds-space-4) 0 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .mark-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+  }
+  code.ds-mark { white-space: pre-wrap; word-break: break-word; }
+
+  @media (max-width: 56rem) {
+    .grid { grid-template-columns: 1fr; gap: var(--ds-space-5); }
+    /* Mobile keeps every essential hero line visible without interaction; the mark follows the
+       claim rather than competing with the proof line. */
+    .mark-side { order: 2; }
+    .claim { order: 1; }
+  }
+</style>

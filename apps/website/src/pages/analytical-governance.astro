@@ -1,0 +1,44 @@
+---
+/**
+ * SIGNPOST ONLY — this is not the Analytical Governance page.
+ *
+ * Slice 1 introduces the four-door shell but explicitly does NOT authorize building this page
+ * (implementation brief §11). A door that 404s is worse than a door that states what is behind it
+ * and is honest that it has not been written yet, so this is the minimum that keeps the new shell
+ * truthful. It is expected to be replaced wholesale by the Analytical Governance slice.
+ *
+ * The category line and the conformance test are quoted from ratified doctrine (positioning §4,
+ * wireframe §6) so that even the placeholder cannot drift into generic data-governance language.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Analytical Governance — datumwise"
+  description="Analytical Governance concerns whether an analytical request is established, supported, and entitled to execute — not who may access which table."
+  chip={false}
+>
+  <h1 class="ds-proposition">Analytical Governance</h1>
+
+  <p class="ds-body">
+    Analytical Governance governs whether an analytical request is established, supported, and
+    entitled to execute — not who may access which table.
+  </p>
+
+  <p class="ds-body">
+    <strong>If it cannot refuse, it is not governed.</strong> Refusal is not the whole architecture.
+    It is the minimum proof that a system can withhold analytical permission when meaning, support,
+    or authority is not established.
+  </p>
+
+  <p class="ds-body note">
+    This page is being written. Until it lands, the nearest material is
+    <a href="/the-argument">the argument</a>, the worked example in <a href="/case">the case</a>,
+    and the executable consequence as <a href="/#exhibit-a-heading">Exhibit A</a> on the homepage.
+  </p>
+</BaseLayout>
+
+<style>
+  h1 { margin: 3rem 0 2rem; }
+  .ds-body { margin: 0 0 1.25rem; }
+  .note { color: var(--ink-faint); border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+</style>

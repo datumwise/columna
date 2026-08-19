@@ -1,0 +1,79 @@
+---
+/**
+ * HeroLattice — one quiet, TRUE fragment of the Data-world anchor lattice.
+ *
+ * Doctrine it obeys (visual direction §6.1, implementation brief §5):
+ *  · it is a Data-world lattice ONLY. It does not label planes Data / Evidence / Intelligence —
+ *    those are different jurisdictions, not coarseness levels, and an untyped edge across them is
+ *    forbidden in the visual grammar for the same reason it is forbidden in the architecture;
+ *  · height is coarseness. Every edge here is one kind — `coarsen` — so nothing implies a second,
+ *    unnamed relation;
+ *  · solid and hollow are both lawful analytical objects. Solid = materially realized, bytes are
+ *    available. Hollow = lawful, no current bytes. That distinction is the one thing the mark
+ *    teaches, so it carries the smallest possible key rather than being decorative;
+ *  · unlabeled at first-screen scale. The annotated lattice, family clouds, and the full edge key
+ *    belong to the Data pillar and the Explorer, where the teaching load belongs.
+ *
+ * The fragment drawn is the anchor lattice over (store → region) × (day → cal.month → cal.quarter):
+ * a real Hasse diagram of coarsening, not an illustration of a network.
+ */
+const NODES = [
+  { x: 60,  y: 180, solid: true  },   // store × day
+  { x: 180, y: 180, solid: true  },   // region × day
+  { x: 95,  y: 120, solid: true  },   // store × cal.month
+  { x: 215, y: 120, solid: false },   // region × cal.month
+  { x: 130, y: 60,  solid: false },   // store × cal.quarter
+  { x: 250, y: 60,  solid: false },   // region × cal.quarter
+];
+const EDGES = [[0, 1], [2, 3], [4, 5], [0, 2], [2, 4], [1, 3], [3, 5]];
+---
+
+<figure class="lattice">
+  <svg viewBox="0 0 310 210" role="img" aria-labelledby="lattice-desc" focusable="false">
+    <title id="lattice-desc">
+      A fragment of the analytical lattice: six anchors, coarsening upward. Filled anchors are
+      materially realized; open anchors are lawful analytical objects with no current bytes behind
+      them. Both exist by law.
+    </title>
+    {EDGES.map(([a, b]) => (
+      <line x1={NODES[a].x} y1={NODES[a].y} x2={NODES[b].x} y2={NODES[b].y} class="edge" />
+    ))}
+    {NODES.map((n) => (
+      <circle cx={n.x} cy={n.y} r="4.5" class={n.solid ? 'node solid' : 'node hollow'} />
+    ))}
+  </svg>
+
+  <figcaption>
+    <span class="key"><span class="dot solid" aria-hidden="true"></span>materialized — bytes available</span>
+    <span class="key"><span class="dot hollow" aria-hidden="true"></span>lawful — no current bytes</span>
+    <span class="both">Both exist by law.</span>
+  </figcaption>
+</figure>
+
+<style>
+  .lattice { margin: 0; }
+  svg { width: 100%; height: auto; max-width: 30rem; display: block; }
+  .edge { stroke: var(--rule-strong); stroke-width: 1; }
+  .node { stroke: var(--ink-soft); stroke-width: 1.25; }
+  .node.solid  { fill: var(--ink-soft); }
+  .node.hollow { fill: var(--paper); }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    margin-top: var(--ds-space-3);
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+  }
+  .key { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.25px solid var(--ink-soft); }
+  .dot.solid  { background: var(--ink-soft); }
+  .dot.hollow { background: var(--paper); }
+  .both { color: var(--ink-soft); }
+
+  @media (max-width: 56rem) {
+    svg { max-width: 22rem; }
+  }
+</style>
