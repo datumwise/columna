@@ -82,7 +82,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
   /* the current door is marked by rule + ink, not by colour alone */
   .doors a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--ink); }
   .utility { padding-left: var(--ds-space-3); border-left: 1px solid var(--ds-rule); }
-  .utility a { color: var(--ink-faint); }
+  .utility a { color: var(--ink-soft); }
   .utility a:hover { color: var(--ink); }
 
   .menu { display: none; }
@@ -104,7 +104,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
     border-bottom: 1px solid var(--ds-rule);
     padding-bottom: 0.5rem;
   }
-  .sheet a.util { color: var(--ink-faint); font-size: var(--ds-meta); border-bottom: 0; }
+  .sheet a.util { color: var(--ink-soft); font-size: var(--ds-meta); border-bottom: 0; }
 
   /* Compact shell. The same four doors move into the sheet — nothing is demoted or nested. */
   @media (max-width: 56rem) {

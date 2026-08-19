@@ -85,7 +85,9 @@
   font-size: var(--ds-meta);
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  /* --ink-faint measures 3.48:1 on --paper, below AA for small text. Any label that CARRIES
+     meaning uses --ink-soft (7.27:1); --ink-faint is kept only for aria-hidden decoration. */
+  color: var(--ink-soft);
   margin: 0 0 var(--ds-space-3);
 }
 .ds-wire .ds-label { color: var(--wire-ink-soft); }
