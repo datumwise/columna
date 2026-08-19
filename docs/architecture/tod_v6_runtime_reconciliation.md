@@ -87,7 +87,9 @@ a `member` primitive.
 Lawfulness belongs to the governed reducer law and its contracts over particular source→target
 movements. `BAnchor.blocked_lineages` is therefore best read as **the set of family-preserving movements
 this family admits**, which ToD already accommodates (§5.1: a family is coherent "over the
-family-preserving paths it admits").
+family-preserving paths it admits"). It is identity-contributing *where changing the admitted geometry
+changes the coherent family region* — again a conditional property, not a universal rule about the
+field.
 
 **Explicit non-reinterpretation:** the shipped V-anchor / M-anchor / B-anchor vocabulary is *not*
 promoted to foundational ToD anchor kinds. Frame-QL Introduction v2.0 declines that reading, and this
@@ -114,17 +116,26 @@ reduce-path      R(finer values of the formula)     e.g. mean of daily aov
 recompute-path   the formula evaluated at the coarse anchor
 ```
 
-CORROBORATED means the two agree — i.e. **the reduction is path-independent within one family**. That
-is a runtime enactment of ToD v6 **Theorem 1 (family path independence)**, not the establishment of a
-second identity. A derived member is therefore a **coherence certificate on a family edge**, and its
-`License` is the *evidence* for it.
+The two must be kept apart:
+
+> **ToD family coherence is the analytical law.
+> The runtime reduce-path vs recompute-path comparison supplies *evidence* about whether the claimed
+> family-preserving movement is established for the current realization and data.**
+
+A declared `FERTILE` member is therefore a **claim that a particular derivation can remain within one
+analytical family**, and the adjudication outcome is realization/data-bound *evidence* about that claim
+for the present attestation. A CORROBORATED runtime comparison does **not** prove ToD Theorem 1, and no
+number of passing comparisons would: the theorem is analytical law, while the comparison is contingent
+evidence over one realization at one attestation. Accordingly `License` / adjudication state is
+**evidence / certification material, not analytical identity**.
 
 The already-recorded false-fertility finding reads correctly under this lens: `sum FERTILE { calendar }`
-declared on the **ratio** `aov` was CONTRADICTED with a counterexample, because summing daily AOV is not
-the month's AOV. The claim "this movement stays inside one family" was simply false.
+declared on the **ratio** `aov` proposed a movement claiming family preservation, and the current
+evidence **contradicted that claim** — summing daily AOV is not the month's AOV.
 
 > **Measure member → candidate distinct family identity.
-> Derived member → a claim of family coherence, whose License is evidence, not identity.**
+> Derived member → a claim that a derivation remains family-preserving, whose adjudication supplies
+> realization/data-bound evidence about that claim — never analytical identity.**
 
 Two smaller nuances found in the same inventory:
 
@@ -132,9 +143,16 @@ Two smaller nuances found in the same inventory:
   `med_amount`, `region_label` each declare exactly one reducer, so container and family denote the same
   identity. The rule still holds; the container merely has nothing to disambiguate. Only `level` is
   multi-family in the shipped fixtures.
-- **`FamilyMember` mixes three ToD-distinct kinds of field**: identity-bearing (`agg`, `b_anchor`,
-  `order_by`), claim (`declared_lineages`), and evidence (`license`) — plus `description`, which is
-  prose and identity-bearing in neither theory nor code.
+- **`FamilyMember` mixes fields serving ToD-distinct roles.** `agg`, `b_anchor` and `order_by` are
+  **identity-contributing** — that is, *where changing them changes the governed family law or the
+  canonical analytical identity*. This is a conditional property of those fields in these cases, not a
+  claim that such fields are universally identity in every context:
+  - a **reducer law** can distinguish family identity;
+  - **admitted family-preserving anchor geometry** can distinguish the coherent family region;
+  - an **order law** is identity-bearing when changing that law changes the analytical quantity.
+
+  `declared_lineages` is a *claim*; `license` is *evidence*; `description` is prose and contributes to
+  identity in neither theory nor code.
 
 ---
 
