@@ -7,6 +7,37 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## Unreleased — realization/data identity and cache safety (P0.5b-0)
+
+**No wire change.** `Connector` gains `data_identity(table) -> Optional[str]`, a **change/version
+token** for a table's realized data state, declared on the Protocol (the freshness primitive
+everything depended on was never part of the contract). It replaces `table_version` — row count —
+in both consumers that gated on it: the certification attestation and the engine result cache. Row
+count cannot see an UPDATE or a same-cardinality delete+insert, so a CORROBORATED license could
+survive data that would have refuted it, and a cached frame could be served for data that no longer
+existed.
+
+The contract asks for a token trustworthy for REUSE **under the guarantee the connector documents**,
+not for a collision-free identity:
+
+* a backend-native version/snapshot token (Iceberg/Delta snapshot id, catalog version, MVCC
+  watermark) is a **source-provided data identity** under that backend's contract, and is preferred;
+* the DuckDB implementation is a **content fingerprint / change detector** —
+  `count(*) + sum(hash(row)) + bit_xor(hash(row))`, one single-table pass, no join. Finite
+  aggregates over a 64-bit hash: agreement is strong evidence of sameness, not proof. It covers row
+  contents positionally (value edits, inserts, deletes, column add/drop); column **names** are not
+  part of the digest. The token is namespaced by fingerprint algorithm (`cdg1`) and DuckDB version,
+  since `hash()` is implementation-defined, so an implementation change causes conservative
+  invalidation rather than an ambiguous comparison;
+* `None` when no such token can be established. `None` closes **reuse**, never serving: nothing is
+  cached and prior realization/data-bound evidence stops being treated as current. "Unknown" is
+  never read as "unchanged".
+
+Currency is judged **per capability**, once per request: a table that no proof read closes nothing,
+and a table whose identity moved closes exactly the capabilities whose evidence rested on it
+(through the existing P0.5a admission ladder — no new refusal reason). `table_version` is
+**deprecated**, retained only for external embedders; nothing in Core consults it.
+
 ## Unreleased — wire `contract_version` `"2"` → `"3"` (S2.2b-2 governed catalog semantics)
 
 **WIRE CONTRACT BUMP: `contract_version` `"2"` → `"3"`.** `list_manifolds` changed from a

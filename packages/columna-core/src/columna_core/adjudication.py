@@ -295,9 +295,11 @@ def _attest_tables(con, tables) -> str:
     """A stable attestation id from the DATA IDENTITY of the tables a trial touched (P0.5b-0).
 
     Was row count, which could not see a same-cardinality mutation — so a CORROBORATED license
-    could survive data that would have refuted it. `data_identity` changes whenever the realized
-    content changes; a table whose identity is unavailable is recorded as `unavailable` so the
-    attestation string itself carries the fact that reuse is not safe."""
+    could survive data that would have refuted it. `data_identity` is the connector's change/version
+    token for the realized content: under the guarantee that connector documents, it moves when the
+    content moves (see `Connector.data_identity` for what that guarantee is and is not). A table
+    whose identity is unavailable is recorded as `unavailable`, so the attestation string itself
+    carries the fact that reuse is not safe."""
     ts = sorted(set(tables))
     parts = []
     for t in ts:

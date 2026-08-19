@@ -34,18 +34,31 @@ class Connector(Protocol):
 
     # ---- P0.5b-0: the data-identity obligation (part of the CONTRACT, not an implementation detail) ----
     def data_identity(self, table: str) -> Optional[str]:
-        """An opaque comparable token identifying this table's REALIZED DATA STATE.
+        """An opaque comparable CHANGE/VERSION TOKEN for this table's realized data state.
 
-        CONTRACT (the guarantee Core relies on):
-          · the token MUST change whenever the realized data or realization changes in any way that
-            could change a served result or an adjudication finding;
-          · it MUST be stable while the data is unchanged, so unchanged data is safely reusable;
-          · it is NOT analytical identity. `F@A` is unchanged by a data refresh; this token is the
-            identity of the state that contingent evidence and cached results were derived FROM.
+        CONTRACT (what Core relies on — and deliberately no more):
+          · the token is a token the CONNECTOR warrants as trustworthy for REUSE: under the
+            connector's own documented guarantee, a change to the realized data or realization that
+            could change a served result or an adjudication finding is reflected by a different
+            token, to the strength that guarantee provides;
+          · it MUST be stable while the data is unchanged, so unchanged data stays reusable;
+          · it is NOT analytical identity. `F@A` is unchanged by a data refresh; this token names the
+            state that contingent evidence and cached results were derived FROM.
 
-        Return `None` when no trustworthy identity can be established. `None` is not a failure to
-        serve — it is a failure to REUSE: Core must then decline cache reuse and treat prior
-        realization/data-bound evidence as no longer current, rather than manufacture freshness.
+        THE STRENGTH OF THE GUARANTEE IS THE CONNECTOR'S TO STATE, and Core assumes no more than the
+        connector documents. Two kinds qualify, and they are not equally strong:
+
+          · a backend-native version/snapshot token — an Iceberg/Delta snapshot id, a catalog
+            version, an MVCC/xmin watermark — is a SOURCE-PROVIDED DATA IDENTITY under that
+            backend's contract. This is the strongest form and is preferred wherever it exists.
+          · a computed CONTENT FINGERPRINT is a CHANGE DETECTOR. Finite digests can collide in
+            principle, so a fingerprint is trustworthy-for-reuse, NOT a collision-free identity, and
+            must never be documented as one.
+
+        A connector that can supply neither returns `None` — including when it cannot honestly make
+        the guarantee above. `None` is not a failure to serve; it is a failure to REUSE: Core then
+        declines cache reuse and treats prior realization/data-bound evidence as no longer current,
+        rather than manufacture freshness. "Unknown" must never be read as "unchanged".
 
         ROW COUNT ALONE IS NEVER A VALID IMPLEMENTATION of this method. It cannot see an UPDATE or a
         same-cardinality delete+insert, which is precisely the class of change this exists to catch.
@@ -104,39 +117,69 @@ class DuckDBConnector:
     def __init__(self, con: duckdb.DuckDBPyConnection):
         self.con = con
         self.fetch_count = 0
+        self._ddb_ver = None      # P0.5b-0: token namespace, resolved lazily
+
+    # P0.5b-0: the fingerprint ALGORITHM version. Bumped whenever the digest's composition changes,
+    # so tokens from different algorithms are never compared as if they meant the same thing.
+    _IDENTITY_ALGO = "cdg1"
+
+    def _duckdb_version(self) -> str:
+        """The running DuckDB version, cached per connector — part of the token's namespace."""
+        v = getattr(self, "_ddb_ver", None)
+        if v is None:
+            try:
+                v = str(self.con.execute("SELECT version()").fetchone()[0])
+            except Exception:
+                v = "unknown"
+            self._ddb_ver = v
+        return v
 
     def data_identity(self, table: str) -> Optional[str]:
-        """The identity of this table's REALIZED DATA STATE (P0.5b-0).
+        """A CONTENT FINGERPRINT / CHANGE DETECTOR for `table` — NOT a collision-free identity.
 
-        DuckDB is an embedded engine and exposes no MVCC/catalog change token, so the only
-        trustworthy identity available here is a CONTENT DIGEST: one single-table aggregate pass,
-        no join (the B1 seam is preserved).
-
-        The digest combines three order-independent aggregates over the row hash:
+        DuckDB is an embedded engine and exposes no MVCC/catalog change token, so there is no
+        source-provided data identity to pass through here. What this connector can honestly supply
+        is a change detector: one single-table aggregate pass, no join (the B1 seam is preserved),
+        over three order-independent aggregates of the row hash:
 
             count(*)              cardinality
             sum(hash(row))        additive fingerprint
             bit_xor(hash(row))    xor fingerprint
 
-        All three are carried because none is sufficient alone. `count` misses same-cardinality
-        mutation (the defect this unit repairs). `bit_xor` alone is defeated by duplicate rows —
-        inserting an identical PAIR leaves the xor unchanged — so it cannot be trusted by itself.
-        Carrying `sum` alongside it closes that cancellation, and carrying `count` alongside both
-        makes a collision require simultaneous agreement of three independent aggregates.
+        WHAT IT GIVES. All three are carried because none is sufficient alone. `count` misses
+        same-cardinality mutation (the defect this unit repairs). `bit_xor` alone is defeated by
+        duplicate rows — inserting an identical PAIR leaves the xor unchanged — so it cannot be
+        trusted by itself. Carrying `sum` alongside it closes that cancellation. A change that
+        escapes detection must leave all three aggregates simultaneously unmoved.
 
-        COST: O(rows), one pass, per call. That is acceptable here because Core computes it ONCE
-        PER REQUEST (see `PublishedScope.attested_identities`), not once per column. A backend that
-        publishes a native cheap token — an Iceberg/Delta snapshot id, a catalog version, an
-        MVCC/xmin watermark — SHOULD override this method and return that instead; the contract
-        asks for a token that changes, not for a digest specifically.
+        WHAT IT DOES NOT GIVE. These are finite aggregates over a 64-bit hash. Agreement is strong
+        evidence of sameness, not proof of it: a collision is improbable, NOT impossible. This
+        method therefore supplies a token trustworthy for safe REUSE, and nothing in Core may be
+        documented as holding a stronger guarantee than that. A backend that publishes a native
+        version/snapshot token SHOULD override this method and return it instead — that is a
+        source-provided identity under the backend's own contract, and is strictly stronger.
+
+        WHAT IT COVERS. Row CONTENTS, compared POSITIONALLY. Value edits, inserts, deletes at any
+        cardinality, and column add/drop all move the token. Schema facts that leave every row's
+        hash unmoved — notably a column RENAME — do NOT move it (recorded as an open item on the
+        P0.5b-0 review; column NAMES are not part of the digest).
+
+        NAMESPACING. The token carries both the fingerprint algorithm (`cdg1`) and the DuckDB
+        version, because DuckDB documents `hash()` as an implementation detail free to change
+        between releases. Namespacing makes such a change read as a CONSERVATIVE INVALIDATION — a
+        different token, so recompute and re-attest — rather than as an ambiguous comparison between
+        two digests that were never comparable.
+
+        COST: O(rows), one pass, per call. Acceptable because Core computes it ONCE PER REQUEST (see
+        `PublishedScope.attested_identities`), not once per column.
         """
         try:
             n, s, x = self.con.execute(
-                f"SELECT count(*), sum(hash({table}))::HUGEINT, bit_xor(hash({table})) "
-                f"FROM {table} {table}").fetchone()
+                f"SELECT count(*), sum(hash(_dt))::HUGEINT, bit_xor(hash(_dt)) "
+                f"FROM {table} AS _dt").fetchone()      # fixed alias: qualified/quoted names bind too
         except Exception:
             return None                       # cannot establish -> caller MUST fail closed for reuse
-        return f"cdg1:{n}:{s}:{x}"
+        return f"{self._IDENTITY_ALGO}/duckdb-{self._duckdb_version()}:{n}:{s}:{x}"
 
     def table_version(self, table: str) -> str:
         """DEPRECATED (P0.5b-0) — row count is NOT a trustworthy data identity.

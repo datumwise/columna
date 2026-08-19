@@ -10,8 +10,10 @@ longer existed.
 The invariant:
 
 > Any change to the realized data or realization that can change an adjudication finding or a
-> served result must change the identity used to validate that evidence and any cached result
-> derived from it.
+> served result must change the token used to validate that evidence and any cached result derived
+> from it — to the strength of the guarantee the connector documents for that token. A native
+> snapshot/version token is a source-provided identity; the DuckDB fallback is a content
+> fingerprint / change detector, trustworthy for reuse but not collision-free.
 
 That identity is NOT analytical identity: `F@A` is unchanged by a data refresh.
 """
@@ -63,7 +65,7 @@ def test_row_count_alone_is_never_the_identity():
     after_id, after_count = c.data_identity("tx"), c.table_version("tx")
 
     assert before_count == after_count, "precondition: row count is blind to this change"
-    assert after_id != before_id, "data identity MUST move when content moves"
+    assert after_id != before_id, "the change token must move when the content moves"
 
 
 def test_same_cardinality_delete_insert_moves_the_identity():
@@ -210,4 +212,34 @@ def test_certification_and_cache_share_one_notion_of_identity():
 def test_attestation_string_carries_the_data_identity_not_the_row_count():
     srv, _con = _srv()
     lic = srv.m.hierarchies[0].license
-    assert lic.attestation is None or "cdg1:" in lic.attestation or "unavailable" in lic.attestation
+    assert lic.attestation is None or "cdg1/" in lic.attestation or "unavailable" in lic.attestation
+
+
+# ══ what the token IS, and what it is namespaced by ═══════════════════════════════════════════
+def test_the_token_is_namespaced_by_algorithm_and_duckdb_version():
+    """The DuckDB token is a CONTENT FINGERPRINT, and DuckDB documents `hash()` as free to change
+    between releases. Namespacing by fingerprint algorithm AND engine version makes such a change
+    read as a conservative invalidation (a different token -> recompute), never as an ambiguous
+    comparison of two digests that were never comparable."""
+    import duckdb as _d
+    con = duckdb.connect()
+    con.execute("CREATE TABLE t(a INT)")
+    tok = DuckDBConnector(con).data_identity("t")
+    assert tok.startswith("cdg1/duckdb-"), tok
+    assert _d.__version__ in tok or "unknown" in tok
+
+
+def test_a_schema_qualified_table_can_still_be_identified():
+    """A qualified (or quoted) binding must still yield a token. It returns None only when identity
+    genuinely cannot be established — and `None` closes REUSE hard (no cache, and every capability
+    resting on the table stops being current), so a name-parsing accident would take service down
+    for a table that is perfectly identifiable."""
+    con = duckdb.connect()
+    con.execute("CREATE TABLE tx(a VARCHAR, b DOUBLE)")
+    con.executemany("INSERT INTO tx VALUES (?,?)", [("d1", 10.0), ("d2", 20.0)])
+    c = DuckDBConnector(con)
+    plain, qualified = c.data_identity("tx"), c.data_identity("main.tx")
+    assert qualified is not None, "a qualified table name yielded no identity"
+    assert qualified == plain, "the same table identified differently under a qualified name"
+    con.execute('CREATE TABLE "odd name"(a INT)')
+    assert c.data_identity('"odd name"') is not None, "a quoted table name yielded no identity"
