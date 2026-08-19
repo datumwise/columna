@@ -107,6 +107,8 @@ class Planner:
         # column whose transport crosses a blocked edge refuses `contradicted_edge`. Serving never
         # outruns the verdicts. (The CUT half — declarations withdrawn by a violated ASSERT, refusing
         # `conflicting_data` — retired with ASSERT in 0.13.0; ruling 2026-07-26.)
+        self._scope = None                             # P0.5b-0: the installed PublishedScope
+        self._stale_faces: frozenset = frozenset()     # faces whose evidence has gone stale
         self.blocked_edges: frozenset = frozenset()    # {(frm, to)} — transport across these is refused
         self.blocked_by: dict = {}                      # (frm, to) -> [{lineage, key}]
         # P0.5a POSITIVE ADMISSION: crossing faces admitted by adjudication ("frm<->to.name"). Absence =
@@ -114,10 +116,45 @@ class Planner:
         # the addressability chokepoint. Both installed together via install_scope (one boundary).
         self.certified_faces: frozenset = frozenset()
 
+    def _refresh_scope_currency(self) -> None:
+        """P0.5b-0: settle the realized-data state ONCE PER REQUEST.
+
+        One probe pass serves both consumers, which is what makes them one coherent notion rather
+        than two freshness heuristics:
+
+          · the ENGINE CACHE is keyed on the LIVE identity, so a table that moved misses and
+            recomputes;
+          · EVIDENCE CURRENCY compares live against the identities the scope's evidence was
+            established under, PER CAPABILITY — a capability closes only when a table its own proof
+            actually read has moved.
+
+        Cost is one single-table aggregate per attested table per request, not per resolve. Every
+        column in the request then sees one data state."""
+        from .adjudication import stale_capabilities, live_identities
+        scope = getattr(self, "_scope", None)
+        eng = getattr(self, "engine", None)
+        con = getattr(eng, "con", None)
+        if scope is None or con is None:
+            return
+        live = live_identities(con, sorted(getattr(scope, "attested_identities", {}) or {}))
+        if eng is not None:
+            eng.data_identities = live                 # cache validity follows the LIVE data state
+        stale_e, stale_f = stale_capabilities(scope, live)
+        self.m._stale_edges = stale_e                  # closed for this request (existing P0.5a ladder)
+        self._stale_faces = stale_f
+
     def install_scope(self, scope) -> None:
         """P0.5a: install a complete PublishedScope as the planner's serving authority — ONE assignment
         boundary (never mutated piecemeal around fallible work). The certified edge set is pushed onto the
         view (it gates find_path); certified faces + the negative explanation sets live here."""
+        self._scope = scope
+        # P0.5b-0: the engine's cache validity token IS the scope's realized-data identity — one
+        # coherent notion, installed at the same single assignment boundary as admission itself.
+        eng = getattr(self, "engine", None)
+        if eng is not None:
+            eng.data_identities = dict(getattr(scope, "attested_identities", {}) or {})
+        self.m._stale_edges = frozenset()   # a freshly established scope is current by construction
+        self._stale_faces = frozenset()
         self.m.install_certified_edges(getattr(scope, "certified_edges", frozenset()))
         self.certified_faces = getattr(scope, "certified_faces", frozenset())
         self.blocked_edges = getattr(scope, "blocked_edges", frozenset())
@@ -275,7 +312,9 @@ class Planner:
             coord, _fname, rel, _face = faced
             # P0.5a: parse_faced names the DECLARATION; it does not license execution. The crossing serves
             # only if adjudication positively ADMITTED this face (VERIFIED touch / CORROBORATED assign|alloc).
-            if not self.m.probing and f"{rel.frm}<->{rel.to}.{_fname}" not in self.certified_faces:
+            _fkey = f"{rel.frm}<->{rel.to}.{_fname}"
+            if not self.m.probing and (_fkey in getattr(self, "_stale_faces", frozenset())
+                                       or _fkey not in self.certified_faces):
                 raise Refusal("uncertified_face",
                     f"{measure} @ {T}: the crossing face '{_fname}' on {rel.frm}<->{rel.to} is not "
                     f"certified for governed use — a declaration makes a crossing eligible for "
@@ -400,6 +439,7 @@ class Planner:
     # ---- run a frame -------------------------------------------------------
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
             where_unreachable: Optional[dict] = None) -> FrameResult:
+        self._refresh_scope_currency()     # P0.5b-0: one data-identity probe per request, not per column
         results = []
         for name, expr in columns:
             trace = []

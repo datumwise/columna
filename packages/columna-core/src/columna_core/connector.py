@@ -32,6 +32,26 @@ class Connector(Protocol):
     def deliver_attribute(self, table: str, key_col: str, attr_col: str) -> pl.DataFrame: ...
     def deliver_base_rows(self, table: str, key_cols: list, value_col: str, where: Optional[str] = None) -> pl.DataFrame: ...
 
+    # ---- P0.5b-0: the data-identity obligation (part of the CONTRACT, not an implementation detail) ----
+    def data_identity(self, table: str) -> Optional[str]:
+        """An opaque comparable token identifying this table's REALIZED DATA STATE.
+
+        CONTRACT (the guarantee Core relies on):
+          · the token MUST change whenever the realized data or realization changes in any way that
+            could change a served result or an adjudication finding;
+          · it MUST be stable while the data is unchanged, so unchanged data is safely reusable;
+          · it is NOT analytical identity. `F@A` is unchanged by a data refresh; this token is the
+            identity of the state that contingent evidence and cached results were derived FROM.
+
+        Return `None` when no trustworthy identity can be established. `None` is not a failure to
+        serve — it is a failure to REUSE: Core must then decline cache reuse and treat prior
+        realization/data-bound evidence as no longer current, rather than manufacture freshness.
+
+        ROW COUNT ALONE IS NEVER A VALID IMPLEMENTATION of this method. It cannot see an UPDATE or a
+        same-cardinality delete+insert, which is precisely the class of change this exists to catch.
+        """
+        ...
+
 
 # The authoring aperture's metered-sample cap (RATIFIED 2026-07-16). Rationale: sampling is a GOVERNED
 # aperture, not an open pipe — every read is BOUNDED per call so the model perceives a declared shape,
@@ -85,7 +105,46 @@ class DuckDBConnector:
         self.con = con
         self.fetch_count = 0
 
+    def data_identity(self, table: str) -> Optional[str]:
+        """The identity of this table's REALIZED DATA STATE (P0.5b-0).
+
+        DuckDB is an embedded engine and exposes no MVCC/catalog change token, so the only
+        trustworthy identity available here is a CONTENT DIGEST: one single-table aggregate pass,
+        no join (the B1 seam is preserved).
+
+        The digest combines three order-independent aggregates over the row hash:
+
+            count(*)              cardinality
+            sum(hash(row))        additive fingerprint
+            bit_xor(hash(row))    xor fingerprint
+
+        All three are carried because none is sufficient alone. `count` misses same-cardinality
+        mutation (the defect this unit repairs). `bit_xor` alone is defeated by duplicate rows —
+        inserting an identical PAIR leaves the xor unchanged — so it cannot be trusted by itself.
+        Carrying `sum` alongside it closes that cancellation, and carrying `count` alongside both
+        makes a collision require simultaneous agreement of three independent aggregates.
+
+        COST: O(rows), one pass, per call. That is acceptable here because Core computes it ONCE
+        PER REQUEST (see `PublishedScope.attested_identities`), not once per column. A backend that
+        publishes a native cheap token — an Iceberg/Delta snapshot id, a catalog version, an
+        MVCC/xmin watermark — SHOULD override this method and return that instead; the contract
+        asks for a token that changes, not for a digest specifically.
+        """
+        try:
+            n, s, x = self.con.execute(
+                f"SELECT count(*), sum(hash({table}))::HUGEINT, bit_xor(hash({table})) "
+                f"FROM {table} {table}").fetchone()
+        except Exception:
+            return None                       # cannot establish -> caller MUST fail closed for reuse
+        return f"cdg1:{n}:{s}:{x}"
+
     def table_version(self, table: str) -> str:
+        """DEPRECATED (P0.5b-0) — row count is NOT a trustworthy data identity.
+
+        Retained only so an external embedder calling it keeps working; nothing in Core consults it
+        any more. It cannot see an UPDATE, or a delete+insert at equal cardinality, so using it to
+        validate evidence or a cached result can serve a stale number. Use `data_identity`.
+        """
         n = self.con.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
         return f"{table}:{n}"
 

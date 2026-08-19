@@ -275,7 +275,7 @@ def _watermark(server, m, derived) -> str:
     tables = sorted({m.measures[a].home_table for a in set(_atom_refs(ast.parse(derived.formula, mode="eval")))
                      if a in m.measures})
     try:
-        parts = [f"{t}@{con.table_version(t)}" for t in tables]
+        parts = [f"{t}@{con.data_identity(t)}" for t in tables]
     except Exception:
         parts = tables
     return "attest:" + ";".join(parts)
@@ -292,13 +292,21 @@ def _license(verdict, lineages, basis: str, attestation: Optional[str] = None) -
 
 
 def _attest_tables(con, tables) -> str:
-    """A stable attestation id from the connector versions of the tables a trial touched (so
-    CORROBORATED re-adjudicates when the data is re-attested)."""
+    """A stable attestation id from the DATA IDENTITY of the tables a trial touched (P0.5b-0).
+
+    Was row count, which could not see a same-cardinality mutation — so a CORROBORATED license
+    could survive data that would have refuted it. `data_identity` changes whenever the realized
+    content changes; a table whose identity is unavailable is recorded as `unavailable` so the
+    attestation string itself carries the fact that reuse is not safe."""
     ts = sorted(set(tables))
-    try:
-        return "attest:" + ";".join(f"{t}@{con.table_version(t)}" for t in ts)
-    except Exception:
-        return "attest:" + ";".join(ts)
+    parts = []
+    for t in ts:
+        try:
+            tok = con.data_identity(t)
+        except Exception:
+            tok = None
+        parts.append(f"{t}@{tok if tok is not None else 'unavailable'}")
+    return "attest:" + ";".join(parts)
 
 
 def _expr_tables(m, *exprs) -> set:
@@ -373,6 +381,18 @@ class PublishedScope:
     # positive VERIFIED/CORROBORATED verdict admits it here, and serving consults ONLY these positive sets.
     certified_edges: frozenset = frozenset()        # (frm, to) whose functional transport is ADMITTED
     certified_faces: frozenset = frozenset()        # "frm<->to.name" crossing faces that are ADMITTED
+    # ── P0.5b-0 REALIZATION/DATA IDENTITY ──────────────────────────────────────────────────────────
+    # The identity of the realized data state this scope's contingent evidence was established
+    # against: {table -> data_identity token}. A `None` value means the connector could not establish
+    # a trustworthy identity for that table, which closes REUSE (never manufactures freshness).
+    # This is NOT analytical identity — `F@A` is unchanged by a data refresh.
+    attested_identities: dict = field(default_factory=dict)
+    # Which realized tables each capability's contingent evidence actually rests on, so currency is
+    # judged PER CAPABILITY. A hierarchy's evidence depends on the tables its FD proof read; a
+    # measure table moving says nothing about whether day->month is still functional. Recording this
+    # keeps a data refresh from closing capabilities whose evidence it cannot possibly affect.
+    edge_evidence: dict = field(default_factory=dict)   # EdgeKey -> (table, ...)
+    face_evidence: dict = field(default_factory=dict)   # "frm<->to.name" -> (table, ...)
 
 
 def _revoked_license(fm, why: str) -> License:
@@ -406,11 +426,120 @@ def scope_from_report(m, report: dict) -> PublishedScope:
     # governing hierarchy carry no FD claim and are not certification-dependent — the view admits them
     # structurally (see PlannerView._gated_edges), so they need not appear here.
     certified_edges = frozenset(e.key for e in m.edges if hv.get(e.lineage) == CORROBORATED)
+    # per-capability evidence provenance (P0.5b-0). A hierarchy verdict is reached over EVERY hop of
+    # its lineage, so the whole lineage's provider tables carry that verdict.
+    lineage_tables = {}
+    for e in m.edges:
+        if getattr(e, "provider_table", None):
+            lineage_tables.setdefault(e.lineage, set()).add(e.provider_table)
+    edge_evidence = {e.key: tuple(sorted(lineage_tables.get(e.lineage, ())))
+                     for e in m.edges if e.key in certified_edges}
     certified_faces = frozenset(k for k, v in report.get("_faces", {}).items()
                                 if v in (VERIFIED, CORROBORATED))
+    face_evidence = {}
+    for r in m.non_functional:
+        for f in getattr(r, "faces", ()) or ():
+            key = f"{r.frm}<->{r.to}.{f.name}"
+            if key not in certified_faces:
+                continue
+            tabs = set()
+            if getattr(r, "via_table", None):
+                tabs.add(r.via_table)                       # the bridge the crossing reads
+            drv = getattr(f, "selection", None)             # ASSIGN/ALLOC driver measure
+            if drv and drv in m.measures and getattr(m.measures[drv], "home_table", None):
+                tabs.add(m.measures[drv].home_table)
+            face_evidence[key] = tuple(sorted(tabs))
     return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
                           licenses=_snapshot_licenses(m),
-                          certified_edges=certified_edges, certified_faces=certified_faces)
+                          certified_edges=certified_edges, certified_faces=certified_faces,
+                          edge_evidence=edge_evidence, face_evidence=face_evidence)
+
+
+def realized_tables(m) -> list:
+    """Every physical table this manifold realizes: measure home tables, edge provider tables, and
+    attribute providers. P0.5b-0 records the data identity of ALL of them, not only the ones a
+    particular proof touched — a change anywhere in the realization must be able to close reuse."""
+    tables = set()
+    for mc in m.measures.values():
+        if getattr(mc, "home_table", None):
+            tables.add(mc.home_table)
+    for e in m.edges:
+        if getattr(e, "provider_table", None):
+            tables.add(e.provider_table)
+    for r in m.non_functional:
+        if getattr(r, "via_table", None):
+            tables.add(r.via_table)               # the M:N bridge a crossing reads
+    for lv in m.levels.values():
+        for _name, binding in getattr(lv, "attributes", ()) or ():
+            if isinstance(binding, str) and "." in binding:
+                tables.add(binding.rsplit(".", 1)[0])
+    return sorted(tables)
+
+
+def capture_identities(con, m) -> dict:
+    """{table -> data_identity} for every realized table. A `None` value is recorded, not dropped:
+    it is the signal that reuse must fail closed for that table."""
+    out = {}
+    for t in realized_tables(m):
+        try:
+            out[t] = con.data_identity(t)
+        except Exception:
+            out[t] = None
+    return out
+
+
+def stale_capabilities(scope, live: dict) -> tuple:
+    """Which certified capabilities' evidence is no longer current, given the LIVE identities.
+
+    Returns (stale_edge_keys, stale_face_keys). A capability is stale when any table its evidence
+    rested on has an unavailable or changed identity — evidence may not outlive the data state it
+    was established against. A table that no capability's proof read cannot make anything stale."""
+    attested = getattr(scope, "attested_identities", None) or {}
+
+    def moved(tables) -> bool:
+        for t in tables:
+            was, now = attested.get(t), live.get(t)
+            if was is None or now is None or was != now:
+                return True
+        return False
+
+    stale_e = frozenset(k for k, tabs in (getattr(scope, "edge_evidence", None) or {}).items()
+                        if moved(tabs))
+    stale_f = frozenset(k for k, tabs in (getattr(scope, "face_evidence", None) or {}).items()
+                        if moved(tabs))
+    return stale_e, stale_f
+
+
+def live_identities(con, tables) -> dict:
+    """Probe the CURRENT realized-data identity of `tables` — once per request, by the planner."""
+    out = {}
+    for t in tables:
+        try:
+            out[t] = con.data_identity(t)
+        except Exception:
+            out[t] = None
+    return out
+
+
+def scope_is_current(scope, con) -> bool:
+    """Is this scope's contingent evidence still valid against the CURRENT realized data?
+
+    False when any attested table's identity is unavailable (then or now) or differs. False is the
+    fail-closed answer: previously obtained realization/data-bound evidence must not silently remain
+    current once the identity it was established against has changed."""
+    identities = getattr(scope, "attested_identities", None) or {}
+    if not identities:
+        return True                      # nothing realized/attested (e.g. an empty or unpublished scope)
+    for table, was in identities.items():
+        if was is None:
+            return False                 # never had a trustworthy identity -> never reusable
+        try:
+            now = con.data_identity(table)
+        except Exception:
+            return False
+        if now is None or now != was:
+            return False
+    return True
 
 
 def _establish_scope(server, report: dict) -> PublishedScope:
@@ -419,6 +548,12 @@ def _establish_scope(server, report: dict) -> PublishedScope:
     Single assignment boundary (the planner/view never observe a half-built scope). Called as adjudicate's
     final atomic step: a strict contradiction raises before it, installing nothing (no serving scope)."""
     scope = scope_from_report(server.m, report)
+    # P0.5b-0: freeze the realized-data identity this scope's evidence was established against, as
+    # the final step of the same atomic establishment.
+    try:
+        scope = replace(scope, attested_identities=capture_identities(server.engine.con, server.m))
+    except Exception:
+        scope = replace(scope, attested_identities={})
     planner = getattr(server, "planner", None)
     if planner is not None:
         planner.install_scope(scope)

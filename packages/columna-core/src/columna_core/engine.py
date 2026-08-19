@@ -88,6 +88,22 @@ class ColumnEngine:
     # EXACTLY them. The engine no longer BFSes `Manifold.find_path` on any law-bearing path, and there
     # is deliberately NO "if no planned route: find_path(...)" fallback -- absence of an admitted route
     # is CLOSED (ruling 2026-08-11).
+    def data_version(self, table: str):
+        """The cache-validity token for `table` (P0.5b-0).
+
+        ONE coherent notion of identity: this is the SAME realized-data identity the scope's
+        contingent evidence was established against — not an independent freshness heuristic. The
+        planner has already established, once per request, that the live data still matches these
+        identities (a stale scope closes admission before any engine call), so reusing them as the
+        cache key cannot resurrect a result from a different data state.
+
+        `None` (identity unavailable, or no scope installed) means DO NOT REUSE and DO NOT STORE:
+        absence of a trustworthy identity closes reuse rather than manufacturing freshness."""
+        ids = getattr(self, "data_identities", None)
+        if not ids:
+            return None
+        return ids.get(table)
+
     def _planned_path(self, routes, measure: str, level: str):
         """The route the planner admitted for (measure -> level), as (start, (FunctionalEdge, ...)).
 
@@ -135,8 +151,8 @@ class ColumnEngine:
 
         # cache (exact). Holistic results are reduction-sterile: memoize exact, never as a seed.
         key = (measure, member, target, uni, where)
-        ver = self.con.table_version(meas.home_table)
-        if key in self.cache and self.cache[key].version == ver:
+        ver = self.data_version(meas.home_table)
+        if ver is not None and key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
             self._t(trace, "  cache-hit")
             disc = self._disc(meas, fam, op, uni).with_caveat(Caveat(FRESHNESS, "served from cache"))
@@ -145,14 +161,14 @@ class ColumnEngine:
         # deliver + (reduce | recompute), dispatched by the operator's witness
         if op.witness == OP_SKETCH:
             frame, sk = self._resolve_sketch(meas, member, target, paths, where, trace)
-            self.cache[key] = CacheEntry(frame, sk, ver)
+            if ver is not None: self.cache[key] = CacheEntry(frame, sk, ver)
         elif op.witness == OP_HOLISTIC:
             frame = self._recompute_holistic(meas, fam, op, target, paths, where, trace, split=split)
-            self.cache[key] = CacheEntry(frame, None, ver)     # exact-memoize only; not a reduction seed
+            if ver is not None: self.cache[key] = CacheEntry(frame, None, ver)   # exact-memoize only
         else:   # VALUE or ORDERED — both reduce in witness-space
             frame = self._deliver_and_transport_monoid(meas, fam, op, target, paths, where, trace,
                                                        split=split)
-            self.cache[key] = CacheEntry(frame, None, ver)
+            if ver is not None: self.cache[key] = CacheEntry(frame, None, ver)
         return frame, self._disc(meas, fam, op, uni)
 
     # ---- public: resolve one SCAN (order-dependent, anchor-preserving) ----
@@ -499,9 +515,9 @@ class ColumnEngine:
 
         # exact cache — the faced token rides `target`, so touched/untouched key DISTINCTLY (no collision).
         key = (meas.name, fam.agg, target, uni, where)
-        ver = self.con.table_version(meas.home_table)
+        ver = self.data_version(meas.home_table)
         disc = self._touch_disc(meas, fam, op, uni, rel, face)
-        if key in self.cache and self.cache[key].version == ver:
+        if ver is not None and key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
             self._t(trace, "  cache-hit (touch)")
             return self.cache[key].frame, disc.with_caveat(Caveat(FRESHNESS, "served from cache"))
@@ -561,7 +577,7 @@ class ColumnEngine:
                     f"{n_absent} {T} with no touched {meas.name} left unknown per the declared fill rule — a "
                     f"value existed but was not recorded; not filled")))
         touched = touched.sort(T).select([T, "_value"])
-        self.cache[key] = CacheEntry(touched, None, ver)
+        if ver is not None: self.cache[key] = CacheEntry(touched, None, ver)
         return touched, disc
 
     def _touch_disc(self, meas, fam, op, uni, rel, face):
@@ -882,7 +898,7 @@ class ColumnEngine:
         T = target[0]
         start, path = paths[T][0], paths[T][1]
         p = meas.sketch_precision
-        ver = self.con.table_version(meas.home_table)
+        ver = self.data_version(meas.home_table)
 
         # hll_count: base-grain sketches. STORED witness (eager, at publish) is load-bearing here —
         # if present and fresh we read it with NO backend fetch; otherwise we build lazily (fallback).
@@ -940,7 +956,7 @@ class ColumnEngine:
             if op.witness != OP_SKETCH:
                 continue
             p = meas.sketch_precision
-            ver = self.con.table_version(meas.home_table)
+            ver = self.data_version(meas.home_table)
             base_dims = sorted(self.m.universes[meas.universe].base_dimensions)
             for base in base_dims:
                 if base not in self.m.levels:
