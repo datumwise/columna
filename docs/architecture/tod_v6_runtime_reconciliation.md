@@ -1,7 +1,8 @@
 # Theory of Data v6 — runtime reconciliation checkpoint
 
-**Status:** documentation-only checkpoint. **Authorizes no code, grammar, wire, or terminology change.**
-**Date:** 2026-08-18
+**Status:** **RATIFIED / COMPLETE** — merged `ffce9c1` (PR #175, 2026-08-19), reviewed at head `2eb9090`.
+Documentation-only checkpoint. **Authorizes no code, grammar, wire, or terminology change.**
+**Date:** 2026-08-18 (drafted) · 2026-08-19 (ratified)
 **Sources:** `columna` @ main (`0.15.0-core`, head `2455509`). Reads with *Theory of Data v6.0*
 (Zenodo 21958062), *Analytical Governance v1.0* (Zenodo 21959749), *Frame-QL: An Introduction v2.0*
 (Zenodo 21960798). The **Frame-QL Manual remains normative** for shipped syntax and behaviour.
