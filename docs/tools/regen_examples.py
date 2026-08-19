@@ -72,7 +72,15 @@ def _fixture_server():
     con.executemany("INSERT INTO txns VALUES (?,?,?,?)", _TXNS)
     con.execute("CREATE TABLE customers(customer_id VARCHAR, region VARCHAR)")
     con.executemany("INSERT INTO customers VALUES (?,?)", _CUSTOMERS)
-    return ManifoldServer(parse_manifold(_FINANCE_CML), DuckDBConnector(con))
+    srv = ManifoldServer(parse_manifold(_FINANCE_CML), DuckDBConnector(con))
+    # P0.5a closed-by-default serving: transport across an FD-claimed edge serves only once
+    # adjudication positively admits it. A documentation harness that exercises governed serving
+    # must enter the SAME publication/admission lifecycle the product requires — `publish()` is
+    # that lifecycle (adjudicate strictly, then build witnesses), not a docs-only bypass. Without
+    # it these examples document the behaviour of an unpublished manifold, which is not the
+    # behaviour being documented.
+    srv.publish()
+    return srv
 
 
 # ── run one query, format its outcome as the committed output block body ─────────────────────────
