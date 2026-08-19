@@ -126,7 +126,21 @@ jobs:
           EXPECT: ${{ github.event.pull_request.head.sha }}
         run: |
           set -uo pipefail
-          CODE="$(curl -s -o /tmp/preview.html -w '%{http_code}' -D /tmp/preview.h "${URL}/")"
+          # A fresh deployment is not instantly addressable: the first curl after `vercel deploy`
+          # can land before the URL is serving and answer 404. Observed on PR #178, whose deployment
+          # was correct — right commit, right channel — and served 200 moments later. So the check
+          # RETRIES with backoff, exactly like the production edge verification below, rather than
+          # reporting a race as a failed preview. The budget is bounded and exhausting it still
+          # fails: this buys propagation time, it does not forgive a broken deploy.
+          CODE=000
+          for attempt in 1 2 3 4 5 6; do
+            CODE="$(curl -s -o /tmp/preview.html -w '%{http_code}' -D /tmp/preview.h "${URL}/")"
+            case "${CODE}" in
+              200|401|403) break ;;
+            esac
+            echo "preview not addressable yet (HTTP ${CODE}, attempt ${attempt}/6) — retrying in $((attempt * 5))s"
+            sleep $((attempt * 5))
+          done
           if [ "${CODE}" = "401" ] || [ "${CODE}" = "403" ]; then
             echo "::error::preview returned HTTP ${CODE}. Vercel Deployment Protection is enabled on \
           preview deployments, so the URL is not openly reviewable and cannot be verified from CI. \
