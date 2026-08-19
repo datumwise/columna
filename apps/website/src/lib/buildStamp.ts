@@ -58,3 +58,17 @@ if (BUILD_STAMP.trim() === '') {
     'defense). Restore the fallback chain in src/lib/buildStamp.ts.',
   );
 }
+
+
+// ── THE BUILD CHANNEL (preview preflight, 2026-08-19) ────────────────────────────────────────────
+//
+// A preview deployment is built from a PR branch, against BRANCH packages, and must never be
+// mistaken for — or claim to represent — a shipped release. The channel is emitted as
+// `<meta name="build-channel">` beside the commit stamp so that claim is machine-checkable rather
+// than a matter of trusting the URL: the preview job asserts the served page says `preview`, and
+// production keeps saying `production`.
+//
+// It is metadata, not chrome, on purpose. A visible "PREVIEW" ribbon would alter the very
+// composition the preview exists to let humans review.
+const channel = firstNonBlank(process.env.SITE_BUILD_CHANNEL, import.meta.env.SITE_BUILD_CHANNEL);
+export const BUILD_CHANNEL: 'preview' | 'production' = channel === 'preview' ? 'preview' : 'production';

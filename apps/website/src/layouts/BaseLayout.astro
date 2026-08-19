@@ -10,7 +10,7 @@ import AmbientChip from '../components/AmbientChip.astro';
 import Analytics from '@vercel/analytics/astro';
 // The build stamp resolves through a fallback chain that CANNOT yield an empty string, and fails the
 // build loudly if it ever does. See src/lib/buildStamp.ts for the incident this fixes.
-import { BUILD_STAMP } from '../lib/buildStamp';
+import { BUILD_STAMP, BUILD_CHANNEL } from '../lib/buildStamp';
 
 export interface Props {
   title: string;
@@ -110,6 +110,9 @@ const structuredIdentity = {
         back through the workflow's export, the runner's GITHUB_SHA, and finally a build timestamp. It
         can never be empty — an empty stamp is what silently disabled this defense before #88. */}
     <meta name="build" content={BUILD_STAMP} />
+    {/* Which channel produced these bytes: `preview` (a PR branch build) or `production`.
+        A preview must never claim to represent a shipped release; this makes that claim checkable. */}
+    <meta name="build-channel" content={BUILD_CHANNEL} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
