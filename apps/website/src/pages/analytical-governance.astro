@@ -1,0 +1,128 @@
+---
+/**
+ * NAVIGATION SIGNPOST — not the Analytical Governance page.
+ *
+ * Authorized narrowly (Huayin, 2026-08-19): the four-door navigation must not knowingly ship two
+ * 404 destinations, so this door establishes scent and points onward. It carries only what §13 of
+ * the v0.2 brief allows a signpost to carry — the full name, the immediate distinction from
+ * ordinary data governance, the conformance test, one concise category proposition, links to
+ * relevant live material, and a forward link toward Columna.
+ *
+ * Its transitional status is stated as a fact, structurally, at the end. No "coming soon" copy.
+ *
+ * The full architecture/corpus page is a later slice. When it is built, its FIRST SCREEN must do
+ * what this page's first screen already does: distinguish Analytical Governance from data
+ * governance and surface the conformance test.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Analytical Governance — datumwise"
+  description="Analytical Governance concerns whether an analytical request is established, supported, and entitled to execute — not who may access which table."
+  wide={true}
+  chip={false}
+>
+  <div class="signpost">
+    <div class="ds-measure-wide">
+      <p class="ds-label">Analytical Governance</p>
+
+      {/* The proposition carries the redesign's WIDE measure, like every other ds-proposition on
+          the redesigned surfaces. It was inheriting BaseLayout's 34rem ESSAY column, which set a
+          70-character display line in a prose measure: five lines, and the conformance test fell
+          off the 1280x800 first screen. The measure is the defect — not the type scale, which is
+          shared, and not the copy. Prose below keeps the essay measure it wants. */}
+      <h1 class="ds-proposition">
+        Which analytical results may be served — not who may read which table.
+      </h1>
+
+      <div class="prose">
+        <p class="lede ds-body">
+          Analytical Governance governs whether an analytical request is <em>established</em>,
+          <em>supported</em>, and <em>entitled to execute</em>. Data governance answers a different
+          question: stewardship, access, catalogues, policy. Both matter. They are not the same category,
+          and the shorter name already belongs to the other one.
+        </p>
+
+        <p class="test">If it cannot refuse, it is not governed.</p>
+
+        <p class="ds-body">
+          Refusal is not the whole architecture. It is the minimum proof that a system can withhold
+          analytical permission when meaning, support, or authority is not established.
+        </p>
+
+        <ul class="onward">
+          <li class="paper">
+            <a href="https://doi.org/10.5281/zenodo.21959749" rel="noopener" target="_blank">
+              Analytical Governance: From User Intent to Governed Analytical Execution
+            </a>
+            <span class="meta">Huayin Wang · Version 1.0 · 15 August 2026 · DOI 10.5281/zenodo.21959749</span>
+            <span class="role">The category paper — the defining publication for Analytical Governance.</span>
+          </li>
+          <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
+          <li>
+            <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
+            — the authority boundary, argued.
+          </li>
+          <li><a href="/#exhibit-a-heading">Exhibit A</a> — four governed requests, four earned verdicts.</li>
+          <li><a href="/columna">Columna →</a> — the same boundaries, executable.</li>
+        </ul>
+
+        <p class="status">
+          This page is a navigation signpost. The full Analytical Governance page — the architecture from
+          intent to authorized execution, and its publication record — is a later slice of the redesign.
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* The page now sits in the full-bleed shell, so it owns its own gutter — the redesign's, not
+     BaseLayout's. Vertical rhythm below is UNCHANGED: only the horizontal measure moved. */
+  .signpost { padding-inline: var(--ds-gutter); }
+  .prose { max-width: var(--ds-essay); }
+
+  .ds-label { margin: 3rem 0 1.25rem; }
+  h1 { margin: 0 0 2rem; }
+  .lede { margin: 0 0 2.5rem; }
+  .lede em { font-style: italic; }
+
+  .test {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.15;
+    margin: 0 0 1.25rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule-strong);
+    text-wrap: balance;
+  }
+
+  .onward { list-style: none; padding: 0; margin: 2.5rem 0 0; }
+  /* The defining publication is the first and heaviest entry: a category page whose category paper
+     is buried among links teaches that the category is a slogan. */
+  .onward li.paper { padding-bottom: 1rem; }
+  .onward li.paper a { font-size: 1.0625rem; }
+  .onward .meta, .onward .role {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    margin-top: 0.35rem;
+  }
+  .onward .role { color: var(--ink-soft); }
+  .onward li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-serif);
+    color: var(--ink-soft);
+  }
+  .onward a { color: var(--ink); }
+
+  .status {
+    margin: 2.5rem 0 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+</style>

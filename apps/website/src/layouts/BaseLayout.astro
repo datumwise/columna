@@ -3,6 +3,11 @@ import '@fontsource-variable/source-serif-4';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/tokens.css';
+// The redesign's shared layer (slice 1) — type scale, rhythm, measures, one accent, focus, and the
+// paper/wire register primitives. Loaded after tokens.css because it builds on those registers
+// rather than restating them.
+import '../styles/redesign.css';
+import SiteHeader from '../components/site/SiteHeader.astro';
 import AmbientChip from '../components/AmbientChip.astro';
 // Vercel Web Analytics (freeze item 13): first-party, cookieless, no PII, no consent banner. v1 scope is
 // pageviews + referrers + paths only — no custom events (we're measuring the launch, not building a
@@ -17,24 +22,25 @@ export interface Props {
   description?: string;
   /** Home is a full-bleed argument scroll; inner pages use a centered reading column. */
   wide?: boolean;
+  /**
+   * The floating `pip install columna` chip. Legacy pages keep it; the redesigned surfaces opt out.
+   * It is product-first furniture on an idea-led page, and on the homepage it physically overlapped
+   * Exhibit A's paper→wire crossing edge — the one boundary the slice exists to prove.
+   */
+  chip?: boolean;
 }
 const {
   title,
   description = 'datumwise builds and stewards Columna — an open-source data framework (Manifold, FrameQL, an honest engine) that refuses to return a confident wrong number.',
   wide = false,
+  chip = true,
 } = Astro.props;
 
-// Nav consolidated 8 → 6 (2026-08-03 reorg): The Thesis / Why / The Ladder leave the top nav (they
-// remain live at their URLs, gathered into the doctrine block on /positions); Research is promoted to
-// top level. Order: Learn · The Case · Positions · Research · The Atlas · GitHub.
-const nav = [
-  { label: 'Learn', href: '/learn' },
-  { label: 'The Case', href: '/case' },
-  { label: 'Positions', href: '/positions' },
-  { label: 'Research', href: '/research' },
-  { label: 'The Atlas', href: '/atlas' },
-  { label: 'GitHub', href: 'https://github.com/datumwise/columna', external: true },
-];
+// The primary navigation moved into <SiteHeader> with the redesign (slice 1): four flat doors —
+// The Case · Analytical Governance · Research · Columna — with GitHub as a utility action. The
+// previous 6-item nav (Learn · The Case · Positions · Research · The Atlas · GitHub, itself an
+// 8 → 6 consolidation on 2026-08-03) is retired from the shell; every one of those pages remains
+// live at its URL and reachable from body links. No routes were migrated in this slice.
 const year = 2026;
 
 // STRUCTURED IDENTITY (schema.org JSON-LD) — the machine-readable half of the disambiguation row
@@ -125,14 +131,7 @@ const structuredIdentity = {
   <body>
     <a href="#main" class="skip visually-hidden">skip to content</a>
 
-    <header class="masthead wayfinding">
-      <a href="/" class="wordmark">datumwise</a>
-      <nav aria-label="Primary">
-        {nav.map((n) => (
-          <a href={n.href} {...(n.external ? { rel: 'noopener', target: '_blank' } : {})}>{n.label}</a>
-        ))}
-      </nav>
-    </header>
+    <SiteHeader />
 
     <main id="main" class={wide ? 'flow-wide' : 'flow'}>
       <slot />
@@ -175,20 +174,11 @@ const structuredIdentity = {
       <p class="foot-privacy">We count page views without cookies. No personal data, no ads.</p>
     </footer>
 
-    <AmbientChip />
+    {chip && <AmbientChip />}
 
     <style>
       .skip:focus { position: fixed; top: 0.5rem; left: 0.5rem; width: auto; height: auto; clip: auto;
         background: var(--ink); color: var(--paper); padding: 0.5rem 0.9rem; z-index: 100; }
-
-      .masthead {
-        display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-        width: min(100% - 3rem, 68rem); margin-inline: auto; padding: 1.5rem 0 1.25rem;
-      }
-      .wordmark { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.02em; text-decoration: none; }
-      .masthead nav { display: flex; gap: 1.4rem; font-size: 0.9rem; }
-      .masthead nav a { color: var(--ink-soft); text-decoration: none; }
-      .masthead nav a:hover { color: var(--ink); }
 
       .flow { width: min(100% - 3rem, var(--measure)); margin-inline: auto; }
       .flow-wide { width: 100%; }
@@ -207,12 +197,6 @@ const structuredIdentity = {
       @media (max-width: 46rem) {
         .footer-grid { grid-template-columns: 1fr; gap: 1.2rem; }
         .foot-right { text-align: left; }
-        /* On phones the 7-item nav row is wider than the viewport, so it forced a horizontal
-           page scroll and clipped the links. Stack the wordmark above the nav and let the nav
-           wrap onto as many lines as it needs — everything stays inside the viewport, no
-           sideways scroll. */
-        .masthead { flex-direction: column; align-items: flex-start; gap: 0.7rem; }
-        .masthead nav { flex-wrap: wrap; gap: 0.55rem 1rem; font-size: 0.82rem; }
       }
     </style>
   </body>

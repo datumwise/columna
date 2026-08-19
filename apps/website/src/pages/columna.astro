@@ -1,0 +1,93 @@
+---
+/**
+ * NAVIGATION SIGNPOST — not the redesigned Columna-as-system page.
+ *
+ * Authorized narrowly (Huayin, 2026-08-19): a concise current definition plus links to the Columna
+ * surfaces that are already live. No route is migrated and nothing here is rebuilt — every
+ * destination below is an existing page, unchanged.
+ *
+ * The upward-framing line is the bidirectional rule in miniature: a product surface points back to
+ * the principle that explains why the behaviour exists.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const SURFACES = [
+  { href: '/install', label: 'Install and run the demo',
+    blurb: 'a clarify, a refuse and a disclose print on your own machine, as wire JSON.' },
+  { href: '/learn', label: 'Learn the framework',
+    blurb: 'what Columna, Frame-QL and a Manifold are — and the three manuals.' },
+  { href: '/explorer', label: 'The Manifold Explorer',
+    blurb: 'browse a real published Manifold: universes, measures, verdicts.' },
+  { href: '/docs/frameql', label: 'The Frame-QL manual',
+    blurb: 'the language of governed meaning, in full.' },
+  { href: '/case', label: 'The worked case',
+    blurb: 'a realistic warehouse, the Manifold that serves it, and recorded agent transcripts.' },
+  { href: 'https://github.com/datumwise/columna', label: 'GitHub', external: true,
+    blurb: 'Apache-2.0, open source.' },
+];
+---
+<BaseLayout
+  title="Columna — datumwise"
+  description="Columna is an open-source analytical system in which governed meaning, not physical procedure, determines what may be served."
+  chip={false}
+>
+  <p class="ds-label">Columna</p>
+
+  <h1 class="ds-proposition">
+    Governed meaning, not physical procedure, determines what may be served.
+  </h1>
+
+  <p class="lede ds-body">
+    Columna is an open-source analytical system: a declared model of what the data means, a query
+    language that can only ask for meaning the model declares, and an engine that serves nothing the
+    model cannot defend.
+  </p>
+
+  <ul class="surfaces">
+    {SURFACES.map((s) => (
+      <li>
+        <a href={s.href} {...(s.external ? { rel: 'noopener', target: '_blank' } : {})}>{s.label}</a>
+        <span class="blurb"> — {s.blurb}</span>
+      </li>
+    ))}
+  </ul>
+
+  <p class="upward">
+    These behaviours are not product personality. They follow from the rule that absence of
+    contradiction is not permission. <a href="/analytical-governance">Analytical Governance →</a>
+  </p>
+
+  <p class="status">
+    This page is a navigation signpost onto surfaces that already exist. The Columna-as-system
+    page — overview, Frame-QL, Core, Platform, build — is a later slice of the redesign.
+  </p>
+</BaseLayout>
+
+<style>
+  .ds-label { margin: 3rem 0 1.25rem; }
+  h1 { margin: 0 0 2rem; }
+  .lede { margin: 0 0 2.5rem; }
+
+  .surfaces { list-style: none; padding: 0; margin: 0; }
+  .surfaces li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-serif);
+  }
+  .surfaces a { color: var(--ink); }
+  .blurb { color: var(--ink-soft); }
+
+  .upward {
+    margin: 2.5rem 0 0;
+    font-family: var(--font-serif);
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .status {
+    margin: 2rem 0 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+</style>
