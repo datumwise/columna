@@ -7,6 +7,66 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## Unreleased — realization/data identity and cache safety (P0.5b-0)
+
+**No wire change.** `Connector` gains `data_identity(table) -> Optional[str]`, a **change/version
+token** for a table's realized data state, declared on the Protocol (the freshness primitive
+everything depended on was never part of the contract). It replaces `table_version` — row count —
+in both consumers that gated on it: the certification attestation and the engine result cache. Row
+count cannot see an UPDATE or a same-cardinality delete+insert, so a CORROBORATED license could
+survive data that would have refuted it, and a cached frame could be served for data that no longer
+existed.
+
+The contract asks for a token trustworthy for REUSE **under the guarantee the connector documents**,
+not for a collision-free identity:
+
+* a backend-native version/snapshot token (Iceberg/Delta snapshot id, catalog version, MVCC
+  watermark) is a **source-provided data identity** under that backend's contract, and is preferred;
+* the DuckDB implementation is a **content + schema fingerprint / change detector** for the current
+  realized table state — `count(*) + sum(hash(row)) + bit_xor(hash(row))` over the rows, plus the
+  table's ordered `(column_name, data_type)` list; one single-table pass, no join. Finite aggregates
+  over a 64-bit hash: agreement is strong evidence of sameness, not proof. Schema is included
+  because row hashing compares values POSITIONALLY, so a column-name permutation
+  (`amount`<->`qty`) left a content-only digest identical while the served number moved 30.0 → 3.0
+  (pinned as a regression test), and a widening like INT→BIGINT was likewise invisible. This is the
+  identity of one realized **table's** state and nothing larger — mapping identity, binding
+  identity and source selection remain full P0.5b's subject. The token is namespaced by fingerprint
+  algorithm (`cdg2`) and DuckDB version, since `hash()` is implementation-defined, so an
+  implementation change causes conservative invalidation rather than an ambiguous comparison;
+* `None` when no such token can be established. `None` closes **reuse**, never serving: nothing is
+  cached and prior realization/data-bound evidence stops being treated as current. "Unknown" is
+  never read as "unchanged".
+
+Two dependency sets are kept explicitly apart, over the one primitive:
+
+* **evidence dependencies** — the tables a PROOF read to establish a contingent certification; they
+  decide whether that finding is still current. A `TOUCH` face reads no data (its license is exact
+  arithmetic over the declared shape), so its set is empty and no data change can stale it;
+* **computation dependencies** — the tables a COMPUTATION read to produce a served result; they
+  decide whether that result may be REUSED. The engine's cache token is now the whole set — measure
+  home table, the provider table of every edge on the planned route, a faced crossing's M:N bridge,
+  and any universe-predicate attribute provider — composed from the plan the planner installed, not
+  rediscovered in the engine. If any dependency has no trustworthy identity the result is neither
+  reused nor stored.
+
+Conflating them served stale numbers. A TOUCH crossing was the sharp case: its license correctly
+stayed current while its result depended on the bridge, so a bridge edit with the measure's table
+untouched hit a cache keyed on the measure home table alone and re-served the pre-edit frame
+(reproduced, fixed, pinned end-to-end with a reuse control). A universe predicate reading an
+attribute provider (`day >= store.opened` → `stores.opened_date`) was the same defect off the faced
+path. A test taps the connector's whole delivery surface across three query shapes and asserts that
+what a computation READ is exactly what the engine declared it depends on.
+
+Certification currency is judged **per capability**, once per request, from the read set **each proof
+reports for itself** (`_prove_hierarchy` / `_prove_face` → `PublishedScope.edge_evidence` / `face_evidence`)
+rather than reconstructed from declarations afterwards. A table that no proof read closes nothing; a
+table whose identity moved closes exactly the capabilities whose evidence rested on it (through the
+existing P0.5a admission ladder — no new refusal reason). A `TOUCH` face records an EMPTY dependency
+set, because its license is timeless — exact arithmetic over the declared shape, established from no
+data. A capability whose proof reports no read set at all is given the conservative set (every
+realized table): an unknown dependency must never read as "depends on nothing". `table_version` is
+**deprecated**, retained only for external embedders; nothing in Core consults it.
+
 ## Unreleased — wire `contract_version` `"2"` → `"3"` (S2.2b-2 governed catalog semantics)
 
 **WIRE CONTRACT BUMP: `contract_version` `"2"` → `"3"`.** `list_manifolds` changed from a

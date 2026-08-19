@@ -275,7 +275,7 @@ def _watermark(server, m, derived) -> str:
     tables = sorted({m.measures[a].home_table for a in set(_atom_refs(ast.parse(derived.formula, mode="eval")))
                      if a in m.measures})
     try:
-        parts = [f"{t}@{con.table_version(t)}" for t in tables]
+        parts = [f"{t}@{con.data_identity(t)}" for t in tables]
     except Exception:
         parts = tables
     return "attest:" + ";".join(parts)
@@ -292,13 +292,23 @@ def _license(verdict, lineages, basis: str, attestation: Optional[str] = None) -
 
 
 def _attest_tables(con, tables) -> str:
-    """A stable attestation id from the connector versions of the tables a trial touched (so
-    CORROBORATED re-adjudicates when the data is re-attested)."""
+    """A stable attestation id from the DATA IDENTITY of the tables a trial touched (P0.5b-0).
+
+    Was row count, which could not see a same-cardinality mutation — so a CORROBORATED license
+    could survive data that would have refuted it. `data_identity` is the connector's change/version
+    token for the realized content: under the guarantee that connector documents, it moves when the
+    content moves (see `Connector.data_identity` for what that guarantee is and is not). A table
+    whose identity is unavailable is recorded as `unavailable`, so the attestation string itself
+    carries the fact that reuse is not safe."""
     ts = sorted(set(tables))
-    try:
-        return "attest:" + ";".join(f"{t}@{con.table_version(t)}" for t in ts)
-    except Exception:
-        return "attest:" + ";".join(ts)
+    parts = []
+    for t in ts:
+        try:
+            tok = con.data_identity(t)
+        except Exception:
+            tok = None
+        parts.append(f"{t}@{tok if tok is not None else 'unavailable'}")
+    return "attest:" + ";".join(parts)
 
 
 def _expr_tables(m, *exprs) -> set:
@@ -311,10 +321,15 @@ def _expr_tables(m, *exprs) -> set:
 
 
 # ---- B2 HIERARCHY: functional-dependence test on the attested data ----------
-def _prove_hierarchy(server, m, h) -> License:
+def _prove_hierarchy(server, m, h, deps: Optional[dict] = None) -> License:
     """Each step of the chain must be a genuine key->key function: every `frm` maps to exactly one
     `to` in the provider table. A key with >1 parent ⇒ HierarchyContradiction (publish fails closed).
-    No connector / no deliverable edge ⇒ UNTESTABLE (recorded, describe-visible, never exercised)."""
+    No connector / no deliverable edge ⇒ UNTESTABLE (recorded, describe-visible, never exercised).
+
+    P0.5b-0: when `deps` is given, the proof RECORDS THE TABLES IT ACTUALLY READ into it, keyed by
+    lineage. Contingent evidence must carry the dependencies it was established on — not have them
+    reconstructed afterwards from declarations, which is a different question that merely happens to
+    agree today."""
     con = server.engine.con
     tables = []
     # Every hop of every branch must be a genuine key->key function (§2a: adjudication tests every hop;
@@ -334,6 +349,8 @@ def _prove_hierarchy(server, m, h) -> License:
             if bad.height > 0:
                 raise HierarchyContradiction(h.lineage, frm, to, bad["_frm"][0], int(bad["_n"][0]))
             tables.append(edge.provider_table)
+    if deps is not None:
+        deps[h.lineage] = tuple(sorted(set(tables)))       # what this verdict was reached over
     paths_desc = " ; ".join(" -> ".join(c) for c in h.paths)
     return _license(CORROBORATED, {h.lineage},
                     f"functional dependence held on the attested data: every hop maps to one parent "
@@ -373,6 +390,18 @@ class PublishedScope:
     # positive VERIFIED/CORROBORATED verdict admits it here, and serving consults ONLY these positive sets.
     certified_edges: frozenset = frozenset()        # (frm, to) whose functional transport is ADMITTED
     certified_faces: frozenset = frozenset()        # "frm<->to.name" crossing faces that are ADMITTED
+    # ── P0.5b-0 REALIZATION/DATA IDENTITY ──────────────────────────────────────────────────────────
+    # The identity of the realized data state this scope's contingent evidence was established
+    # against: {table -> data_identity token}. A `None` value means the connector could not establish
+    # a trustworthy identity for that table, which closes REUSE (never manufactures freshness).
+    # This is NOT analytical identity — `F@A` is unchanged by a data refresh.
+    attested_identities: dict = field(default_factory=dict)
+    # Which realized tables each capability's contingent evidence actually rests on, so currency is
+    # judged PER CAPABILITY. A hierarchy's evidence depends on the tables its FD proof read; a
+    # measure table moving says nothing about whether day->month is still functional. Recording this
+    # keeps a data refresh from closing capabilities whose evidence it cannot possibly affect.
+    edge_evidence: dict = field(default_factory=dict)   # EdgeKey -> (table, ...)
+    face_evidence: dict = field(default_factory=dict)   # "frm<->to.name" -> (table, ...)
 
 
 def _revoked_license(fm, why: str) -> License:
@@ -406,11 +435,123 @@ def scope_from_report(m, report: dict) -> PublishedScope:
     # governing hierarchy carry no FD claim and are not certification-dependent — the view admits them
     # structurally (see PlannerView._gated_edges), so they need not appear here.
     certified_edges = frozenset(e.key for e in m.edges if hv.get(e.lineage) == CORROBORATED)
+    # ── per-capability evidence provenance (P0.5b-0) ──────────────────────────────────────────────
+    # Each capability carries THE TABLES ITS OWN PROOF READ, as reported by that proof (`_prove_*`
+    # fill `_hierarchy_deps` / `_face_deps`). Nothing here reconstructs a dependency set from
+    # declarations: a reconstruction answers "what could this have read?", which is a different
+    # question that merely happens to agree today, and would drift silently the day a proof's read
+    # set changes. A capability whose proof reported NOTHING is given the CONSERVATIVE set — every
+    # realized table — because an unknown dependency must never read as "depends on nothing".
+    conservative = tuple(realized_tables(m))
+    h_deps = report.get("_hierarchy_deps") or {}
+    edge_evidence = {}
+    for e in m.edges:
+        if e.key not in certified_edges:
+            continue
+        d = h_deps.get(e.lineage)
+        edge_evidence[e.key] = tuple(d) if d is not None else conservative
     certified_faces = frozenset(k for k, v in report.get("_faces", {}).items()
                                 if v in (VERIFIED, CORROBORATED))
+    f_deps = report.get("_face_deps") or {}
+    face_evidence = {}
+    for r in m.non_functional:
+        for f in getattr(r, "faces", ()) or ():
+            key = f"{r.frm}<->{r.to}.{f.name}"
+            if key not in certified_faces:
+                continue
+            d = f_deps.get(key, None) if key in f_deps else None
+            face_evidence[key] = tuple(d) if d is not None else conservative
     return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
                           licenses=_snapshot_licenses(m),
-                          certified_edges=certified_edges, certified_faces=certified_faces)
+                          certified_edges=certified_edges, certified_faces=certified_faces,
+                          edge_evidence=edge_evidence, face_evidence=face_evidence)
+
+
+def realized_tables(m) -> list:
+    """Every physical table this manifold realizes: measure home tables, edge provider tables, and
+    attribute providers. P0.5b-0 records the data identity of ALL of them, not only the ones a
+    particular proof touched — a change anywhere in the realization must be able to close reuse."""
+    tables = set()
+    for mc in m.measures.values():
+        if getattr(mc, "home_table", None):
+            tables.add(mc.home_table)
+    for e in m.edges:
+        if getattr(e, "provider_table", None):
+            tables.add(e.provider_table)
+    for r in m.non_functional:
+        if getattr(r, "via_table", None):
+            tables.add(r.via_table)               # the M:N bridge a crossing reads
+    for lv in m.levels.values():
+        for _name, binding in getattr(lv, "attributes", ()) or ():
+            if isinstance(binding, str) and "." in binding:
+                tables.add(binding.rsplit(".", 1)[0])
+    return sorted(tables)
+
+
+def capture_identities(con, m) -> dict:
+    """{table -> data_identity} for every realized table. A `None` value is recorded, not dropped:
+    it is the signal that reuse must fail closed for that table."""
+    out = {}
+    for t in realized_tables(m):
+        try:
+            out[t] = con.data_identity(t)
+        except Exception:
+            out[t] = None
+    return out
+
+
+def stale_capabilities(scope, live: dict) -> tuple:
+    """Which certified capabilities' evidence is no longer current, given the LIVE identities.
+
+    Returns (stale_edge_keys, stale_face_keys). A capability is stale when any table its evidence
+    rested on has an unavailable or changed identity — evidence may not outlive the data state it
+    was established against. A table that no capability's proof read cannot make anything stale."""
+    attested = getattr(scope, "attested_identities", None) or {}
+
+    def moved(tables) -> bool:
+        for t in tables:
+            was, now = attested.get(t), live.get(t)
+            if was is None or now is None or was != now:
+                return True
+        return False
+
+    stale_e = frozenset(k for k, tabs in (getattr(scope, "edge_evidence", None) or {}).items()
+                        if moved(tabs))
+    stale_f = frozenset(k for k, tabs in (getattr(scope, "face_evidence", None) or {}).items()
+                        if moved(tabs))
+    return stale_e, stale_f
+
+
+def live_identities(con, tables) -> dict:
+    """Probe the CURRENT realized-data identity of `tables` — once per request, by the planner."""
+    out = {}
+    for t in tables:
+        try:
+            out[t] = con.data_identity(t)
+        except Exception:
+            out[t] = None
+    return out
+
+
+def scope_is_current(scope, con) -> bool:
+    """Is this scope's contingent evidence still valid against the CURRENT realized data?
+
+    False when any attested table's identity is unavailable (then or now) or differs. False is the
+    fail-closed answer: previously obtained realization/data-bound evidence must not silently remain
+    current once the identity it was established against has changed."""
+    identities = getattr(scope, "attested_identities", None) or {}
+    if not identities:
+        return True                      # nothing realized/attested (e.g. an empty or unpublished scope)
+    for table, was in identities.items():
+        if was is None:
+            return False                 # never had a trustworthy identity -> never reusable
+        try:
+            now = con.data_identity(table)
+        except Exception:
+            return False
+        if now is None or now != was:
+            return False
+    return True
 
 
 def _establish_scope(server, report: dict) -> PublishedScope:
@@ -419,6 +560,12 @@ def _establish_scope(server, report: dict) -> PublishedScope:
     Single assignment boundary (the planner/view never observe a half-built scope). Called as adjudicate's
     final atomic step: a strict contradiction raises before it, installing nothing (no serving scope)."""
     scope = scope_from_report(server.m, report)
+    # P0.5b-0: freeze the realized-data identity this scope's evidence was established against, as
+    # the final step of the same atomic establishment.
+    try:
+        scope = replace(scope, attested_identities=capture_identities(server.engine.con, server.m))
+    except Exception:
+        scope = replace(scope, attested_identities={})
     planner = getattr(server, "planner", None)
     if planner is not None:
         planner.install_scope(scope)
@@ -487,7 +634,7 @@ def _face_frontier(m, face, rel) -> str:
     return next(iter(m.universes[d.universe].base_dimensions))
 
 
-def _prove_face(face, rel, server, m) -> License:
+def _prove_face(face, rel, server, m, deps: Optional[dict] = None) -> License:
     """A crossing FACE is CLOSED by default (the polarity law); its License is the door — it OPENS the
     trip across the non-functional (M:N) edge. Minted only here, at publish, per scheme:
 
@@ -499,6 +646,12 @@ def _prove_face(face, rel, server, m) -> License:
     The EVENTS-ONLY restriction is a SERVING law (enforced at resolve), not a verdict."""
     key = f"{rel.frm}<->{rel.to}.{face.name}"
     if face.scheme == TOUCH:
+        # A touch face's license is TIMELESS: exact arithmetic over the declared shape, no data read.
+        # Its dependency set is therefore genuinely EMPTY — no data state can stale evidence that was
+        # never established from data. (The bridge IS read at SERVE time; that read is fresh every
+        # request and is not what this license rests on.)
+        if deps is not None:
+            deps[key] = ()
         return _license(VERIFIED, set(),
             f"touch crossing '{face.name}': membership expansion is exact arithmetic (the value reaches "
             f"every match; no weights to reconcile). Serving is events-only (spine replication corrupts "
@@ -535,7 +688,14 @@ def _prove_face(face, rel, server, m) -> License:
         bridge = eng.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
     b = bridge.join(driver.rename({frontier: "_to"}), on="_to", how="inner")            # _frm, _to, _drv
     member_side = rel.frm if frontier == rel.to else rel.to
-    attest = _attest_tables(eng.con, [m.measures[face.selection].home_table, rel.via_table])
+    # P0.5b-0: the tables this proof ACTUALLY READ — the M:N bridge, the driver's home table, and any
+    # hierarchy provider table the driver's PLANNED ROUTE traversed to reach the frontier grain. The
+    # route contribution is read off the plan the proof itself executed, so it cannot drift from it.
+    read = {rel.via_table, m.measures[face.selection].home_table}
+    route = _route_tables(m, _routes, face.selection, frontier)
+    if deps is not None:
+        deps[key] = None if route is None else tuple(sorted(read | set(route)))
+    attest = _attest_tables(eng.con, sorted(read | set(route or ())))
     if face.scheme == ASSIGN:
         asc = (face.order == ORDER_MIN)
         top = b.group_by("_frm").agg((pl.col("_drv").min() if asc else pl.col("_drv").max()).alias("_top"))
@@ -562,6 +722,28 @@ def _prove_face(face, rel, server, m) -> License:
     return _license(CORROBORATED, {face.selection}, attestation=attest,
         basis=f"alloc crossing '{face.name}': driver '{face.selection}' is non-negative with a strictly "
               f"positive sum per {member_side} (splitting preserves mass; the badge certifies it).")
+
+
+def _route_tables(m, routes, measure: str, level: str) -> Optional[tuple]:
+    """The provider tables of the edges on the PLANNED route (`measure` -> `level`) — the hierarchy
+    data a driver READ on its way to the frontier grain (P0.5b-0).
+
+    Returns `None` for "unknown": no planned route was recorded, so the caller must fall back to the
+    conservative dependency set rather than record an empty one. An empty tuple is a POSITIVE
+    finding — the route crosses no edge, so it read no provider table."""
+    entry = (routes or {}).get((measure, level))
+    if entry is None:
+        return None
+    _start, keys = entry
+    out = set()
+    for k in keys:
+        try:
+            e = m.edge_for(k)
+        except Exception:
+            return None                       # cannot resolve an edge we know was traversed -> unknown
+        if getattr(e, "provider_table", None):
+            out.add(e.provider_table)
+    return tuple(sorted(out))
 
 
 def _prove_faces_acyclic(server, m) -> None:
@@ -667,9 +849,10 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
     # each toward correctness in its own kind. (asserts→cut left with ASSERT in 0.13.0.)
     if m.hierarchies:
         new_h, hv, blocked = [], {}, {}
+        h_deps: dict = {}                       # P0.5b-0: lineage -> the tables its proof READ
         for h in m.hierarchies:
             try:
-                lic = _prove_hierarchy(server, m, h)
+                lic = _prove_hierarchy(server, m, h, h_deps)
             except HierarchyContradiction as e:    # a step is non-functional on re-attestation
                 if not degrade:
                     raise                          # first publish: fail closed (geometry, not a scope edit)
@@ -684,6 +867,7 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             hv[h.lineage] = lic.verdict
         m.hierarchies = new_h
         report["_hierarchies"] = hv
+        report["_hierarchy_deps"] = h_deps
         if degrade:
             report["_blocked"] = blocked
     # ── B3 BASIS: mint the testedness record per declared basis (serving is independent — §2c/B3) ──
@@ -711,14 +895,14 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             if not degrade:
                 raise                            # first publish: fail closed (structure, not a scope edit)
             acyclic_ok = False
-        fv, new_nf = {}, []
+        fv, new_nf, f_deps = {}, [], {}          # P0.5b-0: face key -> the tables its proof READ
         for r in m.non_functional:
             if r.faces:
                 proven = []
                 for f in r.faces:
                     if acyclic_ok:
                         try:
-                            lic = _prove_face(f, r, server, m)
+                            lic = _prove_face(f, r, server, m, f_deps)
                         except FaceContradiction as e:
                             if not degrade:
                                 raise            # first publish: fail closed
@@ -736,6 +920,7 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             new_nf.append(r)
         m.non_functional = new_nf
         report["_faces"] = fv
+        report["_face_deps"] = f_deps
     # P0.5a: establish the positive serving scope as the FINAL, atomic step (compute-then-swap). The proof
     # loops above run inside the caller's PROBE window (see `adjudicate`), so the planner's closed-by-default
     # state cannot starve the very queries that mint the verdicts. On success the computed scope becomes the

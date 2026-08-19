@@ -150,6 +150,10 @@ class PlannerView:
         # shape, in this explicitly-scoped window, and its results never reach a caller: they become verdicts.
         # This is the ONLY bypass, it is not reachable from the query path, and it always restores.
         self._probing: int = 0
+        # P0.5b-0: set once per REQUEST — the certified edges whose EVIDENCE has gone stale because
+        # a table its proof read has moved. Contingent evidence may not outlive the data identity it
+        # was established against; a table no proof read closes nothing.
+        self._stale_edges: frozenset = frozenset()
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,
                                          op.needs_order, op.needs_window, op.in_core, op.is_monoid,
@@ -191,6 +195,8 @@ class PlannerView:
         license another's edge over the same level pair."""
         if self.probing:
             return True                                        # adjudication tests the DECLARED shape
+        if e.key in self._stale_edges:
+            return False                                       # P0.5b-0: this edge's evidence is stale
         return e.key in self.certified_edges
 
     def _out_certified(self, level):                           # P0.5a — ADMITTED edges only

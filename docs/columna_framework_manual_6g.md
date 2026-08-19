@@ -871,7 +871,9 @@ Chapters 7 and 8 specify the mechanisms. The unifying observation: absence is pe
 
 Conventional warehouses serve aggregates from materialized tables that may have been refreshed last week, with no indication that the underlying data has moved on. The number on the dashboard is correct *as of the data version that produced it*, but the version is invisible. The user reading the number cannot tell whether they are looking at fresh data, day-old data, week-old data, or stale-from-a-failed-pipeline data.
 
-Columna's certificate tracks data versions per column. Every query result carries provenance: the certificate state, the data versions, the refresh timestamps of the underlying columns. A stale value is still served (Columna doesn't refuse to answer queries during a refresh window) but is served *labeled* — the consumer sees the staleness and can decide whether to wait or to proceed.
+Columna binds a certificate to the *data state* it was established against. Each source table the manifold realizes carries a **data-identity token** obtained from the connector: a backend-native version or snapshot identity where the source publishes one (a table-format snapshot id, a catalog version, an MVCC watermark), and otherwise a connector-specific change detector under that connector's own documented guarantee. The embedded DuckDB connector supplies the latter: a fingerprint of the table's current realized state — its row contents and its ordered schema. That is a trustworthy change detector, not a collision-free mathematical identity, and it is per *table*, not a native per-column version.
+
+Two things follow, and they are the whole of the mechanism. A result may be reused only while the tokens it was computed under are unchanged, so a moved table recomputes rather than serving yesterday's number. And evidence established against a data state does not outlive it: when a table a certification actually read has moved, that capability stops being treated as current and must be re-attested — Columna declines to reuse the finding rather than quietly restating it. Where no trustworthy token can be established at all, both fail **closed for reuse**: nothing is cached, and nothing data-established is treated as still current. "Unknown" is never read as "unchanged".
 
 In Pro deployments, continuous monitoring tracks the freshness across refreshes and alerts when staleness exceeds configured tolerances. The Core/Pro distinction here is consistent with the integrity story: Core surfaces the data state honestly; Pro operates the monitoring around it.
 
@@ -887,7 +889,7 @@ Looking across the sections of this appendix, a single pattern recurs: **each si
 - Coverage errors depend on the region of the boundaries each column addresses; Columna represents this as coverage state.
 - Empty-bucket and conservation errors depend on which points exist; Columna represents this as the universe, with its declared basis and the co-universality relation. <!-- X2: ADR-028 -->
 - Missing-value errors depend on the mechanism of absence; Columna represents this as the M-anchor.
-- Staleness errors depend on data freshness; Columna represents this as data versions in the certificate.
+- Staleness errors depend on the data state a finding was established against; Columna represents this as a per-table data-identity token the certificate is bound to.
 
 In every case, the fact has always been there in the data — Columna did not invent any of these structural concepts; they exist in the mathematics of analytics independent of any tool. Conventional tools simply do not represent them, so they cannot check them, so the errors they produce remain silent. Columna's contribution is the representation: declared, verified, propagated, and consulted at every operation. The disclosures are downstream of the representation. <!-- X1: ADR-020 -->
 

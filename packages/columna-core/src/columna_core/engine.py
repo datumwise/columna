@@ -88,6 +88,85 @@ class ColumnEngine:
     # EXACTLY them. The engine no longer BFSes `Manifold.find_path` on any law-bearing path, and there
     # is deliberately NO "if no planned route: find_path(...)" fallback -- absence of an admitted route
     # is CLOSED (ruling 2026-08-11).
+    # ── P0.5b-0: CACHE CURRENCY vs EVIDENCE CURRENCY ────────────────────────────────────────────
+    # Two different dependency sets, sharing one primitive (`Connector.data_identity`).
+    #
+    #   EVIDENCE dependencies — the tables a PROOF read to establish a contingent certification.
+    #     They decide whether that finding is still current. A TOUCH license reads no data, so its
+    #     set is empty and no data change can stale it. (adjudication.py: `_face_deps`.)
+    #   COMPUTATION dependencies — the tables a COMPUTATION read to produce a served result.
+    #     They decide whether a previously computed result may be REUSED.
+    #
+    # Conflating them serves stale numbers in both directions. A TOUCH crossing is the sharp case:
+    # its license is timeless and correctly stays current, while its RESULT depends on the M:N
+    # bridge — so a bridge edit with the measure table untouched used to hit a cache keyed on the
+    # measure's home table alone and re-serve the pre-edit frame (fixed 2026-08-19; pinned).
+    def _predicate_tables(self, meas) -> set:
+        """The physical tables a universe PREDICATE reads when it confines this measure at base
+        grain (`_confine` broadcasts attribute refs). A logical `<level>.<attr>` resolves through the
+        level's declared binding to its provider table."""
+        pred = self.m.universes[meas.universe].predicate
+        if pred is None:
+            return set()
+        out = set()
+        for c in pred.comparisons:
+            for r in (c.left, c.right):
+                if getattr(r, "is_literal", False) or getattr(r, "table", None) is None:
+                    continue
+                if r.table in self.m.levels:
+                    binding = dict(self.m.levels[r.table].attributes).get(r.column)
+                    if binding and "." in binding:
+                        out.add(binding.rsplit(".", 1)[0])
+                else:
+                    out.add(r.table)                       # a physical attribute table
+        return out
+
+    def computation_tables(self, meas, paths=None, rel=None) -> set:
+        """The realized tables THIS computation reads — its cache-currency dependency set.
+
+        Composed from what the PLANNER already decided, never rediscovered here: the measure's home
+        table, the provider table of every edge on the PLANNED route (`paths` came from
+        `_planned_path`, i.e. from the installed plan), the M:N bridge of a faced crossing (`rel`,
+        parsed from the shape), and any universe-predicate attribute provider. The engine does not
+        search for a route or a table; it reads the plan it was handed."""
+        tabs = {meas.home_table}
+        for entry in (paths or {}).values():
+            for e in (entry[1] if isinstance(entry, tuple) else ()):
+                if getattr(e, "provider_table", None):
+                    tabs.add(e.provider_table)
+        if rel is not None and getattr(rel, "via_table", None):
+            tabs.add(rel.via_table)
+        tabs |= self._predicate_tables(meas)
+        return {t for t in tabs if t}
+
+    def data_version_of(self, tables) -> Optional[str]:
+        """The cache-currency token for a COMPUTATION: every dependency's identity, folded into one
+        comparable string. `None` — do not reuse, do not store — if ANY dependency has no
+        trustworthy identity, or if the set is empty (nothing to validate a hit against)."""
+        parts = []
+        for t in sorted(set(tables)):
+            tok = self.data_version(t)
+            if tok is None:
+                return None
+            parts.append(f"{t}@{tok}")
+        return "|".join(parts) if parts else None
+
+    def data_version(self, table: str):
+        """The cache-validity token for `table` (P0.5b-0).
+
+        ONE coherent notion of identity: this is the SAME realized-data identity the scope's
+        contingent evidence was established against — not an independent freshness heuristic. The
+        planner has already established, once per request, that the live data still matches these
+        identities (a stale scope closes admission before any engine call), so reusing them as the
+        cache key cannot resurrect a result from a different data state.
+
+        `None` (identity unavailable, or no scope installed) means DO NOT REUSE and DO NOT STORE:
+        absence of a trustworthy identity closes reuse rather than manufacturing freshness."""
+        ids = getattr(self, "data_identities", None)
+        if not ids:
+            return None
+        return ids.get(table)
+
     def _planned_path(self, routes, measure: str, level: str):
         """The route the planner admitted for (measure -> level), as (start, (FunctionalEdge, ...)).
 
@@ -135,8 +214,8 @@ class ColumnEngine:
 
         # cache (exact). Holistic results are reduction-sterile: memoize exact, never as a seed.
         key = (measure, member, target, uni, where)
-        ver = self.con.table_version(meas.home_table)
-        if key in self.cache and self.cache[key].version == ver:
+        ver = self.data_version_of(self.computation_tables(meas, paths))
+        if ver is not None and key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
             self._t(trace, "  cache-hit")
             disc = self._disc(meas, fam, op, uni).with_caveat(Caveat(FRESHNESS, "served from cache"))
@@ -145,14 +224,14 @@ class ColumnEngine:
         # deliver + (reduce | recompute), dispatched by the operator's witness
         if op.witness == OP_SKETCH:
             frame, sk = self._resolve_sketch(meas, member, target, paths, where, trace)
-            self.cache[key] = CacheEntry(frame, sk, ver)
+            if ver is not None: self.cache[key] = CacheEntry(frame, sk, ver)
         elif op.witness == OP_HOLISTIC:
             frame = self._recompute_holistic(meas, fam, op, target, paths, where, trace, split=split)
-            self.cache[key] = CacheEntry(frame, None, ver)     # exact-memoize only; not a reduction seed
+            if ver is not None: self.cache[key] = CacheEntry(frame, None, ver)   # exact-memoize only
         else:   # VALUE or ORDERED — both reduce in witness-space
             frame = self._deliver_and_transport_monoid(meas, fam, op, target, paths, where, trace,
                                                        split=split)
-            self.cache[key] = CacheEntry(frame, None, ver)
+            if ver is not None: self.cache[key] = CacheEntry(frame, None, ver)
         return frame, self._disc(meas, fam, op, uni)
 
     # ---- public: resolve one SCAN (order-dependent, anchor-preserving) ----
@@ -499,9 +578,12 @@ class ColumnEngine:
 
         # exact cache — the faced token rides `target`, so touched/untouched key DISTINCTLY (no collision).
         key = (meas.name, fam.agg, target, uni, where)
-        ver = self.con.table_version(meas.home_table)
+        # P0.5b-0: the crossing's result depends on the BRIDGE as much as on the measure — the touch
+        # LICENSE does not (it is timeless), and that asymmetry is exactly why the two dependency
+        # sets are kept apart. Reuse here is gated on the computation's set, bridge included.
+        ver = self.data_version_of(self.computation_tables(meas, {other: p}, rel=rel))
         disc = self._touch_disc(meas, fam, op, uni, rel, face)
-        if key in self.cache and self.cache[key].version == ver:
+        if ver is not None and key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
             self._t(trace, "  cache-hit (touch)")
             return self.cache[key].frame, disc.with_caveat(Caveat(FRESHNESS, "served from cache"))
@@ -561,7 +643,7 @@ class ColumnEngine:
                     f"{n_absent} {T} with no touched {meas.name} left unknown per the declared fill rule — a "
                     f"value existed but was not recorded; not filled")))
         touched = touched.sort(T).select([T, "_value"])
-        self.cache[key] = CacheEntry(touched, None, ver)
+        if ver is not None: self.cache[key] = CacheEntry(touched, None, ver)
         return touched, disc
 
     def _touch_disc(self, meas, fam, op, uni, rel, face):
@@ -882,7 +964,7 @@ class ColumnEngine:
         T = target[0]
         start, path = paths[T][0], paths[T][1]
         p = meas.sketch_precision
-        ver = self.con.table_version(meas.home_table)
+        ver = self.data_version(meas.home_table)
 
         # hll_count: base-grain sketches. STORED witness (eager, at publish) is load-bearing here —
         # if present and fresh we read it with NO backend fetch; otherwise we build lazily (fallback).
@@ -940,7 +1022,7 @@ class ColumnEngine:
             if op.witness != OP_SKETCH:
                 continue
             p = meas.sketch_precision
-            ver = self.con.table_version(meas.home_table)
+            ver = self.data_version(meas.home_table)
             base_dims = sorted(self.m.universes[meas.universe].base_dimensions)
             for base in base_dims:
                 if base not in self.m.levels:
