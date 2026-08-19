@@ -70,10 +70,86 @@ jobs:
       # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
       # carries no commit metadata (it arrives EMPTY, which is what silently disabled the edge
       # cache-buster before #88). See apps/website/src/lib/buildStamp.ts.
+      # On a `pull_request` event `github.sha` is the EPHEMERAL MERGE COMMIT, which is not the commit
+      # a reviewer sees on the PR and not a commit that exists in anyone's history. The preview must
+      # carry the exact commit under review, so the head SHA is preferred where one exists.
       - name: Build
         env:
-          SITE_BUILD_SHA: ${{ github.sha }}
+          SITE_BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          SITE_BUILD_CHANNEL: preview
         run: npm run build
+
+      # ── PREVIEW DEPLOYMENT (preflight, 2026-08-19) ──────────────────────────────────────────────
+      # A reviewable URL for the redesign, built from the PR tree. It reuses THIS job's
+      # branch-coherent inputs — the same editable branch packages, the same four generators, the
+      # same fail-closed guards — so the preview shows what the branch actually produces.
+      #
+      # WHAT IT DELIBERATELY DOES NOT DO. It does not touch the shipped-coherent job below, does not
+      # alias to production, and never runs `--prod`. Production still requires main + the PyPI-pinned
+      # triad + the deploy wedge, and remains blocked until columna-core 0.15.0 is published. No new
+      # credential is introduced: this reuses the same VERCEL_* secrets the production deploy already
+      # holds, against the same project, in Vercel's `preview` environment.
+      #
+      # FORK SAFETY. Secrets are not exposed to `pull_request` runs from forks, so the deploy is
+      # skipped there rather than failing — the build gate above still runs and still gates the PR.
+      - name: Deploy PREVIEW to Vercel (branch-coherent, prebuilt)
+        id: preview
+        # `env.VERCEL_TOKEN != ''` mirrors the production step's existing guard: the step's own env
+        # block is in scope for its `if`, so an unset secret skips the step instead of failing it.
+        if: >-
+          ${{ github.event_name == 'pull_request'
+              && github.event.pull_request.head.repo.full_name == github.repository
+              && env.VERCEL_TOKEN != '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # `vercel build` re-runs the Astro build inside the CLI, so the stamp and the channel must
+          # be present here too — this is the build whose output is actually served.
+          SITE_BUILD_SHA: ${{ github.event.pull_request.head.sha }}
+          SITE_BUILD_CHANNEL: preview
+        run: |
+          set -euo pipefail
+          npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          npx vercel build --token="$VERCEL_TOKEN"
+          URL="$(npx vercel deploy --prebuilt --token="$VERCEL_TOKEN" | tail -1)"
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "preview: ${URL}"
+
+      # The preview makes two claims about itself; both are verified rather than asserted.
+      #   1. it is THIS commit (not a cached or stale deployment);
+      #   2. it is a PREVIEW, not a shipped release.
+      - name: Verify the preview serves this commit, on the preview channel
+        if: ${{ steps.preview.outputs.url != '' }}
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+          EXPECT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -uo pipefail
+          CODE="$(curl -s -o /tmp/preview.html -w '%{http_code}' -D /tmp/preview.h "${URL}/")"
+          if [ "${CODE}" = "401" ] || [ "${CODE}" = "403" ]; then
+            echo "::error::preview returned HTTP ${CODE}. Vercel Deployment Protection is enabled on \
+          preview deployments, so the URL is not openly reviewable and cannot be verified from CI. \
+          That is an external-service policy decision, not something this workflow should work around."
+            exit 1
+          fi
+          [ "${CODE}" = "200" ] || { echo "::error::preview returned HTTP ${CODE}"; exit 1; }
+          GOT_SHA="$(grep -oE '<meta name="build" content="[0-9a-f]{40}"' /tmp/preview.html \
+                      | grep -oE '[0-9a-f]{40}' | head -1)"
+          GOT_CH="$(grep -oE '<meta name="build-channel" content="[a-z]+"' /tmp/preview.html \
+                      | grep -oE '(preview|production)' | head -1)"
+          echo "preview serves commit ${GOT_SHA:-<none>} on channel ${GOT_CH:-<none>}"
+          [ "${GOT_SHA}" = "${EXPECT}" ] || { echo "::error::preview serves ${GOT_SHA}, expected ${EXPECT}"; exit 1; }
+          [ "${GOT_CH}" = "preview" ] || { echo "::error::preview is stamped '${GOT_CH}', not 'preview'"; exit 1; }
+          echo "robots header: $(grep -i '^x-robots-tag' /tmp/preview.h || echo '(none)')"
+          {
+            echo "### Preview deployment"
+            echo ""
+            echo "- URL: ${URL}"
+            echo "- commit: \`${GOT_SHA}\`"
+            echo "- channel: \`${GOT_CH}\` — built from the PR branch, NOT a shipped release"
+            echo "- production is unaffected and still gated by the shipped-coherent deploy wedge"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   shipped-coherent:
     name: site build + deploy (shipped-coherent)
@@ -227,6 +303,7 @@ jobs:
           # `vercel build` runs the Astro build AGAIN inside the CLI, so the stamp must be present here
           # too — this is the build whose output actually ships.
           SITE_BUILD_SHA: ${{ github.sha }}
+          SITE_BUILD_CHANNEL: production
         run: |
           npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
