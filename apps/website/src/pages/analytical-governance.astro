@@ -1,14 +1,18 @@
 ---
 /**
- * SIGNPOST ONLY — this is not the Analytical Governance page.
+ * NAVIGATION SIGNPOST — not the Analytical Governance page.
  *
- * Slice 1 introduces the four-door shell but explicitly does NOT authorize building this page
- * (implementation brief §11). A door that 404s is worse than a door that states what is behind it
- * and is honest that it has not been written yet, so this is the minimum that keeps the new shell
- * truthful. It is expected to be replaced wholesale by the Analytical Governance slice.
+ * Authorized narrowly (Huayin, 2026-08-19): the four-door navigation must not knowingly ship two
+ * 404 destinations, so this door establishes scent and points onward. It carries only what §13 of
+ * the v0.2 brief allows a signpost to carry — the full name, the immediate distinction from
+ * ordinary data governance, the conformance test, one concise category proposition, links to
+ * relevant live material, and a forward link toward Columna.
  *
- * The category line and the conformance test are quoted from ratified doctrine (positioning §4,
- * wireframe §6) so that even the placeholder cannot drift into generic data-governance language.
+ * Its transitional status is stated as a fact, structurally, at the end. No "coming soon" copy.
+ *
+ * The full architecture/corpus page is a later slice. When it is built, its FIRST SCREEN must do
+ * what this page's first screen already does: distinguish Analytical Governance from data
+ * governance and surface the conformance test.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
@@ -17,28 +21,72 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Analytical Governance concerns whether an analytical request is established, supported, and entitled to execute — not who may access which table."
   chip={false}
 >
-  <h1 class="ds-proposition">Analytical Governance</h1>
+  <p class="ds-label">Analytical Governance</p>
 
-  <p class="ds-body">
-    Analytical Governance governs whether an analytical request is established, supported, and
-    entitled to execute — not who may access which table.
+  <h1 class="ds-proposition">
+    Whether a claim may be made at all — not who may read which table.
+  </h1>
+
+  <p class="lede ds-body">
+    Analytical Governance governs whether an analytical request is <em>established</em>,
+    <em>supported</em>, and <em>entitled to execute</em>. Data governance answers a different
+    question: stewardship, access, catalogues, policy. Both matter. They are not the same category,
+    and the shorter name already belongs to the other one.
   </p>
 
+  <p class="test">If it cannot refuse, it is not governed.</p>
+
   <p class="ds-body">
-    <strong>If it cannot refuse, it is not governed.</strong> Refusal is not the whole architecture.
-    It is the minimum proof that a system can withhold analytical permission when meaning, support,
-    or authority is not established.
+    Refusal is not the whole architecture. It is the minimum proof that a system can withhold
+    analytical permission when meaning, support, or authority is not established.
   </p>
 
-  <p class="ds-body note">
-    This page is being written. Until it lands, the nearest material is
-    <a href="/the-argument">the argument</a>, the worked example in <a href="/case">the case</a>,
-    and the executable consequence as <a href="/#exhibit-a-heading">Exhibit A</a> on the homepage.
+  <ul class="onward">
+    <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
+    <li>
+      <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
+      — the authority boundary, argued.
+    </li>
+    <li><a href="/#exhibit-a-heading">Exhibit A</a> — four governed requests, four earned verdicts.</li>
+    <li><a href="/columna">Columna →</a> — the same boundaries, executable.</li>
+  </ul>
+
+  <p class="status">
+    This page is a navigation signpost. The full Analytical Governance page — the architecture from
+    intent to authorized execution, and its publication record — is a later slice of the redesign.
   </p>
 </BaseLayout>
 
 <style>
-  h1 { margin: 3rem 0 2rem; }
-  .ds-body { margin: 0 0 1.25rem; }
-  .note { color: var(--ink-faint); border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  .ds-label { margin: 3rem 0 1.25rem; }
+  h1 { margin: 0 0 2rem; }
+  .lede { margin: 0 0 2.5rem; }
+  .lede em { font-style: italic; }
+
+  .test {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.15;
+    margin: 0 0 1.25rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule-strong);
+    text-wrap: balance;
+  }
+
+  .onward { list-style: none; padding: 0; margin: 2.5rem 0 0; }
+  .onward li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-serif);
+    color: var(--ink-soft);
+  }
+  .onward a { color: var(--ink); }
+
+  .status {
+    margin: 2.5rem 0 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
 </style>

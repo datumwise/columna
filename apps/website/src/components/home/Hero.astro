@@ -42,10 +42,10 @@ if (!mark?.frameql || mark.outcome !== 'serve') {
       </p>
 
       <div class="commitment">
+        <p class="obligation-label">Falsifiable commitment</p>
         <p class="obligation">
           Built so that no layer can <em>silently</em> return a confident wrong number.
         </p>
-        <p class="obligation-label">Falsifiable commitment.</p>
       </div>
 
       <p class="actions">
@@ -98,26 +98,33 @@ if (!mark?.frameql || mark.outcome !== 'serve') {
 
   /* The proof obligation is visually SEPARATED from the descriptive sentence — it is a different
      kind of statement, and the separation is the point. */
+  /* The commitment is set apart as its own instrument: more air above it than anywhere else in the
+     hero, a strong rule, and the label ABOVE it so the line itself lands last and lands whole. */
   .commitment {
-    margin-top: var(--ds-space-4);
+    margin-top: var(--ds-space-5);
     padding-top: var(--ds-space-3);
-    border-top: 1px solid var(--ds-rule-strong);
-    max-width: 30rem;
+    border-top: 2px solid var(--ink);
+    max-width: 32rem;
   }
   .obligation {
     font-family: var(--font-serif);
-    font-size: var(--ds-lead);
-    line-height: 1.32;
+    font-size: var(--ds-commitment);
+    line-height: 1.16;
+    letter-spacing: -0.012em;
     color: var(--ink);
-    margin: 0;
+    margin: var(--ds-space-2) 0 0;
     text-wrap: balance;
   }
+  /* `silently` is the load-bearing word: a system may be wrong; what it may not be is quietly
+     wrong. It carries the emphasis the sentence is built around. */
   .obligation em { font-style: italic; }
   .obligation-label {
     font-family: var(--font-sans);
     font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
     color: var(--ink-soft);
-    margin: var(--ds-space-2) 0 0;
+    margin: 0;
   }
 
   .actions { display: flex; gap: var(--ds-space-3); margin: var(--ds-space-4) 0 0; flex-wrap: wrap; }

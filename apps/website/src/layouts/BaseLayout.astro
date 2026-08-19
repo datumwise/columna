@@ -125,11 +125,6 @@ const structuredIdentity = {
     <meta property="og:type" content="website" />
     {/* Structured identity — see the frontmatter for why this row exists. set:html because Astro
         must emit the JSON verbatim; JSON.stringify output contains no closing-script sequence. */}
-    {/* CANONICAL URL. The site had none — every page was uncanonicalised, which is the one machine
-        -legibility affordance the redesign's Intelligence pillar most obviously owes its own
-        argument (implementation brief §10: page metadata remains coherent). Derived from the
-        configured `site`, so it cannot drift from the sitemap. */}
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? ORIGIN).href} />
     <script type="application/ld+json" set:html={JSON.stringify(structuredIdentity)} is:inline />
     <Analytics />
   </head>

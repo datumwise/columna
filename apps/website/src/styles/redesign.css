@@ -22,7 +22,12 @@
   --ds-hero:      clamp(2.75rem, 1.30rem + 6.2vw, 6.25rem);   /* hero thesis */
   --ds-display:   clamp(2.10rem, 1.35rem + 3.2vw, 3.75rem);   /* section proposition */
   --ds-pillar:    clamp(1.60rem, 1.15rem + 1.9vw, 2.50rem);   /* pillar word / question */
-  --ds-lead:      clamp(1.15rem, 1.02rem + 0.55vw, 1.45rem);  /* lede + proof obligation */
+  --ds-lead:      clamp(1.15rem, 1.02rem + 0.55vw, 1.45rem);  /* lede */
+  /* The hero's falsifiable commitment. Deliberately its own step between the lede and the section
+     proposition: the approved hierarchy keeps the thesis dominant for Slice 1, and this gives the
+     commitment enough weight that review can fairly judge whether it should take the top line.
+     That inversion is a design-review question, never an implementation decision. */
+  --ds-commitment: clamp(1.55rem, 1.10rem + 1.9vw, 2.45rem);
   --ds-body:      1.0625rem;                                   /* editorial body */
   --ds-meta:      0.8125rem;                                   /* sans metadata / labels */
   --ds-mono:      0.875rem;                                    /* formal objects, wire */
