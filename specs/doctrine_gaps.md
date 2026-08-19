@@ -31,6 +31,14 @@ governed the way its numbers are.
 | MS-5 | 2026-08-19 | **RSS/Atom feed.** | Absent (`/rss.xml` 404s). | |
 | MS-6 | 2026-08-19 | **A real 404 page.** | `src/pages/404.astro` does not exist. | |
 | MS-7 | 2026-08-19 | **Publication / concept relationship metadata.** Supersession, version lineage, concept→implementation links, in explicit structure. | Carried in prose only. | Reads with MS-3; also the prerequisite for a structured Research index (there is no Astro content collection today — `src/content/*` is directly-imported markdown). |
+| MS-8 | 2026-08-19 | **Content discovery / news mechanism.** A published work must be discoverable from the site's own inventory, not only from the author's memory. | ABSENT. The corpus is a hand-maintained set of imported markdown files; nothing enumerates the publication record, and there is no feed. | **This gap was demonstrated, not theorised.** The category-defining paper — *Analytical Governance: From User Intent to Governed Analytical Execution*, v1.0, 15 Aug 2026, DOI `10.5281/zenodo.21959749` — existed and was published, but a reviewer inspecting the live corpus and every DOI on the site concluded no defining paper existed, because the site did not expose it. The later Research/news-generation mechanism exists to make that impossible. Reads with MS-3, MS-5 and MS-7. |
+
+### Content in development — recorded, deliberately not mixed into a slice
+
+| # | opened | item | status |
+|---|---|---|---|
+| CT-1 | 2026-08-19 | ***The Theory of Data in One Afternoon*** — a first-time-reader on-ramp. Intended role: the cold-reader / Start Here entry under The Case. | In development. **Not part of Homepage Slice 1** and not to be linked from it until it lands (Huayin, 2026-08-19). |
+| CT-2 | 2026-08-19 | **Analytical Governance v1.1 alignment.** A revision of the category paper is under consideration. | Being considered separately. Slice 1 links **v1.0** accurately (DOI `10.5281/zenodo.21959749`) and does not anticipate the revision. |
 
 ### Generator / source-of-record hygiene (same date, not machine-surface)
 

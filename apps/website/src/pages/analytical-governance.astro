@@ -42,6 +42,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </p>
 
   <ul class="onward">
+    <li class="paper">
+      <a href="https://doi.org/10.5281/zenodo.21959749" rel="noopener" target="_blank">
+        Analytical Governance: From User Intent to Governed Analytical Execution
+      </a>
+      <span class="meta">Huayin Wang · Version 1.0 · 15 August 2026 · DOI 10.5281/zenodo.21959749</span>
+      <span class="role">The category paper — the defining publication for Analytical Governance.</span>
+    </li>
     <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
     <li>
       <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
@@ -74,6 +81,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .onward { list-style: none; padding: 0; margin: 2.5rem 0 0; }
+  /* The defining publication is the first and heaviest entry: a category page whose category paper
+     is buried among links teaches that the category is a slogan. */
+  .onward li.paper { padding-bottom: 1rem; }
+  .onward li.paper a { font-size: 1.0625rem; }
+  .onward .meta, .onward .role {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    margin-top: 0.35rem;
+  }
+  .onward .role { color: var(--ink-soft); }
   .onward li {
     padding: 0.7rem 0;
     border-bottom: 1px solid var(--rule);
