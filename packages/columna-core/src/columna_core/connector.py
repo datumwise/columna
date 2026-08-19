@@ -9,6 +9,7 @@ It NEVER combines columns across tables. All relating happens in the engine (tra
 """
 from __future__ import annotations
 from typing import Optional, Protocol, runtime_checkable
+import hashlib
 import re
 import duckdb
 import polars as pl
@@ -121,7 +122,8 @@ class DuckDBConnector:
 
     # P0.5b-0: the fingerprint ALGORITHM version. Bumped whenever the digest's composition changes,
     # so tokens from different algorithms are never compared as if they meant the same thing.
-    _IDENTITY_ALGO = "cdg1"
+    # cdg1 -> cdg2: the ordered SCHEMA identity joined the row-content digest (2026-08-19 review).
+    _IDENTITY_ALGO = "cdg2"
 
     def _duckdb_version(self) -> str:
         """The running DuckDB version, cached per connector — part of the token's namespace."""
@@ -159,14 +161,21 @@ class DuckDBConnector:
         version/snapshot token SHOULD override this method and return it instead — that is a
         source-provided identity under the backend's own contract, and is strictly stronger.
 
-        WHAT IT COVERS. Row CONTENTS, compared POSITIONALLY. Value edits, inserts, deletes at any
-        cardinality, and column add/drop all move the token. Schema facts that leave every row's
-        hash unmoved — notably a column RENAME — do NOT move it (recorded as an open item on the
-        P0.5b-0 review; column NAMES are not part of the digest).
+        WHAT IT COVERS. The CURRENT REALIZED TABLE STATE — row contents AND the table's ordered
+        schema. Row hashing alone compares values POSITIONALLY, which left two silent classes: a
+        column-name PERMUTATION (`amount`<->`qty`) leaves every row hash identical while changing
+        what a name-bound measure means, and a widening like INT->BIGINT leaves the hashes unmoved.
+        Both are caught by folding the ordered `(column_name, data_type)` list into the token.
 
-        NAMESPACING. The token carries both the fingerprint algorithm (`cdg1`) and the DuckDB
+        WHAT IT IS NOT. This is the identity of one realized TABLE's state, and nothing larger. It
+        is NOT the publication / private-mapping realization identity: mapping identity, binding
+        identity, source selection, and the rest of realization semantics are full P0.5b's subject
+        and are deliberately absent here.
+
+        NAMESPACING. The token carries both the fingerprint algorithm (`cdg2`) and the DuckDB
         version, because DuckDB documents `hash()` as an implementation detail free to change
-        between releases. Namespacing makes such a change read as a CONSERVATIVE INVALIDATION — a
+        between releases. (The schema half is hashed with `blake2b`, which is stable across
+        releases; only the row-content half rides DuckDB's `hash()`.) Namespacing makes such a change read as a CONSERVATIVE INVALIDATION — a
         different token, so recompute and re-attest — rather than as an ambiguous comparison between
         two digests that were never comparable.
 
@@ -177,9 +186,14 @@ class DuckDBConnector:
             n, s, x = self.con.execute(
                 f"SELECT count(*), sum(hash(_dt))::HUGEINT, bit_xor(hash(_dt)) "
                 f"FROM {table} AS _dt").fetchone()      # fixed alias: qualified/quoted names bind too
+            # the ORDERED schema, by the same aliased relation (so qualified/quoted names, and views,
+            # describe identically to the row pass)
+            cols = self.con.execute(f"DESCRIBE SELECT * FROM {table} AS _dt").fetchall()
         except Exception:
             return None                       # cannot establish -> caller MUST fail closed for reuse
-        return f"{self._IDENTITY_ALGO}/duckdb-{self._duckdb_version()}:{n}:{s}:{x}"
+        sch = hashlib.blake2b(";".join(f"{c[0]}:{c[1]}" for c in cols).encode("utf-8"),
+                              digest_size=8).hexdigest()
+        return f"{self._IDENTITY_ALGO}/duckdb-{self._duckdb_version()}:{n}:{s}:{x}:{sch}"
 
     def table_version(self, table: str) -> str:
         """DEPRECATED (P0.5b-0) — row count is NOT a trustworthy data identity.

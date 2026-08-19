@@ -66,7 +66,7 @@ fertility** but is **violated for hierarchy edge transport and for faces**.
 |---|---|---|
 | carrier | universe `Ratification` (manifold-agent, `ratification.py`) | Core `License` (in-memory, `columna_core`) |
 | fingerprints | logical: anchor · basis · restriction AST · logical deps (`ratification.py:157-163`); physical/data **deliberately excluded** (`:96-99`) | attested **data**: FD holds / unique-top / non-neg-positive-sum |
-| stale on | logical change | data re-attestation (rowcount/version) |
+| stale on | logical change | data re-attestation (connector data identity — P0.5b-0) |
 | lifetime | durable human publication authority | ephemeral runtime state, recomputed each publish/attest |
 
 Certifications are **not** publication identity. The same immutable `retail@1.3.0` realized against env A
@@ -149,10 +149,24 @@ class now.
 
 ## 7. Certification-binding requirements (P0.5b)
 
-Today `License` carries only `{verdict, lineages(subject), basis(claim), attestation}`, and `attestation`
-is a weak `table:rowcount` watermark (`connector.py:88-90`) — **no `publication_ref`, no realization
-identity**. So a proof on realization A is indistinguishable from one for realization B with matching table
-names + counts; it can silently transfer. A sound certification must distinguish at least:
+**Partly closed by P0.5b-0 (2026-08-19) — data identity only.** When this record was written,
+`attestation` was a `table:rowcount` watermark, so a proof on realization A was indistinguishable from one
+for realization B with matching table names + counts, and it could silently transfer. That primitive is
+gone. `Connector.data_identity(table) -> Optional[str]` is now part of the **Protocol**, and both consumers
+that gated on row count — the certification attestation and the engine result cache — gate on it. The
+contract asks for a **change/version token trustworthy for reuse under the guarantee the connector
+documents**, not for a collision-free identity: a backend-native version/snapshot token (table-format
+snapshot id, catalog version, MVCC watermark) is a source-provided data identity under that backend's
+contract; the DuckDB fallback is a content+schema fingerprint of the current realized table state — a
+change detector, finite, not collision-free. No trustworthy token ⇒ `None` ⇒ **fail closed for reuse**
+(nothing cached, nothing data-established treated as current); serving itself is never affected. Currency
+is judged per capability, from the read set each proof reports (`_hierarchy_deps` / `_face_deps` →
+`PublishedScope.edge_evidence` / `face_evidence`), so a table no proof read closes nothing.
+
+`License` still carries only `{verdict, lineages(subject), basis(claim), attestation}` — **no
+`publication_ref`, and no realization identity beyond the per-table data state**. Mapping identity, binding
+identity, source selection, and the rest of realization semantics remain OPEN for full P0.5b. A sound
+certification must distinguish at least:
 ```
 publication identity · realization identity · certification subject · certification claim · verdict · data-attestation identity   (+ time/provenance)
 ```
@@ -219,13 +233,16 @@ Strict boundaries:
 ```
 P0.5a  closed-by-default governed serving   — live runtime correctness fix (positive admission)
 P0.5b  certification identity + freshness    — publication / realization / attestation binding
+       (P0.5b-0 landed the data-identity + cache-safety slice; the rest is open)
 P0.5c  shared relationship-crossing law      — authoring/publication carriage for face semantics
 ```
 - **P0.5a** answers *"may an uncertified declared capability execute?"* — must become **no**. Highest
   priority (a live governed-serving defect, tracked as its own issue so it cannot vanish inside the compiler
   project).
 - **P0.5b** answers *"what exact thing did this certification prove, against which realization and data
-  state?"*
+  state?"* The **data-state** half is answered by P0.5b-0 (`Connector.data_identity`, per-capability
+  evidence currency). The **realization/publication** half — mapping identity, binding identity, source
+  selection — is still open.
 - **P0.5c** answers *"what crossing law did the governed author actually declare?"*
 
 Sequence:

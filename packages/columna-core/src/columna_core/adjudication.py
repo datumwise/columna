@@ -321,10 +321,15 @@ def _expr_tables(m, *exprs) -> set:
 
 
 # ---- B2 HIERARCHY: functional-dependence test on the attested data ----------
-def _prove_hierarchy(server, m, h) -> License:
+def _prove_hierarchy(server, m, h, deps: Optional[dict] = None) -> License:
     """Each step of the chain must be a genuine key->key function: every `frm` maps to exactly one
     `to` in the provider table. A key with >1 parent ⇒ HierarchyContradiction (publish fails closed).
-    No connector / no deliverable edge ⇒ UNTESTABLE (recorded, describe-visible, never exercised)."""
+    No connector / no deliverable edge ⇒ UNTESTABLE (recorded, describe-visible, never exercised).
+
+    P0.5b-0: when `deps` is given, the proof RECORDS THE TABLES IT ACTUALLY READ into it, keyed by
+    lineage. Contingent evidence must carry the dependencies it was established on — not have them
+    reconstructed afterwards from declarations, which is a different question that merely happens to
+    agree today."""
     con = server.engine.con
     tables = []
     # Every hop of every branch must be a genuine key->key function (§2a: adjudication tests every hop;
@@ -344,6 +349,8 @@ def _prove_hierarchy(server, m, h) -> License:
             if bad.height > 0:
                 raise HierarchyContradiction(h.lineage, frm, to, bad["_frm"][0], int(bad["_n"][0]))
             tables.append(edge.provider_table)
+    if deps is not None:
+        deps[h.lineage] = tuple(sorted(set(tables)))       # what this verdict was reached over
     paths_desc = " ; ".join(" -> ".join(c) for c in h.paths)
     return _license(CORROBORATED, {h.lineage},
                     f"functional dependence held on the attested data: every hop maps to one parent "
@@ -428,29 +435,32 @@ def scope_from_report(m, report: dict) -> PublishedScope:
     # governing hierarchy carry no FD claim and are not certification-dependent — the view admits them
     # structurally (see PlannerView._gated_edges), so they need not appear here.
     certified_edges = frozenset(e.key for e in m.edges if hv.get(e.lineage) == CORROBORATED)
-    # per-capability evidence provenance (P0.5b-0). A hierarchy verdict is reached over EVERY hop of
-    # its lineage, so the whole lineage's provider tables carry that verdict.
-    lineage_tables = {}
+    # ── per-capability evidence provenance (P0.5b-0) ──────────────────────────────────────────────
+    # Each capability carries THE TABLES ITS OWN PROOF READ, as reported by that proof (`_prove_*`
+    # fill `_hierarchy_deps` / `_face_deps`). Nothing here reconstructs a dependency set from
+    # declarations: a reconstruction answers "what could this have read?", which is a different
+    # question that merely happens to agree today, and would drift silently the day a proof's read
+    # set changes. A capability whose proof reported NOTHING is given the CONSERVATIVE set — every
+    # realized table — because an unknown dependency must never read as "depends on nothing".
+    conservative = tuple(realized_tables(m))
+    h_deps = report.get("_hierarchy_deps") or {}
+    edge_evidence = {}
     for e in m.edges:
-        if getattr(e, "provider_table", None):
-            lineage_tables.setdefault(e.lineage, set()).add(e.provider_table)
-    edge_evidence = {e.key: tuple(sorted(lineage_tables.get(e.lineage, ())))
-                     for e in m.edges if e.key in certified_edges}
+        if e.key not in certified_edges:
+            continue
+        d = h_deps.get(e.lineage)
+        edge_evidence[e.key] = tuple(d) if d is not None else conservative
     certified_faces = frozenset(k for k, v in report.get("_faces", {}).items()
                                 if v in (VERIFIED, CORROBORATED))
+    f_deps = report.get("_face_deps") or {}
     face_evidence = {}
     for r in m.non_functional:
         for f in getattr(r, "faces", ()) or ():
             key = f"{r.frm}<->{r.to}.{f.name}"
             if key not in certified_faces:
                 continue
-            tabs = set()
-            if getattr(r, "via_table", None):
-                tabs.add(r.via_table)                       # the bridge the crossing reads
-            drv = getattr(f, "selection", None)             # ASSIGN/ALLOC driver measure
-            if drv and drv in m.measures and getattr(m.measures[drv], "home_table", None):
-                tabs.add(m.measures[drv].home_table)
-            face_evidence[key] = tuple(sorted(tabs))
+            d = f_deps.get(key, None) if key in f_deps else None
+            face_evidence[key] = tuple(d) if d is not None else conservative
     return PublishedScope(blocked_edges=frozenset(blocked), blocked_by=blocked_by,
                           licenses=_snapshot_licenses(m),
                           certified_edges=certified_edges, certified_faces=certified_faces,
@@ -624,7 +634,7 @@ def _face_frontier(m, face, rel) -> str:
     return next(iter(m.universes[d.universe].base_dimensions))
 
 
-def _prove_face(face, rel, server, m) -> License:
+def _prove_face(face, rel, server, m, deps: Optional[dict] = None) -> License:
     """A crossing FACE is CLOSED by default (the polarity law); its License is the door — it OPENS the
     trip across the non-functional (M:N) edge. Minted only here, at publish, per scheme:
 
@@ -636,6 +646,12 @@ def _prove_face(face, rel, server, m) -> License:
     The EVENTS-ONLY restriction is a SERVING law (enforced at resolve), not a verdict."""
     key = f"{rel.frm}<->{rel.to}.{face.name}"
     if face.scheme == TOUCH:
+        # A touch face's license is TIMELESS: exact arithmetic over the declared shape, no data read.
+        # Its dependency set is therefore genuinely EMPTY — no data state can stale evidence that was
+        # never established from data. (The bridge IS read at SERVE time; that read is fresh every
+        # request and is not what this license rests on.)
+        if deps is not None:
+            deps[key] = ()
         return _license(VERIFIED, set(),
             f"touch crossing '{face.name}': membership expansion is exact arithmetic (the value reaches "
             f"every match; no weights to reconcile). Serving is events-only (spine replication corrupts "
@@ -672,7 +688,14 @@ def _prove_face(face, rel, server, m) -> License:
         bridge = eng.con.deliver_edge(rel.via_table, rel.via_to_col, rel.via_frm_col)
     b = bridge.join(driver.rename({frontier: "_to"}), on="_to", how="inner")            # _frm, _to, _drv
     member_side = rel.frm if frontier == rel.to else rel.to
-    attest = _attest_tables(eng.con, [m.measures[face.selection].home_table, rel.via_table])
+    # P0.5b-0: the tables this proof ACTUALLY READ — the M:N bridge, the driver's home table, and any
+    # hierarchy provider table the driver's PLANNED ROUTE traversed to reach the frontier grain. The
+    # route contribution is read off the plan the proof itself executed, so it cannot drift from it.
+    read = {rel.via_table, m.measures[face.selection].home_table}
+    route = _route_tables(m, _routes, face.selection, frontier)
+    if deps is not None:
+        deps[key] = None if route is None else tuple(sorted(read | set(route)))
+    attest = _attest_tables(eng.con, sorted(read | set(route or ())))
     if face.scheme == ASSIGN:
         asc = (face.order == ORDER_MIN)
         top = b.group_by("_frm").agg((pl.col("_drv").min() if asc else pl.col("_drv").max()).alias("_top"))
@@ -699,6 +722,28 @@ def _prove_face(face, rel, server, m) -> License:
     return _license(CORROBORATED, {face.selection}, attestation=attest,
         basis=f"alloc crossing '{face.name}': driver '{face.selection}' is non-negative with a strictly "
               f"positive sum per {member_side} (splitting preserves mass; the badge certifies it).")
+
+
+def _route_tables(m, routes, measure: str, level: str) -> Optional[tuple]:
+    """The provider tables of the edges on the PLANNED route (`measure` -> `level`) — the hierarchy
+    data a driver READ on its way to the frontier grain (P0.5b-0).
+
+    Returns `None` for "unknown": no planned route was recorded, so the caller must fall back to the
+    conservative dependency set rather than record an empty one. An empty tuple is a POSITIVE
+    finding — the route crosses no edge, so it read no provider table."""
+    entry = (routes or {}).get((measure, level))
+    if entry is None:
+        return None
+    _start, keys = entry
+    out = set()
+    for k in keys:
+        try:
+            e = m.edge_for(k)
+        except Exception:
+            return None                       # cannot resolve an edge we know was traversed -> unknown
+        if getattr(e, "provider_table", None):
+            out.add(e.provider_table)
+    return tuple(sorted(out))
 
 
 def _prove_faces_acyclic(server, m) -> None:
@@ -804,9 +849,10 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
     # each toward correctness in its own kind. (asserts→cut left with ASSERT in 0.13.0.)
     if m.hierarchies:
         new_h, hv, blocked = [], {}, {}
+        h_deps: dict = {}                       # P0.5b-0: lineage -> the tables its proof READ
         for h in m.hierarchies:
             try:
-                lic = _prove_hierarchy(server, m, h)
+                lic = _prove_hierarchy(server, m, h, h_deps)
             except HierarchyContradiction as e:    # a step is non-functional on re-attestation
                 if not degrade:
                     raise                          # first publish: fail closed (geometry, not a scope edit)
@@ -821,6 +867,7 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             hv[h.lineage] = lic.verdict
         m.hierarchies = new_h
         report["_hierarchies"] = hv
+        report["_hierarchy_deps"] = h_deps
         if degrade:
             report["_blocked"] = blocked
     # ── B3 BASIS: mint the testedness record per declared basis (serving is independent — §2c/B3) ──
@@ -848,14 +895,14 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             if not degrade:
                 raise                            # first publish: fail closed (structure, not a scope edit)
             acyclic_ok = False
-        fv, new_nf = {}, []
+        fv, new_nf, f_deps = {}, [], {}          # P0.5b-0: face key -> the tables its proof READ
         for r in m.non_functional:
             if r.faces:
                 proven = []
                 for f in r.faces:
                     if acyclic_ok:
                         try:
-                            lic = _prove_face(f, r, server, m)
+                            lic = _prove_face(f, r, server, m, f_deps)
                         except FaceContradiction as e:
                             if not degrade:
                                 raise            # first publish: fail closed
@@ -873,6 +920,7 @@ def _adjudicate(server, *, attestation: Optional[str] = None, trace: Optional[li
             new_nf.append(r)
         m.non_functional = new_nf
         report["_faces"] = fv
+        report["_face_deps"] = f_deps
     # P0.5a: establish the positive serving scope as the FINAL, atomic step (compute-then-swap). The proof
     # loops above run inside the caller's PROBE window (see `adjudicate`), so the planner's closed-by-default
     # state cannot starve the very queries that mint the verdicts. On success the computed scope becomes the

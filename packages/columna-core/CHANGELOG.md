@@ -22,20 +22,29 @@ not for a collision-free identity:
 
 * a backend-native version/snapshot token (Iceberg/Delta snapshot id, catalog version, MVCC
   watermark) is a **source-provided data identity** under that backend's contract, and is preferred;
-* the DuckDB implementation is a **content fingerprint / change detector** —
-  `count(*) + sum(hash(row)) + bit_xor(hash(row))`, one single-table pass, no join. Finite
-  aggregates over a 64-bit hash: agreement is strong evidence of sameness, not proof. It covers row
-  contents positionally (value edits, inserts, deletes, column add/drop); column **names** are not
-  part of the digest. The token is namespaced by fingerprint algorithm (`cdg1`) and DuckDB version,
-  since `hash()` is implementation-defined, so an implementation change causes conservative
-  invalidation rather than an ambiguous comparison;
+* the DuckDB implementation is a **content + schema fingerprint / change detector** for the current
+  realized table state — `count(*) + sum(hash(row)) + bit_xor(hash(row))` over the rows, plus the
+  table's ordered `(column_name, data_type)` list; one single-table pass, no join. Finite aggregates
+  over a 64-bit hash: agreement is strong evidence of sameness, not proof. Schema is included
+  because row hashing compares values POSITIONALLY, so a column-name permutation
+  (`amount`<->`qty`) left a content-only digest identical while the served number moved 30.0 → 3.0
+  (pinned as a regression test), and a widening like INT→BIGINT was likewise invisible. This is the
+  identity of one realized **table's** state and nothing larger — mapping identity, binding
+  identity and source selection remain full P0.5b's subject. The token is namespaced by fingerprint
+  algorithm (`cdg2`) and DuckDB version, since `hash()` is implementation-defined, so an
+  implementation change causes conservative invalidation rather than an ambiguous comparison;
 * `None` when no such token can be established. `None` closes **reuse**, never serving: nothing is
   cached and prior realization/data-bound evidence stops being treated as current. "Unknown" is
   never read as "unchanged".
 
-Currency is judged **per capability**, once per request: a table that no proof read closes nothing,
-and a table whose identity moved closes exactly the capabilities whose evidence rested on it
-(through the existing P0.5a admission ladder — no new refusal reason). `table_version` is
+Currency is judged **per capability**, once per request, from the read set **each proof reports for
+itself** (`_prove_hierarchy` / `_prove_face` → `PublishedScope.edge_evidence` / `face_evidence`)
+rather than reconstructed from declarations afterwards. A table that no proof read closes nothing; a
+table whose identity moved closes exactly the capabilities whose evidence rested on it (through the
+existing P0.5a admission ladder — no new refusal reason). A `TOUCH` face records an EMPTY dependency
+set, because its license is timeless — exact arithmetic over the declared shape, established from no
+data. A capability whose proof reports no read set at all is given the conservative set (every
+realized table): an unknown dependency must never read as "depends on nothing". `table_version` is
 **deprecated**, retained only for external embedders; nothing in Core consults it.
 
 ## Unreleased — wire `contract_version` `"2"` → `"3"` (S2.2b-2 governed catalog semantics)

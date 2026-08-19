@@ -20,7 +20,9 @@ That identity is NOT analytical identity: `F@A` is unchanged by a data refresh.
 import duckdb
 
 from columna_core import ManifoldServer, DuckDBConnector
-from columna_core.adjudication import scope_is_current, realized_tables
+from columna_core.model import CORROBORATED, VERIFIED
+from columna_core.adjudication import (scope_is_current, realized_tables, stale_capabilities,
+                                       live_identities, scope_from_report, _route_tables)
 from columna_core.parser import parse_manifold
 
 _M = """
@@ -212,7 +214,7 @@ def test_certification_and_cache_share_one_notion_of_identity():
 def test_attestation_string_carries_the_data_identity_not_the_row_count():
     srv, _con = _srv()
     lic = srv.m.hierarchies[0].license
-    assert lic.attestation is None or "cdg1/" in lic.attestation or "unavailable" in lic.attestation
+    assert lic.attestation is None or "cdg2/" in lic.attestation or "unavailable" in lic.attestation
 
 
 # ══ what the token IS, and what it is namespaced by ═══════════════════════════════════════════
@@ -225,7 +227,7 @@ def test_the_token_is_namespaced_by_algorithm_and_duckdb_version():
     con = duckdb.connect()
     con.execute("CREATE TABLE t(a INT)")
     tok = DuckDBConnector(con).data_identity("t")
-    assert tok.startswith("cdg1/duckdb-"), tok
+    assert tok.startswith("cdg2/duckdb-"), tok
     assert _d.__version__ in tok or "unknown" in tok
 
 
@@ -243,3 +245,162 @@ def test_a_schema_qualified_table_can_still_be_identified():
     assert qualified == plain, "the same table identified differently under a qualified name"
     con.execute('CREATE TABLE "odd name"(a INT)')
     assert c.data_identity('"odd name"') is not None, "a quoted table name yielded no identity"
+
+
+# ══ schema is part of the realized table state ════════════════════════════════════════════════
+def test_a_column_name_permutation_moves_the_token():
+    """THE REPRODUCED STALE-SERVE (review, 2026-08-19). Row hashing compares values POSITIONALLY,
+    so permuting two column NAMES leaves every row hash — and therefore a content-only digest —
+    byte-for-byte identical, while `sum(amount)` goes 30.0 -> 3.0. The change detector must see the
+    realized table's ORDERED SCHEMA as well as its rows, or it certifies a table whose columns now
+    mean something else."""
+    con = duckdb.connect()
+    con.execute("CREATE TABLE tx(amount DOUBLE, qty DOUBLE)")
+    con.executemany("INSERT INTO tx VALUES (?,?)", [(10.0, 1.0), (20.0, 2.0)])
+    c = DuckDBConnector(con)
+    before = c.data_identity("tx")
+    assert con.execute("SELECT sum(amount) FROM tx").fetchone()[0] == 30.0
+
+    con.execute("ALTER TABLE tx RENAME amount TO _t")      # a pure name permutation: no row moves
+    con.execute("ALTER TABLE tx RENAME qty TO amount")
+    con.execute("ALTER TABLE tx RENAME _t TO qty")
+
+    assert con.execute("SELECT sum(amount) FROM tx").fetchone()[0] == 3.0, "precondition: the served number moved"
+    assert c.data_identity("tx") != before, "a column-name permutation left the token unmoved"
+
+
+def test_a_type_widening_that_does_not_move_row_hashes_still_moves_the_token():
+    """INT -> BIGINT leaves every row hash unchanged. It is still a change to the realized table
+    state, and the schema half of the token is what catches it."""
+    con = duckdb.connect()
+    con.execute("CREATE TABLE ty(a INTEGER)")
+    con.executemany("INSERT INTO ty VALUES (?)", [(10,), (20,)])
+    c = DuckDBConnector(con)
+    before = c.data_identity("ty")
+    con.execute("ALTER TABLE ty ALTER a TYPE BIGINT")
+    assert c.data_identity("ty") != before
+
+
+def test_the_schema_half_does_not_make_unchanged_data_unstable():
+    """Reuse must survive: schema in the token must not cost the stability that makes reuse possible."""
+    con = duckdb.connect()
+    con.execute("CREATE TABLE t(a VARCHAR, b DOUBLE)")
+    con.executemany("INSERT INTO t VALUES (?,?)", [("d1", 10.0)])
+    c = DuckDBConnector(con)
+    assert c.data_identity("t") == c.data_identity("t")
+
+
+# ══ evidence carries ITS OWN dependencies ═════════════════════════════════════════════════════
+# The invariant (Huayin, 2026-08-19): contingent evidence must explicitly carry the data
+# dependencies on which that evidence was established — reported BY the proof, not reconstructed
+# from declarations afterwards. Serving also closes a moved edge first, but that is defence in
+# depth; it is not the representation of a face proof's own currency.
+_FACED = """
+MANIFOLD shop VERSION 1
+UNIVERSE sales = product * day BASIS events
+UNIVERSE category_profile = category BASIS spine
+LEVEL product = product_id BASE
+LEVEL day = day BASE
+LEVEL category = category_id BASE
+LEVEL month = month
+HIERARCHY calendar { day -> month VIA cal(day, month) }
+RELATE product <-> category VIA product_categories(product_id, category_id)
+    FACES {
+        reach   = TOUCH -- "reaches every category"
+        primary = ASSIGN BY priority ORDER MIN -- "top-priority, single-counted"
+    }
+MEASURE revenue ON sales FROM transactions AS sum(amount)
+MEASURE priority ON category_profile FROM category_attributes VALUE priority FAMILY { last ORDER category }
+"""
+_PRIMARY = "product<->category.primary"
+_REACH = "product<->category.reach"
+
+
+def _faced_srv():
+    con = duckdb.connect()
+    con.execute("CREATE TABLE transactions AS SELECT * FROM (VALUES "
+                "('p1','d1',60.0),('p2','d1',40.0)) AS t(product_id,day,amount)")
+    con.execute("CREATE TABLE product_categories AS SELECT * FROM (VALUES "
+                "('p1','c1'),('p1','c2'),('p2','c2')) AS t(product_id,category_id)")
+    con.execute("CREATE TABLE category_attributes AS SELECT * FROM (VALUES "
+                "('c1',1),('c2',2)) AS t(category_id,priority)")
+    con.execute("CREATE TABLE cal AS SELECT * FROM (VALUES ('d1','m1')) AS t(day,month)")
+    srv = ManifoldServer(parse_manifold(_FACED), DuckDBConnector(con))
+    srv.publish()
+    return srv, con
+
+
+def test_evidence_records_the_tables_its_own_proof_read():
+    """Not a superset reconstructed from the declarations: the exact read set each prover reported."""
+    srv, _con = _faced_srv()
+    sc = srv.published_scope
+    assert sc.face_evidence[_PRIMARY] == ("category_attributes", "product_categories"), \
+        "the assign proof read the bridge and its driver's home table — and must say so"
+    assert sc.face_evidence[_REACH] == (), \
+        "a TOUCH license is timeless (exact arithmetic, no data read), so it has NO data dependency"
+    assert list(sc.edge_evidence.values()) == [("cal",)], \
+        "the FD proof read the hop's provider table — and only that"
+
+
+def test_a_face_goes_stale_through_its_own_recorded_dependency():
+    """The face's driver home table moves. Its evidence must close BECAUSE THE FACE RECORDED THAT
+    DEPENDENCY — not because some other capability happened to close first. Here nothing else can
+    mask it: the hierarchy's own evidence (`cal`) is untouched and stays current."""
+    srv, con = _faced_srv()
+    sc = srv.published_scope
+    con.execute("UPDATE category_attributes SET priority = 9 WHERE category_id = 'c1'")
+
+    live = live_identities(srv.engine.con, sorted(sc.attested_identities))
+    stale_e, stale_f = stale_capabilities(sc, live)
+    assert _PRIMARY in stale_f, "the face outlived the data state its proof was established on"
+    assert "category_attributes" in sc.face_evidence[_PRIMARY]      # through its OWN dependency
+    assert not stale_e, "a driver-table move closed a hierarchy whose proof never read it"
+    assert _REACH not in stale_f, "a timeless TOUCH license was closed by a data move"
+
+    fr = srv.frame("category.primary").column("revenue", "revenue").run()
+    assert fr.outcome == "refuse"
+    assert fr.columns[0].refusal.classified().reason == "uncertified_face"
+
+
+def test_a_hierarchy_move_does_not_close_a_face_that_never_read_it():
+    """The other direction — capability-scoped, never global invalidation."""
+    srv, con = _faced_srv()
+    sc = srv.published_scope
+    con.execute("UPDATE cal SET month = 'm2' WHERE day = 'd1'")
+
+    stale_e, stale_f = stale_capabilities(sc, live_identities(srv.engine.con,
+                                                             sorted(sc.attested_identities)))
+    assert stale_e, "the hierarchy's own provider table moved and its evidence stayed current"
+    assert not stale_f, "a hierarchy move closed a face whose proof never read that table"
+
+
+def test_a_driver_route_provider_table_would_be_part_of_the_face_read_set():
+    """The driver lemma pins a driver at the frontier grain, so TODAY a lawful face proof plans a
+    route that crosses no edge (verified: the planned route's edge tuple is empty). The dependency
+    threading must not therefore be untested — the day the lemma loosens, a route provider table is
+    data the proof read. This pins the mechanism directly: a route WITH edges contributes its
+    provider tables, and an absent route reports UNKNOWN (never an empty dependency set)."""
+    srv, _con = _faced_srv()
+    m = srv.m
+    assert srv.planner.plan_routes("priority", ("category",))[0][("priority", "category")][1] == (), \
+        "precondition: today's driver route crosses no edge"
+
+    edge_key = next(e.key for e in m.edges)                        # the calendar day->month hop
+    routes = {("priority", "category"): ("day", (edge_key,))}
+    assert _route_tables(m, routes, "priority", "category") == ("cal",)
+    assert _route_tables(m, {}, "priority", "category") is None, \
+        "an unplanned route must read as UNKNOWN, so the caller can fall back conservatively"
+
+
+def test_an_unreported_dependency_set_is_conservative_never_empty():
+    """"Unknown dependency" must never collapse to "depends on nothing". A report carrying verdicts
+    but no read sets (an older prover, a partial report) makes every certified capability depend on
+    every realized table — over-invalidating, which is the safe direction."""
+    srv, _con = _faced_srv()
+    bare = {"_hierarchies": {"calendar": CORROBORATED},
+            "_faces": {_PRIMARY: CORROBORATED, _REACH: VERIFIED}}
+    sc = scope_from_report(srv.m, bare)
+    every = tuple(realized_tables(srv.m))
+    assert sc.face_evidence[_PRIMARY] == every
+    assert sc.face_evidence[_REACH] == every
+    assert all(v == every for v in sc.edge_evidence.values())
