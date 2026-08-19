@@ -404,3 +404,166 @@ def test_an_unreported_dependency_set_is_conservative_never_empty():
     assert sc.face_evidence[_PRIMARY] == every
     assert sc.face_evidence[_REACH] == every
     assert all(v == every for v in sc.edge_evidence.values())
+
+
+# ══ cache currency ≠ evidence currency ════════════════════════════════════════════════════════
+# Two dependency sets over one primitive (Huayin, 2026-08-19):
+#   evidence      — what a PROOF read; decides whether a finding is still current.
+#   computation   — what a COMPUTATION read; decides whether a RESULT may be reused.
+# TOUCH is the case that separates them: its license is timeless (no data read, empty evidence
+# set), while its result depends on the M:N bridge. Keyed on the measure home table alone, a bridge
+# edit re-served the pre-edit frame under a correctly-current license.
+_TOUCH_M = """
+MANIFOLD shop VERSION 1
+UNIVERSE sales = product * day BASIS events
+LEVEL product = product_id BASE
+LEVEL day = day BASE
+LEVEL category = category_id BASE
+RELATE product <-> category VIA product_categories(product_id, category_id)
+    FACES { reach = TOUCH -- "reaches every category" }
+MEASURE revenue ON sales FROM transactions AS sum(amount)
+"""
+
+
+def _touch_srv(bridge="('p1','c1'),('p2','c2')"):
+    con = duckdb.connect()
+    con.execute("CREATE TABLE transactions AS SELECT * FROM (VALUES "
+                "('p1','d1',100.0),('p2','d1',40.0)) AS t(product_id,day,amount)")
+    con.execute(f"CREATE TABLE product_categories AS SELECT * FROM (VALUES {bridge}) "
+                f"AS t(product_id,category_id)")
+    srv = ManifoldServer(parse_manifold(_TOUCH_M), DuckDBConnector(con))
+    srv.publish()
+    return srv, con
+
+
+def _touched(srv):
+    fr = srv.frame("category.reach").column("revenue", "revenue").run()
+    assert fr.outcome in ("serve", "disclose"), fr.outcome
+    return {r["category.reach"]: float(r["revenue"]) for r in fr.data.iter_rows(named=True)
+            if r["revenue"] is not None}
+
+
+def test_a_bridge_edit_cannot_serve_a_cached_crossing():
+    """THE REGRESSION. Serve through a TOUCH crossing, mutate ONLY the bridge at equal cardinality,
+    ask again. The license stays current (correctly — it is timeless), so nothing else closes and
+    nothing else can mask a cache hit: the result cache itself must see the bridge move."""
+    srv, con = _touch_srv()
+    assert _touched(srv) == {"c1": 100.0, "c2": 40.0}
+    before = srv.engine.data_version("transactions")
+
+    con.execute("UPDATE product_categories SET category_id = 'c3' WHERE product_id = 'p2'")
+    assert srv.engine.con.data_identity("transactions") == before, \
+        "precondition: the measure's own table did not move"
+    assert srv.published_scope.face_evidence["product<->category.reach"] == (), \
+        "precondition: the TOUCH license is timeless and stays current"
+
+    assert _touched(srv) == {"c1": 100.0, "c3": 40.0}, "served a cached crossing across a moved bridge"
+
+
+def test_an_unchanged_bridge_still_permits_reuse():
+    """The control. Widening the dependency set must not disable reuse — a second identical request
+    over unchanged data is still a cache hit."""
+    srv, _con = _touch_srv()
+    assert _touched(srv) == {"c1": 100.0, "c2": 40.0}
+    hits = srv.engine.stats.cache_hits
+    assert _touched(srv) == {"c1": 100.0, "c2": 40.0}
+    assert srv.engine.stats.cache_hits == hits + 1, "unchanged computation dependencies stopped reuse"
+
+
+def test_the_cache_token_carries_every_computation_dependency():
+    """The token is the whole dependency set, not one table: both the measure home table and the
+    bridge participate, so either one moving invalidates."""
+    srv, _con = _touch_srv()
+    _touched(srv)
+    tok = next(iter(srv.engine.cache.values())).version
+    assert "transactions@" in tok and "product_categories@" in tok, tok
+
+
+_CARVE = """MANIFOLD t VERSION 1
+LEVEL store = store_id BASE ATTR opened = stores.opened_date
+LEVEL region = region_id
+LEVEL day = day BASE
+UNIVERSE inv = store * day WHERE day >= store.opened BASIS spine
+HIERARCHY location { store -> region VIA stores(store_id, region_id) }
+MEASURE stock ON inv FROM snap VALUE level
+    FAMILY { last ORDER day }"""
+
+
+def _carve_srv():
+    con = duckdb.connect()
+    con.execute("CREATE TABLE stores(store_id VARCHAR, region_id VARCHAR, opened_date VARCHAR)")
+    con.executemany("INSERT INTO stores VALUES (?,?,?)", [("S1", "R1", "2024-01-10")])
+    con.execute("CREATE TABLE snap(store_id VARCHAR, day VARCHAR, level DOUBLE)")
+    con.executemany("INSERT INTO snap VALUES (?,?,?)",
+                    [("S1", "2024-01-05", 99.0), ("S1", "2024-01-15", 10.0)])
+    srv = ManifoldServer(parse_manifold(_CARVE), DuckDBConnector(con))
+    srv.publish()
+    return srv, con
+
+
+def test_a_predicate_attribute_table_is_a_computation_dependency():
+    """The same defect class beyond TOUCH: a universe predicate confines the population by reading
+    an ATTRIBUTE PROVIDER (`day >= store.opened` -> `stores.opened_date`). That table is not the
+    measure's home table and not on any transport route, so a home-table-only cache key could
+    re-serve a carve that no longer holds."""
+    srv, con = _carve_srv()
+    def stock():
+        fr = srv.frame("store").column("stock", "stock.last").run()
+        return dict(zip(fr.data["store"], fr.data["stock"]))
+    assert stock() == {"S1": 10.0}                    # the pre-open 99.0 snapshot is carved
+    before = srv.engine.data_version("snap")
+
+    con.execute("UPDATE stores SET opened_date = '2024-01-01'")   # S1 now opened before both snaps
+    assert srv.engine.con.data_identity("snap") == before, "precondition: the measure's table is unmoved"
+    tok = next(iter(srv.engine.cache.values())).version
+    assert "stores@" in tok, "the carve's attribute provider is not in the cache token"
+
+    assert stock() == {"S1": 10.0}, "last-by-day is still the 2024-01-15 snapshot"
+    assert srv.engine.stats.cache_hits == 0, "reused a result across a moved predicate dependency"
+
+
+def _tapped_reads(srv, run):
+    """Run `run` with the connector's whole delivery surface tapped; return (tables actually read,
+    tables the engine declared the cached result depends on)."""
+    eng = srv.engine
+    real, seen = eng.con, set()
+
+    class _Tap:
+        def __getattr__(self, name):
+            attr = getattr(real, name)
+            if not name.startswith("deliver_"):
+                return attr
+            def tapped(table, *a, **k):
+                seen.add(table)
+                return attr(table, *a, **k)
+            return tapped
+
+    eng.cache.clear()
+    eng.con = _Tap()
+    try:
+        run()
+    finally:
+        eng.con = real
+    declared = {d.split("@", 1)[0] for d in next(iter(eng.cache.values())).version.split("|")}
+    return seen, declared
+
+
+def test_the_declared_computation_set_is_what_the_computation_actually_reads():
+    """COMPLETENESS, pinned empirically rather than argued. The dependency set is composed from the
+    plan (home table · planned-route provider tables · faced bridge · universe-predicate attribute
+    providers). These tap the connector's whole delivery surface across the three shapes that read
+    beyond the home table, and assert that what the computation READ is exactly what the engine
+    declared it depends on — so a future read path that escapes the declaration fails HERE instead
+    of silently under-invalidating a cached result."""
+    touch_srv, _c1 = _touch_srv()
+    seen, declared = _tapped_reads(touch_srv, lambda: _touched(touch_srv))
+    assert seen == declared == {"transactions", "product_categories"}, (seen, declared)
+
+    hier_srv, _c2 = _srv()                                   # day -> month, one transport hop
+    seen, declared = _tapped_reads(hier_srv, lambda: _total(hier_srv))
+    assert seen == declared == {"tx", "cal"}, (seen, declared)
+
+    carve_srv, _c3 = _carve_srv()                            # universe predicate over an attribute
+    seen, declared = _tapped_reads(
+        carve_srv, lambda: carve_srv.frame("store").column("stock", "stock.last").run())
+    assert seen == declared == {"snap", "stores"}, (seen, declared)

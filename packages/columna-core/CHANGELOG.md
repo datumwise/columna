@@ -37,8 +37,28 @@ not for a collision-free identity:
   cached and prior realization/data-bound evidence stops being treated as current. "Unknown" is
   never read as "unchanged".
 
-Currency is judged **per capability**, once per request, from the read set **each proof reports for
-itself** (`_prove_hierarchy` / `_prove_face` → `PublishedScope.edge_evidence` / `face_evidence`)
+Two dependency sets are kept explicitly apart, over the one primitive:
+
+* **evidence dependencies** — the tables a PROOF read to establish a contingent certification; they
+  decide whether that finding is still current. A `TOUCH` face reads no data (its license is exact
+  arithmetic over the declared shape), so its set is empty and no data change can stale it;
+* **computation dependencies** — the tables a COMPUTATION read to produce a served result; they
+  decide whether that result may be REUSED. The engine's cache token is now the whole set — measure
+  home table, the provider table of every edge on the planned route, a faced crossing's M:N bridge,
+  and any universe-predicate attribute provider — composed from the plan the planner installed, not
+  rediscovered in the engine. If any dependency has no trustworthy identity the result is neither
+  reused nor stored.
+
+Conflating them served stale numbers. A TOUCH crossing was the sharp case: its license correctly
+stayed current while its result depended on the bridge, so a bridge edit with the measure's table
+untouched hit a cache keyed on the measure home table alone and re-served the pre-edit frame
+(reproduced, fixed, pinned end-to-end with a reuse control). A universe predicate reading an
+attribute provider (`day >= store.opened` → `stores.opened_date`) was the same defect off the faced
+path. A test taps the connector's whole delivery surface across three query shapes and asserts that
+what a computation READ is exactly what the engine declared it depends on.
+
+Certification currency is judged **per capability**, once per request, from the read set **each proof
+reports for itself** (`_prove_hierarchy` / `_prove_face` → `PublishedScope.edge_evidence` / `face_evidence`)
 rather than reconstructed from declarations afterwards. A table that no proof read closes nothing; a
 table whose identity moved closes exactly the capabilities whose evidence rested on it (through the
 existing P0.5a admission ladder — no new refusal reason). A `TOUCH` face records an EMPTY dependency
