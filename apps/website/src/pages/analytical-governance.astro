@@ -19,52 +19,69 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout
   title="Analytical Governance — datumwise"
   description="Analytical Governance concerns whether an analytical request is established, supported, and entitled to execute — not who may access which table."
+  wide={true}
   chip={false}
 >
-  <p class="ds-label">Analytical Governance</p>
+  <div class="signpost">
+    <div class="ds-measure-wide">
+      <p class="ds-label">Analytical Governance</p>
 
-  <h1 class="ds-proposition">
-    Which analytical results may be served — not who may read which table.
-  </h1>
+      {/* The proposition carries the redesign's WIDE measure, like every other ds-proposition on
+          the redesigned surfaces. It was inheriting BaseLayout's 34rem ESSAY column, which set a
+          70-character display line in a prose measure: five lines, and the conformance test fell
+          off the 1280x800 first screen. The measure is the defect — not the type scale, which is
+          shared, and not the copy. Prose below keeps the essay measure it wants. */}
+      <h1 class="ds-proposition">
+        Which analytical results may be served — not who may read which table.
+      </h1>
 
-  <p class="lede ds-body">
-    Analytical Governance governs whether an analytical request is <em>established</em>,
-    <em>supported</em>, and <em>entitled to execute</em>. Data governance answers a different
-    question: stewardship, access, catalogues, policy. Both matter. They are not the same category,
-    and the shorter name already belongs to the other one.
-  </p>
+      <div class="prose">
+        <p class="lede ds-body">
+          Analytical Governance governs whether an analytical request is <em>established</em>,
+          <em>supported</em>, and <em>entitled to execute</em>. Data governance answers a different
+          question: stewardship, access, catalogues, policy. Both matter. They are not the same category,
+          and the shorter name already belongs to the other one.
+        </p>
 
-  <p class="test">If it cannot refuse, it is not governed.</p>
+        <p class="test">If it cannot refuse, it is not governed.</p>
 
-  <p class="ds-body">
-    Refusal is not the whole architecture. It is the minimum proof that a system can withhold
-    analytical permission when meaning, support, or authority is not established.
-  </p>
+        <p class="ds-body">
+          Refusal is not the whole architecture. It is the minimum proof that a system can withhold
+          analytical permission when meaning, support, or authority is not established.
+        </p>
 
-  <ul class="onward">
-    <li class="paper">
-      <a href="https://doi.org/10.5281/zenodo.21959749" rel="noopener" target="_blank">
-        Analytical Governance: From User Intent to Governed Analytical Execution
-      </a>
-      <span class="meta">Huayin Wang · Version 1.0 · 15 August 2026 · DOI 10.5281/zenodo.21959749</span>
-      <span class="role">The category paper — the defining publication for Analytical Governance.</span>
-    </li>
-    <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
-    <li>
-      <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
-      — the authority boundary, argued.
-    </li>
-    <li><a href="/#exhibit-a-heading">Exhibit A</a> — four governed requests, four earned verdicts.</li>
-    <li><a href="/columna">Columna →</a> — the same boundaries, executable.</li>
-  </ul>
+        <ul class="onward">
+          <li class="paper">
+            <a href="https://doi.org/10.5281/zenodo.21959749" rel="noopener" target="_blank">
+              Analytical Governance: From User Intent to Governed Analytical Execution
+            </a>
+            <span class="meta">Huayin Wang · Version 1.0 · 15 August 2026 · DOI 10.5281/zenodo.21959749</span>
+            <span class="role">The category paper — the defining publication for Analytical Governance.</span>
+          </li>
+          <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
+          <li>
+            <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
+            — the authority boundary, argued.
+          </li>
+          <li><a href="/#exhibit-a-heading">Exhibit A</a> — four governed requests, four earned verdicts.</li>
+          <li><a href="/columna">Columna →</a> — the same boundaries, executable.</li>
+        </ul>
 
-  <p class="status">
-    This page is a navigation signpost. The full Analytical Governance page — the architecture from
-    intent to authorized execution, and its publication record — is a later slice of the redesign.
-  </p>
+        <p class="status">
+          This page is a navigation signpost. The full Analytical Governance page — the architecture from
+          intent to authorized execution, and its publication record — is a later slice of the redesign.
+        </p>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
 
 <style>
+  /* The page now sits in the full-bleed shell, so it owns its own gutter — the redesign's, not
+     BaseLayout's. Vertical rhythm below is UNCHANGED: only the horizontal measure moved. */
+  .signpost { padding-inline: var(--ds-gutter); }
+  .prose { max-width: var(--ds-essay); }
+
   .ds-label { margin: 3rem 0 1.25rem; }
   h1 { margin: 0 0 2rem; }
   .lede { margin: 0 0 2.5rem; }
