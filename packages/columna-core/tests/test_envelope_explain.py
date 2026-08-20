@@ -5,7 +5,6 @@ EXPLAIN emits the canonical DESUGARED form (the exact artifact the planner consu
 output, never a reconstruction), the per-series atom decomposition, the dependency cone with current
 verdicts, and the would-be annotation, touching ZERO data.
 """
-import pytest
 
 from columna_core.envelope import parse_statement
 

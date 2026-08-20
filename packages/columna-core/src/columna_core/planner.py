@@ -1043,8 +1043,8 @@ class Planner:
                 f"by '{reducer}' across a lineage the governed law blocks for it. Generating the "
                 f"family does not create the permission, so there is no pin that rescues this ask.",
                 target=_fmt_anchor(anchor),
-                alternatives=(f"use a reducer that IS applicable along the blocked lineage "
-                              f"(e.g. '.last' for a stock collapsed over time)",
+                alternatives=("use a reducer that IS applicable along the blocked lineage "
+                              "(e.g. '.last' for a stock collapsed over time)",
                               "address at an anchor the reduction does not have to cross"))
         return Refusal("blocked_reduction",
             f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
