@@ -95,6 +95,17 @@ def test_every_laundering_spelling_refuses_identically(afternoon_server, case, e
 
 
 @pytest.mark.parametrize("case,expr", _LAUNDERING, ids=[c for c, _ in _LAUNDERING])
+def test_every_refusal_names_a_lawful_neighbour(afternoon_server, case, expr):
+    """DG-2 forward invariant 5: refuse "with reason and lawful neighbours". A refusal that leaves the
+    reader with nowhere to go is a wall, not governance — and a wall is what people route around."""
+    nr = _col(afternoon_server, ("store", "month"), expr)["no_result"]
+    alts = [a.get("description") or "" for a in (nr.get("alternatives") or [])]
+    assert alts, f"{expr}: refused without naming a remedy"
+    assert any(".last" in a for a in alts), \
+        f"{expr}: the remedy must name the reducer that IS applicable, got {alts}"
+
+
+@pytest.mark.parametrize("case,expr", _LAUNDERING, ids=[c for c, _ in _LAUNDERING])
 def test_no_laundering_spelling_can_return_the_wrong_number(afternoon_server, case, expr):
     """The concrete negative witness. 1410 is not a quantity of anything — it is S1's January stock
     counted once per day it sat on the shelf. No spelling covered by the laundering class may return

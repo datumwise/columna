@@ -1032,10 +1032,15 @@ class Planner:
     def _no_lawful_pin_refusal(self, reducer, inner, anchor):
         """|L| = 0. Either the structure offers no finer input anchor at all, or every one it offers
         would make this reduction cross a lineage the governed law bars. Both are REFUSE: an operation
-        with no lawful reading is not a choice the reader can be asked to make."""
+        with no lawful reading is not a choice the reader can be asked to make.
+
+        Enumerated over the WHOLE anchor, not just a single-level one: a refusal owes the reader the
+        lawful neighbours (DG-2 invariant 5), and `sum(on_hand) AT {store, month}` — the Afternoon's
+        third beat — is exactly the multi-level case, so leaving it terse would strip the remedy from
+        the very ask the correction exists for."""
         expr = ast.unparse(inner)
-        target = anchor[0] if len(anchor) == 1 else None
-        blocked_out = [L for L in (self._candidate_input_anchors(target) if target else [])]
+        blocked_out = [L for T in anchor for L in self._candidate_input_anchors(T)]
+        blocked_out = sorted(dict.fromkeys(blocked_out))
         if blocked_out:
             return Refusal("blocked_reduction",
                 f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
