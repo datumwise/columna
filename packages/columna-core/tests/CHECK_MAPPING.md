@@ -2,6 +2,11 @@
 
 All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 
+> **2026-08-20** — the generated-family law (Huayin) superseded ADR-020's inform-and-serve for
+> structurally prohibited reductions, so the blocked-reduction checks in `holistic_demo`, `locus_demo`,
+> `operator_umbrella_demo` and `build_benchmark` were RENAMED to state the refusal they now assert.
+> Check COUNTS are unchanged (5 / 11 / 10 / 10); only the names and bodies moved.
+
 - **Fixture-run (104)** — against `tests/fixtures/mini_warehouse`, run in CI.
 - **Warehouse-marked (20)** — `@pytest.mark.warehouse`; always collected, skipped in CI unless `COLUMNA_BENCH_WAREHOUSE` is set (10 checks × 2 manifolds: hand-built + parsed).
 
@@ -75,8 +80,8 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 | # | demo check | test id |
 |---|---|---|
 | 1 | level.last@(store,cal.month) == arg_max(level, day) per (store,month) [period-end snapshot] | `test_check[level.last@(store,cal.month) == arg_max(level, day) per (store,month) [period-end snapshot]]` |
-| 2 | level.sum@(store,cal.month) is SERVED with a CRITICAL B-anchor-crossing disclosure (inform-and-serve) — not refused | `test_check[level.sum@(store,cal.month) is SERVED with a CRITICAL B-anchor-crossing disclosure (inform-and-serve) — not refused]` |
-| 3 | the served crossing names the alternative reducer ('.last') as its remedy | `test_check[the served crossing names the alternative reducer ('.last') as its remedy]` |
+| 2 | level.sum@(store,cal.month) is REFUSED (blocked_reduction) — no number is produced at all | `test_check[level.sum@(store,cal.month) is REFUSED (blocked_reduction) — no number is produced at all]` |
+| 3 | the refusal names the lawful neighbour ('.last') among its alternatives | `test_check[the refusal names the lawful neighbour ('.last') among its alternatives]` |
 | 4 | median@cal.month == true median(amount) per month (recomputed from base) | `test_check[median@cal.month == true median(amount) per month (recomputed from base)]` |
 | 5 | a median-of-daily-medians DISAGREES with the true monthly median (so reduction is invalid) | `test_check[a median-of-daily-medians DISAGREES with the true monthly median (so reduction is invalid)]` |
 
@@ -84,13 +89,13 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 
 | # | demo check | test id |
 |---|---|---|
-| 1 | level.sum@store is SERVED (not refused) with a critical b_anchor_crossing | `test_check[level.sum@store is SERVED (not refused) with a critical b_anchor_crossing]` |
-| 2 | the crossing names the reconciling alternative (.last) | `test_check[the crossing names the reconciling alternative (.last)]` |
+| 1 | level.sum@store is REFUSED (blocked_reduction/unsupported) — never served under a caveat | `test_check[level.sum@store is REFUSED (blocked_reduction/unsupported) — never served under a caveat]` |
+| 2 | the refusal names the reconciling alternative (.last) | `test_check[the refusal names the reconciling alternative (.last)]` |
 | 3 | engine.resolve('level','sum',@store) returns a disclosure with NO crossing (engine doesn't detect) | `test_check[engine.resolve('level','sum',@store) returns a disclosure with NO crossing (engine doesn't detect)]` |
-| 4 | the planner's served result DOES carry it (detection is the planner's job now) | `test_check[the planner's served result DOES carry it (detection is the planner's job now)]` |
+| 4 | the planner's verdict is where the law lands — and it REFUSES (adjudication is the planner's job) | `test_check[the planner's verdict is where the law lands — and it REFUSES (adjudication is the planner's job)]` |
 | 5 | plan() did ZERO backend fetches | `test_check[plan() did ZERO backend fetches]` |
-| 6 | plan() surfaces the would-be critical crossing before any execution | `test_check[plan() surfaces the would-be critical crossing before any execution]` |
-| 7 | plan PREDICTS what run SERVES (same crossing detail) — contract unchanged either way | `test_check[plan PREDICTS what run SERVES (same crossing detail) — contract unchanged either way]` |
+| 6 | plan() surfaces the would-be REFUSAL before any execution | `test_check[plan() surfaces the would-be REFUSAL before any execution]` |
+| 7 | plan PREDICTS what run REFUSES (same refusal detail) — the verdict is static, not empirical | `test_check[plan PREDICTS what run REFUSES (same refusal detail) — the verdict is static, not empirical]` |
 | 8 | visitors.distinct@region plan shows the HLL approximation caveat, zero fetches | `test_check[visitors.distinct@region plan shows the HLL approximation caveat, zero fetches]` |
 | 9 | revenue.sum@region plans CLEAN (no crossing) | `test_check[revenue.sum@region plans CLEAN (no crossing)]` |
 | 10 | level.sum@product is still REFUSED (out_of_universe) at plan time | `test_check[level.sum@product is still REFUSED (out_of_universe) at plan time]` |
@@ -107,7 +112,7 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 | 5 | lag(revenue.sum,n=1) shifts the series by one month (first month has no predecessor) | `test_check[lag(revenue.sum,n=1) shifts the series by one month (first month has no predecessor)]` |
 | 6 | pct_change(revenue.sum) is month-over-month growth (first is null) | `test_check[pct_change(revenue.sum) is month-over-month growth (first is null)]` |
 | 7 | cumsum(revenue.sum)@region has no temporal axis -> refused (clarify), names by= | `test_check[cumsum(revenue.sum)@region has no temporal axis -> refused (clarify), names by=]` |
-| 8 | the scan is SERVED (not refused) and carries the underlying sum's critical crossing | `test_check[the scan is SERVED (not refused) and carries the underlying sum's critical crossing]` |
+| 8 | the scan is REFUSED (blocked_reduction), inheriting the underlying sum's unlawfulness | `test_check[the scan is REFUSED (blocked_reduction), inheriting the underlying sum's unlawfulness]` |
 | 9 | rolling_sum is in the registry (planner knows it) but in_core=False -> Pro clarification | `test_check[rolling_sum is in the registry (planner knows it) but in_core=False -> Pro clarification]` |
 | 10 | a measure whose family declares a scan ('cumsum') is rejected at publish | `test_check[a measure whose family declares a scan ('cumsum') is rejected at publish]` |
 
@@ -164,7 +169,7 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 | 3 | revenue@category is REFUSED (non-functional M:N transport) | `test_proof[revenue@category is REFUSED (non-functional M:N transport)]` |
 | 4 | (for contrast) the naive join silently inflates revenue | `test_proof[(for contrast) the naive join silently inflates revenue]` |
 | 5 | level.sum@(region,day) is CLEAN — additive over the store axis (no crossing) | `test_proof[level.sum@(region,day) is CLEAN — additive over the store axis (no crossing)]` |
-| 6 | level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure (summing a stock across days) — inform-and-serve, not refused | `test_proof[level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure (summing a stock across days) — inform-and-serve, not refused]` |
+| 6 | level.sum@store is REFUSED (blocked_reduction) — summing a stock across days has no lawful reading, so no number is served under a caveat | `test_proof[level.sum@store is REFUSED (blocked_reduction) — summing a stock across days has no lawful reading, so no number is served under a caveat]` |
 | 7 | aov@cal.month == sum(amount)/count (correct AOV) | `test_proof[aov@cal.month == sum(amount)/count (correct AOV)]` |
 | 8 | HLL-merged visitors@quarter ≈ true distinct (within 5%) | `test_proof[HLL-merged visitors@quarter ≈ true distinct (within 5%)]` |
 | 9 | (naive sum-of-daily-distincts would overcount) | `test_proof[(naive sum-of-daily-distincts would overcount)]` |
@@ -179,7 +184,7 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 | 3 | revenue@category is REFUSED (non-functional M:N transport) | `test_proof[revenue@category is REFUSED (non-functional M:N transport)]` |
 | 4 | (for contrast) the naive join silently inflates revenue | `test_proof[(for contrast) the naive join silently inflates revenue]` |
 | 5 | level.sum@(region,day) is CLEAN — additive over the store axis (no crossing) | `test_proof[level.sum@(region,day) is CLEAN — additive over the store axis (no crossing)]` |
-| 6 | level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure (summing a stock across days) — inform-and-serve, not refused | `test_proof[level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure (summing a stock across days) — inform-and-serve, not refused]` |
+| 6 | level.sum@store is REFUSED (blocked_reduction) — summing a stock across days has no lawful reading, so no number is served under a caveat | `test_proof[level.sum@store is REFUSED (blocked_reduction) — summing a stock across days has no lawful reading, so no number is served under a caveat]` |
 | 7 | aov@cal.month == sum(amount)/count (correct AOV) | `test_proof[aov@cal.month == sum(amount)/count (correct AOV)]` |
 | 8 | HLL-merged visitors@quarter ≈ true distinct (within 5%) | `test_proof[HLL-merged visitors@quarter ≈ true distinct (within 5%)]` |
 | 9 | (naive sum-of-daily-distincts would overcount) | `test_proof[(naive sum-of-daily-distincts would overcount)]` |

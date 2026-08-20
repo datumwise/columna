@@ -5,11 +5,22 @@ column-level (B-anchor), and the two gates are INDEPENDENT.
 (A) THE HEADLINE — same column, same target, the two gates disagree:
       level.last @ (store, cal.month)  WORKS   — `last` is an ORDERED monoid: carry the
                                                  day as a witness, reduce by argmax.
-      level.sum  @ (store, cal.month)  SERVED  — `sum` is a monoid too, but its B-anchor
-                                       +disclose  blocks the calendar lineage; per inform-and-
-                                                 serve (ADR-020) the total is SERVED with a
-                                                 CRITICAL crossing disclosure, never refused.
-    Reaggregability (monoid) and permission (B-anchor) are different gates.
+      level.sum  @ (store, cal.month)  REFUSED — `sum` is a monoid too, so the OPERATOR gate
+                                                 lets it through; the COLUMN gate does not.
+                                                 `sum` is declared BLOCKED along `calendar`,
+                                                 so this reduction has no lawful reading and
+                                                 the ask is refused (`blocked_reduction`),
+                                                 with `.last` named as the lawful neighbour.
+    Reaggregability (monoid) and permission (B-anchor) are different gates, and a monoid
+    passing the first one earns nothing at the second.
+
+    RULED 2026-08-20 (Huayin, the generated-family law), superseding ADR-020's inform-and-serve
+    for this case: the blocked crossing used to be SERVED with a CRITICAL disclosure attached to
+    the number. It is not any more. Disclose exists INSIDE the lawful region — it may qualify an
+    otherwise admissible result, it may not legalize an operation the governed law does not
+    possess. A caveat riding a total that should never have been computed was the mechanism by
+    which the same non-reconciling number kept being served, so the number is now withheld and
+    the reader is handed the lawful alternative instead.
 
 (B) HOLISTIC — `median` is not a monoid (no finite witness closes it), so it is
     reduction-sterile: the engine recomputes it from base at the target grain rather
@@ -53,16 +64,17 @@ def main():
 
     res2 = srv.frame("store", "cal.month").column("tot", "level.sum").run()
     col = res2.columns[0]
-    crossing = [c for c in col.disclosure.criticals if c.category == "b_anchor_crossing"]
-    check("level.sum@(store,cal.month) is SERVED with a CRITICAL B-anchor-crossing disclosure "
-          "(inform-and-serve) — not refused",
-          col.refusal is None and col.frame is not None and len(crossing) >= 1
-          and col.disclosure.severity == "critical")
-    check("the served crossing names the alternative reducer ('.last') as its remedy",
-          bool(crossing) and crossing[0].remedy is not None and ".last" in crossing[0].remedy)
+    ref = col.refusal
+    check("level.sum@(store,cal.month) is REFUSED (blocked_reduction) — no number is produced at all",
+          ref is not None and ref.kind == "refuse" and ref.reason == "blocked_reduction"
+          and ref.discriminator == "unsupported"
+          and col.frame is None and not col.disclosure.caveats,
+          "a structurally unlawful reduction returns no numeric result under Disclose")
+    check("the refusal names the lawful neighbour ('.last') among its alternatives",
+          ref is not None and any(".last" in a for a in ref.alternatives))
     print("    → two gates: last is monoid AND B-anchor-clear (clean serve); sum is monoid but "
-          "B-anchor-blocked over calendar (SERVED, critical disclosure).")
-    if crossing: print("    disclosure:", crossing[0].render())
+          "B-anchor-blocked over calendar (REFUSED — the operator gate is not the permission gate).")
+    if ref: print("    refusal:", ref.detail)
 
     # ── (B) median: HOLISTIC (non-monoid) — recompute-from-base, never reduce ──
     print("\n(B) med_amount.median @ cal.month — HOLISTIC: recomputed from base, not reduced")

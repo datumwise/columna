@@ -6,8 +6,15 @@ Closes doctrine-gap DG-1. Two forms of `R(inner)` in a column expression:
   * PINNED   `avg(aov@day) @ month` — the input anchor is pinned; a definite quantity, served with an
               IMMATERIAL communicative disclosure naming the reading. Identical to the DECLARED
               AT-metric (`daily_aov`) — same reading, two spellings; never the pooled value.
-  * UNPINNED `avg(aov) @ month`     — the input anchor is structurally underdetermined ⇒ an engine
-              clarify enumerating candidate input anchors, choosing none.
+  * UNPINNED `avg(aov) @ ...`       — the input anchor is not given, so the planner filters the
+              candidate grains for LAWFULNESS FIRST and disposes on how many survive (ruling §9,
+              Huayin 2026-08-20, superseding the flat "unpinned ⇒ clarify" of capture v0.8):
+                |L| = 0  REFUSE  `blocked_reduction` — no reading is lawful, so there is no question
+                |L| = 1  DISCLOSE — default to it, with a MATERIAL `input_anchor` caveat naming the
+                                    grain the planner chose on the reader's behalf
+                |L| > 1  CLARIFY `input_anchor_ambiguous` — over the LAWFUL candidates ONLY
+              A clarify is a menu of readings the asker may choose between; an unlawful reading is
+              not a choice, and offering it would make Clarify reachable before lawfulness.
 
 input_anchor-fit finding (owed to CP-B2, pinned here): an EXPLICITLY user-pinned input anchor is a
 deliberate, visible choice, so it owes a communicative note (immaterial `provenance`), NOT the
@@ -32,12 +39,12 @@ _DEFS = ("DERIVED aov = revenue / orders\n"
          "    FAMILY {\n        mean FERTILE { }\n    }\n")
 
 
-def _srv(fixture_connector, certify=True):
+def _srv(fixture_connector, certify=True, extra=""):
     """P0.5a closed-by-default: travel over an FD-claimed edge (day -> cal.month) serves only once the
     governing hierarchy is CORROBORATED on the attested data. These tests are about inline-reduction
     semantics, so the helper certifies first (`adjudicate` = the publish gate)."""
     with open(_BENCHMARK_CML) as f:
-        srv = ManifoldServer(parse_manifold(f.read() + "\n" + _DEFS), fixture_connector)
+        srv = ManifoldServer(parse_manifold(f.read() + "\n" + _DEFS + "\n" + extra), fixture_connector)
     if certify:
         adjudicate(srv)
     return srv
@@ -91,29 +98,105 @@ def test_pinned_reducers_serve(fixture_connector, reducer):
     assert w["outcome"] == "serve"
 
 
-# ── UNPINNED: engine clarify enumerating candidate input anchors ────────────────────────────
-def test_unpinned_inline_reduction_clarifies(fixture_connector):
+# ── UNPINNED: lawfulness FIRST, then the |L| trichotomy (ruling §9, 2026-08-20) ──────────────
+def test_unpinned_inline_reduction_clarifies_over_lawful_candidates(fixture_connector):
+    """|L| > 1 ⇒ CLARIFY, and the menu contains ONLY lawful readings.
+
+    ANCHOR SWAPPED 2026-08-20 (Huayin, ruling §9), was
+    `test_unpinned_inline_reduction_clarifies` at `cal.month`: that anchor has exactly ONE lawful
+    candidate (`day`), and one reading is not a contested choice — it now defaults and discloses (see
+    the companion test below). `region*cal.month` is reached lawfully by BOTH `store` and `day`, so
+    the ask really is underdetermined and the clarify is earned rather than reflexive."""
     s = _srv(fixture_connector)
-    fr = s.frame("cal.month").column("y", "avg(aov)").run()
+    fr = s.frame("region", "cal.month").column("y", "avg(aov)").run()
     w = wire_frame(fr)
     assert w["outcome"] == "clarify"
     nr = w["columns"][0].get("no_result") or {}
     # OF-1 ruling: its own reason `input_anchor_ambiguous` (one reason per contested dimension),
     # NOT a reuse of `ambiguous_grain`.
     assert nr.get("reason") == "input_anchor_ambiguous" and nr.get("discriminator") == "ambiguous"
-    # candidate input anchors are enumerated (only `day` rolls up to cal.month in this fixture),
-    # and the clarify chooses none.
-    alts = nr.get("alternatives") or []
-    assert alts, "unpinned reduction must enumerate candidate input anchors"
-    assert any("day" in (a.get("description") or "") for a in alts)
+    # both lawful candidate input anchors are enumerated, and the clarify chooses none.
+    alts = [a.get("description") or "" for a in (nr.get("alternatives") or [])]
+    assert len(alts) == 2, "unpinned reduction must enumerate its lawful candidate input anchors"
+    assert any("'day'" in a for a in alts) and any("'store'" in a for a in alts)
+
+
+def test_unpinned_single_lawful_candidate_defaults_and_discloses(fixture_connector):
+    """|L| = 1 ⇒ PROCEED, not clarify (ruling §9, MINTED 2026-08-20).
+
+    At `cal.month` only `day` reaches the anchor, so nothing is contested: the planner defaults to it
+    and serves. The defaulting is a decision the READER did not make, so it rides as a MATERIAL
+    `input_anchor` caveat (OF-2's defaulted half) and the wire outcome is `disclose` — never a silent
+    serve, and never a clarify asking a question with one possible answer."""
+    s = _srv(fixture_connector)
+    w = wire_frame(s.frame("cal.month").column("y", "avg(aov)").run())
+    assert w["outcome"] == "disclose"
+    assert w["columns"][0].get("no_result") is None
+    discs = {d["code"]: d for d in (w["columns"][0].get("disclosures") or [])}
+    assert discs["input_anchor"]["materiality"] == "material"
+    assert "DEFAULTED to 'day'" in discs["input_anchor"]["detail"]
+    # the defaulted reading IS the pinned reading — same number, one of them merely disclosed harder
+    assert _vals(s, "cal.month", "avg(aov)") == pytest.approx(_vals(s, "cal.month", "avg(aov@day)"))
+
+
+def test_unpinned_with_no_lawful_candidate_refuses(fixture_connector):
+    """|L| = 0 ⇒ REFUSE `blocked_reduction` (MINTED 2026-08-20, ruling §9 + the generated-family law).
+
+    `sum(level.last)` at `cal.month` GENERATES a sum family over the `on_hand`-style stock `level`,
+    whose `sum` is declared BLOCKED along `calendar`. The one candidate grain (`day`) would have to
+    cross exactly that lineage, so no lawful reading survives the filter. There is nothing to ask the
+    reader about: generating the family does not create the permission, so the ask is refused rather
+    than offered as a menu item that would launder the answer one keystroke later."""
+    s = _srv(fixture_connector)
+    w = wire_frame(s.frame("cal.month").column("z", "sum(level.last)").run())
+    assert w["outcome"] == "refuse"
+    nr = w["columns"][0]["no_result"]
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "blocked_reduction", "unsupported")
+    assert "no lawful input anchor" in nr["detail"] and "day" in nr["detail"]
+    assert "does not create the permission" in nr["detail"]
 
 
 def test_unpinned_names_a_pinnable_fix(fixture_connector):
     """The clarify's detail points the user at the pin that resolves it."""
     s = _srv(fixture_connector)
-    fr = s.frame("cal.month").column("y", "mean(aov)").run()
+    fr = s.frame("region", "cal.month").column("y", "mean(aov)").run()
     detail = (wire_frame(fr)["columns"][0].get("no_result") or {}).get("detail") or ""
     assert "@day" in detail and "does not pin" in detail
+
+
+# ── the generated-family law: a family is generated, a PERMISSION is not (2026-08-20) ────────
+@pytest.mark.parametrize("expr", [
+    "level.sum",                       # WRITTEN as a declared family member
+    "sum(level.last@day)",             # GENERATED by an inline reducer above a lawful sibling
+    "-sum(level.last@day)",            # unary carrier
+    "sum(level.last@day) + level.last",  # binary carrier
+    "2 * sum(level.last@day)",         # scalar carrier
+    "cumsum(level.sum)",               # scan carrier
+])
+def test_blocked_reduction_refuses_through_every_carrier(fixture_connector, expr):
+    """MINTED 2026-08-20 (Huayin, generated-family law, §2). The verdict follows the OPERATION and its
+    governed ancestry, not the spelling: whether `sum` over the stock is written as the declared member
+    `level.sum` or generated inline above the lawful sibling `level.last`, and whether it is then
+    wrapped in unary / binary / scalar / scan carriers, the answer is the same REFUSAL. A carrier
+    transports an operation; it does not grant it an authority the declaration withholds."""
+    s = _srv(fixture_connector)
+    w = wire_frame(s.frame("store").column("c", expr).run())
+    assert w["outcome"] == "refuse"
+    nr = w["columns"][0]["no_result"]
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "blocked_reduction", "unsupported")
+    assert "calendar" in nr["detail"]
+    assert not (w["columns"][0].get("disclosures") or [])       # nothing served ⇒ nothing to caveat
+
+
+def test_derived_carrier_refuses_the_same_way(fixture_connector):
+    """The DERIVED carrier, same law (2026-08-20). Naming the blocked reduction in a `DERIVED` formula
+    is the most authoritative-looking carrier there is, and it changes nothing: the planner expands the
+    name before the law chokepoint, so the declaration inherits the refusal."""
+    s = _srv(fixture_connector, extra="DERIVED lvlsum = level.sum")
+    named = wire_frame(s.frame("store").column("c", "lvlsum").run())
+    inline = wire_frame(s.frame("store").column("c", "level.sum").run())
+    assert named["outcome"] == inline["outcome"] == "refuse"
+    assert named["columns"][0]["no_result"]["reason"] == "blocked_reduction"
 
 
 # ── OF-1: the minted reason lives in the closed vocabulary, distinct from ambiguous_grain ───

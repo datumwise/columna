@@ -77,10 +77,31 @@ class UniverseShape:
 
 @dataclass(frozen=True)
 class DerivedShape:
+    """A derived column, as SHAPE — including its SUCCESSOR-FAMILY LAW.
+
+    TWO POLARITIES, DELIBERATELY NOT UNIFIED (ruling 2026-08-20). `MeasureShape.blocked` is a
+    NEGATIVE law: a measure family is OPEN by default and `BLOCKED { lineage }` closes an operator
+    over those lineages. `DerivedShape.member_lineages` is the mirror POSITIVE law: a derived
+    successor family is CLOSED by default and `FERTILE { lineage }` establishes travel. Absence
+    means opposite things on the two sides — no permission here, no prohibition there — so a
+    consumer must know which one it is reading. They are never merged into one default.
+
+    Before 2026-08-20 this shape carried member NAMES only, so authored positive family law was
+    invisible to planning and `FERTILE { calendar }` and `FERTILE { }` were behaviourally identical
+    (both travelled and served clean). The law existed, was adjudicated, and was never consulted."""
     name: str
     formula: str
     resolution_anchor: Optional[str] = None   # declared `AT <level>` — routes the distinct AT-metric reading
     members: tuple = ()                        # declared family member names (shape: which reducers travel)
+    member_lineages: dict = field(default_factory=dict)   # member -> frozenset(FERTILE lineages): the POSITIVE
+                                                          # successor law. Absence of a lineage = NO permission.
+    member_license: dict = field(default_factory=dict)    # member -> adjudicated verdict | None. PROJECTED for
+                                                          # describe/EXPLAIN legibility ONLY. Planning gates on
+                                                          # the DECLARATION (member_lineages), never on the
+                                                          # verdict: License is the adjudicator's equality
+                                                          # theorem for the reduce-path optimization, and
+                                                          # reinterpreting UNTESTABLE as "may not travel" would
+                                                          # silently redefine it (ruling 2026-08-20 §3).
 
 @dataclass(frozen=True)
 class ShapeEdge:
@@ -120,7 +141,9 @@ class PlannerView:
     """A provenance-free projection of a Manifold, for the planner."""
 
     def __init__(self, m):
-        from .operators import REGISTRY
+        from .operators import REGISTRY, canonical, SERIES_REDUCERS
+        self.canonical_op = staticmethod(canonical).__func__   # surface spelling -> canonical operator
+        self.series_reducers = SERIES_REDUCERS                 # reducers that may collapse a resolved series
         self.measures = {n: MeasureShape(n, mc.universe, tuple(mc.family), mc.logical_type,
                                          {mem: frozenset(fm.b_anchor.blocked_lineages)
                                           for mem, fm in mc.family.items()},
@@ -128,7 +151,11 @@ class PlannerView:
                          for n, mc in m.measures.items()}
         self.universes = {n: UniverseShape(n, u.base_dimensions, u.basis)
                           for n, u in m.universes.items()}
-        self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
+        self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family),
+                                        {mem: frozenset(fm.declared_lineages)
+                                         for mem, fm in d.family.items()},
+                                        {mem: (fm.license.verdict if fm.license else None)
+                                         for mem, fm in d.family.items()})
                         for n, d in m.derived.items()}
         self.non_functional = tuple(                          # RelateShape — level names + face shapes, NO VIA
             RelateShape(r.frm, r.to, r.detail,

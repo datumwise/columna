@@ -10,13 +10,14 @@ columns, assembles the frame, and folds disclosures. It never sees provenance.
 from __future__ import annotations
 import ast
 import re
+from collections import namedtuple
 from dataclasses import dataclass, field
 from typing import Optional
 import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .disclosure import (Disclosure, Refusal, Caveat, B_ANCHOR_CROSSING, TRANSPORT,
+from .disclosure import (Disclosure, Refusal, Caveat, TRANSPORT, UNCONFIRMED,
                          DECLARED_FILL, UNKNOWN_ABSENCE, OUT_OF_POPULATION, UNDECLARED_ABSENCE,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
@@ -29,6 +30,17 @@ _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Call, ast.keyword)
 _OP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
 _V = "_v"
+
+# ── one adjudicable REDUCTION inside an expression (generated-family law, 2026-08-20) ──────────────
+#   polarity  'b_anchor'  — NEGATIVE law from a governed measure family: open by default, BLOCKED closes.
+#             'fertile'   — POSITIVE law from a declared derived successor family: closed by default,
+#                           FERTILE establishes.
+#   op        the canonical operator performing the reduction.
+#   frm/to    the grain it reduces FROM and the anchor it reduces ONTO (tuples of level names).
+#   subject   how to name this operation back to the reader (surface form, not an internal id).
+#   law       polarity-dependent: the BLOCKED lineage set, or the FERTILE lineage set.
+#   written   True if the reader spelled the reducer as a declared member; False if it was GENERATED.
+_Travel = namedtuple("_Travel", "polarity op frm to subject law written")
 
 
 def _fmt_anchor(anchor) -> str:
@@ -458,18 +470,20 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                # GENERATED-FAMILY LAW, before typing (ruling 2026-08-20). A structurally prohibited
+                # operation is refused for what it ASKS, not for how its ingredients are spelled — so
+                # `sum(on_hand@day)`, whose family member is ambiguous, refuses the prohibited temporal
+                # sum rather than erroring about which member to pick. Whichever member the reader
+                # named, the generated SUM is the thing without authority. Malformed expressions reach
+                # no ancestry here and fall through to `_infer`'s vocabulary errors unchanged.
+                self._check_expression_law(tree.body, anchor)
                 self._infer(tree.body, anchor, population)
                 col_uni = self._check_single_universe(tree.body, anchor)  # §2c expr law + the column's universe
                 blk = self._blocked_transport(tree.body, anchor)          # transport across a refuted-hierarchy edge
                 if blk is not None:
                     raise self._blocked_transport_refusal(blk)
-                # B-anchor crossings are STRUCTURAL — detected HERE (compile, shape-only), not in
-                # the engine. Inform-and-serve: they ride into the served disclosure unchanged.
-                crossings = self._frame_crossings(tree.body, anchor)
                 # EXECUTE: resolve through the engine
                 frame, disc = self._eval(expr, anchor, where, trace)
-                if crossings:
-                    disc = Disclosure.merge(disc, Disclosure.of(*crossings), population=disc.population)
                 results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc,
                                             trace=trace, universe=col_uni,
                                             fill_rule=self._column_fill_rule(tree.body, anchor)))
@@ -968,14 +982,15 @@ class Planner:
                         alternatives=(f"pin @ {{{fine_only}}} (the finer level)",
                                       f"pin @ {{{coarse_only}}} (the coarser level — a different denotation)"))
 
-    @staticmethod
-    def _reducer_out_dtype(reducer: str, in_dt: str) -> str:
-        """Output dtype of an inline reducer over `in_dt` (mean/count are not registry operators)."""
-        if reducer == "mean":
-            return "Float64"
-        if reducer == "count":
-            return "Int64"
-        return in_dt                                            # sum/min/max preserve the input dtype
+    def _reducer_out_dtype(self, reducer: str, in_dt: str) -> str:
+        """Output dtype of an inline reducer over `in_dt`, read from the operator REGISTRY.
+
+        This used to be a hand-written table because `mean` was in no registry at all — the same
+        drift that left the inline average with no governable law address (see operators.ALIASES /
+        SERIES_REDUCERS). It now agrees with the registry by construction: mean -> Float64,
+        count -> Int64, sum/min/max -> `same`. Deliberately NOT extended into a signature check:
+        registering `mean` gives the operator a law address, not new arithmetic or new typing."""
+        return self.m.output_dtype(reducer, in_dt)
 
     def _split_dependent(self, target: tuple) -> tuple:
         """Partition a target anchor into independent REDUCTION targets and functionally-DETERMINED
@@ -986,13 +1001,58 @@ class Planner:
         return tuple(T for T in target if T not in dependent), tuple(dependent)
 
     def _candidate_input_anchors(self, target: str):
-        """The finer levels a reduction's input anchor could pin: every level with a functional path
-        to the frame anchor. These are the alternatives an unpinned reduction's clarify enumerates."""
+        """C — the GOVERNED candidate interpretations of an unpinned reduction's input anchor: every
+        level with a functional path to the frame anchor. Structure only; lawfulness is applied on top
+        of this set by `_lawful_pins`, never folded into it (the two are different questions and the
+        refusal messages need to tell them apart)."""
         levels = {e.frm for e in self.m._edges} | {e.to for e in self.m._edges}
         return sorted(L for L in levels
                       if L != target and self.m.find_path({L}, target) is not None)
 
-    def _unpinned_reduction_refusal(self, reducer, inner, anchor):
+    def _unpinned_disposition(self, reducer, inner, anchor):
+        """The verdict for an unpinned generated reduction (ruling 2026-08-20 §9):
+
+            |L| = 0  ->  Refuse   — no lawful candidate survives; there is nothing to choose between
+            |L| = 1  ->  proceed  — one lawful reading, so nothing is contested; the DEFAULTED input
+                                    anchor is returned and the caller owes the MATERIAL input_anchor
+                                    caveat (OF-2: a defaulted anchor is a condition the reader weighs)
+            |L| > 1  ->  Clarify  — over the LAWFUL candidates only
+
+        Never offer a candidate that is already structurally illegal. A clarify is a menu of readings
+        the asker may choose between; an unlawful reading is not a choice, and offering it makes
+        Clarify reachable before lawfulness — which is how a reader gets talked into a laundered
+        answer one keystroke later."""
+        lawful = self._lawful_pins(reducer, inner, tuple(anchor))
+        if len(lawful) == 1:
+            return (lawful[0],)
+        if lawful:
+            raise self._unpinned_reduction_refusal(reducer, inner, anchor, lawful)
+        raise self._no_lawful_pin_refusal(reducer, inner, anchor)
+
+    def _no_lawful_pin_refusal(self, reducer, inner, anchor):
+        """|L| = 0. Either the structure offers no finer input anchor at all, or every one it offers
+        would make this reduction cross a lineage the governed law bars. Both are REFUSE: an operation
+        with no lawful reading is not a choice the reader can be asked to make."""
+        expr = ast.unparse(inner)
+        target = anchor[0] if len(anchor) == 1 else None
+        blocked_out = [L for L in (self._candidate_input_anchors(target) if target else [])]
+        if blocked_out:
+            return Refusal("blocked_reduction",
+                f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                f"{_fmt_anchor(anchor)}: every candidate grain ({', '.join(blocked_out)}) would reduce "
+                f"by '{reducer}' across a lineage the governed law blocks for it. Generating the "
+                f"family does not create the permission, so there is no pin that rescues this ask.",
+                target=_fmt_anchor(anchor),
+                alternatives=(f"use a reducer that IS applicable along the blocked lineage "
+                              f"(e.g. '.last' for a stock collapsed over time)",
+                              "address at an anchor the reduction does not have to cross"))
+        return Refusal("blocked_reduction",
+            f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+            f"{_fmt_anchor(anchor)} — no declared level both reaches this anchor and admits the "
+            f"reduction, so the ask has no reading to serve.",
+            target=_fmt_anchor(anchor))
+
+    def _unpinned_reduction_refusal(self, reducer, inner, anchor, lawful=None):
         """The engine clarify for an inline reduction with no pinned input anchor (capture v0.8): the
         input anchor is structurally underdetermined, so enumerate the candidate anchors and choose
         none. Reason `input_anchor_ambiguous` (CLARIFY/AMBIGUOUS), sibling to `co_anchor_ambiguous`
@@ -1000,7 +1060,9 @@ class Planner:
         pinned case's immaterial input-anchor note (OF-2) records."""
         expr = ast.unparse(inner)
         target = anchor[0] if len(anchor) == 1 else None
-        cands = self._candidate_input_anchors(target) if target else []
+        # LAWFUL candidates only (ruling 2026-08-20 §9). `lawful` is supplied by `_unpinned_disposition`;
+        # the structural fallback exists for the direct-`_node` path and is filtered here too.
+        cands = list(lawful) if lawful is not None else self._lawful_pins(reducer, inner, tuple(anchor))
         alts = tuple(f"pin the input anchor to '{L}' (e.g. {reducer}({expr}@{L}))" for L in cands)
         hint = cands[0] if cands else "<level>"
         return Refusal("input_anchor_ambiguous",
@@ -1064,49 +1126,247 @@ class Planner:
             return self._atoms(node.left, anchor) + self._atoms(node.right, anchor)
         return []
 
-    def _crossings(self, measure, member, anchor):
-        """The critical b_anchor_crossing caveats for one atom at an anchor — knowable from the
-        b-anchor's blocked lineages and the path/out-edge lineages alone (no provenance). Only a
-        MONOID reducer reduces across an axis; a holistic reducer recomputes from base (b-anchor
-        moot), and a scan/map preserves the anchor (its underlying reducer is checked as an atom)."""
-        meas = self.m.measures[measure]
-        blocked = meas.blocked.get(member, frozenset())
-        sig = self.m.operators.get(member)
-        if not blocked or sig is None or not (sig.kind == "reducer" and sig.is_monoid):
-            return []
-        cav = []
-        base = set(self.m.universes[meas.universe].base_dimensions)
-        # (1) the transport PATH itself coarsens across a blocked lineage
-        for T in anchor:
-            path = self.m.find_path(base, T)
-            if path is None:
-                continue
-            for e in path[1]:
-                if e.lineage in blocked:
-                    cav.append(Caveat(B_ANCHOR_CROSSING,
-                        f"{measure}.{member} ({member}) coarsens across blocked lineage "
-                        f"'{e.lineage}' (edge {e.frm}->{e.to}); per-bucket totals do not "
-                        f"reconcile along this axis",
-                        severity="critical", source=f"{e.frm}->{e.to}",
-                        remedy=f"use a reducer applicable along '{e.lineage}' "
-                               f"(e.g. '.last' for a stock collapsed over time)"))
-        # (2) a base dimension is COLLAPSED (marginalized) along a blocked lineage
-        covered = set()
-        for d in base:
-            for T in anchor:
-                if self.m.find_path([d], T) is not None:
-                    covered.add(d); break
-        for d in (base - covered):
+    # ══ GENERATED-FAMILY LAW ═══════════════════════════════════════════════════════════════════
+    # RULING 2026-08-20 (Huayin). This supersedes ADR-020's inform-and-serve rule for structurally
+    # prohibited reductions. The governing sentence:
+    #
+    #   Family generation creates a new analytical family. It does NOT create a new operator
+    #   permission. A successor family preserves the applicability law of its governed ancestry
+    #   unless the family-changing operation POSITIVELY establishes a different successor law.
+    #
+    # WHAT WAS WRONG. The pre-2026-08-20 walk (`_atoms` -> `_crossings`) modelled an expression's law
+    # as the law of its LEAF members, so every reducer GENERATED above a leaf was invisible to it.
+    # `on_hand.sum AT {store, month}` was caught; `sum(on_hand.last@day) AT {store, month}` — the same
+    # prohibited temporal-stock-sum, one syntax away — served CLEAN with the identical meaningless
+    # number (960 on the Afternoon fixture, 179656 on Cascadia). Unary, binary, scalar, scan, DERIVED
+    # and default-member spellings were all carriers for the same bypass, because in every one of them
+    # the leaf stayed lawful and the *generated* reducer did the prohibited travel. So this walk
+    # adjudicates the OPERATION, not the leaf: every point in an expression where a reduction actually
+    # travels, whether the reader wrote the reducer or generated it.
+    #
+    # TWO POLARITIES, NEVER FLATTENED (ruling §2). A `_Travel` records which one governs it and the
+    # adjudicator never merges them, because ABSENCE means opposite things on the two sides:
+    #   · MEASURE B-anchor  — NEGATIVE. Open by default; `BLOCKED { lineage }` closes an operator.
+    #                         No declaration => no prohibition from this mechanism.
+    #   · DERIVED FERTILE   — POSITIVE. Closed by default; `FERTILE { lineage }` establishes travel.
+    #                         No declaration => no permission.
+    #
+    # DETERMINISM (ruling §4). Every input here is the expression plus the governed declarations:
+    # `_atoms`/`_law_travels` are pure AST walks, `find_path`/`out_edges` read declared structure, and
+    # nothing consults a value, a row count, a cache or an execution path. Two equivalent resolved
+    # expressions therefore cannot acquire different laws. No public or cache identity depends on it.
+
+    def _ancestry(self, node) -> tuple:
+        """The governed MEASURE names an expression's value descends from (derived expanded, scans and
+        inline reductions reduced to their inner). This is the `governed ancestry` the ruling names:
+        the law subject a generated operation is being attempted FROM. It is deliberately NOT the leaf
+        member — `on_hand.last` stays its own resolved family; what we ask is whether the operation
+        now being generated is permitted over `on_hand`."""
+        return tuple(dict.fromkeys(m for (m, _mem) in self._atoms(node, ())))
+
+    def _traversed_lineages(self, frm, to) -> set:
+        """The declared lineages a reduction from grain `frm` onto anchor `to` actually travels.
+
+        Two ways a lineage is crossed — the same two the pre-2026-08-20 crossing detector used, kept
+        deliberately identical so the DIRECT case's verdict is unchanged in extension (only its mood
+        moves from disclose to refuse):
+          (1) TRANSPORT — a source level reaches a target level along a path; the path's edge lineages
+              are traversed. Read over CERTIFIED structure (`find_path`), because an uncertified edge
+              establishes no transport.
+          (2) COLLAPSE  — a source level reaches NO target and is marginalized away; it exits along
+              every lineage leaving it. Read over DECLARED structure (`out_edges`), certification-
+              independent, because the axis is being summed over whether or not anyone may travel it.
+        """
+        lineages, covered = set(), set()
+        for d in frm:
+            for T in to:
+                path = self.m.find_path({d}, T)
+                if path is None:
+                    continue
+                covered.add(d)
+                for e in path[1]:
+                    lineages.add(e.lineage)
+        for d in (set(frm) - covered):
             for e in self.m.out_edges(d):
-                if e.lineage in blocked:
-                    cav.append(Caveat(B_ANCHOR_CROSSING,
-                        f"{measure}.{member} ({member}) collapses dimension '{d}' along "
-                        f"blocked lineage '{e.lineage}' (reducing across the {e.lineage} axis "
-                        f"is non-reconciling)",
-                        severity="critical", source=d,
-                        remedy=f"address at a finer anchor that preserves '{d}', or use a "
-                               f"reconciling family member (e.g. '.last')"))
-        return cav
+                lineages.add(e.lineage)
+        return lineages
+
+    def _law_travels(self, node, anchor, out=None) -> list:
+        """Every adjudicable reduction in `node` when it is resolved AT `anchor`, outermost first.
+
+        The recursion carries the grain each sub-expression is resolved at, which is what makes the
+        walk correct under nesting: the inner of `sum(x@day)` is resolved at the PIN's input grain, so
+        its own travel is adjudicated against that grain, not against the frame anchor.
+
+        LAW-PRESERVING classes (ruling §3-A) recurse WITHOUT adding a travel of their own, because
+        they establish nothing: unary minus, binary maps, scalar arithmetic, scans and plain DERIVED
+        are all anchor-preserving — they reduce nothing, so they can neither acquire nor shed a
+        permission. Their operands' law reaches the result unchanged (for a binary, the union of both
+        operands' — see ruling §5: the MAP itself establishes no new reduction permission)."""
+        out = [] if out is None else out
+        if isinstance(node, ast.Constant):
+            return out
+
+        rc = self._reduction_call(node)
+        if rc is not None:
+            reducer, inner, pinned = rc
+            if pinned is None:                      # unpinned: adjudicated by `_lawful_pins` instead,
+                return out                          # which needs the candidate set, not a fixed travel
+            grain = self._pin_input_grain(pinned, anchor)
+            out.append(self._generated_travel(reducer, inner, grain, anchor, pinned))
+            return self._law_travels(inner, grain, out)
+
+        sc = self._scan_call(node)
+        if sc is not None:                          # SCAN: order-preserving, anchor-preserving
+            return self._law_travels(sc[1], anchor, out)
+
+        meas_name, member = self._measure_ref(node)
+        if meas_name is not None:
+            if meas_name in self.m.derived:
+                dshape = self.m.derived[meas_name]
+                inner = ast.parse(dshape.formula, mode="eval").body
+                if dshape.resolution_anchor is None:
+                    return self._law_travels(inner, anchor, out)     # denotation-only: no travel
+                res = (dshape.resolution_anchor,)
+                # HELD (2026-08-20) — the declared derived successor family is NOT adjudicated here.
+                # Ruling §3 asked us to consume `FERTILE { .. }` as the successor family's travel
+                # permission. Implementing that and running it proved FERTILE cannot carry that meaning:
+                # `FERTILE` is an EQUALITY THEOREM about the reduce-path ("reducing from cached finer
+                # values equals recomputing from base"), adjudicated against attested data by
+                # `adjudication._prove_data`. An AT-metric's travel is the opposite of that by
+                # construction — `daily_aov AT day` reduced to month is the MEAN OF DAILY RATES, which
+                # is deliberately NOT the recompute-path value (that is the whole point of the reading,
+                # pinned by `test_at_metric_at_coarse_is_mean_of_finer_not_pooled`). So declaring
+                # `mean FERTILE { calendar }` on it is a FALSE claim and publish fails closed with a
+                # Contradiction — while `FERTILE { }` would forbid the metric's own declared meaning.
+                # There is therefore NO declaration an author could write to permit this travel, and
+                # enforcing the positive polarity through this field would make AT-metrics unusable.
+                # Two different concepts wear one name; separating them needs a ruling, not a patch.
+                # Recorded as DG-3. The projection (`DerivedShape.member_lineages` / `member_license`)
+                # IS landed, so the law is visible to planning the moment its carrier is settled.
+                return self._law_travels(inner, res, out)
+            if meas_name not in self.m.measures:
+                return out
+            meas = self.m.measures[meas_name]
+            if member is None:
+                if len(meas.family) != 1:
+                    return out                      # ambiguous family: `_infer` raises the vocabulary error
+                member = next(iter(meas.family))
+            sig = self.m.operators.get(member)
+            # The DIRECT case keeps its pre-existing monoid gate: a HOLISTIC reducer recomputes from
+            # base at the target grain and never combines partial results across the axis, so the
+            # B-anchor is moot for it. (A GENERATED reducer is not gated this way — see below.)
+            if sig is not None and sig.kind == "reducer" and sig.is_monoid:
+                base = tuple(self.m.universes[meas.universe].base_dimensions)
+                out.append(_Travel("b_anchor", member, base, tuple(anchor),
+                                   f"{meas_name}.{member}",
+                                   frozenset(meas.blocked.get(member, frozenset())), True))
+            return out
+
+        if isinstance(node, ast.UnaryOp):
+            return self._law_travels(node.operand, anchor, out)
+        if isinstance(node, ast.BinOp):
+            self._law_travels(node.left, anchor, out)
+            return self._law_travels(node.right, anchor, out)
+        return out
+
+    def _generated_travel(self, reducer, inner, grain, anchor, pinned) -> "_Travel":
+        """The `_Travel` for one inline generating reduction `R(inner @ pin)` served at `anchor`.
+
+        The law subject is the GOVERNED ANCESTRY of `inner` and the operator is `R` — NOT the leaf
+        member `inner` happens to name (ruling §1: "Do not require `R` to be the leaf member the
+        expression names. Do not collapse `on_hand.last` back into the identity of bare `on_hand`.").
+        `on_hand.last` remains its own resolved family; the question asked here is whether a SUM over
+        `on_hand` is permitted along the lineages this reduction will cross. It never is, because
+        `on_hand` declares `sum BLOCKED { calendar }` — and it never was, in any spelling.
+
+        NO MONOID GATE, deliberately, unlike the direct case: a generated reducer genuinely collapses
+        the resolved series across the axis (that IS the operation), so the reason the direct case
+        exempts holistic reducers — they recompute from base rather than combining across the axis —
+        does not apply. This is what gives `mean` a real law address rather than a decorative one."""
+        law = set()
+        for m in self._ancestry(inner):
+            law |= set(self.m.measures[m].blocked.get(reducer, frozenset()))
+        return _Travel("b_anchor", reducer, tuple(grain), tuple(anchor),
+                       f"{reducer}({ast.unparse(inner)}@{self._fmt_pin(pinned)})",
+                       frozenset(law), False)
+
+    def _travel_violation(self, t: "_Travel") -> Optional["Refusal"]:
+        """Adjudicate one `_Travel`. Returns the Refusal it earns, or None if it is lawful.
+
+        The two polarities are read with opposite defaults and never merged (ruling §2)."""
+        # ADDRESSABILITY IS A PRIOR QUESTION. If a target level is reachable from NO source level, the
+        # ask fails because it is out of the contracted space — not because of a lineage law — and the
+        # existing out_of_universe / uncertified-travel machinery gives the truer diagnosis. Without
+        # this guard every unaddressable ask would be charged for the out-edges of the source levels it
+        # "collapses", and `level.sum @ product` would refuse for the wrong reason. A target that IS
+        # reachable while a sibling source level collapses is still adjudicated (that is DG-2's case).
+        if any(all(self.m.find_path({d}, T) is None for d in t.frm) for T in t.to):
+            return None
+        crossed = self._traversed_lineages(t.frm, t.to)
+        if t.polarity == "b_anchor":
+            bad = sorted(crossed & t.law)           # NEGATIVE: prohibited iff a BLOCKED lineage is crossed
+            if not bad:
+                return None
+            lin = bad[0]
+            how = ("declared" if t.written else "generated")
+            return Refusal("blocked_reduction",
+                f"'{t.subject}' reduces by '{t.op}' across blocked lineage '{lin}' — "
+                f"'{t.op}' is declared BLOCKED along '{lin}', so this reduction has no lawful "
+                f"reading at {_fmt_anchor(t.to)}; per-bucket totals do not reconcile along this axis. "
+                f"Generating a new family does not create the permission: the {how} reducer needs "
+                f"the same authority the declaration withholds.",
+                target=_fmt_anchor(t.to),
+                alternatives=(f"use a reducer that IS applicable along '{lin}' "
+                              f"(e.g. '.last' for a stock collapsed over time)",
+                              f"address at an anchor that does not cross '{lin}'"))
+        # POSITIVE: a declared derived successor family travels only where FERTILE establishes it.
+        unestablished = sorted(crossed - t.law)
+        if not unestablished:
+            return None
+        lin = unestablished[0]
+        have = sorted(t.law)
+        return Refusal("unestablished_reduction",
+            f"derived '{t.subject}' would reduce by '{t.op}' across lineage '{lin}', which its "
+            f"declaration does not establish (FERTILE {{{', '.join(have)}}}) — a derived successor "
+            f"family is closed by default, so travel it never claimed is not available to it.",
+            target=_fmt_anchor(t.to),
+            alternatives=((f"declare '{t.subject}' FERTILE along '{lin}' if that reduction is sound",)
+                          + ((f"ask at an anchor reachable without '{lin}'",) if have else ())))
+
+    def _check_expression_law(self, node, anchor):
+        """The single law chokepoint for a column expression. Raises the OUTERMOST violation, so the
+        reader is told about the operation they actually wrote rather than one of its ingredients."""
+        for t in self._law_travels(node, tuple(anchor)):
+            r = self._travel_violation(t)
+            if r is not None:
+                raise r
+
+    def _lawful_pins(self, reducer, inner, anchor) -> list:
+        """The GOVERNED CANDIDATE input anchors for an unpinned generated reduction, filtered to the
+        ones for which the requested generated operation is actually LAWFUL (ruling §9).
+
+        Never offer a candidate that is already structurally illegal: a clarify is a menu of readings
+        the asker may choose between, and an unlawful reading is not a choice — offering it would make
+        Clarify reachable before lawfulness, which is how a reader gets talked into a laundered answer.
+        Both the pin lattice laws and the generated-family law are applied here."""
+        levels = {e.frm for e in self.m._edges} | {e.to for e in self.m._edges}
+        out = []
+        for L in sorted(levels):
+            if L in anchor:
+                continue
+            if not any(self.m.find_path({L}, T) is not None for T in anchor):
+                continue
+            pin = (L,)
+            try:
+                self._check_pin_laws(pin, tuple(anchor))
+            except Refusal:
+                continue                                    # pin_coarser_than_output / redundant_pin
+            grain = self._pin_input_grain(pin, tuple(anchor))
+            if self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin)):
+                continue                                    # structurally prohibited: not a choice
+            out.append(L)
+        return out
 
     def _column_fill_rule(self, node, anchor):
         """Φ_v for a column: the fill rule of its member(s) (columna#143). A column resolves to ONE
@@ -1116,16 +1376,6 @@ class Planner:
         rules = {getattr(self.m.measures.get(m), "fill_rule", None)
                  for (m, _mem) in self._atoms(node, anchor)}
         return next(iter(rules)) if len(rules) == 1 else None
-
-    def _frame_crossings(self, node, anchor):
-        """All crossing caveats for an expression, deduplicated across its atoms."""
-        seen, out = set(), []
-        for (m, mem) in self._atoms(node, anchor):
-            for c in self._crossings(m, mem, anchor):
-                k = (c.category, c.detail, c.source)
-                if k not in seen:
-                    seen.add(k); out.append(c)
-        return out
 
     # ---- PLAN: the would-be annotation WITHOUT executing (zero backend fetches) -------------
     def plan(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
@@ -1146,6 +1396,7 @@ class Planner:
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
+                self._check_expression_law(tree.body, anchor)               # generated-family law (2026-08-20)
                 self._infer(tree.body, anchor, population)                 # static typecheck + addressability
                 col_uni = self._check_single_universe(tree.body, anchor)    # §2c expr law + column universe
                 blk = self._blocked_transport(tree.body, anchor)
@@ -1155,8 +1406,8 @@ class Planner:
                 for (m, mem) in self._atoms(tree.body, anchor):
                     disc = Disclosure.merge(disc, self.engine.dry_disclose(m, mem, anchor))
                     trace.append(f"plan {m}.{mem} @ {_fmt_anchor(anchor)} (would-be annotation; no execution)")
-                for c in self._frame_crossings(tree.body, anchor):
-                    disc = disc.with_caveat(c)
+                for c in self._would_be_defaulted_caveats(tree.body, anchor):
+                    disc = disc.with_caveat(c)                 # §9 |L|=1: predict the material default
                 results.append(ColumnResult(name, expr, None, disc, trace=trace, universe=col_uni,
                                             fill_rule=self._column_fill_rule(tree.body, anchor)))
             except Refusal as r:
@@ -1177,9 +1428,11 @@ class Planner:
         if rc is not None:
             reducer, inner, pinned = rc
             if pinned is None:
-                # UNPINNED: the input anchor is structurally underdetermined — a STATIC engine clarify
-                # (capture v0.8), enumerating the candidate input anchors.
-                raise self._unpinned_reduction_refusal(reducer, inner, anchor)
+                # UNPINNED: the input anchor is structurally underdetermined. Since 2026-08-20 the
+                # candidates are filtered for LAWFULNESS first (§9): no lawful candidate refuses,
+                # exactly one is not contested and is defaulted to (the caller owes the material
+                # input_anchor caveat), several still clarify — over the lawful ones only.
+                pinned = self._unpinned_disposition(reducer, inner, anchor)
             # WP-GRAIN-1: a pinned reduction serves at a MULTI-level anchor with a COMPOSITE input
             # anchor. Laws 1 & 2 are static checks over the pin × output lattice (refuse coarser-than-
             # output pins; clarify cross-comparable pins), classified here at the static chokepoint.
@@ -1415,8 +1668,9 @@ class Planner:
         already made deliberately. Unpinned is caught statically in `_infer`; this defends the
         direct-`_node` path."""
         reducer, inner, pinned = rc
-        if pinned is None:
-            raise self._unpinned_reduction_refusal(reducer, inner, anchor)
+        defaulted = pinned is None
+        if defaulted:
+            pinned = self._unpinned_disposition(reducer, inner, anchor)
         self._check_pin_laws(pinned, anchor)                   # defends the direct-_node path (see _infer)
         # WP-GRAIN-1: the pinned levels pin THEIR lineage's resolution; output reduction dimensions
         # ORTHOGONAL to the pin (reachable from no pin level) join the input grain so the series carries
@@ -1468,7 +1722,64 @@ class Planner:
             text = (f"'{reading}' reduced to {target} — the {reading} reading (input anchor pinned "
                     f"to '{pin_str}'), not the pooled value at {target}")
         note = Caveat(TRANSPORT, text, source=f"{pin_str}->{target}")
-        return "col", served, Disclosure.merge(disc, Disclosure.of(note), population=disc.population), out_dtype
+        out = Disclosure.merge(disc, Disclosure.of(note), population=disc.population)
+        if defaulted:
+            out = out.with_caveat(self._defaulted_anchor_caveat(reducer, inner, pinned, anchor))
+        return "col", served, out, out_dtype
+
+    def _defaulted_anchor_caveat(self, reducer, inner, pinned, anchor) -> "Caveat":
+        """OF-2, the DEFAULTED half: the reader did not choose this input anchor — the planner did,
+        because exactly one lawful reading survived (§9). That is a decision-relevant assumption, so it
+        rides as a MATERIAL `input_anchor` caveat, not the immaterial provenance note an explicit pin
+        owes. A defaulted anchor is disclosed, never silent.
+
+        Built HERE, in one place, because `plan()` must predict it byte-for-byte: the whole promise of
+        EXPLAIN is that the would-be annotation is the annotation. Deriving it twice is how they drift."""
+        pin_str, target = self._fmt_pin(pinned), _fmt_anchor(anchor)
+        return Caveat(UNCONFIRMED,
+            f"input anchor was not given and was DEFAULTED to '{pin_str}' — the only grain at "
+            f"which '{reducer}({ast.unparse(inner)})' has a lawful reading at {target}; pin it "
+            f"explicitly to make the choice yours",
+            source=f"{pin_str}->{target}")
+
+    def _would_be_defaulted_caveats(self, node, anchor) -> list:
+        """The defaulted-input-anchor caveats `run` WILL attach, computed without executing anything.
+
+        `plan()` builds its would-be annotation from `engine.dry_disclose` over the expression's ATOMS,
+        which cannot see a decision taken above an atom — so before this existed, `SELECT avg(aov) AT
+        {cal.month}` planned as `serve` and ran as `disclose`, and EXPLAIN under-reported a material
+        condition. That is the one thing EXPLAIN may never do. The defaulting is a pure shape fact
+        (`_unpinned_disposition` reads declarations and structure, never a value), so it is knowable at
+        compile time and costs no fetch."""
+        out = []
+        if isinstance(node, ast.Constant):
+            return out
+        rc = self._reduction_call(node)
+        if rc is not None:
+            reducer, inner, pinned = rc
+            grain = anchor
+            if pinned is None:
+                pinned = self._unpinned_disposition(reducer, inner, tuple(anchor))
+                out.append(self._defaulted_anchor_caveat(reducer, inner, pinned, tuple(anchor)))
+            grain = self._pin_input_grain(pinned, tuple(anchor))
+            return out + self._would_be_defaulted_caveats(inner, grain)
+        sc = self._scan_call(node)
+        if sc is not None:
+            return self._would_be_defaulted_caveats(sc[1], anchor)
+        meas_name, _member = self._measure_ref(node)
+        if meas_name is not None:
+            if meas_name in self.m.derived:
+                dshape = self.m.derived[meas_name]
+                inner = ast.parse(dshape.formula, mode="eval").body
+                grain = ((dshape.resolution_anchor,) if dshape.resolution_anchor else tuple(anchor))
+                return self._would_be_defaulted_caveats(inner, grain)
+            return out
+        if isinstance(node, ast.UnaryOp):
+            return self._would_be_defaulted_caveats(node.operand, anchor)
+        if isinstance(node, ast.BinOp):
+            return (self._would_be_defaulted_caveats(node.left, anchor)
+                    + self._would_be_defaulted_caveats(node.right, anchor))
+        return out
 
     def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys):
         # map operands are typechecked against the umbrella registry's MAP signature (vocabulary)

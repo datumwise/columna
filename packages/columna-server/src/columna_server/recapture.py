@@ -22,8 +22,12 @@ MANIFOLD = "cascadia"
 EXEMPLARS = [
     ("E1", "Priya's serve pair",
      "SELECT revenue, orders AT {region*cal.quarter}", "serve", None),
+    # E2 was (disclose, b_anchor_crossing) — the burn served with a critical caveat. RE-RATIFIED
+    # 2026-08-20 (generated-family law): the burn is now REFUSED. Dana's meaningless number is not
+    # produced at all, in this or any other spelling. Caption unchanged: the beat is the same beat,
+    # and it lands harder.
     ("E2", "The first burn, retried",
-     "SELECT stock.sum AT {store*cal.month}", "disclose", "b_anchor_crossing"),
+     "SELECT stock.sum AT {store*cal.month}", "refuse", "blocked_reduction"),
     ("E3", "The remedy taken",
      "SELECT stock.last AT {store*cal.month}", "serve", None),
     ("E4", "The ambiguous ask",
@@ -37,7 +41,7 @@ EXEMPLARS = [
     ("E8", "A true refuse (the wheel needs one)",
      "SELECT stock.last AT {customer}", "refuse", "out_of_universe"),   # code recorded at seeding, flagged back
     ("E9", "Check before you run",
-     "EXPLAIN SELECT stock.sum AT {store*cal.month}", "disclose", "b_anchor_crossing"),   # would-be mood; kind=explain
+     "EXPLAIN SELECT stock.sum AT {store*cal.month}", "refuse", "blocked_reduction"),   # would-be mood; kind=explain
     # E10 — the RELATE-faces counterpart to E6 (asked -> answered). The crossing EXECUTED. Caption is a
     # WORKING placeholder: ch3 wording is ratified by the desk AFTER seeds land (ruling 4), from the
     # recorded E6-menu + E10 wire text. Do not treat as final prose.
@@ -51,10 +55,21 @@ EXEMPLARS = [
      "SELECT revenue AT {category.primary}", "disclose", "shadow"),
     ("E12", "Revenue by category, split by declared weight (reconciled to the cent)",
      "SELECT revenue AT {category.split}", "serve", "reconciliation"),
+    # E13 — the wheel's DISCLOSE leg, minted 2026-08-20 (generated-family law, Huayin §10). E2 used to
+    # carry it, on the reading that a prohibited reduction could be served if the prohibition rode
+    # along. That reading is retired: Disclose exists INSIDE the lawful region and cannot legalize an
+    # operation the governed law does not possess. E13 is the truer witness — a LAWFUL analytical
+    # request whose REALIZATION is approximate (an HLL distinct estimate), so the result is the
+    # reader's to use and the one condition on it travels with the number. Caption is a WORKING
+    # placeholder pending desk ratification of the ch3 wording, like E10/E11.
+    ("E13", "The honest estimate (the ask is sound; the method is stated)",
+     "SELECT buyers AT {cal.month}", "disclose", "approximation"),
 ]
 
 # The demo --play wheel (four moods, story order): clarify -> refuse -> disclose -> serve.
-WHEEL = ["E4", "E8", "E2", "E5"]
+# E2 -> E13 on 2026-08-20: E2's mood moved to `refuse`, so it can no longer carry the disclose leg.
+# It stays in the corpus as the structural-refusal witness; the wheel takes the approximation case.
+WHEEL = ["E4", "E8", "E13", "E5"]
 
 
 def _disclosure_tokens(res: dict):

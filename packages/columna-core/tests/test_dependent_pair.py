@@ -68,12 +68,18 @@ def test_inline_reduction_multilevel_matches_bare(fixture_server):
 
 
 # --- DG-2: reported, NOT silently passed (Huayin: report either way) -----------------------------
-def test_dg2_is_a_distinct_gap_still_classified(fixture_server):
+def test_dg2_collapse_with_blocked_transport_refuses(fixture_server):
     # `level.sum @ cal.month` collapses a base dim (store) WHILE transporting another (day->cal.month,
-    # a blocked lineage). This does NOT fall out of the dependent-pair machinery — it is a distinct gap.
-    # It must at least stay CLASSIFIED (never a raw crash past the gate); it does not yet serve-with-caveat.
+    # a blocked lineage). This does NOT fall out of the dependent-pair machinery — it is a distinct gap,
+    # and it is now CLOSED rather than merely classified.
+    #
+    # FLIPPED 2026-08-20 (Huayin, generated-family law; DG-2 disposition of 2026-08-19). The gap used
+    # to sit on the everything-classifies BACKSTOP — `error` / `unsupported`, a raw engine failure
+    # caught at the gate — while the ledger recorded serve-with-a-critical-caveat as the target. Both
+    # are superseded: the reduction is structurally unlawful, so the planner refuses it BEFORE the
+    # engine, with reason `blocked_reduction`. `error` here would now be a regression (the backstop
+    # firing again), not a gap.
     fr, w = _run(fixture_server, "SELECT level.sum AT {cal.month}")
-    assert w["outcome"] == "error"                           # classified, not raw
-    assert fr.columns[0].refusal.reason == "unsupported"
-    # NOTE (report): DG-2's designed behavior is serve-with-a-critical-blocked_reduction-caveat; that
-    # is its OWN engine increment (collapse-with-blocked-transport), not this dependent-pair one.
+    assert w["outcome"] == "refuse"                          # classified — and now by the law, not the backstop
+    r = fr.columns[0].refusal
+    assert (r.kind, r.reason, r.discriminator) == ("refuse", "blocked_reduction", "unsupported")

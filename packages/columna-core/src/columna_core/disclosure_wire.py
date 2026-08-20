@@ -86,6 +86,10 @@ def _approx_materiality(rel_error: Optional[float]) -> str:
 # engine category -> (wire code, default materiality). One closed vocabulary, one dict.
 # `approximation`'s materiality is rel_error-dependent, so its value is a callable(rel_error)->str.
 CATEGORY_TABLE = {
+    # ── TOMBSTONE (2026-08-20) ── RETAINED and still WIRED, but no longer PRODUCED: a blocked
+    #   reduction refuses (reason `blocked_reduction`) instead of serving with this caveat. Kept so
+    #   archived wires, recorded transcripts and the deposited manuals still resolve. See the matching
+    #   tombstone on `disclosure.B_ANCHOR_CROSSING`.
     "b_anchor_crossing":      ("blocked_reduction",      MATERIAL),
     "data_gap":               ("incomplete_data",        MATERIAL),   # B3 spine/product gap — a RESERVED-slot fill (Q6)
     "zero_fill":              ("zero_filled",            MATERIAL),   # D4 (retired producer): events-basis 0-fill

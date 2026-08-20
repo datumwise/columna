@@ -45,13 +45,20 @@ def test_co_anchor_ambiguous_is_retired_and_never_emitted(fixture_server):
     assert _col(fr).refusal.reason != "co_anchor_ambiguous"
 
 
-def test_collapse_with_blocked_transport_classifies_never_raw(fixture_server):
-    # DG-2: `level.sum @ cal.month` (collapse `store` while transporting `day` across the BLOCKED
-    # calendar lineage) must be CLASSIFIED, never a raw exception. Today the backstop classifies it as
-    # error; when DG-2's structural fix lands it becomes disclose-critical (blocked_reduction).
+def test_collapse_with_blocked_transport_refuses_blocked_reduction(fixture_server):
+    # DG-2, CLOSED 2026-08-20 (generated-family law, Huayin). `level.sum @ cal.month` collapses `store`
+    # while transporting `day` across the BLOCKED calendar lineage. It always had to be CLASSIFIED,
+    # never a raw exception (the everything-classifies guarantee) — that half is unchanged. What moved
+    # is WHICH classification: the row's original target (serve with a critical `blocked_reduction`
+    # CAVEAT, via the everything-classifies backstop's `error`/`unsupported` interim) is superseded by
+    # a structural REFUSE carrying `blocked_reduction` as its REASON. Disclose may qualify a lawful
+    # result; it may not legalize a reduction the governed law does not possess.
     fr = fixture_server.frame("cal.month").column("c", "level.sum").run()
-    assert fr.outcome in ("serve", "disclose", "clarify", "refuse", "error")     # classified, no raw throw
-    assert _col(fr).refusal is None or _col(fr).refusal.is_error
+    assert fr.outcome == "refuse"                                  # classified, no raw throw
+    r = _col(fr).refusal
+    assert (r.kind, r.reason, r.discriminator) == ("refuse", "blocked_reduction", "unsupported")
+    assert not r.is_error                                          # an analytical verdict, not the backstop
+    assert "calendar" in r.detail                                  # names the lineage it may not cross
 
 
 # ── §2c single-universe sugar: ON optional with one universe; required with more ──────────────────

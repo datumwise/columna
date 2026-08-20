@@ -61,21 +61,44 @@ def test_bare_and_braced_input_anchor_identical(fixture_server):
 
 
 # --- rider 3: the omitted-input-anchor sugar's refusal IS the shipped clarify --------------------
+# ANCHOR SWAPPED 2026-08-20 (Huayin, ruling §9). Rider 3 is about the sugar path and the shipped terse
+# path landing on the SAME channel — it is not about `{cal.month}` in particular. Since §9 filters
+# candidate input anchors for lawfulness FIRST, `{cal.month}` leaves exactly ONE lawful reading
+# (`day`), which is no longer a contested choice: it defaults and DISCLOSES (pinned separately below).
+# The clarify carrier moves to `{region*cal.month}`, where `store` and `day` both reach the anchor
+# lawfully — two readings, a real menu, and the ratified code is unchanged.
 def test_omitted_input_anchor_clarifies_ratified_code(fixture_server):
-    w = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    w = _wire(fixture_server, "SELECT avg(aov) AT {region*cal.month}")
     assert w["outcome"] == "clarify"
     assert w["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"    # ratified code, no re-mint
 
 
 def test_sugar_and_shipped_paths_identical_wire_shape(fixture_server):
     # the envelope sugar path and the shipped terse path must produce the IDENTICAL no-result (rider 3)
-    sugar = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
-    shipped = wire_frame(fixture_server.frame("cal.month").column("rate", "avg(aov)").run())
+    sugar = _wire(fixture_server, "SELECT avg(aov) AT {region*cal.month}")
+    shipped = wire_frame(fixture_server.frame("region", "cal.month").column("rate", "avg(aov)").run())
     s_nr = sugar["columns"][0]["no_result"]
     h_nr = shipped["columns"][0]["no_result"]
     assert sugar["outcome"] == shipped["outcome"] == "clarify"
     assert (s_nr["reason"], s_nr["discriminator"], s_nr["alternatives"]) == \
            (h_nr["reason"], h_nr["discriminator"], h_nr["alternatives"])
+
+
+def test_omitted_input_anchor_defaults_and_discloses_when_one_lawful_reading(fixture_server):
+    # MINTED 2026-08-20 (Huayin, ruling §9), the other half of what the sugar can now do. Omitting the
+    # input anchor is not automatically a question: the candidates are filtered for lawfulness first,
+    # and when exactly one survives the planner defaults to it and PROCEEDS. The choice it made for the
+    # reader rides on the wire as a MATERIAL `input_anchor` caveat — disclose, never a silent serve —
+    # and the sugar path and the shipped terse path agree on that too.
+    sugar = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    shipped = wire_frame(fixture_server.frame("cal.month").column("rate", "avg(aov)").run())
+    assert sugar["outcome"] == shipped["outcome"] == "disclose"
+    assert sugar["columns"][0].get("no_result") is None
+
+    def material(w):
+        return {(d["code"], d["materiality"]) for d in w["columns"][0]["disclosures"]
+                if d["materiality"] == "material"}
+    assert material(sugar) == material(shipped) == {("input_anchor", "material")}
 
 
 # --- rider 2: every sugar ships its refusal (mechanical-or-refused, no heuristic middle) ---------

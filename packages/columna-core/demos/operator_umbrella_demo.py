@@ -8,7 +8,9 @@ mechanics.
   (B) the planner ROUTES by kind in one frame: reducer -> atom; map -> inline; scan -> engine
   (C) a SCAN executes for real (cumsum / lag / pct_change), order derived from the anchor
   (D) order derivation: no temporal axis -> a clarification naming by=
-  (E) a scan over a B-anchor-blocked reduction INHERITS the critical disclosure (inform-and-serve)
+  (E) a scan over a B-anchor-blocked reduction INHERITS its REFUSAL — a carrier transports an
+      operation, it does not grant it a permission (generated-family law, Huayin 2026-08-20,
+      superseding the inform-and-serve reading this section used to demonstrate)
   (F) a windowed scan (rolling_*) is recognized by the planner but is Pro -> clarified, not crashed
   (G) only REDUCERS found families: a measure declaring a scan as a family member is rejected at publish
 
@@ -93,15 +95,21 @@ def main():
           ref is not None and "order axis" in ref.detail and "by=" in ref.detail,
           str(ref)[:96] if ref else "")
 
-    # ── (E) a scan over a blocked reduction INHERITS the critical disclosure ─
-    print("\n(E) cumsum over a B-anchor-blocked reduction inherits the served critical disclosure")
+    # ── (E) a scan over a blocked reduction INHERITS its refusal ────────────
+    print("\n(E) cumsum over a B-anchor-blocked reduction inherits the REFUSAL — carriers grant nothing")
+    # RULED 2026-08-20 (Huayin, the generated-family law): `level.sum` has no lawful reading across
+    # `calendar`, and wrapping it in a scan does not buy one. The scan is a CARRIER — it transports an
+    # operation to a new shape; it does not create the authority the declaration withholds. The whole
+    # ask therefore refuses, rather than serving a running total of non-reconciling subtotals under a
+    # critical caveat (which is what this section demonstrated before the ruling: inform-and-serve).
     res4 = srv.frame("store", "cal.month").column("inv_cum", "cumsum(level.sum)").run()
     col = res4.columns[0]
-    crossing = [c for c in col.disclosure.criticals if c.category == "b_anchor_crossing"]
-    check("the scan is SERVED (not refused) and carries the underlying sum's critical crossing",
-          col.refusal is None and col.frame is not None and len(crossing) >= 1
-          and col.disclosure.severity == "critical",
-          "inform-and-serve rides through the scan")
+    ref4 = col.refusal
+    check("the scan is REFUSED (blocked_reduction), inheriting the underlying sum's unlawfulness",
+          ref4 is not None and ref4.kind == "refuse" and ref4.reason == "blocked_reduction"
+          and col.frame is None
+          and not [c for c in col.disclosure.caveats if c.category == "b_anchor_crossing"],
+          "a carrier transports the operation; it does not grant the permission")
 
     # ── (F) windowed scan: recognized by the planner, but Pro ───────────────
     print("\n(F) a windowed scan (rolling_sum) is recognized but Pro — clarified, not crashed")

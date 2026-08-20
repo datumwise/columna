@@ -23,7 +23,13 @@ DEMO_MANIFOLD_ID = "cascadia"
 # Cascadia Manifold. Envelope grammar; `stock`/`buyers` are the Cascadia names (level/visitors retired).
 CLARIFY_Q  = "SELECT avg(aov) AT {cal.year}"          # an inline reduction with no pinned input anchor (E4)
 REFUSE_Q   = "SELECT stock.last AT {customer}"        # inventory has no customers — out of the contracted space (E8)
-DISCLOSE_Q = "SELECT stock.sum AT {store*cal.month}"  # summing a stock across time — served WITH a material caveat (E2)
+# DISCLOSE_Q was `SELECT stock.sum AT {store*cal.month}` — a stock summed across the blocked calendar
+# lineage, served WITH a critical caveat. RE-WITNESSED 2026-08-20 (generated-family law, Huayin §10):
+# that ask now REFUSES, because Disclose exists inside the lawful region and cannot legalize an
+# operation the governed law does not possess. The replacement is a cleaner Disclose and a truer one:
+# a LAWFUL analytical request whose REALIZATION is approximate. The condition must travel with the
+# result; the result is still the reader's to use.
+DISCLOSE_Q = "SELECT buyers AT {cal.month}"           # lawful ask, approximate realization (E13)
 SERVE_Q    = "SELECT aov AT {cal.month}"              # a well-posed ask over one population (E5)
 
 
@@ -78,13 +84,14 @@ def play(out=None) -> int:
          "contracted space, so Columna refuses with the reason (never an invented zero):",
          refuse)
 
-    # 3) disclose — served, but WITH a material caveat (a stock summed across a blocked time axis)
+    # 3) disclose — served, but WITH a material caveat (a lawful ask, approximately realized)
     disclose = T.query(store, DEMO_MANIFOLD_ID, DISCLOSE_Q)
     emit(f"[3/4] disclose   query: {DISCLOSE_Q}",
-         "Summing `stock` over days into calendar months adds daily snapshots that do not "
-         "reconcile along the blocked day→month axis. Columna serves the per-bucket numbers WITH a "
-         "material caveat that names the blocked lineage and the remedy (`.last` collapses a stock over "
-         "time) — never a silent wrong total:",
+         "Distinct buyers per month is a lawful question, and Columna answers it — but it counts "
+         "distinct customers from a sketch, not by holding every id in memory. So the numbers come "
+         "back WITH a material caveat carrying the estimator and its relative error. Disclose is not "
+         "a softer refusal: the ask is sound, and the one condition on the answer travels with it "
+         "instead of being left for the reader to discover:",
          disclose)
 
     # 4) serve — a well-posed ask over one population

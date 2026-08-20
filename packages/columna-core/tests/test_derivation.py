@@ -9,6 +9,9 @@ These lock in what the v0.2 review established empirically, BEFORE anything touc
       expands the derived name into its formula before the checks run (planner.py:339-340; `_atoms`
       expands for the crossing scan). v0.1's "named ratios bypass hazard detection" claim was
       DISPROVEN empirically; these pins exist so that property survives the coming WP-B changes.
+      (2026-08-20: the blocked-lineage half of (a) now inherits a REFUSAL rather than a served
+      critical caveat — the generated-family law. The inheritance property is unchanged; the
+      channel the inherited verdict rides on is not.)
   (b) A characterization test, red-flagged DOCTRINE-DIVERGENT: a same-universe derived ratio at a
       coarse anchor currently SERVES the pooled (output-anchor) reading with zero resolution-time
       disclosure. Pinned deliberately (NOT xfail) so it FAILS LOUDLY the moment S1a / WP-B changes
@@ -76,15 +79,23 @@ def test_named_ratio_inherits_cross_universe_error(derived_server):
     }
 
 
-def test_named_derived_inherits_b_anchor_crossing(derived_server):
-    """B-anchor crossing scan (`_atoms` expands the formula): a named derived over a blocked-lineage
-    rollup carries the same critical `blocked_reduction` disclosure as the inline expression. (The
-    served value may also pick up an immaterial `freshness` caveat depending on cache order —
-    orthogonal to the crossing; we pin the crossing itself, not the full disclosure set.)"""
-    named = _codes(derived_server.frame("store").column("x", "lvlsum").run())
-    inline = _codes(derived_server.frame("store").column("x", "level.sum").run())
-    assert "blocked_reduction" in inline
-    assert "blocked_reduction" in named
+def test_named_derived_inherits_blocked_reduction_refusal(derived_server):
+    """Hazard inheritance, unchanged in KIND: a named derived over a blocked-lineage rollup gets the
+    same verdict as the inline expression, because the planner expands the name before the checks run.
+
+    FLIPPED 2026-08-20 (generated-family law, Huayin), superseding ADR-020's inform-and-serve for
+    this case: the crossing is no longer a served critical `blocked_reduction` CAVEAT — it is a
+    REFUSAL carrying the `blocked_reduction` REASON. Wrapping the reduction in a DERIVED name is one
+    more carrier; a carrier transports the operation, it does not grant it a permission the governed
+    law withholds. So the property under test is the same (named == inline, byte for byte) and only
+    the verdict it inherits has moved channels: disclosure -> no-result."""
+    named = _classification(derived_server.frame("store").column("x", "lvlsum").run())
+    inline = _classification(derived_server.frame("store").column("x", "level.sum").run())
+    assert named == inline
+    assert named == {"outcome": "refuse", "reason": "blocked_reduction",
+                     "discriminator": "unsupported", "alternatives": []}
+    # and nothing rides the DISCLOSURE channel any more — a refused ask produces no number to caveat
+    assert _codes(derived_server.frame("store").column("x", "lvlsum").run()) == []
 
 
 # --- (b) characterization of the unimplemented trichotomy -----------------------------------
@@ -342,11 +353,20 @@ def test_measures_never_carry_a_license_even_after_publish(fixture_server):
     assert licenses and all(lic is None for lic in licenses)
 
 
-def test_measure_blocked_semantics_unchanged(fixture_server):
-    """WP-B added a fail-closed *validation* of measure BLOCKED lineages (B-2) but changed no
-    behavior: the semi-additive `level` still SERVES its blocked-lineage crossing with a critical
-    disclosure (inform-and-serve), not a refusal."""
+def test_measure_blocked_reduction_refuses(fixture_server):
+    """WP-B added a fail-closed *validation* of measure BLOCKED lineages (B-2); the RUN-TIME verdict
+    for the semi-additive `level` is settled by the generated-family law.
+
+    FLIPPED 2026-08-20 (Huayin), was `test_measure_blocked_semantics_unchanged`: `level.sum @ store`
+    collapses days, `sum` is declared BLOCKED along `calendar`, so the reduction has no lawful
+    reading and REFUSES with reason `blocked_reduction` / discriminator `unsupported`. It used to be
+    served with a critical `b_anchor_crossing` caveat under ADR-020's inform-and-serve; disclose
+    exists inside the lawful region and cannot legalize an operation the law does not possess."""
     w = wire_frame(fixture_server.frame("store").column("s", "level.sum").run())
-    assert w["outcome"] in ("serve", "disclose")           # served, not refused
-    disc = [d for c in w.get("columns", []) for d in (c.get("disclosures") or [])]
-    assert any(d.get("severity") == "critical" for d in disc), "level.sum@store lost its B-anchor crossing disclosure"
+    assert w["outcome"] == "refuse"
+    nr = w["columns"][0]["no_result"]
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "blocked_reduction", "unsupported")
+    assert "calendar" in nr["detail"]                       # names the lineage it may not cross
+    # the remedy is the lawful sibling reducer, not a caveat on a number nobody should have got
+    assert any(".last" in (a.get("description") or "") for a in nr["alternatives"])
+    assert not [d for c in w.get("columns", []) for d in (c.get("disclosures") or [])]
