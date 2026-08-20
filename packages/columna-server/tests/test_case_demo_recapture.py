@@ -122,7 +122,7 @@ def test_e9_explain_would_be_refuse_touches_no_data(corpus, live):
     store, _lm = live
     ex = T.explain_statement(store, "cascadia", e9["query"][len("EXPLAIN"):].strip())
     assert ex["executed"] is False and ex["fetches_delta"] == 0
-    # and the would-be refusal names the ratified reason (this is the part `generate` fails to harvest)
+    # and the would-be refusal names the ratified reason on `no_result` (not as a caveat)
     assert ex["series"][0]["would_be"]["no_result"]["reason"] == "blocked_reduction"
     # and the corpus RECORDS that reason: a would-be refusal carries it on `no_result`, not as a
     # caveat, so the recorder's EXPLAIN branch has to read both channels (2026-08-20).
@@ -142,8 +142,9 @@ def test_corpus_has_no_undeclared_drift(corpus):
     # exemplar mood/reason deviation, so the exemplar corpus itself must carry ZERO flags.
     # STILL ZERO after the 2026-08-20 re-ratification: E2/E9 land on `refuse`/`blocked_reduction` and
     # the new E13 lands on `disclose`/`approximation`, exactly as the desk ratified them. (This gate
-    # also caught the recorder's EXPLAIN blind spot — a would-be REFUSE carries its reason on
-    # `no_result`, not as a caveat — which is recorded, not harmonized, in the source.)
+    # also surfaced the recorder's EXPLAIN blind spot: a would-be REFUSE carries its reason on
+    # `no_result`, not as a caveat, so `recapture.generate` now harvests both channels there — the
+    # gate flagged it rather than harmonizing it, which is exactly its job.)
     assert corpus["flags"] == [], f"unexpected exemplar drift: {corpus['flags']}"
 
 
