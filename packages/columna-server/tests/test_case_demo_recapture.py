@@ -12,7 +12,10 @@ structurally prohibited reductions: a reduction traversing a lineage its operato
 along now REFUSES (`blocked_reduction`) instead of serving under a critical `b_anchor_crossing` caveat.
 E2 and E9 moved from (disclose, b_anchor_crossing) to (refuse, blocked_reduction); a NEW exemplar E13
 (`SELECT buyers AT {cal.month}` -> disclose/approximation) was minted to carry the wheel's disclose leg,
-so the wheel is E4 -> E8 -> E13 -> E5 and the corpus is THIRTEEN.
+so the wheel is E4 -> E2 -> E13 -> E5 and the corpus is THIRTEEN. The REFUSE leg then moved from E8
+(out-of-universe) to E2 as well: the four cases are meant to be distinguished by LAWFULNESS, and only
+E2 teaches that a perfectly computable number can still be one the governed law does not grant. E8
+stays in the corpus and keeps its own tests.
 
 Recorded-and-flagged findings (brought to the desk in the recapture diff):
   • E8's reason code (left open by the desk) records as `out_of_universe`.
@@ -29,7 +32,7 @@ import pytest
 
 import columna_server
 from columna_server.store import _load_one
-from columna_server import recapture
+from columna_server import recapture, tools as T
 
 _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 
@@ -149,11 +152,13 @@ def test_corpus_has_no_undeclared_drift(corpus):
 
 
 def test_wheel_is_the_four_mood_story_order(corpus):
-    # RE-CUT 2026-08-20 (Huayin, generated-family law): was ["E4", "E8", "E2", "E5"]. E2's mood moved
-    # to `refuse`, so it can no longer carry the disclose leg; the new E13 (a lawful ask with an
-    # approximate realization) takes it. The story order — clarify -> refuse -> disclose -> serve —
-    # is unchanged; only the witness for `disclose` moved.
-    assert corpus["wheel"] == ["E4", "E8", "E13", "E5"]   # clarify -> refuse -> disclose -> serve
+    # RE-CUT 2026-08-20 (Huayin, generated-family law): was ["E4", "E8", "E2", "E5"]. Twice over.
+    # E2's mood moved to `refuse`, so it could no longer carry the DISCLOSE leg — the new E13 (a
+    # lawful ask with an approximate realization) takes it. E2 then took the REFUSE leg from E8,
+    # because the four cases should be distinguished by lawfulness: E8 is a true refusal but teaches
+    # only that the ask was addressed outside the contracted space. The story order — clarify ->
+    # refuse -> disclose -> serve — is unchanged; two of its four witnesses moved.
+    assert corpus["wheel"] == ["E4", "E2", "E13", "E5"]   # clarify -> refuse -> disclose -> serve
 
 
 def test_corpus_carries_all_thirteen_with_the_wheel_subset_marked(corpus):
@@ -162,12 +167,14 @@ def test_corpus_carries_all_thirteen_with_the_wheel_subset_marked(corpus):
     # wheel is a marked SUBSET of it.
     # WIDENED 2026-08-20 (Huayin, generated-family law): twelve -> THIRTEEN. E13 (`SELECT buyers AT
     # {cal.month}` -> disclose/approximation) was minted to carry the wheel's disclose leg after E2
-    # became a refuse; E2 stays in the corpus as the structural-refusal witness, just out of the wheel.
+    # became a refuse; E2 then took the refuse leg, and E8 left the wheel while staying in the corpus.
     assert [e["id"] for e in corpus["exemplars"]] == [f"E{i}" for i in range(1, 14)]
     marked = {e["id"] for e in corpus["exemplars"] if e["in_wheel"]}
-    assert marked == set(corpus["wheel"]) == {"E4", "E5", "E8", "E13"}
-    assert "E2" in {e["id"] for e in corpus["exemplars"]} and not next(
-        e for e in corpus["exemplars"] if e["id"] == "E2")["in_wheel"]
+    assert marked == set(corpus["wheel"]) == {"E2", "E4", "E5", "E13"}
+    # E8 stays in the corpus, out of the wheel — a true refusal the wheel no longer needs to spend a
+    # leg on, kept because it is still the clearest out-of-universe witness the tests have.
+    assert "E8" in {e["id"] for e in corpus["exemplars"]} and not next(
+        e for e in corpus["exemplars"] if e["id"] == "E8")["in_wheel"]
 
 
 def test_e13_is_the_disclose_witness_a_lawful_ask_approximately_realized(corpus):
@@ -201,3 +208,56 @@ def test_e10_touch_executes_and_discloses_the_overcount(corpus):
     cov = [d for d in e10["disclosures"] if d["token"] == "transport" and "coverage" in (d["detail"] or "")]
     assert cov, "the coverage info caveat is missing"
     assert e10["row_count"] == 12                                   # 12 categories (recorded)
+
+
+# ── ORPHANED REASONS, CERTIFIED FROM THEIR CALL SITES (2026-08-20) ───────────────────────────────
+# `chained_crossing` and `anchor_spent` were EMITTED by the engine but absent from
+# `disclosure.REASON_OUTCOME`, so `outcome_for`'s silent `.get(..., ERROR)` default gave them a
+# verdict nobody chose: both shipped as ERROR for months. Registering them closed that, and
+# `outcome_for` now fails closed — but a registration is a claim about what the code MEANS, and a
+# claim belongs in a test rather than in the commit message that made it. These two exercise the real
+# refusal paths (Cascadia is the only fixture carrying declared RELATE faces) and check that the
+# verdict and the reason the reader receives match the intent the call site states in words.
+
+def test_chained_crossing_refuses_because_no_lawful_path_exists(live):
+    """engine.py's G4 chain guard: "chained crossings are not yet licensed — ask at one frontier at a
+    time." A well-formed ask with no lawful path is a REFUSE, in the same family as `uncertified_face`
+    — never an ERROR, which would say the request was malformed. It was not."""
+    store, _lm = live
+    w = T.query(store, "cascadia", "SELECT revenue AT {category.touch, cal.month}")
+    nr = w["columns"][0]["no_result"]
+    assert w["outcome"] == "refuse"
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "chained_crossing", "unsupported")
+    assert "one frontier at a time" in nr["detail"]
+
+
+def test_anchor_spent_refuses_because_the_counts_cannot_travel(live):
+    """engine.py's G5 anchor law: a distinct-class measure's anchor is SPENT at the frontier grain —
+    per-member counts "cannot be summed, weighted, or routed". A structural prohibition with named
+    alternatives, which is a REFUSE."""
+    store, _lm = live
+    w = T.query(store, "cascadia", "SELECT buyers AT {category.touch}")
+    nr = w["columns"][0]["no_result"]
+    assert w["outcome"] == "refuse"
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "anchor_spent", "unsupported")
+    assert "cannot be summed, weighted, or routed" in nr["detail"]
+
+
+def test_no_engine_refusal_reason_is_unregistered():
+    """The census that found the two orphans, kept as a standing guard. Every `Refusal("<reason>"` in
+    the shipped source must have a REASON_OUTCOME entry — otherwise `outcome_for` now raises where it
+    used to silently classify, which is the right failure but a late one. Catch it here instead."""
+    import pathlib
+    import re
+
+    from columna_core.disclosure import REASON_OUTCOME
+
+    roots = [pathlib.Path(m.__file__).parent for m in (__import__("columna_core"),
+                                                       __import__("columna_server"))]
+    emitted = {m for root in roots for f in root.rglob("*.py")
+               for m in re.findall(r'Refusal\(\s*"([a-z_]+)"', f.read_text(encoding="utf-8"))}
+    assert emitted, "the scan found no Refusal sites — the pattern drifted, not the vocabulary"
+    unregistered = sorted(emitted - set(REASON_OUTCOME))
+    assert not unregistered, (
+        f"refusal reason(s) {unregistered} are emitted but unregistered. Register each with a dated "
+        f"note on its intent — a vocabulary that grows by rule cannot also grow by accident.")

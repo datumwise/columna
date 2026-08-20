@@ -32,15 +32,13 @@ _OP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
 _V = "_v"
 
 # ── one adjudicable REDUCTION inside an expression (generated-family law, 2026-08-20) ──────────────
-#   polarity  'b_anchor'  — NEGATIVE law from a governed measure family: open by default, BLOCKED closes.
-#             'fertile'   — POSITIVE law from a declared derived successor family: closed by default,
-#                           FERTILE establishes.
 #   op        the canonical operator performing the reduction.
 #   frm/to    the grain it reduces FROM and the anchor it reduces ONTO (tuples of level names).
 #   subject   how to name this operation back to the reader (surface form, not an internal id).
-#   law       polarity-dependent: the BLOCKED lineage set, or the FERTILE lineage set.
+#   law       the governed BLOCKED lineage set for `op` (the measure B-anchor's NEGATIVE polarity —
+#             open by default, so an empty set means no prohibition, never no permission).
 #   written   True if the reader spelled the reducer as a declared member; False if it was GENERATED.
-_Travel = namedtuple("_Travel", "polarity op frm to subject law written")
+_Travel = namedtuple("_Travel", "op frm to subject law written")
 
 
 def _fmt_anchor(anchor) -> str:
@@ -1247,8 +1245,8 @@ class Planner:
                 # There is therefore NO declaration an author could write to permit this travel, and
                 # enforcing the positive polarity through this field would make AT-metrics unusable.
                 # Two different concepts wear one name; separating them needs a ruling, not a patch.
-                # Recorded as DG-3. The projection (`DerivedShape.member_lineages` / `member_license`)
-                # IS landed, so the law is visible to planning the moment its carrier is settled.
+                # Recorded as DG-3, and deferred WHOLE: no widened `DerivedShape` is left behind
+                # either (ruling §1 — do not leave inert half-semantics as future scaffolding).
                 return self._law_travels(inner, res, out)
             if meas_name not in self.m.measures:
                 return out
@@ -1263,7 +1261,7 @@ class Planner:
             # B-anchor is moot for it. (A GENERATED reducer is not gated this way — see below.)
             if sig is not None and sig.kind == "reducer" and sig.is_monoid:
                 base = tuple(self.m.universes[meas.universe].base_dimensions)
-                out.append(_Travel("b_anchor", member, base, tuple(anchor),
+                out.append(_Travel(member, base, tuple(anchor),
                                    f"{meas_name}.{member}",
                                    frozenset(meas.blocked.get(member, frozenset())), True))
             return out
@@ -1292,14 +1290,19 @@ class Planner:
         law = set()
         for m in self._ancestry(inner):
             law |= set(self.m.measures[m].blocked.get(reducer, frozenset()))
-        return _Travel("b_anchor", reducer, tuple(grain), tuple(anchor),
+        return _Travel(reducer, tuple(grain), tuple(anchor),
                        f"{reducer}({ast.unparse(inner)}@{self._fmt_pin(pinned)})",
                        frozenset(law), False)
 
     def _travel_violation(self, t: "_Travel") -> Optional["Refusal"]:
         """Adjudicate one `_Travel`. Returns the Refusal it earns, or None if it is lawful.
 
-        The two polarities are read with opposite defaults and never merged (ruling §2)."""
+        ONE polarity is enforced here: the measure B-anchor's NEGATIVE law (open by default; `BLOCKED
+        { lineage }` closes). The mirror POSITIVE law — a derived successor family's `FERTILE { .. }`
+        — is NOT enforced, and no branch for it is left behind (DG-3, ruling §1). Family law,
+        certification evidence and runtime admission are three boundaries, and `FERTILE`/`License`
+        currently sits on the second; using it as the third would reinterpret it. When the successor-
+        travel carrier is settled, the polarity it needs arrives with the change that reads it."""
         # ADDRESSABILITY IS A PRIOR QUESTION. If a target level is reachable from NO source level, the
         # ask fails because it is out of the contracted space — not because of a lineage law — and the
         # existing out_of_universe / uncertified-travel machinery gives the truer diagnosis. Without
@@ -1309,35 +1312,21 @@ class Planner:
         if any(all(self.m.find_path({d}, T) is None for d in t.frm) for T in t.to):
             return None
         crossed = self._traversed_lineages(t.frm, t.to)
-        if t.polarity == "b_anchor":
-            bad = sorted(crossed & t.law)           # NEGATIVE: prohibited iff a BLOCKED lineage is crossed
-            if not bad:
-                return None
-            lin = bad[0]
-            how = ("declared" if t.written else "generated")
-            return Refusal("blocked_reduction",
-                f"'{t.subject}' reduces by '{t.op}' across blocked lineage '{lin}' — "
-                f"'{t.op}' is declared BLOCKED along '{lin}', so this reduction has no lawful "
-                f"reading at {_fmt_anchor(t.to)}; per-bucket totals do not reconcile along this axis. "
-                f"Generating a new family does not create the permission: the {how} reducer needs "
-                f"the same authority the declaration withholds.",
-                target=_fmt_anchor(t.to),
-                alternatives=(f"use a reducer that IS applicable along '{lin}' "
-                              f"(e.g. '.last' for a stock collapsed over time)",
-                              f"address at an anchor that does not cross '{lin}'"))
-        # POSITIVE: a declared derived successor family travels only where FERTILE establishes it.
-        unestablished = sorted(crossed - t.law)
-        if not unestablished:
+        bad = sorted(crossed & t.law)               # NEGATIVE: prohibited iff a BLOCKED lineage is crossed
+        if not bad:
             return None
-        lin = unestablished[0]
-        have = sorted(t.law)
-        return Refusal("unestablished_reduction",
-            f"derived '{t.subject}' would reduce by '{t.op}' across lineage '{lin}', which its "
-            f"declaration does not establish (FERTILE {{{', '.join(have)}}}) — a derived successor "
-            f"family is closed by default, so travel it never claimed is not available to it.",
+        lin = bad[0]
+        how = ("declared" if t.written else "generated")
+        return Refusal("blocked_reduction",
+            f"'{t.subject}' reduces by '{t.op}' across blocked lineage '{lin}' — "
+            f"'{t.op}' is declared BLOCKED along '{lin}', so this reduction has no lawful "
+            f"reading at {_fmt_anchor(t.to)}; per-bucket totals do not reconcile along this axis. "
+            f"Generating a new family does not create the permission: the {how} reducer needs "
+            f"the same authority the declaration withholds.",
             target=_fmt_anchor(t.to),
-            alternatives=((f"declare '{t.subject}' FERTILE along '{lin}' if that reduction is sound",)
-                          + ((f"ask at an anchor reachable without '{lin}'",) if have else ())))
+            alternatives=(f"use a reducer that IS applicable along '{lin}' "
+                          f"(e.g. '.last' for a stock collapsed over time)",
+                          f"address at an anchor that does not cross '{lin}'"))
 
     def _check_expression_law(self, node, anchor):
         """The single law chokepoint for a column expression. Raises the OUTERMOST violation, so the

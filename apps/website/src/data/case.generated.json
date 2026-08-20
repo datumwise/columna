@@ -877,7 +877,7 @@
       "reason_tokens": [
         "blocked_reduction"
       ],
-      "in_wheel": false
+      "in_wheel": true
     },
     {
       "id": "E3",
@@ -980,7 +980,7 @@
       "reason_tokens": [
         "out_of_universe"
       ],
-      "in_wheel": true
+      "in_wheel": false
     },
     {
       "id": "E9",
@@ -1086,7 +1086,7 @@
   ],
   "wheel": [
     "E4",
-    "E8",
+    "E2",
     "E13",
     "E5"
   ]

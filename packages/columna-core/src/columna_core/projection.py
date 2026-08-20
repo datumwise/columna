@@ -77,31 +77,19 @@ class UniverseShape:
 
 @dataclass(frozen=True)
 class DerivedShape:
-    """A derived column, as SHAPE — including its SUCCESSOR-FAMILY LAW.
+    """A derived column, as SHAPE.
 
-    TWO POLARITIES, DELIBERATELY NOT UNIFIED (ruling 2026-08-20). `MeasureShape.blocked` is a
-    NEGATIVE law: a measure family is OPEN by default and `BLOCKED { lineage }` closes an operator
-    over those lineages. `DerivedShape.member_lineages` is the mirror POSITIVE law: a derived
-    successor family is CLOSED by default and `FERTILE { lineage }` establishes travel. Absence
-    means opposite things on the two sides — no permission here, no prohibition there — so a
-    consumer must know which one it is reading. They are never merged into one default.
-
-    Before 2026-08-20 this shape carried member NAMES only, so authored positive family law was
-    invisible to planning and `FERTILE { calendar }` and `FERTILE { }` were behaviourally identical
-    (both travelled and served clean). The law existed, was adjudicated, and was never consulted."""
+    NOT PROJECTED, deliberately (ruling 2026-08-20 §1): the derived family's `declared_lineages` and
+    adjudicated `License`. A correction drafted here would have had the planner read `FERTILE { .. }`
+    as the successor family's travel permission; running it proved FERTILE cannot carry that meaning
+    (see DG-3 — family law, certification evidence and runtime admission are three boundaries, not
+    one). Rather than leave a widened shape nothing reads, the projection stays as it was. When the
+    successor-travel carrier is settled it will be added by the change that consumes it, so the
+    shape never carries half a semantics."""
     name: str
     formula: str
     resolution_anchor: Optional[str] = None   # declared `AT <level>` — routes the distinct AT-metric reading
     members: tuple = ()                        # declared family member names (shape: which reducers travel)
-    member_lineages: dict = field(default_factory=dict)   # member -> frozenset(FERTILE lineages): the POSITIVE
-                                                          # successor law. Absence of a lineage = NO permission.
-    member_license: dict = field(default_factory=dict)    # member -> adjudicated verdict | None. PROJECTED for
-                                                          # describe/EXPLAIN legibility ONLY. Planning gates on
-                                                          # the DECLARATION (member_lineages), never on the
-                                                          # verdict: License is the adjudicator's equality
-                                                          # theorem for the reduce-path optimization, and
-                                                          # reinterpreting UNTESTABLE as "may not travel" would
-                                                          # silently redefine it (ruling 2026-08-20 §3).
 
 @dataclass(frozen=True)
 class ShapeEdge:
@@ -151,11 +139,7 @@ class PlannerView:
                          for n, mc in m.measures.items()}
         self.universes = {n: UniverseShape(n, u.base_dimensions, u.basis)
                           for n, u in m.universes.items()}
-        self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family),
-                                        {mem: frozenset(fm.declared_lineages)
-                                         for mem, fm in d.family.items()},
-                                        {mem: (fm.license.verdict if fm.license else None)
-                                         for mem, fm in d.family.items()})
+        self.derived = {n: DerivedShape(n, d.formula, d.resolution_anchor, tuple(d.family))
                         for n, d in m.derived.items()}
         self.non_functional = tuple(                          # RelateShape — level names + face shapes, NO VIA
             RelateShape(r.frm, r.to, r.detail,

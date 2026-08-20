@@ -91,8 +91,10 @@ There are two authored law forms and they have opposite defaults. A consumer mus
 | declaration | `BLOCKED { lineage }` *closes* | `FERTILE { lineage }` *establishes* |
 | absence means | no prohibition | no permission |
 
-They are never merged into one accidental default. `MeasureShape.blocked` carries the negative law;
-`DerivedShape.member_lineages` carries the positive one.
+They are never merged into one accidental default. Only the NEGATIVE polarity is enforced by this
+unit: `MeasureShape.blocked` carries it, and the planner reads it. The POSITIVE polarity is
+**deferred whole** (D9) — no widened projection is left behind either, so the shape never carries half
+a semantics.
 
 ## D5 — Clarify is not reachable before lawfulness (RULED)
 
@@ -106,6 +108,41 @@ those for which the requested operation is lawful:
 Never offer a candidate that is already structurally illegal. A clarify is a menu of readings the
 asker may choose between; an unlawful reading is not a choice, and offering it is how a reader gets
 talked into a laundered answer one keystroke later.
+
+## D9 — FERTILE does not carry successor travel; the boundary is deferred (RULED)
+
+A draft of this correction had the planner read `FERTILE { .. }` as the successor family's travel
+permission. Running it proved the reading is unavailable: `FERTILE` is an **equality theorem about
+the reduce-path** — "reducing from cached finer values equals recomputing from base" — adjudicated
+against attested data by `adjudication._prove_data`. An AT-metric's travel is the opposite of that by
+construction, so `mean FERTILE { calendar }` on `daily_aov` is a false claim and publish fails closed
+(measured: reduce 131.063… vs recompute 129.787… @ `cal.week=2024-W01`), while `FERTILE { }` would
+forbid the metric's own declared meaning and reverse ruling 5. No declaration an author could write
+would permit the travel.
+
+The ruling: three boundaries, not one.
+
+> **family law ≠ certification evidence ≠ runtime admission.**
+
+`FERTILE`/`License` currently sits on the second. Using it as the third is not a shortcut but a
+category error, and it is not solved by treating the current License as family identity or family
+law. Deferred to a dedicated reconciliation (**DG-3**) and deferred WHOLE — no inert projection, no
+unreachable branch, no half-registered reason left behind as scaffolding.
+
+## D10 — Map composition preserves by union, and that gap is recorded (RULED)
+
+An anchor-preserving MAP establishes no new reduction permission, so a map-composed successor
+preserves the **union** of its operands' restrictions. This may be over-strict — a ratio of two
+non-reconciling quantities can be perfectly reconciling — and it is accepted on the asymmetry that it
+may withhold a lawful continuation but can never manufacture an unlawful one. Recorded explicitly,
+per the ruling:
+
+> **No general mechanism yet positively establishes a different successor law for an ad-hoc
+> map-composed family.**
+
+The broader law-synthesis problem is **not** solved here (**DG-6**). Where an author needs a
+positively established successor law today, the governed mechanism is an explicitly declared
+DERIVED/FAMILY path.
 
 ## D6 — ADR-031 D5 is clarified, not reversed (RULED)
 
@@ -150,9 +187,14 @@ accident.
   — a lawful ask with an approximate realization. The moods now read cleanly: **Serve** lawful, no
   material condition · **Disclose** lawful, condition travels · **Clarify** several lawful meanings
   remain · **Refuse** no lawful path exists.
-- **Left open, on the record:** DG-3 (FERTILE cannot carry successor-travel permission — it is an
-  equality theorem about the reduce-path, not a grant; stopped and reported rather than shipped),
-  DG-4 (open-by-default families make silence permission, so an *under-declared* measure still admits
-  a generated reducer), DG-5 (generated families have no canonical runtime identity object; the
-  correction uses a deterministic law projection instead, which satisfies the ruling's four conditions
-  without materialising one).
+- The homepage's four cases are re-cut so the moods are distinguished by **lawfulness**: Serve (lawful,
+  no material condition) · Disclose (lawful, a material condition travels) · Clarify (two or more
+  lawful interpretations remain) · Refuse (structurally unlawful). The Refuse witness moves from the
+  out-of-universe ask to the blocked temporal stock sum — the harder and more useful lesson, that a
+  perfectly computable number can still be one the governed law does not grant. The out-of-universe
+  case stays in the corpus and the tests.
+- **Left open, on the record:** **DG-3** (FERTILE — deferred whole, D9), **DG-4** (open-by-default
+  families make silence permission, so an *under-declared* measure still admits a generated reducer),
+  **DG-5** (generated families have no canonical runtime identity object; the correction uses a
+  deterministic law projection instead, which satisfies the ruling's four conditions without
+  materialising one), **DG-6** (no mechanism positively establishes a map-composed successor law, D10).

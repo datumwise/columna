@@ -63,6 +63,14 @@ const id = `case-${data.mood}`;
     <h4 class="field-label">Result</h4>
     {data.result ? (
       <div class="result">
+        {data.result.estimate && (
+          <p class="estimate" title={data.result.estimate.note}>
+            <span class="estimate-tag ds-mono-sm">{data.result.estimate.label}</span>
+            <span class="estimate-note">
+              these are estimated values, not an exact count — {data.result.estimate.note}
+            </span>
+          </p>
+        )}
         <table class="rows ds-mono-sm">
           <caption class="sr-only">
             First {data.result.rows.length} of {data.result.total} returned rows
@@ -170,6 +178,25 @@ const id = `case-${data.mood}`;
     color: var(--ds-accent-wire);
     margin-right: 0.35rem;
   }
+
+  /* ESTIMATE MARKER — rendered only when the wire's own `approximation` disclosure is present, so a
+     reader meets the qualification at the numbers rather than below them. Content is generated. */
+  .estimate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ds-space-1);
+    margin: 0 0 var(--ds-space-1);
+  }
+  .estimate-tag {
+    color: var(--wire-accent, var(--wire-ink));
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    padding: 0 0.4em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .estimate-note { color: var(--wire-ink-soft); font-size: 0.85em; }
 
   .rows { width: 100%; border-collapse: collapse; color: var(--wire-ink); }
   .rows th, .rows td {

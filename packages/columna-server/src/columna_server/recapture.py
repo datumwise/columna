@@ -67,9 +67,13 @@ EXEMPLARS = [
 ]
 
 # The demo --play wheel (four moods, story order): clarify -> refuse -> disclose -> serve.
-# E2 -> E13 on 2026-08-20: E2's mood moved to `refuse`, so it can no longer carry the disclose leg.
-# It stays in the corpus as the structural-refusal witness; the wheel takes the approximation case.
-WHEEL = ["E4", "E8", "E13", "E5"]
+# RE-CUT 2026-08-20 (Huayin §9), twice over: E2's mood moved to `refuse`, so it could no longer carry
+# the DISCLOSE leg (E13, the approximation case, takes it) — and E2 then takes the REFUSE leg from E8,
+# because the four cases should be distinguished by LAWFULNESS. E8 (out-of-universe) is a true refusal
+# but it teaches only that the ask was addressed outside the contracted space; E2 teaches the harder
+# thing, that a computable number can still be one the governed law does not grant. E8 remains in the
+# corpus and in the test suite.
+WHEEL = ["E4", "E2", "E13", "E5"]
 
 
 def _disclosure_tokens(res: dict):
