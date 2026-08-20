@@ -22,12 +22,16 @@ STORES = [                     # store_id, region
     ("S3", "south"),
 ]
 
-CALENDAR = [                   # day, month
-    ("2025-01-06", "2025-01"),
-    ("2025-01-13", "2025-01"),
-    ("2025-01-20", "2025-01"),
-    ("2025-02-03", "2025-02"),
-    ("2025-02-10", "2025-02"),
+# `quarter` is carried explicitly rather than derived at query time: the Afternoon page gate asks at
+# {region, quarter}, and a gate that computed its own coarse coordinate would be certifying the test's
+# arithmetic instead of the engine's transport. Every day here falls in 2025-Q1, so the quarter row is
+# a single hand-checkable bucket — deliberately, so beats 2 and 3 have one obvious right answer.
+CALENDAR = [                   # day, month, quarter
+    ("2025-01-06", "2025-01", "2025-Q1"),
+    ("2025-01-13", "2025-01", "2025-Q1"),
+    ("2025-01-20", "2025-01", "2025-Q1"),
+    ("2025-02-03", "2025-02", "2025-Q1"),
+    ("2025-02-10", "2025-02", "2025-Q1"),
 ]
 
 INVENTORY = [                  # store_id, day, level   (the daily on-hand snapshot)
@@ -57,13 +61,20 @@ S1_JAN_REVENUE = 300.0         # 120 + 80 + 100        — the flow, lawfully su
 JAN_POSITION_ACROSS_STORES = 980   # 480 + 280 + 220   — summing a stock across STORES is LAWFUL:
                                    # the bar names `calendar`, not the measure (per operator x lineage)
 
+# ── the Afternoon page gate's coarse landmarks (beats 2 and 3), also hand-checkable ──────────────
+# north = S1 + S2; south = S3. All five days fall in 2025-Q1, so the quarter holds every order.
+NORTH_Q1_REVENUE = 890.0       # 120 + 80 + 100 + 90 + 200 + 300  — revenue @ {north, 2025-Q1}
+SOUTH_Q1_REVENUE = 275.0       # 150 + 125                        — revenue @ {south, 2025-Q1}
+NORTH_Q1_AVG_ORDER = 890.0 / 6  # 148.333…  — avg(revenue @ {order}) @ {north, 2025-Q1}, six orders
+SOUTH_Q1_AVG_ORDER = 275.0 / 2  # 137.5     — avg(revenue @ {order}) @ {south, 2025-Q1}, two orders
+
 
 def build(con):
     """Create the Afternoon world in an open DuckDB connection and return it."""
     con.execute("CREATE TABLE stores (store_id VARCHAR, region VARCHAR)")
     con.executemany("INSERT INTO stores VALUES (?, ?)", STORES)
-    con.execute("CREATE TABLE calendar (day VARCHAR, month VARCHAR)")
-    con.executemany("INSERT INTO calendar VALUES (?, ?)", CALENDAR)
+    con.execute("CREATE TABLE calendar (day VARCHAR, month VARCHAR, quarter VARCHAR)")
+    con.executemany("INSERT INTO calendar VALUES (?, ?, ?)", CALENDAR)
     con.execute("CREATE TABLE inventory (store_id VARCHAR, day VARCHAR, level BIGINT)")
     con.executemany("INSERT INTO inventory VALUES (?, ?, ?)", INVENTORY)
     con.execute("CREATE TABLE sales_lines "

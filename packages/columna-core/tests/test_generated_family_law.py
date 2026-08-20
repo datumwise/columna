@@ -21,6 +21,12 @@ REFUSE with the reason and the lawful neighbours. Until 2026-08-20 no fixture ex
 repository to run that against, so the invariant could be asserted but not certified. `1410` is the
 Afternoon's wrong number — the same units counted once per day they sat on the shelf — and the whole
 point of the matrix is that no spelling covered by the laundering class can return it.
+
+THIS FILE IS DG-2 INVARIANT 5's EVIDENCE, and its only evidence. Its sibling
+`test_afternoon_page_gate.py` (with `scripts/afternoon_five.py`) certifies something different:
+that the five executable statements *The Theory of Data in One Afternoon* v0.12 prints earn the
+verdicts the essay claims. That gate certifies the ESSAY; this matrix certifies the LAW. Only one
+of the essay's five is a laundering case, so neither file subsumes the other.
 """
 import pytest
 

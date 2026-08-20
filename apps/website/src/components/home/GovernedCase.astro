@@ -56,6 +56,11 @@ const id = `case-${data.mood}`;
       <div class="finding">
         <p class="code ds-mono-sm">{f.code}</p>
         <p class="detail">{f.detail}</p>
+        {/* Severity is SECONDARY and explicitly labelled. The compact code line above carries
+            MATERIALITY, because materiality is the field that earns Disclose (a `severity: info`
+            disclosure can be material or immaterial — they are orthogonal). Labelling it prevents
+            the reader from reading a severity as a materiality. */}
+        {f.severity && <p class="severity ds-mono-sm"><span class="severity-label">severity</span> {f.severity}</p>}
         {f.remedy && <p class="remedy"><span class="remedy-label">remedy</span> {f.remedy}</p>}
       </div>
     ))}
@@ -170,6 +175,14 @@ const id = `case-${data.mood}`;
     line-height: 1.5;
     color: var(--wire-ink);
     margin: 0;
+  }
+  .severity { margin-top: 0.35rem; color: var(--wire-ink-soft); }
+  .severity-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72em;
+    color: var(--wire-ink-faint, var(--wire-ink-soft));
+    margin-right: 0.45rem;
   }
   .remedy { margin-top: 0.4rem; color: var(--wire-ink-soft); }
   .remedy-label {
