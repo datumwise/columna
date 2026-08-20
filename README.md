@@ -37,11 +37,22 @@ moods in one flow:
   of inventing one.
 - **refuse** — `SELECT level.last AT {customer}`: inventory is keyed by store and day — it has no customers, so
   the ask addresses outside the contracted space and the server refuses with the reason (never a guess).
-- **disclose** — `SELECT level.sum AT {store*cal.month}`: summing a stock across calendar months adds quantities
-  that don't reconcile along the blocked day→month axis; the server returns the numbers **with** a
-  material caveat naming the blocked lineage and the remedy (`.last`), never a silent wrong total.
+- **disclose** — `SELECT buyers AT {cal.month}`: distinct buyers per month is a lawful question and the
+  server answers it — but it counts distinct customers from a sketch, not by holding every id in memory,
+  so the numbers arrive **with** a material caveat carrying the estimator and its relative error
+  (HLL, ≈1.6%). Disclose is not a softer refusal: the ask is sound, and the one condition on the answer
+  travels with it instead of being left for the reader to discover.
 - **serve** — `SELECT aov AT {cal.month}`: average order value by calendar month, one population and well posed;
   the server returns the numbers.
+
+The four moods sort by *lawfulness*, not by confidence: **serve** — lawful, no material condition;
+**disclose** — lawful, a material condition travels with the answer; **clarify** — several lawful
+meanings remain; **refuse** — no lawful path exists. A structurally prohibited reduction is a refuse,
+not a disclosed serve: `SELECT stock.sum AT {store*cal.month}` — summing a stock along a lineage its
+`sum` is declared `BLOCKED` along — returns no numbers at all, in every spelling, including
+`sum(stock.last@day)` and any expression wrapping it. Family generation creates a new analytical family;
+it does not create a new operator permission. *(Ratified 2026-08-20, ADR-036; this leg of the demo used
+to be the disclose leg.)*
 
 That transcript *is* the product. (No path arguments needed — the demo Manifold and a small warehouse
 ship in the package. For a richer run over the full benchmark warehouse, see

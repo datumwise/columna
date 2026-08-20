@@ -134,6 +134,33 @@ settle the authored law.
 
 ### BOUNDARY-SEMANTICS — open question (separate; not a compiler decision)
 
+> **RULED 2026-08-20 — the "required ruling" below has been made (Huayin, ADR-036, the generated-family
+> law). The standing instruction in this section is SUPERSEDED; its text is kept intact below as the
+> record of the Core-P1 posture, which was correct for its date.**
+>
+> The ruling is **prohibition/refusal**: a reduction travelling a lineage its operator is declared
+> `BLOCKED` along now REFUSES (`outcome: refuse`, `no_result.reason: "blocked_reduction"`, no values),
+> in every spelling — written member, reducer *generated* by an inline `sum(…)`/`avg(…)` above a lawful
+> sibling, or wrapped in a unary/binary/scalar/scan/`DERIVED` carrier. *Structurally prohibited
+> analytical operations refuse. Disclose exists inside the lawful region; it cannot legalize an
+> operation the governed law does not possess.* *Family generation creates a new analytical family. It
+> does not create a new operator permission.* `b_anchor_crossing` is tombstoned as a producer and
+> retained, still wired. `CONTRACT_VERSION` stays `"3"`; this is not a wire break.
+>
+> Two things this ruling does **not** do, both of which the section below anticipated correctly:
+> 1. It does **not** reopen the representational verdict. `BLOCKED` still cannot carry `across`, and
+>    deferred requirement 1 (representation) stands exactly as written.
+> 2. It does **not** introduce a stock/flow/rating type. Applicability remains per **operator ×
+>    lineage** (ADR-031 D5 clarified, not reversed), so `across`-style *product* prohibition is still
+>    unrepresented and still deferred.
+>
+> Deferred requirement 2 (enforcement) is **discharged**: the shared semantics decided refuse. The
+> instruction "do **not** change `b_anchor_crossing` from inform-and-serve to refuse **as part of
+> Core-P1**" was scoped to Core-P1 and to the absence of a ruling; the change was made under its own
+> ruling, outside Core-P1, after the trace it demanded was performed. Line references in the block
+> below are to the pre-ruling tree and no longer resolve (`planner._crossings` was replaced by the
+> operation-level law walk).
+
 ```
 authoring surface:     boundary / forbidden / across  (appears to state "may not aggregate")
 current Core behavior:  detect crossing exactly, then critical DISCLOSE-AND-SERVE
@@ -151,6 +178,7 @@ Two deferred boundary requirements carried forward:
 1. **representation** — Core must preserve `measure + forbidden + across` without flattening
    contextual/product distinctions;
 2. **enforcement** — shared semantics must decide refuse vs critical inform-and-serve.
+   *(Discharged 2026-08-20, ADR-036: refuse. Requirement 1 remains open.)*
 
 ---
 
