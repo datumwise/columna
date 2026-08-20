@@ -3,7 +3,8 @@ test_case_demo_trial.py — Cascadia case-demo increment 2: the full Manifold, l
 
 The Cascadia Manifold (demo/cascadia) is authored to chapter 2's spec and adjudicated against the
 bundled warehouse. This pins THE TRIAL — the chapter-3 verdict table — against reality, and confirms
-the four moods reproduce chapter 3's question section (serve · disclose · clarify).
+the four moods reproduce chapter 3's question section (serve · refuse · clarify — the stock-over-time
+leg moved from disclose to REFUSE on 2026-08-20; see the generated-family-law note below).
 
 Flags where reality bends chapter 3 (brought to the desk, not silently absorbed):
   • product ↔ category (M:N) — chapter 3 lists it 'corroborated', but a RELATE is RECORDED, not
@@ -87,12 +88,19 @@ def test_serve_revenue_and_orders_by_region_and_quarter(live):
     assert r.data.height > 0 and not r.disclosure.caveats and r.columns[0].refusal is None
 
 
-def test_stock_sum_over_time_serves_with_a_critical_blocked_caveat(live):
-    # the first burn, retried: stock.sum across the blocked calendar SERVES but wears a critical caveat.
+def test_stock_sum_over_time_refuses_as_a_blocked_reduction(live):
+    # the first burn, retried. Was: stock.sum across the blocked calendar SERVES but wears a critical
+    # `b_anchor_crossing` caveat (ADR-020 inform-and-serve). FLIPPED 2026-08-20 (Huayin, generated-family
+    # law): a reduction traversing a lineage its operator is declared BLOCKED along has NO lawful
+    # reading, so it REFUSES — Dana's meaningless number is not produced at all. Inform-and-serve was
+    # letting a disclosure stand in for an authority the governed law never granted.
     r = live.provider.runtime.frame("store", "cal.month").column("stock", "stock.sum").run()
-    crossing = [c for c in r.disclosure.caveats if c.category == "b_anchor_crossing"]
-    assert crossing and crossing[0].severity == "critical"
-    assert "calendar" in crossing[0].detail
+    ref = r.columns[0].refusal
+    assert ref is not None and ref.reason == "blocked_reduction"
+    assert ref.kind == "refuse" and ref.discriminator == "unsupported"
+    assert "calendar" in ref.detail              # the blocked lineage is still named in the refusal
+    assert r.data is None                        # NO values: nothing was served
+    assert not r.disclosure.caveats              # and no caveat rides in place of the refusal
 
 
 def test_revenue_by_category_clarifies_naming_the_many_to_many(live):
