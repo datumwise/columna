@@ -1,12 +1,39 @@
 {
   "endpoint": "https://demo-endpoint-vercel.vercel.app/query",
-  "manifold": "benchmark",
-  "contract_version": "1",
+  "manifold": "cascadia",
+  "contract_version": "3",
   "queries": [
-    { "id": "clarify",  "label": "the average of aov, by month — averaged from which grain?", "frameql": "SELECT avg(aov) AT {cal.month}",        "universe": null, "intended": "clarify" },
-    { "id": "refuse",   "label": "last inventory, by customer — but inventory has no customers", "frameql": "SELECT level.last AT {customer}",      "universe": null, "intended": "refuse" },
-    { "id": "disclose", "label": "stock summed into months, per store",                  "frameql": "SELECT level.sum AT {store*cal.month}", "universe": null, "intended": "disclose" },
-    { "id": "serve",    "label": "average order value (aov), by month",                  "frameql": "SELECT aov AT {cal.month}",             "universe": null, "intended": "serve" }
+    {
+      "id": "clarify",
+      "label": "the average of aov, by year \u2014 averaged from which grain?",
+      "frameql": "SELECT avg(aov) AT {cal.year}",
+      "universe": null,
+      "intended": "clarify"
+    },
+    {
+      "id": "refuse",
+      "label": "last inventory, by customer \u2014 but inventory has no customers",
+      "frameql": "SELECT stock.last AT {customer}",
+      "universe": null,
+      "intended": "refuse"
+    },
+    {
+      "id": "disclose",
+      "label": "distinct buyers, by month \u2014 counted from a sketch",
+      "frameql": "SELECT buyers AT {cal.month}",
+      "universe": null,
+      "intended": "disclose"
+    },
+    {
+      "id": "serve",
+      "label": "average order value (aov), by month",
+      "frameql": "SELECT aov AT {cal.month}",
+      "universe": null,
+      "intended": "serve"
+    }
   ],
-  "foolIt": { "placeholder": "profit_margin", "template": "SELECT %s AT {cal.month}" }
+  "foolIt": {
+    "placeholder": "profit_margin",
+    "template": "SELECT %s AT {cal.month}"
+  }
 }

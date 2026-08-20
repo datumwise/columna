@@ -108,9 +108,20 @@ def generate(store, provider=None) -> dict:
             mood = res.get("outcome")                       # the WOULD-BE mood, touching no data
             tokens = []
             for ser in res.get("series", []):
-                for dis in ((ser.get("would_be") or {}).get("disclosures") or []):
+                wb = ser.get("would_be") or {}
+                for dis in (wb.get("disclosures") or []):
                     tokens.append({"token": dis.get("category") or dis.get("code"),
                                    "severity": dis.get("severity"), "detail": dis.get("detail")})
+                # ALSO the would-be no_result reason (2026-08-20). The EXPLAIN branch used to read the
+                # disclosure channel only — invisible while every explained exemplar was a disclose, but
+                # a would-be REFUSAL carries its reason on `no_result`, not as a caveat. Without this the
+                # recorder saw E9's mood move to `refuse` and its reason vanish, and the drift gate
+                # flagged the recorder's blind spot as manifold drift. The query branch
+                # (`_disclosure_tokens`) always read both channels; this makes EXPLAIN match it.
+                nr = wb.get("no_result")
+                if nr:
+                    tokens.append({"token": nr.get("reason"), "severity": None,
+                                   "detail": nr.get("detail")})
             entry = {"id": eid, "caption": caption, "query": query, "kind": "explain",
                      "mood": mood, "disclosures": tokens}
         else:
