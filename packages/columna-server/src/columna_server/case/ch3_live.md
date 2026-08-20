@@ -63,12 +63,32 @@ location, calendar — both verified).
 ```
 SELECT stock.sum AT {store, cal.month}
 ```
-→ **serve, with a caveat that can't be missed**: the per-month figures come back, and
-with them: *stock summed across the blocked `calendar` lineage — per-bucket totals do
-not reconcile along this axis; for month-end position, use `stock.last`.* The
-meaningless exec-deck number now cannot be produced silently. He reads the caveat,
-switches to `stock.last`, and gets the position Dana's question 5 actually wanted.
-The burn didn't need a policy or a training. It needed a declaration.
+→ **refuse**: no figures come back at all. What comes back instead is the reason —
+*`sum` is declared BLOCKED along `calendar`, so this reduction has no lawful reading;
+per-bucket totals do not reconcile along this axis* — and the two lawful edits: use a
+reducer that *is* applicable along the lineage (`stock.last`, for month-end position),
+or ask at an anchor the reduction doesn't have to cross. Dana's meaningless exec-deck
+number isn't produced silently, and it isn't produced with a caveat stapled to it
+either; it isn't produced. He switches to `stock.last` and gets the position Dana's
+question 5 actually wanted. The burn didn't need a policy or a training. It needed a
+declaration — and the declaration holds however the question is phrased:
+`sum(stock.last@day)`, the same prohibited sum generated inside an expression rather
+than named, refuses identically. Generating a new family doesn't create a new
+permission.
+
+**The honest estimate.** The same analyst, later that week: "distinct buyers per
+month?"
+
+```
+SELECT buyers AT {cal.month}
+```
+→ **disclose**: twenty-four monthly figures, and travelling with them the one
+condition on them — *buyers.distinct: HLL distinct estimate*, a sketch rather than an
+exact count, with its relative error (≈1.6%) named on the answer. The ask is sound and
+the numbers are his to use; what rides along is the method, not an apology. That is
+the whole distance between the two moods people confuse: **disclose** is a lawful
+answer carrying a material condition, **refuse** is the absence of any lawful answer
+to carry one.
 
 **The ambiguous ask.** "What was the average monthly order value for the year?"
 
@@ -110,7 +130,8 @@ over the Manifold, which exposes exactly three things:
 
 - **`describe`** — the whole Manifold, machine-readable: every name, description,
   law, and verdict. The assistant reads this first; it's how it knows what `buyers`
-  means and that `stock.sum` is blocked over time. And it is all the assistant *can*
+  means and that `stock.sum` is barred over time — so it can steer to `stock.last`
+  before it asks, instead of relaying a refusal. And it is all the assistant *can*
   see — the Manifold is a blast wall by construction, so "no raw access" is
   architecture, not a policy anyone has to enforce.
 - **`query`** — FrameQL in, the four-mood answer out: result plus disclosure, always.
@@ -195,8 +216,9 @@ is checked rather than trusted, minds included.
 ## What done looked like — the honest scorecard
 
 Chapter 1 set the bar. Where it stands, in recorded output: the two burns are
-**impossible** — the meaningless inventory total cannot pass silently and the stale
-summaries aren't in the answering path at all. One definition of return rate, declared
+**impossible** — the meaningless inventory total cannot be produced at all, in any
+spelling of the question, and the stale summaries aren't in the answering path at
+all. One definition of return rate, declared
 once, served everywhere. Ambiguity doesn't produce confident wrong numbers — though
 this take shows the guard suppressing a good clarifying question rather than asking
 it, which is the right instinct wearing rough edges. The folklore lives in the system

@@ -22,8 +22,12 @@ MANIFOLD = "cascadia"
 EXEMPLARS = [
     ("E1", "Priya's serve pair",
      "SELECT revenue, orders AT {region*cal.quarter}", "serve", None),
+    # E2 was (disclose, b_anchor_crossing) — the burn served with a critical caveat. RE-RATIFIED
+    # 2026-08-20 (generated-family law): the burn is now REFUSED. Dana's meaningless number is not
+    # produced at all, in this or any other spelling. Caption unchanged: the beat is the same beat,
+    # and it lands harder.
     ("E2", "The first burn, retried",
-     "SELECT stock.sum AT {store*cal.month}", "disclose", "b_anchor_crossing"),
+     "SELECT stock.sum AT {store*cal.month}", "refuse", "blocked_reduction"),
     ("E3", "The remedy taken",
      "SELECT stock.last AT {store*cal.month}", "serve", None),
     ("E4", "The ambiguous ask",
@@ -37,7 +41,7 @@ EXEMPLARS = [
     ("E8", "A true refuse (the wheel needs one)",
      "SELECT stock.last AT {customer}", "refuse", "out_of_universe"),   # code recorded at seeding, flagged back
     ("E9", "Check before you run",
-     "EXPLAIN SELECT stock.sum AT {store*cal.month}", "disclose", "b_anchor_crossing"),   # would-be mood; kind=explain
+     "EXPLAIN SELECT stock.sum AT {store*cal.month}", "refuse", "blocked_reduction"),   # would-be mood; kind=explain
     # E10 — the RELATE-faces counterpart to E6 (asked -> answered). The crossing EXECUTED. Caption is a
     # WORKING placeholder: ch3 wording is ratified by the desk AFTER seeds land (ruling 4), from the
     # recorded E6-menu + E10 wire text. Do not treat as final prose.
@@ -51,10 +55,25 @@ EXEMPLARS = [
      "SELECT revenue AT {category.primary}", "disclose", "shadow"),
     ("E12", "Revenue by category, split by declared weight (reconciled to the cent)",
      "SELECT revenue AT {category.split}", "serve", "reconciliation"),
+    # E13 — the wheel's DISCLOSE leg, minted 2026-08-20 (generated-family law, Huayin §10). E2 used to
+    # carry it, on the reading that a prohibited reduction could be served if the prohibition rode
+    # along. That reading is retired: Disclose exists INSIDE the lawful region and cannot legalize an
+    # operation the governed law does not possess. E13 is the truer witness — a LAWFUL analytical
+    # request whose REALIZATION is approximate (an HLL distinct estimate), so the result is the
+    # reader's to use and the one condition on it travels with the number. Caption is a WORKING
+    # placeholder pending desk ratification of the ch3 wording, like E10/E11.
+    ("E13", "The honest estimate (the ask is sound; the method is stated)",
+     "SELECT buyers AT {cal.month}", "disclose", "approximation"),
 ]
 
 # The demo --play wheel (four moods, story order): clarify -> refuse -> disclose -> serve.
-WHEEL = ["E4", "E8", "E2", "E5"]
+# RE-CUT 2026-08-20 (Huayin §9), twice over: E2's mood moved to `refuse`, so it could no longer carry
+# the DISCLOSE leg (E13, the approximation case, takes it) — and E2 then takes the REFUSE leg from E8,
+# because the four cases should be distinguished by LAWFULNESS. E8 (out-of-universe) is a true refusal
+# but it teaches only that the ask was addressed outside the contracted space; E2 teaches the harder
+# thing, that a computable number can still be one the governed law does not grant. E8 remains in the
+# corpus and in the test suite.
+WHEEL = ["E4", "E2", "E13", "E5"]
 
 
 def _disclosure_tokens(res: dict):
@@ -93,9 +112,20 @@ def generate(store, provider=None) -> dict:
             mood = res.get("outcome")                       # the WOULD-BE mood, touching no data
             tokens = []
             for ser in res.get("series", []):
-                for dis in ((ser.get("would_be") or {}).get("disclosures") or []):
+                wb = ser.get("would_be") or {}
+                for dis in (wb.get("disclosures") or []):
                     tokens.append({"token": dis.get("category") or dis.get("code"),
                                    "severity": dis.get("severity"), "detail": dis.get("detail")})
+                # ALSO the would-be no_result reason (2026-08-20). The EXPLAIN branch used to read the
+                # disclosure channel only — invisible while every explained exemplar was a disclose, but
+                # a would-be REFUSAL carries its reason on `no_result`, not as a caveat. Without this the
+                # recorder saw E9's mood move to `refuse` and its reason vanish, and the drift gate
+                # flagged the recorder's blind spot as manifold drift. The query branch
+                # (`_disclosure_tokens`) always read both channels; this makes EXPLAIN match it.
+                nr = wb.get("no_result")
+                if nr:
+                    tokens.append({"token": nr.get("reason"), "severity": None,
+                                   "detail": nr.get("detail")})
             entry = {"id": eid, "caption": caption, "query": query, "kind": "explain",
                      "mood": mood, "disclosures": tokens}
         else:

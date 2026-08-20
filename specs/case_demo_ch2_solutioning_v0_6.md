@@ -41,7 +41,10 @@ each finding became a decision:
   silently mixed.
 - **The snapshots are a running level, not a flow.** Summing them across days produces
   Dana's meaningless number. Decision: summing stock **across time will be blocked by
-  declaration** — the first burn becomes impossible, not discouraged.
+  declaration** — the first burn becomes impossible, not discouraged: the ask comes
+  back **refused**, with no number attached to argue with. Note how narrow the bar is,
+  deliberately — it names `sum` along the calendar and nothing else, so stock summed
+  across *stores*, or the average or highest stock over time, stay perfectly askable.
 - **The summary tables are stale.** `daily_revenue_summary` has 716 rows against 731
   calendar days — fifteen days missing. That's the second burn, explained. Decision:
   **summary tables are not sources.** The base tables are authoritative (the
@@ -116,7 +119,10 @@ them — a single hop (location), a chain, or a small branching structure (calen
 needs the branch, because weeks don't nest in months). Every declared path is a claim,
 tested against the actual tables. Lineage names name *meanings* — `location`,
 `calendar` — and a bar like `BLOCKED { calendar }` bars the whole lineage, week branch
-included.
+included. And it bars the **operation**, not one way of spelling it: a `sum` that
+travels the calendar is refused whether it is asked for by name (`stock.sum`) or
+generated inside a larger expression (`sum(stock.last@day)`). Generating a new family
+creates a new analytical family, not a new permission.
 
 **The measures** — named in the team's own vocabulary, each with a one-line
 description (Dana's folklore rule: if a new hire can't understand the name from its

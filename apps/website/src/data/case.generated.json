@@ -1,5 +1,5 @@
 {
-  "generated_by": "columna-core 0.14.0 / columna-server 0.8.2",
+  "generated_by": "columna-core 0.15.0 / columna-server 0.8.2",
   "manifold": "cascadia",
   "ch1_tables": [
     {
@@ -558,7 +558,7 @@
               "location"
             ],
             "basis": "functional dependence held on the attested data: every hop maps to one parent across store -> region (every branch, so every composition).",
-            "attestation": "attest:stores@stores:24",
+            "attestation": "attest:stores@cdg2/duckdb-v1.5.5:24:234587355792425319227:6958432888559333329:25db086b434c6bc4",
             "timeless": false
           }
         },
@@ -589,7 +589,7 @@
               "calendar"
             ],
             "basis": "functional dependence held on the attested data: every hop maps to one parent across day -> cal.month -> cal.quarter -> cal.year ; day -> cal.week (every branch, so every composition).",
-            "attestation": "attest:calendar@calendar:731",
+            "attestation": "attest:calendar@cdg2/duckdb-v1.5.5:731:6328909163538835720638:9263435390753608498:ac9072c2a4b1f3a9",
             "timeless": false
           }
         }
@@ -861,17 +861,21 @@
       "caption": "The first burn, retried",
       "query": "SELECT stock.sum AT {store*cal.month}",
       "kind": "query",
-      "mood": "disclose",
+      "mood": "refuse",
       "disclosures": [
         {
-          "token": "b_anchor_crossing",
-          "severity": "critical",
-          "detail": "stock.sum (sum) coarsens across blocked lineage 'calendar' (edge day->cal.month); per-bucket totals do not reconcile along this axis"
+          "token": "blocked_reduction",
+          "severity": null,
+          "detail": "'stock.sum' reduces by 'sum' across blocked lineage 'calendar' — 'sum' is declared BLOCKED along 'calendar', so this reduction has no lawful reading at store*cal.month; per-bucket totals do not reconcile along this axis. Generating a new family does not create the permission: the declared reducer needs the same authority the declaration withholds."
         }
       ],
-      "row_count": 554,
+      "menu": [
+        "use a reducer that IS applicable along 'calendar' (e.g. '.last' for a stock collapsed over time)",
+        "address at an anchor that does not cross 'calendar'"
+      ],
+      "row_count": null,
       "reason_tokens": [
-        "b_anchor_crossing"
+        "blocked_reduction"
       ],
       "in_wheel": true
     },
@@ -976,24 +980,24 @@
       "reason_tokens": [
         "out_of_universe"
       ],
-      "in_wheel": true
+      "in_wheel": false
     },
     {
       "id": "E9",
       "caption": "Check before you run",
       "query": "EXPLAIN SELECT stock.sum AT {store*cal.month}",
       "kind": "explain",
-      "mood": "disclose",
+      "mood": "refuse",
       "disclosures": [
         {
-          "token": "b_anchor_crossing",
-          "severity": "critical",
-          "detail": "stock.sum (sum) coarsens across blocked lineage 'calendar' (edge day->cal.month); per-bucket totals do not reconcile along this axis"
+          "token": "blocked_reduction",
+          "severity": null,
+          "detail": "'stock.sum' reduces by 'sum' across blocked lineage 'calendar' — 'sum' is declared BLOCKED along 'calendar', so this reduction has no lawful reading at store*cal.month; per-bucket totals do not reconcile along this axis. Generating a new family does not create the permission: the declared reducer needs the same authority the declaration withholds."
         }
       ],
       "row_count": null,
       "reason_tokens": [
-        "b_anchor_crossing"
+        "blocked_reduction"
       ],
       "in_wheel": false
     },
@@ -1059,12 +1063,31 @@
         "reconciliation"
       ],
       "in_wheel": false
+    },
+    {
+      "id": "E13",
+      "caption": "The honest estimate (the ask is sound; the method is stated)",
+      "query": "SELECT buyers AT {cal.month}",
+      "kind": "query",
+      "mood": "disclose",
+      "disclosures": [
+        {
+          "token": "approximation",
+          "severity": "info",
+          "detail": "buyers.distinct: HLL distinct estimate [HLLSketch(12)]"
+        }
+      ],
+      "row_count": 24,
+      "reason_tokens": [
+        "approximation"
+      ],
+      "in_wheel": true
     }
   ],
   "wheel": [
     "E4",
-    "E8",
     "E2",
+    "E13",
     "E5"
   ]
 }

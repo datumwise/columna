@@ -4,7 +4,7 @@ build_benchmark.py — Columna Core against the real benchmark warehouse.
 Proves the column-foundation architecture end-to-end:
   - TRANSPORT replaces the join (revenue@region from single-table deliveries),
   - FAN-OUT is inexpressible (revenue@category refused at the planner),
-  - the B-anchor blocks per-lineage (level.sum across time SERVED with a critical disclosure; across stores clean),
+  - the B-anchor blocks per-lineage (level.sum across time REFUSED as unlawful; across stores clean),
   - the pre/post-agg boundary holds (aov correct, not avg-of-avgs),
   - distinct reaggregates by sketch,
   - out-of-universe addressing is a distinct refusal.
@@ -148,7 +148,7 @@ def run_validations(con, srv):
         print("    " + line)
 
     # ---------------------------------------------------------------------
-    print("\n(4) B-anchor blocks per-LINEAGE — level.sum clean over stores, SERVED-with-disclosure over time")
+    print("\n(4) B-anchor blocks per-LINEAGE — level.sum clean over stores, REFUSED over time")
     # allowed: collapse store→region, keep day (store_geo lineage, not blocked)
     res = srv.frame("region","day").column("inv","level.sum").run()
     truth = {(r[0],r[1]): r[2] for r in con.execute(
@@ -159,15 +159,19 @@ def run_validations(con, srv):
           res.data is not None and all(abs(got[k]-truth[k])<1e-3 for k in truth)
           and res.columns[0].disclosure.severity in ("none","info"),
           f"{len(got)} (region,day) cells")
-    # crossing: collapse day (calendar lineage, blocked) → SERVED with a critical disclosure (ADR-020)
+    # crossing: collapse day (calendar lineage, blocked) → REFUSED. RULED 2026-08-20 (Huayin, the
+    # generated-family law), superseding ADR-020's inform-and-serve here: the reduction has no lawful
+    # reading, so no number is produced and none is caveated. Disclose may qualify a lawful result; it
+    # may not legalize an operation the governed law does not possess.
     res2 = srv.frame("store").column("inv","level.sum").run()
     col = res2.columns[0]
-    crossing = [c for c in col.disclosure.criticals if c.category == "b_anchor_crossing"]
-    check("level.sum@store is SERVED with a CRITICAL B-anchor crossing disclosure "
-          "(summing a stock across days) — inform-and-serve, not refused",
-          col.refusal is None and col.frame is not None
-          and len(crossing) >= 1 and col.disclosure.severity == "critical",
-          crossing[0].render() if crossing else "")
+    ref2 = col.refusal
+    check("level.sum@store is REFUSED (blocked_reduction) — summing a stock across days has no "
+          "lawful reading, so no number is served under a caveat",
+          ref2 is not None and ref2.kind == "refuse" and ref2.reason == "blocked_reduction"
+          and col.frame is None and not col.disclosure.caveats
+          and any(".last" in a for a in ref2.alternatives),
+          ref2.detail if ref2 else "")
 
     # ---------------------------------------------------------------------
     print("\n(5) pre/post-agg boundary — aov = revenue/orders (post-agg), not avg-of-avgs")

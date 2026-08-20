@@ -77,6 +77,15 @@ class UniverseShape:
 
 @dataclass(frozen=True)
 class DerivedShape:
+    """A derived column, as SHAPE.
+
+    NOT PROJECTED, deliberately (ruling 2026-08-20 §1): the derived family's `declared_lineages` and
+    adjudicated `License`. A correction drafted here would have had the planner read `FERTILE { .. }`
+    as the successor family's travel permission; running it proved FERTILE cannot carry that meaning
+    (see DG-3 — family law, certification evidence and runtime admission are three boundaries, not
+    one). Rather than leave a widened shape nothing reads, the projection stays as it was. When the
+    successor-travel carrier is settled it will be added by the change that consumes it, so the
+    shape never carries half a semantics."""
     name: str
     formula: str
     resolution_anchor: Optional[str] = None   # declared `AT <level>` — routes the distinct AT-metric reading
@@ -120,7 +129,9 @@ class PlannerView:
     """A provenance-free projection of a Manifold, for the planner."""
 
     def __init__(self, m):
-        from .operators import REGISTRY
+        from .operators import REGISTRY, canonical, SERIES_REDUCERS
+        self.canonical_op = staticmethod(canonical).__func__   # surface spelling -> canonical operator
+        self.series_reducers = SERIES_REDUCERS                 # reducers that may collapse a resolved series
         self.measures = {n: MeasureShape(n, mc.universe, tuple(mc.family), mc.logical_type,
                                          {mem: frozenset(fm.b_anchor.blocked_lineages)
                                           for mem, fm in mc.family.items()},

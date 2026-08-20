@@ -86,6 +86,19 @@ REGISTRY: dict = {
                       deliver_sql=lambda p: f"min({p})",  combine="min"),
     "max":   Operator("max",   REDUCER, VALUE, True, accepts=ORDERED, out_rule="same",
                       deliver_sql=lambda p: f"max({p})",  combine="max"),
+    # `mean` is a REDUCER in the governance sense — it GENERATES an analytical family and reduces a
+    # series onto a coarser anchor — but it is deliberately NOT a monoid: a displayed average does not
+    # combine associatively, and mean-of-means is not a mean. Its witness is HOLISTIC (recompute in one
+    # pass over the remapped series), which is exactly the semantics the inline reducer already ships
+    # (`ColumnEngine._SERIES_REDUCE["mean"]` aggregates the whole finer series ONCE). `in_core=False`:
+    # Core does not serve `mean` as a DECLARED measure family member (the holistic recompute path
+    # implements median/mode only) — this entry exists so `(operator x lineage)` law has an ADDRESS for
+    # the inline average, NOT to define new arithmetic.
+    # Registered 2026-08-20 (generated-family law): before this, `avg`/`mean` was recognized by the
+    # planner's hardcoded inline table and by NOTHING in the registry, so `mean BLOCKED { <lineage> }`
+    # was unparseable and every mean-generated successor was ungovernable.
+    "mean":  Operator("mean",  REDUCER, HOLISTIC, False, accepts=NUMERIC | {DURATION}, out_rule="Float64",
+                      deliver_sql=lambda p: f"avg({p})", in_core=False),
     "distinct": Operator("distinct", REDUCER, SKETCH, True, accepts=ANY, out_rule="Int64", combine="union"),
     # ---- the distinct family, decomposed: a custom TYPE (HLLSketch) + three custom operators.
     # `distinct` above is the friendly default-family spelling; the engine composes it from these.
@@ -132,6 +145,25 @@ REGISTRY: dict = {
     "rolling_mean": Operator("rolling_mean", SCAN, accepts=NUMERIC, out_rule="Float64",
                              needs_order=True, needs_window=True, in_core=False),
 }
+
+
+# ── ONE canonical operator identity, several surface spellings ───────────────
+# Frame-QL spells the inline average `avg`; the canonical governed operator is `mean`. This is an
+# ALIAS, not a second operator: `avg` and `mean` name the SAME law subject, so a BLOCKED/FERTILE
+# declaration written against `mean` governs both spellings and there is exactly one thing to declare.
+ALIASES: dict = {"avg": "mean"}
+
+
+def canonical(name: str) -> str:
+    """The canonical registry name for a surface spelling (`avg` -> `mean`); identity otherwise."""
+    return ALIASES.get(name, name)
+
+
+# The planner<->engine contract for INLINE GENERATED reductions: the reducers that can collapse an
+# already-resolved series onto a coarser anchor. The engine's `_SERIES_REDUCE` must cover exactly this
+# set (asserted by test) — that agreement is what keeps the EXECUTABLE reducer vocabulary and the
+# GOVERNABLE reducer vocabulary from drifting apart, which is how `mean` came to have no law slot.
+SERIES_REDUCERS: frozenset = frozenset({"sum", "mean", "min", "max", "count"})
 
 
 def get_operator(name: str) -> Operator:

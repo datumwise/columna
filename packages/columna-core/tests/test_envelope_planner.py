@@ -168,8 +168,16 @@ def test_where_unreachable_clarifies(fixture_server):
 
 # --- the four moods still reachable through the envelope -----------------------------------------
 def test_envelope_disclose(fixture_server):
-    w = _wire(fixture_server, "SELECT level.sum AT {store}")
+    # CARRIER SWAPPED 2026-08-20 (Huayin, generated-family law). This test only ever needed A disclose
+    # to prove the mood reaches the wire through the envelope; it used `SELECT level.sum AT {store}`,
+    # which is no longer one — a structurally blocked reduction REFUSES (see
+    # test_envelope_refuse_blocked_reduction below). `visitors` is `distinct(customer_id)`, an HLL
+    # sketch, so it carries a MATERIAL `approximation` caveat on a result that is entirely lawful —
+    # the shape disclose is actually for: a qualified answer, not a laundered one.
+    w = _wire(fixture_server, "SELECT visitors AT {region}")
     assert w["outcome"] == "disclose"
+    codes = [(d["code"], d["materiality"]) for d in w["columns"][0]["disclosures"]]
+    assert ("approximation", "material") in codes
 
 
 def test_envelope_refuse(fixture_server):
@@ -178,7 +186,40 @@ def test_envelope_refuse(fixture_server):
     assert w["columns"][0]["no_result"]["reason"] == "out_of_universe"
 
 
+def test_envelope_refuse_blocked_reduction(fixture_server):
+    # MINTED 2026-08-20 (Huayin), taking over the case `test_envelope_disclose` used to carry:
+    # `level.sum @ store` collapses days and `sum` is declared BLOCKED along `calendar`, so the
+    # envelope path refuses on the same law the terse path does. Disclose exists inside the lawful
+    # region; it cannot legalize an operation the governed law does not possess.
+    w = _wire(fixture_server, "SELECT level.sum AT {store}")
+    assert w["outcome"] == "refuse"
+    nr = w["columns"][0]["no_result"]
+    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "blocked_reduction", "unsupported")
+    assert not (w["columns"][0].get("disclosures") or [])       # no number, so nothing to caveat
+
+
 def test_envelope_clarify(fixture_server):
-    w = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    # CARRIER SWAPPED 2026-08-20 (Huayin, ruling §9): `avg(aov) AT {cal.month}` is no longer a clarify
+    # — `day` is the ONLY lawful input anchor there, and one lawful reading is not a contested choice,
+    # so it defaults and discloses. A clarify needs TWO surviving lawful readings: at
+    # `{region*cal.month}` both `store` and `day` reach the anchor lawfully, so the menu is real.
+    w = _wire(fixture_server, "SELECT avg(aov) AT {region*cal.month}")
     assert w["outcome"] == "clarify"
-    assert w["columns"][0]["no_result"]["reason"] == "input_anchor_ambiguous"
+    nr = w["columns"][0]["no_result"]
+    assert nr["reason"] == "input_anchor_ambiguous"
+    alts = [a["description"] for a in nr["alternatives"]]
+    assert any("'day'" in a for a in alts) and any("'store'" in a for a in alts)
+
+
+def test_envelope_unpinned_single_lawful_reading_discloses(fixture_server):
+    # MINTED 2026-08-20 (Huayin, ruling §9). Candidate input anchors are filtered for LAWFULNESS
+    # FIRST; when exactly ONE survives there is nothing to choose between, so the planner defaults to
+    # it and PROCEEDS — wire outcome `disclose`, carrying a MATERIAL `input_anchor` caveat that names
+    # the defaulted grain. Never a clarify: a menu of one is not a question.
+    w = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    assert w["outcome"] == "disclose"
+    assert w["columns"][0].get("no_result") is None
+    codes = [(d["code"], d["materiality"]) for d in w["columns"][0]["disclosures"]]
+    assert ("input_anchor", "material") in codes
+    detail = next(d["detail"] for d in w["columns"][0]["disclosures"] if d["code"] == "input_anchor")
+    assert "DEFAULTED to 'day'" in detail

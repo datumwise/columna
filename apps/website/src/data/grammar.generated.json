@@ -1,5 +1,5 @@
 {
-  "generated_by": "columna-core 0.14.0",
+  "generated_by": "columna-core 0.15.0",
   "structure_source": "columna_core.parser.__doc__ grammar block (teaching shape)",
   "completeness_source": "columna_core.parser._KW (lexing set)",
   "note": "A lexing set is not a grammar taxonomy: _KW says what may BEGIN A LINE and is used here only to assert coverage; the page's SHAPE comes from the docstring.",
@@ -18,6 +18,7 @@
   },
   "kw_tokens": [
     "MANIFOLD",
+    "SOURCE_MANIFOLD",
     "UNIVERSE",
     "LEVEL",
     "RELATE",
@@ -30,10 +31,23 @@
     {
       "keyword": "MANIFOLD",
       "signatures": [
-        "MANIFOLD <name> VERSION <n>"
+        "MANIFOLD <name> VERSION <n>              this engine artifact + its integer engine/cache revision"
       ],
       "clauses": [],
       "notes": []
+    },
+    {
+      "keyword": "SOURCE_MANIFOLD",
+      "signatures": [
+        "SOURCE_MANIFOLD <id> VERSION <semver>    OPTIONAL — the published governed Manifold this artifact was"
+      ],
+      "clauses": [],
+      "notes": [
+        "lowered from (columna#150 P0(b)). A distinct identity: a",
+        "stable id AND a semantic version, an atomic pair. Additive —",
+        "a legacy .cml omits it (no retained source identity). Never",
+        "derived from the MANIFOLD name/version."
+      ]
     },
     {
       "keyword": "UNIVERSE",
@@ -137,5 +151,5 @@
       "source": "MANIFOLD demo VERSION 1\nUNIVERSE sales = store * day\nLEVEL store = store_id BASE\nLEVEL day = day BASE\nMEASURE revenue ON sales FROM tx AS sum(amount)\nMEASURE orders ON sales FROM tx AS distinct(order_id)\nDERIVED aov = revenue / orders\n"
     }
   ],
-  "raw_block": "Grammar (statement-oriented; '#' comments; { } blocks):\n    MANIFOLD <name> VERSION <n>\n    UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]\n    LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]\n    HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }\n    RELATE <a> <-> <b> VIA <table> [NOTE \"<text>\"]\n\n    Any declaration may carry (case-demo b/d):\n      -- \"<text>\"                     a DESCRIPTION (folklore) — LOGICAL, flows to describe + the wire\n      REJECT <table>.<col> \"<reason>\" an attested rejected/aside physical incarnation — PHYSICAL,\n                                      map-artifact-ONLY, NEVER crosses describe or the wire (§2b)\n    MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)\n    MEASURE <name> ON <universe> FROM <table> VALUE <expr>\n        [M_ANCHOR { <col>, ... }]\n        [FAMILY { <agg> [: <tier>] [BLOCKED { <lineage>, ... }] ... }]\n    DERIVED <name> = <expr>"
+  "raw_block": "Grammar (statement-oriented; '#' comments; { } blocks):\n    MANIFOLD <name> VERSION <n>              this engine artifact + its integer engine/cache revision\n    SOURCE_MANIFOLD <id> VERSION <semver>    OPTIONAL — the published governed Manifold this artifact was\n                                             lowered from (columna#150 P0(b)). A distinct identity: a\n                                             stable id AND a semantic version, an atomic pair. Additive —\n                                             a legacy .cml omits it (no retained source identity). Never\n                                             derived from the MANIFOLD name/version.\n    UNIVERSE <name> = <dim> * <dim> ... [WHERE <predicate>]\n    LEVEL <name> = <column> [BASE] [ATTR <name> = <table>.<column> [, ...]]\n    HIERARCHY <lineage> { <a> -> <b> VIA <table>(<a_col>, <b_col>) [-> <c> VIA ...] ; <path> ... }\n    RELATE <a> <-> <b> VIA <table> [NOTE \"<text>\"]\n\n    Any declaration may carry (case-demo b/d):\n      -- \"<text>\"                     a DESCRIPTION (folklore) — LOGICAL, flows to describe + the wire\n      REJECT <table>.<col> \"<reason>\" an attested rejected/aside physical incarnation — PHYSICAL,\n                                      map-artifact-ONLY, NEVER crosses describe or the wire (§2b)\n    MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)\n    MEASURE <name> ON <universe> FROM <table> VALUE <expr>\n        [M_ANCHOR { <col>, ... }]\n        [FAMILY { <agg> [: <tier>] [BLOCKED { <lineage>, ... }] ... }]\n    DERIVED <name> = <expr>"
 }

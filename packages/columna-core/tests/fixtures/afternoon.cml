@@ -1,0 +1,58 @@
+MANIFOLD afternoon VERSION 1
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# The AFTERNOON fixture — a faithful minimal world for *The Theory of Data in One Afternoon*.
+#
+# WHY IT EXISTS. `specs/doctrine_gaps.md` DG-2 forward invariant 5 requires that the system EXPRESS
+# the Afternoon case: attempt a temporal SUM of a base stock; find no lawful temporal-sum reading;
+# REFUSE, naming the reason and the lawful neighbours. Until 2026-08-20 there was no fixture in this
+# repository to run that against — the Afternoon existed only as prose in the ledger — so the
+# invariant could not be certified, only asserted. This is that fixture.
+#
+# WHAT IT IS. The smallest world that carries the Afternoon's shape: a stock measured as a daily
+# snapshot per store, a flow measured per order, two lineages (one temporal, one geographic) so the
+# law can be shown to be PER LINEAGE rather than per measure, and a derived family so the laundering
+# class can be exercised through a carrier. Deliberately tiny and hand-checkable: every number a test
+# asserts can be recomputed by eye from `afternoon_world.py`.
+#
+# The calendar runs `day -> month -> quarter` because the Afternoon's own printed five ask at
+# {region, quarter} as well as {store, month} — the page gate (`scripts/afternoon_five.py`) certifies
+# the EXACT statements the essay prints, so the fixture must declare the world those statements
+# address. A coarse coordinate the gate had to compute for itself would certify the gate's arithmetic
+# rather than the engine's transport.
+#
+# THE DECLARED LAW. `on_hand` bars temporal `sum` and nothing else (ruling 2026-08-20 §6: do not
+# infer a global stock personality; applicability stays per operator × lineage). So:
+#   · summing `on_hand` across CALENDAR is structurally prohibited — in every spelling;
+#   · summing `on_hand` across STORES is lawful, because the bar names `calendar`, not the measure;
+#   · averaging, min-ing, max-ing and counting `on_hand` over time remain lawful, because the author
+#     barred `sum` and did not bar those. That is a DECLARATION, not an oversight the engine repairs.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+UNIVERSE sales = store * day * order   BASIS events
+    -- "an order line: one store, one day, one order"
+UNIVERSE stock_snapshot = store * day   BASIS spine
+    -- "the daily on-hand snapshot, one row per store per day"
+
+LEVEL store = store_id BASE   -- "a shop"
+LEVEL day = day BASE          -- "a calendar day: the finest grain anyone can ask at"
+LEVEL order = order_id BASE   -- "one order"
+LEVEL region = region         -- "a group of shops"
+LEVEL month = month           -- "a reporting month"
+LEVEL quarter = quarter       -- "a reporting quarter"
+
+HIERARCHY geography { store -> region VIA stores(store_id, region) }   -- "shop geography"
+HIERARCHY calendar  { day -> month VIA calendar(day, month)
+                      month -> quarter VIA calendar(month, quarter) }   -- "the reporting calendar"
+
+MEASURE revenue ON sales FROM sales_lines AS sum(amount)
+    -- "money taken; a FLOW — it adds along every axis, which is exactly why it is the control"
+
+MEASURE on_hand ON stock_snapshot FROM inventory VALUE level
+    -- "units on the shelf at the close of each day; a POSITION, not a flow"
+    FAMILY {
+        sum  BLOCKED { calendar }   -- "adding snapshots across days counts the same unit once per day"
+        last ORDER day              -- "position = the latest snapshot in the period"
+    }
+
+DERIVED stock_pair = on_hand.last + on_hand.last
+    -- "a binary MAP over a stock: a CARRIER for the laundering class, not a meaningful quantity"

@@ -56,6 +56,11 @@ const id = `case-${data.mood}`;
       <div class="finding">
         <p class="code ds-mono-sm">{f.code}</p>
         <p class="detail">{f.detail}</p>
+        {/* Severity is SECONDARY and explicitly labelled. The compact code line above carries
+            MATERIALITY, because materiality is the field that earns Disclose (a `severity: info`
+            disclosure can be material or immaterial — they are orthogonal). Labelling it prevents
+            the reader from reading a severity as a materiality. */}
+        {f.severity && <p class="severity ds-mono-sm"><span class="severity-label">severity</span> {f.severity}</p>}
         {f.remedy && <p class="remedy"><span class="remedy-label">remedy</span> {f.remedy}</p>}
       </div>
     ))}
@@ -63,6 +68,14 @@ const id = `case-${data.mood}`;
     <h4 class="field-label">Result</h4>
     {data.result ? (
       <div class="result">
+        {data.result.estimate && (
+          <p class="estimate" title={data.result.estimate.note}>
+            <span class="estimate-tag ds-mono-sm">{data.result.estimate.label}</span>
+            <span class="estimate-note">
+              these are estimated values, not an exact count — {data.result.estimate.note}
+            </span>
+          </p>
+        )}
         <table class="rows ds-mono-sm">
           <caption class="sr-only">
             First {data.result.rows.length} of {data.result.total} returned rows
@@ -163,6 +176,14 @@ const id = `case-${data.mood}`;
     color: var(--wire-ink);
     margin: 0;
   }
+  .severity { margin-top: 0.35rem; color: var(--wire-ink-soft); }
+  .severity-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72em;
+    color: var(--wire-ink-faint, var(--wire-ink-soft));
+    margin-right: 0.45rem;
+  }
   .remedy { margin-top: 0.4rem; color: var(--wire-ink-soft); }
   .remedy-label {
     font-family: var(--font-mono);
@@ -170,6 +191,25 @@ const id = `case-${data.mood}`;
     color: var(--ds-accent-wire);
     margin-right: 0.35rem;
   }
+
+  /* ESTIMATE MARKER — rendered only when the wire's own `approximation` disclosure is present, so a
+     reader meets the qualification at the numbers rather than below them. Content is generated. */
+  .estimate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ds-space-1);
+    margin: 0 0 var(--ds-space-1);
+  }
+  .estimate-tag {
+    color: var(--wire-accent, var(--wire-ink));
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    padding: 0 0.4em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .estimate-note { color: var(--wire-ink-soft); font-size: 0.85em; }
 
   .rows { width: 100%; border-collapse: collapse; color: var(--wire-ink); }
   .rows th, .rows td {

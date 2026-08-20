@@ -43,28 +43,40 @@ async def test_describe_measure_family_triple(mcp_session):
 
 
 # --- acceptance #3: the wedge -------------------------------------------------------------
+# the clarify exemplar. MOVED 2026-08-20 (Huayin, generated-family law) from `AT {cal.month}`:
+# an unpinned inline reduction now filters its candidate input anchors for LAWFULNESS first, and
+# |L| == 1 PROCEEDS (defaulted + a material `input_anchor` caveat) rather than clarifying. On the
+# benchmark fixture the calendar branches straight off `day`, so every cal.* anchor has exactly one
+# lawful candidate and no longer clarifies. `{region*cal.month}` keeps TWO (`day` and `store`), so it
+# is still a genuine menu — a clarify must be a real choice between lawful readings.
+_CLARIFY_Q = "SELECT avg(aov) AS rate AT {region*cal.month}"
+
+
 async def test_query_clarify_wedge(mcp_session):
     # §2c reframe: the clarify exemplar is now an inline reduction with no pinned input anchor (the
     # cross-universe ratio is a category ERROR, not a clarify).
     async with mcp_session() as client:
-        w = await client.call("query", manifold_id="benchmark",
-                              frameql="SELECT avg(aov) AS rate AT {cal.month}")
+        w = await client.call("query", manifold_id="benchmark", frameql=_CLARIFY_Q)
     assert w["outcome"] == "clarify"
     col = w["columns"][0]
     assert col["status"] == "clarify"
     nr = col["no_result"]
     assert nr["reason"] == "input_anchor_ambiguous" and nr["discriminator"] == "ambiguous"
-    assert len(nr["alternatives"]) >= 1
+    # >1 alternative, and EVERY one is a LAWFUL reading (2026-08-20): a clarify never offers a pin
+    # that is already structurally prohibited — that is how a reader gets talked into a laundered
+    # answer one keystroke later.
+    alts = [a["token"] for a in nr["alternatives"]]
+    assert len(alts) >= 2 and all(a.startswith("pin the input anchor to") for a in alts)
 
 
 # --- acceptance #4: the two-hop round-trip (clarify -> reformulate -> serve), §2c-reframed ----
 async def test_clarify_two_hop_roundtrip(mcp_session):
     async with mcp_session() as client:
-        clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
-        # hop: reformulate per the clarify — PIN the input anchor -> serve (a definite quantity)
+        clarify = await client.call("query", manifold_id="benchmark", frameql=_CLARIFY_Q)
+        # hop: reformulate per the clarify — PIN the input anchor -> serve (a definite quantity).
+        # ANCHOR MOVED 2026-08-20 with _CLARIFY_Q; the round-trip itself is unchanged.
         hop = await client.call("query", manifold_id="benchmark",
-                                frameql="SELECT avg(aov@day) AS rate AT {cal.month}")
+                                frameql="SELECT avg(aov@day) AS rate AT {region*cal.month}")
         # and a structural refusal in the same manifold — an ask outside the contracted space
         refuse = await client.call("query", manifold_id="benchmark",
                                    frameql="SELECT level.last AS inv AT {customer}")
@@ -75,15 +87,60 @@ async def test_clarify_two_hop_roundtrip(mcp_session):
     assert refuse["columns"][0]["no_result"]["reason"] == "out_of_universe"
 
 
-# --- acceptance #5: B-anchor inform-and-serve on the wire -----------------------------------
-async def test_banchor_served_with_material_critical(mcp_session):
+# --- acceptance #5: a structurally prohibited reduction REFUSES on the wire ------------------
+async def test_blocked_reduction_refuses_on_the_wire(mcp_session):
+    # FLIPPED 2026-08-20 (Huayin, generated-family law), superseding ADR-020's inform-and-serve.
+    # Was: `level.sum AT {store}` SERVES with a material/critical `blocked_reduction` caveat and
+    # `outcome == "disclose"`. Now it REFUSES: `sum` is declared BLOCKED along `calendar`, so the
+    # reduction has no lawful reading, and Disclose cannot supply an authority the governed law
+    # withholds. No values, no disclosures — the number is not produced at all.
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
+    assert w["outcome"] == "refuse"
+    col = w["columns"][0]
+    assert col["status"] == "refuse"
+    assert "values" not in col and "value" not in col     # NO values
+    assert col["disclosures"] == []                       # NO disclosures: nothing was served to condition
+    nr = col["no_result"]
+    assert (nr["kind"], nr["discriminator"], nr["reason"]) == ("refuse", "unsupported", "blocked_reduction")
+    assert "calendar" in nr["detail"]                     # the blocked lineage is still named
+    assert nr["alternatives"]                             # and the lawful ways out are offered
+
+
+async def test_generated_blocked_reduction_refuses_on_the_wire(mcp_session):
+    # NEW 2026-08-20 (Huayin, generated-family law §2): the refusal does not depend on the SPELLING.
+    # `sum(level.last)` never touches the declared `level.sum` member — the reducer is GENERATED by an
+    # inline reduction over a lawful sibling — and it still refuses `blocked_reduction`, because
+    # generating a family does not create a permission the declaration withholds. This is the
+    # laundering route the old inform-and-serve reading left open.
+    async with mcp_session() as client:
+        w = await client.call("query", manifold_id="benchmark",
+                              frameql="SELECT sum(level.last) AS inv AT {cal.month}")
+    assert w["outcome"] == "refuse"
+    col = w["columns"][0]
+    assert col["status"] == "refuse" and "values" not in col and col["disclosures"] == []
+    nr = col["no_result"]
+    assert (nr["kind"], nr["discriminator"], nr["reason"]) == ("refuse", "unsupported", "blocked_reduction")
+    assert "Generating the family does not create the permission" in nr["detail"]
+
+
+async def test_single_lawful_input_anchor_defaults_and_discloses(mcp_session):
+    # NEW 2026-08-20 (Huayin, generated-family law §3): an unpinned inline reduction filters its
+    # candidate input anchors for lawfulness FIRST. |L| == 0 refuses; |L| > 1 clarifies; |L| == 1
+    # PROCEEDS — there is nothing to choose between, so the engine defaults to the single lawful
+    # reading and owes the reader a MATERIAL `input_anchor` caveat naming the default. So the mood
+    # is DISCLOSE, not clarify: the number is served, with the assumption attached.
+    async with mcp_session() as client:
+        w = await client.call("query", manifold_id="benchmark",
+                              frameql="SELECT avg(aov) AS rate AT {cal.month}")
     assert w["outcome"] == "disclose"
     col = w["columns"][0]
-    assert col["status"] == "served" and "values" in col
-    cav = col["disclosures"][0]
-    assert (cav["code"], cav["materiality"], cav["severity"]) == ("blocked_reduction", "material", "critical")
+    assert col["status"] == "served" and "values" in col and col["values"]
+    assert "no_result" not in col                         # it is not a clarify: nothing is pending
+    pin = [d for d in col["disclosures"] if d["code"] == "input_anchor"]
+    assert len(pin) == 1
+    assert (pin[0]["materiality"], pin[0]["category"]) == ("material", "unconfirmed_assumption")
+    assert "DEFAULTED to 'day'" in pin[0]["detail"]       # the defaulted anchor is named, not implied
 
 
 # --- acceptance #6: refuse vs error are distinguishable ------------------------------------
@@ -162,16 +219,22 @@ def _assert_frame_shape(w):
 async def test_wire_contract_schema_and_scoping(mcp_session):
     async with mcp_session() as client:
         serve = await client.call("query", manifold_id="benchmark", frameql="SELECT revenue AS revenue AT {region}")
-        disclose = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
-        clarify = await client.call("query", manifold_id="benchmark",
-                                    frameql="SELECT avg(aov) AS rate AT {cal.month}")
+        # WITNESSES MOVED 2026-08-20 (Huayin, generated-family law): `level.sum AT {store}` used to be
+        # the DISCLOSE witness (inform-and-serve) and now refuses, so it becomes the REFUSE witness and
+        # the disclose leg moves to the |L| == 1 defaulted input anchor — a served frame carrying a
+        # material caveat, which is what this schema test actually needs to exercise.
+        disclose = await client.call("query", manifold_id="benchmark",
+                                     frameql="SELECT avg(aov) AS rate AT {cal.month}")
+        refuse = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
+        clarify = await client.call("query", manifold_id="benchmark", frameql=_CLARIFY_Q)
         error = await client.call("query", manifold_id="benchmark",
                                   frameql="SELECT revenue / level.last AS rate AT {store*day}")
-    for w in (serve, disclose, clarify, error):
+    for w in (serve, disclose, refuse, clarify, error):
         _assert_frame_shape(w)
     # outcome derivation: nothing material -> serve; a material caveat -> disclose
     assert serve["outcome"] == "serve"
     assert disclose["outcome"] == "disclose"
+    assert refuse["outcome"] == "refuse"
     assert clarify["outcome"] == "clarify"
     # §2c: the cross-universe expression is a category ERROR (not a clarify), and juxtaposition carries
     # NO multi-universe coverage caveat (retired) — the four moods are taught by well-posed asks now.

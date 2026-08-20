@@ -30,8 +30,10 @@ _SRC = os.path.join(_PKG_ROOT, "src")                       # the columna_core p
 _DEMOS = os.path.join(_PKG_ROOT, "demos")                   # the demo suites + shared harness
 _FIXTURE_WAREHOUSE = os.path.join(_TESTS_DIR, "fixtures", "mini_warehouse")
 
+_FIXTURES = os.path.join(_TESTS_DIR, "fixtures")             # afternoon_world and friends
+
 # --- rider 1: explicit, documented sys.path insertion (no cwd reliance) ---
-for _p in (_SRC, _DEMOS):
+for _p in (_SRC, _DEMOS, _FIXTURES):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
@@ -71,6 +73,31 @@ def fixture_connector(fixture_warehouse_dir):
     from columna_core import DuckDBConnector
 
     return DuckDBConnector(_load(fixture_warehouse_dir))
+
+
+# ----------------------------------------------------------------------------
+# The AFTERNOON fixture (2026-08-20) — the world DG-2 invariant 5 is certified against.
+# ----------------------------------------------------------------------------
+@pytest.fixture
+def afternoon_server():
+    """A PUBLISHED ManifoldServer over the Afternoon world (`fixtures/afternoon.cml`).
+
+    Built in-process from `fixtures/afternoon_world.py` rather than from committed parquet, so the
+    data, the arithmetic and the assertions are one readable artifact. `publish()` runs the real
+    lifecycle (adjudicate, then witnesses) — the fixture is subject to the same certification law as
+    production, not exempt from it."""
+    import duckdb
+
+    from columna_core import DuckDBConnector, ManifoldServer
+    from columna_core.parser import parse_file
+
+    import afternoon_world
+
+    con = afternoon_world.build(duckdb.connect())
+    m = parse_file(os.path.join(_TESTS_DIR, "fixtures", "afternoon.cml"))
+    srv = ManifoldServer(m, DuckDBConnector(con))
+    srv.publish()
+    return srv
 
 
 @pytest.fixture

@@ -18,8 +18,17 @@ from columna_server.agent import (MAX_TOOL_CYCLES, ProviderUnavailable, Scripted
 from columna_server.agent.loop import Agent, prompt_example_queries
 from columna_server.agent.mcp_client import connect
 
-CLARIFY_Q = "SELECT avg(aov) AT {cal.month}"   # §2c clarify exemplar (input_anchor_ambiguous); the cross-universe
-                                     # wedge is now a category error, so the agent's clarify demo moved here
+CLARIFY_Q = "SELECT avg(aov) AT {cal.year}"    # §2c clarify exemplar (input_anchor_ambiguous); the cross-universe
+                                     # wedge is now a category error, so the agent's clarify demo moved here.
+                                     # MOVED 2026-08-20 {cal.month} -> {cal.year} (Huayin, generated-family law):
+                                     # an unpinned inline reduction now filters its candidate input anchors for
+                                     # lawfulness FIRST, and |L| == 1 PROCEEDS (defaulted, material `input_anchor`
+                                     # caveat) instead of clarifying. On Cascadia only `day` reaches cal.month, so
+                                     # that ask now DISCLOSES; cal.year keeps three lawful candidates
+                                     # (day, cal.month, cal.quarter), so it is still a genuine clarify.
+DISCLOSE_Q = "SELECT buyers AT {cal.month}"    # material-disclosure exemplar (E13, ratified 2026-08-20): a LAWFUL
+                                     # ask with an APPROXIMATE realization — an HLL distinct estimate, so the
+                                     # numbers are served WITH a material `approximation` caveat
 
 
 # --- acceptance #1 (part): MCP boundary — the agent never imports the engine ---------------
@@ -64,14 +73,43 @@ def test_agent_source_has_no_columna_core_import():
 
 # --- acceptance #4: material disclosures never dropped -------------------------------------
 async def test_material_disclosure_is_surfaced():
+    # WITNESS CHANGED 2026-08-20 (Huayin, generated-family law): the old witness was
+    # `SELECT stock.sum AS inv AT {store}` — served with a material/critical `blocked_reduction`
+    # caveat. That ask now REFUSES (a blocked reduction has no lawful reading, so there is nothing
+    # to disclose ON), so it can no longer prove "a material disclosure survives to the human".
+    # The replacement is the new ratified Disclose witness E13: a LAWFUL ask whose REALIZATION is
+    # approximate. The coverage is preserved, not deleted — see the refuse counterpart in
+    # test_blocked_reduction_is_explained_with_no_invented_value below.
     async with connect(None) as conn:
         describe = await conn.describe_manifold(conn.manifold_id)
-        agent = Agent(conn, ScriptedProvider(["QUERY: SELECT stock.sum AS inv AT {store}"]), describe)
-        reply = "\n".join(await agent.run_turn("total inventory by store"))
-    assert "blocked_reduction" in reply           # the wire code
+        agent = Agent(conn, ScriptedProvider(["QUERY: " + DISCLOSE_Q]), describe)
+        reply = "\n".join(await agent.run_turn("distinct buyers by month"))
+    assert "approximation" in reply               # the wire code
     assert "material" in reply
-    # the plain-language detail is present too
-    assert "blocked lineage" in reply or "collapses" in reply
+    # the plain-language detail is present too — the estimator itself rides to the human
+    assert "HLL distinct estimate" in reply
+    # and the served numbers really did come back (disclose serves; it is not a softer refusal)
+    assert re.search(r"\d", reply)
+
+
+# --- the refuse counterpart: a structurally prohibited reduction produces NO number ----------
+async def test_blocked_reduction_is_explained_with_no_invented_value():
+    # NEW 2026-08-20 (Huayin, generated-family law): `stock.sum` across the blocked calendar lineage
+    # used to be served with a critical caveat; it now REFUSES. The agent must relay the refusal with
+    # its reason and never manufacture a figure. The second script step is the ONE permitted
+    # reformulation (an ASK), the same shape as the out-of-universe refuse test below.
+    script = ["QUERY: SELECT stock.sum AS inv AT {store}",
+              "ASK: summing stock across time doesn't reconcile; want the latest position instead?"]
+    async with connect(None) as conn:
+        describe = await conn.describe_manifold(conn.manifold_id)
+        agent = Agent(conn, ScriptedProvider(script), describe)
+        replies = await agent.run_turn("total inventory by store")
+    joined = "\n".join(replies)
+    assert "can't be answered" in joined          # the refuse was explained, not softened
+    assert "blocked lineage 'calendar'" in joined  # the reason, in the reader's language
+    assert "BLOCKED" in joined                    # and the declaration that withholds the authority
+    assert not re.search(r"\d{3,}", joined)       # no invented figure reached the human
+    assert len(replies) == 2 and replies[1].startswith("summing stock")
 
 
 # --- clarify → no silent auto-pick ----------------------------------------------------------
@@ -80,7 +118,7 @@ async def test_clarify_relayed_not_auto_picked():
         describe = await conn.describe_manifold(conn.manifold_id)
         agent = Agent(conn, ScriptedProvider(["QUERY: " + CLARIFY_Q]), describe)
 
-        clarify_reply = "\n".join(await agent.run_turn("average order value trend by month"))
+        clarify_reply = "\n".join(await agent.run_turn("average order value trend by year"))
         # the clarify is RELAYED with its candidate alternatives; never auto-picked
         assert "choose" in clarify_reply.lower()
         assert agent._pending is not None            # a choice is genuinely pending

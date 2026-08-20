@@ -158,14 +158,28 @@ asked.
 ## Try it
 
 ```
-SELECT level.sum
+SELECT stock.sum
 AT {store*cal.month}
 ```
 
-Ask the demo Manifold to sum an inventory level into months and it will serve the per-month
-figures — with a note explaining why snapshots summed over time don't add to a meaningful
-total. The language doesn't stop you; it makes sure you know. (Run it: the [Explorer](/explorer)
-has a copy-as-query button on every measure.)
+Ask the demo Manifold to sum an inventory level into months and it comes back **refused** —
+no figures at all. Snapshots summed over time don't add to a meaningful total: you'd be
+counting the same units once for every day they sat on the shelf. What comes back instead is
+the reason, and the two lawful edits: use a reducer that *is* applicable along the time
+lineage (`stock.last`, for month-end position), or ask at an anchor the reduction doesn't
+have to cross.
+
+It's worth being precise about which of those two things happened, because they are different
+promises. The language isn't protecting you from a risky number — it's declining an operation
+the Manifold's author declared it doesn't have. A caveat can qualify an answer; it can't
+manufacture the authority to give one. And the refusal is about the *operation*, not the way
+you spelled it: wrapping the sum in something else — `sum(stock.last@day)`, an average of a
+sum, a derived column that hides one — is the same prohibited move, and it comes back the same
+way. (Run it: the [Explorer](/explorer) has a copy-as-query button on every measure.)
+
+Ask for something the law does permit — `SELECT stock.last AT {store*cal.month}`, or the same
+`stock.sum` across *stores* rather than across time — and it answers immediately. The bar is on
+one operation along one axis, not on the measure.
 
 ## Go deeper
 
