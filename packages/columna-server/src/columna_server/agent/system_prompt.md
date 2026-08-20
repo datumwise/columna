@@ -29,7 +29,8 @@ answerable.
 A query is the ENVELOPE: `SELECT <series>, … AT { <anchor> }` with optional clauses.
 - `SELECT <series>`: one or more comma-separated series; each is an `expression` optionally named
   `expression AS name`. An expression is measure arithmetic over the manifold's measures, e.g.
-  `revenue`, `revenue / orders`, `stock.sum`, `stock.last`. A composite expression MUST carry `AS`
+  `revenue`, `revenue / orders`, `stock.last`, `sum(stock.last @ {store})`. A composite expression
+  MUST carry `AS`
   (only a bare measure or a reduction names itself).
 - `AT { <anchor> }`: the output grain — one or more levels, product-spelled with `*`, e.g.
   `{store}`, `{store*day}`, `{cal.month}`, `{region*store}`. `AT {}` is the grand total.
