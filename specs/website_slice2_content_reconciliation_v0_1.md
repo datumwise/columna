@@ -1,7 +1,7 @@
-# Website Slice 2 — the Content Reconciliation Ledger (v0.1, PROPOSED)
+# Website Slice 2 — the Content Reconciliation Ledger (v0.2, PROPOSED)
 
 **Status:** PROPOSED for ruling. No implementation authorized by this document.
-**Opened:** 2026-08-20, after Slice 1 merged (`cc7961a`, PR #178).
+**Opened:** 2026-08-20, after Slice 1 merged (`cc7961a`, PR #178). **v0.2** folds in Huayin's rulings of 2026-08-19.
 **Sibling ledgers:** [`doctrine_gaps.md`](doctrine_gaps.md) (doctrine ↔ code), [`open_forks.md`](open_forks.md) (undecided forks).
 This ledger is the third axis: **doctrine ↔ published site surface.**
 
@@ -15,8 +15,14 @@ The new positioning, the four-door architecture, current doctrine, and the appro
 determine the target site. Existing pages are evaluated *against* that target. **They do not veto it
 merely because they already exist.**
 
+**The target site is *derived*, not inherited.** Future page architecture is derived from:
+positioning v0.4 · the approved four-door IA · current *Theory of Data* / *Statistical Bridge* /
+*Analytical Governance* doctrine · the approved visual grammar · and newly ratified canonical content
+such as *The Theory of Data in One Afternoon*. Existing prose is **reusable material, not presumptive
+authority**.
+
 Legitimate preservation is bounded to exactly three classes. A surface that is not in one of them
-has no standing to constrain the redesign:
+has no standing to constrain the redesign. **"We already wrote it" is not a fourth class.**
 
 | # | class | what it protects | test |
 |---|---|---|---|
@@ -40,11 +46,22 @@ This is the load-bearing rule and the one that needs enforcement, not goodwill. 
 artifact may still be **cited** with clear version/historical context; it simply **cannot legislate
 current doctrine forward**. Citation is allowed; inheritance is not.
 
-*Recommended enforcement (proposed, not built):* every ledger row carries a `doctrine_status` of
-`CURRENT | REVISE | ARCHIVE | FROZEN`. A new surface that imports a corpus file whose row is not
-`CURRENT` must carry an explicit historical frame, or the build fails. This is the same shape as the
-publication-record check proposed in the Slice 2 preflight — cheap, local, and it makes the rule
-mechanical instead of remembered.
+*Enforcement (Huayin, 2026-08-19) — machine-check the decidable part; do not fake semantic review.*
+A checker must **not** pretend to determine semantic dependence in general. It may only assert the
+**decidable** layer:
+
+- exact **frozen canonical lines** are reproduced verbatim where declared;
+- **explicitly forbidden retired formulations** (e.g. `law + trial record fused`) appear in no new surface;
+- **explicit content/source IDs** resolve (the publication-record check's shape);
+- **invalid ledger states** (a `standing` FROZEN row that is also `superseded`, a dangling successor id);
+- a new surface whose dependency on an `ARCHIVE`/`REVISE` source is **structurally declared** (an import, a `sourceFile`).
+
+The broader rule —
+
+> no new surface may import a REVISE or ARCHIVE formulation as current doctrine
+
+— remains a **mandatory human review gate** for *semantic / paraphrased* dependence, which no checker
+can decide. Machine-check the decidable part; do not create false confidence about semantic review.
 
 ---
 
@@ -70,8 +87,14 @@ piece rendered live at `/what-is-manifold` — currently teaches the opposite:
 - `:50` — *"A Manifold is a description that **stands trial**."*
 - `:57` — *"the artifact is really two things fused: the **law** (what was declared) and the **trial record**…"*
 
-The *substance* survives the change (declaration + standing trial); the *words* do not. This file is
-**REVISE**, and until it is revised no new surface may import its Manifold definition.
+**Ruling (Huayin, 2026-08-19):** `/what-is-manifold` is **content REVISE, route KEEP**. The old page
+does not veto the forward doctrine; it should eventually be **re-derived** under it. The old
+`law + trial record fused` formulation must not be imported into any new surface as current
+architecture. **Preserve historical/version provenance** — if any *deposited* version of this piece
+exists, do not silently rewrite the deposited artifact; supersede it with clear version context.
+
+The *substance* survives the change (declaration + standing trial); the *words* do not. Until this
+file is revised, **no new surface may import its Manifold definition** (transition rule 2).
 
 ### 1.2 · The orientation device — newly ratified site language
 
@@ -90,10 +113,18 @@ prior antecedent — the phrase "orientation spine" appears nowhere, and the fou
 in no corpus file. It must therefore be introduced in the redesign's own voice and **never attributed
 to a paper**.
 
-**Related collision:** `what_is_manifold_draft_v0_2.md:12` asserts *"The Manifold is the new data
-model — the data model of substance, where the relational model was the data model of form"* — a claim
-of **succession**, not analogy. If the orientation device is to be framed as analogy-not-equivalence,
-that tension is a ruling, not an edit. Recorded, not resolved.
+**Succession vs analogy — ruling (Huayin, 2026-08-19), NOT a binary choice.** Both hold, at
+different levels:
+
+- The Manifold *may* be presented as a **successor in the analytical data-modeling problem it
+  addresses** — substance/meaning, where the relational model addressed form/storage.
+- The relational-model / schema / SQL / DBMS parallel remains only a **rough teaching analogy of
+  roles**, not a structural equivalence.
+
+> **Succession of concern does not imply equivalence of structure.**
+
+Record that distinction; do not force `what_is_manifold_draft_v0_2.md:12`'s succession claim and the
+orientation device's analogy framing to defeat each other. They operate at different levels.
 
 ---
 
@@ -132,20 +163,31 @@ Legend for constraint: **P1** frozen deposit · **P2** address/link contract · 
 
 | surface | current role | new owner | content | route | collision | source of record | successor | constraint |
 |---|---|---|---|---|---|---|---|---|
-| `/the-argument` | the former homepage essay, moved intact | **The Case** | **REVISE** | **REPOINT** | — | hand-written `.astro`, no corpus backing | becomes the body of The Case | **P2 HIGH** — named in `llms.txt:48`; carries the migrated `#exhibit-a` / `#exhibit-b` fragments that a homepage shim still rewrites into it |
+| `/the-argument` | the former homepage essay, moved intact | **The Case** (candidate) | **REVISE** | **KEEP** (for now) | — | hand-written `.astro`, no corpus backing | **source material to evaluate — NOT the predetermined destination** | **P2 HIGH** — named in `llms.txt:48`; carries the migrated `#exhibit-a` / `#exhibit-b` fragments that a homepage shim still rewrites into it |
 | `/thesis` | the same argument, formal register (1,440 w) | **Research** | **REFRAME** | **KEEP** | — | `columna_thesis_v0_4.md` (body stamps v0.7) | the formal statement under Research | P2 LOW-MED — was in the retired 8-item nav; **P3** version/filename divergence is documented, not a defect |
 | `/why` | **a bundle, not an argument** — two corpus docs stacked | **split** | **REFRAME** (essay) + **KEEP** (Seam) | **REDIRECT** | — | two corpus md files | essay → AG page; Silent Seam → Research | P2 MED — linked from *frozen* `what_is_columna_draft_v0_7.md:124`, which itself ships inside `llms-full.txt` |
 
-**The decision this cluster forces:** these three make one argument at three lengths, section-for-section,
-one pair sharing an identical heading. `/positions`' doctrine row presents all three as co-equal.
-Under §0 the question is not *"which existing page wins"* but *"what does The Case need to be"* — and
-the other two become a formal statement and a redirect.
+**The decision this cluster forces — and the trap to avoid (Huayin, 2026-08-19).** These three make one
+argument at three lengths, section-for-section, one pair sharing an identical heading. But the decision
+is **not** "which existing page wins." Designating `/the-argument` as the future canonical Case merely
+because it is the best *existing* page would reintroduce exactly the retrofitting bias §0 forbids.
+
+The ruling instead:
+
+- **`/case` route: KEEP** — engineering / citation contract, immovable.
+- **`/case` content: REFRAME** — Cascadia Retail is a worked case / evidence surface.
+- **The future *The Case* door/page: DERIVED** from the new content architecture *after the Afternoon
+  is canonical* — not chosen now.
+- **`/the-argument`: source material to evaluate**, not the predetermined destination.
+
+A new `/the-case` route (or another clean solution) remains available later. **This must not be decided
+by minimizing migration.**
 
 ### 3.2 · The Case cluster
 
 | surface | current role | new owner | content | route | collision | source of record | successor | constraint |
 |---|---|---|---|---|---|---|---|---|
-| `/case` | Cascadia Retail, 3 chapters, build-generated exhibits | **The Case** | **KEEP** | **KEEP** | — | `content/case/*.md` + `case.generated.json` — **best-governed page on the site** | — | **P2 CRITICAL** — referenced by CI (`website.yml`) *and* by shipped Python (`recapture.py:49`). Moving it breaks a released artifact |
+| `/case` | Cascadia Retail, 3 chapters, build-generated exhibits | The Case (evidence) | **REFRAME** | **KEEP** | — | `content/case/*.md` + `case.generated.json` — **best-governed page on the site** | Cascadia is a worked case / evidence surface, not the definition of the door | **P2 CRITICAL** — referenced by CI (`website.yml`) *and* by shipped Python (`recapture.py:49`). The route **cannot move** |
 | `/ladder` | the comparison gauntlet, 5 fates / fate matrix | **The Case** | **KEEP** | **KEEP** | — | **hand-transcribed** from `ladder_page_v0_3.md` — the site's single worst drift risk | — | **P2 HIGH** — footer deep-link `#the-fast-pipe` on every page |
 | `/grain-gap` | popular-register version of Exhibit A | **The Case** | **KEEP** | **KEEP** | — | `datumwise_grain_gap_article_v2.md` | — | P2 LOW-MED. **Currently orphaned** — its only inbound is a component that no longer renders |
 | `/story` | launch companion; the three-incident confession | **The Case** | **REFRAME** | **KEEP** | — | `launch_story_v7.md` | confession lifted into The Case | P2 MED — verbatim in `llms-full.txt` |
@@ -218,15 +260,33 @@ Migrating externally-cited URLs twice is worse than migrating them late.
 
 ---
 
-## 5 · Open questions for ruling
+## 4a · Recorded external-record / publication defects (require Zenodo access)
 
-1. **Manifold wording** — §1.1. Revise `what_is_manifold_draft_v0_2.md`, or scope the forward doctrine
-   to new surfaces only and let the old piece stand as history?
-2. **Analogy vs succession** — §1.2. The corpus asserts the Manifold *succeeds* the relational model;
-   the orientation device is framed as teaching analogy. Which governs?
-3. **"The Case" naming** — the door named *The Case* points at `/case`, the Cascadia worked example,
-   while the argument lives at `/the-argument`. Under §3.1 these swap. Does `/case` get a new name, or
-   does the door take a new URL? (`/case` itself is **P2 CRITICAL** and cannot move.)
-4. **`/manifold` 404** — the Universe Visual caption links a route that does not exist, from `/case`
-   and `/explorer`. Where should "Manifold spec" point?
-5. **`doctrine_status` enforcement** — build a real check, or keep transition rule 2 as discipline?
+These are attribution-honesty items (**P3**) surfaced by the Afternoon Gate 2 pass. They are recorded
+here for tracking; the fixes are **external** (Zenodo deposit edits) and cannot be made in the repo.
+They belong in `doctrine_gaps.md` once opened as tracked rows.
+
+| id | defect | evidence | action |
+|---|---|---|---|
+| PM-1 | **Primer v2.2 `isSupplementTo` is a malformed, non-resolving DOI** | Zenodo record `22018549` (*A Primer on the Theory of Data* v2.2) carries `related_identifiers[0].identifier = "10.5281/zenodo.2201341010.5281/zenodo.21842194"` — two DOIs concatenated with no separator (ToD v6.1 `…22013410` + ToD v5.0 `…21842194`); resolves **HTTP 404**. The v2.0 record shows the pre-edit state (`isSupplementTo 10.5281/zenodo.21842194`), so an edit meant to re-point the supplement *prepended* instead of *replaced*. | **Zenodo edit** — correct the related identifier to the intended single DOI. Do **not** compensate in site or page copy. The page links the correct v2.2 *record* (`22018549`); the record's own metadata is what needs fixing. |
+| PM-2 | **`/about` publication list is stale by canonical revisions** | `about.astro:14-34` lists *The Theory of Data* **v3.1** (`21760008`) as current; the chain is now **v6.1** (`22013410`). It also omits *Analytical Governance* (`21959749`) entirely. | Repaired automatically once the publication record (Slice 2 item 1) drives `/about`. No manual edit — the record makes it correct by construction. |
+
+## 5 · Question status
+
+**Ruled 2026-08-19 (folded into v0.2 above):**
+
+- ✅ **Manifold wording** — §1.1: `/what-is-manifold` is content REVISE / route KEEP; re-derive under
+  the forward doctrine; preserve deposited provenance.
+- ✅ **Analogy vs succession** — §1.2: not binary — *succession of concern does not imply equivalence
+  of structure*.
+- ✅ **"The Case" naming** — §3.1: do not pre-designate `/the-argument`; `/case` route KEEP + content
+  REFRAME; derive *The Case* after the Afternoon is canonical; do not decide by minimizing migration.
+- ✅ **Mechanical enforcement** — §0: machine-check the decidable layer only; the semantic rule is a
+  mandatory human review gate.
+
+**Still open:**
+
+1. **`/manifold` 404** — the Universe Visual caption links a route that does not exist, from `/case`
+   and `/explorer`. Where should "Manifold spec" point? (Held for the ledger, not guessed.)
+2. **Whether the decidable checker is built in Slice 2 or later** — the *shape* is ruled (§0); the
+   *timing* rides the sequence in §4.
