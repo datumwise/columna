@@ -14,6 +14,30 @@ a provisional choice awaiting Huayin's ruling), where PR-surfaced forks are dura
 
 | DG-2 | 2026-07-16 (CP-1 §2c, [PR #35](https://github.com/datumwise/columna/pull/35)) | The everything-classifies guarantee: every query resolves to a classified outcome (serve/disclose/clarify/refuse/error), never a raw exception. `level.sum @ cal.month` (a stock whose `sum` is BLOCKED over calendar) collapsed to `cal.month` — collapse a base coordinate (`store`) while transporting another (`day`) across the blocked lineage — SHOULD serve with a critical `blocked_reduction` caveat (as `level.sum @ store*cal.month` does, §2a). | On main it leaked a raw `ColumnNotFoundError` ("unable to find column 'store'") — collapse-while-blocked-transport escapes classification entirely (verified pre-existing, not a §2c regression; found by Huayin's probe). This WP adds an everything-classifies BACKSTOP in `planner.run` (raw exception → classified ERROR/`unsupported`), so it no longer ships unclassified — but it now ERRORS where it should SERVE-with-caveat. | The engine's collapse path drops the collapsed base coordinate's column before the blocked-lineage transport annotates it; the structural fix is engine-side (`engine.py`), out of §2c's planner scope. | **OPEN** — backstop landed (classified, not raw); the structural serve-with-caveat fix is pinned by `test_collapse_with_blocked_transport_classifies` (asserts CLASSIFIED, not raw) and this row. |
 
+**DG-2 DISPOSITION UPDATED (Huayin, 2026-08-19) — reconcile toward STRUCTURAL REFUSAL.** The row's
+original target ("SHOULD serve with a critical `blocked_reduction` caveat") is **no longer doctrine
+that constrains new design**. The governing distinction is now:
+
+> **Disclose may qualify an otherwise lawful/admissible result. It may not legalize a structurally
+> unlawful operation.**
+
+Forward invariants the planner/engine must satisfy:
+
+1. a reducer capability **absent from the governed family law must not be created by inline syntax**;
+2. a **structurally unlawful reduction must not return a numeric result under Disclose**;
+3. **Disclose** is available only when the result remains lawful/admissible and conditions must travel with it;
+4. **Clarify** is for unresolved choice among *lawful* meanings — not a substitute for refusing a
+   *pinned* operation that has no lawful family path;
+5. the system must express the Afternoon case: attempt temporal SUM of base `on_hand`; no lawful
+   temporal-sum family/edge exists; outcome **Refuse**, with reason and lawful neighbours.
+
+Consistent with closed-by-default: **absence of positive analytical permission cannot become execution
+permission.** A narrow implementation proposal precedes any code change; no broad change yet. Note this
+reverses the ADR-020/025 *inform-and-serve* reading for the B-anchor crossing specifically (the
+determinacy principle recorded in `specs/context/adr_031_columna_core.md` cites the crossing as the
+canonical "disclosed if risky" case) — the reversal is deliberate and is recorded here rather than
+left to be discovered in the code.
+
 ## Machine-surface ledger — deferred by homepage brief v0.2 (2026-08-19)
 
 Ruled deferrals, recorded so nothing open lives only in a PR description. The redesign's homepage
