@@ -52,7 +52,19 @@ import { CASES, PROVENANCE } from '../../lib/exhibitA';
 </div>
 
 {/* ── WIRE side of the crossing ──────────────────────────────────────────────────────────── */}
-<section class="wire ds ds-wire ds-crossing ds-section" aria-labelledby="cases-heading" data-exhibit-a>
+{/* `try-a-question` is a PERMANENT ANCHOR (homepage v2, Huayin's rider 1), re-seated here.
+    It is the address of "the running demo" — the four-mood witness — and it is linked from
+    /ladder (10 links: 5 prose claims + 5 fate-matrix cells), /install and /how-to-read-the-wire.
+    Exhibit A IS the four-mood witness now, so the anchor belongs on the wire block that shows
+    the four governed verdicts. It broke once before as #exhibit-b and again in slice 1 when the
+    moods widget was retired; a comment did not hold it, so scripts/check_fragments.mjs now fails
+    the build if any internal #fragment does not resolve. Move this id only WITH that check green. */}
+<section
+  id="try-a-question"
+  class="wire ds ds-wire ds-crossing ds-section"
+  aria-labelledby="cases-heading"
+  data-exhibit-a
+>
   <div class="ds-measure-wide">
     <div class="wire-head">
       <h3 id="cases-heading" class="ds-label">Four governed cases, executed</h3>

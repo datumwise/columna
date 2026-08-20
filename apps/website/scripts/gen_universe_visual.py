@@ -78,7 +78,11 @@ COPY = {
                 "map's reject rows, operator properties, provenance. The visual holds the shape; a "
                 "caption links the Manifold spec and the physical→logical map."),
     "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
-    "leftout_map_route": "/case#map",         # wired to the real physical->logical map route
+    # `/case#map` never existed: /case carries ch1/ch2/ch3 only, and the physical->logical map is
+    # taught inside CHAPTER 2 (verified against the built page). The caption promised an address the
+    # site does not have — caught by scripts/check_fragments.mjs, which now fails the build on any
+    # unresolvable internal fragment.
+    "leftout_map_route": "/case#ch2",         # the chapter that holds the physical->logical map
     # the CLOSED edge grammar (v5, Huayin 2026-07-24): solid = functional hop IN-BOX; dotted = the M:N
     # frontier reach IN-BOX (faces mandatory); "=" = declared identity ACROSS boxes. Cross-box lines are
     # "=" only. (Driver arrows are a separate binding annotation, not a structural edge class.)

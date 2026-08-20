@@ -79,6 +79,13 @@ jobs:
           SITE_BUILD_CHANNEL: preview
         run: npm run build
 
+      # Internal-fragment integrity. `#try-a-question` was a declared PERMANENT anchor carrying a
+      # source comment that said so, and it broke anyway — twice. A comment is documentation; this
+      # is the guard. Runs against dist/, so it checks the bytes that ship, and fails the build
+      # before a deploy can carry a link to a fragment that does not exist.
+      - name: Internal-fragment integrity (fails closed)
+        run: node scripts/check_fragments.mjs
+
       # ── PREVIEW DEPLOYMENT (preflight, 2026-08-19) ──────────────────────────────────────────────
       # A reviewable URL for the redesign, built from the PR tree. It reuses THIS job's
       # branch-coherent inputs — the same editable branch packages, the same four generators, the
@@ -307,6 +314,13 @@ jobs:
         env:
           SITE_BUILD_SHA: ${{ github.sha }}
         run: npm run build
+
+      # Internal-fragment integrity. `#try-a-question` was a declared PERMANENT anchor carrying a
+      # source comment that said so, and it broke anyway — twice. A comment is documentation; this
+      # is the guard. Runs against dist/, so it checks the bytes that ship, and fails the build
+      # before a deploy can carry a link to a fragment that does not exist.
+      - name: Internal-fragment integrity (fails closed)
+        run: node scripts/check_fragments.mjs
 
       - name: Deploy to Vercel (production, prebuilt)
         if: ${{ env.VERCEL_TOKEN != '' }}
