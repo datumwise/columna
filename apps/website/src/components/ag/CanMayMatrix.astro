@@ -20,6 +20,13 @@
  *
  * DOM order is the accessible reading order the brief requires:
  *   axis definitions → within-world can → within-world may → crossing can → crossing may.
+ *
+ * THE ONE EARNED METAPHOR LIVES HERE (Huayin, 2026-08-21), at the end, after the technical
+ * distinction is fully established. It was briefly its own section; the thinness of that section was
+ * the correct signal. A sentence that compresses an architecture does not deserve an independent
+ * movement — it deserves one appearance at the moment its content is already understood. No
+ * passports, no borders, no stamps: the metaphor illuminates the architecture and must never become
+ * it.
  */
 const CELLS = [
   {
@@ -131,12 +138,21 @@ const CELLS = [
           category's own membership test it is not governed.
         </p>
         <p class="ds-body">
-          Nor is <em>world</em> a decorative name for every stage in a pipeline. In particular,
-          <strong>evidence is not a sovereign world</strong>: it is a standing acquired through a
-          governed crossing. Constituting an &ldquo;evidence world&rdquo; to make a diagram
-          symmetrical would invent a jurisdiction to fill a quadrant.
+          Nor is <em>world</em> a decorative name for every stage in a pipeline.
+          <strong>Evidence is a standing acquired through a governed crossing, not a sovereign
+          jurisdiction.</strong>
         </p>
       </aside>
+    </div>
+
+    <div class="compression">
+      <blockquote class="metaphor-line">
+        <p>The analytics industry has been selling tickets and calling them visas.</p>
+      </blockquote>
+      <p class="metaphor-gloss ds-body">
+        A ticket demonstrates capability &mdash; access, transport, execution. A visa represents
+        legitimacy to cross. Successful transport does not itself license passage.
+      </p>
     </div>
   </div>
 </section>
@@ -286,6 +302,27 @@ const CELLS = [
   .sovereignty strong { color: var(--ink); font-weight: 600; }
   .sovereignty em { font-style: italic; color: var(--ink); }
 
+  /* The compression: one appearance, at the end, once the distinction it compresses is established.
+     Set below a rule at proposition weight — large enough to land, contained enough that it reads as
+     the section's closing line rather than a new movement. */
+  .compression {
+    margin-top: var(--ds-space-5);
+    padding-top: var(--ds-space-4);
+    border-top: 1px solid var(--ds-rule);
+  }
+  .metaphor-line { margin: 0 0 var(--ds-space-2); }
+  .metaphor-line p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 24ch;
+    text-wrap: balance;
+  }
+  .metaphor-gloss { margin: 0; max-width: 52ch; }
+
   /* ── LINEARIZED ────────────────────────────────────────────────────────────────────────────
      The two axes must remain understandable. The rails become full-width band headings that keep
      the row axis visible, and every cell's own coordinate heading is promoted to primary — so a
@@ -326,6 +363,6 @@ const CELLS = [
     .axes { grid-template-columns: 1fr; gap: var(--ds-space-3); }
     .after { grid-template-columns: 1fr; gap: var(--ds-space-4); }
     .sovereignty { padding-left: 0; border-left: 0; padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-rule); }
-    .ds-proposition { max-width: none; }
+    .ds-proposition, .metaphor-line p { max-width: none; }
   }
 </style>

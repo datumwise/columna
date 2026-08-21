@@ -6,16 +6,23 @@
  * linked from here; it arrives at the end of the page as a consequence, which is the only honest
  * order for a claim that analytical governance is a category rather than a feature of one system.
  *
- * THREE LARGE APHORISMS WOULD COMPETE, so they are typed at three different weights (brief §2A):
- *   · the PROPOSITION carries the display size — it is the wound the page exists to open;
- *   · the ORGANIZING SENTENCE sits directly beneath at lede size — it is the page's structure,
- *     stated once, and the rest of the page is its expansion;
- *   · the CONFORMANCE TEST appears on the first screen as a small formal line, deliberately quiet.
- *     It is the category's membership test and it earns a full section later (§8); putting it here
- *     at display size would make the page a slogan wall and would spend the test before the reader
- *     knows what it tests.
+ * THE HIERARCHY IS RULED (Huayin, 2026-08-21), and the first cut got it wrong:
  *
- * The publication signpost is REGISTRY-DERIVED. No version or DOI is typed on this page.
+ *     main proposition → organizing can/may sentence → conformance criterion → publication metadata
+ *
+ * The conformance test had been set as a small mono line SIDE BY SIDE with the publication signpost,
+ * which made the category's own membership test read as metadata and gave it no more weight than a
+ * DOI. It is not metadata. It is the criterion by which anything gets to call itself governed.
+ *
+ * But it is also not a third slogan. Three display-size aphorisms on one screen is a slogan wall, and
+ * the test earns a full section later (§Conformance) where it is argued rather than displayed. So it
+ * sits between the two: its own quiet full-width band, above a rule, labelled as the criterion it is,
+ * set in serif at reading weight — an argument line, not a headline and not a caption.
+ *
+ * The publication signpost then sits BENEATH it and visibly remains metadata, which is the correct
+ * relative standing: the deposit governs the page, but the criterion governs the category.
+ *
+ * The signpost is REGISTRY-DERIVED. No version or DOI is typed on this page.
  */
 import { citation, longDate } from '../../data/publications';
 
@@ -35,18 +42,19 @@ const paper = citation('w-analytical-governance');
       multi-world analytical process.
     </p>
 
-    <div class="beneath">
-      <p class="test">
-        <span class="test-label">Membership test</span>
-        <span class="test-line">If it cannot refuse, it is not governed.</span>
-      </p>
-
-      <p class="signpost">
-        <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
-        <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
-        <span class="role">The category paper. This page compresses and connects it; the deposit governs.</span>
+    <div class="criterion">
+      <p class="test-label">Conformance test</p>
+      <p class="test-line">
+        A governed analytical system must be capable of withholding analytical permission.
+        <strong>If it cannot refuse, it is not governed.</strong>
       </p>
     </div>
+
+    <p class="signpost">
+      <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
+      <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
+      <span class="role">The category paper. This page compresses and connects it; the deposit governs.</span>
+    </p>
   </div>
 </section>
 
@@ -75,34 +83,40 @@ const paper = citation('w-analytical-governance');
   }
   .organizing em { font-style: italic; color: var(--ink); }
 
-  .beneath {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
-    align-items: start;
+  /* THE CRITERION BAND. Full width, above a rule, on its own — a rule stated, not a caption and not
+     a headline. Serif at reading weight so it reads as argument; the second sentence takes the
+     emphasis because it is the test's operative half. */
+  .criterion {
     margin-top: var(--ds-space-5);
     padding-top: var(--ds-space-3);
-    border-top: 1px solid var(--ds-rule);
+    border-top: 1px solid var(--ds-rule-strong);
   }
-
-  .test { margin: 0; display: grid; gap: 0.4rem; }
   .test-label {
+    margin: 0 0 0.55rem;
     font-family: var(--font-sans);
     font-size: var(--ds-meta);
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink-soft);
   }
-  /* Mono, not display serif: this is a formal test, and setting it small keeps it from becoming a
-     third competing headline on the first screen. */
   .test-line {
-    font-family: var(--font-mono);
-    font-size: var(--ds-mono);
-    line-height: 1.5;
-    color: var(--ink);
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.4;
+    color: var(--ink-soft);
+    max-width: 54ch;
   }
+  .test-line strong { color: var(--ink); font-weight: 600; }
 
-  .signpost { margin: 0; display: grid; gap: 0.35rem; }
+  /* and the deposit, visibly metadata beneath the criterion */
+  .signpost {
+    margin: var(--ds-space-4) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+    display: grid;
+    gap: 0.35rem;
+  }
   .signpost a {
     font-family: var(--font-serif);
     font-size: var(--ds-body);
@@ -122,7 +136,7 @@ const paper = citation('w-analytical-governance');
   }
 
   @media (max-width: 46rem) {
-    .beneath { grid-template-columns: 1fr; gap: var(--ds-space-3); }
     .proposition { max-width: none; }
+    .test-line { max-width: none; }
   }
 </style>

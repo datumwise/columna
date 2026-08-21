@@ -17,6 +17,11 @@
  * REGISTER. PAPER throughout, with exactly one quotation from WIRE near the end. The page is an
  * argument that happens to have a system behind it, not a product page that happens to argue.
  *
+ * THE TICKET/VISA COMPRESSION IS NOT A SECTION (Huayin, 2026-08-21). It briefly was one, and the
+ * thinness of that section was the correct signal: a sentence that compresses an architecture does
+ * not deserve an independent movement. It now closes §can-may, one appearance, once the technical
+ * distinction it compresses is already established.
+ *
  * PUBLICATION FACTS. Registry-derived, everywhere, including the closing paths. No version string
  * and no DOI is typed into this file — check_publications.py classifies it `derived` and fails the
  * build if one appears.
@@ -119,24 +124,6 @@ const CLOSING = [
   <OpenStoreWound />
   <TwoGaps />
   <CanMayMatrix />
-
-  {/* THE ONE EARNED METAPHOR (brief §5). It appears exactly once, after the technical distinction it
-      compresses, and it is not permitted to become a visual theme. No passports, no borders, no
-      stamps — the metaphor illuminates the architecture; it must not become the architecture. */}
-  <section id="ticket-visa" class="metaphor ds ds-paper ds-section" aria-labelledby="metaphor-h">
-    <div class="ds-measure-wide">
-      <h2 id="metaphor-h" class="ds-label">One compression, now that the distinction is clear</h2>
-      <blockquote class="line">
-        <p>The analytics industry has been selling tickets and calling them visas.</p>
-      </blockquote>
-      <p class="gloss ds-body">
-        A ticket demonstrates capability: access, transport, execution. A visa represents legitimacy
-        to cross. Successful transport does not itself license passage — which is the whole content
-        of the previous section, said in four words instead of a matrix. That is the only work this
-        sentence is asked to do here.
-      </p>
-    </div>
-  </section>
 
   {/* THE THREE POWERS (brief §6). A separation of authority, so it is set as three units with their
       formal signature and the guard that keeps each in its lane — not as three feature cards. */}
@@ -273,20 +260,6 @@ const CLOSING = [
 </BaseLayout>
 
 <style>
-  /* ── the one metaphor ─────────────────────────────────────────────────────────────────────── */
-  .metaphor .line { margin: 0 0 var(--ds-space-3); }
-  .metaphor .line p {
-    margin: 0;
-    font-family: var(--font-serif);
-    font-size: var(--ds-display);
-    line-height: 1.14;
-    letter-spacing: -0.015em;
-    color: var(--ink);
-    max-width: 26ch;
-    text-wrap: balance;
-  }
-  .metaphor .gloss { max-width: var(--ds-essay); margin: 0; }
-
   /* ── three powers ─────────────────────────────────────────────────────────────────────────── */
   .powers .ds-proposition { font-size: var(--ds-pillar); max-width: 30ch; }
   .powers-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
@@ -451,6 +424,6 @@ const CLOSING = [
     .conf-body { grid-template-columns: 1fr; gap: var(--ds-space-3); }
     .neighbour { grid-template-columns: 1fr; gap: 0.5rem; }
     .paths { grid-template-columns: 1fr; }
-    .metaphor .line p, .conf-test p, .boundaries .ds-proposition { max-width: none; }
+    .conf-test p, .boundaries .ds-proposition { max-width: none; }
   }
 </style>

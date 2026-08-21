@@ -12,6 +12,17 @@
  * one of the three wins. A page that quietly crowned 50 would teach the reader that governance is
  * about picking the right denominator, which is the misreading this whole category exists to end.
  *
+ * AND THE SECTION NOW SAYS SO OUTRIGHT (Huayin, 2026-08-21). Declining to crown a number was not
+ * enough: a fast reader could still leave with "so it's 50, pending a detail". The invariant that has
+ * to survive this section is
+ *
+ *     50 establishes population  ≠  50 establishes a presently servable answer
+ *
+ * so the disposition is stated as a result, not implied by the absence of one. Deliberately WITHOUT
+ * the serving-mood vocabulary: Refuse, Disclose and the rest are typed later, and importing them here
+ * would spend that section early and would also be wrong — this is a support determination, not yet a
+ * serving verdict.
+ *
  * Rendered as an ordered list of cases with the numbers as headings: a screen reader gets
  * "47 — makes observed sales rows define the population" as one unit, not a floating numeral.
  */
@@ -76,12 +87,23 @@ const FACTS = [
       </div>
     </div>
 
-    <p class="landing ds-body">
-      All three can be written in valid SQL. All three return a plausible number. Execution alone
-      cannot establish which result is entitled to answer the question — and the honest answer here
-      is not a fourth number. <strong>Population, support, identity, and serving authority have to
-      become explicit before a computation may stand as the answer.</strong>
-    </p>
+    <div class="landing">
+      <p class="ds-body">
+        All three can be written in valid SQL. All three return a plausible number. Execution alone
+        cannot establish which result is entitled to answer the question &mdash; and the honest answer
+        here is not a fourth number. <strong>Population, support, identity, and serving authority have
+        to become explicit before a computation may stand as the answer.</strong>
+      </p>
+      <p class="disposition">
+        At this point, no number is entitled to answer the question. The 50-store population
+        <em>is</em> the governed population &mdash; and the requested result is still withheld,
+        because one store-day in that population lacks the revenue evidence it requires.
+      </p>
+      <p class="disposition-note ds-body">
+        Establishing the population and establishing a presently servable answer are two different
+        things, and only the first has happened here.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -140,13 +162,23 @@ const FACTS = [
   .procedure { margin: 0 0 0.35rem; font-family: var(--font-serif); font-size: var(--ds-body); color: var(--ink); line-height: 1.5; }
   .consequence { margin: 0; font-family: var(--font-serif); font-size: var(--ds-body); color: var(--ink-soft); line-height: 1.55; }
 
-  .landing {
-    margin: var(--ds-space-5) 0 0;
-    max-width: var(--ds-essay);
-    font-size: var(--ds-lead);
-    line-height: 1.5;
-  }
+  .landing { margin: var(--ds-space-5) 0 0; max-width: var(--ds-essay); }
+  .landing .ds-body { font-size: var(--ds-lead); line-height: 1.5; margin: 0; }
   .landing strong { color: var(--ink); font-weight: 600; }
+
+  /* The disposition is set as a RESULT — the section's verdict, marked off by a rule — because the
+     reader's takeaway from this section is the one thing most likely to go wrong. */
+  .disposition {
+    margin: var(--ds-space-3) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .disposition em { font-style: italic; }
+  .disposition-note { margin: var(--ds-space-2) 0 0; font-size: var(--ds-body); }
 
   @media (max-width: 52rem) {
     .split { grid-template-columns: 1fr; gap: var(--ds-space-4); }
