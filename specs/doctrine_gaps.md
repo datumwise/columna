@@ -76,7 +76,7 @@ governed the way its numbers are.
 
 | # | opened | item | status |
 |---|---|---|---|
-| CT-1 | 2026-08-19 | ***The Theory of Data in One Afternoon*** — a first-time-reader on-ramp. Intended role: the cold-reader / Start Here entry under The Case. | In development. **Not part of Homepage Slice 1** and not to be linked from it until it lands (Huayin, 2026-08-19). |
+| CT-1 | 2026-08-19 | ***The Theory of Data in One Afternoon*** — a first-time-reader on-ramp. Intended role: the cold-reader / Start Here entry under The Case. | **Canonical externally as v0.12; site integration pending** (Huayin, 2026-08-20). The manuscript closed its shipped-package gate against the coherent v0.15.1 release set — its five literal executable expressions were rerun against the installed `columna-core==0.15.1` artifact in a fresh environment — so the external status moved *canonical pending shipped-package gate* → *canonical*. The SITE item is unchanged and stays open: **not part of Homepage Slice 1** and not to be linked from it until the site surface lands (Huayin, 2026-08-19). A canonical manuscript is not a shipped page; the row closes when the surface does. The repository holds no copy of the manuscript — the gate it must keep passing is `scripts/afternoon_five.py`, mirrored in CI by `test_afternoon_page_gate.py`. |
 | CT-2 | 2026-08-19 | **Analytical Governance v1.1 alignment.** A revision of the category paper is under consideration. | Being considered separately. Slice 1 links **v1.0** accurately (DOI `10.5281/zenodo.21959749`) and does not anticipate the revision. |
 
 ### Generator / source-of-record hygiene (same date, not machine-surface)

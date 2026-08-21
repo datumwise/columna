@@ -118,6 +118,41 @@ which ships the coherent set (`columna 0.15.1` / `columna-core 0.15.1` / `column
 raises the umbrella's **server** floor for the same reason the core floor exists: a release's umbrella
 must not admit a stale companion.
 
+## Standing release doctrine
+
+**Ratified Huayin, 2026-08-20, at the close of the 0.15.x cycle.** These are the laws the release
+machinery now enforces. They are recorded here because a law that lives only in the code that
+implements it is a behaviour, not a doctrine — and behaviours get refactored away by people who never
+learned what they were for. Each line below cost an incident.
+
+> **Release coherence is established, not inferred from successful installation.**
+
+1. **Resolvability proves availability. It does not prove currency, identity, or coherence.**
+   `pip` succeeding means the index served *something*. It does not mean it served the current thing,
+   the thing this commit describes, or a set whose members agree with each other. Every release
+   failure in this document is a variant of trusting a successful resolve.
+
+2. **A release is a declared coherent state across independently versioned artifacts.**
+   Not a tag, not an upload, not a green job. The unit of release is the *set*, and the set is
+   coherent only if we have said so and checked it.
+
+3. **If a package's publishable payload changes, its version must advance before release.**
+   `skip-existing` must never silently turn "same version" into "therefore same package."
+
+4. **`columna` and `columna-core` share the public release version.** `columna-server` is
+   independently versioned, but the umbrella release must require a server floor compatible with the
+   coherent release state it represents — an umbrella must never admit a companion older than the
+   release it names.
+
+5. **A first-run demo that names an expected serving mood must fail if the actual mood differs.**
+   The first-run surface is where a stranger meets the four moods. A surface that can print a
+   contradiction and exit 0 is worse than no surface.
+
+Laws 1–4 are enforced by `scripts/release_pins.py` (`--check`, `--check --release <tag>`,
+`--check-payload <dist>`); law 5 by `columna-server demo --play` and `scripts/assert_demo_play.py`.
+The enforcement is the code; this section is the reason. Do not restate the executable rules here in
+more detail than the doctrine needs — one policy source, and it is the script.
+
 ## What stays true regardless
 
 The wedge **fails closed**. The retry budget is bounded and exhausting it exits non-zero. Widening
