@@ -16,7 +16,17 @@ import pathlib
 from columna_core.envelope import parse_statement, EnvelopeSyntaxError
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]                      # apps/website
-SOURCES = sorted((ROOT / "src" / "content" / "corpus").glob("*.md")) + [ROOT / "public" / "llms.txt"]
+# The llms index moved out of public/ and became a composed route (Phase 1A, 2026-08-21): its
+# publication block is derived from the publication registry, so the prose now lives in
+# src/content/llms_index.txt. The FrameQL blocks this gate parses are all in the ratified prose,
+# which is byte-unchanged — only the path moved. Fails closed below if the file is not there.
+LLMS_INDEX = ROOT / "src" / "content" / "llms_index.txt"
+if not LLMS_INDEX.exists():
+    raise SystemExit(
+        f"prose coherence: {LLMS_INDEX} is missing. The machine-facing index is the one document\n"
+        "strangers' agents read first; this gate refuses to pass by silently checking one fewer file."
+    )
+SOURCES = sorted((ROOT / "src" / "content" / "corpus").glob("*.md")) + [LLMS_INDEX]
 _FQL_START = re.compile(r"^\s*(SELECT|EXPLAIN|FROM|WITH)\b", re.IGNORECASE)
 
 

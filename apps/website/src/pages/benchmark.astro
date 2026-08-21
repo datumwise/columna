@@ -4,7 +4,12 @@
 // public repo link, and the freeze paragraph verbatim (from the kit README). The kit itself
 // lives in the public repo; this page does not reproduce data.
 import BaseLayout from '../layouts/BaseLayout.astro';
-const DOI = 'https://doi.org/10.5281/zenodo.21349581';
+// DERIVED (Phase 1A, 2026-08-21). The DOI was authored twice on this page — once as a href constant
+// and once again as visible text — so the link and its label were two independent copies of one fact,
+// free to disagree with each other as well as with the record. Now they are one lookup.
+import { citation } from '../data/publications';
+
+const paper = citation('w-nine-model-study');
 const REPO = 'https://github.com/datumwise/ground-truth-benchmark';
 ---
 <BaseLayout title="The Ground Truth benchmark — datumwise"
@@ -32,7 +37,7 @@ const REPO = 'https://github.com/datumwise/ground-truth-benchmark';
     </blockquote>
 
     <p class="cite">
-      Paper (nine-model study): <a href={DOI} rel="noopener" target="_blank">DOI 10.5281/zenodo.21349581</a><br />
+      Paper (nine-model study): <a href={paper.href} rel="noopener" target="_blank">DOI {paper.doi}</a><br />
       Kit + reproduction: <a href={REPO} rel="noopener" target="_blank">github.com/datumwise/ground-truth-benchmark</a>
     </p>
 

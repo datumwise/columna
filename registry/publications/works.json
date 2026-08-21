@@ -1,0 +1,149 @@
+[
+ {
+  "workId": "w-silent-seam",
+  "canonicalLabel": "The Silent Seam",
+  "kind": "unclassified",
+  "conceptRecid": "20710716",
+  "conceptDoi": "10.5281/zenodo.20710716"
+ },
+ {
+  "workId": "w-silent-failure-atlas",
+  "canonicalLabel": "The Silent Failure Atlas",
+  "kind": "unclassified",
+  "conceptRecid": "20762838",
+  "conceptDoi": "10.5281/zenodo.20762838"
+ },
+ {
+  "workId": "w-two-anchors",
+  "canonicalLabel": "The Two Anchors of a Measure",
+  "kind": "unclassified",
+  "conceptRecid": "20789317",
+  "conceptDoi": "10.5281/zenodo.20789317"
+ },
+ {
+  "workId": "w-nine-model-study",
+  "canonicalLabel": "Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison",
+  "kind": "unclassified",
+  "conceptRecid": "21349580",
+  "conceptDoi": "10.5281/zenodo.21349580"
+ },
+ {
+  "workId": "w-multi-universe-processing",
+  "canonicalLabel": "Multi-Universe Processing: Territories, Frontiers, and the Lawful Passage of Meaning",
+  "kind": "unclassified",
+  "conceptRecid": "21543583",
+  "conceptDoi": "10.5281/zenodo.21543583"
+ },
+ {
+  "workId": "w-two-great-sources",
+  "canonicalLabel": "The Two Great Sources of Silent Analytical Failure",
+  "kind": "unclassified",
+  "conceptRecid": "21553378",
+  "conceptDoi": "10.5281/zenodo.21553378"
+ },
+ {
+  "workId": "w-open-planner",
+  "canonicalLabel": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — research program note (2026)",
+  "kind": "unclassified",
+  "conceptRecid": "21632722",
+  "conceptDoi": "10.5281/zenodo.21632722"
+ },
+ {
+  "workId": "w-tod-foundations-note",
+  "canonicalLabel": "The Theory of Data — A Foundations Note",
+  "kind": "unclassified",
+  "conceptRecid": "21696103",
+  "conceptDoi": "10.5281/zenodo.21696103"
+ },
+ {
+  "workId": "w-theory-of-data",
+  "canonicalLabel": "The Theory of Data",
+  "kind": "unclassified",
+  "conceptRecid": "21707017",
+  "conceptDoi": "10.5281/zenodo.21707017"
+ },
+ {
+  "workId": "w-contract-calculus",
+  "canonicalLabel": "A Contract Calculus for Governed Analytical Transformation",
+  "kind": "unclassified",
+  "conceptRecid": "21752372",
+  "conceptDoi": "10.5281/zenodo.21752372"
+ },
+ {
+  "workId": "w-contract-calculus-supplement",
+  "canonicalLabel": "Technical Supplement Collection for A Contract Calculus",
+  "kind": "unclassified",
+  "conceptRecid": "21752680",
+  "conceptDoi": "10.5281/zenodo.21752680"
+ },
+ {
+  "workId": "w-missingness-has-a-universe",
+  "canonicalLabel": "Missingness Has a Universe",
+  "kind": "unclassified",
+  "conceptRecid": "21760507",
+  "conceptDoi": "10.5281/zenodo.21760507"
+ },
+ {
+  "workId": "w-frameql-introduction",
+  "canonicalLabel": "Frame-QL: An Introduction",
+  "kind": "unclassified",
+  "conceptRecid": "21763320",
+  "conceptDoi": "10.5281/zenodo.21763320"
+ },
+ {
+  "workId": "w-tod-introduction",
+  "canonicalLabel": "The Theory of Data: An Introduction",
+  "kind": "unclassified",
+  "conceptRecid": "21763394",
+  "conceptDoi": "10.5281/zenodo.21763394"
+ },
+ {
+  "workId": "w-practice-needs-a-firmer-foundation",
+  "canonicalLabel": "Analytical Practice Needs a Firmer Foundation",
+  "kind": "unclassified",
+  "conceptRecid": "21763450",
+  "conceptDoi": "10.5281/zenodo.21763450"
+ },
+ {
+  "workId": "w-row-table-join",
+  "canonicalLabel": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+  "kind": "unclassified",
+  "conceptRecid": "21763487",
+  "conceptDoi": "10.5281/zenodo.21763487"
+ },
+ {
+  "workId": "w-never-let-your-agent",
+  "canonicalLabel": "Never Let Your Agent Touch the Database",
+  "kind": "unclassified",
+  "conceptRecid": "21765251",
+  "conceptDoi": "10.5281/zenodo.21765251"
+ },
+ {
+  "workId": "w-tod-primer",
+  "canonicalLabel": "A Primer on the Theory of Data",
+  "kind": "unclassified",
+  "conceptRecid": "21842993",
+  "conceptDoi": "10.5281/zenodo.21842993"
+ },
+ {
+  "workId": "w-analytical-governance",
+  "canonicalLabel": "Analytical Governance: From User Intent to Governed Analytical Execution",
+  "kind": "unclassified",
+  "conceptRecid": "21959748",
+  "conceptDoi": "10.5281/zenodo.21959748"
+ },
+ {
+  "workId": "w-tod-applied",
+  "canonicalLabel": "The Theory of Data Applied",
+  "kind": "unclassified",
+  "conceptRecid": "21959940",
+  "conceptDoi": "10.5281/zenodo.21959940"
+ },
+ {
+  "workId": "w-tod-primer-applied",
+  "canonicalLabel": "A Primer on the Theory of Data Applied",
+  "kind": "unclassified",
+  "conceptRecid": "21960379",
+  "conceptDoi": "10.5281/zenodo.21960379"
+ }
+]

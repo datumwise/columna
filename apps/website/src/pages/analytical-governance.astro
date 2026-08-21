@@ -15,6 +15,20 @@
  * governance and surface the conformance test.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
+// THE CATEGORY PAPER'S FACTS ARE DERIVED (Phase 1A, 2026-08-21). This page hand-typed THREE
+// publication facts about one record — the DOI, the version and the deposit date — in the one place
+// on the property where the Analytical Governance paper appears at all. All three were correct, which
+// is the reason this migration is worth doing rather than the reason to skip it: the work has exactly
+// one deposit, so the page could not yet be wrong. That is luck, not architecture, and the next
+// deposit is what collects on it.
+//
+// The byline "Huayin Wang" stays authored here. Zenodo carries the index form ("Wang, Huayin"); this
+// is the display form, and swapping the page to the index form would be a prose change made inside a
+// factual migration. Authorship is a publication fact and it lives on the record; how a page chooses
+// to SET a name is typography.
+import { citation, longDate } from '../data/publications';
+
+const agPaper = citation('w-analytical-governance');
 ---
 <BaseLayout
   title="Analytical Governance — datumwise"
@@ -52,10 +66,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <ul class="onward">
           <li class="paper">
-            <a href="https://doi.org/10.5281/zenodo.21959749" rel="noopener" target="_blank">
-              Analytical Governance: From User Intent to Governed Analytical Execution
+            <a href={agPaper.href} rel="noopener" target="_blank">
+              {agPaper.title}
             </a>
-            <span class="meta">Huayin Wang · Version 1.0 · 15 August 2026 · DOI 10.5281/zenodo.21959749</span>
+            <span class="meta">Huayin Wang · Version {agPaper.version} · {longDate(agPaper.date)} · DOI {agPaper.doi}</span>
             <span class="role">The category paper — the defining publication for Analytical Governance.</span>
           </li>
           <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>

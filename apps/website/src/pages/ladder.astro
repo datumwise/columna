@@ -5,9 +5,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import TermChipStrip from '../components/TermChipStrip.astro';
 
 // Verification targets (the copy's law: every claim one click from evidence).
-const SEAM = 'https://doi.org/10.5281/zenodo.20710717';
-const ATLAS = 'https://doi.org/10.5281/zenodo.20762839';
-const TWO_ANCHORS = 'https://doi.org/10.5281/zenodo.20789318';
+// DERIVED, NOT TYPED (Slice 2 item 1, Phase 1A, 2026-08-21). These were three literal doi.org URLs —
+// a fourth copy of the same three facts the footer, /about and llms.txt each kept their own copy of.
+// TWO_ANCHORS was stale here for the same reason it was stale in the footer: v2.0 landed 2026-08-11
+// and nobody re-typed four places. The copy's law is that every claim is one click from evidence; a
+// link to a superseded record satisfies the letter of that and breaks its point.
+import { currentRecord, doiUrl } from '../data/publications';
+const SEAM = doiUrl(currentRecord('w-silent-seam'));
+const ATLAS = doiUrl(currentRecord('w-silent-failure-atlas'));
+const TWO_ANCHORS = doiUrl(currentRecord('w-two-anchors'));
 const BENCH = '/benchmark';
 const COLUMNAR = 'https://columnar.tech';
 const CACHER = '/notes/cacher';

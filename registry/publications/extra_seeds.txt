@@ -1,0 +1,22 @@
+# Extra harvest seeds — Zenodo record ids that the registry must cover but that no tracked file
+# cited at the moment the registry was created.
+#
+# The harvester seeds itself from every Zenodo id cited in the repo, then expands each seed's CONCEPT
+# to all of its versions. That is closed under versioning but NOT closed under "records we have ruled
+# on but never wrote down" — the whole point of Phase 1 is that several current records were absent
+# from every surface. These are those ids. Each line: recid, then why it is here.
+#
+# Once the migration lands, most of these ARE cited (the derived surfaces resolve them from the
+# registry, not from literal text), so this file is the record of how they entered — not a permanent
+# crutch. It is never pruned: removing a line cannot remove a record, only make the snapshot smaller
+# than the registry, which the checker fails on.
+
+21695710   # Open Planner v1.3 — the real current record; the frozen deposit misquotes it as 21632723
+22013410   # The Theory of Data v6.1 — current; the site carried v3.1 (/about) and v1.0 (llms.txt)
+21958062   # The Theory of Data v6.0 — the superseded member of the canonical supersession example
+21959668   # A Primer on the Theory of Data v2.0 — the superseded arm of the Primer triangle
+22018549   # A Primer on the Theory of Data v2.2 — current Primer; cited by the canonical Afternoon
+21960380   # A Primer on the Theory of Data Applied v1.0 — a SEPARATE work, not a Primer version
+21959941   # The Theory of Data Applied v1.0 — a SEPARATE work, not a Primer version
+21888464   # The Two Anchors of a Measure v2.0 — current; every page footer carried v1.0
+21707446   # The Theory of Data — A Foundations Note v1.1 — current; /about carried v1.0
