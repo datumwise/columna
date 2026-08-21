@@ -83,7 +83,10 @@ jobs:
         with:
           python-version: '3.12'
       - name: Check the publication registry
-        run: python scripts/check_publications.py --report
+        # --selftest first: the attachment set-semantics fixtures are hermetic (no registry, no
+        # network) and pin that `attachedConcepts` order carries no law. A fixture nobody runs is not
+        # a fixture, so it rides the job that already exists rather than getting one of its own.
+        run: python scripts/check_publications.py --selftest --report
 
   # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
   # acceptance. Two legs, and the second one is the point:

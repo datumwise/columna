@@ -56,6 +56,10 @@ So attachment is 1..n, and the consequences are deliberate and narrow:
     supersedes a record in a different concept, and that is now a sentence the registry can say.
   • ATTACHMENT IS MANY-TO-ONE. A concept attaches to at most one work (G1). Relax that and "which
     work does this deposit belong to?" stops having an answer.
+  • ATTACHMENT IS A SET (Phase 3B.2). The list is persisted in first-deposit order because a human
+    reads the file, but no gate may consult position: the same identities in either order are the
+    same governed meaning. `--selftest` pins that, and pins that membership, absence and duplication
+    still bite.
   • THE WORK'S LOCAL IDENTITY DOES NOT MOVE. `w-two-great-sources` keeps its workId although its
     current deposit is titled *Three Structural Sources*. The slug is a mnemonic; no code reads it,
     and renaming it to match a title would make internal identity track external naming — the exact
@@ -160,6 +164,42 @@ def scan_tokens() -> dict[str, set[str]]:
 # ──────────────────────────────────────────────────────────────────────────────────────────────────
 
 
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# ATTACHMENT IS A SET. SERIALIZATION ORDER CARRIES NO LAW. (Huayin, ruling of 2026-08-21, Phase 3B.2.)
+#
+# `attachedConcepts` is persisted as a JSON array in first-deposit order, because a file a human reads
+# wants a stable order and that one is meaningful to read. It is not meaningful to a GATE. Nothing in
+# the model consults position: currentness is governed `status`, supersession is by recordId, and
+# membership is membership.
+#
+# THE DEFECT THIS CLOSES. Three G9 acceptance assertions compared the array as an ORDERED LIST, so a
+# byte-different-but-semantically-identical serialization — the same concepts, written the other way
+# round — failed a gate for a reason the model says does not exist. A test that rejects a legal state
+# is not a strict test, it is a wrong one, and it teaches the next person that order is load-bearing.
+#
+# Both helpers are pure and take plain data, which is what lets --selftest exercise them on fixtures
+# instead of on the live registry. See selftest() at the bottom of this file.
+
+
+def attached_recids(work: dict | None) -> set[str]:
+    """The concept identities a work attaches, as a SET. Order-blind by construction."""
+    return {c["recid"] for c in (work or {}).get("attachedConcepts", []) if c.get("recid")}
+
+
+def duplicate_attachments(work: dict | None) -> list[str]:
+    """Concept ids listed more than once on one work. A set comparison cannot see these — G1 must."""
+    seen: set[str] = set()
+    dupes: list[str] = []
+    for att in (work or {}).get("attachedConcepts", []):
+        recid = att.get("recid")
+        if not recid:
+            continue
+        if recid in seen and recid not in dupes:
+            dupes.append(recid)
+        seen.add(recid)
+    return dupes
+
+
 def _shippable(path: pathlib.Path) -> str:
     """
     A derived surface's source, minus the parts that never reach a reader.
@@ -186,7 +226,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", action="store_true", help="also re-verify the snapshot against Zenodo")
     ap.add_argument("--report", action="store_true", help="print the inventory before checking")
+    ap.add_argument("--selftest", action="store_true",
+                    help="run the attachment set-semantics fixtures (hermetic; no registry, no network)")
     args = ap.parse_args()
+
+    if args.selftest and selftest() != 0:
+        return 1
 
     works = load("works.json")
     records = load("records.json")
@@ -215,16 +260,15 @@ def main() -> int:
                        "carries an EMPTY list, not a missing field: 'never deposited' is a fact this "
                        "registry states, not one it leaves to inference.")
             continue
-        seen_here: set[str] = set()
+        for concept in duplicate_attachments(w):
+            fail("G1", f"work {w['workId']} attaches concept {concept} twice. Attachment is a set; "
+                       "a repeated entry is either a paste or a claim nobody meant to make. G9 compares "
+                       "attachment as a set and CANNOT see this — catching it is G1's job, and stays G1's job.")
         for att in w["attachedConcepts"]:
             concept = att.get("recid")
             if not concept or not att.get("doi"):
                 fail("G1", f"work {w['workId']}: an attached concept is missing recid or doi ({att!r})")
                 continue
-            if concept in seen_here:
-                fail("G1", f"work {w['workId']} attaches concept {concept} twice. Attachment is a set; "
-                           "a repeated entry is either a paste or a claim nobody meant to make.")
-            seen_here.add(concept)
             # ATTACHMENT IS MANY-TO-ONE, NEVER MANY-TO-MANY (Huayin, Phase 3B.1). A work may attach
             # several concepts; a concept may be attached by ONE work. Relax this and "which work does
             # this deposit belong to?" stops having an answer, which is the question the registry exists
@@ -469,9 +513,9 @@ def main() -> int:
         w = by_work.get(wid)
         if not w:
             fail("G9", f"ruling 4: work {wid} is missing from the registry")
-        elif [c["recid"] for c in w.get("attachedConcepts", [])] != [concept]:
-            fail("G9", f"ruling 4: {wid} must attach exactly one concept, {concept}; got "
-                       f"{[c['recid'] for c in w.get('attachedConcepts', [])]}")
+        elif attached_recids(w) != {concept}:
+            fail("G9", f"ruling 4: {wid} must attach exactly the one concept {concept}; got "
+                       f"{sorted(attached_recids(w))}")
     tri_records = {r["recordId"] for wid in triangle for r in records_of.get(wid, [])}
     for wid in triangle:
         for r in records_of.get(wid, []):
@@ -511,10 +555,9 @@ def main() -> int:
 
     # Case 1 — one work, two attached concepts, one chain across them.
     atlas = by_work.get("w-silent-failure-atlas")
-    atlas_concepts = [c["recid"] for c in (atlas or {}).get("attachedConcepts", [])]
-    if atlas_concepts != ["20710592", "20762838"]:
-        fail("G9", f"3B.1 case 1: the Atlas must attach concepts 20710592 then 20762838 (first-deposit "
-                   f"order); got {atlas_concepts}")
+    if attached_recids(atlas) != {"20710592", "20762838"}:
+        fail("G9", f"3B.1 case 1: the Atlas must attach exactly the concepts 20710592 and 20762838, in any "
+                   f"serialization order; got {sorted(attached_recids(atlas))}")
     atlas_cur = current_of("w-silent-failure-atlas")
     if not atlas_cur or atlas_cur["doi"] != "10.5281/zenodo.20762839" or atlas_cur["version"] != "1.3":
         fail("G9", f"3B.1 case 1: the current Atlas record must be v1.3 / 20762839; got "
@@ -538,9 +581,9 @@ def main() -> int:
                    "local identity does not track external naming, and renaming it would be the coupling "
                    "this registry exists to break.")
     else:
-        if [c["recid"] for c in tgs.get("attachedConcepts", [])] != ["21553378", "21893928"]:
-            fail("G9", f"3B.1 case 2: w-two-great-sources must attach 21553378 then 21893928; got "
-                       f"{[c['recid'] for c in tgs.get('attachedConcepts', [])]}")
+        if attached_recids(tgs) != {"21553378", "21893928"}:
+            fail("G9", f"3B.1 case 2: w-two-great-sources must attach exactly 21553378 and 21893928, in any "
+                       f"serialization order; got {sorted(attached_recids(tgs))}")
         cur = current_of("w-two-great-sources")
         if not cur or cur["doi"] != "10.5281/zenodo.21893929" or cur["version"] != "2.0":
             fail("G9", f"3B.1 case 2: the current record must be v2.0 / 21893929; got "
@@ -636,6 +679,65 @@ def main() -> int:
         return 1
     print(f"\npublication registry OK — {len(works)} works, {len(records)} records, "
           f"{len(consumers)} classified consumers, {len(reconciliation)} reconciliation items.")
+    return 0
+
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+def selftest() -> int:
+    """
+    THE FIXTURE FOR SET SEMANTICS (Phase 3B.2).
+
+    It runs on two-letter fake concept ids, NOT on the live registry, and that is the point: an
+    assertion about `["A", "B"]` versus `["B", "A"]` is about the comparison, and checking it against
+    real data would make it pass or fail for reasons that have nothing to do with ordering.
+
+    What it pins, in one sentence each:
+      • the same identities in either order are the same governed meaning;
+      • a missing one, or an extra one, still fails — set semantics is not laxity;
+      • a duplicate is INVISIBLE here and belongs to G1, which is asserted rather than assumed.
+    """
+    def work(*recids):
+        return {"workId": "w-fixture", "attachedConcepts": [{"recid": r, "doi": f"10.5281/zenodo.{r}"}
+                                                            for r in recids]}
+
+    cases: list[tuple[str, bool]] = []
+
+    def expect(label: str, actual, wanted) -> None:
+        cases.append((label, actual == wanted))
+
+    expected = {"A", "B"}
+
+    # THE RULING, ASSERTED BOTH WAYS ROUND.
+    expect("['A','B'] attaches {A,B}", attached_recids(work("A", "B")) == expected, True)
+    expect("['B','A'] attaches {A,B}", attached_recids(work("B", "A")) == expected, True)
+    expect("['A','B'] and ['B','A'] are the same attachment",
+           attached_recids(work("A", "B")) == attached_recids(work("B", "A")), True)
+
+    # ORDER-INSENSITIVE IS NOT LENIENT.
+    expect("missing concept still fails", attached_recids(work("A")) == expected, False)
+    expect("extra concept still fails", attached_recids(work("A", "B", "C")) == expected, False)
+    expect("empty attachment still fails", attached_recids(work()) == expected, False)
+    expect("a work with no attachment list at all is empty, not an error here",
+           attached_recids({"workId": "w-never-deposited"}), set())
+
+    # DUPLICATES: G9 CANNOT SEE THEM, G1 MUST. Both halves are asserted, because the first half is
+    # exactly the property that would make someone think set semantics had lost a check.
+    expect("a duplicate is invisible to the set comparison",
+           attached_recids(work("A", "A", "B")) == expected, True)
+    expect("...and is caught by the duplicate helper G1 uses",
+           duplicate_attachments(work("A", "A", "B")), ["A"])
+    expect("no false duplicate on a clean work", duplicate_attachments(work("A", "B")), [])
+
+    failed = [label for label, ok in cases if not ok]
+    for label, ok in cases:
+        print(f"  {'PASS' if ok else 'FAIL'}  {label}")
+    if failed:
+        print(f"\nSELFTEST FAILED — {len(failed)} of {len(cases)}", file=sys.stderr)
+        return 1
+    print(f"\nOK — {len(cases)} attachment-semantics fixtures hold "
+          "(serialization order carries no law; membership, absence and duplication all still do).")
     return 0
 
 
