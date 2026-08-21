@@ -455,5 +455,20 @@
    "10.5281/zenodo.2201341010"
   ],
   "note": "The Slice 2 ledger that authorized this work. Quotes a malformed external identifier as evidence (see rc-primer-v22-related-identifier)."
+ },
+ {
+  "path": "specs/publication_corpus_coverage_v0_1.md",
+  "class": "ledger",
+  "allowedDois": [
+   "10.5281/zenodo.20710593",
+   "10.5281/zenodo.20710717",
+   "10.5281/zenodo.21553379",
+   "10.5281/zenodo.21888998",
+   "10.5281/zenodo.2188899810",
+   "10.5281/zenodo.21893929",
+   "10.5281/zenodo.21960873",
+   "10.5281/zenodo.22026962"
+  ],
+  "note": "The corpus-coverage ledger (Phase 3B, 2026-08-21). It exists to name what the registry does NOT cover, so it necessarily quotes identifiers the registry does not model — five of these eight belong to no record here, and three of those five belong to no work here EITHER. That is not a leak; it is the subject. Each uncovered token is scoped by a reconciliation item to this file alone (rc-atlas-two-concepts, rc-two-great-sources-successor, rc-frameql-primer-related-identifier, rc-corpus-uncovered-works), so naming a deposit in the ledger grants it no standing anywhere else and no current-authority claim anywhere at all. Asserts no current publication fact to the public."
  }
 ]

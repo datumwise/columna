@@ -31,6 +31,36 @@
   "supersedes": "w-analytical-governance.r01"
  },
  {
+  "recordId": "w-certifiable-state.r01",
+  "workId": "w-certifiable-state",
+  "title": "Certifiable State Under Information Loss",
+  "version": "1.0",
+  "date": "2026-08-17",
+  "doi": "10.5281/zenodo.21972541",
+  "recid": "21972541",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-conditioning-bar.r01",
+  "workId": "w-conditioning-bar",
+  "title": "The Two Jobs of the Conditioning Bar",
+  "version": "1.0",
+  "date": "2026-08-19",
+  "doi": "10.5281/zenodo.22010143",
+  "recid": "22010143",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
   "recordId": "w-contract-calculus.r01",
   "workId": "w-contract-calculus",
   "title": "A Contract Calculus for Governed Analytical Transformation: Totality, Partiality, Population, Expansion, and Fan-Out",
@@ -358,6 +388,98 @@
   "supersedes": "w-practice-needs-a-firmer-foundation.r01"
  },
  {
+  "recordId": "w-reading-bayesian-workflow.r01",
+  "workId": "w-reading-bayesian-workflow",
+  "title": "Reading Bayesian Workflow Through the Statistical Bridge",
+  "version": "1.0",
+  "date": "2026-08-17",
+  "doi": "10.5281/zenodo.21983508",
+  "recid": "21983508",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-reading-rethinking.r01",
+  "workId": "w-reading-rethinking",
+  "title": "Reading Statistical Rethinking Through the Statistical Bridge",
+  "version": "1.0",
+  "date": "2026-08-09",
+  "doi": "10.5281/zenodo.21863559",
+  "recid": "21863559",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-reading-rethinking.r02",
+  "workId": "w-reading-rethinking",
+  "title": "Reading Statistical Rethinking Through the Statistical Bridge",
+  "version": "2.0",
+  "date": "2026-08-18",
+  "doi": "10.5281/zenodo.21998564",
+  "recid": "21998564",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-reading-rethinking.r01"
+ },
+ {
+  "recordId": "w-regime-has-a-contract.r01",
+  "workId": "w-regime-has-a-contract",
+  "title": "Regime Has a Contract: Intervention, Observation, and the Data Foundation of Causal Identification",
+  "version": "1.0",
+  "date": "2026-08-07",
+  "doi": "10.5281/zenodo.21840854",
+  "recid": "21840854",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
+ },
+ {
+  "recordId": "w-regression-has-an-anchor.r01",
+  "workId": "w-regression-has-an-anchor",
+  "title": "Regression Has an Anchor: Members, State, and Lawful Movement in the Most Performed Analysis in Statistics",
+  "version": "1.0",
+  "date": "2026-08-04",
+  "doi": "10.5281/zenodo.21783729",
+  "recid": "21783729",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-regression-has-an-anchor.r02",
+  "workId": "w-regression-has-an-anchor",
+  "title": "Regression Has an Anchor: Members, State, and Lawful Movement in the Most Performed Analysis in Statistics",
+  "version": "2.0",
+  "date": "2026-08-19",
+  "doi": "10.5281/zenodo.22012515",
+  "recid": "22012515",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-regression-has-an-anchor.r01"
+ },
+ {
   "recordId": "w-row-table-join.r01",
   "workId": "w-row-table-join",
   "title": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
@@ -417,6 +539,132 @@
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-statistical-bridge.r01",
+  "workId": "w-statistical-bridge",
+  "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+  "version": "1.0",
+  "date": "2026-08-04",
+  "doi": "10.5281/zenodo.21795312",
+  "recid": "21795312",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
+ },
+ {
+  "recordId": "w-statistical-bridge.r02",
+  "workId": "w-statistical-bridge",
+  "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+  "version": "1.1",
+  "date": "2026-08-07",
+  "doi": "10.5281/zenodo.21843903",
+  "recid": "21843903",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper",
+  "supersedes": "w-statistical-bridge.r01"
+ },
+ {
+  "recordId": "w-statistical-bridge.r03",
+  "workId": "w-statistical-bridge",
+  "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+  "version": "1.2",
+  "date": "2026-08-09",
+  "doi": "10.5281/zenodo.21863411",
+  "recid": "21863411",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper",
+  "supersedes": "w-statistical-bridge.r02"
+ },
+ {
+  "recordId": "w-statistical-bridge.r04",
+  "workId": "w-statistical-bridge",
+  "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+  "version": "2.0",
+  "date": "2026-08-16",
+  "doi": "10.5281/zenodo.21966764",
+  "recid": "21966764",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper",
+  "supersedes": "w-statistical-bridge.r03"
+ },
+ {
+  "recordId": "w-statistical-bridge.r05",
+  "workId": "w-statistical-bridge",
+  "title": "The Statistical Bridge",
+  "version": "3.0",
+  "date": "2026-08-17",
+  "doi": "10.5281/zenodo.21979821",
+  "recid": "21979821",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-statistical-bridge.r04"
+ },
+ {
+  "recordId": "w-statistical-bridge-primer.r01",
+  "workId": "w-statistical-bridge-primer",
+  "title": "A Primer on the Statistical Bridge",
+  "version": "1.0",
+  "date": "2026-08-09",
+  "doi": "10.5281/zenodo.21864434",
+  "recid": "21864434",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
+ },
+ {
+  "recordId": "w-statistical-bridge-primer.r02",
+  "workId": "w-statistical-bridge-primer",
+  "title": "A Primer on the Statistical Bridge",
+  "version": "1.1",
+  "date": "2026-08-16",
+  "doi": "10.5281/zenodo.21966876",
+  "recid": "21966876",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-statistical-bridge-primer.r01"
+ },
+ {
+  "recordId": "w-statistical-bridge-primer.r03",
+  "workId": "w-statistical-bridge-primer",
+  "title": "A Primer on the Statistical Bridge",
+  "version": "2.0",
+  "date": "2026-08-17",
+  "doi": "10.5281/zenodo.21980262",
+  "recid": "21980262",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-statistical-bridge-primer.r02"
  },
  {
   "recordId": "w-theory-of-data.r01",
@@ -771,6 +1019,21 @@
   "date": "2026-07-25",
   "doi": "10.5281/zenodo.21553379",
   "recid": "21553379",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-where-does-probability-live.r01",
+  "workId": "w-where-does-probability-live",
+  "title": "Where Does Probability Live?",
+  "version": "1.0",
+  "date": "2026-08-17",
+  "doi": "10.5281/zenodo.21977942",
+  "recid": "21977942",
   "status": "current",
   "authors": [
    "Wang, Huayin"

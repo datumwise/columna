@@ -101,5 +101,80 @@
   ],
   "reason": "RETIRED AS CURRENT AUTHORITY, NOT RETIRED. v1.0 is a first-class historical record and this item does not forbid its DOI — it forbids the CLAIM that it is current. Version history, supersession relationships, dated reconciliation checkpoints and frozen v1.0 material may all name it, and three tracked documents legitimately do. What may not name it is a current publication view: /about, the llms publication inventory, and the /analytical-governance citation. Those three are class `derived` and carry no literal DOI at all, so the prohibition is structural rather than advisory — they re-derived to v1.1 the moment the record landed, with no edit to any page.",
   "provenance": "Huayin, 2026-08-21 (the AG v1.1 supersession unit). Verified against live Zenodo the same day: concept 21959748 holds exactly two versions, 21959749 v1.0 and 22046037 v1.1."
+ },
+ {
+  "id": "rc-atlas-two-concepts",
+  "tokens": [
+   "10.5281/zenodo.20710593"
+  ],
+  "disposition": "one-work-two-concepts-unrepresentable",
+  "claim": "The registry models The Silent Failure Atlas as exactly the deposits of Zenodo concept 20762838",
+  "truth": "Concept 20710592 holds 10.5281/zenodo.20710593 — Atlas v1.2, 2026-06-16 — and concept 20762838 holds 10.5281/zenodo.20762839, v1.3, 2026-06-19. v1.3's own Zenodo description reads 'New addition of MIN/MAX pattern, updated from v1.2'. One intellectual work, deposited twice under two separate concept records; the registry models the second only.",
+  "replacement": null,
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "NOT A DATA GAP — A MODEL GAP, and therefore not closed inside the unit that found it. Work.conceptRecid is single-valued and G4 fails any record whose snapshot concept differs from its work's declared concept, so v1.2 can be filed under w-silent-failure-atlas only by breaking G4, or as its own work only by asserting there are two Atlases. Leaving it out is the least false of the three and is what the registry does; this row is the record that it is a choice, not an oversight. The ruling required is whether a Work may ATTACH MORE THAN ONE concept identity — which the existing doctrine ('a later deposit attaches an external concept identity to an existing datumwise work') already leans toward. That is a schema change to works.json, G1 and G4, and belongs to its own unit. Meanwhile the current record of the Atlas is v1.3 and nothing on the property is wrong. See specs/publication_corpus_coverage_v0_1.md §4.1.",
+  "provenance": "Phase 3B creator sweep, 2026-08-21: q=metadata.creators.person_or_org.name:\"Wang, Huayin\" returned 34 latest-version records, of which concept 20710592 is one the registry does not claim. Live Zenodo verified the same day."
+ },
+ {
+  "id": "rc-two-great-sources-successor",
+  "tokens": [
+   "10.5281/zenodo.21893929"
+  ],
+  "disposition": "cross-concept-successor-claim-unratified",
+  "claim": "10.5281/zenodo.21893929 ('Three Structural Sources of Silent Analytical Failure', v2.0, 2026-08-11) declares isNewVersionOf 10.5281/zenodo.21553379 ('The Two Great Sources of Silent Analytical Failure', unversioned, 2026-07-25)",
+  "truth": "The claim is Zenodo's, made in 21893929's own metadata, and it crosses a concept boundary: 21553379 is concept 21553378 and 21893929 is concept 21893928. The registry models w-two-great-sources as concept 21553378 alone, so 21553379 remains its current record and is rendered as such by /about and the llms.txt inventory.",
+  "replacement": null,
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "OPEN, AND STATED AS OPEN. If the successor claim is ratified, /about and llms.txt are today rendering stale current authority — the exact defect this registry exists to end — and the registry CANNOT EXPRESS THE REPAIR: G3 requires supersession edges to stay inside one work, and a work may hold one concept. Three readings, none of them a checker's to pick: (1) one work, two concepts, one chain — needs rc-atlas-two-concepts' multi-concept attachment and then falls out for free; (2) two works, related — needs a relationship edge between works, which the model deliberately does not have; (3) a deposit defect, isNewVersionOf asserted where a reference was meant, in which case nothing changes and this row retires. NOTHING IS CURRENTIZED ON A GUESS: the token is permitted only in the coverage ledger that reports it, and is forbidden on every derived surface, so the open question cannot leak onto a page while it is open. See specs/publication_corpus_coverage_v0_1.md §4.2.",
+  "provenance": "Phase 3B creator sweep, 2026-08-21. Live Zenodo: 21893929 related_identifiers = [{isNewVersionOf, 10.5281/zenodo.21553379}]."
+ },
+ {
+  "id": "rc-frameql-primer-related-identifier",
+  "tokens": [
+   "10.5281/zenodo.2188899810.5281/zenodo.21888998",
+   "10.5281/zenodo.2188899810",
+   "10.5281/zenodo.21888998"
+  ],
+  "disposition": "malformed-external-metadata",
+  "claim": "Zenodo record 21960873 (A Primer on Frame-QL v2.0) carries related_identifiers[0].identifier = '10.5281/zenodo.2188899810.5281/zenodo.21888998'",
+  "truth": "Two DOIs concatenated with no separator — the Frame-QL Primer's own v1.0 record (…21888998) written twice, the first copy truncated of its prefix. Resolves HTTP 404. The relation is isNewVersionOf, so the intended identifier is 10.5281/zenodo.21888998.",
+  "replacement": "10.5281/zenodo.21888998",
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "THE SECOND INSTANCE OF THIS DEFECT, WHICH MAKES IT A PATTERN AND NOT A SLIP. rc-primer-v22-related-identifier is the first (A Primer on the Theory of Data v2.2, '10.5281/zenodo.2201341010.5281/zenodo.21842194'). Both are what a PREPEND-INSTEAD-OF-REPLACE edit produces in Zenodo's related-identifiers editor, and both are repairable only at the deposit — nothing in this repo can fix external metadata. Recorded here because the work it belongs to is not yet in the registry (see rc-corpus-uncovered-works): whoever onboards A Primer on Frame-QL will meet this token, and should meet it already explained. The three token forms are listed because a DOI scanner extracts two nine/ten-digit ids from the concatenation and never sees the human-readable string at all.",
+  "provenance": "Phase 3B creator sweep, 2026-08-21. Live Zenodo record 21960873, verified the same day."
+ },
+ {
+  "id": "rc-corpus-uncovered-works",
+  "tokens": [
+   "10.5281/zenodo.21960873",
+   "10.5281/zenodo.22026962"
+  ],
+  "disposition": "known-uncovered-deposit",
+  "claim": null,
+  "truth": "Two current deposited works of this corpus that works.json does not claim: A Primer on Frame-QL (concept 21888997, current v2.0 = 10.5281/zenodo.21960873, three versions) and Data Has Its Own Ontology (concept 22003682, current v1.1 = 10.5281/zenodo.22026962, two versions). Both chains are clean and single-concept.",
+  "replacement": null,
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "NO DEFECT — A DECLARED BOUNDARY. The registry has never modeled the whole deposited corpus; it models what the property cites plus what has been ruled in, and Phase 3B was scoped to the Evidence pillar. Neither of these is an Evidence work. They are recorded rather than quietly onboarded because minting a work means NAMING it, which is the one genuinely editorial act in this system and does not get done as a side effect of a unit about something else. Each is one line of works.json plus one seed whenever it is wanted. Until then this row is what stops the gap from being rediscovered as a surprise. The forbiddenContexts entry is the operative half: an unmodeled work may be NAMED in the coverage ledger and may not be CITED on a derived surface, because a derived surface cites the registry and the registry does not know these.",
+  "provenance": "Phase 3B creator sweep, 2026-08-21: 34 latest-version records from Zenodo, 30 concepts claimed by works.json, four uncovered (these two plus rc-atlas-two-concepts and rc-two-great-sources-successor)."
  }
 ]

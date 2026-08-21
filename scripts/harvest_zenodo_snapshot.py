@@ -11,15 +11,35 @@ someone else's outage and passes on someone else's cache. The snapshot makes the
 makes the evidence reviewable in the diff: when a publication fact changes, the change is visible as
 bytes in a PR, with a date on it, rather than as a silent difference between two CI runs.
 
-SEEDS, THEN EXPANSION. Zenodo's public search does not index this project's creator string (a query
-for "Huayin Wang" returns zero hits — verified 2026-08-21), so a creator sweep is not available.
-Instead: seed from every Zenodo record id cited anywhere in this repo, resolve each to its CONCEPT
-record, and expand the concept to ALL of its versions. That makes the snapshot closed under
-versioning — the property the registry actually needs — without depending on a search index.
+SEEDS, THEN EXPANSION. Seed from every Zenodo record id cited anywhere in this repo, plus
+extra_seeds.txt, resolve each to its CONCEPT record, and expand the concept to ALL of its versions.
+That makes the snapshot closed under VERSIONING — the property the registry actually needs — without
+depending on a search index.
+
+CLOSED UNDER VERSIONING IS NOT CLOSED UNDER DEPOSIT, and `--coverage` is where that shows. Seeding
+from what the repo CITES can never find a work nobody has cited yet, and on 2026-08-21 that was nine
+works and seventeen deposited versions of the Statistical Bridge corpus: nothing stale, nothing
+wrong, simply absent. Absence is the one defect a scan of what the repo already says cannot find.
+
+    CORRECTION, 2026-08-21. This docstring used to say a creator sweep was NOT AVAILABLE, because
+    a query for "Huayin Wang" returns zero hits. The observation was true and the conclusion was
+    wrong: the free-text query returns zero, the FIELDED query returns the whole corpus.
+
+        q=metadata.creators.person_or_org.name:"Wang, Huayin"   -> 34 latest-version records
+        q="Huayin Wang"                                          -> 0
+
+    One spelling of the question had been tested and its answer recorded as a property of the
+    world — the same mistake the G7 echo audit made about identifier spellings, one layer out.
+
+`--coverage` REPORTS; it never seeds, never writes, and is never in CI. It reaches the network, and a
+gate that reaches the network fails on someone else's outage and passes on someone else's cache. It
+also does not add works: naming a work is the one genuinely editorial act in this system, and a
+coverage report exists to put that decision in front of a person, not to make it for them.
 
 Usage:
     python scripts/harvest_zenodo_snapshot.py                  # rescan repo for seeds, write snapshot
     python scripts/harvest_zenodo_snapshot.py --out FILE
+    python scripts/harvest_zenodo_snapshot.py --coverage        # what the registry does NOT cover
 """
 from __future__ import annotations
 
@@ -30,6 +50,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -95,11 +116,68 @@ def flatten(rec: dict) -> dict:
     }
 
 
+# ──────────────────────────────────────────────────────────────────────────────────────────────────
+# COVERAGE — the creator sweep. See the module docstring for why this exists and why it only reports.
+
+SEARCH = "https://zenodo.org/api/records"
+CREATOR_QUERY = 'metadata.creators.person_or_org.name:"Wang, Huayin"'
+# Zenodo answers 400 BAD REQUEST above a modest page size — 25 works, 100 does not — so paginate
+# rather than asking for the corpus in one breath. Discovered the hard way, recorded so it is not
+# rediscovered the same way.
+PAGE = 25
+
+
+def creator_sweep() -> list[dict]:
+    """Every LATEST-version record Zenodo attributes to the corpus creator. One per concept."""
+    hits: list[dict] = []
+    page = 1
+    while True:
+        url = f"{SEARCH}?size={PAGE}&page={page}&q={urllib.parse.quote(CREATOR_QUERY)}"
+        payload = _get(url)
+        hits.extend(payload["hits"]["hits"])
+        total = payload["hits"]["total"]
+        if len(hits) >= total or not payload["hits"]["hits"]:
+            return hits
+        page += 1
+
+
+def coverage() -> int:
+    works = json.loads((ROOT / "registry" / "publications" / "works.json").read_text(encoding="utf-8"))
+    claimed = {w["conceptRecid"]: w["workId"] for w in works if w.get("conceptRecid")}
+    hits = creator_sweep()
+    print(f"creator sweep: {len(hits)} latest-version records → {len({str(h['conceptrecid']) for h in hits})} concepts")
+    print(f"works.json claims {len(claimed)} concepts\n")
+
+    uncovered = []
+    for hit in sorted(hits, key=lambda h: h["metadata"].get("publication_date") or ""):
+        concept, meta = str(hit["conceptrecid"]), hit["metadata"]
+        if concept in claimed:
+            continue
+        uncovered.append(hit)
+        print(f"  UNCOVERED  concept {concept}  latest {hit['id']}  "
+              f"v{meta.get('version')}  {meta.get('publication_date')}  {(meta.get('title') or '')[:70]}")
+
+    if not uncovered:
+        print("  (none — every concept Zenodo attributes to this creator is claimed by a work)")
+    print(f"\n{len(uncovered)} uncovered concept(s).")
+    print("NOT AN ERROR AND NOT A TODO. The registry models what the property cites plus what has been\n"
+          "ruled in; it has never claimed the whole deposited corpus. Onboarding one means NAMING it in\n"
+          "works.json, which is editorial and is not done by a script. Known-and-declined entries are\n"
+          "recorded in registry/publications/reconciliation.json and\n"
+          "specs/publication_corpus_coverage_v0_1.md — read those before treating a line above as news.")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=None)
     ap.add_argument("--seed", action="append", default=[])
+    ap.add_argument("--coverage", action="store_true",
+                    help="report concepts Zenodo attributes to the creator that works.json does not claim")
     args = ap.parse_args()
+
+    if args.coverage:
+        return coverage()
 
     seeds = sorted(set(repo_seeds()) | set(extra_seeds()) | set(args.seed))
     print(f"seeds from repo: {len(seeds)}", file=sys.stderr)
