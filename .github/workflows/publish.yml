@@ -47,6 +47,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # PRE-PUBLISH GATE (Huayin, 2026-08-20). The only place a RELEASE VERSION exists is here, on
+      # the release event — so this is where the tag is bound to the artifacts it claims to name.
+      # Runs BEFORE the upload, deliberately: a PyPI artifact cannot be withdrawn or replaced, so a
+      # release set must be refused while refusing it is still free. `--check` also re-runs the
+      # lockstep and core-floor halves, so a tag cut from a branch that never saw CI is still gated.
+      - name: Release set matches the tag (lockstep + core floor + tag binding)
+        run: python scripts/release_pins.py --check --release "${{ github.event.release.tag_name }}"
       - uses: actions/download-artifact@v4
         with:
           name: dist

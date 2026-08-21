@@ -139,6 +139,29 @@ jobs:
       - name: Every declared dependency carries an upper bound
         run: python scripts/assert_dep_caps.py
 
+  release-set:
+    name: release-set coherence guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # THE CLASS GUARD FOR THE RELEASE SET (Huayin, 2026-08-20). Found in the v0.15.0 preflight,
+      # before the tag: core was bumped to 0.15.0 and the umbrella `columna` was left at 0.14.0.
+      # Nothing downstream would have caught it — `assert_pypi_versions.py` passes because the stale
+      # umbrella version IS live on PyPI; the homepage's fail-closed release rail passes because the
+      # stale version HAS a curated entry; the dependency graph stays satisfiable, so the deploy
+      # wedge resolves and goes green. Production would have announced the previous release while
+      # PyPI served the new one. A stale pin resolves; a stale VERSION resolves too.
+      #
+      # No path filter, and it runs on push as well as PR: like the cap guard, this failure class
+      # arrives WITHOUT a diff — it is what a diff FORGOT to contain.
+      - name: Umbrella and core share the release version, and the floor does not lag
+        run: python scripts/release_pins.py --check
+      - name: The guard's own regression fixtures (incl. the 2026-08-20 stale-resolvable state)
+        run: python scripts/release_pins.py --selftest
+
   purged-grammar:
     name: purged-grammar guard
     runs-on: ubuntu-latest
