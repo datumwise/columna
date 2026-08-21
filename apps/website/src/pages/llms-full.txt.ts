@@ -4,7 +4,7 @@
 //   2. the ratified "What is Columna?" front-door body (what_is_columna_draft_v0_7.md) — verbatim
 //   3. the ratified "Why Columna looks the way it does" body (v0.4) — verbatim (the re-registered essay)
 //   4. a short "Live demo describe" pointer to the live Explorer (reuses the ratified §1a pointers)
-import fs from 'node:fs';
+import { LLMS_INDEX } from '../lib/llmsIndex';
 // The launch announcement + its story companion join llms-full AT LAUNCH (Huayin): they ship in the
 // draft-locked launch PR, so they reach this composed document only when that PR merges — not before.
 import announceBody from '../content/corpus/launch_announcement_v2.md?raw';
@@ -33,7 +33,12 @@ import ch3 from '../content/case/ch3.md?raw';
 
 export const prerender = true;
 
-const llmsIndex = fs.readFileSync(new URL('../../public/llms.txt', import.meta.url), 'utf8').trimEnd();
+// The ratified index, COMPOSED (Phase 1A, 2026-08-21) rather than read off disk: its publication
+// block is now derived from the registry, so there is no longer a file on disk that contains it.
+// llms-full and llms.txt therefore cannot disagree about the publication facts — they are the same
+// string. They used to be able to, and the mechanism was exactly this readFileSync: it copied
+// whatever public/llms.txt happened to say, including its stale v1.0 Theory of Data DOI.
+const llmsIndex = LLMS_INDEX;
 
 const liveDemo = `## Live demo: the describe wire
 The Explorer renders the demo Manifold's describe live — every measure, universe, and edge with its

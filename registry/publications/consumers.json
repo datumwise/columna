@@ -1,0 +1,450 @@
+[
+ {
+  "path": "apps/website/src/content/llms_index.txt",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The ratified llms.txt prose. Publication facts replaced by the {{PUBLICATIONS}} substitution point; every other byte is the ratified text."
+ },
+ {
+  "path": "apps/website/src/data/publications.ts",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The typed site adapter over registry/publications/. Carries no literal DOI by construction."
+ },
+ {
+  "path": "apps/website/src/layouts/BaseLayout.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The footer evidence line, on every page of the site. Was three literal DOIs; one of the three (Two Anchors) had been superseded for ten days."
+ },
+ {
+  "path": "apps/website/src/lib/llmsIndex.ts",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "Composes the index. Serves /llms.txt and is embedded in /llms-full.txt, so those two can no longer disagree."
+ },
+ {
+  "path": "apps/website/src/pages/about.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The public publication list. Renders CHRONOLOGICAL_SELECTION through currentRecord(). Was a nine-entry hand-typed `pubs` array, stale on four of nine."
+ },
+ {
+  "path": "apps/website/src/pages/ladder.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "SEAM / ATLAS / TWO_ANCHORS verification targets. Was a fourth private copy of the same three facts."
+ },
+ {
+  "path": "apps/website/src/content/corpus/columna_thesis_v0_4.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/datumwise_grain_gap_article_v2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20789318"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/frameql_an_introduction_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/launch_post_FINAL.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20789318"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/metadata_independence_essay_v0_2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20710717",
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.20789318",
+   "10.5281/zenodo.21349581"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/position_never_let_your_agent_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20789318",
+   "10.5281/zenodo.21543584",
+   "10.5281/zenodo.21553379",
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/position_practice_needs_firmer_foundation_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/position_row_table_join_no_longer_primitives_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21696104",
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774555"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/position_two_great_sources_site_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.20789318",
+   "10.5281/zenodo.21349581",
+   "10.5281/zenodo.21543584",
+   "10.5281/zenodo.21553379"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/research_corpus_map_v0_2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20710717",
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.20789318",
+   "10.5281/zenodo.21349581",
+   "10.5281/zenodo.21543584",
+   "10.5281/zenodo.21553379",
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21696104",
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21752681",
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774490",
+   "10.5281/zenodo.21774555",
+   "10.5281/zenodo.21774589",
+   "10.5281/zenodo.21774630",
+   "10.5281/zenodo.21774643",
+   "10.5281/zenodo.21774667"
+  ],
+  "note": "FROZEN, and DEMOTED. Mounted live at /research and carrying 17 DOI tokens, which made it the site's largest de-facto publication authority. Ruling 8 (2026-08-21): stop treating it as publication authority; do not rewrite it in Phase 1. The registry now knows the current truth independently. Replacing the /research presentation is a later unit and is not decided here."
+ },
+ {
+  "path": "apps/website/src/content/corpus/silent_failure_atlas_article_v1_3.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.20762839"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v1_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21752681",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/content/corpus/what_is_a_universe_v0_2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21543584",
+   "10.5281/zenodo.21553379"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
+ },
+ {
+  "path": "apps/website/src/data/latest.ts",
+  "class": "manual-deferred",
+  "allowedDois": [
+   "10.5281/zenodo.21553379",
+   "10.5281/zenodo.21760008",
+   "10.5281/zenodo.21760508",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "HISTORICAL, by design. The Latest rail is a dated announcement log: each row records what was published on a day. 'The Theory of Data — Version 4.0, 2026-08-03' is TRUE as a log entry and would be falsified, not repaired, by pointing it at v6.1. Left alone deliberately."
+ },
+ {
+  "path": "apps/website/src/pages/analytical-governance.astro",
+  "class": "manual-deferred",
+  "allowedDois": [
+   "10.5281/zenodo.21959749"
+  ],
+  "note": "OWED, no defect today. Hand-types the DOI, the version AND the date of the AG paper — three publication facts, all currently correct, all of which the registry holds. The most valuable remaining migration, and the one that pairs with the open question of whether /about should list this work at all."
+ },
+ {
+  "path": "apps/website/src/pages/benchmark.astro",
+  "class": "manual-deferred",
+  "allowedDois": [
+   "10.5281/zenodo.21349581"
+  ],
+  "note": "OWED, no defect today. `const DOI` plus the same DOI repeated in the visible text. The work has exactly one deposited record, so it cannot currently be stale — which is luck, not architecture. One line to migrate; left out of Phase 1A because Phase 1A migrated what was WRONG, not everything that was hand-typed."
+ },
+ {
+  "path": "apps/website/src/pages/learn/frameql-an-introduction.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774643"
+  ],
+  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders — not the current one. Citing v2.2 above v1.1 bytes would be the misattribution, not the fix. Also carries a dated 2026-08-03 note citing ToD v4.0 as the version that made that change: a historical statement, true as written."
+ },
+ {
+  "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774630"
+  ],
+  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders — not the current one. Citing v2.2 above v1.1 bytes would be the misattribution, not the fix. Also carries a dated 2026-08-03 note citing ToD v4.0 as the version that made that change: a historical statement, true as written."
+ },
+ {
+  "path": "apps/website/src/pages/positions/never-let-your-agent-touch-the-database.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774490"
+  ],
+  "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
+ },
+ {
+  "path": "apps/website/src/pages/positions/practice-needs-a-theory.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21774032",
+   "10.5281/zenodo.21774589"
+  ],
+  "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
+ },
+ {
+  "path": "apps/website/src/pages/positions/row-table-join-no-longer-primitives.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
+ },
+ {
+  "path": "apps/website/src/pages/positions/the-two-great-sources-of-silent-analytical-failure.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21553379"
+  ],
+  "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
+ },
+ {
+  "path": "docs/columna_framework_manual_6f.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21760008"
+  ],
+  "note": "Superseded manual edition (6g is current)."
+ },
+ {
+  "path": "docs/columna_framework_manual_6g.md",
+  "class": "manual-deferred",
+  "allowedDois": [
+   "10.5281/zenodo.21760008",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "OWED. The CURRENT framework manual, and it cites The Theory of Data at v3.1 (21760008) and v4.0 (21774032) while the current record is v6.1 (22013410). Same defect class as /about, on a surface with no build-time template to derive through — the manuals are markdown rendered as-is. Not repaired in Phase 1A: it needs an editorial pass on the surrounding prose, not a token swap."
+ },
+ {
+  "path": "docs/tools/link_checking.md",
+  "class": "manual-deferred",
+  "allowedDois": [
+   "10.5281/zenodo.21553379"
+  ],
+  "note": "OWED, low. A worked example uses a real DOI. Harmless today; would read as an assertion if the record it names were ever superseded."
+ },
+ {
+  "path": "prototype/index.html",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.20710717",
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.20789318",
+   "10.5281/zenodo.21349581",
+   "10.5281/zenodo.21543584",
+   "10.5281/zenodo.21553379"
+  ],
+  "note": "The pre-launch single-file prototype. Historical; not served."
+ },
+ {
+  "path": "scripts/check_publications.py",
+  "class": "acceptance",
+  "allowedDois": [
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21695710",
+   "10.5281/zenodo.21958062",
+   "10.5281/zenodo.21959668",
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22018549"
+  ],
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real."
+ },
+ {
+  "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/baselines/2026-07-27/external_ai_probes/chatgpt.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.20762839"
+  ],
+  "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/baselines/2026-07-29/README.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/baselines/2026-07-29/external_ai_probes/RERUN_INDEX.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/baselines/2026-07-29/external_ai_probes/rerun_b_overview.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.20762839"
+  ],
+  "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/doctrine_gaps.md",
+  "class": "ledger",
+  "allowedDois": [
+   "10.5281/zenodo.21959749"
+  ],
+  "note": "A live internal ledger. Cites records to track them; asserts no current publication fact to the public."
+ },
+ {
+  "path": "specs/open_planner/README.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21695710"
+  ],
+  "note": "CORRECTED 2026-08-21. Current document, current claim: v1.3's DOI now reads 21695710. It also still names 21632723 — correctly, as v1.0's DOI and as the value it used to give for v1.3."
+ },
+ {
+  "path": "specs/open_planner/map2/D1_lowering_table_v0_1.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21707018"
+  ],
+  "note": "Research-program artifact, committed on arrival."
+ },
+ {
+  "path": "specs/open_planner/open_planner_deposit_v1_0.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "The deposited artifact itself. Byte-identity with a published record is the whole point; see reconciliation rc-open-planner-v13-doi for the known defect in v1.3's byline, which is DELIBERATELY not repaired here."
+ },
+ {
+  "path": "specs/open_planner/open_planner_deposit_v1_3.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "The deposited artifact itself. Byte-identity with a published record is the whole point; see reconciliation rc-open-planner-v13-doi for the known defect in v1.3's byline, which is DELIBERATELY not repaired here."
+ },
+ {
+  "path": "specs/open_planner/open_planner_fork_v0_13.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21696104",
+   "10.5281/zenodo.21707018"
+  ],
+  "note": "Research-program artifact, committed on arrival."
+ },
+ {
+  "path": "specs/open_planner/superseded/open_planner_fork_v0_11.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "Superseded fork document, retained as lineage. Historical by definition."
+ },
+ {
+  "path": "specs/open_planner/superseded/open_planner_fork_v0_12.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21696104",
+   "10.5281/zenodo.21707018"
+  ],
+  "note": "Superseded fork document, retained as lineage. Historical by definition."
+ },
+ {
+  "path": "specs/open_planner/superseded/open_planner_fork_v0_8.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723"
+  ],
+  "note": "Superseded fork document, retained as lineage. Historical by definition."
+ },
+ {
+  "path": "specs/reference/theory_of_data_note_v1_1.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.21632723",
+   "10.5281/zenodo.21707018"
+  ],
+  "note": "Deposited paper source. Byte-frozen against its record."
+ },
+ {
+  "path": "specs/reference/two_anchors_paper_v1_1.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.20762839"
+  ],
+  "note": "Deposited paper source. Byte-frozen against its record."
+ },
+ {
+  "path": "specs/website_slice2_content_reconciliation_v0_1.md",
+  "class": "ledger",
+  "allowedDois": [
+   "10.5281/zenodo.21842194",
+   "10.5281/zenodo.2201341010"
+  ],
+  "note": "The Slice 2 ledger that authorized this work. Quotes a malformed external identifier as evidence (see rc-primer-v22-related-identifier)."
+ }
+]

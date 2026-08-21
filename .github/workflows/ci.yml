@@ -63,6 +63,28 @@ jobs:
           assert -1 not in i and i == sorted(i), i; \
           assert '\"contract_version\": \"3\"' in s; print('demo --play smoke OK:', i)"
 
+  # THE PUBLICATION REGISTRY GATE (Slice 2 item 1, 2026-08-21). Runs on EVERY push and PR, with no
+  # path filter, deliberately: its whole job is to catch a publication fact appearing somewhere nobody
+  # expected one. A gate scoped to the paths it already knows about cannot do that.
+  #
+  # It is hermetic — registry vs a frozen Zenodo snapshot, no network — so it is fast and it cannot go
+  # red because Zenodo had a bad afternoon. `--live` re-verification exists and is run by hand when a
+  # deposit changes, not on every commit.
+  publication-registry:
+    name: publication registry (fails closed on an unregistered DOI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # git grep over the working tree is the whole mechanism; a shallow checkout is fine, but the
+          # gate needs the FILES, so no sparse/blobless tricks here.
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check the publication registry
+        run: python scripts/check_publications.py --report
+
   # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
   # acceptance. Two legs, and the second one is the point:
   #

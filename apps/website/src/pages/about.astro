@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 // Author line is the name only (Huayin's ruling 2026-07-14: no ORCID, no substitute link — the
-// four DOIs below are the provenance).
+// DOIs below are the provenance).
 const COLUMNAR = 'https://columnar.tech';
 // Contact — single swappable string. SWAPPED 2026-07-25 (AW-3 closed): the alias is live, so the
 // site's contact is now the domain address. The swappable-const design paid off — this is the only
@@ -11,27 +11,26 @@ const COLUMNAR = 'https://columnar.tech';
 // ratified "Two Great Sources" position piece ("Correspondence: …"), so /about and llms-full were
 // disagreeing about how to reach us until this line changed.
 const CONTACT_EMAIL = 'contact@datumwise.ai';
-const pubs = [
-  { title: 'The Silent Failure Atlas', doi: '10.5281/zenodo.20762839' },
-  { title: 'The Silent Seam', doi: '10.5281/zenodo.20710717' },
-  { title: 'The Two Anchors of a Measure', doi: '10.5281/zenodo.20789318' },
-  { title: 'Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison', doi: '10.5281/zenodo.21349581' },
-  // Ordering rule (Huayin, 2026-07-25 ruling 3): the list reads as the program's CHRONOLOGY, so
-  // Multi-Universe (deposited 2026-07-24) follows the nine-model study (2026-07-13) rather than
-  // sitting in thematic adjacency to Two Anchors.
-  { title: 'Multi-Universe Processing: Territories, Frontiers, and the Lawful Passage of Meaning', doi: '10.5281/zenodo.21543584' },
-  { title: 'The Two Great Sources of Silent Analytical Failure', doi: '10.5281/zenodo.21553379' },
-  // Entry seven, chronological (deposited 2026-07-27): the research program note. Its title
-  // carries the "research program note (2026)" qualifier per the ratified string — it is a
-  // program note, not a paper, and the list should not quietly promote it to one.
-  { title: 'The Open Planner: Certified Analytical Plans from Untrusted Searchers — research program note (2026)', doi: '10.5281/zenodo.21632723' },
-  // Entry eight (deposited 2026-07-30): the foundations note (now v1.1), the origin record.
-  { title: 'The Theory of Data — A Foundations Note', doi: '10.5281/zenodo.21696104' },
-  // Entry nine: the full technical construction, at its canonical revision — Version 3.1 (deposited
-  // 2026-08-02, DOI 21760008), which supersedes the v1.0 deposit (21707018). Ontology-sync package
-  // 2026-08-02: the list points at the current version of the versioned record, not the first deposit.
-  { title: 'The Theory of Data — Governed Analytical Objects, Lawful Transformation, and Certification (Version 3.1)', doi: '10.5281/zenodo.21760008' },
-];
+
+// THE PUBLICATION LIST IS NO LONGER AUTHORED HERE (Slice 2 item 1, Phase 1A, 2026-08-21).
+//
+// What stood here was a nine-entry `pubs` array of hand-typed titles and DOIs, maintained by
+// remembering to. It had drifted on four of its nine entries: The Theory of Data was listed at v3.1
+// (deposited 2026-08-02) when Zenodo had served v6.1 since 2026-08-19; Two Anchors at v1.0 when v2.0
+// landed 2026-08-11; The Open Planner at the v1.0 record when v1.3 landed 2026-07-29; the Foundations
+// Note at v1.0 when v1.1 landed the same day it was deposited. Each entry carried a careful comment
+// explaining its ordering and its wording. None of the comments were wrong. The DOIs were.
+//
+// That is the whole argument for this change: the defect was not carelessness, it was ARCHITECTURE.
+// A fact that must be re-typed to stay true will eventually be false, and a list that documents its
+// own editorial reasoning in the margin reads as maintained long after it stopped being. Membership
+// and order remain editorial (CHRONOLOGICAL_SELECTION); every fact rendered is read from the registry.
+import { CHRONOLOGICAL_SELECTION, currentRecord, displayLabel, doiUrl } from '../data/publications';
+
+const pubs = CHRONOLOGICAL_SELECTION.map((workId) => {
+  const record = currentRecord(workId);
+  return { label: displayLabel(workId), doi: record.doi, href: doiUrl(record) };
+});
 ---
 <BaseLayout title="About — datumwise" description="datumwise is the work of the datumwise team, building and stewarding Columna — the grammar layer for AI analytics.">
   <div class="page-head">
@@ -54,7 +53,7 @@ const pubs = [
     </p>
     <ul class="pubs">
       {pubs.map((p) => (
-        <li><em>{p.title}</em> (<a href={`https://doi.org/${p.doi}`} rel="noopener" target="_blank">DOI {p.doi}</a>)</li>
+        <li><em>{p.label}</em> (<a href={p.href} rel="noopener" target="_blank">DOI {p.doi}</a>)</li>
       ))}
     </ul>
 

@@ -1,0 +1,85 @@
+[
+ {
+  "id": "rc-open-planner-v13-doi",
+  "tokens": [
+   "10.5281/zenodo.21632723"
+  ],
+  "disposition": "misattributed-in-frozen-source",
+  "claim": "v1.3 → DOI 10.5281/zenodo.21632723",
+  "truth": "10.5281/zenodo.21632723 is v1.0 (2026-07-27). v1.3 (2026-07-29) is 10.5281/zenodo.21695710.",
+  "replacement": "10.5281/zenodo.21695710",
+  "allowedContexts": [
+   "specs/open_planner/open_planner_deposit_v1_3.md",
+   "specs/open_planner/open_planner_deposit_v1_0.md",
+   "specs/open_planner/open_planner_fork_v0_13.md",
+   "specs/open_planner/superseded/*.md",
+   "specs/open_planner/README.md",
+   "specs/baselines/*",
+   "apps/website/src/content/corpus/*.md",
+   "prototype/index.html"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "The frozen deposit's own byline states 'DOI: 10.5281/zenodo.21632723' on a file whose version line says 1.3. Live Zenodo says otherwise, and the deposit is wrong. It is NOT corrected: the deposited artifact is the historical record of what was published, defects included, and a deposit is fixed at the deposit or not at all. THE INFERENCE THIS ITEM EXISTS TO BLOCK: a checker that sees this token tolerated in a v1.3 file must not conclude that 21632723 IS the v1.3 record. Historical-artifact truth and current bibliographic truth are different registers, and the exception is granted to the FILE, never to the CLAIM. specs/open_planner/README.md is not the deposit — it is a current document making a current claim — and was corrected to 21695710 on 2026-08-21; it still names 21632723 correctly, as v1.0.",
+  "provenance": "Huayin, ruling 1 of 2026-08-21. Live Zenodo verified 2026-08-21 (see zenodo_snapshot_2026-08-21.json: records 21632723 v1.0, 21695710 v1.3, concept 21632722)."
+ },
+ {
+  "id": "rc-primer-v22-related-identifier",
+  "tokens": [
+   "10.5281/zenodo.2201341010.5281/zenodo.21842194",
+   "10.5281/zenodo.2201341010"
+  ],
+  "disposition": "malformed-external-metadata",
+  "claim": "Zenodo record 22018549 (A Primer on the Theory of Data v2.2) carries related_identifiers[0].identifier = '10.5281/zenodo.2201341010.5281/zenodo.21842194'",
+  "truth": "Two DOIs concatenated with no separator — ToD v6.1 (…22013410) followed by ToD v5.0 (…21842194). Resolves HTTP 404. An edit meant to REPLACE the supplement pointer PREPENDED to it instead; record v2.0 shows the pre-edit state (isSupplementTo 10.5281/zenodo.21842194).",
+  "replacement": "10.5281/zenodo.22013410",
+  "allowedContexts": [
+   "specs/website_slice2_content_reconciliation_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived",
+   "apps/website/src/**"
+  ],
+  "reason": "The defect is in EXTERNAL metadata and can only be fixed by editing the Zenodo deposit; nothing in this repo can repair it. Do not compensate in site or page copy — the site links the correct v2.2 RECORD (22018549); it is the record's own metadata that is broken. The token is permitted only where it is QUOTED AS EVIDENCE of the defect. It is also why the snapshot harvester reports one unresolved seed: 220134101 is this string, truncated by the id scanner, and it 404s because it is not an identifier.",
+  "provenance": "specs/website_slice2_content_reconciliation_v0_1.md §4a item PM-1, from the Afternoon Gate 2 pass. Confirmed 2026-08-21: seed 220134101 → HTTP 404.",
+  "tokenNote": "The second form is what a DOI scanner actually extracts from the first: the concatenation is not lexable as one identifier, so any tool that greps for zenodo ids sees a nine-digit id that does not exist. Both are listed, because a reconciliation item that only names the human-readable form would not match the bytes the echo audit reads."
+ },
+ {
+  "id": "rc-primer-triangle-confusables",
+  "tokens": [
+   "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22018598",
+   "10.5281/zenodo.21960380",
+   "10.5281/zenodo.21959941"
+  ],
+  "disposition": "confusable-identifiers",
+  "claim": null,
+  "truth": "22018549 = A Primer on the Theory of Data v2.2 (concept 21842993). 22018598 = The Theory of Data: An Introduction v2.2 (concept 21763394). 21960380 = A Primer on the Theory of Data Applied v1.0 (concept 21960379). 21959941 = The Theory of Data Applied v1.0 (concept 21959940). Four DISTINCT works.",
+  "replacement": null,
+  "allowedContexts": [
+   "*"
+  ],
+  "forbiddenContexts": [],
+  "reason": "No defect — a standing hazard, recorded so it is not rediscovered by accident. 22018549 and 22018598 are 49 apart, were deposited on the same day, and carry the SAME version string (2.2) on DIFFERENT works. A reader reconciling by title-prefix or by eye will fuse them. Separately, the three 'Primer / Applied' titles are three separate works with three separate concept records and NO supersession edge between them: their cross-references are relationships, not version identity. That ruling is encoded in works.json — each has its own workId and its own conceptRecid — and this row is the human-readable warning beside it.",
+  "provenance": "Huayin, ruling 4 of 2026-08-21 (the Primer triangle, resolved against live Zenodo). Confusable pair observed while encoding."
+ },
+ {
+  "id": "rc-research-corpus-map-not-authority",
+  "tokens": [
+   "*"
+  ],
+  "disposition": "frozen-not-publication-authority",
+  "claim": "apps/website/src/content/corpus/research_corpus_map_v0_2.md states publication facts for 17 records and is rendered live at /research",
+  "truth": "It is a frozen corpus edition. Its publication statements are accurate as of its own edition date and are not maintained against the record.",
+  "replacement": null,
+  "allowedContexts": [
+   "apps/website/src/content/corpus/research_corpus_map_v0_2.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "Ruling 8 (2026-08-21): do NOT rewrite it in Phase 1 merely because it is mounted at /research. Three things follow and all three are done: it stops being treated as publication authority (its class here is frozen-corpus, and no derived surface reads it); it is recorded as a remaining manual/frozen consumer (consumers.json); and the registry knows the current truth independently of it. Replacing the live /research presentation with a registry-derived institutional view, while preserving this file as source material, is a later unit. That page architecture is not solved here.",
+  "provenance": "Huayin, ruling 8 of 2026-08-21. Slice 2 ledger §3.4 records the same surface as REVISE / route KEEP."
+ }
+]
