@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "columna"
-version = "0.15.0"
+version = "0.15.1"
 description = "Columna, by datumwise — an honest data framework (Manifold, FrameQL, an honest engine). Metapackage: installs columna-core + columna-server."
 readme = "README.md"
 # Must match columna-core's ceiling exactly — this is the package `pip install columna` resolves
@@ -35,8 +35,13 @@ dependencies = [
     # `pip install columna==N` resolve to a core that does not contain the correction N is named
     # after — an umbrella wearing the version number of a fix it does not require. Enforced by
     # `scripts/release_pins.py --check`.
-    "columna-core>=0.15.0,<1.0",
-    "columna-server>=0.8.2,<1.0",
+    "columna-core>=0.15.1,<1.0",
+    # The SERVER floor is the release's companion, for the same reason as the core floor
+    # (v0.15.0 incident, 2026-08-20): columna 0.15.0 shipped declaring `columna-server>=0.8.2`, and
+    # 0.8.2's payload predates the generated-family law — so a fresh `pip install columna==0.15.0`
+    # still resolves a server whose four-mood demo contradicts the engine beside it. PyPI metadata is
+    # immutable, so that declaration cannot be corrected in place; 0.15.1 is the coherent set.
+    "columna-server>=0.8.3,<1.0",
 ]
 
 [project.urls]

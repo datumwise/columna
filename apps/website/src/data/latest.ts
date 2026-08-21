@@ -71,6 +71,14 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'generation creates identity, not permission — structurally prohibited reductions now refuse',
     date: '2026-08-20',
   },
+  // The coherence hotfix. 0.15.0's core was correct and gated; its companion columna-server was not
+  // republished, so `pip install columna==0.15.0` resolved a server whose four-mood demo predated the
+  // correction beside it. PyPI metadata is immutable, so the fix is a new coherent set, not an edit.
+  // Scoped deliberately to the package set — 0.15.1 adds no Core semantics beyond 0.15.0.
+  '0.15.1': {
+    title: 'the corrected serving law and four-mood demo now ship as one coherent package set',
+    date: '2026-08-21',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

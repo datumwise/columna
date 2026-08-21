@@ -39,7 +39,19 @@ def main() -> int:
     # em-dash only because cp1252 happens to have one at 0x97 — U+2500, four lines earlier in the
     # product's own output, does not, which is exactly where the crash landed. A guard that can be
     # broken by the condition it guards against is not a guard.
-    print("demo --play OK - four moods in contract order, contract_version 3")
+    # THE SEED->MOOD LINE (2026-08-20, after the v0.15.0 incident). The mood-order check above is
+    # necessary and NOT sufficient: it asks whether the four mood words appear in order ANYWHERE in
+    # the transcript, which a demo whose `disclose` leg returns `refuse` can still satisfy. The
+    # product itself now verifies each leg against the mood its heading declares and exits non-zero
+    # on a mismatch; this asserts that the verification actually RAN, so a build that silently lost
+    # the gate fails here instead of passing quietly.
+    if "demo seed integrity OK" not in payload:
+        print("FAIL: demo --play did not report seed integrity - the per-leg seed/mood gate did not")
+        print("      run. An older columna-server (pre-0.8.3) has no such gate; a newer one that")
+        print("      prints nothing has lost it. Either way this transcript proves less than it looks.")
+        return 1
+
+    print("demo --play OK - four moods in contract order, contract_version 3, seed integrity verified")
     return 0
 
 
