@@ -17,7 +17,7 @@
 // copy). One source, two surfaces — which is the property the old arrangement lacked.
 
 import indexTemplate from '../content/llms_index.txt?raw';
-import { CHRONOLOGICAL_SELECTION, currentRecord, displayLabel, COUNTS_ARE_DERIVABLE } from '../data/publications';
+import { CHRONOLOGICAL_SELECTION, citation, COUNTS_ARE_DERIVABLE } from '../data/publications';
 
 const PLACEHOLDER = '{{PUBLICATIONS}}';
 
@@ -37,9 +37,12 @@ const PLACEHOLDER = '{{PUBLICATIONS}}';
 // sentence the registry can defend — and not one minute before.
 const HEADING = 'Publications, chronological, each with a DOI:';
 
+// Title, then version as metadata, then the DOI — the same separation /about makes, in the form a
+// plain-text index can carry. The version never enters the title (Huayin, 2026-08-21).
 const publicationLines = CHRONOLOGICAL_SELECTION.map((workId) => {
-  const record = currentRecord(workId);
-  return `  - ${displayLabel(workId)} — doi:${record.doi}`;
+  const c = citation(workId);
+  const version = c.versionTag ? ` — ${c.versionTag}` : '';
+  return `  - ${c.label}${version} — doi:${c.doi}`;
 }).join('\n');
 
 const publicationsBlock = `- ${HEADING}\n${publicationLines}`;

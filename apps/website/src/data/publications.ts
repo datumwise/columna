@@ -121,19 +121,56 @@ export function doiUrl(record: PublicationRecord): string {
 }
 
 /**
- * How a work is NAMED on a current-facing surface: the editorial label, plus the version of the
- * current record when the work has more than one deposited version.
+ * TITLE IS TITLE; VERSION IS METADATA (Huayin, 2026-08-21).
  *
- * The conditional is the honest part. "The Two Anchors of a Measure (Version 2.0)" tells a reader
- * something true and load-bearing — there is an earlier one, and this is not it. "The Silent Failure
- * Atlas (Version 1.3)" tells a reader nothing, because there has never been another. A version
- * marker on a single-deposit work is noise dressed as precision.
+ * The first cut of this fused them — `displayLabel()` returned "The Two Anchors of a Measure (Version
+ * 2.0)" as one string, which quietly made a version number part of a work's NAME. It is not. A work's
+ * editorial label is stable across its whole deposit history; the version belongs to one record of it.
+ * Fusing them meant `canonicalLabel` would have had to change every time a version did, which is the
+ * precise failure this registry exists to end, reintroduced one layer up.
+ *
+ * So surfaces get the pieces and compose them. Nothing here returns a pre-fused display string.
  */
-export function displayLabel(workId: string): string {
+export function citation(workId: string) {
   const w = work(workId);
-  const cur = currentRecord(workId);
-  const versioned = recordsFor(workId).length > 1 && cur.version;
-  return versioned ? `${w.canonicalLabel} (Version ${cur.version})` : w.canonicalLabel;
+  const record = currentRecord(workId);
+  return {
+    /** The work's editorial label. Never carries a version. */
+    label: w.canonicalLabel,
+    /** The EXACT deposited title of the current record. Differs from `label` for most works. */
+    title: record.title,
+    /** Raw version of the current record, or null. */
+    version: record.version,
+    /**
+     * Version as a short metadata tag — `v6.1` — or null.
+     *
+     * Null for a single-deposit work: "The Silent Failure Atlas — v1.3" tells a reader nothing,
+     * because there has never been another one. A version marker on a work that has only ever been
+     * deposited once is noise dressed as precision. Surfaces that always want the version (a formal
+     * citation block, say) read `version` directly instead.
+     */
+    versionTag: recordsFor(workId).length > 1 && record.version ? `v${record.version}` : null,
+    date: record.date,
+    doi: record.doi,
+    href: doiUrl(record),
+    recordId: record.recordId,
+  };
+}
+
+/**
+ * ISO date → the house's long form ("2026-08-15" → "15 August 2026"). Presentation only; the record
+ * keeps ISO. Deliberately not `toLocaleDateString`, which would make the rendered page depend on the
+ * build machine's locale — a build-environment dependency in a published factual claim.
+ */
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+
+export function longDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) {
+    throw new Error(`PUBLICATION REGISTRY: date ${iso!} is not ISO yyyy-mm-dd; refusing to guess a format.`);
+  }
+  return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
 }
 
 /**
@@ -164,9 +201,11 @@ export const COUNTS_ARE_DERIVABLE: boolean = WORKS.every((w) => w.kind !== 'uncl
  * with no recorded tiebreak. Deriving the order would silently reorder a ratified list to enforce a
  * rule nobody ruled. Preserved as-is; the divergence is recorded, not fixed.
  *
- * NOT IN THIS LIST, AND KNOWN: Analytical Governance (w-analytical-governance, 2026-08-15). The Slice 2
- * ledger §3.6 records /about as missing it. Adding it is a CONTENT ruling, not a currency migration,
- * and Phase 1A was authorized for the latter. One line, when it is ruled.
+ * ANALYTICAL GOVERNANCE JOINS THE LIST (Huayin, 2026-08-21). The Slice 2 ledger §3.6 had already
+ * recorded /about as missing it — "repaired automatically once the publication record drives /about".
+ * That is what happened: it is one workId appended in first-deposit position (2026-08-15, so last),
+ * and every fact it renders — title, version, DOI — comes from the registry like every other entry.
+ * The omission was a content defect; closing it took no content authoring.
  */
 export const CHRONOLOGICAL_SELECTION: string[] = [
   'w-silent-failure-atlas',
@@ -178,6 +217,7 @@ export const CHRONOLOGICAL_SELECTION: string[] = [
   'w-open-planner',
   'w-tod-foundations-note',
   'w-theory-of-data',
+  'w-analytical-governance',
 ];
 
 /**

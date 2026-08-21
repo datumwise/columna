@@ -30,6 +30,18 @@
   "note": "The public publication list. Renders CHRONOLOGICAL_SELECTION through currentRecord(). Was a nine-entry hand-typed `pubs` array, stale on four of nine."
  },
  {
+  "path": "apps/website/src/pages/analytical-governance.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The category paper's citation block. Migrated 2026-08-21: DOI, version and deposit date are read from the registry; only the byline's display form of the author's name is authored here. It was the property's only appearance of the Analytical Governance paper and it hand-typed three facts about it."
+ },
+ {
+  "path": "apps/website/src/pages/benchmark.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The nine-model study citation. Migrated 2026-08-21. The DOI had been authored twice on one page — as the href and again as the visible label — so link and label were free to disagree with each other as well as with the record."
+ },
+ {
   "path": "apps/website/src/pages/ladder.astro",
   "class": "derived",
   "allowedDois": [],
@@ -182,23 +194,7 @@
    "10.5281/zenodo.21760508",
    "10.5281/zenodo.21774032"
   ],
-  "note": "HISTORICAL, by design. The Latest rail is a dated announcement log: each row records what was published on a day. 'The Theory of Data — Version 4.0, 2026-08-03' is TRUE as a log entry and would be falsified, not repaired, by pointing it at v6.1. Left alone deliberately."
- },
- {
-  "path": "apps/website/src/pages/analytical-governance.astro",
-  "class": "manual-deferred",
-  "allowedDois": [
-   "10.5281/zenodo.21959749"
-  ],
-  "note": "OWED, no defect today. Hand-types the DOI, the version AND the date of the AG paper — three publication facts, all currently correct, all of which the registry holds. The most valuable remaining migration, and the one that pairs with the open question of whether /about should list this work at all."
- },
- {
-  "path": "apps/website/src/pages/benchmark.astro",
-  "class": "manual-deferred",
-  "allowedDois": [
-   "10.5281/zenodo.21349581"
-  ],
-  "note": "OWED, no defect today. `const DOI` plus the same DOI repeated in the visible text. The work has exactly one deposited record, so it cannot currently be stale — which is luck, not architecture. One line to migrate; left out of Phase 1A because Phase 1A migrated what was WRONG, not everything that was hand-typed."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), and correct as it stands. The Latest rail is a dated announcement log; each row records what was published on a day. 'The Theory of Data — Version 4.0, 2026-08-03' is TRUE as a log entry and would be FALSIFIED, not repaired, by pointing it at v6.1. Intentionally edition-pinned. This row exists so that nobody 'fixes' it later."
  },
  {
   "path": "apps/website/src/pages/learn/frameql-an-introduction.astro",
@@ -267,7 +263,7 @@
    "10.5281/zenodo.21760008",
    "10.5281/zenodo.21774032"
   ],
-  "note": "OWED. The CURRENT framework manual, and it cites The Theory of Data at v3.1 (21760008) and v4.0 (21774032) while the current record is v6.1 (22013410). Same defect class as /about, on a surface with no build-time template to derive through — the manuals are markdown rendered as-is. Not repaired in Phase 1A: it needs an editorial pass on the surrounding prose, not a token swap."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6): requires editorial/source reconciliation, not blind currentization. The CURRENT framework manual, citing The Theory of Data at v3.1 (21760008) and v4.0 (21774032) while the current record is v6.1 (22013410). The surrounding prose argues FROM the v3.1/v4.0 vocabulary, so swapping the tokens would leave the manual citing v6.1 for claims v6.1 does not make — a worse defect than the stale one, and a silent one. It belongs to a manual pass with a human reading the argument, not to this migration."
  },
  {
   "path": "docs/tools/link_checking.md",
@@ -275,7 +271,7 @@
   "allowedDois": [
    "10.5281/zenodo.21553379"
   ],
-  "note": "OWED, low. A worked example uses a real DOI. Harmless today; would read as an assertion if the record it names were ever superseded."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), after the inspection that ruling asked for. The DOI appears inside a `curl` command demonstrating how to defeat Zenodo's UA filter — a worked link example, not an assertion that this is the current record of anything. The document makes no publication claim; it makes a tooling claim about HTTP behaviour, and any resolvable DOI would serve it equally. No currency is owed. Left as-is."
  },
  {
   "path": "prototype/index.html",

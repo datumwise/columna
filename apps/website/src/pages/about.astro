@@ -25,12 +25,20 @@ const CONTACT_EMAIL = 'contact@datumwise.ai';
 // A fact that must be re-typed to stay true will eventually be false, and a list that documents its
 // own editorial reasoning in the margin reads as maintained long after it stopped being. Membership
 // and order remain editorial (CHRONOLOGICAL_SELECTION); every fact rendered is read from the registry.
-import { CHRONOLOGICAL_SELECTION, currentRecord, displayLabel, doiUrl } from '../data/publications';
+// TITLE IS TITLE; VERSION IS METADATA (Huayin, 2026-08-21). The first cut rendered
+// "The Two Anchors of a Measure (Version 2.0)" as one italic run, which made a version number part of
+// the work's name. It is not — the label is stable across a work's whole deposit history; the version
+// belongs to one record of it.
+//
+// The two-line form ("Title" / "Version X · DOI …") is the preferred rendering, and this markup does
+// not support it without adding an element and a style rule to a list that has neither — which would
+// be a design change made inside a factual migration. So this uses the sanctioned layout-neutral form:
+// the version rides OUTSIDE the italic title, as metadata beside the DOI, on the same line. Nothing
+// moves; the <em> now contains exactly the title and nothing else. The two-line form is one edit away
+// whenever the /about page unit wants it.
+import { CHRONOLOGICAL_SELECTION, citation } from '../data/publications';
 
-const pubs = CHRONOLOGICAL_SELECTION.map((workId) => {
-  const record = currentRecord(workId);
-  return { label: displayLabel(workId), doi: record.doi, href: doiUrl(record) };
-});
+const pubs = CHRONOLOGICAL_SELECTION.map(citation);
 ---
 <BaseLayout title="About — datumwise" description="datumwise is the work of the datumwise team, building and stewarding Columna — the grammar layer for AI analytics.">
   <div class="page-head">
@@ -53,7 +61,7 @@ const pubs = CHRONOLOGICAL_SELECTION.map((workId) => {
     </p>
     <ul class="pubs">
       {pubs.map((p) => (
-        <li><em>{p.label}</em> (<a href={p.href} rel="noopener" target="_blank">DOI {p.doi}</a>)</li>
+        <li><em>{p.label}</em> ({p.versionTag && <>{p.versionTag} · </>}<a href={p.href} rel="noopener" target="_blank">DOI {p.doi}</a>)</li>
       ))}
     </ul>
 
