@@ -1,0 +1,142 @@
+---
+/**
+ * AgHero — the first screen. PAPER register only.
+ *
+ * THE HERO ESTABLISHES A CATEGORY, NOT A PRODUCT. Columna is not named above the fold and is not
+ * linked from here; it arrives at the end of the page as a consequence, which is the only honest
+ * order for a claim that analytical governance is a category rather than a feature of one system.
+ *
+ * THE HIERARCHY IS RULED (Huayin, 2026-08-21), and the first cut got it wrong:
+ *
+ *     main proposition → organizing can/may sentence → conformance criterion → publication metadata
+ *
+ * The conformance test had been set as a small mono line SIDE BY SIDE with the publication signpost,
+ * which made the category's own membership test read as metadata and gave it no more weight than a
+ * DOI. It is not metadata. It is the criterion by which anything gets to call itself governed.
+ *
+ * But it is also not a third slogan. Three display-size aphorisms on one screen is a slogan wall, and
+ * the test earns a full section later (§Conformance) where it is argued rather than displayed. So it
+ * sits between the two: its own quiet full-width band, above a rule, labelled as the criterion it is,
+ * set in serif at reading weight — an argument line, not a headline and not a caption.
+ *
+ * The publication signpost then sits BENEATH it and visibly remains metadata, which is the correct
+ * relative standing: the deposit governs the page, but the criterion governs the category.
+ *
+ * The signpost is REGISTRY-DERIVED. No version or DOI is typed on this page.
+ */
+import { citation, longDate } from '../../data/publications';
+
+const paper = citation('w-analytical-governance');
+---
+
+<section class="ag-hero ds ds-paper ds-section" aria-labelledby="ag-thesis">
+  <div class="ds-measure-wide">
+    <p class="ds-label">Analytical Governance</p>
+
+    <h1 id="ag-thesis" class="proposition">
+      What can be computed is not yet what may be served.
+    </h1>
+
+    <p class="organizing">
+      Analytical Governance governs the relationship between <em>can</em> and <em>may</em> across a
+      multi-world analytical process.
+    </p>
+
+    <div class="criterion">
+      <p class="test-label">Conformance test</p>
+      <p class="test-line">
+        A governed analytical system must be capable of withholding analytical permission.
+        <strong>If it cannot refuse, it is not governed.</strong>
+      </p>
+    </div>
+
+    <p class="signpost">
+      <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
+      <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
+      <span class="role">The category paper. This page compresses and connects it; the deposit governs.</span>
+    </p>
+  </div>
+</section>
+
+<style>
+  .ag-hero { padding-block: clamp(3.5rem, 2rem + 8vw, 7.5rem) var(--ds-turn); }
+
+  .proposition {
+    font-family: var(--font-serif);
+    font-size: var(--ds-hero);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+
+  /* The organizing sentence: the page's structure, at lede weight so it supports the proposition
+     rather than fighting it. `can` / `may` are italic because the whole page turns on that pair. */
+  .organizing {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: var(--ds-space-3) 0 0;
+  }
+  .organizing em { font-style: italic; color: var(--ink); }
+
+  /* THE CRITERION BAND. Full width, above a rule, on its own — a rule stated, not a caption and not
+     a headline. Serif at reading weight so it reads as argument; the second sentence takes the
+     emphasis because it is the test's operative half. */
+  .criterion {
+    margin-top: var(--ds-space-5);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+  }
+  .test-label {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .test-line {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.4;
+    color: var(--ink-soft);
+    max-width: 54ch;
+  }
+  .test-line strong { color: var(--ink); font-weight: 600; }
+
+  /* and the deposit, visibly metadata beneath the criterion */
+  .signpost {
+    margin: var(--ds-space-4) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+    display: grid;
+    gap: 0.35rem;
+  }
+  .signpost a {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .signpost a:hover { border-bottom-color: var(--ink); }
+  .signpost .meta,
+  .signpost .role {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 46rem) {
+    .proposition { max-width: none; }
+    .test-line { max-width: none; }
+  }
+</style>

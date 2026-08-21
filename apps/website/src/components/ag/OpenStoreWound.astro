@@ -1,0 +1,186 @@
+---
+/**
+ * OpenStoreWound — the concrete wound, before any framework (brief §2B).
+ *
+ * The paper's §1 example, rendered so the reader FEELS the problem before being handed vocabulary
+ * for it. Three executable procedures, three denominators, one question — and nothing in the
+ * execution itself decides which is entitled to answer.
+ *
+ * THE DELIBERATE REFUSAL: none of the three is marked correct. That is not coyness. In the paper's
+ * own resolution (§8) the requested all-store measure is analytically ESTABLISHED and presently
+ * NOT support-sufficient — so the honest outcome is that the requested number is withheld, not that
+ * one of the three wins. A page that quietly crowned 50 would teach the reader that governance is
+ * about picking the right denominator, which is the misreading this whole category exists to end.
+ *
+ * AND THE SECTION NOW SAYS SO OUTRIGHT (Huayin, 2026-08-21). Declining to crown a number was not
+ * enough: a fast reader could still leave with "so it's 50, pending a detail". The invariant that has
+ * to survive this section is
+ *
+ *     50 establishes population  ≠  50 establishes a presently servable answer
+ *
+ * so the disposition is stated as a result, not implied by the absence of one. Deliberately WITHOUT
+ * the serving-mood vocabulary: Refuse, Disclose and the rest are typed later, and importing them here
+ * would spend that section early and would also be wrong — this is a support determination, not yet a
+ * serving verdict.
+ *
+ * Rendered as an ordered list of cases with the numbers as headings: a screen reader gets
+ * "47 — makes observed sales rows define the population" as one unit, not a floating numeral.
+ */
+const CASES = [
+  {
+    n: '47',
+    procedure: 'Divide total revenue by the stores with ordinary sales observations.',
+    consequence: 'Makes observed sales rows define the population.',
+  },
+  {
+    n: '49',
+    procedure: 'Exclude the one store whose feed is unavailable.',
+    consequence:
+      'Silently changes the requested population to the currently supported population — unless that alternative is separately governed.',
+  },
+  {
+    n: '50',
+    procedure: 'Divide by the declared open-store population.',
+    consequence:
+      'Uses the requested population, but the requested result is presently support-insufficient: one required point lacks evidence.',
+  },
+];
+
+const FACTS = [
+  ['50', 'open store-days', 'the governed store calendar'],
+  ['47', 'ordinary revenue observations', 'the sales table'],
+  ['2', 'governed zero-revenue store-days', 'the applicable support rule'],
+  ['1', 'open store with an unavailable feed', 'no evidence presently'],
+];
+---
+
+<section id="the-wound" class="wound ds ds-paper ds-section" aria-labelledby="wound-h">
+  <div class="ds-measure-wide">
+    <h2 id="wound-h" class="ds-label">A number the database can compute but governance cannot yet serve</h2>
+
+    <p class="question">What was average revenue per open store yesterday?</p>
+
+    <div class="split">
+      <div class="knows">
+        <h3 class="sub">What the system knows</h3>
+        <dl class="facts">
+          {FACTS.map(([n, what, source]) => (
+            <div class="fact">
+              <dt><span class="num">{n}</span> {what}</dt>
+              <dd>{source}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div class="cases">
+        <h3 class="sub">Three plausible executable procedures</h3>
+        <ol class="case-list">
+          {CASES.map((c) => (
+            <li class="case">
+              <p class="denominator"><span class="num">{c.n}</span> <span class="den-label">as the denominator</span></p>
+              <p class="procedure">{c.procedure}</p>
+              <p class="consequence">{c.consequence}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <div class="landing">
+      <p class="ds-body">
+        All three can be written in valid SQL. All three return a plausible number. Execution alone
+        cannot establish which result is entitled to answer the question &mdash; and the honest answer
+        here is not a fourth number. <strong>Population, support, identity, and serving authority have
+        to become explicit before a computation may stand as the answer.</strong>
+      </p>
+      <p class="disposition">
+        At this point, no number is entitled to answer the question. The 50-store population
+        <em>is</em> the governed population &mdash; and the requested result is still withheld,
+        because one store-day in that population lacks the revenue evidence it requires.
+      </p>
+      <p class="disposition-note ds-body">
+        Establishing the population and establishing a presently servable answer are two different
+        things, and only the first has happened here.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .question {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--ds-space-4);
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+    align-items: start;
+  }
+
+  .sub {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+    margin: 0 0 var(--ds-space-2);
+  }
+
+  .facts { margin: 0; display: grid; gap: 0.9rem; }
+  .fact { display: grid; gap: 0.15rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--ds-rule); }
+  .fact:last-child { border-bottom: 0; }
+  .fact dt { font-family: var(--font-serif); font-size: var(--ds-body); color: var(--ink); line-height: 1.4; }
+  .fact dd { margin: 0; font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-soft); }
+
+  /* The numerals carry the argument, so they are typed as objects — mono, not prose digits. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .fact .num { font-size: 1.05em; }
+
+  .case-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-space-3); counter-reset: none; }
+  .case { padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
+  .denominator { margin: 0 0 0.3rem; }
+  .denominator .num { font-size: var(--ds-pillar); line-height: 1; letter-spacing: -0.02em; }
+  .den-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .procedure { margin: 0 0 0.35rem; font-family: var(--font-serif); font-size: var(--ds-body); color: var(--ink); line-height: 1.5; }
+  .consequence { margin: 0; font-family: var(--font-serif); font-size: var(--ds-body); color: var(--ink-soft); line-height: 1.55; }
+
+  .landing { margin: var(--ds-space-5) 0 0; max-width: var(--ds-essay); }
+  .landing .ds-body { font-size: var(--ds-lead); line-height: 1.5; margin: 0; }
+  .landing strong { color: var(--ink); font-weight: 600; }
+
+  /* The disposition is set as a RESULT — the section's verdict, marked off by a rule — because the
+     reader's takeaway from this section is the one thing most likely to go wrong. */
+  .disposition {
+    margin: var(--ds-space-3) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .disposition em { font-style: italic; }
+  .disposition-note { margin: var(--ds-space-2) 0 0; font-size: var(--ds-body); }
+
+  @media (max-width: 52rem) {
+    .split { grid-template-columns: 1fr; gap: var(--ds-space-4); }
+  }
+</style>
