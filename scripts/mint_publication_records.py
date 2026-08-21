@@ -25,7 +25,9 @@ The registry is machine-maintained and human-ratified, in that order.
 
 New works are NOT invented here. A concept the snapshot knows and works.json does not is reported and
 refused: naming a work — deciding that these deposits are one intellectual object, and what to call it
-— is the one genuinely editorial act in this system.
+— is the one genuinely editorial act in this system. That refusal now covers ATTACHMENT too: deciding
+that a second Zenodo concept belongs to an existing work is the same editorial act wearing a different
+hat, and a script that guessed it from a title string would be inventing publication history.
 
 Usage:
     python scripts/mint_publication_records.py --dry-run
@@ -54,7 +56,7 @@ def main() -> int:
 
     snap_records = snapshot["records"]
     snap_concepts = snapshot["concepts"]
-    by_concept = {w["conceptRecid"]: w for w in works if w.get("conceptRecid")}
+    by_concept = {c["recid"]: w for w in works for c in w.get("attachedConcepts", [])}
     existing = {r["recid"]: r for r in records}
 
     unknown = sorted(set(snap_concepts) - set(by_concept))
@@ -73,10 +75,21 @@ def main() -> int:
     changed: list[str] = []
 
     for w in sorted(works, key=lambda w: w["workId"]):
-        concept = w.get("conceptRecid")
-        if not concept:
+        concepts = [c["recid"] for c in w.get("attachedConcepts", [])]
+        if not concepts:
             continue
-        versions = sorted(snap_concepts[concept]["versions"],
+        # ONE CHAIN ACROSS EVERY ATTACHED CONCEPT (Huayin, ruling of 2026-08-21, Phase 3B.1).
+        #
+        # A work's deposits are pooled from all of its attached concepts and ordered ONCE, by
+        # publication date. Attachment order does not order the chain and neither does concept
+        # membership: The Silent Failure Atlas was deposited as v1.2 under one concept and v1.3 under
+        # another, three days apart, and the chain that results is v1.2 -> v1.3 like any other. That
+        # is the whole content of "a concept is an attached external identity, not the work".
+        #
+        # A single-concept work is the same computation with one concept in the pool, so no existing
+        # work's chain, ids or currency move on this change — verified against the pre-migration
+        # records.json byte for byte, except where a second concept was deliberately attached.
+        versions = sorted((v for c in concepts for v in snap_concepts[c]["versions"]),
                           key=lambda r: (snap_records[r]["publicationDate"], int(r)))
         used = {r["recordId"] for r in records if r["workId"] == w["workId"]}
         seq = max((int(rid.rsplit(".r", 1)[1]) for rid in used), default=0)

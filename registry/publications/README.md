@@ -32,15 +32,15 @@ The defect was architecture, and it is fixed architecturally or not at all.
 ## The model
 
 ```
-Work                                  Record
-────                                  ──────
-workId          locally minted        recordId      locally minted
-canonicalLabel  editorial name        workId        the work it deposits
-kind            corpus classification title         the EXACT deposited title of THIS version
-conceptRecid?   external, attached    version, date, doi, recid
-conceptDoi?     external, attached    status        current | superseded
-                                      authors, license, resourceType
-                                      supersedes?   a recordId, in the same work
+Work                                    Record
+────                                    ──────
+workId            locally minted        recordId      locally minted
+canonicalLabel    editorial name        workId        the work it deposits
+kind              corpus classification title         the EXACT deposited title of THIS version
+attachedConcepts  external, 1..n        version, date, doi, recid
+  [{recid, doi}]  (empty if never       status        current | superseded
+                   deposited)           authors, license, resourceType
+                                        supersedes?   a recordId, in the same work
 ```
 
 ### `workId` ≠ Zenodo concept
@@ -53,6 +53,49 @@ deposited. The Zenodo concept record is *authoritative evidence* for grouping ve
 one work; it is not the thing that creates the work. Two consequences, both deliberate: a work can
 exist before it is deposited and acquire its DOIs later without an identity migration, and the corpus
 does not depend structurally on Zenodo remaining the deposit provider forever.
+
+### One work, many attached concepts
+
+> **One Work may attach one or more Zenodo concept identities over its publication history.**
+> (Huayin, ruling of 2026-08-21, Phase 3B.1.)
+
+The first cut of this model gave a work exactly one concept, and this corpus falsified that twice
+within a day of the sweep that looked:
+
+- **The Silent Failure Atlas** was deposited as v1.2 under concept `20710592` and, three days later,
+  as v1.3 under a **new** concept `20762838` — not as a new version of the first. One work, two
+  concepts. Under a single-valued field it was unrepresentable: filing v1.2 under the Atlas broke G4,
+  and filing it as its own work asserted there are two Atlases.
+- **The Two Great Sources of Silent Analytical Failure** acquired a retitled successor — *Three
+  Structural Sources*, v2.0 — deposited under its own concept while declaring `isNewVersionOf` the
+  earlier record in its own Zenodo metadata. Under the old model, `/about` and `llms.txt` would have
+  gone on rendering the superseded record as current, and **the registry could not have expressed the
+  repair.**
+
+Neither is a mistake anyone made in this repo. Both are ordinary things to do at a deposit provider,
+and a model that cannot hold them is the thing that is wrong.
+
+So the field is a list, `attachedConcepts`, in first-deposit order — and the invariants are narrow:
+
+```
+record.conceptRecid ∈ work.attachedConceptRecids           G4
+one concept is attached by at most ONE work                G1
+an attachment must be witnessed by ≥1 record of the work   G4
+```
+
+**Currentness did not move.** It is governed `status` on the Record and nothing else — not concept,
+not attachment order, not version string, date, or DOI magnitude. Supersession **may** cross attached
+concepts inside one work; G3 is unchanged, because it always said *inside a work*, and a concept was
+never what a work is.
+
+**The local id does not follow the title.** `w-two-great-sources` keeps its workId although its
+current deposit is titled *Three Structural Sources*. That reads strangely on purpose. The slug is a
+mnemonic, no code parses it, and renaming internal identity to track an external title is the exact
+coupling this registry exists to break. `canonicalLabel` — which *is* editorial naming — did change.
+
+The old scalar `conceptRecid` / `conceptDoi` are **gone, not deprecated**. Every reader moved in the
+same commit. A compatibility shim would have been a second way to ask the same question, which is how
+the stale-DOI problem started.
 
 The same principle governs `recordId`. Internal reference integrity — `supersedes`, every lookup, every
 selection — runs on locally minted ids. **Nothing parses a DOI string**, and `check_publications.py`
@@ -83,8 +126,8 @@ Every work reads `kind: "unclassified"`, and that is load-bearing. `llms.txt` us
 evidence section with *"The nine papers, chronological"* — a hand-typed number beside a hand-typed
 list. The tempting repair is `count(distinct doi)`, which is refused: records, works, papers,
 program notes, primers, introductions, positions and a technical supplement are **not the same
-counting unit**, and no governed definition says which of them the word "papers" ranges over. 67
-records across 30 works is not "30 papers". Replacing a stale magic number with a freshly computed
+counting unit**, and no governed definition says which of them the word "papers" ranges over. 74
+records across 32 works is not "32 papers". Replacing a stale magic number with a freshly computed
 wrong one is laundering, not migration.
 
 So the claim was dropped rather than recomputed, and the drop is enforced: G10 fails the build if a
@@ -98,8 +141,8 @@ can defend — and not one minute before.
 
 | file | what it is | authored by |
 |---|---|---|
-| `works.json` | 30 works: id, label, kind, attached concept identity | **hand** (the only editorial file) |
-| `records.json` | 67 deposited versions, every bibliographic field | `mint_publication_records.py` |
+| `works.json` | 32 works: id, label, kind, attached concept identities (1..n) | **hand** (the only editorial file) |
+| `records.json` | 74 deposited versions, every bibliographic field | `mint_publication_records.py` |
 | `zenodo_snapshot_2026-08-21.json` | frozen evidence: what Zenodo said, on a date | `harvest_zenodo_snapshot.py` |
 | `consumers.json` | every file in the repo that names a DOI, and on what terms | hand, checked mechanically |
 | `reconciliation.json` | known discrepancies and retired identifiers | hand |
@@ -129,12 +172,13 @@ python scripts/harvest_zenodo_snapshot.py --coverage
 A creator sweep against Zenodo, minus the concepts `works.json` claims. It **reports**; it never
 seeds, never writes, and is never in CI — it reaches the network, and naming a work is editorial.
 
-An uncovered concept is not an error. This registry has never claimed the whole deposited corpus, and
-two of the four it currently reports **cannot be modeled at all** without a schema ruling: one work
-deposited under two Zenodo concepts (`rc-atlas-two-concepts`), and a retitled successor that declares
-`isNewVersionOf` across a concept boundary (`rc-two-great-sources-successor`). Both are recorded in
-`reconciliation.json` and argued in `specs/publication_corpus_coverage_v0_1.md`. **Read those before
-treating a coverage line as news.**
+As of 2026-08-21 the sweep reports **34 concepts across 32 works, 0 uncovered** — but *closed* is a
+state, not a property: the next deposit re-opens it, and `34/34` is a reading taken on a date, never a
+constant to be asserted. An uncovered concept is not automatically an error either. Onboarding one
+means **naming** a work, or **attaching** a concept to a work that already exists — the same editorial
+act in two shapes, and neither is done by a script. Known-and-declined entries live in
+`reconciliation.json` and are argued in `specs/publication_corpus_coverage_v0_1.md`. **Read those
+before treating a coverage line as news.**
 
 ---
 

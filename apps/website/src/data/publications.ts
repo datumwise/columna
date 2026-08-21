@@ -22,6 +22,12 @@
 // a work. Nothing in this file, and nothing downstream of it, may derive internal identity by parsing
 // a DOI string.
 //
+// AND A WORK MAY ATTACH MORE THAN ONE (Phase 3B.1, 2026-08-21). If a concept were the work, then a
+// work deposited under two concepts would be two works — which is what the old single-valued field
+// forced, and it was false about this corpus twice over. `w-two-great-sources` is the sharpest case:
+// its current deposit is titled *Three Structural Sources of Silent Analytical Failure*, in a
+// different Zenodo concept, and the workId did NOT change. The slug is a mnemonic. Nothing reads it.
+//
 // The other half of the same ruling: the EXACT BIBLIOGRAPHIC TITLE IS RECORD-LEVEL. It is not stable
 // across versions, and in this corpus it demonstrably is not — the same work has been deposited as
 // "The Theory of Data — Particles, Atoms, Anchors, Universes, and Lawful Transformation" (v1.0),
@@ -46,9 +52,23 @@ export interface Work {
    * of them exists yet. Until one does, no surface may render a count — see COUNTS_ARE_DERIVABLE.
    */
   kind: string;
-  /** External concept identity, attached by deposit. Absent for a work never deposited. */
-  conceptRecid?: string | null;
-  conceptDoi?: string | null;
+  /**
+   * External publication identities, ATTACHED by deposit — one to many, in first-deposit order.
+   *
+   * A Zenodo concept is not the work; it is an identity the work acquires at a deposit provider, and a
+   * work can acquire more than one. The Silent Failure Atlas has two: v1.2 was deposited under
+   * 20710592 and v1.3, three days later, under a fresh concept 20762838 rather than as a new version
+   * of the first. `w-two-great-sources` has two for a different reason — a retitled successor,
+   * *Three Structural Sources*, deposited under its own concept while declaring `isNewVersionOf` the
+   * earlier record. Both are ordinary things to do at Zenodo, and a single-valued field could model
+   * neither: the first was unrepresentable, and the second would have left a superseded record
+   * rendering as current on this very page.
+   *
+   * EMPTY, NEVER ABSENT, for a work that has never been deposited — a fact this registry states rather
+   * than leaves to inference. Nothing here decides currency: that is `status` on the Record, and only
+   * that. Not attachment order, not concept, not version string, not date.
+   */
+  attachedConcepts: { recid: string; doi: string }[];
 }
 
 /** One deposited version of a work. The bibliographic unit. */

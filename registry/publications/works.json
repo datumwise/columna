@@ -1,212 +1,362 @@
 [
  {
-  "workId": "w-silent-seam",
-  "canonicalLabel": "The Silent Seam",
-  "kind": "unclassified",
-  "conceptRecid": "20710716",
-  "conceptDoi": "10.5281/zenodo.20710716"
- },
- {
   "workId": "w-silent-failure-atlas",
   "canonicalLabel": "The Silent Failure Atlas",
   "kind": "unclassified",
-  "conceptRecid": "20762838",
-  "conceptDoi": "10.5281/zenodo.20762838"
+  "attachedConcepts": [
+   {
+    "recid": "20710592",
+    "doi": "10.5281/zenodo.20710592"
+   },
+   {
+    "recid": "20762838",
+    "doi": "10.5281/zenodo.20762838"
+   }
+  ]
+ },
+ {
+  "workId": "w-silent-seam",
+  "canonicalLabel": "The Silent Seam",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "20710716",
+    "doi": "10.5281/zenodo.20710716"
+   }
+  ]
  },
  {
   "workId": "w-two-anchors",
   "canonicalLabel": "The Two Anchors of a Measure",
   "kind": "unclassified",
-  "conceptRecid": "20789317",
-  "conceptDoi": "10.5281/zenodo.20789317"
+  "attachedConcepts": [
+   {
+    "recid": "20789317",
+    "doi": "10.5281/zenodo.20789317"
+   }
+  ]
  },
  {
   "workId": "w-nine-model-study",
   "canonicalLabel": "Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison",
   "kind": "unclassified",
-  "conceptRecid": "21349580",
-  "conceptDoi": "10.5281/zenodo.21349580"
+  "attachedConcepts": [
+   {
+    "recid": "21349580",
+    "doi": "10.5281/zenodo.21349580"
+   }
+  ]
  },
  {
   "workId": "w-multi-universe-processing",
   "canonicalLabel": "Multi-Universe Processing: Territories, Frontiers, and the Lawful Passage of Meaning",
   "kind": "unclassified",
-  "conceptRecid": "21543583",
-  "conceptDoi": "10.5281/zenodo.21543583"
+  "attachedConcepts": [
+   {
+    "recid": "21543583",
+    "doi": "10.5281/zenodo.21543583"
+   }
+  ]
  },
  {
   "workId": "w-two-great-sources",
-  "canonicalLabel": "The Two Great Sources of Silent Analytical Failure",
+  "canonicalLabel": "Three Structural Sources of Silent Analytical Failure",
   "kind": "unclassified",
-  "conceptRecid": "21553378",
-  "conceptDoi": "10.5281/zenodo.21553378"
+  "attachedConcepts": [
+   {
+    "recid": "21553378",
+    "doi": "10.5281/zenodo.21553378"
+   },
+   {
+    "recid": "21893928",
+    "doi": "10.5281/zenodo.21893928"
+   }
+  ]
  },
  {
   "workId": "w-open-planner",
   "canonicalLabel": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — research program note (2026)",
   "kind": "unclassified",
-  "conceptRecid": "21632722",
-  "conceptDoi": "10.5281/zenodo.21632722"
+  "attachedConcepts": [
+   {
+    "recid": "21632722",
+    "doi": "10.5281/zenodo.21632722"
+   }
+  ]
  },
  {
   "workId": "w-tod-foundations-note",
   "canonicalLabel": "The Theory of Data — A Foundations Note",
   "kind": "unclassified",
-  "conceptRecid": "21696103",
-  "conceptDoi": "10.5281/zenodo.21696103"
+  "attachedConcepts": [
+   {
+    "recid": "21696103",
+    "doi": "10.5281/zenodo.21696103"
+   }
+  ]
  },
  {
   "workId": "w-theory-of-data",
   "canonicalLabel": "The Theory of Data",
   "kind": "unclassified",
-  "conceptRecid": "21707017",
-  "conceptDoi": "10.5281/zenodo.21707017"
+  "attachedConcepts": [
+   {
+    "recid": "21707017",
+    "doi": "10.5281/zenodo.21707017"
+   }
+  ]
  },
  {
   "workId": "w-contract-calculus",
   "canonicalLabel": "A Contract Calculus for Governed Analytical Transformation",
   "kind": "unclassified",
-  "conceptRecid": "21752372",
-  "conceptDoi": "10.5281/zenodo.21752372"
+  "attachedConcepts": [
+   {
+    "recid": "21752372",
+    "doi": "10.5281/zenodo.21752372"
+   }
+  ]
  },
  {
   "workId": "w-contract-calculus-supplement",
   "canonicalLabel": "Technical Supplement Collection for A Contract Calculus",
   "kind": "unclassified",
-  "conceptRecid": "21752680",
-  "conceptDoi": "10.5281/zenodo.21752680"
+  "attachedConcepts": [
+   {
+    "recid": "21752680",
+    "doi": "10.5281/zenodo.21752680"
+   }
+  ]
  },
  {
   "workId": "w-missingness-has-a-universe",
   "canonicalLabel": "Missingness Has a Universe",
   "kind": "unclassified",
-  "conceptRecid": "21760507",
-  "conceptDoi": "10.5281/zenodo.21760507"
+  "attachedConcepts": [
+   {
+    "recid": "21760507",
+    "doi": "10.5281/zenodo.21760507"
+   }
+  ]
  },
  {
   "workId": "w-frameql-introduction",
   "canonicalLabel": "Frame-QL: An Introduction",
   "kind": "unclassified",
-  "conceptRecid": "21763320",
-  "conceptDoi": "10.5281/zenodo.21763320"
+  "attachedConcepts": [
+   {
+    "recid": "21763320",
+    "doi": "10.5281/zenodo.21763320"
+   }
+  ]
  },
  {
   "workId": "w-tod-introduction",
   "canonicalLabel": "The Theory of Data: An Introduction",
   "kind": "unclassified",
-  "conceptRecid": "21763394",
-  "conceptDoi": "10.5281/zenodo.21763394"
+  "attachedConcepts": [
+   {
+    "recid": "21763394",
+    "doi": "10.5281/zenodo.21763394"
+   }
+  ]
  },
  {
   "workId": "w-practice-needs-a-firmer-foundation",
   "canonicalLabel": "Analytical Practice Needs a Firmer Foundation",
   "kind": "unclassified",
-  "conceptRecid": "21763450",
-  "conceptDoi": "10.5281/zenodo.21763450"
+  "attachedConcepts": [
+   {
+    "recid": "21763450",
+    "doi": "10.5281/zenodo.21763450"
+   }
+  ]
  },
  {
   "workId": "w-row-table-join",
   "canonicalLabel": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
   "kind": "unclassified",
-  "conceptRecid": "21763487",
-  "conceptDoi": "10.5281/zenodo.21763487"
+  "attachedConcepts": [
+   {
+    "recid": "21763487",
+    "doi": "10.5281/zenodo.21763487"
+   }
+  ]
  },
  {
   "workId": "w-never-let-your-agent",
   "canonicalLabel": "Never Let Your Agent Touch the Database",
   "kind": "unclassified",
-  "conceptRecid": "21765251",
-  "conceptDoi": "10.5281/zenodo.21765251"
+  "attachedConcepts": [
+   {
+    "recid": "21765251",
+    "doi": "10.5281/zenodo.21765251"
+   }
+  ]
  },
  {
   "workId": "w-regression-has-an-anchor",
   "canonicalLabel": "Regression Has an Anchor",
   "kind": "unclassified",
-  "conceptRecid": "21783728",
-  "conceptDoi": "10.5281/zenodo.21783728"
+  "attachedConcepts": [
+   {
+    "recid": "21783728",
+    "doi": "10.5281/zenodo.21783728"
+   }
+  ]
  },
  {
   "workId": "w-statistical-bridge",
   "canonicalLabel": "The Statistical Bridge",
   "kind": "unclassified",
-  "conceptRecid": "21795311",
-  "conceptDoi": "10.5281/zenodo.21795311"
+  "attachedConcepts": [
+   {
+    "recid": "21795311",
+    "doi": "10.5281/zenodo.21795311"
+   }
+  ]
  },
  {
   "workId": "w-regime-has-a-contract",
   "canonicalLabel": "Regime Has a Contract",
   "kind": "unclassified",
-  "conceptRecid": "21840853",
-  "conceptDoi": "10.5281/zenodo.21840853"
+  "attachedConcepts": [
+   {
+    "recid": "21840853",
+    "doi": "10.5281/zenodo.21840853"
+   }
+  ]
  },
  {
   "workId": "w-tod-primer",
   "canonicalLabel": "A Primer on the Theory of Data",
   "kind": "unclassified",
-  "conceptRecid": "21842993",
-  "conceptDoi": "10.5281/zenodo.21842993"
+  "attachedConcepts": [
+   {
+    "recid": "21842993",
+    "doi": "10.5281/zenodo.21842993"
+   }
+  ]
  },
  {
   "workId": "w-reading-rethinking",
   "canonicalLabel": "Reading Statistical Rethinking Through the Statistical Bridge",
   "kind": "unclassified",
-  "conceptRecid": "21863558",
-  "conceptDoi": "10.5281/zenodo.21863558"
+  "attachedConcepts": [
+   {
+    "recid": "21863558",
+    "doi": "10.5281/zenodo.21863558"
+   }
+  ]
  },
  {
   "workId": "w-statistical-bridge-primer",
   "canonicalLabel": "A Primer on the Statistical Bridge",
   "kind": "unclassified",
-  "conceptRecid": "21864433",
-  "conceptDoi": "10.5281/zenodo.21864433"
+  "attachedConcepts": [
+   {
+    "recid": "21864433",
+    "doi": "10.5281/zenodo.21864433"
+   }
+  ]
+ },
+ {
+  "workId": "w-frameql-primer",
+  "canonicalLabel": "A Primer on Frame-QL",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "21888997",
+    "doi": "10.5281/zenodo.21888997"
+   }
+  ]
  },
  {
   "workId": "w-analytical-governance",
   "canonicalLabel": "Analytical Governance: From User Intent to Governed Analytical Execution",
   "kind": "unclassified",
-  "conceptRecid": "21959748",
-  "conceptDoi": "10.5281/zenodo.21959748"
+  "attachedConcepts": [
+   {
+    "recid": "21959748",
+    "doi": "10.5281/zenodo.21959748"
+   }
+  ]
  },
  {
   "workId": "w-tod-applied",
   "canonicalLabel": "The Theory of Data Applied",
   "kind": "unclassified",
-  "conceptRecid": "21959940",
-  "conceptDoi": "10.5281/zenodo.21959940"
+  "attachedConcepts": [
+   {
+    "recid": "21959940",
+    "doi": "10.5281/zenodo.21959940"
+   }
+  ]
  },
  {
   "workId": "w-tod-primer-applied",
   "canonicalLabel": "A Primer on the Theory of Data Applied",
   "kind": "unclassified",
-  "conceptRecid": "21960379",
-  "conceptDoi": "10.5281/zenodo.21960379"
+  "attachedConcepts": [
+   {
+    "recid": "21960379",
+    "doi": "10.5281/zenodo.21960379"
+   }
+  ]
  },
  {
   "workId": "w-certifiable-state",
   "canonicalLabel": "Certifiable State Under Information Loss",
   "kind": "unclassified",
-  "conceptRecid": "21972540",
-  "conceptDoi": "10.5281/zenodo.21972540"
+  "attachedConcepts": [
+   {
+    "recid": "21972540",
+    "doi": "10.5281/zenodo.21972540"
+   }
+  ]
  },
  {
   "workId": "w-where-does-probability-live",
   "canonicalLabel": "Where Does Probability Live?",
   "kind": "unclassified",
-  "conceptRecid": "21977941",
-  "conceptDoi": "10.5281/zenodo.21977941"
+  "attachedConcepts": [
+   {
+    "recid": "21977941",
+    "doi": "10.5281/zenodo.21977941"
+   }
+  ]
  },
  {
   "workId": "w-reading-bayesian-workflow",
   "canonicalLabel": "Reading Bayesian Workflow Through the Statistical Bridge",
   "kind": "unclassified",
-  "conceptRecid": "21983507",
-  "conceptDoi": "10.5281/zenodo.21983507"
+  "attachedConcepts": [
+   {
+    "recid": "21983507",
+    "doi": "10.5281/zenodo.21983507"
+   }
+  ]
+ },
+ {
+  "workId": "w-data-has-its-own-ontology",
+  "canonicalLabel": "Data Has Its Own Ontology",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "22003682",
+    "doi": "10.5281/zenodo.22003682"
+   }
+  ]
  },
  {
   "workId": "w-conditioning-bar",
   "canonicalLabel": "The Two Jobs of the Conditioning Bar",
   "kind": "unclassified",
-  "conceptRecid": "22010142",
-  "conceptDoi": "10.5281/zenodo.22010142"
+  "attachedConcepts": [
+   {
+    "recid": "22010142",
+    "doi": "10.5281/zenodo.22010142"
+   }
+  ]
  }
 ]

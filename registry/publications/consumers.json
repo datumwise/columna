@@ -300,16 +300,21 @@
   "path": "scripts/check_publications.py",
   "class": "acceptance",
   "allowedDois": [
+   "10.5281/zenodo.20762839",
+   "10.5281/zenodo.21553379",
    "10.5281/zenodo.21632723",
    "10.5281/zenodo.21695710",
+   "10.5281/zenodo.21893929",
    "10.5281/zenodo.21958062",
    "10.5281/zenodo.21959668",
    "10.5281/zenodo.21959749",
+   "10.5281/zenodo.21960873",
    "10.5281/zenodo.22013410",
    "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22026962",
    "10.5281/zenodo.22046037"
   ],
-  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real."
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all."
  },
  {
   "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
@@ -460,8 +465,6 @@
   "path": "specs/publication_corpus_coverage_v0_1.md",
   "class": "ledger",
   "allowedDois": [
-   "10.5281/zenodo.20710593",
-   "10.5281/zenodo.20710717",
    "10.5281/zenodo.21553379",
    "10.5281/zenodo.21888998",
    "10.5281/zenodo.2188899810",
@@ -469,6 +472,6 @@
    "10.5281/zenodo.21960873",
    "10.5281/zenodo.22026962"
   ],
-  "note": "The corpus-coverage ledger (Phase 3B, 2026-08-21). It exists to name what the registry does NOT cover, so it necessarily quotes identifiers the registry does not model — five of these eight belong to no record here, and three of those five belong to no work here EITHER. That is not a leak; it is the subject. Each uncovered token is scoped by a reconciliation item to this file alone (rc-atlas-two-concepts, rc-two-great-sources-successor, rc-frameql-primer-related-identifier, rc-corpus-uncovered-works), so naming a deposit in the ledger grants it no standing anywhere else and no current-authority claim anywhere at all. Asserts no current publication fact to the public."
+  "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing."
  }
 ]
