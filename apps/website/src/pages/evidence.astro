@@ -1,0 +1,902 @@
+---
+/**
+ * /evidence — the canonical Evidence surface (Phase 3C, 2026-08-21).
+ *
+ * SOURCE OF RECORD. Five deposited works govern this page: *The Statistical Bridge* v3.0,
+ * *A Primer on the Statistical Bridge* v2.0, *Where Does Probability Live?* v1.0, *Certifiable State
+ * Under Information Loss* v1.0, and *The Two Jobs of the Conditioning Bar* v1.0, with the two
+ * Readings used only where they materially clarify. The page may compress, sequence, visualize and
+ * connect them. It does not extend them, and it invents no example the corpus does not already
+ * carry.
+ *
+ * THE WOUND IS INFERENTIAL, NOT ANCHOR-LAW. The opening case is a completed census with a standard
+ * error attached — deposited, not devised: *The Statistical Bridge* §9.4 names it directly ("a
+ * standard error calculated from row variation in a census is a common example"), §10.5 and the
+ * *Primer* §2 develop it, and *Reading Bayesian Workflow* §4 calls it "a useful refusal case". It
+ * was chosen over the corpus's other candidate — the same figure participating in a descriptive,
+ * a predictive and a causal claim — because that one turns on where a claim TRAVELS, which reads
+ * as a claim-license lesson before the reader has been given the passage that licenses anything.
+ * The census case needs no travel, no numbers, and no machinery: the data are complete, the
+ * arithmetic is exact, and the interval is still unwarranted.
+ *
+ * EVIDENCE IS NOT A THIRD WORLD. The homepage's three questions are three JURISDICTIONS; this page
+ * is careful never to promote Evidence into a sovereign province with its own territory diagram.
+ * §standing states the boundary in words, and the page's layout never draws Data / Evidence /
+ * Intelligence as three equal boxes (brief §11, a hard guard).
+ *
+ * REGISTER. PAPER throughout. No wire quotation: nothing on this page is a claim about what the
+ * shipped engine emits, and borrowing the wire register to look systematic would be a lie of format.
+ *
+ * NO JAVASCRIPT CARRIES THE ARGUMENT. Every claim, including both histories of Figure 1 and the
+ * projection that collapses them, is DOM text in reading order.
+ *
+ * PUBLICATION FACTS. Registry-derived, everywhere. No title, version, date or DOI is typed into this
+ * file or its components — check_publications.py classifies /evidence `derived` and fails the build
+ * if one appears.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EvHero from '../components/evidence/EvHero.astro';
+import RecordUndecidability from '../components/evidence/RecordUndecidability.astro';
+import FiveExposures from '../components/evidence/FiveExposures.astro';
+import { citation } from '../data/publications';
+
+const bridge = citation('w-statistical-bridge');
+const primer = citation('w-statistical-bridge-primer');
+const conditioning = citation('w-conditioning-bar');
+const certifiable = citation('w-certifiable-state');
+const probability = citation('w-where-does-probability-live');
+
+/**
+ * THE READING PATH IS CURATED MEMBERSHIP; EVERY FACT IN IT IS DERIVED. The order is this page's
+ * editorial judgement about where a serious reader should start, and it stays local — it creates no
+ * Evidence-pillar classification and no global membership (brief §13, CV-8).
+ */
+const READING_PATH = [
+  { role: 'Foundation', work: bridge, why: 'the governed passage, argued in full: constitution, probability source, certificate, evidence status, claim license.' },
+  { role: 'Shorter entry', work: primer, why: 'the same distinctions on a running example, without the architecture.' },
+  { role: 'Typed history', work: conditioning, why: 'record-undecidability, and the two edge types that repair it.' },
+  { role: 'Warrant and state', work: certifiable, why: 'what a state is entitled to certify, and why transformation cannot manufacture warrant.' },
+  { role: 'Probability source', work: probability, why: 'where probability enters, and why that question precedes the choice of school.' },
+];
+
+/**
+ * RELATIONS, NOT EQUAL BOXES (brief §12). These bodies of law have different shapes and different
+ * jurisdictions; a four-box diagram would claim a symmetry the corpus does not have. Intelligence
+ * appears as an ACKNOWLEDGED ABSENCE rather than a fourth box, because a licensed claim genuinely
+ * does not yet settle what anyone may conclude or do — and that jurisdiction is not built here.
+ */
+const RELATIONS = [
+  {
+    id: 'tod',
+    name: 'Theory of Data',
+    href: '/learn/what-is-the-theory-of-data',
+    relation: 'supplies the material this page starts from',
+    text:
+      'ToD governs analytical identity, existence, eligibility, observation, support and lawful derivation — what one point is, why it exists, and which transformations preserve its meaning. It reaches further down than statistics does. It does not establish inferential warrant, and it is not a general theory of inference.',
+  },
+  {
+    id: 'bridge',
+    name: 'The Statistical Bridge',
+    relation: 'is the law this page renders',
+    text:
+      'The Bridge governs the passage from governed material toward inferential claims. It does not replace the Theory of Data beneath it, and it does not legislate a philosophy of probability: it types where probabilistic commitments enter and what they are then entitled to support.',
+  },
+  {
+    id: 'certifiable-state',
+    name: 'Certifiable State Under Information Loss',
+    relation: 'formalizes what a state may still certify',
+    text:
+      'Two states can hold identical numbers and support different claims, because what a state is entitled to assert depends on the contracts that produced it and the evidence behind them. It supplies claim transport, the conservation law that governs warrant, and refusal as underivability. It is not another statistics paper; it is the state-level account the Bridge leans on.',
+  },
+  {
+    id: 'analytical-governance',
+    name: 'Analytical Governance',
+    href: '/analytical-governance',
+    relation: 'composes this crossing into a larger process',
+    text:
+      'Analytical governance decides whether a requested analytical result may be served, across a multi-world process. It may compose an inferential crossing into that process. It does not adjudicate the inference itself, and its refusal is not this page’s refusal.',
+  },
+  {
+    id: 'intelligence',
+    name: 'Intelligence',
+    relation: 'begins after this page ends',
+    text:
+      'A licensed claim does not yet determine what a person or an agent may conclude from it, communicate, delegate, or act upon. That is a different jurisdiction with a different governed object, and it is not built here — named so that its absence is a boundary rather than a gap.',
+  },
+];
+---
+<BaseLayout
+  title="Evidence — datumwise"
+  description="The data can be right. The mathematics can be right. The claim can still be unlicensed. Evidence is the governed passage from material to inferential claim — its record-undecidability result, its typed transitions, the five exposures a governed inference owes, and the boundary at which an inferential passage may be refused."
+  wide={true}
+  chip={false}
+>
+  <EvHero />
+
+  {/* THE WOUND. A census, an exact mean, and a standard error nobody is entitled to. It is set as
+      prose with one mono line, not as a figure: the reader has to feel that nothing went wrong
+      before being shown that something is missing, and a diagram at this point would offer a
+      structure the reader has not yet been given a reason to want. */}
+  <section id="the-wound" class="wound ds ds-paper ds-section" aria-labelledby="wound-h">
+    <div class="ds-measure-wide">
+      <h2 id="wound-h" class="ds-label">The wound</h2>
+      <p class="ds-proposition">Everything worked. The claim still does not follow.</p>
+
+      <div class="wound-body">
+        <div class="wound-case">
+          <p class="ds-body">
+            A quarter has closed. Every eligible account-quarter point is known. Every qualifying
+            transaction has been captured. Revenue has been established for every point, including
+            the legitimate zeroes. The analyst is asked for average revenue per customer, with a
+            standard error, and produces both.
+          </p>
+          <p class="ds-body">
+            The population is complete, so the mean is not an estimate of anything — it is the
+            quantity itself, determined by the constituted data:
+          </p>
+          <p class="wound-mark ds-mark">τ = (1 / |P|) · Σ revenue(p)</p>
+          <p class="ds-body">
+            The revenues vary a great deal. The standard error computed from that variation is
+            arithmetically correct, and it is an answer to no question that was asked. Nothing is
+            uncertain about a mean over a population that has been enumerated. The interval is not
+            wrong the way a miscalculation is wrong; it is <em>unwarranted</em> — a probability
+            statement with no probability source behind it.
+          </p>
+        </div>
+
+        <aside class="wound-guard" aria-labelledby="wound-guard-h">
+          <p id="wound-guard-h" class="guard-label">What did not go wrong</p>
+          <ul class="guard-list">
+            <li>The data are complete and correctly captured.</li>
+            <li>The population is the intended one.</li>
+            <li>Every arithmetic step is exact.</li>
+            <li>The software is not at fault.</li>
+            <li>No school of inference would compute it differently.</li>
+          </ul>
+          <p class="guard-note">
+            So the failure is not a data-quality failure and not a mathematical one. The two things
+            most reviews check are both fine.
+          </p>
+        </aside>
+      </div>
+
+      <div class="wound-turn">
+        <p class="wound-question">
+          If neither bad data nor bad mathematics explains the failure, what is missing?
+        </p>
+        <p class="ds-body">
+          The corpus answers the obvious follow-up — <em>frequentist interval or Bayesian one?</em> —
+          before it is finished being asked:
+        </p>
+        <blockquote class="wound-quote">
+          <p>Neither yet. What is uncertain?</p>
+        </blockquote>
+        <p class="ds-body">
+          Variation is not a probability source. Probability becomes necessary when the target
+          changes — to a future quarter, to a superpopulation, to latent values under measurement
+          error, to incomplete capture, to an intervention response. The number on the screen has
+          not moved. What it is being asked to support has. What is missing is the governed passage
+          between them, and the warrant that passage carries.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <RecordUndecidability />
+
+  {/* THE REPAIR. Two edge types, from the deposit. The section is deliberately constructive and
+      short: the figure above has already done the work of making the reader want it. The closing
+      line lands HERE and not at the end of the page — it is the resolution of this movement, not
+      the page's verdict, and using it as a farewell would make it read as a slogan about Bayes
+      rather than a statement about records. */}
+  <section id="typed-passage" class="typed ds ds-paper ds-section" aria-labelledby="typed-h">
+    <div class="ds-measure-wide">
+      <h2 id="typed-h" class="ds-label">The repair</h2>
+      <p class="ds-proposition">Conditioning is not constitution.</p>
+
+      <p class="typed-lede ds-body">
+        The erased coordinate can be put back. It takes two primitive transition types, and the
+        difference between them is not nomenclature — they are different kinds of inferential move,
+        and only one of them is the interior move of Bayes.
+      </p>
+
+      <dl class="edges">
+        <div class="edge-def" id="edge-conditioning">
+          <dt>
+            <span class="edge-mark ds-mark">cond(x)</span>
+            <span class="edge-name">Conditioning</span>
+          </dt>
+          <dd>
+            <p class="edge-text">
+              Evidence enters an unchanged declaration. The model version is the same on both sides
+              of the edge, the new evidence is admissible under the active evidence contract, the
+              carried state is sufficient for the update or the root evidence remains available, and
+              the prior contributes exactly once. <strong>Bayes applies on this edge.</strong>
+            </p>
+          </dd>
+        </div>
+        <div class="edge-def" id="edge-constitution">
+          <dt>
+            <span class="edge-mark ds-mark">const(ΔM)</span>
+            <span class="edge-name">Constitution</span>
+          </dt>
+          <dd>
+            <p class="edge-text">
+              A new declaration is established. The edge records what changed, why, which evidence or
+              criticism motivated it, which prior objects are retained and in what role, which root
+              evidence is re-admitted under the new construction, and any transport map used in place
+              of recomputation. <strong>Bayes is silent about this edge</strong> — and resumes inside
+              the newly declared model once the new episode exists.
+            </p>
+          </dd>
+        </div>
+      </dl>
+
+      <p class="typed-guard ds-body">
+        Crossing a constitution edge is not a fault. A workflow may cross it freely whenever
+        criticism warrants revision; the type exists so that the crossing is <em>visible in the
+        lineage</em>, not so that it can be discouraged. What the type forbids is a revision that
+        presents itself as a continuation of the same inferential episode.
+      </p>
+
+      <p class="typed-consequence ds-body">
+        With the coordinate restored, the predicate becomes decidable by inspection: the displayed
+        transition was conditionalization exactly when the segment behind it consists only of
+        conditioning edges under one unchanged model version. Any constitution edge in that segment
+        settles the question the other way. The remaining premises of the inference keep their own
+        obligations — that is what the rest of this page is about.
+      </p>
+
+      <blockquote class="typed-close">
+        <p>Bayes’ theorem needs no repair. Its workflow record needs types.</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <FiveExposures />
+
+  {/* WARRANT CONSERVATION. Given a full section rather than a bullet under the fifth exposure,
+      because the predictable misreading — "so put the assumption in the model and it gets better" —
+      is exactly the move the principle forbids, and a bullet cannot argue with a reader. */}
+  <section id="warrant" class="warrant ds ds-paper ds-section" aria-labelledby="warrant-h">
+    <div class="ds-measure-wide">
+      <h2 id="warrant-h" class="ds-label">Warrant conservation</h2>
+      <p class="ds-proposition">Writing a premise down more formally does not make it better supported.</p>
+
+      <div class="warrant-body">
+        <div class="warrant-arg">
+          <p class="ds-body">
+            Modern models are expressive enough to hold almost everything at once: measurement error,
+            missingness, latent structure, priors, causal relations, observation processes. That is a
+            genuine strength. It also creates a specific illusion — components that appear together
+            mathematically can look as though they have the same empirical standing.
+          </p>
+          <p class="ds-body">
+            They do not. A treatment assignment may have been physically randomized. A measurement
+            model may be corroborated by validation data. A prior may be elicited. A transport
+            assumption may simply be assumed. All four can sit inside one joint distribution, and
+            writing them in the same expression does not give them the same evidence.
+          </p>
+          <p class="ds-body">
+            The corpus names this <em>representation-invariance of warrant</em>: how a premise is
+            written down does not by itself change the evidence for it. Re-expression, transformation
+            and probabilistic encoding are all evidence-neutral with respect to the premise they
+            re-describe. A status strengthens only when an explicit evidence-producing event or rule
+            supplies new warrant — a validation study, a design verification, a calibration check, an
+            external measurement.
+          </p>
+          <p class="ds-body">
+            This is not an argument against modelling, and it does not say that transformation
+            degrades anything. Evidence-neutral transformation may preserve warrant or weaken it.
+            What it cannot do is manufacture warrant that was not there.
+          </p>
+        </div>
+
+        <aside class="warrant-law" aria-labelledby="warrant-law-h">
+          <p id="warrant-law-h" class="law-label">The conservation law</p>
+          <dl class="law">
+            <div class="law-row">
+              <dt>Conservation</dt>
+              <dd>An evidence-neutral transformation does not manufacture warrant.</dd>
+            </div>
+            <div class="law-row">
+              <dt>Promotion</dt>
+              <dd>Stronger warrant requires an evidence-producing event or rule.</dd>
+            </div>
+          </dl>
+          <p class="law-note">
+            Which is why a later check can promote a premise while mere recomputation cannot — and
+            why the promotion belongs to the premise the check actually tested, not to its
+            neighbours in the same model.
+          </p>
+        </aside>
+      </div>
+
+      <p class="warrant-corollary ds-body">
+        A related distinction survives the same way. A certificate can be entirely warranted and
+        still say very little: a wide interval, a diffuse posterior, a conclusion that only survives
+        under a weak reading. Warrant is not informativeness, and neither one is evidence that the
+        other is present.
+      </p>
+    </div>
+  </section>
+
+  {/* REFUSAL. The page's conformance moment. Deliberately NOT rendered in the four-mood vocabulary
+      the site uses for Analytical Governance: same constitutional shape, different governed object,
+      and reusing AG's presentation would teach the two as one operation (brief §10). */}
+  <section id="refusal" class="refusal ds ds-paper ds-section" aria-labelledby="refusal-h">
+    <div class="ds-measure-wide">
+      <h2 id="refusal-h" class="ds-label">Refusal at the inferential boundary</h2>
+      <p class="ds-proposition">Refusal lives at the boundary.</p>
+
+      <p class="refusal-lede ds-body">
+        Inside a fully specified probability model, a conditional question usually has a mathematical
+        answer wherever the relevant conditional distribution is defined. A governed statistical
+        system faces an earlier question:
+      </p>
+
+      <blockquote class="refusal-test">
+        <p>Is the requested inferential passage established strongly enough to emit the requested claim?</p>
+      </blockquote>
+
+      <p class="ds-body refusal-answer">The answer can be refusal.</p>
+
+      <div class="grounds">
+        <p class="grounds-label">Grounds a governed system may refuse on</p>
+        <ul class="grounds-list">
+          <li>A required model declaration is missing.</li>
+          <li>Evidence provenance is unresolved.</li>
+          <li>The requested claim outruns the license.</li>
+          <li>A model crossing lacks a transport contract.</li>
+        </ul>
+      </div>
+
+      <p class="ds-body">
+        Refusal here is an entitlement result, not a crash and not a failure of nerve. It corresponds
+        to underivability in the wider certificate system: the machine may well have produced a
+        state, and the governance layer declines to promote that state into the requested claim
+        because the precondition is not derivable. The absence of a certificate is not repaired by
+        the presence of a value.
+      </p>
+
+      <div class="jurisdictions">
+        <p class="jur-label">Two refusals, one shape, different objects</p>
+        <dl class="jur">
+          <div class="jur-row">
+            <dt><a href="/analytical-governance">Analytical Governance</a></dt>
+            <dd>asks whether a requested analytical result may be served.</dd>
+          </div>
+          <div class="jur-row">
+            <dt>Evidence <span class="jur-sub">· the Statistical Bridge</span></dt>
+            <dd>asks whether the inferential passage from governed material to a requested claim is established.</dd>
+          </div>
+        </dl>
+        <p class="jur-line">Analytical governance can refuse the answer. Evidence can refuse the inference.</p>
+        <p class="jur-guard ds-body">
+          The rhyme is a site compression, and it is only safe with the types beside it. These are
+          the same constitutional shape — a governed system that cannot withhold permission is not
+          governed — applied to two different objects under two different jurisdictions. Collapsing
+          them would make the inferential boundary look like a serving policy, which is exactly the
+          confusion the distinction exists to prevent.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* THE BOUNDARY STATEMENT. Prose, and specifically NOT a diagram: any three-panel treatment of
+      Data / Evidence / Intelligence would constitute Evidence as a province by drawing it as one,
+      and would do so before the sentence beneath it could deny it (brief §11, hard guard). */}
+  <section id="standing" class="standing ds ds-paper ds-section" aria-labelledby="standing-h">
+    <div class="ds-measure-wide">
+      <h2 id="standing-h" class="ds-label">What Evidence is</h2>
+      <blockquote class="standing-claim">
+        <p>Evidence is a standing acquired through a governed crossing, not a sovereign jurisdiction.</p>
+      </blockquote>
+      <p class="ds-body standing-note">
+        Nothing on this page is a claim that evidence is a kind of object, a layer of the stack, or a
+        third territory beside data and intelligence. Material becomes evidence by bearing on a
+        declared target under a declared account of how it could have arisen — which is a status
+        conferred by a passage, and revocable when the passage changes. That is why the same complete
+        table was evidence for one claim and not for another in the opening case without a single
+        byte of it changing. Evidence is a pillar of this site’s argument. It is not a province of
+        the world.
+      </p>
+    </div>
+  </section>
+
+  {/* WHERE THIS SITS. A relation list, not equal boxes: these bodies of law have different shapes,
+      and a symmetric diagram would claim a parallelism the corpus does not have. */}
+  <section id="where-this-sits" class="relations ds ds-paper ds-section" aria-labelledby="rel-h">
+    <div class="ds-measure-wide">
+      <h2 id="rel-h" class="ds-label">Where this sits</h2>
+      <dl class="rel-list">
+        {RELATIONS.map((r) => (
+          <div class="relation" id={`relation-${r.id}`}>
+            <dt>
+              {r.href
+                ? <a href={r.href}>{r.name}</a>
+                : <span>{r.name}</span>}
+              <span class="rel-verb">{r.relation}</span>
+            </dt>
+            <dd>{r.text}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  {/* THE READING PATH. Membership and order are this page's editorial judgement; every fact in it
+      is read from the publication registry, so the list cannot go stale — only become an editorial
+      question. No count of works appears here, deliberately: the corpus classification is
+      ungoverned and a count would be a magic number wearing a computed disguise. */}
+  <section id="reading-path" class="reading ds ds-paper ds-section" aria-labelledby="reading-h">
+    <div class="ds-measure-wide">
+      <h2 id="reading-h" class="ds-label">Read the corpus</h2>
+      <p class="reading-lede ds-body">
+        This page compresses. The deposits govern, and they are open access. A serious reader should
+        start with the foundation and take the rest in whatever order the argument demands.
+      </p>
+      <ol class="path-list">
+        {READING_PATH.map((p) => (
+          <li class="path-item">
+            <p class="path-role">{p.role}</p>
+            <a class="path-title" href={p.work.href} rel="noopener" target="_blank">{p.work.title}</a>
+            <p class="path-meta">
+              Version {p.work.version} · DOI {p.work.doi}
+            </p>
+            <p class="path-why">{p.why}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="read-on">
+        <a href="/analytical-governance">Analytical Governance — what may be served</a>
+        <a href="/research">The research corpus</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── the wound ────────────────────────────────────────────────────────────────────────────── */
+  .wound .ds-proposition { max-width: 22ch; }
+  .wound-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+    margin-top: var(--ds-space-5);
+    align-items: start;
+  }
+  .wound-case :global(.ds-body) + :global(.ds-body) { margin-top: var(--ds-space-2); }
+  .wound-case :global(.ds-body) { max-width: 56ch; }
+  .wound-mark {
+    display: block;
+    margin: var(--ds-space-3) 0;
+    padding-left: 1.1rem;
+    border-left: 1px solid var(--ds-rule-strong);
+    color: var(--ink);
+    white-space: normal;
+  }
+
+  .wound-guard {
+    padding-left: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    border-left: 1px solid var(--ds-rule-strong);
+  }
+  .guard-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .guard-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .guard-list li {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--ink);
+    padding-left: 1.1rem;
+    position: relative;
+  }
+  .guard-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.55rem;
+    height: 1px;
+    background: var(--ink-faint);
+  }
+  .guard-note {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: var(--ds-space-3) 0 0;
+  }
+
+  .wound-turn { margin-top: var(--ds-space-5); max-width: var(--ds-essay); }
+  .wound-question {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--ds-space-3);
+    text-wrap: balance;
+  }
+  .wound-turn :global(.ds-body) + :global(.ds-body) { margin-top: var(--ds-space-2); }
+  .wound-quote {
+    margin: var(--ds-space-3) 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--ink);
+  }
+  .wound-quote p {
+    font-family: var(--font-serif);
+    font-size: var(--ds-verdict);
+    line-height: 1.3;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  /* ── typed passage ────────────────────────────────────────────────────────────────────────── */
+  .typed-lede { margin: var(--ds-space-3) 0 var(--ds-space-5); max-width: var(--ds-essay); }
+  .edges { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .edge-def {
+    padding: var(--ds-space-3) clamp(1rem, 2.5vw, 2.25rem);
+    border-top: 1px solid var(--ds-rule-strong);
+    border-left: 1px solid var(--ds-rule);
+  }
+  .edge-def:first-child { padding-left: 0; border-left: 0; }
+  .edge-def:last-child { padding-right: 0; }
+  .edge-def dt { display: grid; gap: 0.4rem; margin: 0 0 var(--ds-space-2); }
+  .edge-mark { color: var(--ink); }
+  .edge-name {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .edge-def dd { margin: 0; }
+  .edge-text {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .edge-text strong { color: var(--ink); font-weight: 600; }
+
+  .typed-guard, .typed-consequence { max-width: var(--ds-essay); margin: var(--ds-space-4) 0 0; }
+  .typed-close {
+    margin: var(--ds-space-5) 0 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--ink);
+    max-width: var(--ds-essay);
+  }
+  .typed-close p {
+    font-family: var(--font-serif);
+    font-size: var(--ds-commitment);
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+    margin: 0;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* ── warrant ──────────────────────────────────────────────────────────────────────────────── */
+  .warrant .ds-proposition { max-width: 26ch; }
+  .warrant-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+    margin-top: var(--ds-space-5);
+    align-items: start;
+  }
+  .warrant-arg :global(.ds-body) + :global(.ds-body) { margin-top: var(--ds-space-2); }
+  .warrant-arg :global(.ds-body) { max-width: 58ch; }
+
+  .warrant-law {
+    padding-left: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    border-left: 1px solid var(--ds-rule-strong);
+  }
+  .law-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .law { margin: 0; display: grid; gap: var(--ds-space-2); }
+  .law-row { display: grid; gap: 0.25rem; }
+  .law-row dt {
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .law-row dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .law-note {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: var(--ds-space-3) 0 0;
+  }
+  .warrant-corollary { margin-top: var(--ds-space-5); max-width: var(--ds-essay); }
+
+  /* ── refusal ──────────────────────────────────────────────────────────────────────────────── */
+  .refusal .ds-proposition { max-width: 20ch; }
+  .refusal-lede { margin: var(--ds-space-3) 0 var(--ds-space-3); max-width: var(--ds-essay); }
+  .refusal-test {
+    margin: 0 0 var(--ds-space-3);
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--ink);
+    max-width: var(--ds-essay);
+  }
+  .refusal-test p {
+    font-family: var(--font-serif);
+    font-size: var(--ds-verdict);
+    line-height: 1.3;
+    margin: 0;
+  }
+  .refusal-answer { color: var(--ink); max-width: var(--ds-essay); }
+
+  .grounds { margin: var(--ds-space-4) 0; }
+  .grounds-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .grounds-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    max-width: 52rem;
+  }
+  .grounds-list li {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    color: var(--ink);
+    padding-left: 1.1rem;
+    position: relative;
+  }
+  .grounds-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 0.55rem;
+    height: 1px;
+    background: var(--ink-faint);
+  }
+  .refusal :global(.ds-body) { max-width: var(--ds-essay); }
+
+  .jurisdictions {
+    margin: var(--ds-space-5) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+  }
+  .jur-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-3);
+  }
+  .jur { margin: 0; display: grid; gap: var(--ds-space-3); }
+  .jur-row {
+    display: grid;
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+    gap: 0 clamp(1.5rem, 1rem + 3vw, 3rem);
+    align-items: baseline;
+  }
+  .jur-row dt {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .jur-row dt a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+  }
+  .jur-row dt a:hover { border-bottom-color: var(--ink); }
+  /* its own line: "Evidence · the Statistical Bridge" broke across the column otherwise, which
+     read as two entries rather than one jurisdiction with its source of law. */
+  .jur-sub { display: block; font-size: var(--ds-meta); color: var(--ink-soft); }
+  .jur-row dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .jur-line {
+    font-family: var(--font-serif);
+    font-size: var(--ds-verdict);
+    line-height: 1.3;
+    color: var(--ink);
+    margin: var(--ds-space-4) 0 var(--ds-space-2);
+    max-width: 40ch;
+    text-wrap: balance;
+  }
+  .jur-guard { color: var(--ink-soft); }
+
+  /* ── standing ─────────────────────────────────────────────────────────────────────────────── */
+  .standing-claim {
+    margin: 0;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--ink);
+    max-width: 34ch;
+  }
+  .standing-claim p {
+    font-family: var(--font-serif);
+    font-size: var(--ds-commitment);
+    line-height: 1.18;
+    letter-spacing: -0.012em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standing-note { margin: var(--ds-space-4) 0 0; max-width: var(--ds-essay); }
+
+  /* ── where this sits ──────────────────────────────────────────────────────────────────────── */
+  .rel-list { margin: 0; display: grid; gap: 0; }
+  .relation {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 0 clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    padding: var(--ds-space-3) 0;
+    border-top: 1px solid var(--ds-rule);
+    align-items: start;
+  }
+  .relation:last-child { border-bottom: 1px solid var(--ds-rule); }
+  .relation dt { display: grid; gap: 0.3rem; margin: 0; }
+  .relation dt a, .relation dt span:first-child {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.2;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .relation dt a {
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .relation dt a:hover { border-bottom-color: var(--ink); }
+  .rel-verb {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    line-height: 1.4;
+    color: var(--ink-soft);
+  }
+  .relation dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  /* ── reading path ─────────────────────────────────────────────────────────────────────────── */
+  .reading-lede { margin: var(--ds-space-3) 0 var(--ds-space-4); max-width: var(--ds-essay); }
+  .path-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+  .path-item {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+    gap: 0.15rem clamp(1.5rem, 1rem + 3vw, 3rem);
+    padding: var(--ds-space-3) 0;
+    border-top: 1px solid var(--ds-rule);
+  }
+  .path-item:last-child { border-bottom: 1px solid var(--ds-rule); }
+  .path-role {
+    grid-row: 1 / span 3;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0.2rem 0 0;
+  }
+  .path-title {
+    grid-column: 2;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .path-title:hover { border-bottom-color: var(--ink); }
+  .path-meta {
+    grid-column: 2;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    margin: 0.35rem 0 0;
+  }
+  .path-why {
+    grid-column: 2;
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0.35rem 0 0;
+    max-width: 60ch;
+  }
+
+  .read-on {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-3);
+    margin: var(--ds-space-4) 0 0;
+  }
+  .read-on a {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+  }
+  .read-on a:hover { border-bottom-color: var(--ink); }
+
+  /* ── narrow ───────────────────────────────────────────────────────────────────────────────── */
+  @media (max-width: 60rem) {
+    .wound-body, .warrant-body { grid-template-columns: 1fr; gap: var(--ds-space-4); }
+    .wound-guard, .warrant-law {
+      padding-left: 0;
+      border-left: 0;
+      padding-top: var(--ds-space-3);
+      border-top: 1px solid var(--ds-rule);
+    }
+    .edges { grid-template-columns: 1fr; }
+    .edge-def { padding-left: 0; padding-right: 0; border-left: 0; }
+    .grounds-list { grid-template-columns: 1fr; }
+    .relation, .jur-row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .path-item { grid-template-columns: 1fr; }
+    .path-role { grid-row: 1; }
+    .path-title, .path-meta, .path-why { grid-column: 1; }
+    .path-title { margin-top: 0.4rem; }
+  }
+  @media (max-width: 56rem) {
+    .wound .ds-proposition,
+    .warrant .ds-proposition,
+    .refusal .ds-proposition,
+    .typed .ds-proposition { max-width: none; }
+    .standing-claim, .jur-line { max-width: none; }
+  }
+</style>

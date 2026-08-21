@@ -1,0 +1,204 @@
+---
+/**
+ * FiveExposures — the governed passage exposes five things, and the fourth is the one that gets lost.
+ *
+ * WHY FIVE AND NOT FOUR, WHICH IS THE WHOLE POINT OF THIS COMPONENT. The corpus carries two lists
+ * and they are not the same list:
+ *
+ *   · FOUR OBLIGATIONS, in an arrow chain — bridge constitution → probability source → inference
+ *     certificate → claim license. *Where Does Probability Live?* states this three times and calls
+ *     it "four analytical obligations".
+ *   · FIVE EXPOSURES — *The Two Jobs of the Conditioning Bar* §9.1: "The Statistical Bridge already
+ *     asks a mature analysis to expose: bridge constitution; probability source; inference
+ *     certificate; evidential standing of material premises; claim license."
+ *
+ * Both are canon. The fifth is not a fifth arrow: *The Statistical Bridge* v3.0's own review table
+ * carries it as a distinct typed question — "What is the evidential standing of material premises?"
+ * → evidence status — and §7 of *Where Does Probability Live?* makes it CROSS-CUTTING: "evidence
+ * status attaches to bridge contracts, not paradigms." It qualifies every component of the passage
+ * rather than occupying a position in it.
+ *
+ * So the section renders five, marks the four that form the chain, and says plainly why the fifth
+ * is not one of them. Compressing to four would delete exactly the exposure that carries warrant
+ * conservation — and then §Warrant below would have nothing to conserve.
+ *
+ * THE QUESTIONS ARE THE CORPUS'S OWN. Each is the review question the Bridge's "Architecture at a
+ * glance" table asks, not a gloss improvised from the name. Not product-feature cards: an ordered
+ * list, because the four are dependencies and the fifth qualifies all of them.
+ */
+const EXPOSURES = [
+  {
+    id: 'bridge-constitution',
+    name: 'Bridge constitution',
+    chain: true,
+    question: 'What empirical objects are being connected, and why is there a statistical connection between them at all?',
+    text:
+      'The evidence object, the target, the anchor geometry, the regime under which values arise, a forward account of how the evidence could have arisen, and the relation that makes the evidence bear on the quantity of interest. An inference method cannot repair an undefined bridge endpoint.',
+  },
+  {
+    id: 'probability-source',
+    name: 'Probability source',
+    chain: true,
+    question: 'Where did probability enter this analysis, and on which side of the bridge?',
+    text:
+      'Evidence-side sources govern how possible evidence could arise — a randomized design, an assignment mechanism, a measurement-error model, a missingness model. Target-side sources place probability over target-side unknowns; a prior is the canonical case. Observing that values vary does not create either one.',
+  },
+  {
+    id: 'inference-certificate',
+    name: 'Inference certificate',
+    chain: true,
+    question: 'What formal statement carries inferential authority under the declared sources?',
+    text:
+      'A coverage guarantee, a posterior statement, a likelihood ratio, a predictive interval, an e-value. The basis is an open type: frequentist and Bayesian forms are the historically dominant instances, not the definition. A number, interval or posterior does not manufacture the probability structure that gives it meaning.',
+  },
+  {
+    id: 'evidential-standing',
+    name: 'Evidential standing of material premises',
+    chain: false,
+    question: 'What is the evidential standing of material premises?',
+    text:
+      'A randomized assignment may be instituted and auditable. A measurement model may be corroborated by validation data. A prior may be elicited. A transport assumption may simply be assumed. All of them can appear inside one joint model. Mathematical co-location does not equalize warrant.',
+  },
+  {
+    id: 'claim-license',
+    name: 'Claim license',
+    chain: true,
+    question: 'What may the certificate legitimately mean in the world?',
+    text:
+      'The bound on population, time, regime, transport and sensitivity. A valid certificate has a home — an evidence object, a target, a design, a regime, a population and time domain, a set of premises. Moving beyond that home requires another argument.',
+  },
+];
+---
+
+<section id="five-exposures" class="ex ds ds-paper ds-section" aria-labelledby="ex-h">
+  <div class="ds-measure-wide">
+    <h2 id="ex-h" class="ds-label">What a governed passage must expose</h2>
+    <p class="ds-proposition">Five questions, and the fourth is the one that goes missing.</p>
+
+    <p class="ex-lede ds-body">
+      A typed record is not the whole repair. The transition type says what kind of move was made; it
+      does not say whether the passage as a whole was entitled to its conclusion. For that, a mature
+      analysis has to expose five different things — and answering four of them well is the most
+      common way to be confidently wrong.
+    </p>
+
+    <ol class="ex-list">
+      {EXPOSURES.map((e, i) => (
+        <li class="ex-item" id={`exposure-${e.id}`}>
+          <p class="ex-ord" aria-hidden="true">{i + 1}</p>
+          <div class="ex-id">
+            <h3 class="ex-name">{e.name}</h3>
+            <p class="ex-role">{e.chain ? 'A dependency in the obligation chain.' : 'Cross-cutting. It qualifies every other exposure, and occupies no position in the chain.'}</p>
+          </div>
+          <div class="ex-body">
+            <p class="ex-question">{e.question}</p>
+            <p class="ex-text">{e.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <div class="ex-note">
+      <p class="ex-note-label">Why the corpus says four in one place and five in another</p>
+      <p class="ds-body">
+        Four of these are the <em>obligation chain</em>: bridge constitution → probability source →
+        inference certificate → claim license. The arrows indicate dependence, not chronology — one
+        declaration can discharge several, and a later diagnostic can reopen an earlier one. What a
+        later claim may not do is borrow authority from an undeclared earlier relation.
+      </p>
+      <p class="ds-body">
+        Evidential standing is the fifth exposure and not a fifth arrow, because it attaches to
+        <em>components</em> rather than to stages: it is the standing of each premise the passage
+        leans on, and it applies to all four at once. That is precisely why it is the one that
+        disappears when the five are compressed into the chain — and why the next section exists.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ex-lede { margin: var(--ds-space-3) 0 var(--ds-space-5); max-width: var(--ds-essay); }
+
+  .ex-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+  .ex-item {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 22rem) minmax(0, 1fr);
+    gap: 0 clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    align-items: start;
+    padding: var(--ds-space-3) 0;
+    border-top: 1px solid var(--ds-rule);
+  }
+  .ex-item:last-child { border-bottom: 1px solid var(--ds-rule); }
+
+  .ex-ord {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-faint);
+    margin: 0.35rem 0 0;
+  }
+  .ex-id { display: grid; gap: var(--ds-space-1); align-content: start; }
+  .ex-name {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0;
+    color: var(--ink);
+  }
+  /* carries meaning (chain vs cross-cutting), so --ink-soft — see redesign.css on --ink-faint */
+  .ex-role {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 30ch;
+  }
+  .ex-body { display: grid; gap: var(--ds-space-2); align-content: start; }
+  .ex-question {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+    max-width: 52ch;
+  }
+  .ex-text {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 56ch;
+  }
+  /* The fourth is set apart by WEIGHT of rule, not by colour: it is different in kind, not in merit. */
+  #exposure-evidential-standing { border-top-width: 2px; border-top-color: var(--ds-rule-strong); }
+  #exposure-evidential-standing .ex-role { color: var(--ink); }
+
+  .ex-note {
+    margin: var(--ds-space-5) 0 0;
+    padding-left: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    border-left: 1px solid var(--ds-rule-strong);
+    max-width: var(--ds-essay);
+  }
+  .ex-note-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .ex-note :global(.ds-body) + :global(.ds-body) { margin-top: var(--ds-space-2); }
+
+  @media (max-width: 60rem) {
+    .ex-item { grid-template-columns: 2rem minmax(0, 1fr); }
+    .ex-body { grid-column: 2; margin-top: var(--ds-space-2); }
+    .ex-role { max-width: none; }
+  }
+</style>

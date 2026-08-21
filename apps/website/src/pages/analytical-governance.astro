@@ -84,6 +84,12 @@ const NEIGHBOURS = [
   {
     id: 'bridge',
     name: 'The Statistical Bridge',
+    // CV-6, closed 2026-08-21. This was the page's ONE unlinked neighbour, and the omission was
+    // structural rather than editorial: there was no canonical Evidence surface to point at, and
+    // pointing a conceptual neighbour straight at a DOI would have sent a reader mid-argument out
+    // of the site and into a PDF. /evidence now exists, so the neighbour resolves to the argument
+    // rather than to the deposit — which is also what every other linked neighbour here does.
+    href: '/evidence',
     relation: 'governs a crossing inside',
     text:
       'The Bridge governs the passage from governed data and evidence to inferential claims. Analytical governance may compose that crossing into a larger analytical path. It does not replace the Bridge’s law, and it does not adjudicate inference itself.',

@@ -473,5 +473,17 @@
    "10.5281/zenodo.22026962"
   ],
   "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing."
+ },
+ {
+  "path": "apps/website/src/pages/evidence.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The canonical Evidence surface (Phase 3C, 2026-08-21). It cites five deposited works — the hero signpost and the closing reading path — and types none of them: title, version and DOI are read from the registry through citation(). This is the first surface built AFTER the registry existed rather than migrated onto it, which is the whole point of Phase 3B: the Evidence corpus was governed before the page that cites it was written, so there was never a moment at which a DOI on this page could have been hand-typed and then gone stale."
+ },
+ {
+  "path": "apps/website/src/components/evidence/EvHero.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The Evidence hero signpost to The Statistical Bridge. Registry-derived; the only hand-authored string is the byline's display form of the author's name."
  }
 ]

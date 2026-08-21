@@ -1,0 +1,106 @@
+---
+/**
+ * EvHero — the first screen of /evidence. PAPER register only.
+ *
+ * THE WOUND IS INFERENTIAL, AND THE HIERARCHY SAYS SO. The proposition is the Evidence-native
+ * failure: not a wrong number, not a wrong anchor, but a correct result that is not entitled to the
+ * claim being made from it. The Theory of Data owns "what is the analytical object?"; this page
+ * begins one jurisdiction later, after the object is right.
+ *
+ * WHAT IS DELIBERATELY NOT ABOVE THE FOLD. Bayes is not named. Columna is not named. Neither is
+ * "world": Evidence is a standing acquired through a governed crossing, and a hero that presented it
+ * as a third province beside Data and Intelligence would have decided that question by layout
+ * before the page argued it (brief §11).
+ *
+ * THE SIGNPOST IS SUBORDINATE AND REGISTRY-DERIVED. The Statistical Bridge governs this page; the
+ * page compresses and connects it. But the deposit is metadata beneath the thesis, not the headline
+ * — and no title, version, date or DOI is typed into this file. check_publications.py classifies
+ * /evidence `derived` and fails the build if one appears.
+ */
+import { citation, longDate } from '../../data/publications';
+
+const bridge = citation('w-statistical-bridge');
+---
+
+<section class="ev-hero ds ds-paper ds-section" aria-labelledby="ev-thesis">
+  <div class="ds-measure-wide">
+    <p class="ds-label">Evidence</p>
+
+    {/* THE CADENCE IS THE ARGUMENT. Three parallel clauses, and the turn is in the third — so each
+        gets its own line rather than being left to wrap wherever the measure happens to end. */}
+    <h1 id="ev-thesis" class="proposition">
+      <span>The data can be right.</span>
+      <span>The mathematics can be right.</span>
+      <span class="turn">The claim can still be unlicensed.</span>
+    </h1>
+
+    <p class="organizing">
+      Evidence is not a kind of data. It is the governed passage by which operational material
+      becomes evidence, evidence bears on a formal target, formal machinery derives a result, and
+      that result returns as a bounded claim about the world.
+    </p>
+
+    <p class="signpost">
+      <a href={bridge.href} rel="noopener" target="_blank">{bridge.title}</a>
+      <span class="meta">Huayin Wang · Version {bridge.version} · {longDate(bridge.date)} · DOI {bridge.doi}</span>
+      <span class="role">The foundational paper. This page compresses and connects it; the deposit governs.</span>
+    </p>
+  </div>
+</section>
+
+<style>
+  .ev-hero { padding-block: var(--ds-turn) var(--ds-space-5); }
+
+  .proposition {
+    font-family: var(--font-serif);
+    font-size: var(--ds-display);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.018em;
+    margin: var(--ds-space-3) 0 0;
+    max-width: 30ch;
+  }
+  .proposition span { display: block; }
+  .proposition .turn { text-indent: 0; }
+
+  .organizing {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    margin: var(--ds-space-4) 0 0;
+    max-width: var(--ds-essay);
+  }
+
+  /* Metadata that stays metadata: sans, small, beneath a rule, after the argument. */
+  .signpost {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-1);
+    margin: var(--ds-turn) 0 0;
+    padding-top: var(--ds-space-2);
+    border-top: 1px solid var(--ds-rule);
+    max-width: var(--ds-essay);
+  }
+  .signpost a {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    align-self: flex-start;
+  }
+  .signpost a:hover { border-bottom-color: var(--ink); }
+  /* --ink-soft, not --ink-faint: these carry the publication fact and the page's relation to the
+     deposit. --ink-faint measures 3.48:1 on paper and is reserved for aria-hidden decoration. */
+  .meta, .role {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 46rem) {
+    .proposition { max-width: none; font-size: clamp(1.9rem, 1.2rem + 3.6vw, 2.6rem); }
+  }
+</style>
