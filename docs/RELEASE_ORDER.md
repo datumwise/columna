@@ -83,6 +83,41 @@ Prefer the standard order. Choose the inversion only when the merge decision and
 are genuinely separate, and record it — as this paragraph does — rather than letting a future reader
 discover a red `main` and assume something broke.
 
+## The v0.15.0 incident — content behind an unchanged version (2026-08-20)
+
+**Recorded, not tidied away.** v0.15.0 published `columna 0.15.0` + `columna-core 0.15.0`, and
+`columna-core 0.15.0` passed its shipped-artifact Afternoon gate. The release set was still not
+coherent, and the reason is worth keeping:
+
+`columna-server`'s **source** changed in that release — the generated-family law re-cut the four-mood
+demo seeds — while its **version** stayed at `0.8.2`. So:
+
+- `skip-existing` uploaded nothing for it, correctly: 0.8.2 was already on PyPI.
+- `assert_pypi_versions.py` passed, correctly: 0.8.2 *is* live.
+- The release-set coherence guard passed, correctly: it checks umbrella/core lockstep, and
+  `columna-server` is not in lockstep.
+- The published set installed cleanly, and `columna-server demo --play` printed a leg labelled
+  `disclose` that returned `refuse` — **exiting 0**.
+
+Three variants of one class, in order: a stale **pin** resolves (0.13.2/0.13.3); a stale **version**
+resolves (the v0.15.0 preflight); stale **content behind an unchanged version** resolves (this one).
+Each time, the guard that would have caught the previous variant behaved correctly and saw nothing.
+
+Two guards close it, both fail-closed:
+
+1. `scripts/release_pins.py --check-payload dist` — compares each **built** wheel against the wheel
+   PyPI already serves for that same version, normalized. Changed payload under a reused version
+   refuses the release. Runs in `publish.yml`'s build job, so it gates every PR as well as the tag.
+2. `columna-server demo --play` now **verifies its own seeds**: a leg whose actual outcome differs
+   from the mood its heading declares exits non-zero. The first-run surface is where a stranger meets
+   the four moods; it must not be able to print a contradiction and succeed.
+
+`v0.15.0` is **not** withdrawn, republished or overwritten — PyPI artifacts are immutable and the
+0.15.0 core artifact remains valid, with a valid Afternoon attestation. It is superseded by `v0.15.1`,
+which ships the coherent set (`columna 0.15.1` / `columna-core 0.15.1` / `columna-server 0.8.3`) and
+raises the umbrella's **server** floor for the same reason the core floor exists: a release's umbrella
+must not admit a stale companion.
+
 ## What stays true regardless
 
 The wedge **fails closed**. The retry budget is bounded and exhausting it exits non-zero. Widening

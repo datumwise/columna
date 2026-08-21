@@ -24,6 +24,18 @@ jobs:
           python -m build packages/columna        --outdir dist   # the metapackage (lockstep with core)
       - name: Validate metadata
         run: twine check dist/*
+      # THE PAYLOAD/VERSION GATE (Huayin, 2026-08-20, after the v0.15.0 incident). `skip-existing`
+      # must never silently turn "same version" into "therefore same package". This compares each
+      # BUILT wheel against the wheel PyPI already serves for that same version, normalized (dist-info
+      # prefix folded, RECORD/WHEEL dropped as toolchain noise, METADATA KEPT because dependency
+      # floors are payload). A version already published whose payload has changed fails here —
+      # before the release, while refusing is still free.
+      #
+      # It runs in the BUILD job, not the publish job, so it also gates every PR: the question
+      # "would this tree ship changed content under a version already on PyPI" has an answer long
+      # before anyone cuts a tag.
+      - name: No package ships changed content under a reused version
+        run: python scripts/release_pins.py --check-payload dist
       - name: Show dists
         run: ls -l dist
       - uses: actions/upload-artifact@v4

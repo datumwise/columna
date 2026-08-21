@@ -78,3 +78,65 @@ def test_demo_play_survives_a_cp1252_stdio_locale():
                  for mood in ("clarify", "refuse", "disclose", "serve")]
     assert -1 not in positions, positions
     assert positions == sorted(positions), positions
+
+
+# ── the seed→mood gate (2026-08-20, after the v0.15.0 release incident) ──────────────────────────
+# The published columna-server 0.8.2 running against columna-core 0.15.0 printed
+#     [3/4] disclose   query: SELECT stock.sum AT {store*cal.month}
+#     "outcome": "refuse"
+# and EXITED 0. Every leg's heading declares a mood; nothing checked that the query still earns it.
+# `test_demo_play_prints_three_moods_in_order` above could not catch it either — it asserts that the
+# four mood STRINGS appear in order anywhere in the output, which a refusing disclose leg still
+# satisfies as long as some other leg happens to print each word.
+
+def test_every_seeded_leg_earns_the_mood_it_declares():
+    """The four-mood contract, asserted per leg rather than by counting words in the transcript."""
+    from columna_server.demo import seed_integrity
+
+    assert seed_integrity() == [], (
+        "a seeded demo leg no longer returns its declared mood — the shipped four-mood tour would "
+        "print a contradiction. Re-cut the seed or fix the law, but do not let them disagree."
+    )
+
+
+def test_play_exits_non_zero_when_a_seed_no_longer_earns_its_mood(monkeypatch):
+    """The gate must FAIL the command, not just report. This is the regression for the incident.
+
+    Rather than fabricating a stale package, we point one seed at a query that earns a different
+    mood — the same shape of disagreement the stale 0.8.2 seeds produced against 0.15.0.
+    """
+    import io
+
+    from columna_server import demo
+
+    # `SELECT stock.sum AT {store*cal.month}` REFUSES under the generated-family law — exactly the
+    # ask the stale 0.8.2 package still declared as its `disclose` witness.
+    monkeypatch.setattr(demo, "DISCLOSE_Q", "SELECT stock.sum AT {store*cal.month}")
+    buf = io.StringIO()
+    rc = demo.play(out=buf)
+    text = buf.getvalue()
+
+    assert rc == 1, "a demo leg that does not earn its mood must fail the command"
+    assert "DEMO INTEGRITY FAILURE" in text
+    assert "declared 'disclose' but the engine returned 'refuse'" in text
+
+
+def test_seed_integrity_names_both_sides_of_a_mismatch(monkeypatch):
+    """A failure has to be actionable: which leg, which query, and what it actually returned."""
+    from columna_server import demo
+
+    monkeypatch.setattr(demo, "SEED_MOODS",
+                        (("disclose", "SELECT stock.sum AT {store*cal.month}"),))
+    bad = demo.seed_integrity()
+    assert bad == [("disclose", "SELECT stock.sum AT {store*cal.month}", "refuse")]
+
+
+def test_a_coherent_play_says_so_explicitly():
+    """Silence is not evidence. A passing run states that the contract held."""
+    import io
+
+    from columna_server.demo import play
+
+    buf = io.StringIO()
+    assert play(out=buf) == 0
+    assert "demo seed integrity OK" in buf.getvalue()
