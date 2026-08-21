@@ -64,6 +64,13 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'column identity is the canonical expression, not a mechanical default (wire contract 2)',
     date: '2026-07-30',
   },
+  // The generated-family law (ADR-036). Stated as the rule, not the patch: the defect was that a
+  // reducer GENERATED above a lawful leaf was invisible to the law walk, so `sum(stock.last@day)`
+  // served the same meaningless number its own prohibition refused one syntax away.
+  '0.15.0': {
+    title: 'generation creates identity, not permission — structurally prohibited reductions now refuse',
+    date: '2026-08-20',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

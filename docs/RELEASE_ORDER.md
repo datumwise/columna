@@ -58,6 +58,31 @@ vantage point** that can be stale either way. **Verify installability by install
 `/simple/`, ideally more than once from more than one place. Never by reading a metadata endpoint
 that merely describes the package. A convenient observation is still an observation.
 
+## The deliberate inversion — a correctness unit merged before publication
+
+**Annotation, 2026-08-20 (Huayin). The order above remains the norm; this is not a second default.**
+
+Sometimes a correctness unit is reviewed and merged to `main` *before* its artifacts are published —
+because the review is about the code, and the release decision is a separate, later judgement. That
+happened on v0.15.0: PR #184 (the generated-family law) merged at `d164809` while `columna-core
+0.15.0` did not yet exist on PyPI.
+
+Two consequences, both expected, neither a fault:
+
+1. **`main` sits shipped-coherent-red until publication.** The push triggers the deploy, the wedge
+   cannot install a package that does not exist, and it fails closed with a named reason after its
+   full retry budget. That red is the wedge holding. **Do not make it green by any means other than
+   publishing the package** — not by relaxing the pin, not by widening the budget, not by skipping
+   the job. A green obtained any other way is the exact failure the wedge exists to prevent.
+2. **The shipped-coherent deploy must be explicitly rerun and verified after publication.** It will
+   not fire again on its own: its trigger was the push, and that push has already been consumed. Use
+   the repository's normal rerun mechanism once the packages are genuinely installable, and verify
+   the live site rather than the workflow's conclusion.
+
+Prefer the standard order. Choose the inversion only when the merge decision and the release decision
+are genuinely separate, and record it — as this paragraph does — rather than letting a future reader
+discover a red `main` and assume something broke.
+
 ## What stays true regardless
 
 The wedge **fails closed**. The retry budget is bounded and exhausting it exits non-zero. Widening
