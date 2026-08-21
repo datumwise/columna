@@ -59,7 +59,17 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
 SNAPSHOT = REG / "zenodo_snapshot_2026-08-21.json"
 
-TOKEN_RE = re.compile(r"zenodo\.\d{6,10}")
+# TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
+#
+# The audit originally read only the DOI form, `zenodo.<id>`. A ratified architecture checkpoint had
+# been citing three records as "Zenodo 21958062" — bare prose, no DOI — for two days, entirely
+# invisible to the gate. It happened to be correct (an edition-pinned Sources line), which is the
+# unsettling part: the gate would have been equally silent had it been wrong. A scanner that reads one
+# spelling of an identifier does not audit identifiers, it audits a spelling.
+#
+# Both forms normalize to `10.5281/zenodo.<id>` before anything compares them.
+DOI_TOKEN_RE = re.compile(r"zenodo\.(\d{6,10})")
+PROSE_TOKEN_RE = re.compile(r"[Zz]enodo[ :]+(\d{6,9})")
 # A count claim on a derived surface: a number word or digit immediately governing "papers" /
 # "publications". Deliberately narrow — this gate refuses magic numbers, it does not police prose.
 COUNT_RE = re.compile(
@@ -96,21 +106,23 @@ def tracked_files() -> list[str]:
 
 
 def scan_tokens() -> dict[str, set[str]]:
-    """Every Zenodo token in every tracked file, as `10.5281/zenodo.<id>`."""
-    out = subprocess.run(
-        ["git", "grep", "-h", "-o", "-E", r"zenodo\.[0-9]{6,10}", "--",
-         ".", ":(exclude)apps/website/dist", ":(exclude)registry"],
-        cwd=ROOT, capture_output=True, text=True, check=False,
-    )
+    """Every Zenodo record reference in every tracked file, in either spelling, as `10.5281/zenodo.<id>`."""
     per: dict[str, set[str]] = {}
-    listing = subprocess.run(
-        ["git", "grep", "-n", "-o", "-E", r"zenodo\.[0-9]{6,10}", "--",
-         ".", ":(exclude)apps/website/dist", ":(exclude)registry"],
-        cwd=ROOT, capture_output=True, text=True, check=False,
-    ).stdout
-    for line in listing.splitlines():
-        path, _lineno, tok = line.split(":", 2)
-        per.setdefault(path, set()).add("10.5281/" + tok)
+    patterns = [
+        (r"zenodo\.[0-9]{6,10}", DOI_TOKEN_RE),        # the DOI form
+        (r"[Zz]enodo[ :]+[0-9]{6,9}", PROSE_TOKEN_RE),  # the prose form: "Zenodo 21958062"
+    ]
+    for grep_pattern, extract in patterns:
+        listing = subprocess.run(
+            ["git", "grep", "-n", "-o", "-E", grep_pattern, "--",
+             ".", ":(exclude)apps/website/dist", ":(exclude)registry"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        ).stdout
+        for line in listing.splitlines():
+            path, _lineno, raw = line.split(":", 2)
+            m = extract.search(raw)
+            if m:
+                per.setdefault(path, set()).add("10.5281/zenodo." + m.group(1))
     return per
 
 
@@ -411,6 +423,21 @@ def main() -> int:
     if len(v10) != 1 or v10[0]["version"] != "1.0":
         fail("G9", "ruling 1: 21632723 must be modeled as Open Planner v1.0 — the frozen deposit's claim that "
                    "it is v1.3 is tolerated in that file and must never become the registry's belief")
+
+    # The registry's FIRST POST-PHASE-1 SUPERSESSION EVENT (Huayin, 2026-08-21). Pinned here rather
+    # than trusted to the mint rule, because "latest deposit wins" is what PRODUCES this answer and an
+    # acceptance test that re-derives its expectation from the rule under test asserts nothing.
+    ag = current_of("w-analytical-governance")
+    if not ag or ag["doi"] != "10.5281/zenodo.22046037" or ag["version"] != "1.1":
+        fail("G9", f"AG v1.1: the current Analytical Governance record must be v1.1 / 22046037; got "
+                   f"{ag and (ag['version'], ag['doi'])}")
+    else:
+        prev = by_record.get(ag.get("supersedes") or "")
+        if not prev or prev["doi"] != "10.5281/zenodo.21959749" or prev["version"] != "1.0":
+            fail("G9", "AG v1.1: v1.1 must supersede v1.0 (21959749) by recordId, not by DOI or by date")
+        elif prev["status"] != "superseded":
+            fail("G9", "AG v1.1: v1.0 must remain a first-class historical record with status `superseded` — "
+                       "superseded is a status, not a deletion")
 
     anchors = current_of("w-two-anchors")
     if not anchors or anchors["version"] != "2.0":

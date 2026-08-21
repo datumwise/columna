@@ -7,12 +7,28 @@
   "date": "2026-08-15",
   "doi": "10.5281/zenodo.21959749",
   "recid": "21959749",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-analytical-governance.r02",
+  "workId": "w-analytical-governance",
+  "title": "Analytical Governance: From User Intent to Governed Analytical Execution",
+  "version": "1.1",
+  "date": "2026-08-21",
+  "doi": "10.5281/zenodo.22046037",
+  "recid": "22046037",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-analytical-governance.r01"
  },
  {
   "recordId": "w-contract-calculus.r01",

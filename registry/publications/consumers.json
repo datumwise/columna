@@ -249,6 +249,16 @@
   "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
  },
  {
+  "path": "docs/architecture/tod_v6_runtime_reconciliation.md",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.21958062",
+   "10.5281/zenodo.21959749",
+   "10.5281/zenodo.21960798"
+  ],
+  "note": "A RATIFIED, dated checkpoint whose `Sources:` line names the exact editions it was read against — ToD v6.0, Analytical Governance v1.0, Frame-QL: An Introduction v2.0. Two of the three are now superseded and MUST NOT be currentized: the note reconciles the runtime against those editions, and repointing it at later ones would claim a reconciliation nobody performed. Surfaced 2026-08-21 by widening the echo scanner to the prose spelling ('Zenodo 21958062'), which it had been using since 2026-08-19 — invisible to the gate the whole time, and correct by luck rather than by check."
+ },
+ {
   "path": "docs/columna_framework_manual_6f.md",
   "class": "frozen",
   "allowedDois": [
@@ -294,8 +304,10 @@
    "10.5281/zenodo.21695710",
    "10.5281/zenodo.21958062",
    "10.5281/zenodo.21959668",
+   "10.5281/zenodo.21959749",
    "10.5281/zenodo.22013410",
-   "10.5281/zenodo.22018549"
+   "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22046037"
   ],
   "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real."
  },
@@ -344,9 +356,10 @@
   "path": "specs/doctrine_gaps.md",
   "class": "ledger",
   "allowedDois": [
-   "10.5281/zenodo.21959749"
+   "10.5281/zenodo.21959749",
+   "10.5281/zenodo.22046037"
   ],
-  "note": "A live internal ledger. Cites records to track them; asserts no current publication fact to the public."
+  "note": "A live internal ledger. Cites records to track them; asserts no current publication fact to the public. Row CT-2 was closed 2026-08-21 by the AG v1.1 supersession and names both the superseding record (22046037) and the superseded one (21959749) — which is what a closed supersession row is FOR."
  },
  {
   "path": "specs/open_planner/README.md",

@@ -81,5 +81,25 @@
   ],
   "reason": "Ruling 8 (2026-08-21): do NOT rewrite it in Phase 1 merely because it is mounted at /research. Three things follow and all three are done: it stops being treated as publication authority (its class here is frozen-corpus, and no derived surface reads it); it is recorded as a remaining manual/frozen consumer (consumers.json); and the registry knows the current truth independently of it. Replacing the live /research presentation with a registry-derived institutional view, while preserving this file as source material, is a later unit. That page architecture is not solved here.",
   "provenance": "Huayin, ruling 8 of 2026-08-21. Slice 2 ledger §3.4 records the same surface as REVISE / route KEEP."
+ },
+ {
+  "id": "rc-analytical-governance-v1-0-superseded",
+  "tokens": [
+   "10.5281/zenodo.21959749"
+  ],
+  "disposition": "superseded-current-authority",
+  "claim": "10.5281/zenodo.21959749 is the current record of Analytical Governance",
+  "truth": "21959749 is v1.0 (2026-08-15), superseded 2026-08-21 by v1.1 (10.5281/zenodo.22046037). Both remain historically addressable; Zenodo's own metadata on v1.1 carries isNewVersionOf 10.5281/zenodo.21959749.",
+  "replacement": "10.5281/zenodo.22046037",
+  "allowedContexts": [
+   "specs/doctrine_gaps.md",
+   "specs/website_slice2_content_reconciliation_v0_1.md",
+   "docs/architecture/tod_v6_runtime_reconciliation.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "RETIRED AS CURRENT AUTHORITY, NOT RETIRED. v1.0 is a first-class historical record and this item does not forbid its DOI — it forbids the CLAIM that it is current. Version history, supersession relationships, dated reconciliation checkpoints and frozen v1.0 material may all name it, and three tracked documents legitimately do. What may not name it is a current publication view: /about, the llms publication inventory, and the /analytical-governance citation. Those three are class `derived` and carry no literal DOI at all, so the prohibition is structural rather than advisory — they re-derived to v1.1 the moment the record landed, with no edit to any page.",
+  "provenance": "Huayin, 2026-08-21 (the AG v1.1 supersession unit). Verified against live Zenodo the same day: concept 21959748 holds exactly two versions, 21959749 v1.0 and 22046037 v1.1."
  }
 ]
