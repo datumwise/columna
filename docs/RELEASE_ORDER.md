@@ -141,8 +141,9 @@ learned what they were for. Each line below cost an incident.
 
 4. **`columna` and `columna-core` share the public release version.** `columna-server` is
    independently versioned, but the umbrella release must require a server floor compatible with the
-   coherent release state it represents — an umbrella must never admit a companion older than the
-   release it names.
+   coherent release state it represents — the umbrella must not admit a companion older than the
+   minimum companion state declared for that umbrella release. The requirement is compatibility and
+   currency, not numeric lockstep between `columna-server` and the umbrella.
 
 5. **A first-run demo that names an expected serving mood must fail if the actual mood differs.**
    The first-run surface is where a stranger meets the four moods. A surface that can print a
