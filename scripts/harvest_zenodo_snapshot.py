@@ -54,8 +54,14 @@ EXTRA_SEEDS = ROOT / "registry" / "publications" / "extra_seeds.txt"
 
 def repo_seeds() -> list[str]:
     """Every Zenodo record id cited in a TRACKED file. dist/ is build output, so it is excluded."""
+    # `registry` IS EXCLUDED, and it has to be (2026-08-21). Once the registry landed, its own files
+    # became the largest source of Zenodo ids in the repo — including CONCEPT recids, which are not
+    # version records. Seeding from them asks Zenodo for /records/<concept>/versions, which 404s, and
+    # the harvester correctly refused to write a snapshot it could not complete. Seeds come from what
+    # the repo CITES plus extra_seeds.txt; the registry is the OUTPUT of this script, never its input.
     out = subprocess.run(
-        ["git", "grep", "-h", "-oE", r"zenodo\.[0-9]{6,9}", "--", ".", ":(exclude)apps/website/dist"],
+        ["git", "grep", "-h", "-oE", r"zenodo\.[0-9]{6,9}", "--", ".",
+         ":(exclude)apps/website/dist", ":(exclude)registry"],
         cwd=ROOT, capture_output=True, text=True, check=False,
     ).stdout
     return sorted({m.group(1) for m in TOKEN_RE.finditer(out)})

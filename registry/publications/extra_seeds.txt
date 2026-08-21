@@ -20,3 +20,4 @@
 21959941   # The Theory of Data Applied v1.0 — a SEPARATE work, not a Primer version
 21888464   # The Two Anchors of a Measure v2.0 — current; every page footer carried v1.0
 21707446   # The Theory of Data — A Foundations Note v1.1 — current; /about carried v1.0
+22046037   # Analytical Governance v1.1 — the registry's first post-Phase-1 supersession event (2026-08-21)

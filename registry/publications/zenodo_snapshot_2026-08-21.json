@@ -175,9 +175,10 @@
   "21959748": {
    "conceptDoi": "10.5281/zenodo.21959748",
    "conceptRecid": "21959748",
-   "versionCount": 1,
+   "versionCount": 2,
    "versions": [
-    "21959749"
+    "21959749",
+    "22046037"
    ]
   },
   "21959940": {
@@ -884,9 +885,23 @@
    "resourceType": "Preprint",
    "title": "The Theory of Data: An Introduction",
    "version": "2.2"
+  },
+  "22046037": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21959748",
+   "conceptRecid": "21959748",
+   "doi": "10.5281/zenodo.22046037",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-21",
+   "recid": "22046037",
+   "resourceType": "Preprint",
+   "title": "Analytical Governance: From User Intent to Governed Analytical Execution",
+   "version": "1.1"
   }
  },
- "seedCount": 32,
+ "seedCount": 33,
  "source": "https://zenodo.org/api/records",
  "unresolvedSeeds": [
   "220134101"
