@@ -179,7 +179,7 @@ export function longDate(iso: string): string {
  * llms.txt said "The nine papers, chronological" — a hand-typed number over a hand-typed list, which
  * is the cheapest possible way to be wrong in public. The fix is NOT `count(distinct doi)` wearing the
  * word "papers": records, works, papers, primers, positions and program notes are not the same
- * counting unit, and this corpus contains all of them. 49 records across 21 works is not "21 papers".
+ * counting unit, and this corpus contains all of them. 67 records across 30 works is not "30 papers".
  *
  * So the count is not computed, and this flag says why. It flips to true only when every work carries
  * a governed `kind` — at which point "N current published works of kind paper" becomes a sentence the

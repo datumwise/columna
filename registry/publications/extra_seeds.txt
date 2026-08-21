@@ -21,3 +21,22 @@
 21888464   # The Two Anchors of a Measure v2.0 — current; every page footer carried v1.0
 21707446   # The Theory of Data — A Foundations Note v1.1 — current; /about carried v1.0
 22046037   # Analytical Governance v1.1 — the registry's first post-Phase-1 supersession event (2026-08-21)
+
+# ── The Evidence pillar (Phase 3B, 2026-08-21) ───────────────────────────────────────────────────
+# Nine works, seventeen deposited versions, and not one of them was cited by a single tracked file on
+# the morning this was written: the Statistical Bridge corpus existed entirely on Zenodo and entirely
+# outside the registry. There is nothing to currentize here and no stale DOI to repair — the failure
+# was ABSENCE, which is the one defect a scan of what the repo says can never find. Seeded by ruling
+# so the corpus enters before the surface that will cite it, not after.
+21979821   # The Statistical Bridge v3.0 — the pillar's constitutional text (concept 21795311)
+21980262   # A Primer on the Statistical Bridge v2.0 — the accessible entry (concept 21864433)
+21977942   # Where Does Probability Live? v1.0 — the probability-source exposure
+21972541   # Certifiable State Under Information Loss v1.0 — warrant conservation, evidence-neutrality
+21983508   # Reading Bayesian Workflow Through the Statistical Bridge v1.0
+21998564   # Reading Statistical Rethinking Through the Statistical Bridge v2.0 (concept 21863558)
+22010143   # The Two Jobs of the Conditioning Bar v1.0 — typed passage, record-undecidability
+# Bridge-crossing, membership HELD FOR REVIEW (see specs/publication_corpus_coverage_v0_1.md §3).
+# Onboarded as publication identity, NOT as a ruling that they are Evidence-pillar works. `kind` is
+# ungoverned for these exactly as it is for the other twenty-eight.
+22012515   # Regression Has an Anchor v2.0 — rebuilt across the ToD/Bridge boundary (concept 21783728)
+21840854   # Regime Has a Contract v1.0 — regime as a governed object; causal identification

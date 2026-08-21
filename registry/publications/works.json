@@ -119,11 +119,46 @@
   "conceptDoi": "10.5281/zenodo.21765251"
  },
  {
+  "workId": "w-regression-has-an-anchor",
+  "canonicalLabel": "Regression Has an Anchor",
+  "kind": "unclassified",
+  "conceptRecid": "21783728",
+  "conceptDoi": "10.5281/zenodo.21783728"
+ },
+ {
+  "workId": "w-statistical-bridge",
+  "canonicalLabel": "The Statistical Bridge",
+  "kind": "unclassified",
+  "conceptRecid": "21795311",
+  "conceptDoi": "10.5281/zenodo.21795311"
+ },
+ {
+  "workId": "w-regime-has-a-contract",
+  "canonicalLabel": "Regime Has a Contract",
+  "kind": "unclassified",
+  "conceptRecid": "21840853",
+  "conceptDoi": "10.5281/zenodo.21840853"
+ },
+ {
   "workId": "w-tod-primer",
   "canonicalLabel": "A Primer on the Theory of Data",
   "kind": "unclassified",
   "conceptRecid": "21842993",
   "conceptDoi": "10.5281/zenodo.21842993"
+ },
+ {
+  "workId": "w-reading-rethinking",
+  "canonicalLabel": "Reading Statistical Rethinking Through the Statistical Bridge",
+  "kind": "unclassified",
+  "conceptRecid": "21863558",
+  "conceptDoi": "10.5281/zenodo.21863558"
+ },
+ {
+  "workId": "w-statistical-bridge-primer",
+  "canonicalLabel": "A Primer on the Statistical Bridge",
+  "kind": "unclassified",
+  "conceptRecid": "21864433",
+  "conceptDoi": "10.5281/zenodo.21864433"
  },
  {
   "workId": "w-analytical-governance",
@@ -145,5 +180,33 @@
   "kind": "unclassified",
   "conceptRecid": "21960379",
   "conceptDoi": "10.5281/zenodo.21960379"
+ },
+ {
+  "workId": "w-certifiable-state",
+  "canonicalLabel": "Certifiable State Under Information Loss",
+  "kind": "unclassified",
+  "conceptRecid": "21972540",
+  "conceptDoi": "10.5281/zenodo.21972540"
+ },
+ {
+  "workId": "w-where-does-probability-live",
+  "canonicalLabel": "Where Does Probability Live?",
+  "kind": "unclassified",
+  "conceptRecid": "21977941",
+  "conceptDoi": "10.5281/zenodo.21977941"
+ },
+ {
+  "workId": "w-reading-bayesian-workflow",
+  "canonicalLabel": "Reading Bayesian Workflow Through the Statistical Bridge",
+  "kind": "unclassified",
+  "conceptRecid": "21983507",
+  "conceptDoi": "10.5281/zenodo.21983507"
+ },
+ {
+  "workId": "w-conditioning-bar",
+  "canonicalLabel": "The Two Jobs of the Conditioning Bar",
+  "kind": "unclassified",
+  "conceptRecid": "22010142",
+  "conceptDoi": "10.5281/zenodo.22010142"
  }
 ]

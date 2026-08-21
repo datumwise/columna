@@ -83,8 +83,8 @@ Every work reads `kind: "unclassified"`, and that is load-bearing. `llms.txt` us
 evidence section with *"The nine papers, chronological"* — a hand-typed number beside a hand-typed
 list. The tempting repair is `count(distinct doi)`, which is refused: records, works, papers,
 program notes, primers, introductions, positions and a technical supplement are **not the same
-counting unit**, and no governed definition says which of them the word "papers" ranges over. 49
-records across 21 works is not "21 papers". Replacing a stale magic number with a freshly computed
+counting unit**, and no governed definition says which of them the word "papers" ranges over. 67
+records across 30 works is not "30 papers". Replacing a stale magic number with a freshly computed
 wrong one is laundering, not migration.
 
 So the claim was dropped rather than recomputed, and the drop is enforced: G10 fails the build if a
@@ -98,8 +98,8 @@ can defend — and not one minute before.
 
 | file | what it is | authored by |
 |---|---|---|
-| `works.json` | 21 works: id, label, kind, attached concept identity | **hand** (the only editorial file) |
-| `records.json` | 49 deposited versions, every bibliographic field | `mint_publication_records.py` |
+| `works.json` | 30 works: id, label, kind, attached concept identity | **hand** (the only editorial file) |
+| `records.json` | 67 deposited versions, every bibliographic field | `mint_publication_records.py` |
 | `zenodo_snapshot_2026-08-21.json` | frozen evidence: what Zenodo said, on a date | `harvest_zenodo_snapshot.py` |
 | `consumers.json` | every file in the repo that names a DOI, and on what terms | hand, checked mechanically |
 | `reconciliation.json` | known discrepancies and retired identifiers | hand |
@@ -109,6 +109,32 @@ can defend — and not one minute before.
 outage and passes on someone else's cache. This one is hermetic, and the evidence is reviewable *in
 the diff*: when a publication fact changes, it changes as bytes, with a date on it, not as a silent
 difference between two CI runs. `check_publications.py --live` re-verifies against Zenodo on demand.
+
+---
+
+## Coverage: what this registry does NOT model
+
+**Closed under versioning is not closed under deposit.** The harvester seeds from what the repo
+*cites*, then expands each seed's concept to all of its versions, so no version of a modeled work can
+go missing. Nothing in that loop can find a work **nobody has cited yet** — and on 2026-08-21 that was
+the entire Statistical Bridge corpus: nine works, seventeen deposited versions, no stale DOI and no
+wrong DOI, simply absent. Absence is the one defect a scan of what the repo already says cannot find.
+
+So coverage is measured rather than assumed:
+
+```sh
+python scripts/harvest_zenodo_snapshot.py --coverage
+```
+
+A creator sweep against Zenodo, minus the concepts `works.json` claims. It **reports**; it never
+seeds, never writes, and is never in CI — it reaches the network, and naming a work is editorial.
+
+An uncovered concept is not an error. This registry has never claimed the whole deposited corpus, and
+two of the four it currently reports **cannot be modeled at all** without a schema ruling: one work
+deposited under two Zenodo concepts (`rc-atlas-two-concepts`), and a retitled successor that declares
+`isNewVersionOf` across a concept boundary (`rc-two-great-sources-successor`). Both are recorded in
+`reconciliation.json` and argued in `specs/publication_corpus_coverage_v0_1.md`. **Read those before
+treating a coverage line as news.**
 
 ---
 
