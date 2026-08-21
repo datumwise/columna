@@ -1,0 +1,173 @@
+---
+/**
+ * ServingBoundary — the four serving moods, and Escalate outside them (brief §7).
+ *
+ * THE TYPING IS THE POINT, so the layout encodes it rather than describing it. Serve, Disclose,
+ * Clarify and Refuse sit in one row: they are the SERVING VOCABULARY, what a governed system returns
+ * to a requester at the machine boundary. Escalate sits below a hard rule, outside that row, because
+ * it is a governance-process outcome that crosses the system boundary — the existing governed world
+ * cannot resolve the request at all.
+ *
+ * A five-across grid would erase exactly that distinction, which is why the brief forbids it and why
+ * this file will not quietly become one. Nor is the page allowed to say "five serving moods": if it
+ * says five outcomes, it must mean the FULL GOVERNANCE PROCESS, and the heading here says so.
+ *
+ * The four moods reuse the site's ratified mood vocabulary (.mood-box-*, tokens.css): INK ONLY, with
+ * STYLE encoding kind — plain, underline, dotted, struck. The mood COLOURS were retired on
+ * 2026-07-26 for a reason this page depends on: mapping Refuse to failure-red would teach the
+ * opposite of §8. Refuse is governance working correctly.
+ */
+const MOODS = [
+  {
+    id: 'serve',
+    name: 'Serve',
+    text: 'The request is determinate, servable, authorized, and may be returned under its governing conditions.',
+  },
+  {
+    id: 'disclose',
+    name: 'Disclose',
+    text: 'The request may be served, but material support, approximation, or application conditions must travel with the result.',
+  },
+  {
+    id: 'clarify',
+    name: 'Clarify',
+    text: 'A user-resolvable choice remains among meanings that are already governed.',
+  },
+  {
+    id: 'refuse',
+    name: 'Refuse',
+    text: 'The requested answer may not be served under current analytical, support, risk, or authorization conditions.',
+  },
+];
+---
+
+<section id="serving" class="serving ds ds-paper ds-section" aria-labelledby="serving-h">
+  <div class="ds-measure-wide">
+    <h2 id="serving-h" class="ds-label">The serving boundary &mdash; and its edge</h2>
+
+    <p class="ds-proposition">Clarify stays inside the constitution. Escalate reaches the constitution&rsquo;s edge.</p>
+
+    <div class="moods-block">
+      <h3 class="row-label">The serving vocabulary &mdash; what a governed system returns at the machine boundary</h3>
+      <ul class="moods vocab-paper">
+        {MOODS.map((m) => (
+          <li class={`mood-box mood-box-${m.id}`} id={`mood-${m.id}`}>
+            <p class="mood-label mood">{m.name}</p>
+            <p class="mood-text">{m.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="edge" role="separator" aria-hidden="true"></div>
+
+    <div class="escalate-block">
+      <h3 class="row-label">The governance-process outcome &mdash; across the system boundary</h3>
+      <div class="escalate" id="mood-escalate">
+        <p class="esc-name">Escalate</p>
+        <p class="esc-text">
+          Resolution requires new governance authority, evidence, definition, or qualified review. It
+          is not a fifth analytical serving verdict.
+        </p>
+      </div>
+
+      <div class="contrast">
+        <p class="contrast-line"><span class="c-key">Clarify</span> choose among governed meanings.</p>
+        <p class="contrast-line"><span class="c-key">Escalate</span> new meaning, evidence, authority, or qualified governance action is required.</p>
+      </div>
+    </div>
+
+    <p class="count-note ds-body">
+      The full governance process therefore produces <strong>five externally meaningful
+      outcomes</strong>. The machine serving vocabulary has <strong>four</strong>. Those are two
+      different counts of two different things, and collapsing them is how a governance boundary
+      quietly becomes a response enum.
+    </p>
+  </div>
+</section>
+
+<style>
+  .ds-proposition { max-width: 26ch; margin-bottom: var(--ds-space-5); }
+
+  .row-label {
+    margin: 0 0 var(--ds-space-2);
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .moods {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--ds-space-2);
+  }
+  /* .mood-box / .mood-box-* come from the ratified vocabulary register in tokens.css — ink only,
+     style encodes kind. Only spacing is set here. */
+  .moods > li { padding: 1rem 1.05rem; display: grid; gap: 0.4rem; align-content: start; }
+  .mood-label {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-body);
+    color: var(--ink);
+  }
+  .mood-text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  /* THE EDGE. A hard rule with air on both sides: the serving row ends here, and what follows is
+     not more of the same row. A dissolve would read as a gradient of severity, which is the wrong
+     idea entirely — Escalate is not "more refused". */
+  .edge {
+    margin: var(--ds-space-4) 0;
+    border-top: 1px solid var(--ink);
+  }
+
+  .escalate {
+    display: grid;
+    gap: 0.4rem;
+    max-width: 46rem;
+    padding: 1rem 0 1rem 1.1rem;
+    border-left: 1px dashed var(--ink);
+  }
+  .esc-name {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-body);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .esc-text { margin: 0; font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.5; color: var(--ink-soft); max-width: 52ch; }
+
+  .contrast { margin-top: var(--ds-space-3); display: grid; gap: 0.5rem; }
+  .contrast-line {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .c-key { color: var(--ink); display: inline-block; min-width: 5.5rem; }
+
+  .count-note { margin: var(--ds-space-5) 0 0; max-width: var(--ds-essay); }
+  .count-note strong { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 60rem) {
+    .moods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 40rem) {
+    .moods { grid-template-columns: 1fr; }
+    .ds-proposition { max-width: none; }
+    .c-key { min-width: 0; display: block; }
+  }
+</style>

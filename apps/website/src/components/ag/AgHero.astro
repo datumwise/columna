@@ -1,0 +1,128 @@
+---
+/**
+ * AgHero — the first screen. PAPER register only.
+ *
+ * THE HERO ESTABLISHES A CATEGORY, NOT A PRODUCT. Columna is not named above the fold and is not
+ * linked from here; it arrives at the end of the page as a consequence, which is the only honest
+ * order for a claim that analytical governance is a category rather than a feature of one system.
+ *
+ * THREE LARGE APHORISMS WOULD COMPETE, so they are typed at three different weights (brief §2A):
+ *   · the PROPOSITION carries the display size — it is the wound the page exists to open;
+ *   · the ORGANIZING SENTENCE sits directly beneath at lede size — it is the page's structure,
+ *     stated once, and the rest of the page is its expansion;
+ *   · the CONFORMANCE TEST appears on the first screen as a small formal line, deliberately quiet.
+ *     It is the category's membership test and it earns a full section later (§8); putting it here
+ *     at display size would make the page a slogan wall and would spend the test before the reader
+ *     knows what it tests.
+ *
+ * The publication signpost is REGISTRY-DERIVED. No version or DOI is typed on this page.
+ */
+import { citation, longDate } from '../../data/publications';
+
+const paper = citation('w-analytical-governance');
+---
+
+<section class="ag-hero ds ds-paper ds-section" aria-labelledby="ag-thesis">
+  <div class="ds-measure-wide">
+    <p class="ds-label">Analytical Governance</p>
+
+    <h1 id="ag-thesis" class="proposition">
+      What can be computed is not yet what may be served.
+    </h1>
+
+    <p class="organizing">
+      Analytical Governance governs the relationship between <em>can</em> and <em>may</em> across a
+      multi-world analytical process.
+    </p>
+
+    <div class="beneath">
+      <p class="test">
+        <span class="test-label">Membership test</span>
+        <span class="test-line">If it cannot refuse, it is not governed.</span>
+      </p>
+
+      <p class="signpost">
+        <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
+        <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
+        <span class="role">The category paper. This page compresses and connects it; the deposit governs.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ag-hero { padding-block: clamp(3.5rem, 2rem + 8vw, 7.5rem) var(--ds-turn); }
+
+  .proposition {
+    font-family: var(--font-serif);
+    font-size: var(--ds-hero);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+
+  /* The organizing sentence: the page's structure, at lede weight so it supports the proposition
+     rather than fighting it. `can` / `may` are italic because the whole page turns on that pair. */
+  .organizing {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: var(--ds-space-3) 0 0;
+  }
+  .organizing em { font-style: italic; color: var(--ink); }
+
+  .beneath {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+    margin-top: var(--ds-space-5);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+  }
+
+  .test { margin: 0; display: grid; gap: 0.4rem; }
+  .test-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  /* Mono, not display serif: this is a formal test, and setting it small keeps it from becoming a
+     third competing headline on the first screen. */
+  .test-line {
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono);
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .signpost { margin: 0; display: grid; gap: 0.35rem; }
+  .signpost a {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .signpost a:hover { border-bottom-color: var(--ink); }
+  .signpost .meta,
+  .signpost .role {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 46rem) {
+    .beneath { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .proposition { max-width: none; }
+  }
+</style>

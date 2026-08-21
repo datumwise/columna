@@ -1,0 +1,331 @@
+---
+/**
+ * CanMayMatrix — CAN / MAY × WITHIN-WORLD / CROSSING. The page's principal synthesis (brief §3).
+ *
+ * WHAT IS CLAIMED, EXACTLY. Neither axis is presented as newly discovered, and no historical
+ * priority is claimed. The safe and true claim, stated on the page: datumwise elevates within-world
+ * versus crossing into an ORGANIZING AXIS for analytical governance, and crosses it explicitly with
+ * capability versus legitimacy. That is a claim about organization, not about invention.
+ *
+ * NOT FOUR PRODUCT BOXES. The matrix is an explanatory instrument. Its cells are questions, not
+ * features, and the figure exists to make one consequence unavoidable: capability does not
+ * establish legitimacy, and that survives on both sides of a boundary.
+ *
+ * WHY THIS IS NOT A <table>. A 2×2 of full sentences cannot hold two readable columns at 375px, so
+ * it has to linearize — and `display: block` on table parts strips the very row/column header
+ * association that made the table worth using. So the axis coordinate of every cell is REAL DOM
+ * TEXT in the cell's own heading ("Within-world · Capability — can"), present and correct at every
+ * width, with no dependency on CSS or JavaScript. The rails around the grid are the desktop
+ * READING of that structure and are aria-hidden, because they would otherwise repeat the headings.
+ *
+ * DOM order is the accessible reading order the brief requires:
+ *   axis definitions → within-world can → within-world may → crossing can → crossing may.
+ */
+const CELLS = [
+  {
+    id: 'within-can',
+    place: 'Within-world',
+    question: 'Capability — can',
+    text: 'What can be computed or derived inside the jurisdiction?',
+  },
+  {
+    id: 'within-may',
+    place: 'Within-world',
+    question: 'Legitimacy — may',
+    text: "What is lawful under that world's own law?",
+  },
+  {
+    id: 'crossing-can',
+    place: 'Crossing',
+    question: 'Capability — can',
+    text: 'What can be transported, invoked, or executed across the boundary?',
+  },
+  {
+    id: 'crossing-may',
+    place: 'Crossing',
+    question: 'Legitimacy — may',
+    text: 'What is licensed to pass, with the required warrant and authority?',
+  },
+];
+---
+
+<section id="can-may" class="matrix-section ds ds-paper ds-section" aria-labelledby="matrix-h">
+  <div class="ds-measure-wide">
+    <h2 id="matrix-h" class="ds-label">Two axes: capability and legitimacy, interior and crossing</h2>
+
+    <p class="ds-proposition">Capability answers <em>can</em>. Governance must still answer <em>may</em>.</p>
+
+    <div class="axes">
+      <div class="axis">
+        <h3 class="axis-h">Axis 1 &mdash; source of law</h3>
+        <p class="axis-pair"><span>within-world</span> <span class="vs">vs</span> <span>crossing</span></p>
+        <p class="axis-def ds-body">
+          A world's <strong>interior</strong> is where its own law has jurisdiction. A
+          <strong>crossing</strong> is an operation that leaves one jurisdiction for another, and the
+          <strong>boundary</strong> is where that happens. The two are governed differently because
+          different law applies.
+        </p>
+      </div>
+      <div class="axis">
+        <h3 class="axis-h">Axis 2 &mdash; governance question</h3>
+        <p class="axis-pair"><span>capability &mdash; can</span> <span class="vs">vs</span> <span>legitimacy &mdash; may</span></p>
+        <p class="axis-def ds-body">
+          <em>Can</em> is what the machinery is able to do. <em>May</em> is not merely runtime
+          permission: it includes analytical law, warrant, and authority. A system that has collapsed
+          the second into the first has not simplified governance; it has removed it.
+        </p>
+      </div>
+    </div>
+
+    <div class="matrix">
+      <div class="rail rail-col rail-can" aria-hidden="true"><span>Capability &mdash; can</span></div>
+      <div class="rail rail-col rail-may" aria-hidden="true"><span>Legitimacy &mdash; may</span></div>
+      <div class="rail rail-row rail-within" aria-hidden="true"><span>Within-world</span></div>
+      <div class="rail rail-row rail-crossing" aria-hidden="true"><span>Crossing</span></div>
+
+      {CELLS.map((c) => (
+        <article class={`cell cell-${c.id}`} id={`cell-${c.id}`}>
+          <h3 class="coord">
+            <span class="coord-place">{c.place}</span>
+            <span class="coord-sep" aria-hidden="true">&middot;</span>
+            <span class="coord-question">{c.question}</span>
+          </h3>
+          <p class="cell-text">{c.text}</p>
+        </article>
+      ))}
+    </div>
+
+    <div class="after">
+      <div class="consequence">
+        <p class="cons-label">The consequence</p>
+        <p class="cons-line">Lawfulness first, execution second.</p>
+        <p class="ds-body">
+          The matrix is an explanatory instrument, not four independent product boxes. Read across it
+          and the same fact appears twice: being able to compute a quantity inside a world does not
+          make it lawful there, and being able to transport a result across a boundary does not
+          license its passage.
+        </p>
+        <p class="ds-body claim-scope">
+          The claim here is about organization, not discovery. datumwise elevates within-world versus
+          crossing into an organizing axis for analytical governance and crosses it explicitly with
+          capability versus legitimacy. Neither distinction is claimed as new, and no historical
+          priority is claimed for the pairing.
+        </p>
+      </div>
+
+      <aside class="sovereignty" aria-labelledby="sov-h">
+        <h3 id="sov-h" class="sov-h">The sovereignty guard</h3>
+        <blockquote class="sov-quote">
+          <p>It supplies the interior law of no world it composes. It has wider scope, not higher sovereignty.</p>
+        </blockquote>
+        <p class="ds-body">
+          The figure must not be read as Analytical Governance supplying every world's law. It tracks
+          which law has jurisdiction, whether an operation is interior or a crossing, and what warrant
+          and authority survive each passage. It does not legislate inside the worlds it coordinates.
+        </p>
+        <p class="ds-body">
+          A world's interior is where its own law has jurisdiction &mdash; and the lawful operation
+          space inside that jurisdiction may still be <em>partial</em>. That matters more than it
+          looks: <strong>a totalized interior cannot refuse.</strong> A world in which every
+          expressible operation is automatically lawful has no way to withhold anything, and by the
+          category's own membership test it is not governed.
+        </p>
+        <p class="ds-body">
+          Nor is <em>world</em> a decorative name for every stage in a pipeline. In particular,
+          <strong>evidence is not a sovereign world</strong>: it is a standing acquired through a
+          governed crossing. Constituting an &ldquo;evidence world&rdquo; to make a diagram
+          symmetrical would invent a jurisdiction to fill a quadrant.
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ds-proposition { max-width: 20ch; margin-bottom: var(--ds-space-4); }
+  .ds-proposition em { font-style: italic; }
+
+  .axes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    margin-bottom: var(--ds-space-5);
+    padding-bottom: var(--ds-space-4);
+    border-bottom: 1px solid var(--ds-rule);
+  }
+  .axis-h {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .axis-pair {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono);
+    color: var(--ink);
+  }
+  .axis-pair .vs { color: var(--ink-faint); padding: 0 0.35rem; }
+  .axis-def { margin: 0; max-width: 46ch; }
+  .axis-def strong { color: var(--ink); font-weight: 600; }
+  .axis-def em { font-style: italic; color: var(--ink); }
+
+  /* ── THE MATRIX ────────────────────────────────────────────────────────────────────────────
+     Rails in the first row/column, four cells in the body. The rails are decoration for the
+     desktop reading; every cell states its own coordinate in the DOM. */
+  .matrix {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.42fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 1px;
+    background: var(--ds-rule);
+    border: 1px solid var(--ds-rule);
+  }
+  .rail, .cell { background: var(--paper); }
+
+  .rail-col { grid-row: 1; padding: 0.9rem 1.1rem; }
+  .rail-can { grid-column: 2; }
+  .rail-may { grid-column: 3; }
+  .rail-row { grid-column: 1; padding: 1.3rem 1.1rem; }
+  .rail-within { grid-row: 2; }
+  .rail-crossing { grid-row: 3; }
+  .rail span {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  /* the empty corner */
+  .matrix::before { content: ''; grid-area: 1 / 1; background: var(--paper); }
+
+  .cell { padding: 1.3rem 1.1rem; display: grid; gap: 0.45rem; align-content: start; }
+  .cell-within-can { grid-area: 2 / 2; }
+  .cell-within-may { grid-area: 2 / 3; }
+  .cell-crossing-can { grid-area: 3 / 2; }
+  .cell-crossing-may { grid-area: 3 / 3; }
+
+  /* The coordinate heading is the cell's real axis identity, and it is ALWAYS in the DOM.
+     On wide screens the rails already state both axes, so repeating them in every cell is visual
+     noise — the heading is therefore visually hidden here, not deleted. It stays available to
+     assistive technology, to a reader with CSS off, and to any machine reading the page, which is
+     the whole reason it exists. Below the linearization breakpoint it becomes the primary label. */
+  .coord {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .cell-text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.5;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+
+  .after {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+    margin-top: var(--ds-space-5);
+    align-items: start;
+  }
+  .cons-label {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .cons-line {
+    margin: 0 0 var(--ds-space-2);
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .consequence .ds-body { margin: 0 0 var(--ds-space-2); max-width: 50ch; }
+  .claim-scope { color: var(--ink-faint); font-size: 0.97rem; }
+
+  .sovereignty {
+    padding-left: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+    border-left: 1px solid var(--ds-rule-strong);
+  }
+  .sov-h {
+    margin: 0 0 var(--ds-space-2);
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .sov-quote { margin: 0 0 var(--ds-space-2); }
+  .sov-quote p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.35;
+    color: var(--ink);
+    font-style: italic;
+  }
+  .sovereignty .ds-body { margin: 0 0 var(--ds-space-2); max-width: 46ch; }
+  .sovereignty .ds-body:last-child { margin-bottom: 0; }
+  .sovereignty strong { color: var(--ink); font-weight: 600; }
+  .sovereignty em { font-style: italic; color: var(--ink); }
+
+  /* ── LINEARIZED ────────────────────────────────────────────────────────────────────────────
+     The two axes must remain understandable. The rails become full-width band headings that keep
+     the row axis visible, and every cell's own coordinate heading is promoted to primary — so a
+     narrow reader still sees "Within-world · Capability — can", never four loose cards. */
+  @media (max-width: 60rem) {
+    .matrix { grid-template-columns: 1fr; grid-template-rows: none; }
+    .matrix::before { display: none; }
+    .rail-col { display: none; }
+    .rail-row, .cell { grid-area: auto !important; grid-column: 1 !important; }
+    .rail-row { padding: 0.85rem 1.1rem; background: var(--paper-raised); }
+    /* linearized: the cell's own coordinate becomes its visible label, so the two axes survive
+       the loss of the grid */
+    .coord {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
+      font-family: var(--font-mono);
+      font-size: var(--ds-mono-sm);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: var(--ink-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 0.4rem;
+    }
+    /* source order already places both within-world cells before both crossing cells, so the
+       bands land in the right places without reordering the DOM */
+    .rail-within { order: 1; } .cell-within-can { order: 2; } .cell-within-may { order: 3; }
+    .rail-crossing { order: 4; } .cell-crossing-can { order: 5; } .cell-crossing-may { order: 6; }
+    .matrix { display: flex; flex-direction: column; }
+  }
+
+  @media (max-width: 56rem) {
+    .axes { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .after { grid-template-columns: 1fr; gap: var(--ds-space-4); }
+    .sovereignty { padding-left: 0; border-left: 0; padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-rule); }
+    .ds-proposition { max-width: none; }
+  }
+</style>

@@ -1,142 +1,456 @@
 ---
 /**
- * NAVIGATION SIGNPOST — not the Analytical Governance page.
+ * /analytical-governance — the full category page (Phase 2, 2026-08-21).
  *
- * Authorized narrowly (Huayin, 2026-08-19): the four-door navigation must not knowingly ship two
- * 404 destinations, so this door establishes scent and points onward. It carries only what §13 of
- * the v0.2 brief allows a signpost to carry — the full name, the immediate distinction from
- * ordinary data governance, the conformance test, one concise category proposition, links to
- * relevant live material, and a forward link toward Columna.
+ * WHAT REPLACED WHAT. This page was a navigation SIGNPOST, authorized narrowly on 2026-08-19 so the
+ * four-door nav would not ship a 404. That signpost's job was to establish scent and point onward;
+ * its brief said the full page's first screen must do what the signpost's first screen already did —
+ * distinguish Analytical Governance from data governance and surface the conformance test. Both
+ * survive here, in the hero and in §Conformance.
  *
- * Its transitional status is stated as a fact, structurally, at the end. No "coming soon" copy.
+ * SOURCE OF RECORD. The deposited paper, Analytical Governance v1.1 (21 August 2026), is canonical.
+ * This page may compress, sequence, visualize, and connect its ideas. It does not extend them. The
+ * one synthesis the page performs — crossing capability/legitimacy with within-world/crossing into
+ * an organizing matrix — is authorized by brief §3 and is framed on the page as an organizing
+ * choice, never as a discovery or a priority claim.
  *
- * The full architecture/corpus page is a later slice. When it is built, its FIRST SCREEN must do
- * what this page's first screen already does: distinguish Analytical Governance from data
- * governance and surface the conformance test.
+ * REGISTER. PAPER throughout, with exactly one quotation from WIRE near the end. The page is an
+ * argument that happens to have a system behind it, not a product page that happens to argue.
+ *
+ * PUBLICATION FACTS. Registry-derived, everywhere, including the closing paths. No version string
+ * and no DOI is typed into this file — check_publications.py classifies it `derived` and fails the
+ * build if one appears.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-// THE CATEGORY PAPER'S FACTS ARE DERIVED (Phase 1A, 2026-08-21). This page hand-typed THREE
-// publication facts about one record — the DOI, the version and the deposit date — in the one place
-// on the property where the Analytical Governance paper appears at all. All three were correct, which
-// is the reason this migration is worth doing rather than the reason to skip it: the work has exactly
-// one deposit, so the page could not yet be wrong. That is luck, not architecture, and the next
-// deposit is what collects on it.
-//
-// The byline "Huayin Wang" stays authored here. Zenodo carries the index form ("Wang, Huayin"); this
-// is the display form, and swapping the page to the index form would be a prose change made inside a
-// factual migration. Authorship is a publication fact and it lives on the record; how a page chooses
-// to SET a name is typography.
-import { citation, longDate } from '../data/publications';
+import AgHero from '../components/ag/AgHero.astro';
+import OpenStoreWound from '../components/ag/OpenStoreWound.astro';
+import TwoGaps from '../components/ag/TwoGaps.astro';
+import CanMayMatrix from '../components/ag/CanMayMatrix.astro';
+import ServingBoundary from '../components/ag/ServingBoundary.astro';
+import WireQuotation from '../components/ag/WireQuotation.astro';
+import { citation } from '../data/publications';
 
-const agPaper = citation('w-analytical-governance');
+const paper = citation('w-analytical-governance');
+
+const POWERS = [
+  {
+    id: 'interpretation',
+    name: 'Interpretation',
+    formal: 'human language → candidate governed analytical request',
+    text:
+      'AI is genuinely well suited here, because interpretation is probabilistic and contextual: it can search definitions, connect a user’s vocabulary to local terms, retrieve candidate governed objects, and propose requests.',
+    guard: 'Probabilistic plausibility must not become analytical authority.',
+  },
+  {
+    id: 'adjudication',
+    name: 'Analytical adjudication',
+    formal: 'candidate request + governed model + current support → determination',
+    text:
+      'Identity, support, lawfulness, and servability are established here, independently and testably. This is where analytical authority lives. The adjudicator may canonicalize a uniquely determined request; it does not choose among unresolved analytical meanings on the user’s behalf.',
+    guard: 'The agent may respond to adjudication. It does not overrule adjudication.',
+  },
+  {
+    id: 'execution',
+    name: 'Physical execution',
+    formal: 'adjudicated request → plan → result',
+    text:
+      'Trusted planners and engines realize what has already been established. Execution may report that a binding is absent, that exact state is not materialized, or that a plan is unexpectedly expensive — and those findings flow back into support determination and risk.',
+    guard: 'Planning may report constraints; it may not silently substitute a different analytical request.',
+  },
+];
+
+const NEIGHBOURS = [
+  {
+    id: 'data-governance',
+    name: 'Data governance',
+    relation: 'composes with',
+    text:
+      'Analytical governance decides which analytical results may be served. It is distinct from data governance, which governs the stewardship, access, quality, and control of data assets. The two compose; neither substitutes for the other.',
+    canonical: true,
+  },
+  {
+    id: 'tod',
+    name: 'Theory of Data',
+    href: '/learn/what-is-the-theory-of-data',
+    relation: 'supplies interior law to',
+    text:
+      'ToD supplies the interior law for governed analytical data — identity, derivability, contracts, sufficient state. It is narrowly that. It is not a general ontology of analytical objects, and it is not the law of every world analytical governance coordinates.',
+  },
+  {
+    id: 'bridge',
+    name: 'The Statistical Bridge',
+    relation: 'governs a crossing inside',
+    text:
+      'The Bridge governs the passage from governed data and evidence to inferential claims. Analytical governance may compose that crossing into a larger analytical path. It does not replace the Bridge’s law, and it does not adjudicate inference itself.',
+  },
+  {
+    id: 'columna',
+    name: 'Columna',
+    href: '/columna',
+    relation: 'is an executable consequence of',
+    text:
+      'Columna is evidence that these distinctions can be embodied in a working system. It is not the definition of analytical governance, and the category does not depend on it.',
+  },
+  {
+    id: 'frameql',
+    name: 'Frame-QL',
+    href: '/what-is-frameql',
+    relation: 'is one request language for',
+    text:
+      'Frame-QL speaks natively in governed analytical objects, which makes it a convenient request boundary. No one language or protocol is required by the category — only that every identity-bearing distinction be explicit in the request or uniquely derivable from the governed model.',
+  },
+];
+
+const CLOSING = [
+  'Translate intent.',
+  'Establish servability.',
+  'Evaluate bounded risk.',
+  'Authorize deliberately.',
+  'Execute faithfully.',
+];
 ---
 <BaseLayout
   title="Analytical Governance — datumwise"
-  description="Analytical Governance concerns whether an analytical request is established, supported, and entitled to execute — not who may access which table."
+  description="What can be computed is not yet what may be served. Analytical Governance governs the relationship between can and may across a multi-world analytical process — the intent gap, the servability gap, and the boundary at which a governed system may refuse."
   wide={true}
   chip={false}
 >
-  <div class="signpost">
+  <AgHero />
+  <OpenStoreWound />
+  <TwoGaps />
+  <CanMayMatrix />
+
+  {/* THE ONE EARNED METAPHOR (brief §5). It appears exactly once, after the technical distinction it
+      compresses, and it is not permitted to become a visual theme. No passports, no borders, no
+      stamps — the metaphor illuminates the architecture; it must not become the architecture. */}
+  <section id="ticket-visa" class="metaphor ds ds-paper ds-section" aria-labelledby="metaphor-h">
     <div class="ds-measure-wide">
-      <p class="ds-label">Analytical Governance</p>
+      <h2 id="metaphor-h" class="ds-label">One compression, now that the distinction is clear</h2>
+      <blockquote class="line">
+        <p>The analytics industry has been selling tickets and calling them visas.</p>
+      </blockquote>
+      <p class="gloss ds-body">
+        A ticket demonstrates capability: access, transport, execution. A visa represents legitimacy
+        to cross. Successful transport does not itself license passage — which is the whole content
+        of the previous section, said in four words instead of a matrix. That is the only work this
+        sentence is asked to do here.
+      </p>
+    </div>
+  </section>
 
-      {/* The proposition carries the redesign's WIDE measure, like every other ds-proposition on
-          the redesigned surfaces. It was inheriting BaseLayout's 34rem ESSAY column, which set a
-          70-character display line in a prose measure: five lines, and the conformance test fell
-          off the 1280x800 first screen. The measure is the defect — not the type scale, which is
-          shared, and not the copy. Prose below keeps the essay measure it wants. */}
-      <h1 class="ds-proposition">
-        Which analytical results may be served — not who may read which table.
-      </h1>
-
-      <div class="prose">
-        <p class="lede ds-body">
-          Analytical Governance governs whether an analytical request is <em>established</em>,
-          <em>supported</em>, and <em>entitled to execute</em>. Data governance answers a different
-          question: stewardship, access, catalogues, policy. Both matter. They are not the same category,
-          and the shorter name already belongs to the other one.
-        </p>
-
-        <p class="test">If it cannot refuse, it is not governed.</p>
-
-        <p class="ds-body">
-          Refusal is not the whole architecture. It is the minimum proof that a system can withhold
-          analytical permission when meaning, support, or authority is not established.
-        </p>
-
-        <ul class="onward">
-          <li class="paper">
-            <a href={agPaper.href} rel="noopener" target="_blank">
-              {agPaper.title}
-            </a>
-            <span class="meta">Huayin Wang · Version {agPaper.version} · {longDate(agPaper.date)} · DOI {agPaper.doi}</span>
-            <span class="role">The category paper — the defining publication for Analytical Governance.</span>
+  {/* THE THREE POWERS (brief §6). A separation of authority, so it is set as three units with their
+      formal signature and the guard that keeps each in its lane — not as three feature cards. */}
+  <section id="powers" class="powers ds ds-paper ds-section" aria-labelledby="powers-h">
+    <div class="ds-measure-wide">
+      <h2 id="powers-h" class="ds-label">Three powers, separated</h2>
+      <p class="ds-proposition">interpretation &ne; analytical adjudication &ne; physical execution</p>
+      <p class="powers-lede ds-body">
+        The separation is not organizational tidiness. Each power has a different epistemic character,
+        and collapsing any two of them is how a plausible interpretation acquires execution authority
+        without ever being adjudicated.
+      </p>
+      <ol class="power-list">
+        {POWERS.map((p) => (
+          <li class="power" id={`power-${p.id}`}>
+            <h3 class="power-name">{p.name}</h3>
+            <p class="power-formal">{p.formal}</p>
+            <p class="power-text">{p.text}</p>
+            <p class="power-guard">{p.guard}</p>
           </li>
-          <li><a href="/research">The research corpus</a> — the foundations this architecture rests on.</li>
-          <li>
-            <a href="/positions/never-let-your-agent-touch-the-database">Never Let Your Agent Touch the Database</a>
-            — the authority boundary, argued.
-          </li>
-          <li><a href="/#exhibit-a-heading">Exhibit A</a> — four governed requests, four earned verdicts.</li>
-          <li><a href="/columna">Columna →</a> — the same boundaries, executable.</li>
-        </ul>
+        ))}
+      </ol>
+    </div>
+  </section>
 
-        <p class="status">
-          This page is a navigation signpost. The full Analytical Governance page — the architecture from
-          intent to authorized execution, and its publication record — is a later slice of the redesign.
+  <ServingBoundary />
+
+  {/* CONFORMANCE (brief §8). A late, strong section — the category's membership test, not a product
+      behaviour. The hero states it quietly; this is where it is argued. */}
+  <section id="conformance" class="conformance ds ds-paper ds-section" aria-labelledby="conf-h">
+    <div class="ds-measure-wide">
+      <h2 id="conf-h" class="ds-label">Conformance</h2>
+      <blockquote class="conf-test">
+        <p>A governed analytical system must be capable of withholding analytical permission. If it cannot refuse, it is not governed.</p>
+      </blockquote>
+      <div class="conf-body">
+        <div>
+          <p class="ds-body">
+            The important idea is not refusal as a product behaviour. It is <strong>withholding
+            analytical permission as a category requirement</strong>. A system that can always
+            produce something has no mechanism for the case where nothing is entitled to be produced,
+            and it will therefore produce something anyway.
+          </p>
+          <p class="ds-body">
+            This is why Refuse appears on this page as governance functioning correctly, never as an
+            error state — and why the site's vocabulary carries no failure-red for it. Refusing is
+            the capability being tested.
+          </p>
+        </div>
+        <div>
+          <p class="conf-label">The soundness condition on the serving boundary</p>
+          <blockquote class="conf-sound">
+            <p>Every served answer must be entitled under the declared analytical meaning and current support; unestablished answers must be withheld.</p>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* WHERE THIS SITS (brief §9). Deliberately a relation list, not a symmetric four-box diagram:
+      these bodies of law have different shapes, and a diagram that made them look parallel would
+      claim a symmetry the corpus does not have. */}
+  <section id="boundaries" class="boundaries ds ds-paper ds-section" aria-labelledby="bound-h">
+    <div class="ds-measure-wide">
+      <h2 id="bound-h" class="ds-label">Where this sits</h2>
+      <p class="ds-proposition">Wider scope, not higher sovereignty.</p>
+      <p class="bound-lede ds-body">
+        Analytics is not governed by one body of law. Governed data, inferential claims, and
+        authorized action answer to distinct correctness conditions, and a real analytical act may
+        traverse several jurisdictions. Analytical governance is the meta-framework that tracks which
+        law has jurisdiction and what survives each passage.
+      </p>
+      <dl class="neighbours">
+        {NEIGHBOURS.map((n) => (
+          <div class="neighbour" id={`boundary-${n.id}`}>
+            <dt>
+              {n.href
+                ? <a class="n-name" href={n.href}>{n.name}</a>
+                : <span class="n-name">{n.name}</span>}
+              <span class="n-rel">{n.relation} analytical governance</span>
+            </dt>
+            <dd class={n.canonical ? 'canonical' : ''}>{n.text}</dd>
+          </div>
+        ))}
+      </dl>
+      {/* CONNECTIVE TISSUE, and one repair. The signpost this page replaces was the ONLY inbound
+          link to the homepage's `#exhibit-a-heading` anchor; retiring it silently would have
+          orphaned that anchor. It is restored here, where it actually belongs — four governed
+          requests are the concrete form of everything above. The authority-boundary position keeps
+          its inbound too. */}
+      <p class="read-on">
+        <a href="/research">The research corpus</a>
+        <a href="/positions/never-let-your-agent-touch-the-database">The authority boundary, argued</a>
+        <a href="/#exhibit-a-heading">Exhibit A &mdash; four governed requests, four earned verdicts</a>
+      </p>
+
+      <p class="orientation">
+        <span class="o-item"><span class="o-key">Theory of Data</span> law</span>
+        <span class="o-item"><span class="o-key">Manifold</span> declared governed world</span>
+        <span class="o-item"><span class="o-key">Frame-QL</span> language</span>
+        <span class="o-item"><span class="o-key">Columna</span> machine / system</span>
+        <span class="o-item"><span class="o-key">Analytical Governance</span> composition and authority architecture</span>
+      </p>
+    </div>
+  </section>
+
+  <WireQuotation />
+
+  {/* CLOSING (brief §11). Returns to authorization, not to product marketing. */}
+  <section id="authorize" class="closing ds ds-paper ds-section" aria-labelledby="close-h">
+    <div class="ds-measure-wide">
+      <h2 id="close-h" class="ds-label">The path</h2>
+      <ol class="path">
+        {CLOSING.map((step) => <li>{step}</li>)}
+      </ol>
+      <p class="closing-line">
+        That is the path from a human question to a result that is not merely computable, but
+        entitled to answer it.
+      </p>
+      <div class="paths">
+        <p class="path-out">
+          <span class="p-label">Read the paper</span>
+          <a href={paper.href} rel="noopener" target="_blank">{paper.label} &mdash; Version {paper.version}</a>
+          <span class="p-meta">DOI {paper.doi}</span>
+        </p>
+        <p class="path-out">
+          <span class="p-label">See the executable consequence</span>
+          <a href="/columna">Columna &rarr;</a>
+          <span class="p-meta">the same boundaries, in a system that ships</span>
         </p>
       </div>
     </div>
-  </div>
+  </section>
 </BaseLayout>
 
 <style>
-  /* The page now sits in the full-bleed shell, so it owns its own gutter — the redesign's, not
-     BaseLayout's. Vertical rhythm below is UNCHANGED: only the horizontal measure moved. */
-  .signpost { padding-inline: var(--ds-gutter); }
-  .prose { max-width: var(--ds-essay); }
-
-  .ds-label { margin: 3rem 0 1.25rem; }
-  h1 { margin: 0 0 2rem; }
-  .lede { margin: 0 0 2.5rem; }
-  .lede em { font-style: italic; }
-
-  .test {
+  /* ── the one metaphor ─────────────────────────────────────────────────────────────────────── */
+  .metaphor .line { margin: 0 0 var(--ds-space-3); }
+  .metaphor .line p {
+    margin: 0;
     font-family: var(--font-serif);
-    font-size: var(--ds-pillar);
-    line-height: 1.15;
-    margin: 0 0 1.25rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--rule-strong);
+    font-size: var(--ds-display);
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 26ch;
     text-wrap: balance;
   }
+  .metaphor .gloss { max-width: var(--ds-essay); margin: 0; }
 
-  .onward { list-style: none; padding: 0; margin: 2.5rem 0 0; }
-  /* The defining publication is the first and heaviest entry: a category page whose category paper
-     is buried among links teaches that the category is a slogan. */
-  .onward li.paper { padding-bottom: 1rem; }
-  .onward li.paper a { font-size: 1.0625rem; }
-  .onward .meta, .onward .role {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: var(--ds-meta);
-    color: var(--ink-soft);
-    margin-top: 0.35rem;
+  /* ── three powers ─────────────────────────────────────────────────────────────────────────── */
+  .powers .ds-proposition { font-size: var(--ds-pillar); max-width: 30ch; }
+  .powers-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
+  .power-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
   }
-  .onward .role { color: var(--ink-soft); }
-  .onward li {
-    padding: 0.7rem 0;
-    border-bottom: 1px solid var(--rule);
+  .power { display: grid; gap: 0.5rem; align-content: start; padding-top: 1rem; border-top: 1px solid var(--ds-rule-strong); }
+  .power-name { margin: 0; font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); }
+  .power-formal { margin: 0; font-family: var(--font-mono); font-size: var(--ds-mono-sm); line-height: 1.5; color: var(--ink-faint); }
+  .power-text { margin: 0.2rem 0 0; font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.55; color: var(--ink-soft); }
+  .power-guard {
+    margin: 0.4rem 0 0;
+    padding-left: 0.8rem;
+    border-left: 2px solid var(--ink);
     font-family: var(--font-serif);
-    color: var(--ink-soft);
+    font-size: 0.98rem;
+    line-height: 1.45;
+    color: var(--ink);
   }
-  .onward a { color: var(--ink); }
 
-  .status {
-    margin: 2.5rem 0 0;
+  /* ── conformance ──────────────────────────────────────────────────────────────────────────── */
+  .conf-test { margin: 0 0 var(--ds-space-5); }
+  .conf-test p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-display);
+    line-height: 1.16;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 30ch;
+    text-wrap: balance;
+  }
+  .conf-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+    align-items: start;
+  }
+  .conf-body .ds-body { margin: 0 0 var(--ds-space-2); max-width: 50ch; }
+  .conf-body strong { color: var(--ink); font-weight: 600; }
+  .conf-label {
+    margin: 0 0 0.6rem;
     font-family: var(--font-sans);
     font-size: var(--ds-meta);
-    line-height: 1.55;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
     color: var(--ink-soft);
+  }
+  .conf-sound { margin: 0; padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
+  .conf-sound p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.4;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* ── where this sits ──────────────────────────────────────────────────────────────────────── */
+  .boundaries .ds-proposition { max-width: 18ch; }
+  .bound-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
+  .neighbours { margin: 0; display: grid; gap: var(--ds-space-3); }
+  .neighbour {
+    display: grid;
+    grid-template-columns: minmax(0, 0.5fr) minmax(0, 1.5fr);
+    gap: clamp(1rem, 0.5rem + 2vw, 3rem);
+    padding-bottom: var(--ds-space-3);
+    border-bottom: 1px solid var(--ds-rule);
+  }
+  .neighbour:last-child { border-bottom: 0; padding-bottom: 0; }
+  .neighbour dt { display: grid; gap: 0.15rem; align-content: start; }
+  .n-name { font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); }
+  .n-rel { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-faint); }
+  .neighbour dd { margin: 0; font-family: var(--font-serif); font-size: var(--ds-body); line-height: 1.55; color: var(--ink-soft); max-width: 58ch; }
+  /* the deposited wording, set as the canon it is */
+  .neighbour dd.canonical { color: var(--ink); }
+
+  .read-on {
+    margin: var(--ds-space-4) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.75rem;
+  }
+  .read-on a {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+  }
+  .read-on a:hover { border-bottom-color: var(--ink); }
+
+  .n-name { text-decoration: none; }
+  a.n-name { border-bottom: 1px solid var(--ds-rule-strong); padding-bottom: 1px; justify-self: start; }
+  a.n-name:hover { border-bottom-color: var(--ink); }
+
+  .orientation {
+    margin: var(--ds-space-4) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+  }
+  .o-item { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-soft); }
+  .o-key { color: var(--ink); display: block; }
+
+  /* ── closing ──────────────────────────────────────────────────────────────────────────────── */
+  .path { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+  .path li {
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .closing-line {
+    margin: var(--ds-space-4) 0 var(--ds-space-5);
+    max-width: var(--ds-essay);
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .paths {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+  }
+  .path-out { margin: 0; display: grid; gap: 0.3rem; }
+  .p-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .path-out a {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .path-out a:hover { border-bottom-color: var(--ink); }
+  .p-meta { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-faint); }
+
+  @media (max-width: 60rem) {
+    .power-list { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+  }
+  @media (max-width: 56rem) {
+    .conf-body { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .neighbour { grid-template-columns: 1fr; gap: 0.5rem; }
+    .paths { grid-template-columns: 1fr; }
+    .metaphor .line p, .conf-test p, .boundaries .ds-proposition { max-width: none; }
   }
 </style>

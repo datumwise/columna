@@ -1,0 +1,220 @@
+---
+/**
+ * TwoGaps — the paper's architecture from intent to execution (brief §2C).
+ *
+ * THE DIAGRAM IS AN ORDERED LIST, NOT AN IMAGE. Every claim it makes is DOM text: a reader with no
+ * CSS gets the stages in order with their gaps named, and a reader with no JavaScript gets exactly
+ * what everyone else gets. The rules, offsets and gap markers are presentation only. That is the
+ * brief's requirement and it is also the honest construction — an argument that exists only inside
+ * a PNG is an argument nobody can check.
+ *
+ * The two GAPS are the point of the figure, so they are the only elements that break the column:
+ * they interrupt the rule that runs behind the flow rather than becoming another box in it. A gap
+ * drawn as a box is not a gap.
+ */
+const STAGES = [
+  { id: 'intent', name: 'User intent', detail: null },
+  { id: 'translation', name: 'Intent translation and analytical framing', detail: null },
+  { id: 'request', name: 'Explicit analytical request', detail: null },
+  {
+    id: 'servability',
+    name: 'Servability',
+    detail: ['support sufficiency', 'analytical establishment'],
+  },
+  {
+    id: 'risk',
+    name: 'Bounded risk evaluation',
+    detail: ['cost', 'security', 'result / application'],
+  },
+  { id: 'authorization', name: 'Authorization', detail: null },
+  { id: 'execution', name: 'Trusted planning and execution', detail: null },
+];
+---
+
+<section id="two-gaps" class="gaps ds ds-paper ds-section" aria-labelledby="gaps-h">
+  <div class="ds-measure-wide">
+    <h2 id="gaps-h" class="ds-label">Two gaps before execution</h2>
+
+    <p class="ds-proposition">Governance must settle analytical meaning and servability before physical execution receives authority.</p>
+
+    <div class="body">
+      <ol class="flow" aria-label="The analytical governance architecture, in order">
+        {STAGES.map((s) => (
+          <>
+            <li class="stage" id={`stage-${s.id}`}>
+              <span class="stage-name">{s.name}</span>
+              {s.detail && (
+                <ul class="stage-detail">
+                  {s.detail.map((d) => <li>{d}</li>)}
+                </ul>
+              )}
+            </li>
+            {s.id === 'translation' && (
+              <li class="gap">
+                <span class="gap-name">The intent gap</span>
+                <span class="gap-note">from the user's language to an explicit analytical request</span>
+              </li>
+            )}
+            {s.id === 'servability' && (
+              <li class="gap">
+                <span class="gap-name">The servability gap</span>
+                <span class="gap-note">from a faithful request to one that is supported and established</span>
+              </li>
+            )}
+          </>
+        ))}
+      </ol>
+
+      <div class="invariants">
+        <div class="invariant">
+          <p class="inv-label">The semantic invariant</p>
+          <p class="inv-formal">Servable = Support Sufficient <span class="op">&#8743;</span> Analytically Established</p>
+          <p class="inv-gloss ds-body">
+            The two halves fail for different reasons and are repaired differently. Support
+            sufficiency is <em>contingent</em>: does the evidence and state this request needs exist
+            right now? Analytical establishment is <em>structural</em>: does the requested object
+            exist under the governed model, and is the proposed derivation lawful?
+          </p>
+        </div>
+
+        <div class="invariant">
+          <p class="inv-label">The rule that keeps risk honest</p>
+          <p class="inv-formal">Analytical violations are unestablished, not risks.</p>
+          <p class="inv-gloss ds-body">
+            Risk may constrain an established request — cost may deny it, security may withhold it,
+            application conditions may qualify how it is presented. Risk may never legalize an
+            unestablished one. There is no signature that makes an unlawful derivation lawful.
+          </p>
+        </div>
+
+        <div class="invariant">
+          <p class="inv-label">What may travel backwards</p>
+          <p class="inv-formal">Clarification may return to the requester.<br />Planning may report physical constraints.</p>
+          <p class="inv-gloss ds-body">
+            Neither may silently change analytical meaning. A returned clarification and a reported
+            constraint are both legitimate; a quietly substituted request is not.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ds-proposition { max-width: 24ch; margin-bottom: var(--ds-space-5); }
+
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 1rem + 6vw, 6rem);
+    align-items: start;
+  }
+
+  /* THE FLOW. One column with a continuous rule behind it: the rule IS the process, and the gaps
+     are the two places it is deliberately interrupted. */
+  .flow {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 1.5rem;
+    position: relative;
+    display: grid;
+    gap: 0;
+  }
+  .flow::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.9rem;
+    bottom: 0.9rem;
+    width: 1px;
+    background: var(--ds-rule-strong);
+  }
+
+  .stage { position: relative; padding: 0.55rem 0; }
+  .stage::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1.05rem;
+    width: 9px;
+    height: 1px;
+    background: var(--ink-soft);
+  }
+  .stage-name {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .stage-detail {
+    list-style: none;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+  }
+  .stage-detail li {
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    color: var(--ink-soft);
+  }
+
+  /* A GAP IS A DISCONTINUITY, NOT A BOX. It covers the rule behind the flow and steps out of the
+     column, so the eye reads an interruption rather than one more stage. */
+  .gap {
+    position: relative;
+    margin: 0.4rem 0 0.4rem -1.5rem;
+    padding: 0.55rem 0 0.55rem 1.5rem;
+    background: var(--paper);
+    display: grid;
+    gap: 0.1rem;
+  }
+  .gap::before {
+    content: '';
+    position: absolute;
+    left: -0.4rem;
+    top: 50%;
+    width: 1.2rem;
+    border-top: 1px dashed var(--ink);
+  }
+  .gap-name {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .gap-note {
+    font-family: var(--font-serif);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  .invariants { display: grid; gap: var(--ds-space-4); }
+  .invariant { display: grid; gap: 0.5rem; }
+  .inv-label {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .inv-formal {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono);
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .inv-formal .op { color: var(--ink-soft); }
+  .inv-gloss { margin: 0; max-width: 48ch; }
+  .inv-gloss em { font-style: italic; color: var(--ink); }
+
+  @media (max-width: 56rem) {
+    .body { grid-template-columns: 1fr; gap: var(--ds-space-5); }
+    .ds-proposition { max-width: none; }
+  }
+</style>
