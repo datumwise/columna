@@ -40,3 +40,12 @@
 # ungoverned for these exactly as it is for the other twenty-eight.
 22012515   # Regression Has an Anchor v2.0 — rebuilt across the ToD/Bridge boundary (concept 21783728)
 21840854   # Regime Has a Contract v1.0 — regime as a governed object; causal identification
+
+# ── Publication identity closure (Phase 3B.1, 2026-08-21) ────────────────────────────────────────
+# The four concepts the creator sweep found and the single-concept model could not hold. Three of the
+# four are second concepts or new works; none of them is a new VERSION of anything already seeded,
+# which is exactly why concept expansion could never have reached them.
+20710593   # Silent Failure Atlas v1.2 — concept 20710592, the Atlas's FIRST attached concept
+21893929   # Three Structural Sources v2.0 — concept 21893928; supersedes 21553379 across a concept
+21960873   # A Primer on Frame-QL v2.0 — concept 21888997; a work, newly claimed
+22026962   # Data Has Its Own Ontology v1.1 — concept 22003682; a work, newly claimed

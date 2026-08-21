@@ -1,5 +1,13 @@
 {
  "concepts": {
+  "20710592": {
+   "conceptDoi": "10.5281/zenodo.20710592",
+   "conceptRecid": "20710592",
+   "versionCount": 1,
+   "versions": [
+    "20710593"
+   ]
+  },
   "20710716": {
    "conceptDoi": "10.5281/zenodo.20710716",
    "conceptRecid": "20710716",
@@ -220,6 +228,24 @@
     "21980262"
    ]
   },
+  "21888997": {
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "versionCount": 3,
+   "versions": [
+    "21888998",
+    "21891210",
+    "21960873"
+   ]
+  },
+  "21893928": {
+   "conceptDoi": "10.5281/zenodo.21893928",
+   "conceptRecid": "21893928",
+   "versionCount": 1,
+   "versions": [
+    "21893929"
+   ]
+  },
   "21959748": {
    "conceptDoi": "10.5281/zenodo.21959748",
    "conceptRecid": "21959748",
@@ -269,6 +295,15 @@
     "21983508"
    ]
   },
+  "22003682": {
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "versionCount": 2,
+   "versions": [
+    "22003683",
+    "22026962"
+   ]
+  },
   "22010142": {
    "conceptDoi": "10.5281/zenodo.22010142",
    "conceptRecid": "22010142",
@@ -280,6 +315,20 @@
  },
  "note": "Frozen evidence for registry/publications. Regenerate with scripts/harvest_zenodo_snapshot.py. Seeds are every Zenodo id cited in a tracked file, expanded to every version of each seed's concept record.",
  "records": {
+  "20710593": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20710592",
+   "conceptRecid": "20710592",
+   "doi": "10.5281/zenodo.20710593",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-06-16",
+   "recid": "20710593",
+   "resourceType": "Preprint",
+   "title": "The Silent Failure Atlas: A Taxonomy of Silent Analytical Failures in Data Analysis",
+   "version": "1.2"
+  },
   "20710717": {
    "authors": [
     "Wang, Huayin"
@@ -868,6 +917,20 @@
    "title": "The Two Anchors of a Measure",
    "version": "2.0"
   },
+  "21888998": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21888998",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21888998",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "1.0"
+  },
   "21890891": {
    "authors": [
     "Wang, Huayin"
@@ -881,6 +944,34 @@
    "resourceType": "Preprint",
    "title": "Frame-QL: An Introduction",
    "version": "1.2"
+  },
+  "21891210": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21891210",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21891210",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "1.1"
+  },
+  "21893929": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21893928",
+   "conceptRecid": "21893928",
+   "doi": "10.5281/zenodo.21893929",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21893929",
+   "resourceType": "Working paper",
+   "title": "Three Structural Sources of Silent Analytical Failure",
+   "version": "2.0"
   },
   "21894145": {
    "authors": [
@@ -992,6 +1083,20 @@
    "recid": "21960798",
    "resourceType": "Preprint",
    "title": "Frame-QL: An Introduction",
+   "version": "2.0"
+  },
+  "21960873": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21960873",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21960873",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
    "version": "2.0"
   },
   "21966453": {
@@ -1134,6 +1239,20 @@
    "title": "Reading Statistical Rethinking Through the Statistical Bridge",
    "version": "2.0"
   },
+  "22003683": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "doi": "10.5281/zenodo.22003683",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22003683",
+   "resourceType": "Preprint",
+   "title": "Data Has Its Own Ontology",
+   "version": "1.0"
+  },
   "22010143": {
    "authors": [
     "Wang, Huayin"
@@ -1204,6 +1323,20 @@
    "title": "The Theory of Data: An Introduction",
    "version": "2.2"
   },
+  "22026962": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "doi": "10.5281/zenodo.22026962",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-20",
+   "recid": "22026962",
+   "resourceType": "Preprint",
+   "title": "Data Has Its Own Ontology",
+   "version": "1.1"
+  },
   "22046037": {
    "authors": [
     "Wang, Huayin"
@@ -1219,9 +1352,10 @@
    "version": "1.1"
   }
  },
- "seedCount": 42,
+ "seedCount": 48,
  "source": "https://zenodo.org/api/records",
  "unresolvedSeeds": [
+  "218889981",
   "220134101"
  ]
 }

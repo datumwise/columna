@@ -143,10 +143,13 @@ def creator_sweep() -> list[dict]:
 
 def coverage() -> int:
     works = json.loads((ROOT / "registry" / "publications" / "works.json").read_text(encoding="utf-8"))
-    claimed = {w["conceptRecid"]: w["workId"] for w in works if w.get("conceptRecid")}
+    # A work may attach MORE THAN ONE Zenodo concept (Phase 3B.1), so coverage is the union of every
+    # attachment — not one concept per work. Reading the first attachment only would have reported the
+    # Atlas's second concept as an uncovered work forever.
+    claimed = {c["recid"]: w["workId"] for w in works for c in w.get("attachedConcepts", [])}
     hits = creator_sweep()
     print(f"creator sweep: {len(hits)} latest-version records → {len({str(h['conceptrecid']) for h in hits})} concepts")
-    print(f"works.json claims {len(claimed)} concepts\n")
+    print(f"works.json claims {len(claimed)} concepts across {len(works)} works\n")
 
     uncovered = []
     for hit in sorted(hits, key=lambda h: h["metadata"].get("publication_date") or ""):
@@ -158,12 +161,16 @@ def coverage() -> int:
               f"v{meta.get('version')}  {meta.get('publication_date')}  {(meta.get('title') or '')[:70]}")
 
     if not uncovered:
-        print("  (none — every concept Zenodo attributes to this creator is claimed by a work)")
+        print("  (none)\n\nCLOSED: every concept Zenodo attributes to this creator is attached to a datumwise\n"
+              "work. Closed is a STATE, not a property — the next deposit re-opens it, and a count is not a\n"
+              "guarantee. Re-run this after any deposit; it is the only check that can see a work nobody\n"
+              "has cited yet.")
+        return 0
     print(f"\n{len(uncovered)} uncovered concept(s).")
-    print("NOT AN ERROR AND NOT A TODO. The registry models what the property cites plus what has been\n"
-          "ruled in; it has never claimed the whole deposited corpus. Onboarding one means NAMING it in\n"
-          "works.json, which is editorial and is not done by a script. Known-and-declined entries are\n"
-          "recorded in registry/publications/reconciliation.json and\n"
+    print("NOT AUTOMATICALLY AN ERROR. The registry models what the property cites plus what has been\n"
+          "ruled in. Onboarding one means NAMING it in works.json — or ATTACHING it to a work that already\n"
+          "exists, which is the same editorial act — and neither is done by a script. Known-and-declined\n"
+          "entries are recorded in registry/publications/reconciliation.json and\n"
           "specs/publication_corpus_coverage_v0_1.md — read those before treating a line above as news.")
     return 0
 

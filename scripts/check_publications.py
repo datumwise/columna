@@ -14,11 +14,14 @@ than the instances of it.
 
 THE TEN GATES
 
-  G1  works        — ids unique; required fields; no two works share a Zenodo concept
+  G1  works        — ids unique; required fields; every work carries an `attachedConcepts` list; no
+                     concept is attached by two works
   G2  records      — ids unique; every record's work exists; EXACTLY ONE current record per work
   G3  supersession — edges stay inside a work, are acyclic, and the chain from the current record
-                     covers every record of that work (no orphaned deposits)
-  G4  concept      — every record belongs to its work's concept record in the live snapshot
+                     covers every record of that work (no orphaned deposits). Edges MAY cross attached
+                     concepts — see the attachment note below
+  G4  concept      — record.conceptRecid ∈ work.attachedConceptRecids; each attachment exists in the
+                     snapshot, carries Zenodo's own conceptDoi, and is witnessed by at least one record
   G5  snapshot     — every bibliographic field equals the frozen Zenodo evidence, and every version
                      Zenodo knows about is modeled (no silently dropped versions)
   G6  identity     — no internal id embeds a DOI or a recid. Internal reference integrity may never
@@ -29,6 +32,34 @@ THE TEN GATES
   G9  acceptance   — the four rulings of 2026-08-21, asserted as facts about the encoded registry
   G10 counts       — no count-of-publications claim may appear on a derived surface while the corpus
                      classification is ungoverned
+
+ONE WORK MAY ATTACH MANY ZENODO CONCEPTS (Huayin, ruling of 2026-08-21, Phase 3B.1).
+
+    A datumwise Work is the governed intellectual identity. A Zenodo concept is an ATTACHED EXTERNAL
+    PUBLICATION IDENTITY — one of possibly several a work acquires over its publication history.
+
+Two deposits in this corpus proved the single-concept model wrong, and neither is an error anyone
+made in this repo. The Silent Failure Atlas was deposited as v1.2 under concept 20710592 and, three
+days later, as v1.3 under a NEW concept 20762838 rather than as a new version of the first. And The
+Two Great Sources of Silent Analytical Failure acquired a retitled successor — Three Structural
+Sources, v2.0 — deposited under its own concept while declaring, in its own Zenodo metadata,
+`isNewVersionOf` the earlier record. Both are ordinary things to do at a deposit provider. Under the
+old model the first was unrepresentable and the second would have left a superseded record rendering
+as current on /about and llms.txt.
+
+So attachment is 1..n, and the consequences are deliberate and narrow:
+
+  • CURRENTNESS STILL COMES FROM GOVERNED STATUS, and from nothing else. Not from concept, not from
+    attachment order, not from version string, date, or DOI magnitude. A work has exactly one record
+    with status `current` (G2) and that is the whole of the rule.
+  • SUPERSESSION MAY CROSS ATTACHED CONCEPTS inside one work. `w-two-great-sources`'s current record
+    supersedes a record in a different concept, and that is now a sentence the registry can say.
+  • ATTACHMENT IS MANY-TO-ONE. A concept attaches to at most one work (G1). Relax that and "which
+    work does this deposit belong to?" stops having an answer.
+  • THE WORK'S LOCAL IDENTITY DOES NOT MOVE. `w-two-great-sources` keeps its workId although its
+    current deposit is titled *Three Structural Sources*. The slug is a mnemonic; no code reads it,
+    and renaming it to match a title would make internal identity track external naming — the exact
+    coupling this registry exists to break.
 
 WHY G9 IS HERE AND NOT IN A TEST FILE. The rulings are what the registry is FOR. "current record =
 v6.1; v6.1 supersedes v6.0; v6.0 remains historical; no current view may accidentally select v6.0" is
@@ -179,12 +210,29 @@ def main() -> int:
         for field in ("workId", "canonicalLabel", "kind"):
             if not w.get(field):
                 fail("G1", f"work {w.get('workId')!r} is missing required field {field!r}")
-        concept = w.get("conceptRecid")
-        if concept:
+        if "attachedConcepts" not in w:
+            fail("G1", f"work {w.get('workId')!r} has no `attachedConcepts` list. A work with no deposits "
+                       "carries an EMPTY list, not a missing field: 'never deposited' is a fact this "
+                       "registry states, not one it leaves to inference.")
+            continue
+        seen_here: set[str] = set()
+        for att in w["attachedConcepts"]:
+            concept = att.get("recid")
+            if not concept or not att.get("doi"):
+                fail("G1", f"work {w['workId']}: an attached concept is missing recid or doi ({att!r})")
+                continue
+            if concept in seen_here:
+                fail("G1", f"work {w['workId']} attaches concept {concept} twice. Attachment is a set; "
+                           "a repeated entry is either a paste or a claim nobody meant to make.")
+            seen_here.add(concept)
+            # ATTACHMENT IS MANY-TO-ONE, NEVER MANY-TO-MANY (Huayin, Phase 3B.1). A work may attach
+            # several concepts; a concept may be attached by ONE work. Relax this and "which work does
+            # this deposit belong to?" stops having an answer, which is the question the registry exists
+            # to answer. If a genuine shared-concept case ever appears, it stops here and is reported.
             if concept in concept_owner:
-                fail("G1", f"concept {concept} is claimed by two works: {concept_owner[concept]} and {w['workId']}. "
-                           "One Zenodo concept is one work; if these really are two works, one of them is not "
-                           "that concept.")
+                fail("G1", f"concept {concept} is attached by two works: {concept_owner[concept]} and "
+                           f"{w['workId']}. One Zenodo concept attaches to at most ONE datumwise work. A work "
+                           "may hold several concepts; a concept may not be split across works.")
             concept_owner[concept] = w["workId"]
         if not records_of.get(w["workId"]):
             note(f"work {w['workId']} has no deposited record — legal (a work need never be deposited), reported for visibility")
@@ -247,9 +295,12 @@ def main() -> int:
                        "scripts/harvest_zenodo_snapshot.py.")
             continue
         w = by_work.get(r["workId"], {})
-        if w.get("conceptRecid") and snap["conceptRecid"] != w["conceptRecid"]:
-            fail("G4", f"record {r['recordId']} belongs to Zenodo concept {snap['conceptRecid']} but its work "
-                       f"{r['workId']} declares concept {w['conceptRecid']}.")
+        attached = {c["recid"] for c in w.get("attachedConcepts", []) if c.get("recid")}
+        if attached and snap["conceptRecid"] not in attached:
+            fail("G4", f"record {r['recordId']} belongs to Zenodo concept {snap['conceptRecid']}, which its work "
+                       f"{r['workId']} does not attach (attached: {sorted(attached)}). THE INVARIANT: "
+                       "record.conceptRecid ∈ work.attachedConceptRecids. A record whose concept the work never "
+                       "attached is a deposit filed under a work on somebody's say-so.")
         for ours, theirs in (("title", "title"), ("version", "version"), ("date", "publicationDate"),
                              ("doi", "doi"), ("license", "license"), ("resourceType", "resourceType")):
             if r.get(ours) != snap.get(theirs):
@@ -258,19 +309,33 @@ def main() -> int:
         if r.get("authors") != snap.get("authors"):
             fail("G5", f"record {r['recordId']}.authors = {r.get('authors')!r} but Zenodo says {snap.get('authors')!r}")
 
+    recids_of_work: dict[str, set[str]] = {}
+    for r in records:
+        recids_of_work.setdefault(r["workId"], set()).add(r["recid"])
     for w in works:
-        concept = w.get("conceptRecid")
-        if not concept:
-            continue
-        known = snap_concepts.get(concept)
-        if known is None:
-            fail("G4", f"work {w['workId']} declares concept {concept}, absent from the snapshot")
-            continue
-        missing = set(known["versions"]) - modeled_recids
-        if missing:
-            fail("G5", f"work {w['workId']}: Zenodo knows versions {sorted(missing)} that the registry does "
-                       "not model. A version the registry cannot see is a version no view can ever cite and "
-                       "no supersession chain can ever reach.")
+        for att in w.get("attachedConcepts", []):
+            concept = att.get("recid")
+            if not concept:
+                continue
+            known = snap_concepts.get(concept)
+            if known is None:
+                fail("G4", f"work {w['workId']} attaches concept {concept}, absent from the snapshot")
+                continue
+            if att.get("doi") != known.get("conceptDoi"):
+                fail("G4", f"work {w['workId']} attaches concept {concept} with conceptDoi {att.get('doi')!r}, "
+                           f"but Zenodo says {known.get('conceptDoi')!r}. An attached identity is EXTERNAL "
+                           "evidence and does not get to be approximately right.")
+            # AN ATTACHMENT MUST BE WITNESSED. Attaching a concept is a claim that this work was
+            # deposited there; if no record of the work carries it, the claim has no evidence and the
+            # attachment is decoration. It would also silently widen G4 for every future record.
+            if not (set(known["versions"]) & recids_of_work.get(w["workId"], set())):
+                fail("G4", f"work {w['workId']} attaches concept {concept}, but not one of its records belongs "
+                           "to that concept. An attachment nothing witnesses is a claim without evidence.")
+            missing = set(known["versions"]) - modeled_recids
+            if missing:
+                fail("G5", f"work {w['workId']}: Zenodo knows versions {sorted(missing)} of concept {concept} "
+                           "that the registry does not model. A version the registry cannot see is a version no "
+                           "view can ever cite and no supersession chain can ever reach.")
 
     # ── G6 · internal identity never encodes external identity ────────────────────────────────────
     for w in works:
@@ -404,8 +469,9 @@ def main() -> int:
         w = by_work.get(wid)
         if not w:
             fail("G9", f"ruling 4: work {wid} is missing from the registry")
-        elif w.get("conceptRecid") != concept:
-            fail("G9", f"ruling 4: {wid} must carry concept {concept}, got {w.get('conceptRecid')}")
+        elif [c["recid"] for c in w.get("attachedConcepts", [])] != [concept]:
+            fail("G9", f"ruling 4: {wid} must attach exactly one concept, {concept}; got "
+                       f"{[c['recid'] for c in w.get('attachedConcepts', [])]}")
     tri_records = {r["recordId"] for wid in triangle for r in records_of.get(wid, [])}
     for wid in triangle:
         for r in records_of.get(wid, []):
@@ -438,6 +504,68 @@ def main() -> int:
         elif prev["status"] != "superseded":
             fail("G9", "AG v1.1: v1.0 must remain a first-class historical record with status `superseded` — "
                        "superseded is a status, not a deletion")
+
+    # ── THE PHASE 3B.1 RULINGS, ASSERTED (Huayin, 2026-08-21) ────────────────────────────────
+    # Pinned here, not left to the mint rule, for the reason G9 exists at all: an acceptance test that
+    # re-derives its expectation from the rule under test asserts nothing.
+
+    # Case 1 — one work, two attached concepts, one chain across them.
+    atlas = by_work.get("w-silent-failure-atlas")
+    atlas_concepts = [c["recid"] for c in (atlas or {}).get("attachedConcepts", [])]
+    if atlas_concepts != ["20710592", "20762838"]:
+        fail("G9", f"3B.1 case 1: the Atlas must attach concepts 20710592 then 20762838 (first-deposit "
+                   f"order); got {atlas_concepts}")
+    atlas_cur = current_of("w-silent-failure-atlas")
+    if not atlas_cur or atlas_cur["doi"] != "10.5281/zenodo.20762839" or atlas_cur["version"] != "1.3":
+        fail("G9", f"3B.1 case 1: the current Atlas record must be v1.3 / 20762839; got "
+                   f"{atlas_cur and (atlas_cur['version'], atlas_cur['doi'])}")
+    else:
+        prev = by_record.get(atlas_cur.get("supersedes") or "")
+        if not prev or prev["recid"] != "20710593" or prev["version"] != "1.2":
+            fail("G9", "3B.1 case 1: v1.3 must supersede v1.2 (20710593) — the deposit in the OTHER attached "
+                       "concept. A concept break is not a work break.")
+        elif prev["status"] != "superseded":
+            fail("G9", "3B.1 case 1: Atlas v1.2 must remain a first-class historical record, status `superseded`")
+        elif snap_records.get(prev["recid"], {}).get("conceptRecid") == \
+                snap_records.get(atlas_cur["recid"], {}).get("conceptRecid"):
+            fail("G9", "3B.1 case 1: this edge is supposed to CROSS concepts. If both records now sit in one "
+                       "concept, either the snapshot changed or the case this ruling was made for is gone.")
+
+    # Case 2 — a retitled successor across a concept boundary; the local workId does NOT follow the title.
+    tgs = by_work.get("w-two-great-sources")
+    if not tgs:
+        fail("G9", "3B.1 case 2: workId w-two-great-sources must be PRESERVED. The public title changed; "
+                   "local identity does not track external naming, and renaming it would be the coupling "
+                   "this registry exists to break.")
+    else:
+        if [c["recid"] for c in tgs.get("attachedConcepts", [])] != ["21553378", "21893928"]:
+            fail("G9", f"3B.1 case 2: w-two-great-sources must attach 21553378 then 21893928; got "
+                       f"{[c['recid'] for c in tgs.get('attachedConcepts', [])]}")
+        cur = current_of("w-two-great-sources")
+        if not cur or cur["doi"] != "10.5281/zenodo.21893929" or cur["version"] != "2.0":
+            fail("G9", f"3B.1 case 2: the current record must be v2.0 / 21893929; got "
+                       f"{cur and (cur['version'], cur['doi'])}")
+        elif cur["title"] != "Three Structural Sources of Silent Analytical Failure":
+            fail("G9", f"3B.1 case 2: the current record's title is the EXACT deposited one, "
+                       f"'Three Structural Sources of Silent Analytical Failure'; got {cur['title']!r}. "
+                       "The Phase 3B.1 brief quoted a subtitle ('Anchor, Universe, and Regime') that the "
+                       "deposit does not carry. Zenodo is the bibliographic authority, not the brief.")
+        else:
+            prev = by_record.get(cur.get("supersedes") or "")
+            if not prev or prev["doi"] != "10.5281/zenodo.21553379":
+                fail("G9", "3B.1 case 2: v2.0 must supersede the Two Great Sources deposit (21553379) by "
+                           "recordId, across the concept boundary")
+            elif prev["status"] != "superseded":
+                fail("G9", "3B.1 case 2: 21553379 must remain first-class and historical, status `superseded` — "
+                           "it is retired as CURRENT AUTHORITY, not retired")
+
+    # Case 3 — the two clean identities claimed by the same unit.
+    for wid, doi, ver in (("w-frameql-primer", "10.5281/zenodo.21960873", "2.0"),
+                          ("w-data-has-its-own-ontology", "10.5281/zenodo.22026962", "1.1")):
+        cur = current_of(wid)
+        if not cur or cur["doi"] != doi or cur["version"] != ver:
+            fail("G9", f"3B.1 case 3: the current record of {wid} must be v{ver} / {doi.rsplit('.', 1)[1]}; "
+                       f"got {cur and (cur['version'], cur['doi'])}")
 
     anchors = current_of("w-two-anchors")
     if not anchors or anchors["version"] != "2.0":
@@ -489,7 +617,9 @@ def main() -> int:
             n = len(records_of.get(w["workId"], []))
             ver = f"v{cur['version']}" if cur and cur["version"] else "(unversioned)"
             print(f"  {w['workId']:<38} {ver:<8} {cur['doi'] if cur else '—':<28} "
-                  f"{n} record{'s' if n != 1 else ''}  concept {w.get('conceptRecid')}")
+                  f"{n} record{'s' if n != 1 else ''}  "
+                  f"concept{'s' if len(w.get('attachedConcepts', [])) != 1 else ''} "
+                  f"{'+'.join(c['recid'] for c in w.get('attachedConcepts', [])) or '—'}")
         print()
         buckets: dict[str, int] = {}
         for c in consumers:

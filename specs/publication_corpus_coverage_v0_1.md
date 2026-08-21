@@ -1,212 +1,218 @@
 # Publication corpus coverage — v0.1
 
 **Ledger. Not publication authority.** Every current bibliographic fact lives in
-`registry/publications/`. This document records what the registry does **not** yet cover, and why —
-including two cases the registry's data model cannot currently represent at all.
+`registry/publications/`. This document records how coverage is measured, what it found, and what
+remains open. Class `ledger` in `registry/publications/consumers.json`.
 
-Opened 2026-08-21, Phase 3B (the Evidence publication foundation). Class `ledger` in
-`registry/publications/consumers.json`.
+Opened 2026-08-21 (Phase 3B, the Evidence publication foundation).
+Closed to zero uncovered concepts 2026-08-21 (Phase 3B.1, publication identity closure).
 
 ---
 
 ## 1. Why this file exists
 
-The registry has never claimed to model the whole deposited corpus. It grew from what the property
-**cites**: the harvester seeds itself from every Zenodo id in a tracked file, plus `extra_seeds.txt`
-for ids that were ruled on but never written down. That is closed under versioning and closed under
-citation. It is **not** closed under *deposit* — a work nobody has cited yet is a work the registry
-has never heard of.
+The registry grew from what the property **cites**: the harvester seeds itself from every Zenodo id in
+a tracked file, plus `extra_seeds.txt`, then expands each seed's concept to all of its versions. That
+is closed under versioning and closed under citation. It is **not** closed under *deposit* — a work
+nobody has cited yet is a work the registry has never heard of.
 
-Phase 3B proved that gap is not hypothetical. Nine works and seventeen deposited versions of the
+Phase 3B proved the gap is not hypothetical: nine works and seventeen deposited versions of the
 Statistical Bridge corpus existed entirely on Zenodo and entirely outside the registry, cited by not
-one tracked file. Nothing was stale; nothing was wrong. The defect was **absence**, and absence is
-precisely the defect a scan of what the repo already says can never find.
+one tracked file. Nothing was stale; nothing was wrong. The defect was **absence**, which is precisely
+the defect a scan of what the repo already says can never find.
 
-So coverage now gets measured, and what is measured gets written down here.
+So coverage gets measured, and what it finds gets written down here.
 
 ---
 
 ## 2. How coverage is measured
 
-`python scripts/harvest_zenodo_snapshot.py --coverage`
+```sh
+python scripts/harvest_zenodo_snapshot.py --coverage
+```
 
-A **creator sweep**: ask Zenodo for every latest-version record it attributes to the corpus creator,
-resolve each to its concept, and subtract the concepts `works.json` already claims. What remains is
-the uncovered set.
+A **creator sweep**: every latest-version record Zenodo attributes to the corpus creator, resolved to
+its concept, minus the concepts `works.json` attaches. What remains is the uncovered set.
 
 **A correction to a claim this repo used to make.** `harvest_zenodo_snapshot.py` said, in its own
 docstring, that a creator sweep was not available — *"a query for 'Huayin Wang' returns zero hits,
-verified 2026-08-21"*. That observation was accurate and the conclusion drawn from it was wrong. The
-free-text query does return zero. The **fielded** query does not:
+verified 2026-08-21"*. That observation was accurate and the conclusion drawn from it was wrong:
 
 ```
 q=metadata.creators.person_or_org.name:"Wang, Huayin"     → 34 latest-version records
 q="Huayin Wang"                                            → 0
 ```
 
-The sweep was available the whole time; the repo had tested one spelling of the question and recorded
-the answer as a property of the world. (Compare the G7 widening of 2026-08-21: *a scanner that reads
-one spelling of an identifier does not audit identifiers, it audits a spelling.* Same mistake, one
-layer out.) The docstring is corrected and the sweep is now a flag.
+One spelling of the question had been tested and its answer recorded as a property of the world.
+(Compare the G7 widening of the same day: *a scanner that reads one spelling of an identifier does not
+audit identifiers, it audits a spelling.* Same mistake, one layer out.)
 
-**What the sweep is not.** It is a *reporting* mode. It never seeds, never writes the snapshot, and
-never adds a work — naming a work is editorial and stays editorial. It is also not part of CI: it
-reaches the network, and a gate that reaches the network fails on someone else's outage.
+**What the sweep is not.** Report-only, by ruling. It never seeds, never writes registry state, never
+decides intellectual identity, and is not a CI dependency — it reaches the network, and a gate that
+reaches the network fails on someone else's outage. A record's mere existence at Zenodo does not make
+it authority for anything; attaching or naming it is editorial.
 
----
+### 2.2 Where the brief and the deposit disagreed — the deposit won
 
-## 3. Coverage as of 2026-08-21
+The Phase 3B.1 brief gave the current publication of record for case 2 as:
 
-Creator sweep: **34** latest-version records → 34 Zenodo concepts.
-Registry after Phase 3B: **30 works**, 67 records.
-Every one of the 30 works' current records equals Zenodo's latest version for its concept — verified
-record by record. **No stale current authority anywhere in the registry.**
+> Three Structural Sources of Silent Analytical Failure: **Anchor, Universe, and Regime**
 
-### 3.1 Onboarded by this unit (9 works, 17 records)
+The deposit carries **no subtitle**. Zenodo record `21893929`, resolved live on 2026-08-21, has
+`metadata.title == "Three Structural Sources of Silent Analytical Failure"`. The subtitle is a true
+description of the paper's content — anchor, universe and regime are exactly its three sources — and
+it is not part of the deposited title, so it is not the Record's title. The brief said *"do not use
+this message as bibliographic authority"*, and this is the case where that instruction did work.
+`G9` now asserts the exact deposited string, so the discrepancy cannot be re-introduced by hand.
 
-| work | current | concept |
-|---|---|---|
-| `w-statistical-bridge` | v3.0 | 21795311 |
-| `w-statistical-bridge-primer` | v2.0 | 21864433 |
-| `w-where-does-probability-live` | v1.0 | 21977941 |
-| `w-certifiable-state` | v1.0 | 21972540 |
-| `w-reading-rethinking` | v2.0 | 21863558 |
-| `w-reading-bayesian-workflow` | v1.0 | 21983507 |
-| `w-conditioning-bar` | v1.0 | 22010142 |
-| `w-regression-has-an-anchor` | v2.0 | 21783728 |
-| `w-regime-has-a-contract` | v1.0 | 21840853 |
-
-The first seven are the Evidence pillar as its own texts constitute it. The last two are
-**Bridge-crossing and held for membership review**: both rebuild a statistical object across the
-boundary between the Theory of Data and the Statistical Bridge, and either could reasonably be called
-an Evidence work or a Theory-of-Data work. Onboarding them settles their **publication identity** and
-settles nothing else — `kind` is `unclassified` for all thirty works, so the registry expresses no
-opinion about pillar membership and cannot be read as having expressed one.
-
-### 3.2 Uncovered, clean, awaiting a naming ruling (2 works)
-
-Neither is an Evidence work; both are one line of `works.json` away whenever they are wanted.
-
-- **A Primer on Frame-QL** — concept `21888997`; three versions, current v2.0
-  (`10.5281/zenodo.21960873`). See §4.3: its Zenodo metadata carries a malformed related identifier.
-- **Data Has Its Own Ontology** — concept `22003682`; two versions, current v1.1
-  (`10.5281/zenodo.22026962`). A positioning companion to *The Theory of Data* v6.1.
-
-### 3.3 Uncovered and NOT representable in the current model (2 cases)
-
-Both are recorded as reconciliation items. Both are **blocked on an architectural ruling, not on
-data**, and neither is touched by this unit. See §4.
+(The resource type moved too: the superseded record was deposited as a *Preprint*, the successor as a
+*Working paper*. Record-level, like the title, and for the same reason.)
 
 ---
 
-## 4. What the Evidence sweep exposed about the model
-
-The Evidence corpus itself is clean: nine works, nine concepts, every version chain single-concept
-and monotonic, no ambiguous DOI chain, no supersession puzzle. **The model gaps below were found by
-the corpus sweep, not by the Evidence corpus.** They are reported here rather than repaired, per the
-standing rule that a model weakness stops the unit instead of widening the schema inside it.
-
-### 4.1 One work, two Zenodo concepts — *The Silent Failure Atlas*
+## 3. Coverage as of 2026-08-21, after Phase 3B.1
 
 ```
-concept 20710592  →  20710593  v1.2  2026-06-16  "The Silent Failure Atlas: A Taxonomy…"
-concept 20762838  →  20762839  v1.3  2026-06-19  "The Silent Failure Atlas: A Taxonomy… (v1.3)"
+creator sweep      34 latest-version records → 34 concepts
+works.json         34 concepts across 32 works
+uncovered          0
 ```
 
-v1.3's own Zenodo description reads *"New addition of MIN/MAX pattern, updated from v1.2"*. These are
-two deposits of one intellectual object under **two separate concept records** — v1.3 was deposited
-fresh rather than as a new version of the existing concept.
+**Closed is a state, not a property.** The next deposit re-opens it, and `34/34` is not a guarantee —
+it is a reading taken on a date. The sweep is re-run after deposits, and the number it reports is
+whatever Zenodo says at the time; it is never asserted as a constant.
 
-The registry models only `20762838`, so v1.2 is an unmodeled version of a modeled work.
+Every one of the 32 works' current records equals Zenodo's latest version for its attached concepts,
+verified record by record. **No stale current authority anywhere in the registry.**
 
-**Why it cannot simply be added.** `Work.conceptRecid` is single-valued, and G4 fails any record whose
-snapshot concept differs from its work's declared concept. So:
+---
 
-- filing v1.2 under `w-silent-failure-atlas` → **G4 fails** (concept mismatch);
-- filing it as its own work → asserts something false: that there are two Atlases;
-- leaving it out → the current state, which is at least not a lie, but the registry silently does not
-  know about a deposited version of a work it does model.
+## 4. The model change that closed it
 
-The ruling this needs is whether a Work may **attach more than one concept identity**. The existing
-doctrine already points that way — *"a later deposit ATTACHES an external concept identity to an
-existing datumwise work"* — and a set-valued attachment is a small change to `works.json`, G1 and G4.
-It is a schema change, so it is not made here.
+> **One Work may attach one or more Zenodo concept identities over its publication history.**
+> (Huayin, ruling of 2026-08-21.)
 
-Cross-reference: *The Silent Seam* (`10.5281/zenodo.20710717`) declares `isSupplementTo`
-`10.5281/zenodo.20710593` — the v1.2 record, in the uncovered concept. The site's footer pairs the two
-works and is unaffected: it derives from the registry and cites v1.3.
+A datumwise `Work` is the governed intellectual identity. A Zenodo concept is an **attached external
+publication identity** — one of possibly several the work acquires. `works.json` carries
+`attachedConcepts: [{recid, doi}]`, in first-deposit order; empty for a work never deposited.
 
-### 4.2 A retitled successor in a new concept — *Two Great Sources* → *Three Structural Sources*
+```
+one datumwise Work identity
+one Work attaches 1..n Zenodo concept identities
+
+one Record  → exactly one datumwise Work
+            → exactly one concrete Zenodo concept
+
+record.conceptRecid ∈ work.attachedConceptRecids          (G4)
+one concept is attached by at most ONE work               (G1)
+an attachment must be witnessed by ≥1 record of the work  (G4)
+```
+
+**Currentness did not move.** It is governed `status` on the Record and nothing else — not concept,
+not attachment order, not version string, not date, not DOI magnitude. Supersession **may** now cross
+attached concepts inside one work, and G3 is unchanged: edges still stay inside a *work*.
+
+### 4.1 Case 1 — *The Silent Failure Atlas*, one work under two concepts
+
+```
+concept 20710592  →  20710593  v1.2  2026-06-16   "…: A Taxonomy of Silent Analytical Failures in Data Analysis"
+concept 20762838  →  20762839  v1.3  2026-06-19   "…: A Taxonomy of Silent Analytical Failures in Data Analysis (v1.3)"
+```
+
+v1.3's own Zenodo description reads *"New addition of MIN/MAX pattern, updated from v1.2"*. Both
+concepts attach to the existing `w-silent-failure-atlas`; **no second Atlas work was created**. The
+chain is `r02 (v1.2) → r01 (v1.3, current)` — and note the ids: the *earlier* deposit carries the
+*later* recordId, because ids are minted, never renumbered. The current record is v1.3, the same
+answer as before the ruling, now for a reason the registry can state rather than a gap it could not.
+
+The rendered consequence: the Atlas now has two records, so `versionTag` resolves for the first time
+and `/about` and `llms.txt` read *"The Silent Failure Atlas — v1.3"*. Its DOI did not change.
+
+### 4.2 Case 2 — *Two Great Sources* → *Three Structural Sources*, across concepts
 
 ```
 concept 21553378  →  21553379  (unversioned)  2026-07-25  "The Two Great Sources of Silent Analytical Failure"
 concept 21893928  →  21893929  v2.0           2026-08-11  "Three Structural Sources of Silent Analytical Failure"
 ```
 
-`21893929` (`10.5281/zenodo.21893929`) declares, in its own Zenodo metadata, `isNewVersionOf` `10.5281/zenodo.21553379`, and calls
-itself **version 2.0**. That is an explicit, machine-readable supersession claim that **crosses a
-concept boundary** — the successor was deposited as a new concept, and its title changed with the
-argument (two sources became three: anchor, universe, regime).
+`21893929` declares `isNewVersionOf 10.5281/zenodo.21553379` in its own Zenodo metadata. Ruled: one
+work, two concepts, one chain. `r02 (v2.0)` is current and supersedes `r01`, which stays first-class
+and historical.
 
-**This is a live consequence, not a curiosity.** `w-two-great-sources` is a member of
-`CHRONOLOGICAL_SELECTION`, so `/about` and the `llms.txt` inventory render `21553379` as the current
-record of that work today. If the successor claim is ratified, that is stale current authority on two
-derived surfaces — the exact class of defect the registry was built to end — and the registry
-currently **cannot express the repair**: G3 requires supersession edges to stay inside one work, and a
-work may hold only one concept.
+**The workId did not change.** `w-two-great-sources` still names a work whose current deposit is
+titled *Three Structural Sources*. That reads strangely on purpose: the slug is a mnemonic, no code
+parses it, and renaming internal identity to track an external title is the exact coupling this
+registry exists to break. The `canonicalLabel` — which *is* editorial naming — did change, to
+*Three Structural Sources of Silent Analytical Failure*.
 
-Three candidate readings, none of them ours to pick:
+**Not one citation was mechanically currentized.** Nine tracked files name `21553379` and all nine are
+right to:
 
-1. **One work, two concepts, one chain** — v2.0 supersedes the 2026-07-25 deposit. Needs §4.1's
-   multi-concept attachment, and then falls out for free.
-2. **Two works, related** — a distinct paper that supersedes an argument rather than a version. Needs
-   a *relationship* edge between works, which the model deliberately does not have (§5).
-3. **Deposit defect** — `isNewVersionOf` was asserted where a `references`/`isSupersededBy` relation
-   was meant, in which case nothing changes in the registry and the item retires.
+| file | class | why it keeps the superseded DOI |
+|---|---|---|
+| 4 × `content/corpus/*.md` | `frozen-corpus` | ratified byte-frozen editions |
+| `data/latest.ts` | `manual-deferred` | a dated announcement log — *"2026-07-25"* is true as a log entry and would be **falsified** by pointing it at v2.0 |
+| `positions/the-two-great-sources-…astro` | `edition-pinned` | renders the v1.1 bytes; citing v2.0 above them would be the misattribution |
+| `docs/tools/link_checking.md` | `manual-deferred` | a `curl` example; makes no publication claim |
+| `prototype/index.html` | `frozen` | historical artifact |
+| `scripts/check_publications.py` | `acceptance` | the gate's own assertions, literal on purpose |
 
-Until one of the three is ruled, `/about` continues to render `21553379`. That is recorded, not
-hidden — which is the whole point of this file.
+What changed is the two `derived` surfaces, and they changed **with no edit to any page**: `/about`
+and `llms.txt` re-derived to *Three Structural Sources … v2.0 … doi:10.5281/zenodo.21893929* because
+they read status, not text. That is the whole thesis of this registry, executed once, in public.
 
-### 4.3 Malformed external identifier — *A Primer on Frame-QL* v2.0
+### 4.3 Case 3 — two clean identities claimed
+
+| work | current | versions | concept |
+|---|---|---|---|
+| `w-frameql-primer` — *A Primer on Frame-QL* | v2.0 `10.5281/zenodo.21960873` | 3 | 21888997 |
+| `w-data-has-its-own-ontology` — *Data Has Its Own Ontology* | v1.1 `10.5281/zenodo.22026962` | 2 | 22003682 |
+
+Both chains single-concept and monotonic. **No pillar assignment is implied**: `kind` is
+`unclassified` for all 32 works, so registration expresses no opinion about where either belongs.
+
+### 4.4 Case 4 — a malformed external identifier, unchanged
 
 Record `21960873` carries `related_identifiers[0].identifier =
-"10.5281/zenodo.2188899810.5281/zenodo.21888998"` — two DOIs concatenated with no separator, the
-identical defect class as `rc-primer-v22-related-identifier` (*A Primer on the Theory of Data* v2.2).
-A second instance makes it a pattern rather than a slip: it is what a **prepend-instead-of-replace**
-edit produces in the Zenodo related-identifiers editor. Repairable only at the deposit.
+"10.5281/zenodo.2188899810.5281/zenodo.21888998"` — two DOIs concatenated, resolving 404. The second
+instance of this defect class (`rc-primer-v22-related-identifier` is the first), and what a
+**prepend-instead-of-replace** edit produces in Zenodo's related-identifiers editor. Repairable only
+at the deposit. It costs one unresolved seed per harvest and is recorded, not compensated for.
 
 ---
 
-## 5. What this unit deliberately did NOT add
+## 5. What was deliberately NOT added
 
 **No citation edges.** The Evidence corpus is densely cross-cited — *The Two Jobs of the Conditioning
-Bar* names five sibling records in its own front matter — and modelling that graph was refused. The
-registry's job is publication **identity and currentness**, and it already answers the four questions
-a derived surface actually asks:
+Bar* names five sibling records in its own front matter — and modelling that graph stays refused. The
+registry governs publication **identity and currentness**, and answers the four questions a derived
+surface asks:
 
 ```
-what is current?                                  → status, exactly one per work
-what supersedes what?                             → supersedes, by recordId, within a work
-what work does this record belong to?             → workId
-what may a derived surface render as current?     → currentRecord(workId)
+what is current?                                → status, exactly one per work
+what supersedes what?                           → supersedes, by recordId, within a work
+what work does this record belong to?           → workId
+what may a derived surface render as current?   → currentRecord(workId)
 ```
 
-A general bibliographic relation model would be a second, much larger system, and nothing on the site
-needs it yet. Recorded as **future capability**, and as the thing §4.2's reading 2 would require.
+Recorded as future capability. Nothing on the site needs it.
 
-**No surface changes.** No page, selection or copy was touched. `/about` and `llms.txt` still render
-the same ten curated works; the nine new works are governed and uncited, which is the correct state
-for a foundation laid before the surface that will stand on it.
+**No scalar concept field kept for cosmetic continuity.** `conceptRecid` / `conceptDoi` are gone, not
+deprecated. Every reader — the gate, the minter, the harvester, the typed site adapter — moved in the
+same commit. A compatibility shim would have been a second way to ask the same question, which is how
+the stale-DOI problem started.
 
 ---
 
 ## 6. Open items
 
-| id | item | blocked on |
+| id | item | state |
 |---|---|---|
-| CV-1 | Atlas v1.2 in concept `20710592` is an unmodeled version of a modeled work | multi-concept attachment ruling (§4.1) |
-| CV-2 | *Three Structural Sources* claims `isNewVersionOf` the *Two Great Sources* deposit, across concepts | ruling among §4.2's three readings |
-| CV-3 | *A Primer on Frame-QL* and *Data Has Its Own Ontology* uncovered | a naming ruling; one line each |
-| CV-4 | Frame-QL Primer v2.0 related identifier is malformed at the deposit | an edit on Zenodo; nothing in this repo can fix it |
-| CV-5 | Evidence-pillar membership of *Regression Has an Anchor* and *Regime Has a Contract* | editorial review (§3.1) |
-| CV-6 | `/analytical-governance` names *The Statistical Bridge* as a neighbour with no link | Phase 3C decides whether the target is `/evidence` or the DOI |
+| CV-1 | Atlas v1.2 unmodeled | **CLOSED** 3B.1 case 1 — both concepts attached |
+| CV-2 | *Three Structural Sources* successor across concepts | **CLOSED** 3B.1 case 2 — ratified, current, derived surfaces re-derived |
+| CV-3 | *A Primer on Frame-QL*, *Data Has Its Own Ontology* uncovered | **CLOSED** 3B.1 case 3 — both claimed |
+| CV-4 | Frame-QL Primer v2.0 related identifier malformed at the deposit | **OPEN** — an edit on Zenodo; nothing in this repo can fix external metadata |
+| CV-5 | Evidence-pillar membership of *Regression Has an Anchor* and *Regime Has a Contract* | **OPEN** — editorial review; registration implies nothing |
+| CV-6 | `/analytical-governance` names *The Statistical Bridge* as a neighbour with no link | **OPEN** — Phase 3C decides whether the target is `/evidence` or the DOI |
+| CV-7 | the live route `/positions/the-two-great-sources-of-silent-analytical-failure` and its page title name the superseded account | **OPEN** — correct as an edition-pinned rendering of the v1.1 bytes; whether the ROUTE should follow the retitled successor is editorial, and publication foundation does not get to answer it |
+| CV-8 | corpus `kind` ungoverned for all 32 works, so no surface may state a count | **OPEN by design** — G10 enforces it |
