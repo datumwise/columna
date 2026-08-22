@@ -89,6 +89,16 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'a claim of origin is not evidence of lowering — governed standing now requires a bound execution image',
     date: '2026-08-22',
   },
+  // The compiler 0.15.2 was waiting for. Until now nothing turned an authored, published Manifold and
+  // its private realization into the .cml the engine actually runs: the receipt could bind a
+  // publication to an image, but no governed producer made one. K0 is the first slice — measures,
+  // their members and the coordinates they are keyed at — and it fails closed everywhere else,
+  // refusing with a named reason rather than emitting an image quietly missing the law it was asked
+  // to carry. Stated as the capability, not the module.
+  '0.16.0': {
+    title: 'a governed publication now compiles to the execution image that serves it',
+    date: '2026-08-22',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

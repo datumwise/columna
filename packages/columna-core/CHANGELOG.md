@@ -7,6 +7,49 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## Unreleased — 0.16.0 — the Core-P1 K0 compiler
+
+**A governed publication plus a private realization now becomes a Core execution image.** The
+`⌀ NO HANDOFF` boundary in `f0_reconnaissance.md` — "nothing yet turns (authored Manifold + mapping)
+into the runtime `.cml`" — is closed for the K0 slice.
+
+```
+compile_k0(governed_publication, private_core_mapping) -> CLOSED execution image
+```
+
+`columna_core.compiler` is a **distinct Core-P1 module inside this distribution** (ruled 2026-08-22).
+It is not `draft.lower_to_cml`, which is a Core-local bootstrap from the init interview that reads
+neither a publication nor a mapping, and it is not a new distribution — which would have bought its
+own Trusted Publisher registration, lockstep decision and dependency caps for nothing.
+
+**Ratified K0 scope only:** `measure · member · anchor`, plus the unrestricted `UNIVERSE` and base
+`LEVEL` declarations a well-formed image requires. Reducers `sum · count · min · max`. Everything
+else **refuses with a named category** — relationship/hierarchy/attribute as `UnsupportedCoreCapability`,
+boundary as `ExecutionRepresentationGap` (`across` has no slot in the grammar), crosswalk as
+`LogicalMeaningMissing`. An out-of-scope construct is never silently dropped: an image quietly
+missing governed law would make the lowering receipt bind a publication to an image that does not
+carry its meaning.
+
+**Five refusal conditions, never collapsed** into a generic lowering error, with
+`InputIdentityMismatch` seated ahead of the four gap classes because it is an input-authority
+condition rather than a lowering outcome. There is no certification category: compilation asks
+whether governed law can be faithfully translated, and whether a path is licensed on a realization
+is adjudication's question, asked later. The image is CLOSED, and nothing about it implies admission.
+
+**Two inputs, enforced by construction.** Both are read with the standard library only — the same
+discipline that keeps `columna-server` from importing `manifold_agent` — and a test monkeypatches
+`open` to prove `compile_k0` touches no filesystem at all. It cannot repair a missing fact from
+evidence, profile, Studio state or a dead-end YAML, because it reaches none of them.
+
+**Determinism is a correctness property**, not tidiness: the receipt digests the image as shipped
+with no canonicalization, so identical inputs must produce identical bytes. Fixed engine version, no
+timestamp, sorted emission, and a pin proving a reordered publication compiles to the same image.
+
+`mean` is excluded on demonstrated shipped-Core behaviour rather than classification: it parses
+clean AND passes `check()`, then refuses at execution because `in_core` is consulted only on the
+scan path. `median`/`mode` are out for scope minimality with their classification explicitly
+deferred — shipped Core does execute both.
+
 ## Unreleased — realization/data identity and cache safety (P0.5b-0)
 
 **Version 0.15.2 is a LOCKSTEP release: `columna-core`'s code is unchanged from 0.15.1.** The

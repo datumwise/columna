@@ -54,8 +54,11 @@ def test_import_and_version():
 
     # Deliberately pinned: a version bump is an intentional act, so this test forces the bump to be
     # made on purpose rather than drifting. 0.13.0 = the ASSERT retirement (breaking, ruling 2026-07-26);
-    # 0.15.0 = the additive SOURCE_MANIFOLD source-identity statement (columna#150 P0(b)).
-    assert columna_core.__version__ == "0.15.0-core"
+    # 0.15.0 = the additive SOURCE_MANIFOLD source-identity statement (columna#150 P0(b));
+    # 0.16.0 = the Core-P1 K0 compiler (`columna_core.compiler`), additive — a new module, no change
+    # to any existing surface. The 0.15.1/0.15.2 releases moved the DISTRIBUTION version without
+    # touching core's code, which is why this label sat at 0.15.0-core across them and moves now.
+    assert columna_core.__version__ == "0.16.0-core"
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))
