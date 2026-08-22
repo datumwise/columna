@@ -11,12 +11,13 @@
  *
  * THE CENSUS GUARD IS PART OF THE WOUND, NOT A FOOTNOTE TO IT (Huayin, 2026-08-22). A completed
  * census retires ONE probability source — sampling uncertainty about the enumerated finite
- * population — and retires nothing else. Measurement error, incomplete capture, latent quantities,
- * a future period or a wider target can each make an interval necessary over the very same table.
- * Left unsaid, the section teaches "census ⇒ no standard error" as a syntactic taboo, which is too
- * strong and is the wrong lesson: the defect is inferential machinery whose uncertainty source has
- * not been declared. §wound-scope states that beside the case rather than trusting a later section
- * to imply it.
+ * population — and retires nothing else. A superpopulation model, a measurement-error model, a
+ * stochastic process or a forecast target can each still license probabilistic machinery over the
+ * very same table, provided the source is declared. Left unsaid, the section teaches
+ * "census ⇒ no standard error" as a syntactic taboo, which is too strong and is the wrong lesson:
+ * the failure is narrower and worse — inferential machinery invoked without saying what uncertainty
+ * it represents. §wound-scope states that beside the case rather than trusting a later section to
+ * imply it. Prose per Huayin/CF, 2026-08-22; substance is theirs, line breaks are editorial.
  *
  * THE WOUND IS INFERENTIAL, NOT ANCHOR-LAW. The opening case is a completed census with a standard
  * error attached — deposited, not devised: *The Statistical Bridge* §9.4 names it directly ("a
@@ -176,17 +177,14 @@ const RELATIONS = [
       <div class="wound-scope">
         <p class="scope-label">What the census removes, and what it does not</p>
         <p class="scope-law">
-          A census does not forbid probability. It removes one particular probability source —
-          sampling uncertainty about the enumerated finite population. Any other uncertainty
-          requires its own declared source.
+          A census does not forbid probability. It removes one source of it: sampling uncertainty
+          about the enumerated finite population.
         </p>
         <p class="ds-body scope-note">
-          Measurement error, incomplete capture, a latent quantity behind the recorded one, a future
-          period, a wider population the enumerated one is standing in for: each of these can make
-          an interval necessary over exactly this table. What none of them can do is arrive
-          undeclared. So the defect here is not <em>a standard error on a census</em> — that is a
-          symptom, and treating it as a rule to memorize teaches the wrong thing. The defect is
-          inferential machinery running with its uncertainty source unnamed.
+          A declared superpopulation model, a measurement-error model, a stochastic process, a
+          forecast target — any of these can still license probabilistic machinery over exactly this
+          table, provided it is declared as the source. The failure shown here is narrower, and
+          worse: inferential machinery invoked without saying what uncertainty it represents.
         </p>
       </div>
 
