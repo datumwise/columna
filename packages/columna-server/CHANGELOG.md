@@ -3,7 +3,46 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2)
+## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2) + the publication→image binding
+
+**The lowering receipt — governed standing now requires established provenance, not an origin claim
+(milestones 1–3, ruling 2026-08-22).** `ENTRY_GOVERNED` previously followed from a publication
+artifact plus a matching `SOURCE_MANIFOLD`. That pair is an ORIGIN CLAIM — a `.cml` asserting which
+publication it came from — and anyone able to write the runtime folder could type it, so arbitrary
+co-location of any artifact with any realization was sufficient. Semantic conformance belongs to
+Core-P1 lowering by construction (the compiler's only inputs are the publication and the private
+mapping, and it fails closed when governed law cannot be faithfully represented); a fourth file now
+carries that discharged obligation across the lowering→provisioning→admission boundary:
+
+    <runtime-manifold>/{governed-publication.json, manifold.cml, lowering-receipt.json, data.toml}
+
+`lowering-receipt.json` binds one publication ref to two content digests — the artifact and the
+execution image, **as shipped**, no canonicalization. Admission verifies all three locally and grants
+governed standing only when they agree; anything else is compatibility-served with an observable
+condition. Verification never loads the private mapping, never reconstructs meaning from the `.cml`,
+and never re-runs lowering, so the blast wall is untouched: `GovernedPublication.logical` still comes
+only from the artifact.
+
+**The receipt establishes publication→image and nothing else.** It is not certification, not
+attestation, and not `PublishedScope` admission — a governed unit's `published_scope` and `evidence`
+are byte-identical to the same image served as a legacy runtime, and a test asserts it. Binding
+identity is deterministic for identical inputs: `compiler` and `mapping_provenance` are retained as
+opaque provenance and `established_at` as a non-authoritative timestamp, none participating in the
+binding and none a runtime admission dependency.
+
+Three additive condition codes inside `contract_version` `"3"` — the catalog's shape is unchanged and
+only the value set grows: `lowering_receipt_missing`, `lowering_receipt_invalid`,
+`lowering_receipt_mismatch`. A new completeness test pins that every `LoadCondition` kind the store
+can emit has a stable public code, since `list_manifolds` skips unmapped kinds and an omission would
+delete a deployment condition from the catalog rather than surface it.
+
+No fixture is promoted and no legacy semantics are weakened: the packaged demos carry no
+`SOURCE_MANIFOLD` and remain `legacy`. There are zero governed deployments today, so the requirement
+lands with no migration burden — which is why it lands now. Compiler, `PrivateCoreMapping`,
+provisioner and the first public governed fixture (milestones 4–7) remain behind the Core-P1
+checkpoint; test-constructed receipts exercise the admission contract and are not an end-to-end
+governed-producer proof.
+
 
 **S2.2b-2 — governed publication catalog (WIRE `contract_version` `"2"` → `"3"`).** `list_manifolds`
 is now a governed publication **lineage** catalog, not a runtime-folder inventory: one row per

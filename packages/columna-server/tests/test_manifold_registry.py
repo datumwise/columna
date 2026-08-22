@@ -40,6 +40,7 @@ from columna_server.store import (
     ENTRY_SOURCE_REFERENCED_INCOMPLETE,
     ManifoldStore,
 )
+from conftest import write_lowering_receipt
 
 _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 
@@ -163,7 +164,7 @@ def _governed_store(tmp_path) -> ManifoldStore:
     src_cml = _cml_body()
     warehouse = os.path.join(_CASCADIA, "warehouse")
 
-    def _write(folder, source_line, artifact=None):
+    def _write(folder, source_line, artifact=None, receipt=True):
         d = tmp_path / folder
         d.mkdir()
         body = src_cml[:1] + ([source_line] if source_line else []) + src_cml[1:]
@@ -173,6 +174,10 @@ def _governed_store(tmp_path) -> ManifoldStore:
         )
         if artifact is not None:
             (d / "governed-publication.json").write_text(json.dumps(artifact))
+            # A governed unit is artifact + image + the receipt binding them. Written last, over the
+            # bytes just laid down: the receipt is evidence about THESE files, not a flag.
+            if receipt:
+                write_lowering_receipt(d, artifact["ref"]["manifold_id"], artifact["ref"]["version"])
 
     _write("retail_v12", "SOURCE_MANIFOLD retail VERSION 1.2.0", _artifact_dict("retail", "1.2.0"))
     _write("retail_v13", "SOURCE_MANIFOLD retail VERSION 1.3.0", _artifact_dict("retail", "1.3.0"))

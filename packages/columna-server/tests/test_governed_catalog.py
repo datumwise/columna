@@ -9,15 +9,19 @@ raw details, parser text, paths, or exception reprs. contract_version is "3".
 """
 import json
 import os
+import re
 
 import columna_server
 from columna_server.registry import ManifoldRef
 from columna_server.store import ManifoldStore
 from columna_server.tools import list_manifolds
+from conftest import write_lowering_receipt
 
 _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 _STABLE_CODES = {"publication_artifact_missing", "publication_artifact_invalid",
-                 "unsupported_publication_format", "realization_identity_mismatch"}
+                 "unsupported_publication_format", "realization_identity_mismatch",
+                 "lowering_receipt_missing", "lowering_receipt_invalid",
+                 "lowering_receipt_mismatch"}
 
 
 def _artifact(src_id, src_ver):
@@ -38,7 +42,7 @@ def _scrambled_store(tmp_path) -> ManifoldStore:
     src_cml = open(os.path.join(_CASCADIA, "manifold.cml")).read().splitlines()
     warehouse = os.path.join(_CASCADIA, "warehouse")
 
-    def _write(folder, source_line, artifact=None):
+    def _write(folder, source_line, artifact=None, receipt=True):
         d = tmp_path / folder
         d.mkdir()
         body = src_cml[:1] + ([source_line] if source_line else []) + src_cml[1:]
@@ -47,6 +51,8 @@ def _scrambled_store(tmp_path) -> ManifoldStore:
             f'[manifold]\nname = "{folder}"\n[connector]\ntype = "duckdb"\nwarehouse = "{warehouse}"\n')
         if artifact is not None:
             (d / "governed-publication.json").write_text(json.dumps(artifact))
+            if receipt:
+                write_lowering_receipt(d, artifact["ref"]["manifold_id"], artifact["ref"]["version"])
 
     # governed lineages (folder names deliberately out of manifold_id order; retail versions scrambled)
     _write("m_retail_c", "SOURCE_MANIFOLD retail VERSION 1.3.0", _artifact("retail", "1.3.0"))
@@ -140,3 +146,31 @@ def test_only_stable_codes_cross_the_wire_no_raw_detail(tmp_path):
     for leak in ("governed-publication.json", "Traceback", "Expecting value",
                  str(tmp_path), os.sep + "tmp", "!="):
         assert leak not in blob, leak       # no filenames, parser text, paths, exception reprs
+
+
+def test_every_condition_the_store_can_emit_has_a_stable_public_code():
+    """THE FALL-THROUGH GUARD. `list_manifolds` skips LoadCondition kinds it cannot map, so a new
+    condition class without a code would not surface as an unknown value — it would vanish, leaving a
+    deployment gap invisible on exactly the surface built to make it visible. This asserts the
+    mapping covers every condition class the store constructs, so adding one without a code fails
+    here instead of failing silently in production."""
+    import inspect
+
+    from columna_server import store as store_mod
+    from columna_server.tools import _CONDITION_CODE
+
+    from columna_server import lowering_receipt as lr
+    from columna_server import registry as reg
+
+    # the literal kinds the store names itself, read off its source...
+    emitted = set(re.findall(r'LoadCondition\(\s*manifold_id,\s*"([A-Za-z]+)"',
+                             inspect.getsource(store_mod)))
+    # ...plus every condition class it can catch and re-report via type(e).__name__
+    for mod, base in ((reg, reg.PublicationArtifactError), (lr, lr.LoweringReceiptError)):
+        for name, obj in vars(mod).items():
+            if inspect.isclass(obj) and issubclass(obj, base) and obj is not base:
+                emitted.add(name)
+
+    missing = sorted(k for k in emitted if k not in _CONDITION_CODE)
+    assert not missing, f"LoadCondition kinds with no stable public code: {missing}"
+    assert set(_CONDITION_CODE.values()) == _STABLE_CODES

@@ -23,6 +23,7 @@ from columna_server.tools import (
     describe_manifold,
     execute_frame_query,
 )
+from conftest import write_lowering_receipt
 
 _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "cascadia")
 _Q = "SELECT revenue, orders AT {region*cal.quarter}"
@@ -53,6 +54,7 @@ def _store(tmp_path) -> ManifoldStore:
             f'[manifold]\nname = "{folder}"\n[connector]\ntype = "duckdb"\nwarehouse = "{warehouse}"\n')
         if artifact is not None:
             (d / "governed-publication.json").write_text(json.dumps(artifact))
+            write_lowering_receipt(d, artifact["ref"]["manifold_id"], artifact["ref"]["version"])
 
     _write("retail_v12", "SOURCE_MANIFOLD retail VERSION 1.2.0", _artifact("retail", "1.2.0"))
     _write("retail_v13", "SOURCE_MANIFOLD retail VERSION 1.3.0", _artifact("retail", "1.3.0"))
