@@ -3,7 +3,7 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2) + the publication→image binding
+## [Unreleased] — 0.9.0 — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2) + the publication→image binding
 
 **The lowering receipt — governed standing now requires established provenance, not an origin claim
 (milestones 1–3, ruling 2026-08-22).** `ENTRY_GOVERNED` previously followed from a publication

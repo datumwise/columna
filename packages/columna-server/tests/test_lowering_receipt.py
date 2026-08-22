@@ -171,6 +171,24 @@ def test_structural_defects_are_invalid(mutate, fragment):
     assert fragment in str(e.value)
 
 
+def test_verify_binding_names_which_half_disagreed(tmp_path):
+    """``verify_binding`` in isolation: three comparisons, and the detail says which one failed —
+    an operator reading a condition should not have to guess whether the artifact or the image moved."""
+    from columna_server.lowering_receipt import load_lowering_receipt, verify_binding
+
+    d = _unit(tmp_path, "unit")
+    art, img = str(d / "governed-publication.json"), str(d / "manifold.cml")
+    receipt = load_lowering_receipt(str(d / LOWERING_RECEIPT))
+    verify_binding(receipt, ManifoldRef("retail", "1.2.0"), art, img)     # the happy path is silent
+
+    with pytest.raises(LoweringReceiptMismatch, match="receipt binds retail@1.2.0, not retail@9.9.9"):
+        verify_binding(receipt, ManifoldRef("retail", "9.9.9"), art, img)
+
+    (d / "governed-publication.json").write_text("{}")
+    with pytest.raises(LoweringReceiptMismatch, match="publication bytes do not match"):
+        verify_binding(receipt, ManifoldRef("retail", "1.2.0"), art, img)
+
+
 def test_a_receipt_without_provenance_of_its_producer_is_invalid():
     """A receipt is a claim by a compiler. One that cannot say which compiler made it is not a
     receipt — even though the content of that claim never gates admission."""
