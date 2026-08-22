@@ -9,6 +9,15 @@
  * connect them. It does not extend them, and it invents no example the corpus does not already
  * carry.
  *
+ * THE CENSUS GUARD IS PART OF THE WOUND, NOT A FOOTNOTE TO IT (Huayin, 2026-08-22). A completed
+ * census retires ONE probability source — sampling uncertainty about the enumerated finite
+ * population — and retires nothing else. Measurement error, incomplete capture, latent quantities,
+ * a future period or a wider target can each make an interval necessary over the very same table.
+ * Left unsaid, the section teaches "census ⇒ no standard error" as a syntactic taboo, which is too
+ * strong and is the wrong lesson: the defect is inferential machinery whose uncertainty source has
+ * not been declared. §wound-scope states that beside the case rather than trusting a later section
+ * to imply it.
+ *
  * THE WOUND IS INFERENTIAL, NOT ANCHOR-LAW. The opening case is a completed census with a standard
  * error attached — deposited, not devised: *The Statistical Bridge* §9.4 names it directly ("a
  * standard error calculated from row variation in a census is a common example"), §10.5 and the
@@ -137,10 +146,10 @@ const RELATIONS = [
           <p class="wound-mark ds-mark">τ = (1 / |P|) · Σ revenue(p)</p>
           <p class="ds-body">
             The revenues vary a great deal. The standard error computed from that variation is
-            arithmetically correct, and it is an answer to no question that was asked. Nothing is
-            uncertain about a mean over a population that has been enumerated. The interval is not
-            wrong the way a miscalculation is wrong; it is <em>unwarranted</em> — a probability
-            statement with no probability source behind it.
+            arithmetically correct, and it is an answer to no question that was asked: enumerating
+            the population settles the sampling question that a standard error would ordinarily be
+            answering. The interval is not wrong the way a miscalculation is wrong; it is
+            <em>unwarranted</em> — a probability statement with no probability source behind it.
           </p>
         </div>
 
@@ -160,6 +169,27 @@ const RELATIONS = [
         </aside>
       </div>
 
+      {/* THE CENSUS GUARD (Huayin, 2026-08-22). Without this the wound reads as a syntactic taboo —
+          "census, therefore no standard error" — which is both too strong and the wrong lesson.
+          Enumeration retires exactly ONE source; it does not retire probability. Stated here, beside
+          the case, rather than left to the reader to infer from the section that follows. */}
+      <div class="wound-scope">
+        <p class="scope-label">What the census removes, and what it does not</p>
+        <p class="scope-law">
+          A census does not forbid probability. It removes one particular probability source —
+          sampling uncertainty about the enumerated finite population. Any other uncertainty
+          requires its own declared source.
+        </p>
+        <p class="ds-body scope-note">
+          Measurement error, incomplete capture, a latent quantity behind the recorded one, a future
+          period, a wider population the enumerated one is standing in for: each of these can make
+          an interval necessary over exactly this table. What none of them can do is arrive
+          undeclared. So the defect here is not <em>a standard error on a census</em> — that is a
+          symptom, and treating it as a rule to memorize teaches the wrong thing. The defect is
+          inferential machinery running with its uncertainty source unnamed.
+        </p>
+      </div>
+
       <div class="wound-turn">
         <p class="wound-question">
           If neither bad data nor bad mathematics explains the failure, what is missing?
@@ -172,10 +202,10 @@ const RELATIONS = [
           <p>Neither yet. What is uncertain?</p>
         </blockquote>
         <p class="ds-body">
-          Variation is not a probability source. Probability becomes necessary when the target
-          changes — to a future quarter, to a superpopulation, to latent values under measurement
-          error, to incomplete capture, to an intervention response. The number on the screen has
-          not moved. What it is being asked to support has. What is missing is the governed passage
+          Variation is not a probability source. Where probability is needed it has to enter from
+          somewhere and be named — a design, an observation model, a process for what can vary
+          between now and later, a prior over target-side unknowns. The number on the screen has not
+          moved. What it is being asked to support has. What is missing is the governed passage
           between them, and the warrant that passage carries.
         </p>
       </div>
@@ -520,6 +550,31 @@ const RELATIONS = [
     color: var(--ink-soft);
     margin: var(--ds-space-3) 0 0;
   }
+
+  .wound-scope {
+    margin-top: var(--ds-space-5);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+    max-width: 56rem;
+  }
+  .scope-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 var(--ds-space-2);
+  }
+  .scope-law {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 0;
+    max-width: 48ch;
+    text-wrap: pretty;
+  }
+  .scope-note { margin: var(--ds-space-3) 0 0; max-width: var(--ds-essay); }
 
   .wound-turn { margin-top: var(--ds-space-5); max-width: var(--ds-essay); }
   .wound-question {
