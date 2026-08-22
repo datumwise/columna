@@ -1,0 +1,87 @@
+{
+  "mapping_format_version": "1",
+  "publication_ref": {
+    "manifold_id": "firstlight",
+    "version": "1.0.0"
+  },
+  "realizations": [
+    {
+      "anchor_ref": "sale_at",
+      "component_name": "store",
+      "endpoint": {
+        "column": "store_id",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "anchor_component"
+    },
+    {
+      "anchor_ref": "sale_at",
+      "component_name": "day",
+      "endpoint": {
+        "column": "sale_date",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "anchor_component"
+    },
+    {
+      "anchor_ref": "sale_at",
+      "endpoint": {
+        "column": "amount",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "member",
+      "measure_ref": "revenue",
+      "member_ref": "revenue_sum",
+      "root_evaluator": "sum",
+      "universe_ref": "sales"
+    },
+    {
+      "anchor_ref": "sale_at",
+      "endpoint": {
+        "column": "amount",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "member",
+      "measure_ref": "revenue",
+      "member_ref": "revenue_count",
+      "root_evaluator": "count",
+      "universe_ref": "sales"
+    },
+    {
+      "anchor_ref": "sale_at",
+      "endpoint": {
+        "column": "amount",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "member",
+      "measure_ref": "revenue",
+      "member_ref": "revenue_min",
+      "root_evaluator": "min",
+      "universe_ref": "sales"
+    },
+    {
+      "anchor_ref": "sale_at",
+      "endpoint": {
+        "column": "amount",
+        "connection": "warehouse",
+        "schema": "main",
+        "table": "sales_lines"
+      },
+      "kind": "member",
+      "measure_ref": "revenue",
+      "member_ref": "revenue_max",
+      "root_evaluator": "max",
+      "universe_ref": "sales"
+    }
+  ]
+}

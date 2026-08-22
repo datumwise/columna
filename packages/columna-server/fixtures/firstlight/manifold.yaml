@@ -1,0 +1,59 @@
+audits: []
+declarations:
+- body:
+    components:
+    - name: store
+      type: text
+    - name: day
+      type: date
+  kind: anchor
+  name: sale_at
+  status: assumed
+- body:
+    anchor: sale_at
+    basis: events
+  existence_law_ratification:
+    at: '2026-08-22T00:00:00Z'
+    fingerprint: 948737e550378a2c0f0a19af08e6cf150c2851a7f409635810873570e795c8eb
+    fingerprint_version: elf-1
+    ratified_by: Huayin Wang
+  kind: universe
+  name: sales
+  status: assumed
+- body:
+    root_member: revenue_sum
+    value_type: decimal
+  kind: measure
+  name: revenue
+  status: assumed
+- body:
+    anchor: sale_at
+    measure: revenue
+    universe: sales
+  kind: member
+  name: revenue_sum
+  status: assumed
+- body:
+    anchor: sale_at
+    measure: revenue
+    universe: sales
+  kind: member
+  name: revenue_count
+  status: assumed
+- body:
+    anchor: sale_at
+    measure: revenue
+    universe: sales
+  kind: member
+  name: revenue_min
+  status: assumed
+- body:
+    anchor: sale_at
+    measure: revenue
+    universe: sales
+  kind: member
+  name: revenue_max
+  status: assumed
+manifold_schema_version: '0.1'
+source_manifold_id: firstlight
+source_manifold_version: 1.0.0
