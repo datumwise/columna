@@ -1,9 +1,14 @@
 # Core-P1 K0 — final design-freeze note
 
-**Status:** **scope and reducer allow-list RULED** (CG2, 2026-08-22, "K0 checkpoint ruling"; D1 = GO for
-K0). The remaining sections are **PROPOSED** and are not settled law until ruled — each is marked.
-**No compiler implementation is authorized by this note.**
-**Date:** 2026-08-22
+**Status:** **RATIFIED IN FULL** (CG2, 2026-08-22). Scope and the reducer allow-list were ruled at the
+K0 checkpoint (D1 = GO); the four remaining implementation-defining sections — §3 field freeze, §5
+compile/emission/receipt contract, §6 location, §7 acceptance-test outline — were ratified on the same
+date and are marked individually below. No section of this note is proposed any longer.
+
+> **Core-P1 K0 implementation is authorized once this amendment is merged.** (CG2, 2026-08-22.)
+> There is no further architecture checkpoint before K0 code.
+
+**Date:** 2026-08-22 (design freeze) · 2026-08-22 (ratified; implementation authorized)
 **Pinned to:** `main` `01cbeab507bd9712ea09b3785c5526dd67819c34`; released triad `columna` 0.15.2 /
 `columna-core` 0.15.2 / `columna-server` 0.9.0.
 **Dependency (explicit):** `ruling_2026_08_22_lowering_receipt.md`. K0 is milestone **4** complete plus
@@ -144,7 +149,7 @@ Unlike `min`/`max`, each of these is held out for a **stated reason**, not for m
 
 ---
 
-## 3. `PrivateCoreMapping` — field freeze — PROPOSED
+## 3. `PrivateCoreMapping` — field freeze — RATIFIED
 
 **Freeze the on-disk format, not a Python class.** The `columna` and `manifold-agent` trees are
 import-disjoint and the disjointness is test-enforced (`test_server_ingests_the_artifact_without_
@@ -223,7 +228,7 @@ behaviour changes the moment a second universe appears.
 
 ---
 
-## 5. Compile / emission / receipt contract — PROPOSED (receipt fields already determined)
+## 5. Compile / emission / receipt contract — RATIFIED
 
 ```
 compile(publication: GovernedPublicationArtifact,
@@ -262,7 +267,7 @@ rather than mapped, so no publication meaning can reach the runtime through the 
 
 ---
 
-## 6. `PrivateCoreMapping` location — PROPOSED
+## 6. `PrivateCoreMapping` location — RATIFIED
 
 **The format is specified in the `columna` tree, and its reader lives there too — stdlib-only, mirroring
 `PublicationArtifactData`. K0 freezes no producer-side type.**
@@ -273,13 +278,25 @@ SHARED logical modules beside it; f0 ruling 2 places the compiler "likely a sepa
 the `columna` codebase, **not literally `columna_core.lower`**"; and `columna-server` must never load the
 mapping at all — its receipt verification is defined as proceeding *without* it.
 
-Concretely: `packages/columna-compiler/`, depending on `columna-core` so it can parse and `check()` its
-own output (self-verification, not a second grammar), and never imported by `columna-server`. Studio and
+**Ruled location: `columna_core`.** The reader and the compiler module live inside the existing
+`columna-core` distribution — **not** a new `columna-compiler` package, which is what this note proposed
+before ratification and which is hereby superseded. Two reasons the ruled placement is the better one:
+
+* **No new distribution.** A separate package would need its own PyPI Trusted Publisher registration,
+  its own version lockstep decision, and its own dependency caps — release-set surface bought for
+  nothing, on a repository whose release-coherence guards already fail closed on exactly that class of
+  mismatch.
+* **It does not contradict f0 ruling 2.** That ruling barred `columna_core.lower` *literally* while
+  placing the compiler in "a separate compiler module in the `columna` codebase". A distinct module
+  inside `columna_core` satisfies both halves.
+
+Unchanged by the ruling: the compiler parses and `check()`s its own output (self-verification, not a
+second grammar); `columna-server` never imports it and never loads the mapping; and Studio and
 manifold-agent can produce the JSON later without either tree importing the other.
 
 ---
 
-## 7. K0 acceptance-test outline — PROPOSED
+## 7. K0 acceptance-test outline — RATIFIED
 
 **No image to reproduce.** Every `.cml` in the repository contains `HIERARCHY` and/or `RELATE`; there is
 no measure/member/anchor-only fixture anywhere. K0 **authors the first one**, and proving it clean is
@@ -311,12 +328,19 @@ something refused**:
 
 ---
 
-## 8. Open — not decided by this note
+## 8. Closed and deferred at ratification
 
-* **D4** — `bridge` / `via` (M:N). Moot for K0 (relationship is out); open for K1.
-* **`median` / `mode` compiler classification** — deferred by ruling; see §2.
-* The **`mean` late-refusal hole** (§2) is a property of shipped Core, independent of K0: a defect that
-  parses and validates at publish time and only refuses at query time. Recorded here; not repaired here.
+**Closed for this unit:**
+
+* **D4 — `bridge` / `via` (M:N): OUT OF K0.** Closed for this unit, not merely moot. Reopens only if a
+  later unit brings relationship into scope.
+
+**Deferred, and explicitly NOT K0 blockers:**
+
+* **`median` / `mode` compiler classification** — still deferred (§2). It does not block K0.
+* The **`mean` late-refusal hole** (§2) — a property of shipped Core independent of K0: a defect that
+  parses and validates at publish time and only refuses at query time. **Not a K0 blocker.** Recorded
+  here; not repaired here.
 
 ---
 
