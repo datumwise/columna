@@ -99,6 +99,16 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'a governed publication now compiles to the execution image that serves it',
     date: '2026-08-22',
   },
+  // columna-server 0.10.0 adds the provisioner: the step between a compiled image and a runtime the
+  // server will admit. It is an assembler, not an authority — it verifies that the publication, the
+  // image and the receipt name the same publication, recomputes both digests, and then COPIES the
+  // bytes rather than re-emitting them, because the binding is over bytes as shipped and an
+  // equivalent re-serialization is still a different file. Core's code is unchanged; umbrella and
+  // core move in lockstep so the umbrella's server floor can rise to the companion this set ships.
+  '0.16.1': {
+    title: 'a compiled image becomes a runtime the server will admit — assembled, never re-emitted',
+    date: '2026-08-22',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
