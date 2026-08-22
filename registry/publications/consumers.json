@@ -481,6 +481,12 @@
   "note": "The canonical Evidence surface (Phase 3C, 2026-08-21). It cites five deposited works — the hero signpost and the closing reading path — and types none of them: title, version and DOI are read from the registry through citation(). This is the first surface built AFTER the registry existed rather than migrated onto it, which is the whole point of Phase 3B: the Evidence corpus was governed before the page that cites it was written, so there was never a moment at which a DOI on this page could have been hand-typed and then gone stale."
  },
  {
+  "path": "apps/website/src/pages/evidence/walkthrough.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The Evidence Walkthrough (CC brief v0.2, 2026-08-22) — the pillar's steppable teaching exhibit at /evidence/walkthrough. Its \"Where to go from here\" cites The Statistical Bridge and Where Does Probability Live?, and types neither: label and DOI are read from the registry through citation(), exactly as the canonical /evidence page does. The frozen content says \"(DOI from registry)\" in both places rather than carrying a number, so there has never been a literal DOI in this surface to go stale."
+ },
+ {
   "path": "apps/website/src/components/evidence/EvHero.astro",
   "class": "derived",
   "allowedDois": [],

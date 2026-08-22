@@ -1,0 +1,810 @@
+---
+/**
+ * /evidence/walkthrough — the Evidence pillar's steppable teaching exhibit.
+ *
+ * CONTENT AUTHORITY. Every reader-facing word on this page comes from the CG2-frozen
+ * `evidence_walkthrough_page_v0_5.md` (v0.5, 21 August 2026, author CF), SHA-256
+ * 7e8b44be38e0630931b0a9668778ff9c152ca5cd43f0d531890876decfe33779 — verified against the deposited
+ * file before implementation began. Implemented under CC brief v0.2 (CF, ratified by CG2). The ONLY
+ * sanctioned alterations to reader-facing text are the four Gate-F terminology normalizations in
+ * brief §5, each marked GATE-F below. Any other copy change, however small, is out of scope and
+ * comes back for review.
+ *
+ * THE FOUR GATE-F NORMALIZATIONS (brief §5, amended per CG2 correction). Per the Gate-B three-way
+ * distinction — evidential standing ≠ evidence status ≠ evidential-basis description, and `argued`
+ * is a BASIS DESCRIPTION, not a status value:
+ *   1. claim B premise comment   `# status: argued, not verified` → `# evidential basis: argued`
+ *   2. Disclose chain prose      "the premise carries `argued` standing"
+ *                                → "the premise has an `argued` evidential basis"
+ *   3. Disclose served statement `premise status: argued` → `evidential basis: argued`
+ *   4. crosswalk (this comment)  same terminology — see EVIDENTIARY CROSSWALK below.
+ * After normalization the rendered page contains NO `status:` field anywhere, and `argued` appears
+ * only as an evidential basis. Note `# evidential basis: argued` is NOT rendered as
+ * "evidential basis: argued, not verified": that would put a basis description and a negated
+ * status-like assertion under one field label. No status value is invented to preserve the old
+ * illustrative syntax.
+ *
+ * STATIC-FIRST (brief §4). All five steps are in the DOM and the page is complete and readable with
+ * JavaScript disabled. The stepper at the foot of this file is progressive enhancement ONLY: it
+ * reveals one step at a time and adds previous/next controls, and it BUILDS ITS OWN CONTROLS so a
+ * no-JS reader is never shown a dead button. If the script never runs, the page is five stacked
+ * steps and loses nothing but compactness. No claim, verdict, declaration or finding is carried by
+ * JavaScript.
+ *
+ * THE FLAGSHIP PAIR (brief §4, Gate C rendering rule, ratified). Step 4 renders as TWO REQUESTS
+ * RECEIVING TWO VERDICTS — parallel, equal-weight blocks — never one request with two possible
+ * outcomes. A reader must not be able to parse Serve/Refuse as selectable states of one request.
+ * The frozen source states the pair as one sentence; the words are redistributed into the ratified
+ * two-block shape and NOT altered. Within each block the EVIDENCE FINDING is visibly separate from
+ * the SYSTEM SERVING OUTCOME, per the frozen layer typing: evidence adjudicates the passage, the
+ * system serves the outcome.
+ *
+ * STATUS RENDERING GUARD (brief §4, ratified). `argued` renders as plain inline mono — never a
+ * progress meter, rank badge, maturity ladder, star scale, or colour gradient. The status space is
+ * not totally ordered and `argued` is a basis description, so a visual rank would manufacture both
+ * an enum and an order that the doctrine does not have.
+ *
+ * MOOD PRESENTATION IS REUSED, NOT INVENTED (brief §4, §10). Clarify / Serve / Disclose / Refuse use
+ * the site-wide ratified mood vocabulary (`.mood-box-*` + `.mood-label`, tokens.css) already carried
+ * by /analytical-governance. That vocabulary is INK ONLY — the four saturated mood colours were
+ * retired 2026-07-26 — so Refuse arrives as a typed outcome with no alarm styling by construction,
+ * not by this page's restraint. Equal dignity is a property of the vocabulary, not a local choice.
+ *
+ * REGISTER. Paper throughout. The accumulating declaration blocks are WIRE QUOTATIONS set inline in
+ * mono — they are NOT register crossings, so this page draws no paper→wire edge and mounts no dark
+ * panel. Every declaration is marked illustrative.
+ *
+ * PUBLICATION FACTS. Registry-derived. No title, version, date or DOI is typed into this file —
+ * check_publications.py classifies this page `derived` (registry/publications/consumers.json) and
+ * fails the build if a literal Zenodo token ever appears here.
+ *
+ * ── AUTHOR-FACING MATERIAL FROM THE FROZEN SOURCE (does not render; brief §3) ──────────────────
+ *
+ * REVISION RECORD (v0.4 → v0.5, per CG2 hold). (1) Claim B declaration is now five distinct objects:
+ * target, probability source (the predictive distribution under the continuation account), material
+ * premise (with standing), certificate, license — probability source ≠ material premise ≠ inference
+ * certificate ≠ claim license. (2) Step 4 retyped: the descriptive claim needs no inferential
+ * passage; the interval request has no established one; Refuse acts on the second finding. Hedge
+ * restored: "can leave implicit." (3) Claim C repaired to the evidence actually declared: no
+ * exposure contrast or identification account exists in this record; "activity and revenue were both
+ * observed" and "descriptive association servable" removed. (4) Author-facing claim-license
+ * crosswalk corrected: a requested claim is not a license.
+ *
+ * EVIDENTIARY CROSSWALK (author-facing, Gate-H discipline — exact passages, not labels).
+ * Claim license — claim B's explicit license line and the bounded served statement in Step 5; Step 4
+ * demonstrates the absence of a license for the requested interval under the declared census
+ * account. Probability source — Step 4 entire (the placement question and the census guard); claim
+ * B's source line, the declared predictive distribution under the continuation account. Evidential
+ * standing of material premises — claim B's premise line and its standing (argued, as evidential
+ * basis).  ← GATE-F 4. Bridge constitution — Steps 3 and 5 jointly: Step 3 establishes the governed
+ * Q2 evidence object, frame, and coverage; Step 5 identifies the Q3 target and the declared
+ * continuation account under which Q2 evidence is allowed to bear on that target. The obligations
+ * are logical, not a temporal waterfall; distributed instantiation is lawful. Inference certificate —
+ * claim B's certificate line: the conditional establishment of the Q3 expectation under the declared
+ * source and premise, distinct from both and from the license that bounds it; the Disclose block is
+ * the serving outcome acting on the certificate, not the certificate itself.
+ *
+ * LEDGER NOTE (wit gate). "decoration wearing the costume of rigor" — doctrine compressed; ledgered
+ * v0.2, conformed to the census guard v0.3. "The No is a map, not a wall" — retained, ledgered v0.2.
+ * No new candidates in v0.5; budget respected.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { citation } from '../../data/publications';
+
+// REGISTRY-DERIVED (brief §6). The two linked deposits in "Where to go from here" resolve their
+// title and DOI from the publication registry at build time. Nothing here is hand-typed.
+const bridge = citation('w-statistical-bridge');
+const probability = citation('w-where-does-probability-live');
+---
+<BaseLayout
+  title="The Evidence Walkthrough — datumwise"
+  description="From a governed number to a licensed claim, in five steps. One number, three claims, and all four moods earned — Clarify, Serve, Disclose and Refuse — with every verdict following from declared structure, evidence and conditions that could be inspected before service."
+  wide={true}
+  chip={false}
+>
+  <article class="wt">
+
+    {/* ── TITLE ─────────────────────────────────────────────────────────────────────────────── */}
+    <section class="wt-hero ds ds-paper ds-section" aria-labelledby="wt-h">
+      <div class="ds-measure-wide">
+        <h1 id="wt-h" class="ds-proposition">The Evidence Walkthrough</h1>
+        <p class="wt-sub">From a governed number to a licensed claim, in five steps.</p>
+      </div>
+    </section>
+
+    <div class="wt-steps" data-steps>
+
+      {/* ── STEP 1 ──────────────────────────────────────────────────────────────────────────── */}
+      <section id="step-1" class="step ds ds-paper ds-section" aria-labelledby="step-1-h" data-step="1">
+        <div class="ds-measure-wide">
+          <p class="ds-label step-n">Step 1</p>
+          <h2 id="step-1-h" class="ds-proposition">One question, secretly three</h2>
+
+          <div class="step-body">
+            <p class="ds-body">A stakeholder asks:</p>
+
+            <blockquote class="ask">
+              <p>&ldquo;What was average revenue per active customer in Q2 &mdash; and can we count on it?&rdquo;</p>
+            </blockquote>
+
+            <p class="ds-body">
+              The first afternoon taught the first half: <code class="tok">avg_revenue_per_active_customer @ &#123;Q2&#125;</code>
+              is a governed number &mdash; declared population, declared law, lawful derivation. Suppose all of
+              that is done. The number is <strong>$312.40</strong>, and it is entitled to be served.
+            </p>
+
+            <p class="ds-body">
+              &ldquo;Can we count on it?&rdquo; is a different kind of question, and it is secretly three questions
+              wearing one sentence:
+            </p>
+
+            <ol class="three">
+              <li>Is $312.40 the true Q2 average for our active customers?</li>
+              <li>Will next quarter look like this?</li>
+              <li>Is revenue this high <em>because</em> these customers are active?</li>
+            </ol>
+
+            <p class="ds-body">
+              Same number. Three claims. Three different verdicts are coming &mdash; and the work of this page
+              is showing you why the difference was always there, hidden inside &ldquo;count on it.&rdquo;
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STEP 2 ──────────────────────────────────────────────────────────────────────────── */}
+      <section id="step-2" class="step ds ds-paper ds-section" aria-labelledby="step-2-h" data-step="2">
+        <div class="ds-measure-wide">
+          <p class="ds-label step-n">Step 2</p>
+          <h2 id="step-2-h" class="ds-proposition">Write the claim down</h2>
+
+          <div class="step-body">
+            <p class="ds-body">A claim that wants service states its scope. The declaration begins:</p>
+
+            <figure class="decl">
+              <pre class="decl-pre"><code>claim A: mean(revenue) over active customers, Q2, this company    # about the enrolled population itself
+claim B: expected revenue per active customer, Q3                 # about a period not yet observed
+claim C: activity increases revenue                               # about what causes what</code></pre>
+              <figcaption class="decl-note">Illustrative.</figcaption>
+            </figure>
+
+            <p class="ds-body">
+              Nothing has been decided yet. Writing the claims apart prepares the evidence problem &mdash; and
+              it has already exposed something upstream of evidence: an intent ambiguity. The stakeholder&rsquo;s
+              one sentence turned out to contain a fact question, a forecast question, and a causal question,
+              and no amount of computation settles which one was meant. Before evidence adjudication begins,
+              the system returns its first outcome:
+            </p>
+
+            {/* CLARIFY — presented as INTENT RESOLUTION, before evidence adjudication begins. The
+                layer order is the frozen source's and it is load-bearing: this is not an evidence
+                finding, and the paragraph above says so in the reader's own reading order. */}
+            <div class="verdict mood-box mood-box-clarify vocab-paper">
+              <p class="mood-label mood mood-clarify">Clarify</p>
+              <p class="verdict-text">three governed readings fit these words. Which claim is requested?</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STEP 3 ──────────────────────────────────────────────────────────────────────────── */}
+      <section id="step-3" class="step ds ds-paper ds-section" aria-labelledby="step-3-h" data-step="3">
+        <div class="ds-measure-wide">
+          <p class="ds-label step-n">Step 3</p>
+          <h2 id="step-3-h" class="ds-proposition">Write down where the data came from</h2>
+
+          <div class="step-body">
+            <p class="ds-body">
+              The stakeholder picks claim A, then B. The declaration continues with the evidence side:
+            </p>
+
+            <figure class="decl">
+              <pre class="decl-pre"><code>evidence: revenue @ &#123;customer, Q2&#125;, all customers active in Q2
+frame:    the declared active-customer roster, Q2                  # who could be observed
+coverage: complete &mdash; every point in the frame is observed          # a census, not a sample</code></pre>
+              <figcaption class="decl-note">Illustrative.</figcaption>
+            </figure>
+
+            <p class="ds-body">
+              Read the coverage line twice, because it decides everything in the next step. The Q2
+              active-customer population is <em>fully enumerated</em>: every customer who could be in the
+              denominator is in the data. There is no sampling, no missingness, no gap between the frame and
+              the observations.
+            </p>
+
+            <p class="ds-body">
+              Why write these lines at all, rather than trust the number to speak for itself? Because the
+              number cannot speak for itself. Two lawful histories can end at the same displayed number &mdash; a
+              complete enumeration and a well-designed sample; a fixed analysis plan and one revised along the
+              way &mdash; and nothing in the output distinguishes them. Neither history is at fault; each can be
+              perfectly governed on its own terms. The failure would belong to a record that erases the
+              distinction between them. That is why the account is established before service and travels with
+              the claim: the numeric output cannot reconstruct its own provenance; the distinguishing history
+              has to survive in the governed record.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STEP 4 ──────────────────────────────────────────────────────────────────────────── */}
+      <section id="step-4" class="step ds ds-paper ds-section" aria-labelledby="step-4-h" data-step="4">
+        <div class="ds-measure-wide">
+          <p class="ds-label step-n">Step 4</p>
+          <h2 id="step-4-h" class="ds-proposition">The question almost nobody asks: where does probability enter?</h2>
+
+          <div class="step-body">
+            <p class="ds-body">
+              Statistical habit says: compute a confidence interval, attach a p-value, report $312.40 &plusmn;
+              something. Habit is not law. The law asks first: <strong>what would the probability be
+              <em>about</em>?</strong>
+            </p>
+
+            <p class="ds-body">
+              A census does not forbid probability. It removes one particular source of it: sampling
+              uncertainty about the enumerated population. Claim A&rsquo;s target is exactly that population &mdash; the
+              Q2 roster, fully observed &mdash; so the removed source is the only one this claim puts in play. Other
+              uncertainty could still enter, lawfully: a measurement-error model, a stochastic account of
+              revenue itself, a forecast target. But each requires its own declared source, and claim A
+              declares none. $312.40 is the finite-population Q2 average, and under this declaration there is
+              no gap for inferential probability to be about.
+            </p>
+
+            {/* THE FLAGSHIP PAIR — Gate C rendering rule. TWO REQUESTS, TWO VERDICTS, side by side and
+                equal in weight. This is a <ul> of two peers, never a request with a pair of outcomes
+                hanging off it, and the two blocks are never styled as a chosen/unchosen pair. Inside
+                each: the request, then the EVIDENCE FINDING, then the SYSTEM SERVING OUTCOME — the
+                frozen layer typing, made structural so it cannot be read as one adjudication. */}
+            <p class="pair-lede">Two verdicts, for two different requests.</p>
+
+            <ul class="pair vocab-paper">
+              <li class="verdict pair-item mood-box mood-box-serve">
+                <p class="pair-request">The descriptive claim:</p>
+                <p class="pair-finding">no inferential passage is needed,</p>
+                <p class="pair-outcome">and the system <span class="mood mood-serve">Serves</span> the arithmetic fact.</p>
+              </li>
+              <li class="verdict pair-item mood-box mood-box-refuse">
+                <p class="pair-request">The request to attach an interval anyway:</p>
+                <p class="pair-finding">an inferential passage is requested &mdash; and at the evidence boundary, the machinery names no uncertainty source, so no passage is established.</p>
+                <p class="pair-outcome">The system therefore <span class="mood mood-refuse">Refuses</span> the request.</p>
+              </li>
+            </ul>
+
+            <p class="ds-body">
+              This pair is the walkthrough&rsquo;s flagship, and it is the distinction conventional analytical
+              workflows can leave implicit: <strong>the system says yes to the number and no to the
+              inference.</strong> Two layers are visible in that pair, and keeping them apart is the
+              discipline. The descriptive claim needs no inferential passage. The interval request has no
+              established one. The serving verdict &mdash; Refuse &mdash; is the governed system acting on that second
+              finding. Evidence adjudicates the passage; the system serves the outcome. And the failure the
+              refusal names is not &ldquo;a standard error on a census,&rdquo; as though the taboo were syntactic. It is
+              inferential machinery invoked without saying what uncertainty it represents. An interval on
+              claim A would not be caution; it would be a claim about a gap this declaration does not
+              contain &mdash; decoration wearing the costume of rigor. A governed system distinguishes the two
+              requests, and distinguishing them is not a limitation. It is the system knowing what its
+              numbers are.
+            </p>
+
+            <p class="aside">
+              (The canonical deposited instance of this case &mdash; a census total and its unlicensed interval &mdash;
+              is worked on the Evidence page and in the papers. Different number, same law.)
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STEP 5 ──────────────────────────────────────────────────────────────────────────── */}
+      <section id="step-5" class="step ds ds-paper ds-section" aria-labelledby="step-5-h" data-step="5">
+        <div class="ds-measure-wide">
+          <p class="ds-label step-n">Step 5</p>
+          <h2 id="step-5-h" class="ds-proposition">The claims that do need a bridge</h2>
+
+          <div class="step-body">
+            <p class="ds-body">
+              <strong>Claim B &mdash; next quarter.</strong> Now there is a gap: Q3 is unobserved. Probability must
+              enter, and it enters only through declared structure &mdash; a probability source saying what the
+              probability is over, a premise with its standing, a certificate established on them, and a
+              license bounding what the certificate supports. This is the guard&rsquo;s other half in motion: the
+              uncertainty that claim A could not invoke without a source, claim B now declares one for. The
+              declaration grows, and the objects stay distinct:
+            </p>
+
+            {/* FIVE DISTINCT OBJECTS, FIVE ENTRIES — target, source, premise, certificate, license. The
+                v0.5 revision exists to keep these apart: probability source ≠ material premise ≠
+                inference certificate ≠ claim license. The blank lines between them are the frozen
+                source's, and they are the typing made visible. GATE-F 1 is on the premise comment. */}
+            <figure class="decl">
+              <pre class="decl-pre"><code>claim B target:       expected revenue per active customer, Q3
+
+claim B source:       the predictive distribution of Q3 active-customer
+                      revenue, under the declared continuation account
+
+claim B premise:      under the stated stability conditions, the mean
+                      of that Q3 distribution equals the observed Q2
+                      finite-population mean                        # evidential basis: argued
+
+claim B certificate:  conditional on that source and premise,
+                      expected Q3 revenue per active customer
+                      is established as $312.40
+
+claim B license:      Q3 point expectation only, conditional on
+                      the declared source and premise</code></pre>
+              <figcaption class="decl-note">Illustrative.</figcaption>
+            </figure>
+
+            <div class="verdict mood-box mood-box-disclose vocab-paper">
+              <p class="mood-label mood mood-disclose">Disclose</p>
+              <p class="verdict-text">
+                and the chain the declaration just built is the verdict&rsquo;s whole content: the source is
+                declared; the premise has an <code class="tok">argued</code> evidential basis; the certificate
+                follows conditionally on both; the license bounds the claim. The system serves the claim with
+                that standing attached: <em class="served">conditional on the declared source and premise &mdash;
+                evidential basis: argued &mdash; expected Q3 revenue per active customer is $312.40, as a point
+                expectation only.</em> The premise is the claim&rsquo;s load-bearing wall; it is named; and the
+                number arrives only through it. The warrant travels with its grade.
+              </p>
+            </div>
+
+            <p class="ds-body">
+              <strong>Claim C &mdash; because.</strong> The current account establishes Q2 revenue for the
+              active-customer population &mdash; and nothing more. It declares no exposure contrast, no comparison,
+              no identification account that could establish the causal effect of activity on revenue; within
+              this record, activity is who the population <em>is</em>, not a variable that varies across it. No
+              computation on this record can manufacture the missing passage.
+            </p>
+
+            {/* The second Refuse. Same layer typing as the flagship's refusal — the frozen source names
+                "the evidence finding" outright here, so the label is the source's own word, not a
+                treatment invented for this page. */}
+            <div class="verdict mood-box mood-box-refuse vocab-paper">
+              <p class="mood-label mood mood-refuse">Refuse</p>
+              <p class="verdict-text">
+                <span class="layer">the evidence finding:</span> the declared account contains no passage to the
+                causal claim. The Q2 revenue fact remains servable; the causal claim requires a different
+                evidence declaration &mdash; one possible route is a designed experiment under an appropriate causal
+                and identification account. The No is a map, not a wall.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    {/* ── WHAT JUST HAPPENED ────────────────────────────────────────────────────────────────── */}
+    <section id="what-just-happened" class="wjh ds ds-paper ds-section" aria-labelledby="wjh-h">
+      <div class="ds-measure-wide">
+        <h2 id="wjh-h" class="ds-label">What just happened</h2>
+
+        <p class="ds-body">
+          One number. Three claims. All four moods earned &mdash; Clarify, Serve, Disclose, Refuse &mdash; with Refuse
+          appearing twice, for two different findings: once for machinery with no declared uncertainty source,
+          once for a claim whose account contains no passage. Every verdict followed from declared structure,
+          evidence, and conditions that could be inspected before service. The first afternoon&rsquo;s sentence
+          returns at this next governed boundary, and it is the whole page in one line:
+        </p>
+
+        <blockquote class="closing">
+          <p>
+            A computable conclusion is not automatically a claim entitled to be served. The number was governed
+            on page one. The claims had to earn their papers separately &mdash; each one, on its own.
+          </p>
+        </blockquote>
+      </div>
+    </section>
+
+    {/* ── WHERE TO GO ───────────────────────────────────────────────────────────────────────── */}
+    <section id="where-to-go" class="wtg ds ds-paper ds-section" aria-labelledby="wtg-h">
+      <div class="ds-measure-wide">
+        <h2 id="wtg-h" class="ds-label">Where to go from here</h2>
+
+        <ul class="onward">
+          <li>
+            <a class="onward-title" href="/evidence">Evidence</a>
+            <span class="onward-why">
+              &mdash; the pillar&rsquo;s canonical page: the census wound, the record-undecidability result, the five
+              exposures, warrant conservation, and the typed refusals. This walkthrough makes that canon
+              steppable.
+            </span>
+          </li>
+          <li>
+            <a class="onward-title" href={bridge.href} rel="noopener" target="_blank">{bridge.label}</a>
+            <span class="onward-why">
+              &mdash; the full framework: obligations, sources, certificates, licenses.
+            </span>
+            <span class="onward-meta">DOI {bridge.doi}</span>
+          </li>
+          <li>
+            <a class="onward-title" href={probability.href} rel="noopener" target="_blank">{probability.label}</a>
+            <span class="onward-why">
+              &mdash; the placement question in depth, including the census declaration whose canonical instance
+              this page&rsquo;s flagship parallels.
+            </span>
+            <span class="onward-meta">DOI {probability.doi}</span>
+          </li>
+          {/* UNLINKED BY INSTRUCTION (brief §6): forthcoming, exactly as frozen. It is not a link and
+              must not become one before the surface exists. */}
+          <li>
+            <span class="onward-title onward-forthcoming">Evidence in One Afternoon</span>
+            <span class="onward-why">
+              &mdash; the walk-length version of this page: four scars, the hidden law, the declaration, the
+              verdicts. <em>(Forthcoming; this page is its destination artifact.)</em>
+            </span>
+          </li>
+          <li>
+            <a class="onward-title" href="/learn">Start Here</a>
+            <span class="onward-why">
+              &mdash; if you arrived at evidence before data: the first afternoon governs the number this page
+              assumed.
+            </span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  /* ── title ────────────────────────────────────────────────────────────────────────────────── */
+  .wt-hero { padding-block-end: var(--ds-space-4); }
+  .wt-hero .ds-proposition { max-width: 18ch; }
+  .wt-sub {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 44ch;
+    margin: var(--ds-space-3) 0 0;
+  }
+
+  /* ── steps ────────────────────────────────────────────────────────────────────────────────── */
+  .step { padding-block: var(--ds-space-5); border-top: 1px solid var(--rule); }
+  .step .ds-proposition { max-width: 24ch; font-size: clamp(1.6rem, 1.1rem + 2vw, 2.6rem); }
+  .step-n { margin: 0 0 var(--ds-space-2); }
+  /* THE PROSE MEASURE IS 62ch; THE DECLARATIONS ARE NOT PROSE. Capping the whole step body at a
+     reading measure clipped the claim B premise line — and what fell off the right edge was
+     `# evidential basis: argued`, the single most consequential string on this page. A column-aligned
+     wire quotation is a block of record, not a paragraph, so it gets the room its own alignment
+     needs and the reading measure is applied to the prose children instead. Caught by looking. */
+  .step-body { margin-top: var(--ds-space-4); max-width: none; }
+  .step-body > * + * { margin-top: var(--ds-space-3); }
+  .step-body :global(.ds-body) { margin-block: 0; max-width: 62ch; }
+  .step-body > .ask,
+  .step-body > .three,
+  .step-body > .pair-lede,
+  .step-body > .aside,
+  .step-body > .verdict { max-width: 62ch; }
+  .step-body > .pair { max-width: 74ch; }
+  .step-body > .decl { max-width: 100%; }
+
+  .ask {
+    margin: 0;
+    padding-left: 1.1rem;
+    border-left: 1px solid var(--ds-rule-strong);
+  }
+  .ask p {
+    font-family: var(--font-serif);
+    font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.3rem);
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .three {
+    margin: 0;
+    padding-left: 1.4rem;
+    display: grid;
+    gap: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  /* `argued` and the governed expressions: plain inline mono. NEVER a badge, meter, ladder or
+     gradient — see the status rendering guard in the frontmatter. No border, no fill, no colour. */
+  .tok {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--ink);
+    background: none;
+    padding: 0;
+    border: 0;
+  }
+
+  /* ── declarations: wire QUOTATION, inline mono on paper — not a register crossing ─────────── */
+  .decl { margin: 0; }
+  .decl-pre {
+    margin: 0;
+    padding: var(--ds-space-3) 1.1rem;
+    border-left: 1px solid var(--ds-rule-strong);
+    /* MOBILE (brief §4): scroll horizontally rather than wrap-mangling the mono alignment. The
+       declaration blocks are column-aligned and a soft wrap destroys the alignment that makes the
+       five objects legible as five objects. */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .decl-pre code {
+    font-family: var(--font-mono);
+    /* sized so the longest frozen line — the claim B premise and its evidential-basis comment —
+       fits without horizontal scrolling on a normal desktop column */
+    font-size: clamp(0.68rem, 0.6rem + 0.3vw, 0.8125rem);
+    line-height: 1.65;
+    color: var(--ink);
+    white-space: pre;
+  }
+  .decl-note {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: var(--ds-space-2);
+    padding-left: 1.1rem;
+  }
+
+  /* ── verdicts: the site-wide mood vocabulary, reused ──────────────────────────────────────── */
+  .verdict { padding: var(--ds-space-3) 1.2rem; }
+  .verdict .mood-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    margin: 0 0 var(--ds-space-2);
+  }
+  .verdict-text {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0;
+  }
+  .served { color: var(--ink); }
+
+  /* the layer marker — evidence finding vs system outcome, kept visibly apart inside a block */
+  /* THE LAYER MARKER. Its words are the frozen source's own ("the evidence finding:"); the small
+     caps are presentation only — text-transform does not change the DOM text, so the sentence a
+     reader copies out of this page is the sentence CF wrote. */
+  .layer {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ── the flagship pair: two requests, two verdicts, equal weight ──────────────────────────── */
+  .pair-lede {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+  .pair {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    /* EQUAL WEIGHT IS STRUCTURAL: 1fr and 1fr, same padding, same type scale, no order cue, no
+       chosen/unchosen styling. The only difference between the two cells is the mood container
+       form the vocabulary assigns. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-3);
+    align-items: stretch;
+  }
+  .pair-item { display: flex; flex-direction: column; gap: var(--ds-space-2); }
+  .pair-request {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 0;
+    padding-bottom: var(--ds-space-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  .pair-finding,
+  .pair-outcome {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+  /* THE LAYER BOUNDARY, drawn rather than labelled. Evidence adjudicates the passage; the system
+     serves the outcome — and the hairline is where one ends and the other begins. A worded label
+     would be new reader-facing copy, which brief §1 does not sanction; the frozen paragraph beneath
+     the pair names the two layers in prose instead. */
+  .pair-outcome {
+    margin-top: auto;
+    padding-top: var(--ds-space-2);
+    border-top: 1px solid var(--rule);
+  }
+
+  .aside {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    font-style: italic;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ── what just happened ───────────────────────────────────────────────────────────────────── */
+  .wjh { border-top: 1px solid var(--rule); }
+  .wjh :global(.ds-body) { max-width: 62ch; margin-top: var(--ds-space-4); }
+  .closing {
+    margin: var(--ds-space-4) 0 0;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--ink);
+    max-width: 56ch;
+  }
+  .closing p {
+    font-family: var(--font-serif);
+    font-size: clamp(1.05rem, 0.95rem + 0.7vw, 1.35rem);
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* ── where to go ──────────────────────────────────────────────────────────────────────────── */
+  .wtg { border-top: 1px solid var(--rule); }
+  .onward {
+    list-style: none;
+    margin: var(--ds-space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--ds-space-3);
+    max-width: 66ch;
+  }
+  .onward li {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.55;
+    color: var(--ink-soft);
+    padding-top: var(--ds-space-2);
+    border-top: 1px solid var(--rule);
+  }
+  .onward-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+  }
+  a.onward-title:hover { border-bottom-color: var(--ink); }
+  /* forthcoming: text, not a link, and visibly not one */
+  .onward-forthcoming { border-bottom: 0; color: var(--ink-soft); }
+  .onward-meta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    color: var(--ink-soft);
+    margin-top: 0.35rem;
+  }
+
+  /* ── the stepper (progressive enhancement; every rule below needs .is-stepped) ────────────── */
+  .wt-steps.is-stepped .step[hidden] { display: none; }
+  .wt-steps.is-stepped .step { border-top: 0; }
+  /* THE STEPPER'S CONTROLS ARE BUILT BY SCRIPT, so they never carry Astro's scope attribute and
+     scoped selectors cannot reach them. These four rules are :global by necessity, and namespaced
+     under .stepper so the globality is bounded to this page's furniture. Caught by looking at the
+     rendered page rather than trusting the stylesheet: unscoped, the controls landed outside the
+     measure as three stacked browser-default buttons. */
+  :global(.stepper) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-3);
+    max-width: var(--ds-wide);
+    margin-inline: auto;
+    padding-inline: var(--ds-gutter);
+    padding-block: var(--ds-space-4);
+    border-top: 1px solid var(--rule);
+  }
+  :global(.stepper .stepper-btn) {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    border-radius: 0;
+    padding: 0.35rem 0;
+    cursor: pointer;
+  }
+  :global(.stepper .stepper-btn:hover) { border-bottom-color: var(--ink); }
+  :global(.stepper .stepper-btn[disabled]) {
+    color: var(--ink-faint);
+    border-bottom-color: transparent;
+    cursor: default;
+  }
+  :global(.stepper .stepper-count) {
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono-sm);
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  @media (max-width: 760px) {
+    /* THE PAIR STACKS, IT DOES NOT RANK. Stacking is a reading-order consequence of a narrow
+       viewport; the two cells keep identical weight, padding and type, so neither reads as the
+       primary outcome with the other as its alternative. */
+    .pair { grid-template-columns: minmax(0, 1fr); }
+    .step .ds-proposition { max-width: none; }
+  }
+</style>
+
+<script>
+  /**
+   * THE STEPPER — progressive enhancement, and nothing else (brief §4).
+   *
+   * Everything this script does is compactness. All five steps are already in the DOM, in reading
+   * order, before it runs; if it never runs the reader gets the whole walkthrough as five stacked
+   * steps. It builds its own controls so a no-JS reader is never shown a dead button, and it
+   * refuses to engage at all if it cannot find the five steps it expects.
+   *
+   * NO ARGUMENT IS CARRIED HERE. No verdict, declaration, finding or number is written by this
+   * file; it only sets `hidden` on sections the reader is not currently looking at.
+   */
+  const wrap = document.querySelector<HTMLElement>('[data-steps]');
+  const steps = wrap ? Array.from(wrap.querySelectorAll<HTMLElement>('.step')) : [];
+
+  if (wrap && steps.length > 1) {
+    const nav = document.createElement('nav');
+    nav.className = 'stepper';
+    nav.setAttribute('aria-label', 'Walkthrough steps');
+
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.className = 'stepper-btn';
+    prev.textContent = '← Previous';
+
+    const count = document.createElement('p');
+    count.className = 'stepper-count';
+    count.setAttribute('aria-live', 'polite');
+
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'stepper-btn';
+    next.textContent = 'Next →';
+
+    nav.append(prev, count, next);
+    wrap.after(nav);
+    wrap.classList.add('is-stepped');
+
+    let current = 0;
+
+    const show = (i: number, focus = false) => {
+      current = Math.max(0, Math.min(steps.length - 1, i));
+      steps.forEach((s, n) => { s.hidden = n !== current; });
+      count.textContent = `Step ${current + 1} of ${steps.length}`;
+      prev.disabled = current === 0;
+      next.disabled = current === steps.length - 1;
+      if (focus) {
+        const h = steps[current].querySelector<HTMLElement>('h2');
+        if (h) { h.setAttribute('tabindex', '-1'); h.focus(); }
+      }
+    };
+
+    prev.addEventListener('click', () => { show(current - 1, true); });
+    next.addEventListener('click', () => { show(current + 1, true); });
+
+    /* Deep links keep working: #step-3 from the Afternoon or the category page opens step 3 rather
+       than scrolling to a hidden section. */
+    const fromHash = () => {
+      const m = /^#step-(\d+)$/.exec(window.location.hash);
+      if (!m) return null;
+      const i = Number(m[1]) - 1;
+      return i >= 0 && i < steps.length ? i : null;
+    };
+
+    window.addEventListener('hashchange', () => {
+      const i = fromHash();
+      if (i !== null) show(i, true);
+    });
+
+    show(fromHash() ?? 0);
+  }
+</script>
