@@ -12,8 +12,8 @@
     },
     {
       "id": "refuse",
-      "label": "last inventory, by customer \u2014 but inventory has no customers",
-      "frameql": "SELECT stock.last AT {customer}",
+      "label": "stock summed to months, by store \u2014 but stock doesn't sum across time",
+      "frameql": "SELECT stock.sum AT {store*cal.month}",
       "universe": null,
       "intended": "refuse"
     },
