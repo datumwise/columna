@@ -1,8 +1,16 @@
 ---
 // The Case — Cascadia Retail, the case demo. The three chapters render VERBATIM (byte-identical copies
-// of the ratified charter); the generated exhibits (trial table, four-mood wheel, the fourteen tables,
-// the two artifacts, Figure 1) are GENERATED from the shipped package (scripts/gen_case.py ->
+// of the ratified charter); the generated exhibits (four-mood wheel, the fourteen tables, the two
+// artifacts, Figure 1) are GENERATED from the shipped package (scripts/gen_case.py ->
 // src/data/case.generated.json), never hand-written.
+//
+// THE TRIAL TABLE IS THE EXCEPTION, AND IT IS NOT GENERATED. The trial table the reader sees is the
+// hand-written markdown table in `content/case/ch3.md` (the charter's own prose). `gen_case.py` DOES
+// emit a `trial_table` key, but this page has never rendered it, and the two have already diverged:
+// the generated table carries six rows including `category_profile BASIS spine -> untestable`, while
+// the chapter's table omits that row and splits `calendar` across two. `verdictClass()` below is the
+// unused renderer for the generated key. Do not describe this page's trial table as recorded evidence
+// until one of the two is retired — resolution is an open question, deliberately not settled here.
 //
 // PRESENTATION RESTRUCTURE (Huayin, pre-launch): the reader-discipline law governs PAGE ASSEMBLY — one
 // introduction total, every exhibit seated where the reader has earned it. Each chapter is split at its
