@@ -3,6 +3,45 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [Unreleased] — 0.10.0 — the provisioner
+
+**A compiled image becomes a runtime unit the server will admit — assembled, never re-emitted.**
+Core-P1 K0 produces a governed publication's execution image and the receipt binding the two; nothing
+yet placed them, together with deployment configuration, into the folder the store consumes. The
+provisioner is that step, and it is deliberately the smallest thing that can be:
+
+    governed-publication.json + manifold.cml + lowering-receipt.json + operator config
+        -> <runtime-manifold>/
+
+**It copies bytes; it does not re-emit them.** The lowering receipt binds a publication to an image by
+content digest over the files AS SHIPPED, with no canonicalization — so a provisioner that
+re-serialized the publication to an equivalent JSON, or reformatted the `.cml`, would produce a unit
+whose receipt no longer describes its own files. The binding the compiler established survives
+provisioning unchanged, and byte-copying is the only thing that guarantees it. A test writes the same
+publication with `indent=2` and the provision refuses: semantically identical, bytewise different, and
+the refusal is reporting the truth.
+
+**It verifies by recomputing, and refuses rather than repairing.** Three sources must name the same
+publication — the artifact's `ref`, the image's `SOURCE_MANIFOLD` claim, and the receipt's binding —
+and both digests are recomputed over the bytes about to be copied. Identity is checked *before*
+digests, so pairing unrelated artifacts reports which publication disagreed rather than an opaque hash
+difference. Re-deriving a receipt to match the files would turn "these artifacts belong together" into
+"these artifacts have been made to agree"; there is no receipt builder in the module, so it cannot.
+
+**It is an assembler, not a semantic authority.** Nothing in it constructs a Manifold. The one thing
+it reads from the `.cml` is a single `SOURCE_MANIFOLD` statement — an identity claim, the same one
+`registry.source_ref_of` reads — obtained without parsing the image, because reading which publication
+an image claims is not reading what the image means. Deployment configuration is written verbatim:
+connector choice and warehouse location are operator decisions, not derivable facts.
+
+Five refusal conditions — `MissingInput`, `MalformedInput`, `IdentityDisagreement`, `DigestMismatch`,
+`DestinationNotEmpty` — and a refusal writes nothing at all: the unit is staged beside the destination
+and moved into place with one rename, so a failed provision leaves neither a half-unit nor a staging
+directory.
+
+No fixture is promoted. The packaged demos carry no `SOURCE_MANIFOLD`, remain `legacy`, and a test
+re-verifies their bytes are untouched after a provision runs beside them.
+
 ## [Unreleased] — 0.9.0 — the ExecutionProvider seam (S1.1) + optional execution diagnostics (S1.2) + shared Manifold identity/registry (S2.1) + governed publication serving (S2.2) + the publication→image binding
 
 **The lowering receipt — governed standing now requires established provenance, not an origin claim
