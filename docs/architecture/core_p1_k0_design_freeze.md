@@ -45,15 +45,51 @@ impossible — it would make the receipt bind a publication to an image that doe
 
 ## 2. Reducer allow-list — RULED
 
-**K0 emits exactly two reducers:**
+**K0 emits exactly four reducers:**
 
 ```
-sum
-count
+sum   count   min   max
 ```
 
-Both are VALUE-witness monoids that Core executes exactly (`operators.REGISTRY`; combine `sum`/`sum`).
-`count` carries the parser's `pre_expr = "1"` special case.
+All four are VALUE-witness monoids (`is_monoid=True`) that Core executes exactly:
+`sum`/`count` combine by `sum`; `min` combines by `min`, `max` by `max`. `count` carries the parser's
+`pre_expr = "1"` special case; `min`/`max` declare `accepts=ORDERED, out_rule="same"` and neither
+carries `in_core=False`.
+
+`min` and `max` were initially held out **for scope minimality alone**. That is not a reason, so the
+ruling required verification instead: *include them if the shipped Core parses, validates and executes
+them faithfully; otherwise report the exact reason.* It does, and the verification is recorded below.
+
+### Verification of `min` / `max` against shipped Core (2026-08-22)
+
+Run against `columna-core` at this pin, in a K0-shaped world — one unrestricted `UNIVERSE` over a
+product of two base `LEVEL`s, no `HIERARCHY`, no `RELATE`, no restriction — with values chosen
+non-monotonic so that `min`/`max` cannot coincide with `first`/`last`:
+
+```
+store day amount        MEASURE amt ON sales FROM sales_lines VALUE amount
+  s1  d1   10.0             FAMILY { sum  count  min  max }
+  s1  d2    3.0
+  s1  d3    7.0         UNIVERSE sales = store * day       (unrestricted)
+  s2  d1    5.0         LEVEL store = store_id BASE
+  s2  d2   40.0         LEVEL day   = day      BASE
+  s2  d3   20.0
+```
+
+| step | result |
+|---|---|
+| parse | OK — `family = {count, max, min, sum}` |
+| `check()` | **CLEAN**, 0 errors |
+| `publish()` | OK — the real lifecycle (adjudicate, then witnesses) |
+| execute at the leaf grain `{store, day}` | all four `served`; 6 values each; **exact match** to independently computed truth |
+| execute at the rolled-up grain `{store}` | all four `served`; **exact match** — `min` → `{s1: 3.0, s2: 5.0}`, `max` → `{s1: 10.0, s2: 40.0}` |
+
+The rolled-up ask is the load-bearing one: asking at a **subset of the product anchor** aggregates
+across the dropped component, so it exercises the monoid **combine** step (`min`-of-`min`s,
+`max`-of-`max`es) rather than mere delivery — and it does so without any hierarchy, which K0 excludes.
+Both are correct against independent truth.
+
+**Conclusion: `min` and `max` parse, validate, execute and combine faithfully. They are in K0.**
 
 ### `mean` — OUT of K0. Do not emit.
 
@@ -69,6 +105,15 @@ merely listed:
   `Refusal("unsupported", "holistic operator 'mean' not implemented")`.
 * `avg` is an alias that `check_wellformed` never canonicalizes, so `FAMILY { avg }` is a hard parse
   error instead.
+
+The same verification run confirms this empirically as the control. Adding `mean` to the family above
+parses and `check()`s **CLEAN, 0 errors**, and then at execution returns:
+
+```
+status = 'error'
+no_result = { kind: 'error', reason: 'unsupported',
+              detail: "holistic operator 'mean' not implemented" }
+```
 
 `core_p1_compiler_input.md` ruling 4 permits `mean` to lower through exact sufficient state
 "*if semantics are preserved*". **That condition is not satisfied by the shipped Core**, so the
@@ -90,10 +135,12 @@ not inherited from ruling 4, and not re-affirmed here.
 
 ### Everything else — out
 
-`min` · `max` (exactly computable, but outside the ruled K0 list) · `last` · `first` (exactly
-computable, but require `ORDER <level>`, which **Core does not validate at parse** — the obligation
-would fall on the compiler) · `distinct` and the `hll_*` family (sketch witness; single-target-level
-only in this build) · every MAP and SCAN operator, which Core itself rejects as a family member.
+`last` · `first` — exactly computable, but they require `ORDER <level>`, and **Core does not validate
+that at parse**, so the obligation would fall on the compiler. `distinct` and the `hll_*` family —
+sketch witness, and single-target-level only in this build. Every MAP and SCAN operator — Core itself
+rejects these as family members.
+
+Unlike `min`/`max`, each of these is held out for a **stated reason**, not for minimality.
 
 ---
 
