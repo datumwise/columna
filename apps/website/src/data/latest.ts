@@ -109,6 +109,16 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'a compiled image becomes a runtime the server will admit — assembled, never re-emitted',
     date: '2026-08-22',
   },
+  // The first public governed fixture. `firstlight` is a real governed publication — minted through
+  // the actual ratification path, by a named steward — that the shipped release compiles, binds,
+  // provisions, admits and serves through the generic machinery, with no code anywhere that knows
+  // its name. State the asymmetry rather than let the demo imply otherwise: Columna can SERVE this
+  // publication and cannot MAKE another. The authoring and ratification machinery that produced it
+  // is not part of this release. Consumption of governed authority, not its production.
+  '0.16.2': {
+    title: 'the first governed publication Columna can serve — and still cannot author',
+    date: '2026-08-22',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
