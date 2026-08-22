@@ -1,0 +1,17 @@
+{
+  "compiler": {
+    "name": "columna-core-p1-k0",
+    "version": "0.16.0-core"
+  },
+  "established_at": "2026-08-22T00:00:00Z",
+  "image_digest": "sha256:6087d1602aeedd4a23711212c51100eece7418af908a36d8b141bf39095c335d",
+  "mapping_provenance": {
+    "mapping_format_version": "1"
+  },
+  "publication_digest": "sha256:fcca3c6082651f1e2d849abdb5e72aabd31350450c63b36a1aa6a59bc24d5f0b",
+  "publication_ref": {
+    "manifold_id": "firstlight",
+    "version": "1.0.0"
+  },
+  "receipt_format_version": "1.0"
+}

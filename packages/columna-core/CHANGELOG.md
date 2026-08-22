@@ -34,7 +34,8 @@ carry its meaning.
 `InputIdentityMismatch` seated ahead of the four gap classes because it is an input-authority
 condition rather than a lowering outcome. There is no certification category: compilation asks
 whether governed law can be faithfully translated, and whether a path is licensed on a realization
-is adjudication's question, asked later. The image is CLOSED, and nothing about it implies admission.
+is adjudication's question, asked later. The image is CLOSED, and a lowering receipt is not
+certification.
 
 **Two inputs, enforced by construction.** Both are read with the standard library only — the same
 discipline that keeps `columna-server` from importing `manifold_agent` — and a test monkeypatches

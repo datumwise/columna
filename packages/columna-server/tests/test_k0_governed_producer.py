@@ -144,7 +144,7 @@ def test_the_compiled_image_serves_correct_numbers(tmp_path, member, expected):
 
 def test_a_receipt_implies_no_certification(tmp_path):
     """Governed standing is publication->image, and nothing more. The compiled unit exercises the
-    kernel while its certification sets stay empty — a receipt is not an admission."""
+    kernel while its certification sets stay empty — a lowering receipt is not certification."""
     _unit(tmp_path)
     lm = ManifoldStore(str(tmp_path)).get("retail")
     scope = lm.provider.runtime.published_scope

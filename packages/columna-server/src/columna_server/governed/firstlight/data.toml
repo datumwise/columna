@@ -1,0 +1,10 @@
+# The first governed runtime unit. Assembled by columna_server.provision from a
+# publication this release can serve and cannot make — see PROVENANCE.md.
+# The warehouse path is relative to THIS directory, so the unit is self-contained.
+[manifold]
+name = "Firstlight (governed)"
+description = "The first public governed fixture: a legitimate governed publication, compiled and provisioned through the generic path."
+
+[connector]
+type = "duckdb"
+warehouse = "./warehouse"

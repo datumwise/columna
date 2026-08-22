@@ -3,6 +3,50 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## [Unreleased] — 0.11.0 — the first public governed fixture
+
+**`firstlight` — a governed publication this release can serve and cannot make.** Every governed
+runtime the tests exercised until now was assembled in `tmp_path`; nothing governed shipped. This
+release packages one: a real governed publication, compiled, bound, provisioned and admitted through
+the generic path, with a synthetic six-row warehouse behind it.
+
+    src/columna_server/governed/firstlight/
+        governed-publication.json    minted by the real publish path; committed, immutable
+        manifold.cml                 emitted by the shipped K0 compiler
+        lowering-receipt.json        emitted by the shipped receipt writer
+        data.toml                    operator configuration
+        warehouse/sales_lines.parquet
+        PROVENANCE.md                the producer identity the artifact's schema cannot carry
+
+**The publication is legitimate, not hand-written.** It was produced through
+`ratify_existence_law` — the one human mint primitive — then `stamp_source_identity` (the P0(c) gate,
+which refuses an unratified or stale universe), then `Library.publish`. Its universe carries a real
+`elf-1` fingerprint ratified by a named steward. A hand-written `governed-publication.json` would
+look identical from the outside, which is exactly why the tests assert the ratification and the
+physical-cleanliness rather than assuming them.
+
+**The asymmetry is stated, not hidden.** *This fixture ships a governed publication that Columna can
+serve but cannot make. The authoring and ratification machinery that produced it is not part of this
+release. What is demonstrated here is consumption of governed authority, not its production.*
+
+**A lowering receipt is not certification.** The valid receipt is what earns this unit governed
+entry — that is what admission consults — but nothing about it licenses a capability:
+`certified_edges` and `certified_faces` stay empty while all four reducers serve.
+
+**Nothing was promoted.** The governed fixture lives in its own directory; `demo/benchmark` and
+`demo/cascadia` are untouched, still exactly `legacy`, still zero conditions. Nothing existing
+changed kind — a new thing was born governed.
+
+**No special-casing, and a test that proves it.** The fixture goes through the same `compile_k0`, the
+same `provision_runtime_unit`, the same store. A test walks every shipped `.py` file in both packages
+and fails if any of them so much as mentions the fixture's name.
+
+**The strongest drift guard available**: recompiling the committed publication against the committed
+private mapping reproduces the shipped `manifold.cml` **byte for byte**. The mapping lives in the
+repository as a reproduction input — never in the wheel, never in the runtime unit, never consulted
+by admission. No secrecy claim is made about it: this is synthetic fixture data whose physical facts
+are already visible in the shipped image.
+
 ## [Unreleased] — 0.10.0 — the provisioner
 
 **A compiled image becomes a runtime unit the server will admit — assembled, never re-emitted.**
