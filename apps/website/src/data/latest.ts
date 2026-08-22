@@ -79,6 +79,16 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'the corrected serving law and four-mood demo now ship as one coherent package set',
     date: '2026-08-21',
   },
+  // columna-server 0.9.0 tightened governed admission: a governed publication and a .cml claiming to
+  // realize it are an ORIGIN CLAIM, and a claim is not evidence that a compiler ever produced that
+  // image from that publication. A lowering receipt now binds the two by content digest, so governed
+  // standing can no longer be acquired by co-locating two files. Core's code is unchanged at 0.15.2 —
+  // it moves in lockstep with the umbrella, whose dependency floor had to rise. Stated as the rule
+  // rather than the file, because the rule is the part a reader needs.
+  '0.15.2': {
+    title: 'a claim of origin is not evidence of lowering — governed standing now requires a bound execution image',
+    date: '2026-08-22',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

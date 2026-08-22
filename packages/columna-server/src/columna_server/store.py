@@ -38,6 +38,13 @@ from columna_core import DuckDBConnector, ManifoldServer
 from columna_core.parser import parse_file
 
 from .provider import CoreExecutionProvider, ExecutionProvider
+from .lowering_receipt import (
+    LOWERING_RECEIPT,
+    LoweringReceiptError,
+    LoweringReceiptMissing,
+    load_lowering_receipt,
+    verify_binding,
+)
 from .registry import (
     FolderManifoldRegistry,
     GovernedPublication,
@@ -55,7 +62,10 @@ from .registry import (
 
 #: The publication-authority artifact retained beside a governed .cml realization (S2.2a-2/-3). The
 #: runtime deployment contract for artifact-backed Core serving is:
-#:     <runtime-manifold>/{governed-publication.json, manifold.cml, data.toml}
+#:     <runtime-manifold>/{governed-publication.json, manifold.cml, lowering-receipt.json, data.toml}
+#: `lowering-receipt.json` joined the contract with the publication→image binding (2026-08-22): a
+#: SOURCE_MANIFOLD claim plus an artifact is an ORIGIN CLAIM, not evidence that a compiler ever
+#: established the realization. See lowering_receipt.py.
 PUBLICATION_ARTIFACT = "governed-publication.json"
 
 # ── the three runtime-entry kinds (S2.2a-3) ────────────────────────────────────────────────────────
@@ -66,17 +76,23 @@ ENTRY_LEGACY = "legacy"
 #: GovernedPublication, NEVER in the governed registry. Missing authority never manufactures a
 #: publication (the P0(c) migration discipline).
 ENTRY_SOURCE_REFERENCED_INCOMPLETE = "source_referenced_incomplete"
-#: governed-publication.json present AND its ref matches the .cml SOURCE_MANIFOLD — a real governed
-#: publication with a Core realization bound by concrete ManifoldRef.
+#: governed-publication.json present AND its ref matches the .cml SOURCE_MANIFOLD AND a valid
+#: lowering-receipt.json binds this exact publication to this exact execution image — a real governed
+#: publication with a Core realization bound by concrete ManifoldRef and by established provenance.
+#: The receipt requirement is publication STANDING only: it says a compiler produced this image from
+#: this publication, and says nothing about certification, attestation or PublishedScope admission.
 ENTRY_GOVERNED = "governed"
 
 
 @dataclass(frozen=True)
 class LoadCondition:
     """An observable per-runtime ingest condition — the deployment gap made visible, never silently
-    swallowed. ``kind`` is the class name of the underlying registry condition
+    swallowed. ``kind`` is the class name of the underlying registry or receipt condition
     (PublicationArtifactMissing / PublicationArtifactInvalid / UnsupportedPublicationFormat /
-    RealizationIdentityMismatch)."""
+    RealizationIdentityMismatch / LoweringReceiptMissing / LoweringReceiptInvalid /
+    LoweringReceiptMismatch). Every kind the store can emit MUST have a stable public code in
+    tools._CONDITION_CODE — an unmapped kind would vanish from the catalog instead of being
+    reported, which is the one failure this dataclass exists to prevent."""
 
     manifold_id: str
     kind: str
@@ -187,9 +203,33 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
                     f"artifact ref {artifact.ref.manifold_id}@{artifact.ref.version} != .cml {claimed}",
                 )
             else:
-                publication = governed_publication_from_artifact(artifact)
-                ref = artifact.ref
-                entry_kind = ENTRY_GOVERNED
+                # The origin claim and the authority agree. That is IDENTITY, and identity is not
+                # conformance: nothing so far shows a compiler ever produced this image from this
+                # publication. The receipt is what carries that discharged obligation across the
+                # lowering→provisioning boundary, so admission can trust it without re-running
+                # lowering, loading the mapping, or reading meaning out of the .cml.
+                receipt_path = _osp.join(mdir, LOWERING_RECEIPT)
+                if not _osp.isfile(receipt_path):
+                    e = LoweringReceiptMissing(
+                        f"{artifact.ref.manifold_id}@{artifact.ref.version} has no "
+                        f"{LOWERING_RECEIPT}: a SOURCE_MANIFOLD claim is an origin claim, not "
+                        f"evidence that lowering established this image"
+                    )
+                    entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE
+                    condition = LoadCondition(manifold_id, type(e).__name__, str(e))
+                else:
+                    try:
+                        receipt = load_lowering_receipt(receipt_path)
+                        verify_binding(receipt, artifact.ref, artifact_path, cml)
+                    except LoweringReceiptError as e:
+                        # Present but unusable, or usable but binding different files: observable,
+                        # never auto-repaired, and never promoted.
+                        entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE
+                        condition = LoadCondition(manifold_id, type(e).__name__, str(e))
+                    else:
+                        publication = governed_publication_from_artifact(artifact)
+                        ref = artifact.ref
+                        entry_kind = ENTRY_GOVERNED
     elif src_ref is not None:
         # Source-referenced runtime with incomplete publication authority (no artifact present).
         entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE

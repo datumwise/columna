@@ -9,6 +9,15 @@ date); future changes are recorded here going forward.
 
 ## Unreleased — realization/data identity and cache safety (P0.5b-0)
 
+**Version 0.15.2 is a LOCKSTEP release: `columna-core`'s code is unchanged from 0.15.1.** The
+publication→execution-image binding landed in `columna-server` 0.9.0, which raised the umbrella's
+server floor; the umbrella's own payload therefore changed and had to move off 0.15.1, and the
+ratified lockstep (2026-08-20) is that the umbrella and core share the release version. Core moves
+with it. The alternative — umbrella 0.15.2 against core 0.15.1 — is the state that resolves cleanly
+while the site and `pip install columna` still report the previous release, which is precisely the
+silent drift the lockstep exists to prevent.
+
+
 **No wire change.** `Connector` gains `data_identity(table) -> Optional[str]`, a **change/version
 token** for a table's realized data state, declared on the Protocol (the freshness primitive
 everything depended on was never part of the contract). It replaces `table_version` — row count —

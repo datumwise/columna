@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "columna-core"
-version = "0.15.1"
+version = "0.15.2"
 description = "Columna Core — the definition language, adjudication, and engine of Columna, by datumwise."
 readme = "README.md"
 # CEILING, not caution (Huayin, 2026-07-27; found on a Windows fresh-venv pass). datasketches 5.x

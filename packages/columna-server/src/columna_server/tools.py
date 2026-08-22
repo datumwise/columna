@@ -23,13 +23,27 @@ from .store import (
     ManifoldStore,
 )
 
-#: LoadCondition.kind (a registry exception class name) → the STABLE public condition code exposed in
-#: the v3 catalog. Only these codes cross the wire — never raw details, parser text, paths, or reprs.
+#: LoadCondition.kind (a registry or receipt exception class name) → the STABLE public condition code
+#: exposed in the v3 catalog. Only these codes cross the wire — never raw details, parser text, paths,
+#: or reprs.
+#:
+#: The three lowering-receipt codes are an ADDITIVE vocabulary extension inside contract_version "3"
+#: (ruling 2026-08-22 §3): the catalog's SHAPE is unchanged — same rows, same keys, same order — and
+#: only the set of values a `conditions` entry may take grows. S2.2b-2 bumped v2→v3 for a shape
+#: change; an enum extension is not one.
+#:
+#: EVERY LoadCondition kind the store can emit MUST appear here. `list_manifolds` skips unmapped
+#: kinds, so an omission would delete a deployment condition from the catalog rather than surface it
+#: — silence exactly where the store promised visibility. `test_governed_catalog` pins the mapping
+#: against the store's own condition vocabulary so a future kind cannot be added without a code.
 _CONDITION_CODE = {
     "PublicationArtifactMissing": "publication_artifact_missing",
     "PublicationArtifactInvalid": "publication_artifact_invalid",
     "UnsupportedPublicationFormat": "unsupported_publication_format",
     "RealizationIdentityMismatch": "realization_identity_mismatch",
+    "LoweringReceiptMissing": "lowering_receipt_missing",
+    "LoweringReceiptInvalid": "lowering_receipt_invalid",
+    "LoweringReceiptMismatch": "lowering_receipt_mismatch",
 }
 
 #: entry_kind → the public catalog `kind` (source-referenced-but-incomplete surfaces as
