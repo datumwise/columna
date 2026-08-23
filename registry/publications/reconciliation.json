@@ -121,6 +121,24 @@
   "provenance": "Phase 3B creator sweep, 2026-08-21 (concept 20710592 uncovered). Resolved the same day by Huayin's Phase 3B.1 ruling: one Work may attach 1..n Zenodo concept identities."
  },
  {
+  "id": "rc-frameql-introduction-corpus-map-edition-lag",
+  "tokens": [
+   "10.5281/zenodo.21774643"
+  ],
+  "disposition": "superseded-current-authority",
+  "claim": "10.5281/zenodo.21774643 is the edition served at /learn/frameql-an-introduction",
+  "truth": "21774643 is 'Frame-QL: An Introduction' v1.1 (2026-08-03), record w-frameql-introduction.r02, superseded. The route was re-editioned to the deposited v2.1 bytes on 2026-08-23 and now cites 10.5281/zenodo.21966453 (record .r05, current). ONE FROZEN FILE STILL PRINTS THE OLD DOI BESIDE A LINK TO THAT ROUTE: research_corpus_map_v0_2.md, at its line 21, reads '*Frame-QL: An Introduction* ([10.5281/zenodo.21774643]) — also here: [the full introduction](/learn/frameql-an-introduction)'. Following that link now lands on v2.1. The map is byte-frozen and already DEMOTED from publication authority by Ruling 8 (2026-08-21); it is not rewritten to chase the route.",
+  "replacement": "10.5281/zenodo.21966453",
+  "allowedContexts": [
+   "apps/website/src/content/corpus/*.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "RATIFIED 2026-08-23 (Huayin, Unit 2 re-edition brief), and it exists to record a lag rather than to license one. The route disposition was REPOINT — same URL, new edition, v1.1 retained on disk and unimported — which is the shape every corpus-edition swap in this repo has taken, including this same file's v1 -> v1.1 swap in f27318d. What a repoint cannot do is reach into a FROZEN file that links to it. So one sentence in research_corpus_map_v0_2.md now names v1.1's DOI next to a link that arrives at v2.1, and this row is the place that says so out loud. THE FIX IS NOT TO EDIT THE MAP. Its bytes are ratified and its 17 DOI tokens made it the site's largest de-facto publication authority until Ruling 8 stopped treating it as one; editing it to track a route would restore exactly the authority that ruling removed. The registry, which reads status rather than text, already knows 21966453 is current. RECONCILIATION DEBT, NOT CLOSED HERE: whether the demoted map is eventually regenerated from the registry instead of frozen is a Phase-2 question about the map, not about this route.",
+  "provenance": "Unit 2 of the Frame-QL Introduction re-edition, 2026-08-23. Surfaced by the read-only audit of 2026-08-22, which found the route four deposits behind its work's current record and 21966453 present on zero surfaces. Deposit fidelity verified by byte comparison against zenodo.org/api/records/21966453 before any file was written."
+ },
+ {
   "id": "rc-two-great-sources-successor",
   "tokens": [
    "10.5281/zenodo.21553379"

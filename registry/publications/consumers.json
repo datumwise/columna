@@ -72,6 +72,20 @@
   "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
  },
  {
+  "path": "apps/website/src/content/corpus/frameql_an_introduction_v2_1.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21958062",
+   "10.5281/zenodo.21959668",
+   "10.5281/zenodo.21959749",
+   "10.5281/zenodo.21959941",
+   "10.5281/zenodo.21960639",
+   "10.5281/zenodo.21960798",
+   "10.5281/zenodo.21966453"
+  ],
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1) — the deposited v2.1 edition rendered at /learn/frameql-an-introduction, sha256 4e50e315…04b49, verified against zenodo.org/api/records/21966453. SEVEN TOKENS, AND WHAT THEY ARE: 21966453 is the deposit's own DOI and 21960798 is the v2.0 it declares itself a new version of; the other five are its bibliography — ToD v6.0, the ToD Primer v2.0, the ToD Introduction v2.0, ToD Applied v1.0, Analytical Governance v1.0. Five of the seven name records the registry now marks superseded. THAT IS CORRECT AND MUST STAY: these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION, recording what the paper was read against on 2026-08-16 — they are not claims that those records are currently authoritative, and currentizing one would falsify the citation rather than repair it. Same principle the currency guard already encodes: a citation naming the version it documented is dated, not stale."
+ },
+ {
   "path": "apps/website/src/content/corpus/launch_post_FINAL.md",
   "class": "frozen-corpus",
   "allowedDois": [
@@ -200,10 +214,9 @@
   "path": "apps/website/src/pages/learn/frameql-an-introduction.astro",
   "class": "edition-pinned",
   "allowedDois": [
-   "10.5281/zenodo.21774032",
-   "10.5281/zenodo.21774643"
+   "10.5281/zenodo.21966453"
   ],
-  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders — not the current one. Citing v2.2 above v1.1 bytes would be the misattribution, not the fix. Also carries a dated 2026-08-03 note citing ToD v4.0 as the version that made that change: a historical statement, true as written."
+  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders. RE-EDITIONED v1.1 -> v2.1 (Huayin, 2026-08-23): the route now renders the deposited v2.1 bytes, so it now pins v2.1's own DOI — 21966453, which is also `w-frameql-introduction`'s current record. That the pin and the current record agree here is a COINCIDENCE OF THIS MOMENT, not a rule: the class still means 'the edition this page renders', and if a v2.2 is deposited tomorrow this row does not move until the bytes above it do. The prior pin (21774643) and the dated ToD v4.0 note (21774032) left with the v1.1 edition they described; both records remain in the registry, and the v1.1 bytes remain on disk, unimported."
  },
  {
   "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",

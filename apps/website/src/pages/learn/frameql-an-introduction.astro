@@ -1,12 +1,33 @@
 ---
-// /learn/frameql-an-introduction — hosts the v1.1 source (measure migration, 2026-08-03), byte-
-// consistent with the Zenodo record. Title/subtitle from front-matter; the record's own DOI (21774643,
-// version chain covers v1.1) and the vocabulary-move note are page chrome. Middle rung of the FrameQL
-// ladder: /what-is-frameql (5 min) → this introduction (25 min) → the Manual (/docs/frameql). The
-// ```frameql fences fall back to plaintext under the site's Shiki (no highlighter error).
+// /learn/frameql-an-introduction — hosts the deposited **v2.1** source (2026-08-16), byte-identical to
+// the Zenodo record: sha256 4e50e315…04b49, 27,251 bytes, verified against
+// zenodo.org/api/records/21966453 rather than against the filename. Title/subtitle come from the
+// deposit's own front-matter; the DOI and edition line below are page CHROME, so nothing is injected
+// into the hosted markdown. Middle rung of the FrameQL ladder: /what-is-frameql (5 min) → this
+// introduction (25 min) → the Manual (/docs/frameql).
+//
+// RE-EDITIONED v1.1 → v2.1 (Huayin's ruling, 2026-08-23). The registry's current record for
+// `w-frameql-introduction` had been `.r05` (v2.1, 21966453) since 2026-08-16 while this route went on
+// rendering `.r02` (v1.1, 21774643) — four deposits behind, and the site named v2.1 on no surface at
+// all, so no reader could reach it. The route is a byte-faithful deposited-edition surface, which
+// means the repair is a REPOINT (the ledger's own word) and never an edit: same URL, new edition,
+// v1.1 retained on disk and unimported exactly as `launch_story_v6` and the 6e/6f manual editions are.
+// The prior swap of this same file (v1 → v1.1, commit f27318d, the ToD v4.0 measure migration) has the
+// identical shape.
+//
+// WHAT THE NEW EDITION CHANGES, in one line, because it is the reason the swap matters: v1.1 teaches
+// the ToD v4 ontology — `measure` IS the family, `member` is its realization — and v2.1 teaches ToD
+// v6, where `measure = measure family @ anchor`. The same word names different objects in the two
+// texts. The Manual remains normative for shipped syntax and behaviour; this route is the conceptual
+// on-ramp, not the reference.
+//
+// The ```frameql fences fall back to plaintext under the site's Shiki (no highlighter error). The
+// deposit's LaTeX — eleven `$$…$$` blocks and the inline `$F@A$` — renders through the site's math
+// pipeline (astro.config.mjs, PR #212); none of it required touching these frozen bytes.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content, frontmatter } from '../../content/corpus/frameql_an_introduction_v1_1.md';
-const DOI = '10.5281/zenodo.21774643';
+import { Content, frontmatter } from '../../content/corpus/frameql_an_introduction_v2_1.md';
+const DOI = '10.5281/zenodo.21966453';
+const EDITION = 'Version 2.1 · 16 August 2026';
 ---
 <BaseLayout title="Frame-QL: An Introduction — datumwise"
   description="The introduction to Frame-QL — the output frame is the query. Why rows, tables, joins, and GROUP BY are not primitives of the request interface, and where AI belongs at the intent boundary.">
@@ -14,7 +35,7 @@ const DOI = '10.5281/zenodo.21774643';
     <p class="kicker"><a href="/learn">Learn</a></p>
     <h1 class="serif">{frontmatter.title}</h1>
     <p class="lede">{frontmatter.subtitle}</p>
-    <p class="doi mono"><a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
+    <p class="doi mono">{EDITION} · <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose">
@@ -22,13 +43,11 @@ const DOI = '10.5281/zenodo.21774643';
   </article>
 
   <p class="evidence-note">
-    <strong>Note, 2026-08-03.</strong> The theory's vocabulary moved again, and this time the move
-    retired a word. <em>The Theory of Data</em>, Version 4.0
-    (<a href="https://doi.org/10.5281/zenodo.21774032" rel="noopener" target="_blank">10.5281/zenodo.21774032</a>)
-    replaces <em>atom</em> with <strong>measure</strong> — the governed family — because the old word
-    named smallestness while the object is a family with laws. A column realizes a <strong>member</strong>:
-    a governed <strong>series</strong>. The account is unchanged; a family is constituted by its law,
-    and so, it turns out, is a vocabulary.
+    <strong>This edition.</strong> The page above is <em>Frame-QL: An Introduction</em>,
+    <strong>Version 2.1</strong>, deposited <strong>16 August 2026</strong>, reproduced from the
+    deposit byte for byte. It supersedes the Version 1.1 edition previously served at this URL, whose
+    record — like every earlier one — remains in the publication registry. The Frame-QL Manual stays
+    authoritative for shipped syntax and behaviour; this is the conceptual on-ramp, not the reference.
   </p>
 
   <p class="engage wayfinding">
