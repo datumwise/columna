@@ -77,6 +77,15 @@ jobs:
 
       - name: Install site dependencies
         run: npm ci
+
+      # MATH vs MONEY (2026-08-23). `src/lib/remarkInlineMathDollars.mjs` decides whether every `$…$`
+      # in the corpus is an equation or a price — the Frame-QL Introduction's `$F@A$` against
+      # /grain-gap's "$41.67 … $83.33" and the Case's reconciliation figures, all of them in FROZEN
+      # deposited bytes that may never be escaped. Getting it wrong is SILENT: the build stays green
+      # and the page just says something else. So the rule is checked, and its full reach is printed.
+      - name: Math-vs-money rule (every `$…$` conversion, inventoried)
+        run: node scripts/check_dollar_math.mjs
+
       # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
       # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
       # carries no commit metadata (it arrives EMPTY, which is what silently disabled the edge
@@ -325,6 +334,15 @@ jobs:
 
       - name: Install site dependencies
         run: npm ci
+
+      # MATH vs MONEY (2026-08-23). `src/lib/remarkInlineMathDollars.mjs` decides whether every `$…$`
+      # in the corpus is an equation or a price — the Frame-QL Introduction's `$F@A$` against
+      # /grain-gap's "$41.67 … $83.33" and the Case's reconciliation figures, all of them in FROZEN
+      # deposited bytes that may never be escaped. Getting it wrong is SILENT: the build stays green
+      # and the page just says something else. So the rule is checked, and its full reach is printed.
+      - name: Math-vs-money rule (every `$…$` conversion, inventoried)
+        run: node scripts/check_dollar_math.mjs
+
       # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
       # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
       # carries no commit metadata (it arrives EMPTY, which is what silently disabled the edge

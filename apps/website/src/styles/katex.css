@@ -1,0 +1,19 @@
+/* The one thing katex.min.css does not decide for us: what a display equation does when it is wider
+ * than the reading column. `\boxed{Measure = MeasureFamily @ Anchor}` overflows `--measure` on a
+ * phone, and the alternative to a scrollbar is a silently clipped equation. Scroll, never clip.
+ *
+ * Deliberately the ONLY rule in this file. The first draft also carried a `box-sizing: content-box`
+ * override for `.katex *`, on the theory that `tokens.css`'s global `* { box-sizing: border-box }`
+ * was collapsing `\boxed` to a stray vertical stroke. It was not. The real cause was a VERSION SPLIT:
+ * `rehype-katex` renders with its own `katex@0.16`, which emits `<span class="stretchy fbox">`, while
+ * package.json had pulled `katex@0.18` for the stylesheet — and 0.18 renamed that class to
+ * `katex-stretchy`. The box was being drawn by markup no shipped rule could style. The fix is the
+ * pin in package.json (`katex@^0.16.11`, the line rehype-katex actually renders with, so npm dedupes
+ * to ONE copy and the CSS always belongs to the renderer), not a rule here. Verified both ways: with
+ * the pin and without the override, every expression renders; the override changed nothing.
+ */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
