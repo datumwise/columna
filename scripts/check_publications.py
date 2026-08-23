@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-21.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -603,12 +603,41 @@ def main() -> int:
                            "it is retired as CURRENT AUTHORITY, not retired")
 
     # Case 3 — the two clean identities claimed by the same unit.
-    for wid, doi, ver in (("w-frameql-primer", "10.5281/zenodo.21960873", "2.0"),
+    # The Primer pin ADVANCED 2026-08-23: v2.0 (21960873) -> v2.2 (22071833), through v2.1 (22071619).
+    # The 3B.1 ruling was that this work is CLAIMED and has a current record, not that v2.0 is current
+    # in perpetuity; a current-pointer that cannot move is a stale DOI with a gate around it. The full
+    # chain, both arms, is asserted below.
+    for wid, doi, ver in (("w-frameql-primer", "10.5281/zenodo.22071833", "2.2"),
                           ("w-data-has-its-own-ontology", "10.5281/zenodo.22026962", "1.1")):
         cur = current_of(wid)
         if not cur or cur["doi"] != doi or cur["version"] != ver:
             fail("G9", f"3B.1 case 3: the current record of {wid} must be v{ver} / {doi.rsplit('.', 1)[1]}; "
                        f"got {cur and (cur['version'], cur['doi'])}")
+
+    # ── THE FRAME-QL PAIR ADVANCE, ASSERTED (Huayin, 2026-08-23) ─────────────────────────────
+    # Four deposits landed in one day and TWO OF THEM WERE CURRENT FOR PART OF IT. The pair that
+    # arrived first — Introduction v2.2 (22071508), Primer v2.1 (22071619) — is superseded by the pair
+    # that arrived after it, and each new record's own deposited `isNewVersionOf` names the one it
+    # displaced. That is why the intermediates are asserted here BY NAME rather than skipped: a chain
+    # that jumps v2.1 -> v2.3 would be tidier and would not be what was deposited. Superseded within
+    # hours is still deposited, and the registry models deposits, not intentions.
+    for wid, cur_doi, cur_ver, prev_doi, prev_ver in (
+            ("w-frameql-introduction", "10.5281/zenodo.22071910", "2.3", "10.5281/zenodo.22071508", "2.2"),
+            ("w-frameql-primer", "10.5281/zenodo.22071833", "2.2", "10.5281/zenodo.22071619", "2.1")):
+        cur = current_of(wid)
+        if not cur or cur["doi"] != cur_doi or cur["version"] != cur_ver:
+            fail("G9", f"Frame-QL pair 2026-08-23: the current record of {wid} must be v{cur_ver} / "
+                       f"{cur_doi.rsplit('.', 1)[1]}; got {cur and (cur['version'], cur['doi'])}")
+        else:
+            prev = by_record.get(cur.get("supersedes") or "")
+            if not prev or prev["doi"] != prev_doi or prev["version"] != prev_ver:
+                fail("G9", f"Frame-QL pair 2026-08-23: {wid} v{cur_ver} must supersede v{prev_ver} "
+                           f"({prev_doi.rsplit('.', 1)[1]}) by recordId — that is the edge the deposit's "
+                           "own isNewVersionOf declares, not the one a version string suggests")
+            elif prev["status"] != "superseded":
+                fail("G9", f"Frame-QL pair 2026-08-23: {wid} v{prev_ver} must remain a first-class "
+                           "historical record with status `superseded`. It was current for part of one "
+                           "day; that is a short life, not a retraction.")
 
     anchors = current_of("w-two-anchors")
     if not anchors or anchors["version"] != "2.0":

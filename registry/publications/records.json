@@ -192,13 +192,45 @@
   "date": "2026-08-16",
   "doi": "10.5281/zenodo.21966453",
   "recid": "21966453",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint",
   "supersedes": "w-frameql-introduction.r04"
+ },
+ {
+  "recordId": "w-frameql-introduction.r06",
+  "workId": "w-frameql-introduction",
+  "title": "Frame-QL: An Introduction",
+  "version": "2.2",
+  "date": "2026-08-23",
+  "doi": "10.5281/zenodo.22071508",
+  "recid": "22071508",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-frameql-introduction.r05"
+ },
+ {
+  "recordId": "w-frameql-introduction.r07",
+  "workId": "w-frameql-introduction",
+  "title": "Frame-QL: An Introduction",
+  "version": "2.3",
+  "date": "2026-08-23",
+  "doi": "10.5281/zenodo.22071910",
+  "recid": "22071910",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-frameql-introduction.r06"
  },
  {
   "recordId": "w-frameql-primer.r01",
@@ -239,13 +271,45 @@
   "date": "2026-08-16",
   "doi": "10.5281/zenodo.21960873",
   "recid": "21960873",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint",
   "supersedes": "w-frameql-primer.r02"
+ },
+ {
+  "recordId": "w-frameql-primer.r04",
+  "workId": "w-frameql-primer",
+  "title": "A Primer on Frame-QL",
+  "version": "2.1",
+  "date": "2026-08-23",
+  "doi": "10.5281/zenodo.22071619",
+  "recid": "22071619",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-frameql-primer.r03"
+ },
+ {
+  "recordId": "w-frameql-primer.r05",
+  "workId": "w-frameql-primer",
+  "title": "A Primer on Frame-QL",
+  "version": "2.2",
+  "date": "2026-08-23",
+  "doi": "10.5281/zenodo.22071833",
+  "recid": "22071833",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-frameql-primer.r04"
  },
  {
   "recordId": "w-missingness-has-a-universe.r01",

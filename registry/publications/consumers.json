@@ -329,13 +329,16 @@
    "10.5281/zenodo.21958062",
    "10.5281/zenodo.21959668",
    "10.5281/zenodo.21959749",
-   "10.5281/zenodo.21960873",
    "10.5281/zenodo.22013410",
    "10.5281/zenodo.22018549",
    "10.5281/zenodo.22026962",
-   "10.5281/zenodo.22046037"
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22071508",
+   "10.5281/zenodo.22071619",
+   "10.5281/zenodo.22071833",
+   "10.5281/zenodo.22071910"
   ],
-  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all."
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are."
  },
  {
   "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
@@ -491,9 +494,11 @@
    "10.5281/zenodo.2188899810",
    "10.5281/zenodo.21893929",
    "10.5281/zenodo.21960873",
-   "10.5281/zenodo.22026962"
+   "10.5281/zenodo.22026962",
+   "10.5281/zenodo.22071619",
+   "10.5281/zenodo.22071833"
   ],
-  "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing."
+  "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing. UPDATED 2026-08-23 (Frame-QL pair advance): the 3B.1 case-3 table is left as the dated reading it was and carries a footnote instead of a restamp, which is why this row now also allows the two later Primer records (22071619, 22071833) — they are quoted in that footnote as where the chain WENT, not as a correction to what the case recorded. CV-10 opened here: the third instance of the prepend-instead-of-replace deposit defect, quoted as evidence exactly as the first one is."
  },
  {
   "path": "apps/website/src/pages/evidence.astro",
