@@ -286,7 +286,16 @@ They belong in `doctrine_gaps.md` once opened as tracked rows.
 
 **Still open:**
 
-1. **`/manifold` 404** — the Universe Visual caption links a route that does not exist, from `/case`
-   and `/explorer`. Where should "Manifold spec" point? (Held for the ledger, not guessed.)
+1. ~~**`/manifold` 404** — the Universe Visual caption links a route that does not exist, from `/case`
+   and `/explorer`. Where should "Manifold spec" point? (Held for the ledger, not guessed.)~~
+   **RESOLVED 2026-08-22** ([PR #208](https://github.com/datumwise/columna/pull/208), merge
+   `1bcedbb`). "Manifold spec" points to **`/case#ch2`** — the chapter-2 exhibit renders *The
+   Manifold spec* and *The physical→logical map* side by side, and the map half of the same caption
+   sentence already addressed it. Repaired at the authoritative source
+   (`gen_universe_visual.py`'s `leftout_spec_route`); no `/manifold` route was created, because
+   nothing in the repository required one. Not `/what-is-manifold`: that essay explains what a
+   Manifold *is* and does not hold the attributes, reject rows, operator properties or provenance
+   the caption says were left out. The link also moves from an unguardable bare route into the class
+   `check_fragments.mjs` covers.
 2. **Whether the decidable checker is built in Slice 2 or later** — the *shape* is ruled (§0); the
    *timing* rides the sequence in §4.
