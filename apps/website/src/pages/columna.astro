@@ -1,34 +1,114 @@
 ---
 /**
- * NAVIGATION SIGNPOST — not the redesigned Columna-as-system page.
+ * COLUMNA — the system page. Composed 2026-08-22 (Huayin's rulings), replacing the navigation
+ * signpost that stood here since 2026-08-19.
  *
- * Authorized narrowly (Huayin, 2026-08-19): a concise current definition plus links to the Columna
- * surfaces that are already live. No route is migrated and nothing here is rebuilt — every
- * destination below is an existing page, unchanged.
+ * THE TEACHING ORDER IS NOT THE DEPENDENCY ORDER, AND THAT IS THE POINT. In dependency order a
+ * reader would meet the Manifold, then Frame-QL, then the engine, then publication and runtime.
+ * This page runs claim → proof → parts: what Columna is, then the Case, then the vocabulary. The
+ * reader meets the Case BEFORE knowing what a Manifold is, because the Case is what earns the
+ * vocabulary, and the exits are where it gets collected.
  *
- * The upward-framing line is the bidirectional rule in miniature: a product surface points back to
- * the principle that explains why the behaviour exists.
+ * WHY THAT MATTERS HERE SPECIFICALLY. Three of the site's strongest exits land on this page —
+ * Hero's "Meet Columna →", Exhibit A's "Explore Columna →", and Analytical Governance's "See the
+ * executable consequence … the same boundaries, in a system that ships". All three arrive expecting
+ * a working system. The signpost answered with a list of six links in which the Case was one bullet,
+ * ranked below a link hub and beside a repo link. That demotion was the defect, not the length.
+ *
+ * THE CASE LIVES IN TWO PLACES, ON PURPOSE (ruled 2026-08-22). The MOVEMENT — the proof arc — is
+ * composed here. The RECORD — three byte-frozen charter chapters and their generated exhibits —
+ * stays at /case, which this page opens into and which points back up to `#the-case`. The chapters
+ * are NOT relocated: a charter is not moved to satisfy a routing abstraction. No chapter prose and
+ * no exhibit is duplicated here; the three beats below carry facts DERIVED from the same generated
+ * payload /case renders, so they cannot drift from it.
+ *
+ * FIRSTLIGHT APPEARS EXACTLY ONCE, as a generated sentence, and links to its proof. The evidence —
+ * two catalogs, the image, the receipt, the reproduction check, the version-on-the-wire comparison,
+ * the zeros band — stays seated at /case#governed-standing. Restating it here would be the
+ * duplicate doctrine-bearing surface the architecture forbids.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { PACKAGE_VERSION } from '../data/latest';
+import caseData from '../data/case.generated.json';
+import fl from '../data/firstlight.generated.json';
 
-const SURFACES = [
-  { href: '/install', label: 'Install and run the demo',
-    blurb: 'a clarify, a refuse and a disclose print on your own machine, as wire JSON.' },
-  { href: '/learn', label: 'Learn the framework',
-    blurb: 'what Columna, Frame-QL and a Manifold are — and the three manuals.' },
-  { href: '/explorer', label: 'The Manifold Explorer',
-    blurb: 'browse the Cascadia Manifold: universes, measures, verdicts.' },
-  { href: '/docs/frameql', label: 'The Frame-QL manual',
-    blurb: 'the language of governed meaning, in full.' },
-  { href: '/case', label: 'The worked case',
-    blurb: 'a realistic warehouse, the Manifold that serves it, and recorded agent transcripts.' },
-  { href: 'https://github.com/datumwise/columna', label: 'GitHub', external: true,
-    blurb: 'Apache-2.0, open source.' },
+// ── The three Case beats, DERIVED from the payload /case renders ─────────────────────────────────
+// Never retyped. If the generated corpus moves, these move with it or the build stops.
+const table = (name: string) => {
+  const t = caseData.ch1_tables.find((x) => x.table === name);
+  if (!t) {
+    throw new Error(
+      `/columna: the Case movement's first beat needs the "${name}" table in case.generated.json, ` +
+      'and it is not there. The beat quotes a real row count; it must not fall back to a typed one.',
+    );
+  }
+  return t;
+};
+const summary = table('daily_revenue_summary');
+const calendar = table('calendar');
+
+const mapRows = caseData.ch2_artifacts.physical_map.length;
+const wallHolds = caseData.ch2_artifacts.wall_holds;
+
+const moods = caseData.wheel.map((id) => caseData.exemplars.find((e) => e.id === id)?.mood);
+if (moods.length !== 4 || moods.some((m) => !m)) {
+  throw new Error(
+    `/columna: the Case movement's third beat needs four wheel exemplars with moods; got ${JSON.stringify(moods)}. ` +
+    'The beat claims four asks and four moods — it may not claim it without them.',
+  );
+}
+
+const BEATS = [
+  {
+    href: '/case#ch1',
+    title: 'The company, and the data they actually have',
+    body: 'A 24-store chain, an ordinary warehouse, and two numbers everybody quotes and nobody trusts.',
+    fact: `${caseData.ch1_tables.length} tables — and daily_revenue_summary carries ${summary.row_count} rows against the calendar's ${calendar.row_count}`,
+  },
+  {
+    href: '/case#ch2',
+    title: 'The design, and the wall it puts up',
+    body: 'One authored graph, two projections: the logical spec everyone reads, and the many-to-one physical map with its rejects kept.',
+    fact: `${mapRows} map rows${wallHolds ? ' — and no physical identifier reaches the logical spec' : ''}`,
+  },
+  {
+    href: '/case#ch3',
+    title: 'The system live',
+    body: 'The claims stand trial against the warehouse, then the questions get asked — including the ones with no lawful answer.',
+    fact: `four asks, four moods — ${moods.join(' · ')}`,
+  },
+];
+
+// ── The three earned exits. Each door is labelled with the question it settles. ──────────────────
+const EXITS = [
+  {
+    question: 'What is the thing that holds the meaning?',
+    label: 'The Manifold',
+    href: '/what-is-manifold',
+    blurb: 'the data model of substance, where the relational model was the data model of form.',
+    also: { href: '/explorer', label: 'browse a real one' },
+  },
+  {
+    question: 'How do you ask it something?',
+    label: 'Frame-QL',
+    href: '/what-is-frameql',
+    blurb: 'the query language of the Manifold — the Frame is the query.',
+    also: null,
+  },
+  {
+    question: 'How does the answer appear at the machine boundary?',
+    label: 'Read the wire',
+    href: '/how-to-read-the-wire',
+    // Named narrowly on purpose (ruled 2026-08-22): this is the wire, not an account of the runtime.
+    // The site has no runtime-architecture page, and this door does not pretend otherwise.
+    blurb: 'six ideas for reading what comes back — result and disclosure, always a pair.',
+    also: null,
+  },
 ];
 ---
 <BaseLayout
   title="Columna — datumwise"
-  description="Columna is an open-source analytical system in which governed meaning, not physical procedure, determines what may be served."
+  description="Columna is an open-source analytical system in which governed meaning, not physical procedure, determines what may be served: the Manifold declares the analytical world, Frame-QL expresses requests against it, and Columna adjudicates what may be served."
   chip={false}
 >
   <p class="ds-label">Columna</p>
@@ -37,57 +117,193 @@ const SURFACES = [
     Governed meaning, not physical procedure, determines what may be served.
   </h1>
 
-  <p class="lede ds-body">
-    Columna is an open-source analytical system: a declared model of what the data means, a query
-    language that can only ask for meaning the model declares, and an engine that serves nothing the
-    model cannot defend.
-  </p>
+  {/* ── 1 · What Columna is ─────────────────────────────────────────────────────────────────── */}
+  <section class="whatis" aria-labelledby="whatis-h">
+    <h2 id="whatis-h" class="sr-only">What Columna is</h2>
 
-  <ul class="surfaces">
-    {SURFACES.map((s) => (
-      <li>
-        <a href={s.href} {...(s.external ? { rel: 'noopener', target: '_blank' } : {})}>{s.label}</a>
-        <span class="blurb"> — {s.blurb}</span>
-      </li>
-    ))}
-  </ul>
+    <p class="lede ds-body">
+      The <strong>Manifold</strong> declares the analytical world. <strong>Frame-QL</strong>
+      expresses requests against it. <strong>Columna</strong> adjudicates what that declared world
+      and current support entitle the system to serve.
+    </p>
 
+    <p class="ds-body">
+      Adjudication has four outcomes, and they are data, not prose. A request is
+      <span class="mood">served</span> (the number), <span class="mood">disclosed</span> (the number
+      and the assumptions riding with it), <span class="mood">clarified</span> (the question has more
+      than one lawful reading — choose), or <span class="mood">refused</span> (the declared world
+      does not define this, and here is why). One contract carries all four, and the same contract
+      reaches a Python caller, an HTTP client, and an agent over MCP.
+    </p>
+
+    <p class="ds-body">
+      A separate question is <em>where the declared meaning came from</em> — and since
+      {' '}<code>columna-server 0.11.0</code> that has its own shipped chain:
+    </p>
+
+    <p class="chain ds-mark">publication → compile → receipt → provision → governed admission</p>
+
+    <p class="ds-body">
+      A governed publication compiles to an execution image; a lowering receipt binds the two by
+      content digest over the bytes as shipped; a provisioner places them; and the server admits the
+      result as governed rather than taking a runtime's word for it. The package ships one:
+      {' '}<code>{fl.unit}</code> at version <code>{fl.publication.ref.version}</code>, admitted
+      governed with no conditions — <a href="/case#governed-standing">the standing, shown →</a>
+    </p>
+
+    <p class="ds-body boundary">
+      The public release <strong>consumes</strong> governed authority. It does not provide the
+      authoring and ratification machinery that <strong>produces</strong> it.
+    </p>
+
+    <p class="meta ds-mono-sm">
+      Apache-2.0 · columna {PACKAGE_VERSION} (with {fl.generated_by}) ·
+      {' '}<a href="https://github.com/datumwise/columna" rel="noopener" target="_blank">source</a>
+    </p>
+  </section>
+
+  {/* ── 2 · The Case — the proof movement ───────────────────────────────────────────────────── */}
+  <section class="case-movement" id="the-case" aria-labelledby="case-h">
+    <p class="ds-label">The Case</p>
+    <h2 id="case-h" class="ds-proposition sub">
+      Whether it does that is a question about a real warehouse.
+    </h2>
+
+    <p class="ds-body">
+      Cascadia Retail is a fictional chain with an ordinary warehouse and two famous bad numbers.
+      The case works the whole arc — the company, the data, the design and its reasons, and the
+      system live — and every number in it is recorded from the shipped package, never illustrated.
+      The movement is here; <a href="/case">the record is at /case</a>.
+    </p>
+
+    <ol class="beats">
+      {BEATS.map((b) => (
+        <li class="beat">
+          <h3 class="beat-title"><a href={b.href}>{b.title}</a></h3>
+          <p class="beat-body">{b.body}</p>
+          <p class="beat-fact ds-mono-sm">{b.fact}</p>
+        </li>
+      ))}
+    </ol>
+
+    <p class="movement-out">
+      <a class="ds-link" href="/case">Read the whole record — three chapters, every exhibit generated →</a>
+    </p>
+  </section>
+
+  {/* ── 3 · Earned exits ────────────────────────────────────────────────────────────────────── */}
+  <section class="exits" aria-labelledby="exits-h">
+    <p class="ds-label" id="exits-h">Earned exits</p>
+    <p class="ds-body exits-lede">
+      The vocabulary the Case just spent — collected, one question at a time.
+    </p>
+    <ul class="doors">
+      {EXITS.map((e) => (
+        <li class="door">
+          <p class="door-q">{e.question}</p>
+          <p class="door-a">
+            <a href={e.href}>{e.label}</a>
+            <span class="door-blurb"> — {e.blurb}</span>
+            {e.also && <span class="door-also"> Or <a href={e.also.href}>{e.also.label}</a>.</span>}
+          </p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {/* ── 4 · Run it ──────────────────────────────────────────────────────────────────────────── */}
+  <section class="runit">
+    <p class="ds-body">
+      None of this has to be taken on the page's word.
+      {' '}<a href="/install">Install it and run the demo</a> — a clarify, a refuse and a disclose
+      print on your own machine, as real wire JSON, in about two minutes.
+    </p>
+  </section>
+
+  {/* ── 5 · Upward — the bidirectional rule: a product surface points back at its principle ─── */}
   <p class="upward">
     These behaviours are not product personality. They follow from the rule that absence of
     contradiction is not permission. <a href="/analytical-governance">Analytical Governance →</a>
-  </p>
-
-  <p class="status">
-    This page is a navigation signpost onto surfaces that already exist. The Columna-as-system
-    page — overview, Frame-QL, Core, Platform, build — is a later slice of the redesign.
   </p>
 </BaseLayout>
 
 <style>
   .ds-label { margin: 3rem 0 1.25rem; }
-  h1 { margin: 0 0 2rem; }
-  .lede { margin: 0 0 2.5rem; }
+  h1 { margin: 0 0 2.5rem; }
 
-  .surfaces { list-style: none; padding: 0; margin: 0; }
-  .surfaces li {
-    padding: 0.7rem 0;
-    border-bottom: 1px solid var(--rule);
-    font-family: var(--font-serif);
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
-  .surfaces a { color: var(--ink); }
-  .blurb { color: var(--ink-soft); }
+
+  section { margin: 0 0 3rem; }
+  .ds-body { margin: 0 0 1.15rem; max-width: 40rem; }
+  .lede { font-size: 1.12rem; color: var(--ink); }
+  .lede strong { font-weight: 600; }
+
+  /* the four outcomes named in running prose — ink only, no mood colour (retired 2026-07-26) */
+  .mood { font-family: var(--font-mono); font-size: 0.88em; color: var(--ink); }
+
+  .chain { display: block; margin: 0.2rem 0 1.15rem; white-space: normal; color: var(--ink); }
+
+  .boundary {
+    padding-left: 0.95rem; border-left: 3px solid var(--rule);
+    color: var(--ink);
+  }
+
+  .meta { margin: 1.6rem 0 0; color: var(--ink-soft); }
+  .meta a { color: inherit; }
+
+  /* ── the Case movement ─────────────────────────────────────────────────────────────────── */
+  .case-movement { border-top: 1px solid var(--rule); padding-top: 2.2rem; }
+  .case-movement .ds-label { margin-top: 0; }
+  h2.sub { font-size: 1.55rem; line-height: 1.2; margin: 0 0 1.4rem; }
+
+  ol.beats { list-style: none; margin: 1.6rem 0 1.2rem; padding: 0; counter-reset: beat; }
+  .beat {
+    counter-increment: beat;
+    position: relative;
+    padding: 0 0 1.1rem 2.4rem;
+    margin: 0 0 1.1rem;
+    border-bottom: 1px solid var(--rule);
+    max-width: 42rem;
+  }
+  .beat:last-child { border-bottom: 0; }
+  .beat::before {
+    content: counter(beat);
+    position: absolute; left: 0; top: 0.15rem;
+    font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-soft);
+  }
+  .beat-title { margin: 0 0 0.35rem; font-size: 1.02rem; font-family: var(--font-serif); }
+  .beat-title a { color: var(--ink); }
+  .beat-body { margin: 0 0 0.4rem; font-family: var(--font-serif); font-size: 0.95rem;
+    line-height: 1.55; color: var(--ink-soft); }
+  .beat-fact { color: var(--ink-soft); }
+  .movement-out { margin: 0.6rem 0 0; }
+
+  /* ── the exits ─────────────────────────────────────────────────────────────────────────── */
+  .exits { border-top: 1px solid var(--rule); padding-top: 2.2rem; }
+  .exits .ds-label { margin-top: 0; }
+  .exits-lede { margin-bottom: 1.4rem; }
+  ul.doors { list-style: none; margin: 0; padding: 0; max-width: 42rem; }
+  .door { padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+  .door:last-child { border-bottom: 0; }
+  .door-q {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-sans); font-size: var(--ds-meta);
+    color: var(--ink-soft);
+  }
+  .door-a { margin: 0; font-family: var(--font-serif); font-size: 1rem; line-height: 1.5; }
+  .door-a > a { color: var(--ink); font-weight: 600; }
+  .door-blurb, .door-also { color: var(--ink-soft); font-weight: 400; }
+
+  .runit { border-top: 1px solid var(--rule); padding-top: 2.2rem; }
 
   .upward {
-    margin: 2.5rem 0 0;
+    margin: 0 0 3rem;
+    max-width: 40rem;
     font-family: var(--font-serif);
     color: var(--ink-soft);
     line-height: 1.55;
-  }
-  .status {
-    margin: 2rem 0 0;
-    font-family: var(--font-sans);
-    font-size: var(--ds-meta);
-    line-height: 1.55;
-    color: var(--ink-soft);
   }
 </style>
