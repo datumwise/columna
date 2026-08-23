@@ -187,6 +187,38 @@ jobs:
       - name: The guard's own regression fixtures (incl. the 2026-08-20 stale-resolvable state)
         run: python scripts/release_pins.py --selftest
 
+  currency-stamps:
+    name: currency-stamp guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # THE CLASS GUARD FOR DOCUMENTED CURRENCY (2026-08-22). The Frame-QL Manual's body was
+      # reconciled through 2026-08-20 while its header still said it documented columna-core 0.14.0
+      # at wire contract "2" — four releases behind — and `contract_version "1"` was live on
+      # /llms.txt through TWO contract bumps. Nothing caught either: the parse gates check grammar,
+      # `check_prose_coherence.py` checks grammar, and `/docs/grammar` cannot go stale only because
+      # it is GENERATED rather than asserted. A claim about what ships had no guard at all.
+      #
+      # IT BELONGS HERE, NOT IN docs.yml, AND THAT IS THE WHOLE POINT. `docs.yml` is path-filtered to
+      # `docs/**`, which is exactly why this drifted: four releases moved `packages/**` and the docs
+      # job never ran. A guard must follow the thing that CHANGES the truth — the package version —
+      # not the thing that states it. So: no path filter, on push as well as PR, like the release-set
+      # and cap guards. This failure class arrives WITHOUT a diff; it is what a diff forgot.
+      #
+      # The install is columna-core alone: the guard reads the wire contract by IMPORTING
+      # `columna_core.disclosure_wire.CONTRACT_VERSION` from the package rather than trusting a
+      # literal, and reads the package triad from `scripts/release_pins.py` — the working tree, so
+      # the stamps are checked against what THIS COMMIT would ship, before it ships.
+      - name: Install columna-core (the guard reads the contract from the package, never a literal)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/columna-core
+      - name: Documented current-state stamps match the shipped set
+        run: python scripts/check_currency_stamps.py
+
   purged-grammar:
     name: purged-grammar guard
     runs-on: ubuntu-latest
