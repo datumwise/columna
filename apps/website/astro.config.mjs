@@ -17,6 +17,7 @@ import sitemap from '@astrojs/sitemap';
 // so the fix belongs in the RENDERER, never in the source. This is that fix.
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import remarkInlineMathDollars from './src/lib/remarkInlineMathDollars.mjs';
 import { createRequire } from 'node:module';
 
 // THE VERSION SPLIT THIS BUILD REFUSES TO SHIP (2026-08-22, found the expensive way).
@@ -80,24 +81,30 @@ export default defineConfig({
     '/how-these-documents-relate': '/research',
   },
   markdown: {
-    // SINGLE-DOLLAR INLINE MATH IS OFF, DELIBERATELY, AND THIS IS THE WHOLE DESIGN DECISION.
+    // MATH AND MONEY IN ONE CORPUS, WITHOUT EDITING EITHER.
     //
-    // remark-math's default treats `$x$` as inline math. This corpus cannot afford that default: it
-    // is full of unescaped MONEY, in frozen bytes nobody may edit. Measured before this config was
-    // written, with the default on:
-    //   · /grain-gap  — "$41.67 is a right answer. So is **$83.33**" parses as one inline formula and
+    // remark-math offers two settings and neither one fits these documents. Its DEFAULT makes every
+    // `$` open a formula, which was measured against this corpus and destroys three frozen pages:
+    //   · /grain-gap  — "$41.67 is a right answer. So is **$83.33**" parses as ONE inline formula and
     //                   renders as `∗` glyph soup. The page's entire argument is a run of dollar
     //                   amounts; it is destroyed, not degraded.
     //   · /grain-gap  — the order table row `| O1 | Ada | $100, $20 |` collapses mid-row.
     //   · /case (ch3) — "$3,182,555.97 against ... $2,212,391.86" becomes a formula.
-    // Turning the option off restores all three to byte-exact prose while every `$$…$$` block still
-    // renders. This is the documented remedy in micromark-extension-math for exactly this situation,
-    // not a workaround.
+    // Turning it OFF protects all three — and leaves the Frame-QL Introduction v2.1 deposit's `$F@A$`,
+    // the paper's own notation for a measure, printed as literal dollar signs. Both source files are
+    // frozen deposited editions, so neither escaping the money nor rewriting the notation is on the
+    // table. The discrimination has to be made by a RULE, in the parser.
     //
-    // THE COST, STATED: one expression in the Frame-QL Introduction v2.1 deposit — `$F@A$`, §
-    // Terminology — stays literal text. One inline expression against three frozen pages is not a
-    // close call, and the alternative (escaping the money) is the one thing the freeze forbids.
-    remarkPlugins: [[remarkMath, { singleDollarTextMath: false }]],
+    // So: remark-math keeps `singleDollarTextMath: false` and owns DISPLAY math only — `$$…$$` is
+    // parsed here, before anything else runs, and nothing downstream can weaken it. Inline `$…$` is
+    // then decided by PANDOC'S RULE (see src/lib/remarkInlineMathDollars.mjs): an opener not followed
+    // by whitespace, a closer not preceded by whitespace and NOT FOLLOWED BY A DIGIT. Currency comes
+    // in pairs and the second amount's `$` always has a digit behind it, so the pair never forms;
+    // `$F@A$` closes on a `$` followed by `;`, so it does. Order matters — display first, then inline.
+    remarkPlugins: [
+      [remarkMath, { singleDollarTextMath: false }],
+      remarkInlineMathDollars,
+    ],
     // `throwOnError: false` so a single malformed expression in a DEPOSITED edition degrades to a
     // visible red span instead of failing the deploy — we may not repair the bytes, so the build must
     // not be hostage to them. Verified: every expression in the corpus renders clean today, so this
