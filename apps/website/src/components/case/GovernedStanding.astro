@@ -1,0 +1,207 @@
+---
+/**
+ * firstlight — the governed-standing exhibit, seated in chapter 3.
+ *
+ * WHAT IT IS FOR. Everything else on this page is Cascadia, which the shipped server admits as a
+ * `legacy` runtime: rich in declared meaning — hierarchies, faces, blocked lineages, four moods —
+ * and carrying no publication, no receipt, and no version. `firstlight` is its exact complement:
+ * a real governed publication with the whole authority chain intact, and almost no capability at all.
+ * Depth without provenance, seated beside provenance without depth. Neither is the other's upgrade.
+ *
+ * THE CLAIM BOUNDARY IS LOAD-BEARING. The public release CONSUMES governed authority; it does not
+ * produce it. Nothing here may be arranged to suggest that a reader could author or ratify a
+ * governed publication with what they installed. The boundary sentence is quoted from the release,
+ * not paraphrased, and it renders last — where the reader has earned it.
+ *
+ * Everything below is read from `firstlight.generated.json`, emitted by running the SHIPPED package
+ * (`scripts/gen_firstlight.py`). That generator fails the build closed on every invariant this
+ * exhibit asserts — admission, empty certification sets, receipt digests, byte reproduction, the
+ * version field present on one wire and absent on the other, the legacy demos still legacy, and no
+ * shipped module naming the fixture. If any of them stops holding, there is no page to ship.
+ */
+import fl from '../../data/firstlight.generated.json';
+
+const wire = (x: unknown) => JSON.stringify(x, null, 2);
+
+const gov = fl.catalogs.find((c) => c.dir.endsWith('governed/'));
+const demo = fl.catalogs.find((c) => c.dir.endsWith('demo/'));
+if (!gov || !demo) {
+  throw new Error(
+    '/case: the governed-standing exhibit expects two catalogs, one per shipped directory. ' +
+    'It renders them as shipped and never assembles a combined view — a composed catalog would be ' +
+    'an illustration, and this page records rather than illustrates.',
+  );
+}
+
+const govServe = fl.serving.governed;
+const legacyServe = fl.serving.legacy;
+const counts = fl.status.counts;
+
+// The counts that carry the point: standing arrives, capability does not come with it.
+const ZEROED: Array<[string, number]> = [
+  ['hierarchies', counts.hierarchies],
+  ['edges', counts.edges],
+  ['relations', counts.relations],
+  ['derived', counts.derived],
+  ['adjudicated licenses', fl.status.licenses],
+  ['certified edges', fl.status.certified_edges],
+  ['certified faces', fl.status.certified_faces],
+];
+---
+<div class="exhibit-inline governed-standing" id="governed-standing"
+  aria-label="firstlight — a governed publication this release can serve and cannot make">
+
+  <p class="ex-cap"><span class="tag">generated</span> Everything above is Cascadia, which this server
+    admits as a <strong>legacy</strong> runtime — declared meaning it will defend, on nobody's
+    recorded authority. Since <code>columna-server 0.11.0</code> the package also ships
+    <code>{fl.unit}</code>: a real governed publication, compiled, bound, provisioned and admitted
+    through the same generic path. It is the opposite shape. Read the two together.</p>
+
+  <!-- ── 1 · two catalogs, each from its own shipped directory ────────────────────────────────── -->
+  <h4 class="gs-head">The installation catalog, from each directory as shipped</h4>
+  <div class="catalogs">
+    <div class="catalog governed">
+      <p class="dirname"><code>{gov.dir}</code></p>
+      <pre class="wire"><code>{wire(gov.wire)}</code></pre>
+    </div>
+    <div class="catalog legacy">
+      <p class="dirname"><code>{demo.dir}</code></p>
+      <pre class="wire"><code>{wire(demo.wire)}</code></pre>
+    </div>
+  </div>
+  <p class="gs-note">Two directories, two catalogs, neither one assembled for the occasion — the wheel
+    keeps them apart and so does this exhibit. The governed row is a <em>publication lineage</em>: a
+    <code>manifold_id</code>, its concrete versions, and whether each is realizable here. The legacy
+    rows are runtimes: a <code>runtime_id</code> and a kind, and no version anywhere, because a
+    compatibility runtime has no published version to name. (This catalog is a different surface from
+    the three tools the chapter describes above — those answer what a Manifold <em>means</em>; this one
+    answers what is installed.)</p>
+
+  <!-- ── 2 · the chain that earns the row ─────────────────────────────────────────────────────── -->
+  <h4 class="gs-head">What that one row costs: publication → image → receipt</h4>
+  <div class="chain">
+    <div class="link pub">
+      <p class="link-head">the governed publication <span class="sub">{fl.publication.bytes} bytes, committed, immutable</span></p>
+      <dl>
+        <div><dt>ref</dt><dd><code>{fl.publication.ref.manifold_id}</code> @ <code>{fl.publication.ref.version}</code></dd></div>
+        <div><dt>published by</dt><dd>{fl.publication.published_by}</dd></div>
+        <div><dt>universes ratified</dt><dd>{fl.publication.universes_ratified.map((u) => <code>{u}</code>)} <span class="sub">fingerprint {fl.publication.fingerprint_version.join(', ')}</span></dd></div>
+      </dl>
+    </div>
+    <div class="link img">
+      <p class="link-head">the execution image <span class="sub">emitted by the shipped K0 compiler — {fl.image.bytes} bytes, in full</span></p>
+      <pre class="cml"><code>{fl.image.text}</code></pre>
+    </div>
+    <div class="link rcpt">
+      <p class="link-head">the lowering receipt <span class="sub">what binds the two</span></p>
+      <dl>
+        <div><dt>compiler</dt><dd><code>{fl.receipt.compiler.name}</code> <code>{fl.receipt.compiler.version}</code></dd></div>
+        <div><dt>publication digest</dt><dd><code class="digest">{fl.receipt.publication_digest}</code></dd></div>
+        <div><dt>image digest</dt><dd><code class="digest">{fl.receipt.image_digest}</code></dd></div>
+      </dl>
+      {fl.image_reproduces && (
+        <p class="reproduces">✓ recompiling the committed publication reproduces this image byte for byte</p>
+      )}
+    </div>
+  </div>
+  <p class="gs-note">The digests are taken over the files <em>as shipped</em>, with no canonicalization.
+    Reformat the image and the receipt stops describing it: admission drops the unit out of governed
+    standing rather than repairing it. That is what the catalog row above is resting on.</p>
+
+  <!-- ── 3 · the answer carries its own standing ──────────────────────────────────────────────── -->
+  <h4 class="gs-head">The answer carries its standing — one field, and it cannot be faked</h4>
+  <div class="serves">
+    <div class="serve governed">
+      <p class="dirname"><code>{govServe.query}</code> <span class="sub">on {govServe.manifold}</span></p>
+      <pre class="wire"><code>{wire(govServe.wire)}</code></pre>
+    </div>
+    <div class="serve legacy">
+      <p class="dirname"><code>{legacyServe.query}</code> <span class="sub">on {legacyServe.manifold}</span></p>
+      <pre class="wire"><code>{wire(legacyServe.wire)}</code></pre>
+      <p class="omitted">result columns omitted — this comparison is about the envelope, not the answer</p>
+    </div>
+  </div>
+  <p class="gs-note">Same contract, same shape, both served. The governed answer carries
+    <code>manifold_version</code>; the legacy answer has no such field at all — <strong>absent, never
+    fabricated</strong> as <code>"legacy"</code> or <code>"unknown"</code>. A runtime cannot put a
+    version there by claiming one; only a receipt binding a publication to the image puts it there.
+    All four declared reducers serve on this measure —
+    {fl.reducers.map((r, i) => <><>{i > 0 && ' · '}</><code>{r.reducer}</code></>)}.</p>
+
+  <!-- ── 4 · and it licenses nothing ──────────────────────────────────────────────────────────── -->
+  <h4 class="gs-head">And standing licenses nothing</h4>
+  <table class="zeros">
+    <tbody>
+      {ZEROED.map(([label, n]) => (
+        <tr><td class="z-label">{label}</td><td class="z-count">{n}</td></tr>
+      ))}
+      <tr class="has"><td class="z-label">measures · universes · levels</td>
+        <td class="z-count">{counts.measures} · {counts.universes} · {counts.levels}</td></tr>
+    </tbody>
+  </table>
+  <p class="gs-note">A valid receipt is what earns this unit governed entry — that is what admission
+    consults. It is not a certificate: nothing about it licenses a capability, and the certification
+    sets stay empty while the kernel serves. Everything Cascadia does above — hierarchies, the
+    many-to-many frontier, the blocked reduction, the faces — is outside what this publication
+    declares, and outside what the shipped compiler will lower. Governed is not a grade. It is a
+    statement about where the meaning came from.</p>
+
+  <p class="boundary">{fl.boundary}</p>
+
+  <p class="gs-prov ds-mono-sm">{fl.generated_by} — generated by running the shipped package at build time</p>
+</div>
+
+<style>
+  /* This component carries its own copies of the seated-exhibit tokens: Astro scopes styles per
+     component, so the `.exhibit-inline` / `.ex-cap` / `.tag` rules that live in case.astro do not
+     reach this markup. Same values, so the exhibit reads as one of the page's seated exhibits. */
+  .exhibit-inline { margin: 1rem 0 1.6rem; }
+  .ex-cap { font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft); margin: 0.2rem 0 0.7rem; }
+  .tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; vertical-align: middle;
+    background: #eceae4; color: #6b675f; border-radius: 4px; padding: 0.1rem 0.4rem; margin-right: 0.4rem; }
+
+  .governed-standing { margin: 1.4rem 0 1.8rem; }
+  .gs-head { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.07em;
+    color: #6b675f; margin: 1.3rem 0 0.5rem; font-weight: 600; }
+  .gs-note { font-size: 0.86rem; line-height: 1.55; color: var(--ink-soft); margin: 0.55rem 0 0; }
+
+  .catalogs, .serves { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  @media (max-width: 760px) { .catalogs, .serves { grid-template-columns: 1fr; } }
+  .catalog, .serve { border: 1px solid #e5e2dc; border-radius: 8px; padding: 0.55rem 0.7rem; background: #fff; }
+  .catalog.governed, .serve.governed { border-left: 4px solid #2456a6; }
+  .catalog.legacy, .serve.legacy { border-left: 4px solid #8a8478; }
+  .dirname { margin: 0 0 0.4rem; font-size: 0.78rem; color: #6b675f; }
+  .sub { color: #8a8478; font-size: 0.72rem; font-weight: 400; }
+
+  pre.wire, pre.cml { margin: 0; padding: 0.5rem 0.6rem; background: #f4f2ec; border-radius: 6px;
+    overflow-x: auto; font-size: 0.7rem; line-height: 1.45; color: #3a3831; }
+  pre.wire code, pre.cml code { color: inherit; background: none; padding: 0; font-size: inherit; }
+  pre.cml { font-size: 0.72rem; }
+  .omitted { margin: 0.35rem 0 0; font-size: 0.7rem; color: #a49e91; }
+
+  .chain { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; align-items: start; }
+  @media (max-width: 900px) { .chain { grid-template-columns: 1fr; } }
+  .link { border: 1px solid #e5e2dc; border-radius: 8px; padding: 0.55rem 0.7rem; background: #fff; }
+  .link.pub { border-left: 4px solid #2456a6; }
+  .link.img { border-left: 4px solid #7a6f4e; }
+  .link.rcpt { border-left: 4px solid #2f6b34; }
+  .link-head { margin: 0 0 0.45rem; font-size: 0.8rem; font-weight: 600; }
+  .link-head .sub { display: block; font-weight: 400; }
+  .link dl { margin: 0; font-size: 0.75rem; }
+  .link dl > div { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0.3rem;
+    padding: 0.2rem 0; border-bottom: 1px solid #f1efe9; }
+  .link dt { color: #8a8478; margin: 0; }
+  .link dd { margin: 0; word-break: break-all; }
+  .digest { font-size: 0.66rem; }
+  .reproduces { margin: 0.5rem 0 0; font-size: 0.74rem; color: #2f6b34; }
+
+  table.zeros { border-collapse: collapse; width: 100%; max-width: 30rem; font-size: 0.8rem; }
+  table.zeros td { padding: 0.28rem 0.4rem; border-bottom: 1px solid #f1efe9; }
+  .z-label { color: var(--ink-soft); }
+  .z-count { text-align: right; font-family: ui-monospace, monospace; width: 8rem; }
+  table.zeros tr.has .z-count { color: #2456a6; }
+
+  .boundary { margin: 1.1rem 0 0; padding-left: 0.9rem; border-left: 3px solid var(--rule);
+    font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.55; color: var(--ink); }
+  .gs-prov { margin: 0.8rem 0 0; font-size: 0.68rem; color: #a49e91; }
+</style>

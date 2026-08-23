@@ -52,6 +52,17 @@ jobs:
           python scripts/gen_case.py > src/data/case.generated.json
           echo "case bytes: $(wc -c < src/data/case.generated.json)"
 
+      # The /case GOVERNED-STANDING exhibit (firstlight). Needs columna-server >= 0.11.0, which is
+      # where the governed publication first ships. Fails closed on every invariant it renders:
+      # governed admission with zero conditions, empty certification sets, the receipt digesting the
+      # shipped bytes, the image reproducing byte for byte, `manifold_version` present on the governed
+      # serving wire and absent on the legacy one, the demos still legacy, and no shipped module
+      # naming the fixture.
+      - name: Generate the /case governed-standing exhibit from the BRANCH package (fails closed)
+        run: |
+          python scripts/gen_firstlight.py > src/data/firstlight.generated.json
+          echo "firstlight bytes: $(wc -c < src/data/firstlight.generated.json)"
+
       - name: Generate the Universe Visual (Figure 1) from the BRANCH package (fails closed)
         run: |
           python scripts/gen_universe_visual.py > src/data/universe_visual.generated.json
@@ -283,6 +294,14 @@ jobs:
         run: |
           python scripts/gen_case.py > src/data/case.generated.json
           echo "case bytes: $(wc -c < src/data/case.generated.json)"
+
+      # The governed-standing exhibit, from the WHEEL a reader would install. The pinned triad is
+      # derived from the pyprojects, so this step goes green on the deploy path as soon as the pin is
+      # a columna-server that carries governed/firstlight (0.11.0 and after) — no pin edit needed.
+      - name: Generate the /case governed-standing exhibit from the SHIPPED package (fails closed)
+        run: |
+          python scripts/gen_firstlight.py > src/data/firstlight.generated.json
+          echo "firstlight bytes: $(wc -c < src/data/firstlight.generated.json)"
 
       - name: Generate the Universe Visual (Figure 1) from the SHIPPED package (fails closed)
         run: |

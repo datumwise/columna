@@ -54,6 +54,7 @@ ROOT = HERE.parents[2]
 
 DEFAULT_GENERATORS = [
     "gen_case.py",
+    "gen_firstlight.py",
     "gen_transcript.py",
     "gen_universe_visual.py",
     "gen_grammar.py",
