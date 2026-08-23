@@ -4,13 +4,24 @@
 // artifacts, Figure 1) are GENERATED from the shipped package (scripts/gen_case.py ->
 // src/data/case.generated.json), never hand-written.
 //
-// THE TRIAL TABLE IS THE EXCEPTION, AND IT IS NOT GENERATED. The trial table the reader sees is the
-// hand-written markdown table in `content/case/ch3.md` (the charter's own prose). `gen_case.py` DOES
-// emit a `trial_table` key, but this page has never rendered it, and the two have already diverged:
-// the generated table carries six rows including `category_profile BASIS spine -> untestable`, while
-// the chapter's table omits that row and splits `calendar` across two. `verdictClass()` below is the
-// unused renderer for the generated key. Do not describe this page's trial table as recorded evidence
-// until one of the two is retired — resolution is an open question, deliberately not settled here.
+// THE TRIAL TABLE IS RENDERED TWICE, ON PURPOSE (ruled Huayin, 2026-08-22). The chapter's own trial
+// table is HAND-WRITTEN prose inside `content/case/ch3.md` — it carries the evidence behind each
+// verdict and splits the calendar claims per hop. `gen_case.py` separately emits a `trial_table` key
+// read off the adjudicated manifold, which lists one row per hierarchy and per universe and so names
+// a universe the chapter's table does not. The two disagree.
+//
+// The ruling is ADDITIVE, not substitutive: the generated set is SEATED beside the charter's table as
+// a machine-read companion, and neither is presented as superseding the other. Nothing is excised,
+// nothing is reconciled, and the chapter's .md bytes are untouched — the same discipline as
+// `seatFigure()` in `llms-full.txt.ts`, which appends a figure equivalent at a named heading and
+// throws if the heading was reworded. The difference between the two tables is DERIVED at render
+// (read out of the raw markdown, never retyped) so the caption cannot drift from what the chapter
+// actually prints.
+//
+// Substitution was considered and refused: `trial_table` carries {claim, verdict} only, so swapping
+// it in would delete the evidence strings and the per-hop calendar rows, and would leave `/case`
+// disagreeing with `/llms-full.txt` and with the MCP `case_chapter("ch3")` resource, both of which
+// serve the chapter verbatim.
 //
 // PRESENTATION RESTRUCTURE (Huayin, pre-launch): the reader-discipline law governs PAGE ASSEMBLY — one
 // introduction total, every exhibit seated where the reader has earned it. Each chapter is split at its
@@ -44,6 +55,47 @@ function sections(raw) {
 const ch1Sections = sections(ch1raw);
 const ch2Sections = sections(ch2raw);
 const ch3Sections = sections(ch3raw);
+
+// ── The machine-read trial set — seated, not substituted ────────────────────────────────────────
+const TRIALS_HEADING = 'First, the trials';
+
+// Fail closed on a moved anchor, exactly as seatFigure does: a companion that silently stops being
+// seated beside the table it companions is worse than a build error.
+if (!ch3Sections.some((s) => s.heading === TRIALS_HEADING)) {
+  throw new Error(
+    `/case: the machine-read trial set has no anchor — no ch3 section headed ${JSON.stringify(TRIALS_HEADING)}. ` +
+    "The heading was reworded; re-seat the companion at the charter table's reading-order position.",
+  );
+}
+if (!Array.isArray(caseData.trial_table) || caseData.trial_table.length === 0) {
+  throw new Error(
+    '/case: case.generated.json carries no trial_table — the machine-read trial set would render empty. ' +
+    'A companion with nothing in it is a claim that the manifold declares no tried claims.',
+  );
+}
+
+// The charter's own table, READ out of the raw markdown rather than retyped, so the comparison below
+// cannot drift from the bytes the chapter actually ships. Header and separator rows dropped.
+const charterTrialRows = ch3raw
+  .split(/\n(?=## )/)
+  .find((part) => new RegExp(`^##\\s+${TRIALS_HEADING}\\s*$`, 'm').test(part))
+  .split('\n')
+  .filter((line) => line.startsWith('|') && !/^\|\s*-+/.test(line))
+  .slice(1);
+const charterTrialText = charterTrialRows.join('\n');
+
+// A generated row's SUBJECT — its first backticked identifier, else the claim up to a parenthetical.
+// Membership is tested against the charter table's own text, so "which rows does the chapter not
+// list" is computed, never asserted.
+const trialSubject = (claim) => {
+  const m = claim.match(/`([^`]+)`/);
+  return m ? m[1] : claim.split(' (')[0].trim();
+};
+const trials = caseData.trial_table.map((t) => {
+  const subject = trialSubject(t.claim);
+  return { ...t, subject, inCharterTable: charterTrialText.includes(subject) };
+});
+const trialsOnlyGenerated = trials.filter((t) => !t.inCharterTable);
 ---
 <BaseLayout title="The Case — Cascadia Retail — datumwise"
   description="Cascadia Retail: a realistic case demo of Columna — the company, the data, the ask, the design and its reasons, and the system live. Every number is recorded from the shipped package, never illustrated.">
@@ -156,6 +208,40 @@ const ch3Sections = sections(ch3raw);
       {ch3Sections.map((s) => (
         <>
           <Fragment set:html={s.html} />
+          {s.heading === TRIALS_HEADING && (
+            <div class="exhibit-inline trials-companion"
+              aria-label="The trial set, as the shipped package reports it">
+              <p class="ex-cap"><span class="tag">generated</span> The same trials, read back from the
+                shipped package — <strong>{trials.length}</strong> rows against the chapter's <strong>{charterTrialRows.length}</strong>.
+                This is a <em>companion</em> to the chapter's table above, not a correction of it.
+                That table is the narrative record: it carries
+                the evidence behind each verdict and splits the calendar claims hop by hop. This one is
+                the machine's own list, one row per declared hierarchy and per universe.
+                {trialsOnlyGenerated.length > 0 && (
+                  <> So it names {trialsOnlyGenerated.map((t, i) => (
+                    <>{i > 0 && ', '}<code>{t.subject}</code></>
+                  ))} — which the chapter's table does not list. Neither table supersedes the other;
+                  they are read differently, and the difference is shown rather than settled.</>
+                )}
+              </p>
+              <table class="trials">
+                <thead><tr><th>Claim</th><th>Verdict</th></tr></thead>
+                <tbody>
+                  {trials.map((t) => (
+                    <tr class={t.inCharterTable ? undefined : 'only-generated'}>
+                      <td>
+                        <Fragment set:html={marked.parseInline(t.claim)} />
+                        {!t.inCharterTable && (
+                          <span class="gen-only-note">not listed in the chapter's table above</span>
+                        )}
+                      </td>
+                      <td><span class={`verdict ${verdictClass(t.verdict)}`}>{t.verdict}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {s.heading === 'The Explorer' && (
             <div class="explorer-inline" aria-label="The Manifold, browsable">
               <UniverseVisual />
@@ -207,6 +293,18 @@ const ch3Sections = sections(ch3raw);
     .v-untestable { background: #f2efe6; color: #7a6f4e; }
     .v-recorded { background: #efeced; color: #6a5f66; }
     .v-contradicted { background: #fbe6e6; color: #a63030; }
+
+    /* ch3 — the machine-read trial set, seated BESIDE the charter's own table. Deliberately quieter
+       than the table it companions: a left rule and no card, so it reads as a second reading of the
+       same trials rather than a competing exhibit. */
+    .trials-companion { border-left: 3px solid var(--rule); padding-left: 0.95rem; }
+    table.trials { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+    table.trials th, table.trials td { text-align: left; padding: 0.34rem 0.4rem;
+      border-bottom: 1px solid #f1efe9; vertical-align: middle; }
+    table.trials th { color: #6b675f; font-weight: 600; font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 0.06em; }
+    table.trials tr.only-generated td { background: #faf7ef; }
+    .gen-only-note { display: block; font-size: 0.68rem; color: #a07a55; margin-top: 0.12rem; }
 
     .wheel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; }
     /* MOOD — container (left-rule) forms per the scale rule; border never fill, ink only. Paper
