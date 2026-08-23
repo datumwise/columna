@@ -1,0 +1,80 @@
+---
+// /learn/frameql-primer — hosts the deposited **v2.2** source (2026-08-23), byte-identical to the
+// Zenodo record: sha256 5555940b…ab8fa4, 9,295 bytes, verified against
+// zenodo.org/api/records/22071833 by downloading the deposit's own .md and comparing, not against the
+// filename. Title/subtitle come from the deposit's own front-matter; the DOI and edition line below
+// are page CHROME, so nothing is injected into the hosted markdown.
+//
+// THE FIRST PUBLIC ROUTE THIS WORK HAS EVER HAD (Huayin's ruling, 2026-08-23, Unit 2). `w-frameql-primer`
+// has been in the publication registry since Phase 3B.1 and on no site surface at all: five deposited
+// versions, a current record, and no URL a reader could reach. That is the absence-shaped defect the
+// registry can see and a scan of what the repo already says cannot — the same class as the corpus
+// that was entirely on Zenodo and entirely outside the registry on 2026-08-21.
+//
+// IT IS THE SHORT CONCEPTUAL ENTRY POINT, NOT THE NORMATIVE REFERENCE, and the chrome below says so
+// in those words. The authority split it sits inside, bottom to top: this Primer is the shortest
+// on-ramp; /learn/frameql-an-introduction is the fuller conceptual account; /docs/grammar is
+// authoritative for formal syntax; /docs/frameql — the Manual — is authoritative for shipped
+// semantics and behaviour; The Theory of Data v6.1 supplies the analytical concepts and laws those
+// distinctions exist to serve. Nothing on this page may be read as enlarging the language.
+//
+// ROUTE NAME. `/learn/frameql-primer`, per the ruling. Checked for a conflict before building: no
+// existing route, redirect, or content file under apps/website claims it, and the two sibling
+// deposited-edition routes — /learn/frameql-an-introduction and /learn/what-is-the-theory-of-data —
+// establish `/learn/<work>` as the pattern. The site's own spelling in route slugs is `frameql`
+// (unhyphenated), which this follows; the deposit's title spells it `Frame-QL`, and the heading below
+// takes its spelling from the deposit's front-matter, not from the slug.
+//
+// The ```frameql fences fall back to plaintext under the site's Shiki (no highlighter error). The
+// deposit's LaTeX — three `$$…$$` blocks — renders through the site's math pipeline. Its CURRENCY —
+// "$250/3 = **$83.33**", the three mechanically-correct averages — stays literal text under Pandoc's
+// rule (src/lib/remarkInlineMathDollars.mjs): the second amount's `$` is followed by a digit, so the
+// pair can never form. That discrimination is the whole reason the rule exists, and this deposit is
+// the first one to exercise BOTH sides of it on one page.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content, frontmatter } from '../../content/corpus/a_primer_on_frameql_v2_2.md';
+const DOI = '10.5281/zenodo.22071833';
+const EDITION = 'Version 2.2 · 23 August 2026';
+---
+<BaseLayout title="A Primer on Frame-QL — datumwise"
+  description="The shortest conceptual entry point to Frame-QL — why the result can be the query, why the output anchor is not always enough, and what @ and AT each say.">
+  <div class="page-head">
+    <p class="kicker"><a href="/learn">Learn</a></p>
+    <h1 class="serif">{frontmatter.title}</h1>
+    <p class="lede">{frontmatter.subtitle}</p>
+    <p class="doi mono">{EDITION} · <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
+  </div>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  <p class="evidence-note">
+    <strong>This edition.</strong> The page above is <em>A Primer on Frame-QL</em>,
+    <strong>Version 2.2</strong>, deposited <strong>23 August 2026</strong>, reproduced from the
+    deposit byte for byte. Earlier editions — v1.0, v1.1, v2.0, v2.1 — remain in the publication
+    registry; this is the first edition of this work served at any URL.
+    <strong>This is the short conceptual entry point, not the normative language reference.</strong>
+    The <a href="/docs/frameql">Frame-QL Manual</a> is authoritative for shipped semantics and
+    behaviour, and <a href="/docs/grammar">the shipped grammar</a> for formal syntax.
+  </p>
+
+  <p class="engage wayfinding">
+    Next, in depth: <a href="/learn/frameql-an-introduction">Frame-QL: An Introduction</a> ·
+    The reference, complete: <a href="/docs/frameql">the FrameQL Manual</a>.
+  </p>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.5rem; }
+  .kicker a { color: var(--ink-faint); text-decoration: none; }
+  .kicker a:hover { color: var(--ink-soft); }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); }
+  .doi { font-size: 0.8rem; margin-top: 0.4rem; }
+  .doi a { color: var(--ink-faint); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+  .engage { width: min(100% - 3rem, var(--measure)); margin: 1.5rem auto 0;
+    font-size: 0.92rem; color: var(--ink-soft); }
+</style>
