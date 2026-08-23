@@ -1,0 +1,1391 @@
+{
+ "concepts": {
+  "20710592": {
+   "conceptDoi": "10.5281/zenodo.20710592",
+   "conceptRecid": "20710592",
+   "versionCount": 1,
+   "versions": [
+    "20710593"
+   ]
+  },
+  "20710716": {
+   "conceptDoi": "10.5281/zenodo.20710716",
+   "conceptRecid": "20710716",
+   "versionCount": 1,
+   "versions": [
+    "20710717"
+   ]
+  },
+  "20762838": {
+   "conceptDoi": "10.5281/zenodo.20762838",
+   "conceptRecid": "20762838",
+   "versionCount": 1,
+   "versions": [
+    "20762839"
+   ]
+  },
+  "20789317": {
+   "conceptDoi": "10.5281/zenodo.20789317",
+   "conceptRecid": "20789317",
+   "versionCount": 2,
+   "versions": [
+    "20789318",
+    "21888464"
+   ]
+  },
+  "21349580": {
+   "conceptDoi": "10.5281/zenodo.21349580",
+   "conceptRecid": "21349580",
+   "versionCount": 1,
+   "versions": [
+    "21349581"
+   ]
+  },
+  "21543583": {
+   "conceptDoi": "10.5281/zenodo.21543583",
+   "conceptRecid": "21543583",
+   "versionCount": 1,
+   "versions": [
+    "21543584"
+   ]
+  },
+  "21553378": {
+   "conceptDoi": "10.5281/zenodo.21553378",
+   "conceptRecid": "21553378",
+   "versionCount": 1,
+   "versions": [
+    "21553379"
+   ]
+  },
+  "21632722": {
+   "conceptDoi": "10.5281/zenodo.21632722",
+   "conceptRecid": "21632722",
+   "versionCount": 4,
+   "versions": [
+    "21632723",
+    "21633242",
+    "21633303",
+    "21695710"
+   ]
+  },
+  "21696103": {
+   "conceptDoi": "10.5281/zenodo.21696103",
+   "conceptRecid": "21696103",
+   "versionCount": 2,
+   "versions": [
+    "21696104",
+    "21707446"
+   ]
+  },
+  "21707017": {
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "versionCount": 6,
+   "versions": [
+    "21707018",
+    "21760008",
+    "21774032",
+    "21842194",
+    "21958062",
+    "22013410"
+   ]
+  },
+  "21752372": {
+   "conceptDoi": "10.5281/zenodo.21752372",
+   "conceptRecid": "21752372",
+   "versionCount": 1,
+   "versions": [
+    "21752373"
+   ]
+  },
+  "21752680": {
+   "conceptDoi": "10.5281/zenodo.21752680",
+   "conceptRecid": "21752680",
+   "versionCount": 1,
+   "versions": [
+    "21752681"
+   ]
+  },
+  "21760507": {
+   "conceptDoi": "10.5281/zenodo.21760507",
+   "conceptRecid": "21760507",
+   "versionCount": 3,
+   "versions": [
+    "21760508",
+    "21774667",
+    "21783563"
+   ]
+  },
+  "21763320": {
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "versionCount": 6,
+   "versions": [
+    "21763321",
+    "21774643",
+    "21890891",
+    "21960798",
+    "21966453",
+    "22071508"
+   ]
+  },
+  "21763394": {
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "versionCount": 5,
+   "versions": [
+    "21763395",
+    "21774630",
+    "21842857",
+    "21960639",
+    "22018598"
+   ]
+  },
+  "21763450": {
+   "conceptDoi": "10.5281/zenodo.21763450",
+   "conceptRecid": "21763450",
+   "versionCount": 2,
+   "versions": [
+    "21763451",
+    "21774589"
+   ]
+  },
+  "21763487": {
+   "conceptDoi": "10.5281/zenodo.21763487",
+   "conceptRecid": "21763487",
+   "versionCount": 2,
+   "versions": [
+    "21763488",
+    "21774555"
+   ]
+  },
+  "21765251": {
+   "conceptDoi": "10.5281/zenodo.21765251",
+   "conceptRecid": "21765251",
+   "versionCount": 3,
+   "versions": [
+    "21765252",
+    "21774490",
+    "21894145"
+   ]
+  },
+  "21783728": {
+   "conceptDoi": "10.5281/zenodo.21783728",
+   "conceptRecid": "21783728",
+   "versionCount": 2,
+   "versions": [
+    "21783729",
+    "22012515"
+   ]
+  },
+  "21795311": {
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "versionCount": 5,
+   "versions": [
+    "21795312",
+    "21843903",
+    "21863411",
+    "21966764",
+    "21979821"
+   ]
+  },
+  "21840853": {
+   "conceptDoi": "10.5281/zenodo.21840853",
+   "conceptRecid": "21840853",
+   "versionCount": 1,
+   "versions": [
+    "21840854"
+   ]
+  },
+  "21842993": {
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "versionCount": 5,
+   "versions": [
+    "21842994",
+    "21844174",
+    "21959668",
+    "21995124",
+    "22018549"
+   ]
+  },
+  "21863558": {
+   "conceptDoi": "10.5281/zenodo.21863558",
+   "conceptRecid": "21863558",
+   "versionCount": 2,
+   "versions": [
+    "21863559",
+    "21998564"
+   ]
+  },
+  "21864433": {
+   "conceptDoi": "10.5281/zenodo.21864433",
+   "conceptRecid": "21864433",
+   "versionCount": 3,
+   "versions": [
+    "21864434",
+    "21966876",
+    "21980262"
+   ]
+  },
+  "21888997": {
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "versionCount": 4,
+   "versions": [
+    "21888998",
+    "21891210",
+    "21960873",
+    "22071619"
+   ]
+  },
+  "21893928": {
+   "conceptDoi": "10.5281/zenodo.21893928",
+   "conceptRecid": "21893928",
+   "versionCount": 1,
+   "versions": [
+    "21893929"
+   ]
+  },
+  "21959748": {
+   "conceptDoi": "10.5281/zenodo.21959748",
+   "conceptRecid": "21959748",
+   "versionCount": 2,
+   "versions": [
+    "21959749",
+    "22046037"
+   ]
+  },
+  "21959940": {
+   "conceptDoi": "10.5281/zenodo.21959940",
+   "conceptRecid": "21959940",
+   "versionCount": 1,
+   "versions": [
+    "21959941"
+   ]
+  },
+  "21960379": {
+   "conceptDoi": "10.5281/zenodo.21960379",
+   "conceptRecid": "21960379",
+   "versionCount": 1,
+   "versions": [
+    "21960380"
+   ]
+  },
+  "21972540": {
+   "conceptDoi": "10.5281/zenodo.21972540",
+   "conceptRecid": "21972540",
+   "versionCount": 1,
+   "versions": [
+    "21972541"
+   ]
+  },
+  "21977941": {
+   "conceptDoi": "10.5281/zenodo.21977941",
+   "conceptRecid": "21977941",
+   "versionCount": 1,
+   "versions": [
+    "21977942"
+   ]
+  },
+  "21983507": {
+   "conceptDoi": "10.5281/zenodo.21983507",
+   "conceptRecid": "21983507",
+   "versionCount": 1,
+   "versions": [
+    "21983508"
+   ]
+  },
+  "22003682": {
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "versionCount": 2,
+   "versions": [
+    "22003683",
+    "22026962"
+   ]
+  },
+  "22010142": {
+   "conceptDoi": "10.5281/zenodo.22010142",
+   "conceptRecid": "22010142",
+   "versionCount": 1,
+   "versions": [
+    "22010143"
+   ]
+  }
+ },
+ "note": "Frozen evidence for registry/publications. Regenerate with scripts/harvest_zenodo_snapshot.py. Seeds are every Zenodo id cited in a tracked file, expanded to every version of each seed's concept record.",
+ "records": {
+  "20710593": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20710592",
+   "conceptRecid": "20710592",
+   "doi": "10.5281/zenodo.20710593",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-06-16",
+   "recid": "20710593",
+   "resourceType": "Preprint",
+   "title": "The Silent Failure Atlas: A Taxonomy of Silent Analytical Failures in Data Analysis",
+   "version": "1.2"
+  },
+  "20710717": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20710716",
+   "conceptRecid": "20710716",
+   "doi": "10.5281/zenodo.20710717",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-06-16",
+   "recid": "20710717",
+   "resourceType": "Preprint",
+   "title": "The Silent Seam: Analytical Failure as Lost Authority Across Role Boundaries",
+   "version": null
+  },
+  "20762839": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20762838",
+   "conceptRecid": "20762838",
+   "doi": "10.5281/zenodo.20762839",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-06-19",
+   "recid": "20762839",
+   "resourceType": "Preprint",
+   "title": "The Silent Failure Atlas: A Taxonomy of Silent Analytical Failures in Data Analysis (v1.3)",
+   "version": "1.3"
+  },
+  "20789318": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20789317",
+   "conceptRecid": "20789317",
+   "doi": "10.5281/zenodo.20789318",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-06-22",
+   "recid": "20789318",
+   "resourceType": "Preprint",
+   "title": "The Two Anchors of a Measure: The Input and Output Grains Common Analytics Leaves Uncaptured",
+   "version": "1.0"
+  },
+  "21349581": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21349580",
+   "conceptRecid": "21349580",
+   "doi": "10.5281/zenodo.21349581",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-13",
+   "recid": "21349581",
+   "resourceType": "Preprint",
+   "title": "Silent Failures in Single-Shot Text-to-SQL: A Blind, Nine-Model Cross-Comparison on the *Ground Truth* Benchmark",
+   "version": "1.0"
+  },
+  "21543584": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21543583",
+   "conceptRecid": "21543583",
+   "doi": "10.5281/zenodo.21543584",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-25",
+   "recid": "21543584",
+   "resourceType": "Preprint",
+   "title": "Multi-Universe Processing: Territories, Frontiers, and the Lawful Passage of Meaning",
+   "version": null
+  },
+  "21553379": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21553378",
+   "conceptRecid": "21553378",
+   "doi": "10.5281/zenodo.21553379",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-25",
+   "recid": "21553379",
+   "resourceType": "Preprint",
+   "title": "The Two Great Sources of Silent Analytical Failure",
+   "version": null
+  },
+  "21632723": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21632722",
+   "conceptRecid": "21632722",
+   "doi": "10.5281/zenodo.21632723",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-27",
+   "recid": "21632723",
+   "resourceType": "Preprint",
+   "title": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — A Research Program Note",
+   "version": "1.0"
+  },
+  "21633242": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21632722",
+   "conceptRecid": "21632722",
+   "doi": "10.5281/zenodo.21633242",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-27",
+   "recid": "21633242",
+   "resourceType": "Preprint",
+   "title": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — A Research Program Note",
+   "version": null
+  },
+  "21633303": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21632722",
+   "conceptRecid": "21632722",
+   "doi": "10.5281/zenodo.21633303",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-27",
+   "recid": "21633303",
+   "resourceType": "Preprint",
+   "title": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — A Research Program Note",
+   "version": null
+  },
+  "21695710": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21632722",
+   "conceptRecid": "21632722",
+   "doi": "10.5281/zenodo.21695710",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-29",
+   "recid": "21695710",
+   "resourceType": "Preprint",
+   "title": "The Open Planner: Certified Analytical Plans from Untrusted Searchers — A Research Program Note",
+   "version": "1.3"
+  },
+  "21696104": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21696103",
+   "conceptRecid": "21696103",
+   "doi": "10.5281/zenodo.21696104",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-30",
+   "recid": "21696104",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data — A Foundations Note",
+   "version": "1.0"
+  },
+  "21707018": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.21707018",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-30",
+   "recid": "21707018",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data — Particles, Atoms, Anchors, Universes, and Lawful Transformation",
+   "version": "1.0"
+  },
+  "21707446": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21696103",
+   "conceptRecid": "21696103",
+   "doi": "10.5281/zenodo.21707446",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-07-30",
+   "recid": "21707446",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data — A Foundations Note",
+   "version": "1.1"
+  },
+  "21752373": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21752372",
+   "conceptRecid": "21752372",
+   "doi": "10.5281/zenodo.21752373",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-01",
+   "recid": "21752373",
+   "resourceType": "Preprint",
+   "title": "A Contract Calculus for Governed Analytical Transformation: Totality, Partiality, Population, Expansion, and Fan-Out",
+   "version": "1.0"
+  },
+  "21752681": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21752680",
+   "conceptRecid": "21752680",
+   "doi": "10.5281/zenodo.21752681",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-01",
+   "recid": "21752681",
+   "resourceType": "Technical note",
+   "title": "Technical Supplement Collection for A Contract Calculus for Governed Analytical Transformation",
+   "version": "1.0"
+  },
+  "21760008": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.21760008",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21760008",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data — Particles, Atoms, Anchors, Universes, and Lawful Transformation",
+   "version": "3.1"
+  },
+  "21760508": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21760507",
+   "conceptRecid": "21760507",
+   "doi": "10.5281/zenodo.21760508",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21760508",
+   "resourceType": "Preprint",
+   "title": "Missingness Has a Universe: A Typed and Compositional Foundation for Missing-Data Research",
+   "version": "1.0"
+  },
+  "21763321": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.21763321",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21763321",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "1.0"
+  },
+  "21763395": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "doi": "10.5281/zenodo.21763395",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21763395",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: An Introduction",
+   "version": "1.0"
+  },
+  "21763451": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763450",
+   "conceptRecid": "21763450",
+   "doi": "10.5281/zenodo.21763451",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21763451",
+   "resourceType": "Preprint",
+   "title": "Analytical Practice Needs a Firmer Foundation",
+   "version": "1.0"
+  },
+  "21763488": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763487",
+   "conceptRecid": "21763487",
+   "doi": "10.5281/zenodo.21763488",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21763488",
+   "resourceType": "Preprint",
+   "title": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+   "version": "1.0"
+  },
+  "21765252": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21765251",
+   "conceptRecid": "21765251",
+   "doi": "10.5281/zenodo.21765252",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-02",
+   "recid": "21765252",
+   "resourceType": "Preprint",
+   "title": "Never Let Your Agent Touch the Database",
+   "version": null
+  },
+  "21774032": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.21774032",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774032",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification",
+   "version": "4.0"
+  },
+  "21774490": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21765251",
+   "conceptRecid": "21765251",
+   "doi": "10.5281/zenodo.21774490",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774490",
+   "resourceType": "Preprint",
+   "title": "Never Let Your Agent Touch the Database",
+   "version": "1.1"
+  },
+  "21774555": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763487",
+   "conceptRecid": "21763487",
+   "doi": "10.5281/zenodo.21774555",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774555",
+   "resourceType": "Preprint",
+   "title": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+   "version": "1.1"
+  },
+  "21774589": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763450",
+   "conceptRecid": "21763450",
+   "doi": "10.5281/zenodo.21774589",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774589",
+   "resourceType": "Preprint",
+   "title": "Analytical Practice Needs a Firmer Foundation",
+   "version": "1.1"
+  },
+  "21774630": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "doi": "10.5281/zenodo.21774630",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774630",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: An Introduction",
+   "version": "1.1"
+  },
+  "21774643": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.21774643",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774643",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "1.1"
+  },
+  "21774667": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21760507",
+   "conceptRecid": "21760507",
+   "doi": "10.5281/zenodo.21774667",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-03",
+   "recid": "21774667",
+   "resourceType": "Preprint",
+   "title": "Missingness Has a Universe: A Typed and Compositional Foundation for Missing-Data Research",
+   "version": "1.1"
+  },
+  "21783563": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21760507",
+   "conceptRecid": "21760507",
+   "doi": "10.5281/zenodo.21783563",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-04",
+   "recid": "21783563",
+   "resourceType": "Preprint",
+   "title": "Missingness Has a Universe: A Typed and Compositional Foundation for Missing-Data Research",
+   "version": "2.0"
+  },
+  "21783729": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21783728",
+   "conceptRecid": "21783728",
+   "doi": "10.5281/zenodo.21783729",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-04",
+   "recid": "21783729",
+   "resourceType": "Preprint",
+   "title": "Regression Has an Anchor: Members, State, and Lawful Movement in the Most Performed Analysis in Statistics",
+   "version": "1.0"
+  },
+  "21795312": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "doi": "10.5281/zenodo.21795312",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-04",
+   "recid": "21795312",
+   "resourceType": "Working paper",
+   "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+   "version": "1.0"
+  },
+  "21840854": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21840853",
+   "conceptRecid": "21840853",
+   "doi": "10.5281/zenodo.21840854",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21840854",
+   "resourceType": "Working paper",
+   "title": "Regime Has a Contract: Intervention, Observation, and the Data Foundation of Causal Identification",
+   "version": "1.0"
+  },
+  "21842194": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.21842194",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21842194",
+   "resourceType": "Working paper",
+   "title": "The Theory of Data: A Foundational Framework for Governed Analytical Data, Lawful Transformation, and Certification",
+   "version": "5.0"
+  },
+  "21842857": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "doi": "10.5281/zenodo.21842857",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21842857",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: An Introduction — Analytical Meaning, Lawful Transformation, and Governed Results",
+   "version": "1.2"
+  },
+  "21842994": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "doi": "10.5281/zenodo.21842994",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21842994",
+   "resourceType": "Working paper",
+   "title": "A Primer on the Theory of Data",
+   "version": "1.1"
+  },
+  "21843903": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "doi": "10.5281/zenodo.21843903",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21843903",
+   "resourceType": "Working paper",
+   "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+   "version": "1.1"
+  },
+  "21844174": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "doi": "10.5281/zenodo.21844174",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-07",
+   "recid": "21844174",
+   "resourceType": "Working paper",
+   "title": "A Primer on the Theory of Data",
+   "version": "1.2"
+  },
+  "21863411": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "doi": "10.5281/zenodo.21863411",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-09",
+   "recid": "21863411",
+   "resourceType": "Working paper",
+   "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+   "version": "1.2"
+  },
+  "21863559": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21863558",
+   "conceptRecid": "21863558",
+   "doi": "10.5281/zenodo.21863559",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-09",
+   "recid": "21863559",
+   "resourceType": "Preprint",
+   "title": "Reading Statistical Rethinking Through the Statistical Bridge",
+   "version": "1.0"
+  },
+  "21864434": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21864433",
+   "conceptRecid": "21864433",
+   "doi": "10.5281/zenodo.21864434",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-09",
+   "recid": "21864434",
+   "resourceType": "Working paper",
+   "title": "A Primer on the Statistical Bridge",
+   "version": "1.0"
+  },
+  "21888464": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.20789317",
+   "conceptRecid": "20789317",
+   "doi": "10.5281/zenodo.21888464",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21888464",
+   "resourceType": "Preprint",
+   "title": "The Two Anchors of a Measure",
+   "version": "2.0"
+  },
+  "21888998": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21888998",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21888998",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "1.0"
+  },
+  "21890891": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.21890891",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21890891",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "1.2"
+  },
+  "21891210": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21891210",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21891210",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "1.1"
+  },
+  "21893929": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21893928",
+   "conceptRecid": "21893928",
+   "doi": "10.5281/zenodo.21893929",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21893929",
+   "resourceType": "Working paper",
+   "title": "Three Structural Sources of Silent Analytical Failure",
+   "version": "2.0"
+  },
+  "21894145": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21765251",
+   "conceptRecid": "21765251",
+   "doi": "10.5281/zenodo.21894145",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-11",
+   "recid": "21894145",
+   "resourceType": "Preprint",
+   "title": "Never Let Your Agent Touch the Database",
+   "version": "1.2"
+  },
+  "21958062": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.21958062",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-15",
+   "recid": "21958062",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data",
+   "version": "6.0"
+  },
+  "21959668": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "doi": "10.5281/zenodo.21959668",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-15",
+   "recid": "21959668",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Theory of Data",
+   "version": "2.0"
+  },
+  "21959749": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21959748",
+   "conceptRecid": "21959748",
+   "doi": "10.5281/zenodo.21959749",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-15",
+   "recid": "21959749",
+   "resourceType": "Preprint",
+   "title": "Analytical Governance: From User Intent to Governed Analytical Execution",
+   "version": "1.0"
+  },
+  "21959941": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21959940",
+   "conceptRecid": "21959940",
+   "doi": "10.5281/zenodo.21959941",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21959941",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data Applied",
+   "version": "1.0"
+  },
+  "21960380": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21960379",
+   "conceptRecid": "21960379",
+   "doi": "10.5281/zenodo.21960380",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21960380",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Theory of Data Applied",
+   "version": "1.0"
+  },
+  "21960639": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "doi": "10.5281/zenodo.21960639",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21960639",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: An Introduction",
+   "version": "2.0"
+  },
+  "21960798": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.21960798",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21960798",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "2.0"
+  },
+  "21960873": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.21960873",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21960873",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "2.0"
+  },
+  "21966453": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.21966453",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21966453",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "2.1"
+  },
+  "21966764": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "doi": "10.5281/zenodo.21966764",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21966764",
+   "resourceType": "Working paper",
+   "title": "The Statistical Bridge: From Events to Spines, Data Work, and the Interpretation of Results",
+   "version": "2.0"
+  },
+  "21966876": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21864433",
+   "conceptRecid": "21864433",
+   "doi": "10.5281/zenodo.21966876",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-16",
+   "recid": "21966876",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Statistical Bridge",
+   "version": "1.1"
+  },
+  "21972541": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21972540",
+   "conceptRecid": "21972540",
+   "doi": "10.5281/zenodo.21972541",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-17",
+   "recid": "21972541",
+   "resourceType": "Preprint",
+   "title": "Certifiable State Under Information Loss",
+   "version": "1.0"
+  },
+  "21977942": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21977941",
+   "conceptRecid": "21977941",
+   "doi": "10.5281/zenodo.21977942",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-17",
+   "recid": "21977942",
+   "resourceType": "Preprint",
+   "title": "Where Does Probability Live?",
+   "version": "1.0"
+  },
+  "21979821": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21795311",
+   "conceptRecid": "21795311",
+   "doi": "10.5281/zenodo.21979821",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-17",
+   "recid": "21979821",
+   "resourceType": "Preprint",
+   "title": "The Statistical Bridge",
+   "version": "3.0"
+  },
+  "21980262": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21864433",
+   "conceptRecid": "21864433",
+   "doi": "10.5281/zenodo.21980262",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-17",
+   "recid": "21980262",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Statistical Bridge",
+   "version": "2.0"
+  },
+  "21983508": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21983507",
+   "conceptRecid": "21983507",
+   "doi": "10.5281/zenodo.21983508",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-17",
+   "recid": "21983508",
+   "resourceType": "Preprint",
+   "title": "Reading Bayesian Workflow Through the Statistical Bridge",
+   "version": "1.0"
+  },
+  "21995124": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "doi": "10.5281/zenodo.21995124",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-18",
+   "recid": "21995124",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Theory of Data",
+   "version": "2.1"
+  },
+  "21998564": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21863558",
+   "conceptRecid": "21863558",
+   "doi": "10.5281/zenodo.21998564",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-18",
+   "recid": "21998564",
+   "resourceType": "Preprint",
+   "title": "Reading Statistical Rethinking Through the Statistical Bridge",
+   "version": "2.0"
+  },
+  "22003683": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "doi": "10.5281/zenodo.22003683",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22003683",
+   "resourceType": "Preprint",
+   "title": "Data Has Its Own Ontology",
+   "version": "1.0"
+  },
+  "22010143": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22010142",
+   "conceptRecid": "22010142",
+   "doi": "10.5281/zenodo.22010143",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22010143",
+   "resourceType": "Preprint",
+   "title": "The Two Jobs of the Conditioning Bar",
+   "version": "1.0"
+  },
+  "22012515": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21783728",
+   "conceptRecid": "21783728",
+   "doi": "10.5281/zenodo.22012515",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22012515",
+   "resourceType": "Preprint",
+   "title": "Regression Has an Anchor: Members, State, and Lawful Movement in the Most Performed Analysis in Statistics",
+   "version": "2.0"
+  },
+  "22013410": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21707017",
+   "conceptRecid": "21707017",
+   "doi": "10.5281/zenodo.22013410",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22013410",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data",
+   "version": "6.1"
+  },
+  "22018549": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21842993",
+   "conceptRecid": "21842993",
+   "doi": "10.5281/zenodo.22018549",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22018549",
+   "resourceType": "Preprint",
+   "title": "A Primer on the Theory of Data",
+   "version": "2.2"
+  },
+  "22018598": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763394",
+   "conceptRecid": "21763394",
+   "doi": "10.5281/zenodo.22018598",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-19",
+   "recid": "22018598",
+   "resourceType": "Preprint",
+   "title": "The Theory of Data: An Introduction",
+   "version": "2.2"
+  },
+  "22026962": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22003682",
+   "conceptRecid": "22003682",
+   "doi": "10.5281/zenodo.22026962",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-20",
+   "recid": "22026962",
+   "resourceType": "Preprint",
+   "title": "Data Has Its Own Ontology",
+   "version": "1.1"
+  },
+  "22046037": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21959748",
+   "conceptRecid": "21959748",
+   "doi": "10.5281/zenodo.22046037",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-21",
+   "recid": "22046037",
+   "resourceType": "Preprint",
+   "title": "Analytical Governance: From User Intent to Governed Analytical Execution",
+   "version": "1.1"
+  },
+  "22071508": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21763320",
+   "conceptRecid": "21763320",
+   "doi": "10.5281/zenodo.22071508",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-23",
+   "recid": "22071508",
+   "resourceType": "Preprint",
+   "title": "Frame-QL: An Introduction",
+   "version": "2.2"
+  },
+  "22071619": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.21888997",
+   "conceptRecid": "21888997",
+   "doi": "10.5281/zenodo.22071619",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-23",
+   "recid": "22071619",
+   "resourceType": "Preprint",
+   "title": "A Primer on Frame-QL",
+   "version": "2.1"
+  }
+ },
+ "seedCount": 51,
+ "source": "https://zenodo.org/api/records",
+ "unresolvedSeeds": [
+  "218889981",
+  "220134101"
+ ]
+}

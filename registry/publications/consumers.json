@@ -330,12 +330,15 @@
    "10.5281/zenodo.21959668",
    "10.5281/zenodo.21959749",
    "10.5281/zenodo.21960873",
+   "10.5281/zenodo.21966453",
    "10.5281/zenodo.22013410",
    "10.5281/zenodo.22018549",
    "10.5281/zenodo.22026962",
-   "10.5281/zenodo.22046037"
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22071508",
+   "10.5281/zenodo.22071619"
   ],
-  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all."
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 → v2.2 and Primer v2.0 → v2.1 current-pointer moves are asserted here with BOTH arms — the new current record and the superseded predecessor — the same shape the AG v1.1 advance uses. The two superseded DOIs (21966453, 21960873) are named as the PREDECESSORS a supersession edge must point at, not as current records; that is what makes this an assertion rather than a stale citation. The 3B.1 case-3 Primer pin advanced with them: the ruling was that the work is claimed and has a current record, not that v2.0 is current in perpetuity."
  },
  {
   "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",

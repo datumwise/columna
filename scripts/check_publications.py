@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-21.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -603,12 +603,35 @@ def main() -> int:
                            "it is retired as CURRENT AUTHORITY, not retired")
 
     # Case 3 — the two clean identities claimed by the same unit.
-    for wid, doi, ver in (("w-frameql-primer", "10.5281/zenodo.21960873", "2.0"),
+    # The Primer pin ADVANCED 2026-08-23: v2.0 (21960873) -> v2.1 (22071619). The 3B.1 ruling was that
+    # this work is CLAIMED and has a current record, not that v2.0 is current forever; the version is a
+    # current-pointer, and a current-pointer that cannot move is a stale DOI with a gate around it. The
+    # superseded arm is asserted below, exactly as the AG v1.1 advance does it.
+    for wid, doi, ver in (("w-frameql-primer", "10.5281/zenodo.22071619", "2.1"),
                           ("w-data-has-its-own-ontology", "10.5281/zenodo.22026962", "1.1")):
         cur = current_of(wid)
         if not cur or cur["doi"] != doi or cur["version"] != ver:
             fail("G9", f"3B.1 case 3: the current record of {wid} must be v{ver} / {doi.rsplit('.', 1)[1]}; "
                        f"got {cur and (cur['version'], cur['doi'])}")
+
+    # Frame-QL pair advance, 2026-08-23. Both current pointers moved on the same day; both prior
+    # records stay first-class and historical. Asserted, not re-derived, for the reason G9 exists.
+    for wid, doi, ver, prev_doi, prev_ver in (
+            ("w-frameql-introduction", "10.5281/zenodo.22071508", "2.2", "10.5281/zenodo.21966453", "2.1"),
+            ("w-frameql-primer", "10.5281/zenodo.22071619", "2.1", "10.5281/zenodo.21960873", "2.0")):
+        cur = current_of(wid)
+        if not cur or cur["doi"] != doi or cur["version"] != ver:
+            fail("G9", f"Frame-QL pair 2026-08-23: the current record of {wid} must be v{ver} / "
+                       f"{doi.rsplit('.', 1)[1]}; got {cur and (cur['version'], cur['doi'])}")
+        else:
+            prev = by_record.get(cur.get("supersedes") or "")
+            if not prev or prev["doi"] != prev_doi or prev["version"] != prev_ver:
+                fail("G9", f"Frame-QL pair 2026-08-23: {wid} v{ver} must supersede v{prev_ver} "
+                           f"({prev_doi.rsplit('.', 1)[1]}) by recordId, not by DOI or by date")
+            elif prev["status"] != "superseded":
+                fail("G9", f"Frame-QL pair 2026-08-23: {wid} v{prev_ver} must remain a first-class "
+                           "historical record with status `superseded` — superseded is a status, "
+                           "not a deletion")
 
     anchors = current_of("w-two-anchors")
     if not anchors or anchors["version"] != "2.0":
