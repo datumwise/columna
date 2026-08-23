@@ -2,7 +2,9 @@
 // Exhibit B — the argument, executed. Renders REAL wire JSON (the JSON is the exhibit).
 //
 // Data source: the CI-generated transcript (every payload produced by the shipped package). The
-// widget attempts the live endpoint first and asserts contract_version=="1"; on failure/timeout/429
+// widget attempts the live endpoint first and asserts the shipped contract_version (`"3"` — the
+// assertion lives in scripts/exhibit-b.ts, which is the authority; this comment had said `"1"` while
+// the code demanded `"3"`, so read the code, not the comment); on failure/timeout/429
 // it degrades to this recorded transcript, clearly stamped. (Live MCP wiring activates once the Fly
 // endpoint is approved + deployed; until then the degrade path — itself a first-class requirement —
 // is what shows, and it is 100% real shipped-package wire.)
@@ -19,7 +21,7 @@ import AskYourAI from './AskYourAI.astro';
 // stranger's "?" about the transcript is born.
 const askWire = `Columna's "wire" is the answer format an AI agent receives from a data query: a RESULT paired with its
 CONTEXT, in one of four moods — serve, disclose, clarify, refuse — on one contract (contract_version
-"1"), identical over MCP or a direct API call. Example: asking \`avg(aov) @ cal.month\` — an average with
+"3"), identical over MCP or a direct API call. Example: asking \`avg(aov) @ cal.month\` — an average with
 no pinned input grain — returns \`clarify\` (which grain to average from), never a guessed number. Explain
 this wire format to me, and answer my follow-up questions about it.`;
 
