@@ -1,0 +1,165 @@
+{
+  "boundary": "This fixture ships a governed publication that Columna can serve but cannot make. The authoring and ratification machinery that produced it is not part of this release. What is demonstrated here is consumption of governed authority, not its production.",
+  "catalogs": [
+    {
+      "dir": "columna_server/governed/",
+      "wire": {
+        "contract_version": "3",
+        "manifolds": [
+          {
+            "kind": "governed",
+            "latest_version": "1.0.0",
+            "manifold_id": "firstlight",
+            "versions": [
+              {
+                "realizable": true,
+                "version": "1.0.0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dir": "columna_server/demo/",
+      "wire": {
+        "contract_version": "3",
+        "manifolds": [
+          {
+            "kind": "legacy",
+            "runtime_id": "benchmark"
+          },
+          {
+            "kind": "legacy",
+            "runtime_id": "cascadia"
+          }
+        ]
+      }
+    }
+  ],
+  "generated_by": "columna-core 0.16.2 / columna-server 0.11.0",
+  "image": {
+    "bytes": 310,
+    "text": "MANIFOLD firstlight VERSION 1\nSOURCE_MANIFOLD firstlight VERSION 1.0.0\n\nUNIVERSE sales = store * day   BASIS events\n\nLEVEL day = sale_date BASE\nLEVEL store = store_id BASE\n\nMEASURE revenue ON sales FROM sales_lines TYPE Float64 VALUE amount\n    FAMILY {\n        count\n        max\n        min\n        sum\n    }\n"
+  },
+  "image_reproduces": true,
+  "publication": {
+    "bytes": 1126,
+    "fingerprint_version": [
+      "elf-1"
+    ],
+    "published_by": "Huayin Wang",
+    "ref": {
+      "manifold_id": "firstlight",
+      "version": "1.0.0"
+    },
+    "universes_ratified": [
+      "sales"
+    ]
+  },
+  "receipt": {
+    "compiler": {
+      "name": "columna-core-p1-k0",
+      "version": "0.16.0-core"
+    },
+    "image_digest": "sha256:6087d1602aeedd4a23711212c51100eece7418af908a36d8b141bf39095c335d",
+    "publication_digest": "sha256:fcca3c6082651f1e2d849abdb5e72aabd31350450c63b36a1aa6a59bc24d5f0b",
+    "publication_ref": {
+      "manifold_id": "firstlight",
+      "version": "1.0.0"
+    },
+    "receipt_format_version": "1.0"
+  },
+  "reducers": [
+    {
+      "reducer": "count",
+      "status": "served"
+    },
+    {
+      "reducer": "max",
+      "status": "served"
+    },
+    {
+      "reducer": "min",
+      "status": "served"
+    },
+    {
+      "reducer": "sum",
+      "status": "served"
+    }
+  ],
+  "serving": {
+    "governed": {
+      "manifold": "firstlight",
+      "query": "SELECT revenue.sum AT {store}",
+      "wire": {
+        "columns": [
+          {
+            "disclosures": [],
+            "name": "revenue.sum",
+            "population": "sales",
+            "status": "served",
+            "values": [
+              {
+                "store": "s1",
+                "value": 20.0
+              },
+              {
+                "store": "s2",
+                "value": 65.0
+              }
+            ]
+          }
+        ],
+        "contract_version": "3",
+        "executed": true,
+        "fetches_delta": 1,
+        "frame": {
+          "anchor": [
+            "store"
+          ],
+          "disclosures": [],
+          "rollup_severity": "none",
+          "universe": null
+        },
+        "manifold_id": "firstlight",
+        "manifold_version": "1.0.0",
+        "outcome": "serve"
+      }
+    },
+    "legacy": {
+      "manifold": "cascadia",
+      "query": "SELECT revenue AT {store}",
+      "wire": {
+        "contract_version": "3",
+        "executed": true,
+        "fetches_delta": 1,
+        "frame": {
+          "anchor": [
+            "store"
+          ],
+          "disclosures": [],
+          "rollup_severity": "none",
+          "universe": null
+        },
+        "manifold_id": "cascadia",
+        "outcome": "serve"
+      }
+    }
+  },
+  "status": {
+    "certified_edges": 0,
+    "certified_faces": 0,
+    "counts": {
+      "derived": 0,
+      "edges": 0,
+      "hierarchies": 0,
+      "levels": 2,
+      "measures": 1,
+      "relations": 0,
+      "universes": 1
+    },
+    "licenses": 0
+  },
+  "unit": "firstlight"
+}

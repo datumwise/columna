@@ -2,7 +2,9 @@
 // The Case — Cascadia Retail, the case demo. The three chapters render VERBATIM (byte-identical copies
 // of the ratified charter); the generated exhibits (four-mood wheel, the fourteen tables, the two
 // artifacts, Figure 1) are GENERATED from the shipped package (scripts/gen_case.py ->
-// src/data/case.generated.json), never hand-written.
+// src/data/case.generated.json), never hand-written. The ch3 governed-standing exhibit
+// (firstlight) is generated the same way by its own script (scripts/gen_firstlight.py ->
+// src/data/firstlight.generated.json), which fails the build closed on every invariant it shows.
 //
 // THE TRIAL TABLE IS RENDERED TWICE, ON PURPOSE (ruled Huayin, 2026-08-22). The chapter's own trial
 // table is HAND-WRITTEN prose inside `content/case/ch3.md` — it carries the evidence behind each
@@ -34,6 +36,7 @@ import ch2raw from '../content/case/ch2.md?raw';
 import ch3raw from '../content/case/ch3.md?raw';
 import caseData from '../data/case.generated.json';
 import UniverseVisual from '../components/UniverseVisual.astro';
+import GovernedStanding from '../components/case/GovernedStanding.astro';
 
 const verdictClass = (v) => ({
   corroborated: 'v-corroborated', verified: 'v-verified',
@@ -58,6 +61,18 @@ const ch3Sections = sections(ch3raw);
 
 // ── The machine-read trial set — seated, not substituted ────────────────────────────────────────
 const TRIALS_HEADING = 'First, the trials';
+
+// ── firstlight — the governed-standing exhibit, seated where the reader meets the serving surface ─
+// Cascadia is admitted `legacy`: declared meaning, no recorded authority. `firstlight` is the
+// complement — full provenance, almost no capability. It seats here, after the chapter has shown
+// what the server exposes, because that is where "on whose authority?" is the reader's next question.
+const MCP_HEADING = 'The MCP server';
+if (!ch3Sections.some((s) => s.heading === MCP_HEADING)) {
+  throw new Error(
+    `/case: the governed-standing exhibit has no anchor — no ch3 section headed ${JSON.stringify(MCP_HEADING)}. ` +
+    'The heading was reworded; re-seat the exhibit where the chapter introduces the serving surface.',
+  );
+}
 
 // Fail closed on a moved anchor, exactly as seatFigure does: a companion that silently stops being
 // seated beside the table it companions is worse than a build error.
@@ -242,6 +257,7 @@ const trialsOnlyGenerated = trials.filter((t) => !t.inCharterTable);
               </table>
             </div>
           )}
+          {s.heading === MCP_HEADING && <GovernedStanding />}
           {s.heading === 'The Explorer' && (
             <div class="explorer-inline" aria-label="The Manifold, browsable">
               <UniverseVisual />
