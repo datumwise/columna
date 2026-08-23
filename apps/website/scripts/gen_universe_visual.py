@@ -77,7 +77,19 @@ COPY = {
     "leftout": ("Left out by design (the spec + the map hold the detail): logical attributes, the "
                 "map's reject rows, operator properties, provenance. The visual holds the shape; a "
                 "caption links the Manifold spec and the physical→logical map."),
-    "leftout_spec_route": "/manifold",       # wired to the real Manifold-spec route (design gate)
+    # `/manifold` never existed either — the same class of defect as `/case#map` below, and it
+    # shipped live: the caption offered it from BOTH /case and /explorer and it 404'd on the public
+    # site (verified 2026-08-22). `check_fragments.mjs` could not catch it by construction — it
+    # validates `#fragment` targets, and a bare route carries none.
+    #
+    # The repair follows the sentence rather than the URL. The caption promises the Manifold SPEC —
+    # the artifact that holds the detail the visual leaves out — and the site's Manifold spec is the
+    # ch2 exhibit, which renders "The Manifold spec" and "The physical→logical map" side by side.
+    # So both halves of the sentence address the same exhibit, which is the truth of it.
+    # NOT `/what-is-manifold`: that essay explains what a Manifold IS. It does not hold the
+    # attributes, reject rows, operator properties and provenance this sentence says were left out,
+    # so it would answer a question the caption is not asking.
+    "leftout_spec_route": "/case#ch2",        # the chapter that holds the Manifold spec
     # `/case#map` never existed: /case carries ch1/ch2/ch3 only, and the physical->logical map is
     # taught inside CHAPTER 2 (verified against the built page). The caption promised an address the
     # site does not have — caught by scripts/check_fragments.mjs, which now fails the build on any
