@@ -7,6 +7,14 @@ import '../styles/tokens.css';
 // paper/wire register primitives. Loaded after tokens.css because it builds on those registers
 // rather than restating them.
 import '../styles/redesign.css';
+// KaTeX's own presentation layer, for the `$$…$$` blocks the corpus carries (astro.config.mjs,
+// `markdown.rehypePlugins`). Imported here rather than per-page because BaseLayout wraps every route
+// and Astro hoists it into the same bundled stylesheet as the rest — one place, no CDN, no <link> to
+// a third party, and it goes out with the build it was tested against.
+import 'katex/dist/katex.min.css';
+// …and one rule that stylesheet does not decide: overflow behaviour for a display equation wider
+// than the reading column. Loads after katex.min.css. See the file for the version-split incident.
+import '../styles/katex.css';
 import SiteHeader from '../components/site/SiteHeader.astro';
 import AmbientChip from '../components/AmbientChip.astro';
 // Vercel Web Analytics (freeze item 13): first-party, cookieless, no PII, no consent banner. v1 scope is

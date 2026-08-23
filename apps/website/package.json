@@ -17,6 +17,9 @@
     "@fontsource-variable/source-serif-4": "^5.2.5",
     "@vercel/analytics": "^2.0.1",
     "astro": "^4.16.18",
-    "marked": "^18.0.6"
+    "katex": "^0.16.47",
+    "marked": "^18.0.6",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   }
 }
