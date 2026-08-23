@@ -86,6 +86,35 @@
   "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1) — the deposited v2.1 edition rendered at /learn/frameql-an-introduction, sha256 4e50e315…04b49, verified against zenodo.org/api/records/21966453. SEVEN TOKENS, AND WHAT THEY ARE: 21966453 is the deposit's own DOI and 21960798 is the v2.0 it declares itself a new version of; the other five are its bibliography — ToD v6.0, the ToD Primer v2.0, the ToD Introduction v2.0, ToD Applied v1.0, Analytical Governance v1.0. Five of the seven name records the registry now marks superseded. THAT IS CORRECT AND MUST STAY: these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION, recording what the paper was read against on 2026-08-16 — they are not claims that those records are currently authoritative, and currentizing one would falsify the citation rather than repair it. Same principle the currency guard already encodes: a citation naming the version it documented is dated, not stale."
  },
  {
+  "path": "apps/website/src/content/corpus/frameql_an_introduction_v2_3.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21959941",
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22018598",
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22071508",
+   "10.5281/zenodo.22071833",
+   "10.5281/zenodo.22071910"
+  ],
+  "note": "Ratified, byte-frozen corpus piece — the deposited v2.3 edition rendered at /learn/frameql-an-introduction, sha256 ea52d43a31da989c651b32f328d74e667bc001833b5a689ba3eaaf71c66d6327, 28,310 bytes, verified by DOWNLOADING zenodo.org/api/records/22071910's own .md and running cmp, not by trusting the filename. Its own DOI (22071910) and the record it supersedes (22071508) both appear, as does the earlier companion Introduction-to-ToD edition; these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION and one of them names a record the registry marks superseded. THAT IS CORRECT AND MUST STAY — currentizing a citation inside a deposit would falsify it rather than repair it, and these bytes may not be edited at all. The v2.1 edition remains on disk, unimported, with its own row above."
+ },
+ {
+  "path": "apps/website/src/content/corpus/a_primer_on_frameql_v2_2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22018598",
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22071508",
+   "10.5281/zenodo.22071619",
+   "10.5281/zenodo.22071833"
+  ],
+  "note": "Ratified, byte-frozen corpus piece — the deposited v2.2 edition of A Primer on Frame-QL rendered at /learn/frameql-primer, sha256 5555940bd9c571602d4d43c37955930c5dc09aa4079f2a686f368cb3f9ab8fa4, 9,295 bytes, verified by DOWNLOADING zenodo.org/api/records/22071833's own .md and running cmp. THE FIRST EDITION OF THIS WORK EVER SERVED AT A URL: w-frameql-primer has five deposited versions and, until this ruling, no site surface at all. Its reading list names Frame-QL: An Introduction v2.2 (22071508) — one edition behind the v2.3 the sibling route now serves, because this Primer was deposited first. That lag is a fact about the deposit and is recorded in rc-frameql-primer-v22-companion-edition-lag, NOT repaired here; these bytes may not be edited."
+ },
+ {
   "path": "apps/website/src/content/corpus/launch_post_FINAL.md",
   "class": "frozen-corpus",
   "allowedDois": [
@@ -214,9 +243,18 @@
   "path": "apps/website/src/pages/learn/frameql-an-introduction.astro",
   "class": "edition-pinned",
   "allowedDois": [
-   "10.5281/zenodo.21966453"
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22071910"
   ],
-  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders. RE-EDITIONED v1.1 -> v2.1 (Huayin, 2026-08-23): the route now renders the deposited v2.1 bytes, so it now pins v2.1's own DOI — 21966453, which is also `w-frameql-introduction`'s current record. That the pin and the current record agree here is a COINCIDENCE OF THIS MOMENT, not a rule: the class still means 'the edition this page renders', and if a v2.2 is deposited tomorrow this row does not move until the bytes above it do. The prior pin (21774643) and the dated ToD v4.0 note (21774032) left with the v1.1 edition they described; both records remain in the registry, and the v1.1 bytes remain on disk, unimported."
+  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders. RE-EDITIONED v1.1 -> v2.1 (Huayin, 2026-08-23): the route now renders the deposited v2.1 bytes, so it now pins v2.1's own DOI — 21966453, which is also `w-frameql-introduction`'s current record. That the pin and the current record agree here is a COINCIDENCE OF THIS MOMENT, not a rule: the class still means 'the edition this page renders', and if a v2.2 is deposited tomorrow this row does not move until the bytes above it do. The prior pin (21774643) and the dated ToD v4.0 note (21774032) left with the v1.1 edition they described; both records remain in the registry, and the v1.1 bytes remain on disk, unimported. REPOINTED 2026-08-23 (Unit 2): v2.1 -> v2.3, so 21966453 LEAVES this row and 22071910 enters. The route is edition-pinned, which means the allowed DOI is whichever edition's BYTES it renders — it moved because the bytes moved, and a permission that outlived its assertion is the stale-permission defect G7 caught here in the other direction. 22013410 is allowed because the source comment names ToD v6.1 as what the new edition advanced its theory reference to; that is a statement about the deposit, not a currency claim by this route. The v2.2 edition (22071508) is NEVER hosted here: it was current for part of one day and this URL renders the current edition, not every edition that existed."
+ },
+ {
+  "path": "apps/website/src/pages/learn/frameql-primer.astro",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.22071833"
+  ],
+  "note": "The Primer route's chrome: the DOI and edition line printed above the deposited v2.2 bytes it renders. EDITION-PINNED, NOT DERIVED, and the distinction is the point — 22071833 happens to be the current record of w-frameql-primer today, and this row does not move when a later Primer is deposited. It moves when the BYTES this route renders move, which is a repoint and a ruling, exactly as the sibling Introduction route's row does. The route declares itself the short conceptual entry point and NOT the normative language reference; the Manual and the shipped grammar carry that authority and are linked as such."
  },
  {
   "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
