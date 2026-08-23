@@ -262,6 +262,14 @@
   "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
  },
  {
+  "path": "docs/frame_ql_manual_v2.md",
+  "class": "edition-pinned",
+  "allowedDois": [
+   "10.5281/zenodo.22013410"
+  ],
+  "note": "The Frame-QL Manual's ONE Zenodo token, and it records a reconciliation that was actually performed: the Preface names The Theory of Data v6.1 as the edition this manual has been reconciled against (2026-08-23 — the vocabulary seam, the Two Anchors compatibility note, the theory-evolution rule, and the repair of three stale present-tense theory attributions). EDITION-PINNED, NOT DERIVED, AND THE DISTINCTION IS THE WHOLE POINT: 22013410 happens to be the current record of w-theory-of-data today, and that is a coincidence of this moment, not the rule. A future ToD release does not move this pin. It moves when someone reconciles the manual against that release and can say so; currentizing it on deposit would claim a reconciliation nobody performed. Deliberately NOT enrolled in scripts/currency_stamps.toml: that guard renders from the shipped package triad and the wire contract, all read from code, and has no registry-derived placeholder — a hand-typed theory stamp there would be a currency claim no guard could check. The claim is written dated instead, which cannot go stale."
+ },
+ {
   "path": "docs/architecture/tod_v6_runtime_reconciliation.md",
   "class": "edition-pinned",
   "allowedDois": [
