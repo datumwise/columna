@@ -42,7 +42,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-21.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
 
 
 def main() -> int:

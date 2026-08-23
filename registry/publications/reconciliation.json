@@ -127,7 +127,7 @@
   ],
   "disposition": "superseded-current-authority",
   "claim": "10.5281/zenodo.21774643 is the edition served at /learn/frameql-an-introduction",
-  "truth": "21774643 is 'Frame-QL: An Introduction' v1.1 (2026-08-03), record w-frameql-introduction.r02, superseded. The route was re-editioned to the deposited v2.1 bytes on 2026-08-23 and now cites 10.5281/zenodo.21966453 (record .r05, current). ONE FROZEN FILE STILL PRINTS THE OLD DOI BESIDE A LINK TO THAT ROUTE: research_corpus_map_v0_2.md, at its line 21, reads '*Frame-QL: An Introduction* ([10.5281/zenodo.21774643]) — also here: [the full introduction](/learn/frameql-an-introduction)'. Following that link now lands on v2.1. The map is byte-frozen and already DEMOTED from publication authority by Ruling 8 (2026-08-21); it is not rewritten to chase the route.",
+  "truth": "21774643 is 'Frame-QL: An Introduction' v1.1 (2026-08-03), record w-frameql-introduction.r02, superseded. The route was re-editioned to the deposited v2.1 bytes on 2026-08-23 and now cites 10.5281/zenodo.21966453 (record .r05 — CURRENT WHEN THE ROUTE WAS REPOINTED, and superseded twice later the same day: by v2.2 10.5281/zenodo.22071508, then by v2.3 10.5281/zenodo.22071910, which is current). The route is edition-pinned to the v2.1 bytes it actually renders, so it stays on .r05 until its bytes move; citing a later edition above these bytes would be the misattribution, not the repair. ONE FROZEN FILE STILL PRINTS THE OLD DOI BESIDE A LINK TO THAT ROUTE: research_corpus_map_v0_2.md, at its line 21, reads '*Frame-QL: An Introduction* ([10.5281/zenodo.21774643]) — also here: [the full introduction](/learn/frameql-an-introduction)'. Following that link now lands on v2.1. The map is byte-frozen and already DEMOTED from publication authority by Ruling 8 (2026-08-21); it is not rewritten to chase the route.",
   "replacement": "10.5281/zenodo.21966453",
   "allowedContexts": [
    "apps/website/src/content/corpus/*.md"
@@ -181,5 +181,26 @@
   ],
   "reason": "THE SECOND INSTANCE OF THIS DEFECT, WHICH MAKES IT A PATTERN AND NOT A SLIP. rc-primer-v22-related-identifier is the first (A Primer on the Theory of Data v2.2, '10.5281/zenodo.2201341010.5281/zenodo.21842194'). Both are what a PREPEND-INSTEAD-OF-REPLACE edit produces in Zenodo's related-identifiers editor, and both are repairable only at the deposit — nothing in this repo can fix external metadata. Recorded here because the work it belongs to is not yet in the registry (see rc-corpus-uncovered-works): whoever onboards A Primer on Frame-QL will meet this token, and should meet it already explained. The three token forms are listed because a DOI scanner extracts two nine/ten-digit ids from the concatenation and never sees the human-readable string at all. UPDATED 2026-08-21 (Phase 3B.1): the work is now governed as w-frameql-primer, three records, current v2.0. The defect is unchanged and still unfixable from here — it lives in record 21960873's metadata at Zenodo. It now costs one unresolved seed per harvest, exactly like rc-primer-v22-related-identifier: the harvester's id lexer reads six-to-NINE digits and extracts 218889981, the gate's reads six-to-TEN and extracts 2188899810, and neither exists. Both forms are listed because a reconciliation item that names only the human-readable string does not match the bytes any scanner actually sees.",
   "provenance": "Phase 3B creator sweep, 2026-08-21. Live Zenodo record 21960873, verified the same day."
+ },
+ {
+  "id": "rc-frameql-introduction-v23-related-identifier",
+  "tokens": [
+   "10.5281/zenodo.2201341010.5281/zenodo.22018598",
+   "10.5281/zenodo.2201341010"
+  ],
+  "disposition": "malformed-external-metadata",
+  "claim": "Zenodo record 22071910 (Frame-QL: An Introduction v2.3) carries a related_identifiers entry with identifier = '10.5281/zenodo.2201341010.5281/zenodo.22018598'",
+  "truth": "Two DOIs concatenated with no separator — The Theory of Data v6.1 (…22013410) followed by The Theory of Data: An Introduction v2.2 (…22018598). Resolves HTTP 404. The relation is `references`, and the deposit carries a SEPARATE, well-formed `references 10.5281/zenodo.22013410` alongside it, so the intended second reference is 10.5281/zenodo.22018598 and it is the one this string destroyed.",
+  "replacement": "10.5281/zenodo.22018598",
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived",
+   "apps/website/src/**"
+  ],
+  "reason": "THE THIRD INSTANCE, AND THE FIRST ON A DEPOSIT MADE AFTER THE PATTERN WAS NAMED. rc-primer-v22-related-identifier (A Primer on the Theory of Data v2.2) and rc-frameql-primer-related-identifier (A Primer on Frame-QL v2.0) are the first two; all three are what a PREPEND-INSTEAD-OF-REPLACE edit produces in Zenodo's related-identifiers editor, and all three resolve 404. Two instances made it a pattern; three, on a deposit made two days after it was written down, makes it a property of the editing surface rather than of any one editing session. Repairable only at the deposit — nothing in this repo can fix external metadata, and no site or page copy should compensate for it. The token is permitted only where it is QUOTED AS EVIDENCE. NOT A BLOCKER FOR THE REGISTRY: the record's own bibliographic fields (title, version, date, DOI, authors, licence) are clean, and those are the only fields the registry reads.",
+  "provenance": "Found 2026-08-23 during Unit 1 of the Frame-QL registry advance, by reading zenodo.org/api/records/22071910 directly rather than trusting the version list. Not requested; surfaced because the deposit was read whole.",
+  "tokenNote": "The second form is what a DOI scanner extracts from the first, and it is BYTE-IDENTICAL to the scanner form of rc-primer-v22-related-identifier — both concatenations begin with ToD v6.1. Two distinct deposit defects therefore produce one indistinguishable nine-digit non-identifier, which is why the harvester's unresolved-seed line reports 220134101 once and not twice. Do not read that single MISS as a single defect."
  }
 ]

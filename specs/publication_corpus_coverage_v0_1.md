@@ -171,6 +171,13 @@ they read status, not text. That is the whole thesis of this registry, executed 
 Both chains single-concept and monotonic. **No pillar assignment is implied**: `kind` is
 `unclassified` for all 32 works, so registration expresses no opinion about where either belongs.
 
+> **This table is the reading of 2026-08-21 and is not restamped.** The Frame-QL Primer chain has
+> since advanced twice in one day — v2.1 `10.5281/zenodo.22071619`, then v2.2
+> `10.5281/zenodo.22071833`, which is current — so the work now has five versions, not three. The
+> case this table records is *that the identity was claimed*, and that remains true. The current
+> pointer lives in `records.json`, which is read rather than re-typed; a dated case record that
+> chased it would stop being dated.
+
 ### 4.4 Case 4 — a malformed external identifier, unchanged
 
 Record `21960873` carries `related_identifiers[0].identifier =
@@ -216,4 +223,5 @@ the stale-DOI problem started.
 | CV-6 | `/analytical-governance` names *The Statistical Bridge* as a neighbour with no link | **CLOSED** Phase 3C — the neighbour resolves to `/evidence`, the argument, not to the deposit |
 | CV-7 | the live route `/positions/the-two-great-sources-of-silent-analytical-failure` and its page title name the superseded account | **OPEN** — correct as an edition-pinned rendering of the v1.1 bytes; whether the ROUTE should follow the retitled successor is editorial, and publication foundation does not get to answer it |
 | CV-8 | corpus `kind` ungoverned for all 32 works, so no surface may state a count | **OPEN by design** — G10 enforces it |
+| CV-10 | **Frame-QL Introduction v2.3 related identifier malformed at the deposit** — Zenodo record `22071910` carries a `references` entry `"10.5281/zenodo.2201341010.5281/zenodo.22018598"`: ToD v6.1 (`…22013410`) and *The Theory of Data: An Introduction* v2.2 (`…22018598`) concatenated with no separator; resolves **HTTP 404**. **The third instance of the prepend-instead-of-replace pattern**, after `rc-primer-v22-related-identifier` and `rc-frameql-primer-related-identifier` — and the first on a deposit made *after* the pattern was written down. | **OPEN** — a Zenodo edit; nothing in this repo can fix external metadata, and no page copy should compensate. The record's bibliographic fields are clean, so the registry is unaffected. Logged 2026-08-23; `rc-frameql-introduction-v23-related-identifier`. |
 | CV-9 | **“jurisdiction” is carrying two meanings.** `/evidence` states that Evidence is *a standing acquired through a governed crossing, not a sovereign jurisdiction*; the homepage's `ThreeQuestions` source comment calls Data · Evidence · Intelligence *“different JURISDICTIONS, not three planes of one lattice.”* Both are defensible and they are not the same word-sense: the homepage means **jurisdiction-of-law/question** — which body of law answers this question — while `/evidence` denies **Evidence-as-sovereign-province**, a region of the world with its own territory. | **OPEN, editorial, not a blocker.** Logged 2026-08-22 (Huayin, PR #194 review §4): the homepage is NOT changed. A future ruling should separate the two senses explicitly rather than let the shared word imply that Evidence is a sovereign world. Recorded here so the tension is inherited deliberately instead of rediscovered as a contradiction between two live surfaces. |
