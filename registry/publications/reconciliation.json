@@ -220,5 +220,44 @@
   ],
   "reason": "THE READER IS NOT MISLED AND THE DEPOSIT IS NOT EDITED. The Primer route's own wayfinding links /learn/frameql-an-introduction, which serves v2.3 — so a reader who follows the link arrives at the current edition and only the printed DOI is one behind. This is the identical shape to rc-frameql-introduction-corpus-map-edition-lag: a frozen file naming an older DOI beside a live link that arrives at a newer edition. THE FIX IS NOT TO EDIT THE PRIMER. Its bytes are the deposit, and a deposit that cited a work published after it would be a forgery, not a repair. It resolves at the next Primer deposit or not at all. Opened because hosting the Primer for the first time is what made the lag visible on a public surface.",
   "provenance": "Unit 2 of the Frame-QL pair advance, 2026-08-23, on first hosting w-frameql-primer at /learn/frameql-primer. Both deposits' bytes verified against Zenodo by cmp before either was written to the corpus."
+ },
+ {
+  "id": "rc-tod-introduction-route-v11-to-v22",
+  "tokens": [
+   "10.5281/zenodo.21774630",
+   "10.5281/zenodo.21774032"
+  ],
+  "disposition": "superseded-current-authority",
+  "claim": "10.5281/zenodo.21774630 is the edition served at /learn/what-is-the-theory-of-data, and 10.5281/zenodo.21774032 is the current Theory of Data record it bridges to",
+  "truth": "21774630 is 'The Theory of Data: An Introduction' v1.1 (2026-08-03), record w-tod-introduction.r02, superseded. The route was re-editioned to the deposited v2.2 bytes on 2026-08-23 and now cites 10.5281/zenodo.22018598 (record .r05, current). 21774032 is The Theory of Data v4.0, superseded twice over; the current record is v6.1, 10.5281/zenodo.22013410. Both tokens LEFT the route in the same pass: the v1.1 import was replaced, and the dated 2026-08-03 note that named v4.0 was removed rather than restamped.",
+  "replacement": "10.5281/zenodo.22018598",
+  "allowedContexts": [
+   "apps/website/src/content/corpus/*.md",
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "RECORDED SO THE MOVEMENT IS EXPLICIT RATHER THAN INFERRED. The route sat four deposits behind its work's current record from 2026-08-19 to 2026-08-23, and unlike the two Frame-QL lags of the same shape it had no reconciliation row while it did — the ToD-branch currency audit named that absence as a finding. This row is the repair of the absence as much as of the lag. WHY THE v4.0 NOTE WAS NOT KEPT: it was page-authored migration scaffolding explaining that ToD v4.0 replaced 'atom' with 'measure', written to carry a reader from the v1.1 bytes to the theory state of that day. Both ends are superseded, and it taught 'member' and 'series' — the first retired by ToD v6.1 §1.2, the second shipped Frame-QL vocabulary rather than theory. Frozen deposited bytes that name old editions are history and stay; page-authored scaffolding between two superseded states is not. The v1.1 corpus file remains on disk, unimported, with its own frozen-corpus row.",
+  "provenance": "Repair Unit 2 of the ToD root-branch currency audit, 2026-08-23 (Huayin). Deposit fidelity verified before any file was written: zenodo.org/api/records/22018598's own .md downloaded and compared with cmp — 28,411 bytes, md5 d41dbe4b7ce68309b464fd5e604e7038, sha256 8a23ffa8dd0afc498865cacd4f5d0a13bebb5a25dd7b32d2795edb2a0163aecc — and separately byte-identical to the supplied project copy."
+ },
+ {
+  "id": "rc-tod-introduction-v22-reading-path",
+  "tokens": [
+   "10.5281/zenodo.21959749",
+   "10.5281/zenodo.21966453"
+  ],
+  "disposition": "superseded-current-authority",
+  "claim": "Analytical Governance v1.0 (10.5281/zenodo.21959749) and Frame-QL: An Introduction v2.1 (10.5281/zenodo.21966453) are current, as cited by the reading path of The Theory of Data: An Introduction v2.2",
+  "truth": "Both are superseded. Analytical Governance is current at v1.1, 10.5281/zenodo.22046037 (2026-08-21). Frame-QL: An Introduction is current at v2.3, 10.5281/zenodo.22071910 (2026-08-23) — two editions on from the v2.1 the deposit names. The deposit also states its own DOI as 'pending publication assignment' at two places although 10.5281/zenodo.22018598 is assigned and is the registry-current record of this work.",
+  "replacement": "10.5281/zenodo.22046037",
+  "allowedContexts": [
+   "apps/website/src/content/corpus/*.md"
+  ],
+  "forbiddenContexts": [
+   "derived"
+  ],
+  "reason": "NEXT-DEPOSIT METADATA DEBT, NOT A ROUTE DEFECT. The deposit was frozen on 2026-08-19; AG v1.1 landed on the 21st and Frame-QL Introduction v2.3 on the 23rd, so both pointers went stale after these bytes existed. A deposit that cited works published after it would be a forgery, not a repair, and the bytes are not editable. Recorded here so the debt is addressed at the next deposit of this work rather than rediscovered. THE READER IS NOT STRANDED: the route's own wayfinding chrome names the current reading order — Primer v2.2, this Introduction v2.2, ToD v6.1 — and links Frame-QL: An Introduction at its live route, which serves v2.3.",
+  "provenance": "Repair Unit 2, 2026-08-23, on importing the v2.2 deposit. Both successor records verified against registry/publications/records.json at commit a24e395."
  }
 ]

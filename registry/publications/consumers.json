@@ -220,6 +220,20 @@
   "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
  },
  {
+  "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v2_2.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21959749",
+   "10.5281/zenodo.21959941",
+   "10.5281/zenodo.21960380",
+   "10.5281/zenodo.21966453",
+   "10.5281/zenodo.21979821",
+   "10.5281/zenodo.22013410"
+  ],
+  "note": "Byte-frozen corpus piece — the deposited v2.2 edition rendered at /learn/what-is-the-theory-of-data, sha256 8a23ffa8dd0afc498865cacd4f5d0a13bebb5a25dd7b32d2795edb2a0163aecc, md5 d41dbe4b7ce68309b464fd5e604e7038, 28,411 bytes, verified by downloading zenodo.org/api/records/22018598's own .md and running cmp, and separately byte-identical to the supplied project copy. Its reading path names Analytical Governance v1.0 and Frame-QL: An Introduction v2.1, both since superseded, and states its own DOI as 'pending publication assignment'. Those are DATED CITATIONS CARRIED BY A DEPOSIT and are not repaired here; they are next-deposit metadata debt, recorded in rc-tod-introduction-v22-reading-path. The v1.1 edition stays on disk, unimported, with its own row above."
+ },
+ {
   "path": "apps/website/src/content/corpus/what_is_a_universe_v0_2.md",
   "class": "frozen-corpus",
   "allowedDois": [
@@ -260,10 +274,9 @@
   "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
   "class": "edition-pinned",
   "allowedDois": [
-   "10.5281/zenodo.21774032",
-   "10.5281/zenodo.21774630"
+   "10.5281/zenodo.22018598"
   ],
-  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders — not the current one. Citing v2.2 above v1.1 bytes would be the misattribution, not the fix. Also carries a dated 2026-08-03 note citing ToD v4.0 as the version that made that change: a historical statement, true as written."
+  "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves."
  },
  {
   "path": "apps/website/src/pages/positions/never-let-your-agent-touch-the-database.astro",
