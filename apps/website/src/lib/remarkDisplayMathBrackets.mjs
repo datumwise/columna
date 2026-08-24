@@ -1,8 +1,8 @@
 /**
  * remarkDisplayMathBrackets — display math written `\[ … \]`, rendered from the deposited bytes.
  *
- * WHY THIS EXISTS. The ToD Introduction v2.2 deposit (Zenodo 10.5281/zenodo.22018598) writes all
- * twenty-one of its display equations with LaTeX's own bracket delimiters:
+ * WHY THIS EXISTS. The ToD Introduction v2.2 deposit writes all twenty-one of its display equations
+ * with LaTeX's own bracket delimiters:
  *
  *     \[
  *     \boxed{Measure = MeasureFamily @ Anchor}

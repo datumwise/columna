@@ -7,8 +7,8 @@
  * unrelated delimiter would blur the thing it exists to state precisely, so bracket display math
  * gets its own gate and its own name. The two are run side by side in CI.
  *
- * WHAT IT PROTECTS. The ToD Introduction v2.2 deposit (10.5281/zenodo.22018598) writes all of its
- * display equations as `\[ … \]`. Those bytes are FROZEN, so the support lives in
+ * WHAT IT PROTECTS. The ToD Introduction v2.2 deposit writes all of its display equations as
+ * `\[ … \]`. Those bytes are FROZEN, so the support lives in
  * `src/lib/remarkDisplayMathBrackets.mjs`. The failure mode is SILENT in both directions:
  *   · lost support → the governing identity prints as the literal string `\boxed{Measure = …}`;
  *   · over-eager support → an ordinary `[` alone on a line, or a `\[` inside a code fence, becomes
@@ -185,8 +185,17 @@ console.log(`  ${totalBlocks} block(s) across ${filesWithBlocks} file(s), each b
 
 /* ── 3 · the built HTML for the routes that carry these blocks ──────────────────────────────── */
 
+// THE EXPECTED COUNT IS DERIVED, NEVER TYPED. A literal `21` here would be a fact about one
+// published edition living in a file that has no business holding one: it would have to be
+// hand-updated on every re-edition, it would be silently wrong until someone noticed, and it would
+// make this guard a second place the publication registry has to police. So the pairing declared
+// below is STRUCTURAL — this route renders that corpus file — and the number of blocks to expect is
+// counted from the deposited bytes at run time. Re-edition moves it by itself.
 const ROUTES = [
-  { route: '/learn/what-is-the-theory-of-data', minBlocks: 21 },
+  {
+    route: '/learn/what-is-the-theory-of-data',
+    source: 'src/content/corpus/theory_of_data_an_introduction_v2_2.md',
+  },
 ];
 
 const dist = path.resolve(ROOT, 'dist');
@@ -194,7 +203,10 @@ console.log('\nbracket display-math — the HTML that actually ships:');
 if (!fs.existsSync(dist)) {
   console.log('  (skipped — no dist/. Run `npm run build` first; CI always does.)');
 } else {
-  for (const { route, minBlocks } of ROUTES) {
+  for (const { route, source } of ROUTES) {
+    const sourceAbs = path.resolve(ROOT, source);
+    if (!fs.existsSync(sourceAbs)) { fail(`${route}: its source ${source} is missing`); continue; }
+    const expected = rawBlocks(fs.readFileSync(sourceAbs, 'utf8')).length;
     const file = path.join(dist, route.replace(/^\//, ''), 'index.html');
     if (!fs.existsSync(file)) { fail(`${route}: no built HTML at ${path.relative(ROOT, file)}`); continue; }
     const html = fs.readFileSync(file, 'utf8');
@@ -215,9 +227,11 @@ if (!fs.existsSync(dist)) {
     console.log(`  ${route} — katex-display: ${displaySpans}, katex: ${katexSpans}, ` +
                 `katex-error: ${errors}, x-tex annotations: ${annotations}, ` +
                 `literal \\boxed outside annotations: ${literalBoxed}, ` +
-                `literal \\[: ${literalOpen}, literal \\]: ${literalClose}`);
-    if (displaySpans < minBlocks) {
-      fail(`${route}: ${displaySpans} rendered display block(s), expected at least ${minBlocks}.`);
+                `literal \\[: ${literalOpen}, literal \\]: ${literalClose} ` +
+                `(source carries ${expected} block(s))`);
+    if (displaySpans !== expected) {
+      fail(`${route}: ${displaySpans} rendered display block(s), but its source carries ${expected}. ` +
+           `Every \\[ … \\] block in the deposited bytes must reach the page as display math.`);
     }
     if (errors) fail(`${route}: ${errors} katex-error span(s) — an expression failed to render.`);
     if (literalBoxed) fail(`${route}: \\boxed leaked into the HTML as literal text ${literalBoxed} time(s).`);
