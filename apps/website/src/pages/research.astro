@@ -1,22 +1,89 @@
 ---
-// /research — the research corpus (corpus map v0.2). Promoted to a top-level nav slot in the 2026-08-03
-// reorg; supersedes the v0.1 that lived at /how-these-documents-relate (which now 301s here). Body is
-// the corpus-map v0.2 text, rendered from the corpus source; every claim is one click from its DOI.
+// /research — the research corpus map, rendered from the frozen corpus source. Promoted to a
+// top-level nav slot in the 2026-08-03 reorg; supersedes the v0.1 that lived at
+// /how-these-documents-relate (which now 301s here).
+//
+// WHAT THIS PAGE IS, AND WHAT WENT WRONG WITH SAYING SO (Repair Unit 3, 2026-08-23).
+//
+// The body is a SNAPSHOT. It was written on 2026-08-03 and has not changed since, and its sentences
+// are in the present tense: "Everything below is published, versioned, and DOI'd", "The Theory of
+// Data — Version 4.0 …, the canonical manuscript". Every one of those was true the day it was
+// written. Several are not true now — ToD is at v6.1, the Introduction at v2.2, Frame-QL's
+// Introduction at v2.3 — and the map is byte-frozen, so they will go on saying what they say.
+//
+// THE DEFECT WAS NOT THE BODY. Ruling 8 (2026-08-21) already demoted this file from publication
+// authority and ruled explicitly against rewriting it; reconciliation row
+// `rc-research-corpus-map-not-authority` records that its statements are "accurate as of its own
+// edition date and not maintained against the record". That contract existed and was correct — and
+// it was INVISIBLE. A reader arrived at a page whose only date was `v0.3 · August 2026`, which reads
+// as a version stamp on the map rather than as a bound on everything the map claims, and could
+// reasonably read four-week-old currency claims as present-tense ones. This is the smallest framing
+// that makes the page's contract truthful to that reader; not one byte of the snapshot moves.
+//
+// REGISTER (house rule v0.3 §4.3, and Huayin's Unit 3 classification).
+//   · The orientation line below the kicker is TEACHING. Plain register, one sentence, no typed
+//     vocabulary: it exists so the misreading cannot happen, and it happens BEFORE the body because
+//     that is where the misreading would.
+//   · "This snapshot" at the foot is the EDITION/STATUS FACT, and it is the page's only typed block —
+//     visibly bounded by its rule, in the same position and the same class the deposited-edition
+//     routes use for "This edition". It states what is rendered, when, that the body is preserved
+//     rather than maintained, and where current records live.
+//
+// THE EDITION THIS PAGE CAN TRUTHFULLY NAME IS v0.3, NOT v0.2. The filename says `v0_2` and the
+// registry, the ledger and Ruling 8 all refer to it by that path — but the filename is stale, frozen
+// at creation. The body has declared **v0.3** since f27318d, which bumped it deliberately (0.2 → 0.3)
+// in the same commit that wrote the Version 4.0 sentence, and `v0.3 · August 2026` is what the page
+// has been showing readers ever since. Chrome that said "v0.2" would contradict the line printed six
+// lines below it. The filename is not renamed here: it is the registry's key for a frozen consumer.
+//
+// THE DATE IS REPO PROVENANCE, STATED NARROWLY. The snapshot declares "August 2026" and no day. The
+// repository establishes the day — 09891a4, 2026-08-03, the last commit to touch the file, with no
+// commit since — so the chrome says the month the snapshot declares and adds the preservation date as
+// what it is: a fact about this repository, not a claim the snapshot makes about itself.
+//
+// NO PUBLICATION FACTS ARE AUTHORED HERE. The current-records pointer is a LINK to /about, which
+// renders CHRONOLOGICAL_SELECTION from the registry. No DOI, version or date of any deposit is typed
+// into this file, so this route states no publication fact and needs no consumer permission — the
+// ownership boundary settled in Unit 2.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Content } from '../content/corpus/research_corpus_map_v0_2.md';
+
+// Declared by the snapshot itself (line 5 of the source); the day comes from repo history.
+const SNAPSHOT_EDITION = 'v0.3';
+const SNAPSHOT_DECLARED_DATE = 'August 2026';
+const SNAPSHOT_PRESERVED_SINCE = '3 August 2026';
 ---
 <BaseLayout title="The research corpus — datumwise"
-  description="How the datumwise documents relate — the research corpus, mapped: the theory, the proved kernel, the introductions, the positions, the ripples, and the engine, every claim one click from its DOI.">
+  description="How the datumwise documents relate — the research corpus, mapped, as it was written in August 2026: the theory, the proved kernel, the introductions, the positions, the ripples, and the engine. A preserved snapshot; current publication records are on the About page.">
   <div class="page-head">
     <p class="kicker">Research</p>
+    <p class="orientation">
+      This page keeps an earlier map of the research corpus exactly as it was written. It is a
+      snapshot rather than a running index — several of the documents it describes have been
+      published in newer editions since. For what is current, see the publication list on
+      <a href="/about">About</a>.
+    </p>
   </div>
 
   <article class="prose research">
     <Content />
   </article>
+
+  <p class="evidence-note">
+    <strong>This snapshot.</strong> This page renders the research map as it was at
+    <strong>{SNAPSHOT_EDITION}</strong>, dated <strong>{SNAPSHOT_DECLARED_DATE}</strong> by the map
+    itself and unchanged in this repository since {SNAPSHOT_PRESERVED_SINCE}. The text is preserved
+    as written, not updated: the versions, dates and DOIs it names were accurate to that snapshot and
+    are not maintained as pointers to whatever is current, so some of them now name superseded
+    editions. The current record for every document is kept in the publication registry and rendered
+    on <a href="/about">About</a>.
+  </p>
 </BaseLayout>
 
 <style>
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
   .kicker { color: var(--ink-faint); }
+  .orientation { margin-top: 0.6rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
 </style>
