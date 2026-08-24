@@ -106,6 +106,20 @@ jobs:
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
 
+      # DISPLAY MATH IN BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
+      # extension of it: that one answers "equation or price" about `$`, and overloading it with a
+      # second, unrelated delimiter would blur the thing it exists to state precisely. The ToD
+      # Introduction v2.2 deposit writes all twenty-one of its display equations as `\[ … \]`, so the
+      # site must render THOSE bytes — support lives in src/lib/remarkDisplayMathBrackets.mjs. Failure
+      # is silent in both directions (lost support prints `\boxed{…}` as literal text; over-eager
+      # support eats an ordinary `[` alone on a line), so both directions are checked.
+      #
+      # IT RUNS AFTER THE BUILD, unlike its sibling, because its third and strongest section reads
+      # dist/ — every block rendered, no delimiter leaked outside KaTeX's x-tex annotation, no
+      # katex-error, and `family\_id` still a literal underscore rather than a subscript.
+      - name: Bracket display-math (`\[ … \]`) — construct, corpus fidelity, built HTML
+        run: node scripts/check_bracket_math.mjs
+
       # ── PREVIEW DEPLOYMENT (preflight, 2026-08-19) ──────────────────────────────────────────────
       # A reviewable URL for the redesign, built from the PR tree. It reuses THIS job's
       # branch-coherent inputs — the same editable branch packages, the same four generators, the
@@ -358,6 +372,20 @@ jobs:
       # before a deploy can carry a link to a fragment that does not exist.
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
+
+      # DISPLAY MATH IN BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
+      # extension of it: that one answers "equation or price" about `$`, and overloading it with a
+      # second, unrelated delimiter would blur the thing it exists to state precisely. The ToD
+      # Introduction v2.2 deposit writes all twenty-one of its display equations as `\[ … \]`, so the
+      # site must render THOSE bytes — support lives in src/lib/remarkDisplayMathBrackets.mjs. Failure
+      # is silent in both directions (lost support prints `\boxed{…}` as literal text; over-eager
+      # support eats an ordinary `[` alone on a line), so both directions are checked.
+      #
+      # IT RUNS AFTER THE BUILD, unlike its sibling, because its third and strongest section reads
+      # dist/ — every block rendered, no delimiter leaked outside KaTeX's x-tex annotation, no
+      # katex-error, and `family\_id` still a literal underscore rather than a subscript.
+      - name: Bracket display-math (`\[ … \]`) — construct, corpus fidelity, built HTML
+        run: node scripts/check_bracket_math.mjs
 
       - name: Deploy to Vercel (production, prebuilt)
         if: ${{ env.VERCEL_TOKEN != '' }}

@@ -18,6 +18,11 @@ import sitemap from '@astrojs/sitemap';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkInlineMathDollars from './src/lib/remarkInlineMathDollars.mjs';
+// DISPLAY MATH IN BRACKETS (2026-08-23). The ToD Introduction v2.2 deposit writes all twenty-one of
+// its display equations as `\[ … \]`, LaTeX's own delimiters, not `$$ … $$`. Same frozen-bytes rule,
+// same renderer-side answer. It parses at the same moment `$$` does — see the file for why a tree
+// transformer CANNOT do this job (markdown eats `family\_id`'s escape before a transformer can see it).
+import remarkDisplayMathBrackets from './src/lib/remarkDisplayMathBrackets.mjs';
 import { createRequire } from 'node:module';
 
 // THE VERSION SPLIT THIS BUILD REFUSES TO SHIP (2026-08-22, found the expensive way).
@@ -101,8 +106,16 @@ export default defineConfig({
     // by whitespace, a closer not preceded by whitespace and NOT FOLLOWED BY A DIGIT. Currency comes
     // in pairs and the second amount's `$` always has a digit behind it, so the pair never forms;
     // `$F@A$` closes on a `$` followed by `;`, so it does. Order matters — display first, then inline.
+    //
+    // A BYTE-FAITHFUL PUBLICATION MAY USE EITHER SUPPORTED NOTATION WITHOUT BYTE MUTATION. The ToD
+    // Introduction v2.2 deposit writes display math as `\[ … \]`; the Frame-QL Introduction writes it
+    // as `$$ … $$`. Both are deposited editions and neither may be normalised toward the other, so
+    // BOTH are parsed. `remarkDisplayMathBrackets` emits micromark-extension-math's own token names
+    // and depends on remark-math's mdast bridge, so it MUST follow remarkMath here — it asserts that
+    // ordering at build rather than trusting this list to stay in order.
     remarkPlugins: [
       [remarkMath, { singleDollarTextMath: false }],
+      remarkDisplayMathBrackets,
       remarkInlineMathDollars,
     ],
     // `throwOnError: false` so a single malformed expression in a DEPOSITED edition degrades to a
