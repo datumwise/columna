@@ -210,6 +210,18 @@
   "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1). Its DOIs are part of the frozen bytes and are not edited to chase currency."
  },
  {
+  "path": "apps/website/src/content/corpus/theory_of_data_in_one_afternoon_v0_13.md",
+  "class": "frozen-corpus",
+  "allowedDois": [
+   "10.5281/zenodo.21960380",
+   "10.5281/zenodo.21979821",
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22018549",
+   "10.5281/zenodo.22046037"
+  ],
+  "note": "A LOCAL DATUMWISE TEACHING ARTIFACT, NOT A DEPOSITED PUBLICATION — and this row's class must not be read as implying otherwise. *The Theory of Data in One Afternoon* v0.13 has no Zenodo work, record, concept or DOI, and none is minted for it: an on-ramp is a teaching surface, and inventing publication identity to make it resemble its neighbours in this file would be a claim nobody could check. It is classified frozen-corpus for the one property the class actually asserts here — the bytes are hosted verbatim and are not edited to chase currency — which is what the G7 gate needs to know. Rendered at /start-here (CT-1, ledger doctrine_gaps.md, closes with that route). THE FIVE TOKENS ARE THE ARTIFACT'S CLOSING READING LIST, not claims this file makes about itself, and all five are the current record of their work as of 2026-08-24: ToD Applied v1.0 (21960380), The Statistical Bridge v3.0 (21979821), The Theory of Data v6.1 (22013410), A Primer on the Theory of Data v2.2 (22018549), Analytical Governance v1.1 (22046037). v0.13 IS A CURRENT-POINTER MAINTENANCE REVISION and the Analytical Governance token is the reason it exists: v0.12 cited AG v1.0 (21959749), correctly for its own 19 August date, and AG v1.1 was deposited on 21 August. Because the artifact is undeposited there was no byte contract to break, so the pointer was advanced in a new version rather than left stale under a reconciliation row — the option available here and nowhere else in this file. The v0.12 artifacts remain provenance history and are not rewritten. Verified before the route was built: the v0.12-final -> v0.13 delta is the header line, that one DOI, and an appended revision note, with every code block, inline expression, heading and numeric token in the teaching body byte-identical."
+ },
+ {
   "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v1_1.md",
   "class": "frozen-corpus",
   "allowedDois": [

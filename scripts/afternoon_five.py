@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The Afternoon's five executable expressions — the literal page gate.
 
-WHAT THIS IS. *The Theory of Data in One Afternoon* (v0.12, ledger CT-1) prints five executable
+WHAT THIS IS. *The Theory of Data in One Afternoon* (v0.13, ledger CT-1) prints five executable
 Frame-QL statements. This script runs **those exact statements**, byte-for-byte as the page prints
 them, against the governed Afternoon fixture, and asserts the verdict each one earns. It is the gate
 that lets us say the essay is true of the system rather than about it.
@@ -45,7 +45,11 @@ _CORE = os.path.join(_ROOT, "packages", "columna-core")
 _FIXTURES = os.path.join(_CORE, "tests", "fixtures")
 _SRC = os.path.join(_CORE, "src")
 
-# The five, exactly as *The Theory of Data in One Afternoon* v0.12 prints them.
+# The five, exactly as *The Theory of Data in One Afternoon* v0.13 prints them. The statements are
+# byte-identical across v0.12-final and v0.13 — that revision advanced one reading-list DOI and
+# nothing executable — so this list did not move when the artifact did. It is now hosted in the
+# repository at apps/website/src/content/corpus/theory_of_data_in_one_afternoon_v0_13.md and
+# rendered at /start-here, which is what closed CT-1's site item.
 # (beat, statement, expected outcome, expected reason, expected input-anchor alternatives)
 FIVE = [
     ("1 · the flow, at its own grain",
@@ -206,13 +210,13 @@ def main():
     failed = [r for r in out if not r["ok"]]
 
     if args.json:
-        print(json.dumps({"gate": "afternoon_five", "source": "Afternoon v0.12",
+        print(json.dumps({"gate": "afternoon_five", "source": "Afternoon v0.13",
                           "fixture": "afternoon", "engine": prov,
                           "beats": out, "passed": len(out) - len(failed), "total": len(out)},
                          indent=2))
         return 1 if failed else 0
 
-    print("The Afternoon, five expressions — the literal v0.12 page gate")
+    print("The Afternoon, five expressions — the literal v0.13 page gate")
     print(f"  engine mode : {prov['mode']}")
     print(f"  engine file : {prov['file']}")
     print(f"  version     : {prov['dist_version'] or prov['attr_version'] or '(unknown)'}"
@@ -237,10 +241,10 @@ def main():
         print()
 
     if failed:
-        print(f"FAIL — {len(failed)} of {len(out)} beats do not match Afternoon v0.12: "
+        print(f"FAIL — {len(failed)} of {len(out)} beats do not match Afternoon v0.13: "
               f"{', '.join(r['beat'] for r in failed)}")
         return 1
-    print(f"OK — all {len(out)} beats match Afternoon v0.12, "
+    print(f"OK — all {len(out)} beats match Afternoon v0.13, "
           f"certified against the {prov['mode']} engine.")
     return 0
 
