@@ -23,6 +23,10 @@ import remarkInlineMathDollars from './src/lib/remarkInlineMathDollars.mjs';
 // same renderer-side answer. It parses at the same moment `$$` does — see the file for why a tree
 // transformer CANNOT do this job (markdown eats `family\_id`'s escape before a transformer can see it).
 import remarkDisplayMathBrackets from './src/lib/remarkDisplayMathBrackets.mjs';
+// …and its INLINE half (2026-08-23). The same deposit writes `\( … \)` for inline math. Nine spans;
+// eight degraded silently into upright parenthesised prose ("measure (F@A)"), and the ninth printed
+// the literal string `(\Gamma(e))` in the terminology table, because `\G` is not a markdown escape.
+import remarkInlineMathBrackets from './src/lib/remarkInlineMathBrackets.mjs';
 import { createRequire } from 'node:module';
 
 // THE VERSION SPLIT THIS BUILD REFUSES TO SHIP (2026-08-22, found the expensive way).
@@ -110,12 +114,16 @@ export default defineConfig({
     // A BYTE-FAITHFUL PUBLICATION MAY USE EITHER SUPPORTED NOTATION WITHOUT BYTE MUTATION. The ToD
     // Introduction v2.2 deposit writes display math as `\[ … \]`; the Frame-QL Introduction writes it
     // as `$$ … $$`. Both are deposited editions and neither may be normalised toward the other, so
-    // BOTH are parsed. `remarkDisplayMathBrackets` emits micromark-extension-math's own token names
-    // and depends on remark-math's mdast bridge, so it MUST follow remarkMath here — it asserts that
-    // ordering at build rather than trusting this list to stay in order.
+    // BOTH are parsed, in both their display and inline forms. The two bracket plugins emit
+    // micromark-extension-math's own token names and depend on remark-math's mdast bridge, so they
+    // MUST follow remarkMath here — each asserts that ordering at build rather than trusting this
+    // list to stay in order. The inline bracket construct must also be REGISTERED, not merely
+    // ordered: micromark prepends extension constructs, which is what lets `\(` open math before
+    // `characterEscape` can eat it into a bare `(` — the reason the notation was invisible before.
     remarkPlugins: [
       [remarkMath, { singleDollarTextMath: false }],
       remarkDisplayMathBrackets,
+      remarkInlineMathBrackets,
       remarkInlineMathDollars,
     ],
     // `throwOnError: false` so a single malformed expression in a DEPOSITED edition degrades to a
