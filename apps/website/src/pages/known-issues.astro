@@ -1,0 +1,164 @@
+---
+// /known-issues — the public technical record.
+//
+// WHY THIS EXISTS (2026-08-24). A defect that materially affects reproducibility or a correctness
+// claim has to be findable by the people relying on it, and the honest place for that is one page
+// that says so plainly — not a banner on every affected surface, and not a private ledger. The
+// repo's own ledgers (specs/open_forks.md, specs/doctrine_gaps.md) are where forks are ADJUDICATED;
+// this page is where the ones that reach a reader are DISCLOSED.
+//
+// WHAT IT IS NOT: a changelog, a roadmap, a support queue, or a mirror of the GitHub issue tracker.
+// An item earns a row here by materially affecting reproducibility, a correctness claim, or an
+// exhibit. Everything else belongs in the release notes or the tracker.
+//
+// REGISTER (house rule v0.3 §4.3, and Huayin's Unit-C classification). This page is mostly TYPED
+// FACTUAL STATUS: exact dependency and version, exact status, exact affected surface, exact
+// reproduction result, exact upstream link. The `fields` list of each item carries those. The
+// `explanation` is PLAIN PROSE and does the teaching. No theatrical language, no blame language, no
+// vulnerability-style alarm treatment — a reader should be able to tell in ten seconds whether an
+// item affects them, and read two paragraphs if it does.
+//
+// STATUS VOCABULARY — four states, deliberately. OPEN: established, not yet resolved, no complete
+// mitigation. UPSTREAM: the resolution lies in a dependency and is tracked there. CONTAINED: a
+// mitigation is in place and the residual behaviour is bounded and disclosed. RESOLVED: closed, kept
+// for the record. An item states one; more states get minted only when an item cannot honestly wear
+// one of these.
+//
+// NO PUBLICATION FACTS ARE AUTHORED HERE. This page cites software versions and issue numbers, not
+// deposited editions, so it states no publication fact and takes no consumer permission — the
+// ownership boundary settled in Repair Unit 2.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const STATUSES = [
+  ['OPEN',      'Established and not yet resolved. No complete mitigation is in place.'],
+  ['UPSTREAM',  'The resolution lies in a dependency and is tracked there.'],
+  ['CONTAINED', 'A mitigation is in place; the residual behaviour is bounded and disclosed.'],
+  ['RESOLVED',  'Closed. Kept here as a record.'],
+];
+
+const ISSUES = [
+  {
+    id: 'hll-distinct-reproducibility',
+    title: 'HLL approximate distinct counts are not currently reproducible across identical runs',
+    status: 'OPEN',
+    fields: [
+      ['Discovered',        '24 August 2026'],
+      ['Dependency',        'datasketches 5.2.0 (Python binding)'],
+      ['Affected path',     'columna-core sketch-witness merges — the distinct-count family (hll_count → hll_merge → hll_estimate)'],
+      ['Affected surface',  'Any approximate distinct count served through that path, including the buyers-by-month exhibit'],
+      ['Reproduction',      'Reproduced outside Columna, in a program using only DataSketches'],
+      // Resolution is deliberately EMPTY rather than absent: a field that will carry a fact later
+      // says so now, so a reader can tell "not yet" from "not applicable".
+      ['Upstream',          { href: 'https://github.com/apache/datasketches-python/issues/68',
+                              text: 'apache/datasketches-python#68 — API-parity request' }],
+      ['Resolution',        null, 'open'],
+    ],
+    explanation: [
+      `A distinct count on this path is not counted exactly. It is estimated from a HyperLogLog
+       sketch, and the estimate travels with its relative error, which is stated on the answer
+       itself. That much is by design and is unchanged.`,
+      `What we did not know until now is that the estimate is also sensitive to the order in which
+       the underlying sketches are merged. Apache DataSketches offers two estimators for the same
+       sketch. The HIP estimator is more accurate but order-dependent. The composite estimator is
+       order-independent, at a modest cost in accuracy. Which one a caller gets is decided by the
+       library: the default returns the best available, which is HIP where HIP is valid. The
+       maintainers describe this as a deliberate trade-off between accuracy and order-independence,
+       and the choice between the two estimators is exposed in the C++ and Java APIs.`,
+      `The Python binding we use does not currently expose that choice. It offers the default
+       estimator only, so a Python caller cannot select the order-independent one. Because the merge
+       order of the underlying sketches is not fixed, the practical consequence is that two runs over
+       identical logical input can return different distinct-count estimates.`,
+      `Both estimates remain approximate results within their disclosed error bounds, and we have no
+       finding that either is wrong. What is affected is reproducibility: an approximate distinct
+       count served through this path should not currently be assumed to be byte-for-byte
+       reproducible for identical logical input.`,
+      `Columna has not changed its semantics to accommodate this. We have not imposed a canonical
+       merge order to hold the order-dependent estimator steady, and we have not used the
+       self-union trick that forces the library onto its order-independent estimator. Either would
+       make our recording look more deterministic than the computation underneath it. We have asked
+       upstream for the estimator controls that already exist in the other bindings, and until a
+       supported way to make that choice explicitly is available in Python, the limitation is
+       disclosed here rather than concealed in the code.`,
+    ],
+  },
+];
+---
+<BaseLayout title="Known issues — datumwise"
+  description="The public record of confirmed defects and active technical investigations that materially affect reproducibility, correctness claims, or exhibits in Columna and on this site.">
+  <div class="page-head">
+    <p class="kicker">Known issues</p>
+    <h1 class="serif">Known issues</h1>
+    <p class="orientation">
+      This page is the public record of confirmed defects and active investigations that materially
+      affect reproducibility, a correctness claim, or an exhibit. It is not a changelog, a roadmap,
+      or a mirror of our issue tracker — an item appears here when it changes what you can rely on.
+    </p>
+  </div>
+
+  <section class="key">
+    <dl>
+      {STATUSES.map(([name, meaning]) => (
+        <>
+          <dt><span class={`badge badge-${name.toLowerCase()}`}>{name}</span></dt>
+          <dd>{meaning}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+
+  {ISSUES.map((issue) => (
+    <article class="issue" id={issue.id}>
+      <h2><a href={`#${issue.id}`}>{issue.title}</a></h2>
+      <p class="status-line">
+        <span class={`badge badge-${issue.status.toLowerCase()}`}>{issue.status}</span>
+      </p>
+      <dl class="facts mono">
+        {issue.fields.map(([k, v, pending]) => (
+          <>
+            <dt>{k}</dt>
+            <dd>
+              {v == null
+                ? <span class="pending">— {pending}</span>
+                : typeof v === 'string'
+                  ? v
+                  : <a href={v.href} rel="noopener" target="_blank">{v.text}</a>}
+            </dd>
+          </>
+        ))}
+      </dl>
+      {issue.explanation.map((para) => <p class="explain">{para}</p>)}
+    </article>
+  ))}
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0.3rem 0 0.5rem; }
+  .kicker { color: var(--ink-faint); }
+  .orientation { font-size: 0.95rem; color: var(--ink-soft); }
+
+  .key { width: min(100% - 3rem, var(--measure)); margin: 2rem auto 0;
+    padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+  .key dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; margin: 0; }
+  .key dd { margin: 0; font-size: 0.88rem; color: var(--ink-soft); }
+
+  .issue { width: min(100% - 3rem, var(--measure)); margin: 2.5rem auto 0;
+    padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+  .issue h2 { font-size: 1.15rem; line-height: 1.35; margin: 0 0 0.6rem; }
+  .issue h2 a { color: inherit; text-decoration: none; }
+  .issue h2 a:hover { color: var(--ink-soft); }
+  .status-line { margin: 0 0 1rem; }
+
+  /* Status is a LABEL, not an alarm: one weight, one muted ink, a hairline box. Nothing red. */
+  .badge { display: inline-block; font-family: var(--mono, monospace); font-size: 0.72rem;
+    letter-spacing: 0.06em; padding: 0.12rem 0.45rem; border: 1px solid var(--rule);
+    border-radius: 2px; color: var(--ink-soft); }
+
+  .facts { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1.2rem;
+    margin: 0 0 1.4rem; font-size: 0.8rem; }
+  .facts dt { color: var(--ink-faint); }
+  .facts dd { margin: 0; color: var(--ink-soft); }
+  .pending { color: var(--ink-faint); }
+
+  .explain { font-size: 0.95rem; color: var(--ink-soft); margin: 0 0 0.9rem; }
+</style>
