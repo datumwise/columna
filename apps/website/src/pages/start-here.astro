@@ -1,0 +1,108 @@
+---
+// /start-here — *The Theory of Data in One Afternoon*, the cold-reader on-ramp.
+//
+// WHAT THIS PAGE IS. The walk a first-time reader takes before anything formal: four scars they have
+// personally debugged, the world those scars imply, and the five executable statements that world
+// falls out into. CT-1 (specs/doctrine_gaps.md) has carried "site integration pending" since
+// 2026-08-19 and closes with this route — a canonical manuscript is not a shipped page, and the row
+// says so: it closes when the surface does.
+//
+// THE ARTIFACT IS A LOCAL TEACHING ARTIFACT, NOT A DEPOSITED PUBLICATION, and the distinction is the
+// whole provenance story here. Every other long-form body this site hosts is a deposited edition
+// whose chrome cites a DOI. This one has NO Zenodo work, record, concept or DOI, and none is minted
+// for it — an on-ramp is a teaching surface, and inventing publication identity to make it look like
+// its neighbours would be a claim nobody could check. The edition block below therefore names what
+// IS checkable: the version and date the artifact declares, its SHA-256, and the gate its executable
+// statements pass. That is a project-artifact contract, and it is deliberately not a citation.
+//
+// v0.13, AND WHY THE PAGE DOES NOT CALL IT CANONICAL. v0.12 declared itself "v0.12 (canonical)";
+// v0.13 declares only "v0.13", and its own revision note describes itself as a current-pointer
+// maintenance revision "of the canonical v0.12 teaching artifact". So v0.13 does not claim canonical
+// status for itself and neither does this page. What changed from v0.12-final, verified
+// independently before this route was written: the header line, one reading-list DOI (Analytical
+// Governance v1.0 -> v1.1, 21959749 -> 22046037, which the registry confirms is the current record),
+// and an appended revision note. Nothing else — 3 fenced code blocks identical, 34 inline code spans
+// identical, 14 headings identical, 63 numeric tokens in the teaching body identical. The v0.12
+// artifacts remain provenance history and are not rewritten.
+//
+// REGISTER (house rule v0.3 §4.3 and §5). §5 is the operative test — classify the SENTENCE by what
+// happens if it is wrong — and it cuts this page cleanly in two. The walk is teaching: if a sentence
+// in it is unclear, a reader is slower. The edition block is adjudicable: someone may later rely on
+// which artifact this is, what its bytes hash to, and whether its examples are machine-checked. So
+// the body stays plain, exactly one bounded typed block carries the facts, and the orientation line
+// above the body is plain because it orients rather than binds.
+//
+// THE THEORY<->IMPLEMENTATION SEAM, cited rather than implied. The walk ends in Frame-QL that really
+// runs, which raises the question the audit asked us to answer on the page: what is the relationship
+// between the theory being taught and the software that executes it? The seam line below states it —
+// the five statements are machine-checked against the shipped package by scripts/afternoon_five.py
+// (mirrored in CI by test_afternoon_page_gate.py), and the normative reference for the language as
+// SHIPPED is the Frame-QL Manual, not this page. The essay is true OF the system, not merely about
+// it, and the reader is told where the authority actually lives.
+//
+// NO PUBLICATION FACT IS AUTHORED IN THIS FILE. The reading list the artifact carries lives in the
+// artifact's own frozen bytes, which get their own consumer row; this route types no DOI, version or
+// deposit date of any publication, so it takes no consumer permission — the ownership boundary
+// settled in Repair Unit 2.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { Content } from '../content/corpus/theory_of_data_in_one_afternoon_v0_13.md';
+
+// Declared by the artifact itself (its status line and revision note); the hash is of the bytes below.
+const EDITION = 'v0.13';
+const EDITION_DATE = '24 August 2026';
+const SHA256 = '565e914efff8bc314ed797d03973f27e17e1a57901d00f7a58775bc08dafdefd';
+---
+<BaseLayout title="Start here — The Theory of Data in One Afternoon — datumwise"
+  description="A walk, in one sitting, from failures you have personally debugged to the theory that explains them — four scars, the world they imply, and the query that falls out. No prior reading required.">
+  <div class="page-head">
+    <p class="kicker">Start here</p>
+    <p class="orientation">
+      This is the cold-reader entrance: one sitting, no prior reading, ending at a question you will
+      ask yourself before we ask it for you. If you would rather start from the formal side, the
+      papers are on <a href="/research">Research</a>; if you arrived here from the evidence, the
+      <a href="/evidence/walkthrough">walkthrough</a> is the other half of the same argument.
+    </p>
+  </div>
+
+  <article class="prose afternoon">
+    <Content />
+  </article>
+
+  <p class="evidence-note">
+    <strong>This artifact.</strong> This page renders <em>The Theory of Data in One Afternoon</em>,
+    <strong>{EDITION}</strong>, dated <strong>{EDITION_DATE}</strong> by the artifact itself, byte for
+    byte — SHA-256 <code class="mono">{SHA256}</code>. It is a <strong>datumwise teaching
+    artifact</strong>, not a deposited publication: it carries no DOI and has no Zenodo record, and
+    the works it links at the end are separate publications with their own. v0.13 is a
+    current-pointer maintenance revision of v0.12; earlier versions are kept as history and are not
+    rewritten.
+  </p>
+
+  <p class="evidence-note seam">
+    <strong>Theory and implementation.</strong> The five Frame-QL statements printed above are run as
+    printed — byte for byte, through the statement parser — against the shipped package, and each is
+    asserted to earn the verdict the page claims for it. That gate is
+    <code class="mono">scripts/afternoon_five.py</code>, mirrored in continuous integration. The page
+    teaches the theory; the normative reference for the language as it actually ships is the
+    <a href="/docs/frameql">Frame-QL Manual</a>, with the shipped grammar at
+    <a href="/docs/grammar">/docs/grammar</a>.
+  </p>
+
+  <p class="engage wayfinding">
+    Next, in order of appetite: <a href="/learn/what-is-the-theory-of-data">the Introduction</a> ·
+    <a href="/evidence/walkthrough">evidence, walked</a> ·
+    <a href="/case">the Case</a>.
+  </p>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker { color: var(--ink-faint); }
+  .orientation { margin-top: 0.6rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+  .evidence-note.seam { margin-top: 1.5rem; }
+  .evidence-note code { font-size: 0.82em; word-break: break-all; }
+  .engage { width: min(100% - 3rem, var(--measure)); margin: 1.5rem auto 0;
+    font-size: 0.92rem; color: var(--ink-soft); }
+</style>

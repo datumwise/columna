@@ -1,11 +1,11 @@
-"""The Afternoon v0.12 page gate, hermetic — the five statements the essay actually prints.
+"""The Afternoon v0.13 page gate, hermetic — the five statements the essay actually prints.
 
 WHY THIS EXISTS SEPARATELY FROM THE LAUNDERING MATRIX. `test_generated_family_law.py` certifies the
 GENERATED-FAMILY LAW: every spelling of "sum a stock across calendar" refuses identically and cannot
 return the wrong number. That is DG-2 forward invariant 5's evidence and it stays where it is.
 
 This file certifies something different and narrower: that the five executable Frame-QL statements
-printed in *The Theory of Data in One Afternoon* v0.12 (ledger CT-1) earn, verbatim, the verdicts the
+printed in *The Theory of Data in One Afternoon* v0.13 (ledger CT-1) earn, verbatim, the verdicts the
 essay claims for them. The essay is a promise about this system; a promise nothing runs is prose.
 
 Only ONE of the five (beat 5) is a laundering case. The other four are the lawful register the refusal
