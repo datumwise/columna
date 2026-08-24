@@ -47,9 +47,10 @@ const ISSUES = [
       ['Affected path',     'columna-core sketch-witness merges — the distinct-count family (hll_count → hll_merge → hll_estimate)'],
       ['Affected surface',  'Any approximate distinct count served through that path, including the buyers-by-month exhibit'],
       ['Reproduction',      'Reproduced outside Columna, in a program using only DataSketches'],
-      // Both are deliberately EMPTY rather than absent: a field that will carry a fact later says
-      // so now, so a reader can tell "not yet" from "not applicable".
-      ['Upstream',          null, 'not yet filed'],
+      // Resolution is deliberately EMPTY rather than absent: a field that will carry a fact later
+      // says so now, so a reader can tell "not yet" from "not applicable".
+      ['Upstream',          { href: 'https://github.com/apache/datasketches-python/issues/68',
+                              text: 'apache/datasketches-python#68 — API-parity request' }],
       ['Resolution',        null, 'open'],
     ],
     explanation: [
@@ -115,7 +116,13 @@ const ISSUES = [
         {issue.fields.map(([k, v, pending]) => (
           <>
             <dt>{k}</dt>
-            <dd>{v ?? <span class="pending">— {pending}</span>}</dd>
+            <dd>
+              {v == null
+                ? <span class="pending">— {pending}</span>
+                : typeof v === 'string'
+                  ? v
+                  : <a href={v.href} rel="noopener" target="_blank">{v.text}</a>}
+            </dd>
           </>
         ))}
       </dl>
