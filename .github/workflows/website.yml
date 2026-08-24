@@ -106,6 +106,14 @@ jobs:
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
 
+      # PROTECTED DISCOVERABILITY (2026-08-24). A SIBLING GATE to the fragment check above, not an
+      # extension of it: that one asks whether a link's `#fragment` resolves, and is silent about a
+      # link nobody wrote. Repair Units 1-4 landed /start-here and /known-issues and the site went on
+      # pointing elsewhere — /start-here had no homepage link at all while a position piece still wore
+      # the "start here" mark. This asserts the ruled inbound relationships, and only those.
+      - name: Protected discoverability (fails closed)
+        run: node scripts/check_discoverability.mjs
+
       # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
       # extension of it: that one answers "equation or price" about `$`, and overloading it with
       # unrelated delimiters would blur the thing it exists to state precisely. The ToD Introduction
@@ -378,6 +386,14 @@ jobs:
       # before a deploy can carry a link to a fragment that does not exist.
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
+
+      # PROTECTED DISCOVERABILITY (2026-08-24). A SIBLING GATE to the fragment check above, not an
+      # extension of it: that one asks whether a link's `#fragment` resolves, and is silent about a
+      # link nobody wrote. Repair Units 1-4 landed /start-here and /known-issues and the site went on
+      # pointing elsewhere — /start-here had no homepage link at all while a position piece still wore
+      # the "start here" mark. This asserts the ruled inbound relationships, and only those.
+      - name: Protected discoverability (fails closed)
+        run: node scripts/check_discoverability.mjs
 
       # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
       # extension of it: that one answers "equation or price" about `$`, and overloading it with
