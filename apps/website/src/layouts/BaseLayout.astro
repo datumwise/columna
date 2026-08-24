@@ -191,7 +191,12 @@ const structuredIdentity = {
         Every transcript and every number on this page is generated at build time by running the
         shipped package. This site is structurally incapable of demoing something it did not ship.
       </p>
-      <p class="foot-meta">© {year} datumwise · <a href="/research">Research</a> · <a href="/about">About</a></p>
+      {/* KNOWN ISSUES (2026-08-24). One durable link, in the meta line, deliberately unstyled and
+          unalarmed. A defect that affects what a reader can rely on has to be FINDABLE — but the
+          answer to that is one addressable page, not a banner on every affected surface. Exhibits
+          that already label themselves approximate keep their own wording; /known-issues is the
+          single public technical record and the place the detail lives. */}
+      <p class="foot-meta">© {year} datumwise · <a href="/research">Research</a> · <a href="/about">About</a> · <a href="/known-issues">Known issues</a></p>
       {/* Analytics honesty line (freeze item 13, ratified): the brand requires the site say what it does. */}
       <p class="foot-privacy">We count page views without cookies. No personal data, no ads.</p>
     </footer>
