@@ -235,7 +235,32 @@ export const CHRONOLOGICAL_SELECTION: string[] = [
   'w-multi-universe-processing',
   'w-two-great-sources',
   'w-open-planner',
-  'w-tod-foundations-note',
+  // `w-tod-foundations-note` WAS HERE, AND ITS REMOVAL IS A SELECTION CHANGE, NOT A RECORD CHANGE
+  // (Huayin, 2026-08-23, Repair Unit 1B). The ToD root-branch currency audit found *The Theory of
+  // Data — A Foundations Note* v1.1 to be a PRE-v5 ONTOLOGY carrying three
+  // claims v6.1 refuses, not rephrases: three anchors per column (V/M/B) against §3.4's "a measure
+  // has one current anchor"; analytical identity located in the column against §3.2's ex-ante family
+  // signature; and `measure family` defined AS an aggregation law rather than as the identity-bearing
+  // object. It names no ToD version and its only forward pointer is `pip install columna`.
+  // (Its DOI is deliberately NOT written here. This file is class `derived`, which means it carries
+  // zero literal DOIs and reads every one from the registry; G7 failed closed on a first draft of
+  // this very comment, which is the invariant working. The workId is the address.)
+  //
+  // Rendered here, it appeared on /about and /llms.txt on the line directly above `The Theory of Data
+  // — v6.1`, under a nearly identical name and with no historical framing — so a reader or a
+  // retrieval system was handed the governing theory and a superseded ontology as equal current
+  // publications. THE REGISTRY IS NOT WRONG AND IS NOT TOUCHED: the Work stands, both Records stand,
+  // v1.1 remains `current` for its own chain, and nothing is marked superseded without a successor.
+  // What was wrong is the SELECTION, which is the editorial half of this file and the only half that
+  // can express "historically real, not current theory."
+  //
+  // THE ARCHITECTURE FACT THIS EXPOSES, recorded rather than repaired here: this list has exactly one
+  // lever — present or absent — and it is doing two jobs. "Registry-current record" is modelled
+  // precisely, by `status` on the Record. "Movement-current recommended publication" is modelled
+  // NOWHERE, so membership in a curated array is the only way to say it, and absence is the only way
+  // to deny it. A work that is a first-class historical record but not current theory has no way to
+  // appear as what it is. Dropping it is therefore the smallest TRUE repair available, not the
+  // right one: the right one is a representation this file does not yet have.
   'w-theory-of-data',
   'w-analytical-governance',
 ];
