@@ -106,6 +106,26 @@ jobs:
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
 
+      # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
+      # extension of it: that one answers "equation or price" about `$`, and overloading it with
+      # unrelated delimiters would blur the thing it exists to state precisely. The ToD Introduction
+      # v2.2 deposit writes its display equations as `\[ … \]` (21 of them) and its inline math as
+      # `\( … \)` (9), so the site must render THOSE bytes — support lives in
+      # src/lib/remarkDisplayMathBrackets.mjs and src/lib/remarkInlineMathBrackets.mjs. ONE gate for
+      # the one notation family: they share a corpus, a route and a failure mode, and two files would
+      # mean two inventories of the same corpus and two readings of the same dist/.
+      #
+      # Failure is silent in both directions (lost support printed `Edge contract (\Gamma(e))` on a
+      # live page for four editions; over-eager support would eat an ordinary `[` alone on a line, or
+      # mistake an escaped backslash `\\(` for an opener), so both directions are checked.
+      #
+      # IT RUNS AFTER THE BUILD, unlike its sibling, because its third and strongest section reads
+      # dist/ — every block AND span rendered, counts derived from the source bytes, no delimiter or
+      # LaTeX command leaked into visible text, no katex-error, and `family\_id` still a literal
+      # underscore rather than a subscript.
+      - name: Bracket math (`\[ … \]` and `\( … \)`) — constructs, corpus fidelity, built HTML
+        run: node scripts/check_bracket_math.mjs
+
       # ── PREVIEW DEPLOYMENT (preflight, 2026-08-19) ──────────────────────────────────────────────
       # A reviewable URL for the redesign, built from the PR tree. It reuses THIS job's
       # branch-coherent inputs — the same editable branch packages, the same four generators, the
@@ -358,6 +378,26 @@ jobs:
       # before a deploy can carry a link to a fragment that does not exist.
       - name: Internal-fragment integrity (fails closed)
         run: node scripts/check_fragments.mjs
+
+      # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
+      # extension of it: that one answers "equation or price" about `$`, and overloading it with
+      # unrelated delimiters would blur the thing it exists to state precisely. The ToD Introduction
+      # v2.2 deposit writes its display equations as `\[ … \]` (21 of them) and its inline math as
+      # `\( … \)` (9), so the site must render THOSE bytes — support lives in
+      # src/lib/remarkDisplayMathBrackets.mjs and src/lib/remarkInlineMathBrackets.mjs. ONE gate for
+      # the one notation family: they share a corpus, a route and a failure mode, and two files would
+      # mean two inventories of the same corpus and two readings of the same dist/.
+      #
+      # Failure is silent in both directions (lost support printed `Edge contract (\Gamma(e))` on a
+      # live page for four editions; over-eager support would eat an ordinary `[` alone on a line, or
+      # mistake an escaped backslash `\\(` for an opener), so both directions are checked.
+      #
+      # IT RUNS AFTER THE BUILD, unlike its sibling, because its third and strongest section reads
+      # dist/ — every block AND span rendered, counts derived from the source bytes, no delimiter or
+      # LaTeX command leaked into visible text, no katex-error, and `family\_id` still a literal
+      # underscore rather than a subscript.
+      - name: Bracket math (`\[ … \]` and `\( … \)`) — constructs, corpus fidelity, built HTML
+        run: node scripts/check_bracket_math.mjs
 
       - name: Deploy to Vercel (production, prebuilt)
         if: ${{ env.VERCEL_TOKEN != '' }}

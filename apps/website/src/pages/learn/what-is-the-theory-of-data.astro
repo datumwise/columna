@@ -1,20 +1,42 @@
 ---
-// /learn/what-is-the-theory-of-data — hosts the v1.1 source (measure migration, 2026-08-03), kept
-// BYTE-CONSISTENT with the Zenodo record: the markdown is byte-identical to the delivered/deposited
-// file. Title + subtitle come from the file's front-matter; the record's own DOI (21774630 — the
-// version chain covers v1.1) and the vocabulary-move note are page chrome rendered here, so nothing
-// is injected into the hosted markdown. Supersedes the v1 source swept out in this pass.
+// /learn/what-is-the-theory-of-data — hosts the deposited **v2.2** source (2026-08-19), byte-identical
+// to the Zenodo record: sha256 8a23ffa8…63aecc, md5 d41dbe4b…7038, 28,411 bytes, verified by
+// downloading zenodo.org/api/records/22018598's own .md and running cmp — not by trusting a filename.
+// Title and subtitle come from the deposit's front-matter; the edition block below is page CHROME, so
+// nothing is injected into the hosted markdown.
+//
+// RE-EDITIONED v1.1 → v2.2 (Huayin's ruling, 2026-08-23, Repair Unit 2). The registry's current record
+// for `w-tod-introduction` had been .r05 (v2.2) since 2026-08-19 while this route went on rendering
+// .r02 (v1.1) — four deposits behind. Same shape as the two Frame-QL /learn repoints: same URL, new
+// edition, superseded editions retained on disk and unimported. v1.1 stays in content/corpus with its
+// own consumer row.
+//
+// THE v4-ERA CHROME IS REMOVED, NOT PRESERVED. The old page carried a dated 2026-08-03 note explaining
+// that ToD v4.0 replaced `atom` with `measure`, and a description promising "the bridge to the
+// canonical Version 4.0". Both were migration scaffolding built to carry a reader from the v1.1 bytes
+// to the theory state of the day. The bytes moved and the theory moved twice more; scaffolding that
+// bridges two superseded states is not a historical record worth keeping on a live page, and it taught
+// `member` and `series` — vocabulary v6.1 retires and Frame-QL owns respectively. Historical facts
+// inside the deposited bytes are untouched; only page-authored chrome changed.
+//
+// REGISTER (house rule v0.3 §4.3). The deposited body is educational and stays plain. Exactly one
+// typed block — "This edition" — carries the adjudicable facts: version, date, DOI, byte-fidelity, and
+// the status of earlier editions. The wayfinding line is orientation and stays plain.
+//
+// The deposit's LaTeX uses \[ … \] display delimiters rather than $$ … $$ — see the edition note in
+// the PR; the site's remark-math pipeline is configured for $$ display math.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content, frontmatter } from '../../content/corpus/theory_of_data_an_introduction_v1_1.md';
-const DOI = '10.5281/zenodo.21774630';
+import { Content, frontmatter } from '../../content/corpus/theory_of_data_an_introduction_v2_2.md';
+const DOI = '10.5281/zenodo.22018598';
+const EDITION = 'Version 2.2 · 19 August 2026';
 ---
 <BaseLayout title="What is the Theory of Data? — datumwise"
-  description="The accessible introduction to the Theory of Data — datums, measures and their members (governed series), frames, the Manifold, lawful transformation, and certification. The bridge to the canonical Version 4.0.">
+  description="The systematic introduction to the Theory of Data — datums, universes, anchors, measure families and their measures, lawful transformation, and what makes an analytical result checkable.">
   <div class="page-head">
     <p class="kicker"><a href="/learn">Learn</a></p>
     <h1 class="serif">{frontmatter.title}</h1>
     <p class="lede">{frontmatter.subtitle}</p>
-    <p class="doi mono"><a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
+    <p class="doi mono">{EDITION} · <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">doi.org/{DOI}</a></p>
   </div>
 
   <article class="prose">
@@ -22,13 +44,17 @@ const DOI = '10.5281/zenodo.21774630';
   </article>
 
   <p class="evidence-note">
-    <strong>Note, 2026-08-03.</strong> The theory's vocabulary moved again, and this time the move
-    retired a word. <em>The Theory of Data</em>, Version 4.0
-    (<a href="https://doi.org/10.5281/zenodo.21774032" rel="noopener" target="_blank">10.5281/zenodo.21774032</a>)
-    replaces <em>atom</em> with <strong>measure</strong> — the governed family — because the old word
-    named smallestness while the object is a family with laws. A column realizes a <strong>member</strong>:
-    a governed <strong>series</strong>. The account is unchanged; a family is constituted by its law,
-    and so, it turns out, is a vocabulary.
+    <strong>This edition.</strong> This page reproduces <em>The Theory of Data: An Introduction</em>,
+    <strong>Version 2.2</strong>, published <strong>19 August 2026</strong>,
+    DOI <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">{DOI}</a>, byte for byte from
+    the deposit. It replaces the Version 1.1 edition previously served at this URL. Earlier editions —
+    v1.0, v1.1, v1.2, v2.0 — remain historical records in the publication registry.
+  </p>
+
+  <p class="engage wayfinding">
+    Shorter first: <em>A Primer on the Theory of Data</em>, v2.2 ·
+    The foundation itself: <em>The Theory of Data</em>, v6.1 ·
+    How the language uses it: <a href="/learn/frameql-an-introduction">Frame-QL: An Introduction</a>.
   </p>
 </BaseLayout>
 
@@ -42,4 +68,6 @@ const DOI = '10.5281/zenodo.21774630';
   .doi a { color: var(--ink-faint); }
   .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
     border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+  .engage { width: min(100% - 3rem, var(--measure)); margin: 1.5rem auto 0;
+    font-size: 0.92rem; color: var(--ink-soft); }
 </style>
