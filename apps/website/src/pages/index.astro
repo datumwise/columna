@@ -20,20 +20,38 @@ import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
 const shortDate = (iso: string) =>
   new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
-// §5 is an ORDERED PATH, not a flat list (Huayin's first-read ruling): the same six items sequenced
-// as the ladder a convinced reader actually climbs. The position is rung one and carries the same
-// "start here" mark as the entrance block above, so the two agree. This is also what fixes
-// /the-argument's reachability STRUCTURALLY — it is rung four, reached by readers who have already
-// been convinced, which is who it was written for.
+// §5 is an ORDERED PATH, not a flat list (Huayin's first-read ruling): the items sequenced as the
+// ladder a reader actually climbs, opened by an UNNUMBERED entrance that carries the "start here"
+// mark. This is also what fixes /the-argument's reachability STRUCTURALLY — it is reached by readers
+// who have already been convinced, which is who it was written for.
+//
+// THE ENTRANCE MOVED (Huayin, 2026-08-24, Homepage Mission Step 2). Repair Unit 4 landed
+// /start-here as the site's cold-reader surface, and the ruling is that /start-here now owns the
+// public "start here" role outright. So the mark moves off the position piece and onto the route
+// that earned it; the position stays on the ladder, as a position, because only its ROLE changed.
+// Two surfaces claiming "start here" was the contradiction this repairs.
+//
+// NO PUBLICATION FACT IS AUTHORED HERE. The Afternoon is a local teaching artifact with no DOI, no
+// Zenodo record, and no version this page may assert (see start-here.astro and learn.astro) — so the
+// entrance names the artifact and what it does for the reader, and nothing else. index.astro is a
+// `derived` surface under G7 and is NOT enrolled in the currency stamps, which means a typed version
+// string here would be caught by nobody: do not add one.
 const DIRECTORY = [
-  { title: 'Never Let Your Agent Touch the Database', href: '/positions/never-let-your-agent-touch-the-database', mark: 'start here',
+  { title: 'The Theory of Data in One Afternoon', href: '/start-here', mark: 'start here',
+    blurb: 'the whole idea in one sitting, from a cold start — the failures you have already debugged, the world they imply, and the queries that fall out of them. No prior reading needed.' },
+  { title: 'Never Let Your Agent Touch the Database', href: '/positions/never-let-your-agent-touch-the-database',
     blurb: 'the position: why the model should never hold your database credentials, and what to put between them.' },
   { title: 'Run the demo', href: '/install', blurb: 'install, and a clarify, a refuse, and a disclose print on your machine as wire JSON.' },
   { title: 'Read the case', href: '/case', blurb: 'a complete worked example: a realistic warehouse, the Manifold that serves it, and recorded agent transcripts.' },
   { title: 'Learn the framework', href: '/learn', blurb: 'what Columna, FrameQL, and a Manifold are; the three manuals; the live Explorer.' },
   { title: 'Read the argument', href: '/the-argument', blurb: 'the eight-minute case for why this exists, with two live exhibits.' },
   { title: 'Positions', href: '/positions', blurb: 'every stance we hold, with its evidence and its paper edition.' },
-  { title: 'The research corpus', href: '/research', blurb: 'from the failure atlas to the proved kernel: every paper, one map, every claim one click from its DOI.' },
+  // CORRECTED (Huayin, 2026-08-24, Homepage Mission Step 2). This blurb used to promise "every paper,
+  // one map, every claim one click from its DOI" — a running-index claim. Repair Unit 3 made the
+  // page's real contract visible: /research is a PRESERVED SNAPSHOT, deliberately frozen, and the
+  // authority for current publication records is /about. The old wording outlived the repair by one
+  // route and nothing gated it. Plain language, no DOI, no version, no count (G7 and G10).
+  { title: 'The research corpus', href: '/research', blurb: 'the research entrance: a preserved map of the corpus, from the failure atlas to the proved kernel. It is a snapshot, not a running index — About carries the current publication records.' },
 ];
 ---
 <BaseLayout
@@ -96,8 +114,14 @@ const DIRECTORY = [
       {DIRECTORY.map((d, i) => (
         <li class={d.mark ? 'dir-item dir-entrance' : 'dir-item'}>
           {/* The ENTRANCE is deliberately UNNUMBERED (Huayin's numbering ruling (b)): it carries only
-              "start here", so it reads as distinct from the path it opens — and the five rungs that
-              follow number 1–5, which puts the argument at rung 4 exactly as the ruling says. */}
+              "start here", so it reads as distinct from the path it opens.
+              NOTE, 2026-08-24: the entrance is now /start-here and the position it displaced became a
+              numbered rung, so the ladder runs 1–7 and /the-argument sits at rung 5 where it used to
+              sit at rung 4. Numbering ruling (b) fixed the entrance's UNNUMBERED-ness, which still
+              holds; it also observed the argument's rung, which has shifted by one. Flagged for
+              review rather than silently re-ordered — holding the argument at 4 would mean moving the
+              position piece down the ladder, which is a structural edit this unit is not authorized
+              to make. */}
           <span class="dir-rung mono">{d.mark ? '' : i}</span>
           <div class="dir-body">
             <a class="dir-title" href={d.href}>{d.title}</a>

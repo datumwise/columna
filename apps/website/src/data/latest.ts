@@ -141,9 +141,34 @@ export const LATEST: LatestItem[] = [
     href: 'https://github.com/datumwise/columna/releases',
     external: true,
   },
+  // ── The two public-root surfaces from the repair sequence (Huayin, 2026-08-24, Homepage Mission
+  // Step 2). Both landed on 2026-08-24 and neither was represented anywhere on the homepage.
+  //
+  // THE `kind` LABELS ARE LOAD-BEARING. Every other row on this rail is `paper`, `papers`, `position`,
+  // `release`, or `ledger`. Neither of these is a publication and neither may be dressed as one: the
+  // Afternoon is a local teaching artifact with NO Zenodo work, record, concept, or DOI, and none is
+  // minted for it, so it gets `teaching` and is linked by route rather than by DOI. Known issues is
+  // the maintained public defect record, so it reuses the existing `ledger` label — the same word the
+  // open-forks row carries — which states its role without promoting it to an entrance.
+  //
+  // Deliberately NOT here: any version string, edition, or count. This rail's only data-driven field
+  // is the release version, and these two rows are curated navigation like every other non-release row.
+  {
+    kind: 'teaching',
+    title: 'The Theory of Data in One Afternoon — the cold-reader on-ramp',
+    date: '2026-08-24',
+    href: '/start-here',
+  },
+  {
+    kind: 'ledger',
+    title: 'Known issues — the public technical record',
+    date: '2026-08-24',
+    href: '/known-issues',
+  },
   {
     // Theory of Data V4.0 — the terminology revision that this whole site pass migrates to.
-    // Newest entry (2026-08-03), above the vision-suite line.
+    // Newest PAPER (2026-08-03), above the vision-suite line; the two 08-24 site surfaces above it
+    // are not publications.
     kind: 'paper',
     title: 'The Theory of Data — Version 4.0, the terminology revision',
     date: '2026-08-03',
