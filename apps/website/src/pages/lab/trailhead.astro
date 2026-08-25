@@ -1,44 +1,37 @@
 ---
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
-// HOMEPAGE LABORATORY — "Editorial Trailhead"  (design experiment, 2026-08-25)
+// HOMEPAGE LABORATORY — VERSION A: "Editorial Trailhead"  (design experiment, 2026-08-25)
 //
-// WHAT THIS IS. An isolated prototype testing one hypothesis: that datumwise's front page should
-// behave like an editorial trailhead — a curated set of things worth discovering — rather than a
-// diagram of the institution. It is NOT the homepage, NOT linked from navigation, and excluded from
-// the sitemap. The production homepage is untouched.
+// THE HYPOTHESIS UNDER TEST. One dominant attraction, plus a few much smaller glimpses of other
+// terrain. Its job: *there is a lot of unusual intellectual terrain here — start somewhere
+// interesting.* Compare against /lab/exhibit, which tests the opposite bet.
 //
-// THE COMPOSITION, AND WHY IT IS SHAPED LIKE THIS.
-// The brief's real danger is three disguised cards: removing the pillar labels does not remove the
-// pillar grid. The defence is not restraint, it is ASYMMETRY — of size, form, register, and dwell
-// time. So this page is a SEQUENCE with one dominant story and four unequal encounters after it:
+// NOT the homepage, NOT linked from navigation, excluded from the sitemap. Production untouched.
 //
-//   1. THE LEAD (huge, interactive, ~2 min)  — you pick a denominator and discover your answer has
-//      rivals of equal standing. One gesture, one aha. This is the only place the page asks for real
-//      participation, and it is deliberately the first thing, before any vocabulary.
-//   2. A MARGINAL QUESTION (tiny, ~20 sec)   — Evidence, as a strange small joke at a border post.
-//   3. THE MACHINE (dark, interrupting)      — the paper register breaks and real generated wire
-//      appears. Small: ONE governed refusal, not a four-mood exhibit.
-//   4. A DIALOGUE (medium, quiet)            — Intelligence, as an exchange with nothing to run yet.
-//   5. THE SHELF (calm, serious)             — one publication, properly, plus the doors.
-//   6. THE LANDSCAPE (small, late)           — the only place the three questions are named.
+// v2 CHANGES (Huayin, 2026-08-25):
+//  · THE LEAD IS SEMANTICALLY REPAIRED. The first cut said three ratios were equally legitimate
+//    answers. Two of them were not answers at all. See the long note above READINGS.
+//  · The Intelligence dialogue is CUT. With the synthesis gone its payoff went with it, and a fourth
+//    small object after the lead was starting to smell like the grid this composition exists to
+//    avoid. A's range claim now rests on three genuinely different KINDS of object — a data puzzle,
+//    a philosophical joke, and a working machine — rather than on covering three topics.
+//  · The publication shelf is CUT. A homepage does not need a research section; it needs sources
+//    where they are earned. The serious source now sits directly under the attraction that provokes
+//    it, and the Research door in the nav carries anyone who wants the library.
+//  · The explicit "you were in three different places" synthesis is CUT, down to one light line that
+//    names no architecture. Cornerstone revelations should accumulate until a reader finds the rhyme
+//    themselves.
+//  · The "what is worth seeing today" dateline is CUT. That phrasing promised an editorial cadence
+//    nobody has committed to; a standing exhibit that changes when something better earns the spot
+//    is the honest posture, and the wording should not quietly sign us up to a content treadmill.
 //
-// Nothing here is a card, and no two objects share a container, a rhythm, or a type scale.
+// NO-JS. Everything works with JavaScript off; the lead is `<input type=radio>` + `:checked ~`. This
+// page ships zero JavaScript of its own.
 //
-// WHAT HOLDS IT TOGETHER, given all that: one editorial voice that visibly SELECTS ("what is worth
-// seeing today"), one paper ground broken exactly once, and one throughline — every object on this
-// page is about the gap between a number being correct and a number being usable.
-//
-// NO-JS. Everything works with JavaScript off. The lead is `<input type=radio>` + `:checked ~`; the
-// rest is static composition. This page ships zero JavaScript of its own.
-//
-// HONESTY CONSTRAINTS.
-//  · The machine block renders GENERATED wire via lib/exhibitA.ts, which re-adjudicates at build
-//    time and throws if the shipped package stopped behaving that way. No hand-typed wire.
-//  · Evidence and Intelligence have NO executable surface and are presented as paper only. Neither
-//    block implies a runtime, and the Intelligence one says outright that nothing runs yet.
-//  · Every publication fact derives from data/publications.ts. Zero literal Zenodo tokens here.
-//  · The lead's arithmetic is a worked teaching scenario, fully shown so a reader can check it — not
-//    a claim about the engine, and it does not pretend to be output.
+// HONESTY. The machine block renders GENERATED wire via lib/exhibitA.ts, which re-adjudicates at
+// build time and throws if the shipped package stopped behaving that way. The publication fact
+// derives from data/publications.ts — zero literal Zenodo tokens here. The lead's arithmetic is a
+// worked scenario shown in full so a reader can check every number.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { citation } from '../../data/publications';
@@ -46,54 +39,89 @@ import { CASES, PROVENANCE } from '../../lib/exhibitA';
 
 const theory = citation('w-theory-of-data');
 
-// ONE governed refusal, from the generated transcript. Not the four-mood exhibit — a single
-// encounter, because the editorial point is "the machine can decline", not "here is our feature".
 const refusal = CASES.find((c) => c.mood === 'refuse');
 if (!refusal) throw new Error('trailhead: the generated transcript carries no refuse case');
 
-// THE LEAD'S SCENARIO. The arithmetic is shown in full on the page so the reader can check every
-// number; nothing is asserted that the visible figures do not support.
-//   52 shops on the roster · 3 shut for refurbishment → 49 open · 8 of those had a dead till feed
-//   → 41 reported · 6 of the reporting shops sold an umbrella.
+// ── THE LEAD'S SCENARIO, AND THE SEMANTIC REPAIR ───────────────────────────────────────────────
+// 52 shops on the roster · 3 shut for refurbishment → 49 open · 8 of those had a dead till feed
+// → 41 reported · 6 of the REPORTING shops reported an umbrella sale.
+//
+// THE FIRST CUT WAS WRONG and it is worth writing down why, because the wrong version was more
+// comfortable. It offered 6/41, 6/49 and 6/52 as three equally legitimate answers to "what fraction
+// of shops sold an umbrella". Only the first is an answer to anything. 6/41 is EXACT — but its
+// population is "shops that were reporting", which is not a population anyone means. For the other
+// two, six is a KNOWN FLOOR and not the numerator: the eight silent shops did not report zero, they
+// reported nothing, and their sales status is unknown. So the honest output for those populations
+// is an interval — between 6 and 14 shops — not a number.
+//
+// The repaired reveal is therefore much better than "all three are legitimate": the visitor believes
+// they are choosing a denominator, and discovers they do not possess the numerator they assumed.
+// One precise answer to a question nobody asked, and two brackets sixteen points wide.
+const KNOWN = 6;
+const MAYBE = 14;               // 6 known + up to 8 unknown
+const pct = (n: number, d: number) => (100 * n / d).toFixed(1);
+
 const READINGS = [
-  { k: 'reported', d: 41, label: 'shops that reported that day', pct: '14.6' },
-  { k: 'open',     d: 49, label: 'shops open for business',      pct: '12.2' },
-  { k: 'roster',   d: 52, label: 'every shop on the roster',     pct: '11.5' },
+  {
+    k: 'reported',
+    d: 41,
+    label: 'shops that reported that day',
+    exact: true,
+    lo: pct(KNOWN, 41),
+    hi: pct(KNOWN, 41),
+    verdict: 'exact — and about a population nobody means',
+  },
+  {
+    k: 'open',
+    d: 49,
+    label: 'shops open for business',
+    exact: false,
+    lo: pct(KNOWN, 49),
+    hi: pct(MAYBE, 49),
+    verdict: 'somewhere in here. Arithmetic cannot narrow it.',
+  },
+  {
+    k: 'roster',
+    d: 52,
+    label: 'every shop on the roster',
+    exact: false,
+    lo: pct(KNOWN, 52),
+    hi: pct(MAYBE, 52),
+    verdict: 'somewhere in here, and you cannot narrow this one either.',
+  },
 ];
 ---
 
 <BaseLayout
-  title="Trailhead — a homepage laboratory"
-  description="A laboratory prototype: what if the front page were a curated set of things worth discovering rather than a diagram of the institution?"
+  title="Trailhead — homepage laboratory A"
+  description="A laboratory prototype: what if the front page were a few things worth discovering rather than a diagram of the institution?"
   wide={true}
   chip={false}
 >
 
-  {/* ── DATELINE ─────────────────────────────────────────────────────────────────────────────── */}
-  {/* Not a hero. A dateline — the editorial promise that someone CHOSE these things, which is the
-      whole hypothesis. It is also where the experiment declares itself. */}
-  <header class="dateline">
-    <p class="dl-l mono">datumwise · laboratory prototype · not the homepage</p>
-    <p class="dl-r mono">what is worth seeing today</p>
+  {/* ── EDGE ─────────────────────────────────────────────────────────────────────────────────── */}
+  {/* A plain experimental marker, not a masthead. The right-hand slot used to promise "what is worth
+      seeing today", which committed us to a cadence; it now says what this actually is. */}
+  <header class="edge">
+    <p class="edge-l mono">datumwise · homepage laboratory · version A</p>
+    <p class="edge-r mono">editorial trailhead</p>
   </header>
 
   {/* ── 1 · THE LEAD ─────────────────────────────────────────────────────────────────────────── */}
-  {/* The dominant story. No vocabulary, no institution, no pillars — a question anyone who has ever
-      computed a percentage can answer, and an answer that turns out to have rivals. */}
   <section class="lead" aria-labelledby="lead-h">
-    <p class="kicker mono">the thing worth seeing today</p>
+    <p class="kicker mono">an ordinary question about umbrellas</p>
     <h1 id="lead-h" class="lead-h">
       Six shops sold an umbrella.<br />What fraction of your shops is that?
     </h1>
 
     <div class="scene">
       <p class="scene-p">
-        A region of <strong>52 shops</strong>, last Tuesday. Three were shut for refurbishment.
-        Of the 49 that were open, eight had a dead till feed and reported nothing at all. Of the
-        41 that did report, <strong>six</strong> sold at least one umbrella.
+        A region of <strong>52 shops</strong>, last Tuesday. Three were shut for refurbishment. Of
+        the 49 that were open, eight had a dead till feed and sent nothing at all. Of the 41 that did
+        report, <strong>six</strong> reported selling an umbrella.
       </p>
       <p class="scene-p scene-ask">
-        Everything above is true and undisputed. Pick your denominator.
+        Nothing above is in dispute. The only thing left to decide is what you divide by.
       </p>
     </div>
 
@@ -110,49 +138,75 @@ const READINGS = [
           </>
         ))}
 
-        {/* Revealed by any commitment. The point is not your number — it is that the other two
-            arrive beside it at the same size, and none of them is a mistake.
-            IT LIVES INSIDE THE FIELDSET DELIBERATELY: `~` only reaches SIBLINGS, and the first cut
-            had the inputs in the fieldset and this block outside it, so the reveal silently never
-            fired while the selected option still highlighted — the most convincing kind of broken. */}
+        {/* The reveal. It lives INSIDE the fieldset because `~` only reaches siblings — the first cut
+            had it outside and the reveal silently never fired while the picked option still
+            highlighted, which is the most convincing kind of broken.
+            The argument is carried by SHAPE: one cell holds a number, two hold a bracket. You cannot
+            look at the row and think you were choosing between three answers. */}
         <div class="verdict" role="note">
-        <p class="v-cap mono">all three, at the same size, because that is the situation</p>
-        <ol class="v-row">
-          {READINGS.map((r) => (
-            <li class="v-cell" data-k={r.k}>
-              <span class="v-pct">{r.pct}<span class="v-sign">%</span></span>
-              <span class="v-frac mono">6 ÷ {r.d}</span>
-              <span class="v-lab">{r.label}</span>
-              <span class="v-mine mono">← the one you picked</span>
-            </li>
-          ))}
-        </ol>
-        <p class="v-after">
-          Not one of these is an error. Each answers a slightly different question, every one of them
-          is a question somebody in the building genuinely means, and nothing in the data says which
-          one was asked. Two of them will be in the same deck by Thursday.
-        </p>
-        <p class="v-after v-sting">
-          And the numerator is worse. Six is what the reporting shops reported. The eight silent
-          shops did not sell zero umbrellas — they said <em>nothing</em>, which is a different thing
-          that arithmetic cannot tell apart from zero. <strong>Six is a floor, not a count.</strong>
-        </p>
+          <p class="v-cap mono">what each choice actually gets you</p>
+
+          <ol class="v-row">
+            {READINGS.map((r) => (
+              <li class={r.exact ? 'v-cell v-exact' : 'v-cell v-band'} data-k={r.k}>
+                <span class="v-mine mono">the one you picked</span>
+                {r.exact ? (
+                  <span class="v-fig">{r.lo}<span class="v-sign">%</span></span>
+                ) : (
+                  <span class="v-fig">
+                    {r.lo}<span class="v-sign">%</span>
+                    <span class="v-dash" aria-hidden="true">–</span>
+                    <span class="v-hi">{r.hi}<span class="v-sign">%</span></span>
+                  </span>
+                )}
+                <span class="v-bar" aria-hidden="true"></span>
+                <span class="v-lab">of {r.label}</span>
+                <span class="v-verdict">{r.verdict}</span>
+              </li>
+            ))}
+          </ol>
+
+          <p class="v-after v-sting">
+            You thought you were picking a denominator. Two of those three came back as a bracket,
+            because <strong>you do not have the numerator you assumed you had.</strong>
+          </p>
+          <p class="v-after">
+            Six is what the <em>reporting</em> shops reported. The eight silent shops did not report
+            zero umbrellas — they reported nothing, and nothing is not a number. Any of them might
+            have sold one. So for every population larger than “the shops that were working”, six is
+            a floor, and the truth is somewhere in a band sixteen points wide.
+          </p>
+          <p class="v-after">
+            The one exact answer is exact about <em>shops that happened to be reporting</em>, which is
+            a population that exists only because a till broke. Nobody has ever wanted to know that.
+          </p>
+          <p class="v-after v-final">
+            Arithmetic will not tell you which of these you are holding. It will happily do the
+            division either way, and silence will quietly arrive as a zero.
+          </p>
+
+          {/* The serious source, attached to the attraction that earned it — not a shelf. */}
+          <div class="source">
+            <p class="src-cap mono">the full account of what a population is, and when a number exists</p>
+            <a class="src-title" href={theory.href}>{theory.label}</a>
+            <span class="src-meta mono">{theory.versionTag ? `${theory.versionTag} · ` : ''}{theory.date} · with proofs</span>
+          </div>
+
           <p class="v-exit">
-            There is a four-minute walk that starts one step earlier than this — at a single number
-            with nothing attached to it at all. <a href="/park/when-is-it-data">When is it data?</a>
+            Or start one step earlier, at a single number with nothing attached to it at all —
+            <a href="/park/when-is-it-data">a four-minute walk</a>.
           </p>
         </div>
       </fieldset>
     </form>
   </section>
 
-  {/* ── 2 · THE MARGINAL QUESTION ────────────────────────────────────────────────────────────── */}
-  {/* Evidence, deliberately TINY. The page's second object is one-twentieth the size of its first,
-      which is the strongest single defence against the three-card layout. It is also a joke, and the
-      joke is the actual open problem. It stays paper: nothing here implies a runtime, because for
-      Evidence there is not one. */}
+  {/* ── 2 · A SMALL UNRELATED CURIOSITY ──────────────────────────────────────────────────────── */}
+  {/* Deliberately about a twentieth the size of the lead, and deliberately about something else
+      entirely. This is where the anti-grid defence really lives: an object this small cannot be read
+      as one third of a scheme. */}
   <aside class="margin-note" aria-labelledby="mn-h">
-    <p class="mn-stamp mono">a small question we keep having</p>
+    <p class="mn-stamp mono">unrelated, and we keep coming back to it</p>
     <h2 id="mn-h" class="mn-h">Probability: purpose of visit?</h2>
     <p class="mn-p">
       It arrives at the border with the confident air of something that belongs everywhere. Asked to
@@ -170,11 +224,9 @@ const READINGS = [
   </aside>
 
   {/* ── 3 · THE MACHINE ──────────────────────────────────────────────────────────────────────── */}
-  {/* The one place the paper register breaks. It is an INTERRUPTION, not a product section: a single
-      real refusal, generated by running the shipped package at build time, encountered the way you
-      would encounter a working instrument in a room full of arguments.
-      It is deliberately NOT the four-mood exhibit. The editorial claim is "something here can say
-      no", and four tabs would turn that into a feature tour. */}
+  {/* The one break in the paper ground, and the third KIND of object rather than the third topic.
+      It follows the umbrella problem for a reason the page never states out loud: up there,
+      arithmetic did the division anyway. Down here, something declines. */}
   <section class="machine ds ds-wire ds-crossing" aria-labelledby="mach-h">
     <div class="mach-in">
       <p class="mach-kick mono">an interruption</p>
@@ -210,119 +262,43 @@ const READINGS = [
         — produced by running the shipped package at build time, not written by hand
       </p>
       <p class="mach-after">
-        Refusing is not the software failing. It is the only honest thing left when the question has
-        no lawful answer, and it is startlingly hard to buy.
+        Refusing is not the software failing. It is the only honest thing left when a question has no
+        lawful answer — and it is startlingly hard to buy.
+        <a class="mach-more" href="/columna">What this is</a>
       </p>
     </div>
   </section>
 
-  {/* ── 4 · THE DIALOGUE ─────────────────────────────────────────────────────────────────────── */}
-  {/* Intelligence: the youngest ground, and the form admits it. A dialogue rather than an exhibit,
-      because there is nothing to exhibit — and saying so plainly is more interesting than dressing
-      an open research question as a capability. */}
-  <section class="dialogue" aria-labelledby="dlg-h">
-    <p class="dlg-kick mono">overheard, roughly</p>
-    <h2 id="dlg-h" class="dlg-h">It passed every test. Now what?</h2>
-
-    <dl class="script">
-      <dt class="who mono">the model</dt>
-      <dd class="says">The number is correct. I checked it four ways.</dd>
-
-      <dt class="who mono">the analyst</dt>
-      <dd class="says">I believe you.</dd>
-
-      <dt class="who mono">the model</dt>
-      <dd class="says">So I have gone ahead and repriced the region.</dd>
-
-      <dt class="who mono">the analyst</dt>
-      <dd class="says">You have done <em>what</em>?</dd>
-    </dl>
-
-    <p class="dlg-after">
-      Nothing in that exchange was a mistake about arithmetic. Being right is a claim about the world.
-      Being allowed is a claim about who decided, on what authority, and whether anyone could have
-      stopped it. A correct answer carries no permission with it, and we have no good habit — legal,
-      technical, or social — for saying where the second thing comes from.
-    </p>
-    <p class="dlg-frontier mono">
-      This is the newest ground here and the least built. There is no runtime behind this paragraph,
-      and we would rather say so than draw you a diagram of one.
-    </p>
-  </section>
-
-  {/* ── 5 · THE SHELF ────────────────────────────────────────────────────────────────────────── */}
-  {/* The calm serious moment. ONE publication, given properly — not a row of citation cards — plus
-      the standing doors, so a researcher, architect or engineer can leave for the real material at
-      any point without completing a single playful thing. Every fact derived. */}
-  <section class="shelf" aria-labelledby="shelf-h">
-    <p class="shelf-kick mono">behind all of this</p>
-    <h2 id="shelf-h" class="shelf-h">There are full arguments, with proofs.</h2>
-    <p class="shelf-lede">
-      The walks are on-ramps. They are deliberately smaller than the work, and they simplify in
-      places a serious reader will want undone.
-    </p>
-
-    <div class="feature">
-      <a class="feat-title" href={theory.href}>{theory.label}</a>
-      <p class="feat-meta mono">
-        {theory.versionTag ? `${theory.versionTag} · ` : ''}{theory.date} · deposited
-      </p>
-      <p class="feat-blurb">
-        The foundation: what an analytical object is, where quantities live, which combinations are
-        lawful, and why a growing fragment of it is machine-checked rather than asserted.
-      </p>
-    </div>
-
-    <ul class="doors">
-      <li><a href="/research">The research corpus</a><span>every paper, one preserved map</span></li>
-      <li><a href="/analytical-governance">Analytical Governance</a><span>the serving and authority boundary</span></li>
-      <li><a href="/columna">Columna</a><span>the machine, and what it actually does</span></li>
-      <li><a href="/case">The Case</a><span>one warehouse, worked end to end</span></li>
-    </ul>
-  </section>
-
-  {/* ── 6 · THE LANDSCAPE ────────────────────────────────────────────────────────────────────── */}
-  {/* The ONLY place the three questions are named, and the last thing on the page. It is small on
-      purpose: after four encounters the reader has the terrain, and the sentence only has to point
-      at what they already walked. If it opened the page it would be a taxonomy to memorise. Here it
-      is a recognition. */}
-  <section class="landscape" aria-labelledby="land-h">
-    <hr class="land-rule" />
-    <h2 id="land-h" class="land-h">You were in three different places just now.</h2>
-    <p class="land-p">
-      The umbrellas were an argument about <em>what a number is about</em>. The traveller at the
-      border was an argument about <em>what a number supports</em>. The repriced region was an
-      argument about <em>what may then be done</em>. They look like one subject from a distance and
-      they come apart the moment you need any of them to hold.
-    </p>
-    <p class="land-p land-quiet">
-      Being right about the first buys you nothing about the second, and being right about both buys
-      you nothing about the third. Most of the damage happens in the two gaps.
-    </p>
-    <p class="land-foot mono">
-      That is the whole map, and it is the last thing on this page rather than the first on purpose.
+  {/* ── 4 · THE LIGHT CLOSE ──────────────────────────────────────────────────────────────────── */}
+  {/* What is left of the synthesis. It names no architecture, no three questions, and no discipline.
+      The bet is that a reader who has met a broken till, a traveller with three stories, and a
+      machine that declines will feel the rhyme without being handed it — and that a reader who does
+      not feel it would not have been convinced by a diagram either. */}
+  <section class="close">
+    <hr class="close-rule" />
+    <p class="close-line">
+      These problems are farther apart than they look. They also rhyme more than they should.
     </p>
   </section>
 
   <style>
     /* ─────────────────────────────────────────────────────────────────────────────────────────
-       LABORATORY STYLES, scoped to this page. They borrow the site's TOKENS (paper, ink, rules,
-       wire ramp, fonts) and none of its components — the experiment is precisely about whether
-       objects may differ, so a shared component costume would decide the question in advance.
-       Six objects, six rhythms, six measures, no repeated container.
+       VERSION A. Borrows the site's TOKENS and none of its components: the experiment is precisely
+       about whether objects may differ, so a shared component costume would decide the question in
+       advance. Three objects, three measures, three rhythms, no repeated container.
        ───────────────────────────────────────────────────────────────────────────────────────── */
     .mono { font-family: var(--font-mono); }
 
-    /* ── dateline ──────────────────────────────────────────────────────────────────────────── */
-    .dateline {
+    /* ── edge ──────────────────────────────────────────────────────────────────────────────── */
+    .edge {
       display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
       width: min(100% - 3rem, 68rem); margin: 2.5rem auto 0; padding-bottom: 0.7rem;
       border-bottom: 1px solid var(--ink);
       font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
     }
-    .dl-r { color: var(--ink); }
+    .edge-r { color: var(--ink); }
 
-    /* ── 1 · the lead — the page's only wide, loud object ──────────────────────────────────── */
+    /* ── 1 · the lead ──────────────────────────────────────────────────────────────────────── */
     .lead { width: min(100% - 3rem, 60rem); margin-inline: auto; padding-block: clamp(3rem, 2rem + 5vw, 6rem) 0; }
     .kicker { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 1.5rem; }
     .lead-h {
@@ -335,12 +311,8 @@ const READINGS = [
     .scene-ask { color: var(--ink-soft); }
 
     .ballot { margin-top: 2.5rem; }
-    .ballot fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 0; }
-    .b-in {
-      position: absolute; width: 1px; height: 1px; margin: -1px;
-      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
-    }
-    /* Ballot lines, not buttons and not the park's list: a number, a rule, a description. */
+    .ballot fieldset { border: 0; padding: 0; margin: 0; }
+    .b-in { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .b-opt {
       display: grid; grid-template-columns: 5rem minmax(0, 1fr); align-items: baseline; gap: 1.25rem;
       border-top: 1px solid var(--rule); padding: 1.1rem 0; cursor: pointer;
@@ -355,24 +327,30 @@ const READINGS = [
     .b-in:checked + .b-opt .b-n { color: var(--ink); font-weight: 600; }
     .b-in:focus-visible + .b-opt { outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 3px; }
 
-    /* Closed until you commit — and closed to assistive tech too, not merely clipped, or the answer
-       is announced before the question has been answered. */
+    /* Closed to eyes AND to assistive tech until a commitment is made — clipping alone would let a
+       screen reader read the answer out before the question had been answered. */
     .verdict {
       max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
       transition: max-height 0.5s ease, opacity 0.4s ease;
     }
-    .b-in:checked ~ .verdict {
-      max-height: 80rem; opacity: 1; visibility: visible; margin-top: 2.5rem;
-    }
-    .v-cap { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 1.25rem; }
-    .v-row { list-style: none; margin: 0 0 2rem; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .v-cell { display: grid; gap: 0.3rem; border-top: 2px solid var(--rule-strong); padding-top: 0.9rem; }
-    .v-pct { font-family: var(--font-serif); font-size: clamp(2rem, 1.4rem + 2.4vw, 3.2rem); line-height: 1; }
-    .v-sign { font-size: 0.45em; margin-left: 0.1em; color: var(--ink-soft); }
-    .v-frac { font-size: 0.76rem; color: var(--ink-soft); }
-    .v-lab { font-size: 0.9rem; line-height: 1.4; color: var(--ink-soft); }
-    /* The marker for YOUR pick — set by the sibling radios, one rule each. */
-    .v-mine { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); visibility: hidden; }
+    .b-in:checked ~ .verdict { max-height: 140rem; opacity: 1; visibility: visible; margin-top: 2.5rem; }
+    .v-cap { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 1.5rem; }
+
+    .v-row { list-style: none; margin: 0 0 2.25rem; padding: 0; display: grid; gap: 1.75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .v-cell { display: grid; gap: 0.35rem; align-content: start; border-top: 2px solid var(--rule-strong); padding-top: 0.9rem; }
+    .v-mine { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); visibility: hidden; margin-bottom: 0.1rem; }
+    .v-fig { font-family: var(--font-serif); font-size: clamp(1.5rem, 1.05rem + 1.7vw, 2.3rem); line-height: 1.05; }
+    .v-sign { font-size: 0.45em; margin-left: 0.08em; color: var(--ink-soft); }
+    .v-dash { margin: 0 0.18em; color: var(--ink-soft); }
+    /* THE ARGUMENT IS THE SHAPE. An exact cell gets a single tick; a bracket gets a span you can see
+       is wide. Nobody looking at this row can believe they were choosing between three answers. */
+    .v-bar { height: 3px; background: var(--rule-strong); margin: 0.5rem 0 0.35rem; }
+    .v-exact .v-bar { width: 3px; background: var(--ink); }
+    .v-band .v-bar { width: 100%; background: linear-gradient(90deg, var(--ink) 0 6%, var(--rule-strong) 6% 100%); }
+    .v-lab { font-size: 0.86rem; line-height: 1.4; color: var(--ink-soft); }
+    .v-verdict { font-size: 0.86rem; line-height: 1.45; }
+    .v-exact .v-verdict { color: var(--ink-soft); }
+
     #d-reported:checked ~ .verdict .v-cell[data-k='reported'],
     #d-open:checked     ~ .verdict .v-cell[data-k='open'],
     #d-roster:checked   ~ .verdict .v-cell[data-k='roster'] { border-top-color: var(--ink); }
@@ -382,9 +360,15 @@ const READINGS = [
 
     .v-after { max-width: 34rem; font-size: 1.02rem; line-height: 1.62; margin: 0 0 1.1rem; }
     .v-sting { border-left: 2px solid var(--ink); padding-left: 1rem; }
-    .v-exit { max-width: 34rem; font-size: 0.95rem; line-height: 1.55; color: var(--ink-soft); margin: 1.75rem 0 0; }
+    .v-final { color: var(--ink-soft); }
 
-    /* ── 2 · the marginal question — one twentieth the size of the lead ────────────────────── */
+    .source { max-width: 34rem; border-top: 1px solid var(--rule); padding-top: 1.1rem; margin-top: 2rem; display: grid; gap: 0.25rem; }
+    .src-cap { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+    .src-title { font-family: var(--font-serif); font-size: 1.2rem; }
+    .src-meta { font-size: 0.72rem; color: var(--ink-soft); }
+    .v-exit { max-width: 34rem; font-size: 0.95rem; line-height: 1.55; color: var(--ink-soft); margin: 1.5rem 0 0; }
+
+    /* ── 2 · the small curiosity ───────────────────────────────────────────────────────────── */
     .margin-note {
       width: min(100% - 3rem, 60rem); margin-inline: auto;
       padding-block: clamp(4rem, 3rem + 6vw, 8rem);
@@ -396,76 +380,38 @@ const READINGS = [
     .mn-p { font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 0.85rem; }
     .mn-more { font-size: 0.85rem; margin: 0.5rem 0 0; }
 
-    /* ── 3 · the machine — the one break in the paper ground ───────────────────────────────── */
+    /* ── 3 · the machine ───────────────────────────────────────────────────────────────────── */
     .machine { background: var(--wire-bg); color: var(--wire-ink); padding-block: clamp(3.5rem, 2.5rem + 5vw, 6rem); }
     .mach-in { width: min(100% - 3rem, 46rem); margin-inline: auto; }
     .mach-kick { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--wire-ink-soft); margin: 0 0 1.25rem; }
     .mach-h { font-family: var(--font-serif); font-size: clamp(1.8rem, 1.3rem + 2.2vw, 2.8rem); line-height: 1.15; margin: 0 0 0.5rem; }
     .mach-sub { font-size: 1.05rem; line-height: 1.55; color: var(--wire-ink-soft); margin: 0 0 2.5rem; max-width: 32rem; }
-
     .wire { border-top: 1px solid var(--wire-rule); padding-top: 1.5rem; display: grid; gap: 0.4rem; }
     .wire-lab { font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--wire-ink-soft); margin: 1rem 0 0.3rem; }
     .wire-lab:first-child { margin-top: 0; }
-    .wire-req {
-      font-size: 0.95rem; margin: 0; color: var(--wire-key); background: var(--wire-panel);
-      padding: 0.8rem 1rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
-    }
-    .wire-verdict {
-      font-size: 1.5rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 0;
-      color: var(--ds-accent-wire, #c9a86a);
-    }
+    .wire-req { font-size: 0.95rem; margin: 0; color: var(--wire-key); background: var(--wire-panel); padding: 0.8rem 1rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+    .wire-verdict { font-size: 1.5rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 0; color: var(--ds-accent-wire, #c9a86a); }
     .wire-code { font-size: 0.8rem; color: var(--wire-string); margin: 0.9rem 0 0.25rem; }
     .wire-detail { font-size: 0.95rem; line-height: 1.55; margin: 0; color: var(--wire-ink); }
     .wire-offers { margin: 0.4rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
     .wire-offers li { font-size: 0.9rem; line-height: 1.5; color: var(--wire-ink-soft); }
     .mach-prov { font-size: 0.68rem; line-height: 1.6; color: var(--wire-ink-soft); margin: 2rem 0 0; border-top: 1px solid var(--wire-rule); padding-top: 0.9rem; }
     .mach-after { font-size: 1.02rem; line-height: 1.6; margin: 1.75rem 0 0; max-width: 32rem; }
+    .mach-more { margin-left: 0.5rem; white-space: nowrap; }
+    .machine a { color: var(--ds-accent-wire, #c9a86a); }
 
-    /* ── 4 · the dialogue ──────────────────────────────────────────────────────────────────── */
-    .dialogue { width: min(100% - 3rem, 40rem); margin-inline: auto; padding-block: clamp(3.5rem, 2.5rem + 5vw, 7rem); }
-    .dlg-kick { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.9rem; }
-    .dlg-h { font-family: var(--font-serif); font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.3rem); line-height: 1.2; margin: 0 0 2rem; }
-    .script { margin: 0 0 2rem; display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 0.85rem 1.25rem; }
-    .who { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding-top: 0.32rem; }
-    .says { margin: 0; font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.45; }
-    .dlg-after { font-size: 1rem; line-height: 1.65; margin: 0 0 1.25rem; }
-    .dlg-frontier { font-size: 0.8rem; line-height: 1.6; color: var(--ink-soft); border-left: 2px solid var(--rule-strong); padding-left: 0.9rem; margin: 0; }
-
-    /* ── 5 · the shelf ─────────────────────────────────────────────────────────────────────── */
-    .shelf { width: min(100% - 3rem, 52rem); margin-inline: auto; padding-block: clamp(3rem, 2rem + 4vw, 5.5rem); }
-    .shelf-kick { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.9rem; }
-    .shelf-h { font-family: var(--font-serif); font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem); line-height: 1.2; margin: 0 0 0.9rem; }
-    .shelf-lede { font-size: 1rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 2.25rem; max-width: 34rem; }
-    .feature { border-top: 2px solid var(--ink); padding-top: 1.25rem; margin-bottom: 2.5rem; max-width: 34rem; }
-    .feat-title { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.2; }
-    .feat-meta { font-size: 0.72rem; color: var(--ink-soft); margin: 0.45rem 0 0.8rem; }
-    .feat-blurb { font-size: 0.98rem; line-height: 1.6; color: var(--ink-soft); margin: 0; }
-    .doors { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
-    .doors li { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1rem; align-items: baseline; border-top: 1px solid var(--rule); padding-top: 0.75rem; }
-    .doors a { font-size: 1rem; }
-    .doors span { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.4; }
-
-    /* ── 6 · the landscape ─────────────────────────────────────────────────────────────────── */
-    .landscape { width: min(100% - 3rem, 40rem); margin-inline: auto; padding-block: 0 clamp(4rem, 3rem + 6vw, 8rem); }
-    .land-rule { border: 0; border-top: 1px solid var(--rule-strong); margin: 0 0 2.5rem; }
-    .land-h { font-family: var(--font-serif); font-size: clamp(1.4rem, 1.15rem + 1.2vw, 1.85rem); line-height: 1.25; margin: 0 0 1.25rem; }
-    .land-p { font-size: 1rem; line-height: 1.65; margin: 0 0 1rem; }
-    .land-quiet { color: var(--ink-soft); }
-    .land-foot { font-size: 0.72rem; line-height: 1.6; color: var(--ink-soft); margin: 1.5rem 0 0; border-top: 1px solid var(--rule); padding-top: 0.9rem; }
+    /* ── 4 · the light close ───────────────────────────────────────────────────────────────── */
+    .close { width: min(100% - 3rem, 40rem); margin-inline: auto; padding-block: clamp(3.5rem, 2.5rem + 5vw, 7rem); }
+    .close-rule { border: 0; border-top: 1px solid var(--rule-strong); margin: 0 0 2rem; }
+    .close-line { font-family: var(--font-serif); font-size: clamp(1.15rem, 1rem + 0.9vw, 1.5rem); line-height: 1.45; margin: 0; }
 
     /* ── narrow ────────────────────────────────────────────────────────────────────────────── */
     @media (max-width: 46rem) {
-      .v-row { grid-template-columns: 1fr; gap: 1.75rem; }
+      .v-row { grid-template-columns: 1fr; gap: 2rem; }
       .margin-note { justify-items: start; }
-      .script { grid-template-columns: 1fr; gap: 0.2rem 0; }
-      .who { padding-top: 0.9rem; }
-      .doors li { grid-template-columns: 1fr; gap: 0.2rem; }
       .b-opt { grid-template-columns: 3.5rem minmax(0, 1fr); gap: 0.9rem; }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .verdict { transition: none; }
-    }
+    @media (prefers-reduced-motion: reduce) { .verdict { transition: none; } }
   </style>
 
 </BaseLayout>

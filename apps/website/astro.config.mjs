@@ -74,6 +74,7 @@ export default defineConfig({
       // route is a prototype of the FRONT PAGE. A crawler finding a second, unlinked homepage is a
       // genuine harm, not just noise. Unlinked from navigation and kept out of the sitemap.
       'https://datumwise.ai/lab/trailhead/',
+      'https://datumwise.ai/lab/exhibit/',
     ].includes(page),
   })],
   // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static

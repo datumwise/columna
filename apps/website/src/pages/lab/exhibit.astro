@@ -1,0 +1,299 @@
+---
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// HOMEPAGE LABORATORY — VERSION B: "Standing Exhibit"  (design experiment, 2026-08-25)
+//
+// THE HYPOTHESIS UNDER TEST. One excellent encounter is enough to earn the next click. No range,
+// no teasers, no synthesis, no proof that other terrain exists — just one problem given as much
+// room, pacing and silence as it wants. Compare against /lab/trailhead, which bets the opposite.
+//
+// NOT A MINUS TWO SECTIONS. That was the explicit trap in the brief and it would have made the
+// comparison worthless, so this is a different COMPOSITION of the same material:
+//
+//   A is an ARTICLE — a measured column, left-aligned, one screen of dense setup, an interaction,
+//     a dense payoff, then smaller objects beside it. You read A.
+//   B is a ROOM — centred, one movement per screenful, near-empty stretches between beats, the
+//     figures at display scale rather than body scale. You walk through B.
+//
+// Every sentence here is re-authored. Nothing is copy-pasted from A, because "the same words at a
+// bigger size" is not a second hypothesis.
+//
+// WHAT I DELIBERATELY LEFT OUT, and why it is a real choice rather than laziness:
+//  · No machine interruption. It is the best object on A and it would have improved this page — and
+//    including it would have destroyed the experiment, because B's whole claim is that ONE encounter
+//    suffices. If B wins with the machine in it, we learn nothing about the claim.
+//  · No Evidence or Intelligence glimpse. Same reason.
+//  · No synthesis. There is nothing to synthesise: one thing happened.
+//
+// NO-JS. The commitment is `<input type=radio>` + `:checked ~`. Zero JavaScript of its own.
+// Not the homepage, not linked, excluded from the sitemap, production untouched.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { citation } from '../../data/publications';
+
+const theory = citation('w-theory-of-data');
+
+// Same governed arithmetic as version A, same repair. 52 on the roster · 3 shut → 49 open · 8 dead
+// till feeds → 41 reporting · 6 of the reporting shops reported a sale. Six is a FLOOR for every
+// population wider than "the shops that were working", because silence is not zero.
+const pct = (n: number, d: number) => (100 * n / d).toFixed(1);
+const CHOICES = [
+  { k: 'reported', d: 41, name: 'the shops that were reporting', exact: true,  lo: pct(6, 41), hi: pct(6, 41) },
+  { k: 'open',     d: 49, name: 'the shops that were open',      exact: false, lo: pct(6, 49), hi: pct(14, 49) },
+  { k: 'roster',   d: 52, name: 'every shop you have',           exact: false, lo: pct(6, 52), hi: pct(14, 52) },
+];
+---
+
+<BaseLayout
+  title="A question about umbrellas — homepage laboratory B"
+  description="One encounter, at full strength. A laboratory prototype of a front page that shows one thing and trusts it."
+  wide={true}
+  chip={false}
+>
+
+  {/* A single quiet marker. No masthead, no dateline, no promise of cadence. */}
+  <p class="mark mono">datumwise · homepage laboratory · version B</p>
+
+  {/* ── MOVEMENT I · THE ROOM ────────────────────────────────────────────────────────────────── */}
+  {/* Almost nothing on the first screenful. B's first move is to slow you down, which is the entire
+      difference between a room and an article. */}
+  <section class="mv mv-open" aria-labelledby="open-h">
+    <h1 id="open-h" class="open-h">Last Tuesday it rained.</h1>
+    <p class="open-p">
+      You have fifty-two shops. Somebody is going to ask you, before lunch, what fraction of them
+      sold an umbrella.
+    </p>
+    <p class="open-p open-quiet">
+      It is a completely ordinary question. Take a moment with it anyway.
+    </p>
+  </section>
+
+  {/* ── MOVEMENT II · THE FACTS ──────────────────────────────────────────────────────────────── */}
+  {/* The scenario as a small stack of plain facts, each on its own line with air around it. In A the
+      same content is one dense paragraph; here it is an inventory you can hold in your hand. */}
+  <section class="mv mv-facts" aria-labelledby="facts-h">
+    <h2 id="facts-h" class="facts-h">What you actually have</h2>
+    <dl class="facts">
+      <div><dt class="mono">52</dt><dd>shops on the roster</dd></div>
+      <div><dt class="mono">3</dt><dd>shut for refurbishment — nothing was ever going to be sold there</dd></div>
+      <div><dt class="mono">49</dt><dd>open for business</dd></div>
+      <div><dt class="mono">8</dt><dd>of those open shops had a dead till feed and sent you nothing at all</dd></div>
+      <div><dt class="mono">41</dt><dd>shops whose day you can actually see</dd></div>
+      <div class="f-hi"><dt class="mono">6</dt><dd>of those forty-one reported selling an umbrella</dd></div>
+    </dl>
+    <p class="facts-note">None of this is disputed. Everyone in the room agrees on every line.</p>
+  </section>
+
+  {/* ── MOVEMENT III · THE QUESTION ──────────────────────────────────────────────────────────── */}
+  <section class="mv mv-q" aria-labelledby="q-h">
+    <h2 id="q-h" class="q-h">So: six out of what?</h2>
+    <p class="q-p">
+      There is only one decision left in the whole problem. Make it.
+    </p>
+
+    <form class="pick">
+      <fieldset>
+        <legend class="visually-hidden">Choose the population you mean</legend>
+        {CHOICES.map((c) => (
+          <>
+            <input class="p-in" type="radio" name="pop" id={`p-${c.k}`} />
+            <label class="p-opt" for={`p-${c.k}`}>
+              <span class="p-n mono">{c.d}</span>
+              <span class="p-name">{c.name}</span>
+            </label>
+          </>
+        ))}
+
+        {/* ── MOVEMENT IV · WHAT CAME BACK ─────────────────────────────────────────────────── */}
+        {/* At display scale, one per screenful-ish, because the shape of the answer IS the answer.
+            Inside the fieldset because `~` only reaches siblings. */}
+        <div class="answer" role="note">
+          <p class="a-cap mono">what came back</p>
+
+          {CHOICES.map((c) => (
+            <div class={c.exact ? 'a-row a-exact' : 'a-row a-band'} data-k={c.k}>
+              <p class="a-you mono">this was your choice</p>
+              <p class="a-fig">
+                {c.lo}<span class="a-sign">%</span>
+                {!c.exact && (<><span class="a-to">to</span>{c.hi}<span class="a-sign">%</span></>)}
+              </p>
+              <div class="a-scale" aria-hidden="true"><span class="a-known"></span></div>
+              <p class="a-of">of {c.name}</p>
+              <p class="a-say">
+                {c.exact
+                  ? 'A single number, and a true one. It describes the shops whose tills happened to be working — a population that exists because eight machines broke.'
+                  : 'Not a number. A range sixteen points wide, and nothing in the data can narrow it.'}
+              </p>
+            </div>
+          ))}
+
+          {/* ── MOVEMENT V · THE SILENCE ──────────────────────────────────────────────────── */}
+          <div class="silence">
+            <p class="s-big">Silence is not zero.</p>
+            <p class="s-p">
+              The eight shops you cannot see did not tell you they sold nothing. They did not tell you
+              anything. Any number of them, up to all eight, may have sold an umbrella — so the true
+              count is somewhere between six and fourteen, and six is only where it starts.
+            </p>
+            <p class="s-p">
+              You were choosing a denominator. That was never the hard part. The hard part is that for
+              two of those three choices <strong>you do not possess the numerator</strong>, and you
+              were about to divide anyway.
+            </p>
+            <p class="s-p s-last">
+              Arithmetic will not stop you. It cannot see the difference between a shop that sold
+              nothing and a shop that said nothing, so it will quietly treat the second as the first
+              and hand you a number with two decimal places.
+            </p>
+          </div>
+
+          {/* ── MOVEMENT VI · THE WAY ON ─────────────────────────────────────────────────── */}
+          <div class="onward">
+            <p class="on-cap mono">if that landed</p>
+            <p class="on-lede">
+              There is a shorter, stranger version of this problem that starts one step further back —
+              at a single number, on a plinth, with nothing attached to it at all.
+            </p>
+            <p class="on-walk"><a href="/park/when-is-it-data">When is it data? — a four-minute walk</a></p>
+
+            <div class="on-src">
+              <p class="src-cap mono">and the full account, with proofs</p>
+              <a class="src-title" href={theory.href}>{theory.label}</a>
+              <span class="src-meta mono">{theory.versionTag ? `${theory.versionTag} · ` : ''}{theory.date}</span>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </section>
+
+  {/* ── THE FAINTEST POSSIBLE HINT OF MORE TERRITORY ─────────────────────────────────────────── */}
+  {/* One line, no links of its own — the nav above already carries anyone who wants the institution.
+      It exists only so the page does not read as though umbrellas are the whole subject. */}
+  <p class="territory">
+    This is one problem out of several, and not the hardest.
+  </p>
+
+  <style>
+    /* ─────────────────────────────────────────────────────────────────────────────────────────
+       VERSION B. Centred, display-scale, one movement per screenful. Deliberately NOT A's
+       typography: A is set as an article at reading measure; B is set as a room at exhibition
+       measure. Same tokens, different instrument.
+       ───────────────────────────────────────────────────────────────────────────────────────── */
+    .mono { font-family: var(--font-mono); }
+
+    .mark {
+      width: min(100% - 3rem, 46rem); margin: 2rem auto 0;
+      font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
+    }
+
+    /* The room's rhythm: every movement gets real vertical silence. This is the single biggest
+       compositional difference from A, and it is doing the work — B is mostly empty. */
+    .mv {
+      width: min(100% - 3rem, 46rem); margin-inline: auto; text-align: center;
+      padding-block: clamp(4.5rem, 3rem + 9vw, 11rem);
+    }
+    .mv-open { padding-top: clamp(5rem, 3rem + 11vw, 13rem); }
+
+    /* ── I · the room ──────────────────────────────────────────────────────────────────────── */
+    .open-h {
+      font-family: var(--font-serif);
+      font-size: clamp(2.6rem, 1.4rem + 5.6vw, 5.5rem);
+      line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 2.5rem;
+    }
+    .open-p { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem); line-height: 1.6; margin: 0 auto 1rem; max-width: 30rem; }
+    .open-quiet { color: var(--ink-soft); }
+
+    /* ── II · the facts ────────────────────────────────────────────────────────────────────── */
+    .facts-h { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 400; color: var(--ink-soft); margin: 0 0 2.5rem; letter-spacing: 0.01em; }
+    .facts { margin: 0 auto 2rem; max-width: 34rem; text-align: left; display: grid; gap: 0; }
+    .facts > div { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 1.25rem; align-items: baseline; border-top: 1px solid var(--rule); padding: 0.95rem 0; }
+    .facts > div:last-child { border-bottom: 1px solid var(--rule); }
+    .facts dt { font-size: 1.5rem; color: var(--ink-soft); text-align: right; }
+    .facts dd { margin: 0; font-size: 0.98rem; line-height: 1.45; }
+    .f-hi dt { color: var(--ink); font-weight: 600; }
+    .f-hi dd { font-weight: 500; }
+    .facts-note { font-size: 0.92rem; color: var(--ink-soft); margin: 0; }
+
+    /* ── III · the question ────────────────────────────────────────────────────────────────── */
+    .q-h { font-family: var(--font-serif); font-size: clamp(2rem, 1.3rem + 3.4vw, 3.6rem); line-height: 1.08; margin: 0 0 1.25rem; }
+    .q-p { font-size: 1.05rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 3rem; }
+
+    .pick fieldset { border: 0; padding: 0; margin: 0; }
+    .p-in { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    /* Big, centred, generously spaced — in A these are compact ballot lines. */
+    .p-opt {
+      display: block; cursor: pointer; padding: 1.4rem 1rem;
+      border-top: 1px solid var(--rule);
+      transition: background-color 0.15s ease;
+    }
+    .p-opt:last-of-type { border-bottom: 1px solid var(--rule); }
+    .p-n { display: block; font-size: clamp(2rem, 1.5rem + 2vw, 3rem); line-height: 1; color: var(--ink-soft); transition: color 0.15s ease; }
+    .p-name { display: block; font-size: 1rem; margin-top: 0.45rem; color: var(--ink); }
+    .p-opt:hover { background: var(--paper-raised); }
+    .p-opt:hover .p-n { color: var(--ink); }
+    .p-in:checked + .p-opt .p-n { color: var(--ink); }
+    .p-in:checked + .p-opt { background: var(--paper-raised); }
+    .p-in:focus-visible + .p-opt { outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 2px; }
+
+    /* ── IV · what came back ───────────────────────────────────────────────────────────────── */
+    .answer {
+      max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+      transition: max-height 0.6s ease, opacity 0.5s ease;
+    }
+    .p-in:checked ~ .answer { max-height: 220rem; opacity: 1; visibility: visible; margin-top: clamp(4rem, 3rem + 5vw, 7rem); }
+    .a-cap { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 3rem; }
+
+    /* One answer per screenful-ish. The vertical gap is the pacing device. */
+    .a-row { margin: 0 auto clamp(3.5rem, 2.5rem + 5vw, 6rem); max-width: 34rem; }
+    .a-you { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin: 0 0 0.6rem; visibility: hidden; }
+    .a-fig { font-family: var(--font-serif); font-size: clamp(3rem, 1.8rem + 5vw, 5.5rem); line-height: 1; margin: 0; letter-spacing: -0.02em; }
+    .a-sign { font-size: 0.4em; color: var(--ink-soft); margin-left: 0.06em; }
+    .a-to { font-size: 0.3em; color: var(--ink-soft); margin: 0 0.35em; letter-spacing: 0.08em; text-transform: uppercase; vertical-align: middle; }
+    /* The scale bar carries the argument physically: an exact answer is a tick, a bracket is a span
+       with the known floor marked at its left end. */
+    .a-scale { height: 4px; background: var(--rule); margin: 1.5rem auto 1rem; position: relative; }
+    .a-exact .a-scale { width: 4px; background: var(--ink); }
+    .a-band .a-scale { width: 100%; }
+    .a-band .a-known { position: absolute; left: 0; top: 0; bottom: 0; width: 6%; background: var(--ink); }
+    .a-of { font-size: 0.95rem; color: var(--ink-soft); margin: 0 0 0.7rem; }
+    .a-say { font-size: 0.98rem; line-height: 1.6; margin: 0; }
+    .a-exact .a-say { color: var(--ink-soft); }
+
+    #p-reported:checked ~ .answer .a-row[data-k='reported'] .a-you,
+    #p-open:checked     ~ .answer .a-row[data-k='open'] .a-you,
+    #p-roster:checked   ~ .answer .a-row[data-k='roster'] .a-you { visibility: visible; }
+
+    /* ── V · the silence ───────────────────────────────────────────────────────────────────── */
+    .silence { border-top: 1px solid var(--ink); padding-top: clamp(3rem, 2rem + 4vw, 5rem); margin-top: clamp(2rem, 1rem + 3vw, 4rem); }
+    .s-big {
+      font-family: var(--font-serif); font-size: clamp(2.2rem, 1.4rem + 3.6vw, 4rem);
+      line-height: 1.08; margin: 0 0 2.5rem; letter-spacing: -0.02em;
+    }
+    .s-p { max-width: 34rem; margin: 0 auto 1.2rem; font-size: 1.05rem; line-height: 1.65; text-align: left; }
+    .s-last { color: var(--ink-soft); }
+
+    /* ── VI · the way on ───────────────────────────────────────────────────────────────────── */
+    .onward { margin-top: clamp(4rem, 3rem + 5vw, 7rem); border-top: 1px solid var(--rule); padding-top: 2.5rem; }
+    .on-cap { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 1.25rem; }
+    .on-lede { max-width: 34rem; margin: 0 auto 1.5rem; font-size: 1.02rem; line-height: 1.62; }
+    .on-walk { margin: 0 0 2.5rem; font-family: var(--font-serif); font-size: 1.3rem; }
+    .on-src { max-width: 34rem; margin: 0 auto; border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid; gap: 0.25rem; text-align: left; }
+    .src-cap { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+    .src-title { font-family: var(--font-serif); font-size: 1.15rem; }
+    .src-meta { font-size: 0.72rem; color: var(--ink-soft); }
+
+    /* ── the hint ──────────────────────────────────────────────────────────────────────────── */
+    .territory {
+      width: min(100% - 3rem, 46rem); margin: 0 auto; text-align: center;
+      padding-block: 0 clamp(5rem, 4rem + 6vw, 9rem);
+      font-size: 0.9rem; color: var(--ink-soft);
+    }
+
+    @media (max-width: 46rem) {
+      .facts > div { grid-template-columns: 3.2rem minmax(0, 1fr); gap: 0.9rem; }
+      .facts dt { font-size: 1.25rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .answer { transition: none; } }
+  </style>
+
+</BaseLayout>
