@@ -65,6 +65,11 @@ export default defineConfig({
     filter: (page) => ![
       'https://datumwise.ai/notes/we-invented-nothing/',
       'https://datumwise.ai/launch/',
+      // PROTOTYPE ATTRACTION (2026-08-25). /park/* is a design experiment for Huayin + CG2 to judge,
+      // not a public surface: unlinked from every navigation, and kept out of the sitemap so it is
+      // not advertised to crawlers as part of the site's argument. If the park direction survives
+      // review this line is what gets deleted; if it does not, the route goes with it.
+      'https://datumwise.ai/park/when-is-it-data/',
     ].includes(page),
   })],
   // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static
