@@ -16,9 +16,9 @@
 // NO-JS IS THE BASELINE, NOT THE FALLBACK. Every reveal on the main path is `<input type="radio">`
 // or `<input type="checkbox">` plus a `:checked ~` sibling selector, and every fold is `<details>`.
 // The entire intellectual walk — every question, every answer, the whole demonstration, the sealed
-// plaque, the joke, the technical trail — works with JavaScript disabled and always has. The ONLY
-// script on this page reveals and wires the reaction demo, whose controls ship `hidden`, so a reader
-// without JS never meets a dead button.
+// plaque, the joke, the technical trail — works with JavaScript disabled. In v2 the reaction demo
+// was removed (it had proved its point and had become a feature being demonstrated rather than part
+// of the walk), and with it went the last script: THIS PAGE NOW SHIPS ZERO JAVASCRIPT OF ITS OWN.
 //
 // FIDELITY. The vocabulary at the end is the Afternoon's own, not invented for the occasion:
 // a universe is "a set of points plus the law that says when a point exists"; an anchor is a
@@ -150,6 +150,11 @@ const COLUMN = [
   </section>
 
   {/* ── 3 · THE SECOND BINDING ──────────────────────────────────────────────────────────────── */}
+  {/* CORRECTED IN v2 (CG2, 2026-08-25). The first cut pushed on the missing DATE and taught, by
+      accident, that a date token must literally appear before a datum is checkable. That is not the
+      rule. The rule is that the analytical point must be DETERMINATE under the governed context —
+      the time may be written, or the enclosing world may supply it. So the question is no longer
+      "where is the date"; it is "what point does the word John identify here". */}
   <section class="beat" aria-labelledby="b3-h">
     <p class="beat-num mono">two bindings later</p>
     <p class="statement">John's age = 42</p>
@@ -162,40 +167,54 @@ const COLUMN = [
         <input class="opt-in" type="radio" name="q3" id="q3a" />
         <label class="opt" for="q3a">Yes. It is about John, it has a value, it has a kind.</label>
         <p class="ans" role="note">
-          Then answer one more. Is it true?
+          Then one more question, and it is not the one you are expecting.
           <span class="ans-turn">
-            You cannot say. <strong>Age is not a property of a person.</strong> It is a property of a
-            person <em>at a time</em>. This sentence was false last year and will be false next year,
-            and it contains nothing that tells you which year it is claiming. It is not yet the kind
-            of thing that can be checked — and a thing that cannot be checked is not yet a fact.
+            <strong>What does “John” identify?</strong> Not <em>who</em> — what analytical point. A
+            person is not a point; a person <em>at a grain</em> is. John-on-the-day-we-asked and
+            John-in-the-2019-file are different points, and this sentence sits on a plinth in a park
+            with nothing around it to say which one it means.
           </span>
         </p>
 
         <input class="opt-in" type="radio" name="q3" id="q3b" />
-        <label class="opt" for="q3b">Still missing something.</label>
+        <label class="opt" for="q3b">Only if we also know when.</label>
         <p class="ans" role="note">
-          Yes — <strong>when</strong>. Age is not a property of a person; it is a property of a
-          person at a time. This sentence was false last year and will be false next year, and it
-          says nothing about which year it is claiming. Nothing here can be checked, so nothing here
-          is yet a fact.
+          Close, and worth being exact about, because the exact version is the whole rule.
+          <span class="ans-turn">
+            A date does not have to be <em>written</em>. It has to be <strong>determined</strong>. In
+            a payroll file with an as-of date on the cover, or a table whose every row is a snapshot
+            of one morning, the surrounding world fixes the point and nobody needs to repeat it per
+            row — that is what a governed context is <em>for</em>. What breaks a datum is not silence
+            about time. It is silence that leaves the point <em>undetermined</em>.
+          </span>
         </p>
 
         <input class="opt-in" type="radio" name="q3" id="q3c" />
         <label class="opt" for="q3c">Which John?</label>
         <p class="ans" role="note">
-          Good — you found the other one. Two gaps, then: <strong>which John</strong>, and
-          <strong>when</strong>. Both are the same kind of gap. Both are asking the same question:
-          <em>where in the world is this number pointing?</em>
+          Good — you reached for the same gap from the other side. “Which John” and “John when” are
+          not two problems. They are one question wearing two coats:
+          <strong>is the point determined, or are we each supplying our own?</strong>
         </p>
       </fieldset>
     </div>
+
+    <p class="beat-out">
+      Which is why the honest answer here is <em>it depends on what is around it</em> — and why a
+      number alone on a plinth, with nothing around it at all, is the one case where the answer is
+      always no.
+    </p>
   </section>
 
   {/* ── 4 · THE DEMONSTRATION ───────────────────────────────────────────────────────────────── */}
   {/* The aha. A physical object you operate, and operating it drains the authority out of a number
       that was perfectly well-formed a moment ago. The scale change is the argument: the SUM does not
       disappear (it is still arithmetically correct) — it SHRINKS, because what it lost was standing,
-      not correctness. */}
+      not correctness.
+      SHARPENED IN v2 (CG2): the rig was always teaching more than the copy named. The point is not
+      merely "storage forgot the labels" — it is that the physical representation can be preserved
+      PERFECTLY while analytical identity is absent or conflated. Nothing is corrupted. That is what
+      makes it frightening. */}
   <section class="rig" aria-labelledby="rig-h">
     <p class="rig-strip mono">the demonstration · operate the lever</p>
     <h2 id="rig-h" class="rig-h">Five stored values. One column. Add them up.</h2>
@@ -239,50 +258,32 @@ const COLUMN = [
     </div>
 
     <p class="rig-punch">
-      The computer never objected. It had nothing to object <em>with</em>.
+      Nothing here was corrupted. That is the part worth sitting with.
     </p>
     <p class="rig-after">
-      Storage held all five values perfectly. Storage held the type perfectly. Storage will hold the
-      210 perfectly, for years, and serve it to anyone who asks. What storage never held is the one
-      thing that made the sum meaningless — <strong>what each number was about</strong>. That was
-      never in the column. It was in your head, and it was in nobody else's.
+      Every digit survived. Every type survived. The column is exactly as sound as it looks, and it
+      would still be sound in ten years. What was never written down is the one thing that would have
+      told you these are <strong>five different quantities that happen to be spelled the same</strong>
+      — and so the machine did the only thing it could do with five numbers, which was add them.
+    </p>
+    <p class="rig-after">
+      That is the whole failure, and it is worth saying flatly: <strong>representation was kept
+      perfectly and identity was lost entirely.</strong> Nothing warns you, because from where the
+      software is standing, nothing went wrong.
     </p>
   </section>
 
-  {/* ── 5 · THE PLAIN NOTE ──────────────────────────────────────────────────────────────────── */}
-  {/* Different clothes, deliberately: no ornament, no reveal, no interaction. The rigorous line does
-      not perform. It is a flat note you could photocopy. */}
-  <section class="note-room" aria-labelledby="note-h">
-    <div class="tnote">
-      <p class="tnote-cap mono">the smallest serious formulation</p>
-      <h2 id="note-h" class="tnote-h">A datum is a typed value at an analytical point.</h2>
-      <dl class="tnote-dl">
-        <dt>typed</dt>
-        <dd>
-          what kind of thing the value is — and therefore what may lawfully be done to it. This is
-          the part <code class="mono">age = 42</code> supplied.
-        </dd>
-        <dt>at an analytical point</dt>
-        <dd>
-          what the value is about: which thing, in which world, at which grain. This is the part that
-          five identical 42s did not have, and the part that no storage layer can supply for you.
-        </dd>
-      </dl>
-      <p class="tnote-take">
-        A number is not data until you can say what it is about, and where in the world that is.
-        Storage does neither.
-      </p>
-    </div>
-  </section>
-
-  {/* ── 6 · THE FOLDED JOKE ─────────────────────────────────────────────────────────────────── */}
-  {/* A joke is folded because unfolding a joke is a choice. It is also load-bearing: Adams wrote the
-      best available gag about an unanchored datum, and saying so is a teaching move, not a gag. */}
+  {/* ── 5 · THE FOLDED JOKE ─────────────────────────────────────────────────────────────────── */}
+  {/* MOVED IN v2. It used to sit after the technical note, which made the page read as a row of
+      objects. It belongs HERE: row five of the rig is the Adams row, so the fold is a payoff the
+      reader has just been handed, not a bolted-on aside. A joke is folded because unfolding a joke
+      is a choice — and it is load-bearing, not decoration: Adams wrote the best available gag about
+      a value with no analytical point. */}
   <section class="aside-room" aria-labelledby="fold-h">
     <details class="fold" id="the-fold">
       <summary class="fold-tab">
         <span class="fold-tab-mark mono">fold out</span>
-        <span class="fold-tab-txt" id="fold-h">The joke you were probably already making</span>
+        <span class="fold-tab-txt" id="fold-h">About row five</span>
       </summary>
       <div class="fold-in">
         <p>
@@ -300,83 +301,89 @@ const COLUMN = [
           The sequel to that joke is that they then have to build a second, much larger computer to
           recover the question. Which is roughly what a data-governance project is.
         </p>
-        {/* The reaction demo. Authored HERE rather than built by script, for a reason worth writing
-            down: Astro scopes a component's <style> by stamping its elements at BUILD time, so
-            script-created nodes get none of it and render unstyled. The first cut did build these in
-            JS and they came out as raw mono text. Authoring the markup and letting the script only
-            UNHIDE and wire it keeps the styles scoped AND keeps the no-JS promise — `hidden` never
-            lifts without JS, so a reader without it sees the joke and no dead controls. */}
-        <div class="react" data-react hidden>
-          <p class="react-disc mono">
-            prototype — reactions are local to this tab, stored nowhere, and reset when you reload.
-            The counts below are a sample, not real visitors.
-          </p>
-          <div class="react-row">
-            <button class="react-btn" type="button" data-react-btn="think" aria-pressed="false">
-              <span class="react-glyph" aria-hidden="true">✳</span>
-              <span class="react-label">made me think</span>
-              <span class="react-n mono" data-react-n>3</span>
-            </button>
-            <button class="react-btn" type="button" data-react-btn="funny" aria-pressed="false">
-              <span class="react-glyph" aria-hidden="true">☺</span>
-              <span class="react-label">funny</span>
-              <span class="react-n mono" data-react-n>11</span>
-            </button>
-          </div>
-          <p class="react-sample">
-            <span class="react-sample-who mono">a visitor left a note</span>
-            “I have shipped a dashboard that summed a column exactly like this. It had a title and
-            everything.”
-          </p>
-        </div>
       </div>
     </details>
   </section>
 
+  {/* ── 6 · THE PLAIN NOTE ──────────────────────────────────────────────────────────────────── */}
+  {/* Different clothes, deliberately: no ornament, no reveal, no interaction. The rigorous line does
+      not perform. It is a flat note you could photocopy. */}
+  <section class="note-room" aria-labelledby="note-h">
+    <div class="tnote">
+      <p class="tnote-cap mono">the smallest serious formulation</p>
+      <h2 id="note-h" class="tnote-h">A datum is a typed value at an analytical point.</h2>
+      <dl class="tnote-dl">
+        <dt>typed</dt>
+        <dd>
+          what kind of thing the value is — and therefore what may lawfully be done to it. This is
+          the part <code class="mono">age = 42</code> supplied.
+        </dd>
+        <dt>at an analytical point</dt>
+        <dd>
+          which thing, in which world, at which grain. It does not have to be written on the value;
+          it has to be <em>determined</em> by the world the value sits in. This is the part five
+          identical 42s did not have, and the part no storage layer supplies for you.
+        </dd>
+      </dl>
+      <p class="tnote-take">
+        A number is not data until its point is determined — until what it is about, and where in the
+        world that is, are fixed by something other than the reader's assumption.
+      </p>
+    </div>
+  </section>
+
   {/* ── 7 · THE SEALED PLAQUE ───────────────────────────────────────────────────────────────── */}
-  {/* Heavy clothes for an unsettled question. This one is genuinely open, and it is labelled as
-      unsettled rather than dressed up as a lesson with a hidden answer. */}
+  {/* REPLACED IN v2 (CG2, 2026-08-25). The first cut sealed a question that ToD has in fact settled
+      — whether a point-less expression is a datum missing a part or not a datum — and then implied
+      the settlement was open. Manufacturing doctrinal uncertainty to make a nicer plaque is exactly
+      the kind of thing this site exists not to do.
+      The replacement is the MIRROR of the whole walk, which is why it earns the seal: every beat so
+      far has been a value with no point. This one is a point with no value. It is genuinely open,
+      and it opens toward existence / eligibility / support / zero without our having to build that
+      trail today. */}
   <section class="aside-room" aria-labelledby="seal-h">
     <details class="seal">
       <summary class="seal-tab">
-        <span class="seal-mark mono">sealed · a question we have not settled</span>
-        <span class="seal-txt" id="seal-h">Is <code class="mono">age = 42</code>, with nobody attached, a datum with a part missing — or not a datum at all?</span>
+        <span class="seal-mark mono">sealed · an open question, and we mean open</span>
+        <span class="seal-txt" id="seal-h">Turn it around. If the analytical point is perfectly determined and no value was ever observed — what exactly is missing?</span>
         <span class="seal-open mono">break the seal</span>
       </summary>
       <div class="seal-in">
         <p>
-          The two answers are not the same answer in different words, and choosing between them
-          changes what you build.
+          Everything up to here has been a value looking for a point. This is a point looking for a
+          value, and it is much harder.
         </p>
         <p>
-          <strong>A part missing.</strong> Then the point is an attribute — something a datum can
-          have more or less of, filled in later, defaulted, inferred. Data is a container and the
-          point is one of the fields. This is, roughly, what every database you have ever used
-          believes.
+          A shop that was open on Tuesday and sold nothing. A shop that was open and whose till
+          failed to report. A shop that was shut for refurbishment. A shop that does not exist. Four
+          situations, four different answers to “what is missing”, and a familiar record-model
+          instinct flattens all four into the same thing: <strong>no row</strong>. Or, if someone was
+          being helpful, into a zero — which is an answer, confidently given, to a question nobody
+          checked was askable.
         </p>
         <p>
-          <strong>Not a datum at all.</strong> Then the point is constitutive: no point, no datum,
-          the way there is no shadow without something to cast it. You cannot fill it in later
-          because there is no “it” to fill in — there is only a numeral that has not yet become
-          anything.
+          What makes this genuinely open is not the taxonomy. It is that “missing” turns out to be at
+          least three separable things — <em>the point does not exist</em>, <em>the point exists and
+          is not eligible</em>, <em>the point exists, is eligible, and was not observed</em> — and
+          the moment you separate them you have to say who is entitled to decide which one you are
+          looking at, and what an honest answer looks like in each case.
         </p>
         <p class="seal-note">
-          The Theory of Data takes the second road. That is why <em>universe</em>, <em>existence</em>
-          and <em>anchor</em> are load-bearing words in it rather than bookkeeping — and why a
-          declared world can contain an address that lawfully exists with no bytes behind it, which
-          is a sentence the first road cannot even form.
+          We have a position on this and it is not finished. It is the reason a declared world can
+          contain an address that lawfully exists with nothing behind it — a sentence that sounds
+          like a bug until the day it saves you.
         </p>
         <p class="seal-note">
-          What we have not settled is whether the first road is <em>wrong</em> or merely
-          <em>cheaper</em>. Ask us in a year.
+          It is also, if you want the honest version, the next thing we would build a walk about.
         </p>
       </div>
     </details>
   </section>
 
   {/* ── 8 · THE SERVICE CORRIDOR ────────────────────────────────────────────────────────────── */}
-  {/* The optional deeper trail. Quiet, unornamented, mono-labelled — it should read like walking
-      through the door marked STAFF and finding the machinery, not like a "learn more" card. */}
+  {/* The optional deeper trail. Quieter in v2 than v1: it used to carry its own boxed costume, which
+      made the page read as a catalogue of objects. Now it is a hairline and a mono label — the door
+      marked STAFF, not another exhibit. */}
   <section class="corridor" aria-labelledby="corr-h">
     <details class="corr">
       <summary class="corr-tab mono">
@@ -426,6 +433,7 @@ const COLUMN = [
     </details>
   </section>
 
+
   {/* ── 9 · THE EXIT ────────────────────────────────────────────────────────────────────────── */}
   {/* Deliberately the calmest object on the page and the only one in the site's own voice. The park
       is teaching; this is the corpus. It should feel like stepping outside. Every fact derived. */}
@@ -465,58 +473,6 @@ const COLUMN = [
     </p>
   </section>
 
-  <script>
-    // ── THE REACTION DEMO — prototype only, deliberately non-persistent ────────────────────────
-    //
-    // The brief asked for ONE local demonstration of the future park's reaction idea, so the room
-    // can feel it. This is that and nothing more: nothing is stored anywhere, the counts are a
-    // stated sample, and the markup says so where a reader will actually see it. Reload and it is
-    // gone.
-    //
-    // The controls are authored in the template and shipped `hidden`; this script only reveals and
-    // wires them. That keeps Astro's scoped styles (which never reach script-created nodes) AND the
-    // no-JS promise: without JS the block stays hidden, so nobody meets a dead button.
-    //
-    // The one idea actually being tested: a reaction should change how PRESENT an object is, not
-    // just increment a counter. So the fold gains a little weight as it lands. That is the park
-    // mechanic in miniature — popularity as physical presence — at a scale we can demo honestly
-    // without a backend, accounts, or moderation.
-    const box = document.querySelector('[data-react]');
-    const fold = document.getElementById('the-fold');
-    if (box instanceof HTMLElement && fold instanceof HTMLElement) {
-      box.hidden = false;
-      const counts = { think: 3, funny: 11 };
-      const mine = new Set();
-
-      const weigh = () => {
-        const total = counts.think + counts.funny;
-        fold.style.setProperty('--react-weight', String(Math.max(0, Math.min(1, (total - 14) / 10))));
-      };
-
-      for (const btn of box.querySelectorAll('[data-react-btn]')) {
-        if (!(btn instanceof HTMLElement)) continue;
-        const key = btn.dataset.reactBtn;
-        if (key !== 'think' && key !== 'funny') continue;
-        const n = btn.querySelector('[data-react-n]');
-        btn.addEventListener('click', () => {
-          if (mine.has(key)) {
-            mine.delete(key);
-            counts[key] -= 1;
-          } else {
-            mine.add(key);
-            counts[key] += 1;
-            btn.classList.remove('just');
-            void btn.offsetWidth;   // restart the animation on a repeat press
-            btn.classList.add('just');
-          }
-          btn.setAttribute('aria-pressed', String(mine.has(key)));
-          if (n) n.textContent = String(counts[key]);
-          weigh();
-        });
-      }
-      weigh();
-    }
-  </script>
 
   <style>
     /* ─────────────────────────────────────────────────────────────────────────────────────────
@@ -768,16 +724,9 @@ const COLUMN = [
     }
 
     /* ── the fold (a joke) ─────────────────────────────────────────────────────────────────── */
-    /* Presence responds to reaction: --react-weight (0…1) is set by the prototype script only. */
     .fold {
-      --react-weight: 0;
       border: 1px solid var(--rule-strong);
       background: var(--paper-raised);
-      /* The gain is deliberately small. Presence, not a trophy. */
-      box-shadow: 0 calc(2px + 6px * var(--react-weight)) calc(6px + 18px * var(--react-weight))
-        rgba(28, 27, 25, calc(0.04 + 0.07 * var(--react-weight)));
-      transform: scale(calc(1 + 0.012 * var(--react-weight)));
-      transition: box-shadow 0.5s ease, transform 0.5s ease;
     }
     .fold-tab {
       display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap;
@@ -794,35 +743,6 @@ const COLUMN = [
     .fold-in p { margin: 0; font-size: 0.99rem; line-height: 1.65; }
     .fold-kicker { color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 1rem; }
 
-    /* the reaction demo (script-built) */
-    .react { margin-top: 0.5rem; border-top: 1px dashed var(--rule-strong); padding-top: 1rem; display: grid; gap: 0.85rem; }
-    /* Specificity, not preference: `.fold-in p` above is (0,1,1) and would otherwise win over a
-       bare `.react-disc` (0,1,0) and render the disclaimer at body size. It did, once. */
-    .react .react-disc { font-size: 0.7rem; line-height: 1.5; color: var(--ink-soft); margin: 0; }
-    .react-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .react-btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      border: 1px solid var(--rule-strong); background: var(--paper);
-      padding: 0.4rem 0.75rem; cursor: pointer; font: inherit; font-size: 0.86rem;
-      color: var(--ink-soft);
-      transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-    }
-    .react-btn:hover { border-color: var(--ink); color: var(--ink); }
-    .react-btn[aria-pressed='true'] { border-color: var(--ink); color: var(--ink); background: var(--paper-raised); }
-    .react-btn:focus-visible { outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 2px; }
-    .react-glyph { font-size: 0.95rem; }
-    .react-n { font-size: 0.78rem; color: var(--ink-soft); }
-    .react-btn[aria-pressed='true'] .react-n { color: var(--ink-soft); }
-    .react-btn.just .react-glyph { animation: bump 0.4s ease; }
-    @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
-    .react .react-sample {
-      margin: 0; font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft);
-      border-left: 2px solid var(--rule-strong); padding-left: 0.85rem;
-    }
-    .react-sample-who {
-      display: block; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--ink-soft); margin-bottom: 0.3rem;
-    }
 
     /* ── the seal (an open question) ───────────────────────────────────────────────────────── */
     .seal { border: 2px solid var(--ink); background: var(--paper); }
@@ -848,6 +768,10 @@ const COLUMN = [
 
     /* ── the corridor (the deeper trail) ───────────────────────────────────────────────────── */
     .corr { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    /* v2: the corridor is the quietest object on the page by design — a hairline and a mono label,
+       the door marked STAFF rather than another exhibit. Its room also gets less air than the
+       exhibits, so a collapsed corridor does not open a canyon before the exit. */
+    .corridor { padding-block: clamp(2rem, 1.5rem + 2vw, 3rem); }
     .corr-tab {
       cursor: pointer; padding: 1rem 0; list-style: none;
       font-size: 0.85rem; color: var(--ink-soft);
@@ -899,8 +823,8 @@ const COLUMN = [
     /* tokens.css already kills durations globally; this removes the two TRANSFORMS as well, which a
        duration override alone would leave in place as an instant jump. */
     @media (prefers-reduced-motion: reduce) {
-      .fold { transform: none; }
-      .react-btn.just .react-glyph { animation: none; }
+      /* tokens.css already zeroes durations globally; this kills the lever knob's TRANSFORM, which a
+         duration override alone would leave as an instant jump rather than no movement at all. */
       .lever-knob::after { transition: none; }
     }
   </style>
