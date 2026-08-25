@@ -70,6 +70,10 @@ export default defineConfig({
       // not advertised to crawlers as part of the site's argument. If the park direction survives
       // review this line is what gets deleted; if it does not, the route goes with it.
       'https://datumwise.ai/park/when-is-it-data/',
+      // HOMEPAGE LABORATORY (2026-08-25). Same rule as the park above, and more important here: this
+      // route is a prototype of the FRONT PAGE. A crawler finding a second, unlinked homepage is a
+      // genuine harm, not just noise. Unlinked from navigation and kept out of the sitemap.
+      'https://datumwise.ai/lab/trailhead/',
     ].includes(page),
   })],
   // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static
