@@ -137,6 +137,32 @@ class _Extract(HTMLParser):
         self._flush()
 
 
+# IDENTIFIERS ARE NOT INDEXED. THE REGISTRY OWNS THEM.
+#
+# G7 caught this and G7 was right. The first version of this index committed the built page TEXT,
+# which contains DOIs — so chunks.json became a second source of truth for 38 publication
+# identifiers. If a record is superseded and the site rebuilds but the index is not regenerated,
+# the agent would quote a DOI the site no longer shows. check_publications.py states the rule
+# exactly: "a derived surface reads the registry; the moment it also types a DOI, it is a second
+# source of truth wearing the clothes of the first."
+#
+# So DOIs and Zenodo record links are REDACTED out of indexed prose, and the chunk instead carries
+# `currentRecordId` — a foreign key. The identifier itself is resolved from records.json at REQUEST
+# time (retrieve.py), inside the running service, from the registry that ships in the image. The
+# agent therefore cannot cite a stale DOI: it never sees one that did not come from the registry
+# one moment ago.
+#
+# This is the same discipline that took the publication list off /about and the footer, applied to
+# the agent. It is a better design than the one the gate rejected.
+_DOI = re.compile(r"\b10\.5281/zenodo\.\d+\b", re.I)
+_ZURL = re.compile(r"https?://(?:www\.)?zenodo\.org/records?/\d+", re.I)
+
+
+def _redact_identifiers(text: str) -> str:
+    text = _ZURL.sub("(Zenodo record — resolved from the registry)", text)
+    return _DOI.sub("(DOI — resolved from the registry)", text)
+
+
 @dataclass
 class Chunk:
     chunkId: str
@@ -153,6 +179,11 @@ class Chunk:
     isHistorical: bool
     isEditionPinned: bool
     url: str             # the exact link a reader clicks to check the claim
+    # FOREIGN KEYS, never facts. Resolved against records.json at request time so the identifier a
+    # reader is given is the one the registry rules right now, not the one that was true at index
+    # time. Same rule the site's own surfaces follow.
+    currentRecordId: str | None
+    readableRecordId: str | None
 
 
 def _load_standing() -> dict[str, dict]:
@@ -197,16 +228,16 @@ def _load_standing() -> dict[str, dict]:
         readable = by_id.get(s["recordId"]) if s.get("recordId") else None
         pinned = bool(readable and cur and readable.get("recordId") != cur.get("recordId"))
 
+        # The composed sentence carries the SHAPE of the standing, never the numbers. Version, date
+        # and DOI are publication facts; they are resolved from the registry at request time and
+        # spliced in by retrieve.py. This is what keeps chunks.json `derived` in fact and not only
+        # in name.
         bits: list[str] = []
         if cur:
-            v = f" v{cur['version']}" if cur.get("version") else ""
-            bits.append(f"current record{v} ({cur.get('date','')})")
+            bits.append("{CURRENT}")
         if pinned and readable:
-            rv = f"v{readable['version']}" if readable.get("version") else "the first edition"
-            bits.append(
-                f"EDITION-PINNED: this route renders the deposited {rv} "
-                f"({readable.get('date','')}), which is NOT the current record"
-            )
+            bits.append("EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT "
+                        "the current record")
         if s.get("preservedState"):
             bits.append(
                 f"PRESERVED HISTORICAL STATE as of {s['preservedState']} — not current authority"
@@ -222,6 +253,8 @@ def _load_standing() -> dict[str, dict]:
 
         label = works[work_id]["canonicalLabel"] if work_id else s.get("title")
         out[route.rstrip("/") or "/"] = {
+            "currentRecordId": cur["recordId"] if cur else None,
+            "readableRecordId": readable["recordId"] if readable else None,
             "sourceId": s["sourceId"],
             "sourceLabel": label,
             "role": s.get("role"),
@@ -291,13 +324,15 @@ def build(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
                         anchor=anchor,
                         heading=heading,
                         title=title,
-                        text=piece,
+                        text=_redact_identifiers(piece),
                         sourceId=st.get("sourceId"),
                         sourceLabel=st.get("sourceLabel"),
                         role=st.get("role"),
                         standing=st.get("standing", "onsite page (not in the source catalog)"),
                         isHistorical=bool(st.get("isHistorical")),
                         isEditionPinned=bool(st.get("isEditionPinned")),
+                        currentRecordId=st.get("currentRecordId"),
+                        readableRecordId=st.get("readableRecordId"),
                         url=f"https://datumwise.ai{route}{frag}",
                     )
                 )

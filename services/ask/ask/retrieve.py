@@ -56,6 +56,40 @@ def _tok(s: str) -> list[str]:
     return [w for w in _WORD.findall(s.lower()) if w not in STOP and len(w) > 1]
 
 
+# ── request-time identifier resolution ────────────────────────────────────────────────────────────
+# The index stores foreign keys (`currentRecordId`, `readableRecordId`), never publication facts —
+# see the long comment in index_build.py about why G7 was right to reject the first design. The
+# version, date and DOI are spliced into the standing sentence HERE, from records.json inside the
+# running service. Consequence: the agent physically cannot be handed a stale identifier, because
+# every identifier it ever sees was read from the registry during the request that used it.
+
+RECORDS_JSON = Path(__file__).resolve().parents[3] / "registry" / "publications" / "records.json"
+
+
+@lru_cache(maxsize=1)
+def _records() -> dict[str, dict]:
+    return {r["recordId"]: r for r in json.loads(RECORDS_JSON.read_text())}
+
+
+def _describe(record_id: str | None) -> str:
+    r = _records().get(record_id or "")
+    if not r:
+        return "an edition"
+    v = f"v{r['version']}" if r.get("version") else "the first edition"
+    doi = f", doi:{r['doi']}" if r.get("doi") else ""
+    return f"{v} ({r.get('date', '')}{doi})"
+
+
+def _fill_standing(chunk: dict) -> str:
+    """Splice live registry facts into the standing sentence's placeholders."""
+    s = chunk["standing"]
+    if "{CURRENT}" in s:
+        s = s.replace("{CURRENT}", f"current record {_describe(chunk.get('currentRecordId'))}")
+    if "{READABLE}" in s:
+        s = s.replace("{READABLE}", _describe(chunk.get("readableRecordId")))
+    return s
+
+
 @lru_cache(maxsize=1)
 def _corpus() -> tuple[list[dict], list[list[str]], dict[str, float], float]:
     chunks = json.loads(INDEX.read_text())
@@ -166,7 +200,7 @@ def search(query: str, k: int = 8) -> list[dict]:
         if key in seen:
             continue
         seen.add(key)
-        out.append({**c, "score": round(s, 4)})
+        out.append({**c, "standing": _fill_standing(c), "score": round(s, 4)})
         if len(out) >= k:
             break
     return out

@@ -76,6 +76,14 @@ def deterministic(case: dict, res: dict) -> dict:
     for s in case.get("must_not", []):
         if s.lower() in a:
             fails.append(f"contains forbidden string {s!r}")
+    # `must_any` exists because two `must`/`must_not` assertions produced FALSE POSITIVES against
+    # correct answers on the first run (2026-08-25): one demanded the literal "/research" when the
+    # agent had correctly written "the Research page", and one forbade every DOI when the agent had
+    # correctly denied the asked-for DOI and then offered a registered one for a different work.
+    # A trap set that fails good answers teaches nothing, so the assertion had to get smarter.
+    any_of = case.get("must_any")
+    if any_of and not any(s.lower() in a for s in any_of):
+        fails.append(f"none of {any_of!r} present")
     v = res["verify"]
     for p in v["problems"]:
         fails.append(f"{p['kind']}: {p['value']}")

@@ -71,6 +71,23 @@ def _rate_ok(ip: str) -> tuple[bool, str | None]:
         return True, None
 
 
+def _safe_error(e: Exception) -> str:
+    """What a stranger is allowed to be told when something breaks.
+
+    OBSERVED 2026-08-25: the OpenAI account ran out of credits and the raw provider error went
+    straight to the browser — provider name, HTTP status, error code, and a billing URL for our
+    organisation. None of that is the reader's business and some of it is ours alone. The full
+    exception still goes to the server log via traceback.print_exc(); only this reaches the client.
+    """
+    text = str(e)
+    if "insufficient_quota" in text or "credit_balance" in text or "429" in text:
+        return ("Ask is temporarily unable to answer new questions. The answered questions below "
+                "are still readable.")
+    if "OPENAI_API_KEY" in text or "API_KEY" in text:
+        return "Ask is not configured to answer questions right now."
+    return "Ask could not answer that just now."
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "ask-datumwise/0"
 
@@ -127,7 +144,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "no such route"})
         except Exception as e:
             traceback.print_exc()
-            return self._send(500, {"error": f"{type(e).__name__}: {e}"})
+            return self._send(500, {"error": _safe_error(e)})
 
     def do_POST(self):  # noqa: N802
         u = urlparse(self.path)
@@ -185,7 +202,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "no such route"})
         except Exception as e:
             traceback.print_exc()
-            return self._send(500, {"error": f"{type(e).__name__}: {e}"})
+            return self._send(500, {"error": _safe_error(e)})
 
 
 def main() -> None:
