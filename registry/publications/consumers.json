@@ -580,5 +580,23 @@
   "class": "derived",
   "allowedDois": [],
   "note": "The Evidence hero signpost to The Statistical Bridge. Registry-derived; the only hand-authored string is the byline's display form of the author's name."
+ },
+ {
+  "path": "apps/website/src/pages/research.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The current source estate (Serious Gateway 1, 2026-08-25). Joins registry/sources/sources.json to this registry; every version, date, DOI and currency claim is read through currentRecord()/recordFor() at build. Types none, so it may carry none."
+ },
+ {
+  "path": "apps/website/src/pages/history/research-map-2026-08-03.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "Page chrome for the preserved 3 August 2026 research map. The frozen body it imports keeps its own frozen-corpus row; this chrome states no publication fact."
+ },
+ {
+  "path": "apps/website/src/data/sources.ts",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "Typed adapter over the source catalog. Holds foreign keys (workId, recordId) and never a publication fact. The catalog itself lives under registry/ and is authority, not a consumer."
  }
 ]
