@@ -7,13 +7,36 @@
 // Ink-only, no saturated colour, no cards (art direction). Separation is hairline rules + whitespace.
 // The one visual object is the hero manifold, generated from the shipped package at build time.
 import BaseLayout from '../layouts/BaseLayout.astro';
-// ── REDESIGN, SLICE 1 ────────────────────────────────────────────────────────────────────────
-// Hero (PAPER) · Three Questions (PAPER) · Exhibit A (PAPER → WIRE). Everything below Exhibit A is
-// the previous homepage, retained deliberately and marked as legacy: the slice exists to prove the
-// new grammar in the real site before it is scaled, so downstream sections are NOT restyled to
-// match (implementation brief §8).
-import Hero from '../components/home/Hero.astro';
-import ThreeQuestions from '../components/home/ThreeQuestions.astro';
+// ── THE FRONT GATE ───────────────────────────────────────────────────────────────────────────
+// Bearing (PAPER) · one standing encounter (PAPER → WIRE, where the encounter earns it). That is
+// the whole front gate. Everything below the legacy edge is the previous homepage, retained
+// deliberately and untouched by this unit.
+//
+// THE RULING THIS IMPLEMENTS (Huayin + CG2, 2026-08-25, front-gate Unit A):
+//   serious institutional bearing → one encounter at full strength → whatever reply that
+//   encounter honestly earns.
+//
+// SUPERSEDED by the homepage laboratory, and recorded here so it is not quietly restored:
+//   · the Three Questions composition (implementation brief §8) — three short explanations cannot
+//     carry three foundations before a reader has experienced any of them. Gate H2 (pillar
+//     integrity) retires with it, replaced by: the terrain names are present, distinct, carry no
+//     explanatory apparatus, and are not links.
+//   · Hero as the opening (§7) — PARTIALLY. Its identity statement survives as Bearing; its
+//     commitment block, action links and lattice do not.
+//   · the Hero → Three Questions → Exhibit A composition target (§10).
+// RETAINED: four doors, paper/wire grammar, visible crossing, mood authority, machine legibility,
+// accessibility, and gates H1 and H3–H8 as the standing encounter-review gates.
+//
+// NOT extracted: an encounter component system. The encounter is a hand-built file with no props,
+// and the next one will disagree with it about everything except honesty.
+import Bearing from '../components/home/Bearing.astro';
+import Umbrella from '../components/encounters/umbrella.astro';
+// EXHIBIT A IS A LEGACY TENANT NOW, not part of the front gate. Its structural obligation to the
+// homepage is released (Huayin, 2026-08-25) — the composition no longer requires a four-mood block
+// after the encounter, because the reply must be earned by the encounter and an Evidence or
+// Intelligence encounter would earn none. It stays BELOW the legacy edge only because it currently
+// holds `#try-a-question`, a permanent anchor with 11 inbound links, and the question of which
+// four-mood witness is authoritative is its own unit. Do not re-point those links from here.
 import ExhibitA from '../components/home/ExhibitA.astro';
 import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
 
@@ -61,23 +84,21 @@ const DIRECTORY = [
   chip={false}
 >
 
-  <Hero />
-  <ThreeQuestions />
-  <ExhibitA />
+  <Bearing />
+  <Umbrella />
 
   {/* ── LEGACY BOUNDARY ───────────────────────────────────────────────────────────────────────
-      Everything below this line is the PREVIOUS homepage, untouched by slice 1 and not yet
-      rewritten to the new grammar. It is kept so the page still functions for visitors while the
-      grammar is under review; it is not an endorsement of its current sequencing.
+      Everything below this line is the PREVIOUS homepage, untouched by this unit and not rewritten
+      to the new grammar. It is kept so the page still functions for visitors while the front gate
+      is under review; it is not an endorsement of its sequencing. The cleanup is a later slice.
 
-      Two legacy blocks were removed rather than kept:
-        · the old masthead band (an <h1>Columna</h1> hero) — the new Hero replaces it, and two
-          competing first screens is not a reviewable page;
-        · Exhibit B, the previous four-mood widget — Exhibit A is now the homepage's four-mood
-          witness, and showing the moods twice on one page would undo the causality the slice is
-          being reviewed for. Exhibit B remains live on /the-argument, unchanged.
+      TWO WIRE BLOCKS ON ONE PAGE is a known, temporary cost: the encounter's refusal above, and
+      Exhibit A below. They are separated by this rule, which already declares everything under it
+      unfinished. It resolves when the four-mood witness unit runs and Exhibit A leaves.
       ────────────────────────────────────────────────────────────────────────────────────────── */}
   <hr class="legacy-edge" aria-hidden="true" />
+
+  <ExhibitA />
 
   {/* 2 · What Columna is — the page's one long-form block; reading serif, capped measure. */}
   <section class="whatis band">
