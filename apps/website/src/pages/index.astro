@@ -29,15 +29,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 //
 // NOT extracted: an encounter component system. The encounter is a hand-built file with no props,
 // and the next one will disagree with it about everything except honesty.
+//
+// THE FOUR-MOOD WITNESS HAS LEFT THIS PAGE (Unit B, 2026-08-25). The homepage used to carry a
+// second, competing thesis after the encounter finished — an Exhibit A block opening at display
+// scale with a fresh grand claim, which read as the page starting over. The witness is now
+// consolidated at /the-argument#exhibit-b, where the paper Exhibit A already sets it up, and the
+// obligation that pinned it here is discharged: `#try-a-question` and `#exhibit-a-heading` are
+// re-pointed at their 11 call sites, and the shim below catches anything bookmarked.
+// The encounter earns its own reply and nothing mandatory follows it.
 import Bearing from '../components/home/Bearing.astro';
 import Umbrella from '../components/encounters/umbrella.astro';
-// EXHIBIT A IS A LEGACY TENANT NOW, not part of the front gate. Its structural obligation to the
-// homepage is released (Huayin, 2026-08-25) — the composition no longer requires a four-mood block
-// after the encounter, because the reply must be earned by the encounter and an Evidence or
-// Intelligence encounter would earn none. It stays BELOW the legacy edge only because it currently
-// holds `#try-a-question`, a permanent anchor with 11 inbound links, and the question of which
-// four-mood witness is authoritative is its own unit. Do not re-point those links from here.
-import ExhibitA from '../components/home/ExhibitA.astro';
 import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
 
 const shortDate = (iso: string) =>
@@ -92,13 +93,9 @@ const DIRECTORY = [
       to the new grammar. It is kept so the page still functions for visitors while the front gate
       is under review; it is not an endorsement of its sequencing. The cleanup is a later slice.
 
-      TWO WIRE BLOCKS ON ONE PAGE is a known, temporary cost: the encounter's refusal above, and
-      Exhibit A below. They are separated by this rule, which already declares everything under it
-      unfinished. It resolves when the four-mood witness unit runs and Exhibit A leaves.
+      ONE WIRE BLOCK ON THIS PAGE, and the encounter earned it. Exhibit A left in Unit B.
       ────────────────────────────────────────────────────────────────────────────────────────── */}
   <hr class="legacy-edge" aria-hidden="true" />
-
-  <ExhibitA />
 
   {/* 2 · What Columna is — the page's one long-form block; reading serif, capped measure. */}
   <section class="whatis band">
@@ -176,6 +173,13 @@ const DIRECTORY = [
   const hash = location.hash;
   if (hash === '#exhibit-a' || hash === '#exhibit-b') {
     location.replace('/the-argument' + hash);
+  }
+  // Unit B: the four-mood witness moved to /the-argument#exhibit-b, so the two ids it used to carry
+  // here are rewritten to it. `#try-a-question` was a permanent homepage anchor by rider 1 and had
+  // eleven inbound links; all of them now point at the instrument directly, and this catches
+  // anything a reader bookmarked or shared before the move.
+  if (hash === '#try-a-question' || hash === '#exhibit-a-heading') {
+    location.replace('/the-argument#exhibit-b');
   }
 </script>
 
