@@ -1,19 +1,28 @@
-// Exhibit B client. Renders real wire JSON from the recorded transcript (degrade) or, once the
-// endpoint is live, from the MCP endpoint. The clarify round-trip mirrors `demo --play`:
-// clarify → pick a population → refuse → "see them as separate columns" → disclose.
+// Exhibit B client — MOVEMENT 2 ONLY. (Unit B, 2026-08-25.)
+//
+// Movement 1 (the four earned verdicts) is server-rendered from lib/exhibitA.ts and needs no script
+// at all; this file exists solely for the round trip: clarify -> you pick a reading -> refuse -> see
+// them as separate columns -> disclose, mirroring `demo --play`. Every payload is the build-time
+// transcript produced by running the shipped package.
+//
+// WHAT THIS FILE NO LONGER DOES, and why (see ExhibitB.astro for the full note): it does not post to
+// a demo endpoint. That endpoint answers on contract "1" against the `benchmark` manifold in the
+// retired terse syntax and serves precomputed wire only, so the "live" path failed structurally on
+// every request and degraded to this same transcript. The fool-it box, the four seeded buttons and
+// the "temporarily offline" note went with it. Nothing here executes at read time.
+//
+// The round-trip block ships `hidden` and is revealed below: with JavaScript off, a reader gets the
+// four verdicts and no dead controls.
 
 import {
-  initExplorer, renderManifoldPanel, friendlyDisclosure, friendlyReason,
-  linkify, classifyFoolInput, renderObjectCard, type ExplorerData,
+  initExplorer, friendlyDisclosure, friendlyReason, linkify, type ExplorerData,
 } from './explorer';
 
 type Wire = any;
 interface Data extends ExplorerData {
   meta: any;
-  seeded: Record<'clarify' | 'disclose' | 'refuse' | 'serve', { label: string; wire: Wire }>;
+  seeded: Record<'clarify' | 'disclose', { wire: Wire }>;
   roundtrip: Record<string, Wire>;
-  foolIt: { wire: Wire; measureIndex: string[]; placeholder: string; template: string };
-  endpoint: string;
 }
 
 // module-level handle so the top-level render helpers can reach describe data + governed strings
@@ -27,100 +36,22 @@ function init(root: HTMLElement) {
   const DATA: Data = JSON.parse(dataEl!.textContent!);
   D = DATA;
   const respEl = root.querySelector<HTMLElement>('[data-response]')!;
-  const degradeEl = root.querySelector<HTMLElement>('[data-degrade]');
-  const foolForm = root.querySelector<HTMLFormElement>('[data-fool]')!;
-  const foolResp = document.createElement('div');
-  foolResp.className = 'response fool-response';
-  foolForm.querySelector('.fool-hint')!.before(foolResp);
+  const block = root.querySelector<HTMLElement>('[data-roundtrip]');
+  const start = root.querySelector<HTMLButtonElement>('[data-roundtrip-start]');
 
-  // Manifold Explorer: render the "what's in this manifold?" panel + wire doorways/glossary/slot.
-  const panelBody = root.querySelector<HTMLElement>('[data-manifold-panel]');
-  if (panelBody) panelBody.innerHTML = renderManifoldPanel(DATA);
+  // doorways + glossary inside rendered cards
   initExplorer(root, DATA);
-  const openObject = (root as any)._openObject as (kind: string, name: string) => void;
 
-  // The free-text fool-it goes LIVE against the read-only demo endpoint (real shipped-package wire).
-  // Seeded buttons + the round-trip stay on the build-time transcript (identical, and instant). If a
-  // live request fails/times out, that ONE interaction degrades to the captured trap + a stamped note
-  // — the site never looks broken and never shows fake data.
-  function degradeFool(reason: string) {
-    console.warn('[exhibit-b] live fool-it degraded:', reason);
-    degradeEl?.removeAttribute('hidden');
-    foolForm.querySelector('.fool-row')?.setAttribute('hidden', '');
-    foolResp.innerHTML = '';
-    foolResp.append(renderCard(DATA.foolIt.wire, { ask: DATA.foolIt.measureIndex, heading: 'captured — asking for a measure that does not exist:' }));
-  }
+  // The block is revealed only now, because only now can it work.
+  block?.removeAttribute('hidden');
 
-  // --- seeded buttons ---
-  root.querySelectorAll<HTMLButtonElement>('.seed-row button').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      root.querySelectorAll('.seed-row button').forEach((b) => b.removeAttribute('aria-pressed'));
-      btn.setAttribute('aria-pressed', 'true');
-      respEl.innerHTML = '';
-      const id = btn.dataset.seed as keyof Data['seeded'];
-      respEl.append(renderCard(DATA.seeded[id].wire, {}));
-      if (id === 'clarify') wireRoundtrip(respEl, DATA);
-      respEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
+  start?.addEventListener('click', () => {
+    start.setAttribute('hidden', '');
+    respEl.innerHTML = '';
+    respEl.append(renderCard(DATA.seeded.clarify.wire, {}));
+    wireRoundtrip(respEl, DATA);
+    respEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
-
-  // --- fool-it (live) ---
-  const foolInput = foolForm.querySelector<HTMLInputElement>('#fool-input')!;
-  const foolBtn = foolForm.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-
-  foolForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const raw = foolInput.value.trim();
-    if (!raw) return;
-    const kind = classifyFoolInput(raw, DATA);
-
-    // a bare KNOWN measure name → its describe card (the Explorer's measure card), not a served value
-    if (kind === 'measure') {
-      foolResp.innerHTML = `<p class="pick-note">${esc(DATA.strings.foolIt?.describeIntro || 'Here’s what this measure is:')}</p>`;
-      foolResp.append(renderObjectCard('measure', raw, DATA));
-      foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      return;
-    }
-    // input that looks like a full query → friendly redirect (this box checks names)
-    if (kind === 'query') {
-      foolResp.innerHTML = `<p class="pick-note">${esc(DATA.strings.foolIt?.queryShapeRedirect || 'That looks like a query — use the buttons above.')}</p>`;
-      return;
-    }
-
-    // unknown name → the real, honest refusal from the live endpoint + the (tappable) index
-    const frameql = DATA.foolIt.template.replace('%s', () => raw);
-    foolBtn.disabled = true;
-    foolResp.innerHTML = '<p class="pick-note">asking the live endpoint…</p>';
-    try {
-      const wire = await postQuery(DATA.endpoint, frameql);
-      if (wire.contract_version !== '3') throw new Error('unexpected contract');
-      foolResp.innerHTML = '';
-      foolResp.append(renderCard(wire, { ask: DATA.foolIt.measureIndex, heading: `you asked for “${raw}” — here is what came back over the wire:` }));
-      foolResp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (err) {
-      degradeFool(String(err));
-    } finally {
-      foolBtn.disabled = false;
-    }
-  });
-}
-
-// POST a Frame-QL query to the read-only demo endpoint; returns the disclosure wire (real JSON).
-async function postQuery(endpoint: string, frameql: string, universe: string | null = null): Promise<Wire> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 6000);
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ frameql, universe }),
-      signal: ctrl.signal,
-    });
-    if (!res.ok) throw new Error(`endpoint ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(t);
-  }
 }
 
 // The clarify round-trip: pick → refuse → resolve → disclose (the demo --play arc).
@@ -166,7 +97,7 @@ function wireRoundtrip(container: HTMLElement, DATA: Data) {
   });
 }
 
-interface CardOpts { downstream?: boolean; ask?: string[]; heading?: string }
+interface CardOpts { downstream?: boolean }
 
 function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
   const card = document.createElement('div');
@@ -175,7 +106,6 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
   const outcome: string = wire.outcome;
 
   const parts: string[] = [];
-  if (opts.heading) parts.push(`<div class="resp-heading">${esc(opts.heading)}</div>`);
   // header: the mood badge + its one-line reading (friendly, keyed off the code, with doorways)
   parts.push(`<div class="resp-head">${moodBadge(outcome)}<p class="resp-summary">${summaryHTML(wire)}</p></div>`);
   parts.push(renderValues(wire));
@@ -209,14 +139,6 @@ function renderCard(wire: Wire, opts: CardOpts): HTMLElement {
     card.append(box);
   }
 
-  // the ASK (fool-it): list what exists, as tappable-looking tags (not a jammed list)
-  if (opts.ask?.length) {
-    const ask = document.createElement('div');
-    ask.className = 'resp-index';
-    ask.innerHTML = `<div class="vlabel">the ${opts.ask.length} measures this manifold actually has — tap to describe:</div>` +
-      `<div class="index-tags">${opts.ask.map((m) => `<button type="button" class="door tag" data-door-kind="measure" data-door="${esc(m)}">${esc(m)}</button>`).join('')}</div>`;
-    card.append(ask);
-  }
 
   // immaterial audit trail
   if (immaterial.length) {

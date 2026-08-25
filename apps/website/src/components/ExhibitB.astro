@@ -1,96 +1,89 @@
 ---
-// Exhibit B — the argument, executed. Renders REAL wire JSON (the JSON is the exhibit).
-//
-// Data source: the CI-generated transcript (every payload produced by the shipped package). The
-// widget attempts the live endpoint first and asserts the shipped contract_version (`"3"` — the
-// assertion lives in scripts/exhibit-b.ts, which is the authority; this comment had said `"1"` while
-// the code demanded `"3"`, so read the code, not the comment); on failure/timeout/429
-// it degrades to this recorded transcript, clearly stamped. (Live MCP wiring activates once the Fly
-// endpoint is approved + deployed; until then the degrade path — itself a first-class requirement —
-// is what shows, and it is 100% real shipped-package wire.)
-//
-// The clarify round-trip mirrors `demo --play` exactly (WP-2.2 two-hop contract, worklist item 5 —
-// unrealizable alternatives): clarify → pick a population → refuse (the other operand is out of that
-// universe) → the honest resolution is separate columns → disclose.
-import transcript from '../data/transcript.generated.json';
-import seeded from '../data/seeded_queries.json';
-import wireStrings from '../data/wire_strings.json';
+/**
+ * EXHIBIT B — the machine witness, consolidated. (Unit B, 2026-08-25, Huayin + CG2.)
+ *
+ * ONE AUTHORITATIVE FOUR-MOOD WITNESS, and this is it. Until now the site had two: this widget, and
+ * a newer build-adjudicated one on the homepage. They read the same generated transcript, but they
+ * did not carry the same standing, and the weaker one was making the louder claim.
+ *
+ * WHAT WAS VERIFIED, AND WHY THE LIVE PATH IS GONE. The old free-text box posted to a demo endpoint
+ * and asserted contract_version "3". Probed 2026-08-25, that endpoint answers:
+ *     contract_version "1" · manifold "benchmark" (not cascadia) · accepts only the terse `@` form
+ *     retired in 0.9.0 · "this static demo endpoint serves ... precomputed wire ... live
+ *     arbitrary-query compute is the Fly upgrade"
+ * So the live path did not fail intermittently — it failed structurally, every time, and degraded
+ * to the recorded transcript while the page said "live demo temporarily offline". Three claims went
+ * with it: "Tap a question to run it live" (the four seeded buttons replayed the build-time
+ * transcript and never touched the network), the fool-it control (a box that could not succeed),
+ * and "temporarily offline" (a version mismatch is not an outage). Nothing here executes now, and
+ * the page no longer says otherwise. The endpoint is not rebuilt in this unit.
+ *
+ * MOVEMENT 1 — THE VERDICTS. Four different requests, four earned verdicts, straight from
+ * lib/exhibitA.ts, which re-adjudicates the generated transcript AT RENDER TIME and throws the
+ * build if a serve carries a disclosure, a disclose has no material one, a clarify offers no
+ * alternatives, or any mood stops matching its case. Provenance is on the page. All four cases are
+ * in the HTML before any script runs, so the witness is complete with JavaScript disabled — which
+ * is the property the old widget never had (with JS off it was four dead buttons and no wire).
+ *
+ * THE ROUND TRIP IS NOT HERE, AND THAT IS A FINDING, NOT A CHOICE. Unit B was told to preserve the
+ * clarify → pick → refuse → resolve → disclose arc as a second movement. It cannot be preserved,
+ * because it no longer has any data: `transcript.clarify_roundtrip` is `{}`. The generator builds it
+ * only from clarify alternatives carrying `apply.frameql` (scripts/gen_transcript.py), and the
+ * shipped package now emits alternatives with `token`/`description` alone. The client had the same
+ * dependency (`a.apply?.universe`), so the arc has been dead on the live site for however long that
+ * shape has been current: the button rendered a clarify card, printed "It will not pick for you.
+ * You pick.", and offered nothing to pick. Verified in a browser before this file was written —
+ * clarify card 1, alternatives 0, no console error. The generator is defensive about the shape and
+ * degrades to an empty dict, which is why nothing ever failed. That fail-open is the real defect and
+ * it is filed, not fixed here. src/scripts/exhibit-b.ts keeps the implementation, parked and
+ * unimported, for the day the transcript carries the arc again.
+ *
+ * WHAT WAS DROPPED RATHER THAN PRESERVED. The Manifold panel — a <details> whose body only existed
+ * after JS ran, duplicating a page (/explorer) that does the same job better. The link to it stays.
+ *
+ * CONSEQUENCE: THIS EXHIBIT RUNS NO JAVASCRIPT AT ALL. Nothing here is progressive enhancement,
+ * nothing is revealed on load, and there is no control that needs a script to mean something. The
+ * four cases are indexed by anchor rather than by tab for the same reason — inside an essay, tab
+ * compactness is not worth a script.
+ */
 import AskYourAI from './AskYourAI.astro';
+import GovernedCase from './GovernedCase.astro';
+import { CASES, PROVENANCE } from '../lib/exhibitA';
 
 // CP-3b [AI-1] — the "wire" copy-block, verbatim from the ratified package (§1c), placed where a
-// stranger's "?" about the transcript is born.
+// stranger's "?" about the transcript is born. The contract literal on its second line is enrolled
+// in scripts/currency_stamps.toml; it stays in this file, so that guard needs no migration.
 const askWire = `Columna's "wire" is the answer format an AI agent receives from a data query: a RESULT paired with its
 CONTEXT, in one of four moods — serve, disclose, clarify, refuse — on one contract (contract_version
 "3"), identical over MCP or a direct API call. Example: asking \`avg(aov) @ cal.month\` — an average with
 no pinned input grain — returns \`clarify\` (which grain to average from), never a guessed number. Explain
 this wire format to me, and answer my follow-up questions about it.`;
 
-const labels = Object.fromEntries(seeded.queries.map((q: any) => [q.id, q.label]));
-// key the round-trip by universe for easy lookup
-const rt: Record<string, any> = {};
-for (const [, v] of Object.entries<any>(transcript.clarify_roundtrip)) {
-  rt[v.apply.universe] = v.wire;
-}
-const data = {
-  meta: transcript.meta,
-  seeded: {
-    clarify: { label: labels.clarify, wire: transcript.seeded.clarify.wire },
-    disclose: { label: labels.disclose, wire: transcript.seeded.disclose.wire },
-    refuse: { label: labels.refuse, wire: transcript.seeded.refuse.wire },
-    serve: { label: labels.serve, wire: transcript.seeded.serve.wire },
-  },
-  roundtrip: rt,
-  foolIt: {
-    wire: transcript.fool_it.wire,
-    measureIndex: transcript.fool_it.measure_index,
-    placeholder: seeded.foolIt.placeholder,
-    template: seeded.foolIt.template,
-  },
-  endpoint: seeded.endpoint,
-  // Manifold Explorer (tier 1): captured describe wire + the governed communicative strings
-  describe: transcript.describe,
-  strings: wireStrings,
-};
-const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10);
 ---
-<section class="exhibit-b vocab-wire" id="exhibit-b" aria-label="Exhibit B: the argument, executed">
+
+<section class="exhibit-b vocab-wire" id="exhibit-b" aria-labelledby="witness-h">
   <p class="wire-caption mono">this is the actual wire — what an AI agent receives. Every answer is a pair: a result, and its disclosure. The mood is how the pair reads.</p>
 
-  <details class="manifold-panel">
-    <summary>what's in this manifold? <span class="mf-hint">— explore the data before you ask</span></summary>
-    <div class="mf-body" data-manifold-panel></div>
-    <p class="mf-explorer-link"><a href="/explorer">Browse the whole Manifold → the Explorer</a></p>
-  </details>
-
-  <div class="explorer-slot" data-explorer-slot hidden></div>
-
-  <p class="seed-prompt">👇 <strong>Tap a question to run it live.</strong> You'll get back the real result <em>and</em> the mood it answers in — served, disclosed, clarified, or refused.</p>
-
-  <div class="seed-row" role="group" aria-label="Ask the system — tap a question to run it">
-    <button type="button" data-seed="clarify">{data.seeded.clarify.label}</button>
-    <button type="button" data-seed="disclose">{data.seeded.disclose.label}</button>
-    <button type="button" data-seed="refuse">{data.seeded.refuse.label}</button>
-    <button type="button" data-seed="serve">{data.seeded.serve.label}</button>
+  <div class="wire-head">
+    <h3 id="witness-h" class="witness-h">Four requests, four earned verdicts</h3>
+    <p class="provenance mono">
+      manifold {PROVENANCE.manifold} · columna {PROVENANCE.columna} · core {PROVENANCE.core} ·
+      contract {PROVENANCE.contract} — produced by running the shipped package at build time, and
+      checked again against it when this page was rendered. Nothing here is executing now.
+    </p>
   </div>
 
-  <div class="response" data-response aria-live="polite"></div>
+  <nav class="index" aria-label="Governed cases">
+    {CASES.map((c) => <a href={`#case-${c.mood}`}>{c.mood}</a>)}
+  </nav>
 
-  <form class="fool-it" data-fool>
-    <label for="fool-input" class="fool-label mono">try to fool it — ask for a measure by name</label>
-    <div class="fool-row">
-      <input id="fool-input" type="text" autocomplete="off" spellcheck="false" placeholder={data.foolIt.placeholder} />
-      <button type="submit">ask</button>
-    </div>
-    <p class="fool-hint">this exact refusal, captured live, ships in the package.</p>
-  </form>
+  <div class="cases">
+    {CASES.map((c, i) => <GovernedCase data={c} index={i} />)}
+  </div>
 
-  <p class="degrade-note mono" data-degrade hidden>
-    live demo temporarily offline — this transcript was generated from the shipped package at build time ({genDate}).
-  </p>
+  <p class="mf-explorer-link"><a href="/explorer">Browse the whole Manifold → the Explorer</a></p>
 
   <AskYourAI summary="New to the wire? Ask your own AI to explain it." text={askWire} tone="wire" />
-
-  <script type="application/json" data-exhibit-b set:html={JSON.stringify(data)}></script>
 </section>
 
 <style>
@@ -98,39 +91,23 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
     border-radius: 10px; background: var(--wire-bg); color: var(--wire-ink); padding: 1.5rem 1.6rem; }
   .wire-caption { font-size: 0.8rem; color: var(--wire-ink-soft); line-height: 1.6; margin: 0 0 1.3rem; }
 
-  .seed-prompt { font-size: 0.9rem; line-height: 1.55; color: var(--wire-ink); margin: 0 0 1rem;
-    border-left: 2px solid var(--struct-wire-secondary); padding-left: 0.8rem; }
-  .seed-prompt strong { color: #fff; }
+  /* ── the verdicts ─────────────────────────────────────────────────────────────────────────── */
+  .wire-head { display: grid; gap: 0.5rem; margin-bottom: 1.1rem; }
+  .witness-h { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 400; margin: 0; color: var(--wire-ink); }
+  .provenance { font-size: 0.7rem; line-height: 1.65; color: var(--wire-ink-soft); margin: 0; }
 
-  .seed-row { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 1.3rem; }
-  .seed-row button { display: inline-flex; align-items: center; gap: 0.45rem; font-family: var(--font-sans);
-    font-size: 0.84rem; text-align: left; padding: 0.55rem 0.9rem 0.55rem 0.75rem;
-    background: #1b2432; border: 1px solid #34425a; border-radius: 8px; color: var(--wire-ink);
-    cursor: pointer; transition: background .12s, border-color .12s, transform .05s; }
-  .seed-row button::before { content: "▸"; color: var(--struct-wire-secondary); font-size: 0.8rem; flex: none; }
-  .seed-row button:hover { background: #223047; border-color: var(--wire-key); }
-  .seed-row button:active { transform: translateY(1px); }
-  .seed-row button[aria-pressed="true"] { border-color: var(--wire-key); background: #26364f; box-shadow: inset 0 0 0 1px var(--wire-key); }
-  .seed-row button[aria-pressed="true"]::before { content: "\2713"; color: var(--struct-wire-primary); }
+  /* Mood controls: state labels, not product tabs. No pills, no segmented control. */
+  .index { display: flex; gap: clamp(1rem, 0.5rem + 2vw, 2.5rem); flex-wrap: wrap; margin-bottom: 1.4rem; }
+  .index a {
+    font-family: var(--font-mono); font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--wire-ink-soft); text-decoration: none;
+    padding-bottom: 0.4rem; border-bottom: 2px solid transparent;
+  }
+  .index a:hover { color: var(--wire-ink); border-bottom-color: var(--wire-rule); }
 
-  .response { display: grid; gap: 1rem; }
+  .cases { display: grid; gap: 1.25rem; }
 
-  .fool-it { margin-top: 1.5rem; padding-top: 1.3rem; border-top: 1px solid var(--wire-rule); }
-  .fool-label { display: block; font-size: 0.78rem; color: var(--wire-ink-soft); margin-bottom: 0.5rem; }
-  .fool-row { display: flex; gap: 0.5rem; }
-  .fool-row input { flex: 1; font-family: var(--font-mono); font-size: 0.85rem; padding: 0.5rem 0.7rem;
-    background: var(--wire-bg); border: 1px solid var(--wire-rule); border-radius: 6px; color: var(--wire-ink); }
-  .fool-row input:focus { outline: none; border-color: var(--wire-ink-soft); }
-  .fool-row button { font-family: var(--font-sans); font-weight: 600; font-size: 0.82rem; padding: 0 1.15rem;
-    background: var(--wire-panel); border: 1px solid var(--struct-wire-accent); border-radius: 6px; color: var(--wire-ink);
-    cursor: pointer; transition: filter .12s; }
-  .fool-row button:hover { filter: brightness(1.12); }
-  .fool-row button:disabled { opacity: 0.55; cursor: default; }
-  .fool-hint { font-size: 0.76rem; color: var(--wire-ink-soft); margin: 0.5rem 0 0; }
-
-  .degrade-note { margin: 1.2rem 0 0; font-size: 0.74rem; color: var(--struct-wire-secondary); }
-
-  @media (max-width: 40rem) { .seed-row button { font-size: 0.78rem; } }
+  .mf-explorer-link { font-size: 0.8rem; margin: 1.4rem 0 0; }
 </style>
 
 <!-- Card internals are rendered by client JS (exhibit-b.ts) and never get Astro's scoped-style
@@ -275,6 +252,7 @@ const genDate = new Date(transcript.meta.generated_at).toISOString().slice(0, 10
   .gloss-tip a { color: var(--wire-key); margin-left: 0.3rem; }
 </style>
 
-<script>
-  import '../scripts/exhibit-b.ts';
-</script>
+<!-- NO SCRIPT. src/scripts/exhibit-b.ts held the clarify round trip, which has no data in the
+     current transcript (see the note at the top of this file), and nothing else on this exhibit
+     needs JavaScript. The file and the card styles below stay on disk, unimported and unbundled,
+     so the arc can come back the day `clarify_roundtrip` is non-empty again. -->

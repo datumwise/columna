@@ -7,18 +7,42 @@
 // Ink-only, no saturated colour, no cards (art direction). Separation is hairline rules + whitespace.
 // The one visual object is the hero manifold, generated from the shipped package at build time.
 import BaseLayout from '../layouts/BaseLayout.astro';
-// ── REDESIGN, SLICE 1 ────────────────────────────────────────────────────────────────────────
-// Hero (PAPER) · Three Questions (PAPER) · Exhibit A (PAPER → WIRE). Everything below Exhibit A is
-// the previous homepage, retained deliberately and marked as legacy: the slice exists to prove the
-// new grammar in the real site before it is scaled, so downstream sections are NOT restyled to
-// match (implementation brief §8).
-import Hero from '../components/home/Hero.astro';
-import ThreeQuestions from '../components/home/ThreeQuestions.astro';
-import ExhibitA from '../components/home/ExhibitA.astro';
-import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
-
-const shortDate = (iso: string) =>
-  new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+// ── THE FRONT GATE ───────────────────────────────────────────────────────────────────────────
+// Bearing (PAPER) · one standing encounter (PAPER → WIRE, where the encounter earns it). That is
+// the whole front gate. Everything below the legacy edge is the previous homepage, retained
+// deliberately and untouched by this unit.
+//
+// THE RULING THIS IMPLEMENTS (Huayin + CG2, 2026-08-25, front-gate Unit A):
+//   serious institutional bearing → one encounter at full strength → whatever reply that
+//   encounter honestly earns.
+//
+// SUPERSEDED by the homepage laboratory, and recorded here so it is not quietly restored:
+//   · the Three Questions composition (implementation brief §8) — three short explanations cannot
+//     carry three foundations before a reader has experienced any of them. Gate H2 (pillar
+//     integrity) retires with it, replaced by: the terrain names are present, distinct, carry no
+//     explanatory apparatus, and are not links.
+//   · Hero as the opening (§7) — PARTIALLY. Its identity statement survives as Bearing; its
+//     commitment block, action links and lattice do not.
+//   · the Hero → Three Questions → Exhibit A composition target (§10).
+// RETAINED: four doors, paper/wire grammar, visible crossing, mood authority, machine legibility,
+// accessibility, and gates H1 and H3–H8 as the standing encounter-review gates.
+//
+// NOT extracted: an encounter component system. The encounter is a hand-built file with no props,
+// and the next one will disagree with it about everything except honesty.
+//
+// THE FOUR-MOOD WITNESS HAS LEFT THIS PAGE (Unit B, 2026-08-25). The homepage used to carry a
+// second, competing thesis after the encounter finished — an Exhibit A block opening at display
+// scale with a fresh grand claim, which read as the page starting over. The witness is now
+// consolidated at /the-argument#exhibit-b, where the paper Exhibit A already sets it up, and the
+// obligation that pinned it here is discharged: `#try-a-question` and `#exhibit-a-heading` are
+// re-pointed at their 11 call sites, and the shim below catches anything bookmarked.
+// The encounter earns its own reply and nothing mandatory follows it.
+import Bearing from '../components/home/Bearing.astro';
+import Umbrella from '../components/encounters/umbrella.astro';
+// PACKAGE_VERSION only. `LATEST` left with the rail in Unit C — see the note at the section it
+// used to occupy. src/data/latest.ts still exports it for whoever wants a state rail on a surface
+// whose job is currency; the front gate's job is not currency.
+import { PACKAGE_VERSION } from '../data/latest.ts';
 
 // §5 is an ORDERED PATH, not a flat list (Huayin's first-read ruling): the items sequenced as the
 // ladder a reader actually climbs, opened by an UNNUMBERED entrance that carries the "start here"
@@ -61,21 +85,15 @@ const DIRECTORY = [
   chip={false}
 >
 
-  <Hero />
-  <ThreeQuestions />
-  <ExhibitA />
+  <Bearing />
+  <Umbrella />
 
   {/* ── LEGACY BOUNDARY ───────────────────────────────────────────────────────────────────────
-      Everything below this line is the PREVIOUS homepage, untouched by slice 1 and not yet
-      rewritten to the new grammar. It is kept so the page still functions for visitors while the
-      grammar is under review; it is not an endorsement of its current sequencing.
+      Everything below this line is the PREVIOUS homepage, untouched by this unit and not rewritten
+      to the new grammar. It is kept so the page still functions for visitors while the front gate
+      is under review; it is not an endorsement of its sequencing. The cleanup is a later slice.
 
-      Two legacy blocks were removed rather than kept:
-        · the old masthead band (an <h1>Columna</h1> hero) — the new Hero replaces it, and two
-          competing first screens is not a reviewable page;
-        · Exhibit B, the previous four-mood widget — Exhibit A is now the homepage's four-mood
-          witness, and showing the moods twice on one page would undo the causality the slice is
-          being reviewed for. Exhibit B remains live on /the-argument, unchanged.
+      ONE WIRE BLOCK ON THIS PAGE, and the encounter earned it. Exhibit A left in Unit B.
       ────────────────────────────────────────────────────────────────────────────────────────── */}
   <hr class="legacy-edge" aria-hidden="true" />
 
@@ -88,21 +106,14 @@ const DIRECTORY = [
     </div>
   </section>
 
-  <hr class="rule" />
-
-  {/* 3 · Latest — the state rail, wired from data. Reads as a ledger line, not a card grid. */}
-  <section class="latest band" aria-labelledby="latest-h">
-    <p class="rail-label mono" id="latest-h">latest</p>
-    <ul class="rail">
-      {LATEST.map((it) => (
-        <li class="rail-item">
-          <span class="rail-kind mono">{it.kind}</span>
-          <a href={it.href} {...(it.external ? { rel: 'noopener', target: '_blank' } : {})}>{it.title}</a>
-          <span class="rail-date">{shortDate(it.date)}</span>
-        </li>
-      ))}
-    </ul>
-  </section>
+  {/* 3 · THE LATEST RAIL IS GONE (Unit C, 2026-08-25, Huayin + CG2).
+       It was the last thing below the boundary that fought the encounter above it: a dated grid
+       — Aug 22, Aug 24, Jul 25 — sitting directly under a durable intellectual encounter, which
+       implies the homepage must be kept editorially fresh or it is stale. We do not want that
+       obligation. A standing encounter cannot go out of date; a rail of dates next to it can, and
+       would have aged the whole page on its behalf.
+       Currency has authorities that are gated for it — /about carries the current publication
+       records, /research the preserved map. Neither claim moved; one restatement of them left. */}
 
   <hr class="rule" />
 
@@ -155,6 +166,13 @@ const DIRECTORY = [
   const hash = location.hash;
   if (hash === '#exhibit-a' || hash === '#exhibit-b') {
     location.replace('/the-argument' + hash);
+  }
+  // Unit B: the four-mood witness moved to /the-argument#exhibit-b, so the two ids it used to carry
+  // here are rewritten to it. `#try-a-question` was a permanent homepage anchor by rider 1 and had
+  // eleven inbound links; all of them now point at the instrument directly, and this catches
+  // anything a reader bookmarked or shared before the move.
+  if (hash === '#try-a-question' || hash === '#exhibit-a-heading') {
+    location.replace('/the-argument#exhibit-b');
   }
 </script>
 
@@ -211,19 +229,6 @@ const DIRECTORY = [
   /* the mood vocabulary (Option A, the build default) is defined site-wide in tokens.css — the
      single source, per art direction §3 ("define once, reuse everywhere"). */
 
-  /* ── 3 · Latest rail ─────────────────────────────────────────── */
-  .latest { width: min(100% - 3rem, 62rem); margin-inline: auto; padding-block: clamp(1.8rem, 3vw, 2.6rem); }
-  .rail-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--ink-faint); margin: 0 0 1rem; }
-  .rail { list-style: none; padding: 0; margin: 0; display: grid;
-    grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-  .rail-item { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--font-sans); }
-  .rail-kind { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
-  .rail-item a { font-size: 0.92rem; line-height: 1.4; color: var(--ink); text-decoration: none;
-    border-bottom: 1px solid var(--rule-strong); width: fit-content; }
-  .rail-item a:hover { border-color: var(--ink-faint); }
-  .rail-date { font-size: 0.75rem; color: var(--ink-faint); }
-
   /* ── 4 · Try a question ──────────────────────────────────────── */
   .section-h { font-family: var(--font-serif); font-size: clamp(1.4rem, 2.4vw, 1.8rem);
     margin: 0 0 0.7rem; }
@@ -263,6 +268,5 @@ const DIRECTORY = [
   @media (max-width: 46rem) {
     .mast-grid { grid-template-columns: 1fr; }
     .mast-hero { order: 2; }
-    .rail { grid-template-columns: 1fr; gap: 1.1rem; }
   }
 </style>

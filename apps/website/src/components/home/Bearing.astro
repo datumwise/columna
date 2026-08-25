@@ -1,0 +1,126 @@
+---
+/**
+ * Bearing — the homepage's institutional statement, and nothing else.
+ *
+ * WHAT THIS IS, AND WHAT IT DELIBERATELY IS NOT (Huayin, 2026-08-25, front-gate Unit A).
+ * The homepage laboratory retired the Three Questions composition: three short explanations could
+ * not carry three foundations before a reader has experienced any of them, and the parks are where
+ * those ideas get the room they need. It did NOT retire the identity statement. `First Principles —
+ * Analytics` and the three terrain names tell a cold visitor what kind of institution they have
+ * reached, which is useful before they understand any of the work, and it is the thing the whole
+ * corpus has earned. So this file is the surviving half of Hero.astro:
+ *
+ *   KEPT     the thesis, the three terrain names, one restrained descriptive line, the generated
+ *            formal specimen.
+ *   RETIRED  the falsifiable-commitment block (a claim, better spent where an encounter has paid
+ *            for it), the two action links (the encounter is immediately below; a "scroll down"
+ *            affordance for content one screen away is furniture), and HeroLattice (small, lovely,
+ *            and a compressed argument — `materialized · lawful · both exist by law` — that a cold
+ *            reader cannot decode in the corner of a first screen. Kept in the repo for the
+ *            encounter layer, where it can be walked into rather than glanced at).
+ *
+ * THE TERRAIN NAMES ARE NOT LINKS. Three big clickable doors would be the old architecture wearing
+ * a smaller costume. They are a statement — this is the terrain datumwise works on — and they are
+ * meant to grow with the reader: broadly understood on arrival, much better understood after half
+ * an hour on the site. That only works if the words do not promise a destination they cannot yet
+ * deliver, so they carry no href and no id.
+ *
+ * SIZE IS A REQUIREMENT, NOT A PREFERENCE. Target ≈340px at 1440×900 so the encounter below
+ * visibly enters the first screen. The old hero filled it alone (the commitment label landed around
+ * y≈770 of 900). If this grows back into a full-screen hero, the composition has failed and the
+ * page is a lobby again.
+ *
+ * The formal mark is GENERATED, never typed: transcript.hero_mark is executed against the shipped
+ * package by scripts/gen_transcript.py, and the assertion below fails the build if it stops being a
+ * request the package serves. Keeping the mark here is what keeps that check running.
+ */
+import transcript from '../../data/transcript.generated.json';
+
+const mark = (transcript as any).hero_mark;
+if (!mark?.frameql || mark.outcome !== 'serve') {
+  throw new Error(
+    'Bearing integrity failure: the formal mark is not a request the shipped package serves. ' +
+    'Regenerate the transcript (scripts/gen_transcript.py). The homepage must not quote a retired ' +
+    'or invalid Frame-QL form.'
+  );
+}
+---
+
+<section class="bearing ds ds-paper ds-section" aria-labelledby="thesis">
+  <div class="grid ds-measure-wide">
+    <div class="claim">
+      <h1 id="thesis">First Principles — <span class="territory-word">Analytics</span></h1>
+
+      {/* A statement of terrain. Not links, not headings, not three teaching units. */}
+      <p class="territories">Data · Evidence · Intelligence</p>
+
+      <p class="lede ds-body">
+        datumwise develops first-principles foundations, languages, and systems for analytics
+        across data, evidence, and intelligence.
+      </p>
+    </div>
+
+    <div class="mark-side">
+      <p class="mark-line">
+        <span class="mark-label">Example address, in the data world</span>
+        <code class="ds-mark">{mark.frameql}</code>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The type is Hero's, preserved — only the scale and the furniture changed. `ds-section`
+     supplies the page gutter (without it the thesis bleeds into the edge on a phone); the block
+     padding it also sets is a full narrative turn, so it is overridden here. */
+  .bearing { padding-block: clamp(2rem, 1.4rem + 2vw, 3rem) clamp(2rem, 1.5rem + 2vw, 3rem); }
+  .grid {
+    display: grid;
+    /* wide enough that the thesis sets on one line at 1440 — a bearing, not a stacked hero */
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    align-items: start;
+  }
+
+  /* NOT --ds-hero. That token is the hero thesis at up to 6.25rem and it owns a whole screen; a
+     bearing that big is the thing this file exists to stop being. */
+  h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(1.95rem, 1.25rem + 2.4vw, 3.3rem);
+    line-height: 1.05;
+    letter-spacing: -0.022em;
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .territory-word { font-style: italic; }
+
+  .territories {
+    font-family: var(--font-serif);
+    font-size: clamp(1.02rem, 0.95rem + 0.35vw, 1.22rem);
+    color: var(--ink);
+    margin: 0.85rem 0 0;
+    letter-spacing: 0.01em;
+  }
+
+  .lede {
+    margin: 1rem 0 0;
+    max-width: 34rem;
+    font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  }
+
+  .mark-side { padding-top: 0.4rem; }
+  .mark-line { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+  .mark-label {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+  }
+  code.ds-mark { white-space: pre-wrap; word-break: break-word; }
+
+  @media (max-width: 56rem) {
+    .grid { grid-template-columns: 1fr; gap: 1.75rem; }
+    .mark-side { order: 2; }
+    .claim { order: 1; }
+  }
+</style>
