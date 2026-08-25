@@ -1,0 +1,839 @@
+---
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// WHEN IS IT DATA? — the Data park's first public attraction.
+//
+// STANDING (Huayin + CG2, 2026-08-25). This began as an unlinked design experiment judged in a
+// browser; the park direction passed, and it is published here on its own merits after a
+// publication-readiness audit rather than because the homepage wanted a better exit. It is now a
+// real teaching surface: sitemap-included, reachable from the homepage encounter, and making
+// teaching claims in the site's own name. It is NOT a publication and says so — the deposited
+// account it simplifies is linked at the far end, derived from the registry.
+//
+// THE ONE DESIGN RULE. Attention type is expressed through FORM. A joke is folded because you choose
+// to unfold a joke. A hard question is sealed because you choose to break a seal. A rigorous
+// definition is a flat technical note because rigour does not need ornament. A demonstration is a
+// physical object that CHANGES when you operate it. None of these is a card. Consistency is not the
+// metric; fidelity of each object to the kind of attention it wants is.
+//
+// NO-JS IS THE BASELINE, NOT THE FALLBACK. Every reveal is `<input type="radio">` or
+// `<input type="checkbox">` plus a `:checked ~` sibling selector, and every fold is `<details>`. The
+// entire walk — every question, every answer, the demonstration, the sealed plaque, the joke, the
+// technical trail — works with JavaScript disabled. THIS PAGE SHIPS ZERO JAVASCRIPT OF ITS OWN.
+//
+// DOCTRINE, audited against the corpus before publication:
+//   · "A datum is a typed value at an analytical point" is the governed definition, not a paraphrase
+//     (specs/reference: "one typed value at one analytical point").
+//   · "a datum about an unknown anchor is not an incompletely-specified datum but not a well-formed
+//     datum at all" is why the walk may say a point-less number is not data, flatly.
+//   · universe = "a set of points plus the law that says when a point exists"; orders exist by
+//     occurrence, store-days by declaration — the Afternoon's own words, unchanged.
+//   · `revenue @ {store, month}` is THEORY notation for the complete analytical name, the form the
+//     Afternoon uses. It is never presented as a query: the shipped query surface is
+//     `SELECT revenue AT {store, cal.month}`, and this page issues no queries.
+//   · "which thing, in which world, at which grain" is pedagogical shorthand for point/universe/
+//     anchor and is marked as teaching language, not governed terminology.
+//
+// NO PUBLICATION FACT IS TYPED HERE. Every citation is derived through data/publications.ts, so this
+// file carries zero literal Zenodo tokens and needs no consumers.json row (G7). Do not type a DOI, a
+// version, or a count into this page.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { citation } from '../../data/publications';
+
+const theory = citation('w-theory-of-data');
+const primer = citation('w-tod-primer');
+
+// The five stored values of the demonstration. Every one of them is 42. Every one of them is typed
+// as a number. Every one of them is about something completely different — which is the whole point,
+// and which no amount of storage can tell you.
+const COLUMN = [
+  { about: "John's age", unit: 'years', note: 'and only on the day it was recorded' },
+  { about: "Mary's age", unit: 'years', note: 'a different person, the same numeral' },
+  { about: 'the loading-bay temperature', unit: '°C', note: 'nobody here is 42 degrees old' },
+  { about: 'the bus that stops outside', unit: 'route', note: 'a name that happens to be a numeral' },
+  { about: 'the answer to life, the universe, and everything', unit: '—', note: 'famously unhelpful' },
+];
+---
+
+<BaseLayout
+  title="When is it data? — the Data park"
+  description="A four-minute walk from a bare number to a complete analytical name: what has to be true before a value is data at all. A teaching walk from the datumwise Data park."
+  wide={true}
+  chip={false}
+>
+
+  {/* ── ENTRANCE ────────────────────────────────────────────────────────────────────────────── */}
+  <header class="gate" aria-labelledby="gate-h">
+    <p class="gate-strip mono">The Data Park · a four-minute walk</p>
+    <h1 id="gate-h" class="gate-h">When is it data?</h1>
+    <p class="gate-lede">
+      A walk of about four minutes, starting from a single number and ending at the smallest serious
+      thing you can say about it. You will be asked to commit to an answer before each reveal. That
+      is the whole method; guessing wrong is the fastest way through.
+    </p>
+    <p class="gate-warn mono">
+      This is a teaching walk, not a publication. It simplifies on purpose, in places a serious
+      reader will want undone — and the account it simplifies is at the far end, in its own clothes.
+    </p>
+  </header>
+
+  {/* ── 1 · THE SPECIMEN ────────────────────────────────────────────────────────────────────── */}
+  <section class="plinth-room" aria-labelledby="spec-h">
+    <h2 id="spec-h" class="visually-hidden">The specimen</h2>
+
+    <figure class="plinth">
+      <div class="specimen" aria-hidden="true">42</div>
+      <figcaption class="plinth-label">
+        <span class="plinth-cat mono">specimen 01</span>
+        <span class="plinth-name">A value</span>
+        <span class="plinth-prov mono">provenance: none · about: nothing · acquired: from nowhere</span>
+      </figcaption>
+    </figure>
+
+    <div class="ask">
+      <p class="ask-q">Before you scroll — what is it?</p>
+      <fieldset class="opts">
+        <legend class="visually-hidden">What is 42?</legend>
+
+        <input class="opt-in" type="radio" name="q1" id="q1a" />
+        <label class="opt" for="q1a">A number.</label>
+        <p class="ans" role="note">
+          Correct — and that is the entire extent of it. It is a number, and it is about nothing.
+          Hold on to how little that is.
+        </p>
+
+        <input class="opt-in" type="radio" name="q1" id="q1b" />
+        <label class="opt" for="q1b">A quantity of something.</label>
+        <p class="ans" role="note">
+          Of <em>what</em>? Nothing on the plinth says. You supplied the “of” out of your own head,
+          which is exactly the reflex this walk is about to take away from you.
+        </p>
+
+        <input class="opt-in" type="radio" name="q1" id="q1c" />
+        <label class="opt" for="q1c">The answer to life, the universe, and everything.</label>
+        <p class="ans" role="note">
+          Held for later. It is a better joke than it looks, and it is a joke about precisely this.
+        </p>
+
+        <input class="opt-in" type="radio" name="q1" id="q1d" />
+        <label class="opt" for="q1d">Not enough to say.</label>
+        <p class="ans" role="note">
+          Then you already have the instinct. The rest of this is just making it precise enough to
+          build on.
+        </p>
+      </fieldset>
+    </div>
+  </section>
+
+  {/* ── 2 · THE FIRST BINDING ───────────────────────────────────────────────────────────────── */}
+  <section class="beat" aria-labelledby="b2-h">
+    <p class="beat-num mono">one binding later</p>
+    <p class="statement">age = 42</p>
+    <h2 id="b2-h" class="beat-h">Something arrived. Be precise about what.</h2>
+
+    <div class="ask">
+      <fieldset class="opts">
+        <legend class="ask-q">Do you now know how old someone is?</legend>
+
+        <input class="opt-in" type="radio" name="q2" id="q2a" />
+        <label class="opt" for="q2a">Yes.</label>
+        <p class="ans" role="note">Whose?</p>
+
+        <input class="opt-in" type="radio" name="q2" id="q2b" />
+        <label class="opt" for="q2b">No.</label>
+        <p class="ans" role="note">
+          No. What arrived is a <strong>kind</strong>, not a subject. You now know the value is an
+          age, which tells you what may lawfully be done to it — 42 years, never 42 kilograms, and
+          adding it to another age gives you nothing anybody wanted. That is real, and it is not
+          enough.
+        </p>
+      </fieldset>
+    </div>
+
+    <p class="beat-out">
+      A kind is the cheapest thing to add and the first thing people mistake for meaning. It rules
+      out nonsense. It does not yet say what the number is <em>about</em>.
+    </p>
+  </section>
+
+  {/* ── 3 · THE SECOND BINDING ──────────────────────────────────────────────────────────────── */}
+  {/* CORRECTED IN v2 (CG2, 2026-08-25). The first cut pushed on the missing DATE and taught, by
+      accident, that a date token must literally appear before a datum is checkable. That is not the
+      rule. The rule is that the analytical point must be DETERMINATE under the governed context —
+      the time may be written, or the enclosing world may supply it. So the question is no longer
+      "where is the date"; it is "what point does the word John identify here". */}
+  <section class="beat" aria-labelledby="b3-h">
+    <p class="beat-num mono">two bindings later</p>
+    <p class="statement">John's age = 42</p>
+    <h2 id="b3-h" class="beat-h">Now it is about somebody. Is it data?</h2>
+
+    <div class="ask">
+      <fieldset class="opts">
+        <legend class="ask-q">Commit.</legend>
+
+        <input class="opt-in" type="radio" name="q3" id="q3a" />
+        <label class="opt" for="q3a">Yes. It is about John, it has a value, it has a kind.</label>
+        <p class="ans" role="note">
+          Then one more question, and it is not the one you are expecting.
+          <span class="ans-turn">
+            <strong>What does “John” identify?</strong> Not <em>who</em> — what analytical point. A
+            person is not a point; a person <em>at a grain</em> is. John-on-the-day-we-asked and
+            John-in-the-2019-file are different points, and this sentence sits on a plinth in a park
+            with nothing around it to say which one it means.
+          </span>
+        </p>
+
+        <input class="opt-in" type="radio" name="q3" id="q3b" />
+        <label class="opt" for="q3b">Only if we also know when.</label>
+        <p class="ans" role="note">
+          Close, and worth being exact about, because the exact version is the whole rule.
+          <span class="ans-turn">
+            A date does not have to be <em>written</em>. It has to be <strong>determined</strong>. In
+            a payroll file with an as-of date on the cover, or a table whose every row is a snapshot
+            of one morning, the surrounding world fixes the point and nobody needs to repeat it per
+            row — that is what a governed context is <em>for</em>. What breaks a datum is not silence
+            about time. It is silence that leaves the point <em>undetermined</em>.
+          </span>
+        </p>
+
+        <input class="opt-in" type="radio" name="q3" id="q3c" />
+        <label class="opt" for="q3c">Which John?</label>
+        <p class="ans" role="note">
+          Good — you reached for the same gap from the other side. “Which John” and “John when” are
+          not two problems. They are one question wearing two coats:
+          <strong>is the point determined, or are we each supplying our own?</strong>
+        </p>
+      </fieldset>
+    </div>
+
+    <p class="beat-out">
+      Which is why the honest answer here is <em>it depends on what is around it</em> — and why a
+      number alone on a plinth, with nothing around it at all, is the one case where the answer is
+      always no.
+    </p>
+  </section>
+
+  {/* ── 4 · THE DEMONSTRATION ───────────────────────────────────────────────────────────────── */}
+  {/* The aha. A physical object you operate, and operating it drains the authority out of a number
+      that was perfectly well-formed a moment ago. The scale change is the argument: the SUM does not
+      disappear (it is still arithmetically correct) — it SHRINKS, because what it lost was standing,
+      not correctness.
+      SHARPENED IN v2 (CG2): the rig was always teaching more than the copy named. The point is not
+      merely "storage forgot the labels" — it is that the physical representation can be preserved
+      PERFECTLY while analytical identity is absent or conflated. Nothing is corrupted. That is what
+      makes it frightening. */}
+  <section class="rig" aria-labelledby="rig-h">
+    <p class="rig-strip mono">the demonstration · operate the lever</p>
+    <h2 id="rig-h" class="rig-h">Five stored values. One column. Add them up.</h2>
+    <p class="rig-lede">
+      Every value below is stored. Every value is typed as a number. Your database will add this
+      column without hesitating and without warning you. Go on — the total is right there.
+    </p>
+
+    <div class="rig-body">
+      <input class="lever-in" type="checkbox" id="lever" />
+
+      <div class="stack" role="group" aria-label="A stored column of five values">
+        {COLUMN.map((row, i) => (
+          <div class="cell">
+            <span class="cell-i mono">{`row ${i + 1}`}</span>
+            <span class="cell-v">42</span>
+            <span class="cell-about">
+              <span class="cell-about-name">{row.about}</span>
+              <span class="cell-about-unit mono">{row.unit}</span>
+              <span class="cell-about-note">{row.note}</span>
+            </span>
+          </div>
+        ))}
+
+        <div class="total">
+          <span class="cell-i mono">sum</span>
+          <span class="total-v">210</span>
+          <span class="total-verdict">
+            Arithmetically correct. About nothing at all.
+          </span>
+        </div>
+      </div>
+
+      <label class="lever" for="lever">
+        <span class="lever-knob" aria-hidden="true"></span>
+        <span class="lever-txt">
+          <span class="lever-a">Open the labels — say what each value is about</span>
+          <span class="lever-b">Close the labels</span>
+        </span>
+      </label>
+    </div>
+
+    <p class="rig-punch">
+      Nothing here was corrupted. That is the part worth sitting with.
+    </p>
+    <p class="rig-after">
+      Every digit survived. Every type survived. The column is exactly as sound as it looks, and it
+      would still be sound in ten years. What was never written down is the one thing that would have
+      told you these are <strong>five different quantities that happen to be spelled the same</strong>
+      — and so the machine did the only thing it could do with five numbers, which was add them.
+    </p>
+    <p class="rig-after">
+      That is the whole failure, and it is worth saying flatly: <strong>representation was kept
+      perfectly and identity was lost entirely.</strong> Nothing warns you, because from where the
+      software is standing, nothing went wrong.
+    </p>
+  </section>
+
+  {/* ── 5 · THE FOLDED JOKE ─────────────────────────────────────────────────────────────────── */}
+  {/* MOVED IN v2. It used to sit after the technical note, which made the page read as a row of
+      objects. It belongs HERE: row five of the rig is the Adams row, so the fold is a payoff the
+      reader has just been handed, not a bolted-on aside. A joke is folded because unfolding a joke
+      is a choice — and it is load-bearing, not decoration: Adams wrote the best available gag about
+      a value with no analytical point. */}
+  <section class="aside-room" aria-labelledby="fold-h">
+    <details class="fold" id="the-fold">
+      <summary class="fold-tab">
+        <span class="fold-tab-mark mono">fold out</span>
+        <span class="fold-tab-txt" id="fold-h">About row five</span>
+      </summary>
+      <div class="fold-in">
+        <p>
+          Deep Thought computes for seven and a half million years and returns <strong>42</strong>.
+          The joke is usually filed under <em>absurdism</em>. It is not. It is a joke about data.
+        </p>
+        <p>
+          The machine's answer is correct. Nobody can use it, because nobody knows the question — and
+          the question is precisely the thing that would have said what the 42 was <em>about</em>.
+          Adams built a seven-and-a-half-million-year computation that produces a perfectly typed
+          value at no analytical point whatsoever, and then made everyone in the scene react exactly
+          the way an analyst reacts to a number in a spreadsheet with no column header.
+        </p>
+        <p class="fold-kicker">
+          The sequel to that joke is that they then have to build a second, much larger computer to
+          recover the question. Which is roughly what a data-governance project is.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {/* ── 6 · THE PLAIN NOTE ──────────────────────────────────────────────────────────────────── */}
+  {/* Different clothes, deliberately: no ornament, no reveal, no interaction. The rigorous line does
+      not perform. It is a flat note you could photocopy. */}
+  <section class="note-room" aria-labelledby="note-h">
+    <div class="tnote">
+      <p class="tnote-cap mono">the smallest serious formulation</p>
+      <h2 id="note-h" class="tnote-h">A datum is a typed value at an analytical point.</h2>
+      <dl class="tnote-dl">
+        <dt>typed</dt>
+        <dd>
+          what kind of thing the value is — and therefore what may lawfully be done to it. This is
+          the part <code class="mono">age = 42</code> supplied.
+        </dd>
+        <dt>at an analytical point</dt>
+        <dd>
+          which thing, in which world, at which grain. It does not have to be written on the value;
+          it has to be <em>determined</em> by the world the value sits in. This is the part five
+          identical 42s did not have, and the part no storage layer supplies for you.
+        </dd>
+      </dl>
+      <p class="tnote-take">
+        A number is not data until its point is determined — until what it is about, and where in the
+        world that is, are fixed by something other than the reader's assumption.
+      </p>
+    </div>
+  </section>
+
+  {/* ── 7 · THE SEALED PLAQUE ───────────────────────────────────────────────────────────────── */}
+  {/* REPLACED IN v2 (CG2, 2026-08-25). The first cut sealed a question that ToD has in fact settled
+      — whether a point-less expression is a datum missing a part or not a datum — and then implied
+      the settlement was open. Manufacturing doctrinal uncertainty to make a nicer plaque is exactly
+      the kind of thing this site exists not to do.
+      The replacement is the MIRROR of the whole walk, which is why it earns the seal: every beat so
+      far has been a value with no point. This one is a point with no value. It is genuinely open,
+      and it opens toward existence / eligibility / support / zero without our having to build that
+      trail today. */}
+  <section class="aside-room" aria-labelledby="seal-h">
+    <details class="seal">
+      <summary class="seal-tab">
+        <span class="seal-mark mono">sealed · an open question, and we mean open</span>
+        <span class="seal-txt" id="seal-h">Turn it around. If the analytical point is perfectly determined and no value was ever observed — what exactly is missing?</span>
+        <span class="seal-open mono">break the seal</span>
+      </summary>
+      <div class="seal-in">
+        <p>
+          Everything up to here has been a value looking for a point. This is a point looking for a
+          value, and it is much harder.
+        </p>
+        <p>
+          A shop that was open on Tuesday and sold nothing. A shop that was open and whose till
+          failed to report. A shop that was shut for refurbishment. A shop that does not exist. Four
+          situations, four different answers to “what is missing”, and a familiar record-model
+          instinct flattens all four into the same thing: <strong>no row</strong>. Or, if someone was
+          being helpful, into a zero — which is an answer, confidently given, to a question nobody
+          checked was askable.
+        </p>
+        <p>
+          What makes this genuinely open is not the taxonomy. It is that “missing” turns out to be at
+          least three separable things — <em>the point does not exist</em>, <em>the point exists and
+          is not eligible</em>, <em>the point exists, is eligible, and was not observed</em> — and
+          the moment you separate them you have to say who is entitled to decide which one you are
+          looking at, and what an honest answer looks like in each case.
+        </p>
+        <p class="seal-note">
+          We have a position on this and it is not finished. It is the reason a declared world can
+          contain an address that lawfully exists with nothing behind it — a sentence that sounds
+          like a bug until the day it saves you.
+        </p>
+        <p class="seal-note">
+          It is also, if you want the honest version, the next thing we would build a walk about.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {/* ── 8 · THE SERVICE CORRIDOR ────────────────────────────────────────────────────────────── */}
+  {/* The optional deeper trail. Quieter in v2 than v1: it used to carry its own boxed costume, which
+      made the page read as a catalogue of objects. Now it is a hairline and a mono label — the door
+      marked STAFF, not another exhibit. */}
+  <section class="corridor" aria-labelledby="corr-h">
+    <details class="corr">
+      <summary class="corr-tab mono">
+        <span id="corr-h">↳ the deeper trail — where “analytical point” goes if you follow it</span>
+      </summary>
+      <div class="corr-in">
+        <p class="corr-warn mono">
+          Three sentences from a longer theory. This is a gesture at the shape, not the account.
+        </p>
+
+        <div class="corr-beat">
+          <p class="corr-term mono">universe</p>
+          <p>
+            A set of points, plus the law that says when a point exists. Orders exist by occurrence —
+            an order is a point because it happened. Store-days exist by declaration — the pair
+            (store 12, yesterday) is a legitimate location whether or not anything happened there.
+            Two different kinds of existence, and confusing them is how a denominator drifts.
+          </p>
+        </div>
+
+        <div class="corr-beat">
+          <p class="corr-term mono">anchor</p>
+          <p>
+            A governed partition of a universe, written as its coordinates:
+            <code class="mono">{'{store, day}'}</code>, <code class="mono">{'{store, month}'}</code>.
+            Coarser and finer anchors are the same territory re-tiled, which is why some rollups are
+            free and others are not lawful at all.
+          </p>
+        </div>
+
+        <div class="corr-beat">
+          <p class="corr-term mono">the complete name</p>
+          <p>
+            A quantity with its law, at an anchor: <code class="mono">revenue @ {'{store, month}'}</code>.
+            That is the whole shape this walk has been climbing toward — the family, at the address.
+            Our bare specimen wanted to be
+            <code class="mono">age @ {'{person, date}'}</code>, and everything that was missing from it
+            was missing from exactly one of those two halves.
+          </p>
+        </div>
+
+        <p class="corr-exit">
+          If that landed, the next thing to read is not another attraction. It is at the bottom of
+          this page.
+        </p>
+      </div>
+    </details>
+  </section>
+
+
+  {/* ── 9 · THE EXIT ────────────────────────────────────────────────────────────────────────── */}
+  {/* Deliberately the calmest object on the page and the only one in the site's own voice. The park
+      is teaching; this is the corpus. It should feel like stepping outside. Every fact derived. */}
+  <section class="exit" aria-labelledby="exit-h">
+    <hr class="exit-rule" />
+    <p class="exit-strip mono">you are now leaving the park</p>
+    <h2 id="exit-h" class="exit-h">The actual account</h2>
+    <p class="exit-lede">
+      Everything above is a teaching device. It is deliberately smaller than the theory, and it
+      simplifies in places a serious reader will want undone. These do not.
+    </p>
+
+    <ul class="exit-list">
+      <li>
+        <a class="exit-title" href={theory.href}>{theory.label}</a>
+        <span class="exit-meta mono">{theory.versionTag ? `${theory.versionTag} · ` : ''}{theory.date}</span>
+        <span class="exit-blurb">The foundation itself, with the proofs.</span>
+      </li>
+      <li>
+        <a class="exit-title" href={primer.href}>{primer.label}</a>
+        <span class="exit-meta mono">{primer.versionTag ? `${primer.versionTag} · ` : ''}{primer.date}</span>
+        <span class="exit-blurb">The vocabulary, carefully, in dependency order.</span>
+      </li>
+      <li>
+        <a class="exit-title" href="/start-here">The Theory of Data in One Afternoon</a>
+        <span class="exit-meta mono">on this site</span>
+        <span class="exit-blurb">
+          The whole idea in one sitting, from a cold start. A teaching artifact hosted here, not a
+          deposited publication.
+        </span>
+      </li>
+    </ul>
+
+    <p class="exit-foot">
+      The park exists because some ideas are easier to walk into than to read into. It does not
+      replace the corpus and is not evidence of anything.
+    </p>
+  </section>
+
+
+  <style>
+    /* ─────────────────────────────────────────────────────────────────────────────────────────
+       PAGE-LOCAL STYLES, on purpose. The park's rule is that each attraction dresses for its own
+       subject; nothing here is extracted or shared, and it is not a design system — so these
+       rules borrow the site's TOKENS (colour, type, rule, measure, focus) and none of its component
+       classes. Tokens are the shared vocabulary; components would have been the shared costume.
+       ───────────────────────────────────────────────────────────────────────────────────────── */
+
+    .mono { font-family: var(--font-mono); }
+
+    /* One local rhythm, so sections breathe like rooms rather than stack like cards. */
+    .gate, .plinth-room, .beat, .rig, .note-room, .aside-room, .corridor, .exit {
+      width: min(100% - 3rem, 46rem);
+      margin-inline: auto;
+    }
+    .gate { padding-block: clamp(3rem, 2rem + 5vw, 6rem) 0; }
+    .plinth-room, .beat, .rig, .note-room, .aside-room, .corridor {
+      padding-block: clamp(3rem, 2rem + 6vw, 7rem);
+    }
+
+    /* ── entrance ──────────────────────────────────────────────────────────────────────────── */
+    .gate-strip {
+      font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-soft); margin: 0 0 1.25rem;
+    }
+    .gate-h {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 1.5rem + 5vw, 4.5rem);
+      line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 1.5rem;
+    }
+    .gate-lede {
+      font-size: 1.1rem; line-height: 1.6; color: var(--ink); max-width: 34rem; margin: 0 0 1.25rem;
+    }
+    .gate-warn {
+      font-size: 0.78rem; line-height: 1.55; color: var(--ink-soft);
+      border-left: 2px solid var(--rule-strong); padding-left: 0.9rem; max-width: 34rem; margin: 0;
+    }
+
+    /* ── the plinth ────────────────────────────────────────────────────────────────────────── */
+    .plinth {
+      margin: 0 0 clamp(2.5rem, 2rem + 3vw, 4rem);
+      display: grid; justify-items: center; text-align: center;
+    }
+    .specimen {
+      font-family: var(--font-serif);
+      font-size: clamp(7rem, 4rem + 18vw, 15rem);
+      line-height: 0.9; letter-spacing: -0.04em;
+      /* A specimen sits ON something. One hairline is enough to say plinth. */
+      padding: 0 0 clamp(1.25rem, 1rem + 2vw, 2.5rem);
+      border-bottom: 1px solid var(--ink);
+      min-width: min(100%, 20rem);
+    }
+    .plinth-label { display: grid; gap: 0.3rem; margin-top: 1rem; }
+    .plinth-cat {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);
+    }
+    .plinth-name { font-family: var(--font-serif); font-size: 1.3rem; }
+    .plinth-prov { font-size: 0.72rem; color: var(--ink-soft); }
+
+    /* ── the Socratic ask ──────────────────────────────────────────────────────────────────── */
+    /* CSS-only commitment. The radio is the commitment; the sibling paragraph is the consequence.
+       No JS anywhere in this mechanism, by design — the argument must survive a dead network. */
+    .ask { max-width: 34rem; margin-inline: auto; }
+    .ask-q, .opts > legend {
+      font-family: var(--font-serif); font-size: 1.25rem; line-height: 1.4;
+      margin: 0 0 1rem; padding: 0; float: none;
+    }
+    .opts { border: 0; padding: 0; margin: 0; }
+    .opt-in {
+      /* Kept in the accessibility tree and keyboard-reachable; visually replaced by its label. */
+      position: absolute; width: 1px; height: 1px; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
+    .opt {
+      display: block; cursor: pointer;
+      border-top: 1px solid var(--rule);
+      padding: 0.85rem 0 0.85rem 2rem; position: relative;
+      font-size: 1rem; line-height: 1.5;
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+    .opt::before {
+      content: ''; position: absolute; left: 0.35rem; top: 1.15rem;
+      width: 0.62rem; height: 0.62rem; border: 1px solid var(--ink-soft); border-radius: 50%;
+    }
+    .opt:hover { color: var(--ds-accent, #7a5c2e); }
+    .opt-in:checked + .opt { font-weight: 600; }
+    .opt-in:checked + .opt::before { background: var(--ink); border-color: var(--ink); }
+    .opt-in:focus-visible + .opt {
+      outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 3px; border-radius: 2px;
+    }
+    .opts > .ans {
+      /* Closed by default; the commitment opens it. `visibility: hidden` matters as much as the
+         clip: without it a screen reader announces all four answers before the reader has committed
+         to anything, which is the one thing this device exists to prevent. Clipping hides it from
+         eyes only; visibility hides it from everybody, and restores for everybody. */
+      max-height: 0; opacity: 0; overflow: hidden; margin: 0; visibility: hidden;
+      padding-left: 2rem; font-size: 0.97rem; line-height: 1.62; color: var(--ink-soft);
+      transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+    }
+    .opt-in:checked + .opt + .ans {
+      max-height: 40rem; opacity: 1; padding-top: 0.1rem; padding-bottom: 1.1rem; visibility: visible;
+    }
+    .ans strong { color: var(--ink); }
+    .ans-turn {
+      display: block; margin-top: 0.7rem; padding-top: 0.7rem;
+      border-top: 1px dashed var(--rule-strong);
+    }
+
+    /* ── beats ─────────────────────────────────────────────────────────────────────────────── */
+    .beat-num {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-soft); margin: 0 0 0.9rem; text-align: center;
+    }
+    .statement {
+      font-family: var(--font-mono);
+      font-size: clamp(1.5rem, 1rem + 3.2vw, 2.75rem);
+      text-align: center; margin: 0 0 1.75rem; letter-spacing: -0.01em;
+    }
+    .beat-h {
+      font-family: var(--font-serif); font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem);
+      line-height: 1.2; text-align: center; margin: 0 0 2rem; max-width: 30rem;
+      margin-inline: auto;
+    }
+    .beat-out {
+      max-width: 32rem; margin: 2rem auto 0; font-size: 1rem; line-height: 1.62;
+      color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 1.1rem;
+    }
+
+    /* ── the demonstration rig ─────────────────────────────────────────────────────────────── */
+    .rig-strip {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-soft); margin: 0 0 0.9rem;
+    }
+    .rig-h {
+      font-family: var(--font-serif); font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.25rem);
+      line-height: 1.18; margin: 0 0 1rem;
+    }
+    .rig-lede { font-size: 1rem; line-height: 1.62; color: var(--ink-soft); margin: 0 0 2rem; max-width: 34rem; }
+    .rig-body { position: relative; }
+    .lever-in {
+      position: absolute; width: 1px; height: 1px; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
+
+    .stack { border-top: 1px solid var(--ink); }
+    .cell {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 5.5rem) minmax(0, 1fr);
+      align-items: baseline; gap: 0 1rem;
+      border-bottom: 1px solid var(--rule);
+      padding: 0.9rem 0;
+    }
+    .cell-i { font-size: 0.7rem; color: var(--ink-soft); letter-spacing: 0.08em; }
+    .cell-v {
+      font-family: var(--font-mono); font-size: 1.6rem;
+      transition: color 0.4s ease;
+    }
+    /* Closed: the labels do not exist. This is the honest state of a bare column. */
+    .cell-about {
+      display: grid; gap: 0.1rem;
+      max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+      transition: max-height 0.45s ease, opacity 0.35s ease;
+    }
+    .cell-about-name { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.3; }
+    .cell-about-unit { font-size: 0.7rem; color: var(--ink-soft); }
+    .cell-about-note { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.45; }
+
+    .total {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 5.5rem) minmax(0, 1fr);
+      align-items: baseline; gap: 0 1rem;
+      border-bottom: 2px solid var(--ink);
+      padding: 1.1rem 0;
+    }
+    .total-v {
+      font-family: var(--font-mono);
+      /* THE SCALE CHANGE. Open the labels and the total does not vanish — it is still correct — it
+         loses standing. Size is the argument: authority, not arithmetic, is what drained away. */
+      font-size: 2.4rem; line-height: 1;
+      transition: font-size 0.5s ease, color 0.5s ease, opacity 0.5s ease;
+    }
+    .total-verdict {
+      font-size: 0.9rem; line-height: 1.45; color: var(--ink-soft);
+      max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+      transition: max-height 0.45s ease, opacity 0.35s ease;
+    }
+
+    .lever-in:checked ~ .stack .cell-about,
+    .lever-in:checked ~ .stack .total-verdict { max-height: 9rem; opacity: 1; visibility: visible; }
+    .lever-in:checked ~ .stack .cell-v { color: var(--ink-soft); }
+    .lever-in:checked ~ .stack .total-v {
+      /* The ONE deliberate use of the below-AA ink on this page: the drained total. Its meaning is
+         restated in full contrast immediately beside it ("Arithmetically correct. About nothing at
+         all."), so nothing is carried by the low contrast alone — the fade IS the argument. */
+      font-size: 1.05rem; color: var(--ink-faint); opacity: 0.8;
+    }
+
+    .lever {
+      display: inline-flex; align-items: center; gap: 0.8rem;
+      margin-top: 1.75rem; cursor: pointer;
+      border: 1px solid var(--ink); padding: 0.6rem 1.1rem 0.6rem 0.7rem;
+      font-size: 0.92rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .lever:hover { background: var(--ink); color: var(--paper); }
+    .lever-knob {
+      width: 2.1rem; height: 1.05rem; border: 1px solid currentColor; position: relative; flex: none;
+    }
+    .lever-knob::after {
+      content: ''; position: absolute; top: 1px; left: 1px; bottom: 1px; width: 0.85rem;
+      background: currentColor; transition: transform 0.25s ease;
+    }
+    .lever-in:checked ~ .lever .lever-knob::after { transform: translateX(0.95rem); }
+    .lever-in:focus-visible ~ .lever { outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 3px; }
+    .lever-b { display: none; }
+    .lever-in:checked ~ .lever .lever-a { display: none; }
+    .lever-in:checked ~ .lever .lever-b { display: inline; }
+
+    .rig-punch {
+      font-family: var(--font-serif); font-size: clamp(1.4rem, 1.1rem + 1.5vw, 2rem);
+      line-height: 1.25; margin: 2.5rem 0 1.25rem; max-width: 28rem;
+    }
+    .rig-after { font-size: 1rem; line-height: 1.65; color: var(--ink-soft); margin: 0; max-width: 34rem; }
+    .rig-after strong { color: var(--ink); }
+
+    /* ── the plain technical note ──────────────────────────────────────────────────────────── */
+    .tnote {
+      border: 1px solid var(--ink); padding: clamp(1.5rem, 1rem + 2.5vw, 2.5rem);
+      background: var(--paper-raised);
+    }
+    .tnote-cap {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-soft); margin: 0 0 1rem;
+    }
+    .tnote-h {
+      font-family: var(--font-serif); font-size: clamp(1.5rem, 1.15rem + 1.7vw, 2.1rem);
+      line-height: 1.2; margin: 0 0 1.5rem;
+    }
+    .tnote-dl { margin: 0 0 1.75rem; display: grid; gap: 1rem; }
+    .tnote-dl dt {
+      font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink);
+      border-bottom: 1px solid var(--rule-strong); padding-bottom: 0.3rem; margin-bottom: 0.45rem;
+    }
+    .tnote-dl dd { margin: 0; font-size: 0.97rem; line-height: 1.6; color: var(--ink-soft); }
+    .tnote-take {
+      font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.45; margin: 0;
+      border-top: 1px solid var(--ink); padding-top: 1.25rem;
+    }
+
+    /* ── the fold (a joke) ─────────────────────────────────────────────────────────────────── */
+    .fold {
+      border: 1px solid var(--rule-strong);
+      background: var(--paper-raised);
+    }
+    .fold-tab {
+      display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap;
+      cursor: pointer; padding: 1rem 1.25rem; list-style: none;
+    }
+    .fold-tab::-webkit-details-marker { display: none; }
+    .fold-tab-mark {
+      font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
+      border: 1px solid var(--rule-strong); padding: 0.15rem 0.45rem; flex: none;
+    }
+    .fold-tab-txt { font-family: var(--font-serif); font-size: 1.1rem; }
+    .fold[open] .fold-tab { border-bottom: 1px solid var(--rule); }
+    .fold-in { padding: 1.25rem; display: grid; gap: 1rem; }
+    .fold-in p { margin: 0; font-size: 0.99rem; line-height: 1.65; }
+    .fold-kicker { color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 1rem; }
+
+
+    /* ── the seal (an open question) ───────────────────────────────────────────────────────── */
+    .seal { border: 2px solid var(--ink); background: var(--paper); }
+    .seal-tab {
+      display: grid; gap: 0.6rem; cursor: pointer;
+      padding: clamp(1.1rem, 0.9rem + 1vw, 1.6rem); list-style: none;
+    }
+    .seal-tab::-webkit-details-marker { display: none; }
+    .seal-mark {
+      font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);
+    }
+    .seal-txt { font-family: var(--font-serif); font-size: clamp(1.15rem, 1rem + 0.8vw, 1.5rem); line-height: 1.3; }
+    .seal-txt code { font-size: 0.85em; }
+    .seal-open {
+      justify-self: start; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+      border-bottom: 1px solid var(--ink); padding-bottom: 0.15rem;
+    }
+    .seal[open] .seal-open { display: none; }
+    .seal[open] .seal-tab { border-bottom: 2px solid var(--ink); }
+    .seal-in { padding: clamp(1.1rem, 0.9rem + 1vw, 1.6rem); display: grid; gap: 1rem; }
+    .seal-in p { margin: 0; font-size: 0.99rem; line-height: 1.65; }
+    .seal-note { color: var(--ink-soft); }
+
+    /* ── the corridor (the deeper trail) ───────────────────────────────────────────────────── */
+    .corr { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    /* v2: the corridor is the quietest object on the page by design — a hairline and a mono label,
+       the door marked STAFF rather than another exhibit. Its room also gets less air than the
+       exhibits, so a collapsed corridor does not open a canyon before the exit. */
+    .corridor { padding-block: clamp(2rem, 1.5rem + 2vw, 3rem); }
+    .corr-tab {
+      cursor: pointer; padding: 1rem 0; list-style: none;
+      font-size: 0.85rem; color: var(--ink-soft);
+    }
+    .corr-tab::-webkit-details-marker { display: none; }
+    .corr-tab:hover { color: var(--ink); }
+    .corr-in { padding: 0.5rem 0 1.75rem; display: grid; gap: 1.5rem; }
+    .corr-warn { font-size: 0.72rem; color: var(--ink-soft); margin: 0; }
+    .corr-beat { display: grid; gap: 0.4rem; }
+    .corr-term {
+      font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink);
+      margin: 0;
+    }
+    .corr-beat p:last-child { margin: 0; font-size: 0.95rem; line-height: 1.62; color: var(--ink-soft); }
+    .corr-beat code { font-size: 0.85em; color: var(--ink); }
+    .corr-exit { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+
+    /* ── the exit (site voice) ─────────────────────────────────────────────────────────────── */
+    .exit { padding-block: clamp(3rem, 2rem + 5vw, 6rem) clamp(4rem, 3rem + 6vw, 8rem); }
+    .exit-rule { border: 0; border-top: 1px solid var(--rule-strong); margin: 0 0 2.5rem; }
+    .exit-strip {
+      font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-soft); margin: 0 0 0.9rem;
+    }
+    .exit-h {
+      font-family: var(--font-serif); font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem);
+      margin: 0 0 1rem;
+    }
+    .exit-lede { font-size: 1rem; line-height: 1.62; color: var(--ink-soft); margin: 0 0 2rem; max-width: 34rem; }
+    .exit-list { list-style: none; margin: 0 0 2rem; padding: 0; display: grid; gap: 1.4rem; }
+    .exit-list li { display: grid; gap: 0.25rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+    .exit-title { font-family: var(--font-serif); font-size: 1.12rem; color: var(--ink); }
+    .exit-meta { font-size: 0.72rem; color: var(--ink-soft); }
+    .exit-blurb { font-size: 0.93rem; line-height: 1.55; color: var(--ink-soft); }
+    .exit-foot {
+      font-size: 0.85rem; line-height: 1.55; color: var(--ink-soft); margin: 0;
+      border-top: 1px solid var(--rule); padding-top: 1.1rem;
+    }
+
+    /* ── narrow ────────────────────────────────────────────────────────────────────────────── */
+    @media (max-width: 34rem) {
+      .cell, .total { grid-template-columns: 3.2rem minmax(0, 4rem) minmax(0, 1fr); gap: 0 0.7rem; }
+      .cell-v { font-size: 1.3rem; }
+      .total-v { font-size: 1.9rem; }
+      .fold-tab { gap: 0.5rem; }
+    }
+
+    /* ── reduced motion ────────────────────────────────────────────────────────────────────── */
+    /* tokens.css already kills durations globally; this removes the two TRANSFORMS as well, which a
+       duration override alone would leave in place as an instant jump. */
+    @media (prefers-reduced-motion: reduce) {
+      /* tokens.css already zeroes durations globally; this kills the lever knob's TRANSFORM, which a
+         duration override alone would leave as an instant jump rather than no movement at all. */
+      .lever-knob::after { transition: none; }
+    }
+  </style>
+
+</BaseLayout>
