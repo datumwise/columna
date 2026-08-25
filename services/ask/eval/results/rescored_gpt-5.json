@@ -294,7 +294,7 @@
    "id": "d3",
    "shape": "direct-corpus",
    "q": "What is the current Theory of Data publication?",
-   "answer": "Huayin Wang, The Theory of Data: A Foundation for Analytical Identity, Derivability, and Consistency \u2014 Version 6.1 (Zenodo DOI 10.5281/zenodo.22013410). This is the current analytical foundation the rest of the corpus aligns to [S5][S2]. The park index also lists it as the foundation itself, dated 2026\u201108\u201119 [S6]. Note: \u201cThe Theory of Data in One Afternoon\u201d is a teaching artifact, not a deposited publication [S1].\n\n{\"used\": [\"S5\", \"S2\", \"S6\", \"S1\"], \"external\": [], \"corpus_settles\": true}",
+   "answer": "Huayin Wang, The Theory of Data: A Foundation for Analytical Identity, Derivability, and Consistency \u2014 Version 6.1 (Zenodo DOI (DOI:registered-current)). This is the current analytical foundation the rest of the corpus aligns to [S5][S2]. The park index also lists it as the foundation itself, dated 2026\u201108\u201119 [S6]. Note: \u201cThe Theory of Data in One Afternoon\u201d is a teaching artifact, not a deposited publication [S1].\n\n{\"used\": [\"S5\", \"S2\", \"S6\", \"S1\"], \"external\": [], \"corpus_settles\": true}",
    "sources": [],
    "retrieved": [
     {
@@ -2433,7 +2433,7 @@
    "id": "r2",
    "shape": "registry-derived",
    "q": "What's the DOI for The Theory of Data in One Afternoon?",
-   "answer": "It doesn\u2019t have one. \u201cThe Theory of Data in One Afternoon\u201d is a teaching artifact on the site, not a deposited publication, and it carries no DOI and no Zenodo record [S3]. If you need a DOI-backed citation for the foundation it summarizes, cite the formal work: Huayin Wang, \u201cThe Theory of Data,\u201d DOI 10.5281/zenodo.22013410 [S7].\n\n[S3] [S7]",
+   "answer": "It doesn\u2019t have one. \u201cThe Theory of Data in One Afternoon\u201d is a teaching artifact on the site, not a deposited publication, and it carries no DOI and no Zenodo record [S3]. If you need a DOI-backed citation for the foundation it summarizes, cite the formal work: Huayin Wang, \u201cThe Theory of Data,\u201d DOI (DOI:registered-current) [S7].\n\n[S3] [S7]",
    "sources": [
     {
      "cite": "S3",
@@ -2687,7 +2687,7 @@
    "id": "r4",
    "shape": "registry-derived",
    "q": "What does the Two Great Sources position page say, and is it the current edition?",
-   "answer": "Short answer:\n- What it says: The page is datumwise\u2019s position statement for the research paper of the same name. It presents the same argument and evidence as the paper, with links instead of citations, and notes that the paper of record lives on Zenodo (doi:10.5281/zenodo.21553379); all empirical claims on the page are checkable against the frozen benchmark kit [S3]. In substance, the position holds that silent analytical failures are unrecorded resolutions of names across four degrees of freedom (two of them structurally deep), which dictates where defenses must live [S5][S2]. The page\u2019s \u201cRelated practice\u201d section maps common tooling to those freedoms (e.g., conformed dimensions as F2 alignment passage; bridge tables as F2 crossing without law; semantic layers leaving all four freedoms resolvable downstream; data contracts/tests covering F3\u2013F4 but silent on F1\u2013F2), explaining why even well\u2011tested warehouses yield irreconcilable dashboards [S8].\n- Is it the current edition? No. This route is edition\u2011pinned: it renders the deposited first edition (2026\u201107\u201125) and is not the current record; the current record is v2.0 (2026\u201108\u201111) [S3]. The research estate also notes the site renders the deposited first edition and that the onsite edition was deposited under the earlier title \u201cThe Two Great Sources of Silent Analytical Failure,\u201d while the current record is v2.0 under \u201cThree Structural Sources of Silent Analytical Failure\u201d [S1].\n\n[Citations: S3, S5, S2, S8, S1]",
+   "answer": "Short answer:\n- What it says: The page is datumwise\u2019s position statement for the research paper of the same name. It presents the same argument and evidence as the paper, with links instead of citations, and notes that the paper of record lives on Zenodo (doi:(DOI:registered-superseded)); all empirical claims on the page are checkable against the frozen benchmark kit [S3]. In substance, the position holds that silent analytical failures are unrecorded resolutions of names across four degrees of freedom (two of them structurally deep), which dictates where defenses must live [S5][S2]. The page\u2019s \u201cRelated practice\u201d section maps common tooling to those freedoms (e.g., conformed dimensions as F2 alignment passage; bridge tables as F2 crossing without law; semantic layers leaving all four freedoms resolvable downstream; data contracts/tests covering F3\u2013F4 but silent on F1\u2013F2), explaining why even well\u2011tested warehouses yield irreconcilable dashboards [S8].\n- Is it the current edition? No. This route is edition\u2011pinned: it renders the deposited first edition (2026\u201107\u201125) and is not the current record; the current record is v2.0 (2026\u201108\u201111) [S3]. The research estate also notes the site renders the deposited first edition and that the onsite edition was deposited under the earlier title \u201cThe Two Great Sources of Silent Analytical Failure,\u201d while the current record is v2.0 under \u201cThree Structural Sources of Silent Analytical Failure\u201d [S1].\n\n[Citations: S3, S5, S2, S8, S1]",
    "sources": [
     {
      "cite": "S3",
@@ -2855,7 +2855,7 @@
    "id": "r5",
    "shape": "registry-derived",
    "q": "According to the research corpus map, what version is the Theory of Data at?",
-   "answer": "Version 4.0. That\u2019s what the preserved research corpus map (as rendered on 2026\u201108\u201103) lists for the Theory of Data, citing DOI 10.5281/zenodo.21774032 [S5]. Note this map is a historical record and not current authority; publication truth is owned by the publication registry, and later sources align to a v6.1 foundation [S2][S3].\n\n{\"used\": [\"S5\", \"S2\", \"S3\"], \"external\": [], \"corpus_settles\": true}",
+   "answer": "Version 4.0. That\u2019s what the preserved research corpus map (as rendered on 2026\u201108\u201103) lists for the Theory of Data, citing DOI (DOI:registered-superseded) [S5]. Note this map is a historical record and not current authority; publication truth is owned by the publication registry, and later sources align to a v6.1 foundation [S2][S3].\n\n{\"used\": [\"S5\", \"S2\", \"S3\"], \"external\": [], \"corpus_settles\": true}",
    "sources": [],
    "retrieved": [
     {

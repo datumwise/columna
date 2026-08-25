@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from ask import answer as ask_answer  # noqa: E402
 from ask import providers  # noqa: E402
@@ -152,7 +153,11 @@ def run(model: str, only: list[str] | None, do_judge: bool) -> dict:
     }
     RESULTS.mkdir(exist_ok=True)
     slug = model.replace(":", "_").replace("/", "_")
-    (RESULTS / f"{slug}.json").write_text(json.dumps({"summary": summary, "results": out}, indent=1))
+    # Identifiers are stored as VERDICTS, not literals — see eval/redact.py. Keeps the DOI traps
+    # fully inspectable while leaving G7's vocabulary clean and eval re-runs friction-free.
+    from redact import redact_tree  # noqa: E402
+    payload = redact_tree({"summary": summary, "results": out})
+    (RESULTS / f"{slug}.json").write_text(json.dumps(payload, indent=1))
     return summary
 
 

@@ -349,7 +349,7 @@
    "id": "d3",
    "shape": "direct-corpus",
    "q": "What is the current Theory of Data publication?",
-   "answer": "Huayin Wang, The Theory of Data: A Foundation for Analytical Identity, Derivability, and Consistency, Version 6.1 (Zenodo DOI 10.5281/zenodo.22013410) is the current foundation publication [S5], and our Introduction v2.2 is explicitly aligned to that version [S3].",
+   "answer": "Huayin Wang, The Theory of Data: A Foundation for Analytical Identity, Derivability, and Consistency, Version 6.1 (Zenodo DOI (DOI:registered-current)) is the current foundation publication [S5], and our Introduction v2.2 is explicitly aligned to that version [S3].",
    "sources": [
     {
      "cite": "S3",
