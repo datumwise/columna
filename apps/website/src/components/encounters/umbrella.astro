@@ -33,10 +33,12 @@
  * TWO CHANGES FROM THE LAB PAGE, both forced by production:
  *   · headings demoted one level. Bearing.astro owns the page h1 (`First Principles — Analytics`),
  *     so this opens at h2 and its movements are h3. Nothing else moved.
- *   · the second exit is gone. The lab page ended with a link to /park/when-is-it-data, which is
- *     not on main (PR #224 is held). A 404 on the homepage is not an option and inventing a
- *     replacement destination is worse, so the encounter ends on its publication exit alone. When
- *     the park lands, the walk comes back — it is the better of the two exits.
+ *   · the second exit was dropped at merge and is now RESTORED. /park/when-is-it-data was not on
+ *     main when this landed (PR #224 was held), so the encounter ended on its publication exit
+ *     alone rather than on a 404 or an invented destination. The park was then judged and published
+ *     on its own merits, and the walk came back — the transition is honest in both directions: this
+ *     encounter is a value whose population is undetermined, the walk is a value whose point is
+ *     undetermined, and the walk starts one step earlier.
  *
  * NO JAVASCRIPT. The commitment mechanic is `:checked ~`; every reveal works with scripting off.
  */
@@ -213,6 +215,11 @@ const CHOICES = [
       that earned it; the four doors above carry anyone who wants the institution. */}
   <section class="onward" aria-labelledby="on-h">
     <h3 id="on-h" class="on-h">If that landed</h3>
+    <p class="on-lede">
+      There is a shorter, stranger version of this problem that starts one step further back — at a
+      single number, on a plinth, with nothing attached to it at all.
+    </p>
+    <p class="on-walk"><a href="/park/when-is-it-data">When is it data? — a four-minute walk</a></p>
     <div class="on-src">
       <p class="src-cap mono">and the full account of what a population is, and when a number exists</p>
       <a class="src-title" href={theory.href}>{theory.label}</a>
@@ -330,7 +337,8 @@ const CHOICES = [
     /* ── THE WAY ON ────────────────────────────────────────────────────────────────────────── */
     .onward { width: min(100% - 3rem, 46rem); margin-inline: auto; text-align: center; padding-block: clamp(4rem, 3rem + 6vw, 8rem) 0; }
     .on-h { font-family: var(--font-serif); font-size: clamp(1.4rem, 1.15rem + 1.2vw, 1.9rem); margin: 0 0 1.25rem; }
-    .on-h { margin-bottom: 1.75rem; }
+    .on-lede { max-width: 34rem; margin: 0 auto 1.5rem; font-size: 1.02rem; line-height: 1.62; }
+    .on-walk { margin: 0 0 2.5rem; font-family: var(--font-serif); font-size: 1.3rem; }
     .on-src { max-width: 34rem; margin: 0 auto; border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid; gap: 0.25rem; text-align: left; }
     .src-cap { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
     .src-title { font-family: var(--font-serif); font-size: 1.15rem; }
