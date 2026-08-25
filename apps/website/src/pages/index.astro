@@ -39,10 +39,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // The encounter earns its own reply and nothing mandatory follows it.
 import Bearing from '../components/home/Bearing.astro';
 import Umbrella from '../components/encounters/umbrella.astro';
-import { LATEST, PACKAGE_VERSION } from '../data/latest.ts';
-
-const shortDate = (iso: string) =>
-  new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+// PACKAGE_VERSION only. `LATEST` left with the rail in Unit C — see the note at the section it
+// used to occupy. src/data/latest.ts still exports it for whoever wants a state rail on a surface
+// whose job is currency; the front gate's job is not currency.
+import { PACKAGE_VERSION } from '../data/latest.ts';
 
 // §5 is an ORDERED PATH, not a flat list (Huayin's first-read ruling): the items sequenced as the
 // ladder a reader actually climbs, opened by an UNNUMBERED entrance that carries the "start here"
@@ -106,21 +106,14 @@ const DIRECTORY = [
     </div>
   </section>
 
-  <hr class="rule" />
-
-  {/* 3 · Latest — the state rail, wired from data. Reads as a ledger line, not a card grid. */}
-  <section class="latest band" aria-labelledby="latest-h">
-    <p class="rail-label mono" id="latest-h">latest</p>
-    <ul class="rail">
-      {LATEST.map((it) => (
-        <li class="rail-item">
-          <span class="rail-kind mono">{it.kind}</span>
-          <a href={it.href} {...(it.external ? { rel: 'noopener', target: '_blank' } : {})}>{it.title}</a>
-          <span class="rail-date">{shortDate(it.date)}</span>
-        </li>
-      ))}
-    </ul>
-  </section>
+  {/* 3 · THE LATEST RAIL IS GONE (Unit C, 2026-08-25, Huayin + CG2).
+       It was the last thing below the boundary that fought the encounter above it: a dated grid
+       — Aug 22, Aug 24, Jul 25 — sitting directly under a durable intellectual encounter, which
+       implies the homepage must be kept editorially fresh or it is stale. We do not want that
+       obligation. A standing encounter cannot go out of date; a rail of dates next to it can, and
+       would have aged the whole page on its behalf.
+       Currency has authorities that are gated for it — /about carries the current publication
+       records, /research the preserved map. Neither claim moved; one restatement of them left. */}
 
   <hr class="rule" />
 
@@ -236,19 +229,6 @@ const DIRECTORY = [
   /* the mood vocabulary (Option A, the build default) is defined site-wide in tokens.css — the
      single source, per art direction §3 ("define once, reuse everywhere"). */
 
-  /* ── 3 · Latest rail ─────────────────────────────────────────── */
-  .latest { width: min(100% - 3rem, 62rem); margin-inline: auto; padding-block: clamp(1.8rem, 3vw, 2.6rem); }
-  .rail-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--ink-faint); margin: 0 0 1rem; }
-  .rail { list-style: none; padding: 0; margin: 0; display: grid;
-    grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-  .rail-item { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--font-sans); }
-  .rail-kind { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
-  .rail-item a { font-size: 0.92rem; line-height: 1.4; color: var(--ink); text-decoration: none;
-    border-bottom: 1px solid var(--rule-strong); width: fit-content; }
-  .rail-item a:hover { border-color: var(--ink-faint); }
-  .rail-date { font-size: 0.75rem; color: var(--ink-faint); }
-
   /* ── 4 · Try a question ──────────────────────────────────────── */
   .section-h { font-family: var(--font-serif); font-size: clamp(1.4rem, 2.4vw, 1.8rem);
     margin: 0 0 0.7rem; }
@@ -288,6 +268,5 @@ const DIRECTORY = [
   @media (max-width: 46rem) {
     .mast-grid { grid-template-columns: 1fr; }
     .mast-hero { order: 2; }
-    .rail { grid-template-columns: 1fr; gap: 1.1rem; }
   }
 </style>
