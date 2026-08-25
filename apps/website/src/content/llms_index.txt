@@ -60,6 +60,10 @@ Every answer is one of four, returned as structured data on one contract (contra
 ## The evidence
 Every claim on the site is checkable, and the failures are published alongside the successes.
 {{PUBLICATIONS}}
+- The complete current research and source estate: /research — every registered work at its current
+  record, alongside the serious non-publication sources (the normative and generated references, the
+  machine evidence, the negative record). The chronological list above is a curated selection for
+  orientation, not the whole estate.
 - The public benchmark kit: https://github.com/datumwise/ground-truth-benchmark — the frozen answer
   key, the raw model answers, the scoring driver, and the published errata. Re-runnable.
 - The case study: /case — a complete worked example (one warehouse, six questions) with recorded
@@ -74,4 +78,7 @@ Every claim on the site is checkable, and the failures are published alongside t
 - The framework manual: /docs/framework
 - The FrameQL manual: /docs/frameql
 - The reference manual: /docs/reference
-- How these documents relate: /how-these-documents-relate
+- How these documents relate — the current research and source estate: /research
+- Preserved historical state: /history/… — a page kept exactly as it was written on a date, e.g. the
+  research corpus map at /history/research-map-2026-08-03. A faithful record of what was said then;
+  it is not current authority, and current reality lives at the primary route.
