@@ -75,6 +75,7 @@ export default defineConfig({
       // genuine harm, not just noise. Unlinked from navigation and kept out of the sitemap.
       'https://datumwise.ai/lab/trailhead/',
       'https://datumwise.ai/lab/exhibit/',
+      'https://datumwise.ai/lab/threshold/',
     ].includes(page),
   })],
   // Retired routes REDIRECT (a 404 is never acceptable for a live/guessable URL); Astro emits a static

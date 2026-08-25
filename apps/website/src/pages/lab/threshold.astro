@@ -1,0 +1,367 @@
+---
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// HOMEPAGE LABORATORY — VERSION C: "Standing Exhibit with a Door"  (design experiment, 2026-08-25)
+//
+// THE HYPOTHESIS UNDER TEST. Let one encounter finish completely — with B's room, pacing and
+// silence — and then let a real machine answer the problem that encounter created. Not B plus a
+// product section: the wire object is a REPLY, and it only exists because the umbrella problem
+// ended somewhere that demanded one.
+//
+// The joint the whole page turns on is four words wide:
+//
+//     Arithmetic will happily continue.
+//     This won't.
+//
+// That is the entire transition. No crossing label, no "executable consequence" banner, no
+// explanation of what Columna is. The contrast between a page that has just watched arithmetic
+// divide anyway, and a real adjudicated REFUSE, is asked to carry all of it. If the reader needs
+// the crossing explained, the crossing has already failed and no caption will save it.
+//
+// HONESTY, AND THE ONE THING THIS PAGE MUST NOT IMPLY. The shipped engine does not refuse the
+// umbrella question — the umbrella scenario is a teaching fiction and is not in any declared world.
+// So the page says outright that the request below is a DIFFERENT question from a small declared
+// world that ships inside the software, and claims only the thing that is true: that it is the same
+// KIND of question, where the arithmetic is available and the meaning is not. Implying the machine
+// solved the umbrella problem would be exactly the lie this whole site exists to refuse.
+//
+// The refusal itself comes through lib/exhibitA.ts, which re-adjudicates the generated transcript at
+// build time and throws if the shipped package stopped behaving that way. One mood, never four — a
+// four-mood exhibit would turn a reply into a feature tour.
+//
+// COMPOSITION. Built from B's exhibition-scale thinking, not A's reading column: centred, one
+// movement per screenful, figures at display scale, a great deal of empty page. B's six movements,
+// then the joint, then the wire, then the exits. The wire is given real room — it is the climax —
+// but it stays subordinate to the thought that produced it: it is one request, one verdict, one
+// reason, and no product.
+//
+// NO-JS, zero JavaScript of its own. Not the homepage, not linked, sitemap-excluded, production
+// untouched. Every publication fact derives from data/publications.ts.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { citation } from '../../data/publications';
+import { CASES, PROVENANCE } from '../../lib/exhibitA';
+
+const theory = citation('w-theory-of-data');
+
+const refusal = CASES.find((c) => c.mood === 'refuse');
+if (!refusal) throw new Error('threshold: the generated transcript carries no refuse case');
+
+// 52 roster · 3 shut → 49 open · 8 dead till feeds → 41 reporting · 6 of the reporting shops sold.
+// Six is a FLOOR for every population wider than "the shops that were working": silence is not zero.
+const pct = (n: number, d: number) => (100 * n / d).toFixed(1);
+const CHOICES = [
+  { k: 'reported', d: 41, name: 'the shops that were reporting', exact: true,  lo: pct(6, 41), hi: pct(6, 41) },
+  { k: 'open',     d: 49, name: 'the shops that were open',      exact: false, lo: pct(6, 49), hi: pct(14, 49) },
+  { k: 'roster',   d: 52, name: 'every shop you have',           exact: false, lo: pct(6, 52), hi: pct(14, 52) },
+];
+---
+
+<BaseLayout
+  title="A question about umbrellas — homepage laboratory C"
+  description="One encounter, finished completely, and then a machine that answers it. A laboratory prototype."
+  wide={true}
+  chip={false}
+>
+
+  <p class="mark mono">datumwise · homepage laboratory · version C</p>
+
+  {/* ── I · THE ROOM ─────────────────────────────────────────────────────────────────────────── */}
+  <section class="mv mv-open" aria-labelledby="open-h">
+    <h1 id="open-h" class="open-h">Last Tuesday it rained.</h1>
+    <p class="open-p">
+      You have fifty-two shops. Somebody is going to ask you, before lunch, what fraction of them
+      sold an umbrella.
+    </p>
+    <p class="open-p open-quiet">
+      It is a completely ordinary question. Take a moment with it anyway.
+    </p>
+  </section>
+
+  {/* ── II · THE FACTS ───────────────────────────────────────────────────────────────────────── */}
+  <section class="mv mv-facts" aria-labelledby="facts-h">
+    <h2 id="facts-h" class="facts-h">What you actually have</h2>
+    <dl class="facts">
+      <div><dt class="mono">52</dt><dd>shops on the roster</dd></div>
+      <div><dt class="mono">3</dt><dd>shut for refurbishment — nothing was ever going to be sold there</dd></div>
+      <div><dt class="mono">49</dt><dd>open for business</dd></div>
+      <div><dt class="mono">8</dt><dd>of those open shops had a dead till feed and sent you nothing at all</dd></div>
+      <div><dt class="mono">41</dt><dd>shops whose day you can actually see</dd></div>
+      <div class="f-hi"><dt class="mono">6</dt><dd>of those forty-one reported selling an umbrella</dd></div>
+    </dl>
+    <p class="facts-note">None of this is disputed. Everyone in the room agrees on every line.</p>
+  </section>
+
+  {/* ── III · THE QUESTION, AND IV–VI INSIDE THE COMMITMENT ──────────────────────────────────── */}
+  <section class="mv mv-q" aria-labelledby="q-h">
+    <h2 id="q-h" class="q-h">So: six out of what?</h2>
+    <p class="q-p">There is only one decision left in the whole problem. Make it.</p>
+
+    <form class="pick">
+      <fieldset>
+        <legend class="visually-hidden">Choose the population you mean</legend>
+        {CHOICES.map((c) => (
+          <>
+            <input class="p-in" type="radio" name="pop" id={`p-${c.k}`} />
+            <label class="p-opt" for={`p-${c.k}`}>
+              <span class="p-n mono">{c.d}</span>
+              <span class="p-name">{c.name}</span>
+            </label>
+          </>
+        ))}
+
+        <div class="answer" role="note">
+          <p class="a-cap mono">what came back</p>
+
+          {CHOICES.map((c) => (
+            <div class={c.exact ? 'a-row a-exact' : 'a-row a-band'} data-k={c.k}>
+              <p class="a-you mono">this was your choice</p>
+              <p class="a-fig">
+                {c.lo}<span class="a-sign">%</span>
+                {!c.exact && (<><span class="a-to">to</span>{c.hi}<span class="a-sign">%</span></>)}
+              </p>
+              <div class="a-scale" aria-hidden="true"><span class="a-known"></span></div>
+              <p class="a-of">of {c.name}</p>
+              <p class="a-say">
+                {c.exact
+                  ? 'A single number, and a true one. It describes the shops whose tills happened to be working — a population that exists because eight machines broke.'
+                  : 'Not a number. A range sixteen points wide, and nothing in the data can narrow it.'}
+              </p>
+            </div>
+          ))}
+
+          {/* ── V · THE SILENCE — the encounter finishes here, completely ──────────────────── */}
+          <div class="silence">
+            <p class="s-big">Silence is not zero.</p>
+            <p class="s-p">
+              The eight shops you cannot see did not tell you they sold nothing. They did not tell you
+              anything. Any number of them, up to all eight, may have sold an umbrella — so the true
+              count is somewhere between six and fourteen, and six is only where it starts.
+            </p>
+            <p class="s-p">
+              You were choosing a denominator. That was never the hard part. The hard part is that for
+              two of those three choices <strong>you do not possess the numerator</strong>, and you
+              were about to divide anyway.
+            </p>
+            <p class="s-p s-last">
+              Nothing here is a bug. Every number is correct, every record is intact, and the division
+              is available whenever you want it.
+            </p>
+          </div>
+
+          {/* ── THE JOINT ───────────────────────────────────────────────────────────────────── */}
+          {/* Four words. This is the whole page. */}
+          <div class="joint">
+            <p class="j-a">Arithmetic will happily continue.</p>
+            <p class="j-b">This won't.</p>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </section>
+
+  {/* ── THE DOOR ─────────────────────────────────────────────────────────────────────────────── */}
+  {/* The reply. Full-bleed wire, given real room because it is the climax — but one request, one
+      verdict, one reason, and no product. Deliberately NOT gated behind the commitment above: a
+      reader who scrolls past the interaction still meets the machine, because the machine is the
+      point of the page and not a prize for participating. */}
+  <section class="door ds ds-wire ds-crossing" aria-labelledby="door-h">
+    <div class="door-in">
+      <h2 id="door-h" class="door-h">Something can decline.</h2>
+
+      <p class="door-frame">
+        The request below is not about umbrellas. It is about stock, in a small declared world that
+        ships inside the software. But it is the same kind of question as the one you just had:
+        <strong>the arithmetic is available and the meaning is not.</strong>
+      </p>
+
+      <div class="wire">
+        <p class="wire-lab mono">asked</p>
+        <pre class="wire-req mono">{refusal.request}</pre>
+
+        <p class="wire-lab mono">answered</p>
+        <p class="wire-verdict mono">{refusal.mood}</p>
+
+        {refusal.findings.map((f) => (
+          <>
+            <p class="wire-code mono">{f.code}</p>
+            <p class="wire-detail">{f.detail}</p>
+          </>
+        ))}
+
+        {refusal.noResult && (
+          <>
+            <p class="wire-lab mono">instead</p>
+            <ul class="wire-offers">
+              {refusal.noResult.offers.map((o) => <li>{o}</li>)}
+            </ul>
+          </>
+        )}
+      </div>
+
+      <p class="wire-prov mono">
+        manifold {PROVENANCE.manifold} · columna {PROVENANCE.columna} · contract {PROVENANCE.contract}
+        — produced by running the shipped package at build time, not written by hand
+      </p>
+
+      <p class="door-after">
+        Nothing was broken. Every number it needed was present and every one of them was correct. It
+        declined because the result would not have meant anything — and then it named the law that
+        stopped it, and what it would have accepted instead.
+      </p>
+      <p class="door-last">
+        That is the difference, and it is smaller and stranger than a feature. Not a faster answer.
+        An answer that knows what it is an answer <em>about</em>.
+      </p>
+    </div>
+  </section>
+
+  {/* ── THE WAY ON ───────────────────────────────────────────────────────────────────────────── */}
+  {/* Exits, after the climax rather than before it. The publication is attached to the encounter
+      that earned it; the four doors above carry anyone who wants the institution. */}
+  <section class="onward" aria-labelledby="on-h">
+    <h2 id="on-h" class="on-h">If that landed</h2>
+    <p class="on-lede">
+      There is a shorter, stranger version of this problem that starts one step further back — at a
+      single number, on a plinth, with nothing attached to it at all.
+    </p>
+    <p class="on-walk"><a href="/park/when-is-it-data">When is it data? — a four-minute walk</a></p>
+
+    <div class="on-src">
+      <p class="src-cap mono">and the full account of what a population is, and when a number exists</p>
+      <a class="src-title" href={theory.href}>{theory.label}</a>
+      <span class="src-meta mono">{theory.versionTag ? `${theory.versionTag} · ` : ''}{theory.date} · with proofs</span>
+    </div>
+  </section>
+
+  <p class="territory">This is one problem out of several, and not the hardest.</p>
+
+  <style>
+    /* ─────────────────────────────────────────────────────────────────────────────────────────
+       VERSION C. B's instrument — centred, exhibition scale, one movement per screenful — with a
+       wire slab at the end. Its own file and its own styles on purpose: three hypotheses under
+       comparison must not share a costume, or the costume decides the result.
+       ───────────────────────────────────────────────────────────────────────────────────────── */
+    .mono { font-family: var(--font-mono); }
+
+    .mark {
+      width: min(100% - 3rem, 46rem); margin: 2rem auto 0;
+      font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
+    }
+
+    .mv {
+      width: min(100% - 3rem, 46rem); margin-inline: auto; text-align: center;
+      padding-block: clamp(4.5rem, 3rem + 9vw, 11rem);
+    }
+    .mv-open { padding-top: clamp(5rem, 3rem + 11vw, 13rem); }
+
+    /* ── I ─────────────────────────────────────────────────────────────────────────────────── */
+    .open-h { font-family: var(--font-serif); font-size: clamp(2.6rem, 1.4rem + 5.6vw, 5.5rem); line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 2.5rem; }
+    .open-p { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem); line-height: 1.6; margin: 0 auto 1rem; max-width: 30rem; }
+    .open-quiet { color: var(--ink-soft); }
+
+    /* ── II ────────────────────────────────────────────────────────────────────────────────── */
+    .facts-h { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 400; color: var(--ink-soft); margin: 0 0 2.5rem; }
+    .facts { margin: 0 auto 2rem; max-width: 34rem; text-align: left; }
+    .facts > div { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 1.25rem; align-items: baseline; border-top: 1px solid var(--rule); padding: 0.95rem 0; }
+    .facts > div:last-child { border-bottom: 1px solid var(--rule); }
+    .facts dt { font-size: 1.5rem; color: var(--ink-soft); text-align: right; }
+    .facts dd { margin: 0; font-size: 0.98rem; line-height: 1.45; }
+    .f-hi dt { color: var(--ink); font-weight: 600; }
+    .f-hi dd { font-weight: 500; }
+    .facts-note { font-size: 0.92rem; color: var(--ink-soft); margin: 0; }
+
+    /* ── III ───────────────────────────────────────────────────────────────────────────────── */
+    .q-h { font-family: var(--font-serif); font-size: clamp(2rem, 1.3rem + 3.4vw, 3.6rem); line-height: 1.08; margin: 0 0 1.25rem; }
+    .q-p { font-size: 1.05rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 3rem; }
+    .pick fieldset { border: 0; padding: 0; margin: 0; }
+    .p-in { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .p-opt { display: block; cursor: pointer; padding: 1.4rem 1rem; border-top: 1px solid var(--rule); transition: background-color 0.15s ease; }
+    .p-opt:last-of-type { border-bottom: 1px solid var(--rule); }
+    .p-n { display: block; font-size: clamp(2rem, 1.5rem + 2vw, 3rem); line-height: 1; color: var(--ink-soft); transition: color 0.15s ease; }
+    .p-name { display: block; font-size: 1rem; margin-top: 0.45rem; }
+    .p-opt:hover { background: var(--paper-raised); }
+    .p-opt:hover .p-n { color: var(--ink); }
+    .p-in:checked + .p-opt { background: var(--paper-raised); }
+    .p-in:checked + .p-opt .p-n { color: var(--ink); }
+    .p-in:focus-visible + .p-opt { outline: 2px solid var(--ds-accent, #7a5c2e); outline-offset: 2px; }
+
+    /* ── IV ────────────────────────────────────────────────────────────────────────────────── */
+    .answer { max-height: 0; opacity: 0; overflow: hidden; visibility: hidden; transition: max-height 0.6s ease, opacity 0.5s ease; }
+    .p-in:checked ~ .answer { max-height: 260rem; opacity: 1; visibility: visible; margin-top: clamp(4rem, 3rem + 5vw, 7rem); }
+    .a-cap { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 3rem; }
+    .a-row { margin: 0 auto clamp(3.5rem, 2.5rem + 5vw, 6rem); max-width: 34rem; }
+    .a-you { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); margin: 0 0 0.6rem; visibility: hidden; }
+    .a-fig { font-family: var(--font-serif); font-size: clamp(3rem, 1.8rem + 5vw, 5.5rem); line-height: 1; margin: 0; letter-spacing: -0.02em; }
+    .a-sign { font-size: 0.4em; color: var(--ink-soft); margin-left: 0.06em; }
+    .a-to { font-size: 0.3em; color: var(--ink-soft); margin: 0 0.35em; letter-spacing: 0.08em; text-transform: uppercase; vertical-align: middle; }
+    .a-scale { height: 4px; background: var(--rule); margin: 1.5rem auto 1rem; position: relative; }
+    .a-exact .a-scale { width: 4px; background: var(--ink); }
+    .a-band .a-scale { width: 100%; }
+    .a-band .a-known { position: absolute; left: 0; top: 0; bottom: 0; width: 6%; background: var(--ink); }
+    .a-of { font-size: 0.95rem; color: var(--ink-soft); margin: 0 0 0.7rem; }
+    .a-say { font-size: 0.98rem; line-height: 1.6; margin: 0; }
+    .a-exact .a-say { color: var(--ink-soft); }
+    #p-reported:checked ~ .answer .a-row[data-k='reported'] .a-you,
+    #p-open:checked     ~ .answer .a-row[data-k='open'] .a-you,
+    #p-roster:checked   ~ .answer .a-row[data-k='roster'] .a-you { visibility: visible; }
+
+    /* ── V ─────────────────────────────────────────────────────────────────────────────────── */
+    .silence { border-top: 1px solid var(--ink); padding-top: clamp(3rem, 2rem + 4vw, 5rem); margin-top: clamp(2rem, 1rem + 3vw, 4rem); }
+    .s-big { font-family: var(--font-serif); font-size: clamp(2.2rem, 1.4rem + 3.6vw, 4rem); line-height: 1.08; margin: 0 0 2.5rem; letter-spacing: -0.02em; }
+    .s-p { max-width: 34rem; margin: 0 auto 1.2rem; font-size: 1.05rem; line-height: 1.65; text-align: left; }
+    .s-last { color: var(--ink-soft); }
+
+    /* ── THE JOINT ─────────────────────────────────────────────────────────────────────────── */
+    /* Two lines and a lot of nothing. The gap between them is the argument; if this needs a caption
+       it has already failed. */
+    .joint { margin-top: clamp(5rem, 4rem + 7vw, 10rem); }
+    .j-a {
+      font-family: var(--font-serif); font-size: clamp(1.5rem, 1.15rem + 1.6vw, 2.2rem);
+      line-height: 1.3; color: var(--ink-soft); margin: 0 0 clamp(4rem, 3rem + 6vw, 8rem);
+    }
+    .j-b {
+      font-family: var(--font-serif); font-size: clamp(2.4rem, 1.5rem + 4vw, 4.4rem);
+      line-height: 1.05; letter-spacing: -0.02em; margin: 0;
+    }
+
+    /* ── THE DOOR ──────────────────────────────────────────────────────────────────────────── */
+    .door { background: var(--wire-bg); color: var(--wire-ink); padding-block: clamp(4.5rem, 3rem + 7vw, 9rem); margin-top: clamp(4rem, 3rem + 5vw, 7rem); }
+    .door-in { width: min(100% - 3rem, 44rem); margin-inline: auto; }
+    .door-h { font-family: var(--font-serif); font-size: clamp(2rem, 1.4rem + 2.8vw, 3.2rem); line-height: 1.1; margin: 0 0 1.75rem; text-align: center; }
+    .door-frame { font-size: 1.05rem; line-height: 1.65; color: var(--wire-ink-soft); margin: 0 auto 3rem; max-width: 34rem; text-align: center; }
+    .door-frame strong { color: var(--wire-ink); }
+
+    .wire { border-top: 1px solid var(--wire-rule); padding-top: 1.75rem; }
+    .wire-lab { font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--wire-ink-soft); margin: 1.25rem 0 0.4rem; }
+    .wire-lab:first-child { margin-top: 0; }
+    .wire-req { font-size: 1rem; margin: 0; color: var(--wire-key); background: var(--wire-panel); padding: 1rem 1.15rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+    .wire-verdict { font-size: clamp(1.8rem, 1.3rem + 2vw, 2.6rem); letter-spacing: 0.16em; text-transform: uppercase; margin: 0; color: var(--ds-accent-wire, #c9a86a); }
+    .wire-code { font-size: 0.8rem; color: var(--wire-string); margin: 1.1rem 0 0.3rem; }
+    .wire-detail { font-size: 0.98rem; line-height: 1.6; margin: 0; }
+    .wire-offers { margin: 0.5rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.4rem; }
+    .wire-offers li { font-size: 0.92rem; line-height: 1.5; color: var(--wire-ink-soft); }
+    .wire-prov { font-size: 0.68rem; line-height: 1.6; color: var(--wire-ink-soft); margin: 2.25rem 0 0; border-top: 1px solid var(--wire-rule); padding-top: 1rem; }
+    .door-after { font-size: 1.05rem; line-height: 1.65; margin: 2.5rem 0 1.25rem; }
+    .door-last { font-size: 1.05rem; line-height: 1.65; margin: 0; color: var(--wire-ink-soft); }
+    .door-last em { color: var(--wire-ink); font-style: italic; }
+
+    /* ── THE WAY ON ────────────────────────────────────────────────────────────────────────── */
+    .onward { width: min(100% - 3rem, 46rem); margin-inline: auto; text-align: center; padding-block: clamp(4rem, 3rem + 6vw, 8rem) 0; }
+    .on-h { font-family: var(--font-serif); font-size: clamp(1.4rem, 1.15rem + 1.2vw, 1.9rem); margin: 0 0 1.25rem; }
+    .on-lede { max-width: 34rem; margin: 0 auto 1.5rem; font-size: 1.02rem; line-height: 1.62; }
+    .on-walk { margin: 0 0 2.5rem; font-family: var(--font-serif); font-size: 1.3rem; }
+    .on-src { max-width: 34rem; margin: 0 auto; border-top: 1px solid var(--rule); padding-top: 1.25rem; display: grid; gap: 0.25rem; text-align: left; }
+    .src-cap { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+    .src-title { font-family: var(--font-serif); font-size: 1.15rem; }
+    .src-meta { font-size: 0.72rem; color: var(--ink-soft); }
+
+    .territory { width: min(100% - 3rem, 46rem); margin: 0 auto; text-align: center; padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem) clamp(5rem, 4rem + 6vw, 9rem); font-size: 0.9rem; color: var(--ink-soft); }
+
+    @media (max-width: 46rem) {
+      .facts > div { grid-template-columns: 3.2rem minmax(0, 1fr); gap: 0.9rem; }
+      .facts dt { font-size: 1.25rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .answer { transition: none; } }
+  </style>
+
+</BaseLayout>
