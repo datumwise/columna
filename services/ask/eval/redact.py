@@ -14,9 +14,13 @@ obvious move is a consumers.json row per results file — but that is the wrong 
 What we actually need to inspect is not the digits — it is WHETHER THE IDENTIFIER WAS REAL. So the
 transcript stores that instead:
 
-    10.5281/zenodo.22013410  ->  (DOI:registered-current)
-    10.5281/zenodo.21774490  ->  (DOI:registered-superseded)
-    10.5281/zenodo.99999999  ->  (DOI:UNREGISTERED)
+    10.5281/zenodo.<a current record's id>     ->  (DOI:registered-current)
+    10.5281/zenodo.<a superseded record's id>  ->  (DOI:registered-superseded)
+    10.5281/zenodo.<anything the registry has never heard of>  ->  (DOI:UNREGISTERED)
+
+(Those examples are written with placeholders rather than real ids for the same reason this module
+exists. The first draft of this docstring used three literal DOIs and G7 failed the build on it —
+the redaction module was itself an undeclared publication surface. The gate was right a third time.)
 
 The DOI-trap cases stay fully inspectable — a fabricated identifier is louder in this form than in
 its raw one — and the gate's vocabulary stays clean. Same principle as index_build.py: the registry
