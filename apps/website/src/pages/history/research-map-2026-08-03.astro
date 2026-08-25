@@ -1,0 +1,74 @@
+---
+// /history/research-map-2026-08-03 — THE PRESERVED RESEARCH MAP.
+//
+// WHY IT LIVES HERE NOW (Huayin, 2026-08-25). The governing principle: current reality owns the
+// primary addresses; historical reality gets permanent, explicit historical addresses. A page being
+// frozen is a reason to preserve it faithfully — it is not a reason for a frozen worldview to keep
+// occupying the route a reader reasonably expects to describe the present. This map was written on
+// 3 August 2026, is byte-frozen, and says in the present tense that The Theory of Data is at Version
+// 4.0. It is at v6.1. So the map moves to an address that says what it is, and /research becomes the
+// live estate.
+//
+// THE BYTES DO NOT MOVE AND ARE NOT EDITED. The same corpus file is imported. Ruling 8 (2026-08-21)
+// demoted this file from publication authority and ruled explicitly against rewriting it;
+// reconciliation row `rc-research-corpus-map-not-authority` records that its statements are
+// "accurate as of its own edition date and not maintained against the record". Nothing about that
+// changes here — only the address, and the chrome that frames it.
+//
+// THE CHROME IS THE ONLY THING THAT CHANGED. The orientation line and the closing block are authored
+// in this file, never in the frozen markdown (verified: the corpus source contains neither string).
+// They now say what the page is: a preserved historical record, the state it represents, that it is
+// not maintained, and where current Research lives.
+//
+// THE EDITION THIS PAGE CAN TRUTHFULLY NAME IS v0.3, NOT v0.2. The filename says `v0_2` and the
+// registry, the ledger and Ruling 8 all refer to it by that path — but the filename is stale, frozen
+// at creation. The body has declared **v0.3** since f27318d. The filename is not renamed: it is the
+// registry's key for a frozen consumer. THE ROUTE IS DATED, NOT VERSIONED, because those two markers
+// disagree and the date is the one unambiguous fact.
+//
+// NO PUBLICATION FACTS ARE AUTHORED HERE. No DOI, version or date of any deposit is typed into this
+// file, so this route states no publication fact — the ownership boundary settled in Unit 2.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content } from '../../content/corpus/research_corpus_map_v0_2.md';
+
+// Declared by the snapshot itself (line 5 of the source); the day comes from repo history.
+const SNAPSHOT_EDITION = 'v0.3';
+const SNAPSHOT_DECLARED_DATE = 'August 2026';
+const SNAPSHOT_PRESERVED_SINCE = '3 August 2026';
+---
+<BaseLayout title="The research map, 3 August 2026 — a preserved record — datumwise"
+  description="The datumwise research corpus map as it was written on 3 August 2026. A preserved historical record, kept exactly as written and not maintained as current. The current research estate is at /research."
+  chip={false}>
+  <div class="page-head">
+    <p class="kicker">Historical record · the state of 3 August 2026</p>
+    <p class="orientation">
+      This is a <strong>preserved historical record</strong>. It keeps the research corpus map
+      exactly as it was written on 3 August 2026, and it is <strong>not maintained as current</strong>
+      — several of the documents it describes have been published in newer editions since, and the
+      map goes on describing the ones it knew. The current research and source estate is at
+      <a href="/research">Research</a>.
+    </p>
+  </div>
+
+  <article class="prose research">
+    <Content />
+  </article>
+
+  <p class="evidence-note">
+    <strong>This record.</strong> This page renders the research map as it was at
+    <strong>{SNAPSHOT_EDITION}</strong>, dated <strong>{SNAPSHOT_DECLARED_DATE}</strong> by the map
+    itself and unchanged in this repository since {SNAPSHOT_PRESERVED_SINCE}. The text is preserved
+    as written, not updated: the versions, dates and DOIs it names were accurate to that state and
+    are not maintained as pointers to whatever is current, so some of them now name superseded
+    editions. That is what makes it a record rather than an index. For the estate as it is now, see
+    <a href="/research">Research</a>; publication truth is owned by the publication registry.
+  </p>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
+  .kicker { color: var(--ink-faint); }
+  .orientation { margin-top: 0.6rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+</style>

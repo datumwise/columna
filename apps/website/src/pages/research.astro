@@ -1,89 +1,207 @@
 ---
-// /research — the research corpus map, rendered from the frozen corpus source. Promoted to a
-// top-level nav slot in the 2026-08-03 reorg; supersedes the v0.1 that lived at
-// /how-these-documents-relate (which now 301s here).
+// /research — THE CURRENT RESEARCH AND SOURCE ESTATE.
 //
-// WHAT THIS PAGE IS, AND WHAT WENT WRONG WITH SAYING SO (Repair Unit 3, 2026-08-23).
+// WHAT THIS ROUTE IS NOW (Huayin, 2026-08-25, Serious Gateway 1). The governing principle: current
+// reality owns the primary addresses; historical reality gets permanent, explicit historical
+// addresses. This route used to render a map written on 3 August 2026 and byte-frozen since — a page
+// that told a reader, in the present tense, that The Theory of Data was at Version 4.0. It is at
+// v6.1. The map is preserved unchanged at /history/research-map-2026-08-03; this address now answers
+// the question a reader actually brings to it: what is the serious estate NOW.
 //
-// The body is a SNAPSHOT. It was written on 2026-08-03 and has not changed since, and its sentences
-// are in the present tense: "Everything below is published, versioned, and DOI'd", "The Theory of
-// Data — Version 4.0 …, the canonical manuscript". Every one of those was true the day it was
-// written. Several are not true now — ToD is at v6.1, the Introduction at v2.2, Frame-QL's
-// Introduction at v2.3 — and the map is byte-frozen, so they will go on saying what they say.
+// READER-PULLED, NOT GUIDED. A serious reader usually arrives with something already in their head —
+// "where is ToD v6.1", "what is the current Primer", "show me the Statistical Bridge", "what do you
+// know is wrong". So this page is a dense scan, not a tour: no hero, no progressive reveal, no
+// narrative, no equal card grid, and no JavaScript. Groups exist to accelerate scanning; they are
+// not doors and they are not equal.
 //
-// THE DEFECT WAS NOT THE BODY. Ruling 8 (2026-08-21) already demoted this file from publication
-// authority and ruled explicitly against rewriting it; reconciliation row
-// `rc-research-corpus-map-not-authority` records that its statements are "accurate as of its own
-// edition date and not maintained against the record". That contract existed and was correct — and
-// it was INVISIBLE. A reader arrived at a page whose only date was `v0.3 · August 2026`, which reads
-// as a version stamp on the map rather than as a bound on everything the map claims, and could
-// reasonably read four-week-old currency claims as present-tense ones. This is the smallest framing
-// that makes the page's contract truthful to that reader; not one byte of the snapshot moves.
+// EVERY PUBLICATION FACT IS DERIVED. The catalog at registry/sources/sources.json holds identity,
+// role, purpose, route and FOREIGN KEYS — never a title of a deposited record, a version, a date, a
+// DOI or a currency claim. Those are read at render time through currentRecord(workId) and
+// recordFor(recordId). This file types none of them, which is what makes it safe as a `derived`
+// surface under G7. The publication registry owns publication truth; this page is a view over it.
 //
-// REGISTER (house rule v0.3 §4.3, and Huayin's Unit 3 classification).
-//   · The orientation line below the kicker is TEACHING. Plain register, one sentence, no typed
-//     vocabulary: it exists so the misreading cannot happen, and it happens BEFORE the body because
-//     that is where the misreading would.
-//   · "This snapshot" at the foot is the EDITION/STATUS FACT, and it is the page's only typed block —
-//     visibly bounded by its rule, in the same position and the same class the deposited-edition
-//     routes use for "This edition". It states what is rendered, when, that the body is preserved
-//     rather than maintained, and where current records live.
+// NO COUNT IS RENDERED, anywhere, deliberately. works.json.kind stays `unclassified` for all 32
+// works, COUNTS_ARE_DERIVABLE stays false, and G10 keeps blocking count claims. The source catalog
+// classifies SOURCES by role; it does not classify WORKS, so it opens no back door to a count.
 //
-// THE EDITION THIS PAGE CAN TRUTHFULLY NAME IS v0.3, NOT v0.2. The filename says `v0_2` and the
-// registry, the ledger and Ruling 8 all refer to it by that path — but the filename is stale, frozen
-// at creation. The body has declared **v0.3** since f27318d, which bumped it deliberately (0.2 → 0.3)
-// in the same commit that wrote the Version 4.0 sentence, and `v0.3 · August 2026` is what the page
-// has been showing readers ever since. Chrome that said "v0.2" would contradict the line printed six
-// lines below it. The filename is not renamed here: it is the registry's key for a frozen consumer.
+// EDITION-PINNED ROUTES ARE A FEATURE. Several routes render a byte-faithful deposited edition by
+// ruling. Where the registry's current record has moved past the edition a route renders, the row
+// says both — current record vX, readable here vY — with every number derived. An edition-pinned
+// route is not stale and it is not current: it is pinned, and the reader is told which.
 //
-// THE DATE IS REPO PROVENANCE, STATED NARROWLY. The snapshot declares "August 2026" and no day. The
-// repository establishes the day — 09891a4, 2026-08-03, the last commit to touch the file, with no
-// commit since — so the chrome says the month the snapshot declares and adds the preservation date as
-// what it is: a fact about this repository, not a claim the snapshot makes about itself.
-//
-// NO PUBLICATION FACTS ARE AUTHORED HERE. The current-records pointer is a LINK to /about, which
-// renders CHRONOLOGICAL_SELECTION from the registry. No DOI, version or date of any deposit is typed
-// into this file, so this route states no publication fact and needs no consumer permission — the
-// ownership boundary settled in Unit 2.
+// THE LEGACY FRAGMENT SHIM. Eight heading anchors existed inside the frozen map and have been live
+// and sitemap-indexed since 3 August: #the-root, #the-kernel-what-is-proved, #the-bridges,
+// #the-positions, #the-ripples, #the-instruments, #the-engine-is-the-proof, #four-ways-in. A
+// fragment never reaches the server, and this repo's redirects are meta-refresh stubs which do not
+// carry one — so a shim forwards exactly those eight to the same anchor on the historical route.
+// Fragmentless /research is NOT redirected: it belongs to current reality now. Same pattern as the
+// #exhibit-a/#exhibit-b shim on the homepage.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { Content } from '../content/corpus/research_corpus_map_v0_2.md';
+import { RESOLVED, GROUPS, actions, type ResolvedSource } from '../data/sources';
+import { longDate } from '../data/publications';
 
-// Declared by the snapshot itself (line 5 of the source); the day comes from repo history.
-const SNAPSHOT_EDITION = 'v0.3';
-const SNAPSHOT_DECLARED_DATE = 'August 2026';
-const SNAPSHOT_PRESERVED_SINCE = '3 August 2026';
+// The composed standing line. There is no `standing` enum: a source can be deposited AND onsite,
+// generated AND onsite, preserved AND onsite (Huayin's refinement). So the orthogonal facts are
+// composed into a sentence here, at the point of display, and nothing is asserted by absence.
+function standing(s: ResolvedSource): string[] {
+  const bits: string[] = [];
+  if (s.current) {
+    bits.push(
+      `current record${s.current.version ? ` v${s.current.version}` : ''} · ${longDate(s.current.date)}`
+    );
+    if (!s.route) bits.push('deposit only — not readable here');
+  }
+  if (s.generatedBy) bits.push(`generated by ${s.generatedBy}`);
+  if (s.gates?.includes('build-adjudicated')) bits.push('the build fails if the displayed claim drifts');
+  if (s.gates?.includes('currency-stamp')) bits.push('currency-stamped against the shipped package');
+  if (s.preservedState) bits.push(`preserved state of ${longDate(s.preservedState)}`);
+  return bits;
+}
+
+// A row prints its role only where the group merges more than one — inside "Positions" every row is
+// a position, and repeating the word on each is noise pretending to be metadata.
+const groups = GROUPS.map((g) => ({
+  ...g,
+  showRole: g.roles.length > 1,
+  rows: RESOLVED.filter((s) => g.roles.includes(s.role)),
+})).filter((g) => g.rows.length > 0);
+
+// Every catalog entry must land in exactly one group, or the page silently loses a source.
+const placed = groups.reduce((n, g) => n + g.rows.length, 0);
+if (placed !== RESOLVED.length) {
+  const seen = new Set(groups.flatMap((g) => g.rows.map((r) => r.sourceId)));
+  throw new Error(
+    `RESEARCH: ${RESOLVED.length - placed} source(s) fell out of every group — ` +
+    `${RESOLVED.filter((s) => !seen.has(s.sourceId)).map((s) => `${s.sourceId} (${s.role})`).join(', ')}. ` +
+    `Add the role to a group in src/data/sources.ts. A source that renders nowhere is worse than one with a clumsy heading.`
+  );
+}
 ---
-<BaseLayout title="The research corpus — datumwise"
-  description="How the datumwise documents relate — the research corpus, mapped, as it was written in August 2026: the theory, the proved kernel, the introductions, the positions, the ripples, and the engine. A preserved snapshot; current publication records are on the About page.">
-  <div class="page-head">
-    <p class="kicker">Research</p>
-    <p class="orientation">
-      This page keeps an earlier map of the research corpus exactly as it was written. It is a
-      snapshot rather than a running index — several of the documents it describes have been
-      published in newer editions since. For what is current, see the publication list on
-      <a href="/about">About</a>.
+<BaseLayout
+  title="Research — the current source estate — datumwise"
+  description="The datumwise research and source estate as it is now: the deposited works and their current records, the normative references, the machine evidence, the teaching surfaces, and the public negative record."
+  wide={true}
+  chip={false}
+>
+  <div class="head">
+    <p class="kicker mono">Research</p>
+    <h1 class="head-h">The current source estate</h1>
+    <p class="head-p">
+      Everything serious we have, as it stands now — what each thing is, what authority it carries,
+      and whether you can read it here. Versions, dates and deposit records are read from the
+      publication registry when this page is built; nothing on it is typed by hand.
+    </p>
+    <p class="head-p head-quiet">
+      Looking for the research map as it was written in August 2026? It is preserved, unchanged, at
+      <a href="/history/research-map-2026-08-03">the research map, 3 August 2026</a>.
     </p>
   </div>
 
-  <article class="prose research">
-    <Content />
-  </article>
+  {groups.map((g) => (
+    <section class="grp" aria-labelledby={`g-${g.title.replace(/\W+/g, '-').toLowerCase()}`}>
+      <div class="grp-head">
+        <h2 id={`g-${g.title.replace(/\W+/g, '-').toLowerCase()}`} class="grp-h">{g.title}</h2>
+        <p class="grp-blurb">{g.blurb}</p>
+      </div>
 
-  <p class="evidence-note">
-    <strong>This snapshot.</strong> This page renders the research map as it was at
-    <strong>{SNAPSHOT_EDITION}</strong>, dated <strong>{SNAPSHOT_DECLARED_DATE}</strong> by the map
-    itself and unchanged in this repository since {SNAPSHOT_PRESERVED_SINCE}. The text is preserved
-    as written, not updated: the versions, dates and DOIs it names were accurate to that snapshot and
-    are not maintained as pointers to whatever is current, so some of them now name superseded
-    editions. The current record for every document is kept in the publication registry and rendered
-    on <a href="/about">About</a>.
+      <ul class="rows">
+        {g.rows.map((s) => (
+          <li class="row" id={s.sourceId}>
+            <div class="row-main">
+              <h3 class="row-title">{s.label}</h3>
+              <p class="row-purpose">{s.purpose}</p>
+              {s.editionDiffers && s.readable && s.current && (
+                <p class="row-pin">
+                  <span class="pin-mark mono">edition-pinned</span>
+                  <span>This site renders the deposited <strong>{s.readable.version ? `v${s.readable.version}` : 'first'} edition</strong> ({longDate(s.readable.date)}) — the edition this page was built from. The current record is <strong>{s.current.version ? `v${s.current.version}` : 'a later edition'}</strong>.{s.current.title !== s.readable.title && <span> The onsite edition was deposited under its earlier title, <em>{s.readable.title}</em>.</span>}</span>
+                </p>
+              )}
+            </div>
+
+            <div class="row-side">
+              {g.showRole && <p class="row-role mono">{s.role.replace(/-/g, ' ')}</p>}
+              {standing(s).map((b) => <p class="row-standing mono">{b}</p>)}
+              <p class="row-actions">
+                {actions(s).map((a) => (
+                  <a class="act" href={a.href} rel={a.href.startsWith('http') ? 'noopener' : undefined}>{a.label}</a>
+                ))}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <p class="foot-note">
+    Publication truth is owned by the publication registry, not by any page that renders it. Where a
+    work is deposited, <strong>Record</strong> goes to the deposit; where it can be read here,
+    <strong>Read</strong> goes to the text. Anything absent from this page is absent because it is
+    not yet a source a reader can be sent to, not because it is hidden.
   </p>
 </BaseLayout>
 
+<script>
+  // LEGACY FRAGMENT SHIM. The eight anchors that lived inside the frozen research map, forwarded to
+  // the same anchor on its permanent historical address. A fragment never reaches the server and a
+  // meta-refresh stub does not carry one, so this is the only mechanism that preserves a reader's
+  // target. Fragmentless /research is deliberately NOT redirected.
+  const LEGACY = new Set([
+    '#the-research-corpus', '#the-root', '#the-kernel-what-is-proved', '#the-bridges',
+    '#the-positions', '#the-ripples', '#the-instruments', '#the-engine-is-the-proof',
+    '#four-ways-in',
+  ]);
+  if (LEGACY.has(location.hash)) {
+    location.replace('/history/research-map-2026-08-03' + location.hash);
+  }
+</script>
+
 <style>
-  .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
-  .kicker { color: var(--ink-faint); }
-  .orientation { margin-top: 0.6rem; font-size: 0.95rem; color: var(--ink-soft); }
-  .evidence-note { width: min(100% - 3rem, var(--measure)); margin: 3rem auto 0; padding-top: 1.5rem;
-    border-top: 1px solid var(--rule); font-size: 0.9rem; color: var(--ink-soft); }
+  /* Calm, dense, scannable. No hero, no cards, no reveal. Hairlines and space do the separating. */
+  .head { width: min(100% - 3rem, 60rem); margin: 0 auto; padding-block: clamp(1.5rem, 1rem + 2vw, 2.75rem) 0; }
+  .mono { font-family: var(--font-mono); }
+  .kicker { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin: 0; }
+  .head-h { font-family: var(--font-serif); font-size: clamp(1.7rem, 1.2rem + 1.9vw, 2.5rem);
+    font-weight: 400; letter-spacing: -0.02em; margin: 0.5rem 0 0.9rem; }
+  .head-p { max-width: 40rem; font-size: 0.98rem; line-height: 1.6; color: var(--ink); margin: 0 0 0.7rem; }
+  .head-quiet { color: var(--ink-soft); font-size: 0.92rem; }
+
+  .grp { width: min(100% - 3rem, 60rem); margin: 0 auto; padding-top: clamp(2.25rem, 1.5rem + 2vw, 3.25rem); }
+  .grp-head { border-bottom: 1px solid var(--ink); padding-bottom: 0.6rem; }
+  .grp-h { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; margin: 0; }
+  .grp-blurb { font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); margin: 0.35rem 0 0; max-width: 44rem; }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .row {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 17rem);
+    gap: 0.75rem 2.5rem; align-items: start;
+    padding: 1.05rem 0; border-bottom: 1px solid var(--rule);
+  }
+  .row-title { font-family: var(--font-serif); font-size: 1.06rem; font-weight: 400; margin: 0; line-height: 1.3; }
+  .row-purpose { font-size: 0.92rem; line-height: 1.55; color: var(--ink-soft); margin: 0.3rem 0 0; max-width: 40rem; }
+
+  /* The edition-pinned note is the one place a row gets loud, because it is the one place a reader
+     could otherwise be quietly misled about which edition they are reading. */
+  .row-pin { font-size: 0.86rem; line-height: 1.55; color: var(--ink); margin: 0.55rem 0 0;
+    border-left: 2px solid var(--rule-strong); padding-left: 0.7rem; max-width: 40rem; }
+  .pin-mark { display: block; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 0.15rem; }
+
+  .row-side { display: grid; gap: 0.3rem; }
+  .row-role { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 0; }
+  .row-standing { font-size: 0.72rem; line-height: 1.5; color: var(--ink-soft); margin: 0; }
+  .row-actions { margin: 0.25rem 0 0; display: flex; gap: 0.9rem; flex-wrap: wrap; }
+  .act { font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink);
+    border-bottom: 1px solid var(--rule-strong); text-decoration: none; }
+  .act:hover { border-bottom-color: var(--ink); }
+
+  .foot-note { width: min(100% - 3rem, 60rem); margin: clamp(2.5rem, 2rem + 2vw, 4rem) auto 0;
+    padding-top: 1.2rem; border-top: 1px solid var(--rule);
+    font-size: 0.86rem; line-height: 1.6; color: var(--ink-soft); max-width: 44rem; }
+
+  @media (max-width: 52rem) {
+    .row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .row-side { padding-top: 0.15rem; }
+    .row-role { order: -1; }
+  }
 </style>
