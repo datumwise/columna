@@ -1,0 +1,168 @@
+"""Run the trap set against one or more models and preserve the results for inspection.
+
+Two independent grading layers, on purpose:
+
+  · DETERMINISTIC — `must` / `must_not` string assertions, plus the identifier gate from verify.py.
+    These are the ones I trust. They cannot be talked into a good mood by a fluent answer.
+  · JUDGED — a rubric grader, on the criteria the brief names. Useful for answer quality, which no
+    string assertion reaches. Its verdicts are reported SEPARATELY from the deterministic ones and
+    are never allowed to overturn them, because a judge sharing a family with the answerer is not an
+    independent witness.
+
+Everything is written to eval/results/ so failures can be read rather than summarised.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from ask import answer as ask_answer  # noqa: E402
+from ask import providers  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+CASES = json.loads((HERE / "questions.json").read_text())["cases"]
+RESULTS = HERE / "results"
+
+JUDGE_MODEL = "openai:gpt-5"
+
+JUDGE_PROMPT = """\
+You are grading one answer produced by "Ask datumwise", an agent that must represent an open-source \
+research project strictly from that project's own governed sources, while remaining free to use \
+external sources for external facts.
+
+You are grading against a rubric written by the project's own researchers. Be strict and be \
+concrete. A fluent answer that quietly overclaims is WORSE than a blunt answer that admits a gap.
+
+RUBRIC FOR THIS CASE:
+{rubric}
+
+THE QUESTION: {q}
+
+THE ANSWER:
+{a}
+
+SOURCES THE ANSWER CITED:
+{srcs}
+
+Grade these criteria, each pass/fail, then give an overall 1-5:
+  corpus_faithfulness  — did it represent datumwise from datumwise sources, not model memory?
+  source_selection     — were the sources it cited the right ones for the claim?
+  currency             — did it handle current vs superseded/historical/edition-pinned correctly?
+  separation           — are external facts kept visibly distinct from datumwise's own claims?
+  citation_accuracy    — do the cited sources actually support what they are attached to?
+  premise_resistance   — if the question contained a false or loaded premise, did it resist?
+  abstention           — where the corpus does not settle it, did it say so rather than fill the gap?
+  answer_quality       — is this genuinely useful to a serious reader?
+
+Reply with ONLY a JSON object:
+{{"corpus_faithfulness":true,"source_selection":true,"currency":true,"separation":true,
+"citation_accuracy":true,"premise_resistance":true,"abstention":true,"answer_quality":true,
+"overall":4,"note":"one sentence on the most important thing right or wrong"}}
+"""
+
+
+def deterministic(case: dict, res: dict) -> dict:
+    a = res["answer"].lower()
+    fails: list[str] = []
+    for s in case.get("must", []):
+        if s.lower() not in a:
+            fails.append(f"missing required string {s!r}")
+    for s in case.get("must_not", []):
+        if s.lower() in a:
+            fails.append(f"contains forbidden string {s!r}")
+    v = res["verify"]
+    for p in v["problems"]:
+        fails.append(f"{p['kind']}: {p['value']}")
+    return {"pass": not fails, "fails": fails}
+
+
+def judge(case: dict, res: dict) -> dict:
+    srcs = "\n".join(f"  [{s['cite']}] {s['label']} — {s['heading']} ({s['url']})"
+                     for s in res["sources"]) or "  (none)"
+    prompt = JUDGE_PROMPT.format(rubric=case.get("rubric", "(none)"), q=case["q"],
+                                 a=res["answer"], srcs=srcs)
+    try:
+        c = providers.complete([{"role": "user", "content": prompt}], model=JUDGE_MODEL)
+        txt = c.text.strip()
+        if txt.startswith("```"):
+            txt = txt.split("```")[1].removeprefix("json").strip()
+        return {**json.loads(txt), "_judge_cost": c.cost_usd}
+    except Exception as e:  # a judge failure must not look like an answer failure
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def run(model: str, only: list[str] | None, do_judge: bool) -> dict:
+    cases = [c for c in CASES if not only or c["id"] in only]
+    out: list[dict] = []
+    t0 = time.time()
+    for i, case in enumerate(cases, 1):
+        print(f"  [{i:>2}/{len(cases)}] {case['id']:<4} {case['q'][:64]}", flush=True)
+        try:
+            res = ask_answer.ask(case["q"], model=model, use_cache=False)
+        except Exception as e:
+            out.append({**case, "error": f"{type(e).__name__}: {e}"})
+            continue
+        det = deterministic(case, res)
+        row = {
+            "id": case["id"], "shape": case["shape"], "q": case["q"],
+            "answer": res["answer"], "sources": res["sources"], "retrieved": res["retrieved"],
+            "verify": res["verify"], "corpusSettles": res["corpusSettles"],
+            "deterministic": det,
+            "promptTokens": res["promptTokens"], "completionTokens": res["completionTokens"],
+            "costUsd": res["costUsd"],
+        }
+        if do_judge:
+            row["judge"] = judge(case, res)
+        out.append(row)
+    elapsed = time.time() - t0
+
+    ok = [r for r in out if r.get("deterministic", {}).get("pass")]
+    judged = [r for r in out if isinstance(r.get("judge"), dict) and "overall" in r["judge"]]
+    summary = {
+        "model": model,
+        "cases": len(out),
+        "deterministicPass": len(ok),
+        "deterministicFail": len(out) - len(ok),
+        "meanOverall": round(sum(r["judge"]["overall"] for r in judged) / len(judged), 2)
+                       if judged else None,
+        "criteria": {
+            k: sum(1 for r in judged if r["judge"].get(k)) for k in
+            ["corpus_faithfulness", "source_selection", "currency", "separation",
+             "citation_accuracy", "premise_resistance", "abstention", "answer_quality"]
+        } if judged else {},
+        "answerCostUsd": round(sum(r.get("costUsd", 0) for r in out), 4),
+        "judgeCostUsd": round(sum(r.get("judge", {}).get("_judge_cost", 0) for r in out), 4),
+        "promptTokens": sum(r.get("promptTokens", 0) for r in out),
+        "completionTokens": sum(r.get("completionTokens", 0) for r in out),
+        "elapsedSec": round(elapsed, 1),
+    }
+    RESULTS.mkdir(exist_ok=True)
+    slug = model.replace(":", "_").replace("/", "_")
+    (RESULTS / f"{slug}.json").write_text(json.dumps({"summary": summary, "results": out}, indent=1))
+    return summary
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--models", default="openai:gpt-5")
+    ap.add_argument("--only", default="")
+    ap.add_argument("--no-judge", action="store_true")
+    a = ap.parse_args()
+    only = [x for x in a.only.split(",") if x] or None
+    summaries = []
+    for m in a.models.split(","):
+        print(f"\n=== {m} ===")
+        summaries.append(run(m.strip(), only, not a.no_judge))
+    print("\n=== SUMMARY ===")
+    for s in summaries:
+        print(json.dumps(s, indent=1))
+
+
+if __name__ == "__main__":
+    main()

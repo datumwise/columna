@@ -1,0 +1,41 @@
+# Ask datumwise — v0 lab deployment.
+#
+# One small machine, one volume for the SQLite file, no GPU (cloud inference only, per the brief).
+# auto_stop/auto_start keeps a lab surface at roughly zero cost when nobody is asking.
+#
+# min_machines_running = 1 rather than 0 on purpose: a cold start on a question is a several-second
+# stall in front of a reader who is already waiting on a model call. One always-on shared-cpu-1x is
+# the cheapest way to keep the first question honest.
+
+app = "ask-datumwise"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ASK_MODEL = "openai:gpt-5"
+  ASK_DB = "/data/ask.db"
+  PORT = "8080"
+
+[[mounts]]
+  source = "ask_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    # A question is one long model call. Keeping the soft limit low means a queue forms in Fly's
+    # proxy rather than inside one Python process holding many sockets open.
+    soft_limit = 8
+    hard_limit = 16
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
