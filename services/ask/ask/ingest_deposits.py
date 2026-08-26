@@ -17,7 +17,8 @@ DETERMINISTIC, AND PINNED TO A RECORD.
     registry moves, this must be re-run, and the diff shows exactly which edition changed.
   · Zenodo's own checksum is verified on download and stored in the manifest. A silent re-upload
     under the same record id is therefore detectable.
-  · The manifest records recordId, version, date, checksum and byte length. `--check` re-verifies
+  · The manifest records recordId, recid, checksum and byte length — foreign keys and file
+    facts, never publication facts. `--check` re-verifies
     the stored files against it without any network access, so CI can assert the corpus has not
     drifted without depending on Zenodo being up.
 
@@ -82,9 +83,13 @@ def targets() -> list[dict]:
         if not wid:
             continue  # an IN source with neither route nor deposit would be a catalog defect
         rec = current_record(records, wid)
+        # recordId and recid ONLY — no doi, no version, no date. Third time this lesson has come up
+        # on this branch and it is the same rule every time: a generated file that copies a
+        # publication fact becomes a second source of truth for it. The manifest carries the foreign
+        # key; the DOI is resolved from records.json wherever it is actually needed. `recid` is kept
+        # because it is the Zenodo API address this module must call, not a claim about the work.
         out.append({"sourceId": sid, "workId": wid, "label": works[wid]["canonicalLabel"],
-                    "recordId": rec["recordId"], "recid": str(rec["recid"]),
-                    "version": rec.get("version"), "date": rec.get("date"), "doi": rec.get("doi")})
+                    "recordId": rec["recordId"], "recid": str(rec["recid"])})
     return out
 
 
