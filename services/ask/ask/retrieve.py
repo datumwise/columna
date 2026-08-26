@@ -94,6 +94,12 @@ def _resolve_url(chunk: dict) -> str:
 def _fill_standing(chunk: dict) -> str:
     """Splice live registry facts into the standing sentence's placeholders."""
     s = chunk["standing"]
+    if "[roadmap]" in chunk["heading"].lower():
+        # Without this the passage arrives saying "currency-stamped against the shipped package",
+        # which is the opposite of what it is. A section that documents grammar the engine does not
+        # have cannot be allowed to introduce itself as shipped.
+        s = ("DESIGN-STAGE: documents grammar the shipped engine does NOT have; it cannot "
+             "establish what currently ships — " + s)
     if "{CURRENT}" in s:
         s = s.replace("{CURRENT}", f"current record {_describe(chunk.get('currentRecordId'))}")
     if "{READABLE}" in s:
@@ -303,6 +309,41 @@ CITATION_CUES = (
 )
 
 
+# ── design-stage material (2026-08-26) ────────────────────────────────────────────────────────────
+# The Frame-QL Manual documents two forms the language will GROW INTO by ruling, and marks them
+# [ROADMAP] in the heading: 2.8 Subsetting and scans, and 6.12 Many-to-many with allocation. Their
+# own text is unambiguous — "they are not part of the shipped envelope (columna-core 0.16.2)".
+#
+# gpt-5 cited 2.8 as shipped behaviour anyway, on x3, and the judge marked currency false for it.
+# It had the word ROADMAP in the heading it was shown and the disclaimer in the body it read. That
+# is the evidence that labelling harder is not the repair: the label was already there, twice.
+#
+# It was also being contradicted. Every Manual section carries the standing sentence "currency-
+# stamped against the shipped package", which for these two sections is simply false and is the one
+# line the constitution tells the agent to trust. So both halves are fixed here: the standing
+# sentence stops asserting the opposite of the truth (see _fill_standing), and the sections stop
+# arriving for questions about what ships.
+#
+# The rule is the one asked for and no more: design-stage material may answer design-stage
+# questions, and may not establish what currently ships. It is not a policy engine — it is a
+# heading marker the manual already writes, and a cue list of the words a future-tense question
+# uses. Two chunks are affected today; a third gets the same treatment the day someone marks it.
+ROADMAP_CUES = (
+    "roadmap", "planned", "plan to", "plans to", "future", "not yet", "upcoming", "will columna",
+    "will frame-ql", "going to support", "grow by ruling", "grows by ruling", "next version",
+    "design stage", "design-stage", "coming soon", "on the horizon",
+)
+
+
+def is_roadmap(chunk: dict) -> bool:
+    return "[roadmap]" in chunk["heading"].lower()
+
+
+def asks_about_roadmap(query: str) -> bool:
+    q = query.lower()
+    return any(c in q for c in ROADMAP_CUES)
+
+
 def _bare_heading(heading: str) -> str:
     return _HEAD_NUM.sub("", heading).strip().lower().strip(":\u2014- ")
 
@@ -344,6 +385,24 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
 
     opened = jurisdictions_for(query)
     wants_citations = asks_about_citations(query)
+    # Design-stage material is admitted on two conditions, and the second one matters as much as
+    # the first. A roadmap question obviously wants it. But so does "is subsetting shipped?" — and
+    # that is a question about what currently ships, which is the very thing this gate exists to
+    # protect. The resolution is that 2.8 answers it in the NEGATIVE: "not part of the shipped
+    # envelope (columna-core 0.16.2)" is the authoritative answer, and gating it would leave the
+    # agent unable to say so. A gate that makes the honest answer unreachable is the wrong gate.
+    #
+    # So: roadmap cues, OR the question explicitly opened the normative jurisdiction by naming
+    # shipped behaviour. Explicitly — `jurisdictions_for`, not `opened`. The definitional fallback
+    # below also opens `normative`, and it must NOT count here: "What is a basis?" opened every
+    # jurisdiction because the representative layer had no locus for the term, which is not the
+    # same thing as asking what ships. That distinction is exactly the x3 failure.
+    wants_roadmap = asks_about_roadmap(query) or "normative" in opened
+    if asks_about_roadmap(query) and "normative" not in opened:
+        # Design-stage material lives in the Manual, and the Manual is reference. Opening the gate
+        # without opening the jurisdiction leaves the passage unreachable — the roadmap question
+        # gets an answer assembled from everything EXCEPT the section that answers it.
+        opened = sorted({*opened, "normative"})
     if not opened:
         term = definitional_subject(query)
         if term and not _headed_for(term):
@@ -366,6 +425,8 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         if lay == "out":
             continue
         if is_bibliography(c) and not wants_citations:
+            continue
+        if is_roadmap(c) and not wants_roadmap:
             continue
         if lay == "reference":
             # Reference material is reachable only through its own jurisdiction. A question that
