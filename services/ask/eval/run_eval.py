@@ -106,7 +106,7 @@ def judge(case: dict, res: dict) -> dict:
         return {"error": f"{type(e).__name__}: {e}"}
 
 
-def run(model: str, only: list[str] | None, do_judge: bool) -> dict:
+def run(model: str, only: list[str] | None, do_judge: bool, tag: str = "") -> dict:
     cases = [c for c in CASES if not only or c["id"] in only]
     out: list[dict] = []
     t0 = time.time()
@@ -152,7 +152,7 @@ def run(model: str, only: list[str] | None, do_judge: bool) -> dict:
         "elapsedSec": round(elapsed, 1),
     }
     RESULTS.mkdir(exist_ok=True)
-    slug = model.replace(":", "_").replace("/", "_")
+    slug = model.replace(":", "_").replace("/", "_") + (f"_{tag}" if tag else "")
     # Identifiers are stored as VERDICTS, not literals — see eval/redact.py. Keeps the DOI traps
     # fully inspectable while leaving G7's vocabulary clean and eval re-runs friction-free.
     from redact import redact_tree  # noqa: E402
@@ -166,12 +166,15 @@ def main() -> None:
     ap.add_argument("--models", default="openai:gpt-5")
     ap.add_argument("--only", default="")
     ap.add_argument("--no-judge", action="store_true")
+    # A targeted re-run must not overwrite the file a full run wrote. An experiment that gets
+    # silently replaced by a subset of itself is an experiment discarded.
+    ap.add_argument("--tag", default="", help="suffix the results filename, e.g. --tag targeted")
     a = ap.parse_args()
     only = [x for x in a.only.split(",") if x] or None
     summaries = []
     for m in a.models.split(","):
         print(f"\n=== {m} ===")
-        summaries.append(run(m.strip(), only, not a.no_judge))
+        summaries.append(run(m.strip(), only, not a.no_judge, a.tag))
     print("\n=== SUMMARY ===")
     for s in summaries:
         print(json.dumps(s, indent=1))
