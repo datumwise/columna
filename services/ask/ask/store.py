@@ -1,4 +1,4 @@
-"""SQLite storage: cached Q&A, votes, views, conversations.
+"""SQLite storage: answers, review state, votes, views, conversations.
 
 RANKING RULE (the one the brief asked me to choose and report):
 
@@ -44,6 +44,8 @@ import time
 import uuid
 from pathlib import Path
 
+from . import standing
+
 MIN_RATINGS_FOR_BONUS = 3
 
 DB_PATH = Path(os.environ.get("ASK_DB", "/data/ask.db"))
@@ -63,8 +65,15 @@ CREATE TABLE IF NOT EXISTS qa (
   views         INTEGER NOT NULL DEFAULT 0,
   up            INTEGER NOT NULL DEFAULT 0,
   down          INTEGER NOT NULL DEFAULT 0,
+  -- `public` STOPPED MEANING "published" on 2026-08-26. It is now REVIEW ELIGIBILITY: whether this
+  -- answer may be put in front of a reviewer at all. The privacy/abuse filter that used to decide
+  -- publication now decides candidacy, and publication is decided by a human. See standing.py.
   public        INTEGER NOT NULL DEFAULT 1,
   withheld_reason TEXT,
+  standing      TEXT NOT NULL DEFAULT 'provisional',   -- provisional | reviewed
+  published     INTEGER NOT NULL DEFAULT 0,            -- only a human approval sets this
+  reviewed_at   REAL,
+  reviewed_by   TEXT,
   verify        TEXT NOT NULL DEFAULT '{}', -- JSON: the identifier gate's verdict
   prompt_tokens INTEGER NOT NULL DEFAULT 0,
   completion_tokens INTEGER NOT NULL DEFAULT 0,
@@ -73,6 +82,7 @@ CREATE TABLE IF NOT EXISTS qa (
 );
 CREATE INDEX IF NOT EXISTS qa_key    ON qa(question_key);
 CREATE INDEX IF NOT EXISTS qa_public ON qa(public);
+CREATE INDEX IF NOT EXISTS qa_stand ON qa(standing, published);
 
 -- One row per model call, whether or not it became a public Q&A. This is the conversation log the
 -- brief asks for: what was asked, what came back, which sources, which model, when.
@@ -109,12 +119,31 @@ CREATE TABLE IF NOT EXISTS votes (
 """
 
 
+_ADDED_COLUMNS = (
+    ("standing", "TEXT NOT NULL DEFAULT 'provisional'"),
+    ("published", "INTEGER NOT NULL DEFAULT 0"),
+    ("reviewed_at", "REAL"),
+    ("reviewed_by", "TEXT"),
+)
+
+
+def _migrate(c: sqlite3.Connection) -> None:
+    """Additive only. Existing rows become provisional and unpublished, which is the truthful
+    reading of them: nothing in the table was ever approved by a human, because until 2026-08-26
+    nothing had to be."""
+    have = {r["name"] for r in c.execute("PRAGMA table_info(qa)")}
+    for name, decl in _ADDED_COLUMNS:
+        if name not in have:
+            c.execute(f"ALTER TABLE qa ADD COLUMN {name} {decl}")
+
+
 def connect() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     c = sqlite3.connect(DB_PATH, timeout=15)
     c.row_factory = sqlite3.Row
     c.execute("PRAGMA journal_mode=WAL")
     c.executescript(SCHEMA)
+    _migrate(c)
     return c
 
 
@@ -143,7 +172,17 @@ def rank(views: int, up: int, down: int) -> float:
 
 
 def _row_to_public(r: sqlite3.Row) -> dict:
+    """One row, rendered for a reader — WITH its standing, and with reputation only if it earned it.
+
+    A provisional answer may collect votes internally (they are useful signal for whoever reviews
+    it) but it does not get a public star reputation, because a reputation on an unreviewed answer
+    reads as endorsement. So stars/rank/ratings are present on reviewed rows and null on
+    provisional ones, rather than being computed and quietly ignored by an interface.
+    """
     up, down = r["up"], r["down"]
+    st = (r["standing"] if "standing" in r.keys() else standing.PROVISIONAL) or standing.PROVISIONAL
+    reviewed_at = r["reviewed_at"] if "reviewed_at" in r.keys() else None
+    is_reviewed = st == standing.REVIEWED
     return {
         "id": r["id"],
         "question": r["question"],
@@ -152,21 +191,28 @@ def _row_to_public(r: sqlite3.Row) -> dict:
         "sources": json.loads(r["sources"]),
         "external": json.loads(r["external"]),
         "corpusSettles": bool(r["corpus_settles"]),
-        "views": r["views"],
-        "ratings": up + down,
+        "standing": st,
+        "notice": standing.notice(st, reviewed_at),
+        "published": bool(r["published"]) if "published" in r.keys() else False,
+        "views": r["views"] if is_reviewed else None,
+        "ratings": (up + down) if is_reviewed else None,
         "up": up,
         "down": down,
-        "stars": stars(up, down),
+        "stars": stars(up, down) if is_reviewed else None,
         "model": r["model"],
         "provider": r["provider"],
-        "rank": round(rank(r["views"], up, down), 4),
+        "rank": round(rank(r["views"], up, down), 4) if is_reviewed else None,
     }
 
 
 def find_cached(question: str) -> dict | None:
+    """TECHNICAL reuse only — step 3 moves this into its own object. It no longer keys on `public=1`,
+    because `public` stopped meaning published; reusing a stored answer is a cost decision, not a
+    publication decision."""
     with connect() as c:
         r = c.execute(
-            "SELECT * FROM qa WHERE question_key=? AND public=1 ORDER BY created_at DESC LIMIT 1",
+            "SELECT * FROM qa WHERE question_key=? AND parent_id IS NULL "
+            "ORDER BY created_at DESC LIMIT 1",
             (normalise(question),),
         ).fetchone()
         return _row_to_public(r) if r else None
@@ -178,8 +224,9 @@ def save_qa(**kw) -> str:
         c.execute(
             """INSERT INTO qa (id, question, question_key, answer, created_at, provider, model,
                                sources, external, corpus_settles, public, withheld_reason, verify,
-                               prompt_tokens, completion_tokens, cost_usd, parent_id)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                               prompt_tokens, completion_tokens, cost_usd, parent_id,
+                               standing, published)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 qid, kw["question"], normalise(kw["question"]), kw["answer"], time.time(),
                 kw["provider"], kw["model"], json.dumps(kw.get("sources", [])),
@@ -187,6 +234,9 @@ def save_qa(**kw) -> str:
                 int(kw.get("public", True)), kw.get("withheld_reason"),
                 json.dumps(kw.get("verify", {})), kw.get("prompt_tokens", 0),
                 kw.get("completion_tokens", 0), kw.get("cost_usd", 0.0), kw.get("parent_id"),
+                # Every answer is born provisional and unpublished. There is no argument the
+                # caller can pass to change that; publication is an act a human performs later.
+                standing.PROVISIONAL, 0,
             ),
         )
     return qid
@@ -237,9 +287,16 @@ def vote(qa_id: str, voter: str, helpful: bool) -> dict | None:
 
 
 def listing(limit: int = 50) -> list[dict]:
-    """Public Q&A, ranked. Ranking is computed in Python, not SQL, so the rule stays readable."""
+    """The public Q&A collection: REVIEWED AND PUBLISHED only.
+
+    This used to be `WHERE public=1`, which meant every fresh answer that passed a privacy filter
+    entered the public collection the moment it was generated. Ranking is computed in Python, not
+    SQL, so the rule stays readable.
+    """
     with connect() as c:
-        rows = c.execute("SELECT * FROM qa WHERE public=1").fetchall()
+        rows = c.execute(
+            "SELECT * FROM qa WHERE standing=? AND published=1", (standing.REVIEWED,)
+        ).fetchall()
     items = [_row_to_public(r) for r in rows]
     items.sort(key=lambda x: (-x["rank"], -x["createdAt"]))
     return items[:limit]

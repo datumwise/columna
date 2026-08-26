@@ -275,11 +275,33 @@ def test_cache_and_vote_round_trip():
                         provider="test", model="test:model", sources=[], external=[])
     assert store.find_cached("what is a universe, exactly")["id"] == qid  # normalised reuse
     out = store.vote(qid, "voter-a", True)
-    assert out["up"] == 1 and out["ratings"] == 1 and out["stars"] == 5.0
+    assert out["up"] == 1
     out = store.vote(qid, "voter-a", False)  # same voter changes their mind, not a second vote
-    assert out["ratings"] == 1 and out["down"] == 1
+    assert out["up"] == 0 and out["down"] == 1
     out = store.vote(qid, "voter-b", True)
-    assert out["ratings"] == 2
+    assert out["up"] + out["down"] == 2
+
+
+def test_a_fresh_answer_is_provisional_unpublished_and_has_no_reputation():
+    """The 2026-08-26 standing model, pinned at the storage layer.
+
+    Votes on a provisional answer still RECORD — they are useful signal for whoever reviews it —
+    but no star reputation is rendered, because a reputation on an unreviewed answer reads as
+    endorsement. And nothing a caller passes can make an answer born published.
+    """
+    qid = store.save_qa(question="Does a fresh answer publish itself?", answer="It must not.",
+                        provider="test", model="test:model", sources=[], external=[],
+                        public=True, standing="reviewed", published=True)  # ignored, deliberately
+    row = store.get(qid)
+    assert row["standing"] == "provisional" and row["published"] is False
+    assert row["notice"]["label"] == "Provisional answer · not reviewed by datumwise"
+    assert row["stars"] is None and row["ratings"] is None and row["rank"] is None
+    store.vote(qid, "voter-a", True)
+    assert store.get(qid)["up"] == 1          # recorded
+    assert store.get(qid)["stars"] is None    # not displayed
+    assert all(item["id"] != qid for item in store.listing()), (
+        "a provisional answer must not appear in the public Q&A collection"
+    )
 
 
 # ── the observed output-contract failure, pinned ──────────────────────────────────────────────────

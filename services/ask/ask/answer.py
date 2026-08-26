@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import providers, retrieve, store, verify
+from . import providers, retrieve, standing, store, verify
 from .skill import build_prompt
 
 # The public/private rule, kept as small and conservative as the brief asks. This decides whether a
@@ -27,7 +27,15 @@ _ABUSE = re.compile(r"\b(fuck|shit|cunt|bitch|retard|nigg|faggot)\w*\b", re.I)
 
 
 def publishability(question: str) -> tuple[bool, str | None]:
-    """Conservative and dumb on purpose. Not a moderation research project (brief's words)."""
+    """ELIGIBILITY FOR REVIEW, not for publication (renamed in meaning, 2026-08-26).
+
+    This filter used to decide whether a fresh answer entered the public Q&A collection. It now
+    decides something narrower: whether an answer may be put in front of a reviewer at all. A
+    private-looking or abusive question should never reach a human's queue; everything that passes
+    is a CANDIDATE, and publication is an act a person performs afterwards.
+
+    Conservative and dumb on purpose. Not a moderation research project (brief's words).
+    """
     q = question.strip()
     if len(q) < 8:
         return False, "too short to be a useful public question"
@@ -164,31 +172,40 @@ def ask(
 
 def ask_and_record(question: str, conversation: str, model: str | None = None,
                    history: list[dict] | None = None, parent_id: str | None = None) -> dict:
-    """Answer, log the turn, and cache publicly when the answer earned it."""
+    """Answer, log the turn, and record it as a PROVISIONAL candidate.
+
+    Nothing here publishes. Until 2026-08-26 a fresh answer that passed the privacy filter entered
+    the public collection immediately; now it is stored provisional and unpublished, and the same
+    filter decides only whether it is eligible to reach a reviewer.
+    """
     res = ask(question, model=model, history=history, use_cache=not history)
 
     if res.get("cached"):
-        store.get(res["id"], bump_view=True)
+        # Technical reuse. No view bump: views belong to a published object, and a reused
+        # provisional answer is not one. See standing.py.
+        store.get(res["id"])
         store.log_turn(conversation=conversation, qa_id=res["id"], question=question,
                        answer=res["answer"], sources=res["sources"], external=res["external"],
                        provider=res["provider"], model=res["model"], cached=True,
                        corpus_settles=res.get("corpusSettles", True))
-        return res
+        return {**res, "standing": res.get("standing", standing.PROVISIONAL),
+                "notice": standing.notice(res.get("standing", standing.PROVISIONAL),
+                                          res.get("notice", {}).get("reviewedAt"))}
 
-    publishable, why = publishability(question)
-    # An answer that failed the identifier gate is never republished to strangers. The asker still
-    # sees it — with the failure attached — because hiding it would destroy the evidence.
-    if publishable and not res["verify"]["ok"]:
-        publishable, why = False, "failed the source-identifier check"
+    reviewable, why = publishability(question)
+    # An answer that failed the identifier gate does not go to a reviewer. The asker still sees it —
+    # with the failure attached — because hiding it would destroy the evidence.
+    if reviewable and not res["verify"]["ok"]:
+        reviewable, why = False, "failed the source-identifier check"
     # A follow-up in a conversation is context-dependent by construction; it does not stand alone as
-    # a public Q&A.
+    # a public Q&A, so it is not a review candidate either.
     if history:
-        publishable, why = False, "follow-up turn: only meaningful inside its conversation"
+        reviewable, why = False, "follow-up turn: only meaningful inside its conversation"
 
     qa_id = store.save_qa(
         question=question, answer=res["answer"], provider=res["provider"], model=res["model"],
         sources=res["sources"], external=res["external"],
-        corpus_settles=bool(res.get("corpusSettles", True)), public=publishable,
+        corpus_settles=bool(res.get("corpusSettles", True)), public=reviewable,
         withheld_reason=why, verify=res["verify"], prompt_tokens=res["promptTokens"],
         completion_tokens=res["completionTokens"], cost_usd=res["costUsd"], parent_id=parent_id,
     )
@@ -198,6 +215,8 @@ def ask_and_record(question: str, conversation: str, model: str | None = None,
                    corpus_settles=bool(res.get("corpusSettles", True)), verify=res["verify"],
                    prompt_tokens=res["promptTokens"], completion_tokens=res["completionTokens"],
                    cost_usd=res["costUsd"])
-    if publishable:
-        store.get(qa_id, bump_view=True)
-    return {**res, "id": qa_id, "public": publishable, "withheldReason": why}
+    # No view bump on creation. Views are a property of a published object, and nothing is
+    # published here.
+    return {**res, "id": qa_id, "standing": standing.PROVISIONAL,
+            "notice": standing.notice(standing.PROVISIONAL),
+            "reviewEligible": reviewable, "withheldReason": why}
