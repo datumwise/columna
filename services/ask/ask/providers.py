@@ -76,10 +76,24 @@ def _post(url: str, payload: dict, key: str, extra: dict | None = None) -> dict:
 # Each takes (model, messages) and returns Completion. Adding a provider is adding one function and
 # one registry line; nothing in answer.py changes.
 
+# Two OpenAI keys exist in the deployment environment and they bill to DIFFERENT accounts:
+# OPENAI_ASK is this service's own key, OPENAI_API_KEY is the shared/general one. Both are
+# accepted; the service's own key is preferred so this eval's spend lands on this service's
+# account, and so a 2026-08-25-style stall (general key valid but credit_balance_exhausted,
+# funded key sitting unused beside it) resolves itself instead of halting a 20-minute run.
+_OPENAI_ENV = ("OPENAI_ASK", "OPENAI_API_KEY")
+
+
+def _openai_key() -> str:
+    for name in _OPENAI_ENV:
+        v = os.environ.get(name)
+        if v:
+            return v
+    raise RuntimeError(f"no OpenAI key set; tried {', '.join(_OPENAI_ENV)}")
+
+
 def _openai(model: str, messages: list[dict], **kw) -> Completion:
-    key = os.environ.get("OPENAI_API_KEY")
-    if not key:
-        raise RuntimeError("OPENAI_API_KEY is not set")
+    key = _openai_key()
     payload: dict = {"model": model, "messages": messages}
     # The gpt-5 family takes max_completion_tokens and rejects a custom temperature.
     if model.startswith("gpt-5") or model.startswith("o3") or model.startswith("o4"):
@@ -160,7 +174,7 @@ def _xai(model: str, messages: list[dict], **kw) -> Completion:
 
 ADAPTERS = {"openai": _openai, "anthropic": _anthropic, "google": _google, "xai": _xai}
 ENV_FOR = {
-    "openai": ("OPENAI_API_KEY",),
+    "openai": _OPENAI_ENV,
     "anthropic": ("ANTHROPIC_API_KEY",),
     "google": ("GOOGLE_API_KEY", "GEMINI_API_KEY"),
     "xai": ("XAI_API_KEY", "GROK_API_KEY"),
@@ -189,7 +203,7 @@ def embed(texts: list[str], model: str | None = None) -> list[list[float]]:
     provider, _, name = spec.partition(":")
     if provider != "openai":
         raise NotImplementedError(f"embeddings for {provider!r} are not wired")
-    key = os.environ["OPENAI_API_KEY"]
+    key = _openai_key()
     out: list[list[float]] = []
     for i in range(0, len(texts), 256):  # batch, the endpoint has an input cap
         d = _post(
