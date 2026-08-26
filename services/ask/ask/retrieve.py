@@ -194,7 +194,7 @@ def _cosine_scores(query: str) -> list[tuple[int, float]] | None:
 # exactly which layer a question opens. The ruling said to add harder adjudication machinery only
 # after observed failures, so this is what ships until a failure argues otherwise.
 #
-# When no cue matches, retrieval is representative-only. That is the default the ruling asks for,
+# When no cue matches, retrieval is core-only. That is the default the ruling asks for,
 # and it is what stops "useful to Ask" from quietly becoming a reason for membership.
 JURISDICTION_CUES: dict[str, tuple[str, ...]] = {
     "normative": ("shipped", "syntax", "grammar", "parser", "keyword", "signature", "accepts",
@@ -215,23 +215,23 @@ JURISDICTION_CUES: dict[str, tuple[str, ...]] = {
 
 # ── the definitional fallback (2026-08-26) ────────────────────────────────────────────────────────
 # The cue router above answers "does this question CALL FOR a jurisdiction?". It cannot answer the
-# other question a definitional query raises: "does the representative layer even ESTABLISH this
-# term?" — and when the answer is no, representative-only retrieval does not abstain. It returns
+# other question a definitional query raises: "does the Core layer even ESTABLISH this
+# term?" — and when the answer is no, core-only retrieval does not abstain. It returns
 # the best lexical near-miss it can find and the agent answers confidently from it.
 #
 # That is exactly how "What is a basis?" failed on BOTH models on 2026-08-26. In Columna, BASIS is
 # a declaration construct — `UNIVERSE active_stores BASIS registry(store_directory)` — and the four
 # bases (registry, spine, product, events) are what fix whether an absent row is a real zero, a gap
 # or a membership fact. That is established in the Columna reference manual, ch. 9, and NOWHERE in
-# the representative layer. The representative layer carries only "certificate basis" and "basis
+# the Core layer. The Core layer carries only "certificate basis" and "basis
 # token": different terms that happen to share a word. Both models therefore explained the free
 # commutative monoid F(S) and its generators e_a — a correct reading of a passage that was not
 # about the asked term.
 #
 # The rule is narrow on purpose: it fires ONLY when the question is definitional in shape AND no
-# representative section is HEADED for the asked term. "What is an anchor?", "What is a measure
-# family?" and "What is a universe?" all have representative sections titled exactly that, so the
-# fallback never sees them and the representative layer keeps its own vocabulary. When it does
+# Core section is HEADED for the asked term. "What is an anchor?", "What is a measure
+# family?" and "What is a universe?" all have Core sections titled exactly that, so the
+# fallback never sees them and the Core layer keeps its own vocabulary. When it does
 # fire, it does not pick a winner — it opens the reference layer and lets the existing ranking and
 # the skill's standing rules adjudicate.
 _DEFN_Q = re.compile(
@@ -265,7 +265,7 @@ def _headed_for(term: str) -> bool:
     confusion this function exists to prevent.
     """
     for c in _corpus()[0]:
-        if c.get("layer") != "representative":
+        if c.get("layer") != "core":
             continue
         h = _HEAD_NUM.sub("", c["heading"]).strip().lower().lstrip("\u2014- ")
         h = h[4:].lstrip() if h.startswith("the ") else h
@@ -395,7 +395,7 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
     # So: roadmap cues, OR the question explicitly opened the normative jurisdiction by naming
     # shipped behaviour. Explicitly — `jurisdictions_for`, not `opened`. The definitional fallback
     # below also opens `normative`, and it must NOT count here: "What is a basis?" opened every
-    # jurisdiction because the representative layer had no locus for the term, which is not the
+    # jurisdiction because the Core layer had no locus for the term, which is not the
     # same thing as asking what ships. That distinction is exactly the x3 failure.
     wants_roadmap = asks_about_roadmap(query) or "normative" in opened
     if asks_about_roadmap(query) and "normative" not in opened:
@@ -406,7 +406,7 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
     if not opened:
         term = definitional_subject(query)
         if term and not _headed_for(term):
-            # No cue fired and the representative layer has no section headed for the asked term.
+            # No cue fired and the Core layer has no section headed for the asked term.
             # Widen rather than answer from a near-miss; ranking decides which jurisdiction wins.
             #
             # "historical" is deliberately NOT opened. Opening a jurisdiction does two things —
@@ -439,7 +439,7 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
             # demoted.
             #
             # The first version demoted it, and that was wrong twice over: "What does shipped
-            # Frame-QL allow?" returned three representative passages and no Manual, and "What did
+            # Frame-QL allow?" returned three Core passages and no Manual, and "What did
             # the August research map say?" returned no map at all. The gate and the demotion were
             # doing the same job twice — a source was first excluded unless invited, then penalised
             # for having been invited.
@@ -495,7 +495,7 @@ def stats() -> dict:
         "catalogued": sum(1 for c in chunks if c["sourceId"]),
         "historical": sum(1 for c in chunks if c["isHistorical"]),
         "editionPinned": sum(1 for c in chunks if c["isEditionPinned"]),
-        "representative": sum(1 for c in chunks if c.get("layer") == "representative"),
+        "core": sum(1 for c in chunks if c.get("layer") == "core"),
         "reference": sum(1 for c in chunks if c.get("layer") == "reference"),
         "fromDeposits": sum(1 for c in chunks if not c.get("route")),
         "embeddings": bool(os.environ.get("ASK_EMBEDDINGS") == "1"),

@@ -1,8 +1,8 @@
-"""Fetch the EXACT current deposited text for representative-corpus works that live only on Zenodo.
+"""Fetch the EXACT current deposited text for Core-corpus works that live only on Zenodo.
 
 WHY THIS EXISTS, AND WHY IT IS NOT OPTIONAL (Huayin, 2026-08-25).
 
-The representative corpus is 16 works. THIRTEEN of them are deposit-only: they have no onsite route,
+The Core corpus is 16 works. THIRTEEN of them are deposit-only: they have no onsite route,
 so before this module Ask could cite them but never quote them. The whole default corpus — the works
 through which datumwise states its intellectual position — was unreadable by the agent, while the
 reference layer (manuals, teaching surfaces, positions) was fully readable.
@@ -28,7 +28,7 @@ parser would also spend the dependency budget to paper over a deposit-practice g
 instead handled by the SUPPLIED path below, with weaker provenance recorded rather than hidden.
 
 STATUS: 13 of 13 representative deposit-only works are ingested — 11 Zenodo-verified, 2
-author-supplied. All 16 representative works are now readable by Ask.
+author-supplied. All 16 Core works are now readable by Ask.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
-CORPUS = REPO / "registry" / "sources" / "current-corpus.json"
+CORPUS = REPO / "registry" / "sources" / "ask-authority.json"
 SOURCES = REPO / "registry" / "sources" / "sources.json"
 RECORDS = REPO / "registry" / "publications" / "records.json"
 WORKS = REPO / "registry" / "publications" / "works.json"
@@ -54,7 +54,7 @@ TEXT_EXT = (".md", ".markdown", ".txt")
 
 # THE SUPPLIED PATH, AND WHY IT IS MARKED DIFFERENTLY (2026-08-25).
 #
-# Two representative works are deposited on Zenodo as PDF ONLY. Huayin supplied their markdown
+# Two Core works are deposited on Zenodo as PDF ONLY. Huayin supplied their markdown
 # directly so the corpus could be completed to 16/16 rather than waiting on a re-deposit.
 #
 # That text is NOT weaker in content — it is the author's own copy of the same edition. But it

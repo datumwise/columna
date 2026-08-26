@@ -48,7 +48,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 DIST = REPO / "apps" / "website" / "dist"
 SOURCES_JSON = REPO / "registry" / "sources" / "sources.json"
-CORPUS_JSON = REPO / "registry" / "sources" / "current-corpus.json"
+AUTHORITY_JSON = REPO / "registry" / "sources" / "ask-authority.json"
 DEPOSITS = Path(__file__).resolve().parent.parent / "deposits"
 WORKS_JSON = REPO / "registry" / "publications" / "works.json"
 RECORDS_JSON = REPO / "registry" / "publications" / "records.json"
@@ -187,8 +187,7 @@ class Chunk:
     currentRecordId: str | None
     readableRecordId: str | None
     # ── CORPUS LAYER (Huayin, 2026-08-25) ─────────────────────────────────────────────────────────
-    # "representative" — one of the works through which datumwise currently STATES its intellectual
-    #   position. Ask's default corpus.
+    # "core"           — entitled to establish "datumwise holds ...". Ask's default corpus.
     # "reference"      — available when the question calls for its jurisdiction. NOT weak, obsolete
     #   or untrusted: several reference sources are the highest authority for the thing they
     #   actually establish. Jurisdiction, not rank.
@@ -197,11 +196,17 @@ class Chunk:
 
 
 def _membership() -> tuple[dict[str, str], dict[str, str]]:
-    """sourceId -> layer, and sourceId -> jurisdiction. Ruled in current-corpus.json."""
-    c = json.loads(CORPUS_JSON.read_text())
-    layer = {sid: "representative" for sid in c["in"]}
+    """sourceId -> layer, and sourceId -> jurisdiction. Ruled in ask-authority.json.
+
+    Reads ASK'S OWN manifest, not current-corpus.json. Those were one file until 2026-08-26, and
+    that file is also read by apps/website/src/data/sources.ts to build the /research page. One
+    ruling was therefore governing two different questions — what a reader is shown, and what an
+    agent may assert datumwise's position from — and neither could move without moving the other.
+    """
+    c = json.loads(AUTHORITY_JSON.read_text())
+    layer = {sid: "core" for sid in c["core"]["sourceIds"]}
     juris: dict[str, str] = {}
-    for e in c.get("referenceOnly", []):
+    for e in c["reference"]["entries"]:
         sid = e if isinstance(e, str) else e["sourceId"]
         layer[sid] = "reference"
         if isinstance(e, dict):
@@ -381,9 +386,9 @@ def build(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
 
 
 def build_deposits(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
-    """Chunk the EXACT deposited text of representative works that have no onsite route.
+    """Chunk the EXACT deposited text of Core works that have no onsite route.
 
-    Thirteen of the sixteen representative works are deposit-only. Without this, Ask's default
+    Thirteen of the sixteen Core works are deposit-only. Without this, Ask's default
     corpus would be almost entirely unquotable while the reference layer stayed fully readable —
     and the ruling named that hazard precisely: it would push Ask back toward whatever is easiest
     to retrieve.
@@ -452,10 +457,39 @@ def build_deposits(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
     return out
 
 
+class CoreUnreachable(RuntimeError):
+    """A Core source that produced no retrievable text. See check_core_reachable."""
+
+
+def check_core_reachable(chunks: list[Chunk]) -> None:
+    """EVERY CORE SOURCE MUST BE RETRIEVABLE. Failure is a build defect, not a warning.
+
+    Core is the only class entitled to establish "datumwise holds ...". A Core source that produced
+    no chunks is therefore not merely absent from an answer — it silently narrows what datumwise is
+    able to say about itself, and nothing downstream can tell the difference between "the Core set
+    does not settle this" and "the Core source that settles it failed to index".
+
+    The two legitimate routes in are a governed onsite representation and deposited/supplied source
+    material. Thirteen of the sixteen Core works are deposit-only, so the second route is the normal
+    one, not the exception — which is exactly why its failure has to be loud.
+    """
+    ruled = set(json.loads(AUTHORITY_JSON.read_text())["core"]["sourceIds"])
+    reachable = {c.sourceId for c in chunks if c.layer == "core" and c.sourceId}
+    missing = sorted(ruled - reachable)
+    if missing:
+        raise CoreUnreachable(
+            f"{len(missing)} Core source(s) produced no retrievable text: {', '.join(missing)}. "
+            "A Core source must be reachable through a governed onsite route or through deposited/"
+            "supplied material. Fix the route or ingest the deposit; do not demote it to Reference "
+            "to make the build pass."
+        )
+
+
 def main() -> None:
     chunks = build()
     deposits = build_deposits()
     chunks = chunks + deposits
+    check_core_reachable(chunks)
     out = Path(__file__).resolve().parent.parent / "index" / "chunks.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps([asdict(c) for c in chunks], indent=0, ensure_ascii=False))
@@ -464,10 +498,10 @@ def main() -> None:
     pinned = sum(1 for c in chunks if c.isEditionPinned)
     catalogued = sum(1 for c in chunks if c.sourceId)
     print(f"index built: {len(chunks)} chunks across {len(routes)} routes -> {out}")
-    rep = sum(1 for c in chunks if c.layer == "representative")
+    core_n = sum(1 for c in chunks if c.layer == "core")
     ref = sum(1 for c in chunks if c.layer == "reference")
     print(f"  catalogued {catalogued} | historical {hist} | edition-pinned {pinned}")
-    print(f"  LAYERS: representative {rep} | reference {ref}")
+    print(f"  LAYERS: core {core_n} | reference {ref}")
     print(f"  from deposited text: {len(deposits)} chunks "
           f"({len({c.sourceId for c in deposits})} works)")
 

@@ -74,11 +74,11 @@ def test_index_is_populated():
     s = retrieve.stats()
     assert s["chunks"] > 800
     # Routes DROPPED (41 -> 19) when indexing was constrained to catalogued sources, and chunks ROSE
-    # (665 -> 1206) when the deposited representative texts were ingested. Both directions are the
+    # (665 -> 1206) when the deposited Core texts were ingested. Both directions are the
     # corpus ruling working: fewer pages, more of the works that actually represent datumwise.
     assert 10 < s["routes"] < 30
-    assert s["representative"] > s["reference"], (
-        "the representative corpus must outweigh the reference layer — the whole hazard the ruling "
+    assert s["core"] > s["reference"], (
+        "the Core set must outweigh the reference layer — the whole hazard the ruling "
         "named is Ask drifting back toward whatever is easiest to retrieve"
     )
     assert s["fromDeposits"] > 400, "deposited foundation text must be ingested"
@@ -130,14 +130,14 @@ def test_historical_passages_are_reachable_only_through_the_historical_jurisdict
 
 def test_every_chunk_is_ruled_into_a_layer():
     chunks = json.loads((Path(__file__).resolve().parents[1] / "index/chunks.json").read_text())
-    assert all(c.get("layer") in ("representative", "reference") for c in chunks)
+    assert all(c.get("layer") in ("core", "reference") for c in chunks)
 
 
 def test_reference_material_is_invisible_without_its_jurisdiction():
     """The manuals must not constitute datumwise's position just because they retrieve well."""
     hits = retrieve.search("what does datumwise hold about analytical identity?", k=8)
-    assert hits, "a representative question must still find material"
-    assert all(h["layer"] == "representative" for h in hits), (
+    assert hits, "a Core question must still find material"
+    assert all(h["layer"] == "core" for h in hits), (
         [f"{h['sourceLabel']}::{h['layer']}" for h in hits]
     )
 
@@ -154,7 +154,7 @@ def test_defects_jurisdiction_opens_on_a_broken_question():
     assert hits[0]["sourceId"] == "s-known-issues"
 
 
-def test_representative_corpus_is_readable_not_merely_citable():
+def test_core_set_is_readable_not_merely_citable():
     """13 of 16 IN works were deposit-only; ingestion is a requirement of the ruling, not a nicety."""
     chunks = json.loads((Path(__file__).resolve().parents[1] / "index/chunks.json").read_text())
     corpus = json.loads((Path(__file__).resolve().parents[3] /
@@ -179,8 +179,8 @@ def test_supplied_deposits_declare_the_current_version():
 
 def test_every_ingested_deposit_records_its_provenance():
     man = json.loads((Path(__file__).resolve().parents[1] / "deposits/manifest.json").read_text())
-    assert man["deposits"], "the representative corpus must be ingested"
-    assert not man["missingText"], f"unreadable representative works: {man['missingText']}"
+    assert man["deposits"], "the Core set must be ingested"
+    assert not man["missingText"], f"unreadable Core works: {man['missingText']}"
     for d in man["deposits"]:
         assert d.get("provenance") in ("zenodo", "supplied"), d
         assert d.get("sha256"), d
@@ -189,7 +189,7 @@ def test_every_ingested_deposit_records_its_provenance():
 def test_deposit_chunks_resolve_to_a_doi_not_a_dead_route():
     hits = retrieve.search("what does the theory of data establish about analytical objects", k=8)
     deposited = [h for h in hits if not h["route"]]
-    assert deposited, "deposited representative text should be retrievable"
+    assert deposited, "deposited Core text should be retrievable"
     for h in deposited:
         assert h["url"].startswith("https://doi.org/"), h["url"]
 
@@ -315,3 +315,50 @@ def test_block_and_prose_are_unioned_not_chosen_between():
 def test_tokens_sort_numerically_not_lexically():
     tokens, _ = _resolve_used("[S10] and [S2]", {"used": []})
     assert tokens == ["S2", "S10"]
+
+
+# ── ASK AUTHORITY IS ASK'S (2026-08-26) ───────────────────────────────────────────────────────────
+
+def test_ask_authority_is_independent_of_the_research_editorial_list():
+    """Ask's Core/Reference sets and /research's list must be able to diverge.
+
+    They were one file until 2026-08-26: apps/website/src/data/sources.ts builds the /research
+    REPRESENTATIVE list from registry/sources/current-corpus.json, and index_build read the same
+    file to decide what Ask may assert datumwise's position from. One ruling governed two different
+    questions. This pins the split — if index_build ever reads the editorial list again, a ruling
+    about what a reader is SHOWN would silently move what an agent may ASSERT.
+    """
+    from ask import index_build
+    src = (Path(index_build.__file__)).read_text()
+    assert "ask-authority.json" in src
+    # The quoted literal, not the word: the module explains the split in prose, and should.
+    assert '"current-corpus.json"' not in src, (
+        "index_build must not read the /research editorial list; Ask authority is its own manifest"
+    )
+    auth = json.loads(index_build.AUTHORITY_JSON.read_text())
+    # Separate governance, so moving one set does not implicitly re-ratify the other.
+    for k in ("core", "reference"):
+        assert auth[k]["ruledOn"] and auth[k]["ruledBy"] and auth[k]["history"]
+
+
+def test_a_core_source_that_indexes_to_nothing_is_a_build_defect():
+    """Core is the only class entitled to establish "datumwise holds ...". A Core source that
+    produced no chunks does not merely go missing from an answer — it silently narrows what
+    datumwise can say about itself, and nothing downstream can tell that apart from "Core does not
+    settle this". So the build must fail rather than warn.
+    """
+    from ask import index_build
+    assert any(c.get("layer") == "core" for c in retrieve._corpus()[0]), \
+        "fixture guard: the index should contain core chunks"
+
+    class _C:  # minimal stand-in for Chunk: the check only reads .layer and .sourceId
+        def __init__(self, layer, sourceId):
+            self.layer, self.sourceId = layer, sourceId
+
+    ruled = json.loads(index_build.AUTHORITY_JSON.read_text())["core"]["sourceIds"]
+    complete = [_C("core", sid) for sid in ruled]
+    index_build.check_core_reachable(complete)  # all present -> no raise
+
+    with pytest.raises(index_build.CoreUnreachable) as e:
+        index_build.check_core_reachable(complete[1:])
+    assert ruled[0] in str(e.value)
