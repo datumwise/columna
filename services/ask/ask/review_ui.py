@@ -75,7 +75,18 @@ REVIEW_PAGE = """<!doctype html>
 </div>
 <script>
 const K='ask_review_token';
+// A token may arrive in the URL FRAGMENT (#tok=...), never the query string. A fragment is not
+// sent to the server, so it cannot land in an access log or a proxy trace; the query string would
+// land in both. It is stripped from the address bar immediately, and the page is already served
+// with Referrer-Policy: no-referrer so it cannot leak sideways either.
 let TOK=sessionStorage.getItem(K)||'', ITEMS=[], CUR=null;
+let DEEP=null;
+if (location.hash.length > 1) {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.get('tok')) { TOK = h.get('tok'); sessionStorage.setItem(K, TOK); }
+  DEEP = h.get('id');                       // deep-link straight to one candidate
+  history.replaceState(null, '', location.pathname);
+}
 const $=id=>document.getElementById(id);
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function saveTok(){ TOK=$('tok').value.trim(); sessionStorage.setItem(K,TOK); boot(); }
@@ -90,7 +101,8 @@ async function boot(){
   if(!TOK) return;
   try { const d=await api('/review/queue'); ITEMS=d.items;
         $('gate').hidden=true; $('app').hidden=false;
-        $('who').value=localStorage.getItem('ask_reviewer')||''; renderQueue(); }
+        $('who').value=localStorage.getItem('ask_reviewer')||''; renderQueue();
+        if (DEEP) { const i=ITEMS.findIndex(x=>x.id===DEEP); if(i>=0) await open_(i); } }
   catch(e){ $('gateerr').textContent=String(e.message||e); }
 }
 function renderQueue(){

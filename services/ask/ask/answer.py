@@ -125,6 +125,11 @@ def ask(
             "url": by_token[t]["url"],
             "route": by_token[t]["route"],
             "role": by_token[t].get("role"),
+            # The ENTITLEMENT travels with the citation. The reviewer's first job is deciding
+            # whether a datumwise-position claim rests on a Core source, and it cannot do that
+            # from a source list that does not say which class each source belongs to.
+            "layer": by_token[t].get("layer"),
+            "jurisdiction": by_token[t].get("jurisdiction"),
             "standing": by_token[t]["standing"],
             "isHistorical": by_token[t]["isHistorical"],
             "isEditionPinned": by_token[t]["isEditionPinned"],

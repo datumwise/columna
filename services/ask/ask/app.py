@@ -248,8 +248,13 @@ class Handler(BaseHTTPRequestHandler):
                     "sources": res["sources"], "external": res.get("external", []),
                     "corpusSettles": res.get("corpusSettles"),
                     "cached": res.get("cached", False),
-                    "stars": res.get("stars"), "ratings": res.get("ratings", 0),
-                    "views": res.get("views", 0),
+                    # THE STANDING TRAVELS WITH THE ANSWER. An interface cannot render this
+                    # response without also having the notice in its hands; there is no code path
+                    # that produces an answer here and no standing to go with it.
+                    "standing": res.get("standing", standing.PROVISIONAL),
+                    "notice": res.get("notice") or standing.notice(standing.PROVISIONAL),
+                    "stars": res.get("stars"), "ratings": res.get("ratings"),
+                    "views": res.get("views"),
                 })
             # ── review actions (all bearer-gated) ─────────────────────────────────────────────
             if u.path.startswith("/review/"):
