@@ -2,7 +2,8 @@
 
 Two independent grading layers, on purpose:
 
-  · DETERMINISTIC — `must` / `must_not` string assertions, plus the identifier gate from verify.py.
+  · DETERMINISTIC — `must` / `must_not` / `must_any` string assertions, `must_cite` on the source
+    list, plus the identifier gate from verify.py.
     These are the ones I trust. They cannot be talked into a good mood by a fluent answer.
   · JUDGED — a rubric grader, on the criteria the brief names. Useful for answer quality, which no
     string assertion reaches. Its verdicts are reported SEPARATELY from the deterministic ones and
@@ -50,6 +51,16 @@ THE ANSWER:
 
 SOURCES THE ANSWER CITED:
 {srcs}
+
+PUBLICATION-REGISTRY BLOCKS THE ANSWER WAS GIVEN, if any:
+{reg}
+
+The registry is a THIRD source class, cited as [R#]. It is datumwise's own publication registry, \
+read at request time, and it is the entitled authority for what a work is CURRENTLY CALLED, which \
+version is current, and which DOI resolves to it — and for nothing else. An answer that takes a \
+title, version or DOI from [R#] and marks it [R#] is citing correctly, not citing nothing. An \
+answer that takes a DOCTRINAL claim from [R#] is citing wrongly. If the list above is "(none)", \
+[R#] in the answer is a phantom citation and should be graded as one.
 
 Grade these criteria, each pass/fail, then give an overall 1-5:
   corpus_faithfulness  — did it represent datumwise from datumwise sources, not model memory?
@@ -118,6 +129,24 @@ def deterministic(case: dict, res: dict) -> dict:
     for g in groups:
         if not any(s.lower() in a for s in g):
             fails.append(f"none of {g!r} present")
+    # `must_cite` — REACHABILITY, not vocabulary (Huayin, ruling D of 2026-08-26).
+    #
+    # h4 asks "what did version 1.1 argue, and what changed in 2.0?" and it PASSED in F1 on both
+    # models, deterministically, because the strings "1.1" and "2.0" appeared. Both models had in
+    # fact answered that the corpus does not establish what v1.1 argued: the preserved edition was
+    # never retrieved, and the assertion could not tell the difference between an answer built on
+    # the historical record and an answer explaining that it could not find one. That was my
+    # assertion's fault, reported in the F report and repaired here.
+    #
+    # A string assertion cannot express "the intended evidence was actually reached", because the
+    # evidence is not in the prose — it is in the source list. So this reads the source list. It is
+    # the only assertion in this harness that does, and it is deliberately about REACHING evidence
+    # rather than about phrasing: it says nothing about how the answer should be worded.
+    cited = {s.get("sourceId") for s in res.get("sources", [])}
+    for sid in case.get("must_cite", []):
+        if sid not in cited:
+            fails.append(f"did not cite required source {sid!r} — cited {sorted(x for x in cited if x)}")
+
     v = res["verify"]
     for p in v["problems"]:
         fails.append(f"{p['kind']}: {p['value']}")
@@ -127,8 +156,16 @@ def deterministic(case: dict, res: dict) -> dict:
 def judge(case: dict, res: dict) -> dict:
     srcs = "\n".join(f"  [{s['cite']}] {s['label']} — {s['heading']} ({s['url']})"
                      for s in res["sources"]) or "  (none)"
+    # ADDED 2026-08-26, and it is a defect I introduced in the same hour. The registry block reaches
+    # the agent as [R#] but reached the JUDGE as nothing at all, because this prompt is built from
+    # `sources` and a registry citation is deliberately not a durable citation (see answer.py). On
+    # the first targeted run the judge marked h2 and r6 down for "citing a registry without
+    # providing it" — the agent had used the new mechanism exactly as designed and was penalised for
+    # it. A grader that cannot see a source class cannot grade answers that use it.
+    reg = "\n".join(f"  [{e['cite']}] {e['label']}\n      {e['text']}"
+                    for e in res.get("evidence", []) if e.get("layer") == "registry") or "  (none)"
     prompt = JUDGE_PROMPT.format(rubric=case.get("rubric", "(none)"), q=case["q"],
-                                 a=res["answer"], srcs=srcs)
+                                 a=res["answer"], srcs=srcs, reg=reg)
     try:
         c = providers.complete([{"role": "user", "content": prompt}], model=JUDGE_MODEL)
         txt = c.text.strip()
@@ -154,6 +191,10 @@ def run(model: str, only: list[str] | None, do_judge: bool, tag: str = "") -> di
         row = {
             "id": case["id"], "shape": case["shape"], "q": case["q"],
             "answer": res["answer"], "sources": res["sources"], "retrieved": res["retrieved"],
+            # The registry blocks the answer was given, committed with the run. They are not in
+            # `sources` by design, so without this line the evidence for an identity answer would
+            # be the one thing the results file did not contain.
+            "registry": [e for e in res.get("evidence", []) if e.get("layer") == "registry"],
             "verify": res["verify"], "corpusSettles": res["corpusSettles"],
             "deterministic": det,
             "promptTokens": res["promptTokens"], "completionTokens": res["completionTokens"],

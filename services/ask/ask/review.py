@@ -71,6 +71,18 @@ WHAT DATUMWISE'S SOURCE CLASSES ARE ENTITLED TO ESTABLISH
               actually establish.
   EXTERNAL  — describes the outside world; supports comparison, context, criticism. NEVER
               establishes a datumwise position.
+  REGISTRY  — datumwise's own publication registry, cited as [R#] and read at the moment the answer
+              was written. It is the entitled authority for PUBLICATION IDENTITY AND CURRENCY: what
+              a work is currently called, which version is current, which DOI resolves to it, which
+              editions it superseded. It is the authority for NOTHING ELSE — it carries no argument,
+              and a doctrinal claim resting on [R#] is a finding.
+
+WHERE A TITLE MAY COME FROM (Huayin, ruling C of 2026-08-26)
+A datumwise paper may name ANOTHER work in its reference list, reading path or further-reading
+pointer, and it names it as that work stood on the day THIS paper was deposited. That passage is
+authoritative as part of the citing paper and is NOT authority for the cited work's current title,
+version, DOI or currency. An answer that states what a work is currently called on the strength of
+another paper's mention of it is a currency finding even when the name it gives happens to be right.
 
 THE ANSWER DISCIPLINE YOU ARE ENFORCING
 Facts first. Principles clearly. Analysis marked. Claims bounded. No rhetorical inflation.
@@ -82,6 +94,9 @@ gap, not outright error.
 INSPECT ALL OF THESE, AND SAY SO CONCRETELY — quote the sentence you mean:
   core_support        every datumwise-position claim traces to a CORE source that was actually
                       supplied. A claim resting only on Reference or External is a finding.
+                      A publication-identity fact is NOT a datumwise-position claim: a title,
+                      version or DOI taken from [R#] and marked [R#] is correctly supported, and
+                      must not be scored as a Core-support failure for lacking a [S#].
   reference_use       reference material informs without silently redefining the current position.
   currency            current vs superseded vs edition-pinned vs historical vs design-stage
                       (ROADMAP) handled correctly. Design-stage material must never read as shipped.
@@ -199,8 +214,15 @@ def _fmt_sources(sources: list[dict], evidence: list[dict] | None = None) -> str
     by_cite = {e["cite"]: e for e in (evidence or [])}
     if not sources and not evidence:
         return "  (none — the answer cited nothing)"
+    # SOURCES, PLUS ANY EVIDENCE THE SOURCE LIST DOES NOT CARRY (2026-08-26). This read
+    # `sources or evidence`, which showed the reviewer the evidence rows ONLY when the answer had
+    # cited no [S#] at all. Registry blocks are evidence and are deliberately not durable citations
+    # (see answer.py), so an answer that cited one [S#] and one [R#] would have had its registry
+    # block hidden from the reviewer while the reviewer was asked to check its currency. External
+    # rows have always had the same shape and the same exposure.
+    extra = [e for e in (evidence or []) if e["cite"] not in {s["cite"] for s in (sources or [])}]
     out = []
-    for s in sources or evidence:
+    for s in list(sources or []) + extra:
         cite = s["cite"]
         layer = s.get("layer") or "unknown"
         head = (f"  [{cite}] layer={layer} · {s.get('label')} — {s.get('heading')}\n"

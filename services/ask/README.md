@@ -76,10 +76,35 @@ planted defect is a defect against what the corpus actually says.
 
 `--only` requires `--tag`: a subset run may not overwrite the file a full run wrote.
 
+## Three source classes reach the model, not two
+
+`[S#]` is the corpus. `[X#]` is the outside world. `[R#]` is **datumwise's own publication registry**,
+added 2026-08-26 after evaluation F1 found the same defect on two independent models: passages inside
+*other* papers that name the work being asked about — reference lists, reading paths, further-reading
+pointers — out-ranked the work's own current deposit on questions about identity and currency. On one
+case the system told a reader that a superseded edition was the current position, citing two other
+papers' pointer sections as its evidence.
+
+The passage was not wrong. The Frame-QL Primer's reading path says "Analytical Governance, Version
+1.1" because that is what it was called when the Primer was deposited. It is authoritative *as part of
+the Primer*, and it is not authority for what Analytical Governance is called today. That is a
+question of ENTITLEMENT, not of score, so the repair is a source and not a filter — see
+`ask/identity.py`, which also explains why the deeper cause was ours: the index deliberately holds no
+publication facts, and we then asked questions only those facts can answer.
+
+`[R#]` is the entitled authority for what a work is currently called, which version is current, which
+DOI resolves to it, and what it superseded. It carries no argument and may not settle doctrine. It
+appears only when the question asks about identity or currency AND names a work the registry knows;
+it is never invented for a work that does not exist. `tests/test_typed_authority.py` holds it from
+both sides.
+
 ## The durability and public-surface tests
 
 `tests/test_durability.py` applies a synthetic registry move — a supersession and an editorial rename
-together — and asserts which fields must change and which must not. `tests/test_public_surface.py`
+together — and asserts which fields must change and which must not. On 2026-08-26 the corpus supplied
+the real thing four hours later (The Theory of Certainty v1.0 → The Ground for Certainty v1.1), and
+`tests/test_ask.py` now tests the same invariant against it, reading the live registry on purpose.
+`tests/test_public_surface.py`
 asserts what a reader can and cannot see: no provisional, rejected or reviewed-but-unpublished object
 reaches the public collection, and no reputation appears on anything a human has not published. Both
 are hermetic and in the ordinary test run.

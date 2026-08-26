@@ -66,7 +66,11 @@ _INLINE_CITE = re.compile(r"\[(S\d+)\]")
 # all tell at a glance which class a citation belongs to, without a lookup — which is the
 # separation requirement expressed as a lexical fact rather than an instruction.
 _INLINE_EXT = re.compile(r"\[(X\d+)\]")
-_ANY_CITE = re.compile(r"\[([SX]\d+)\]")
+# ...and so does the publication registry (2026-08-26, ruling C). Three namespaces, three
+# entitlements: [S#] says what the corpus says, [X#] is the outside world, [R#] says what a work is
+# CALLED and which version is CURRENT — and nothing else.
+_INLINE_REG = re.compile(r"\[(R\d+)\]")
+_ANY_CITE = re.compile(r"\[([SXR]\d+)\]")
 
 
 def _split_answer(text: str) -> tuple[str, dict]:
@@ -116,8 +120,12 @@ def ask(
             return {**cached, "cached": True}
 
     passages = retrieve.search(question, k=k)
+    # Identity and currency facts have exactly one entitled source, and it is not a passage. See
+    # ask/identity.py — empty on every question that is not about what a work is called.
+    reg_cards = retrieve.registry_cards(question)
     ext_sources, ext_failures = external.fetch_all(external_urls or [])
-    messages = build_prompt(question, passages, history=history, external=ext_sources)
+    messages = build_prompt(question, passages, history=history, external=ext_sources,
+                            registry=reg_cards)
     comp = providers.complete(messages, model=model)
     body, meta = _split_answer(comp.text)
 
@@ -125,10 +133,13 @@ def ask(
     # invented into a citation — and the drop is recorded.
     by_token = {f"S{i}": p for i, p in enumerate(passages, 1)}
     ext_by_token = {f"X{i}": e for i, e in enumerate(ext_sources, 1)}
+    reg_by_token = {f"R{i}": r for i, r in enumerate(reg_cards, 1)}
     all_used, recovered = _resolve_used(body, meta)
     used_tokens = [t for t in all_used if t in by_token]
     used_ext = [t for t in all_used if t in ext_by_token]
-    phantom = [t for t in all_used if t not in by_token and t not in ext_by_token]
+    used_reg = [t for t in all_used if t in reg_by_token]
+    phantom = [t for t in all_used if t not in by_token and t not in ext_by_token
+               and t not in reg_by_token]
     sources = [
         {
             "cite": t,
@@ -179,10 +190,21 @@ def ask(
          "standing": "EXTERNAL — not a datumwise source",
          "text": ext_by_token[t]["text"]}
         for t in used_ext
+    ] + [
+        # A registry card is EVIDENCE and not a citation. It is preserved with the answer so a
+        # reviewer can check an identity claim against what the registry actually said at the time,
+        # and it is deliberately NOT written into `sources`: `sources` is the durable-citation
+        # model, whose whole job is to re-resolve a stored presentation against the registry later.
+        # A citation OF the registry has nothing to re-resolve — it was the registry — and putting
+        # one there would make the durability invariant assert something circular.
+        {"cite": t, "label": f"publication registry — {reg_by_token[t]['label']}", "heading": "",
+         "layer": "registry", "standing": reg_by_token[t]["standing"],
+         "text": reg_by_token[t]["text"]}
+        for t in used_reg
     ]
 
     v = verify.check(body)
-    if _INLINE_CITE.search(body) and not sources:
+    if _INLINE_CITE.search(body) and not sources and not used_reg:
         # Cited in the prose, resolved to nothing. Whatever the cause, the reader would be shown
         # citation markers with no sources behind them. Never publish that.
         v = {**v, "problems": v["problems"] + [{
