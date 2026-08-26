@@ -9,6 +9,8 @@
    "recid": "22013410",
    "file": "w-theory-of-data.r06.md",
    "zenodoKey": "theory_of_data_v6_1.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "8cc8cefd8fa2d83786012bc19d8e518c",
    "bytes": 96625,
    "sha256": "67bf7abbcf66d4c5287c740a55bdbf7ecb72a258423a251148561fbace413ce3"
@@ -21,6 +23,8 @@
    "recid": "21979821",
    "file": "w-statistical-bridge.r05.md",
    "zenodoKey": "the_statistical_bridge_v3_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "52e4e7d05eeb252aff37505232ece139",
    "bytes": 52771,
    "sha256": "1d5941b3b43424de43f70d2caa4e9af55aa1e13f87ea5d63e2338576a3a93f35"
@@ -33,9 +37,24 @@
    "recid": "22046037",
    "file": "w-analytical-governance.r02.md",
    "zenodoKey": "analytical_governance_v1_1_published_copy.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "037de7ee181ffb79538a163fa44fd1bb",
    "bytes": 37750,
    "sha256": "5a54a0b27e2bbfe8e36524c46d511db8a658294f6841d1fa1bb650789bec15d1"
+  },
+  {
+   "sourceId": "s-missingness-has-a-universe",
+   "workId": "w-missingness-has-a-universe",
+   "label": "Missingness Has a Universe",
+   "recordId": "w-missingness-has-a-universe.r03",
+   "recid": "21783563",
+   "file": "w-missingness-has-a-universe.r03.md",
+   "provenance": "supplied",
+   "zenodoVerified": false,
+   "declaredVersion": "2.0",
+   "bytes": 61340,
+   "sha256": "33845dc3202d0de91d92559fbcd4fc562565ff073e18edcec3e6fcf9d1b72908"
   },
   {
    "sourceId": "s-two-anchors",
@@ -45,6 +64,8 @@
    "recid": "21888464",
    "file": "w-two-anchors.r02.md",
    "zenodoKey": "the_two_anchors_of_a_measure_v2_0(1).md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "7ad9bd6cb5a8535acff5c3d7bc2f7fc7",
    "bytes": 27621,
    "sha256": "f113685d4afb2819895e4d0503e0a7dd6990877a6c751b708ce102e1376c0328"
@@ -57,6 +78,8 @@
    "recid": "21752373",
    "file": "w-contract-calculus.r01.md",
    "zenodoKey": "contract_calculus_g0_g2_v1.0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "0fad06c2f4d1f0fcbf2cef2fa420254c",
    "bytes": 110888,
    "sha256": "1ae7e297a88e8afa4f02272b2fc36e4a782f284126e8706117b683f9f3c417be"
@@ -69,6 +92,8 @@
    "recid": "21977942",
    "file": "w-where-does-probability-live.r01.md",
    "zenodoKey": "where_does_probability_live_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "18264cd9fc05644fc4af207b1f0ca482",
    "bytes": 75279,
    "sha256": "850dbbaafce37ddf629a7bf43e2a2bc14e2eebc5039bf4d8fe5c6a02d865ab7a"
@@ -81,6 +106,8 @@
    "recid": "21972541",
    "file": "w-certifiable-state.r01.md",
    "zenodoKey": "certifiable_state_under_information_loss_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "2fae35363c22aed10abf59982f22dd94",
    "bytes": 53434,
    "sha256": "a9b00615e1c9693e590f0e43ef4b12ed644eb24d4c46fd66d4dd2cf22fd7422b"
@@ -93,6 +120,8 @@
    "recid": "21840854",
    "file": "w-regime-has-a-contract.r01.md",
    "zenodoKey": "regime_has_a_contract_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "bc7a6af3d3937d7a94ff288e25878b44",
    "bytes": 69467,
    "sha256": "72bbe530fa2a9fa1dd9abda48c3d5f7b9c5c7c3487c20fbb8006f1c43b485f6f"
@@ -105,6 +134,8 @@
    "recid": "22010143",
    "file": "w-conditioning-bar.r01.md",
    "zenodoKey": "two_jobs_of_the_conditioning_bar_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "2d7dc6932f4c55ab52144b9bc436092c",
    "bytes": 64416,
    "sha256": "a34fe03b83abb114650e2333e767603e27a00f67b0bdd933477b1845be4bda13"
@@ -117,9 +148,24 @@
    "recid": "22026962",
    "file": "w-data-has-its-own-ontology.r02.md",
    "zenodoKey": "data_has_its_own_ontology_v1_1 (2).md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "f75f97fb5a4e980e38374a2a0999dd46",
    "bytes": 43739,
    "sha256": "0e2bf9dd4a497a2d5271f29b3ae168ff11633ed5f8b9a2b426b56f0f5604e30a"
+  },
+  {
+   "sourceId": "s-tod-primer",
+   "workId": "w-tod-primer",
+   "label": "A Primer on the Theory of Data",
+   "recordId": "w-tod-primer.r05",
+   "recid": "22018549",
+   "file": "w-tod-primer.r05.md",
+   "provenance": "supplied",
+   "zenodoVerified": false,
+   "declaredVersion": "2.2",
+   "bytes": 17645,
+   "sha256": "46e788491b8b5a0286babdf1bc0e358add80bf1c3b44132737aed48a75624569"
   },
   {
    "sourceId": "s-statistical-bridge-primer",
@@ -129,31 +175,12 @@
    "recid": "21980262",
    "file": "w-statistical-bridge-primer.r03.md",
    "zenodoKey": "a_primer_on_the_statistical_bridge_v2_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
    "md5": "bf7bb51234c9b3089d8d93c5cc176807",
    "bytes": 20461,
    "sha256": "9ee020489d389495c8a45f628371de2033da087dea186830011cc1d90fb697e4"
   }
  ],
- "missingText": [
-  {
-   "sourceId": "s-missingness-has-a-universe",
-   "workId": "w-missingness-has-a-universe",
-   "label": "Missingness Has a Universe",
-   "recordId": "w-missingness-has-a-universe.r03",
-   "recid": "21783563",
-   "deposited": [
-    "pdf"
-   ]
-  },
-  {
-   "sourceId": "s-tod-primer",
-   "workId": "w-tod-primer",
-   "label": "A Primer on the Theory of Data",
-   "recordId": "w-tod-primer.r05",
-   "recid": "22018549",
-   "deposited": [
-    "pdf"
-   ]
-  }
- ]
+ "missingText": []
 }

@@ -161,7 +161,29 @@ def test_representative_corpus_is_readable_not_merely_citable():
                          "registry/sources/current-corpus.json").read_text())
     have = {c["sourceId"] for c in chunks}
     readable = [i for i in corpus["in"] if i in have]
-    assert len(readable) >= 14, f"only {len(readable)} of {len(corpus['in'])} IN works are readable"
+    assert len(readable) == len(corpus["in"]), (
+        f"only {len(readable)} of {len(corpus['in'])} IN works are readable: "
+        f"{[i for i in corpus['in'] if i not in have]}"
+    )
+
+
+def test_supplied_deposits_declare_the_current_version():
+    """Author-supplied text cannot be checksum-verified against Zenodo, so the declared version is
+    the assurance that the right EDITION was supplied. Pin that it is actually recorded."""
+    man = json.loads((Path(__file__).resolve().parents[1] / "deposits/manifest.json").read_text())
+    supplied = [d for d in man["deposits"] if d.get("provenance") == "supplied"]
+    for d in supplied:
+        assert d.get("zenodoVerified") is False, "supplied text must not claim Zenodo verification"
+        assert d.get("declaredVersion"), f"{d['sourceId']} records no declared version"
+
+
+def test_every_ingested_deposit_records_its_provenance():
+    man = json.loads((Path(__file__).resolve().parents[1] / "deposits/manifest.json").read_text())
+    assert man["deposits"], "the representative corpus must be ingested"
+    assert not man["missingText"], f"unreadable representative works: {man['missingText']}"
+    for d in man["deposits"]:
+        assert d.get("provenance") in ("zenodo", "supplied"), d
+        assert d.get("sha256"), d
 
 
 def test_deposit_chunks_resolve_to_a_doi_not_a_dead_route():

@@ -728,5 +728,51 @@
    "10.5281/zenodo.21980262"
   ],
   "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-statistical-bridge-primer.r03). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+ },
+ {
+  "path": "services/ask/deposits/w-missingness-has-a-universe.r03.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21752681",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+ },
+ {
+  "path": "services/ask/deposits/supplied/w-missingness-has-a-universe.r03.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21752681",
+   "10.5281/zenodo.21774032"
+  ],
+  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+ },
+ {
+  "path": "services/ask/deposits/w-tod-primer.r05.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21840854",
+   "10.5281/zenodo.21863411",
+   "10.5281/zenodo.21864434",
+   "10.5281/zenodo.21995124",
+   "10.5281/zenodo.22013410"
+  ],
+  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+ },
+ {
+  "path": "services/ask/deposits/supplied/w-tod-primer.r05.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21752373",
+   "10.5281/zenodo.21840854",
+   "10.5281/zenodo.21863411",
+   "10.5281/zenodo.21864434",
+   "10.5281/zenodo.21995124",
+   "10.5281/zenodo.22013410"
+  ],
+  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
  }
 ]
