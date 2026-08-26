@@ -320,9 +320,10 @@
   "22114801": {
    "conceptDoi": "10.5281/zenodo.22114801",
    "conceptRecid": "22114801",
-   "versionCount": 1,
+   "versionCount": 2,
    "versions": [
-    "22114802"
+    "22114802",
+    "22118479"
    ]
   }
  },
@@ -1447,6 +1448,20 @@
    "resourceType": "Preprint",
    "title": "Analytical Governance: Governing the Legitimacy of the Analytical Service",
    "version": "2.0"
+  },
+  "22118479": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22114801",
+   "conceptRecid": "22114801",
+   "doi": "10.5281/zenodo.22118479",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-26",
+   "recid": "22118479",
+   "resourceType": "Working paper",
+   "title": "The Ground for Certainty",
+   "version": "1.1"
   }
  },
  "seedCount": 67,

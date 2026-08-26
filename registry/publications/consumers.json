@@ -13,20 +13,38 @@
   "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means. Analytical Governance v2.0 cites its own superseded v1.1 (22046037) in its reference list, which is the paper doing exactly what supersession should look like from the inside."
  },
  {
+  "path": "services/ask/deposits/w-theory-of-certainty.r02.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.22118479"
+  ],
+  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means. The v1.1 deposit carries ONE DOI, its own: the retitling to The Ground for Certainty changed the title and not the framework, and the paper does not cite the edition it supersedes."
+ },
+ {
   "path": "services/ask/deposits/w-theory-of-certainty.r01.md",
   "class": "frozen-deposit",
   "allowedDois": [
    "10.5281/zenodo.22114802"
   ],
-  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means."
+  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means. SUPERSEDED 2026-08-26 by The Ground for Certainty v1.1 (22118479). This file does NOT move and this row does NOT close: the bytes are still the bytes of a real deposit, and they are now the evidence an explicitly historical question is answered from. What changed is the identity it is read under — s-theory-of-certainty-v1-0, Reference/historical — not the file."
+ },
+ {
+  "path": "services/ask/tests/test_typed_authority.py",
+  "class": "acceptance",
+  "allowedDois": [
+   "10.5281/zenodo.22114802",
+   "10.5281/zenodo.22118479"
+  ],
+  "note": "Two literals, in test_the_card_carries_both_titles_and_says_which_is_which. The registry card is the mechanism that answers what a work is CURRENTLY CALLED and which DOI resolves to it (ruling C, 2026-08-26), and this test asserts that the card names the current record and the record it superseded, each under its own deposited title. The literals are the point, for the reason this class exists at all: a test that read its expected DOIs out of records.json would pass on the day someone deleted a record, and would stop testing the thing it exists to test. Class `acceptance` and not `frozen-deposit` — these are assertions about the registry, not the author's text."
  },
  {
   "path": "services/ask/tests/test_ask.py",
   "class": "acceptance",
   "allowedDois": [
-   "10.5281/zenodo.22046037"
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22114802"
   ],
-  "note": "One literal, in test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said. The fixture reconstructs the exact sentence a durable citation carried BEFORE Analytical Governance v1.1 was superseded on 2026-08-26 — `current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037)` — and asserts that re-resolution moves the public sentence to v2.0 while preserving what was said. The literal is the point: a test that read the superseded DOI out of the registry would still pass on the day someone deleted the record, and would stop testing the thing it exists to test. Class `acceptance` for the same reason check_publications.py is — an assertion that derives its expectation from the system under test asserts nothing. The v2.0 arm is deliberately NOT a literal: that is what re-resolution must discover."
+  "note": "One literal, in test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said. The fixture reconstructs the exact sentence a durable citation carried BEFORE Analytical Governance v1.1 was superseded on 2026-08-26 — `current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037)` — and asserts that re-resolution moves the public sentence to v2.0 while preserving what was said. The literal is the point: a test that read the superseded DOI out of the registry would still pass on the day someone deleted the record, and would stop testing the thing it exists to test. Class `acceptance` for the same reason check_publications.py is — an assertion that derives its expectation from the system under test asserts nothing. The v2.0 arm is deliberately NOT a literal: that is what re-resolution must discover. EXTENDED 2026-08-26: 22114802 joins it for test_the_real_v1_0_to_v1_1_transition_flags_a_stored_citation, which does the same job against the REAL supersession that happened four hours after F3 tested a synthetic one — The Theory of Certainty v1.0 to The Ground for Certainty v1.1, a supersession and a rename in a single event. Same rule, same reason: the superseded DOI is the frozen half and must be typed; the current DOI is the half re-resolution has to find, and is asserted by recid rather than as a DOI literal so that it cannot be satisfied by the fixture repeating itself."
  },
  {
   "path": "apps/website/src/content/llms_index.txt",
@@ -430,9 +448,10 @@
    "10.5281/zenodo.22071833",
    "10.5281/zenodo.22071910",
    "10.5281/zenodo.22114802",
-   "10.5281/zenodo.22115819"
+   "10.5281/zenodo.22115819",
+   "10.5281/zenodo.22118479"
   ],
-  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS — it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does."
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS — it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does. EXTENDED 2026-08-26 (The Ground for Certainty v1.1): 22118479 is asserted as the new current Certainty record and 22114802 as the PREDECESSOR arm of the v1.0 -> v1.1 edge, so 22114802 STAYS. The clause above that called 22114802 the first record of a new work was true when written and is now the FAR END of a two-record chain; it is superseded by this clause rather than edited, because a ledger that revises its own earlier entries stops being evidence of what was asserted when. This edge is the first in the corpus that supersedes AND renames in one move, so the gate additionally pins BOTH deposited titles by name: a superseded record quietly retitled to match its successor would erase the fact that Analytical Governance v2.0's bibliography cited a title that really existed."
  },
  {
   "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
@@ -474,6 +493,15 @@
    "10.5281/zenodo.20762839"
   ],
   "note": "A dated capture of what an external system said on a given day. Editing it would destroy the measurement."
+ },
+ {
+  "path": "specs/certainty_v1_1_reconciliation_report_v0_1.md",
+  "class": "ledger",
+  "allowedDois": [
+   "10.5281/zenodo.22114802",
+   "10.5281/zenodo.22118479"
+  ],
+  "note": "The dated report of the 2026-08-26 reconciliation of The Ground for Certainty v1.1. A ledger, not a surface: it reports the identifiers AS FOUND at Zenodo on that date because reporting a verified fact without the fact it verified is not a report. The CONCEPT is reported by its recid and deliberately NOT in its DOI form: a concept DOI is not a record DOI, G7 rejected it on the first pass, and declaring it would have been the wrong repair — the same lesson as the fixture DOIs removed under F. The fact survives; the token does not. Asserts no current publication fact to a reader; the reader-facing surfaces are `derived` and carry none of these literals."
  },
  {
   "path": "specs/doctrine_gaps.md",

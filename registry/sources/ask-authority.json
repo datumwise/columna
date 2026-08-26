@@ -70,6 +70,11 @@
     "on": "2026-08-26",
     "by": "Huayin",
     "what": "The Theory of Certainty v1.0 -> Core. Analytical Governance stays Core and moves to v2.0; its v1.1 edition leaves Core entirely and is ruled Reference/historical under a separate source identity, because one sourceId cannot be both current authority and preserved history"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "The Ground for Certainty v1.1 supersedes The Theory of Certainty v1.0 as the current foundational publication. s-theory-of-certainty stays Core and re-resolves to r02; the v1.0 edition leaves Core under its own source identity, s-theory-of-certainty-v1-0, Reference/historical -- the same ruling applied to AG v1.1 on this date, in the same shape. 'Theory of Certainty' remains valid terminology for the broader theoretical framework and is NOT renamed in conceptual prose; this is a publication-title and current-record change"
    }
   ]
  },
@@ -187,6 +192,10 @@
    },
    {
     "sourceId": "s-analytical-governance-v1-1",
+    "jurisdiction": "historical"
+   },
+   {
+    "sourceId": "s-theory-of-certainty-v1-0",
     "jurisdiction": "historical"
    }
   ],

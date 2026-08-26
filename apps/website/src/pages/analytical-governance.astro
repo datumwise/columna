@@ -123,7 +123,14 @@ const NEIGHBOURS = [
   },
   {
     id: 'certainty',
-    name: 'The Theory of Certainty',
+    // DERIVED, not typed (2026-08-26). This was the literal 'The Theory of Certainty' — the last
+    // hand-typed publication NAME on this page, sitting directly above a registry-derived href.
+    // When the paper was retitled to 'The Ground for Certainty' the link text and the link target
+    // would have disagreed, which is the exact class this file's PUBLICATION FACTS rule exists to
+    // prevent; a title is as much a publication fact as a version or a DOI. The relation row names
+    // a WORK, so it takes the work's label. The framework name 'Theory of Certainty' is a separate
+    // thing and is not what this row is for.
+    name: certainty.label,
     href: certainty.href,
     external: true,
     relation: 'supplies the upstream discipline to',
