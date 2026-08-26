@@ -169,3 +169,136 @@ def test_review_provenance_is_reachable_from_a_published_object():
     assert r["quoteFactsRecorded"] is True and r["quoteFacts"] == []
     assert r["quoteFactsReconstructed"] is False
     assert "no direct quotations" in r["quoteFactsAsSent"]
+
+
+# ── view counting: public readership vs pre-publication reads ─────────────────────────────────────
+#
+# Huayin, 2026-08-26: "Public `views` should count public reads after publication.
+# Pre-publication/provisional/reviewer reads should not appear as public readership on the reviewed
+# object. If internal/review read counts are useful, preserve them separately."
+#
+# The defect these pin was found by inspection, not by a test: the published servability answer showed
+# `views: 2` and BOTH reads were a reviewer's own before/after inspection of a still-provisional
+# object. The counter was right about how many times the row had been fetched and wrong about what it
+# was called. So these tests are written from the counter's side — which one moved, and by how much —
+# because "did a reader read this?" is exactly the question `views` was answering incorrectly.
+
+def _counts(qid: str) -> tuple[int, int]:
+    """The two raw counters, straight from the row. Not through any rendering."""
+    with store.connect() as c:
+        r = c.execute("SELECT views, provisional_views FROM qa WHERE id=?", (qid,)).fetchone()
+    return r["views"], r["provisional_views"]
+
+
+def test_a_pre_publication_read_is_not_counted_as_public_readership():
+    """The servability case, as a rule. Two reads of a provisional object leave `views` at zero."""
+    qid = _mk("Does a reviewer's own read make an unpublished answer look read?")
+    store.get(qid, bump_view=True)
+    store.get(qid, bump_view=True)
+    views, provisional = _counts(qid)
+    assert views == 0, "a pre-publication read was counted as public readership"
+    assert provisional == 2, "a pre-publication read was thrown away instead of kept separately"
+
+
+def test_a_read_after_publication_is_counted_as_public_readership():
+    """And the pre-publication count does not move again, so the two are never confused."""
+    qid = _mk("Does a read after publication count?")
+    store.get(qid, bump_view=True)                      # one provisional read
+    _review(qid)
+    store.publish(qid, "huayin")
+    store.get(qid, bump_view=True)                      # one public read
+    views, provisional = _counts(qid)
+    assert views == 1, "a read of a published object was not counted as public readership"
+    assert provisional == 1, "publication rewrote the pre-publication count"
+
+
+def test_every_read_increments_exactly_one_counter():
+    """The invariant that makes the split lossless: `views + provisional_views` is every read the
+    service served, whichever side of publication it fell on. Neither double-counted nor dropped."""
+    qid = _mk("Is any read lost or counted twice?")
+    for _ in range(3):
+        store.get(qid, bump_view=True)
+    _review(qid)
+    store.publish(qid, "huayin")
+    for _ in range(4):
+        store.get(qid, bump_view=True)
+    views, provisional = _counts(qid)
+    assert (views, provisional) == (4, 3)
+    assert views + provisional == 7
+
+
+def test_a_read_that_is_not_asked_to_count_counts_nothing():
+    """`bump_view=False` is still the default, and the review surface never bumps either counter —
+    opening the review screen is not readership of any kind."""
+    qid = _mk("Does looking at the review screen count as a read?")
+    store.get(qid)
+    store.get_for_review(qid)
+    assert _counts(qid) == (0, 0)
+
+
+def test_the_public_payload_never_carries_a_pre_publication_read_count():
+    """The leakage check, in the shape this file uses for every other private field: not "is the
+    number right" but "can a reader see it at all". Checked on all three public renderings."""
+    qid = _mk("Can a reader see how often a reviewer looked at this?")
+    store.get(qid, bump_view=True)
+    store.cache_put("Can a reader see how often a reviewer looked at this?", qid, "test:model")
+    _review(qid)
+    store.publish(qid, "huayin")
+    store.get(qid, bump_view=True)
+
+    for surface, payload in (
+        ("GET /qa/<id>", store.get(qid)),
+        ("the cache serve", store.find_cached("Can a reader see how often a reviewer looked at this?")),
+        ("the public collection", next(i for i in store.listing(limit=500) if i["id"] == qid)),
+    ):
+        assert payload is not None
+        assert "provisionalViews" not in payload, f"{surface} leaked the pre-publication read count"
+        assert "provisional_views" not in payload, f"{surface} leaked the pre-publication read count"
+        assert payload["views"] == 1, f"{surface} reported a view count that includes a reviewer's read"
+
+
+def test_the_review_surface_does_see_the_pre_publication_read_count():
+    """Preserved separately means preserved somewhere a human can read it. The review payload —
+    /review/item/<id>, behind the review token — is that somewhere."""
+    qid = _mk("Can a reviewer see how often this was read before publication?")
+    store.get(qid, bump_view=True)
+    store.get(qid, bump_view=True)
+    item = store.get_for_review(qid)
+    assert item is not None and item["provisionalViews"] == 2
+    assert item["views"] is None                       # still no public reputation on a provisional row
+    assert qid in {i["id"] for i in store.review_queue(limit=500)}
+    queued = next(i for i in store.review_queue(limit=500) if i["id"] == qid)
+    assert queued["provisionalViews"] == 2
+
+
+def test_migrating_an_existing_database_does_not_rewrite_its_view_counts(tmp_path):
+    """"Do not silently rewrite historical metrics." A database written before this column existed
+    gains it at 0 and keeps every `views` it already had — the pre-existing counts are left exactly
+    where they are, to be corrected (or not) by a human ruling rather than by a migration.
+
+    Runs against its own file, so it asserts the migration and not the ambient database.
+    """
+    import sqlite3 as _sqlite3
+    old = tmp_path / "pre-column.db"
+    con = _sqlite3.connect(old)
+    con.executescript(store.SCHEMA)                     # the schema WITHOUT provisional_views
+    con.execute(
+        "INSERT INTO qa (id, question, question_key, answer, created_at, provider, model, sources, "
+        "views, standing, published, reviewed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        ("legacy1", "An answer from before the split", "an answer from before the split",
+         "text", 1787771751.0, "test", "test:model", "[]", 7, standing.REVIEWED, 1, 1787771751.0),
+    )
+    con.commit()
+    assert "provisional_views" not in {r[1] for r in con.execute("PRAGMA table_info(qa)")}
+    con.close()
+
+    original = store.DB_PATH
+    store.DB_PATH = old
+    try:
+        row = store.get("legacy1")                      # connect() migrates on the way in
+        assert row["views"] == 7, "the migration rewrote a historical view count"
+        with store.connect() as c:
+            r = c.execute("SELECT views, provisional_views FROM qa WHERE id='legacy1'").fetchone()
+        assert (r["views"], r["provisional_views"]) == (7, 0)
+    finally:
+        store.DB_PATH = original
