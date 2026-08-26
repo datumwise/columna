@@ -120,6 +120,34 @@ The Work carries only `canonicalLabel` — the site's short name for the thing. 
 naming, not a publication fact**, and it is the only publication-adjacent string on this property
 still chosen by a person.
 
+### A theory's name and a paper's title are different facts (Huayin, 2026-08-26)
+
+`canonicalLabel` is how the corpus **cites the work**, so it follows the current record's deposited
+title. It is not the name of the idea, and the two must be allowed to come apart:
+
+> Theory of Certainty is still valid, except when citing the article, the title needs to match the
+> new paper. **Not all Theory of Relativity are in books titled Theory of Relativity.**
+
+The ruling came from a live case. *The Theory of Certainty* v1.0 was superseded the same day it was
+deposited by *The Ground for Certainty* v1.1 — the title changed because that one concise paper
+examines the grounds on which reliance rests, and calling it "The Theory of Certainty" made it sound
+more comprehensive than intended. The theory kept its name. The paper did not.
+
+So a supersession that renames moves exactly two things: the `canonicalLabel`, and every surface that
+**cites the article**. It does not move prose that names the theory, the discipline or the account.
+On `/analytical-governance` both appear, one screen apart, and the difference is visible in the
+markup: §Legitimacy says *"developed separately in {certainty.label}"* — a citation, registry-derived,
+now reading **The Ground for Certainty** — while the §Where this sits relation row is headed **The
+Theory of Certainty** under the relation *supplies the upstream discipline to*, because that row names
+the discipline. Its `href` is still registry-derived, so it lands on the current record. Anchor text
+that names a theory over a target that resolves to its current foundational publication is what a
+citation to a theory has always looked like; it is not drift.
+
+The failure this prevents is a mechanical rename: a find-and-replace across the corpus would have
+retitled the idea in every sentence that discusses it, including sentences inside deposited papers
+that are frozen by definition. The gate cannot catch that one, because a theory's name is not a
+Zenodo token. It is caught by classifying each occurrence before editing any of them.
+
 ### `kind` is deliberately ungoverned
 
 Every work reads `kind: "unclassified"`, and that is load-bearing. `llms.txt` used to open its

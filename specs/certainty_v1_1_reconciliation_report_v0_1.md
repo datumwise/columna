@@ -88,25 +88,52 @@ Verified in the built site, not in source.
 
 | surface | before | after |
 |---|---|---|
-| `/analytical-governance` relation row | The Theory of Certainty → doi:…22114802 | **The Ground for Certainty** → `doi.org/10.5281/zenodo.22118479` |
-| `/analytical-governance` §Legitimacy pointer | already `{certainty.label}` | re-resolves automatically |
+| `/analytical-governance` §Legitimacy pointer — **a citation** | The Theory of Certainty → doi:…22114802 | **The Ground for Certainty** → `doi.org/10.5281/zenodo.22118479` |
+| `/analytical-governance` §Where this sits relation row — **names the discipline** | The Theory of Certainty | **unchanged** — href still re-resolves to …22118479 |
 | `/research` | The Theory of Certainty | **The Ground for Certainty**, current record link → …22118479 |
 | Ask citation labels | The Theory of Certainty | **The Ground for Certainty** (resolved at read time, not stored) |
 | Ask standing sentences | current record v1.0 (…22114802) | current record v1.1 (…22118479) |
 
-**One literal had to be repaired, and it is the finding.** `analytical-governance.astro:126` carried
-the hand-typed string `'The Theory of Certainty'` as a relation-row name, immediately above a
-registry-derived `href`. It was the last hand-typed publication *name* on the site. On the day of a
-retitling the link text and the link target would have disagreed — the exact class that file's own
-PUBLICATION FACTS rule exists to prevent. It now reads `certainty.label`. **A title is as much a
-publication fact as a version or a DOI, and the derivation rule had been applied to two of the three.**
+Everything except the relation row re-resolved for free, because
+`apps/website/src/data/publications.ts` imports the registry JSON directly and `currentRecord()`
+reads the ruled `status` rather than picking a winner by date.
 
-Everything else re-resolved for free, because `apps/website/src/data/publications.ts` imports the
-registry JSON directly and `currentRecord()` reads the ruled `status` rather than picking a winner by
-date.
+### The relation row: changed, then changed back, and the correction is the finding
 
-Screenshot-verified: the row renders *"The Ground for Certainty · supplies the upstream discipline to
-analytical governance"*.
+`analytical-governance.astro:126` carried the hand-typed string `'The Theory of Certainty'` as a
+relation-row name, directly above a registry-derived `href`. I derived it — reasoning that a title is
+as much a publication fact as a version or a DOI, and that this file types none of those. **That
+reasoning was right about publication facts and wrong about that string.**
+
+> Theory of Certainty is still valid, except when citing the article, the title needs to match the
+> new paper. **Not all Theory of Relativity are in books titled Theory of Relativity.**
+> — Huayin, 2026-08-26
+
+The row's relation is *supplies the upstream discipline to*. It names the **discipline**, the way a
+sentence about relativity names relativity and not whichever paper currently states it best. A
+theory's name is editorial and stable; a publication's title moves when the author retitles it. Those
+are two facts that merely happened to be the same string until 2026-08-26, and a rename is exactly
+the event that separates them.
+
+Reverted to the literal, with the `href` left registry-derived so the link still lands on the current
+record. **Anchor text that names a theory over a target that resolves to its current foundational
+publication is what a citation to a theory has always looked like — it is not a mismatch.**
+
+The page names the *publication* once, one screen up, in §Legitimacy — *"developed separately in
+{certainty.label}"* — which **is** a citation of the article and therefore does re-resolve. Two
+appearances, two different jobs, and item 8 of the page rulings caps it at two.
+
+Screenshot- and markup-verified. The built page now contains exactly:
+
+```
+'The Ground for Certainty'  ->  https://doi.org/10.5281/zenodo.22118479      (the citation)
+'The Theory of Certainty'   ->  https://doi.org/10.5281/zenodo.22118479      (the discipline)
+```
+
+The rule is written down where the next person will look for it —
+`registry/publications/README.md`, under the `canonicalLabel` section, because `canonicalLabel` is
+the one string this decision actually governs: it follows the deposited title **because that is how
+the corpus cites the work**, and for no other reason.
 
 ---
 
@@ -128,7 +155,9 @@ Untouched, on purpose:
 - **The committed F1 eval results**, which record what Ask actually said on the day.
 - **The published servability Q&A** (ruling F) — not regenerated, not re-reviewed, not edited.
 
-The only prose that changed is prose that names the *current publication*.
+The only prose that changed is prose that **cites the current publication**. That is the whole rule,
+and the boundary is not "conceptual vs literal" — it is *citing the article vs naming the theory*.
+The relation row above is the case where I got the boundary wrong on the first pass; §3 records it.
 
 ---
 
