@@ -207,6 +207,67 @@ JURISDICTION_CUES: dict[str, tuple[str, ...]] = {
 }
 
 
+# ── the definitional fallback (2026-08-26) ────────────────────────────────────────────────────────
+# The cue router above answers "does this question CALL FOR a jurisdiction?". It cannot answer the
+# other question a definitional query raises: "does the representative layer even ESTABLISH this
+# term?" — and when the answer is no, representative-only retrieval does not abstain. It returns
+# the best lexical near-miss it can find and the agent answers confidently from it.
+#
+# That is exactly how "What is a basis?" failed on BOTH models on 2026-08-26. In Columna, BASIS is
+# a declaration construct — `UNIVERSE active_stores BASIS registry(store_directory)` — and the four
+# bases (registry, spine, product, events) are what fix whether an absent row is a real zero, a gap
+# or a membership fact. That is established in the Columna reference manual, ch. 9, and NOWHERE in
+# the representative layer. The representative layer carries only "certificate basis" and "basis
+# token": different terms that happen to share a word. Both models therefore explained the free
+# commutative monoid F(S) and its generators e_a — a correct reading of a passage that was not
+# about the asked term.
+#
+# The rule is narrow on purpose: it fires ONLY when the question is definitional in shape AND no
+# representative section is HEADED for the asked term. "What is an anchor?", "What is a measure
+# family?" and "What is a universe?" all have representative sections titled exactly that, so the
+# fallback never sees them and the representative layer keeps its own vocabulary. When it does
+# fire, it does not pick a winner — it opens the reference layer and lets the existing ranking and
+# the skill's standing rules adjudicate.
+_DEFN_Q = re.compile(
+    r"^\s*(?:what\s+(?:is|are)\s+(?:an?|the)\s+(?P<a>[^?]+?)"
+    r"|what\s+does\s+(?:an?|the)?\s*(?P<b>[^?]+?)\s+mean"
+    r"|define\s+(?P<c>[^?]+?))\s*\??\s*$",
+    re.I,
+)
+_HEAD_NUM = re.compile(
+    r"^\s*(?:chapter\s+\d+|appendix\s+[a-z]|part\s+[ivx]+|\d+(?:\.\d+)*)[.:\u2014-]*\s*", re.I
+)
+
+
+def definitional_subject(query: str) -> str | None:
+    """The term a "what is X?" question is asking about, or None if it is not that shape."""
+    m = _DEFN_Q.match(query.strip())
+    if not m:
+        return None
+    term = (m.group("a") or m.group("b") or m.group("c") or "").strip().lower()
+    # A TERM, not a sentence-long descriptor. "What is the current Theory of Data publication?" is
+    # a question about a record's standing, not a request for a definition, and widening the layers
+    # for it would be the fallback overreaching into questions the cue router already handles.
+    return term if term and len(term.split()) <= 3 else None
+
+
+def _headed_for(term: str) -> bool:
+    """Does any REPRESENTATIVE section carry this term as its heading's head, not as a modifier?
+
+    "2.3 Anchor" and "3.2 Measure family" count. "6.6 Certificate basis is open-typed" does not:
+    the term there is `certificate basis`, and treating it as a locus for `basis` is the exact
+    confusion this function exists to prevent.
+    """
+    for c in _corpus()[0]:
+        if c.get("layer") != "representative":
+            continue
+        h = _HEAD_NUM.sub("", c["heading"]).strip().lower().lstrip("\u2014- ")
+        h = h[4:].lstrip() if h.startswith("the ") else h
+        if h == term or h.startswith(f"{term} ") or h.startswith(f"{term},"):
+            return True
+    return False
+
+
 def jurisdictions_for(query: str) -> list[str]:
     q = query.lower()
     return sorted({j for j, cues in JURISDICTION_CUES.items() if any(c in q for c in cues)})
@@ -234,6 +295,21 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
             combined[i] = 0.6 * combined.get(i, 0.0) + 0.4 * (sem_d.get(i, 0.0) / sem_max)
 
     opened = jurisdictions_for(query)
+    if not opened:
+        term = definitional_subject(query)
+        if term and not _headed_for(term):
+            # No cue fired and the representative layer has no section headed for the asked term.
+            # Widen rather than answer from a near-miss; ranking decides which jurisdiction wins.
+            #
+            # "historical" is deliberately NOT opened. Opening a jurisdiction does two things —
+            # it admits that reference layer AND it cancels the demotion of preserved state — and
+            # only the first is wanted here. A question that does not know a term is not thereby a
+            # question about what the site said in August. Caught by
+            # test_current_outranks_historical_on_a_current_question, which the first version of
+            # this fallback broke: "what is the current source estate" widened, the preserved
+            # research map stopped being demoted, and a question with "current" in it was answered
+            # from a historical snapshot.
+            opened = sorted(set(JURISDICTION_CUES) - {"historical"})
     ranked = []
     for i, s in combined.items():
         c = chunks[i]
@@ -272,12 +348,23 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         ranked.append((s, i))
     ranked.sort(reverse=True)
 
-    # One passage per (route, anchor) — a section should not occupy three of eight slots because it
-    # was long enough to be split.
+    # One passage per SECTION — a section should not occupy three of eight slots because it was
+    # long enough to be split.
+    #
+    # The key was (route, anchor), and that was a serious bug rather than a cosmetic one: a
+    # DEPOSITED work has no route and no anchor (it has no page on the site — see index_build.py),
+    # so all 765 deposit-derived chunks — 60% of the index, and the whole of the representative
+    # corpus of papers — collapsed into the single key ("", ""). The loop therefore admitted
+    # EXACTLY ONE deposit passage per query no matter how many scored well, and discarded the rest
+    # silently. "What is a basis?" reached the model with one passage in its hands.
+    #
+    # Section identity is what the dedup actually meant, and the index already carries it: the
+    # heading, plus whichever of route/sourceId the passage came from. Split sections still
+    # collapse (the longest is 8 parts under one key); distinct sections no longer do.
     out, seen = [], set()
     for s, i in ranked:
         c = chunks[i]
-        key = (c["route"], c["anchor"])
+        key = (c["route"] or c["sourceId"], c["anchor"], c["heading"])
         if key in seen:
             continue
         seen.add(key)
