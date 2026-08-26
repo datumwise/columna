@@ -103,6 +103,27 @@ CREATE TABLE IF NOT EXISTS answer_cache (
 );
 CREATE INDEX IF NOT EXISTS cache_exp ON answer_cache(expires_at);
 
+-- ── REVIEW (2026-08-26) ─────────────────────────────────────────────────────────────────────────
+-- One row per review pass. Reviews ACCUMULATE: a second pass does not overwrite the first, because
+-- the interesting thing about a re-review is usually that it disagreed with the last one.
+--
+-- `proposed_answer` is the reviewer's proposal for publication. It is stored HERE and never written
+-- back into qa.answer. The provisional answer is the evidence of what the agent said when asked,
+-- and an evidence record that can be silently edited is not one.
+CREATE TABLE IF NOT EXISTS reviews (
+  id              TEXT PRIMARY KEY,
+  qa_id           TEXT NOT NULL,
+  created_at      REAL NOT NULL,
+  disposition     TEXT NOT NULL,           -- APPROVE | REVISE | DO_NOT_PUBLISH
+  findings        TEXT NOT NULL DEFAULT '{}',
+  summary         TEXT NOT NULL DEFAULT '',
+  changes         TEXT NOT NULL DEFAULT '[]',
+  proposed_answer TEXT,
+  model           TEXT NOT NULL,
+  cost_usd        REAL NOT NULL DEFAULT 0.0
+);
+CREATE INDEX IF NOT EXISTS reviews_qa ON reviews(qa_id, created_at);
+
 -- One row per model call, whether or not it became a public Q&A. This is the conversation log the
 -- brief asks for: what was asked, what came back, which sources, which model, when.
 -- NO chain-of-thought is stored, by instruction: the answer and its evidence record, nothing else.
@@ -143,6 +164,12 @@ _ADDED_COLUMNS = (
     ("published", "INTEGER NOT NULL DEFAULT 0"),
     ("reviewed_at", "REAL"),
     ("reviewed_by", "TEXT"),
+    # The text that was actually published. May be the provisional answer, the reviewer's proposal,
+    # or the human's edit of either. Kept SEPARATE from `answer`, which is never rewritten.
+    ("published_answer", "TEXT"),
+    ("rejected_at", "REAL"),
+    ("rejected_by", "TEXT"),
+    ("reject_reason", "TEXT"),
 )
 
 
@@ -205,7 +232,11 @@ def _row_to_public(r: sqlite3.Row) -> dict:
     return {
         "id": r["id"],
         "question": r["question"],
-        "answer": r["answer"],
+        # A reader of a REVIEWED item sees the published text; the provisional answer stays
+        # available as `provisionalAnswer` so the record of what the agent said is never lost.
+        "answer": (r["published_answer"] if ("published_answer" in r.keys()
+                                             and r["published_answer"]) else r["answer"]),
+        "provisionalAnswer": r["answer"],
         "createdAt": r["created_at"],
         "sources": json.loads(r["sources"]),
         "external": json.loads(r["external"]),
@@ -357,3 +388,92 @@ def usage_totals() -> dict:
         "completionTokens": r["ct"] or 0,
         "costUsd": round(r["c"] or 0.0, 4),
     }
+
+
+# ── REVIEW AND PUBLICATION ────────────────────────────────────────────────────────────────────────
+# The one rule these functions exist to enforce: qa.answer is never written after creation. Publish
+# writes qa.published_answer. Nothing here can silently change what the agent said.
+
+def save_review(qa_id: str, verdict: dict) -> str:
+    rid = uuid.uuid4().hex[:12]
+    with connect() as c:
+        c.execute(
+            """INSERT INTO reviews (id, qa_id, created_at, disposition, findings, summary, changes,
+                                    proposed_answer, model, cost_usd)
+               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+            (rid, qa_id, time.time(), verdict["disposition"],
+             json.dumps(verdict.get("findings", {})), verdict.get("summary", ""),
+             json.dumps(verdict.get("changes", [])), verdict.get("proposedAnswer"),
+             verdict.get("model", ""), float(verdict.get("costUsd") or 0.0)),
+        )
+    return rid
+
+
+def _review_row(r: sqlite3.Row) -> dict:
+    return {
+        "id": r["id"], "qaId": r["qa_id"], "createdAt": r["created_at"],
+        "disposition": r["disposition"], "findings": json.loads(r["findings"]),
+        "summary": r["summary"], "changes": json.loads(r["changes"]),
+        "proposedAnswer": r["proposed_answer"], "model": r["model"], "costUsd": r["cost_usd"],
+    }
+
+
+def reviews_for(qa_id: str) -> list[dict]:
+    with connect() as c:
+        rows = c.execute(
+            "SELECT * FROM reviews WHERE qa_id=? ORDER BY created_at DESC", (qa_id,)
+        ).fetchall()
+    return [_review_row(r) for r in rows]
+
+
+def latest_review(qa_id: str) -> dict | None:
+    rs = reviews_for(qa_id)
+    return rs[0] if rs else None
+
+
+def review_queue(limit: int = 50) -> list[dict]:
+    """Candidates awaiting a human: eligible, provisional, not already rejected.
+
+    `public=1` is the eligibility flag — it stopped meaning "published" on 2026-08-26 and now means
+    "may be put in front of a reviewer". A rejected answer stays in the table as evidence but leaves
+    the queue; re-queueing it is a deliberate act, not a refresh.
+    """
+    with connect() as c:
+        rows = c.execute(
+            "SELECT * FROM qa WHERE standing=? AND published=0 AND public=1 AND rejected_at IS NULL "
+            "AND parent_id IS NULL ORDER BY created_at DESC LIMIT ?",
+            (standing.PROVISIONAL, limit),
+        ).fetchall()
+    out = []
+    for r in rows:
+        item = _row_to_public(r)
+        item["review"] = latest_review(r["id"])
+        out.append(item)
+    return out
+
+
+def publish(qa_id: str, reviewer: str, answer_text: str | None = None) -> dict | None:
+    """A HUMAN approves. The published text may differ from the provisional one; both are kept."""
+    with connect() as c:
+        r = c.execute("SELECT * FROM qa WHERE id=?", (qa_id,)).fetchone()
+        if not r:
+            return None
+        c.execute(
+            "UPDATE qa SET standing=?, published=1, reviewed_at=?, reviewed_by=?, "
+            "published_answer=?, rejected_at=NULL, rejected_by=NULL, reject_reason=NULL WHERE id=?",
+            (standing.REVIEWED, time.time(), reviewer, answer_text or r["answer"], qa_id),
+        )
+    return get(qa_id)
+
+
+def reject(qa_id: str, reviewer: str, reason: str) -> dict | None:
+    """Not published. The answer is KEPT — a rejected answer is evidence about the agent."""
+    with connect() as c:
+        if not c.execute("SELECT 1 FROM qa WHERE id=?", (qa_id,)).fetchone():
+            return None
+        c.execute(
+            "UPDATE qa SET published=0, standing=?, rejected_at=?, rejected_by=?, reject_reason=? "
+            "WHERE id=?",
+            (standing.PROVISIONAL, time.time(), reviewer, reason, qa_id),
+        )
+    return get(qa_id)

@@ -392,3 +392,113 @@ def test_a_core_source_that_indexes_to_nothing_is_a_build_defect():
     with pytest.raises(index_build.CoreUnreachable) as e:
         index_build.check_core_reachable(complete[1:])
     assert ruled[0] in str(e.value)
+
+
+# ── review-to-publish (2026-08-26) ────────────────────────────────────────────────────────────────
+
+def _candidate(q="Why does datumwise say servability rather than serviceability?"):
+    return store.save_qa(question=q, answer="A provisional answer about servability.",
+                         provider="test", model="test:model",
+                         sources=[{"cite": "S1", "label": "The Theory of Data", "heading": "3.3",
+                                   "layer": "core", "standing": "current"}],
+                         external=[])
+
+
+def test_the_provisional_answer_is_never_rewritten_by_publication():
+    """The immutable chain: provisional -> review + proposal -> human-approved published answer.
+
+    The provisional text is the evidence of what the agent actually said when asked. An evidence
+    record that can be silently edited is not one. So publishing a DIFFERENT text writes
+    published_answer and leaves `answer` exactly as generated.
+    """
+    qid = _candidate()
+    store.save_review(qid, {"disposition": "REVISE", "summary": "tighten it",
+                            "changes": ["cut the preamble"], "findings": {},
+                            "proposedAnswer": "A tighter answer about servability.",
+                            "model": "test:model", "costUsd": 0.0})
+    store.publish(qid, "huayin", "A tighter answer about servability.")
+    row = store.get(qid)
+    assert row["answer"] == "A tighter answer about servability."     # what a reader sees
+    assert row["provisionalAnswer"] == "A provisional answer about servability."  # what was said
+    assert row["standing"] == "reviewed" and row["published"] is True
+    assert row["notice"]["label"].startswith("Reviewed by datumwise · ")
+    assert row["stars"] is not None or row["ratings"] == 0  # reputation exists once reviewed
+    assert any(i["id"] == qid for i in store.listing())
+
+
+def test_review_queue_holds_candidates_and_a_rejection_leaves_it():
+    qid = _candidate("Is a rejected answer still evidence?")
+    assert any(i["id"] == qid for i in store.review_queue())
+    store.reject(qid, "huayin", "thin and duplicative")
+    assert all(i["id"] != qid for i in store.review_queue()), "a rejected answer leaves the queue"
+    assert store.get(qid)["answer"], "a rejected answer is KEPT — it is evidence about the agent"
+    assert all(i["id"] != qid for i in store.listing())
+
+
+def test_revise_without_a_proposal_is_downgraded_not_honoured():
+    """REVISE with nothing proposed is not a disposition, it is a dropped sentence."""
+    from ask import review as review_mod
+    v = review_mod._normalise_verdict({"disposition": "REVISE", "proposedAnswer": None},
+                                      model="test:model", cost=0.0)
+    assert v["disposition"] == "DO_NOT_PUBLISH"
+    v = review_mod._normalise_verdict({"disposition": "APPROVE", "proposedAnswer": "sneaky"},
+                                      model="test:model", cost=0.0)
+    assert v["proposedAnswer"] is None, "a proposal only means something on a REVISE"
+    v = review_mod._normalise_verdict({"disposition": "nonsense"}, model="test:model", cost=0.0)
+    assert v["disposition"] == "DO_NOT_PUBLISH", "an unparseable disposition must fail closed"
+
+
+# ── the review surface is protected (2026-08-26) ──────────────────────────────────────────────────
+
+def _serve(token: str | None):
+    """A real server on a random port. The auth rule is a property of the HTTP surface, and testing
+    it against the handler's internals would test a different thing than the one that ships."""
+    import importlib
+    from http.server import ThreadingHTTPServer
+    import threading
+    if token is None:
+        os.environ.pop("ASK_REVIEW_TOKEN", None)
+    else:
+        os.environ["ASK_REVIEW_TOKEN"] = token
+    from ask import app as app_mod
+    importlib.reload(app_mod)
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), app_mod.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv, f"http://127.0.0.1:{srv.server_address[1]}"
+
+
+def _get(url, token=None):
+    import urllib.error
+    import urllib.request
+    req = urllib.request.Request(url)
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return r.status, r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()
+
+
+def test_review_routes_are_invisible_without_the_token():
+    """404, not 403. An unconfigured or unauthorised deployment must not advertise a surface that
+    publishes under datumwise's name."""
+    srv, base = _serve("s3cret-for-tests")
+    try:
+        assert _get(f"{base}/review/queue")[0] == 404                      # no token
+        assert _get(f"{base}/review/queue", "wrong")[0] == 404             # wrong token
+        assert _get(f"{base}/review/queue", "s3cret-for-tests")[0] == 200  # right token
+        assert _get(f"{base}/health")[0] == 200                            # unrelated routes fine
+        code, body = _get(f"{base}/review", "s3cret-for-tests")
+        assert code == 200 and b"Ask review" in body
+    finally:
+        srv.shutdown()
+
+
+def test_review_surface_is_absent_entirely_when_no_token_is_configured():
+    srv, base = _serve(None)
+    try:
+        assert _get(f"{base}/review")[0] == 404
+        assert _get(f"{base}/review/queue", "anything")[0] == 404
+    finally:
+        srv.shutdown()

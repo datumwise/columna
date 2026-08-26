@@ -1,0 +1,152 @@
+"""The human review screen. One self-contained page, served by the service, token-gated.
+
+WHY IT LIVES HERE AND NOT ON THE WEBSITE. apps/website is `output: 'static'` and ships through the
+gated shipped-coherent pipeline that guards datumwise's publication claims. A screen whose whole
+purpose is to WRITE publication state does not belong inside that pipeline; it belongs next to the
+database it writes. Same reasoning as the service itself (see app.py).
+
+It is deliberately one string. The review surface has one reader, needs no build step, and must keep
+working when nothing else does — a broken asset pipeline should never be the reason an answer cannot
+be un-published.
+"""
+
+REVIEW_PAGE = """<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Ask review — datumwise</title>
+<style>
+  :root { --ink:#16181d; --dim:#5b6472; --line:#dfe3ea; --bg:#fbfcfd; --warn:#8a5a00;
+          --warnbg:#fff8e6; --ok:#1c6b3f; --okbg:#eefaf2; --bad:#8c2b2b; --badbg:#fdeeee; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+         color:var(--ink); background:var(--bg) }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:#fff;
+           display:flex; gap:14px; align-items:baseline; position:sticky; top:0; z-index:5 }
+  h1 { font-size:15px; margin:0; font-weight:650; letter-spacing:-0.01em }
+  .muted { color:var(--dim); font-size:13px }
+  main { display:grid; grid-template-columns:340px 1fr; min-height:calc(100vh - 52px) }
+  #queue { border-right:1px solid var(--line); background:#fff; overflow:auto }
+  .cand { padding:12px 16px; border-bottom:1px solid var(--line); cursor:pointer }
+  .cand:hover { background:#f5f7fa } .cand.sel { background:#eef3fb }
+  .cand b { font-weight:600; display:block; font-size:14px }
+  #detail { padding:22px 26px; max-width:900px }
+  .notice { border:1px solid #e6d9a8; background:var(--warnbg); color:var(--warn);
+            padding:9px 12px; border-radius:7px; font-size:13px; margin:0 0 16px }
+  .box { background:#fff; border:1px solid var(--line); border-radius:9px; padding:16px;
+         margin:0 0 16px; white-space:pre-wrap }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--dim);
+       margin:22px 0 8px; font-weight:650 }
+  .src { font-size:13px; border-bottom:1px dotted var(--line); padding:6px 0 }
+  .lay { display:inline-block; font-size:11px; padding:1px 6px; border-radius:4px;
+         background:#eef1f6; color:#41506b; margin-right:6px; font-weight:600 }
+  .lay.core { background:#e6f4ec; color:#1c6b3f }
+  .verdict { padding:12px 14px; border-radius:8px; margin:0 0 14px; font-size:14px }
+  .APPROVE { background:var(--okbg); border:1px solid #bfe4cf; color:var(--ok) }
+  .REVISE { background:var(--warnbg); border:1px solid #e6d9a8; color:var(--warn) }
+  .DO_NOT_PUBLISH { background:var(--badbg); border:1px solid #edc4c4; color:var(--bad) }
+  .find { font-size:13px; padding:3px 0 } .find .no { color:var(--bad); font-weight:600 }
+  .find .yes { color:var(--ok) }
+  textarea { width:100%; min-height:260px; font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+             padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff }
+  button { font:inherit; padding:8px 14px; border-radius:7px; border:1px solid var(--line);
+           background:#fff; cursor:pointer }
+  button.primary { background:var(--ink); color:#fff; border-color:var(--ink) }
+  button.danger { color:var(--bad); border-color:#edc4c4 }
+  button:disabled { opacity:.5; cursor:default }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px }
+  input[type=text] { font:inherit; padding:7px 10px; border:1px solid var(--line);
+                     border-radius:7px; background:#fff }
+  #gate { padding:40px; max-width:460px }
+</style></head><body>
+<div id="gate">
+  <h1>Ask review</h1>
+  <p class="muted">This surface publishes under datumwise's name. Paste the review token.</p>
+  <div class="row"><input type="text" id="tok" placeholder="review token" style="flex:1">
+    <button class="primary" onclick="saveTok()">Enter</button></div>
+  <p class="muted" id="gateerr"></p>
+</div>
+<div id="app" hidden>
+<header><h1>Ask review</h1><span class="muted" id="count"></span>
+  <span style="flex:1"></span>
+  <input type="text" id="who" placeholder="your name" style="width:150px">
+  <button onclick="logout()">Lock</button></header>
+<main><div id="queue"></div><div id="detail"><p class="muted">Select a candidate.</p></div></main>
+</div>
+<script>
+const K='ask_review_token';
+let TOK=sessionStorage.getItem(K)||'', ITEMS=[], CUR=null;
+const $=id=>document.getElementById(id);
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function saveTok(){ TOK=$('tok').value.trim(); sessionStorage.setItem(K,TOK); boot(); }
+function logout(){ sessionStorage.removeItem(K); location.reload(); }
+async function api(path,opts){
+  const o=Object.assign({headers:{'Authorization':'Bearer '+TOK,'Content-Type':'application/json'}},opts||{});
+  const r=await fetch(path,o);
+  if(!r.ok) throw new Error((await r.json().catch(()=>({}))).error||('HTTP '+r.status));
+  return r.json();
+}
+async function boot(){
+  if(!TOK) return;
+  try { const d=await api('/review/queue'); ITEMS=d.items;
+        $('gate').hidden=true; $('app').hidden=false;
+        $('who').value=localStorage.getItem('ask_reviewer')||''; renderQueue(); }
+  catch(e){ $('gateerr').textContent=String(e.message||e); }
+}
+function renderQueue(){
+  $('count').textContent=ITEMS.length+' awaiting review';
+  $('queue').innerHTML=ITEMS.map((it,i)=>
+    `<div class="cand${CUR&&CUR.id===it.id?' sel':''}" onclick="open_(${i})"><b>${esc(it.question)}</b>
+     <span class="muted">${it.review?it.review.disposition:'not yet reviewed'} ·
+     ${(it.sources||[]).length} sources</span></div>`).join('')
+    || '<p class="muted" style="padding:16px">Queue is empty.</p>';
+}
+async function open_(i){ CUR=await api('/review/item/'+ITEMS[i].id); renderQueue(); renderDetail(); }
+function findings(f){
+  return Object.entries(f||{}).map(([k,v])=>
+    `<div class="find"><span class="${v&&v.ok?'yes':'no'}">${v&&v.ok?'✓':'✗'}</span>
+     <b>${esc(k)}</b> — ${esc((v&&v.note)||'')}</div>`).join('');
+}
+function renderDetail(){
+  const q=CUR, r=(q.reviews&&q.reviews[0])||null;
+  const proposed=r&&r.proposedAnswer;
+  $('detail').innerHTML=`
+   <div class="notice"><b>${esc(q.notice.label)}</b><br>${esc(q.notice.detail)}</div>
+   <h2>Question</h2><div class="box">${esc(q.question)}</div>
+   <h2>Provisional answer — never rewritten</h2><div class="box">${esc(q.provisionalAnswer)}</div>
+   <h2>Sources</h2><div class="box" style="white-space:normal">${
+     (q.sources||[]).map(s=>`<div class="src"><span class="lay ${s.layer==='core'?'core':''}">${
+       esc(s.layer||'?')}</span><b>${esc(s.cite)}</b> ${esc(s.label)} — ${esc(s.heading)}<br>
+       <span class="muted">${esc(s.standing||'')}</span></div>`).join('')||'<span class="muted">none</span>'}</div>
+   <h2>Review</h2>${ r ? `
+     <div class="verdict ${r.disposition}"><b>${r.disposition}</b> — ${esc(r.summary)}</div>
+     ${findings(r.findings)}
+     ${(r.changes||[]).length?'<h2>Changes proposed</h2><div class="box">'+
+        r.changes.map(esc).join('\\n')+'</div>':''}`
+     : '<p class="muted">No review run yet.</p>' }
+   <div class="row"><button onclick="runReview()">Run authority review</button></div>
+   <h2>Text to publish</h2>
+   <p class="muted">Pre-filled with ${proposed?'the reviewer\\'s proposed revision':'the provisional answer'}. Edit freely — publishing never alters the provisional record.</p>
+   <textarea id="pub">${esc(proposed||q.provisionalAnswer)}</textarea>
+   <div class="row">
+     <button class="primary" onclick="publish()">Publish</button>
+     <button class="danger" onclick="reject()">Reject</button>
+     <input type="text" id="reason" placeholder="reason (required to reject)" style="flex:1">
+   </div><p class="muted" id="msg"></p>`;
+}
+function who(){ const w=$('who').value.trim(); localStorage.setItem('ask_reviewer',w); return w; }
+async function act(path,payload,label){
+  $('msg').textContent=label+'…';
+  try{ await api(path,{method:'POST',body:JSON.stringify(Object.assign({id:CUR.id,reviewer:who()},payload))});
+       const d=await api('/review/queue'); ITEMS=d.items;
+       if(path==='/review/run'){ CUR=await api('/review/item/'+CUR.id); renderDetail(); }
+       else { CUR=null; $('detail').innerHTML='<p class="muted">Done. Select another candidate.</p>'; }
+       renderQueue(); }
+  catch(e){ $('msg').textContent='✗ '+(e.message||e); }
+}
+const runReview=()=>act('/review/run',{},'Reviewing');
+const publish=()=>act('/review/publish',{answer:$('pub').value},'Publishing');
+const reject=()=>act('/review/reject',{reason:$('reason').value},'Rejecting');
+boot();
+</script></body></html>
+"""

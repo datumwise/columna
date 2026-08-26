@@ -14,6 +14,7 @@ verified in #229/#230, and keeps the service portable — the brief asked for bo
 
 from __future__ import annotations
 
+import hmac
 import json
 import os
 import re
@@ -26,7 +27,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 from . import answer as ask_answer
-from . import providers, retrieve, store, verify
+from . import providers, retrieve, review as review_mod, standing, store, verify
+from .review_ui import REVIEW_PAGE
 
 # The site is the only browser origin that should be able to spend our model budget. Previews are
 # allowed by pattern so a PR preview works without redeploying the service.
@@ -46,6 +48,18 @@ MAX_QUESTION = 600
 # no dependency, no store. It will not survive a distributed abuser and is not meant to — it exists
 # so that one script pointed at this endpoint cannot run up a bill before a human notices. If the
 # lab surface attracts real traffic, this is the first thing to replace with something durable.
+# ── REVIEW AUTHORIZATION ──────────────────────────────────────────────────────────────────────────
+# The review surface publishes under datumwise's name. It is not protected by the CORS allow-list —
+# CORS is enforced by browsers and stops nothing that is not a browser — so every review route
+# requires a bearer token, compared in constant time, and the routes 404 rather than 403 when the
+# token is unset so an unconfigured deployment does not advertise a surface it cannot protect.
+#
+# One shared token is the right size for v0: there is one reviewer. The moment there are two, this
+# becomes per-reviewer credentials, because `reviewed_by` is a claim about WHO approved something
+# and a shared secret cannot substantiate it. Until then reviewed_by is supplied by the caller and
+# is an honest label, not an authenticated identity — which is why it is recorded and not trusted.
+REVIEW_TOKEN = os.environ.get("ASK_REVIEW_TOKEN") or ""
+
 ASK_PER_HOUR = int(os.environ.get("ASK_RATE_PER_HOUR", "30"))
 ASK_PER_DAY = int(os.environ.get("ASK_RATE_PER_DAY", "120"))
 _hits: dict[str, deque] = defaultdict(deque)
@@ -115,6 +129,29 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(raw)
 
+    def _review_authorised(self) -> bool:
+        if not REVIEW_TOKEN:
+            return False
+        got = (self.headers.get("Authorization") or "").removeprefix("Bearer ").strip()
+        return hmac.compare_digest(got, REVIEW_TOKEN)
+
+    def _send_html(self, code: int, html: str) -> None:
+        raw = html.encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        # The review screen must never be framed by another origin, and must not leak its token
+        # through a referrer.
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Content-Security-Policy",
+                         "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';"
+                         " connect-src 'self'")
+        self.send_header("X-Robots-Tag", "noindex, nofollow")
+        self.end_headers()
+        self.wfile.write(raw)
+
     def log_message(self, fmt, *args):  # quieter, and no query strings in logs
         print(f"{self.address_string()} {fmt % args}", flush=True)
 
@@ -141,6 +178,23 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, qa) if qa else self._send(404, {"error": "no such Q&A"})
             if u.path == "/usage":
                 return self._send(200, store.usage_totals())
+            # ── review surface ────────────────────────────────────────────────────────────────
+            if u.path == "/review":
+                if not REVIEW_TOKEN:
+                    return self._send(404, {"error": "no such route"})
+                return self._send_html(200, REVIEW_PAGE)
+            if u.path == "/review/queue":
+                if not self._review_authorised():
+                    return self._send(404, {"error": "no such route"})
+                return self._send(200, {"items": store.review_queue(
+                    int(q.get("limit", ["50"])[0]))})
+            if u.path.startswith("/review/item/"):
+                if not self._review_authorised():
+                    return self._send(404, {"error": "no such route"})
+                qa = store.get(u.path[len("/review/item/"):])
+                if not qa:
+                    return self._send(404, {"error": "no such Q&A"})
+                return self._send(200, {**qa, "reviews": store.reviews_for(qa["id"])})
             return self._send(404, {"error": "no such route"})
         except Exception as e:
             traceback.print_exc()
@@ -148,7 +202,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):  # noqa: N802
         u = urlparse(self.path)
-        if not self._origin_ok():
+        # The CORS allow-list guards the /ask budget from other people's pages. It must NOT guard
+        # the review routes: those are served to a browser sitting on this service's own origin,
+        # which is not in the site allow-list, and they are gated by a bearer token instead —
+        # which is the stronger check anyway, since CORS stops nothing that is not a browser.
+        if not u.path.startswith("/review/") and not self._origin_ok():
             return self._send(403, {"error": "origin not allowed"})
         try:
             n = int(self.headers.get("Content-Length") or 0)
@@ -193,6 +251,34 @@ class Handler(BaseHTTPRequestHandler):
                     "stars": res.get("stars"), "ratings": res.get("ratings", 0),
                     "views": res.get("views", 0),
                 })
+            # ── review actions (all bearer-gated) ─────────────────────────────────────────────
+            if u.path.startswith("/review/"):
+                if not self._review_authorised():
+                    return self._send(404, {"error": "no such route"})
+                qa_id = (body.get("id") or "").strip()
+                qa = store.get(qa_id) if qa_id else None
+                if not qa:
+                    return self._send(404, {"error": "no such Q&A"})
+                reviewer = (body.get("reviewer") or "").strip()[:80]
+                if u.path == "/review/run":
+                    verdict = review_mod.review(qa, model=body.get("model"))
+                    rid = store.save_review(qa_id, verdict)
+                    return self._send(200, {"reviewId": rid, **verdict})
+                if u.path == "/review/publish":
+                    if not reviewer:
+                        return self._send(400, {"error": "reviewer is required to publish"})
+                    text = body.get("answer")
+                    if text is not None and not str(text).strip():
+                        return self._send(400, {"error": "published answer cannot be empty"})
+                    return self._send(200, store.publish(qa_id, reviewer, text))
+                if u.path == "/review/reject":
+                    if not reviewer:
+                        return self._send(400, {"error": "reviewer is required to reject"})
+                    reason = (body.get("reason") or "").strip()[:500]
+                    if not reason:
+                        return self._send(400, {"error": "a rejection must say why"})
+                    return self._send(200, store.reject(qa_id, reviewer, reason))
+                return self._send(404, {"error": "no such route"})
             if u.path == "/vote":
                 qa_id, voter = body.get("id"), body.get("voter")
                 if not qa_id or not voter or "helpful" not in body:
