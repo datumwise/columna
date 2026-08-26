@@ -209,6 +209,11 @@ def ask_and_record(question: str, conversation: str, model: str | None = None,
         withheld_reason=why, verify=res["verify"], prompt_tokens=res["promptTokens"],
         completion_tokens=res["completionTokens"], cost_usd=res["costUsd"], parent_id=parent_id,
     )
+    # Remember it for cheap reuse. A cache entry is not a publication and does not imply one; it
+    # expires on its own schedule and carries no reputation. Follow-ups are never cached: they only
+    # mean anything inside their conversation.
+    if not history:
+        store.cache_put(question, qa_id, res["model"])
     store.log_turn(conversation=conversation, qa_id=qa_id, question=question, answer=res["answer"],
                    sources=res["sources"], external=res["external"], provider=res["provider"],
                    model=res["model"], cached=False,

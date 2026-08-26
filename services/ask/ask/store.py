@@ -84,6 +84,25 @@ CREATE INDEX IF NOT EXISTS qa_key    ON qa(question_key);
 CREATE INDEX IF NOT EXISTS qa_public ON qa(public);
 CREATE INDEX IF NOT EXISTS qa_stand ON qa(standing, published);
 
+-- ── THE TECHNICAL CACHE (2026-08-26) ────────────────────────────────────────────────────────────
+-- A cache entry and a published Q&A are different objects with different lifetimes, different
+-- owners and different meanings, and they were the same row until today. `find_cached` selected
+-- `WHERE public=1`, so "have we answered this before, cheaply?" and "is this a datumwise
+-- publication?" were the same question. They are not: reuse is a COST decision made by the service,
+-- publication is an EDITORIAL decision made by a person.
+--
+-- Consequences of the split, all wanted: a cache entry expires and a publication does not; a cache
+-- entry carries no reputation; unpublishing an answer does not make the service re-pay for it; and
+-- the cache can be dropped wholesale without touching the public collection.
+CREATE TABLE IF NOT EXISTS answer_cache (
+  question_key TEXT PRIMARY KEY,
+  qa_id        TEXT NOT NULL,
+  created_at   REAL NOT NULL,
+  expires_at   REAL NOT NULL,
+  model        TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS cache_exp ON answer_cache(expires_at);
+
 -- One row per model call, whether or not it became a public Q&A. This is the conversation log the
 -- brief asks for: what was asked, what came back, which sources, which model, when.
 -- NO chain-of-thought is stored, by instruction: the answer and its evidence record, nothing else.
@@ -205,17 +224,39 @@ def _row_to_public(r: sqlite3.Row) -> dict:
     }
 
 
+CACHE_TTL_DAYS = float(os.environ.get("ASK_CACHE_TTL_DAYS", "14"))
+
+
 def find_cached(question: str) -> dict | None:
-    """TECHNICAL reuse only — step 3 moves this into its own object. It no longer keys on `public=1`,
-    because `public` stopped meaning published; reusing a stored answer is a cost decision, not a
-    publication decision."""
+    """Technical reuse. Expires; carries no reputation; says nothing about publication."""
     with connect() as c:
         r = c.execute(
-            "SELECT * FROM qa WHERE question_key=? AND parent_id IS NULL "
-            "ORDER BY created_at DESC LIMIT 1",
-            (normalise(question),),
+            "SELECT qa.* FROM answer_cache JOIN qa ON qa.id = answer_cache.qa_id "
+            "WHERE answer_cache.question_key=? AND answer_cache.expires_at > ?",
+            (normalise(question), time.time()),
         ).fetchone()
         return _row_to_public(r) if r else None
+
+
+def cache_put(question: str, qa_id: str, model: str, ttl_days: float | None = None) -> None:
+    """Remember that this question has an answer, for a while. Idempotent per question."""
+    now = time.time()
+    ttl = (CACHE_TTL_DAYS if ttl_days is None else ttl_days) * 86_400
+    with connect() as c:
+        c.execute(
+            "INSERT INTO answer_cache (question_key, qa_id, created_at, expires_at, model) "
+            "VALUES (?,?,?,?,?) ON CONFLICT(question_key) DO UPDATE SET "
+            "qa_id=excluded.qa_id, created_at=excluded.created_at, expires_at=excluded.expires_at, "
+            "model=excluded.model",
+            (normalise(question), qa_id, now, now + ttl, model),
+        )
+
+
+def cache_purge(before: float | None = None) -> int:
+    """Drop expired entries. Never touches qa: the answers themselves are evidence and are kept."""
+    with connect() as c:
+        cur = c.execute("DELETE FROM answer_cache WHERE expires_at <= ?", (before or time.time(),))
+        return cur.rowcount
 
 
 def save_qa(**kw) -> str:

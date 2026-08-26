@@ -273,7 +273,15 @@ def test_split_answer_reports_missing_json_rather_than_guessing():
 def test_cache_and_vote_round_trip():
     qid = store.save_qa(question="What is a universe, exactly?", answer="One population of facts.",
                         provider="test", model="test:model", sources=[], external=[])
+    assert store.find_cached("what is a universe, exactly") is None, (
+        "saving an answer must not by itself make it reusable — the cache is its own object"
+    )
+    store.cache_put("What is a universe, exactly?", qid, "test:model")
     assert store.find_cached("what is a universe, exactly")["id"] == qid  # normalised reuse
+    store.cache_put("What is a universe, exactly?", qid, "test:model", ttl_days=-1)
+    assert store.find_cached("what is a universe, exactly") is None, "an expired entry is not a hit"
+    assert store.get(qid), "expiry drops the cache entry, never the answer"
+    store.cache_put("What is a universe, exactly?", qid, "test:model")
     out = store.vote(qid, "voter-a", True)
     assert out["up"] == 1
     out = store.vote(qid, "voter-a", False)  # same voter changes their mind, not a second vote
