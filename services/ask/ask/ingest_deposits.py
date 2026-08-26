@@ -105,24 +105,62 @@ def current_record(records: list[dict], work_id: str) -> dict:
     return found[0]
 
 
+def record_by_id(records: list[dict], record_id: str) -> dict:
+    found = [r for r in records if r.get("recordId") == record_id]
+    if len(found) != 1:
+        raise SystemExit(f"registry: recordId {record_id!r} matched {len(found)} records, expected 1")
+    return found[0]
+
+
 def targets() -> list[dict]:
-    """IN sources with no onsite route — the ones Ask cannot otherwise read."""
+    """The deposits Ask must hold: current Core, plus every PRESERVED EDITION.
+
+    TWO CLASSES, AND THEY ARE PINNED DIFFERENTLY. That is the whole point of this function.
+
+      CORE          — a source that currently states datumwise's position. It floats: it is pinned
+                      to whatever record the registry rules CURRENT, so when a work is superseded
+                      this function starts asking for a different file and `--check` reports the
+                      old one as STALE. Skipped if the source has an onsite route, because the site
+                      build already makes that text readable.
+      HISTORICAL    — a preserved edition, carrying its own sourceId because one sourceId cannot be
+                      both current authority and preserved history (Huayin, 2026-08-26). It does NOT
+                      float: it is pinned to the `recordId` written in the source catalog, forever.
+                      A route does NOT exclude it — the preserved DOORWAY PAGE and the preserved
+                      PAPER are different texts, and AG v1.1 has both.
+
+    REPAIRED 2026-08-26. This read `corpus["in"]`, a key that left this file when Ask's authority
+    manifest was split out of current-corpus.json (commit 06b6ee1). It had raised KeyError on every
+    invocation since — so `--check`, the offline gate that reports a deposit gone STALE against the
+    registry, has been crashing rather than checking, and the historical class was never modelled
+    here at all: AG v1.1's manifest row was written by hand. A gate that cannot run is not a gate,
+    and a manifest header that says "do not hand-edit" beside a generator that cannot generate is
+    the more expensive half of the defect.
+    """
     corpus, sources, records, works = _registry()
     out = []
-    for sid in corpus["in"]:
+    historical = [e["sourceId"] for e in corpus["reference"]["entries"]
+                  if sources[e["sourceId"]].get("role") == "historical-record"]
+    for sid in list(corpus["core"]["sourceIds"]) + historical:
         s = sources[sid]
-        if s.get("route"):
+        preserved = s.get("role") == "historical-record"
+        if s.get("route") and not preserved:
             continue  # already readable from the shipped site build
         wid = s.get("workId")
         if not wid:
-            continue  # an IN source with neither route nor deposit would be a catalog defect
-        rec = current_record(records, wid)
+            continue  # a Core source with neither route nor deposit would be a catalog defect
+        rec = record_by_id(records, s["recordId"]) if preserved else current_record(records, wid)
         # recordId and recid ONLY — no doi, no version, no date. Third time this lesson has come up
         # on this branch and it is the same rule every time: a generated file that copies a
         # publication fact becomes a second source of truth for it. The manifest carries the foreign
         # key; the DOI is resolved from records.json wherever it is actually needed. `recid` is kept
         # because it is the Zenodo API address this module must call, not a claim about the work.
-        out.append({"sourceId": sid, "workId": wid, "label": works[wid]["canonicalLabel"],
+        # The LABEL, and why it is not always the work's canonical label. `canonicalLabel` names
+        # the work as it is called NOW. A preserved edition is precisely the thing that must not be
+        # called what the work is called now — labelling AG v1.1's deposit "Analytical Governance"
+        # would make the preserved paper answer to the current name. So a historical-record source
+        # is labelled by its own catalog `title`, which is written to say WHICH edition it is.
+        label = s["title"] if preserved else works[wid]["canonicalLabel"]
+        out.append({"sourceId": sid, "workId": wid, "label": label,
                     "recordId": rec["recordId"], "recid": str(rec["recid"])})
     return out
 
@@ -182,7 +220,7 @@ def fetch() -> dict:
         "deposits": manifest,
         "missingText": missing,
     }
-    MANIFEST.write_text(json.dumps(payload, indent=1))
+    MANIFEST.write_text(json.dumps(payload, indent=1) + "\n")
     return payload
 
 
@@ -204,14 +242,14 @@ def check() -> int:
             print(f"  ALTERED       {d['file']} no longer matches its recorded sha256")
             bad += 1
         w = want.get(d["sourceId"])
-        if w and w["recordId"] != d["recordId"]:
+        if w and w["recordId"] != d["recordId"]:  # pinned targets can never trip this: same source
             print(f"  STALE         {d['sourceId']} is ingested at {d['recordId']} but the registry "
                   f"now rules {w['recordId']} current — re-run the ingest")
             bad += 1
     covered = {d["sourceId"] for d in m["deposits"]} | {x["sourceId"] for x in m["missingText"]}
     for sid in want:
         if sid not in covered:
-            print(f"  UNINGESTED    {sid} is IN and deposit-only but absent from the manifest")
+            print(f"  UNINGESTED    {sid} is a ruled deposit target but absent from the manifest")
             bad += 1
     if bad:
         print(f"\ndeposit check FAILED — {bad} problem(s)")

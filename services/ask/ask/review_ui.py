@@ -178,6 +178,8 @@ function renderDetail(){
   const proposed=r&&r.proposedAnswer;
   $('detail').innerHTML=`
    <div class="notice"><b>${esc(q.notice.label)}</b><br>${esc(q.notice.detail)}</div>
+   <p class="muted">Reads · public (since publication) ${q.views===null||q.views===undefined?'—':q.views}
+      · internal (before publication) ${q.provisionalViews||0}</p>
    <h2>Question</h2><div class="box">${esc(q.question)}</div>
    <h2>Provisional answer — never rewritten</h2><div class="box">${esc(q.provisionalAnswer)}</div>
    <h2>Sources</h2><div class="box" style="white-space:normal">${

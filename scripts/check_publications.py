@@ -559,16 +559,36 @@ def main() -> int:
             elif first["status"] != "superseded":
                 fail("G9", "AG: v1.0 must remain a first-class historical record")
 
-    # Theory of Certainty v1.0 (Huayin, 2026-08-26) — a new work's first record: current, and
-    # superseding nothing. Pinned because "the first record of a work supersedes nothing" is an
-    # acceptance condition that is easy to break by copying an existing record as a template.
-    toc = current_of("w-theory-of-certainty")
-    if not toc or toc["doi"] != "10.5281/zenodo.22114802" or toc["version"] != "1.0":
-        fail("G9", f"ToC v1.0: the current Theory of Certainty record must be v1.0 / 22114802; got "
-                   f"{toc and (toc['version'], toc['doi'])}")
-    elif toc.get("supersedes"):
-        fail("G9", f"ToC v1.0: a work's first record supersedes nothing; got "
-                   f"{toc['supersedes']!r}")
+    # The Ground for Certainty v1.1 (Huayin, 2026-08-26) supersedes The Theory of Certainty v1.0,
+    # which this block pinned as current earlier the same day. Updated rather than deleted, on the
+    # same reasoning as the AG chain above: the CHAIN is the assertion.
+    #
+    # THIS EDGE IS A SUPERSESSION AND A RENAME AT ONCE, and that is why it is asserted field by
+    # field rather than by DOI alone. The title moved; the work did not. So the gate pins BOTH
+    # deposited titles — r02's new one and r01's old one — because the failure this catches is not
+    # a missing record, it is a helpful hand tidying the superseded record's title to match the
+    # current one. That would erase the fact that AG v2.0's bibliography cited a real title.
+    gfc = current_of("w-theory-of-certainty")
+    if not gfc or gfc["doi"] != "10.5281/zenodo.22118479" or gfc["version"] != "1.1":
+        fail("G9", f"GfC v1.1: the current Certainty record must be v1.1 / 22118479; got "
+                   f"{gfc and (gfc['version'], gfc['doi'])}")
+    elif gfc["title"] != "The Ground for Certainty":
+        fail("G9", f"GfC v1.1: the current record's deposited title must be 'The Ground for "
+                   f"Certainty'; got {gfc['title']!r}")
+    else:
+        prev = by_record.get(gfc.get("supersedes") or "")
+        if not prev or prev["doi"] != "10.5281/zenodo.22114802" or prev["version"] != "1.0":
+            fail("G9", "GfC v1.1: v1.1 must supersede v1.0 (22114802) by recordId, not by DOI or by date")
+        elif prev["status"] != "superseded":
+            fail("G9", "GfC v1.1: v1.0 must remain a first-class historical record with status "
+                       "`superseded` — superseded is a status, not a deletion")
+        elif prev["title"] != "The Theory of Certainty":
+            fail("G9", f"GfC v1.1: the superseded record must KEEP its own deposited title, 'The "
+                       f"Theory of Certainty'. A record's title is what was published under that "
+                       f"DOI, and citations made to it while it was current must still resolve to "
+                       f"the words that were actually cited; got {prev['title']!r}")
+        elif prev.get("supersedes"):
+            fail("G9", f"GfC: a work's first record supersedes nothing; got {prev['supersedes']!r}")
 
     # ── THE PHASE 3B.1 RULINGS, ASSERTED (Huayin, 2026-08-21) ────────────────────────────────
     # Pinned here, not left to the mint rule, for the reason G9 exists at all: an acceptance test that

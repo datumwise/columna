@@ -678,13 +678,88 @@ def test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said
 
 
 def test_a_citation_still_current_is_not_flagged():
+    """A control: a citation to a record that is STILL current must not be flagged as superseded.
+
+    RE-POINTED 2026-08-26, and the reason is the test doing its job. This fixture used to cite
+    `w-theory-of-certainty.r01` as its example of a still-current record. On 2026-08-26 The Theory
+    of Certainty v1.0 was superseded by The Ground for Certainty v1.1, and the fixture started
+    failing — correctly. It had been asserting `supersededSinceAnswer is False` about a record that
+    had just become superseded, which is the exact fact the mechanism exists to notice.
+
+    So the control moves to a work with ONE record, and the ToC case is kept, as the positive arm,
+    in test_the_real_v1_0_to_v1_1_transition_flags_a_stored_citation below. A control fixture must be
+    chosen so that the world cannot make it true or false by accident.
+    """
     from ask import citations
-    stored = [{"cite": "S1", "sourceId": "s-theory-of-certainty",
-               "readableRecordId": "w-theory-of-certainty.r01",
-               "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+    stored = [{"cite": "S1", "sourceId": "s-certifiable-state",
+               "readableRecordId": "w-certifiable-state.r01",
+               "currentRecordIdAtAnswer": "w-certifiable-state.r01",
                "standingTemplate": "{CURRENT}; deposited text", "standing": "…"}]
     got = citations.resolve(stored)[0]
     assert got["supersededSinceAnswer"] is False and "v1.0" in got["standing"]
+
+
+# ── the real supersession, used as the test (Huayin, item 5 of 2026-08-26) ────────────────────────
+# F3 tested the durability invariant against a SYNTHETIC registry move, because a synthetic move can
+# supersede and rename at once on demand. Four hours later the corpus supplied the real thing: The
+# Theory of Certainty v1.0 -> The Ground for Certainty v1.1, a supersession and a rename in one
+# event, from the actual registry. These read the live registry deliberately — if a later ruling
+# moves the Certainty record again, these tests should change with it, which is the opposite of the
+# rule for the F3 fixtures.
+
+def test_the_real_v1_0_to_v1_1_transition_flags_a_stored_citation():
+    """A citation written while v1.0 was current keeps what it said and learns that it moved."""
+    from ask import citations
+    frozen = "current record v1.0 (2026-08-26, doi:10.5281/zenodo.22114802); deposited text"
+    stored = [{"cite": "S1", "sourceId": "s-theory-of-certainty",
+               "readableRecordId": "w-theory-of-certainty.r01",
+               "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+               "label": "The Theory of Certainty", "labelAtAnswer": "The Theory of Certainty",
+               "standingTemplate": "{CURRENT}; deposited text",
+               "standing": frozen, "standingAtAnswer": frozen}]
+    got = citations.resolve(stored)[0]
+
+    # what it SAID, preserved exactly
+    assert got["standingAtAnswer"] == frozen
+    assert got["labelAtAnswer"] == "The Theory of Certainty"
+    # what is TRUE now, re-resolved
+    assert got["supersededSinceAnswer"] is True
+    assert "v1.1" in got["standing"] and "22118479" in got["standing"], got["standing"]
+    assert got["label"] == "The Ground for Certainty"
+    # the two facts stay separate: this record was superseded AND the work was renamed
+    assert got["labelChangedSinceAnswer"] is True
+    # and the identifiers are still identifiers
+    assert got["readableRecordId"] == "w-theory-of-certainty.r01"
+    assert got["currentRecordId"] == "w-theory-of-certainty.r02"
+
+
+def test_the_superseded_certainty_record_keeps_its_own_deposited_title():
+    """A rename must not reach backwards. AG v2.0's bibliography cited a title that really existed."""
+    import json as _json
+    from pathlib import Path as _Path
+    reg = _Path(__file__).resolve().parents[3] / "registry" / "publications" / "records.json"
+    rs = {r["recordId"]: r for r in _json.loads(reg.read_text())}
+    assert rs["w-theory-of-certainty.r01"]["title"] == "The Theory of Certainty"
+    assert rs["w-theory-of-certainty.r01"]["status"] == "superseded"
+    assert rs["w-theory-of-certainty.r02"]["title"] == "The Ground for Certainty"
+    assert rs["w-theory-of-certainty.r02"]["status"] == "current"
+    assert rs["w-theory-of-certainty.r02"]["supersedes"] == "w-theory-of-certainty.r01"
+
+
+def test_the_preserved_certainty_edition_is_labelled_by_its_own_edition_name():
+    """The preserved edition must not answer to the work's current name."""
+    chunks = json.loads((Path(__file__).resolve().parents[1] / "index/chunks.json").read_text())
+    core = [c for c in chunks if c["sourceId"] == "s-theory-of-certainty"]
+    hist = [c for c in chunks if c["sourceId"] == "s-theory-of-certainty-v1-0"]
+    assert core and hist
+    assert all(c["sourceLabel"] == "The Ground for Certainty" for c in core)
+    assert all(c["layer"] == "core" and not c["isHistorical"] for c in core)
+    assert all(c["readableRecordId"] == "w-theory-of-certainty.r02" for c in core)
+    assert all(c["sourceLabel"] == "The Theory of Certainty v1.0, 26 August 2026" for c in hist)
+    assert all(c["layer"] == "reference" and c["isHistorical"] for c in hist)
+    # the preserved chunks READ r01 and KNOW r02 is current — the two identifiers must not fuse
+    assert all(c["readableRecordId"] == "w-theory-of-certainty.r01" for c in hist)
+    assert all(c["currentRecordId"] == "w-theory-of-certainty.r02" for c in hist)
 
 
 def test_a_pre_identity_citation_says_it_cannot_be_resolved_rather_than_looking_fresh():
@@ -827,7 +902,10 @@ def test_a_label_resolves_even_when_the_standing_cannot():
                               "label": "some older name",
                               "standing": "current record v1.0 (2026-08-26)"}])[0]
     assert got["resolvable"] is False and got["supersededSinceAnswer"] is None
-    assert got["label"] == "The Theory of Certainty" and got["labelResolvable"] is True
+    # RE-EXPECTED 2026-08-26: the work's editorial label moved with the retitling of its current
+    # publication. That is what this assertion is FOR — the label is resolved now, from the
+    # registry, and is not the frozen string the citation was stored with ("some older name").
+    assert got["label"] == "The Ground for Certainty" and got["labelResolvable"] is True
     assert got["standing"] == "current record v1.0 (2026-08-26)"       # unchanged, not guessed at
 
 

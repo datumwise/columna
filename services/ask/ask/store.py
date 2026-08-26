@@ -197,6 +197,17 @@ _ADDED_COLUMNS = (
     # direct quotation, and verifying against a fresh retrieval would check the answer against
     # evidence it never saw.
     ("evidence", "TEXT NOT NULL DEFAULT '[]'"),
+    # INTERNAL READS, KEPT SEPARATE (Huayin, 2026-08-26). `views` is public readership and counts
+    # only reads of a PUBLISHED object. A read of an object that is not yet published — a reviewer's
+    # own before/after inspection, most often — is a real read and is not thrown away; it lands here
+    # and never reaches the public surface. One read increments exactly one of the two counters, so
+    # `views + provisional_views` is still every read the service has served.
+    #
+    # Existing rows start at 0. That is NOT a claim that they had no pre-publication reads: it is the
+    # honest reading that until this column existed nothing distinguished them, and reads already
+    # counted into `views` are left where they are rather than silently reassigned. See
+    # docs/view_count_correction_2026-08-26.md.
+    ("provisional_views", "INTEGER NOT NULL DEFAULT 0"),
 )
 
 
@@ -291,6 +302,8 @@ def _row_to_public(r: sqlite3.Row) -> dict:
             citations.resolve(json.loads(r["sources"]))),
         "notice": standing.notice(st, reviewed_at),
         "published": bool(r["published"]) if "published" in r.keys() else False,
+        # PUBLIC READERSHIP ONLY. `provisional_views` — reads that happened before publication — is
+        # deliberately not in this dict and must not be added to it. See `_row_for_review`.
         "views": r["views"] if is_reviewed else None,
         "ratings": (up + down) if is_reviewed else None,
         "up": up,
@@ -300,6 +313,17 @@ def _row_to_public(r: sqlite3.Row) -> dict:
         "provider": r["provider"],
         "rank": round(rank(r["views"], up, down), 4) if is_reviewed else None,
     }
+
+
+def _row_for_review(r: sqlite3.Row) -> dict:
+    """The public rendering plus the counts only a reviewer may see.
+
+    `provisionalViews` is added HERE and not in `_row_to_public`, because the two surfaces have
+    different readers. A pre-publication read count on the public surface would be the same mistake
+    in the other direction: internal activity presented as public readership.
+    """
+    pv = r["provisional_views"] if "provisional_views" in r.keys() else 0
+    return {**_row_to_public(r), "provisionalViews": pv or 0}
 
 
 CACHE_TTL_DAYS = float(os.environ.get("ASK_CACHE_TTL_DAYS", "14"))
@@ -397,11 +421,36 @@ def log_turn(**kw) -> str:
 
 
 def get(qa_id: str, bump_view: bool = False) -> dict | None:
+    """A read. If it is counted, WHICH counter it is counted into is decided here and nowhere else.
+
+    THE PUBLICATION PREDICATE IS `published`, not `standing`. `publish()` is the only writer of
+    `published=1` and it is a human act; `listing()` — the public collection — already gates on it.
+    A row can be reviewed and still unpublished, and a reader cannot see it, so a read of it is not
+    public readership. Deciding this in the single write site rather than at the callers means the
+    HTTP layer keeps asking one question ("count this read") and cannot get the kind wrong.
+
+    Exactly one counter moves: `(published = 1)` and `(published <> 1)` partition every possible
+    value of the column, so no read is double-counted and none is lost.
+    """
     with connect() as c:
         if bump_view:
-            c.execute("UPDATE qa SET views = views + 1 WHERE id=?", (qa_id,))
+            c.execute(
+                "UPDATE qa SET views = views + (published = 1), "
+                "provisional_views = provisional_views + (published <> 1) WHERE id=?",
+                (qa_id,),
+            )
         r = c.execute("SELECT * FROM qa WHERE id=?", (qa_id,)).fetchone()
         return _row_to_public(r) if r else None
+
+
+def get_for_review(qa_id: str) -> dict | None:
+    """The reviewer's view of a row: the public rendering PLUS the internal read count.
+
+    Never bumps a counter — opening the review screen is not readership of either kind.
+    """
+    with connect() as c:
+        r = c.execute("SELECT * FROM qa WHERE id=?", (qa_id,)).fetchone()
+        return _row_for_review(r) if r else None
 
 
 def vote(qa_id: str, voter: str, helpful: bool) -> dict | None:
@@ -548,7 +597,7 @@ def review_queue(limit: int = 50) -> list[dict]:
         ).fetchall()
     out = []
     for r in rows:
-        item = _row_to_public(r)
+        item = _row_for_review(r)
         item["review"] = latest_review(r["id"])
         out.append(item)
     return out

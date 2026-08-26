@@ -31,6 +31,8 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
+from . import identity
+
 INDEX = Path(__file__).resolve().parent.parent / "index" / "chunks.json"
 
 # Demotion factors applied AFTER lexical scoring. Deliberately mild: strong enough that a current
@@ -67,6 +69,7 @@ def _tok(s: str) -> list[str]:
 # every identifier it ever sees was read from the registry during the request that used it.
 
 RECORDS_JSON = Path(__file__).resolve().parents[3] / "registry" / "publications" / "records.json"
+SOURCES_JSON = Path(__file__).resolve().parents[3] / "registry" / "sources" / "sources.json"
 
 
 @lru_cache(maxsize=1)
@@ -314,6 +317,29 @@ BIBLIOGRAPHY_HEADINGS = {
     "references", "reference list", "bibliography", "works cited", "further reading",
     "references and reading path", "project references",
 }
+
+# ── passages that POINT AT OTHER WORKS (2026-08-26, ruling C) ─────────────────────────────────────
+# A superset of the bibliography set, and it exists for a narrower purpose: these are the sections
+# whose job is to send a reader somewhere else, and which therefore print other works' titles and
+# version numbers as they stood on the day this text was deposited.
+#
+# THE TWO SETS ARE NOT MERGED, and the difference is the whole design. BIBLIOGRAPHY_HEADINGS is a
+# HARD GATE on every question that is not about citations: a reference list contains no claim, so it
+# can never support one. This set is a gate on ONE QUESTION CLASS ONLY — publication identity and
+# currency — because these sections DO contain claims. "Implementation and further reading" says
+# which source is authoritative for shipped meaning, which is a claim, and case s3 is about exactly
+# that; it stays fully reachable for every other question. What it may not do is tell a reader what
+# another work is called today, because it does not know: it knows what that work was called when
+# this paper went to the deposit.
+#
+# This is the class that failed h2 and r6 on both models. The Frame-QL Primer's "Where to Go Next"
+# and the Introduction's "Implementation and further reading" named "Analytical Governance, Version
+# 1.1" — correctly, for their own edition — and out-ranked AG v2.0's own deposit on a question about
+# what AG is currently called.
+POINTER_HEADINGS = BIBLIOGRAPHY_HEADINGS | {
+    "where to go next", "implementation and further reading", "reading path", "see also",
+    "related work", "related works", "next steps", "where to read next", "what to read next",
+}
 CITATION_CUES = (
     "cite", "cites", "cited", "citation", "citations", "bibliograph", "references list",
     "reference list", "related literature", "prior literature", "further reading",
@@ -362,6 +388,32 @@ def _bare_heading(heading: str) -> str:
 
 def is_bibliography(chunk: dict) -> bool:
     return _bare_heading(chunk["heading"]) in BIBLIOGRAPHY_HEADINGS
+
+
+def is_pointer(chunk: dict) -> bool:
+    """A section whose job is to send the reader to other works, and which prints their names."""
+    return _bare_heading(chunk["heading"]) in POINTER_HEADINGS
+
+
+@lru_cache(maxsize=1)
+def _work_of_source() -> dict[str, str]:
+    """sourceId -> workId, from the source catalog. Read from the registry, never from the index."""
+    srcs = json.loads(SOURCES_JSON.read_text())["sources"]
+    return {s["sourceId"]: s["workId"] for s in srcs if s.get("workId")}
+
+
+def work_of(chunk: dict) -> str | None:
+    return _work_of_source().get(chunk.get("sourceId") or "")
+
+
+def registry_cards(query: str) -> list[dict]:
+    """The publication registry's own identity/currency facts for the works this question names.
+
+    A separate call rather than another return value from search(), because these are not retrieved
+    and are not scored: they are looked up. Mixing them into the ranked list would make a lookup
+    look like a retrieval, which is the confusion this whole repair is about.
+    """
+    return identity.cards_for(query)
 
 
 def asks_about_citations(query: str) -> bool:
@@ -415,6 +467,19 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         # without opening the jurisdiction leaves the passage unreachable — the roadmap question
         # gets an answer assembled from everything EXCEPT the section that answers it.
         opened = sorted({*opened, "normative"})
+    # RULING D. An explicitly historical question must be able to REACH the preserved record. `h4`
+    # — "What did version 1.1 of Analytical Governance argue, and what changed in version 2.0?" —
+    # opened nothing, because `historical` was cued on phrases like "used to say" and "back then".
+    # Both models answered that the corpus does not establish what v1.1 argued, and the preserved
+    # v1.1 text was never retrieved at all: the gate below had excluded it before scoring. Naming a
+    # superseded edition by its number is the plainest way a person asks a historical question about
+    # a publication, and it was the one way that did not work.
+    #
+    # Registry-derived, not another cue string: true exactly when the version named is one the
+    # registry rules superseded. It becomes true for a new work on the day that work is superseded,
+    # and it stops being true if a ruling makes an edition current again.
+    if identity.names_superseded_edition(query) and "historical" not in opened:
+        opened = sorted({*opened, "historical"})
     if not opened:
         term = definitional_subject(query)
         if term and not _headed_for(term):
@@ -430,6 +495,11 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
             # research map stopped being demoted, and a question with "current" in it was answered
             # from a historical snapshot.
             opened = sorted(set(JURISDICTION_CUES) - {"historical"})
+    # RULING C. Which works this question is asking about the IDENTITY of, if any. Empty for every
+    # other question, which is most of them — nothing below fires unless both halves are true.
+    identity_q = identity.asks_identity(query)
+    identity_works = set(identity.works_named(query)) if identity_q else set()
+
     ranked = []
     for i, s in combined.items():
         c = chunks[i]
@@ -439,6 +509,19 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         if is_bibliography(c) and not wants_citations:
             continue
         if is_roadmap(c) and not wants_roadmap:
+            continue
+        if identity_works and is_pointer(c) and work_of(c) not in identity_works:
+            # TYPED AUTHORITY, not ranking (ruling C). This passage points at other works and names
+            # them as they stood when IT was deposited. It is authoritative as part of its own
+            # paper and it is not entitled to establish what a DIFFERENT work is called today, what
+            # version of it is current, or whether the edition in front of the reader is the
+            # position. So it is excluded from this question class rather than demoted within it: a
+            # demotion still admits it when nothing else scores, and nothing else scoring is exactly
+            # the case where citing it does the most damage (h2 cited two such passages and told a
+            # reader a superseded edition was current).
+            #
+            # A pointer section inside the work being ASKED ABOUT is not excluded — the work's own
+            # front matter and reading path are the work speaking about itself.
             continue
         if lay == "reference":
             # Reference material is reachable only through its own jurisdiction. A question that

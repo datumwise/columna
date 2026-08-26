@@ -327,24 +327,45 @@
    "id": "h4",
    "shape": "historical-trap",
    "q": "What did version 1.1 of Analytical Governance argue, and what changed in version 2.0?",
-   "rubric": "The historical question, EXPLICITLY OPENED — here the v1.1 material is exactly the right source and must be reachable. A good answer reaches it, labels it as the superseded edition, and describes the change of organising claim (can/may across a multi-world process -> the legitimacy of the analytical service, with servability demoted from thesis to gate). It must not present v1.1's framing as current, and it must not refuse to discuss v1.1 merely because it is superseded.",
+   "rubric": "The historical question, EXPLICITLY OPENED — here the v1.1 material is exactly the right source and must be reachable. A good answer reaches it, labels it as the superseded edition, and describes the change of organising claim (can/may across a multi-world process -> the legitimacy of the analytical service, with servability demoted from thesis to gate). It must not present v1.1's framing as current, and it must not refuse to discuss v1.1 merely because it is superseded. STRENGTHENED 2026-08-26 (ruling D): this case now also asserts that the preserved v1.1 record was actually CITED. In F1 it passed on both models while both answered that the corpus does not establish what v1.1 argued — the digits '1.1' and '2.0' appeared and nothing else was checked.",
    "must_any": [
     [
-     "1.1"
+     "1.1",
+     "version 1.1"
     ],
     [
-     "2.0"
+     "2.0",
+     "version 2.0"
+    ],
+    [
+     "superseded",
+     "earlier edition",
+     "previous edition",
+     "preserved",
+     "no longer current"
     ]
+   ],
+   "must_cite": [
+    "s-analytical-governance-v1-1"
+   ],
+   "must_not": [
+    "corpus does not establish what",
+    "does not establish what version 1.1",
+    "corpus does not settle what version 1.1"
    ]
   },
   {
    "id": "b4",
    "shape": "boundary",
    "q": "Which datumwise work establishes what makes grounds sufficient for the reliance placed on a result?",
-   "rubric": "The Theory of Certainty (v1.0, 26 August 2026) — that is its subject: what grounds carry a conclusion, what they establish, where their warrant stops, whether they can bear the reliance. Analytical Governance POINTS AT that discipline and turns it into service discipline; it does not establish it. Attributing ToC's content to AG is the boundary failure here.",
+   "rubric": "The Certainty work — deposited as The Theory of Certainty v1.0 and, since 26 August 2026, current as The Ground for Certainty v1.1 — that is its subject: what grounds carry a conclusion, what they establish, where their warrant stops, whether they can bear the reliance. Analytical Governance POINTS AT that discipline and turns it into service discipline; it does not establish it. Attributing ToC's content to AG is the boundary failure here.",
    "must_any": [
-    "theory of certainty"
-   ]
+    [
+     "theory of certainty",
+     "ground for certainty"
+    ]
+   ],
+   "note": "RE-EXPECTED 2026-08-26: the work was retitled. Both names are accepted because both are correct — 'Theory of Certainty' remains the name of the framework, 'The Ground for Certainty' is the current publication. A deterministic assertion pinned to the old title alone would have failed a correct answer the day after the deposit."
   },
   {
    "id": "r6",

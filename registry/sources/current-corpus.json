@@ -81,7 +81,8 @@
     { "sourceId": "s-contract-calculus-supplement", "jurisdiction": "prior-research" },
     { "sourceId": "s-open-planner", "jurisdiction": "prior-research" },
     { "sourceId": "s-research-map-2026-08-03", "jurisdiction": "historical" },
-    { "sourceId": "s-analytical-governance-v1-1", "jurisdiction": "historical" }
+    { "sourceId": "s-analytical-governance-v1-1", "jurisdiction": "historical" },
+    { "sourceId": "s-theory-of-certainty-v1-0", "jurisdiction": "historical" }
   ],
   "out": [],
   "jurisdictions": {

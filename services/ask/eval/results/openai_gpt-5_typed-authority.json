@@ -1,0 +1,679 @@
+{
+ "summary": {
+  "model": "openai:gpt-5",
+  "cases": 4,
+  "deterministicPass": 3,
+  "deterministicFail": 1,
+  "meanOverall": 2.5,
+  "criteria": {
+   "corpus_faithfulness": 3,
+   "source_selection": 0,
+   "currency": 3,
+   "separation": 4,
+   "citation_accuracy": 1,
+   "premise_resistance": 3,
+   "abstention": 2,
+   "answer_quality": 1
+  },
+  "answerCostUsd": 0.1036,
+  "judgeCostUsd": 0.0884,
+  "promptTokens": 22919,
+  "completionTokens": 7493,
+  "elapsedSec": 255.4
+ },
+ "results": [
+  {
+   "id": "h2",
+   "shape": "historical-trap",
+   "q": "I'm reading the Analytical Governance v1.1 page on your site. Is that datumwise's current position?",
+   "answer": "No. The page you\u2019re reading renders Version 1.1 as a preserved historical record and is not current authority. It\u2019s kept unedited so you can see what we argued on that date; the current doorway is Analytical Governance Version 2.0, which reorganizes the category and carries a different organizing claim [S1][S3]. The publication registry confirms the current record is v2.0 (26 Aug 2026, doi:(DOI:registered-current)); v1.1 (doi:(DOI:registered-superseded)) is superseded [R1].\n\nIf you need the current position, read and cite v2.0. If you must quote something you saw on the v1.1 page, treat it explicitly as historical. Some sections in v1.1 are not carried forward, and one worked example\u2019s numbers differ in the current edition [S1].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "This page is not current.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#hist-h",
+     "route": "/history/analytical-governance-v1-1",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "isHistorical": true,
+     "isEditionPinned": true
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "The path",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#close-h",
+     "route": "/history/analytical-governance-v1-1",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "isHistorical": true,
+     "isEditionPinned": true
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "This page is not current.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#hist-h",
+     "score": 1.28,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "Revision Note (Version 1.1)",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 1.0801,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "The path",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#close-h",
+     "score": 1.0065,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S4",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "Conformance",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#conf-h",
+     "score": 0.9004,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "What can be computed is not yet what may be served.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#ag-thesis",
+     "score": 0.8197,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S6",
+     "label": "Three Structural Sources of Silent Analytical Failure",
+     "heading": "The Two Great Sources of Silent Analytical Failure",
+     "url": "https://datumwise.ai/positions/the-two-great-sources-of-silent-analytical-failure#the-two-great-sources-of-silent-analytical-failure",
+     "score": 0.8105,
+     "standing": "current record v2.0 (2026-08-11, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited the first edition (2026-07-25, doi:(DOI:registered-superseded)), which is NOT the current record"
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 0.7903,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "7. The Analytical Adjudication Layer",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 0.7677,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5653,
+   "completionTokens": 1833,
+   "costUsd": 0.025396,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": false,
+    "overall": 3,
+    "note": "It correctly denies v1.1 as current and directs to v2.0, but omits the /analytical-governance doorway and cites a registry [R1] without providing it, so the onward path and source support are insufficient.",
+    "_judge_cost": 0.019954
+   }
+  },
+  {
+   "id": "h3",
+   "shape": "historical-trap",
+   "q": "Does datumwise hold that if a system cannot refuse, it is not governed?",
+   "answer": "Short answer: the corpus does not establish that exact conditional. It does not state, as a general doctrine, \u201cif a system cannot refuse, it is not governed.\u201d\n\nWhat the Core does establish is the adjudicative discipline datumwise uses. In Theory-of-Data adjudication, a governed request proceeds through a decision sequence with four local outcomes: Serve, Disclose, Clarify, or Refuse. \u201cRefuse\u201d is required \u201cwhen a required analytical premise or transformation contract is absent\u201d [S4]. The Frame\u2011QL/Columna materials describe the same four shipped outcomes for adjudication and note that \u201ca syntactically valid request is not guaranteed a number\u201d [S2], and the planner/engine boundary explicitly includes clarify or refuse before execution when a request cannot proceed [S1]. The foundations also separate physical executability from warranted service: a pipeline may be able to run while \u201cthe corresponding analytical certificate must refuse\u201d when the warrant is missing [S8]. The governance reason for this discipline is preserving the warranted reach of conclusions; service without warranted grounds is precisely what good governance must prevent [S3].\n\nAnalysis: Taken together, these establish that in datumwise\u2019s governance pattern the ability to refuse is a necessary remedy at adjudication time. A system that never refuses cannot honor the stated rule to refuse when premises are absent, and therefore cannot deliver a governed analytical object in those cases [S4][S2]. However, the Core does not elevate this into a universal equivalence that refusal capability alone defines whether a system is \u201cgoverned.\u201d Frame\u2011QL is also not required for analytical governance, so the claim cannot be tied to a particular language feature [S1].\n\nCitations: [S4], [S2], [S1], [S8], [S3]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Frame-QL: An Introduction",
+     "labelAtAnswer": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-introduction",
+     "readableRecordId": "w-frameql-introduction.r07",
+     "currentRecordIdAtAnswer": "w-frameql-introduction.r07",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "A Primer on Frame-QL",
+     "labelAtAnswer": "A Primer on Frame-QL",
+     "heading": "Where the Missing Work Goes",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-the-missing-work-goes",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-primer",
+     "readableRecordId": "w-frameql-primer.r05",
+     "currentRecordIdAtAnswer": "w-frameql-primer.r05",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "The Ground for Certainty",
+     "labelAtAnswer": "The Ground for Certainty",
+     "heading": "4. Every ground has a reach",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r02",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r02",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.1 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.1 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "labelAtAnswer": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "position",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-data-has-its-own-ontology",
+     "readableRecordId": "w-data-has-its-own-ontology.r02",
+     "currentRecordIdAtAnswer": "w-data-has-its-own-ontology.r02",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "Certifiable State Under Information Loss",
+     "labelAtAnswer": "Certifiable State Under Information Loss",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-certifiable-state",
+     "readableRecordId": "w-certifiable-state.r01",
+     "currentRecordIdAtAnswer": "w-certifiable-state.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "score": 0.867,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S2",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where the Missing Work Goes",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-the-missing-work-goes",
+     "score": 0.6245,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S3",
+     "label": "The Ground for Certainty",
+     "heading": "4. Every ground has a reach",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6193,
+     "standing": "current record v1.1 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5946,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "14. Scope and Non-Claims",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.536,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Missingness Has a Universe",
+     "heading": "8.8 Scope of this section",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5246,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Introductory glossary",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#introductory-glossary",
+     "score": 0.5169,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.471,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": false,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "none of ['1.1', 'earlier edition', 'previous edition', 'superseded', 'no longer'] present",
+     "none of ['withhold', 'qualify', 'servability gate', 'permission'] present"
+    ]
+   },
+   "promptTokens": 5745,
+   "completionTokens": 2271,
+   "costUsd": 0.029891,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": false,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": false,
+    "abstention": false,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "Misses the edition distinction\u2014v1.1 stated the aphorism as a conformance test and v2.0 replaces it with \u00a712\u2019s servability gate\u2014so it incorrectly denies the statement instead of attributing it to v1.1 and giving the current formulation.",
+    "_judge_cost": 0.019754
+   }
+  },
+  {
+   "id": "h4",
+   "shape": "historical-trap",
+   "q": "What did version 1.1 of Analytical Governance argue, and what changed in version 2.0?",
+   "answer": "Short answer\n\nVersion 1.1\u2019s argument\n\n- Thesis and scope: What can be computed is not yet what may be served; Analytical Governance governs the relationship between can and may across a multi\u2011world analytical process [S6]. It is a meta\u2011framework that tracks which body of law has jurisdiction, whether an operation is interior or a crossing, what warrant/authority survive, and what the serving boundary may do: Serve, Disclose, Clarify, Refuse \u2014 with Escalate as a governance\u2011process outcome at the constitution\u2019s edge [S3][S2].\n- The path from question to answer: Translate intent \u2192 Establish servability \u2192 Evaluate bounded risk \u2192 Authorize deliberately \u2192 Execute faithfully. The point is a result entitled to answer the question, not merely one that is computable [S4][S1].\n- The \u201cmiddle\u201d representation: Knowledge must be represented for adjudication. A governed analytical model stands between human intent and physical execution; AI can help translate intent; trusted planners can compile to SQL. This middle lets the request be checked independently; without it, complexity is left implicit in prose, SQL, schemas, and conventions [S3].\n- Boundaries and composition: Analytical governance decides which analytical results may be served; it is distinct from data governance (stewardship, access, quality, control). They compose; neither substitutes for the other [S3]. Analytical governance keeps capability distinct from legitimacy and supplies the interior law of no world it composes; it has wider scope, not higher sovereignty [S3].\n- Membership test: A governed analytical system must be capable of withholding analytical permission. If it cannot refuse, it is not governed [S3][S6].\n- What v1.1 itself changed/clarified: It aligned and wired the above: explicitly stated the serving/governance vocabulary and serving\u2011boundary soundness; added the membership test; stated the boundary with data governance; added the multi\u2011world positioning; and updated citations. It did not change the five\u2011outcome structure, the two\u2011gap architecture, the Servable factorization, the worked example, or Patterns A\u2013E [S2].\n\nWhat changed in version 2.0\n\n- Currency: v1.1 is preserved as historical state; the current record is Version 2.0 [S5].\n- Nature of the change: v2.0 did not reword the argument; it reorganised the category. The doorway notes a different organising claim. Some sections preserved on the v1.1 page are not carried forward in the current framework, and one worked example\u2019s numbers are stated differently in the current edition [S5][S4].\n- Limits of what is established here: The materials provided here do not include the v2.0 text. Beyond the statements above \u2014 that v2.0 reorganises around a different organising claim, drops some material, and restates an example\u2019s numbers \u2014 the corpus does not establish further specifics of v2.0\u2019s reorganisation [S5][S4].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "route": "",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of {READABLE}, which is NOT the current record; the current record is {CURRENT_BARE}. It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": true,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "Revision Note (Version 1.1)",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "route": "",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of {READABLE}, which is NOT the current record; the current record is {CURRENT_BARE}. It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": true,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "2. The missing middle: knowledge must be represented for adjudication",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "route": "",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of {READABLE}, which is NOT the current record; the current record is {CURRENT_BARE}. It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": true,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "The path",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#close-h",
+     "route": "/history/analytical-governance-v1-1",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "isHistorical": true,
+     "isEditionPinned": true
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "This page is not current.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#hist-h",
+     "route": "/history/analytical-governance-v1-1",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "isHistorical": true,
+     "isEditionPinned": true
+    },
+    {
+     "cite": "S6",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "labelAtAnswer": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "What can be computed is not yet what may be served.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#ag-thesis",
+     "route": "/history/analytical-governance-v1-1",
+     "role": "historical-record",
+     "layer": "reference",
+     "jurisdiction": "historical",
+     "sourceId": "s-analytical-governance-v1-1",
+     "readableRecordId": "w-analytical-governance.r02",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority",
+     "isHistorical": true,
+     "isEditionPinned": true
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 1.4678,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "Revision Note (Version 1.1)",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 1.2899,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "2. The missing middle: knowledge must be represented for adjudication",
+     "url": "https://doi.org/(DOI:registered-superseded)",
+     "score": 1.2853,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 this is the deposited text of v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; the current record is v2.0 (2026-08-26, doi:(DOI:registered-current)). It may not establish datumwise's current position; deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "The path",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#close-h",
+     "score": 1.2212,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "This page is not current.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#hist-h",
+     "score": 1.1787,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S6",
+     "label": "Analytical Governance v1.1, 21 August 2026",
+     "heading": "What can be computed is not yet what may be served.",
+     "url": "https://datumwise.ai/history/analytical-governance-v1-1#ag-thesis",
+     "score": 1.0534,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited v1.1 (2026-08-21, doi:(DOI:registered-superseded)), which is NOT the current record; PRESERVED HISTORICAL STATE as of 2026-08-21 \u2014 not current authority"
+    },
+    {
+     "cite": "S7",
+     "label": "The Silent Failure Atlas",
+     "heading": "F5 \u2014 Semantic & schema (layer S)",
+     "url": "https://datumwise.ai/atlas#f5--semantic--schema-layer-s",
+     "score": 0.9955,
+     "standing": "current record v1.3 (2026-06-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "The research map, 3 August 2026",
+     "heading": "The root",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-root",
+     "score": 0.8701,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": false,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5569,
+   "completionTokens": 2978,
+   "costUsd": 0.036741,
+   "judge": {
+    "corpus_faithfulness": false,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": false,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "It omitted the required explicit change in v2.0\u2019s organizing claim (to legitimacy of the analytical service with servability demoted to a gate) and added unsupported specifics about v2.0, so the treatment of the edition change is both incomplete and weakly sourced.",
+    "_judge_cost": 0.029874
+   }
+  },
+  {
+   "id": "r6",
+   "shape": "registry-derived",
+   "q": "What is the Analytical Governance paper called, and what version is current?",
+   "answer": "Analytical Governance \u2014 current record v2.0 (2026-08-26, doi:(DOI:registered-current)) \u2014 is deposited under the title \u201cAnalytical Governance: Governing the Legitimacy of the Analytical Service.\u201d [R1]",
+   "sources": [],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data",
+     "heading": "1.2 Terminology and succession from Version 5",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.982,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Frame-QL: An Introduction",
+     "heading": "2.2 The final output anchor does not determine every analytical distinction",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#22-the-final-output-anchor-does-not-determine-every-analytical-distinction",
+     "score": 0.6301,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S3",
+     "label": "Data Has Its Own Ontology",
+     "heading": "Revision note",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6109,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "6.2 SELECT names or constructs result series",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#62-select-names-or-constructs-result-series",
+     "score": 0.6061,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5921,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5234,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Data Has Its Own Ontology",
+     "heading": "7. From the world to the data world: governed constitution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4873,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Abstract",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#abstract",
+     "score": 0.4669,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5952,
+   "completionTokens": 411,
+   "costUsd": 0.01155,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 3,
+    "note": "Correctly identifies the current title and v2.0, but cites no governed source and adds an uncited DOI.",
+    "_judge_cost": 0.018809
+   }
+  }
+ ]
+}

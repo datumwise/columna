@@ -191,7 +191,9 @@ class Handler(BaseHTTPRequestHandler):
             if u.path.startswith("/review/item/"):
                 if not self._review_authorised():
                     return self._send(404, {"error": "no such route"})
-                qa = store.get(u.path[len("/review/item/"):])
+                # The REVIEW rendering, not the public one: it carries `provisionalViews`, the
+                # pre-publication read count that must never appear on /qa/<id>.
+                qa = store.get_for_review(u.path[len("/review/item/"):])
                 if not qa:
                     return self._send(404, {"error": "no such Q&A"})
                 return self._send(200, {**qa, "reviews": store.reviews_for(qa["id"])})

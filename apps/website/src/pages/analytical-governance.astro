@@ -123,6 +123,29 @@ const NEIGHBOURS = [
   },
   {
     id: 'certainty',
+    // NOT DERIVED, AND DELIBERATELY SO (Huayin, 2026-08-26). This literal was briefly replaced
+    // with `certainty.label` when the paper was retitled to The Ground for Certainty, on the
+    // reasoning that a title is as much a publication fact as a version or a DOI and this file
+    // types none of those. That reasoning was right about publication facts and wrong about THIS
+    // STRING, which is not one.
+    //
+    //     "Theory of Certainty is still valid, except when citing the article, the title needs to
+    //      match the new paper. Not all Theory of Relativity are in books titled Theory of
+    //      Relativity."
+    //
+    // The relation this row carries is `supplies the upstream discipline to`. It names the
+    // DISCIPLINE, not the deposit — the same way a sentence about relativity names relativity and
+    // not whichever paper currently states it best. A theory's name is editorial and stable; a
+    // publication's title moves when the author retitles it, and those are different facts that
+    // happen to have been the same string until today.
+    //
+    // The href stays registry-derived, so the link still lands on the current record. Anchor text
+    // that names a theory and a target that resolves to its current foundational publication is
+    // what a citation to a theory has always looked like, and it is not a mismatch.
+    //
+    // The PUBLICATION is named once, one screen up, in §Legitimacy — "developed separately in
+    // {certainty.label}" — which IS a citation of the article and therefore does re-resolve. Two
+    // appearances, two different jobs, and item 8 of the page rulings caps it there.
     name: 'The Theory of Certainty',
     href: certainty.href,
     external: true,

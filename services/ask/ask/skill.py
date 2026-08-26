@@ -65,9 +65,10 @@ not establish that" — and stop. Do not fill the gap from memory, do not infer 
 has not taken, and do not soften the gap into a vague answer that reads as if it were established. \
 Saying the corpus is silent is a correct and valuable answer, not a failure.
 
-THREE SOURCE CLASSES, AND WHAT EACH IS ENTITLED TO ESTABLISH
+FOUR SOURCE CLASSES, AND WHAT EACH IS ENTITLED TO ESTABLISH
 Every datumwise passage below is marked `layer: core` or `layer: reference (<jurisdiction>)`. \
-Anything you bring from outside is EXTERNAL and is marked by you.
+Anything you bring from outside is EXTERNAL and is marked by you. Any [R#] block is the PUBLICATION \
+REGISTRY.
 
 CORE sources are the works through which datumwise currently states and explains its intellectual \
 position, and they are the ONLY thing entitled to establish a sentence of the form "datumwise \
@@ -96,6 +97,22 @@ corpus appear to disagree, they are usually answering different questions; say w
 rather than picking a winner.
 
 A teaching surface may make the research easier to state. It may not make it say more.
+
+WHO MAY SAY WHAT A WORK IS CALLED
+Publication identity and currency — what a work is CURRENTLY CALLED, which version is current, \
+which DOI resolves to it, whether the edition in front of a reader is still the position — are \
+settled by the PUBLICATION REGISTRY ([R#] blocks below, when the question calls for them) and by \
+the work's own current deposit. Nothing else settles them.
+
+In particular: a datumwise paper may name ANOTHER work in its reference list, its reading path or \
+its further-reading pointer, and it names it as it stood on the day that paper was deposited. That \
+passage is authoritative AS PART OF THE CITING PAPER and is NOT authority for the cited work's \
+current title, version, DOI or currency. If the only thing you have that names a work is another \
+work's pointer to it, you do not know what that work is called today — say so, or use the registry \
+block, and never present a name read out of someone else's bibliography as the current one.
+
+The registry establishes IDENTITY and nothing else. It carries no argument, and it may not settle \
+what a work SAYS, what datumwise holds, or any question of doctrine. For that, read the sources.
 
 STANDING — READ IT, DO NOT RECALL IT
 Every source passage below arrives with a `standing` line. It is derived from the publication \
@@ -180,9 +197,11 @@ their exact `cite` token. Do not cite a source you did not use.
 # from the constitution so the prose above stays readable as a policy document a human can review.
 FORMAT = """\
 CITING
-Each datumwise source below has a `cite` token like [S3]; each external source has one like [X2]. When a claim rests on a source, mark it inline with \
+Each datumwise source below has a `cite` token like [S3]; each external source has one like [X2]; \
+each publication-registry block has one like [R1]. When a claim rests on a source, mark it inline with \
 that token, e.g. "a universe is one population of facts [S3]". Use them where the claim is made, not \
-in a pile at the end.
+in a pile at the end. Cite [R#] for a title, version, DOI or currency fact you took from the \
+registry, and only for those — it establishes nothing else.
 
 Do NOT write a prose "Sources:" list at the end. The interface renders the source list from the \
 JSON block below, with live links and standing, so a prose list is duplicated furniture. Inline \
@@ -194,7 +213,7 @@ Close with a JSON block, and nothing after it:
 {"used": ["S1", "S3"], "external": [{"title": "...", "url": "..."}], "corpus_settles": true}
 ```
 
-  · `used` — only the tokens you actually cited.
+  · `used` — only the tokens you actually cited, [S#] and [R#] alike.
   · `external` — outside sources you relied on that were NOT supplied to you as [X#]; empty list
     if none. Sources you were given go in `used`, by their [X#] token, like any other citation.
   · `corpus_settles` — false if the datumwise corpus did not establish the substance of the answer.
@@ -202,7 +221,7 @@ Close with a JSON block, and nothing after it:
 
 
 def build_prompt(question: str, passages: list[dict], history: list[dict] | None = None,
-                 external: list[dict] | None = None) -> list[dict]:
+                 external: list[dict] | None = None, registry: list[dict] | None = None) -> list[dict]:
     """Assemble the messages. Passages arrive carrying standing; we hand it over verbatim."""
     lines: list[str] = []
     for i, p in enumerate(passages, 1):
@@ -236,9 +255,25 @@ def build_prompt(question: str, passages: list[dict], history: list[dict] | None
     external_block = ("\n\n".join(ext_lines) if ext_lines
                       else "(no external sources were supplied for this question)")
 
+    # THE REGISTRY BLOCK, AND WHY IT IS A THIRD NAMESPACE (2026-08-26, ruling C). It is present only
+    # when the question asks what a work is called, which version is current, or whether the edition
+    # in front of the reader is still the position — and only for the works that question names. On
+    # every other question it is absent and this is one line of "(none)". It is not retrieved and
+    # not scored: it is looked up, and mixing it into [S#] would make a lookup look like a retrieval.
+    reg_lines = [
+        f"[R{i}] PUBLICATION REGISTRY — {r['label']}\n"
+        f"      link: {r['url']}\n"
+        f"      standing: {r['standing']}\n"
+        f"      record: {r['text']}"
+        for i, r in enumerate(registry or [], 1)
+    ]
+    registry_block = ("\n\n".join(reg_lines) if reg_lines
+                      else "(this question did not ask about any work's identity or currency)")
+
     system = f"{CONSTITUTION}\n\n{FORMAT}"
     user = (
         f"DATUMWISE SOURCES RETRIEVED FOR THIS QUESTION\n\n{sources_block}\n\n"
+        f"---\n\nPUBLICATION REGISTRY — IDENTITY AND CURRENCY\n\n{registry_block}\n\n"
         f"---\n\nEXTERNAL SOURCES SUPPLIED FOR THIS QUESTION\n\n{external_block}\n\n"
         f"---\n\nREADER'S QUESTION: {question}"
     )
