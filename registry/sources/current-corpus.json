@@ -1,0 +1,107 @@
+{
+  "$comment": [
+    "THE CURRENT REPRESENTATIVE CORPUS — which sources currently represent datumwise.",
+    "",
+    "The source catalog (sources.json) answers: what sources exist? This file answers a different",
+    "and narrower question: which of them currently STATE AND EXPLAIN datumwise's intellectual",
+    "position. Ruled by Huayin, 2026-08-25.",
+    "",
+    "NARROWER THAN FOUR OTHER THINGS, DELIBERATELY. Not the publication record (which preserves",
+    "everything deposited, forever). Not the public website (which includes teaching, parks, product",
+    "material and history). Not Ask's available reference material. Not the technical documentation.",
+    "Usefulness to Ask is NOT a reason for membership — that was the ruling's explicit warning.",
+    "",
+    "REFERENCE ONLY DOES NOT MEAN WEAK, OBSOLETE OR UNTRUSTED. It means: not constitutive of",
+    "datumwise's default representative intellectual position. Several REFERENCE ONLY sources are",
+    "the HIGHEST authority for the thing they actually establish — the Frame-QL Manual governs",
+    "shipped semantics, Known Issues governs disclosed defects, The Case governs what the",
+    "implementation demonstrably did. Jurisdiction, not rank.",
+    "",
+    "IDS ONLY. No titles, versions, dates or DOIs live here. A membership file that carried a",
+    "publication fact would be a second source of truth, which is the defect G7 exists to prevent",
+    "(and caught three times on PR #231). Titles are resolved from works.json at render time.",
+    "",
+    "EXHAUSTIVE AND FAIL-CLOSED. scripts/check_corpus_membership.py fails the build if any",
+    "catalogued sourceId appears in neither list, or in both, or if either list names an id the",
+    "catalog does not have. A new source therefore cannot drift into the estate unadjudicated.",
+    "",
+    "EDITABLE BY LATER RULING. Membership is a current editorial judgement, not a permanent",
+    "philosophical claim about the works. Moving a source between lists is a one-line diff plus a",
+    "note in `history` below."
+  ],
+  "ruledOn": "2026-08-25",
+  "ruledBy": "Huayin",
+  "in": [
+    "s-theory-of-data",
+    "s-statistical-bridge",
+    "s-analytical-governance",
+    "s-missingness-has-a-universe",
+    "s-two-anchors",
+    "s-contract-calculus",
+    "s-where-does-probability-live",
+    "s-certifiable-state",
+    "s-regime-has-a-contract",
+    "s-conditioning-bar",
+    "s-data-has-its-own-ontology",
+    "s-tod-introduction",
+    "s-tod-primer",
+    "s-frameql-introduction",
+    "s-frameql-primer",
+    "s-statistical-bridge-primer"
+  ],
+  "referenceOnly": [
+    { "sourceId": "s-two-great-sources", "jurisdiction": "position" },
+    { "sourceId": "s-never-let-your-agent", "jurisdiction": "position" },
+    { "sourceId": "s-practice-needs-a-firmer-foundation", "jurisdiction": "position" },
+    { "sourceId": "s-row-table-join", "jurisdiction": "position" },
+    { "sourceId": "s-silent-failure-atlas", "jurisdiction": "position" },
+    { "sourceId": "s-nine-model-study", "jurisdiction": "study" },
+
+    { "sourceId": "s-frameql-manual", "jurisdiction": "normative" },
+    { "sourceId": "s-shipped-grammar", "jurisdiction": "normative" },
+    { "sourceId": "s-framework-manual", "jurisdiction": "normative" },
+    { "sourceId": "s-reference-manual", "jurisdiction": "normative" },
+
+    { "sourceId": "s-start-here", "jurisdiction": "teaching" },
+    { "sourceId": "s-park-when-is-it-data", "jurisdiction": "teaching" },
+    { "sourceId": "s-case", "jurisdiction": "evidence" },
+    { "sourceId": "s-exhibit-b", "jurisdiction": "evidence" },
+    { "sourceId": "s-explorer", "jurisdiction": "evidence" },
+    { "sourceId": "s-known-issues", "jurisdiction": "defects" },
+
+    { "sourceId": "s-multi-universe-processing", "jurisdiction": "prior-research" },
+    { "sourceId": "s-tod-foundations-note", "jurisdiction": "prior-research" },
+    { "sourceId": "s-silent-seam", "jurisdiction": "prior-research" },
+    { "sourceId": "s-tod-primer-applied", "jurisdiction": "prior-research" },
+    { "sourceId": "s-regression-has-an-anchor", "jurisdiction": "prior-research" },
+    { "sourceId": "s-tod-applied", "jurisdiction": "prior-research" },
+    { "sourceId": "s-reading-rethinking", "jurisdiction": "prior-research" },
+    { "sourceId": "s-reading-bayesian-workflow", "jurisdiction": "prior-research" },
+    { "sourceId": "s-contract-calculus-supplement", "jurisdiction": "prior-research" },
+    { "sourceId": "s-open-planner", "jurisdiction": "prior-research" },
+    { "sourceId": "s-research-map-2026-08-03", "jurisdiction": "historical" }
+  ],
+  "out": [],
+  "jurisdictions": {
+    "$comment": [
+      "What each reference jurisdiction GOVERNS. This is the source-precedence constitution, and it",
+      "is deliberately not a linear hierarchy: different sources govern different questions.",
+      "Ask enters a reference jurisdiction when the question calls for it, and says which one."
+    ],
+    "position": "Stances datumwise holds, with their evidence. Explains and applies the research; does not enlarge it.",
+    "normative": "The shipped language and system, within their stated jurisdiction. Authoritative for what Columna actually does.",
+    "study": "Empirical findings datumwise produced. Governs what the study found, not what the theory holds.",
+    "evidence": "What the implementation demonstrably did, generated by running the shipped package.",
+    "defects": "Disclosed current defects. Governs what is presently broken or contained.",
+    "teaching": "Explains the governing research in plain language. Explains but does not enlarge it.",
+    "prior-research": "Earlier or adjacent research, applications and readings. Available when explicitly relevant.",
+    "historical": "Preserved prior states. Governs questions explicitly about what was said then."
+  },
+  "history": [
+    {
+      "on": "2026-08-25",
+      "by": "Huayin",
+      "note": "Initial adjudication. 16 IN, 27 REFERENCE ONLY, 0 OUT, covering all 43 catalogued sources exactly."
+    }
+  ]
+}

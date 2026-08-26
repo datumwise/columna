@@ -22,6 +22,7 @@
  * blocking count claims. This catalog does not create a back door to a count.
  */
 import catalog from '../../../../registry/sources/sources.json';
+import corpus from '../../../../registry/sources/current-corpus.json';
 import { RECORDS, currentRecord, work, doiUrl, type PublicationRecord } from './publications';
 
 export type SourceRole =
@@ -93,6 +94,37 @@ export function resolve(s: Source): ResolvedSource {
 }
 
 export const RESOLVED: ResolvedSource[] = SOURCES.map(resolve);
+
+/**
+ * THE CURRENT REPRESENTATIVE CORPUS (Huayin, 2026-08-25).
+ *
+ * /research renders THIS, not the whole catalog. The route's job narrowed: it is not the complete
+ * set of useful sources, it is the body of works through which datumwise currently states and
+ * explains its intellectual position. That is deliberately narrower than the publication record,
+ * the public website, Ask's reference material, the technical documentation, the evidence and the
+ * teaching surfaces.
+ *
+ * REFERENCE ONLY sources are NOT rendered here, and deliberately NOT as a second section
+ * underneath — that would recreate the exhaustive source estate under another name, which is
+ * exactly what the ruling forbids. They stay public and reachable at their own routes; the
+ * publication registry continues to preserve the complete deposited record.
+ *
+ * Membership is ids only, adjudicated in registry/sources/current-corpus.json and gated
+ * fail-closed by scripts/check_corpus_membership.py.
+ */
+const CORPUS_IN: string[] = (corpus as any).in;
+
+export const REPRESENTATIVE: ResolvedSource[] =
+  RESOLVED.filter((s) => CORPUS_IN.includes(s.sourceId));
+
+if (REPRESENTATIVE.length !== CORPUS_IN.length) {
+  const missing = CORPUS_IN.filter((id) => !RESOLVED.some((s) => s.sourceId === id));
+  throw new Error(
+    `CURRENT CORPUS: ${missing.length} ruled source(s) are not in the catalog: ${missing.join(', ')}. ` +
+    `A membership ruling that names a source the catalog does not have would silently shrink ` +
+    `/research. Fix the ruling or the catalog — do not let the page render the difference.`,
+  );
+}
 
 /**
  * GROUPS exist to accelerate scanning, not to teach a taxonomy (Huayin, 2026-08-25). They are not

@@ -58,10 +58,11 @@
       "id": "s3",
       "shape": "standing",
       "q": "What is the authoritative reference for shipped Frame-QL behavior?",
-      "rubric": "Should point at /docs/grammar \u2014 the generated, build-adjudicated grammar reference verified against the released parser \u2014 rather than at a manual chapter. Naming the manual as SECONDARY is fine; naming it as authoritative for SHIPPED behaviour is the failure.",
-      "must": [
-        "grammar"
-      ]
+      "rubric": "JURISDICTION CASE. The established authority split (Huayin, 2026-08-25): the Frame-QL Manual is authoritative for shipped SEMANTICS AND BEHAVIOUR; /docs/grammar is authoritative for formal SYNTAX. A correct answer names the Manual for behaviour and should ideally distinguish the grammar's narrower syntactic jurisdiction. Naming the grammar as authoritative for shipped BEHAVIOUR is the failure. Note also that under the corpus ruling both are REFERENCE ONLY \u2014 authoritative within their jurisdiction and not part of the representative intellectual corpus.",
+      "must_any": [
+        "manual"
+      ],
+      "note": "CORRECTED 2026-08-25. The original rubric asserted the INVERSE split and demanded /docs/grammar; the agent answered the split correctly and was marked down against my error. sources.json already stated the right rule in s-frameql-manual's purpose field and I wrote the rubric against it. The old must:['grammar'] also passed only by accident, on the phrase 'BNF Grammar'. Third false positive from this layer; still zero false negatives."
     },
     {
       "id": "s4",

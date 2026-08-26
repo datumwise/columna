@@ -2,7 +2,13 @@
 /**
  * SiteHeader — the global shell for the redesign (implementation brief §4).
  *
- * Four flat doors, no dropdowns, no mega-menu. `Analytical Governance` is never shortened to
+ * THREE flat doors, no dropdowns, no mega-menu.
+ *
+ * THE CASE IS NO LONGER A PEER TOP-LEVEL DOOR (Huayin, 2026-08-25). It remains public as the
+ * evidence record and is reached through Columna, which already carried six editorial links to it
+ * before this change — by far the strongest inbound path on the site. Removing a door from an
+ * otherwise unprotected route is the real risk here, so the same change adds /case to
+ * scripts/check_discoverability.mjs: the ruling becomes a gate rather than a convention. `Analytical Governance` is never shortened to
  * `Governance`: in this market bare "governance" already means stewardship/access/compliance, and
  * the whole point of the category is that it concerns the validity and authority of analytical
  * claims instead (positioning §4).
@@ -13,11 +19,10 @@
  * canonical destinations, not a folder tree.
  *
  * NO-JS: the mobile menu is a <details> disclosure. It opens, closes, and is keyboard-operable
- * with JavaScript disabled, and the same four doors are inside it — no nested information
+ * with JavaScript disabled, and the same three doors are inside it — no nested information
  * architecture, nothing hidden behind an intellectual hierarchy.
  */
 const DOORS = [
-  { label: 'The Case', href: '/case' },
   { label: 'Analytical Governance', href: '/analytical-governance' },
   { label: 'Research', href: '/research' },
   { label: 'Columna', href: '/columna' },
@@ -106,7 +111,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
   }
   .sheet a.util { color: var(--ink-soft); font-size: var(--ds-meta); border-bottom: 0; }
 
-  /* Compact shell. The same four doors move into the sheet — nothing is demoted or nested. */
+  /* Compact shell. The same three doors move into the sheet — nothing is demoted or nested. */
   @media (max-width: 56rem) {
     .shell { flex-wrap: wrap; gap: var(--ds-space-2); }
     .doors, .utility { display: none; }

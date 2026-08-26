@@ -72,7 +72,16 @@ def test_superseded_doi_unhedged_warns_but_is_not_fatal():
 
 def test_index_is_populated():
     s = retrieve.stats()
-    assert s["chunks"] > 300 and s["routes"] > 20
+    assert s["chunks"] > 800
+    # Routes DROPPED (41 -> 19) when indexing was constrained to catalogued sources, and chunks ROSE
+    # (665 -> 1206) when the deposited representative texts were ingested. Both directions are the
+    # corpus ruling working: fewer pages, more of the works that actually represent datumwise.
+    assert 10 < s["routes"] < 30
+    assert s["representative"] > s["reference"], (
+        "the representative corpus must outweigh the reference layer — the whole hazard the ruling "
+        "named is Ask drifting back toward whatever is easiest to retrieve"
+    )
+    assert s["fromDeposits"] > 400, "deposited foundation text must be ingested"
 
 
 def test_superseded_drafts_are_not_in_the_index():
@@ -98,12 +107,69 @@ def test_every_chunk_carries_standing():
     assert all(c["standing"] for c in chunks), "a passage without standing must never be retrievable"
 
 
-def test_historical_passages_are_labelled_and_demoted():
-    hits = retrieve.search("research corpus map August 2026", k=8)
-    hist = [h for h in hits if h["isHistorical"]]
-    assert hist, "the preserved map should still be findable for a historical question"
+def test_historical_passages_are_reachable_only_through_the_historical_jurisdiction():
+    """The two-layer rule, at its sharpest.
+
+    Before the corpus ruling the preserved map was demoted but always in the pool. Now it is
+    REFERENCE ONLY with jurisdiction `historical`, so a question that does not ask about history
+    cannot reach it at all — and one that does, gets it first.
+    """
+    neutral = retrieve.search("research corpus map", k=8)
+    assert not any(h["isHistorical"] for h in neutral), (
+        "a question with no historical cue must not reach a preserved state"
+    )
+    asked = retrieve.search("what did the August research map say at the time?", k=8)
+    hist = [h for h in asked if h["isHistorical"]]
+    assert hist, "an explicitly historical question must reach the preserved map"
+    assert asked[0]["isHistorical"], "within its own jurisdiction it should rank first, not last"
     for h in hist:
         assert "PRESERVED HISTORICAL STATE" in h["standing"]
+
+
+# ── the two corpus layers ─────────────────────────────────────────────────────────────────────────
+
+def test_every_chunk_is_ruled_into_a_layer():
+    chunks = json.loads((Path(__file__).resolve().parents[1] / "index/chunks.json").read_text())
+    assert all(c.get("layer") in ("representative", "reference") for c in chunks)
+
+
+def test_reference_material_is_invisible_without_its_jurisdiction():
+    """The manuals must not constitute datumwise's position just because they retrieve well."""
+    hits = retrieve.search("what does datumwise hold about analytical identity?", k=8)
+    assert hits, "a representative question must still find material"
+    assert all(h["layer"] == "representative" for h in hits), (
+        [f"{h['sourceLabel']}::{h['layer']}" for h in hits]
+    )
+
+
+def test_normative_jurisdiction_opens_on_a_shipped_question():
+    assert "normative" in retrieve.jurisdictions_for("What does shipped Frame-QL allow?")
+    hits = retrieve.search("What does shipped Frame-QL allow?", k=5)
+    assert any(h["jurisdiction"] == "normative" for h in hits)
+    assert hits[0]["jurisdiction"] == "normative", "within its jurisdiction it governs"
+
+
+def test_defects_jurisdiction_opens_on_a_broken_question():
+    hits = retrieve.search("what is currently broken in Columna?", k=5)
+    assert hits[0]["sourceId"] == "s-known-issues"
+
+
+def test_representative_corpus_is_readable_not_merely_citable():
+    """13 of 16 IN works were deposit-only; ingestion is a requirement of the ruling, not a nicety."""
+    chunks = json.loads((Path(__file__).resolve().parents[1] / "index/chunks.json").read_text())
+    corpus = json.loads((Path(__file__).resolve().parents[3] /
+                         "registry/sources/current-corpus.json").read_text())
+    have = {c["sourceId"] for c in chunks}
+    readable = [i for i in corpus["in"] if i in have]
+    assert len(readable) >= 14, f"only {len(readable)} of {len(corpus['in'])} IN works are readable"
+
+
+def test_deposit_chunks_resolve_to_a_doi_not_a_dead_route():
+    hits = retrieve.search("what does the theory of data establish about analytical objects", k=8)
+    deposited = [h for h in hits if not h["route"]]
+    assert deposited, "deposited representative text should be retrievable"
+    for h in deposited:
+        assert h["url"].startswith("https://doi.org/"), h["url"]
 
 
 def test_edition_pinned_passages_say_so():

@@ -39,6 +39,9 @@ INDEX = Path(__file__).resolve().parent.parent / "index" / "chunks.json"
 # question looks like).
 HISTORICAL_FACTOR = 0.55
 EDITION_PINNED_FACTOR = 0.80
+# Applied to a reference passage whose jurisdiction the question explicitly opened. Within its own
+# jurisdiction a reference source is the authority, not a fallback — see the note in search().
+JURISDICTION_BOOST = 1.6
 
 _WORD = re.compile(r"[a-z0-9][a-z0-9'_-]*")
 
@@ -78,6 +81,14 @@ def _describe(record_id: str | None) -> str:
     v = f"v{r['version']}" if r.get("version") else "the first edition"
     doi = f", doi:{r['doi']}" if r.get("doi") else ""
     return f"{v} ({r.get('date', '')}{doi})"
+
+
+def _resolve_url(chunk: dict) -> str:
+    """A deposited work has no page to link; send the reader to the record itself."""
+    if chunk.get("url"):
+        return chunk["url"]
+    r = _records().get(chunk.get("currentRecordId") or "")
+    return f"https://doi.org/{r['doi']}" if r and r.get("doi") else ""
 
 
 def _fill_standing(chunk: dict) -> str:
@@ -163,8 +174,49 @@ def _cosine_scores(query: str) -> list[tuple[int, float]] | None:
     return out
 
 
-def search(query: str, k: int = 8) -> list[dict]:
-    """Return the k best passages, each carrying its standing. Never returns a bare quotation."""
+# ── THE TWO LAYERS (Huayin, 2026-08-25) ───────────────────────────────────────────────────────────
+# Ask has two source layers, not one flat corpus.
+#
+#   REPRESENTATIVE — the works through which datumwise currently STATES its intellectual position.
+#     Used by default, for "what does datumwise hold about X?"
+#   REFERENCE — entered when the question calls for a particular jurisdiction or object. NOT weak,
+#     obsolete or untrusted: several reference sources are the HIGHEST authority for the thing they
+#     actually establish. Jurisdiction, not rank.
+#
+# The router below is deliberately the dumbest thing that implements that: literal cues per
+# jurisdiction. Not a classifier, no model call, fully inspectable — you can read it and predict
+# exactly which layer a question opens. The ruling said to add harder adjudication machinery only
+# after observed failures, so this is what ships until a failure argues otherwise.
+#
+# When no cue matches, retrieval is representative-only. That is the default the ruling asks for,
+# and it is what stops "useful to Ask" from quietly becoming a reason for membership.
+JURISDICTION_CUES: dict[str, tuple[str, ...]] = {
+    "normative": ("shipped", "syntax", "grammar", "parser", "keyword", "signature", "accepts",
+                  "manual", "implemented in columna", "is it implemented", "does columna support",
+                  "api", "cli", "command"),
+    "defects": ("broken", "defect", "bug", "known issue", "known issues", "currently wrong",
+                "regression", "not working", "unreliable"),
+    "evidence": ("demonstrate", "demonstrated", "the case", "cascadia", "exhibit", "transcript",
+                 "worked example", "actually did", "actually does", "explorer", "walkthrough"),
+    "study": ("study", "benchmark", "nine-model", "text-to-sql", "cross-comparison", "experiment"),
+    "historical": ("august map", "research map", "used to say", "at the time", "back then",
+                   "previously said", "historical", "preserved", "earlier version of the site"),
+    "teaching": ("explain simply", "in plain language", "for a beginner", "walk me through",
+                 "one afternoon", "park", "start here", "cold start"),
+    "position": ("position", "stance", "do you think", "argue", "atlas", "silent failure"),
+}
+
+
+def jurisdictions_for(query: str) -> list[str]:
+    q = query.lower()
+    return sorted({j for j, cues in JURISDICTION_CUES.items() if any(c in q for c in cues)})
+
+
+def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict]:
+    """Return the k best passages, each carrying its standing AND its corpus layer.
+
+    Representative always. Reference only for jurisdictions the question actually calls for.
+    """
     chunks, _, _, _ = _corpus()
     lex = dict(_bm25(query))
     if not lex:
@@ -181,12 +233,41 @@ def search(query: str, k: int = 8) -> list[dict]:
         for i in set(combined) | set(sem_d):
             combined[i] = 0.6 * combined.get(i, 0.0) + 0.4 * (sem_d.get(i, 0.0) / sem_max)
 
+    opened = jurisdictions_for(query)
     ranked = []
     for i, s in combined.items():
         c = chunks[i]
-        if c["isHistorical"]:
+        lay = c.get("layer", "unruled")
+        if lay == "out":
+            continue
+        if lay == "reference":
+            # Reference material is reachable only through its own jurisdiction. A question that
+            # does not call for it never sees it — which is what stops the manuals from quietly
+            # constituting datumwise's intellectual position because they happen to be easy to
+            # retrieve.
+            if c.get("jurisdiction") not in opened:
+                continue
+            # ...and once the question HAS opened that jurisdiction, the source is PROMOTED, not
+            # demoted.
+            #
+            # The first version demoted it, and that was wrong twice over: "What does shipped
+            # Frame-QL allow?" returned three representative passages and no Manual, and "What did
+            # the August research map say?" returned no map at all. The gate and the demotion were
+            # doing the same job twice — a source was first excluded unless invited, then penalised
+            # for having been invited.
+            #
+            # The correct rule: within its own jurisdiction a reference source is the AUTHORITY.
+            # The Frame-QL Manual governs shipped semantics; Known Issues governs defects; the
+            # preserved map governs what was said in August. Being asked for is exactly the
+            # condition under which it should win.
+            s *= JURISDICTION_BOOST
+        if c["isHistorical"] and "historical" not in opened:
+            # Demote a preserved state only when the question did NOT ask about history. When it
+            # did, the preserved state is the thing being asked for.
             s *= HISTORICAL_FACTOR
         elif c["isEditionPinned"]:
+            # Edition-pinning is orthogonal to layer — it is about WHICH edition a route renders —
+            # so it still applies. The passage arrives labelled either way.
             s *= EDITION_PINNED_FACTOR
         ranked.append((s, i))
     ranked.sort(reverse=True)
@@ -200,7 +281,8 @@ def search(query: str, k: int = 8) -> list[dict]:
         if key in seen:
             continue
         seen.add(key)
-        out.append({**c, "standing": _fill_standing(c), "score": round(s, 4)})
+        out.append({**c, "standing": _fill_standing(c), "url": _resolve_url(c),
+                    "score": round(s, 4)})
         if len(out) >= k:
             break
     return out
@@ -214,5 +296,8 @@ def stats() -> dict:
         "catalogued": sum(1 for c in chunks if c["sourceId"]),
         "historical": sum(1 for c in chunks if c["isHistorical"]),
         "editionPinned": sum(1 for c in chunks if c["isEditionPinned"]),
+        "representative": sum(1 for c in chunks if c.get("layer") == "representative"),
+        "reference": sum(1 for c in chunks if c.get("layer") == "reference"),
+        "fromDeposits": sum(1 for c in chunks if not c.get("route")),
         "embeddings": bool(os.environ.get("ASK_EMBEDDINGS") == "1"),
     }

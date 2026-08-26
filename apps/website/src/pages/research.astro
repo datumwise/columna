@@ -1,5 +1,15 @@
 ---
-// /research — THE CURRENT RESEARCH AND SOURCE ESTATE.
+// /research — THE CURRENT REPRESENTATIVE RESEARCH CORPUS.
+//
+// NARROWED 2026-08-25 (Huayin). This route no longer renders every catalogued source. Its job is
+// the body of works through which datumwise CURRENTLY STATES AND EXPLAINS its intellectual
+// position — deliberately narrower than the publication record, the public website, Ask's
+// reference material, the technical documentation, the evidence, and the teaching surfaces.
+// Membership is ruled in registry/sources/current-corpus.json and gated fail-closed.
+//
+// REFERENCE ONLY sources are NOT rendered here, and deliberately NOT as a second section beneath —
+// that would recreate the exhaustive source estate under another name. They remain public at their
+// own routes and reachable through Ask when a question calls for their jurisdiction.
 //
 // WHAT THIS ROUTE IS NOW (Huayin, 2026-08-25, Serious Gateway 1). The governing principle: current
 // reality owns the primary addresses; historical reality gets permanent, explicit historical
@@ -37,7 +47,7 @@
 // Fragmentless /research is NOT redirected: it belongs to current reality now. Same pattern as the
 // #exhibit-a/#exhibit-b shim on the homepage.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { RESOLVED, GROUPS, actions, type ResolvedSource } from '../data/sources';
+import { REPRESENTATIVE, GROUPS, actions, type ResolvedSource } from '../data/sources';
 import { longDate } from '../data/publications';
 
 // The composed standing line. There is no `standing` enum: a source can be deposited AND onsite,
@@ -63,16 +73,16 @@ function standing(s: ResolvedSource): string[] {
 const groups = GROUPS.map((g) => ({
   ...g,
   showRole: g.roles.length > 1,
-  rows: RESOLVED.filter((s) => g.roles.includes(s.role)),
+  rows: REPRESENTATIVE.filter((s) => g.roles.includes(s.role)),
 })).filter((g) => g.rows.length > 0);
 
 // Every catalog entry must land in exactly one group, or the page silently loses a source.
 const placed = groups.reduce((n, g) => n + g.rows.length, 0);
-if (placed !== RESOLVED.length) {
+if (placed !== REPRESENTATIVE.length) {
   const seen = new Set(groups.flatMap((g) => g.rows.map((r) => r.sourceId)));
   throw new Error(
-    `RESEARCH: ${RESOLVED.length - placed} source(s) fell out of every group — ` +
-    `${RESOLVED.filter((s) => !seen.has(s.sourceId)).map((s) => `${s.sourceId} (${s.role})`).join(', ')}. ` +
+    `RESEARCH: ${REPRESENTATIVE.length - placed} source(s) fell out of every group — ` +
+    `${REPRESENTATIVE.filter((s) => !seen.has(s.sourceId)).map((s) => `${s.sourceId} (${s.role})`).join(', ')}. ` +
     `Add the role to a group in src/data/sources.ts. A source that renders nowhere is worse than one with a clumsy heading.`
   );
 }
@@ -85,11 +95,20 @@ if (placed !== RESOLVED.length) {
 >
   <div class="head">
     <p class="kicker mono">Research</p>
-    <h1 class="head-h">The current source estate</h1>
+    <h1 class="head-h">The current research corpus</h1>
     <p class="head-p">
-      Everything serious we have, as it stands now — what each thing is, what authority it carries,
-      and whether you can read it here. Versions, dates and deposit records are read from the
-      publication registry when this page is built; nothing on it is typed by hand.
+      The works through which datumwise states and explains its position now — what each one is,
+      what authority it carries, and whether you can read it here. Versions, dates and deposit
+      records are read from the publication registry when this page is built; nothing on it is
+      typed by hand.
+    </p>
+    <p class="head-p head-quiet">
+      This is narrower than everything datumwise has published and narrower than everything on this
+      site. The manuals govern the shipped system, <a href="/case">the Case</a> records what the
+      implementation demonstrably did, <a href="/known-issues">known issues</a> records what is
+      presently broken, and <a href="/start-here">the teaching surfaces</a> explain the work — each
+      authoritative for its own subject, none of them part of the corpus below. The complete
+      deposited record is preserved in the publication registry.
     </p>
     <p class="head-p head-quiet">
       Looking for the research map as it was written in August 2026? It is preserved, unchanged, at

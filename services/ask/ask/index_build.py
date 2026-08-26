@@ -48,6 +48,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 DIST = REPO / "apps" / "website" / "dist"
 SOURCES_JSON = REPO / "registry" / "sources" / "sources.json"
+CORPUS_JSON = REPO / "registry" / "sources" / "current-corpus.json"
+DEPOSITS = Path(__file__).resolve().parent.parent / "deposits"
 WORKS_JSON = REPO / "registry" / "publications" / "works.json"
 RECORDS_JSON = REPO / "registry" / "publications" / "records.json"
 
@@ -184,6 +186,30 @@ class Chunk:
     # time. Same rule the site's own surfaces follow.
     currentRecordId: str | None
     readableRecordId: str | None
+    # ── CORPUS LAYER (Huayin, 2026-08-25) ─────────────────────────────────────────────────────────
+    # "representative" — one of the works through which datumwise currently STATES its intellectual
+    #   position. Ask's default corpus.
+    # "reference"      — available when the question calls for its jurisdiction. NOT weak, obsolete
+    #   or untrusted: several reference sources are the highest authority for the thing they
+    #   actually establish. Jurisdiction, not rank.
+    layer: str
+    jurisdiction: str | None
+
+
+def _membership() -> tuple[dict[str, str], dict[str, str]]:
+    """sourceId -> layer, and sourceId -> jurisdiction. Ruled in current-corpus.json."""
+    c = json.loads(CORPUS_JSON.read_text())
+    layer = {sid: "representative" for sid in c["in"]}
+    juris: dict[str, str] = {}
+    for e in c.get("referenceOnly", []):
+        sid = e if isinstance(e, str) else e["sourceId"]
+        layer[sid] = "reference"
+        if isinstance(e, dict):
+            juris[sid] = e.get("jurisdiction")
+    for e in c.get("out", []):
+        sid = e if isinstance(e, str) else e["sourceId"]
+        layer[sid] = "out"
+    return layer, juris
 
 
 def _load_standing() -> dict[str, dict]:
@@ -208,6 +234,7 @@ def _load_standing() -> dict[str, dict]:
     works = {w["workId"]: w for w in json.loads(WORKS_JSON.read_text())}
     records = json.loads(RECORDS_JSON.read_text())
     by_id = {r["recordId"]: r for r in records}
+    layer_of, juris_of = _membership()
 
     def current_for(work_id: str) -> dict:
         found = [r for r in records if r.get("workId") == work_id and r.get("status") == "current"]
@@ -253,6 +280,8 @@ def _load_standing() -> dict[str, dict]:
 
         label = works[work_id]["canonicalLabel"] if work_id else s.get("title")
         out[route.rstrip("/") or "/"] = {
+            "layer": layer_of.get(s["sourceId"], "unruled"),
+            "jurisdiction": juris_of.get(s["sourceId"]),
             "currentRecordId": cur["recordId"] if cur else None,
             "readableRecordId": readable["recordId"] if readable else None,
             "sourceId": s["sourceId"],
@@ -282,10 +311,20 @@ def build(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
         )
     standing = _load_standing()
     chunks: list[Chunk] = []
+    skipped_uncatalogued: set[str] = set()
 
     for html_path in sorted(DIST.rglob("*.html")):
         route = _route_of(html_path)
         if route in SKIP_ROUTES or any(route.startswith(p) for p in SKIP_PREFIXES):
+            continue
+        # CATALOGUED SOURCES ONLY (Huayin, 2026-08-25). Previously every built page was indexed,
+        # which is how `/what-is-a-universe` — a real page, but not a catalogued source — ended up
+        # constituting answers. Rendered-site indexing is still the right protection against
+        # superseded source files; it simply needs an explicit membership boundary in front of it.
+        # 33% of retrieval slots in the first 26-case run came from pages that leave here.
+        st_probe = standing.get(route)
+        if not st_probe or st_probe.get("layer") in (None, "out", "unruled"):
+            skipped_uncatalogued.add(route)
             continue
         raw = html_path.read_text(encoding="utf-8", errors="replace")
         # Redirect stubs are not sources. They are 200-with-a-meta-refresh (see #230).
@@ -333,14 +372,90 @@ def build(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
                         isEditionPinned=bool(st.get("isEditionPinned")),
                         currentRecordId=st.get("currentRecordId"),
                         readableRecordId=st.get("readableRecordId"),
+                        layer=st.get("layer", "unruled"),
+                        jurisdiction=st.get("jurisdiction"),
                         url=f"https://datumwise.ai{route}{frag}",
                     )
                 )
     return chunks
 
 
+def build_deposits(min_chars: int = 220, max_chars: int = 2600) -> list[Chunk]:
+    """Chunk the EXACT deposited text of representative works that have no onsite route.
+
+    Thirteen of the sixteen representative works are deposit-only. Without this, Ask's default
+    corpus would be almost entirely unquotable while the reference layer stayed fully readable —
+    and the ruling named that hazard precisely: it would push Ask back toward whatever is easiest
+    to retrieve.
+
+    Cited by DOI rather than by route, because there is no onsite page to send a reader to. The
+    DOI is resolved at request time from the registry (retrieve.py), never stored here.
+    """
+    manifest_path = DEPOSITS / "manifest.json"
+    if not manifest_path.exists():
+        print("  (no deposit manifest — run `python3 -m ask.ingest_deposits`)")
+        return []
+    manifest = json.loads(manifest_path.read_text())
+    works = {w["workId"]: w for w in json.loads(WORKS_JSON.read_text())}
+    cat = json.loads(SOURCES_JSON.read_text())
+    sources = {s["sourceId"]: s for s in (cat["sources"] if isinstance(cat, dict) else cat)}
+    layer_of, juris_of = _membership()
+
+    out: list[Chunk] = []
+    for d in manifest["deposits"]:
+        text = (DEPOSITS / d["file"]).read_text(encoding="utf-8", errors="replace")
+        label = works[d["workId"]]["canonicalLabel"]
+        role = sources[d["sourceId"]].get("role")
+        # Split on markdown headings; the heading becomes the section name, as with built HTML.
+        parts: list[tuple[str, str]] = []
+        heading, buf = "", []
+        for line in text.splitlines():
+            m = re.match(r"^(#{1,3})\s+(.*)$", line)
+            if m:
+                if buf:
+                    parts.append((heading, "\n".join(buf)))
+                heading, buf = re.sub(r"[*_`]", "", m.group(2)).strip(), []
+            else:
+                buf.append(line)
+        if buf:
+            parts.append((heading, "\n".join(buf)))
+
+        for heading, body in parts:
+            body = _redact_identifiers(re.sub(r"\s+", " ", body).strip())
+            if len(body) < min_chars:
+                continue
+            pieces = [body]
+            if len(body) > max_chars:
+                pieces, cur = [], ""
+                for sent in re.split(r"(?<=[.!?])\s+", body):
+                    if len(cur) + len(sent) > max_chars and cur:
+                        pieces.append(cur); cur = sent
+                    else:
+                        cur = (cur + " " + sent).strip()
+                if cur:
+                    pieces.append(cur)
+            for i, piece in enumerate(pieces):
+                if len(piece) < min_chars:
+                    continue
+                out.append(Chunk(
+                    chunkId=f"deposit:{d['recordId']}::{heading[:40]}::{i}",
+                    route="", anchor="", heading=heading, title=label, text=piece,
+                    sourceId=d["sourceId"], sourceLabel=label, role=role,
+                    standing="{CURRENT}; deposited text — read from the deposited record, "
+                             "not from a page on this site",
+                    isHistorical=False, isEditionPinned=False,
+                    url="",  # resolved to the DOI link at request time
+                    currentRecordId=d["recordId"], readableRecordId=d["recordId"],
+                    layer=layer_of.get(d["sourceId"], "unruled"),
+                    jurisdiction=juris_of.get(d["sourceId"]),
+                ))
+    return out
+
+
 def main() -> None:
     chunks = build()
+    deposits = build_deposits()
+    chunks = chunks + deposits
     out = Path(__file__).resolve().parent.parent / "index" / "chunks.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps([asdict(c) for c in chunks], indent=0, ensure_ascii=False))
@@ -349,7 +464,12 @@ def main() -> None:
     pinned = sum(1 for c in chunks if c.isEditionPinned)
     catalogued = sum(1 for c in chunks if c.sourceId)
     print(f"index built: {len(chunks)} chunks across {len(routes)} routes -> {out}")
+    rep = sum(1 for c in chunks if c.layer == "representative")
+    ref = sum(1 for c in chunks if c.layer == "reference")
     print(f"  catalogued {catalogued} | historical {hist} | edition-pinned {pinned}")
+    print(f"  LAYERS: representative {rep} | reference {ref}")
+    print(f"  from deposited text: {len(deposits)} chunks "
+          f"({len({c.sourceId for c in deposits})} works)")
 
 
 if __name__ == "__main__":
