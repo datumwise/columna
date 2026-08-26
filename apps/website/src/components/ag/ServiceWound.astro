@@ -23,9 +23,23 @@
  * establish is not yet what any of them may serve, and the serving vocabulary is typed later. A page
  * that quietly crowned a denominator would teach that governance is about picking the right one.
  *
- * THE WORD "CORRECT" IS QUALIFIED EVERYWHERE IT APPEARS (Huayin, final E rulings, 2026-08-26 15:59, item 3). Not
- * "correct number" — "arithmetically flawless", "executes correctly", and the predicate that is
- * actually being denied: not established as the legitimate answer to the user's purpose.
+ * THE WORD "CORRECT" IS ALWAYS CORRECT WITH RESPECT TO SOMETHING (Huayin, item 3 of 2026-08-26 15:59,
+ * as refined at 16:04). This section is where the page concedes the most and denies the narrowest, so
+ * the concession is made in exact predicates rather than in the word "correct" standing alone:
+ *
+ *     arithmetically correct · executes exactly as specified · reproducible · lawfully derived for
+ *     that narrowly defined analytical object
+ *
+ * — all four granted, and none of them establishing that the value is the answer to the question
+ * asked. "Narrowly defined" is used DESCRIPTIVELY. Neither "narrow correctness" nor "local
+ * correctness" is coined here or anywhere on this page: naming it would create the formal concept the
+ * ruling declines, and the precision does not need a term.
+ *
+ * AND THE FAILURE IS NAMED, because stating only that the narrower claim is true would leave the
+ * reader without the governance point: the failure is usually not that the narrower statement is
+ * false, it is that the AUTHORITY of a result correct under a narrower definition travels beyond the
+ * grounds and the definition that made it correct. That sentence is *page voice*. It is also the
+ * hinge into §Standing, which is the same movement one boundary later.
  */
 const FACTS = [
   {
@@ -67,16 +81,29 @@ const FACTS = [
 
     <div class="landing">
       <p class="ds-body">
-        The arithmetic can divide total observed revenue by 47, by 48, or by 50. Each of the three can
-        be written in valid SQL, each executes correctly, and each returns a plausible number.
-        <strong>The computation does not tell us which answer serves the user&rsquo;s purpose.</strong>
+        The arithmetic can divide total observed revenue by 47, by 48, or by 50. Take the first one.
+        It may be <strong>arithmetically correct</strong>. The query may execute
+        <strong>exactly as specified</strong>. The value may be <strong>reproducible</strong>. The
+        derivation may be <strong>lawful for that narrowly defined analytical object</strong> &mdash;
+        the mean of observed revenue over the stores that reported.
+      </p>
+      <p class="ds-body">
+        None of those facts establishes that the value is the answer to the question that was asked.
+        <strong>Correctness is always correctness with respect to something</strong>, and the something
+        here is a narrower object than <em>average revenue per open store</em>. The computation does
+        not tell us which answer serves the user&rsquo;s purpose.
       </p>
       <p class="ds-body">
         The 50-store roster does not establish that all 50 were open. The 47 revenue rows do not
-        establish the open-store population. A system that returns the mean over reporting stores
-        while presenting it as <em>average revenue per open store</em> can be arithmetically flawless
-        and unfaithful as a service &mdash; and a system that identifies the right population but uses
+        establish the open-store population. A system that serves the mean over reporting stores while
+        presenting it as <em>average revenue per open store</em> can be arithmetically correct and
+        unfaithful as a service &mdash; and a system that identifies the right population but uses
         stale or incomplete state can be faithful in interpretation and unreliable in production.
+      </p>
+      <p class="ds-body">
+        The failure is usually not that the narrower statement is false. It is that the authority of a
+        result correct under a narrower definition is allowed to travel beyond the grounds and the
+        definition that made it correct.
       </p>
       <p class="disposition">
         No number is entitled to answer this question yet, and the reason is not arithmetic. The

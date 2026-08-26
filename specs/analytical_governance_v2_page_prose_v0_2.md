@@ -556,20 +556,53 @@ not section ids**: published answers already point at `/analytical-governance#bo
 No successor section was fabricated to preserve a name. Verified by loading
 `/analytical-governance#can-may` in a real browser: it lands on the preserved matrix.
 
-## The "correct" audit
+## The "correct" audit — re-run under the 16:04 refinement
 
-Two occurrences survive on the current page and its components, both with the predicate named:
+The refinement arrived after the page had shipped, so it was applied as an amendment to the live page
+rather than to a draft. Governing principle, now stated on the page itself:
 
-- `ServiceWound.astro` — "each can be written in valid SQL, **each executes correctly**, and each
-  returns a plausible number." The predicate is execution, which is exactly what is being conceded.
-- `analytical-governance.astro` §servability — "a late-arriving or **retroactively corrected**
-  record". This is the paper's term for a data correction, not a claim about an answer.
+> **Correctness is always correctness with respect to something.**
 
-Removed by the rewrite: "correct number" (the old H1 draft) and the v1.1 page's "Refuse is governance
-functioning correctly" (re-cut to "functioning as designed" in the component comment). Elsewhere the
-page names the predicate directly: *arithmetically flawless*, *lawfully derived*, *support-sufficient*,
-*reproducible*, *servable*, *authorized*, *unfaithful as a service*, *not entitled to answer*. No
-taxonomy of correctness was created.
+**The concession is made in exact predicates, in the wound, where the page concedes the most.** Take
+the 47-store denominator: it may be *arithmetically correct*; the query may execute *exactly as
+specified*; the value may be *reproducible*; the derivation may be *lawful for that narrowly defined
+analytical object* — the mean of observed revenue over the stores that reported. All four are granted,
+in those words. Then: **none of those facts establishes that the value is the answer to the question
+that was asked**, and the paper's own sentence closes it — *the computation does not tell us which
+answer serves the user's purpose*.
+
+**And the failure is named**, because conceding the narrower truth without it leaves the reader
+without the governance point:
+
+> The failure is usually not that the narrower statement is false. It is that the authority of a
+> result correct under a narrower definition is allowed to travel beyond the grounds and the
+> definition that made it correct.
+
+**§Standing carries the same movement one boundary later**, and now says so explicitly: there, a
+value correct under a narrower definition was not yet the answer to the question asked; here, an
+answer entitled to be served is not thereby entitled to everything that might be done with it. In
+both cases what must not travel unexamined is the authority of the result, and what fixes its limit is
+the grounds and the definition that earned it. This is where the page touches the reach discipline
+**without importing it**: the ToC pointer already says *"where their warrant stops"*, in ToC's own
+words, and no ground, reach or composition is explained on this page.
+
+**No new concept was coined.** Audited against the rendered HTML, reader-visible text only:
+
+| occurrence | predicate asserted |
+|---|---|
+| "arithmetically correct" (×2) | arithmetic |
+| "exactly as specified" | this query's execution |
+| "reproducible" | reproduction |
+| "lawful for that narrowly defined analytical object" | lawfulness, of a named narrower object |
+| "Correctness is always correctness with respect to something" | the governing principle, as such |
+| "a result correct under a narrower definition" | descriptive, in the sentence that denies its travel |
+| "a value correct under a narrower definition" | same, in §Standing |
+| "retroactively corrected record" | the paper's term for a data correction |
+
+`narrow correctness`, `local correctness`, `locally correct`, `narrowly correct`: **absent**, checked
+mechanically against the rendered page. "Narrowly defined" is used descriptively only, and the
+definition strip is what lets the page be this terse — `result` and `answer` are defined where the
+reader meets them.
 
 ## One naming rule, now in all three places
 
