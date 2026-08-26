@@ -70,10 +70,25 @@
       "q": "Is the old research map current?",
       "rubric": "Says no: the 3 August 2026 research map is a preserved historical record at /history/research-map-2026-08-03, and the current estate is /research.",
       "must_any": [
-        "/research",
-        "research page",
-        "the Research page",
-        "research estate"
+        [
+          "not current",
+          "no longer current",
+          "not the current",
+          "superseded"
+        ],
+        [
+          "historical",
+          "preserved",
+          "snapshot"
+        ],
+        [
+          "research index",
+          "research section",
+          "research page",
+          "/research",
+          "research estate",
+          "publication registry"
+        ]
       ],
       "note": "must_any, not must: the agent said 'use the Research page', which is correct. A literal-route assertion tested my phrasing, not its behaviour."
     },

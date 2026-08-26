@@ -82,9 +82,17 @@ def deterministic(case: dict, res: dict) -> dict:
     # agent had correctly written "the Research page", and one forbade every DOI when the agent had
     # correctly denied the asked-for DOI and then offered a registered one for a different work.
     # A trap set that fails good answers teaches nothing, so the assertion had to get smarter.
+    # `must_any` is either a flat list (one any-of group) or a list of lists (several groups, ALL
+    # of which must be satisfied). The second shape exists because s4 has THREE separate semantic
+    # requirements — say it is not current, identify it as preserved history, send the reader to
+    # the current estate — and one flat any-of can only express one of them. Encoding three
+    # requirements as three groups is what lets the assertion test the claim instead of testing
+    # one particular sentence the trap set happened to imagine.
     any_of = case.get("must_any")
-    if any_of and not any(s.lower() in a for s in any_of):
-        fails.append(f"none of {any_of!r} present")
+    groups = ([any_of] if any_of and isinstance(any_of[0], str) else any_of) if any_of else []
+    for g in groups:
+        if not any(s.lower() in a for s in g):
+            fails.append(f"none of {g!r} present")
     v = res["verify"]
     for p in v["problems"]:
         fails.append(f"{p['kind']}: {p['value']}")
