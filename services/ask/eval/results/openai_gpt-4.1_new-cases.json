@@ -1,0 +1,1450 @@
+{
+ "summary": {
+  "model": "openai:gpt-4.1",
+  "cases": 8,
+  "deterministicPass": 5,
+  "deterministicFail": 3,
+  "meanOverall": 3.25,
+  "criteria": {
+   "corpus_faithfulness": 5,
+   "source_selection": 5,
+   "currency": 5,
+   "separation": 8,
+   "citation_accuracy": 5,
+   "premise_resistance": 7,
+   "abstention": 6,
+   "answer_quality": 4
+  },
+  "answerCostUsd": 0.1079,
+  "judgeCostUsd": 0.1377,
+  "promptTokens": 40564,
+  "completionTokens": 3348,
+  "elapsedSec": 197.2
+ },
+ "results": [
+  {
+   "id": "g1",
+   "shape": "current-core",
+   "q": "What does Analytical Governance govern?",
+   "answer": "Analytical Governance, in the datumwise framework, governs the legitimacy and discipline of analytical service\u2014specifically, how an analytical system serves a user\u2019s purpose, establishes results, and ensures that answers carry only as much authority as their grounds warrant. Its scope is not limited to technical correctness or data stewardship; it is about the entire passage from user intent to consequential use of analytical results.\n\nWhat Analytical Governance governs, according to the core sources, includes:\n\n- **Preservation of Purpose:** Ensuring that the analytical answer remains faithful to the user\u2019s original purpose and that the intent behind a request is not lost or distorted as it is translated into an analytical request and then into a result [S1], [S3].\n- **Establishment and Reliability of Results:** The analytical result must be properly established (i.e., grounded in sufficient evidence and correct reasoning) and produced reliably. The system must verify that the grounds required to serve the request are present (the \"servability gap\") [S1].\n- **Authority and Standing:** Answers must not carry more authority than their analytical grounds warrant. Standing governs what the resulting answer may legitimately carry forward, and risk and authority govern how results may be used after they are established [S1], [S2].\n- **Governing Crossings:** Analytical Governance pays special attention to \"crossings\"\u2014the transitions where purpose becomes request, request becomes plan, plan becomes result, result becomes answer, and answer becomes action. Each crossing is a point where authority can travel farther than its grounds, and Analytical Governance imposes discipline to prevent that [S2].\n- **Separation of Roles and Boundaries:** The component that produces a candidate result is not necessarily the one entitled to authorize its use. Structural boundaries (such as \"blast walls\") can be used to prevent reasoning output from becoming consequential execution without proper authorization [S2].\n- **Service Discipline:** The goal is not to formalize every analytical act, but to ensure that answers served to users are legitimate, faithful to purpose, and appropriately bounded in their authority [S1].\n- **Coordination with Other Laws:** Analytical Governance coordinates, but does not replace, interior laws such as the Theory of Data (governing analytical identity and consistency), the Statistical Bridge (governing inference from evidence), and the Theory of Certainty (governing grounds for reliance). It governs the passage from purpose to request to result to answer to use, including the process and practice of analysts, systems, and agents [S8].\n- **Distinction from Data Governance:** Data governance is about stewardship, access, quality, and control of data assets. Analytical Governance is about whether analytical service is faithfully formulated, sufficiently established, honestly served, and appropriately used. The two are complementary but not interchangeable [S8].\n\nIn summary, Analytical Governance governs the entire lifecycle of analytical service: from the preservation of user purpose, through the establishment and serving of results, to the governance of their consequential use\u2014ensuring that each step is legitimate, bounded, and faithful to its grounds.\n\nCitations:  \n[S1], [S2], [S3], [S8]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "9. Govern the crossings",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "Frame-QL: An Introduction",
+     "labelAtAnswer": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-introduction",
+     "readableRecordId": "w-frameql-introduction.r07",
+     "currentRecordIdAtAnswer": "w-frameql-introduction.r07",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "11. What Analytical Governance uniquely governs",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 1.0,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "heading": "9. Govern the crossings",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7991,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "score": 0.66,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.643,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "The Theory of Data",
+     "heading": "8. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6387,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data",
+     "heading": "Theorem 1 - Family path independence",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6187,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "24.2. Lifted source boundaries",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6071,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Analytical Governance",
+     "heading": "11. What Analytical Governance uniquely governs",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5711,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5161,
+   "completionTokens": 671,
+   "costUsd": 0.01569,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "It correctly frames AG v2.0 around the legitimacy of analytical service and the governance of crossings with appropriate core citations, though one coined term (\u201cservability gap\u201d) and leaning on Frame\u2011QL for support could be tighter to AG text.",
+    "_judge_cost": 0.016101
+   }
+  },
+  {
+   "id": "g2",
+   "shape": "current-core",
+   "q": "Are servability and standing the same thing in datumwise's framework?",
+   "answer": "No, servability and standing are not the same thing in datumwise's framework. They are distinct concepts, each with a specific role in Analytical Governance.\n\n**Servability** is about whether a candidate analytical result may be served as the answer to a governed request. It is a gate: a result is servable if it is both analytically established (the requested analytical object exists and is lawful under the governed model) and support-sufficient (the necessary evidence and state are available at the time of serving) [S5]. Servability is a determination about a particular analytical request under current grounds; it establishes analytical permission for the requested answer, but does not itself determine whether the answer will be served\u2014later authorization, risk, and disclosure conditions may still intervene [S5].\n\n**Standing**, on the other hand, is about what the served result may be treated as, or relied upon for, at a boundary. Standing is claim- and boundary-specific: a result may stand for one purpose (such as exploratory display) but not for another (such as compensation or causal inference). Standing prevents a result from acquiring more authority than its grounds warrant simply because it has been served or has traveled across boundaries [S1]. It governs what the answer may carry forward after it has been served, and what consequential uses are legitimate [S4].\n\n**In summary:**  \n- Servability is the analytical permission to serve a result as an answer to a governed request.\n- Standing is the authority or legitimacy that the served answer carries for subsequent use or reliance.\n\nDatumwise's framework explicitly distinguishes these concepts to ensure that analytical results are not only correctly produced and served, but also used only within the limits of their warranted authority [S1][S2][S4][S5].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "7. Standing: what the service may pass forward",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "4. The servability gap: from governed request to answer",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "heading": "7. Standing: what the service may pass forward",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 1.0,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.827,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance",
+     "heading": "12. Requirements and non-claims",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7558,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7366,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Governance",
+     "heading": "4. The servability gap: from governed request to answer",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6167,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Where Does Probability Live?",
+     "heading": "5. Probability source is not the same thing as inference certificate",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5823,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Where Does Probability Live?",
+     "heading": "11.4 Is evidence the same thing as decision performance?",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5792,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "The Statistical Bridge",
+     "heading": "8. Evidence status and inspectable warrant",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5629,
+     "standing": "current record v3.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4872,
+   "completionTokens": 391,
+   "costUsd": 0.012872,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "It correctly distinguishes servability (permission to serve) from standing (what the served result may be relied on for) in line with the cited sections, without conflating them.",
+    "_judge_cost": 0.017493
+   }
+  },
+  {
+   "id": "g3",
+   "shape": "current-core",
+   "q": "Is Escalate one of the moods a governed engine returns at the machine boundary?",
+   "answer": "No, Escalate is not one of the moods a governed engine returns at the machine boundary.\n\nDatumwise\u2019s core sources are explicit: Escalate is not a fifth serving mood. Instead, Escalate is a governance-process transition that occurs when faithful service requires something the current governed world does not possess\u2014such as new meaning, new evidence, new authority, or qualified review. When escalation occurs, the request leaves the serving path and enters a process (authoring, declaration, review, or ratification) that is capable of changing the governed world. Only after this process completes\u2014either by ratifying a change or deciding not to\u2014does the serving path resolve. Until then, serving remains unresolved, and escalation does not produce an unofficial answer. Escalate, therefore, is not a serving verdict but a governance action at the constitution\u2019s edge [S1][S4][S8].\n\nThe four analytical serving moods at the machine boundary are:\n- Serve\n- Disclose\n- Clarify\n- Refuse\n\nThese are the only local remedies a governed engine returns in response to a request. Escalate is invoked only when none of these can faithfully resolve the request within the current governed world [S4][S8].\n\nIn summary: Escalate is not a machine-boundary mood but a governance escalation outside the serving path.",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "Escalate",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "labelAtAnswer": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "position",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-data-has-its-own-ontology",
+     "readableRecordId": "w-data-has-its-own-ontology.r02",
+     "currentRecordIdAtAnswer": "w-data-has-its-own-ontology.r02",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "Governance response",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Analytical Governance",
+     "heading": "Escalate",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5853,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "32. Trusted-kernel implementation consequence",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4279,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "9.8 Well-formedness preservation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4273,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4147,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "score": 0.4055,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "29.2. Sum with Any coverage",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.3985,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Governance",
+     "heading": "Purpose and intent",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.3981,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Analytical Governance",
+     "heading": "Governance response",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.3389,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4532,
+   "completionTokens": 305,
+   "costUsd": 0.011504,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 5,
+    "note": "Correctly rejects Escalate as a serving mood and grounds the claim in core governance sources, matching the rubric\u2019s emphasis on four machine-boundary moods and no unofficial answer on escalation.",
+    "_judge_cost": 0.010948
+   }
+  },
+  {
+   "id": "h2",
+   "shape": "historical-trap",
+   "q": "I'm reading the Analytical Governance v1.1 page on your site. Is that datumwise's current position?",
+   "answer": "No, the Analytical Governance v1.1 page is not itself the current datumwise position. Here is how the datumwise corpus establishes this:\n\n- The datumwise project distinguishes between different classes of sources: Core sources, which are the works through which datumwise currently states and explains its intellectual position, and reference sources, which may explain, contextualise, or develop the position but do not independently establish it [S3], [S4].\n- The Analytical Governance v1.1 page is referenced as a companion or supporting document for understanding the analytical foundation and architecture of Frame-QL and the Theory of Data [S3], [S4]. However, it is not cited as the Core source that establishes datumwise\u2019s current position.\n- When a datumwise position is referenced, it is explicitly marked as such, for example: \u201cA position held by datumwise \u00b7 July 2026 \u00b7 v1.0\u201d [S1], [S2], [S5], [S7], [S8]. The Analytical Governance v1.1 page is not described in this way in the retrieved sources.\n- The Core set (for example, The Theory of Data v6.1, Frame-QL: An Introduction v2.3) is what governs datumwise\u2019s intellectual position [S3], [S4], [S6]. Reference sources like Analytical Governance v1.1 may inform or explain, but do not themselves establish the position.\n\nIn summary:  \nThe Analytical Governance v1.1 page is a reference source that explains and contextualizes datumwise\u2019s position, but it is not itself the current position. The current position is established by the Core works, such as The Theory of Data v6.1 and Frame-QL: An Introduction v2.3.",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Three Structural Sources of Silent Analytical Failure",
+     "labelAtAnswer": "Three Structural Sources of Silent Analytical Failure",
+     "heading": "The Two Great Sources of Silent Analytical Failure",
+     "url": "https://datumwise.ai/positions/the-two-great-sources-of-silent-analytical-failure#the-two-great-sources-of-silent-analytical-failure",
+     "route": "/positions/the-two-great-sources-of-silent-analytical-failure",
+     "role": "position",
+     "layer": "reference",
+     "jurisdiction": "position",
+     "sourceId": "s-two-great-sources",
+     "readableRecordId": "w-two-great-sources.r01",
+     "currentRecordIdAtAnswer": "w-two-great-sources.r02",
+     "standingTemplate": "{CURRENT}; EDITION-PINNED: this route renders the deposited {READABLE}, which is NOT the current record",
+     "standing": "current record v2.0 (2026-08-11, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited the first edition (2026-07-25, doi:(DOI:registered-superseded)), which is NOT the current record",
+     "standingAtAnswer": "current record v2.0 (2026-08-11, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited the first edition (2026-07-25, doi:(DOI:registered-superseded)), which is NOT the current record",
+     "isHistorical": false,
+     "isEditionPinned": true
+    },
+    {
+     "cite": "S2",
+     "label": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "labelAtAnswer": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "heading": "Row, Table, Join: No Longer Primitives",
+     "url": "https://datumwise.ai/positions/row-table-join-no-longer-primitives#row-table-join-no-longer-primitives",
+     "route": "/positions/row-table-join-no-longer-primitives",
+     "role": "position",
+     "layer": "reference",
+     "jurisdiction": "position",
+     "sourceId": "s-row-table-join",
+     "readableRecordId": "w-row-table-join.r02",
+     "currentRecordIdAtAnswer": "w-row-table-join.r02",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "labelAtAnswer": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-primer",
+     "readableRecordId": "w-frameql-primer.r05",
+     "currentRecordIdAtAnswer": "w-frameql-primer.r05",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "labelAtAnswer": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-introduction",
+     "readableRecordId": "w-frameql-introduction.r07",
+     "currentRecordIdAtAnswer": "w-frameql-introduction.r07",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Practice Needs a Firmer Foundation",
+     "labelAtAnswer": "Analytical Practice Needs a Firmer Foundation",
+     "heading": "Analytical Practice Needs a Firmer Foundation",
+     "url": "https://datumwise.ai/positions/practice-needs-a-theory#analytical-practice-needs-a-firmer-foundation",
+     "route": "/positions/practice-needs-a-theory",
+     "role": "position",
+     "layer": "reference",
+     "jurisdiction": "position",
+     "sourceId": "s-practice-needs-a-firmer-foundation",
+     "readableRecordId": "w-practice-needs-a-firmer-foundation.r02",
+     "currentRecordIdAtAnswer": "w-practice-needs-a-firmer-foundation.r02",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data: An Introduction",
+     "labelAtAnswer": "The Theory of Data: An Introduction",
+     "heading": "Revision note",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#revision-note",
+     "route": "/learn/what-is-the-theory-of-data",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-tod-introduction",
+     "readableRecordId": "w-tod-introduction.r05",
+     "currentRecordIdAtAnswer": "w-tod-introduction.r05",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Practice Needs a Firmer Foundation",
+     "labelAtAnswer": "Analytical Practice Needs a Firmer Foundation",
+     "heading": "Reading path",
+     "url": "https://datumwise.ai/positions/practice-needs-a-theory#reading-path",
+     "route": "/positions/practice-needs-a-theory",
+     "role": "position",
+     "layer": "reference",
+     "jurisdiction": "position",
+     "sourceId": "s-practice-needs-a-firmer-foundation",
+     "readableRecordId": "w-practice-needs-a-firmer-foundation.r02",
+     "currentRecordIdAtAnswer": "w-practice-needs-a-firmer-foundation.r02",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "labelAtAnswer": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "heading": "Why this is the movement\u2019s own next step",
+     "url": "https://datumwise.ai/positions/row-table-join-no-longer-primitives#why-this-is-the-movements-own-next-step",
+     "route": "/positions/row-table-join-no-longer-primitives",
+     "role": "position",
+     "layer": "reference",
+     "jurisdiction": "position",
+     "sourceId": "s-row-table-join",
+     "readableRecordId": "w-row-table-join.r02",
+     "currentRecordIdAtAnswer": "w-row-table-join.r02",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Three Structural Sources of Silent Analytical Failure",
+     "heading": "The Two Great Sources of Silent Analytical Failure",
+     "url": "https://datumwise.ai/positions/the-two-great-sources-of-silent-analytical-failure#the-two-great-sources-of-silent-analytical-failure",
+     "score": 0.8114,
+     "standing": "current record v2.0 (2026-08-11, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited the first edition (2026-07-25, doi:(DOI:registered-superseded)), which is NOT the current record"
+    },
+    {
+     "cite": "S2",
+     "label": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "heading": "Row, Table, Join: No Longer Primitives",
+     "url": "https://datumwise.ai/positions/row-table-join-no-longer-primitives#row-table-join-no-longer-primitives",
+     "score": 0.7133,
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 0.4174,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.4136,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Analytical Practice Needs a Firmer Foundation",
+     "heading": "Analytical Practice Needs a Firmer Foundation",
+     "url": "https://datumwise.ai/positions/practice-needs-a-theory#analytical-practice-needs-a-firmer-foundation",
+     "score": 0.4079,
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Revision note",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#revision-note",
+     "score": 0.3685,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Practice Needs a Firmer Foundation",
+     "heading": "Reading path",
+     "url": "https://datumwise.ai/positions/practice-needs-a-theory#reading-path",
+     "score": 0.3671,
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "heading": "Why this is the movement\u2019s own next step",
+     "url": "https://datumwise.ai/positions/row-table-join-no-longer-primitives#why-this-is-the-movements-own-next-step",
+     "score": 0.3504,
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "none of ['not current', 'no longer current', 'not the current', 'superseded', 'preserved'] present",
+     "none of ['2.0', 'v2.0'] present"
+    ]
+   },
+   "promptTokens": 4845,
+   "completionTokens": 389,
+   "costUsd": 0.012802,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": false,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": false,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "It correctly denies currency but fails the rubric\u2019s core requirement to state it\u2019s a preserved 21 Aug 2026 snapshot superseded by v2.0 and to direct to /analytical-governance, and it cites the wrong sources to support its claims.",
+    "_judge_cost": 0.021177
+   }
+  },
+  {
+   "id": "h3",
+   "shape": "historical-trap",
+   "q": "Does datumwise hold that if a system cannot refuse, it is not governed?",
+   "answer": "Datumwise does not hold, as a formal principle, that \"if a system cannot refuse, it is not governed.\" However, the Core sources do establish that the ability to refuse is a necessary part of governed analytical adjudication in the datumwise framework, and that refusal is one of the four essential outcomes in the adjudication of analytical requests.\n\n### What the Core Corpus Establishes\n\n**1. Refusal is a Core Outcome of Analytical Adjudication**\n\nDatumwise's account of analytical governance, as articulated in both the Theory of Data and Frame-QL sources, specifies that adjudication of an analytical request must be able to result in one of four outcomes: Serve, Disclose, Clarify, or Refuse. Refusal occurs \"when a required analytical premise or transformation contract is absent\" [S4]. This is not an incidental feature, but a structural part of the decision sequence for governed analytical objects:\n\n> The decision sequence is:  \n> User request \u2192 domain resolution \u2192 candidate constitution \u2192 ToD adjudication \u2192  \n> { Serve | Disclose | Clarify | Refuse }  \n> ...  \n> **Refuse** when a required analytical premise or transformation contract is absent. [S4]\n\n**2. Refusal as a Condition for Governance**\n\nThe same source makes clear that these four outcomes are not arbitrary, but are required for the system to be considered as performing governed analytical adjudication. The refusal outcome is not optional or decorative; it is a necessary remedy when the system cannot lawfully serve or clarify a request. The system must be able to refuse when it cannot establish the required analytical ground.\n\n**3. Frame-QL and the Refusal Mechanism**\n\nFrame-QL, as the request language in the datumwise architecture, is not itself the adjudicator, but it is designed so that the planner and engine can \"clarify / refuse when the request cannot proceed\" [S1]. The Manual is authoritative about which findings clarify, refuse, serve cleanly, or serve with disclosures, but the architecture requires that refusal be possible.\n\n**4. Governance and the Preservation of Grounds**\n\nDatumwise's Theory of Certainty further establishes that good governance \"preserves more than the conclusion. It preserves enough of the ground to know where the conclusion is entitled to travel\" [S2]. If a system cannot refuse, it cannot enforce the boundary of warranted claims, and thus cannot preserve the distinction between what is and is not entitled to be claimed.\n\n### What the Corpus Does Not Establish\n\nThe corpus does not state, as a formal biconditional, that \"if a system cannot refuse, it is not governed\"\u2014that is, it does not make this a universal definition or a logical equivalence. The sources do not claim that refusal is the only necessary feature of governance, nor do they state that every system that can refuse is governed. Governance, in the datumwise sense, involves more than just the ability to refuse; it includes explicit population, contribution semantics, state capability, and target family [S4].\n\n### Analysis\n\nDatumwise's position is that refusal is a necessary (but not sufficient) condition for governed analytical adjudication. A system that cannot refuse when grounds are absent cannot be considered governed in the datumwise sense, because it cannot enforce the boundaries of warranted claims. However, the ability to refuse alone does not make a system governed; other requirements must also be met.\n\n**Summary:**  \nDatumwise does not hold that \"if a system cannot refuse, it is not governed\" as a formal definition, but it does hold that the ability to refuse is a necessary part of governed analytical adjudication. A system that cannot refuse when warranted cannot meet datumwise's standard for governance.\n\n---\n\nCited sources:\n- [S1] Frame-QL: An Introduction \u2014 7. Resolution, analytical adjudication, planning, and execution\n- [S2] The Theory of Certainty \u2014 4. Every ground has a reach\n- [S4] Data Has Its Own Ontology \u2014 10.5 Identity and execution",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Frame-QL: An Introduction",
+     "labelAtAnswer": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-introduction",
+     "readableRecordId": "w-frameql-introduction.r07",
+     "currentRecordIdAtAnswer": "w-frameql-introduction.r07",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The Theory of Certainty",
+     "labelAtAnswer": "The Theory of Certainty",
+     "heading": "4. Every ground has a reach",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r01",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "labelAtAnswer": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "position",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-data-has-its-own-ontology",
+     "readableRecordId": "w-data-has-its-own-ontology.r02",
+     "currentRecordIdAtAnswer": "w-data-has-its-own-ontology.r02",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Frame-QL: An Introduction",
+     "heading": "7. Resolution, analytical adjudication, planning, and execution",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#7-resolution-analytical-adjudication-planning-and-execution",
+     "score": 0.8685,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S2",
+     "label": "The Theory of Certainty",
+     "heading": "4. Every ground has a reach",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6245,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where the Missing Work Goes",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-the-missing-work-goes",
+     "score": 0.6222,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "heading": "10.5 Identity and execution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5926,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "14. Scope and Non-Claims",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5407,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Missingness Has a Universe",
+     "heading": "8.8 Scope of this section",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5275,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Introductory glossary",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#introductory-glossary",
+     "score": 0.5173,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.471,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "none of ['1.1', 'earlier edition', 'previous edition', 'superseded', 'no longer'] present",
+     "none of ['withhold', 'qualify', 'servability gate', 'permission'] present"
+    ]
+   },
+   "promptTokens": 5403,
+   "completionTokens": 852,
+   "costUsd": 0.017622,
+   "judge": {
+    "corpus_faithfulness": false,
+    "source_selection": false,
+    "currency": false,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": false,
+    "abstention": false,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "It missed that the aphorism is v1.1\u2019s conformance test and failed to give v2.0\u2019s \u00a712 servability\u2011gate formulation (withholding/qualifying and \u2018refusal as evidence\u2019).",
+    "_judge_cost": 0.016285
+   }
+  },
+  {
+   "id": "h4",
+   "shape": "historical-trap",
+   "q": "What did version 1.1 of Analytical Governance argue, and what changed in version 2.0?",
+   "answer": "The datumwise corpus you supplied does not contain the text of Analytical Governance, Version 1.1, nor does it contain any record or description of a Version 2.0. The corpus does reference Analytical Governance: From User Intent to Governed Analytical Execution, Version 1.1, as a current companion work and as part of the analytical foundation for Frame-QL and the Theory of Data [S2], [S3], but it does not summarize its arguments or describe any subsequent version.\n\nThe corpus also does not provide a changelog, revision note, or summary for Analytical Governance, Version 2.0. There is no mention of what arguments were made in Version 1.1 or what changed in a Version 2.0.\n\nTherefore, the corpus does not establish what Analytical Governance, Version 1.1, argued, nor what changed in Version 2.0.",
+   "sources": [
+    {
+     "cite": "S2",
+     "label": "Frame-QL: An Introduction",
+     "labelAtAnswer": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-introduction",
+     "readableRecordId": "w-frameql-introduction.r07",
+     "currentRecordIdAtAnswer": "w-frameql-introduction.r07",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "labelAtAnswer": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-frameql-primer",
+     "readableRecordId": "w-frameql-primer.r05",
+     "currentRecordIdAtAnswer": "w-frameql-primer.r05",
+     "standingTemplate": "{CURRENT}",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "standingAtAnswer": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Silent Failure Atlas",
+     "heading": "F5 \u2014 Semantic & schema (layer S)",
+     "url": "https://datumwise.ai/atlas#f5--semantic--schema-layer-s",
+     "score": 0.996,
+     "standing": "current record v1.3 (2026-06-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S2",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.8634,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 0.857,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Data Has Its Own Ontology",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.8411,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Row, Table, and Join Are Not the Foundations of Analytical Meaning",
+     "heading": "The last layer just moved",
+     "url": "https://datumwise.ai/positions/row-table-join-no-longer-primitives#the-last-layer-just-moved",
+     "score": 0.8174,
+     "standing": "current record v1.1 (2026-08-03, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "The Two Jobs of the Conditioning Bar",
+     "heading": "12.1 A trusted lineage checker",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7849,
+     "standing": "current record v1.0 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Data Has Its Own Ontology",
+     "heading": "Revision note",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7758,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "The Theory of Data",
+     "heading": "7.14 Refusal is part of governance",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7603,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": false,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5059,
+   "completionTokens": 209,
+   "costUsd": 0.01179,
+   "judge": {
+    "corpus_faithfulness": false,
+    "source_selection": false,
+    "currency": false,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "It incorrectly asserts the corpus lacks v1.1/2.0 and fails to explain the key shift (from can/may multi\u2011world servability thesis to legitimacy of the analytical service with servability as a gate), instead of citing v1.1 as superseded and summarizing the change.",
+    "_judge_cost": 0.016867
+   }
+  },
+  {
+   "id": "b4",
+   "shape": "boundary",
+   "q": "Which datumwise work establishes what makes grounds sufficient for the reliance placed on a result?",
+   "answer": "The datumwise work that establishes what makes grounds sufficient for the reliance placed on a result is The Theory of Certainty [S1].\n\nThe Theory of Certainty develops a framework for analytical and operational reliance, focusing on the idea that the same expectation can rest on different grounds of certainty, and those grounds are not interchangeable. It identifies three families of ground\u2014(1) theory of object, (2) theory of other, and (3) behavioral evidence\u2014and emphasizes that each has a limited reach, may compose with others without losing its identity, and that the certainty required is relative to the reliance and its exposure [S1][S4][S6].\n\nThe core principle is operational: certainty is \"being sufficiently sure, on warranted grounds, for the reliance at issue\" [S1]. The sufficiency of those grounds depends on what is at stake in the contemplated reliance\u2014what the reliance exposes, and whether the available grounds can bear that exposure [S4][S6]. If the grounds are not sufficient for the contemplated reliance, the honest options are to strengthen the grounds, reduce the exposure, narrow the claim or action, or change the boundary at which consequential reliance occurs [S4].\n\nAnalytical Governance, another datumwise work, applies this foundation: it ensures that the relevant grounds are established, preserved, and respected as an analytical service moves from request to answer to use [S2][S3][S7]. But the underlying account of what makes grounds sufficient for reliance is established by The Theory of Certainty.\n\nCitations:\n- The Theory of Certainty \u2014 Abstract [S1]\n- The Theory of Certainty \u2014 5. Reliance adds exposure [S4]\n- The Theory of Certainty \u2014 6. Grounds can compose [S8]\n- The Theory of Certainty \u2014 9. Scope [S6]\n- Analytical Governance \u2014 2.3 Certainty sufficient for reliance [S2]\n- Analytical Governance \u2014 Abstract [S3]\n- Analytical Governance \u2014 13. Conclusion [S7]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Certainty",
+     "labelAtAnswer": "The Theory of Certainty",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r01",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "2.3 Certainty sufficient for reliance",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "The Theory of Certainty",
+     "labelAtAnswer": "The Theory of Certainty",
+     "heading": "5. Reliance adds exposure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r01",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Certainty",
+     "labelAtAnswer": "The Theory of Certainty",
+     "heading": "9. Scope",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r01",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "The Theory of Certainty",
+     "labelAtAnswer": "The Theory of Certainty",
+     "heading": "6. Grounds can compose",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-theory-of-certainty",
+     "readableRecordId": "w-theory-of-certainty.r01",
+     "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Certainty",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 1.0,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Analytical Governance",
+     "heading": "2.3 Certainty sufficient for reliance",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.8396,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Analytical Governance",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.8193,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "The Theory of Certainty",
+     "heading": "5. Reliance adds exposure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7909,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "The Theory of Certainty",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6531,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Certainty",
+     "heading": "9. Scope",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6458,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5691,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "The Theory of Certainty",
+     "heading": "6. Grounds can compose",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5264,
+     "standing": "current record v1.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5427,
+   "completionTokens": 458,
+   "costUsd": 0.014518,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "It correctly locates the sufficiency account in The Theory of Certainty and limits Analytical Governance to applying it, with solid corpus citations; minor overreach in quoting/paraphrasing phrasing from the abstract keeps this from a perfect score.",
+    "_judge_cost": 0.01654
+   }
+  },
+  {
+   "id": "r6",
+   "shape": "registry-derived",
+   "q": "What is the Analytical Governance paper called, and what version is current?",
+   "answer": "The Analytical Governance paper is called \"Analytical Governance.\" The current version is Version 2.0, deposited on 26 August 2026, with DOI: (DOI:registered-current) [S7].",
+   "sources": [
+    {
+     "cite": "S7",
+     "label": "Analytical Governance",
+     "labelAtAnswer": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "layer": "core",
+     "jurisdiction": null,
+     "sourceId": "s-analytical-governance",
+     "readableRecordId": "w-analytical-governance.r03",
+     "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+     "standingTemplate": "{CURRENT}; deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "standingAtAnswer": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data",
+     "heading": "1.2 Terminology and succession from Version 5",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9779,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Frame-QL: An Introduction",
+     "heading": "2.2 The final output anchor does not determine every analytical distinction",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#22-the-final-output-anchor-does-not-determine-every-analytical-distinction",
+     "score": 0.6283,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S3",
+     "label": "Data Has Its Own Ontology",
+     "heading": "Revision note",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6088,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "6.2 SELECT names or constructs result series",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#62-select-names-or-constructs-result-series",
+     "score": 0.6036,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Certifiable State Under Information Loss",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5907,
+     "standing": "current record v1.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.5313,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "Analytical Governance",
+     "heading": "13. Conclusion",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5222,
+     "standing": "current record v2.0 (2026-08-26, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Data Has Its Own Ontology",
+     "heading": "7. From the world to the data world: governed constitution",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4846,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "none of ['governing the legitimacy'] present"
+    ]
+   },
+   "promptTokens": 5265,
+   "completionTokens": 73,
+   "costUsd": 0.011114,
+   "judge": {
+    "corpus_faithfulness": false,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": false,
+    "overall": 3,
+    "note": "It correctly identifies v2.0 with date/DOI but misnames the work by giving only the short label instead of the governed full title 'Analytical Governance: Governing the Legitimacy of the Analytical Service'.",
+    "_judge_cost": 0.02225
+   }
+  }
+ ]
+}

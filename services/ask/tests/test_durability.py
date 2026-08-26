@@ -14,6 +14,14 @@ ruling are the two the assertions are written against:
     · a CURRENT PRESENTATION string carried as though it were identity
     · HISTORICAL PRESENTATION silently rewritten
 
+THE FIXTURE DOIs ARE DELIBERATELY NOT ZENODO-SHAPED. They were, for one commit, and the echo audit
+refused the file — correctly: a Zenodo-shaped identifier in a tracked file is a hand-authored
+publication fact and must be declared. DECLARING THEM WOULD HAVE BEEN THE WRONG REPAIR, because a
+consumers.json row would then permit a token that no record in the registry carries. So the prefix is
+`10.9999/fixture.` instead: unmistakable as a fixture, invisible to the scanner, impossible to
+confuse with a deposit. The offending prefix is not repeated in this docstring either, for the same
+reason a DOI was removed from one on 2026-08-26 rather than given a permission row.
+
 THE MOVE IS SYNTHETIC AND THE REGISTRY IS UNTOUCHED. `citations._records` and `citations._naming`
 are the only two readers of the registry inside the resolution path, so the move is applied by
 substituting what those two functions return. Editing registry/ to run a test would make the test a
@@ -42,10 +50,10 @@ from ask import citations, quotes, store  # noqa: E402
 
 WORK = "w-fixture-work"
 R01 = {"recordId": f"{WORK}.r01", "workId": WORK, "title": "A Fixture Paper: The First Subtitle",
-       "version": "1.0", "date": "2026-08-01", "doi": "10.5281/zenodo.90000001",
+       "version": "1.0", "date": "2026-08-01", "doi": "10.9999/fixture.90000001",
        "recid": "90000001", "status": "current"}
 R02 = {"recordId": f"{WORK}.r02", "workId": WORK, "title": "A Fixture Paper: A Different Subtitle",
-       "version": "2.0", "date": "2026-08-20", "doi": "10.5281/zenodo.90000002",
+       "version": "2.0", "date": "2026-08-20", "doi": "10.9999/fixture.90000002",
        "recid": "90000002", "status": "current", "supersedes": f"{WORK}.r01"}
 
 SOURCE = {"sourceId": "s-fixture", "workId": WORK, "role": "foundation"}
@@ -87,8 +95,8 @@ def _answer_with_a_citation() -> str:
             "readableRecordId": R01["recordId"],
             "currentRecordIdAtAnswer": R01["recordId"],
             "standingTemplate": "{CURRENT}; deposited text",
-            "standing": "current record v1.0 (2026-08-01, doi:10.5281/zenodo.90000001); deposited text",
-            "standingAtAnswer": "current record v1.0 (2026-08-01, doi:10.5281/zenodo.90000001); deposited text",
+            "standing": "current record v1.0 (2026-08-01, doi:10.9999/fixture.90000001); deposited text",
+            "standingAtAnswer": "current record v1.0 (2026-08-01, doi:10.9999/fixture.90000001); deposited text",
         }],
         evidence=[{"cite": "S1", "label": LABEL_BEFORE, "heading": "1. What a fixture is",
                    "layer": "core", "standing": "current",
@@ -129,7 +137,7 @@ def test_a_registry_move_changes_presentation_and_only_presentation(monkeypatch)
 
     # MUST CHANGE — current standing, current presentation, and the two derived flags.
     assert a["standing"] != b["standing"]
-    assert "v2.0" in a["standing"] and "90000002" in a["standing"]
+    assert "v2.0" in a["standing"] and "fixture.90000002" in a["standing"]
     assert a["label"] == LABEL_AFTER != b["label"]
     assert a["supersededSinceAnswer"] is True
     assert a["labelChangedSinceAnswer"] is True
@@ -141,7 +149,7 @@ def test_a_registry_move_changes_presentation_and_only_presentation(monkeypatch)
     for field in MUST_NOT_CHANGE:
         assert a[field] == b[field], f"{field} is in MUST NOT CHANGE and moved"
     assert a["standingAtAnswer"] == b["standingAtAnswer"] == \
-        "current record v1.0 (2026-08-01, doi:10.5281/zenodo.90000001); deposited text"
+        "current record v1.0 (2026-08-01, doi:10.9999/fixture.90000001); deposited text"
     assert a["labelAtAnswer"] == LABEL_BEFORE
 
     # The answer, the provisional answer, and the whole review record are historical facts.

@@ -6,8 +6,12 @@ candidate and the review packet back. This is that packet. The machine-readable 
 `servability_candidate_2026-08-26.json` beside this file — question, answer, every source with
 both standing sentences, the reviewer's nine findings, and the quote-verification facts.
 
-**Nothing is published.** The candidate sits provisional and unpublished, which is where the
-ruling says to stop.
+**PUBLISHED 2026-08-26**, after F3/F2/F1 completed and on the publication ruling of 16:35 item 3 —
+through the real review-to-publish path (`POST /review/publish`, the endpoint the human review screen
+calls), reviewer `huayin`, provisional text published unchanged. The public specimen is
+`published_servability_qa_2026-08-26.json` beside this file, and F4's findings about it are in
+`specs/f_evaluation_report_v0_1.md`. Everything below describes the candidate as it stood when it was
+brought back for that ruling; it is not rewritten now that the ruling has landed.
 
 ---
 

@@ -50,5 +50,36 @@ Not a sequence — an assignment by failure class:
 `eval/questions.json`. Shapes 1–6 are Huayin's brief. Shape 7 is **derived from the registry** —
 every superseded record, every edition-pinned route, and every non-deposited teaching surface is a
 trap, so the set stays current as the registry moves instead of rotting the way hand-written evals do.
+Eight cases were added on 2026-08-26 when the corpus moved beneath the set: AG v2.0 superseded v1.1,
+The Theory of Certainty entered Core, the v1.1 doorway became a preserved route *inside the index*,
+and the work's editorial label was renamed.
 
 Results are committed under `eval/results/` so failures can be read rather than summarised.
+
+## The review gate, evaluated as a gate
+
+`eval/review_fixtures.json` + `eval/run_review_eval.py`. A different shape of evaluation, because the
+question is not whether the reviewer writes plausible prose but **whether it discriminates**:
+
+> Seed a known defect. The expected disposition is known before the call. Score the disposition, the
+> dimension it names, and the false-positive rate on clean controls.
+
+Ground truth is hand-authored — a defect a model invents is a defect nobody chose — so **no judge
+model appears anywhere in this harness**. Passages are not pasted into the fixtures: each source names
+a chunk in the shipped index by `(sourceId, heading)` and the real text is resolved at run time, so a
+planted defect is a defect against what the corpus actually says.
+
+```bash
+(cd services/ask && python3 eval/run_review_eval.py)                      # the whole fixture set
+(cd services/ask && python3 eval/run_review_eval.py --only rv-quote-altered --tag targeted)
+```
+
+`--only` requires `--tag`: a subset run may not overwrite the file a full run wrote.
+
+## The durability and public-surface tests
+
+`tests/test_durability.py` applies a synthetic registry move — a supersession and an editorial rename
+together — and asserts which fields must change and which must not. `tests/test_public_surface.py`
+asserts what a reader can and cannot see: no provisional, rejected or reviewed-but-unpublished object
+reaches the public collection, and no reputation appears on anything a human has not published. Both
+are hermetic and in the ordinary test run.

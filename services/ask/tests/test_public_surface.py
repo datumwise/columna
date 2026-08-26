@@ -149,7 +149,12 @@ def test_a_published_citation_shows_current_presentation_and_preserves_the_histo
     assert s["labelChangedSinceAnswer"] is True
     assert s["supersededSinceAnswer"] is False                         # a rename is not a supersession
     assert s["readableRecordId"] == "w-analytical-governance.r03"
-    assert "v2.0" in s["standing"] and "22115819" in s["standing"]
+    # DERIVED, not typed: the assertion reads the current record out of the registry, so it stays
+    # true across the next deposit instead of pinning a recid fragment the echo audit cannot see.
+    from ask import citations
+    _, current_by_work = citations._records()  # noqa: SLF001
+    assert current_by_work["w-analytical-governance"]["doi"] in s["standing"]
+    assert f"v{current_by_work['w-analytical-governance']['version']}" in s["standing"]
     assert s["standingAtAnswer"] == "current record v2.0 (2026-08-26); deposited text"
 
 

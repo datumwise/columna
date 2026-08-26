@@ -827,5 +827,13 @@
   "class": "derived",
   "allowedDois": [],
   "note": "The preserved v1.1 doorway (CG2 final E rulings, 2026-08-26 15:59, items 5/6/9/10). It states TWO publication facts a reader needs at once — the edition this page compresses (w-analytical-governance.r02) and the record that is currently authoritative — and both are read from the registry: recordFor() and currentRecord(). ZERO literals, deliberately: a preserved page is the last place a hand-typed DOI should live, because nobody will ever come back to it. The BODY is byte-faithful v1.1 and is not maintained against the record; only the header chrome and the pinned signpost derive."
+ },
+ {
+  "path": "services/ask/docs/published_servability_qa_2026-08-26.json",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.22115819"
+  ],
+  "note": "F4's specimen: the first reviewed, human-published Ask answer, captured from GET /qa/<id> on the day it was published (2026-08-26). The DOI appears inside the RESOLVED standing sentence, which is the point of the capture — this file records what a reader was actually served, and a capture whose standing lines were re-resolved later would no longer be a record of that moment. Dated evidence; not maintained against the registry. The live object it was captured from IS maintained, and re-resolves on every read."
  }
 ]
