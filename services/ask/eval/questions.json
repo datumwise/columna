@@ -72,9 +72,11 @@
       "must_any": [
         [
           "not current",
-          "no longer current",
+          "no longer",
           "not the current",
-          "superseded"
+          "not maintained",
+          "superseded",
+          "snapshot"
         ],
         [
           "historical",
