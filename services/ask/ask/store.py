@@ -82,7 +82,6 @@ CREATE TABLE IF NOT EXISTS qa (
 );
 CREATE INDEX IF NOT EXISTS qa_key    ON qa(question_key);
 CREATE INDEX IF NOT EXISTS qa_public ON qa(public);
-CREATE INDEX IF NOT EXISTS qa_stand ON qa(standing, published);
 
 -- ── THE TECHNICAL CACHE (2026-08-26) ────────────────────────────────────────────────────────────
 -- A cache entry and a published Q&A are different objects with different lifetimes, different
@@ -233,6 +232,30 @@ def _migrate(c: sqlite3.Connection) -> None:
             c.execute(f"ALTER TABLE reviews ADD COLUMN {name} {decl}")
 
 
+# INDEXES OVER MIGRATED COLUMNS, CREATED AFTER THE MIGRATION (2026-08-26, found in production).
+#
+# `CREATE INDEX IF NOT EXISTS qa_stand ON qa(standing, published)` lived in SCHEMA, and SCHEMA runs
+# BEFORE _migrate. On a table created by the pre-2026-08-26 schema those two columns do not exist
+# yet, so `IF NOT EXISTS` does not save it: the index is not there, sqlite tries to create it, and
+# the statement fails on the COLUMN rather than on the index —
+#
+#     sqlite3.OperationalError: no such column: standing
+#
+# — out of connect(), which every read and every write goes through. The service comes up, /health
+# reports ok because it never touches the database, and every other route 500s.
+#
+# ONLY ONE DATABASE IN EXISTENCE COULD EVER HAVE SHOWN THIS, and it is the deployed one. Every local
+# and test database is created fresh from SCHEMA, whose CREATE TABLE already declares `standing` and
+# `published`, so the migration branch is never taken. The one file with rows written by the older
+# schema is on the Fly volume, and this failed the first time the new image opened it.
+#
+# The rule this encodes: SCHEMA may only reference columns that CREATE TABLE itself declares.
+# Anything that depends on a migrated column belongs here, after _migrate has run.
+POST_MIGRATION_SCHEMA = """
+CREATE INDEX IF NOT EXISTS qa_stand ON qa(standing, published);
+"""
+
+
 def connect() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     c = sqlite3.connect(DB_PATH, timeout=15)
@@ -240,6 +263,7 @@ def connect() -> sqlite3.Connection:
     c.execute("PRAGMA journal_mode=WAL")
     c.executescript(SCHEMA)
     _migrate(c)
+    c.executescript(POST_MIGRATION_SCHEMA)
     return c
 
 
