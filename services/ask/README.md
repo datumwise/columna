@@ -56,6 +56,32 @@ and the work's editorial label was renamed.
 
 Results are committed under `eval/results/` so failures can be read rather than summarised.
 
+### When an evaluation may run at all — the governing rule (Huayin, 2026-08-26)
+
+| what changed | what runs |
+|---|---|
+| registry · corpus · deposits · index **only** | **deterministic verification only. Zero model spend.** |
+| an **agent-facing surface** — prompt, retrieval behaviour, provider/model, review rubric, or anything else that can materially change generated or reviewed behaviour | **evaluate once**, affected cases **only** |
+| nothing agent-facing | **no evaluation run** |
+
+> Do not spend model calls merely to reconfirm evidence-layer facts that can be established
+> deterministically.
+
+**Why this had to be ruled.** This harness was built to test the AGENT BUILD. It drifted into testing
+the whole pipeline's output while the agent sat constant — which puts the spend on the one component
+that had not changed. A corpus move cannot change what the agent *is*; it can only change what the
+agent is HANDED, and what it is handed is exactly what a deterministic check reads directly.
+
+The evidence for the rule is in this repo. Every retrieval failure found in F — `h2`, `r6`, and
+`h4`'s false pass — was visible in the evidence layer before any model was called, and the repair was
+verified in production across the whole class (registry currency, the typed-authority gate, historical
+reachability) with **zero** model calls. See §6–7 of `specs/certainty_v1_1_reconciliation_report_v0_1.md`.
+
+The rule is enforced by hand today. `OF-29` banks the harness guard that will enforce it in the
+machinery, with an explicit human override that is recorded in the evaluation record rather than
+silent — because a rerun that does not declare itself a deliberate rerun is the reflex the guard
+exists to stop.
+
 ## The review gate, evaluated as a gate
 
 `eval/review_fixtures.json` + `eval/run_review_eval.py`. A different shape of evaluation, because the
