@@ -543,3 +543,109 @@ def test_an_external_answer_is_not_served_from_the_plain_cache():
     assert "not external_urls" in src, (
         "asking with external sources must bypass the question-keyed cache"
     )
+
+
+# ── deterministic quote verification (2026-08-26) ─────────────────────────────────────────────────
+
+ARTICLE = ("Coding is an open-ended solution space that rewards the models' creativity. "
+           "In contrast, for analytics use cases, there’s often only a single correct answer "
+           "using a single correct source in which there’s no deterministic way of proving "
+           "the correctness. For self-service agentic business analytics, the complexity mainly "
+           "lies in the ambiguity of the data.")
+EV = [{"cite": "X1", "text": ARTICLE, "layer": "external"}]
+
+
+def _one(answer, evidence=None):
+    from ask import quotes
+    out = quotes.verify(answer, evidence if evidence is not None else EV)
+    assert len(out) == 1, out
+    return out[0]
+
+
+def test_an_exact_span_is_verbatim():
+    f = _one('They note “there’s often only a single correct answer using a single correct '
+             'source” [X1].')
+    assert f["verbatimMatch"] is True and f["foundIn"] == ["X1"]
+
+
+def test_minimal_normalisation_only_curly_quotes_whitespace_and_case():
+    f = _one('They note "There\'s often  only a single correct answer using a single correct '
+             'source" [X1].')
+    assert f["verbatimMatch"] is True, f["reason"]
+
+
+def test_the_real_ellipsis_quote_is_not_verbatim_and_says_which_fragment_drifted():
+    """The quotation from the 2026-08-26 Anthropic comparison, exactly as the answer wrote it.
+
+    This case corrected my own earlier report. Reading the article by eye I said "both fragments are
+    findable", and the deterministic check disagrees: the FIRST fragment is in the article, the
+    SECOND is not, because the answer rewrote "in which there's no deterministic way" as "with no
+    deterministic way". The quotation drifted in two ways at once — an elided clause AND altered
+    wording — and only one of them survives a careful human read. Which is the argument for the
+    ruling in one test.
+    """
+    f = _one('Anthropic writes: “There’s often only a single correct answer … with no '
+             'deterministic way of proving the correctness.” [X1]')
+    assert f["verbatimMatch"] is False and f["hasEllipsis"]
+    assert f["fragments"][0]["foundIn"] == ["X1"]      # elided clause, but this half is real
+    assert f["fragments"][1]["foundIn"] == []          # and this half was reworded
+    assert "not every fragment is present" in f["reason"]
+
+
+def test_an_ellipsis_quote_whose_fragments_all_match_is_still_not_verbatim():
+    """The other ellipsis case, kept separate: a compressed sentence is not the sentence the source
+    wrote, however faithful each surviving piece is."""
+    f = _one('They note “Coding is an open-ended solution space … for analytics use cases” [X1].')
+    assert f["verbatimMatch"] is False
+    assert all(fr["foundIn"] == ["X1"] for fr in f["fragments"])
+    assert "not what the source says" in f["reason"]
+
+
+def test_an_edited_quotation_is_not_verbatim():
+    f = _one('They say “there is always exactly one correct answer for analytics use '
+             'cases” [X1].')
+    assert f["verbatimMatch"] is False and "not present" in f["reason"]
+
+
+def test_truncated_evidence_yields_unknown_not_false():
+    """Absence in a truncated text proves nothing, and calling it `false` would be the same
+    overreach this layer exists to remove."""
+    ev = [{"cite": "X1", "text": ARTICLE, "layer": "external", "truncated": True}]
+    f = _one('They say “something that is not in the surviving excerpt at all” [X1].', ev)
+    assert f["verbatimMatch"] is None and "truncated" in f["reason"]
+
+
+def test_missing_evidence_yields_unknown():
+    f = _one('They say “something not present in any preserved passage here” [X1].', [])
+    assert f["verbatimMatch"] is None and "not preserved" in f["reason"]
+
+
+def test_scare_quoted_vocabulary_is_not_treated_as_quotation():
+    from ask import quotes
+    answer = ('datumwise uses “servability” rather than “serviceability” or '
+              '“answerability”, and the moods are “serve with disclosures” [S1].')
+    assert quotes.verify(answer, EV) == [], "vocabulary in quotes is not a quotation"
+
+
+def test_the_facts_block_says_when_nothing_was_checked():
+    from ask import quotes
+    assert "nothing" in quotes.format_facts([])
+
+
+def test_terminal_punctuation_spliced_by_the_host_sentence_still_matches_and_says_so():
+    """A real case from the Anthropic candidate: the paper ends the clause with a full stop and the
+    answer spliced a comma to continue its own sentence. Every word is the source's. Calling that an
+    edited quotation would bury the real findings under pedantry — but it is reported, not silent.
+    """
+    ev = [{"cite": "S2", "text": "... and when two derivations claiming one identity are required "
+                                 "to agree. This law is part of the jurisdictional claim."}]
+    f = _one('The law includes conditions “when two derivations claiming one identity are '
+             'required to agree,” aiming at canonical identity [S2].', ev)
+    assert f["verbatimMatch"] is True
+    assert "terminal punctuation" in f["reason"]
+
+
+def test_internal_wording_changes_are_never_normalised_away():
+    ev = [{"cite": "S2", "text": "when two derivations claiming one identity are required to agree."}]
+    f = _one('It says “when two derivations claiming one identity must agree,” which [S2].', ev)
+    assert f["verbatimMatch"] is False

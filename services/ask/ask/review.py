@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import providers
+from . import providers, quotes
 
 # NINE DIMENSIONS, AND ONE OF THEM IS A RENAME (2026-08-26, after the Anthropic comparison).
 #
@@ -122,6 +122,29 @@ failure you are here to catch. When a passage is truncated, say that you could n
 that the claim is unsupported — those are different findings and only one of them is about the
 answer.
 
+DIRECT QUOTATIONS HAVE ALREADY BEEN CHECKED FOR YOU, MECHANICALLY. Below you will find a
+QUOTE VERIFICATION block: for every direct quotation of five or more words, whether that exact span
+is present in the cited source. Those verdicts are FACTS. Do not re-derive them, do not overrule
+them, and do not report a quotation as unverifiable when the block says VERBATIM MATCH.
+
+  VERBATIM MATCH  the span is in the source. Nothing further to find; judge whether the quotation is
+                  used FAIRLY — in context, not cherry-picked, not carrying weight the surrounding
+                  passage withdraws.
+  NOT VERBATIM    the answer has put words in a named party's mouth. This is a finding under
+                  factual_grounding and normally a REVISE. The repair is to paraphrase without
+                  quotation marks and keep the citation, or to quote an exact span. Judge whether
+                  the paraphrase you propose preserves the source's meaning.
+  UNKNOWN         the evidence is genuinely insufficient. Say you could not check. Do NOT convert
+                  this into a claim that the source does not support the point — those are
+                  different findings and only one of them is about the answer.
+
+An ellipsis-compressed quotation is reported NOT VERBATIM even when every fragment is present,
+because a compressed sentence is not the sentence the source wrote. Its fragments are listed so you
+can see how far it drifted, and a small drift may still justify a small repair rather than a large
+one.
+
+This block covers quotations ONLY. Every other claim is still yours to weigh.
+
 WHEN YOU PROPOSE A REVISION, prefer the narrowest formulation that fully carries the point. If two
 sentences make the same useful argument, take the one needing fewer unsupported assumptions. Do not
 flatten the answer into hedging: bounding a claim and weakening it are different acts.
@@ -148,6 +171,9 @@ the answering model actually had in front of it, so quotations can be checked ag
 
 EXTERNAL SOURCES IT CLAIMED:
 {external}
+
+QUOTE VERIFICATION (deterministic; these are facts, not opinions):
+{quote_facts}
 
 Reply with ONLY a JSON object:
 {{"disposition": "APPROVE" | "REVISE" | "DO_NOT_PUBLISH",
@@ -191,31 +217,41 @@ def _fmt_sources(sources: list[dict], evidence: list[dict] | None = None) -> str
 
 def review(qa: dict, model: str | None = None) -> dict:
     """Run one review pass. Returns the verdict; NEVER returns a mutated provisional answer."""
+    facts = quotes.verify(qa["answer"], qa.get("evidence") or [])
     prompt = INSTRUCTION.format(
         question=qa["question"],
         answer=qa["answer"],
         sources=_fmt_sources(qa.get("sources") or [], qa.get("evidence") or []),
         external=json.dumps(qa.get("external") or [], indent=1),
+        quote_facts=quotes.format_facts(facts),
     )
+    # 16k, not 6k. On 2026-08-26 the reviewer returned an EMPTY string on the Anthropic candidate:
+    # the prompt had grown to carry every cited passage plus the quote-verification block, and a
+    # reasoning model spent the whole 6k budget thinking and emitted nothing. It failed closed to
+    # DO_NOT_PUBLISH, which is the right failure and the wrong outcome — a review that cannot finish
+    # is not a rejection. The same shape as the empty c1 answer, one layer up.
     comp = providers.complete([{"role": "user", "content": prompt}], model=model or REVIEW_MODEL,
-                              max_tokens=6000)
+                              max_tokens=16000)
     text = comp.text.strip()
     m = _JSON.search(text)
     if not m:
         # A reviewer that cannot be parsed must not read as an approval. Fail closed.
         return {"disposition": "DO_NOT_PUBLISH", "findings": {},
                 "summary": f"review output could not be parsed: {text[:200]!r}",
-                "changes": [], "proposedAnswer": None, "parseError": True,
+                "changes": [], "proposedAnswer": None, "parseError": True, "quoteFacts": facts,
                 "model": f"{comp.provider}:{comp.model}", "costUsd": comp.cost_usd}
     try:
         v = json.loads(m.group(0))
     except json.JSONDecodeError as e:
         return {"disposition": "DO_NOT_PUBLISH", "findings": {},
                 "summary": f"review output was not valid JSON: {e}",
-                "changes": [], "proposedAnswer": None, "parseError": True,
+                "changes": [], "proposedAnswer": None, "parseError": True, "quoteFacts": facts,
                 "model": f"{comp.provider}:{comp.model}", "costUsd": comp.cost_usd}
 
-    return _normalise_verdict(v, model=f"{comp.provider}:{comp.model}", cost=comp.cost_usd)
+    out = _normalise_verdict(v, model=f"{comp.provider}:{comp.model}", cost=comp.cost_usd)
+    # The facts travel WITH the verdict, so a human reading a review can see what the reviewer was
+    # told rather than inferring it from what the reviewer said.
+    return {**out, "quoteFacts": facts}
 
 
 def _normalise_verdict(v: dict, model: str, cost: float) -> dict:
