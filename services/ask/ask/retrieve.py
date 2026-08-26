@@ -268,6 +268,54 @@ def _headed_for(term: str) -> bool:
     return False
 
 
+# ── structural exclusions: a section that is not prose (2026-08-26) ───────────────────────────────
+# A bibliography is a LIST OF OTHER PEOPLE'S WORKS. It is in the index because it is in the paper,
+# and BM25 loves it: it is dense with exactly the proper nouns and title words a question uses,
+# while containing no claim at all. After the dedup repair let deposit passages through, reference
+# lists surfaced in the top 8 on 6 of the 26 trap cases — and the worst of them was a1, the primary
+# DOI hallucination trap, which received FOUR bibliography passages out of eight. A question asking
+# for the DOI of a work that does not exist was being handed four pages of real DOIs belonging to
+# other works. It passed on both models. It should never have been asked to.
+#
+# This is a hard gate rather than a demotion, for the same reason `layer == "out"` is a hard gate:
+# the problem is not that these passages rank too high, it is that they cannot support a claim. A
+# demotion still admits them when nothing else scores, which is precisely the case where citing one
+# does the most damage.
+#
+# They stay reachable, because "what does this paper cite?" is a real question. Matching is on the
+# WHOLE normalised heading, not a substring: "8. The reference map, and the outer boundary" and
+# "Appendix A: Operator Reference" are prose and stay in.
+# Enumerated rather than pattern-matched, and that is a deliberate choice: this corpus is small
+# enough that every heading containing "reference"/"reading" was read by hand before this set was
+# written. The last two are here because they ARE reference lists — "References and reading path"
+# and "Project references" are lists of works with DOIs, whatever their headings say.
+# "Implementation and further reading" is deliberately NOT here: it is prose that names which
+# source is authoritative for shipped meaning, which is a claim, and s3 is a case about exactly
+# that. A pattern would have swept it up with the rest.
+BIBLIOGRAPHY_HEADINGS = {
+    "references", "reference list", "bibliography", "works cited", "further reading",
+    "references and reading path", "project references",
+}
+CITATION_CUES = (
+    "cite", "cites", "cited", "citation", "citations", "bibliograph", "references list",
+    "reference list", "related literature", "prior literature", "further reading",
+    "reading list", "what does it reference", "which works",
+)
+
+
+def _bare_heading(heading: str) -> str:
+    return _HEAD_NUM.sub("", heading).strip().lower().strip(":\u2014- ")
+
+
+def is_bibliography(chunk: dict) -> bool:
+    return _bare_heading(chunk["heading"]) in BIBLIOGRAPHY_HEADINGS
+
+
+def asks_about_citations(query: str) -> bool:
+    q = query.lower()
+    return any(c in q for c in CITATION_CUES)
+
+
 def jurisdictions_for(query: str) -> list[str]:
     q = query.lower()
     return sorted({j for j, cues in JURISDICTION_CUES.items() if any(c in q for c in cues)})
@@ -295,6 +343,7 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
             combined[i] = 0.6 * combined.get(i, 0.0) + 0.4 * (sem_d.get(i, 0.0) / sem_max)
 
     opened = jurisdictions_for(query)
+    wants_citations = asks_about_citations(query)
     if not opened:
         term = definitional_subject(query)
         if term and not _headed_for(term):
@@ -315,6 +364,8 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         c = chunks[i]
         lay = c.get("layer", "unruled")
         if lay == "out":
+            continue
+        if is_bibliography(c) and not wants_citations:
             continue
         if lay == "reference":
             # Reference material is reachable only through its own jurisdiction. A question that
