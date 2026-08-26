@@ -120,7 +120,30 @@ CREATE TABLE IF NOT EXISTS reviews (
   changes         TEXT NOT NULL DEFAULT '[]',
   proposed_answer TEXT,
   model           TEXT NOT NULL,
-  cost_usd        REAL NOT NULL DEFAULT 0.0
+  cost_usd        REAL NOT NULL DEFAULT 0.0,
+  -- THE QUOTE-VERIFICATION FACTS THE REVIEWER WAS GIVEN (2026-08-26, CG2 ruling E.7).
+  --
+  -- review.review() computes these mechanically, hands them to the reviewer as FACTS, and returns
+  -- them on the verdict. Until this column existed, save_review() had nowhere to put them and
+  -- _review_row() could not return them, so every review read back from storage reported
+  -- `quoteFacts: null` — and review.py's docstring claim that "the facts travel WITH the verdict,
+  -- so a human reading a review can see what the reviewer was told" was false for every review a
+  -- human actually reads. The facts were in front of the model and absent from the record.
+  --
+  -- A JSON envelope rather than a bare list, because three different things have to stay
+  -- distinguishable to a later reader:
+  --   facts        the structured verdicts, exactly as computed
+  --   asSent       the rendered block as the reviewer received it. format_facts() may be reworded
+  --                later; what the reviewer was actually handed may not be re-derived from a newer
+  --                formatter and still called the same evidence.
+  --   reconstructed  true when the facts were recomputed from the stored answer and evidence AFTER
+  --                the review ran, rather than captured with it. quotes.verify() is deterministic,
+  --                so a reconstruction is the same facts — but it is a re-derived fact, not a
+  --                recorded one, and collapsing those two is the error this repo keeps correcting.
+  --
+  -- NULL means NOT RECORDED, which is not the same as `[]` — an empty list is the check having run
+  -- and found no quotation of five or more words. Silence and an empty result are different facts.
+  quote_facts     TEXT
 );
 CREATE INDEX IF NOT EXISTS reviews_qa ON reviews(qa_id, created_at);
 
@@ -177,6 +200,14 @@ _ADDED_COLUMNS = (
 )
 
 
+_ADDED_REVIEW_COLUMNS = (
+    # See the schema comment. NULL on an existing row is the honest reading: those reviews ran
+    # before the facts were persisted, and nothing knows what they were told until someone
+    # reconstructs it and says so.
+    ("quote_facts", "TEXT"),
+)
+
+
 def _migrate(c: sqlite3.Connection) -> None:
     """Additive only. Existing rows become provisional and unpublished, which is the truthful
     reading of them: nothing in the table was ever approved by a human, because until 2026-08-26
@@ -185,6 +216,10 @@ def _migrate(c: sqlite3.Connection) -> None:
     for name, decl in _ADDED_COLUMNS:
         if name not in have:
             c.execute(f"ALTER TABLE qa ADD COLUMN {name} {decl}")
+    have_r = {r["name"] for r in c.execute("PRAGMA table_info(reviews)")}
+    for name, decl in _ADDED_REVIEW_COLUMNS:
+        if name not in have_r:
+            c.execute(f"ALTER TABLE reviews ADD COLUMN {name} {decl}")
 
 
 def connect() -> sqlite3.Connection:
@@ -422,27 +457,66 @@ def usage_totals() -> dict:
 # The one rule these functions exist to enforce: qa.answer is never written after creation. Publish
 # writes qa.published_answer. Nothing here can silently change what the agent said.
 
+def _quote_facts_envelope(facts: list | None, as_sent: str | None,
+                          reconstructed: bool = False) -> str | None:
+    """The stored form of the quote-verification evidence, or None when there is none to store."""
+    if facts is None:
+        return None
+    return json.dumps({"facts": facts, "asSent": as_sent, "reconstructed": bool(reconstructed)})
+
+
 def save_review(qa_id: str, verdict: dict) -> str:
     rid = uuid.uuid4().hex[:12]
+    facts = verdict.get("quoteFacts")
+    envelope = _quote_facts_envelope(
+        facts, verdict.get("quoteFactsAsSent"), reconstructed=False
+    ) if facts is not None else None
     with connect() as c:
         c.execute(
             """INSERT INTO reviews (id, qa_id, created_at, disposition, findings, summary, changes,
-                                    proposed_answer, model, cost_usd)
-               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                                    proposed_answer, model, cost_usd, quote_facts)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (rid, qa_id, time.time(), verdict["disposition"],
              json.dumps(verdict.get("findings", {})), verdict.get("summary", ""),
              json.dumps(verdict.get("changes", [])), verdict.get("proposedAnswer"),
-             verdict.get("model", ""), float(verdict.get("costUsd") or 0.0)),
+             verdict.get("model", ""), float(verdict.get("costUsd") or 0.0), envelope),
         )
     return rid
 
 
+def attach_quote_facts(review_id: str, facts: list, as_sent: str) -> bool:
+    """RECONSTRUCT the facts for a review that ran before they were persisted.
+
+    Marked `reconstructed: true` and never presented as a captured record. It refuses to overwrite
+    facts that were genuinely recorded: a reconstruction that could silently replace the real thing
+    would make the flag meaningless.
+    """
+    with connect() as c:
+        row = c.execute("SELECT quote_facts FROM reviews WHERE id=?", (review_id,)).fetchone()
+        if row is None:
+            return False
+        if row["quote_facts"]:
+            return False
+        c.execute("UPDATE reviews SET quote_facts=? WHERE id=?",
+                  (_quote_facts_envelope(facts, as_sent, reconstructed=True), review_id))
+    return True
+
+
 def _review_row(r: sqlite3.Row) -> dict:
+    raw = r["quote_facts"] if "quote_facts" in r.keys() else None
+    env = json.loads(raw) if raw else None
     return {
         "id": r["id"], "qaId": r["qa_id"], "createdAt": r["created_at"],
         "disposition": r["disposition"], "findings": json.loads(r["findings"]),
         "summary": r["summary"], "changes": json.loads(r["changes"]),
         "proposedAnswer": r["proposed_answer"], "model": r["model"], "costUsd": r["cost_usd"],
+        # `quoteFactsRecorded` is the fact a reader needs FIRST: whether this review's evidence was
+        # preserved at all. Without it, an old review with no facts and a new review whose answer
+        # quoted nothing are indistinguishable, and the second would be read as the first.
+        "quoteFactsRecorded": env is not None,
+        "quoteFacts": (env or {}).get("facts") if env else None,
+        "quoteFactsAsSent": (env or {}).get("asSent") if env else None,
+        "quoteFactsReconstructed": bool((env or {}).get("reconstructed")) if env else False,
     }
 
 

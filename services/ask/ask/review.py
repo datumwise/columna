@@ -218,12 +218,16 @@ def _fmt_sources(sources: list[dict], evidence: list[dict] | None = None) -> str
 def review(qa: dict, model: str | None = None) -> dict:
     """Run one review pass. Returns the verdict; NEVER returns a mutated provisional answer."""
     facts = quotes.verify(qa["answer"], qa.get("evidence") or [])
+    # The rendered block is kept and returned, not just the structured facts. format_facts() may be
+    # reworded later, and re-rendering old facts with a newer formatter would produce a block the
+    # reviewer never saw while claiming to be what it was handed (CG2 ruling E.7).
+    facts_as_sent = quotes.format_facts(facts)
     prompt = INSTRUCTION.format(
         question=qa["question"],
         answer=qa["answer"],
         sources=_fmt_sources(qa.get("sources") or [], qa.get("evidence") or []),
         external=json.dumps(qa.get("external") or [], indent=1),
-        quote_facts=quotes.format_facts(facts),
+        quote_facts=facts_as_sent,
     )
     # 16k, not 6k. On 2026-08-26 the reviewer returned an EMPTY string on the Anthropic candidate:
     # the prompt had grown to carry every cited passage plus the quote-verification block, and a
@@ -239,6 +243,7 @@ def review(qa: dict, model: str | None = None) -> dict:
         return {"disposition": "DO_NOT_PUBLISH", "findings": {},
                 "summary": f"review output could not be parsed: {text[:200]!r}",
                 "changes": [], "proposedAnswer": None, "parseError": True, "quoteFacts": facts,
+                "quoteFactsAsSent": facts_as_sent,
                 "model": f"{comp.provider}:{comp.model}", "costUsd": comp.cost_usd}
     try:
         v = json.loads(m.group(0))
@@ -246,12 +251,16 @@ def review(qa: dict, model: str | None = None) -> dict:
         return {"disposition": "DO_NOT_PUBLISH", "findings": {},
                 "summary": f"review output was not valid JSON: {e}",
                 "changes": [], "proposedAnswer": None, "parseError": True, "quoteFacts": facts,
+                "quoteFactsAsSent": facts_as_sent,
                 "model": f"{comp.provider}:{comp.model}", "costUsd": comp.cost_usd}
 
     out = _normalise_verdict(v, model=f"{comp.provider}:{comp.model}", cost=comp.cost_usd)
     # The facts travel WITH the verdict, so a human reading a review can see what the reviewer was
-    # told rather than inferring it from what the reviewer said.
-    return {**out, "quoteFacts": facts}
+    # told rather than inferring it from what the reviewer said. They also travel INTO STORAGE and
+    # onto the review screen (CG2 ruling E.7, 2026-08-26): until then this sentence was true of the
+    # returned dict and false of every review anyone read, because save_review had no column for
+    # them and the UI never rendered them.
+    return {**out, "quoteFacts": facts, "quoteFactsAsSent": facts_as_sent}
 
 
 def _normalise_verdict(v: dict, model: str, cost: float) -> dict:

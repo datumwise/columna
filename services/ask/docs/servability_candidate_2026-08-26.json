@@ -1,4 +1,5 @@
 {
+ "$comment": "Read back from durable storage after the E.7 repair. Not reassembled by hand: every field below is what store.get()/store.latest_review() return, which is what the review screen renders and what a later reader will find.",
  "question": "Why does datumwise use \"servability\" rather than \"serviceability\" or \"answerability\"?",
  "qaId": "772b736f2852",
  "reviewId": "79e703c8df82",
@@ -253,23 +254,26 @@
   "changes": [],
   "proposedAnswer": null,
   "model": "openai:gpt-5",
-  "costUsd": 0.03144
+  "costUsd": 0.03144,
+  "quoteFactsRecorded": true,
+  "quoteFacts": [
+   {
+    "quote": "whether the result has the analytical permission required to be served as that answer,",
+    "cites": [
+     "S1",
+     "S4"
+    ],
+    "hasEllipsis": false,
+    "verbatimMatch": true,
+    "foundIn": [
+     "S1"
+    ],
+    "reason": "exact match, except the quotation's terminal punctuation, which belongs to the sentence hosting it"
+   }
+  ],
+  "quoteFactsAsSent": "  VERBATIM MATCH — attributed to S1, S4\n    quoted: \"whether the result has the analytical permission required to be served as that answer,\"\n    fact:   exact match, except the quotation's terminal punctuation, which belongs to the sentence hosting it",
+  "quoteFactsReconstructed": true
  },
- "answerSeconds": 27.5,
- "reviewSeconds": 30.3,
- "quoteFacts": [
-  {
-   "quote": "whether the result has the analytical permission required to be served as that answer,",
-   "cites": [
-    "S1",
-    "S4"
-   ],
-   "hasEllipsis": false,
-   "verbatimMatch": true,
-   "foundIn": [
-    "S1"
-   ],
-   "reason": "exact match, except the quotation's terminal punctuation, which belongs to the sentence hosting it"
-  }
- ]
+ "answerSeconds": 28.0,
+ "reviewSeconds": 30.3
 }

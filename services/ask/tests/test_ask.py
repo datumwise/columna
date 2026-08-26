@@ -701,3 +701,78 @@ def test_the_deposit_standing_template_survives_into_a_stored_citation():
     hits = retrieve.search("what is analytical governance?", k=3)
     assert hits and all("standingRaw" in h for h in hits)
     assert any("{CURRENT}" in h["standingRaw"] for h in hits)
+
+
+# ── quote-verification durability (CG2 ruling E.7, 2026-08-26) ─────────────────────────────────────
+
+def _facts_for(answer, evidence):
+    from ask import quotes
+    facts = quotes.verify(answer, evidence)
+    return facts, quotes.format_facts(facts)
+
+
+def test_the_facts_the_reviewer_was_given_survive_storage():
+    """review() computed them, handed them to the reviewer as facts, and returned them — and until
+    this column existed the storage layer dropped them, so every review a human READ reported
+    `quoteFacts: null`. Both the structured facts and the block as sent are preserved."""
+    qid = _candidate("Does the review record keep what the reviewer was told?")
+    answer = ('datumwise holds that "the analytical permission required to be served" is the '
+              'question servability answers [S1].')
+    evidence = [{"cite": "S1", "label": "Analytical Governance", "heading": "4",
+                 "text": "Servability — whether the result has the analytical permission required "
+                         "to be served as that answer."}]
+    facts, as_sent = _facts_for(answer, evidence)
+    store.save_review(qid, {"disposition": "APPROVE", "summary": "ok", "changes": [],
+                            "findings": {}, "proposedAnswer": None, "model": "test:model",
+                            "costUsd": 0.0, "quoteFacts": facts, "quoteFactsAsSent": as_sent})
+    got = store.latest_review(qid)
+    assert got["quoteFactsRecorded"] is True
+    assert got["quoteFactsReconstructed"] is False           # captured with the review, not re-derived
+    assert got["quoteFacts"] == facts
+    assert got["quoteFactsAsSent"] == as_sent
+    assert "VERBATIM MATCH" in got["quoteFactsAsSent"]
+
+
+def test_not_recorded_and_nothing_to_report_are_different_facts():
+    """The distinction the whole envelope exists for. A review that ran before the facts were
+    persisted must never read like a review whose answer quoted nothing."""
+    old = _candidate("A review from before the facts were kept?")
+    store.save_review(old, {"disposition": "APPROVE", "summary": "", "changes": [], "findings": {},
+                            "proposedAnswer": None, "model": "test:model", "costUsd": 0.0})
+    r_old = store.latest_review(old)
+    assert r_old["quoteFactsRecorded"] is False and r_old["quoteFacts"] is None
+
+    quiet = _candidate("An answer with no quotations at all?")
+    store.save_review(quiet, {"disposition": "APPROVE", "summary": "", "changes": [], "findings": {},
+                              "proposedAnswer": None, "model": "test:model", "costUsd": 0.0,
+                              "quoteFacts": [], "quoteFactsAsSent": "  (no direct quotations…)"})
+    r_quiet = store.latest_review(quiet)
+    assert r_quiet["quoteFactsRecorded"] is True and r_quiet["quoteFacts"] == []
+
+
+def test_a_reconstruction_says_it_is_one_and_cannot_overwrite_a_capture():
+    """quotes.verify is deterministic, so recomputing gives the same facts — but a re-derived fact
+    is not a recorded one, and the flag is the only thing that keeps them distinguishable."""
+    qid = _candidate("Can facts be reconstructed after the fact?")
+    rid = store.save_review(qid, {"disposition": "APPROVE", "summary": "", "changes": [],
+                                  "findings": {}, "proposedAnswer": None, "model": "test:model",
+                                  "costUsd": 0.0})
+    facts, as_sent = _facts_for('It says "a plausible number" and nothing more [S1].',
+                                [{"cite": "S1", "text": "All three can return a plausible number."}])
+    assert store.attach_quote_facts(rid, facts, as_sent) is True
+    got = store.latest_review(qid)
+    assert got["quoteFactsRecorded"] is True and got["quoteFactsReconstructed"] is True
+    # fails closed: a reconstruction may not silently displace what was actually captured
+    assert store.attach_quote_facts(rid, [], "") is False
+    assert store.latest_review(qid)["quoteFacts"] == facts
+
+
+def test_the_review_screen_renders_the_facts_and_distinguishes_the_four_states():
+    """The second half of the defect: the facts were never rendered at all, so a human asked to
+    accept a review of a quotation could not see whether the quotation checked out."""
+    from ask.review_ui import REVIEW_PAGE
+    assert "Quote verification — the facts the reviewer was given" in REVIEW_PAGE
+    for state in ("VERBATIM MATCH", "NOT VERBATIM", "UNKNOWN", "UNATTRIBUTED"):
+        assert state in REVIEW_PAGE
+    assert "NOT RECORDED" in REVIEW_PAGE and "RECONSTRUCTED, not captured" in REVIEW_PAGE
+    assert "quoteFactsAsSent" in REVIEW_PAGE            # the block exactly as the reviewer got it

@@ -119,14 +119,45 @@ Every citation is Core and every one resolves to `w-analytical-governance.r03`. 
 drift yet* — which is the only honest reading on day one, and the field that will change by itself
 when v2.1 lands.
 
-## 5 · Quote verification (deterministic)
+## 5 · Quote verification — now read back from durable storage
 
-One direct quotation of five or more words:
+**Repaired under ruling E.7 before this packet was re-issued.** The facts below are no longer
+recomputed for the packet: they are read out of the `reviews` row, which is what the review screen
+renders and what a later reader will find.
 
-> "whether the result has the analytical permission required to be served as that answer,"
+```
+  VERBATIM MATCH — attributed to S1, S4
+    quoted: "whether the result has the analytical permission required to be served as that answer,"
+    fact:   exact match, except the quotation's terminal punctuation, which belongs to the sentence
+            hosting it
+```
 
-**VERBATIM MATCH**, attributed to S1 and S4 — exact except the quotation's terminal punctuation,
-which belongs to the sentence hosting it.
+`quoteFactsRecorded: true` · `quoteFactsReconstructed: true` · one quotation, `verbatimMatch: true`,
+`foundIn: [S1]`.
+
+**Reconstructed, and it says so.** This review ran before the column existed, so its facts were
+recomputed from the stored answer and the stored evidence and written with `reconstructed: true`.
+`quotes.verify()` is deterministic over two immutable records, so they are the same facts — and the
+review screen carries a banner saying they were re-derived rather than captured, because a
+re-derived fact and a recorded one are different things. **No second model review call was spent:**
+the reconstruction reproduced the facts the reviewer had, character for character, including the
+terminal-punctuation clause.
+
+What the repair added, and nothing more:
+
+- `reviews.quote_facts`, a JSON envelope: `facts` (structured verdicts), `asSent` (the rendered
+  block exactly as the reviewer received it — a newer formatter may not re-render old facts and
+  still call it the same evidence), `reconstructed` (a flag, never a default).
+- `NULL` means **not recorded**, which is not `[]`. An empty list is the check having run and found
+  no quotation of five or more words. Silence and an empty result are different facts, and the review
+  screen renders them differently.
+- `store.attach_quote_facts()`, which **refuses** to overwrite facts that were genuinely captured.
+- `ask/backfill_quote_facts.py`, a script rather than a migration, because recomputing what a
+  reviewer was told is a re-derivation and deserves to be an explicit act.
+- The review screen renders all four states — VERBATIM MATCH, NOT VERBATIM, UNKNOWN, UNATTRIBUTED —
+  plus the not-recorded and reconstructed banners, with the as-sent block behind a disclosure.
+
+Quote verification was **not** broadened. It still answers only *is this string in that text*.
 
 ## 6 · The review verdict
 
@@ -146,25 +177,37 @@ which belongs to the sentence hosting it.
 | `claim_calibration` | ✓ | Strength matches evidence. Where the answer extends beyond the text (“Why not ‘serviceability’ or ‘answerability’?”), it is explicitly marked as Analysis and bounded by the cited architecture. Minor note: “The corpus does not define those alternative terms.” reasonably refers to the provided corpus; it does not over-claim beyond the cited materials. |
 | `worth_publishing` | ✓ | Concise, well-supported, and addresses a specific terminological choice with clear governance implications; worth publishing. |
 
-## 7 · Two findings from running it
+## 7 · Findings
 
-**A · The reviewer's quote-verification facts do not survive storage, and are never shown to the
-human.** `review.review()` computes them, hands them to the reviewer as facts, and returns them
-on the verdict — then `store.save_review()` has no column for them and `_review_row()` cannot
-return them, so `latest_review()` reports `quoteFacts: null`. `review_ui.py` never renders them at
-all. `review.py`'s own docstring says *"the facts travel WITH the verdict, so a human reading a
-review can see what the reviewer was told rather than inferring it from what the reviewer said"* —
-which is false for every review read back from the database, i.e. every review a human actually
-reads. The facts in §5 above were recomputed by hand for this packet; `quotes.verify()` is
-deterministic, so they are the same facts, but a packet that has to be reconstructed by hand is
-not a preserved record. **Not fixed** — it is one additive column plus one UI block, and the
-ruling says stop here. Flagged for a ruling.
+**A · The review-record defect is FIXED (E.7).** See §5. `review.review()` now returns the rendered
+block as well as the structured facts; `save_review()` persists both; `_review_row()` returns them
+with `quoteFactsRecorded` first, so an unrecorded review can never be read as a review whose answer
+quoted nothing; the screen renders them. Four new tests, 62 green.
 
-**B · The candidate is an APPROVE, so this run still does not exercise REVISE.** Same caveat as
-step 5, restated rather than quietly dropped: the proposal path is implemented, unit-tested and
-fails closed, and the only model that has ever chosen it on real material did so on the parked
-Anthropic comparison. One APPROVE on datumwise-only Core is not evidence that the reviewer
-discriminates.
+**B · The candidate is an APPROVE, so this run still does not exercise REVISE.** Restated rather
+than quietly dropped: the proposal path is implemented, unit-tested and fails closed, and the only
+model that has ever chosen it on real material did so on the parked Anthropic comparison. One
+APPROVE on datumwise-only Core is not evidence that the reviewer discriminates.
+
+**C · NEW — the same class of defect the durable-citation work fixed, one field over: `label`.**
+The citations in §4 read *"Analytical Governance: From User Intent to Governed Analytical
+Execution"*, which is the editorial label as it stood when the answer was written. Under ruling E.1
+that label is now *"Analytical Governance"*. `citations.resolve()` re-resolves **standing** from
+record identity and leaves **label** as stored text — so a stored citation goes on displaying an
+editorial name the registry has since changed, exactly as it used to go on displaying a superseded
+standing sentence.
+
+It is a narrower defect than the standing one and worth stating precisely rather than escalating:
+`label` derives from `works.canonicalLabel`, which is *editorial naming* and Work-level, so it does
+not bear on which record was cited. The architectural invariant is untouched — the record whose words
+were cited is `w-analytical-governance.r03` in both the stored citation and the re-resolved one, and
+nothing collapses it into the work's current record. But the label is a **resolved presentation**
+carried as text, which is the shape this repo keeps correcting.
+
+**Not fixed, and not begun.** It needs a ruling: either label joins standing as a re-resolved
+presentation (identity is already stored — `sourceId` → `workId` → `canonicalLabel`), or stored
+labels are deliberately frozen as what the answer was shown, in which case the review screen should
+say so. Both are defensible; picking one silently is not.
 
 ## 8 · What a human still owes
 

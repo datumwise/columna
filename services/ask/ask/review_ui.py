@@ -48,6 +48,19 @@ REVIEW_PAGE = """<!doctype html>
   .DO_NOT_PUBLISH { background:var(--badbg); border:1px solid #edc4c4; color:var(--bad) }
   .find { font-size:13px; padding:3px 0 } .find .no { color:var(--bad); font-weight:600 }
   .find .yes { color:var(--ok) }
+  .qf { font-size:13px; padding:7px 0; border-bottom:1px dotted var(--line) }
+  .qf:last-child { border-bottom:0 }
+  .qf .v { display:inline-block; font-size:11px; font-weight:700; padding:1px 6px;
+           border-radius:4px; letter-spacing:.03em }
+  .qf .v.match { background:var(--okbg); color:var(--ok) }
+  .qf .v.nomatch { background:var(--badbg); color:var(--bad) }
+  .qf .v.unknown { background:var(--warnbg); color:var(--warn) }
+  .qf q { display:block; margin:4px 0 2px; font-style:italic }
+  .qf .frag { color:var(--dim); font-size:12px; margin-left:14px }
+  details.assent { margin-top:8px } details.assent summary { cursor:pointer; color:var(--dim);
+    font-size:12px } details.assent pre { white-space:pre-wrap; font:12px/1.55 ui-monospace,
+    SFMono-Regular,Menlo,monospace; background:#f7f9fb; border:1px solid var(--line);
+    border-radius:7px; padding:10px; margin:8px 0 0 }
   textarea { width:100%; min-height:260px; font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
              padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff }
   button { font:inherit; padding:8px 14px; border-radius:7px; border:1px solid var(--line);
@@ -115,6 +128,46 @@ function renderQueue(){
     || '<p class="muted" style="padding:16px">Queue is empty.</p>';
 }
 async function open_(i){ CUR=await api('/review/item/'+ITEMS[i].id); renderQueue(); renderDetail(); }
+// QUOTE VERIFICATION, RENDERED FOR THE HUMAN (CG2 ruling E.7, 2026-08-26).
+//
+// These verdicts were handed to the reviewer as FACTS and were previously visible only to it. A
+// human asked to accept or overrule a review of a quotation could not see whether the quotation
+// checked out. Four states, and the first one is the reason `quoteFactsRecorded` exists: a review
+// that ran before the facts were persisted must not look like a review whose answer quoted nothing.
+function quoteFacts(r){
+  if (!r) return '';
+  const head = '<h2>Quote verification — the facts the reviewer was given</h2>';
+  if (!r.quoteFactsRecorded)
+    return head + '<div class="notice">NOT RECORDED. This review ran before the quote-verification '
+      + 'facts were persisted, so what the reviewer was told cannot be read back. It is not a '
+      + 'claim that the answer quoted nothing.</div>';
+  const fs = r.quoteFacts || [];
+  const recon = r.quoteFactsReconstructed
+    ? '<div class="notice">RECONSTRUCTED, not captured. These facts were recomputed from the '
+      + 'stored answer and evidence after the review ran. quotes.verify() is deterministic, so they '
+      + 'are the same facts — but a re-derived fact is not a recorded one.</div>' : '';
+  if (!fs.length)
+    return head + recon + '<div class="box" style="white-space:normal"><span class="muted">'
+      + 'Checked: no direct quotation of five or more words was found in this answer. Nothing for '
+      + 'this check to report — which is a result, not a gap.</span></div>';
+  const rows = fs.map(f=>{
+    let cls='unknown', label='UNKNOWN';
+    if (f.attributed === false) { cls='unknown'; label='UNATTRIBUTED'; }
+    else if (f.verbatimMatch === true) { cls='match'; label='VERBATIM MATCH'; }
+    else if (f.verbatimMatch === false) { cls='nomatch'; label='NOT VERBATIM'; }
+    const cites=(f.cites||[]).join(', ')||'(no citation attached)';
+    const frags=(f.fragments||[]).map(fr=>`<div class="frag">fragment ${esc(fr.text||'')} → ${
+      (fr.foundIn||[]).join(', ')||'not found'}</div>`).join('');
+    return `<div class="qf"><span class="v ${cls}">${label}</span>
+      <span class="muted"> attributed to ${esc(cites)}</span>
+      <q>${esc(f.quote||'')}</q>
+      <span class="muted">${esc(f.reason||'')}</span>${frags}</div>`;
+  }).join('');
+  const sent = r.quoteFactsAsSent
+    ? `<details class="assent"><summary>the block exactly as the reviewer received it</summary>
+       <pre>${esc(r.quoteFactsAsSent)}</pre></details>` : '';
+  return head + recon + '<div class="box" style="white-space:normal">' + rows + sent + '</div>';
+}
 function findings(f){
   return Object.entries(f||{}).map(([k,v])=>
     `<div class="find"><span class="${v&&v.ok?'yes':'no'}">${v&&v.ok?'✓':'✗'}</span>
@@ -140,6 +193,7 @@ function renderDetail(){
          <b>${esc(e.cite||'')}</b> ${esc(e.title||e.url)}<br>
          <span class="muted">${esc(e.url||'')}</span></div>`).join('')
        || '<span class="muted">offered but not cited</span>'}</div>` : ''}
+   ${quoteFacts(r)}
    <h2>Review</h2>${ r ? `
      <div class="verdict ${r.disposition}"><b>${r.disposition}</b> — ${esc(r.summary)}</div>
      ${findings(r.findings)}
