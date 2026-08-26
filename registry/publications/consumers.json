@@ -26,7 +26,7 @@
   "allowedDois": [
    "10.5281/zenodo.22046037"
   ],
-  "note": "One literal, in test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said. The fixture reconstructs the exact sentence a durable citation carried BEFORE Analytical Governance v1.1 was superseded on 2026-08-26 \u2014 `current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037)` \u2014 and asserts that re-resolution moves the public sentence to v2.0 while preserving what was said. The literal is the point: a test that read the superseded DOI out of the registry would still pass on the day someone deleted the record, and would stop testing the thing it exists to test. Class `acceptance` for the same reason check_publications.py is \u2014 an assertion that derives its expectation from the system under test asserts nothing. The v2.0 arm is deliberately NOT a literal: that is what re-resolution must discover."
+  "note": "One literal, in test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said. The fixture reconstructs the exact sentence a durable citation carried BEFORE Analytical Governance v1.1 was superseded on 2026-08-26 — `current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037)` — and asserts that re-resolution moves the public sentence to v2.0 while preserving what was said. The literal is the point: a test that read the superseded DOI out of the registry would still pass on the day someone deleted the record, and would stop testing the thing it exists to test. Class `acceptance` for the same reason check_publications.py is — an assertion that derives its expectation from the system under test asserts nothing. The v2.0 arm is deliberately NOT a literal: that is what re-resolution must discover."
  },
  {
   "path": "apps/website/src/content/llms_index.txt",
@@ -68,7 +68,7 @@
   "path": "apps/website/src/pages/benchmark.astro",
   "class": "derived",
   "allowedDois": [],
-  "note": "The nine-model study citation. Migrated 2026-08-21. The DOI had been authored twice on one page \u2014 as the href and again as the visible label \u2014 so link and label were free to disagree with each other as well as with the record."
+  "note": "The nine-model study citation. Migrated 2026-08-21. The DOI had been authored twice on one page — as the href and again as the visible label — so link and label were free to disagree with each other as well as with the record."
  },
  {
   "path": "apps/website/src/pages/ladder.astro",
@@ -112,7 +112,7 @@
    "10.5281/zenodo.21960798",
    "10.5281/zenodo.21966453"
   ],
-  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1) \u2014 the deposited v2.1 edition rendered at /learn/frameql-an-introduction, sha256 4e50e315\u202604b49, verified against zenodo.org/api/records/21966453. SEVEN TOKENS, AND WHAT THEY ARE: 21966453 is the deposit's own DOI and 21960798 is the v2.0 it declares itself a new version of; the other five are its bibliography \u2014 ToD v6.0, the ToD Primer v2.0, the ToD Introduction v2.0, ToD Applied v1.0, Analytical Governance v1.0. Five of the seven name records the registry now marks superseded. THAT IS CORRECT AND MUST STAY: these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION, recording what the paper was read against on 2026-08-16 \u2014 they are not claims that those records are currently authoritative, and currentizing one would falsify the citation rather than repair it. Same principle the currency guard already encodes: a citation naming the version it documented is dated, not stale."
+  "note": "Ratified, byte-frozen corpus piece (Slice 2 ledger P1) — the deposited v2.1 edition rendered at /learn/frameql-an-introduction, sha256 4e50e315…04b49, verified against zenodo.org/api/records/21966453. SEVEN TOKENS, AND WHAT THEY ARE: 21966453 is the deposit's own DOI and 21960798 is the v2.0 it declares itself a new version of; the other five are its bibliography — ToD v6.0, the ToD Primer v2.0, the ToD Introduction v2.0, ToD Applied v1.0, Analytical Governance v1.0. Five of the seven name records the registry now marks superseded. THAT IS CORRECT AND MUST STAY: these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION, recording what the paper was read against on 2026-08-16 — they are not claims that those records are currently authoritative, and currentizing one would falsify the citation rather than repair it. Same principle the currency guard already encodes: a citation naming the version it documented is dated, not stale."
  },
  {
   "path": "apps/website/src/content/corpus/frameql_an_introduction_v2_3.md",
@@ -127,7 +127,7 @@
    "10.5281/zenodo.22071833",
    "10.5281/zenodo.22071910"
   ],
-  "note": "Ratified, byte-frozen corpus piece \u2014 the deposited v2.3 edition rendered at /learn/frameql-an-introduction, sha256 ea52d43a31da989c651b32f328d74e667bc001833b5a689ba3eaaf71c66d6327, 28,310 bytes, verified by DOWNLOADING zenodo.org/api/records/22071910's own .md and running cmp, not by trusting the filename. Its own DOI (22071910) and the record it supersedes (22071508) both appear, as does the earlier companion Introduction-to-ToD edition; these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION and one of them names a record the registry marks superseded. THAT IS CORRECT AND MUST STAY \u2014 currentizing a citation inside a deposit would falsify it rather than repair it, and these bytes may not be edited at all. The v2.1 edition remains on disk, unimported, with its own row above."
+  "note": "Ratified, byte-frozen corpus piece — the deposited v2.3 edition rendered at /learn/frameql-an-introduction, sha256 ea52d43a31da989c651b32f328d74e667bc001833b5a689ba3eaaf71c66d6327, 28,310 bytes, verified by DOWNLOADING zenodo.org/api/records/22071910's own .md and running cmp, not by trusting the filename. Its own DOI (22071910) and the record it supersedes (22071508) both appear, as does the earlier companion Introduction-to-ToD edition; these are DATED CITATIONS CARRIED VERBATIM BY A DEPOSITED EDITION and one of them names a record the registry marks superseded. THAT IS CORRECT AND MUST STAY — currentizing a citation inside a deposit would falsify it rather than repair it, and these bytes may not be edited at all. The v2.1 edition remains on disk, unimported, with its own row above."
  },
  {
   "path": "apps/website/src/content/corpus/a_primer_on_frameql_v2_2.md",
@@ -141,7 +141,7 @@
    "10.5281/zenodo.22071619",
    "10.5281/zenodo.22071833"
   ],
-  "note": "Ratified, byte-frozen corpus piece \u2014 the deposited v2.2 edition of A Primer on Frame-QL rendered at /learn/frameql-primer, sha256 5555940bd9c571602d4d43c37955930c5dc09aa4079f2a686f368cb3f9ab8fa4, 9,295 bytes, verified by DOWNLOADING zenodo.org/api/records/22071833's own .md and running cmp. THE FIRST EDITION OF THIS WORK EVER SERVED AT A URL: w-frameql-primer has five deposited versions and, until this ruling, no site surface at all. Its reading list names Frame-QL: An Introduction v2.2 (22071508) \u2014 one edition behind the v2.3 the sibling route now serves, because this Primer was deposited first. That lag is a fact about the deposit and is recorded in rc-frameql-primer-v22-companion-edition-lag, NOT repaired here; these bytes may not be edited."
+  "note": "Ratified, byte-frozen corpus piece — the deposited v2.2 edition of A Primer on Frame-QL rendered at /learn/frameql-primer, sha256 5555940bd9c571602d4d43c37955930c5dc09aa4079f2a686f368cb3f9ab8fa4, 9,295 bytes, verified by DOWNLOADING zenodo.org/api/records/22071833's own .md and running cmp. THE FIRST EDITION OF THIS WORK EVER SERVED AT A URL: w-frameql-primer has five deposited versions and, until this ruling, no site surface at all. Its reading list names Frame-QL: An Introduction v2.2 (22071508) — one edition behind the v2.3 the sibling route now serves, because this Primer was deposited first. That lag is a fact about the deposit and is recorded in rc-frameql-primer-v22-companion-edition-lag, NOT repaired here; these bytes may not be edited."
  },
  {
   "path": "apps/website/src/content/corpus/launch_post_FINAL.md",
@@ -248,7 +248,7 @@
    "10.5281/zenodo.22018549",
    "10.5281/zenodo.22046037"
   ],
-  "note": "A LOCAL DATUMWISE TEACHING ARTIFACT, NOT A DEPOSITED PUBLICATION \u2014 and this row's class must not be read as implying otherwise. *The Theory of Data in One Afternoon* v0.13 has no Zenodo work, record, concept or DOI, and none is minted for it: an on-ramp is a teaching surface, and inventing publication identity to make it resemble its neighbours in this file would be a claim nobody could check. It is classified frozen-corpus for the one property the class actually asserts here \u2014 the bytes are hosted verbatim and are not edited to chase currency \u2014 which is what the G7 gate needs to know. Rendered at /start-here (CT-1, ledger doctrine_gaps.md, closes with that route). THE FIVE TOKENS ARE THE ARTIFACT'S CLOSING READING LIST, not claims this file makes about itself, and all five are the current record of their work as of 2026-08-24: ToD Applied v1.0 (21960380), The Statistical Bridge v3.0 (21979821), The Theory of Data v6.1 (22013410), A Primer on the Theory of Data v2.2 (22018549), Analytical Governance v1.1 (22046037). v0.13 IS A CURRENT-POINTER MAINTENANCE REVISION and the Analytical Governance token is the reason it exists: v0.12 cited AG v1.0 (21959749), correctly for its own 19 August date, and AG v1.1 was deposited on 21 August. Because the artifact is undeposited there was no byte contract to break, so the pointer was advanced in a new version rather than left stale under a reconciliation row \u2014 the option available here and nowhere else in this file. The v0.12 artifacts remain provenance history and are not rewritten. Verified before the route was built: the v0.12-final -> v0.13 delta is the header line, that one DOI, and an appended revision note, with every code block, inline expression, heading and numeric token in the teaching body byte-identical."
+  "note": "A LOCAL DATUMWISE TEACHING ARTIFACT, NOT A DEPOSITED PUBLICATION — and this row's class must not be read as implying otherwise. *The Theory of Data in One Afternoon* v0.13 has no Zenodo work, record, concept or DOI, and none is minted for it: an on-ramp is a teaching surface, and inventing publication identity to make it resemble its neighbours in this file would be a claim nobody could check. It is classified frozen-corpus for the one property the class actually asserts here — the bytes are hosted verbatim and are not edited to chase currency — which is what the G7 gate needs to know. Rendered at /start-here (CT-1, ledger doctrine_gaps.md, closes with that route). THE FIVE TOKENS ARE THE ARTIFACT'S CLOSING READING LIST, not claims this file makes about itself, and all five are the current record of their work as of 2026-08-24: ToD Applied v1.0 (21960380), The Statistical Bridge v3.0 (21979821), The Theory of Data v6.1 (22013410), A Primer on the Theory of Data v2.2 (22018549), Analytical Governance v1.1 (22046037). v0.13 IS A CURRENT-POINTER MAINTENANCE REVISION and the Analytical Governance token is the reason it exists: v0.12 cited AG v1.0 (21959749), correctly for its own 19 August date, and AG v1.1 was deposited on 21 August. Because the artifact is undeposited there was no byte contract to break, so the pointer was advanced in a new version rather than left stale under a reconciliation row — the option available here and nowhere else in this file. The v0.12 artifacts remain provenance history and are not rewritten. Verified before the route was built: the v0.12-final -> v0.13 delta is the header line, that one DOI, and an appended revision note, with every code block, inline expression, heading and numeric token in the teaching body byte-identical."
  },
  {
   "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v1_1.md",
@@ -272,7 +272,7 @@
    "10.5281/zenodo.21979821",
    "10.5281/zenodo.22013410"
   ],
-  "note": "Byte-frozen corpus piece \u2014 the deposited v2.2 edition rendered at /learn/what-is-the-theory-of-data, sha256 8a23ffa8dd0afc498865cacd4f5d0a13bebb5a25dd7b32d2795edb2a0163aecc, md5 d41dbe4b7ce68309b464fd5e604e7038, 28,411 bytes, verified by downloading zenodo.org/api/records/22018598's own .md and running cmp, and separately byte-identical to the supplied project copy. Its reading path names Analytical Governance v1.0 and Frame-QL: An Introduction v2.1, both since superseded, and states its own DOI as 'pending publication assignment'. Those are DATED CITATIONS CARRIED BY A DEPOSIT and are not repaired here; they are next-deposit metadata debt, recorded in rc-tod-introduction-v22-reading-path. The v1.1 edition stays on disk, unimported, with its own row above."
+  "note": "Byte-frozen corpus piece — the deposited v2.2 edition rendered at /learn/what-is-the-theory-of-data, sha256 8a23ffa8dd0afc498865cacd4f5d0a13bebb5a25dd7b32d2795edb2a0163aecc, md5 d41dbe4b7ce68309b464fd5e604e7038, 28,411 bytes, verified by downloading zenodo.org/api/records/22018598's own .md and running cmp, and separately byte-identical to the supplied project copy. Its reading path names Analytical Governance v1.0 and Frame-QL: An Introduction v2.1, both since superseded, and states its own DOI as 'pending publication assignment'. Those are DATED CITATIONS CARRIED BY A DEPOSIT and are not repaired here; they are next-deposit metadata debt, recorded in rc-tod-introduction-v22-reading-path. The v1.1 edition stays on disk, unimported, with its own row above."
  },
  {
   "path": "apps/website/src/content/corpus/what_is_a_universe_v0_2.md",
@@ -292,7 +292,7 @@
    "10.5281/zenodo.21760508",
    "10.5281/zenodo.21774032"
   ],
-  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), and correct as it stands. The Latest rail is a dated announcement log; each row records what was published on a day. 'The Theory of Data \u2014 Version 4.0, 2026-08-03' is TRUE as a log entry and would be FALSIFIED, not repaired, by pointing it at v6.1. Intentionally edition-pinned. This row exists so that nobody 'fixes' it later."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), and correct as it stands. The Latest rail is a dated announcement log; each row records what was published on a day. 'The Theory of Data — Version 4.0, 2026-08-03' is TRUE as a log entry and would be FALSIFIED, not repaired, by pointing it at v6.1. Intentionally edition-pinned. This row exists so that nobody 'fixes' it later."
  },
  {
   "path": "apps/website/src/pages/learn/frameql-an-introduction.astro",
@@ -301,7 +301,7 @@
    "10.5281/zenodo.22013410",
    "10.5281/zenodo.22071910"
   ],
-  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders. RE-EDITIONED v1.1 -> v2.1 (Huayin, 2026-08-23): the route now renders the deposited v2.1 bytes, so it now pins v2.1's own DOI \u2014 21966453, which is also `w-frameql-introduction`'s current record. That the pin and the current record agree here is a COINCIDENCE OF THIS MOMENT, not a rule: the class still means 'the edition this page renders', and if a v2.2 is deposited tomorrow this row does not move until the bytes above it do. The prior pin (21774643) and the dated ToD v4.0 note (21774032) left with the v1.1 edition they described; both records remain in the registry, and the v1.1 bytes remain on disk, unimported. REPOINTED 2026-08-23 (Unit 2): v2.1 -> v2.3, so 21966453 LEAVES this row and 22071910 enters. The route is edition-pinned, which means the allowed DOI is whichever edition's BYTES it renders \u2014 it moved because the bytes moved, and a permission that outlived its assertion is the stale-permission defect G7 caught here in the other direction. 22013410 is allowed because the source comment names ToD v6.1 as what the new edition advanced its theory reference to; that is a statement about the deposit, not a currency claim by this route. The v2.2 edition (22071508) is NEVER hosted here: it was current for part of one day and this URL renders the current edition, not every edition that existed."
+  "note": "Hosts a deposited edition VERBATIM and cites the DOI of the edition it renders. RE-EDITIONED v1.1 -> v2.1 (Huayin, 2026-08-23): the route now renders the deposited v2.1 bytes, so it now pins v2.1's own DOI — 21966453, which is also `w-frameql-introduction`'s current record. That the pin and the current record agree here is a COINCIDENCE OF THIS MOMENT, not a rule: the class still means 'the edition this page renders', and if a v2.2 is deposited tomorrow this row does not move until the bytes above it do. The prior pin (21774643) and the dated ToD v4.0 note (21774032) left with the v1.1 edition they described; both records remain in the registry, and the v1.1 bytes remain on disk, unimported. REPOINTED 2026-08-23 (Unit 2): v2.1 -> v2.3, so 21966453 LEAVES this row and 22071910 enters. The route is edition-pinned, which means the allowed DOI is whichever edition's BYTES it renders — it moved because the bytes moved, and a permission that outlived its assertion is the stale-permission defect G7 caught here in the other direction. 22013410 is allowed because the source comment names ToD v6.1 as what the new edition advanced its theory reference to; that is a statement about the deposit, not a currency claim by this route. The v2.2 edition (22071508) is NEVER hosted here: it was current for part of one day and this URL renders the current edition, not every edition that existed."
  },
  {
   "path": "apps/website/src/pages/learn/frameql-primer.astro",
@@ -309,7 +309,7 @@
   "allowedDois": [
    "10.5281/zenodo.22071833"
   ],
-  "note": "The Primer route's chrome: the DOI and edition line printed above the deposited v2.2 bytes it renders. EDITION-PINNED, NOT DERIVED, and the distinction is the point \u2014 22071833 happens to be the current record of w-frameql-primer today, and this row does not move when a later Primer is deposited. It moves when the BYTES this route renders move, which is a repoint and a ruling, exactly as the sibling Introduction route's row does. The route declares itself the short conceptual entry point and NOT the normative language reference; the Manual and the shipped grammar carry that authority and are linked as such."
+  "note": "The Primer route's chrome: the DOI and edition line printed above the deposited v2.2 bytes it renders. EDITION-PINNED, NOT DERIVED, and the distinction is the point — 22071833 happens to be the current record of w-frameql-primer today, and this row does not move when a later Primer is deposited. It moves when the BYTES this route renders move, which is a repoint and a ruling, exactly as the sibling Introduction route's row does. The route declares itself the short conceptual entry point and NOT the normative language reference; the Manual and the shipped grammar carry that authority and are linked as such."
  },
  {
   "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
@@ -317,7 +317,7 @@
   "allowedDois": [
    "10.5281/zenodo.22018598"
   ],
-  "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move \u2014 not when the registry's current record moves."
+  "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves."
  },
  {
   "path": "apps/website/src/pages/positions/never-let-your-agent-touch-the-database.astro",
@@ -359,7 +359,7 @@
   "allowedDois": [
    "10.5281/zenodo.22013410"
   ],
-  "note": "The Frame-QL Manual's ONE Zenodo token, and it records a reconciliation that was actually performed: the Preface names The Theory of Data v6.1 as the edition this manual has been reconciled against (2026-08-23 \u2014 the vocabulary seam, the Two Anchors compatibility note, the theory-evolution rule, and the repair of three stale present-tense theory attributions). EDITION-PINNED, NOT DERIVED, AND THE DISTINCTION IS THE WHOLE POINT: 22013410 happens to be the current record of w-theory-of-data today, and that is a coincidence of this moment, not the rule. A future ToD release does not move this pin. It moves when someone reconciles the manual against that release and can say so; currentizing it on deposit would claim a reconciliation nobody performed. Deliberately NOT enrolled in scripts/currency_stamps.toml: that guard renders from the shipped package triad and the wire contract, all read from code, and has no registry-derived placeholder \u2014 a hand-typed theory stamp there would be a currency claim no guard could check. The claim is written dated instead, which cannot go stale."
+  "note": "The Frame-QL Manual's ONE Zenodo token, and it records a reconciliation that was actually performed: the Preface names The Theory of Data v6.1 as the edition this manual has been reconciled against (2026-08-23 — the vocabulary seam, the Two Anchors compatibility note, the theory-evolution rule, and the repair of three stale present-tense theory attributions). EDITION-PINNED, NOT DERIVED, AND THE DISTINCTION IS THE WHOLE POINT: 22013410 happens to be the current record of w-theory-of-data today, and that is a coincidence of this moment, not the rule. A future ToD release does not move this pin. It moves when someone reconciles the manual against that release and can say so; currentizing it on deposit would claim a reconciliation nobody performed. Deliberately NOT enrolled in scripts/currency_stamps.toml: that guard renders from the shipped package triad and the wire contract, all read from code, and has no registry-derived placeholder — a hand-typed theory stamp there would be a currency claim no guard could check. The claim is written dated instead, which cannot go stale."
  },
  {
   "path": "docs/architecture/tod_v6_runtime_reconciliation.md",
@@ -369,7 +369,7 @@
    "10.5281/zenodo.21959749",
    "10.5281/zenodo.21960798"
   ],
-  "note": "A RATIFIED, dated checkpoint whose `Sources:` line names the exact editions it was read against \u2014 ToD v6.0, Analytical Governance v1.0, Frame-QL: An Introduction v2.0. Two of the three are now superseded and MUST NOT be currentized: the note reconciles the runtime against those editions, and repointing it at later ones would claim a reconciliation nobody performed. Surfaced 2026-08-21 by widening the echo scanner to the prose spelling ('Zenodo 21958062'), which it had been using since 2026-08-19 \u2014 invisible to the gate the whole time, and correct by luck rather than by check."
+  "note": "A RATIFIED, dated checkpoint whose `Sources:` line names the exact editions it was read against — ToD v6.0, Analytical Governance v1.0, Frame-QL: An Introduction v2.0. Two of the three are now superseded and MUST NOT be currentized: the note reconciles the runtime against those editions, and repointing it at later ones would claim a reconciliation nobody performed. Surfaced 2026-08-21 by widening the echo scanner to the prose spelling ('Zenodo 21958062'), which it had been using since 2026-08-19 — invisible to the gate the whole time, and correct by luck rather than by check."
  },
  {
   "path": "docs/columna_framework_manual_6f.md",
@@ -386,7 +386,7 @@
    "10.5281/zenodo.21760008",
    "10.5281/zenodo.21774032"
   ],
-  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6): requires editorial/source reconciliation, not blind currentization. The CURRENT framework manual, citing The Theory of Data at v3.1 (21760008) and v4.0 (21774032) while the current record is v6.1 (22013410). The surrounding prose argues FROM the v3.1/v4.0 vocabulary, so swapping the tokens would leave the manual citing v6.1 for claims v6.1 does not make \u2014 a worse defect than the stale one, and a silent one. It belongs to a manual pass with a human reading the argument, not to this migration."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6): requires editorial/source reconciliation, not blind currentization. The CURRENT framework manual, citing The Theory of Data at v3.1 (21760008) and v4.0 (21774032) while the current record is v6.1 (22013410). The surrounding prose argues FROM the v3.1/v4.0 vocabulary, so swapping the tokens would leave the manual citing v6.1 for claims v6.1 does not make — a worse defect than the stale one, and a silent one. It belongs to a manual pass with a human reading the argument, not to this migration."
  },
  {
   "path": "docs/tools/link_checking.md",
@@ -394,7 +394,7 @@
   "allowedDois": [
    "10.5281/zenodo.21553379"
   ],
-  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), after the inspection that ruling asked for. The DOI appears inside a `curl` command demonstrating how to defeat Zenodo's UA filter \u2014 a worked link example, not an assertion that this is the current record of anything. The document makes no publication claim; it makes a tooling claim about HTTP behaviour, and any resolvable DOI would serve it equally. No currency is owed. Left as-is."
+  "note": "DEFERRED by ruling (Huayin, 2026-08-21, item 6), after the inspection that ruling asked for. The DOI appears inside a `curl` command demonstrating how to defeat Zenodo's UA filter — a worked link example, not an assertion that this is the current record of anything. The document makes no publication claim; it makes a tooling claim about HTTP behaviour, and any resolvable DOI would serve it equally. No currency is owed. Left as-is."
  },
  {
   "path": "prototype/index.html",
@@ -432,7 +432,7 @@
    "10.5281/zenodo.22114802",
    "10.5281/zenodo.22115819"
   ],
-  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran \u2014 correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources \u2192 Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION \u2014 a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms \u2014 the new current record and the superseded predecessor named by the deposit's own isNewVersionOf \u2014 the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS \u2014 it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does."
+  "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS — it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does."
  },
  {
   "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
@@ -482,7 +482,7 @@
    "10.5281/zenodo.21959749",
    "10.5281/zenodo.22046037"
   ],
-  "note": "A live internal ledger. Cites records to track them; asserts no current publication fact to the public. Row CT-2 was closed 2026-08-21 by the AG v1.1 supersession and names both the superseding record (22046037) and the superseded one (21959749) \u2014 which is what a closed supersession row is FOR."
+  "note": "A live internal ledger. Cites records to track them; asserts no current publication fact to the public. Row CT-2 was closed 2026-08-21 by the AG v1.1 supersession and names both the superseding record (22046037) and the superseded one (21959749) — which is what a closed supersession row is FOR."
  },
  {
   "path": "specs/open_planner/README.md",
@@ -491,7 +491,7 @@
    "10.5281/zenodo.21632723",
    "10.5281/zenodo.21695710"
   ],
-  "note": "CORRECTED 2026-08-21. Current document, current claim: v1.3's DOI now reads 21695710. It also still names 21632723 \u2014 correctly, as v1.0's DOI and as the value it used to give for v1.3."
+  "note": "CORRECTED 2026-08-21. Current document, current claim: v1.3's DOI now reads 21695710. It also still names 21632723 — correctly, as v1.0's DOI and as the value it used to give for v1.3."
  },
  {
   "path": "specs/open_planner/map2/D1_lowering_table_v0_1.md",
@@ -592,19 +592,19 @@
    "10.5281/zenodo.22071619",
    "10.5281/zenodo.22071833"
   ],
-  "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role \u2014 including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten \u2014 which is the row working, not the row failing. UPDATED 2026-08-23 (Frame-QL pair advance): the 3B.1 case-3 table is left as the dated reading it was and carries a footnote instead of a restamp, which is why this row now also allows the two later Primer records (22071619, 22071833) \u2014 they are quoted in that footnote as where the chain WENT, not as a correction to what the case recorded. CV-10 opened here: the third instance of the prepend-instead-of-replace deposit defect, quoted as evidence exactly as the first one is."
+  "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing. UPDATED 2026-08-23 (Frame-QL pair advance): the 3B.1 case-3 table is left as the dated reading it was and carries a footnote instead of a restamp, which is why this row now also allows the two later Primer records (22071619, 22071833) — they are quoted in that footnote as where the chain WENT, not as a correction to what the case recorded. CV-10 opened here: the third instance of the prepend-instead-of-replace deposit defect, quoted as evidence exactly as the first one is."
  },
  {
   "path": "apps/website/src/pages/evidence.astro",
   "class": "derived",
   "allowedDois": [],
-  "note": "The canonical Evidence surface (Phase 3C, 2026-08-21). It cites five deposited works \u2014 the hero signpost and the closing reading path \u2014 and types none of them: title, version and DOI are read from the registry through citation(). This is the first surface built AFTER the registry existed rather than migrated onto it, which is the whole point of Phase 3B: the Evidence corpus was governed before the page that cites it was written, so there was never a moment at which a DOI on this page could have been hand-typed and then gone stale."
+  "note": "The canonical Evidence surface (Phase 3C, 2026-08-21). It cites five deposited works — the hero signpost and the closing reading path — and types none of them: title, version and DOI are read from the registry through citation(). This is the first surface built AFTER the registry existed rather than migrated onto it, which is the whole point of Phase 3B: the Evidence corpus was governed before the page that cites it was written, so there was never a moment at which a DOI on this page could have been hand-typed and then gone stale."
  },
  {
   "path": "apps/website/src/pages/evidence/walkthrough.astro",
   "class": "derived",
   "allowedDois": [],
-  "note": "The Evidence Walkthrough (CC brief v0.2, 2026-08-22) \u2014 the pillar's steppable teaching exhibit at /evidence/walkthrough. Its \"Where to go from here\" cites The Statistical Bridge and Where Does Probability Live?, and types neither: label and DOI are read from the registry through citation(), exactly as the canonical /evidence page does. The frozen content says \"(DOI from registry)\" in both places rather than carrying a number, so there has never been a literal DOI in this surface to go stale."
+  "note": "The Evidence Walkthrough (CC brief v0.2, 2026-08-22) — the pillar's steppable teaching exhibit at /evidence/walkthrough. Its \"Where to go from here\" cites The Statistical Bridge and Where Does Probability Live?, and types neither: label and DOI are read from the registry through citation(), exactly as the canonical /evidence page does. The frozen content says \"(DOI from registry)\" in both places rather than carrying a number, so there has never been a literal DOI in this surface to go stale."
  },
  {
   "path": "apps/website/src/components/evidence/EvHero.astro",
@@ -644,7 +644,7 @@
    "10.5281/zenodo.21979821",
    "10.5281/zenodo.22013410"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-theory-of-data.r06). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-theory-of-data.r06). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-statistical-bridge.r05.md",
@@ -656,7 +656,7 @@
    "10.5281/zenodo.21977942",
    "10.5281/zenodo.21979821"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-statistical-bridge.r05). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-statistical-bridge.r05). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-analytical-governance.r02.md",
@@ -671,7 +671,7 @@
    "10.5281/zenodo.22026962",
    "10.5281/zenodo.22046037"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-analytical-governance.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-analytical-governance.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-two-anchors.r02.md",
@@ -683,7 +683,7 @@
    "10.5281/zenodo.21752681",
    "10.5281/zenodo.21842194"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-two-anchors.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-two-anchors.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-where-does-probability-live.r01.md",
@@ -696,7 +696,7 @@
    "10.5281/zenodo.21972541",
    "10.5281/zenodo.21977942"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-where-does-probability-live.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-where-does-probability-live.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-certifiable-state.r01.md",
@@ -710,7 +710,7 @@
    "10.5281/zenodo.21966764",
    "10.5281/zenodo.21972541"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-certifiable-state.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-certifiable-state.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-regime-has-a-contract.r01.md",
@@ -720,7 +720,7 @@
    "10.5281/zenodo.21783563",
    "10.5281/zenodo.21783729"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-regime-has-a-contract.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-regime-has-a-contract.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-conditioning-bar.r01.md",
@@ -733,7 +733,7 @@
    "10.5281/zenodo.21998564",
    "10.5281/zenodo.22010143"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-conditioning-bar.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-conditioning-bar.r01). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-data-has-its-own-ontology.r02.md",
@@ -748,7 +748,7 @@
    "10.5281/zenodo.22018549",
    "10.5281/zenodo.22026962"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-data-has-its-own-ontology.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-data-has-its-own-ontology.r02). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-statistical-bridge-primer.r03.md",
@@ -758,7 +758,7 @@
    "10.5281/zenodo.21979821",
    "10.5281/zenodo.21980262"
   ],
-  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-statistical-bridge-primer.r03). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT \u2014 re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
+  "note": "The deposited artifact itself, fetched by services/ask/ask/ingest_deposits.py from the record the registry rules current (w-statistical-bridge-primer.r03). Byte-identity with the published record is the whole point: Ask reads the representative corpus from these files, so an edit here would make the agent quote something datumwise never deposited. DO NOT HAND-EDIT — re-run the ingest, which re-verifies Zenodo's checksum and rewrites the manifest. `ingest_deposits.py --check` fails the build if a stored file no longer matches its recorded sha256, or if the registry has moved to a newer current record."
  },
  {
   "path": "services/ask/deposits/w-missingness-has-a-universe.r03.md",
@@ -768,7 +768,7 @@
    "10.5281/zenodo.21752681",
    "10.5281/zenodo.21774032"
   ],
-  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+  "note": "The deposited artifact itself — AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT — re-run services/ask/ask/ingest_deposits.py."
  },
  {
   "path": "services/ask/deposits/supplied/w-missingness-has-a-universe.r03.md",
@@ -778,7 +778,7 @@
    "10.5281/zenodo.21752681",
    "10.5281/zenodo.21774032"
   ],
-  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+  "note": "The deposited artifact itself — AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT — re-run services/ask/ask/ingest_deposits.py."
  },
  {
   "path": "services/ask/deposits/w-tod-primer.r05.md",
@@ -791,7 +791,7 @@
    "10.5281/zenodo.21995124",
    "10.5281/zenodo.22013410"
   ],
-  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+  "note": "The deposited artifact itself — AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT — re-run services/ask/ask/ingest_deposits.py."
  },
  {
   "path": "services/ask/deposits/supplied/w-tod-primer.r05.md",
@@ -804,6 +804,22 @@
    "10.5281/zenodo.21995124",
    "10.5281/zenodo.22013410"
   ],
-  "note": "The deposited artifact itself \u2014 AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT \u2014 re-run services/ask/ask/ingest_deposits.py."
+  "note": "The deposited artifact itself — AUTHOR-SUPPLIED copy, because this record is deposited on Zenodo as PDF only, so no external checksum corroborates these bytes. Integrity is pinned by sha256 in services/ask/deposits/manifest.json and the document's own declared version is checked against the registry on ingest. Byte-identity with the published record is the whole point: Ask reads the representative corpus from this file. DO NOT HAND-EDIT — re-run services/ask/ask/ingest_deposits.py."
+ },
+ {
+  "path": "services/ask/docs/servability_candidate_2026-08-26.json",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.22115819"
+  ],
+  "note": "The machine-readable review packet for the servability candidate regenerated on 2026-08-26 under CG2 ruling E.6 — question, provisional answer, every citation with BOTH standing sentences, the reviewer's nine findings, the quote-verification facts. The DOI appears because the resolved standing sentence is the evidence: this file records what the machinery actually produced on that date, and a packet whose standing lines were rewritten later would no longer be a record of the run. Dated capture; NOT maintained against the registry, and not a current-facing claim. Nothing in it is published."
+ },
+ {
+  "path": "services/ask/docs/servability_candidate_2026-08-26.md",
+  "class": "frozen",
+  "allowedDois": [
+   "10.5281/zenodo.22115819"
+  ],
+  "note": "The human-readable packet for the same run, brought back to CG2 rather than published. Same reason for the literal, and the same standing: a dated record of one review pass, not a surface that tracks currency."
  }
 ]
