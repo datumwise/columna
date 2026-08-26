@@ -1,0 +1,82 @@
+---
+/**
+ * TermStrip — the paper's six definitions, verbatim (Analytical Governance v2.0, the block between
+ * the abstract and §1).
+ *
+ * KEPT BY RULING (Huayin, ruling 4 of 2026-08-26 15:59): "it earns its place on the doorway because
+ * these distinctions prevent broad words such as 'correct' or 'answer' from silently collapsing
+ * different governed states." That is also exactly why the H1 could be sharpened without equivocating
+ * — the two terms it turns on are defined thirty lines below it.
+ *
+ * VERBATIM, and deliberately without gloss. Six definitions is a reference strip, not a section: no
+ * commentary, no examples, no ordering claim beyond the paper's own.
+ */
+const TERMS = [
+  ['Request', 'the governed analytical formulation of the user’s purpose.'],
+  ['Result', 'the product of the governed analytical process.'],
+  ['Answer', 'a result served as responsive to the request.'],
+  ['Servability', 'whether the result has the analytical permission required to be served as that answer.'],
+  ['Standing', 'what the result or answer may be treated as, or relied upon for, at a boundary.'],
+  ['Constitution', 'the ratified governed world of analytical meaning, law, support rules, and authority against which serving is adjudicated.'],
+];
+---
+
+<section id="terms" class="terms ds ds-paper ds-section" aria-labelledby="terms-h">
+  <div class="ds-measure-wide">
+    <h2 id="terms-h" class="ds-label">Six words this page uses precisely</h2>
+    <dl class="strip">
+      {TERMS.map(([term, def]) => (
+        <div class="term" id={`term-${term.toLowerCase()}`}>
+          <dt>{term}</dt>
+          <dd>{def}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="strip-note">
+      The paper&rsquo;s own definitions, unaltered. They are here because the words are ordinary and
+      the distinctions are not: <em>result</em> and <em>answer</em> are different things, and so are
+      <em>servability</em> and <em>standing</em>.
+    </p>
+  </div>
+</section>
+
+<style>
+  .strip { margin: var(--ds-space-3) 0 0; display: grid; gap: 0; }
+  .term {
+    display: grid;
+    grid-template-columns: minmax(0, 14ch) minmax(0, 1fr);
+    gap: 0.3rem 2rem;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--ds-rule);
+  }
+  .term:last-child { border-bottom: 1px solid var(--ds-rule); }
+  .term dt {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0;
+  }
+  .term dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .strip-note {
+    margin: var(--ds-space-3) 0 0;
+    max-width: var(--ds-essay);
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
+  .strip-note em { font-style: italic; color: var(--ink-soft); }
+
+  @media (max-width: 46rem) {
+    .term { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
+  }
+</style>

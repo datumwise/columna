@@ -821,5 +821,11 @@
    "10.5281/zenodo.22115819"
   ],
   "note": "The human-readable packet for the same run, brought back to CG2 rather than published. Same reason for the literal, and the same standing: a dated record of one review pass, not a surface that tracks currency."
+ },
+ {
+  "path": "apps/website/src/pages/history/analytical-governance-v1-1.astro",
+  "class": "derived",
+  "allowedDois": [],
+  "note": "The preserved v1.1 doorway (CG2 final E rulings, 2026-08-26 15:59, items 5/6/9/10). It states TWO publication facts a reader needs at once — the edition this page compresses (w-analytical-governance.r02) and the record that is currently authoritative — and both are read from the registry: recordFor() and currentRecord(). ZERO literals, deliberately: a preserved page is the last place a hand-typed DOI should live, because nobody will ever come back to it. The BODY is byte-faithful v1.1 and is not maintained against the record; only the header chrome and the pinned signpost derive."
  }
 ]

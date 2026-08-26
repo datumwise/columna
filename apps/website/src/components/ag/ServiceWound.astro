@@ -1,0 +1,138 @@
+---
+/**
+ * ServiceWound — the concrete case, before any framework. From Analytical Governance v2.0 §1 + §10.
+ *
+ * THE NUMBERS ARE v2.0's, AND THEY ARE NOT THE v1.1 NUMBERS (CG2 final E rulings, 2026-08-26 15:59, item 7). This is
+ * the finding that made the whole historical route necessary, so it is written down here:
+ *
+ *             v1.1 (r02 §1, §8)                     v2.0 (r03 §1, §10)
+ *   roster    50 stores were OPEN yesterday         50 stores EXIST
+ *   open      —                                     48, per an operating-status source
+ *   revenue   47 ordinary observations              47 revenue rows
+ *   detail    2 governed zero-revenue days,         none
+ *             1 feed failure
+ *   options   47 / 49 / 50                          47 / 48 / 50
+ *
+ * The v1.1 component also carried a ruled disposition — the 50-store population IS the governed
+ * population, and the requested result is withheld because one store-day lacks evidence. Under v2.0
+ * that sentence has no support: 50 is the roster, and the roster does not establish openness. So this
+ * is a NEW component rather than an edit, and the v1.1 one is preserved unchanged at
+ * /history/analytical-governance-v1-1 (components/ag-v1-1/OpenStoreWound.astro).
+ *
+ * STILL NO CROWNED NUMBER, for the v2.0 reason rather than the v1.1 one: what the three facts
+ * establish is not yet what any of them may serve, and the serving vocabulary is typed later. A page
+ * that quietly crowned a denominator would teach that governance is about picking the right one.
+ *
+ * THE WORD "CORRECT" IS QUALIFIED EVERYWHERE IT APPEARS (Huayin, final E rulings, 2026-08-26 15:59, item 3). Not
+ * "correct number" — "arithmetically flawless", "executes correctly", and the predicate that is
+ * actually being denied: not established as the legitimate answer to the user's purpose.
+ */
+const FACTS = [
+  {
+    n: '47',
+    what: 'revenue rows arrived',
+    establishes: 'what reported — not what was open',
+    source: 'the sales table',
+  },
+  {
+    n: '50',
+    what: 'stores exist',
+    establishes: 'the roster — not that 50 were open',
+    source: 'the store roster',
+  },
+  {
+    n: '48',
+    what: 'were open yesterday',
+    establishes: 'the requested population',
+    source: 'the operating-status source',
+  },
+];
+---
+
+<section id="the-wound" class="wound ds ds-paper ds-section" aria-labelledby="wound-h">
+  <div class="ds-measure-wide">
+    <h2 id="wound-h" class="ds-label">A number the database can produce and the service cannot yet serve</h2>
+
+    <p class="question">What was average revenue per open store yesterday?</p>
+
+    <dl class="facts">
+      {FACTS.map((f) => (
+        <div class="fact" id={`fact-${f.n}`}>
+          <dt><span class="num">{f.n}</span> {f.what}</dt>
+          <dd class="est">{f.establishes}</dd>
+          <dd class="src">{f.source}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <div class="landing">
+      <p class="ds-body">
+        The arithmetic can divide total observed revenue by 47, by 48, or by 50. Each of the three can
+        be written in valid SQL, each executes correctly, and each returns a plausible number.
+        <strong>The computation does not tell us which answer serves the user&rsquo;s purpose.</strong>
+      </p>
+      <p class="ds-body">
+        The 50-store roster does not establish that all 50 were open. The 47 revenue rows do not
+        establish the open-store population. A system that returns the mean over reporting stores
+        while presenting it as <em>average revenue per open store</em> can be arithmetically flawless
+        and unfaithful as a service &mdash; and a system that identifies the right population but uses
+        stale or incomplete state can be faithful in interpretation and unreliable in production.
+      </p>
+      <p class="disposition">
+        No number is entitled to answer this question yet, and the reason is not arithmetic. The
+        population has to be established, the state that population requires has to be shown to be
+        present, and only then is there a question about what may be served.
+      </p>
+      <p class="disposition-note ds-body">
+        Establishing the population and establishing a servable answer are two different things, and
+        only the first is in reach here.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .question {
+    margin: var(--ds-space-3) 0 var(--ds-space-5);
+    font-family: var(--font-serif);
+    font-size: var(--ds-display);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    max-width: 30ch;
+    text-wrap: balance;
+  }
+
+  .facts { margin: 0; display: grid; gap: 0; }
+  .fact {
+    display: grid;
+    grid-template-columns: minmax(0, 22ch) minmax(0, 1fr) minmax(0, 18ch);
+    gap: 0.4rem 2rem;
+    align-items: baseline;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--ds-rule);
+  }
+  .fact:last-child { border-bottom: 1px solid var(--ds-rule); }
+  .fact dt { font-family: var(--font-serif); font-size: 1rem; color: var(--ink); margin: 0; }
+  .fact .num { font-family: var(--font-mono); font-size: 1.05rem; margin-right: 0.35rem; }
+  .fact dd { margin: 0; font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.5; }
+  .fact .est { color: var(--ink); }
+  .fact .src { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-faint); }
+
+  .landing { margin-top: var(--ds-space-5); display: grid; gap: var(--ds-space-3); max-width: var(--ds-essay); }
+  .landing .ds-body strong { color: var(--ink); }
+  .disposition {
+    margin: 0;
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--ink);
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .disposition-note { color: var(--ink-soft); }
+
+  @media (max-width: 52rem) {
+    .fact { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+    .fact .src { padding-top: 0.15rem; }
+  }
+</style>

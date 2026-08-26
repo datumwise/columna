@@ -498,3 +498,91 @@ components copied rather than shared.
    implying datumwise ships an authoring process.
 5. **Route order.** Whether the historical route lands in the same commit as the new current page, or
    first, on its own, so that no moment exists in which the v1.1 body is unreachable.
+
+---
+
+# IMPLEMENTATION RECORD — 2026-08-26, after the final E rulings (15:59)
+
+Implemented and rendered. This section records what shipped and where it departed from the plan above;
+the prose sections are unchanged except where a ruling changed them.
+
+## Rulings applied
+
+| item | ruling | how it landed |
+|---|---|---|
+| 1 | durable citation labels | `labelAtAnswer` / `label` / `labelChangedSinceAnswer` in `citations.py`; four tests; six facts kept six |
+| 2 | candidate stays unpublished | still `provisional`, `published: false`; packet re-read from storage |
+| 3 | H1 changed | **"Producing a result is not the same as serving an answer."** — the earlier "correct number" H1 is gone, and the `correct` audit is below |
+| 4 | keep the definition strip | shipped as `components/ag/TermStrip.astro`, six terms verbatim |
+| 5 | historical route first | `/history/analytical-governance-v1-1` built and verified **before** the current page was replaced, in that order |
+| 6 | preserve #can-may / #powers | shim forwards them, plus three heading ids the plan had missed — see the anchor finding |
+| 7 | current page order | service → legitimacy → intent gap → servability gap → responses → **standing** → serving ↔ authoring → crossings → conformance |
+| 8 | ToC is a pointer | exactly two appearances: the deferral paragraph in §Legitimacy and one relation row. No grounds, no triad |
+| 9 | retired v1.1 material | matrix, three powers and the refusal aphorism are on the historical route only |
+
+## Deviations from the plan, and why
+
+1. **Component directories are `ag/` (current) and `ag-v1-1/` (preserved), not `ag2/`.** The plan
+   proposed a new `ag2/` set beside an untouched `ag/`, which would have left `ag/` holding retired
+   components that nothing renders. Instead the retired four were **git-moved** into `ag-v1-1/`
+   (so `git log --follow` still reaches their whole history) and the current set stays in `ag/`.
+   One directory means current, one means preserved.
+2. **`WireQuotation` is copied, not shared.** The plan said reuse it, because its assertions are
+   about the shipped package rather than the edition. That was right about the assertions and wrong
+   about the rule: a component imported by both routes drifts into the preserved page at the next
+   edit, which is the failure the copy-not-share rule exists to prevent. Both copies are identical
+   today and the historical one is now frozen.
+3. **One derivation inside the preserved body changed, and only the derivation.** The v1.1 hero's
+   publication signpost read `citation('w-analytical-governance')` — the work's *current* record. That
+   was correct while this page WAS the current doorway and became wrong the moment it stopped being
+   one: the preserved page would have rendered the v1.1 compression above a v2.0 signpost and
+   misattributed its own body. It is now pinned to `w-analytical-governance.r02`, passed in by the
+   route. **No claim in the preserved body was edited.**
+
+## Anchor / redirect compatibility — one finding beyond the ruling
+
+The ruling named two anchors. There were six, because **Ask builds its citation URLs from HEADING ids,
+not section ids**: published answers already point at `/analytical-governance#bound-h` and `#close-h`
+(see `services/ask/eval/results/*`). A heading id is as load-bearing as a hand-authored link.
+
+| fragment | kind | disposition |
+|---|---|---|
+| `#two-gaps`, `#can-may`, `#powers` | section ids, live since 21 Aug | → historical route, same anchor |
+| `#gaps-h`, `#matrix-h`, `#powers-h` | heading ids of the same sections | → historical route, same anchor |
+| `#bound-h` | heading id, "where this sits" | → `#where-this-sits`, a real successor section |
+| `#serving`, `#boundaries`, `#authorize` | section ids | → `#responses`, `#crossings`, `#path` in-page |
+| `#the-wound`, `#conformance`, `#wire`, `#conf-h`, `#close-h`, `#serving-h`, `#wound-h`, `#ag-thesis` | unchanged | resolve locally |
+
+No successor section was fabricated to preserve a name. Verified by loading
+`/analytical-governance#can-may` in a real browser: it lands on the preserved matrix.
+
+## The "correct" audit
+
+Two occurrences survive on the current page and its components, both with the predicate named:
+
+- `ServiceWound.astro` — "each can be written in valid SQL, **each executes correctly**, and each
+  returns a plausible number." The predicate is execution, which is exactly what is being conceded.
+- `analytical-governance.astro` §servability — "a late-arriving or **retroactively corrected**
+  record". This is the paper's term for a data correction, not a claim about an answer.
+
+Removed by the rewrite: "correct number" (the old H1 draft) and the v1.1 page's "Refuse is governance
+functioning correctly" (re-cut to "functioning as designed" in the component comment). Elsewhere the
+page names the predicate directly: *arithmetically flawless*, *lawfully derived*, *support-sufficient*,
+*reproducible*, *servable*, *authorized*, *unfaithful as a service*, *not entitled to answer*. No
+taxonomy of correctness was created.
+
+## One naming rule, now in all three places
+
+Adding a route to the preserved source exposed the last copy of the label defect: `index_build`'s
+ROUTE path fell back to the work's `canonicalLabel`, which would have labelled the preserved page
+"Analytical Governance" and made it read as the current work. It now uses the same rule the deposit
+path and `citations.py` use — *an explicitly titled source pinned to a non-current record keeps its own
+dated title*. The historical route's 18 chunks are labelled "Analytical Governance v1.1, 21 August
+2026", `layer: reference`, standing = edition-pinned + preserved historical state.
+
+## Gates
+
+Website build clean, 45 pages (44 before + the historical route). Publication registry OK — 33 works,
+80 records, 85 classified consumers. Corpus membership OK — 45 sources, 17 IN, 28 REFERENCE ONLY, 0
+unadjudicated. Ask index rebuilt: 1336 chunks / 20 routes, historical 55, edition-pinned 46. 66 ask
+tests green. `check_currency_stamps` still cannot run in this container (columna-core not installed).

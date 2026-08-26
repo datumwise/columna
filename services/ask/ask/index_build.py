@@ -297,7 +297,14 @@ def _load_standing() -> dict[str, dict]:
         if not work_id:
             bits.append("not a deposited publication — no DOI, no Zenodo record")
 
-        label = works[work_id]["canonicalLabel"] if work_id else s.get("title")
+        # ONE NAMING RULE, IN ALL THREE PLACES (2026-08-26). The deposit path below already rules
+        # that an explicitly titled source pinned to a non-current record keeps its own dated title,
+        # and citations.py re-resolves stored labels by the same rule. A ROUTE for such a source was
+        # the one place still falling back to the work's label — which, the day
+        # /history/analytical-governance-v1-1 was added, would have labelled a preserved historical
+        # page "Analytical Governance" and made it read as the current work.
+        label = (s.get("title") if pinned and s.get("title")
+                 else works[work_id]["canonicalLabel"] if work_id else s.get("title"))
         out[route.rstrip("/") or "/"] = {
             "layer": layer_of.get(s["sourceId"], "unruled"),
             "jurisdiction": juris_of.get(s["sourceId"]),

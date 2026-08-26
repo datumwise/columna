@@ -1,98 +1,124 @@
 ---
 /**
- * /analytical-governance — the full category page (Phase 2, 2026-08-21).
+ * /analytical-governance — THE CURRENT v2.0 DOORWAY (authored 2026-08-26 under the CG2 final E rulings of 15:59).
  *
- * WHAT REPLACED WHAT. This page was a navigation SIGNPOST, authorized narrowly on 2026-08-19 so the
- * four-door nav would not ship a 404. That signpost's job was to establish scent and point onward;
- * its brief said the full page's first screen must do what the signpost's first screen already did —
- * distinguish Analytical Governance from data governance and surface the conformance test. Both
- * survive here, in the hero and in §Conformance.
+ * AUTHORED FROM THE RECORD, NOT EDITED FROM THE COMPRESSION (item 5: author the current route fresh from v2.0). The page that stood here
+ * from 21 August compressed Analytical Governance v1.1. v2.0 did not reword that argument, it
+ * reorganised the category: the subject is now the LEGITIMACY OF THE ANALYTICAL SERVICE, servability
+ * is a gate inside it rather than the thesis, and the worked example's own numbers changed. So this
+ * file is new, and the v1.1 body is preserved unedited at /history/analytical-governance-v1-1 —
+ * created FIRST, deliberately, so no moment existed in which it was unreachable (item 10: historical route first).
  *
- * SOURCE OF RECORD. The deposited paper, Analytical Governance v1.1 (21 August 2026), is canonical.
- * This page may compress, sequence, visualize, and connect its ideas. It does not extend them. The
- * one synthesis the page performs — crossing capability/legitimacy with within-world/crossing into
- * an organizing matrix — is authorized by brief §3 and is framed on the page as an organizing
- * choice, never as a discovery or a priority claim.
+ * SOURCE OF RECORD. The deposited paper, Analytical Governance v2.0, is canonical. This page may
+ * compress, sequence and connect it; it does not extend it. Every section names the section of the
+ * record it comes from in the comment above it, and the three places the page speaks in its own voice
+ * are marked *page voice*.
  *
- * REGISTER. PAPER throughout, with exactly one quotation from WIRE near the end. The page is an
- * argument that happens to have a system behind it, not a product page that happens to argue.
+ * ORDER IS RULED (item 7): service relationship → legitimacy → intent gap → servability gap →
+ * responses → STANDING → serving ↔ authoring → governed crossings → conformance. Standing sits after
+ * the responses because it is downstream of the serving verdict: it governs what a SERVED result may
+ * carry across the next boundary.
  *
- * THE TICKET/VISA COMPRESSION IS NOT A SECTION (Huayin, 2026-08-21). It briefly was one, and the
- * thinness of that section was the correct signal: a sentence that compresses an architecture does
- * not deserve an independent movement. It now closes §can-may, one appearance, once the technical
- * distinction it compresses is already established.
+ * WHAT IS NOT HERE, BY RULING (E.9). The capability/legitimacy matrix, the three powers, and "If it
+ * cannot refuse, it is not governed" are v1.1-only. v2.0 supplies no grounding for any of them, none
+ * was invented, and all three are preserved on the historical route. Two v1.1 conformance
+ * blockquotes went with them.
  *
- * PUBLICATION FACTS. Registry-derived, everywhere, including the closing paths. No version string
- * and no DOI is typed into this file — check_publications.py classifies it `derived` and fails the
- * build if one appears.
+ * THE WORD "CORRECT" IS AUDITED (item 3). A result may be correctly produced relative to a local
+ * operation — arithmetic, a query, a derivation, one analytical object — without being a legitimate
+ * answer to the user's request. So the page never says "correct number" or "correct result" when it
+ * means "the answer the user should receive": it names the predicate actually being asserted —
+ * arithmetically flawless, executes correctly, lawfully derived, support-sufficient, reproducible,
+ * servable, authorized, legitimate as the answer. This is a precision rule, not a taxonomy.
+ *
+ * THE THEORY OF CERTAINTY IS A POINTER, TWICE (item 8): the upstream discipline named in
+ * §Legitimacy, and a relation in §Where this sits. None of its content — no grounds, no substitution
+ * error, no reach, no composition, no exposure — and no domain triad, named or implied.
+ *
+ * PUBLICATION FACTS. Registry-derived, everywhere, for both AG and ToC. No version string and no DOI
+ * is typed into this file — check_publications.py classifies it `derived` and fails the build if one
+ * appears. No count of works, papers or domains is rendered (G10).
+ *
+ * ANCHORS. #two-gaps, #can-may and #powers have no successor here and are NOT faked into existence to
+ * preserve a name (item 6); the shim at the bottom forwards exactly those three fragments to the
+ * same anchor on the historical route. #serving → #responses, #boundaries → #crossings and
+ * #authorize → #path are in-page renames and resolve locally.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import AgHero from '../components/ag/AgHero.astro';
-import OpenStoreWound from '../components/ag/OpenStoreWound.astro';
-import TwoGaps from '../components/ag/TwoGaps.astro';
-import CanMayMatrix from '../components/ag/CanMayMatrix.astro';
+import ServiceHero from '../components/ag/ServiceHero.astro';
+import ServiceWound from '../components/ag/ServiceWound.astro';
+import TermStrip from '../components/ag/TermStrip.astro';
 import ServingBoundary from '../components/ag/ServingBoundary.astro';
 import WireQuotation from '../components/ag/WireQuotation.astro';
 import { citation } from '../data/publications';
 
 const paper = citation('w-analytical-governance');
+const certainty = citation('w-theory-of-certainty');
 
-const POWERS = [
+// §2 · the three obligations by which legitimacy is maintained through the passage (v2.0 §2.1–2.3).
+const OBLIGATIONS = [
   {
-    id: 'interpretation',
-    name: 'Interpretation',
-    formal: 'human language → candidate governed analytical request',
+    id: 'faithfulness',
+    name: 'Faithfulness',
+    formal: 'purpose → request → answer',
     text:
-      'AI is genuinely well suited here, because interpretation is probabilistic and contextual: it can search definitions, connect a user’s vocabulary to local terms, retrieve candidate governed objects, and propose requests.',
-    guard: 'Probabilistic plausibility must not become analytical authority.',
+      'Does the service preserve the user’s purpose as it becomes an analytical request and an answer? Two duties, and only one of them is translation. Fidelity prevents the system from saying something different from what the user means. Enablement helps the user say more precisely what they are trying to know.',
+    guard: 'Neither authorizes the system to choose silently on the user’s behalf.',
   },
   {
-    id: 'adjudication',
-    name: 'Analytical adjudication',
-    formal: 'candidate request + governed model + current support → determination',
+    id: 'reliability',
+    name: 'Reliability',
+    formal: 'established object → produced result',
     text:
-      'Identity, support, lawfulness, and servability are established here, independently and testably. This is where analytical authority lives. The adjudicator may canonicalize a uniquely determined request; it does not choose among unresolved analytical meanings on the user’s behalf.',
-    guard: 'The agent may respond to adjudication. It does not overrule adjudication.',
+      'Can the governed analytical process produce the established result consistently under the relevant conditions? Data availability, state, execution, materialization, reproducibility. Reliability does not create analytical meaning; it preserves and produces what was already formulated and established.',
+    guard: 'A reliable production path must reproduce and carry forward the object that was actually established.',
   },
   {
-    id: 'execution',
-    name: 'Physical execution',
-    formal: 'adjudicated request → plan → result',
+    id: 'certainty',
+    name: 'Certainty sufficient for reliance',
+    formal: 'grounds → warranted reliance',
     text:
-      'Trusted planners and engines realize what has already been established. Execution may report that a binding is absent, that exact state is not materialized, or that a plan is unexpectedly expensive — and those findings flow back into support determination and risk.',
-    guard: 'Planning may report constraints; it may not silently substitute a different analytical request.',
+      'Are the grounds relevant to this result established, preserved and respected as the service crosses from request to answer, and from answer to use? The sufficiency of a ground depends on the exposure the reliance creates.',
+    guard: 'This is where Analytical Governance defers: the discipline of grounds is developed elsewhere.',
   },
 ];
 
+// §8 · where this sits. Deliberately a relation list, not a symmetric four-box diagram: these bodies
+// of law have different shapes, and a diagram that made them look parallel would claim a symmetry
+// the corpus does not have. (v2.0 §11.)
 const NEIGHBOURS = [
   {
     id: 'data-governance',
     name: 'Data governance',
     relation: 'composes with',
     text:
-      'Analytical governance decides which analytical results may be served. It is distinct from data governance, which governs the stewardship, access, quality, and control of data assets. The two compose; neither substitutes for the other.',
+      'Data governance governs the stewardship, access, quality and control of data assets. Analytical Governance governs whether the analytical service is faithfully formulated, sufficiently established, honestly served and appropriately used. The two compose; neither substitutes for the other.',
     canonical: true,
   },
   {
     id: 'tod',
-    name: 'Theory of Data',
+    name: 'The Theory of Data',
     href: '/learn/what-is-the-theory-of-data',
     relation: 'supplies interior law to',
     text:
-      'ToD supplies the interior law for governed analytical data — identity, derivability, contracts, sufficient state. It is narrowly that. It is not a general ontology of analytical objects, and it is not the law of every world analytical governance coordinates.',
+      'Laws of governed analytical identity, derivability and consistency. It is narrowly that: not a general ontology of analytical objects, and not the law of every world the service crosses.',
   },
   {
     id: 'bridge',
     name: 'The Statistical Bridge',
-    // CV-6, closed 2026-08-21. This was the page's ONE unlinked neighbour, and the omission was
-    // structural rather than editorial: there was no canonical Evidence surface to point at, and
-    // pointing a conceptual neighbour straight at a DOI would have sent a reader mid-argument out
-    // of the site and into a PDF. /evidence now exists, so the neighbour resolves to the argument
-    // rather than to the deposit — which is also what every other linked neighbour here does.
     href: '/evidence',
     relation: 'governs a crossing inside',
     text:
-      'The Bridge governs the passage from governed data and evidence to inferential claims. Analytical governance may compose that crossing into a larger analytical path. It does not replace the Bridge’s law, and it does not adjudicate inference itself.',
+      'Passages from governed evidence through formal inference to licensed claims. Analytical Governance may compose that crossing into a larger analytical path. It does not replace the Bridge’s law, and it does not adjudicate inference itself.',
+  },
+  {
+    id: 'certainty',
+    name: 'The Theory of Certainty',
+    href: certainty.href,
+    external: true,
+    relation: 'supplies the upstream discipline to',
+    text:
+      'What grounds carry a conclusion, what they establish, where their warrant stops, and whether they can bear the reliance being placed on them. Analytical Governance turns those questions into a governed analytical service; it does not restate them.',
   },
   {
     id: 'columna',
@@ -100,7 +126,7 @@ const NEIGHBOURS = [
     href: '/columna',
     relation: 'is an executable consequence of',
     text:
-      'Columna is evidence that these distinctions can be embodied in a working system. It is not the definition of analytical governance, and the category does not depend on it.',
+      'Evidence that these distinctions can be embodied in a working system. Not the definition of the category, and the category does not depend on it.',
   },
   {
     id: 'frameql',
@@ -108,106 +134,308 @@ const NEIGHBOURS = [
     href: '/what-is-frameql',
     relation: 'is one request language for',
     text:
-      'Frame-QL speaks natively in governed analytical objects, which makes it a convenient request boundary. No one language or protocol is required by the category — only that every identity-bearing distinction be explicit in the request or uniquely derivable from the governed model.',
+      'Convenient as a request boundary because it speaks natively in governed analytical objects. No language or protocol is required by the category — only that every identity-bearing distinction be explicit in the request or uniquely derivable from the governed model.',
   },
 ];
 
+// §9 · the minimum a conforming practice or architecture needs (v2.0 §12), verbatim in substance.
+const REQUIREMENTS = [
+  'a way to preserve user purpose while translating human or machine intent into an explicit analytical request;',
+  'a governed analytical representation capable of independently establishing identity, derivation, support requirements and relevant state;',
+  'a reliable production path that preserves what was analytically established;',
+  'a servability gate capable of withholding or qualifying analytical permission;',
+  'a way to preserve standing, conditions, reasons and alternatives as results cross boundaries;',
+  'separation between analytical establishment and later cost, security, application and authorization decisions;',
+  'execution faithful to what governance actually authorized.',
+];
+
 const CLOSING = [
-  'Translate intent.',
-  'Establish servability.',
-  'Evaluate bounded risk.',
-  'Authorize deliberately.',
-  'Execute faithfully.',
+  'Preserve purpose.',
+  'Establish the analytical object and its grounds.',
+  'Produce it reliably.',
+  'Serve only what is servable.',
+  'Preserve standing across crossings.',
+  'Govern consequential use.',
 ];
 ---
 <BaseLayout
   title="Analytical Governance — datumwise"
-  description="What can be computed is not yet what may be served. Analytical Governance governs the relationship between can and may across a multi-world analytical process — the intent gap, the servability gap, and the boundary at which a governed system may refuse."
+  description="Producing a result is not the same as serving an answer. Analytical Governance governs the legitimacy of the analytical service — the intent gap, the servability gap, standing, and the boundary at which a governed system may refuse."
   wide={true}
   chip={false}
 >
-  <AgHero />
-  <OpenStoreWound />
-  <TwoGaps />
-  <CanMayMatrix />
+  <ServiceHero />
+  <ServiceWound />
+  <TermStrip />
 
-  {/* THE THREE POWERS (brief §6). A separation of authority, so it is set as three units with their
-      formal signature and the guard that keeps each in its lane — not as three feature cards. */}
-  <section id="powers" class="powers ds ds-paper ds-section" aria-labelledby="powers-h">
+  {/* §2 · LEGITIMACY (v2.0 §2, §2.1–2.3). The spine is the paper's operational cut, set as one line
+      of type because it is the only thing on the page that is a sequence. */}
+  <section id="must-remain-true" class="legit ds ds-paper ds-section" aria-labelledby="legit-h">
     <div class="ds-measure-wide">
-      <h2 id="powers-h" class="ds-label">Three powers, separated</h2>
-      <p class="ds-proposition">interpretation &ne; analytical adjudication &ne; physical execution</p>
-      <p class="powers-lede ds-body">
-        The separation is not organizational tidiness. Each power has a different epistemic character,
-        and collapsing any two of them is how a plausible interpretation acquires execution authority
-        without ever being adjudicated.
+      <h2 id="legit-h" class="ds-label">Legitimacy &mdash; what must remain true</h2>
+
+      <p class="passage">
+        User purpose <span class="arw">&rarr;</span> analytical intent <span class="arw">&rarr;</span>
+        governed analytical construction <span class="arw">&rarr;</span> reliable production
+        <span class="arw">&rarr;</span> servability <span class="arw">&rarr;</span> warranted reliance
+        <span class="arw">&rarr;</span> consequential use
       </p>
-      <ol class="power-list">
-        {POWERS.map((p) => (
-          <li class="power" id={`power-${p.id}`}>
-            <h3 class="power-name">{p.name}</h3>
-            <p class="power-formal">{p.formal}</p>
-            <p class="power-text">{p.text}</p>
-            <p class="power-guard">{p.guard}</p>
+
+      <p class="legit-lede ds-body">
+        This is an operational cut through the analytical service, not a replacement taxonomy for the
+        foundational domains whose laws the service uses. Different systems may combine functions.
+        Governance requires that the distinctions remain visible enough to adjudicate.
+      </p>
+
+      <ol class="obligations">
+        {OBLIGATIONS.map((o) => (
+          <li class="obligation" id={`obligation-${o.id}`}>
+            <h3 class="ob-name">{o.name}</h3>
+            <p class="ob-formal">{o.formal}</p>
+            <p class="ob-text">{o.text}</p>
+            <p class="ob-guard">{o.guard}</p>
           </li>
         ))}
       </ol>
+
+      {/* THE THEORY OF CERTAINTY, appearance 1 of 2. A pointer, not a summary: none of its content
+          appears on this page, and no triad of domains is named or implied (item 8). */}
+      <p class="defer">
+        Analytical Governance does not develop its own account of what makes grounds sufficient. That
+        upstream discipline &mdash; what grounds carry a conclusion, what they establish, where their
+        warrant stops, and whether they can bear the reliance being placed on them &mdash; is
+        developed separately in
+        <a href={certainty.href} rel="noopener" target="_blank">{certainty.label}</a>, and Analytical
+        Governance turns those questions into a governed analytical service.
+      </p>
+    </div>
+  </section>
+
+  {/* §3 · THE INTENT GAP (v2.0 §3). The worked case carries the section: it is the shortest proof
+      that enablement is not translation. */}
+  <section id="intent-gap" class="gap ds ds-paper ds-section" aria-labelledby="intent-h">
+    <div class="ds-measure-wide">
+      <h2 id="intent-h" class="ds-label">The intent gap</h2>
+      <p class="ds-proposition">From purpose to governed request.</p>
+
+      <div class="gap-body">
+        <p class="ds-body">
+          The first gap is the distance between what a user can initially express and the analytical
+          request that faithfully captures their purpose with the distinctions governance needs.
+          Closing it has two obligations: preserve the purpose, and enable better articulation.
+        </p>
+        <p class="ds-body">
+          AI and semantic systems can search vocabulary, retrieve definitions, expose governed
+          distinctions, propose interpretations, explain alternatives, and formulate a candidate
+          governed request. <strong>This is not merely translation.</strong> A good analytical service
+          can expand what a user is able to say, by making the relevant distinctions available to be
+          said.
+        </p>
+
+        <blockquote class="worked">
+          <p>
+            A user asks for &ldquo;average revenue.&rdquo; The service can surface the governed
+            alternatives &mdash; among reporting stores, among existing stores, among stores that were
+            open &mdash; explain the difference, and let the user choose.
+          </p>
+          <p class="worked-turn">
+            That is enablement. Silently selecting one of them is unauthorized formulation by the
+            serving system.
+          </p>
+        </blockquote>
+
+        <p class="ds-body">
+          Enablement must not conceal materially relevant governed alternatives. If the service
+          surfaces a selective set rather than the relevant governed set, that selectivity must itself
+          be governed or disclosed.
+        </p>
+        <p class="gap-close">
+          The intent gap is closed when the user&rsquo;s purpose has been formulated &mdash; through
+          preservation and, where useful, enablement &mdash; as an analytical request explicit enough
+          for <strong>independent adjudication</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* §4 · THE SERVABILITY GAP (v2.0 §4). The sentence that used to be this page's thesis lands here,
+      in its own edition's words. */}
+  <section id="servability" class="gap servability ds ds-paper ds-section" aria-labelledby="serv-h">
+    <div class="ds-measure-wide">
+      <h2 id="serv-h" class="ds-label">The servability gap</h2>
+      <p class="ds-proposition">Faithful request does not imply servable request.</p>
+
+      <div class="gap-body">
+        <p class="equation">Servable = Support Sufficient <span class="and">AND</span> Analytically Established</p>
+
+        <p class="ds-body">
+          <strong>Analytical establishment</strong> asks whether the requested analytical object exists
+          under the governed analytical model and whether the requested derivation is lawful.
+          <strong>Support sufficiency</strong> asks whether the evidence and sufficient state this
+          particular request requires are presently available.
+        </p>
+        <p class="ds-body">
+          A missing feed can leave a lawful request unsupported. An unlawful reduction can leave
+          abundant data unable to establish the requested result. An unresolved population can make a
+          computable denominator analytically unestablished.
+        </p>
+
+        <p class="pillar">Computability does not imply servability.</p>
+
+        <p class="ds-body">
+          Servability is not a generic property of a dataset, metric, model or platform. It is a
+          determination about a particular analytical request under current grounds. And a result may
+          be servable and still not be served: servability establishes the analytical permission for
+          the requested answer, while authorization, risk and disclosure conditions determine the
+          serving outcome.
+        </p>
+        <p class="ds-body">
+          Time has to be typed carefully. A late-arriving or retroactively corrected record does not
+          necessarily change the identity of the analytical object; it may instead change whether the
+          required state was support-sufficient when the answer was served. If the governed definition
+          itself is versioned over time, analytical identity may change too.
+        </p>
+      </div>
     </div>
   </section>
 
   <ServingBoundary />
 
-  {/* CONFORMANCE (brief §8). A late, strong section — the category's membership test, not a product
-      behaviour. The hero states it quietly; this is where it is argued. */}
-  <section id="conformance" class="conformance ds ds-paper ds-section" aria-labelledby="conf-h">
+  {/* §6 · STANDING (v2.0 §7), placed after the responses by ruling: standing is downstream of the
+      serving verdict. Risk and authority (§8) fold in as its second movement — the same boundary
+      seen from the other side. */}
+  <section id="standing" class="standing ds ds-paper ds-section" aria-labelledby="standing-h">
     <div class="ds-measure-wide">
-      <h2 id="conf-h" class="ds-label">Conformance</h2>
-      <blockquote class="conf-test">
-        <p>A governed analytical system must be capable of withholding analytical permission. If it cannot refuse, it is not governed.</p>
-      </blockquote>
-      <div class="conf-body">
+      <h2 id="standing-h" class="ds-label">Standing</h2>
+      <p class="ds-proposition">What may the served result now be treated as?</p>
+
+      <div class="two-col">
         <div>
           <p class="ds-body">
-            The important idea is not refusal as a product behaviour. It is <strong>withholding
-            analytical permission as a category requirement</strong>. A system that can always
-            produce something has no mechanism for the case where nothing is entitled to be produced,
-            and it will therefore produce something anyway.
+            Servability asks whether a candidate result may be served as the answer. Consequential use
+            creates a further question, and it is not the same one.
           </p>
           <p class="ds-body">
-            This is why Refuse appears on this page as governance functioning correctly, never as an
-            error state — and why the site's vocabulary carries no failure-red for it. Refusing is
-            the capability being tested.
+            Standing is claim- and boundary-specific. A result may stand for exploratory display and
+            not for compensation. A statistical estimate may stand as an estimate and not as a causal
+            claim. A result may require disclosure before publication.
+          </p>
+          <p class="pillar">
+            Standing prevents a result from becoming more authoritative merely because it travelled.
+            Conclusions are portable; their grounds are less so.
           </p>
         </div>
         <div>
-          <p class="conf-label">The soundness condition on the serving boundary</p>
-          <blockquote class="conf-sound">
-            <p>Every served answer must be entitled under the declared analytical meaning and current support; unestablished answers must be withheld.</p>
+          <p class="col-label">Risk and authority come after analytical establishment</p>
+          <p class="ds-body">
+            Cost, security, application risk and authorization can constrain an otherwise established
+            analytical service. They cannot supply a missing analytical ground.
+          </p>
+          <blockquote class="rule-quote">
+            <p>Risk may constrain the right answer. It cannot turn an unestablished answer into the right one.</p>
           </blockquote>
+          <p class="ds-body">
+            An unresolved analytical identity, an unsupported population or an unlawful derivation is
+            not a higher-risk version of the requested answer. Once the object and its required support
+            are established, exposure matters: the same result may be acceptable for exploration and
+            unacceptable for compensation, publication or automated action.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  {/* WHERE THIS SITS (brief §9). Deliberately a relation list, not a symmetric four-box diagram:
-      these bodies of law have different shapes, and a diagram that made them look parallel would
-      claim a symmetry the corpus does not have. */}
-  <section id="boundaries" class="boundaries ds ds-paper ds-section" aria-labelledby="bound-h">
+  {/* §7 · SERVING ↔ AUTHORING (v2.0 §6). *Page voice* in the last line only: the page states the
+      requirement that an authoring process exist and be separate. It does not imply datumwise ships
+      one, and no forward reference or roadmap language appears. */}
+  <section id="authoring" class="authoring ds ds-paper ds-section" aria-labelledby="auth-h">
     <div class="ds-measure-wide">
-      <h2 id="bound-h" class="ds-label">Where this sits</h2>
-      <p class="ds-proposition">Wider scope, not higher sovereignty.</p>
-      <p class="bound-lede ds-body">
-        Analytics is not governed by one body of law. Governed data, inferential claims, and
-        authorized action answer to distinct correctness conditions, and a real analytical act may
-        traverse several jurisdictions. Analytical governance is the meta-framework that tracks which
-        law has jurisdiction and what survives each passage.
+      <h2 id="auth-h" class="ds-label">The governed world is authored, not assumed</h2>
+      <p class="ds-proposition">Serving applies the constitution. Authoring changes it.</p>
+
+      <p class="auth-lede ds-body">
+        Analytical service operates against a governed <strong>constitution</strong>: analytical
+        meaning, law, support requirements, authority. That constitution must be declared, reviewed and
+        ratified through a process separate from serving. Authoring changes or extends it through an
+        authority event that can be reviewed and ratified.
       </p>
+
+      <blockquote class="conf-sound">
+        <p>A serving system must not silently create the missing meaning or authority that would make its own answer servable.</p>
+      </blockquote>
+
+      <ol class="loop">
+        <li>unresolved need</li>
+        <li>authoring or declaration</li>
+        <li>review and ratification</li>
+        <li>governed constitution</li>
+        <li>serving</li>
+      </ol>
+
+      <p class="pillar">Clarify stays inside the constitution. Escalate reaches the constitution&rsquo;s edge.</p>
+    </div>
+  </section>
+
+  {/* §8 · GOVERNED CROSSINGS (v2.0 §9) and where this sits (v2.0 §11). */}
+  <section id="crossings" class="crossings ds ds-paper ds-section" aria-labelledby="cross-h">
+    <div class="ds-measure-wide">
+      <h2 id="cross-h" class="ds-label">Govern the crossings</h2>
+
+      <ol class="crossing-list">
+        <li>purpose becomes a request</li>
+        <li>a request becomes a plan</li>
+        <li>a plan produces a result</li>
+        <li>a result becomes an answer</li>
+        <li>an answer becomes action</li>
+      </ol>
+
+      <p class="cross-lede ds-body">
+        Analytical service becomes consequential at crossings, and each crossing is an opportunity for
+        authority to travel farther than its grounds.
+      </p>
+
+      <p class="pillar">
+        The component that can produce a candidate result need not be the component entitled to
+        authorize what that result becomes.
+      </p>
+
+      <div class="two-col">
+        <div>
+          <p class="ds-body">
+            AI agents are <strong>one application</strong> of this crossing discipline. A model may
+            interpret language, formulate a candidate governed request, generate candidate SQL,
+            summarize evidence, or explain an adjudication result. None of those capabilities requires
+            the model itself to carry analytical authority.
+          </p>
+        </div>
+        <div>
+          <p class="ds-body">
+            A structural execution boundary can close one consequential path independently of
+            predictions about the agent. This is the role of a <strong>blast wall</strong>: a
+            structural boundary that prevents reasoning output from becoming consequential execution
+            directly. The same principle applies to serving &mdash; the agent may propose or explain;
+            the governed serving boundary determines what the result is entitled to become.
+          </p>
+        </div>
+      </div>
+
+      <h3 id="where-this-sits" class="sub-label">Where this sits</h3>
+      <p class="bound-lede ds-body">
+        Analytics is not governed by one body of law. Analytical Governance coordinates these kinds of
+        interior law without replacing them: it governs the service passage &mdash; what must remain
+        true as purpose becomes request, request becomes result, result becomes answer, and answer
+        becomes consequential use. Its subject includes process and practice as well as architecture,
+        because analysts, data systems, semantic systems, AI agents, reviewers and execution controls
+        all have to preserve analytical meaning and authority across handoffs.
+      </p>
+
       <dl class="neighbours">
         {NEIGHBOURS.map((n) => (
           <div class="neighbour" id={`boundary-${n.id}`}>
             <dt>
               {n.href
-                ? <a class="n-name" href={n.href}>{n.name}</a>
+                ? <a class="n-name" href={n.href} rel={n.external ? 'noopener' : undefined}
+                     target={n.external ? '_blank' : undefined}>{n.name}</a>
                 : <span class="n-name">{n.name}</span>}
               <span class="n-rel">{n.relation} analytical governance</span>
             </dt>
@@ -215,40 +443,57 @@ const CLOSING = [
           </div>
         ))}
       </dl>
-      {/* CONNECTIVE TISSUE, and one repair. The signpost this page replaces was the ONLY inbound
-          link to the homepage's `#exhibit-a-heading` anchor; retiring it silently would have
-          orphaned that anchor. It is restored here, where it actually belongs — four governed
-          requests are the concrete form of everything above. The authority-boundary position keeps
-          its inbound too. UNIT B (2026-08-25): the witness itself moved. It is Exhibit B now, on
-          /the-argument, consolidated and build-adjudicated; the label follows the instrument. */}
+
       <p class="read-on">
         <a href="/research">The research corpus</a>
         <a href="/positions/never-let-your-agent-touch-the-database">The authority boundary, argued</a>
         <a href="/the-argument#exhibit-b">Exhibit B &mdash; four requests, four earned verdicts</a>
       </p>
+    </div>
+  </section>
 
-      <p class="orientation">
-        <span class="o-item"><span class="o-key">Theory of Data</span> law</span>
-        <span class="o-item"><span class="o-key">Manifold</span> declared governed world</span>
-        <span class="o-item"><span class="o-key">Frame-QL</span> language</span>
-        <span class="o-item"><span class="o-key">Columna</span> machine / system</span>
-        <span class="o-item"><span class="o-key">Analytical Governance</span> composition and authority architecture</span>
-      </p>
+  {/* §9 · CONFORMANCE (v2.0 §12). The membership test, argued as requirements a reader can hold their
+      own architecture against — followed by the non-claims, which are what keep this a category
+      rather than a product pitch. */}
+  <section id="conformance" class="conformance ds ds-paper ds-section" aria-labelledby="conf-h">
+    <div class="ds-measure-wide">
+      <h2 id="conf-h" class="ds-label">Conformance</h2>
+      <p class="ds-proposition">What a conforming service needs, at minimum.</p>
+
+      <ol class="reqs">
+        {REQUIREMENTS.map((r) => <li>{r}</li>)}
+      </ol>
+
+      <div class="nonclaims">
+        <p class="col-label">And what the framework does not claim</p>
+        <p class="ds-body">
+          It does not guarantee perfect intent, perfect data, perfect governed declarations or perfect
+          decisions. It does not replace semantic knowledge, statistical inference, security
+          engineering, physical optimization or decision governance. It requires no particular query
+          language, semantic layer or implementation architecture.
+        </p>
+        <p class="ds-body">
+          It requires that the analytical target, the grounds relevant to serving it, and the authority
+          for consequential use be <strong>independently adjudicable somewhere</strong> before the
+          service crosses the relevant boundary.
+        </p>
+      </div>
     </div>
   </section>
 
   <WireQuotation />
 
-  {/* CLOSING (brief §11). Returns to authorization, not to product marketing. */}
-  <section id="authorize" class="closing ds ds-paper ds-section" aria-labelledby="close-h">
+  {/* CLOSING (v2.0 §13). Returns to the service, not to product marketing. */}
+  <section id="path" class="closing ds ds-paper ds-section" aria-labelledby="close-h">
     <div class="ds-measure-wide">
-      <h2 id="close-h" class="ds-label">The path</h2>
+      <h2 id="close-h" class="ds-label">The discipline</h2>
       <ol class="path">
         {CLOSING.map((step) => <li>{step}</li>)}
       </ol>
       <p class="closing-line">
-        That is the path from a human question to a result that is not merely computable, but
-        entitled to answer it.
+        The goal is not to formalize every analytical act. It is to ensure that when analytics serves a
+        user, the answer remains faithful to the purpose that called for it and carries no more
+        authority than it has earned.
       </p>
       <div class="paths">
         <p class="path-out">
@@ -261,16 +506,67 @@ const CLOSING = [
           <a href="/columna">Columna &rarr;</a>
           <span class="p-meta">the same boundaries, in a system that ships</span>
         </p>
+        <p class="path-out">
+          <span class="p-label">The previous doorway</span>
+          <a href="/history/analytical-governance-v1-1">Analytical Governance v1.1 &rarr;</a>
+          <span class="p-meta">preserved as it stood on 21 August 2026 &mdash; explicitly not current</span>
+        </p>
       </div>
     </div>
   </section>
 </BaseLayout>
 
+<script>
+  // HISTORICAL FRAGMENT SHIM (item 6). #two-gaps, #can-may and #powers have been live and
+  // sitemap-indexed since 21 August 2026 and have NO successor on this page: v2.0 supplies no
+  // grounding for the capability/legitimacy matrix or the three powers, and no successor section was
+  // fabricated to keep an anchor name alive. They resolve to the preserved material instead.
+  //
+  // A fragment never reaches the server and this repo's redirects are meta-refresh stubs which do not
+  // carry one, so a client-side forward is the only mechanism that preserves a reader's target. Same
+  // pattern as the eight legacy /research fragments. Fragmentless /analytical-governance is NOT
+  // redirected: it belongs to current reality.
+  //
+  // THE HEADING IDS COUNT TOO, and this is the finding that made the list longer than the ruling's
+  // two entries. Ask builds its citation URLs from HEADING ids, not from section ids, so published
+  // answers already point at /analytical-governance#bound-h and #close-h (see
+  // services/ask/eval/results/*). Those fragments are as load-bearing as a hand-authored link, and
+  // three of them belonged to sections that no longer exist.
+  const RETIRED = new Set([
+    '#two-gaps', '#can-may', '#powers',          // section ids, live since 21 August 2026
+    '#gaps-h', '#matrix-h', '#powers-h',         // the same sections' heading ids
+  ]);
+  if (RETIRED.has(location.hash)) {
+    location.replace('/history/analytical-governance-v1-1' + location.hash);
+  }
+  // In-page renames: the section still exists here under a v2.0 name, so the reader stays. #bound-h
+  // is a heading id whose material became the second half of §Govern the crossings — a real
+  // successor, not a section fabricated to keep the name (item 6).
+  const RENAMED = { '#serving': '#responses', '#boundaries': '#crossings', '#authorize': '#path',
+                    '#bound-h': '#where-this-sits' };
+  const to = RENAMED[location.hash];
+  if (to) {
+    history.replaceState(null, '', location.pathname + to);
+    document.querySelector(to)?.scrollIntoView();
+  }
+</script>
+
 <style>
-  /* ── three powers ─────────────────────────────────────────────────────────────────────────── */
-  .powers .ds-proposition { font-size: var(--ds-pillar); max-width: 30ch; }
-  .powers-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
-  .power-list {
+  /* ── §2 legitimacy ────────────────────────────────────────────────────────────────────────────
+     The passage is the one thing on this page that IS a sequence, so it is the only element set as
+     one continuous line of type. The arrows are presentational; every stage is real DOM text. */
+  .passage {
+    margin: var(--ds-space-3) 0 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 62ch;
+  }
+  .passage .arw { color: var(--ink-faint); padding: 0 0.15rem; }
+  .legit-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
+
+  .obligations {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -278,11 +574,11 @@ const CLOSING = [
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
   }
-  .power { display: grid; gap: 0.5rem; align-content: start; padding-top: 1rem; border-top: 1px solid var(--ds-rule-strong); }
-  .power-name { margin: 0; font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); }
-  .power-formal { margin: 0; font-family: var(--font-mono); font-size: var(--ds-mono-sm); line-height: 1.5; color: var(--ink-faint); }
-  .power-text { margin: 0.2rem 0 0; font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.55; color: var(--ink-soft); }
-  .power-guard {
+  .obligation { display: grid; gap: 0.5rem; align-content: start; padding-top: 1rem; border-top: 1px solid var(--ds-rule-strong); }
+  .ob-name { margin: 0; font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); }
+  .ob-formal { margin: 0; font-family: var(--font-mono); font-size: var(--ds-mono-sm); line-height: 1.5; color: var(--ink-faint); }
+  .ob-text { margin: 0.2rem 0 0; font-family: var(--font-serif); font-size: 0.98rem; line-height: 1.55; color: var(--ink-soft); }
+  .ob-guard {
     margin: 0.4rem 0 0;
     padding-left: 0.8rem;
     border-left: 2px solid var(--ink);
@@ -292,27 +588,71 @@ const CLOSING = [
     color: var(--ink);
   }
 
-  /* ── conformance ──────────────────────────────────────────────────────────────────────────── */
-  .conf-test { margin: 0 0 var(--ds-space-5); }
-  .conf-test p {
+  /* The one deferral on the page. Set as prose, not as a callout: a pointer that shouted would read
+     as a claim about the thing pointed at. */
+  .defer {
+    margin: var(--ds-space-5) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+    max-width: var(--ds-essay);
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .defer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--ds-rule-strong); padding-bottom: 1px; }
+  .defer a:hover { border-bottom-color: var(--ink); }
+
+  /* ── §3/§4 the two gaps ─────────────────────────────────────────────────────────────────────── */
+  .gap .ds-proposition { max-width: 34ch; }
+  .gap-body { margin-top: var(--ds-space-4); display: grid; gap: var(--ds-space-3); max-width: var(--ds-essay); }
+  .gap-body .ds-body { margin: 0; }
+  .gap-body strong { color: var(--ink); font-weight: 600; }
+
+  .worked { margin: var(--ds-space-2) 0; padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
+  .worked p { margin: 0; font-family: var(--font-serif); font-size: var(--ds-body); line-height: 1.6; color: var(--ink-soft); }
+  .worked .worked-turn { margin-top: 0.6rem; color: var(--ink); font-size: var(--ds-lead); line-height: 1.4; }
+  .gap-close {
     margin: 0;
     font-family: var(--font-serif);
-    font-size: var(--ds-display);
-    line-height: 1.16;
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
+  .equation {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--ds-mono);
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .equation .and { color: var(--ink-faint); padding: 0 0.1rem; }
+
+  /* The page's aphorisms. One shape, used four times, so the reader learns what the shape means. */
+  .pillar {
+    margin: var(--ds-space-2) 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-pillar);
+    line-height: 1.25;
     letter-spacing: -0.015em;
     color: var(--ink);
-    max-width: 30ch;
+    max-width: 34ch;
     text-wrap: balance;
   }
-  .conf-body {
+
+  /* ── §6 standing · §8 crossings — the shared two-column body ─────────────────────────────────── */
+  .two-col {
+    margin-top: var(--ds-space-4);
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     gap: clamp(2rem, 1rem + 5vw, 5rem);
     align-items: start;
   }
-  .conf-body .ds-body { margin: 0 0 var(--ds-space-2); max-width: 50ch; }
-  .conf-body strong { color: var(--ink); font-weight: 600; }
-  .conf-label {
+  .two-col .ds-body { margin: 0 0 var(--ds-space-2); max-width: 52ch; }
+  .two-col strong { color: var(--ink); font-weight: 600; }
+  .two-col .pillar { max-width: 30ch; }
+  .col-label {
     margin: 0 0 0.6rem;
     font-family: var(--font-sans);
     font-size: var(--ds-meta);
@@ -320,18 +660,55 @@ const CLOSING = [
     text-transform: uppercase;
     color: var(--ink-soft);
   }
-  .conf-sound { margin: 0; padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
-  .conf-sound p {
-    margin: 0;
+  .rule-quote { margin: 0 0 var(--ds-space-2); padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
+  .rule-quote p { margin: 0; font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.4; color: var(--ink); font-style: italic; }
+
+  /* ── §7 serving ↔ authoring ─────────────────────────────────────────────────────────────────── */
+  .authoring .ds-proposition { max-width: 30ch; }
+  .auth-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-4); }
+  .conf-sound { margin: 0 0 var(--ds-space-4); padding-left: 1.1rem; border-left: 1px solid var(--ds-rule-strong); }
+  .conf-sound p { margin: 0; font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.4; color: var(--ink); font-style: italic; }
+  /* The loop is a list, not a diagram: every step is text, and the separators are decoration. */
+  .loop {
+    list-style: none;
+    margin: 0 0 var(--ds-space-4);
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.9rem;
+  }
+  .loop li { font-family: var(--font-mono); font-size: var(--ds-mono-sm); color: var(--ink); }
+  .loop li + li::before { content: '→'; color: var(--ink-faint); padding-right: 0.75rem; }
+
+  /* ── §8 crossings ───────────────────────────────────────────────────────────────────────────── */
+  .crossing-list {
+    list-style: none;
+    margin: var(--ds-space-3) 0 var(--ds-space-3);
+    padding: 0;
+    display: grid;
+    gap: 0.1rem;
+  }
+  .crossing-list li {
     font-family: var(--font-serif);
     font-size: var(--ds-lead);
-    line-height: 1.4;
+    line-height: 1.35;
     color: var(--ink);
-    font-style: italic;
+    padding-left: 1rem;
+    border-left: 1px solid var(--ds-rule-strong);
   }
-
-  /* ── where this sits ──────────────────────────────────────────────────────────────────────── */
-  .boundaries .ds-proposition { max-width: 18ch; }
+  .cross-lede { max-width: var(--ds-essay); margin: 0 0 var(--ds-space-2); }
+  .sub-label {
+    margin: var(--ds-space-6) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 650;
+  }
   .bound-lede { max-width: var(--ds-essay); margin: var(--ds-space-3) 0 var(--ds-space-5); }
   .neighbours { margin: 0; display: grid; gap: var(--ds-space-3); }
   .neighbour {
@@ -343,18 +720,14 @@ const CLOSING = [
   }
   .neighbour:last-child { border-bottom: 0; padding-bottom: 0; }
   .neighbour dt { display: grid; gap: 0.15rem; align-content: start; }
-  .n-name { font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); }
+  .n-name { font-family: var(--font-serif); font-size: var(--ds-lead); line-height: 1.2; color: var(--ink); text-decoration: none; }
+  a.n-name { border-bottom: 1px solid var(--ds-rule-strong); padding-bottom: 1px; justify-self: start; }
+  a.n-name:hover { border-bottom-color: var(--ink); }
   .n-rel { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-faint); }
   .neighbour dd { margin: 0; font-family: var(--font-serif); font-size: var(--ds-body); line-height: 1.55; color: var(--ink-soft); max-width: 58ch; }
-  /* the deposited wording, set as the canon it is */
   .neighbour dd.canonical { color: var(--ink); }
 
-  .read-on {
-    margin: var(--ds-space-4) 0 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1.75rem;
-  }
+  .read-on { margin: var(--ds-space-4) 0 0; display: flex; flex-wrap: wrap; gap: 0.6rem 1.75rem; }
   .read-on a {
     font-family: var(--font-sans);
     font-size: var(--ds-meta);
@@ -365,22 +738,23 @@ const CLOSING = [
   }
   .read-on a:hover { border-bottom-color: var(--ink); }
 
-  .n-name { text-decoration: none; }
-  a.n-name { border-bottom: 1px solid var(--ds-rule-strong); padding-bottom: 1px; justify-self: start; }
-  a.n-name:hover { border-bottom-color: var(--ink); }
-
-  .orientation {
-    margin: var(--ds-space-4) 0 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.75rem;
-    padding-top: var(--ds-space-3);
-    border-top: 1px solid var(--ds-rule);
+  /* ── §9 conformance ─────────────────────────────────────────────────────────────────────────── */
+  .conformance .ds-proposition { max-width: 30ch; }
+  .reqs {
+    margin: var(--ds-space-4) 0 var(--ds-space-5);
+    padding-left: 1.4rem;
+    display: grid;
+    gap: 0.55rem;
+    max-width: 68ch;
   }
-  .o-item { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-soft); }
-  .o-key { color: var(--ink); display: block; }
+  .reqs li { font-family: var(--font-serif); font-size: var(--ds-body); line-height: 1.55; color: var(--ink-soft); }
+  /* the servability gate is the requirement the category turns on */
+  .reqs li:nth-child(4) { color: var(--ink); }
+  .nonclaims { padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-rule); max-width: var(--ds-essay); }
+  .nonclaims .ds-body { margin: 0 0 var(--ds-space-2); }
+  .nonclaims strong { color: var(--ink); font-weight: 600; }
 
-  /* ── closing ──────────────────────────────────────────────────────────────────────────────── */
+  /* ── closing ────────────────────────────────────────────────────────────────────────────────── */
   .path { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
   .path li {
     font-family: var(--font-serif);
@@ -399,8 +773,8 @@ const CLOSING = [
   }
   .paths {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 1rem + 3vw, 3rem);
     padding-top: var(--ds-space-3);
     border-top: 1px solid var(--ds-rule);
   }
@@ -425,12 +799,12 @@ const CLOSING = [
   .p-meta { font-family: var(--font-sans); font-size: var(--ds-meta); color: var(--ink-faint); }
 
   @media (max-width: 60rem) {
-    .power-list { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .obligations { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .paths { grid-template-columns: 1fr; }
   }
   @media (max-width: 56rem) {
-    .conf-body { grid-template-columns: 1fr; gap: var(--ds-space-3); }
+    .two-col { grid-template-columns: 1fr; gap: var(--ds-space-3); }
     .neighbour { grid-template-columns: 1fr; gap: 0.5rem; }
-    .paths { grid-template-columns: 1fr; }
-    .conf-test p, .boundaries .ds-proposition { max-width: none; }
+    .gap .ds-proposition, .pillar, .conformance .ds-proposition, .authoring .ds-proposition { max-width: none; }
   }
 </style>

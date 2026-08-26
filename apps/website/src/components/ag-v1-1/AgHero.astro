@@ -23,10 +23,27 @@
  * relative standing: the deposit governs the page, but the criterion governs the category.
  *
  * The signpost is REGISTRY-DERIVED. No version or DOI is typed on this page.
+ *
+ * ── PRESERVED COPY, 2026-08-26 (CG2 final E rulings, 2026-08-26 15:59, items 5 and 10) ──────────────────────────────────────────────
+ * This is the v1.1 hero, kept for /history/analytical-governance-v1-1. The prose, the hierarchy, the
+ * conformance line and the styles are BYTE-IDENTICAL to the version that shipped at
+ * /analytical-governance from 21 August 2026. Nothing here is rewritten into v2.0 language, by
+ * ruling: this page is a faithful historical state, not an older wording of the current page.
+ *
+ * ONE THING CHANGED, AND IT IS THE DERIVATION, NOT THE CLAIM. The signpost read
+ * `citation('w-analytical-governance')` — the work's CURRENT record — which was correct while this
+ * page WAS the current doorway and became wrong the moment it stopped being one: a preserved page
+ * rendering the v1.1 compression above a v2.0 signpost would misattribute its own body. It is now
+ * pinned to the record whose text this page compresses, which is what `edition-pinned` means
+ * everywhere else on this property (see registry/publications/README.md). The record is passed in by
+ * the route rather than named here, so this component still types no publication fact.
  */
-import { citation, longDate } from '../../data/publications';
+import { longDate, type PublicationRecord } from '../../data/publications';
 
-const paper = citation('w-analytical-governance');
+interface Props { record: PublicationRecord; label: string }
+const { record, label } = Astro.props;
+const paper = { title: record.title, version: record.version, date: record.date, doi: record.doi,
+                href: `https://doi.org/${record.doi}`, label };
 ---
 
 <section class="ag-hero ds ds-paper ds-section" aria-labelledby="ag-thesis">
@@ -53,7 +70,7 @@ const paper = citation('w-analytical-governance');
     <p class="signpost">
       <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
       <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
-      <span class="role">The category paper. This page compresses and connects it; the deposit governs.</span>
+      <span class="role">The edition this page compresses. Preserved as it was; the deposit governs.</span>
     </p>
   </div>
 </section>
