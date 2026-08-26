@@ -47,7 +47,8 @@
     "s-tod-primer",
     "s-frameql-introduction",
     "s-frameql-primer",
-    "s-statistical-bridge-primer"
+    "s-statistical-bridge-primer",
+    "s-theory-of-certainty"
   ],
   "referenceOnly": [
     { "sourceId": "s-two-great-sources", "jurisdiction": "position" },
@@ -79,7 +80,8 @@
     { "sourceId": "s-reading-bayesian-workflow", "jurisdiction": "prior-research" },
     { "sourceId": "s-contract-calculus-supplement", "jurisdiction": "prior-research" },
     { "sourceId": "s-open-planner", "jurisdiction": "prior-research" },
-    { "sourceId": "s-research-map-2026-08-03", "jurisdiction": "historical" }
+    { "sourceId": "s-research-map-2026-08-03", "jurisdiction": "historical" },
+    { "sourceId": "s-analytical-governance-v1-1", "jurisdiction": "historical" }
   ],
   "out": [],
   "jurisdictions": {

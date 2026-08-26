@@ -22,7 +22,7 @@
   "date": "2026-08-21",
   "doi": "10.5281/zenodo.22046037",
   "recid": "22046037",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
@@ -1214,5 +1214,36 @@
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-analytical-governance.r03",
+  "workId": "w-analytical-governance",
+  "title": "Analytical Governance: From User Intent to Governed Analytical Execution",
+  "version": "2.0",
+  "date": "2026-08-26",
+  "doi": "10.5281/zenodo.22115819",
+  "recid": "22115819",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-analytical-governance.r02"
+ },
+ {
+  "recordId": "w-theory-of-certainty.r01",
+  "workId": "w-theory-of-certainty",
+  "title": "The Theory of Certainty",
+  "version": "1.0",
+  "date": "2026-08-26",
+  "doi": "10.5281/zenodo.22114802",
+  "recid": "22114802",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
  }
 ]

@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-26.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -537,17 +537,38 @@ def main() -> int:
     # The registry's FIRST POST-PHASE-1 SUPERSESSION EVENT (Huayin, 2026-08-21). Pinned here rather
     # than trusted to the mint rule, because "latest deposit wins" is what PRODUCES this answer and an
     # acceptance test that re-derives its expectation from the rule under test asserts nothing.
+    # AG v2.0 (Huayin, 2026-08-26) supersedes the 2026-08-21 acceptance, which pinned v1.1 as
+    # current. Updated rather than deleted: the chain is the assertion, and it is now three records
+    # long. A gate that only ever pins the newest edition would stop testing that supersession
+    # PRESERVES what it supersedes, which is the property the registry exists to hold.
     ag = current_of("w-analytical-governance")
-    if not ag or ag["doi"] != "10.5281/zenodo.22046037" or ag["version"] != "1.1":
-        fail("G9", f"AG v1.1: the current Analytical Governance record must be v1.1 / 22046037; got "
+    if not ag or ag["doi"] != "10.5281/zenodo.22115819" or ag["version"] != "2.0":
+        fail("G9", f"AG v2.0: the current Analytical Governance record must be v2.0 / 22115819; got "
                    f"{ag and (ag['version'], ag['doi'])}")
     else:
         prev = by_record.get(ag.get("supersedes") or "")
-        if not prev or prev["doi"] != "10.5281/zenodo.21959749" or prev["version"] != "1.0":
-            fail("G9", "AG v1.1: v1.1 must supersede v1.0 (21959749) by recordId, not by DOI or by date")
+        if not prev or prev["doi"] != "10.5281/zenodo.22046037" or prev["version"] != "1.1":
+            fail("G9", "AG v2.0: v2.0 must supersede v1.1 (22046037) by recordId, not by DOI or by date")
         elif prev["status"] != "superseded":
-            fail("G9", "AG v1.1: v1.0 must remain a first-class historical record with status `superseded` — "
-                       "superseded is a status, not a deletion")
+            fail("G9", "AG v2.0: v1.1 must remain a first-class historical record with status "
+                       "`superseded` — superseded is a status, not a deletion")
+        else:
+            first = by_record.get(prev.get("supersedes") or "")
+            if not first or first["doi"] != "10.5281/zenodo.21959749" or first["version"] != "1.0":
+                fail("G9", "AG: the chain must reach v1.0 (21959749) through v1.1, by recordId")
+            elif first["status"] != "superseded":
+                fail("G9", "AG: v1.0 must remain a first-class historical record")
+
+    # Theory of Certainty v1.0 (Huayin, 2026-08-26) — a new work's first record: current, and
+    # superseding nothing. Pinned because "the first record of a work supersedes nothing" is an
+    # acceptance condition that is easy to break by copying an existing record as a template.
+    toc = current_of("w-theory-of-certainty")
+    if not toc or toc["doi"] != "10.5281/zenodo.22114802" or toc["version"] != "1.0":
+        fail("G9", f"ToC v1.0: the current Theory of Certainty record must be v1.0 / 22114802; got "
+                   f"{toc and (toc['version'], toc['doi'])}")
+    elif toc.get("supersedes"):
+        fail("G9", f"ToC v1.0: a work's first record supersedes nothing; got "
+                   f"{toc['supersedes']!r}")
 
     # ── THE PHASE 3B.1 RULINGS, ASSERTED (Huayin, 2026-08-21) ────────────────────────────────
     # Pinned here, not left to the mint rule, for the reason G9 exists at all: an acceptance test that

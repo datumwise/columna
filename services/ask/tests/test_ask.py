@@ -649,3 +649,55 @@ def test_internal_wording_changes_are_never_normalised_away():
     ev = [{"cite": "S2", "text": "when two derivations claiming one identity are required to agree."}]
     f = _one('It says “when two derivations claiming one identity must agree,” which [S2].', ev)
     assert f["verbatimMatch"] is False
+
+
+# ── durable citations (2026-08-26) ────────────────────────────────────────────────────────────────
+
+def test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said():
+    """The servability case, reconstructed. An answer written while AG v1.1 was current cited it as
+    current. v2.0 superseded it. The public sentence must move; the record of what was said must not.
+    """
+    frozen = ("current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037); deposited text — "
+              "read from the deposited record, not from a page on this site")
+    stored = [{
+        "cite": "S1", "label": "Analytical Governance", "heading": "4. The servability gap",
+        "sourceId": "s-analytical-governance",
+        "readableRecordId": "w-analytical-governance.r02",
+        "currentRecordIdAtAnswer": "w-analytical-governance.r02",
+        "standingTemplate": "{CURRENT}; deposited text — read from the deposited record, "
+                            "not from a page on this site",
+        "standing": frozen, "standingAtAnswer": frozen,
+    }]
+    from ask import citations
+    got = citations.resolve(stored)[0]
+    assert got["standingAtAnswer"] == frozen                    # history is not rewritten
+    assert "v2.0" in got["standing"], got["standing"]           # the public sentence moved
+    assert "22115819" in got["standing"]
+    assert got["supersededSinceAnswer"] is True                 # and it says so
+    assert citations.any_superseded(citations.resolve(stored))
+
+
+def test_a_citation_still_current_is_not_flagged():
+    from ask import citations
+    stored = [{"cite": "S1", "sourceId": "s-theory-of-certainty",
+               "readableRecordId": "w-theory-of-certainty.r01",
+               "currentRecordIdAtAnswer": "w-theory-of-certainty.r01",
+               "standingTemplate": "{CURRENT}; deposited text", "standing": "…"}]
+    got = citations.resolve(stored)[0]
+    assert got["supersededSinceAnswer"] is False and "v1.0" in got["standing"]
+
+
+def test_a_pre_identity_citation_says_it_cannot_be_resolved_rather_than_looking_fresh():
+    from ask import citations
+    got = citations.resolve([{"cite": "S1", "standing": "current record v1.1 (2026-08-21)"}])[0]
+    assert got["resolvable"] is False
+    assert got["standing"] == "current record v1.1 (2026-08-21)"   # unchanged, not guessed at
+    assert got["supersededSinceAnswer"] is None
+
+
+def test_the_deposit_standing_template_survives_into_a_stored_citation():
+    """The seam: retrieve hands out the unspliced template, answer.py stores it. If either end
+    stops, durable citations silently freeze again — which is the defect this pair removes."""
+    hits = retrieve.search("what is analytical governance?", k=3)
+    assert hits and all("standingRaw" in h for h in hits)
+    assert any("{CURRENT}" in h["standingRaw"] for h in hits)

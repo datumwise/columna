@@ -44,7 +44,7 @@ import time
 import uuid
 from pathlib import Path
 
-from . import standing
+from . import citations, standing
 
 MIN_RATINGS_FOR_BONUS = 3
 
@@ -243,10 +243,17 @@ def _row_to_public(r: sqlite3.Row) -> dict:
         "provisionalAnswer": r["answer"],
         "evidence": json.loads(r["evidence"]) if "evidence" in r.keys() else [],
         "createdAt": r["created_at"],
-        "sources": json.loads(r["sources"]),
+        # CURRENT standing, re-derived from the registry on every read — not the sentence that was
+        # true on the day the answer was written. Each entry keeps `standingAtAnswer` for audit and
+        # gains `supersededSinceAnswer`. See citations.py.
+        "sources": citations.resolve(json.loads(r["sources"])),
         "external": json.loads(r["external"]),
         "corpusSettles": bool(r["corpus_settles"]),
         "standing": st,
+        # A published answer whose citations have been superseded since it was written. The reviewer
+        # sees it before publishing; a reader deserves it on an old answer.
+        "citationsSuperseded": citations.any_superseded(
+            citations.resolve(json.loads(r["sources"]))),
         "notice": standing.notice(st, reviewed_at),
         "published": bool(r["published"]) if "published" in r.keys() else False,
         "views": r["views"] if is_reviewed else None,
@@ -293,6 +300,22 @@ def cache_purge(before: float | None = None) -> int:
     with connect() as c:
         cur = c.execute("DELETE FROM answer_cache WHERE expires_at <= ?", (before or time.time(),))
         return cur.rowcount
+
+
+def cache_drop_all() -> int:
+    """Drop EVERY cache entry. The thing you run when the corpus moves underneath it.
+
+    A cached answer is a promise that asking again would produce the same thing. Supersede a work,
+    re-rule a source, or rebuild the index, and that promise is void: the entry would go on serving
+    a pre-supersession answer, with pre-supersession citations, for up to its full TTL — and a
+    reader would have no way to tell. Expiry is the wrong instrument here because expiry measures
+    time and this is not about time.
+
+    Only cache rows are dropped. The answers stay: they are evidence of what Ask said on a day when
+    the corpus said something else, which is exactly the record that must not be erased.
+    """
+    with connect() as c:
+        return c.execute("DELETE FROM answer_cache").rowcount
 
 
 def save_qa(**kw) -> str:

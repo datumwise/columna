@@ -2,6 +2,21 @@
   "$comment": "See registry/sources/README.md. Publication facts (title, version, date, DOI, currency) are NEVER stored here — they derive from registry/publications via workId/recordId.",
   "sources": [
     {
+      "sourceId": "s-theory-of-certainty",
+      "role": "foundation",
+      "purpose": "What grounds carry a conclusion, what they establish, where their warrant stops, and whether they can bear the reliance placed on them.",
+      "workId": "w-theory-of-certainty"
+    },
+    {
+      "sourceId": "s-analytical-governance-v1-1",
+      "role": "historical-record",
+      "title": "Analytical Governance v1.1, 21 August 2026",
+      "purpose": "The v1.1 edition of Analytical Governance, superseded by v2.0 on 26 August 2026. Preserved so the development of the framework stays answerable; it is not current authority and may not establish datumwise's current position.",
+      "workId": "w-analytical-governance",
+      "recordId": "w-analytical-governance.r02",
+      "preservedState": "2026-08-21"
+    },
+    {
       "sourceId": "s-silent-failure-atlas",
       "role": "catalog",
       "purpose": "The catalogue of silent analytical failure modes, graded.",

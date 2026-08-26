@@ -142,7 +142,16 @@ def ask(
             # from a source list that does not say which class each source belongs to.
             "layer": by_token[t].get("layer"),
             "jurisdiction": by_token[t].get("jurisdiction"),
+            # IDENTITY, not presentation. `standing` below is the sentence as it read when this
+            # answer was written; these three fields are what let it be re-resolved from the
+            # registry later, so a durable answer never goes on calling a superseded record
+            # current. See citations.py.
+            "sourceId": by_token[t].get("sourceId"),
+            "readableRecordId": by_token[t].get("readableRecordId"),
+            "currentRecordIdAtAnswer": by_token[t].get("currentRecordId"),
+            "standingTemplate": by_token[t].get("standingRaw"),
             "standing": by_token[t]["standing"],
+            "standingAtAnswer": by_token[t]["standing"],
             "isHistorical": by_token[t]["isHistorical"],
             "isEditionPinned": by_token[t]["isEditionPinned"],
         }

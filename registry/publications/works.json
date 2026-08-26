@@ -358,5 +358,16 @@
     "doi": "10.5281/zenodo.22010142"
    }
   ]
+ },
+ {
+  "workId": "w-theory-of-certainty",
+  "canonicalLabel": "The Theory of Certainty",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "22114801",
+    "doi": "10.5281/zenodo.22114801"
+   }
+  ]
  }
 ]

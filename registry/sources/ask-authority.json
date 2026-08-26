@@ -1,6 +1,6 @@
 {
  "$comment": [
-  "ASK AUTHORITY \u2014 which sources Ask may use, and what each of them is entitled to establish.",
+  "ASK AUTHORITY — which sources Ask may use, and what each of them is entitled to establish.",
   "",
   "THIS FILE IS ASK'S, AND ONLY ASK'S. It was split out of registry/sources/current-corpus.json on",
   "2026-08-26 because that file is read by apps/website/src/data/sources.ts to build the /research",
@@ -16,12 +16,12 @@
   "other.",
   "",
   "THE THREE ENTITLEMENTS:",
-  "  CORE      \u2014 may establish 'datumwise holds ...'.",
-  "  REFERENCE \u2014 may explain, contextualise, develop, compare, or supply implementation detail.",
+  "  CORE      — may establish 'datumwise holds ...'.",
+  "  REFERENCE — may explain, contextualise, develop, compare, or supply implementation detail.",
   "              Does NOT independently establish the current datumwise position. This is not a",
   "              statement about quality: several reference sources are the HIGHEST authority for",
   "              the thing they actually establish. It is a statement about jurisdiction.",
-  "  EXTERNAL  \u2014 not in this file at all, because it is not datumwise material. Describes the",
+  "  EXTERNAL  — not in this file at all, because it is not datumwise material. Describes the",
   "              outside world and supports comparison, context and criticism. Never establishes a",
   "              datumwise position.",
   "",
@@ -34,7 +34,7 @@
   "recorded in the history block of whichever set moved."
  ],
  "core": {
-  "ruledOn": "2026-08-25",
+  "ruledOn": "2026-08-26",
   "ruledBy": "Huayin",
   "sourceIds": [
    "s-theory-of-data",
@@ -52,7 +52,8 @@
    "s-tod-primer",
    "s-frameql-introduction",
    "s-frameql-primer",
-   "s-statistical-bridge-primer"
+   "s-statistical-bridge-primer",
+   "s-theory-of-certainty"
   ],
   "history": [
    {
@@ -64,11 +65,16 @@
     "on": "2026-08-26",
     "by": "Huayin",
     "what": "membership carried into ask-authority.json unchanged; Ask authority separated from the /research editorial list"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "The Theory of Certainty v1.0 -> Core. Analytical Governance stays Core and moves to v2.0; its v1.1 edition leaves Core entirely and is ruled Reference/historical under a separate source identity, because one sourceId cannot be both current authority and preserved history"
    }
   ]
  },
  "reference": {
-  "ruledOn": "2026-08-25",
+  "ruledOn": "2026-08-26",
   "ruledBy": "Huayin",
   "entries": [
    {
@@ -178,6 +184,10 @@
    {
     "sourceId": "s-research-map-2026-08-03",
     "jurisdiction": "historical"
+   },
+   {
+    "sourceId": "s-analytical-governance-v1-1",
+    "jurisdiction": "historical"
    }
   ],
   "history": [
@@ -190,6 +200,11 @@
     "on": "2026-08-26",
     "by": "Huayin",
     "what": "membership carried into ask-authority.json unchanged"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "Analytical Governance v1.1 admitted as historical. Trust v0.6 deliberately NOT admitted, in any layer: it is developing work, and registering it at all would make the a1 and s1 hallucination traps assert something false"
    }
   ]
  },

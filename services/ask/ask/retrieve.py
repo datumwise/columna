@@ -84,10 +84,18 @@ def _describe(record_id: str | None) -> str:
 
 
 def _resolve_url(chunk: dict) -> str:
-    """A deposited work has no page to link; send the reader to the record itself."""
+    """A deposited work has no page to link; send the reader to the record itself.
+
+    THE RECORD THIS TEXT IS, not the record that is current. These were the same identifier until a
+    deposited work was first superseded, and then they were not: on 2026-08-26 the preserved
+    Analytical Governance v1.1 passages resolved to v2.0's DOI, so a reader following a citation to
+    check a v1.1 sentence would have landed on a different paper that does not contain it. The
+    standing sentence names both records; the link belongs to the one whose words are on the page.
+    """
     if chunk.get("url"):
         return chunk["url"]
-    r = _records().get(chunk.get("currentRecordId") or "")
+    rid = chunk.get("readableRecordId") or chunk.get("currentRecordId") or ""
+    r = _records().get(rid)
     return f"https://doi.org/{r['doi']}" if r and r.get("doi") else ""
 
 
@@ -104,6 +112,10 @@ def _fill_standing(chunk: dict) -> str:
         s = s.replace("{CURRENT}", f"current record {_describe(chunk.get('currentRecordId'))}")
     if "{READABLE}" in s:
         s = s.replace("{READABLE}", _describe(chunk.get("readableRecordId")))
+    if "{CURRENT_BARE}" in s:
+        # Same fact as {CURRENT}, without the "current record" prefix, for sentences that have
+        # already said the words. Still resolved from the registry at request time.
+        s = s.replace("{CURRENT_BARE}", _describe(chunk.get("currentRecordId")))
     return s
 
 
@@ -480,8 +492,10 @@ def search(query: str, k: int = 8, layers: list[str] | None = None) -> list[dict
         if key in seen:
             continue
         seen.add(key)
-        out.append({**c, "standing": _fill_standing(c), "url": _resolve_url(c),
-                    "score": round(s, 4)})
+        # `standingRaw` is the UNSPLICED template. answer.py stores it so a durable citation can
+        # be re-resolved against the registry later instead of carrying a frozen sentence.
+        out.append({**c, "standingRaw": c["standing"], "standing": _fill_standing(c),
+                    "url": _resolve_url(c), "score": round(s, 4)})
         if len(out) >= k:
             break
     return out

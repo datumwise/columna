@@ -129,8 +129,11 @@ function renderDetail(){
    <h2>Provisional answer — never rewritten</h2><div class="box">${esc(q.provisionalAnswer)}</div>
    <h2>Sources</h2><div class="box" style="white-space:normal">${
      (q.sources||[]).map(s=>`<div class="src"><span class="lay ${s.layer==='core'?'core':''}">${
-       esc(s.layer||'?')}</span><b>${esc(s.cite)}</b> ${esc(s.label)} — ${esc(s.heading)}<br>
-       <span class="muted">${esc(s.standing||'')}</span></div>`).join('')||'<span class="muted">none</span>'}</div>
+       esc(s.layer||'?')}</span><b>${esc(s.cite)}</b> ${esc(s.label)} — ${esc(s.heading)}${
+       s.supersededSinceAnswer?' <span class="lay" style="background:#fdeeee;color:#8c2b2b">superseded since answered</span>':''}<br>
+       <span class="muted">${esc(s.standing||'')}</span>${
+       s.supersededSinceAnswer?'<br><span class="muted">at answer time: '+esc(s.standingAtAnswer||'')+'</span>':''
+       }</div>`).join('')||'<span class="muted">none</span>'}</div>
    ${(q.external||[]).length||(q.externalOffered||[]).length ? `<h2>External sources — may not establish a datumwise position</h2>
      <div class="box" style="white-space:normal">${
        (q.external||[]).map(e=>`<div class="src"><span class="lay ext">external</span>
