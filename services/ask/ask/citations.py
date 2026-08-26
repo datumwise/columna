@@ -6,9 +6,12 @@ registry on every request, so a reader physically cannot be handed a stale ident
 answer becomes a durable object and all of that is thrown away: `qa.sources` stored the RESOLVED
 standing sentence as text. Currency survived retrieval and died at publication.
 
-The servability candidate found it. Its four citations read `current record v1.1 (2026-08-21,
-doi:10.5281/zenodo.22046037)`. Publish that and the sentence is on a public page permanently; on
-2026-08-26, when v2.0 superseded v1.1, it became false with nothing anywhere to notice.
+The servability candidate found it. Its four citations read, as literal stored text, that
+Analytical Governance v1.1 was the current record. Publish that and the sentence is on a public page
+permanently; on 2026-08-26, when v2.0 superseded v1.1, it became false with nothing anywhere to
+notice. The identifier is deliberately not repeated here — a publication fact echoed into a
+docstring is the same defect one echoed into a page, and registry/publications/consumers.json exists
+to keep that surface small.
 
     Carrying a resolved presentation, rather than the identity from which current truth can be
     resolved, is the same class of error corrected repeatedly elsewhere in this repo.

@@ -1,5 +1,34 @@
 [
  {
+  "path": "services/ask/deposits/w-analytical-governance.r03.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.21972541",
+   "10.5281/zenodo.21979821",
+   "10.5281/zenodo.22013410",
+   "10.5281/zenodo.22046037",
+   "10.5281/zenodo.22114802",
+   "10.5281/zenodo.22115819"
+  ],
+  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means. Analytical Governance v2.0 cites its own superseded v1.1 (22046037) in its reference list, which is the paper doing exactly what supersession should look like from the inside."
+ },
+ {
+  "path": "services/ask/deposits/w-theory-of-certainty.r01.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.22114802"
+  ],
+  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means."
+ },
+ {
+  "path": "services/ask/tests/test_ask.py",
+  "class": "acceptance",
+  "allowedDois": [
+   "10.5281/zenodo.22046037"
+  ],
+  "note": "One literal, in test_a_stored_citation_reresolves_to_current_standing_and_keeps_what_it_said. The fixture reconstructs the exact sentence a durable citation carried BEFORE Analytical Governance v1.1 was superseded on 2026-08-26 \u2014 `current record v1.1 (2026-08-21, doi:10.5281/zenodo.22046037)` \u2014 and asserts that re-resolution moves the public sentence to v2.0 while preserving what was said. The literal is the point: a test that read the superseded DOI out of the registry would still pass on the day someone deleted the record, and would stop testing the thing it exists to test. Class `acceptance` for the same reason check_publications.py is \u2014 an assertion that derives its expectation from the system under test asserts nothing. The v2.0 arm is deliberately NOT a literal: that is what re-resolution must discover."
+ },
+ {
   "path": "apps/website/src/content/llms_index.txt",
   "class": "derived",
   "allowedDois": [],
