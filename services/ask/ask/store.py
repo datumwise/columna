@@ -170,6 +170,10 @@ _ADDED_COLUMNS = (
     ("rejected_at", "REAL"),
     ("rejected_by", "TEXT"),
     ("reject_reason", "TEXT"),
+    # The passage text the answer was actually built on. Without it the reviewer cannot verify a
+    # direct quotation, and verifying against a fresh retrieval would check the answer against
+    # evidence it never saw.
+    ("evidence", "TEXT NOT NULL DEFAULT '[]'"),
 )
 
 
@@ -237,6 +241,7 @@ def _row_to_public(r: sqlite3.Row) -> dict:
         "answer": (r["published_answer"] if ("published_answer" in r.keys()
                                              and r["published_answer"]) else r["answer"]),
         "provisionalAnswer": r["answer"],
+        "evidence": json.loads(r["evidence"]) if "evidence" in r.keys() else [],
         "createdAt": r["created_at"],
         "sources": json.loads(r["sources"]),
         "external": json.loads(r["external"]),
@@ -297,8 +302,8 @@ def save_qa(**kw) -> str:
             """INSERT INTO qa (id, question, question_key, answer, created_at, provider, model,
                                sources, external, corpus_settles, public, withheld_reason, verify,
                                prompt_tokens, completion_tokens, cost_usd, parent_id,
-                               standing, published)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                               standing, published, evidence)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 qid, kw["question"], normalise(kw["question"]), kw["answer"], time.time(),
                 kw["provider"], kw["model"], json.dumps(kw.get("sources", [])),
@@ -308,7 +313,7 @@ def save_qa(**kw) -> str:
                 kw.get("completion_tokens", 0), kw.get("cost_usd", 0.0), kw.get("parent_id"),
                 # Every answer is born provisional and unpublished. There is no argument the
                 # caller can pass to change that; publication is an act a human performs later.
-                standing.PROVISIONAL, 0,
+                standing.PROVISIONAL, 0, json.dumps(kw.get("evidence", [])),
             ),
         )
     return qid

@@ -149,6 +149,25 @@ def ask(
         for t in used_tokens
     ]
 
+    # THE EVIDENCE THE ANSWER WAS BUILT ON, kept with the answer.
+    #
+    # Added 2026-08-26 because the reviewer was being asked to verify direct quotations against
+    # sources it could not read: `sources` carried label, heading and standing, but never the
+    # passage text. Verification against a FRESH retrieval would also be wrong — it would check the
+    # answer against evidence it never saw. What has to be preserved is the text that was actually
+    # in front of the model when it wrote the sentence.
+    evidence = [
+        {"cite": t, "label": by_token[t].get("sourceLabel") or by_token[t]["title"],
+         "heading": by_token[t]["heading"], "layer": by_token[t].get("layer"),
+         "standing": by_token[t]["standing"], "text": by_token[t]["text"]}
+        for t in used_tokens
+    ] + [
+        {"cite": t, "label": ext_by_token[t]["title"], "heading": "", "layer": "external",
+         "standing": "EXTERNAL — not a datumwise source",
+         "text": ext_by_token[t]["text"]}
+        for t in used_ext
+    ]
+
     v = verify.check(body)
     if _INLINE_CITE.search(body) and not sources:
         # Cited in the prose, resolved to nothing. Whatever the cause, the reader would be shown
@@ -184,6 +203,7 @@ def ask(
              "url": p["url"], "score": p["score"], "standing": p["standing"]}
             for i, p in enumerate(passages, 1)
         ],
+        "evidence": evidence,
         "verify": v,
         "provider": comp.provider,
         "model": f"{comp.provider}:{comp.model}",
@@ -234,7 +254,7 @@ def ask_and_record(question: str, conversation: str, model: str | None = None,
         question=question, answer=res["answer"], provider=res["provider"], model=res["model"],
         sources=res["sources"], external=res["external"],
         corpus_settles=bool(res.get("corpusSettles", True)), public=reviewable,
-        withheld_reason=why, verify=res["verify"], prompt_tokens=res["promptTokens"],
+        evidence=res.get("evidence", []), withheld_reason=why, verify=res["verify"], prompt_tokens=res["promptTokens"],
         completion_tokens=res["completionTokens"], cost_usd=res["costUsd"], parent_id=parent_id,
     )
     # Remember it for cheap reuse. A cache entry is not a publication and does not imply one; it
