@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import re
 
-from . import providers, retrieve, standing, store, verify
+from . import external, providers, retrieve, standing, store, verify
 from .skill import build_prompt
 
 # The public/private rule, kept as small and conservative as the brief asks. This decides whether a
@@ -62,6 +62,11 @@ def publishability(question: str) -> tuple[bool, str | None]:
 # then stop depending on the block at all (see _resolve_used below).
 _JSON_TAIL = re.compile(r"(?:```(?:json)?\s*)?(\{[^{}]*\"used\".*?\})\s*(?:```)?\s*$", re.S)
 _INLINE_CITE = re.compile(r"\[(S\d+)\]")
+# External sources get their OWN token space. A reader, a reviewer and the verifier can
+# all tell at a glance which class a citation belongs to, without a lookup — which is the
+# separation requirement expressed as a lexical fact rather than an instruction.
+_INLINE_EXT = re.compile(r"\[(X\d+)\]")
+_ANY_CITE = re.compile(r"\[([SX]\d+)\]")
 
 
 def _split_answer(text: str) -> tuple[str, dict]:
@@ -88,8 +93,8 @@ def _resolve_used(body: str, meta: dict) -> tuple[list[str], bool]:
     block did not carry — worth logging, because it is a signal about the output contract.
     """
     declared = [t for t in (meta.get("used") or []) if isinstance(t, str)]
-    inline = _INLINE_CITE.findall(body)
-    union = sorted(set(declared) | set(inline), key=lambda t: int(t[1:]))
+    inline = _ANY_CITE.findall(body)
+    union = sorted(set(declared) | set(inline), key=lambda t: (t[0], int(t[1:])))
     return union, bool(inline) and not declared
 
 
@@ -99,24 +104,31 @@ def ask(
     k: int = 8,
     history: list[dict] | None = None,
     use_cache: bool = True,
+    external_urls: list[str] | None = None,
 ) -> dict:
     """Answer one question. Returns everything needed to display, store, and audit it."""
-    if use_cache and not history:
+    # A question answered WITH external sources is a different question from the same words asked
+    # without them, so it must not be served from, or written to, the cache keyed on the words
+    # alone. Cheaper to re-ask than to serve the wrong shape of answer.
+    if use_cache and not history and not external_urls:
         cached = store.find_cached(question)
         if cached:
             return {**cached, "cached": True}
 
     passages = retrieve.search(question, k=k)
-    messages = build_prompt(question, passages, history=history)
+    ext_sources, ext_failures = external.fetch_all(external_urls or [])
+    messages = build_prompt(question, passages, history=history, external=ext_sources)
     comp = providers.complete(messages, model=model)
     body, meta = _split_answer(comp.text)
 
     # Map the model's [S#] tokens back to real sources. A token it did not receive is dropped, not
     # invented into a citation — and the drop is recorded.
     by_token = {f"S{i}": p for i, p in enumerate(passages, 1)}
+    ext_by_token = {f"X{i}": e for i, e in enumerate(ext_sources, 1)}
     all_used, recovered = _resolve_used(body, meta)
     used_tokens = [t for t in all_used if t in by_token]
-    phantom = [t for t in all_used if t not in by_token]
+    used_ext = [t for t in all_used if t in ext_by_token]
+    phantom = [t for t in all_used if t not in by_token and t not in ext_by_token]
     sources = [
         {
             "cite": t,
@@ -156,7 +168,16 @@ def ask(
         "question": question,
         "answer": body,
         "sources": sources,
-        "external": meta.get("external") or [],
+        # `external` is now the sources it was GIVEN and actually cited, plus anything it declared
+        # from its own knowledge. Fetch failures are reported rather than dropped: an answer built
+        # from three sources when four were asked for is a different answer.
+        "external": [
+            {"cite": t, "title": ext_by_token[t]["title"], "url": ext_by_token[t]["url"],
+             "fetchedAt": ext_by_token[t]["fetchedAt"], "truncated": ext_by_token[t]["truncated"]}
+            for t in used_ext
+        ] + [e for e in (meta.get("external") or []) if isinstance(e, dict)],
+        "externalOffered": [{"title": e["title"], "url": e["url"]} for e in ext_sources],
+        "externalFailures": ext_failures,
         "corpusSettles": meta.get("corpus_settles"),
         "retrieved": [
             {"cite": f"S{i}", "label": p.get("sourceLabel") or p["title"], "heading": p["heading"],
@@ -176,14 +197,16 @@ def ask(
 
 
 def ask_and_record(question: str, conversation: str, model: str | None = None,
-                   history: list[dict] | None = None, parent_id: str | None = None) -> dict:
+                   history: list[dict] | None = None, parent_id: str | None = None,
+                   external_urls: list[str] | None = None) -> dict:
     """Answer, log the turn, and record it as a PROVISIONAL candidate.
 
     Nothing here publishes. Until 2026-08-26 a fresh answer that passed the privacy filter entered
     the public collection immediately; now it is stored provisional and unpublished, and the same
     filter decides only whether it is eligible to reach a reviewer.
     """
-    res = ask(question, model=model, history=history, use_cache=not history)
+    res = ask(question, model=model, history=history,
+              use_cache=not history and not external_urls, external_urls=external_urls)
 
     if res.get("cached"):
         # Technical reuse. No view bump: views belong to a published object, and a reused

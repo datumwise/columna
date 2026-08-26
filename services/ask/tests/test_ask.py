@@ -502,3 +502,44 @@ def test_review_surface_is_absent_entirely_when_no_token_is_configured():
         assert _get(f"{base}/review/queue", "anything")[0] == 404
     finally:
         srv.shutdown()
+
+
+# ── external sources (2026-08-26) ─────────────────────────────────────────────────────────────────
+
+def test_external_fetch_refuses_the_ssrf_shapes():
+    """This service takes a URL from a caller and fetches it. Every refusal here is a hole that
+    would otherwise be open, and the metadata-service address is the one that matters most."""
+    from ask import external
+    for bad in ("http://example.com", "file:///etc/passwd", "https://127.0.0.1/x",
+                "https://localhost/x", "https://169.254.169.254/latest/meta-data/",
+                "https://10.0.0.1/x", "https://[::1]/x"):
+        with pytest.raises(external.ExternalFetchError):
+            external.fetch(bad)
+
+
+def test_external_sources_get_their_own_token_space():
+    """Separation as a lexical fact rather than an instruction: [S#] is datumwise, [X#] is not."""
+    from ask.skill import build_prompt
+    msgs = build_prompt(
+        "compare them",
+        [{"sourceLabel": "The Theory of Data", "title": "t", "heading": "3.3", "route": "/x",
+          "url": "u", "standing": "current", "text": "core text", "layer": "core"}],
+        external=[{"title": "Someone else's article", "url": "https://example.com/a",
+                   "text": "outside text", "truncated": False}],
+    )
+    user = msgs[-1]["content"]
+    assert "[S1]" in user and "[X1]" in user
+    assert "EXTERNAL — not a datumwise source" in user
+    assert "may NOT establish a datumwise position" in user
+
+
+def test_an_external_answer_is_not_served_from_the_plain_cache():
+    """The same words asked WITH sources are a different question from the same words asked
+    without them, so they must not share a cache key."""
+    import inspect
+
+    from ask import answer as answer_mod
+    src = inspect.getsource(answer_mod.ask)
+    assert "not external_urls" in src, (
+        "asking with external sources must bypass the question-keyed cache"
+    )

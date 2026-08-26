@@ -41,10 +41,23 @@ datumwise's meanings. If you find yourself explaining what a word "usually" mean
 left the corpus.
 
 EXTERNAL SOURCES
-External sources may be used for external facts, comparison, criticism, precedent, and current \
-context. Keep them visibly distinguishable from datumwise's own claims. Never let an outside \
-description of datumwise become datumwise's position. A comparison is your analysis, and you should \
-present it as analysis rather than as a datumwise doctrine.
+External sources may be used for external facts, comparison, criticism, precedent, analogy, \
+implications, and current context. They arrive as [X#] and they are NOT datumwise material.
+
+The boundary is hard and it runs one way: external material may describe external parties and \
+support comparison; it may NEVER create or redefine a datumwise position. An article ABOUT \
+datumwise is someone else's account of datumwise, however accurate — letting it stand in for the \
+Core set is the same failure as letting a datumwise manual stand in for it.
+
+Three things are in play in a comparative answer and a reader should be able to tell them apart: \
+what datumwise's own sources say, what external sources say, and what YOU conclude by putting them \
+side by side. The third is your analysis. Own it as analysis; do not let it graduate into a \
+datumwise doctrine because it sounds like one.
+
+Make the distinction where it MATTERS, in whatever way the prose wants. Naming a source in the \
+sentence usually does it. Do not mechanically impose "Datumwise sources / External sources / \
+Analysis" headings on an answer that reads better without them, and do not use the absence of \
+headings as licence to blur the three together.
 
 WHEN THE CORPUS DOES NOT SETTLE IT
 When the supplied datumwise sources do not establish something, say so plainly — "the corpus does \
@@ -134,7 +147,7 @@ their exact `cite` token. Do not cite a source you did not use.
 # from the constitution so the prose above stays readable as a policy document a human can review.
 FORMAT = """\
 CITING
-Each source below has a `cite` token like [S3]. When a claim rests on a source, mark it inline with \
+Each datumwise source below has a `cite` token like [S3]; each external source has one like [X2]. When a claim rests on a source, mark it inline with \
 that token, e.g. "a universe is one population of facts [S3]". Use them where the claim is made, not \
 in a pile at the end.
 
@@ -149,12 +162,14 @@ Close with a JSON block, and nothing after it:
 ```
 
   · `used` — only the tokens you actually cited.
-  · `external` — outside sources you relied on; empty list if none.
+  · `external` — outside sources you relied on that were NOT supplied to you as [X#]; empty list
+    if none. Sources you were given go in `used`, by their [X#] token, like any other citation.
   · `corpus_settles` — false if the datumwise corpus did not establish the substance of the answer.
 """
 
 
-def build_prompt(question: str, passages: list[dict], history: list[dict] | None = None) -> list[dict]:
+def build_prompt(question: str, passages: list[dict], history: list[dict] | None = None,
+                 external: list[dict] | None = None) -> list[dict]:
     """Assemble the messages. Passages arrive carrying standing; we hand it over verbatim."""
     lines: list[str] = []
     for i, p in enumerate(passages, 1):
@@ -172,9 +187,26 @@ def build_prompt(question: str, passages: list[dict], history: list[dict] | None
         )
     sources_block = "\n\n".join(lines) if lines else "(no datumwise sources matched this question)"
 
+    # EXTERNAL SOURCES ARE PRESENTED IN THEIR OWN BLOCK, WITH THEIR OWN TOKEN SPACE. Separation is
+    # a requirement of the standing model, and the cheapest way to make a model keep two classes
+    # apart is to never let them share a namespace in the first place: [S#] is datumwise, [X#] is
+    # the outside world, and the difference is visible in every citation without a lookup.
+    ext_lines = [
+        f"[X{i}] {e['title']}\n"
+        f"      link: {e['url']}\n"
+        f"      standing: EXTERNAL — not a datumwise source. It may support comparison, context, "
+        f"criticism and outside facts. It may NOT establish a datumwise position"
+        f"{', and it is truncated' if e.get('truncated') else ''}.\n"
+        f"      passage: {e['text']}"
+        for i, e in enumerate(external or [], 1)
+    ]
+    external_block = ("\n\n".join(ext_lines) if ext_lines
+                      else "(no external sources were supplied for this question)")
+
     system = f"{CONSTITUTION}\n\n{FORMAT}"
     user = (
         f"DATUMWISE SOURCES RETRIEVED FOR THIS QUESTION\n\n{sources_block}\n\n"
+        f"---\n\nEXTERNAL SOURCES SUPPLIED FOR THIS QUESTION\n\n{external_block}\n\n"
         f"---\n\nREADER'S QUESTION: {question}"
     )
     msgs = [{"role": "system", "content": system}]

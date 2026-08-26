@@ -233,12 +233,23 @@ class Handler(BaseHTTPRequestHandler):
                         "error": "Ask is rate-limited on this lab surface — " + why +
                                  ". The answered questions below are free to read.",
                     })
+                # EXTERNAL FETCHING IS OPERATOR-ONLY. /ask is a public, rate-limited endpoint;
+                # giving anonymous callers a "fetch this URL for me" primitive is a server-side
+                # request forgery surface and an outbound-traffic surface, and neither is worth
+                # opening for a lab endpoint. external.py fences the fetch itself; this fences WHO
+                # may ask for one.
+                ext_urls = [u for u in (body.get("externalUrls") or []) if isinstance(u, str)]
+                if ext_urls and not self._review_authorised():
+                    return self._send(403, {
+                        "error": "external sources may only be supplied by an authorised operator",
+                    })
                 conv = body.get("conversation") or uuid.uuid4().hex[:12]
                 history = body.get("history") or None
                 if history and len(history) > 12:
                     history = history[-12:]
                 res = ask_answer.ask_and_record(
                     question, conversation=conv, history=history, parent_id=body.get("parentId"),
+                    external_urls=ext_urls or None,
                 )
                 # The reader gets the answer and its receipts. Retrieval scores, token counts and the
                 # raw verify payload stay server-side — implementation metadata, per the brief.
@@ -246,6 +257,8 @@ class Handler(BaseHTTPRequestHandler):
                     "id": res.get("id"), "conversation": conv,
                     "question": res["question"], "answer": res["answer"],
                     "sources": res["sources"], "external": res.get("external", []),
+                    "externalOffered": res.get("externalOffered", []),
+                    "externalFailures": res.get("externalFailures", []),
                     "corpusSettles": res.get("corpusSettles"),
                     "cached": res.get("cached", False),
                     # THE STANDING TRAVELS WITH THE ANSWER. An interface cannot render this
