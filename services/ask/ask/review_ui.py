@@ -41,6 +41,7 @@ REVIEW_PAGE = """<!doctype html>
   .lay { display:inline-block; font-size:11px; padding:1px 6px; border-radius:4px;
          background:#eef1f6; color:#41506b; margin-right:6px; font-weight:600 }
   .lay.core { background:#e6f4ec; color:#1c6b3f }
+  .lay.ext { background:#f3ecfa; color:#5b3a86 }
   .verdict { padding:12px 14px; border-radius:8px; margin:0 0 14px; font-size:14px }
   .APPROVE { background:var(--okbg); border:1px solid #bfe4cf; color:var(--ok) }
   .REVISE { background:var(--warnbg); border:1px solid #e6d9a8; color:var(--warn) }
@@ -130,6 +131,12 @@ function renderDetail(){
      (q.sources||[]).map(s=>`<div class="src"><span class="lay ${s.layer==='core'?'core':''}">${
        esc(s.layer||'?')}</span><b>${esc(s.cite)}</b> ${esc(s.label)} — ${esc(s.heading)}<br>
        <span class="muted">${esc(s.standing||'')}</span></div>`).join('')||'<span class="muted">none</span>'}</div>
+   ${(q.external||[]).length||(q.externalOffered||[]).length ? `<h2>External sources — may not establish a datumwise position</h2>
+     <div class="box" style="white-space:normal">${
+       (q.external||[]).map(e=>`<div class="src"><span class="lay ext">external</span>
+         <b>${esc(e.cite||'')}</b> ${esc(e.title||e.url)}<br>
+         <span class="muted">${esc(e.url||'')}</span></div>`).join('')
+       || '<span class="muted">offered but not cited</span>'}</div>` : ''}
    <h2>Review</h2>${ r ? `
      <div class="verdict ${r.disposition}"><b>${r.disposition}</b> — ${esc(r.summary)}</div>
      ${findings(r.findings)}
