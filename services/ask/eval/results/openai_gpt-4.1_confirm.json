@@ -1,0 +1,296 @@
+{
+ "summary": {
+  "model": "openai:gpt-4.1",
+  "cases": 2,
+  "deterministicPass": 1,
+  "deterministicFail": 1,
+  "meanOverall": 3.5,
+  "criteria": {
+   "corpus_faithfulness": 2,
+   "source_selection": 1,
+   "currency": 2,
+   "separation": 2,
+   "citation_accuracy": 0,
+   "premise_resistance": 2,
+   "abstention": 2,
+   "answer_quality": 2
+  },
+  "answerCostUsd": 0.0235,
+  "judgeCostUsd": 0.0407,
+  "promptTokens": 8908,
+  "completionTokens": 713,
+  "elapsedSec": 69.5
+ },
+ "results": [
+  {
+   "id": "s4",
+   "shape": "standing",
+   "q": "Is the old research map current?",
+   "answer": "No, the old research map from 3 August 2026 is not current. It is explicitly preserved as a historical record, not maintained as a current authority. The map itself states that several of the documents it describes have since been published in newer editions, and it is not updated to reflect the present state of the research corpus. For the current research and source estate, readers are directed to the up-to-date Research section and the publication registry, which own publication truth. The historical map is valuable as a record of what was known and published at that date, but it should not be relied upon for the current state of datumwise research or terminology [S1], [S2].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The research map, 3 August 2026",
+     "heading": "",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03",
+     "route": "/history/research-map-2026-08-03",
+     "role": "historical-record",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": true,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The research map, 3 August 2026",
+     "heading": "Four ways in",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#four-ways-in",
+     "route": "/history/research-map-2026-08-03",
+     "role": "historical-record",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": true,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The research map, 3 August 2026",
+     "heading": "",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03",
+     "score": 1.6,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The research map, 3 August 2026",
+     "heading": "Four ways in",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#four-ways-in",
+     "score": 1.3864,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "The research map, 3 August 2026",
+     "heading": "The research corpus",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-research-corpus",
+     "score": 1.0795,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S4",
+     "label": "The research map, 3 August 2026",
+     "heading": "The bridges",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-bridges",
+     "score": 0.9808,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S5",
+     "label": "The research map, 3 August 2026",
+     "heading": "The engine is the proof",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-engine-is-the-proof",
+     "score": 0.9556,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S6",
+     "label": "The research map, 3 August 2026",
+     "heading": "The instruments",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-instruments",
+     "score": 0.9435,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S7",
+     "label": "The research map, 3 August 2026",
+     "heading": "The ripples",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-ripples",
+     "score": 0.909,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S8",
+     "label": "The research map, 3 August 2026",
+     "heading": "The kernel: what is proved",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-kernel-what-is-proved",
+     "score": 0.8953,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 3473,
+   "completionTokens": 166,
+   "costUsd": 0.008274,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 3,
+    "note": "Correctly says the 2026\u201108\u201103 map is historical and not current, but it didn\u2019t cite /research and asserted details (newer editions, registry owning publication truth) without direct supporting citations.",
+    "_judge_cost": 0.019101
+   }
+  },
+  {
+   "id": "x3",
+   "shape": "exploratory",
+   "q": "What is a basis?",
+   "answer": "In the datumwise Columna framework, a basis is the declared account of how the points of a universe are constructed or enumerated. A universe is a named, Manifold-level object that defines a set of points, and the basis specifies the provenance or generation rule for those points. The basis is not just a list or a type; it is a formal, contractually declared mechanism that determines which points exist in the universe and why.\n\nThere are four canonical basis types in Columna, each with its own semantics [S1][S2]:\n\n- registry(<entity_list>): The universe consists of an explicit, enumerated list of entities (e.g., a store directory, a customer panel).\n- spine(<dimension>, ...): The universe is generated by a rule, such as a calendar of days or hours.\n- product(<universe>, ...): The universe is the Cartesian product of other universes (e.g., active stores \u00d7 calendar days).\n- events(<root>[, project = <anchor>]): The universe consists of points where something happened, typically observed events (e.g., transactions, customer-days with purchases).\n\nThe basis is declared as part of the universe definition, for example:\nUNIVERSE calendar_day BASIS spine(day, from = 2024-01-01, to = current)\n\nThe basis is not the same as the anchor. The anchor is the addressing scheme (the coordinates used to refer to points), while the basis (and thus the universe) defines which points actually exist under that addressing [S1].\n\nThe basis also determines what can be verified about the universe: for example, a registry basis can be checked against an explicit list, while an events basis is untestable (it is taken on the author's word that \"absence means nothing happened\") [S3]. The framework expects verification in proportion to the basis: more explicit bases allow more verification [S5].\n\nIn summary: a basis in Columna is the formal, declared mechanism that defines how the points of a universe are constructed, and it is central to the ontology and verification model of the framework.\n\nCitations:\n- [S1]: The Columna reference manual \u2014 Chapter 9. The Universe\n- [S2]: The Columna reference manual \u2014 Chapter 26. The Definition Constructs, Specified as a Language\n- [S3]: The Case \u2014 Cascadia Retail \u2014 First, the trials\n- [S5]: The Columna framework manual \u2014 Chapter 5. The Universe: What the Anchor Was Always Standing On",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 9. The Universe",
+     "url": "https://datumwise.ai/docs/reference#chapter-9-the-universe",
+     "route": "/docs/reference",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 26. The Definition Constructs, Specified as a Language",
+     "url": "https://datumwise.ai/docs/reference#chapter-26-the-definition-constructs-specified-as-a-language",
+     "route": "/docs/reference",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "The Case \u2014 Cascadia Retail",
+     "heading": "First, the trials",
+     "url": "https://datumwise.ai/case",
+     "route": "/case",
+     "role": "machine-evidence",
+     "standing": "generated by scripts/gen_case.py + scripts/gen_firstlight.py; build-adjudicated: the build fails if the displayed claim drifts; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "The Columna framework manual",
+     "heading": "Chapter 5. The Universe: What the Anchor Was Always Standing On",
+     "url": "https://datumwise.ai/docs/framework#chapter-5-the-universe-what-the-anchor-was-always-standing-on",
+     "route": "/docs/framework",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 9. The Universe",
+     "url": "https://datumwise.ai/docs/reference#chapter-9-the-universe",
+     "score": 1.6,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 26. The Definition Constructs, Specified as a Language",
+     "url": "https://datumwise.ai/docs/reference#chapter-26-the-definition-constructs-specified-as-a-language",
+     "score": 1.4369,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "The Case \u2014 Cascadia Retail",
+     "heading": "First, the trials",
+     "url": "https://datumwise.ai/case",
+     "score": 1.2799,
+     "standing": "generated by scripts/gen_case.py + scripts/gen_firstlight.py; build-adjudicated: the build fails if the displayed claim drifts; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S4",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "1.5 AT and @: output anchors versus input anchors",
+     "url": "https://datumwise.ai/docs/frameql#15-at-and--output-anchors-versus-input-anchors",
+     "score": 1.2738,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S5",
+     "label": "The Columna framework manual",
+     "heading": "Chapter 5. The Universe: What the Anchor Was Always Standing On",
+     "url": "https://datumwise.ai/docs/framework#chapter-5-the-universe-what-the-anchor-was-always-standing-on",
+     "score": 1.1755,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S6",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 17. The Layered Preconditions",
+     "url": "https://datumwise.ai/docs/reference#chapter-17-the-layered-preconditions",
+     "score": 1.1094,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S7",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 7. The M-anchor: Missingness",
+     "url": "https://datumwise.ai/docs/reference#chapter-7-the-m-anchor-missingness",
+     "score": 1.0757,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S8",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "Scope",
+     "url": "https://datumwise.ai/docs/frameql#scope",
+     "score": 0.9859,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "missing required string 'missing'"
+    ]
+   },
+   "promptTokens": 5435,
+   "completionTokens": 547,
+   "costUsd": 0.015246,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "Good high-level definition tied to Datumwise sources, but several specific claims (exactly four canonical basis types, syntax details, and \u201cevents basis is untestable\u201d) are asserted without clearly demonstrable support from the cited chapters.",
+    "_judge_cost": 0.021591
+   }
+  }
+ ]
+}
