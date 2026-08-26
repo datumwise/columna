@@ -1,0 +1,1017 @@
+{
+ "summary": {
+  "model": "openai:gpt-5",
+  "fixtures": 14,
+  "defects": 9,
+  "controls": 5,
+  "strict": 12,
+  "lenient": 13,
+  "defectsCaught": 9,
+  "defectsMissed": [],
+  "falsePositives": [
+   "ctl-clean-standing"
+  ],
+  "dimensionHits": 9,
+  "dimensionMisses": [],
+  "confusion": {
+   "APPROVE": {
+    "APPROVE": 4,
+    "REVISE": 1,
+    "DO_NOT_PUBLISH": 0
+   },
+   "REVISE": {
+    "APPROVE": 0,
+    "REVISE": 8,
+    "DO_NOT_PUBLISH": 0
+   },
+   "DO_NOT_PUBLISH": {
+    "APPROVE": 0,
+    "REVISE": 1,
+    "DO_NOT_PUBLISH": 0
+   }
+  },
+  "costUsd": 0.3754
+ },
+ "results": [
+  {
+   "id": "rv-quote-altered",
+   "defect": "A direct quotation of a real Core sentence, altered: 'merely because it traveled' rewritten as 'simply because it has travelled', and 'more authoritative' kept. Every word looks right; the sentence is not the one the source wrote.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "factual_grounding"
+   ],
+   "flaggedDimensions": [
+    "factual_grounding"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise to correct the non-verbatim quotation from S1. The substance is supported by the core source and appropriately bounded. After fixing the quote, the answer is suitable for publication.",
+   "changes": [
+    "Corrected the direct quotation to match S1 exactly (“merely because it traveled”)."
+   ],
+   "proposedAnswer": "Standing is boundary-specific because authority does not travel with a result by default. As Analytical Governance puts it, “Standing prevents a result from becoming more authoritative merely because it traveled” [S1]. A result may stand for exploratory display and not for compensation, and an estimate may stand as an estimate and not as a causal claim [S1].",
+   "quoteFacts": [
+    {
+     "quote": "Standing prevents a result from becoming more authoritative simply because it has travelle",
+     "verbatimMatch": false,
+     "reason": "not present in the cited source under minimal normalisation"
+    }
+   ],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "The claims trace to CORE source S1. S1 explicitly states, “Standing is claim- and boundary-specific,” and provides the examples used."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources were used."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is version v2.0 dated 2026-08-26; treated as current."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "S1 supports the substantive claims and examples. The quotation needed verbatim correction (handled under factual_grounding)."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "One direct quotation is not verbatim: the answer used “simply because it has travelled,” while S1 reads “merely because it traveled.” This requires correction or paraphrase."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims were made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise positions are clearly sourced to S1; no analysis is misattributed."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are bounded to what S1 establishes. “By default” reasonably paraphrases that authority does not increase merely due to travel."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise and directly answers the question with core support."
+    }
+   },
+   "seconds": 26.5,
+   "costUsd": 0.028585,
+   "parseError": false
+  },
+  {
+   "id": "rv-quote-ellipsis",
+   "defect": "An ellipsis-compressed quotation whose fragments are all present in the source. Mechanically NOT VERBATIM: the compressed sentence is not a sentence the source wrote.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "factual_grounding"
+   ],
+   "flaggedDimensions": [
+    "factual_grounding"
+   ],
+   "dimensionHit": true,
+   "summary": "Substance is correct and grounded in a CORE source, but the answer includes a non-verbatim, ellipsis-compressed direct quotation. Replace it with exact quotations from S1 and remove the “machine boundary” gloss to stay tightly with the text. After that, it’s ready to publish.",
+   "changes": [
+    "Replaced the ellipsis-compressed quotation with two exact quotations from S1 to correct the NOT VERBATIM issue.",
+    "Removed the interpretive phrase “not a verdict returned at the machine boundary” to avoid adding terminology not present in S1."
+   ],
+   "proposedAnswer": "No. The paper is explicit: \"Escalate is not a fifth serving mood.\" [S1] It is a governance-process transition, and \"Until that return path completes, serving remains unresolved; escalation does not produce an unofficial answer.\" [S1]",
+   "quoteFacts": [
+    {
+     "quote": "Escalate is not a fifth serving mood … escalation does not produce an unofficial answer",
+     "verbatimMatch": false,
+     "reason": "ellipsis-compressed: every fragment is present, but the compressed sentence is not what the source says"
+    }
+   ],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "Directly grounded in S1 (CORE): “Escalate is not a fifth serving mood.” and the description of escalation’s return path and unresolved serving state."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources used."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is the current record v2.0 (2026-08-26)."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "S1 supports both key claims: not a serving mood; escalation does not produce an unofficial answer."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "The answer uses an ellipsis-compressed direct quote: “Escalate is not a fifth serving mood … escalation does not produce an unofficial answer” [S1]. Quote verification reports NOT VERBATIM; replace with exact quotations or paraphrase."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise position is clearly attributed to S1; minimal author analysis. The “machine boundary” phrasing is interpretive but not quoted."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are as strong as S1 warrants; no overreach once the non-verbatim quote is fixed."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise clarification of a likely FAQ; worth publishing."
+    }
+   },
+   "seconds": 26.8,
+   "costUsd": 0.02597,
+   "parseError": false
+  },
+  {
+   "id": "rv-reference-establishes",
+   "defect": "A claim about datumwise's CURRENT POSITION resting only on a Reference source (the Frame-QL Manual). Reference material may explain and develop; it may not independently establish the current position.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "core_support",
+    "reference_use"
+   ],
+   "flaggedDimensions": [
+    "core_support"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise: the current answer asserts a datumwise position without a CORE source and over-narrows permission to ‘shipped grammar’ while introducing unsupported ‘governance’ language. Reframe as a finding from S1, and ground it in S1’s statements about the envelope, engine, and the language spec defining acceptance and outcomes.",
+   "changes": [
+    "Recast from a CORE-position claim (“datumwise holds …”) to a finding because only a Reference source (S1) was provided.",
+    "Replaced “what the shipped grammar accepts” with “language specification (grammar, semantics, type rules) and envelope” to reflect S1 accurately.",
+    "Removed unsupported “boundary of governance” phrasing; instead referenced S1’s defined outcomes (when results are served or served with disclosures).",
+    "Paraphrased S1’s wording to avoid unverified direct quotations while preserving meaning (planner owns envelope clauses; engine computes without regard to the envelope)."
+   ],
+   "proposedAnswer": "No CORE source was provided to establish a datumwise position. Based on the Frame‑QL Manual (reference), analytical permission is decided at the language boundary: the planner owns the envelope clauses, the engine computes without regard to that envelope, and the language specification (grammar, semantics, type rules) defines both what the framework accepts and the conditions under which a result is served or served with disclosures [S1]. In effect, whatever the language/envelope admits is what may be served [S1].",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The provisional answer states “datumwise holds …” but cites only a Reference source (S1). CORE sources are required to establish a datumwise position."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "S1 does support that the planner owns the envelope clauses, the engine is envelope-blind, and that the language spec defines acceptance and outcomes; the revision frames these as a finding from S1 rather than a CORE position."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is a current, shipped manual (second edition, currency-stamped). The revision treats it as current, not roadmap."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "Claims in the revision map to S1: planner owning envelope clauses; engine envelope-blind; manual specifies grammar/semantics/type rules and outcomes including when results are served or served with disclosures; and it tells what the framework accepts."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Removed unsupported ‘governance boundary’ phrasing and the over-narrow ‘shipped grammar’ focus. The revised statements stay within what S1 establishes, with minimal paraphrase and no put-in-mouth quotations."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims are made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "The revision explicitly notes no CORE position provided and then offers a finding from the Reference source."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Strength is bounded to what S1 supports; avoids absolute or novel terminology like ‘governance boundary’ and does not over-commit to ‘grammar-only’."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly answers the question with properly bounded support; useful to preserve."
+    }
+   },
+   "seconds": 41.4,
+   "costUsd": 0.038588,
+   "parseError": false
+  },
+  {
+   "id": "rv-external-establishes",
+   "defect": "A datumwise position resting on an EXTERNAL source. External material describes the outside world and may never establish a datumwise position.",
+   "isControl": false,
+   "expected": "DO_NOT_PUBLISH",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": false,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "external_claims",
+    "core_support"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "citation_support",
+    "factual_grounding",
+    "external_claims",
+    "separation",
+    "claim_calibration",
+    "worth_publishing"
+   ],
+   "dimensionHit": true,
+   "summary": "Do not publish as-is. It asserts a datumwise position without any CORE support, misuses the only EXTERNAL source, and adds an unsupported claim about downstream use. Revise to drop the datumwise-position claim and answer narrowly: per X1, runtime authorization governs access to data, not the analytical meaning of results—so analytical governance is not just a runtime permission check.",
+   "changes": [
+    "Removed the unsupported claim that this is datumwise’s position; replaced with an externally sourced distinction.",
+    "Deleted the unsupported statement about serving results for any downstream use.",
+    "Reframed the conclusion to match X1: runtime permission checks handle access, not analytical meaning."
+   ],
+   "proposedAnswer": "No. Per the external source provided, query-time policy enforcement (runtime authorization) evaluates each request against access rules and permits or blocks it; it governs access to data rather than the analytical meaning of a result [X1]. That means a runtime permission check is about access control, not analytical meaning—so analytical governance is not just a runtime permission check.",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The claim “datumwise's position is that analytical governance is a runtime permission check…” asserts a datumwise position without any CORE source. Only EXTERNAL [X1] was provided."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No REFERENCE sources were used, so none were misused to redefine a position."
+    },
+    "currency": {
+     "ok": true,
+     "note": "No versioned or time-sensitive claims; X1 is general and appears current."
+    },
+    "citation_support": {
+     "ok": false,
+     "note": "“Once the check passes, the result may be served for any downstream use [X1]” is not supported by X1. X1 does not discuss downstream use. Also, invoking X1 to claim industry alignment with ‘analytical governance is a runtime check’ contradicts X1’s text."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "The answer claims analytical governance is a runtime permission check, but X1 says runtime authorization governs access to data rather than the analytical meaning of a result. The prose overstates beyond the source and mischaracterizes it."
+    },
+    "external_claims": {
+     "ok": false,
+     "note": "The external source is used to assert alignment with an industry view that analytical governance is runtime authorization; X1 actually distinguishes runtime authorization from analytical meaning."
+    },
+    "separation": {
+     "ok": false,
+     "note": "The answer presents a datumwise position established only by an EXTERNAL source, blurring datumwise’s stance with outside description."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Overbroad: “the result may be served for any downstream use” is absolute and unsupported. The equivalence claim (“analytical governance is … a runtime permission check”) is stronger than X1 allows."
+    },
+    "worth_publishing": {
+     "ok": false,
+     "note": "As written it misstates the cited source and asserts an unsupported datumwise position. The topic is worth answering, but this text should not be published without correction."
+    }
+   },
+   "seconds": 51.1,
+   "costUsd": 0.034375,
+   "parseError": false
+  },
+  {
+   "id": "rv-superseded-as-current",
+   "defect": "A superseded edition's sentence presented as the CURRENT datumwise position. The quotation is real and is v1.1's; v2.0 does not carry it, and the passage arrives labelled PRESERVED HISTORICAL STATE.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "currency"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "reference_use",
+    "currency",
+    "factual_grounding",
+    "separation",
+    "claim_calibration"
+   ],
+   "dimensionHit": true,
+   "summary": "Do not publish as-is. The answer relies on a Reference source that is explicitly a preserved historical edition (v1.1) to assert datumwise’s current position. Revise to bound the claim to v1.1, note the currency limitation, and state that establishing the current position requires a Core source. The quotation itself is accurate.",
+   "changes": [
+    "Removed claims of ‘current’ and ‘today’; bounded the statement to v1.1 per S1 and treated it as a finding, not a current datumwise position.",
+    "Added a currency note that S1 is a preserved historical state, not the current record, so it cannot establish today’s position.",
+    "Clarified that establishing the current datumwise position requires a CORE source for the current record."
+   ],
+   "proposedAnswer": "We cannot establish datumwise’s current position from the sources provided. The supplied material is a preserved historical state of Analytical Governance v1.1 (21 Aug 2026), not the current record. In that edition, the conformance test reads: “A governed analytical system must be capable of withholding analytical permission. If it cannot refuse, it is not governed.” [S1] That supports the narrower claim that, in v1.1, a system that cannot refuse is not governed; establishing that this remains datumwise’s current position would require a CORE source for the current record.",
+   "quoteFacts": [
+    {
+     "quote": "A governed analytical system must be capable of withholding analytical permission. If it c",
+     "verbatimMatch": true,
+     "reason": "exact match"
+    }
+   ],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The answer asserts “datumwise's current conformance test” and “criterion ... today” based only on S1, which is a REFERENCE source. Only CORE sources may establish datumwise’s current position."
+    },
+    "reference_use": {
+     "ok": false,
+     "note": "S1 is used to state the current position rather than to inform or contextualize; this silently elevates a reference source to core authority."
+    },
+    "currency": {
+     "ok": false,
+     "note": "S1 is an edition-pinned v1.1 preserved historical state and explicitly “NOT the current record,” yet the answer claims ‘current’ and ‘today.’"
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "The quoted sentence appears verbatim in S1 and is presented as the conformance test in that edition."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "While the quotation is accurate, the prose overstates its force by claiming current status not supported by the provided source."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims were made."
+    },
+    "separation": {
+     "ok": false,
+     "note": "Datumwise’s claimed position is not distinguished from what the reference source (v1.1) states; it is presented as current fact."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Over-strong: asserts current/’today’ based on a non-current reference. Needs bounding to v1.1 and clarification of source class."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "With corrections to source class and currency, this is a concise and useful clarification."
+    }
+   },
+   "seconds": 34.2,
+   "costUsd": 0.024192,
+   "parseError": false
+  },
+  {
+   "id": "rv-roadmap-as-shipped",
+   "defect": "Design-stage material presented as shipped behaviour. The cited passage says in terms that the form is NOT part of the shipped envelope.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "currency"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "reference_use",
+    "currency",
+    "citation_support",
+    "factual_grounding",
+    "separation",
+    "claim_calibration"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise to correct the shipping status: the bracket filter is documented in the Manual as a roadmap feature and is not part of the shipped engine as of columna-core 0.16.2. Keep the useful details (syntax, behavior, distinction from WHERE) but mark them as roadmap per S1. Remove any claim that datumwise currently ships or holds this as implemented.",
+   "changes": [
+    "Corrected shipping status: marked the bracket filter as ROADMAP and explicitly not in columna-core 0.16.2 per S1.",
+    "Bounded claims to the source class (Reference) and avoided asserting a current datumwise position.",
+    "Added a brief contrast with WHERE drawn from S1, without implying shipping beyond what S1 establishes."
+   ],
+   "proposedAnswer": "Short answer: Not in the shipped engine.\n\nThe Frame-QL Manual (Second Edition, §2.8, marked ROADMAP) documents a bracket filter syntax like revenue[region = \"east\"] that would restrict a single column reference and yield a degenerate column that carries that restriction in its identity. However, that syntax is explicitly not part of the shipped envelope as of columna-core 0.16.2 and remains roadmap until ruled in [S1]. It also differs from WHERE, which restricts the whole statement’s input rather than an individual reference [S1].",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The answer asserts a current datumwise position (\"Frame-QL supports... and it ships in the current engine\") without any CORE source. S1 is Reference and cannot establish the current position."
+    },
+    "reference_use": {
+     "ok": false,
+     "note": "S1 (Reference, ROADMAP) is used to claim the feature ships. The source explicitly says the bracket filter is not in the shipped envelope."
+    },
+    "currency": {
+     "ok": false,
+     "note": "Design-stage/ROADMAP material is presented as shipped. S1 states it is not part of columna-core 0.16.2 and remains roadmap until ruled in."
+    },
+    "citation_support": {
+     "ok": false,
+     "note": "S1 supports the concept and syntax of a bracket filter and its semantics, but contradicts the claim that it ships. The shipping claim is unsupported and inverted by S1."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "The statement \"and it ships in the current engine\" conflicts with S1. Other details (degenerate column identity) are fine as descriptions of the documented feature, but must be marked roadmap."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims were made."
+    },
+    "separation": {
+     "ok": false,
+     "note": "The answer does not distinguish between current shipped behavior and roadmap documentation; it reads as a current capability."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Overclaims with present-tense \"supports\" and \"ships\" rather than bounded, versioned, roadmap-qualified language."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "With corrections for currency and sourcing, this is a concise, useful clarification: not shipped; documented as a roadmap feature; how it would behave; how it differs from WHERE."
+    }
+   },
+   "seconds": 33.7,
+   "costUsd": 0.028624,
+   "parseError": false
+  },
+  {
+   "id": "rv-unwarranted-universal",
+   "defect": "An unwarranted universal. The source establishes what a conforming practice needs; it says nothing about what other systems can or cannot do.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "claim_calibration"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "citation_support",
+    "factual_grounding",
+    "external_claims",
+    "separation",
+    "claim_calibration",
+    "worth_publishing"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise. The current answer overclaims: it asserts Columna’s uniqueness and market-wide behavior that S1 does not establish. Replace with a criteria-based comparison grounded in datumwise’s core record: Analytical Governance requires an explicit servability gate and related governance properties; the record does not claim vendor uniqueness or survey the market. Frame comparison in terms of whether a platform meets these criteria, without asserting facts about specific competitors.",
+   "changes": [
+    "Removed unsupported claims of market uniqueness and universal competitor behavior; grounded the answer in S1’s stated requirements.",
+    "Explicitly noted that S1 sets criteria and does not survey vendors, avoiding silent redefinition of datumwise’s position.",
+    "Reframed the comparison as criteria-based (what counts as governed) rather than vendor-by-vendor claims."
+   ],
+   "proposedAnswer": "Datumwise’s current position is that governed analytics requires, at minimum, an explicit servability gate capable of withholding or qualifying permission to serve, along with separation between analytical establishment and later cost/security/application/authorization decisions, preservation of purpose and reasons/conditions as results cross boundaries, and execution faithful to what governance authorized [S1].\n\nThis record sets the criteria by which we compare governance designs; it does not assert vendor uniqueness or survey the market. Accordingly, we do not claim that Columna is the only platform with a servability gate, nor that other platforms \"always return a number.\"\n\nIn this framing: platforms that implement an explicit servability gate and the accompanying separations and provenance requirements align with datumwise’s governance requirements; platforms that lack an explicit servability gate would not meet the minimum specified in [S1].",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The claim \"No other analytical platform can withhold analytical permission — Columna is the only system that implements a servability gate, and every other platform on the market will always return a number when asked\" is not established by S1. S1 defines requirements for a conforming governance architecture; it does not assert market uniqueness for Columna or behavior of \"every other platform.\""
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources were used or misused."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is a current core record (v2.0, 2026-08-26)."
+    },
+    "citation_support": {
+     "ok": false,
+     "note": "S1 does mention a \"servability gate capable of withholding or qualifying analytical permission,\" but it does not support the uniqueness or market-wide claims attached to it."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "The provisional answer extends S1’s requirement into an absolute market statement about all other platforms and about Columna’s uniqueness, which S1 does not state."
+    },
+    "external_claims": {
+     "ok": false,
+     "note": "\"every other platform on the market will always return a number\" is an external market claim with no supporting external source."
+    },
+    "separation": {
+     "ok": false,
+     "note": "Datumwise’s position (requirements in S1) is not clearly separated from unverified market assertions about other platforms and Columna’s uniqueness."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Overstated absolutes: \"No other,\" \"only system,\" and \"every other platform\" exceed the evidence in S1. A bounded formulation tied to the framework’s requirements is warranted."
+    },
+    "worth_publishing": {
+     "ok": false,
+     "note": "As written, it makes strong, unsupported market-wide claims. A criteria-based comparison grounded in S1 would be worth publishing; the current text is not."
+    }
+   },
+   "seconds": 38.3,
+   "costUsd": 0.031849,
+   "parseError": false
+  },
+  {
+   "id": "rv-unjustified-hedge",
+   "defect": "The other direction of miscalibration: a position Core settles exactly, hedged into vagueness. The source states the condition as a conjunction, in a display line.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "claim_calibration"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "citation_support",
+    "factual_grounding",
+    "separation",
+    "claim_calibration",
+    "worth_publishing"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise. S1 (CORE) gives a clear definition: a request is servable when support is sufficient and it is analytically established; the provisional answer incorrectly says the materials don’t really commit. Replace with a concise statement of datumwise’s position from S1, including the per-request nature, the computability contrast, illustrative failure modes, and the distinction between servability (analytical permission) and later serving conditions.",
+   "changes": [
+    "State datumwise’s settled definition from S1 instead of hedging.",
+    "Add the per-request, current-grounds scope and the computability contrast from S1.",
+    "Include S1’s concrete examples of failure modes to ground the concept.",
+    "Note the separation between servability (analytical permission) and subsequent authorization/risk/disclosure."
+   ],
+   "proposedAnswer": "Datumwise holds that a request is servable when both conditions are met: (1) it is analytically established — the requested analytical object exists under the governed analytical model and the requested derivation is lawful — and (2) support is sufficient — the evidence and required state for this request are presently available [S1]. Servability is determined per request under current grounds; computability or dataset/model availability alone does not make a request servable [S1]. Examples from the framework: a missing feed can leave a lawful request unsupported; an unlawful reduction can leave abundant data unable to establish the result; an unresolved population can make a computable denominator analytically unestablished [S1]. Servability grants analytical permission to answer; whether the answer is actually served then depends on authorization, risk, and disclosure conditions [S1].",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The answer claims “It is difficult to say precisely” and “the materials do not really commit to what is required,” which conflicts with S1’s explicit definition: “Servable = Support Sufficient AND Analytically Established.” A CORE source was supplied but its position was not carried through."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No reference sources were used; only CORE S1 is cited."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is labeled current record v2.0 (2026-08-26). The answer does not mishandle versioning, but it also fails to convey the current settled definition."
+    },
+    "citation_support": {
+     "ok": false,
+     "note": "The assertions that datumwise “seems to suggest” and “does not really commit” are not supported by S1, which does commit to a two-part definition and gives examples and contrasts."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "The prose departs from the source by portraying servability as open/uncertain. S1 provides a clear criterion and scope, so statements like “Readers should treat servability as an open question” are unfounded."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims were made."
+    },
+    "separation": {
+     "ok": false,
+     "note": "The answer blurs datumwise’s position with the author’s hedging, e.g., “datumwise seems to suggest,” instead of stating the CORE position distinctly."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Too weak: it hedges where S1 is definitive, understating a settled CORE position."
+    },
+    "worth_publishing": {
+     "ok": false,
+     "note": "As written, it mischaracterizes a core definition and adds little value. A concise, accurate restatement of S1 would be worth publishing."
+    }
+   },
+   "seconds": 27.1,
+   "costUsd": 0.025468,
+   "parseError": false
+  },
+  {
+   "id": "rv-detail-not-carried",
+   "defect": "A specific number attached to a citation that does not carry it: the cited section lists SEVEN minimum requirements, not nine, and does not name a 'disclosure ledger'.",
+   "isControl": false,
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "got": "REVISE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [
+    "citation_support"
+   ],
+   "flaggedDimensions": [
+    "core_support",
+    "citation_support",
+    "factual_grounding",
+    "claim_calibration",
+    "worth_publishing"
+   ],
+   "dimensionHit": true,
+   "summary": "Revise. The provisional answer misstates the number of minimum requirements and adds an unsupported “disclosure ledger” requirement. Replace with a concise enumeration of the seven minimum needs directly supported by S1, and optionally note that AG does not mandate specific technologies and requires independent adjudication of target, grounds, and authority before crossing boundaries.",
+   "changes": [
+    "Corrected the minimum count to seven and removed the unsupported “disclosure ledger” claim.",
+    "Explicitly enumerated the seven required elements from S1 to answer the question directly.",
+    "Added bounded clarification about non-requirements and the independent adjudication condition from S1 to prevent overreach."
+   ],
+   "proposedAnswer": "Per Analytical Governance, a conforming analytical-governance practice or architecture must at least provide:\n- preservation of user purpose when translating intent into a concrete analytical request;\n- a governed analytical representation that can independently establish identity, derivation, required supports, and relevant state;\n- a reliable production path that preserves what was analytically established;\n- a servability gate that can withhold or qualify permission to serve;\n- a way to carry standing, conditions, reasons, and alternatives as results cross boundaries;\n- separation between analytical establishment and later decisions about cost, security, application, and authorization; and\n- execution that matches what governance authorized.\n\nAnalytical Governance does not mandate a specific query language, semantic layer, or implementation; it does require that the analytical target, the grounds relevant to serving it, and the authority for consequential use can be independently adjudicated before the service crosses the relevant boundary. [S1]",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": false,
+     "note": "The answer claims “nine minimum requirements” and mentions “a disclosure ledger for every served result,” but S1 lists seven minimum needs and does not mention a disclosure ledger."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No reference or external sources were used; only a CORE source is cited."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is identified as the current record v2.0 (2026-08-26)."
+    },
+    "citation_support": {
+     "ok": false,
+     "note": "S1 supports the servability gate and faithful execution, but not the count of nine nor a disclosure ledger."
+    },
+    "factual_grounding": {
+     "ok": false,
+     "note": "Introduces terms and counts not present in S1, sharpening beyond the source."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "The answer attributes requirements to Analytical Governance and cites S1."
+    },
+    "claim_calibration": {
+     "ok": false,
+     "note": "Overstates with “nine” and implies a ledger requirement not in S1."
+    },
+    "worth_publishing": {
+     "ok": false,
+     "note": "As written it is thin and contains a material error (wrong count) and an unsupported requirement (ledger)."
+    }
+   },
+   "seconds": 44.3,
+   "costUsd": 0.031106,
+   "parseError": false
+  },
+  {
+   "id": "ctl-brief-but-complete",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "APPROVE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Supported by the current CORE record [S1]. The answer accurately paraphrases that Escalate is a governance-process transition, not a serving verdict, and that serving remains unresolved until governance returns—justifying the \"No\" to returning at the machine boundary. No overreach, no missing caveats, and no extraneous claims. Approve as is.",
+   "changes": [],
+   "proposedAnswer": null,
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "Answer claim \"Escalate is a governance-process transition rather than a serving verdict\" maps directly to S1: \"Escalate is not a fifth serving mood. It is a governance-process transition...\" and \"The request leaves the serving path and enters an authoring, declaration, review, or ratification process...\"; the close \"until that returns, serving remains unresolved\" maps to S1: \"Until that return path completes, serving remains unresolved; escalation does not produce an unofficial answer.\""
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources used; only CORE [S1]. No silent redefinition."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is marked \"current record v2.0 (2026-08-26)\" and the answer treats it as current."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "Specific phrases in the answer are supported: \"leaves the serving path\" ↔ S1 \"The request leaves the serving path\"; \"authoring, declaration, review or ratification\" ↔ S1 list; \"serving remains unresolved\" ↔ S1 \"serving remains unresolved\"."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Paraphrases stay within S1. No added mechanisms or outcomes beyond S1. The negative answer to the boundary question is warranted by S1’s \"not a fifth serving mood\" and \"does not produce an unofficial answer.\""
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise position is clearly sourced to CORE [S1]; no conflation with external facts or reviewer analysis."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are bounded to S1. No universal or absolute language beyond what S1 supports."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly answers the specific question about return semantics at the serving/machine boundary; non-duplicative."
+    }
+   },
+   "seconds": 23.3,
+   "costUsd": 0.021856,
+   "parseError": false
+  },
+  {
+   "id": "ctl-clean-servability",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "APPROVE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Sound, concise definition aligned with the current CORE source. The only interpretive phrasing (“distance”) is consistent with S1’s framing, and all substantive claims (the two conjunctive conditions, distinguishable failures, and per-request determination) are explicitly supported. No overclaiming or mixing of external material. Publish as is.",
+   "changes": [],
+   "proposedAnswer": null,
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "Every datumwise-position claim is grounded in the CORE source [S1]. The definition via analytical establishment and support sufficiency, the distinguishable failure modes, and the per-request nature of servability are all explicitly stated in S1. The opening “distance” phrasing is an interpretive gloss consistent with S1’s framing and title."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources were used; only CORE material is cited."
+    },
+    "currency": {
+     "ok": true,
+     "note": "Source [S1] is marked as the current record v2.0 (2026-08-26), and the answer treats it as current."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "Specific elements (two conjunctive conditions for servability; examples of failure; per-request determination) are directly supported by the cited passages in [S1]."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Paraphrases stay within what [S1] establishes. No direct quotations are used; no words are put in the source’s mouth."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims are made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "The answer cleanly presents datumwise’s position from [S1] without mixing in outside analysis as fact."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are bounded and avoid overreach. The phrase “may actually be served” does not contradict [S1]’s distinction between servability and subsequent serving conditions."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise and directly answers the question with clear principles; worth preserving."
+    }
+   },
+   "seconds": 24.2,
+   "costUsd": 0.02401,
+   "parseError": false
+  },
+  {
+   "id": "ctl-clean-standing",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "REVISE",
+   "strictOk": false,
+   "lenientOk": false,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Solid, source-grounded answer. Minor calibration issue: it said “the reason the distinction is kept,” which overstates S1’s rationale as singular. Change to “a reason” for precision. Otherwise aligned with the core source and appropriately bounded.",
+   "changes": [
+    "Softened “The reason the distinction is kept” to “The paper gives a reason for keeping the distinction” to avoid overclaiming singular causation."
+   ],
+   "proposedAnswer": "No — that is a further question, and datumwise types it separately. Servability asks whether a candidate result may be served as the answer; standing asks what the served result may then be treated as, and it is claim- and boundary-specific [S1]. A result may stand for exploratory display and not for compensation; an estimate may stand as an estimate and not as a causal claim; a result may require disclosure before publication [S1].\n\nThe paper gives a reason for keeping the distinction: standing prevents a result from becoming more authoritative merely because it traveled [S1].",
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "Every datumwise-position claim maps to S1. Examples and definitions (“Servability asks…”, “Standing is claim- and boundary-specific…”, the three standing examples, and the rationale about not becoming more authoritative by travel) are all present in S1."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No reference-class sources used; only CORE S1 is cited."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is labeled current record v2.0 (2026-08-26)."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "All cited specifics are supported by S1’s text, including the three examples and the rationale line."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Paraphrases stay within S1. No quotations of 5+ words, and no misattribution."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise position vs. explanatory prose is clear and grounded in S1; no conflation with external analysis."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Slight overclaim in “The reason the distinction is kept…” suggests singular causation; revised to “a reason” to match the source’s framing."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly answers the question, and cites CORE. Worth publishing."
+    }
+   },
+   "seconds": 18.5,
+   "costUsd": 0.019381,
+   "parseError": false
+  },
+  {
+   "id": "ctl-clean-with-verbatim-quote",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "APPROVE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Strong, concise answer grounded entirely in the core record (S1). It quotes the explicit non-guarantee and correctly frames the framework’s narrower scope. No overclaiming, no currency or citation issues, and no external assertions. Ready to publish as-is.",
+   "changes": [],
+   "proposedAnswer": null,
+   "quoteFacts": [
+    {
+     "quote": "does not guarantee perfect intent, perfect data, perfect governed declarations, or perfect",
+     "verbatimMatch": true,
+     "reason": "exact match"
+    }
+   ],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "The conclusion \"No, and it says so directly\" is supported by CORE source S1, which states the framework \"does not guarantee perfect intent, perfect data, perfect governed declarations, or perfect decisions\" and clarifies scope and non-replacements."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources used; all claims rest on S1."
+    },
+    "currency": {
+     "ok": true,
+     "note": "S1 is marked as the current record v2.0 (2026-08-26)."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "The direct quotation is a VERBATIM MATCH to S1; the additional statements closely paraphrase lines present in S1 (non-replacement list; coordination of permission points)."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "All claims stay within what S1 establishes, including the explicit non-guarantee and scope-limiting statements. The paraphrase \"coordinates the points at which those outputs become part...\" is faithful to S1."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise position is clearly tied to S1; no unsupported analysis is presented as fact."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "The answer avoids overreach by quoting S1’s explicit non-guarantee and scope; while the question says \"good decisions,\" the answer grounds the \"No\" in S1’s stated non-guarantee of perfect decisions and non-replacement of decision governance."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly answers the question with a core citation; useful as a public record."
+    }
+   },
+   "seconds": 24.9,
+   "costUsd": 0.025041,
+   "parseError": false
+  },
+  {
+   "id": "ctl-clean-standing-v2",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "APPROVE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Publish as-is. The answer cleanly distinguishes servability from standing, cites the CORE section that establishes the point, reproduces the specific examples and rationale from S1, and avoids overclaiming. The slight paraphrase (“or relied upon for”) is faithful to the source’s meaning.",
+   "changes": [],
+   "proposedAnswer": null,
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "Every datumwise-position claim traces to the CORE source [S1]. Examples and the governing distinction are all stated in S1: “Servability asks…,” “Standing is claim- and boundary-specific,” the three examples, and “Standing prevents a result from becoming more authoritative merely because it traveled.”"
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No reference-class sources used; only CORE [S1]."
+    },
+    "currency": {
+     "ok": true,
+     "note": "Uses the current record v2.0 (2026-08-26) as provided."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "Each specific detail (the three example limitations on standing and the rationale sentence) is verbatim present in [S1]."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Prose stays within what [S1] establishes. The added phrase “or relied upon for” is a fair paraphrase of “what may the served result now be treated as?” without overstating the source."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise’s position is clearly derived from [S1]; no unmarked analysis is presented as source fact."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are bounded to [S1] and avoid over-breadth; no universal claims beyond the source."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly addresses the question, provides the core principle and concrete examples from [S1]."
+    }
+   },
+   "seconds": 12.8,
+   "costUsd": 0.016371,
+   "parseError": false
+  }
+ ]
+}

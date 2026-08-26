@@ -1,0 +1,95 @@
+{
+ "summary": {
+  "model": "openai:gpt-5",
+  "fixtures": 1,
+  "defects": 0,
+  "controls": 1,
+  "strict": 1,
+  "lenient": 1,
+  "defectsCaught": 0,
+  "defectsMissed": [],
+  "falsePositives": [],
+  "dimensionHits": 0,
+  "dimensionMisses": [],
+  "confusion": {
+   "APPROVE": {
+    "APPROVE": 1,
+    "REVISE": 0,
+    "DO_NOT_PUBLISH": 0
+   },
+   "REVISE": {
+    "APPROVE": 0,
+    "REVISE": 0,
+    "DO_NOT_PUBLISH": 0
+   },
+   "DO_NOT_PUBLISH": {
+    "APPROVE": 0,
+    "REVISE": 0,
+    "DO_NOT_PUBLISH": 0
+   }
+  },
+  "costUsd": 0.0168
+ },
+ "results": [
+  {
+   "id": "ctl-clean-standing-v2",
+   "defect": null,
+   "isControl": true,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "got": "APPROVE",
+   "strictOk": true,
+   "lenientOk": true,
+   "expectedDimensions": [],
+   "flaggedDimensions": [],
+   "dimensionHit": true,
+   "summary": "Publish as-is. The answer cleanly distinguishes servability from standing, cites only the CORE source (S1), and reproduces S1’s examples and rationale accurately. The small paraphrase (“or relied upon for”) stays within S1’s meaning. No currency or attribution issues found, and the claim strength matches the source.",
+   "changes": [],
+   "proposedAnswer": null,
+   "quoteFacts": [],
+   "findings": {
+    "core_support": {
+     "ok": true,
+     "note": "All substantive claims (servability vs standing distinction; claim- and boundary-specific nature; example constraints; purpose of standing) are directly supported by S1, a CORE source."
+    },
+    "reference_use": {
+     "ok": true,
+     "note": "No Reference sources are used; the answer relies solely on CORE material."
+    },
+    "currency": {
+     "ok": true,
+     "note": "Cites S1 v2.0 (2026-08-26), which is the current deposited record indicated in the prompt."
+    },
+    "citation_support": {
+     "ok": true,
+     "note": "Each cited point maps to explicit sentences in S1. The added gloss “or relied upon for” is a fair paraphrase of “treated as,” not a new claim."
+    },
+    "factual_grounding": {
+     "ok": true,
+     "note": "Prose closely follows S1. No direct quotations used; phrasing remains within the meaning of the source."
+    },
+    "external_claims": {
+     "ok": true,
+     "note": "No external claims are made."
+    },
+    "separation": {
+     "ok": true,
+     "note": "Datumwise position is clearly attributed to S1; no mixing with external analysis beyond minimal paraphrase."
+    },
+    "claim_calibration": {
+     "ok": true,
+     "note": "Claims are bounded to what S1 states; no absolute or inflated language beyond the source."
+    },
+    "worth_publishing": {
+     "ok": true,
+     "note": "Concise, directly answers the question, and clarifies a core distinction with sourced examples."
+    }
+   },
+   "seconds": 19.9,
+   "costUsd": 0.016751,
+   "parseError": false
+  }
+ ]
+}
