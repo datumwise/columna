@@ -132,7 +132,11 @@ def ask(
     sources = [
         {
             "cite": t,
+            # Both, and the same way `standing`/`standingAtAnswer` are stored both: the row is then
+            # self-describing, and citations.resolve() re-resolves `label` without having to infer
+            # which of the two it is reading. See citations.py.
             "label": by_token[t].get("sourceLabel") or by_token[t]["title"],
+            "labelAtAnswer": by_token[t].get("sourceLabel") or by_token[t]["title"],
             "heading": by_token[t]["heading"],
             "url": by_token[t]["url"],
             "route": by_token[t]["route"],

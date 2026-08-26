@@ -92,32 +92,51 @@ Why not “serviceability” or “answerability”?
 In short, datumwise chooses servability because it centers the governed permission to serve a specific answer under present grounds. That precision is necessary to keep capability, permission, and post-serving authority from collapsing into each other [S1], [S2], [S3], [S4], [S5], [S8].
 ```
 
-## 4 · Citations, with both standing sentences
+## 4 · Citations — both standing sentences, and both labels
 
 **[S1]** `layer=core` — Abstract  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 **[S2]** `layer=core` — 13. Conclusion  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 **[S3]** `layer=core` — 7. Standing: what the service may pass forward  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 **[S4]** `layer=core` — 2. What must remain true  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 **[S5]** `layer=core` — 4. The servability gap: from governed request to answer  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 **[S8]** `layer=core` — 12. Requirements and non-claims  
+  · label now: **Analytical Governance** · shown as: *Analytical Governance: From User Intent to Governed Analytical Execution* · renamed since answer: **True**  
   · standing now: current record v2.0 (2026-08-26, doi:10.5281/zenodo.22115819); deposited text — read from the deposited record, not from a page on this site  
-  · readable record: `w-analytical-governance.r03` · superseded since answer: **False**  
+  · readable record: `w-analytical-governance.r03` · current record now: `w-analytical-governance.r03` · superseded since answer: **False**  
 
 Every citation is Core and every one resolves to `w-analytical-governance.r03`. `standing` and
 `standingAtAnswer` are identical because the answer was written after the supersession, and
 `supersededSinceAnswer` is false on all six. That is the durable-citation machinery reporting *no
 drift yet* — which is the only honest reading on day one, and the field that will change by itself
 when v2.1 lands.
+
+**The labels DID drift, and the packet now shows it.** Every citation reads
+`label: "Analytical Governance"` and
+`labelAtAnswer: "Analytical Governance: From User Intent to Governed Analytical Execution"`, with
+`labelChangedSinceAnswer: true` and `supersededSinceAnswer: false` — **which is the whole point of
+keeping them as two fields.** An editorial rename moved the presentation; nothing moved the record
+whose words were cited, and nothing moved which record is authoritative. The review screen states the
+rename in its own words for the same reason: *"shown as … when this answer was written — the label was
+renamed, the cited record did not change."*
+
+Six facts, and they stay six: the record whose words were cited (`readableRecordId`), the record
+current at answer time (`currentRecordIdAtAnswer`), the record currently authoritative
+(`currentRecordId`), the standing sentence then and now, and the label then and now.
 
 ## 5 · Quote verification — now read back from durable storage
 
@@ -189,25 +208,18 @@ than quietly dropped: the proposal path is implemented, unit-tested and fails cl
 model that has ever chosen it on real material did so on the parked Anthropic comparison. One
 APPROVE on datumwise-only Core is not evidence that the reviewer discriminates.
 
-**C · NEW — the same class of defect the durable-citation work fixed, one field over: `label`.**
-The citations in §4 read *"Analytical Governance: From User Intent to Governed Analytical
-Execution"*, which is the editorial label as it stood when the answer was written. Under ruling E.1
-that label is now *"Analytical Governance"*. `citations.resolve()` re-resolves **standing** from
-record identity and leaves **label** as stored text — so a stored citation goes on displaying an
-editorial name the registry has since changed, exactly as it used to go on displaying a superseded
-standing sentence.
+**C · FIXED — durable citation labels.** The finding this packet raised in its previous revision is
+closed under ruling 1 of 2026-08-26 15:59. `labelAtAnswer` preserves the presentation as shown;
+`label` is resolved from `sourceId` → `workId` → `canonicalLabel` at read time; `labelChangedSinceAnswer`
+is the fact neither string states alone. `index_build`'s existing rule is **reused, not re-invented**:
+an explicitly titled source pinned to a non-current edition keeps its own dated name, so a citation of
+the v1.1 *text* still reads *"Analytical Governance v1.1, 21 August 2026"* rather than re-resolving to
+the bare work label and reading as the current work. Four new tests, one of them specifically pinning
+that a rename is not a supersession.
 
-It is a narrower defect than the standing one and worth stating precisely rather than escalating:
-`label` derives from `works.canonicalLabel`, which is *editorial naming* and Work-level, so it does
-not bear on which record was cited. The architectural invariant is untouched — the record whose words
-were cited is `w-analytical-governance.r03` in both the stored citation and the re-resolved one, and
-nothing collapses it into the work's current record. But the label is a **resolved presentation**
-carried as text, which is the shape this repo keeps correcting.
-
-**Not fixed, and not begun.** It needs a ruling: either label joins standing as a re-resolved
-presentation (identity is already stored — `sourceId` → `workId` → `canonicalLabel`), or stored
-labels are deliberately frozen as what the answer was shown, in which case the review screen should
-say so. Both are defensible; picking one silently is not.
+**No additional model review call was made.** The verdict, the findings and the quote-verification
+facts are byte-identical to the accepted packet; only the derived presentation moved, which is what
+re-resolution is supposed to do.
 
 ## 8 · What a human still owes
 

@@ -186,6 +186,9 @@ function renderDetail(){
        s.supersededSinceAnswer?' <span class="lay" style="background:#fdeeee;color:#8c2b2b">superseded since answered</span>':''}<br>
        <span class="muted">${esc(s.standing||'')}</span>${
        s.supersededSinceAnswer?'<br><span class="muted">at answer time: '+esc(s.standingAtAnswer||'')+'</span>':''
+       }${/* An editorial rename is NOT a supersession, so it gets its own line and its own words. */
+       s.labelChangedSinceAnswer?'<br><span class="muted">shown as “'+esc(s.labelAtAnswer||'')+
+         '” when this answer was written — the label was renamed, the cited record did not change</span>':''
        }</div>`).join('')||'<span class="muted">none</span>'}</div>
    ${(q.external||[]).length||(q.externalOffered||[]).length ? `<h2>External sources — may not establish a datumwise position</h2>
      <div class="box" style="white-space:normal">${

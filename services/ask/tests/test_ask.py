@@ -776,3 +776,63 @@ def test_the_review_screen_renders_the_facts_and_distinguishes_the_four_states()
         assert state in REVIEW_PAGE
     assert "NOT RECORDED" in REVIEW_PAGE and "RECONSTRUCTED, not captured" in REVIEW_PAGE
     assert "quoteFactsAsSent" in REVIEW_PAGE            # the block exactly as the reviewer got it
+
+
+# ── durable citation labels (Huayin, ruling 1 of 2026-08-26 15:59) ─────────────────────────────────
+
+def test_a_renamed_label_reresolves_and_keeps_what_was_shown():
+    """Identity is durable; current presentation is resolved. The editorial label for Analytical
+    Governance changed on 2026-08-26 from the superseded edition's full title to the work's name, and
+    a citation stored before that must now DISPLAY the new one while still recording the old."""
+    from ask import citations
+    stored = [{"cite": "S1", "sourceId": "s-analytical-governance",
+               "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+               "readableRecordId": "w-analytical-governance.r03",
+               "currentRecordIdAtAnswer": "w-analytical-governance.r03",
+               "standingTemplate": "{CURRENT}; deposited text", "standing": "…"}]
+    got = citations.resolve(stored)[0]
+    assert got["label"] == "Analytical Governance"                      # what a reader sees now
+    assert got["labelAtAnswer"].endswith("Governed Analytical Execution")  # what was shown then
+    assert got["labelChangedSinceAnswer"] is True
+    assert got["labelResolvable"] is True
+    # A RENAME IS NOT A SUPERSESSION. The two facts must not collapse: same record cited, same record
+    # current, only the editorial name moved.
+    assert got["supersededSinceAnswer"] is False
+    assert got["readableRecordId"] == "w-analytical-governance.r03"
+    assert got["currentRecordId"] == "w-analytical-governance.r03"
+    assert stored[0]["label"].startswith("Analytical Governance:")      # the stored row is untouched
+
+
+def test_a_citation_of_a_superseded_edition_keeps_its_dated_name():
+    """index_build's rule, reused rather than re-invented: an explicitly titled source pinned to a
+    non-current edition keeps its own dated title. Re-resolving a citation of the v1.1 TEXT to the
+    bare work label would make a preserved historical citation read as the current work."""
+    from ask import citations
+    got = citations.resolve([{"cite": "S1", "sourceId": "s-analytical-governance-v1-1",
+                              "label": "Analytical Governance v1.1, 21 August 2026",
+                              "readableRecordId": "w-analytical-governance.r02",
+                              "currentRecordIdAtAnswer": "w-analytical-governance.r02",
+                              "standingTemplate": "PRESERVED HISTORICAL STATE — {READABLE}",
+                              "standing": "…"}])[0]
+    assert got["label"] == "Analytical Governance v1.1, 21 August 2026"
+    assert got["labelChangedSinceAnswer"] is False
+    assert got["supersededSinceAnswer"] is True      # this one IS a supersession, and says so
+
+
+def test_a_label_resolves_even_when_the_standing_cannot():
+    """Different facts need different identities: the standing sentence needs a record, the label
+    needs only the source. Resolving what can be resolved is not guessing at what cannot."""
+    from ask import citations
+    got = citations.resolve([{"cite": "S1", "sourceId": "s-theory-of-certainty",
+                              "label": "some older name",
+                              "standing": "current record v1.0 (2026-08-26)"}])[0]
+    assert got["resolvable"] is False and got["supersededSinceAnswer"] is None
+    assert got["label"] == "The Theory of Certainty" and got["labelResolvable"] is True
+    assert got["standing"] == "current record v1.0 (2026-08-26)"       # unchanged, not guessed at
+
+
+def test_an_unknown_source_keeps_the_label_it_was_shown():
+    from ask import citations
+    got = citations.resolve([{"cite": "S1", "sourceId": "s-gone", "label": "A retired source"}])[0]
+    assert got["labelResolvable"] is False and got["label"] == "A retired source"
+    assert got["labelChangedSinceAnswer"] is None

@@ -1,5 +1,5 @@
 {
- "$comment": "Read back from durable storage after the E.7 repair. Not reassembled by hand: every field below is what store.get()/store.latest_review() return, which is what the review screen renders and what a later reader will find.",
+ "$comment": "Read back from durable storage after the E.7 quote-fact repair and the citation-label durability repair (ruling 1 of 2026-08-26 15:59). Not reassembled by hand: every field is what store.get()/store.latest_review() return, which is what the review screen renders and what a later reader will find. `label` is resolved now; `labelAtAnswer` is what was shown when the answer was written; both are presentation, and neither moves readableRecordId or currentRecordIdAtAnswer.",
  "question": "Why does datumwise use \"servability\" rather than \"serviceability\" or \"answerability\"?",
  "qaId": "772b736f2852",
  "reviewId": "79e703c8df82",
@@ -62,7 +62,7 @@
   "sources": [
    {
     "cite": "S1",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "Abstract",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -79,11 +79,14 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    },
    {
     "cite": "S2",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "13. Conclusion",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -100,11 +103,14 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    },
    {
     "cite": "S3",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "7. Standing: what the service may pass forward",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -121,11 +127,14 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    },
    {
     "cite": "S4",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "2. What must remain true",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -142,11 +151,14 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    },
    {
     "cite": "S5",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "4. The servability gap: from governed request to answer",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -163,11 +175,14 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    },
    {
     "cite": "S8",
-    "label": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "label": "Analytical Governance",
     "heading": "12. Requirements and non-claims",
     "url": "https://doi.org/10.5281/zenodo.22115819",
     "route": "",
@@ -184,6 +199,9 @@
     "isEditionPinned": false,
     "resolvable": true,
     "currentRecordId": "w-analytical-governance.r03",
+    "labelAtAnswer": "Analytical Governance: From User Intent to Governed Analytical Execution",
+    "labelResolvable": true,
+    "labelChangedSinceAnswer": true,
     "supersededSinceAnswer": false
    }
   ],
