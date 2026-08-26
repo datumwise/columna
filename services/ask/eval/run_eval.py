@@ -68,9 +68,34 @@ Reply with ONLY a JSON object:
 """
 
 
+# The floor is deliberately low. Every real answer in this set — including the abstentions, which
+# are the shortest legitimate answers there are ("there is no work called Trust in the publication
+# registry...") — runs to hundreds of characters. Nothing near 40 is an answer.
+MIN_ANSWER_CHARS = 40
+
+
 def deterministic(case: dict, res: dict) -> dict:
     a = res["answer"].lower()
     fails: list[str] = []
+
+    # THE EMPTY-ANSWER INVARIANT (2026-08-26). c1 in the baseline run produced NO ANSWER AT ALL —
+    # zero characters, zero sources, 4000 completion tokens spent entirely on reasoning before the
+    # cap cut it off — and it PASSED, because c1's assertions are `must_not` and an empty string
+    # contains no forbidden string. Every must_not case in this set had the same hole: silence is
+    # the perfect score on a test that only forbids.
+    #
+    # This is one invariant at the harness level rather than a new assertion on each case, because
+    # the hole is not a property of c1. It is a property of grading by prohibition, and it would
+    # reopen on the next must_not case anyone writes.
+    #
+    # An abstention is NOT silence and is not caught by this: the abstention cases answer at
+    # length, in prose, and say what the corpus does not settle. That distinction is the whole
+    # point — refusing to answer is a claim, and it has to be made in words to be graded.
+    body = res["answer"].strip()
+    if len(body) < MIN_ANSWER_CHARS:
+        fails.append(f"no substantive answer ({len(body)} chars) — silence cannot pass a must_not")
+        if res.get("completionTokens"):
+            fails[-1] += f"; {res['completionTokens']} completion tokens spent producing it"
     for s in case.get("must", []):
         if s.lower() not in a:
             fails.append(f"missing required string {s!r}")
