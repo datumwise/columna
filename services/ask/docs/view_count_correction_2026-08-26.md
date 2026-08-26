@@ -1,9 +1,11 @@
 # View-count correction — ledger, 2026-08-26
 
-**Status: REPORT ONLY. No existing count has been changed by the change this ledger accompanies.**
-The code change types future reads. The treatment of counts already on disk is proposed here and
-awaits a human ruling. The one SQL statement below is written out so it can be read and judged; it
-has not been run, and running it is a separate, explicitly-labelled act (§5).
+**Status: RULED AND EXECUTED, 2026-08-26 (§5c).** This ledger was written REPORT ONLY, with the
+statement in §5a unrun and awaiting a ruling. Huayin ruled it the same evening — *"public views
+begin at publication… there was no public readership represented by those two reads"* — and it was
+run once, under its own guards. §5c records what it did. Everything above §5c is left exactly as it
+was written before the ruling, because a ledger that edits its own pre-ruling reasoning after the
+ruling arrives stops being evidence of what was proposed.
 
 ## 1. The ruling
 
@@ -165,3 +167,45 @@ discarding it, so the reading that was not chosen is still recoverable from the 
 - **The test suite writes to the default `ASK_DB` (`/data/ask.db`).** That is how 79 fixture rows and
   four published-with-a-view rows got there. The suite should be pointed at a temporary file; until
   it is, `/data/ask.db` is not a source of metrics about anything.
+
+
+---
+
+## 5c. Executed — 2026-08-26
+
+**Ruling (Huayin):** reset the servability Q&A's public `views` from 2 to 0 using the guarded SQL.
+*"Those two reads occurred while the object was provisional/reviewed, before it became a public
+reviewed answer. Our rule is: public views begin at publication. This is not a rewrite of historical
+public readership; there was no public readership represented by those two reads."*
+
+Run once, unmodified, on `772b736f2852` in `/tmp/ask-servability.db`:
+
+| | before | after |
+|---|---|---|
+| `views` | 2 | **0** |
+| `provisional_views` | 0 | **2** |
+| `views + provisional_views` | 2 | **2** — no read erased, only its kind corrected |
+| public payload `views` | 2 | **0** |
+| public payload `rank` | 0.4771 | **0.0** |
+| `standing` · `published` · `reviewed_at` · notice | reviewed · true · unchanged | unchanged |
+| public payload carries `provisionalViews` | no | **no** |
+| review payload | — | `views: 0`, `provisionalViews: 2` |
+
+Both guards held. Re-running the identical statement affects **0 rows**, because
+`AND provisional_views = 0` is now false — it cannot be applied twice.
+
+### The object this was run against is container-local, and that is a finding
+
+`772b736f2852` lives in `/tmp/ask-servability.db` inside the working container. **It is not on the
+Fly volume**, and the deployed service has never held it: the volume carries four rows, all of them
+older, none of them this one. F4 published *through the real endpoint*, which is what the ruling of
+16:35 asked for and what it proves — but into a scratch database, so the published OBJECT is
+ephemeral while the published RECORD is not.
+
+What survives durably is `docs/published_servability_qa_2026-08-26.json`, the specimen captured from
+`GET /qa/<id>` on the day, and `tests/test_public_surface.py`, which asserts the rules from the
+reader's side. The correction above is therefore a correction to the live object *where that object
+actually exists*, and it does not reach production because production never had it.
+
+Publishing it on the deployed service would be a new publication act, through the review gate, on a
+ruling. It has not been done.
