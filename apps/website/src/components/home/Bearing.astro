@@ -10,8 +10,8 @@
  * reached, which is useful before they understand any of the work, and it is the thing the whole
  * corpus has earned. So this file is the surviving half of Hero.astro:
  *
- *   KEPT     the thesis, the three terrain names, one restrained descriptive line, the generated
- *            formal specimen.
+ *   KEPT     the thesis, the three terrain names, one restrained descriptive line. (The generated
+ *            formal specimen was kept here too until 2026-08-27 — see THE FORMAL SPECIMEN IS GONE.)
  *   RETIRED  the falsifiable-commitment block (a claim, better spent where an encounter has paid
  *            for it), the two action links (the encounter is immediately below; a "scroll down"
  *            affordance for content one screen away is furniture), and HeroLattice (small, lovely,
@@ -41,42 +41,34 @@
  * y≈770 of 900). If this grows back into a full-screen hero, the composition has failed and the
  * page is a lobby again.
  *
- * The formal mark is GENERATED, never typed: transcript.hero_mark is executed against the shipped
- * package by scripts/gen_transcript.py, and the assertion below fails the build if it stops being a
- * request the package serves. Keeping the mark here is what keeps that check running.
+ * THE FORMAL SPECIMEN IS GONE (Huayin, 2026-08-27, cold-reader cleanup item 1). The bearing used to
+ * carry one generated Frame-QL mark beside the thesis — `SELECT revenue AT {store, cal.month}`,
+ * labelled "Example address, in the data world". It is REMOVED, not restyled and not respelled: the
+ * ruling is that it no longer has a clear homepage job, and that quoting a query language on the
+ * front gate prematurely narrows the foundational Data discussion into Frame-QL/formal syntax before
+ * a reader has any reason to want a syntax. (Had it been retained it would have been respelled
+ * `revenue @ {store, cal.month}` — the theory's naming form — which is recorded here only so the
+ * question is not re-litigated from the old spelling.) NOTHING REPLACES IT. Do not fill the column
+ * with another technical specimen; the bearing is a statement of terrain and the space is the point.
+ *
+ * The integrity check that mark carried is NOT lost. scripts/gen_transcript.py still executes
+ * HERO_MARK against the shipped package and fails the generator closed if it stops serving, so the
+ * "the site cannot quote a retired syntax" guarantee survives the removal of the quotation; what
+ * left this file is a rendering, not a gate.
  */
-import transcript from '../../data/transcript.generated.json';
-
-const mark = (transcript as any).hero_mark;
-if (!mark?.frameql || mark.outcome !== 'serve') {
-  throw new Error(
-    'Bearing integrity failure: the formal mark is not a request the shipped package serves. ' +
-    'Regenerate the transcript (scripts/gen_transcript.py). The homepage must not quote a retired ' +
-    'or invalid Frame-QL form.'
-  );
-}
 ---
 
 <section class="bearing ds ds-paper ds-section" aria-labelledby="thesis">
-  <div class="grid ds-measure-wide">
-    <div class="claim">
-      <h1 id="thesis">First Principles — <span class="territory-word">Analytics</span></h1>
+  <div class="claim ds-measure-wide">
+    <h1 id="thesis">First Principles — <span class="territory-word">Analytics</span></h1>
 
-      {/* A statement of terrain. Not links, not headings, not three teaching units. */}
-      <p class="territories">Data · Certainty · Intelligence</p>
+    {/* A statement of terrain. Not links, not headings, not three teaching units. */}
+    <p class="territories">Data · Certainty · Intelligence</p>
 
-      <p class="lede ds-body">
-        datumwise develops first-principles foundations, languages, and systems for analytics
-        across data, certainty, and intelligence.
-      </p>
-    </div>
-
-    <div class="mark-side">
-      <p class="mark-line">
-        <span class="mark-label">Example address, in the data world</span>
-        <code class="ds-mark">{mark.frameql}</code>
-      </p>
-    </div>
+    <p class="lede ds-body">
+      datumwise develops first-principles foundations, languages, and systems for analytics
+      across data, certainty, and intelligence.
+    </p>
   </div>
 </section>
 
@@ -85,13 +77,10 @@ if (!mark?.frameql || mark.outcome !== 'serve') {
      supplies the page gutter (without it the thesis bleeds into the edge on a phone); the block
      padding it also sets is a full narrative turn, so it is overridden here. */
   .bearing { padding-block: clamp(2rem, 1.4rem + 2vw, 3rem) clamp(2rem, 1.5rem + 2vw, 3rem); }
-  .grid {
-    display: grid;
-    /* wide enough that the thesis sets on one line at 1440 — a bearing, not a stacked hero */
-    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 1rem + 3vw, 4rem);
-    align-items: start;
-  }
+  /* One column. The bearing used to be a two-column grid — thesis left, formal specimen right —
+     and with the specimen removed (see the header note) a 1.75fr/1fr grid would only reserve empty
+     space for something ruled out. The thesis keeps the WIDE measure so it still sets on one line
+     at 1440; the lede keeps its own shorter measure below. */
 
   /* NOT --ds-hero. That token is the hero thesis at up to 6.25rem and it owns a whole screen; a
      bearing that big is the thing this file exists to stop being. */
@@ -120,18 +109,4 @@ if (!mark?.frameql || mark.outcome !== 'serve') {
     font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
   }
 
-  .mark-side { padding-top: 0.4rem; }
-  .mark-line { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
-  .mark-label {
-    font-family: var(--font-sans);
-    font-size: var(--ds-meta);
-    color: var(--ink-soft);
-  }
-  code.ds-mark { white-space: pre-wrap; word-break: break-word; }
-
-  @media (max-width: 56rem) {
-    .grid { grid-template-columns: 1fr; gap: 1.75rem; }
-    .mark-side { order: 2; }
-    .claim { order: 1; }
-  }
 </style>

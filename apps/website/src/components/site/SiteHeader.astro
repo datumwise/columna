@@ -13,7 +13,15 @@
  * the whole point of the category is that it concerns the validity and authority of analytical
  * claims instead (positioning §4).
  *
- * GitHub is a UTILITY action — visually secondary to the doors, never a fifth door.
+ * GITHUB HAS LEFT THE GLOBAL SHELL (Huayin, 2026-08-27, cold-reader cleanup item 2). It used to sit
+ * here as a "utility action" — secondary to the doors, but present on every page of the site. In the
+ * current reader architecture that is a category error: the repository is COLUMNA's source, not
+ * datumwise's, and a global GitHub link makes the whole project read as one open-source repo with an
+ * essay site attached. datumwise's reader-facing terrain is Foundations · Analytical Governance ·
+ * Doors · Ask · Columna, and GitHub is not a peer of those. It is now reached where it means
+ * something: /columna carries the source link in its own meta line, and the Columna footer variant
+ * carries it on every Columna surface (see components/site/SiteFooter.astro). Do not restore it to
+ * the shell as a "small" utility — small is how it got here the first time.
  *
  * Navigation hierarchy does not require URL hierarchy (positioning §10), so these hrefs are the
  * canonical destinations, not a folder tree.
@@ -40,7 +48,6 @@ const DOORS = [
   { label: 'Analytical Governance', href: '/analytical-governance' },
   { label: 'Columna', href: '/columna' },
 ];
-const GITHUB = 'https://github.com/datumwise/columna';
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isCurrent = (href: string) => here === href || here.startsWith(href + '/');
 ---
@@ -54,17 +61,12 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
     ))}
   </nav>
 
-  <div class="utility">
-    <a href={GITHUB} rel="noopener" target="_blank">GitHub</a>
-  </div>
-
   <details class="menu">
     <summary aria-label="Menu"><span aria-hidden="true">Menu</span></summary>
     <nav class="sheet" aria-label="Primary, compact">
       {DOORS.map((d) => (
         <a href={d.href} aria-current={isCurrent(d.href) ? 'page' : undefined}>{d.label}</a>
       ))}
-      <a class="util" href={GITHUB} rel="noopener" target="_blank">GitHub</a>
     </nav>
   </details>
 </header>
@@ -87,8 +89,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
     margin-right: auto;
   }
   .doors { display: flex; gap: var(--ds-space-3); }
-  .doors a,
-  .utility a {
+  .doors a {
     font-size: var(--ds-meta);
     color: var(--ink-soft);
     text-decoration: none;
@@ -99,9 +100,6 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
   .doors a:hover { color: var(--ink); border-bottom-color: var(--ds-rule-strong); }
   /* the current door is marked by rule + ink, not by colour alone */
   .doors a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--ink); }
-  .utility { padding-left: var(--ds-space-3); border-left: 1px solid var(--ds-rule); }
-  .utility a { color: var(--ink-soft); }
-  .utility a:hover { color: var(--ink); }
 
   .menu { display: none; }
   .menu summary {
@@ -122,12 +120,11 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
     border-bottom: 1px solid var(--ds-rule);
     padding-bottom: 0.5rem;
   }
-  .sheet a.util { color: var(--ink-soft); font-size: var(--ds-meta); border-bottom: 0; }
 
   /* Compact shell. The same three doors move into the sheet — nothing is demoted or nested. */
   @media (max-width: 56rem) {
     .shell { flex-wrap: wrap; gap: var(--ds-space-2); }
-    .doors, .utility { display: none; }
+    .doors { display: none; }
     .menu { display: block; }
     .menu[open] { width: 100%; }
   }

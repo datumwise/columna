@@ -1,0 +1,151 @@
+---
+/**
+ * SiteFooter — TWO footers, because the site has two contexts (Huayin, 2026-08-27, cold-reader
+ * cleanup item 3).
+ *
+ * WHAT WAS WRONG. Until this change every page of datumwise.ai ended in the SAME footer, and that
+ * footer was written when the site was Columna's site: an Apache-2.0 licence statement about
+ * Columna, three DOIs from the silent-failure line of work, "datumwise builds and stewards Columna",
+ * the columnar.tech confusable line, a Columna non-affiliation paragraph, and an integrity claim
+ * ("every transcript and every number on this page is generated at build time by running the shipped
+ * package") that is TRUE on the surfaces that quote the wire and simply not applicable on a
+ * foundations essay. On /foundations or /about that is not a footer, it is a second site arriving at
+ * the bottom of the page — and it silently re-asserted, on every reader-facing surface, the exact
+ * architecture the reader-facing rulings are moving away from.
+ *
+ * THE SPLIT.
+ *   `general` (DEFAULT) — the smallest useful project-level footer. Copyright, the four durable
+ *       site-level routes, contact, the datumwise-level non-affiliation line, the analytics honesty
+ *       line. That is all. It is deliberately NOT a new navigation surface: the ruling was to bring
+ *       the footer DOWN, and a "small" footer that grows a link column is the old one returning
+ *       under a new name.
+ *   `columna` — the previous rich footer, kept VERBATIM where its links belong contextually, plus
+ *       the source-repository link that left the global header in item 2. Nothing was rewritten on
+ *       the way across; it moved.
+ *
+ * WHAT IS DELIBERATELY STILL GLOBAL, and why:
+ *   · © line, /research, /about — site-level identity and the source estate.
+ *   · /known-issues — the public technical-defect record. It is also PROTECTED: its only inbound
+ *     link in the whole site is this meta line, and scripts/check_discoverability.mjs fails the
+ *     deploy if the homepage stops carrying it. Do not drop it from the general variant.
+ *   · contact@datumwise.ai — the one address a reader may need from any page.
+ *   · the non-affiliation line, in its datumwise-level form. The Datawise/columns.ai confusion is an
+ *     identity problem for the PROJECT, not for Columna alone (see the JSON-LD block in
+ *     BaseLayout.astro, minted from the 2026-07-29 external-assistant probe). The Columna-specific
+ *     wording of the same claim, and the columnar.tech line, stay in the `columna` variant.
+ *   · the analytics honesty line — the brand requires the site say what it counts (freeze item 13).
+ *
+ * WHAT IS NOT GLOBAL ANY MORE: the Apache-2.0/discipline statement, the three DOIs, the
+ * "datumwise builds and stewards Columna" line, columnar.tech, and the build-time integrity claim.
+ * All five are Columna's, all five are on the `columna` variant, none of them were deleted.
+ */
+import { FOOTER_SELECTION, work, currentRecord, doiUrl } from '../../data/publications';
+
+export interface Props {
+  /** `general` on datumwise-level surfaces; `columna` on the Columna estate. */
+  variant?: 'general' | 'columna';
+}
+const { variant = 'general' } = Astro.props;
+
+// THE FOOTER EVIDENCE LINE IS DERIVED (Slice 2 item 1, Phase 1A, 2026-08-21). It used to be three
+// literal DOIs in the markup, repeated on every page of the site, and one of the three was wrong:
+// Two Anchors v2.0 was deposited 2026-08-11 and the footer went on citing the v1.0 record for ten
+// days, on every page, as the site's first evidence link. A fact typed once and rendered everywhere
+// is not "single-sourced" — it is single-sourced to a typist. (Now rendered on the Columna estate
+// only; the derivation is unchanged.)
+const footerEvidence =
+  variant === 'columna'
+    ? FOOTER_SELECTION.map((workId) => {
+        const record = currentRecord(workId);
+        return { label: work(workId).canonicalLabel, doi: record.doi, href: doiUrl(record) };
+      })
+    : [];
+
+const year = 2026;
+const CONTACT = 'contact@datumwise.ai';
+const SOURCE = 'https://github.com/datumwise/columna';
+---
+
+{/* `wayfinding` (tokens.css) is what sets the footer in the sans register — both variants keep it. */}
+<footer class={variant === 'columna' ? 'footer wayfinding columna' : 'footer wayfinding general'}>
+  {variant === 'columna' && (
+    <>
+      <div class="footer-grid">
+        <p class="foot-left">
+          Columna is open source, Apache-2.0. The discipline needs no product — declare your anchors,
+          name your populations, refuse out loud what your data cannot answer. Columna is our proof
+          it can be made executable.
+        </p>
+        <p class="foot-center">
+          {footerEvidence.map((p, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a href={p.href} rel="noopener" target="_blank">{p.label}</a> (DOI {p.doi})
+            </>
+          ))}
+        </p>
+        <p class="foot-right"><a href="/about">datumwise builds and stewards Columna.</a></p>
+      </div>
+      <p class="foot-disambig">
+        Not <a href="https://columnar.tech" rel="noopener" target="_blank">Columnar</a> (columnar.tech), the Arrow-native fast pipe one letter away. They move columns fast; we govern what columns say. <a href="/ladder#the-fast-pipe">More →</a>
+      </p>
+      {/* The confusable-cluster line (Huayin, 2026-07-29), minted from the day-2 probe re-run: an
+          external assistant returned a confident 10-page answer describing Columna as a
+          "self-documenting semantic layer product from Datumwise/Datawise", sourced entirely from the
+          neighbours and citing none of our pages. Cheap to state, serves humans and retrieval alike.
+          Names are DELIBERATELY NOT LINKED — the point is to separate from the cluster, not to feed it. */}
+      <p class="foot-disambig">
+        Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise, datawise.ai,
+        or columns.ai.
+      </p>
+      <hr class="rule rule-strong" />
+      <p class="integrity mono">
+        Every transcript and every number on this page is generated at build time by running the
+        shipped package. This site is structurally incapable of demoing something it did not ship.
+      </p>
+    </>
+  )}
+
+  {/* The meta line is COMMON to both variants — it is the project-level footer, and on `general`
+      surfaces it is very nearly the whole footer. `Source` appears on the Columna variant only:
+      the repository is Columna's, which is the entire reason GitHub left the global header. */}
+  <p class="foot-meta">
+    © {year} datumwise · <a href="/research">Research</a> · <a href="/about">About</a> ·
+    {' '}<a href="/known-issues">Known issues</a> · <a href={`mailto:${CONTACT}`}>{CONTACT}</a>
+    {variant === 'columna' && (
+      <>{' · '}<a href={SOURCE} rel="noopener" target="_blank">Source</a></>
+    )}
+  </p>
+
+  {variant === 'general' && (
+    <p class="foot-disambig small">
+      datumwise (datumwise.ai) is an independent research project — not affiliated with Datawise,
+      datawise.ai, or columns.ai.
+    </p>
+  )}
+
+  {/* Analytics honesty line (freeze item 13, ratified): the brand requires the site say what it does. */}
+  <p class="foot-privacy">We count page views without cookies. No personal data, no ads.</p>
+</footer>
+
+<style>
+  .footer { width: min(100% - 3rem, 68rem); margin: 5rem auto 3rem; font-size: 0.85rem; color: var(--ink-soft); }
+  /* The general footer is a quiet close, not a second page: one hairline, three short lines. */
+  .footer.general { border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+  .footer-grid { display: grid; grid-template-columns: 1.4fr 1.6fr 0.8fr; gap: 2rem; align-items: start; }
+  .foot-left { margin: 0; max-width: 26rem; }
+  .foot-center { margin: 0; font-size: 0.78rem; line-height: 1.7; }
+  .foot-center a { color: var(--ink-soft); }
+  .foot-right { margin: 0; text-align: right; font-size: 0.8rem; color: var(--ink-faint); }
+  .integrity { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.6; max-width: 48rem; }
+  .foot-meta { font-size: 0.75rem; color: var(--ink-faint); margin-top: 1.5rem; }
+  .footer.general .foot-meta { margin-top: 0; }
+  .foot-privacy { font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.35rem; }
+  .foot-meta a { color: var(--ink-faint); }
+  .foot-disambig.small { font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.35rem; max-width: 48rem; }
+
+  @media (max-width: 46rem) {
+    .footer-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+    .foot-right { text-align: left; }
+  }
+</style>
