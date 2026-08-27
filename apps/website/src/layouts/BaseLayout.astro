@@ -36,9 +36,18 @@ export interface Props {
   /** Home is a full-bleed argument scroll; inner pages use a centered reading column. */
   wide?: boolean;
   /**
-   * The floating `pip install columna` chip. Legacy pages keep it; the redesigned surfaces opt out.
-   * It is product-first furniture on an idea-led page, and on the homepage it physically overlapped
-   * Exhibit A's paper→wire crossing edge — the one boundary the slice exists to prove.
+   * The floating `pip install columna` chip.
+   *
+   * IT GOES WHERE COLUMNA GOES (Huayin, 2026-08-27, cleanup item 3, extended). It used to be
+   * OPT-OUT — on by default, switched off page by page — which meant a `pip install` call to action
+   * floated over /about, /learn, /ladder, /story, the positions and every essay that has nothing to
+   * install. That is the same residue as the old global footer: Columna's product furniture
+   * standing in for datumwise's identity. It is now bound to the Columna context — DEFAULT is
+   * `footer === 'columna'` — so opting a page into the Columna estate carries the chip with it and
+   * nothing else has to remember.
+   *
+   * An explicit value still wins, and /columna itself passes `false`: its install path is in the
+   * body, and on the homepage the chip physically overlapped Exhibit A's paper→wire crossing edge.
    */
   chip?: boolean;
   /**
@@ -55,9 +64,11 @@ const {
   title,
   description = 'datumwise builds and stewards Columna — an open-source data framework (Manifold, FrameQL, an honest engine) that refuses to return a confident wrong number.',
   wide = false,
-  chip = true,
+  chip,
   footer = 'general',
 } = Astro.props;
+// Default follows the footer variant; an explicit `chip` on the page overrides it.
+const showChip = chip ?? footer === 'columna';
 
 // The primary navigation lives in <SiteHeader> (redesign slice 1): three flat doors —
 // Foundations · Analytical Governance · Columna. GitHub was a fourth, utility-weight link there
@@ -162,7 +173,7 @@ const structuredIdentity = {
 
     <SiteFooter variant={footer} />
 
-    {chip && <AmbientChip />}
+    {showChip && <AmbientChip />}
 
     <style>
       .skip:focus { position: fixed; top: 0.5rem; left: 0.5rem; width: auto; height: auto; clip: auto;
