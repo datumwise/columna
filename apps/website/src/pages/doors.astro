@@ -33,19 +33,32 @@
  * per territory, no one per framework, no one per publication category. A piece earns Door status by
  * attracting and opening — nothing else.
  *
- * THE HREFS ARE NOT INVENTED HERE. Each destination is the route the registry already records for
- * that work (`route ?? readingRoute` in registry/sources/sources.json). Typed here because the list
- * is three items and a resolver would be more machinery than the surface is allowed; checked against
- * the registry at authoring time, and check_fragments.mjs fails the build if a route stops existing.
+ * THE HREFS ARE NOT INVENTED HERE. Each INTERNAL destination is the route the registry already
+ * records for that work (`route ?? readingRoute` in registry/sources/sources.json). Typed here
+ * because the list is four items and a resolver would be more machinery than the surface is allowed;
+ * checked against the registry at authoring time, and check_fragments.mjs fails the build if a route
+ * stops existing. The one EXTERNAL destination is a canonical URL supplied by Huayin and is not in
+ * the registry by ruling — nothing in the build can verify it, so it is verified by the human who
+ * published it.
  *
  * TITLES ARE THE ARTIFACTS' OWN. Door discoverability does not authorize retitling: no short
  * editorial label may masquerade as a publication title. The invitation is the editorial voice, and
  * it is visibly a separate sentence beneath the title, never part of it.
  *
- * THE YES MACHINE PROBLEM IS NOT HERE YET. It is a ruled Door and it will be an EXTERNAL one — the
- * article is LinkedIn-first, and the crossing will be marked as external in the site's existing
- * convention (`rel="noopener" target="_blank"` + a trailing ↗, the /learn pattern). It enters when
- * the article is published and its canonical URL exists, and not before. Do not add a placeholder.
+ * THE YES MACHINE PROBLEM IS HERE, AND IT IS EXTERNAL (published 2026-08-27; URL supplied by
+ * Huayin). The article is LinkedIn-first and LinkedIn is its publication home. The crossing is
+ * marked with the site's existing external convention — `rel="noopener" target="_blank"` + a
+ * trailing ↗, the /learn pattern — because a reader deserves to know they are leaving.
+ *
+ * WHAT THIS DOOR IS NOT, by ruling: no onsite duplicate, no /read page, no publication
+ * registration, no DOI, no deposit, no Core membership, no Ask ingestion, no new artifact type.
+ * A repo editorial draft exists at editorial/drafts/the_yes_machine_problem_v2.md and is the
+ * INTERNAL working record only; neither artifact constitutes the other. If someone later proposes
+ * mirroring this onsite "for uniformity", that is the ruling being reversed, not a tidy-up.
+ *
+ * AND IT PROVES THE POINT OF THE SURFACE: a Door is an editorial ROLE, not an artifact type. An
+ * external article carries the role exactly as an onsite paper does, which is precisely why Door
+ * status never went into registry/sources/sources.json.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 
@@ -62,6 +75,16 @@ const DOORS = [
     title: 'Never Let Your Agent Touch the Database',
     invitation: 'An agent can interpret and propose. Should it also hold execution authority?',
     href: '/positions/never-let-your-agent-touch-the-database',
+  },
+  {
+    // THE EXTERNAL DOOR. Third, not last: it is a GENERAL door like the two above it, and the
+    // ordering rule here has only ever been general-then-specialist. Its being external is a
+    // property of where the work lives, not of how broad it is, and must not push it to the end.
+    title: 'The Yes Machine Problem',
+    invitation:
+      'There used to be people between a question and the database, and they knew when to say no. What carries that judgment now?',
+    href: 'https://www.linkedin.com/pulse/yes-machine-problem-huayin-wang-6zzge/',
+    external: true,
   },
   {
     title: 'The Two Jobs of the Conditioning Bar',
@@ -90,7 +113,11 @@ const DOORS = [
   <ul class="doors-list">
     {DOORS.map((d) => (
       <li class={d.specialist ? 'door door-specialist' : 'door'}>
-        <a class="d-title" href={d.href}>{d.title}</a>
+        <a
+          class="d-title"
+          href={d.href}
+          {...(d.external ? { rel: 'noopener', target: '_blank' } : {})}
+        >{d.title}{d.external ? ' \u2197' : ''}</a>
         <p class="d-invitation">{d.invitation}</p>
       </li>
     ))}
@@ -99,7 +126,7 @@ const DOORS = [
   {/* The one line of prose that carries what a heading would otherwise have to say. It names the
       narrower piece as narrower, in the reader's terms, without inventing a category for it. */}
   <p class="tail wayfinding">
-    The last one is narrower than the other two — it assumes some statistical familiarity, and
+    The last one is narrower than the other three — it assumes some statistical familiarity, and
     rewards it.
   </p>
 </BaseLayout>
