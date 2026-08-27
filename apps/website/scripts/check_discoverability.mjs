@@ -69,8 +69,8 @@ const PROTECTED = [
   },
   {
     route: '/doors',
-    why: 'PR #240 landed /doors (Huayin, 2026-08-27). It has exactly ONE inbound link in the whole site — the homepage line above the wayfinding ladder — because ruling R8 keeps Doors OUT of the primary header until The Yes Machine Problem is published. That is the /known-issues condition again: one careless homepage edit orphans the surface and CI stays green. This row defends the inbound relationship ONLY. It is not a step toward navigation, and adding the header link (if it is ever ruled) does not belong here.',
-    linkedFrom: [['/', 'the homepage line beside the wayfinding ladder — deliberately outside the numbered path, and currently the only route to /doors']],
+    why: 'PR #240 landed /doors; PR #241 guarded it while ruling R8 kept it out of the primary header. Huayin then ruled Doors INTO the header (2026-08-27), so the shell now links it from every page — which is exactly when a row like this looks removable and is not. The homepage line is a SEPARATE ruled relationship: it catches the reader standing at "where do I go", and the ruling states the two are compatible and independent. /case is the precedent in the other direction — the header was its discoverability, the header changed, and most pages lost their only route. Defend the editorial relationship on its own terms, not as a fallback for the nav.',
+    linkedFrom: [['/', 'the homepage line beside the wayfinding ladder — deliberately outside the numbered path, and independent of the header link (ruling, 2026-08-27)']],
     // NOT in llms.txt. /doors is an editorial discovery surface, inert to Ask corpus semantics by
     // ruling; asserting a machine-facing index entry would broaden the guard past what was approved.
   },

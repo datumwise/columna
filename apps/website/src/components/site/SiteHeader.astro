@@ -2,7 +2,7 @@
 /**
  * SiteHeader — the global shell for the redesign (implementation brief §4).
  *
- * THREE flat doors, no dropdowns, no mega-menu.
+ * FOUR flat doors, no dropdowns, no mega-menu.
  *
  * THE CASE IS NO LONGER A PEER TOP-LEVEL DOOR (Huayin, 2026-08-25). It remains public as the
  * evidence record and is reached through Columna, which already carried six editorial links to it
@@ -27,7 +27,7 @@
  * canonical destinations, not a folder tree.
  *
  * NO-JS: the mobile menu is a <details> disclosure. It opens, closes, and is keyboard-operable
- * with JavaScript disabled, and the same three doors are inside it — no nested information
+ * with JavaScript disabled, and the same four doors are inside it — no nested information
  * architecture, nothing hidden behind an intellectual hierarchy.
  */
 // FOUNDATIONS TAKES THE FIRST DOOR, RESEARCH LEAVES THE HEADER (Huayin, ruling R8, 2026-08-27).
@@ -47,10 +47,29 @@
 // /doors, the editorial passage collection — and this constant names the three primary navigation
 // items, which are explicitly NOT peers of that. Two unrelated meanings of "doors" in one shell,
 // one of them in code, is the ambiguity a one-word rename removes. The CSS class `.doors` on the
-// <nav> is the navigation's own, unrelated to the route, and is left alone.
+// <nav> is the navigation's own, unrelated to the route, and is left alone — and now that /doors IS
+// one of the items, the rename is what keeps `NAV` legible rather than self-referential.
+//
+// DOORS ENTERS THE HEADER (Huayin, 2026-08-27, superseding the "not yet" clause of R8). The reason
+// R8 held it back has EXPIRED, and the ruling is explicit about why: the count of entries never
+// determined whether Doors is a legitimate destination. It is live, coherent and complete as a
+// reader-facing function at three pieces; The Yes Machine Problem will make it four without
+// changing what it is. So this is an EXPANSION to four, not the substitution R8 performed — the
+// first deliberate widening of the shell, and the bar for the next one is the same as this one:
+// a ruling that says the surface is a destination in its own right.
+//
+// PLACED THIRD, NOT LAST. The order is the reader's terrain in the order the ruling states it:
+// Foundations · Analytical Governance · Doors · Columna. Doors sits after the two territories
+// (what a reader should understand) and before Columna (what was built from it), which is where a
+// browsing reader is actually caught.
+//
+// ASK IS STILL NOT HERE, deliberately (Huayin, same ruling): its navigation role is a question for
+// the upcoming Ask mission, not a symmetry to be completed now. Do not add it to this array as
+// tidying-up.
 const NAV = [
   { label: 'Foundations', href: '/foundations' },
   { label: 'Analytical Governance', href: '/analytical-governance' },
+  { label: 'Doors', href: '/doors' },
   { label: 'Columna', href: '/columna' },
 ];
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
