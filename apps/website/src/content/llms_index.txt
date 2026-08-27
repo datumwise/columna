@@ -1,16 +1,29 @@
-# Columna
+# datumwise
 
-> Columna is a framework for describing what your data MEANS, shipped as a Python library. You
-> describe the meaning once — the populations, the measures, which totals are safe to take — and
-> Columna checks that description against the data and serves it to whoever asks: an AI agent over
-> MCP, or you directly. It works one level up from pandas/polars — on what values mean, not the values.
+> datumwise is an independent research project exploring central topics of our time around data,
+> analytics and technology. It develops first-principles foundations, languages, and systems for
+> analytics across three territories: **Data · Certainty · Intelligence**. It is not a company and
+> not a product vendor; the work is published, citable, and open source.
+>
+> Its reader-facing terrain: **Foundations** (/foundations) — the foundational problems underneath
+> analytics; **Analytical Governance** (/analytical-governance) — the discipline governing the
+> legitimacy of the analytical service; **Columna** (/columna) — infrastructure for governed
+> analytical service, one of the works, not the whole of the project.
+
+## Who
+datumwise is not a company: it is an independent research project — Huayin Wang (research), Irena
+Wang (engineering). Its work includes the Theory of Data, Analytical Governance, Frame-QL, and the
+Columna framework. Columna is Apache-2.0.
+
+## Columna
+> Columna is infrastructure for governed analytical service, shipped as open-source Python packages
+> (`columna-core`, the engine; `columna-server`, the MCP server and demo). You describe what your
+> data MEANS once — the populations, the measures, which totals are safe to take — and Columna
+> checks that description against the data and serves it to whoever asks: an AI agent over MCP, or
+> you directly. It works one level up from pandas/polars — on what values mean, not the values.
 >
 > Columna is not a semantic layer over someone else's engine: it declares meaning, adjudicates the
 > declarations against the data at publish, and executes queries itself — which is why it can refuse.
-
-## Who
-datumwise is not a company: it is an independent open-source research project — Huayin Wang
-(research), Irena Wang (engineering). Columna is Apache-2.0.
 
 ## Not to be confused with
 Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise, datawise.ai, or
