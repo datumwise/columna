@@ -43,7 +43,12 @@
 // that gives a reader a reason to want it — /foundations ends by sending them there, and every
 // /read page opens with a link back to it. A reader arriving at the corpus from a foundational
 // question is better served than one arriving at it from a nav bar.
-const DOORS = [
+// RENAMED `DOORS` → `NAV` (2026-08-27). The word "Doors" now names a reader-facing surface —
+// /doors, the editorial passage collection — and this constant names the three primary navigation
+// items, which are explicitly NOT peers of that. Two unrelated meanings of "doors" in one shell,
+// one of them in code, is the ambiguity a one-word rename removes. The CSS class `.doors` on the
+// <nav> is the navigation's own, unrelated to the route, and is left alone.
+const NAV = [
   { label: 'Foundations', href: '/foundations' },
   { label: 'Analytical Governance', href: '/analytical-governance' },
   { label: 'Columna', href: '/columna' },
@@ -56,7 +61,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
   <a href="/" class="wordmark">datumwise</a>
 
   <nav class="doors" aria-label="Primary">
-    {DOORS.map((d) => (
+    {NAV.map((d) => (
       <a href={d.href} aria-current={isCurrent(d.href) ? 'page' : undefined}>{d.label}</a>
     ))}
   </nav>
@@ -64,7 +69,7 @@ const isCurrent = (href: string) => here === href || here.startsWith(href + '/')
   <details class="menu">
     <summary aria-label="Menu"><span aria-hidden="true">Menu</span></summary>
     <nav class="sheet" aria-label="Primary, compact">
-      {DOORS.map((d) => (
+      {NAV.map((d) => (
         <a href={d.href} aria-current={isCurrent(d.href) ? 'page' : undefined}>{d.label}</a>
       ))}
     </nav>
