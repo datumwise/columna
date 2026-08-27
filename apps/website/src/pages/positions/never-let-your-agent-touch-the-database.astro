@@ -31,9 +31,30 @@ const DOI = '10.5281/zenodo.21774490';
     a governed <strong>series</strong>. The position is unchanged; a family is constituted by its law,
     and so, it turns out, is a vocabulary.
   </p>
+
+  {/* THE ONWARD MOVEMENT (Huayin, 2026-08-27, Doors §5). This piece is a Door: a stranger arrives
+      because "never let your agent touch the database" makes them ask "why not?", and the page used
+      to end without answering "so what governs the crossing instead?" The paper's own text is
+      untouched — this is page chrome, after it, in the editorial register the evidence-note above
+      already establishes. The destination is the DISCIPLINE rather than the system: the question is
+      about what should govern, and Analytical Governance is the account of that; Columna is reached
+      from there as its executable consequence. */}
+  <p class="onward">
+    <span class="onward-q">If the agent should not hold execution authority directly, what should
+    govern the crossing?</span>
+    <a class="onward-a" href="/analytical-governance">Analytical Governance →</a>
+  </p>
 </BaseLayout>
 
 <style>
+  /* The onward movement — see the note in the markup. Serif question, plain link, no button. */
+  .onward { display: grid; gap: 0.4rem; margin: 2.5rem 0 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule); }
+  .onward-q { font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.5; color: var(--ink); }
+  .onward-a { font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--rule-strong); width: fit-content; }
+  .onward-a:hover { text-decoration-color: var(--ink-faint); }
+
   .page-head { width: min(100% - 3rem, var(--measure)); margin: 0 auto; }
   .kicker a { color: var(--ink-faint); text-decoration: none; }
   .kicker a:hover { color: var(--ink-soft); }

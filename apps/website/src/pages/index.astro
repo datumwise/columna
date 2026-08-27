@@ -121,6 +121,19 @@ const DIRECTORY = [
   <section class="directory band" aria-labelledby="dir-h">
     <h2 id="dir-h" class="section-h prose-col">Where to go</h2>
     <p class="dir-lede prose-col">In the order a reader usually wants them.</p>
+    {/* THE ENTRY POINT TO /doors (Huayin, 2026-08-27, Doors §3). Deliberately NOT a rung on the
+        ladder below. The ladder is an ORDERED path whose first item is the protected, unnumbered
+        entrance (/start-here, defended by scripts/check_discoverability.mjs, which asserts exactly
+        one `dir-entrance`), and inserting a rung would renumber every item after it — a structural
+        re-ordering this unit is not authorized to make, and one an earlier unit explicitly flagged
+        rather than performed. So the Doors line sits OUTSIDE the list, at the moment the reader is
+        deciding where to go, and competes with nothing: the ladder is for a reader who wants a
+        sequence, this is for one who would rather be caught by a topic.
+        NOT in the header: ruling R8 — the collection is not complete (the Yes Machine Door arrives
+        when the article is published), and a half-furnished room is not advertised at full volume. */}
+    <p class="dir-doors prose-col">
+      Or just browse: <a href="/doors">a few pieces worth reading</a>, and where each one opens.
+    </p>
     <ol class="dir-list">
       {DIRECTORY.map((d, i) => (
         <li class={d.mark ? 'dir-item dir-entrance' : 'dir-item'}>
@@ -243,7 +256,14 @@ const DIRECTORY = [
   /* ── 5 · Directory ───────────────────────────────────────────── */
   .directory .section-h { margin-bottom: 1.4rem; }
   .dir-lede { font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink-soft);
+    margin: 0 0 0.5rem; }
+  /* One quiet line, in the same register as the lede above it. Not a card, not a callout — the
+     ladder must still read as the page's answer to "where do I go", with this beside it. */
+  .dir-doors { font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink-soft);
     margin: 0 0 1.4rem; }
+  .dir-doors a { color: var(--ink); text-decoration: underline;
+    text-decoration-color: var(--rule-strong); }
+  .dir-doors a:hover { text-decoration-color: var(--ink-faint); }
   /* an ORDERED path: the rung number carries the sequence, hairline separators carry the rhythm.
      No cards, no fills — the ladder is legible from the numbers and the order alone. */
   .dir-list { list-style: none; padding: 0; width: min(100% - 3rem, 46rem); margin: 0 auto;

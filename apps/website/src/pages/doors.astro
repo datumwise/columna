@@ -1,0 +1,132 @@
+---
+/**
+ * /doors — THE DOORS, and the whole point is that a reader does not stay here.
+ *
+ * A DOOR IS FOR PASSAGE (Huayin, 2026-08-27). attention → reading → curiosity → deeper
+ * exploration. A reader encounters a topic that is interesting on its own, chooses to read it, and
+ * comes away wanting to explore further. Once the Door has done that, the reader moves beyond it.
+ * The durable destinations are elsewhere — Foundations, Analytical Governance, Ask, Columna, the
+ * publications. This surface is not one of them and must never grow into one.
+ *
+ * SO: NOT a publication catalog, NOT a knowledge hub, NOT a taxonomy, NOT a recommendation engine,
+ * NOT a metadata-heavy archive, and NOT somewhere anyone is expected to return to. A Door should not
+ * become more elaborate than the room beyond it. If this file ever acquires cards, filters,
+ * categories, DOI blocks, provenance summaries, reading times, counts or "related" machinery, the
+ * surface has failed and the additions are the failure.
+ *
+ * DOOR IS A ROLE, NOT AN ARTIFACT TYPE. It is not a publication type, an authority class, a
+ * provenance class, a standing, or a corpus layer, and it does not require the artifact to be
+ * authored onsite or to carry a DOI. Which is why the list lives HERE, in the surface that renders
+ * it, and NOT in registry/sources/sources.json:
+ *
+ *   · that catalog is read by Ask as well as by the website, and corpus membership is keyed on its
+ *     `route` field (services/ask/ask/index_build.py). A `route` entry for /doors would silently
+ *     enlist an editorial discovery page as an authority-bearing source for the agent.
+ *   · `route` and `readingRoute` already carry a load-bearing distinction (src/data/sources.ts):
+ *     `route` = a page THIS SITE AUTHORED about a source; `readingRoute` = the work itself. A Door
+ *     is neither. It is the editorial role a piece plays in a reader's journey.
+ *
+ * Ruled explicitly: no `door` flag, no Door authority class, no Door corpus layer, no Door source
+ * type. /doors stays inert to Ask corpus membership unless that is ruled otherwise later.
+ *
+ * SELECTION IS NOT SYMMETRY. Three excellent Doors beat six chosen to fill a shelf. There is no one
+ * per territory, no one per framework, no one per publication category. A piece earns Door status by
+ * attracting and opening — nothing else.
+ *
+ * THE HREFS ARE NOT INVENTED HERE. Each destination is the route the registry already records for
+ * that work (`route ?? readingRoute` in registry/sources/sources.json). Typed here because the list
+ * is three items and a resolver would be more machinery than the surface is allowed; checked against
+ * the registry at authoring time, and check_fragments.mjs fails the build if a route stops existing.
+ *
+ * TITLES ARE THE ARTIFACTS' OWN. Door discoverability does not authorize retitling: no short
+ * editorial label may masquerade as a publication title. The invitation is the editorial voice, and
+ * it is visibly a separate sentence beneath the title, never part of it.
+ *
+ * THE YES MACHINE PROBLEM IS NOT HERE YET. It is a ruled Door and it will be an EXTERNAL one — the
+ * article is LinkedIn-first, and the crossing will be marked as external in the site's existing
+ * convention (`rel="noopener" target="_blank"` + a trailing ↗, the /learn pattern). It enters when
+ * the article is published and its canonical URL exists, and not before. Do not add a placeholder.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// GENERAL DOORS, then the specialist. The order IS the treatment (see `specialist` below): the
+// ruling asks for the narrower piece to be present without artificial equal prominence, and to carry
+// that with sequencing and prose rather than a category heading or visual machinery.
+const DOORS = [
+  {
+    title: 'Data Has Its Own Ontology',
+    invitation: 'Data describes the world. But does data itself have an ontology?',
+    href: '/read/data-has-its-own-ontology',
+  },
+  {
+    title: 'Never Let Your Agent Touch the Database',
+    invitation: 'An agent can interpret and propose. Should it also hold execution authority?',
+    href: '/positions/never-let-your-agent-touch-the-database',
+  },
+  {
+    title: 'The Two Jobs of the Conditioning Bar',
+    invitation:
+      'A familiar statistical symbol may be doing two different jobs — and leaving part of inference unrecorded.',
+    href: '/read/conditioning-bar',
+    // NOT a category, NOT a heading, NOT a badge. One boolean that makes the entry quieter, because
+    // the alternative — a second section — would create the taxonomy the ruling forbids.
+    specialist: true,
+  },
+];
+---
+<BaseLayout
+  title="Doors — datumwise"
+  description="A few pieces worth reading, and where each one opens. Start wherever something catches you."
+>
+  <div class="page-head">
+    <p class="kicker">Doors</p>
+    <h1 class="serif">Doors</h1>
+    <p class="lede">
+      A few pieces worth reading. Start wherever something catches you — each one opens onto
+      something larger.
+    </p>
+  </div>
+
+  <ul class="doors-list">
+    {DOORS.map((d) => (
+      <li class={d.specialist ? 'door door-specialist' : 'door'}>
+        <a class="d-title" href={d.href}>{d.title}</a>
+        <p class="d-invitation">{d.invitation}</p>
+      </li>
+    ))}
+  </ul>
+
+  {/* The one line of prose that carries what a heading would otherwise have to say. It names the
+      narrower piece as narrower, in the reader's terms, without inventing a category for it. */}
+  <p class="tail wayfinding">
+    The last one is narrower than the other two — it assumes some statistical familiarity, and
+    rewards it.
+  </p>
+</BaseLayout>
+
+<style>
+  .page-head { width: min(100% - 3rem, 46rem); margin: 0 auto; }
+  .page-head h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 0.3rem 0 0.8rem; }
+  .lede { font-size: 1.05rem; color: var(--ink-soft); max-width: 34rem; }
+
+  /* The /positions index list, with the stamp removed and the pull renamed. Hairline separators,
+     no cards, no fills — a Door is a title and a reason to cross, and nothing else fits. */
+  .doors-list {
+    width: min(100% - 3rem, 46rem); margin: 2.6rem auto 0;
+    list-style: none; padding: 0; display: grid; gap: 2.2rem;
+  }
+  .door { display: grid; gap: 0.35rem; padding-top: 1.4rem; border-top: 1px solid var(--rule); }
+  .d-title { font-family: var(--font-sans); font-size: 1.15rem; font-weight: 600; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--rule-strong); width: fit-content; }
+  .d-title:hover { text-decoration-color: var(--ink-faint); }
+  .d-invitation { margin: 0.35rem 0 0; font-family: var(--font-serif); font-size: 1.02rem;
+    line-height: 1.6; color: var(--ink-soft); max-width: 34rem; }
+
+  /* The specialist treatment, entire: one step quieter in title size and weight. No badge, no
+     heading, no rule, no colour — nothing that would read as a category. */
+  .door-specialist .d-title { font-size: 1.02rem; font-weight: 500; }
+  .door-specialist .d-invitation { font-size: 0.98rem; }
+
+  .tail { width: min(100% - 3rem, 46rem); margin: 1.6rem auto 0; font-size: 0.88rem;
+    color: var(--ink-faint); }
+</style>

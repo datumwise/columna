@@ -116,6 +116,44 @@ export async function getStaticPaths() {
 }
 
 const p = Astro.props as any;
+
+// THE ONWARD MOVEMENT (Huayin, 2026-08-27, Doors §5). A Door is for passage: once the reader has
+// crossed and read, they should have somewhere deeper to go. Before this, every /read page ended in
+// PROVENANCE — the deposited record and the corpus index — which answers "where did this come from"
+// and never "what does this open onto". That is the right ending for a publication of record and the
+// wrong one for a piece a stranger has just been invited to read.
+//
+// WHERE IT MAY SIT, AND WHY IT SITS THERE. Only in the foot, BELOW the deposited text. The crossing
+// block above promises "datumwise has not summarised, sequenced or introduced it on this page", and
+// that promise governs everything before the deposit. The foot already carries editorial voice
+// ("The record is the authority…"), so one more editorial sentence is consistent there and nowhere
+// else. THE DEPOSITED BYTES ARE NOT TOUCHED by any of this.
+//
+// KEYED BY SLUG, DELIBERATELY NOT BY A REGISTRY FIELD. Door status is editorial and must stay out of
+// registry/sources/sources.json — that catalog is read by Ask, and its `route` field is what decides
+// corpus membership. Two entries is not a system; when a third is ruled, it is one more line.
+// TWO DESTINATIONS, NOT ONE, and no more than two. The ruling names both for each piece — the
+// territory the question belongs to, and the work that takes it further — and a reader who has just
+// finished a paper is owed the next paper as plainly as the next room. Two links is a path; a third
+// would be a menu, and a menu here would make the destination a hub.
+const ONWARD: Record<
+  string,
+  { question: string; href: string; label: string; then?: { href: string; label: string } }
+> = {
+  'data-has-its-own-ontology': {
+    question: 'If data has an ontology of its own, what laws govern it?',
+    href: '/foundations',
+    label: 'Foundations — the Data territory',
+    then: { href: '/read/theory-of-data', label: 'The Theory of Data' },
+  },
+  'conditioning-bar': {
+    question: 'What has to be governed when evidence becomes inference?',
+    href: '/foundations',
+    label: 'Foundations — the Certainty territory',
+    then: { href: '/read/statistical-bridge', label: 'The Statistical Bridge' },
+  },
+};
+const onward = ONWARD[Astro.params.slug as string];
 const verified = p.provenance === 'zenodo';
 ---
 
@@ -181,6 +219,17 @@ const verified = p.provenance === 'zenodo';
     <div class="deposit" set:html={p.html} />
 
     <hr class="rule" />
+    {onward && (
+      <p class="onward">
+        <span class="onward-q">{onward.question}</span>
+        <span class="onward-links">
+          <a class="onward-a" href={onward.href}>{onward.label} →</a>
+          {onward.then && (
+            <>{' · '}<a class="onward-a" href={onward.then.href}>{onward.then.label} →</a></>
+          )}
+        </span>
+      </p>
+    )}
     <p class="foot">
       The record is the authority. This page reproduces it; it does not replace it.
       <a href={p.doiHref} rel="noopener" target="_blank">Open the deposited record →</a>
@@ -229,4 +278,16 @@ const verified = p.provenance === 'zenodo';
   .deposit :global(hr) { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
 
   .foot { font-size: 0.92rem; color: var(--ink-faint); line-height: 1.6; }
+
+  /* The onward movement. Set in the reading serif at body weight — it is a question put to the
+     reader, not a call to action — and sits ABOVE the provenance foot, because the question is what
+     the reader has just earned and the record is the footnote. No button, no box, no accent. */
+  .onward { display: grid; gap: 0.4rem; margin: 0 0 1.6rem; }
+  .onward-q { font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.5;
+    color: var(--ink); }
+  .onward-links { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: baseline;
+    font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink-faint); }
+  .onward-a { font-family: var(--font-sans); font-size: 0.92rem; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--rule-strong); width: fit-content; }
+  .onward-a:hover { text-decoration-color: var(--ink-faint); }
 </style>
