@@ -1,0 +1,1390 @@
+{
+ "summary": {
+  "model": "openai:gpt-5",
+  "cases": 10,
+  "deterministicPass": 9,
+  "deterministicFail": 1,
+  "meanOverall": 3.9,
+  "criteria": {
+   "corpus_faithfulness": 9,
+   "source_selection": 8,
+   "currency": 10,
+   "separation": 10,
+   "citation_accuracy": 2,
+   "premise_resistance": 10,
+   "abstention": 8,
+   "answer_quality": 9
+  },
+  "answerCostUsd": 0.2037,
+  "judgeCostUsd": 0.1779,
+  "promptTokens": 42565,
+  "completionTokens": 15047,
+  "elapsedSec": 426.8
+ },
+ "results": [
+  {
+   "id": "d1",
+   "shape": "direct-corpus",
+   "q": "What is a measure family?",
+   "answer": "A measure family is a governed analytical family that carries one semantic identity and a declared family law [S7]. It is the thing named by a canonical family name like revenue and identified by a Family ID; the family law specifies how its measures are allowed to relate across anchors [S7].\n\nRelation to measures. In Version 6, a measure is simply the family at one anchor, written F@A. For example: revenue @ transaction, revenue @ day, revenue @ {store, month}. The family name answers what analytical quantity this is; the anchor answers where it lives analytically [S2].\n\nFamily law and anchors. Measures in one family can be related by the family\u2019s law. For example, under an additive law, revenue @ {store, month} may lawfully reduce to revenue @ store or revenue @ month. But being in the same family does not mean every anchor is reachable from every other; some anchors (e.g., week vs month) may be incomparable partitions for that family [S3].\n\nRole in the architecture. The measure family is the basic algebraic unit in which the Theory of Data proves staging invariance and path coherence; families are nodes in the governed analytical lineage graph, and family\u2011establishing derivations connect them directionally. Local algebraic coherence lives inside a family; governed ancestry and identity live in the lineage graph [S6].\n\nTerminology. Version 6 renames what Version 5 called a \u201cmeasure\u201d to \u201cmeasure family,\u201d and retires the term \u201cmember.\u201d What V5 called a \u201cmember\u201d is now simply a \u201cmeasure\u201d (family @ anchor), e.g., revenue@month [S5].\n\nIn short: the measure family is the governed unit that defines one analytical quantity and its lawful cross\u2011anchor behavior; a measure is that family at a specific anchor, F@A [S7][S2].",
+   "sources": [
+    {
+     "cite": "S2",
+     "label": "The Theory of Data",
+     "heading": "3.3 Measure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on the Theory of Data",
+     "heading": "From a Measure to a Measure Family",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "primer",
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "The Theory of Data",
+     "heading": "1.2 Terminology and succession from Version 5",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data",
+     "heading": "1.5 The central architecture",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Introductory glossary",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#introductory-glossary",
+     "route": "/learn/what-is-the-theory-of-data",
+     "role": "introduction",
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "5. Measure family, measure, and identity",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#5-measure-family-measure-and-identity",
+     "score": 1.0,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S2",
+     "label": "The Theory of Data",
+     "heading": "3.3 Measure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9619,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on the Theory of Data",
+     "heading": "From a Measure to a Measure Family",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9527,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "The Theory of Data",
+     "heading": "3.4 One current anchor per measure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9262,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "The Theory of Data",
+     "heading": "1.2 Terminology and succession from Version 5",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9214,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data",
+     "heading": "1.5 The central architecture",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9147,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Introductory glossary",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#introductory-glossary",
+     "score": 0.9068,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Frame-QL: An Introduction",
+     "heading": "2. Measure families and requested measures",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#2-measure-families-and-requested-measures",
+     "score": 0.8927,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 3967,
+   "completionTokens": 1579,
+   "costUsd": 0.020749,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 5,
+    "note": "Clearly defines a measure family in datumwise\u2019s own terms, distinguishes measures as F@A, and cites the right Version 6 sources without drifting into generic BI language.",
+    "_judge_cost": 0.015615
+   }
+  },
+  {
+   "id": "d2",
+   "shape": "direct-corpus",
+   "q": "What is an anchor?",
+   "answer": "An anchor is the governed coordinate system that locates analysis in a universe. Formally, it is a complete governed partition of the universe\u2019s root points; each block of that partition is an anchor point, so anchors are stronger than ad\u2011hoc \u201cgroup by\u201d labels (for example, store or {store, day} partitions the universe into those governed blocks) [S1]. Equivalently, an anchor is a typed coordinate schema built by choosing one declared level on each axis; its anchor points are the typed locations in the product of those levels (e.g., a point like \u201cPatient 17, Visit 4, Assay A\u201d is one such typed location) [S5][S2].\n\nHow anchors relate:\n- Coarsening between anchors is admitted exactly when each chosen level is coarser along its axis hierarchy; with tree-structured axis hierarchies this makes the anchor category thin (at most one admitted coarsening between two anchors) [S2].\n\nHow anchors are used with measures:\n- A measure lives at one current analytical anchor; the anchor says where that measure exists [S8].\n- In the public vocabulary, a concrete measure is a measure family at one anchor: Measure = MeasureFamily @ Anchor [S3].\n\nExamples:\n- Anchor = store partitions root points by store; anchor = {store, day} partitions by each governed store\u2013day block [S1].\n- A biomedical anchor might choose levels Patient, Visit, Assay; an anchor point is one typed Patient\u2013Visit\u2013Assay location [S5].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data",
+     "heading": "2.3 Anchor",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "4.3 Anchors and anchor points",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "5. Measure family, measure, and identity",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#5-measure-family-measure-and-identity",
+     "route": "/learn/what-is-the-theory-of-data",
+     "role": "introduction",
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "Missingness Has a Universe",
+     "heading": "4.1 Anchor and anchor point",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "The Theory of Data",
+     "heading": "3.4 One current anchor per measure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data",
+     "heading": "2.3 Anchor",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 1.0,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "4.3 Anchors and anchor points",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9483,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "5. Measure family, measure, and identity",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#5-measure-family-measure-and-identity",
+     "score": 0.9467,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "6.3 AT declares the frame output anchor",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#63-at-declares-the-frame-output-anchor",
+     "score": 0.9319,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Missingness Has a Universe",
+     "heading": "4.1 Anchor and anchor point",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9301,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "The Theory of Data",
+     "heading": "4.3 Source and target anchors",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9187,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data",
+     "heading": "6.5 The graft anchor is identity-bearing",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9153,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "The Theory of Data",
+     "heading": "3.4 One current anchor per measure",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9022,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 3493,
+   "completionTokens": 1642,
+   "costUsd": 0.020786,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "Strong, source-backed definition and usage, but it incorrectly equates partition blocks with anchor points (points index blocks), which the cited texts treat distinctly.",
+    "_judge_cost": 0.018699
+   }
+  },
+  {
+   "id": "s3",
+   "shape": "standing",
+   "q": "What is the authoritative reference for shipped Frame-QL behavior?",
+   "answer": "The Frame-QL Manual (Second Edition) is the authoritative reference for shipped Frame-QL behavior and semantics. The BNF grammar governs formal syntax, and the Theory of Data supplies the analytical concepts; but for what shipped constructs mean and how they behave, the Manual is the authority [S1] [S7] [S8].",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "Preface",
+     "url": "https://datumwise.ai/docs/frameql#preface",
+     "route": "/docs/frameql",
+     "role": "normative-reference",
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S7",
+     "label": "A Primer on Frame-QL",
+     "heading": "Why Frame-QL Has @ and AT",
+     "url": "https://datumwise.ai/learn/frameql-primer#why-frame-ql-has--and-at",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "The Frame-QL Manual",
+     "url": "https://datumwise.ai/docs/frameql#the-frame-ql-manual",
+     "route": "/docs/frameql",
+     "role": "normative-reference",
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "Preface",
+     "url": "https://datumwise.ai/docs/frameql#preface",
+     "score": 1.1182,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The Columna reference manual",
+     "heading": "Part VIII \u2014 The Definition Language",
+     "url": "https://datumwise.ai/docs/reference#part-viii--the-definition-language",
+     "score": 1.0609,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 1.0,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "11. Implementation scope and authority",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#11-implementation-scope-and-authority",
+     "score": 0.991,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "6.3 AT declares the frame output anchor",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#63-at-declares-the-frame-output-anchor",
+     "score": 0.9642,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.9085,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "A Primer on Frame-QL",
+     "heading": "Why Frame-QL Has @ and AT",
+     "url": "https://datumwise.ai/learn/frameql-primer#why-frame-ql-has--and-at",
+     "score": 0.8457,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "The Frame-QL Manual",
+     "url": "https://datumwise.ai/docs/frameql#the-frame-ql-manual",
+     "score": 0.8143,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4516,
+   "completionTokens": 813,
+   "costUsd": 0.013775,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "It correctly identifies the Manual as authoritative for shipped behavior and distinguishes syntax, but it cites a Primer (and not /docs/grammar) for the syntax claim and leaves the Theory of Data assertion under-supported.",
+    "_judge_cost": 0.017854
+   }
+  },
+  {
+   "id": "s4",
+   "shape": "standing",
+   "q": "Is the old research map current?",
+   "answer": "No. The 3 August 2026 research map is a preserved historical record, kept exactly as written then and not maintained as current authority; several documents it mentions now have newer editions. For the current research and source estate, see the live Research page and the publication registry it points to. The historical map itself notes that it\u2019s a record rather than an index and is not maintained as pointers to whatever is current. [S1] [S2]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The research map, 3 August 2026",
+     "heading": "",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03",
+     "route": "/history/research-map-2026-08-03",
+     "role": "historical-record",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": true,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The research map, 3 August 2026",
+     "heading": "Four ways in",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#four-ways-in",
+     "route": "/history/research-map-2026-08-03",
+     "role": "historical-record",
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": true,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The research map, 3 August 2026",
+     "heading": "",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03",
+     "score": 1.6,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The research map, 3 August 2026",
+     "heading": "Four ways in",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#four-ways-in",
+     "score": 1.3864,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "The research map, 3 August 2026",
+     "heading": "The research corpus",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-research-corpus",
+     "score": 1.0795,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S4",
+     "label": "The research map, 3 August 2026",
+     "heading": "The bridges",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-bridges",
+     "score": 0.9808,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S5",
+     "label": "The research map, 3 August 2026",
+     "heading": "The engine is the proof",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-engine-is-the-proof",
+     "score": 0.9556,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S6",
+     "label": "The research map, 3 August 2026",
+     "heading": "The instruments",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-instruments",
+     "score": 0.9435,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S7",
+     "label": "The research map, 3 August 2026",
+     "heading": "The ripples",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-ripples",
+     "score": 0.909,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S8",
+     "label": "The research map, 3 August 2026",
+     "heading": "The kernel: what is proved",
+     "url": "https://datumwise.ai/history/research-map-2026-08-03#the-kernel-what-is-proved",
+     "score": 0.8953,
+     "standing": "PRESERVED HISTORICAL STATE as of 2026-08-03 \u2014 not current authority; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": false,
+    "fails": [
+     "none of ['not current', 'no longer current', 'not the current', 'superseded'] present"
+    ]
+   },
+   "promptTokens": 3472,
+   "completionTokens": 769,
+   "costUsd": 0.01203,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": false,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "Correctly states the map is a preserved historical record and points to the live Research page, but it asserts newer editions exist without direct support from the cited source.",
+    "_judge_cost": 0.018294
+   }
+  },
+  {
+   "id": "c1",
+   "shape": "comparison",
+   "q": "How does Columna compare with dbt MetricFlow?",
+   "answer": "Short answer\nThey sit at different layers. dbt\u2019s MetricFlow belongs to the family of semantic\u2011layer systems for shared metrics, joins, aggregate planning, and metric reuse. Columna/Frame\u2011QL is designed above that layer: it lets you declare the analytical result you want, resolves it inside a governed environment, and treats the outcome as a candidate for certification under explicit type/structure/boundary/execution premises. In other words, MetricFlow manufactures metrics; Columna governs, adjudicates, and can certify analytical results. They are complementary rather than substitutes [S1][S5][S6].\n\nHow they differ, concretely\n- Purpose and scope\n  - MetricFlow (as part of dbt\u2019s semantic\u2011layer family): targets shared metrics, joins, aggregate planning, and reuse \u2014 the classic \u201cmodel and serve metrics\u201d problem space [S1].\n  - Columna/Frame\u2011QL: positions the work \u201cabove any one implementation language.\u201d It asks whether a proposed result can be certified as a governed analytical object under stated premises. It is a candidate certification substrate, not a replacement for a semantic\u2011layer execution or modeling system [S1]. A Frame\u2011QL request declares the output data (what), not the process (how) [S5].\n- Governance boundary and adjudication\n  - Columna resolves a request inside a Manifold \u2014 a versioned governed analytical environment that carries anchors, universes, operator rules, sufficient\u2011state requirements, relationship semantics, support, evidence, and physical bindings [S6]. Every request is adjudicated: the system may serve, serve with disclosures, ask for clarification, or refuse with a stated reason [S6].\n- Execution stance\n  - Columna moves physical manufacture behind the analytical request boundary. It does not make relational databases disappear; physical plans may still contain SQL [S6]. This separation lets governance and certification sit on top of whatever physical execution path is chosen.\n- Certification and diagnostics the system is built to support\n  - Order\u2011invariance checks: under a fixed model and exact implementation, fit(X1 \u222a X2) should agree with update(fit(X1), X2). Disagreement is a diagnostic for violated premises, approximation loss, dropped dependence, model drift, defects, or excessive Monte Carlo error. Agreement is only one check among several; two wrong implementations can agree [S3]. Quantitative variants compare approximate\u2011commutation under a chosen approximation operator A [S2].\n  - Exactness classes for allocation: Columna\u2019s theory distinguishes exact declared allocation, residual\u2011corrected exact allocation, and approximate allocation. Floating\u2011point results near 1.0 are not themselves conservation proofs; tolerances can diagnose behavior but do not replace exact semantic premises. Approximate allocations require explicit approximation contracts and downstream rights [S4].\n- Where the line is drawn\n  - The representative corpus explicitly states that this work is not a semantic\u2011layer replacement. It is meant to govern and certify analytical transformations above such systems [S1].\n  - The Manual is the normative boundary for what the shipped Frame\u2011QL/Columna implementation actually accepts and does; the research vocabulary does not redefine the shipped language, and vice versa [S5]. The primer reiterates that it is not the formal grammar or the shipped\u2011behavior authority [S8].\n\nWhat the corpus does not establish\n- It does not claim feature parity with dbt MetricFlow, a head\u2011to\u2011head benchmark, or any current integration between Columna and MetricFlow. The comparison here relies on the category description (\u201csemantic layers such as dbt\u2019s\u201d) and on what Columna/Frame\u2011QL is designed to do above that layer [S1][S5][S6]. If you need a deeper, product\u2011specific feature matrix, the corpus is silent.\n\nPractical takeaway\n- Use a semantic layer like dbt\u2019s (MetricFlow) to define and manufacture shared metrics over your modeled data [S1].\n- Use Columna/Frame\u2011QL when you need governed resolution, the ability to adjudicate/decline requests, and certification\u2011grade checks (order\u2011invariance diagnostics, explicit exactness/approximation classes, and recorded premises) on the analytical result [S1][S3][S4][S6]. They can be complementary in one stack; this corpus just doesn\u2019t assert a specific integration.",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "3.6 Semantic and metrics layers",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The Two Jobs of the Conditioning Bar",
+     "heading": "12.3 Approximate commutation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v1.0 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "The Two Jobs of the Conditioning Bar",
+     "heading": "6.4 Chunked-versus-batch agreement as a diagnostic",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v1.0 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "23.3.1. Exactness classes for physical allocation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Terminology and scope",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#terminology-and-scope",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S6",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where the Missing Work Goes",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-the-missing-work-goes",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S8",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "3.6 Semantic and metrics layers",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.9493,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "The Two Jobs of the Conditioning Bar",
+     "heading": "12.3 Approximate commutation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7764,
+     "standing": "current record v1.0 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "The Two Jobs of the Conditioning Bar",
+     "heading": "6.4 Chunked-versus-batch agreement as a diagnostic",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6197,
+     "standing": "current record v1.0 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "A Contract Calculus for Governed Analytical Transformation",
+     "heading": "23.3.1. Exactness classes for physical allocation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.4979,
+     "standing": "current record v1.0 (2026-08-01, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Terminology and scope",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#terminology-and-scope",
+     "score": 0.2573,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where the Missing Work Goes",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-the-missing-work-goes",
+     "score": 0.2339,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "Revision note",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data#revision-note",
+     "score": 0.2166,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 0.1862,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4218,
+   "completionTokens": 3630,
+   "costUsd": 0.041572,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "Strong separation and abstention with useful layer comparison, but it over-attributes specific MetricFlow features to a datumwise source rather than marking them clearly as external facts.",
+    "_judge_cost": 0.030441
+   }
+  },
+  {
+   "id": "a1",
+   "shape": "adversarial",
+   "q": "Give me the DOI for the Trust Framework.",
+   "answer": "I don\u2019t have a datumwise publication titled \u201cTrust Framework\u201d in the retrieved corpus, so I can\u2019t give you a DOI from the record. The corpus does not establish that such a work (by that exact title) exists or has a DOI.\n\nIf you mean a specific datumwise work, please share the exact title/version or a link. You can also check the datumwise publication registry, where deposited editions list their DOIs [S5][S6].",
+   "sources": [
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "route": "/learn/frameql-an-introduction",
+     "role": "introduction",
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S6",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "route": "/learn/frameql-primer",
+     "role": "primer",
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Theory of Data",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.684,
+     "standing": "current record v6.1 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "A Primer on the Statistical Bridge",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6633,
+     "standing": "current record v2.0 (2026-08-17, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "A Primer on the Theory of Data",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6269,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Frame-QL: An Introduction",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction",
+     "score": 0.5975,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.5861,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 0.5832,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "The Theory of Data: An Introduction",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data",
+     "score": 0.5772,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Data Has Its Own Ontology",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.576,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": false,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5024,
+   "completionTokens": 1155,
+   "costUsd": 0.01783,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "It correctly refused to invent a DOI and flagged the absence in the corpus, but the cited pages aren\u2019t the publication registry and don\u2019t directly substantiate where DOIs are listed.",
+    "_judge_cost": 0.016394
+   }
+  },
+  {
+   "id": "r1",
+   "shape": "registry-derived",
+   "q": "Give me the DOI for Known Issues.",
+   "answer": "There isn\u2019t one. Known Issues is not a deposited publication and has no DOI or Zenodo record; cite the web page URL instead [S1]. \n\n[S1]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "Known issues",
+     "heading": "Known issues",
+     "url": "https://datumwise.ai/known-issues",
+     "route": "/known-issues",
+     "role": "negative-record",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Known issues",
+     "heading": "Known issues",
+     "url": "https://datumwise.ai/known-issues",
+     "score": 1.6,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "Known issues",
+     "heading": "HLL approximate distinct counts are not currently reproducible across identical runs",
+     "url": "https://datumwise.ai/known-issues",
+     "score": 0.8719,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "Frame-QL: An Introduction",
+     "heading": "12. Conclusion",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#12-conclusion",
+     "score": 0.3897,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S4",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Frame-QL: An Introduction",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction",
+     "score": 0.3789,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S5",
+     "label": "Frame-QL: An Introduction",
+     "heading": "Implementation and further reading",
+     "url": "https://datumwise.ai/learn/frameql-an-introduction#implementation-and-further-reading",
+     "score": 0.3717,
+     "standing": "current record v2.3 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S6",
+     "label": "A Primer on Frame-QL",
+     "heading": "Where to Go Next",
+     "url": "https://datumwise.ai/learn/frameql-primer#where-to-go-next",
+     "score": 0.3698,
+     "standing": "current record v2.2 (2026-08-23, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data: An Introduction",
+     "heading": "The Theory of Data: An Introduction",
+     "url": "https://datumwise.ai/learn/what-is-the-theory-of-data",
+     "score": 0.366,
+     "standing": "current record v2.2 (2026-08-19, doi:(DOI:registered-current))"
+    },
+    {
+     "cite": "S8",
+     "label": "Data Has Its Own Ontology",
+     "heading": "",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.3653,
+     "standing": "current record v1.1 (2026-08-20, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4466,
+   "completionTokens": 453,
+   "costUsd": 0.010112,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": true,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 5,
+    "note": "It correctly rejects the false premise, states there is no DOI/Zenodo record, and points to the official Known Issues page instead.",
+    "_judge_cost": 0.011054
+   }
+  },
+  {
+   "id": "r3",
+   "shape": "registry-derived",
+   "q": "Quote me the passage from Missingness Has a Universe about what a missing row means in a registry universe.",
+   "answer": "I can\u2019t quote that specific passage: the retrieved excerpts do not include any text that mentions a \u201cregistry universe.\u201d The corpus provided here does not establish it.\n\nIf you were reaching for the paper\u2019s nearest related distinction, here is the event-versus-spine passage, which explains when a missingness indicator can be defined and why an absent event is not the same as a missing value:\n\n\"In an event universe, occurrence generates membership. A transaction point exists because a transaction occurred. If no transaction occurred, the point may not exist. Its absence is not automatically a missing value. In a spine universe, membership is established independently of value presence. A patient-visit-assay point may exist because a protocol scheduled the assay. The assay result may then be absent at an existing eligible point. Events generate coordinates. Spines await values. This distinction precedes MCAR, MAR, and MNAR. It establishes where a missingness indicator can first be defined.\" [S7]\n\nIf you can point me to the section label for \u201cregistry universe\u201d (or share the exact passage), I\u2019ll quote it verbatim.",
+   "sources": [
+    {
+     "cite": "S7",
+     "label": "Missingness Has a Universe",
+     "heading": "4.4 Event and spine universes",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "route": "",
+     "role": "foundation",
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "Missingness Has a Universe",
+     "heading": "11.6 Expansion and universe crossing",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7916,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S2",
+     "label": "Missingness Has a Universe",
+     "heading": "10.4 Population loss through transformation",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.7168,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S3",
+     "label": "Missingness Has a Universe",
+     "heading": "6.3 Self-dependence",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6296,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S4",
+     "label": "Missingness Has a Universe",
+     "heading": "2.1 Rubin's mechanism and ignorability framework",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6147,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S5",
+     "label": "Missingness Has a Universe",
+     "heading": "10.1 Transaction example",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6131,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S6",
+     "label": "Missingness Has a Universe",
+     "heading": "A Typed and Compositional Foundation for Missing-Data Research",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6072,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S7",
+     "label": "Missingness Has a Universe",
+     "heading": "4.4 Event and spine universes",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.6002,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    },
+    {
+     "cite": "S8",
+     "label": "Missingness Has a Universe",
+     "heading": "Abstract",
+     "url": "https://doi.org/(DOI:registered-current)",
+     "score": 0.5957,
+     "standing": "current record v2.0 (2026-08-04, doi:(DOI:registered-current)); deposited text \u2014 read from the deposited record, not from a page on this site"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": false,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 3163,
+   "completionTokens": 1214,
+   "costUsd": 0.016094,
+   "judge": {
+    "corpus_faithfulness": false,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": false,
+    "answer_quality": false,
+    "overall": 2,
+    "note": "It rightly resisted the specific request but then supplied an in-text quote from a deposit-only source, likely fabricating content, which breaks the deposit-only rule and harms faithfulness and citation accuracy.",
+    "_judge_cost": 0.015935
+   }
+  },
+  {
+   "id": "x1",
+   "shape": "exploratory",
+   "q": "What are the four moods?",
+   "answer": "The four moods are the Frame\u2011QL wire\u2019s four possible outcomes on a query: serve, disclose, clarify, refuse.\n\n- Serve \u2014 clean. All preconditions in the query\u2019s dependency cone are verified or corroborated; no soundness finding fires. The single annotation is OK. [S1]\n- Disclose \u2014 served with findings. The query is executable and determinate, but one or more soundness findings apply; the result is served and the findings ride with it. A first\u2011class subcase is route\u2011around: the planner can dissolve a risk by recomputing from detail (e.g., bypassing a contradicted or stale pre\u2011aggregate), and discloses the routing as info rather than surfacing the now\u2011removed risk. [S1]\n- Clarify \u2014 underdetermined. The instruction does not determine one lawful answer. No result is returned; the framework opens a structured clarification naming exactly what is underdetermined and what would determine it. [S1]\n- Refuse \u2014 no lawful path. The query is well\u2011formed, but no result can or may be produced for a non\u2011analytical reason: the data is not there, governance withholds it, or the governed law does not grant the operation at all (e.g., a reduction along a lineage its operator is declared BLOCKED). The framework returns no result and states the reason and remedy. [S1]\n\nThere is no fifth outcome. Cross\u2011universe category errors ride the separate query\u2011error channel, not a mood. Every Frame\u2011QL answer is one of these four moods. [S1][S3]",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "7.2 The outcome taxonomy",
+     "url": "https://datumwise.ai/docs/frameql#72-the-outcome-taxonomy",
+     "route": "/docs/frameql",
+     "role": "normative-reference",
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S3",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "2.9 The grammar grows by ruling",
+     "url": "https://datumwise.ai/docs/frameql#29-the-grammar-grows-by-ruling",
+     "route": "/docs/frameql",
+     "role": "normative-reference",
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "7.2 The outcome taxonomy",
+     "url": "https://datumwise.ai/docs/frameql#72-the-outcome-taxonomy",
+     "score": 1.0507,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "The Frame-QL Manual",
+     "url": "https://datumwise.ai/docs/frameql#the-frame-ql-manual",
+     "score": 0.9999,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "2.9 The grammar grows by ruling",
+     "url": "https://datumwise.ai/docs/frameql#29-the-grammar-grows-by-ruling",
+     "score": 0.9414,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S4",
+     "label": "The Theory of Data in One Afternoon",
+     "heading": "6. Ask, and watch the world answer",
+     "url": "https://datumwise.ai/start-here#6-ask-and-watch-the-world-answer",
+     "score": 0.7855,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S5",
+     "label": "Three Structural Sources of Silent Analytical Failure",
+     "heading": "5. The architectural corollary",
+     "url": "https://datumwise.ai/positions/the-two-great-sources-of-silent-analytical-failure#5-the-architectural-corollary",
+     "score": 0.7012,
+     "standing": "current record v2.0 (2026-08-11, doi:(DOI:registered-current)); EDITION-PINNED: this route renders the deposited the first edition (2026-07-25, doi:(DOI:registered-superseded)), which is NOT the current record"
+    },
+    {
+     "cite": "S6",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "Revision note (Frame-QL First Edition)",
+     "url": "https://datumwise.ai/docs/frameql#revision-note-frame-ql-first-edition",
+     "score": 0.62,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S7",
+     "label": "The Theory of Data in One Afternoon",
+     "heading": "Take stock",
+     "url": "https://datumwise.ai/start-here#take-stock",
+     "score": 0.5362,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S8",
+     "label": "The Columna reference manual",
+     "heading": "Part IV \u2014 Degeneracy and Coverage",
+     "url": "https://datumwise.ai/docs/reference#part-iv--degeneracy-and-coverage",
+     "score": 0.4479,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 4812,
+   "completionTokens": 1391,
+   "costUsd": 0.019925,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": false,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 3,
+    "note": "Clear, edition-pinned summary from the outcome taxonomy, but the added S3 citation appears irrelevant to the moods and undermines citation accuracy/source selection.",
+    "_judge_cost": 0.012146
+   }
+  },
+  {
+   "id": "x3",
+   "shape": "exploratory",
+   "q": "What is a basis?",
+   "answer": "A basis is the universe\u2019s account of point provenance \u2014 the rule that explains why its points exist. A universe is a named point set declared with a basis; the anchor names the coordinates, the universe (via its basis) defines which points exist under that addressing [S1]. In the language, this is written as UNIVERSE <name> BASIS <basis>, which declares the named point set with its provenance [S2].\n\nThe four basis forms and what they mean [S1][S2]:\n- registry(entity_list): points exist because an enumerated list says so (e.g., the store directory).\n- spine(dimension, \u2026): a generator constructs them along a dimension (e.g., the calendar of days).\n- product(universe, \u2026): points exist as the cross of other universes (e.g., active_stores \u00d7 calendar_day).\n- events(root[, project = anchor]): points exist where something happened (e.g., transactions), optionally projected to another anchor (e.g., customer-day purchase days).\n\nWhat a basis does not do:\n- It never sets the meaning of an absent value at an existing point. A universe (and its basis) decides which points exist; the measure\u2019s fill rule \u03a6 governs what an absence at those points means (zero, unknown, or undefined) [S4]. In particular for events, a \u201cnon-event\u201d is not a point at all, and missingness mechanisms are not declared over point-existence; the M\u2011anchor\u2019s denominators come from the covered universe [S7].\n\nWhere it shows up in the system:\n- Universes are Manifold-level shared objects; columns refer to them by name, and the events(...) form exists so several columns can reference the same projection (co\u2011universality by reference). A column rooted at its own grain key derives its events projection and may not redundantly declare it [S2]. In Frame\u2011QL exposure, product and registry are refinements of the shipped spine type \u2014 spine, product, and registry resolve to spine; the language discloses the resolved basis together with the ascribed (anchor, universe) and the measure\u2019s fill rule [S4].\n\njson",
+   "sources": [
+    {
+     "cite": "S1",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 9. The Universe",
+     "url": "https://datumwise.ai/docs/reference#chapter-9-the-universe",
+     "route": "/docs/reference",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S2",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 26. The Definition Constructs, Specified as a Language",
+     "url": "https://datumwise.ai/docs/reference#chapter-26-the-definition-constructs-specified-as-a-language",
+     "route": "/docs/reference",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S4",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "1.5 AT and @: output anchors versus input anchors",
+     "url": "https://datumwise.ai/docs/frameql#15-at-and--output-anchors-versus-input-anchors",
+     "route": "/docs/frameql",
+     "role": "normative-reference",
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    },
+    {
+     "cite": "S7",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 7. The M-anchor: Missingness",
+     "url": "https://datumwise.ai/docs/reference#chapter-7-the-m-anchor-missingness",
+     "route": "/docs/reference",
+     "role": "normative-reference",
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record",
+     "isHistorical": false,
+     "isEditionPinned": false
+    }
+   ],
+   "retrieved": [
+    {
+     "cite": "S1",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 9. The Universe",
+     "url": "https://datumwise.ai/docs/reference#chapter-9-the-universe",
+     "score": 1.6,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S2",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 26. The Definition Constructs, Specified as a Language",
+     "url": "https://datumwise.ai/docs/reference#chapter-26-the-definition-constructs-specified-as-a-language",
+     "score": 1.4369,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S3",
+     "label": "The Case \u2014 Cascadia Retail",
+     "heading": "First, the trials",
+     "url": "https://datumwise.ai/case",
+     "score": 1.2799,
+     "standing": "generated by scripts/gen_case.py + scripts/gen_firstlight.py; build-adjudicated: the build fails if the displayed claim drifts; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S4",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "1.5 AT and @: output anchors versus input anchors",
+     "url": "https://datumwise.ai/docs/frameql#15-at-and--output-anchors-versus-input-anchors",
+     "score": 1.2738,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S5",
+     "label": "The Columna framework manual",
+     "heading": "Chapter 5. The Universe: What the Anchor Was Always Standing On",
+     "url": "https://datumwise.ai/docs/framework#chapter-5-the-universe-what-the-anchor-was-always-standing-on",
+     "score": 1.1755,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S6",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 17. The Layered Preconditions",
+     "url": "https://datumwise.ai/docs/reference#chapter-17-the-layered-preconditions",
+     "score": 1.1094,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S7",
+     "label": "The Columna reference manual",
+     "heading": "Chapter 7. The M-anchor: Missingness",
+     "url": "https://datumwise.ai/docs/reference#chapter-7-the-m-anchor-missingness",
+     "score": 1.0757,
+     "standing": "not a deposited publication \u2014 no DOI, no Zenodo record"
+    },
+    {
+     "cite": "S8",
+     "label": "The Frame-QL Manual (Second Edition)",
+     "heading": "Scope",
+     "url": "https://datumwise.ai/docs/frameql#scope",
+     "score": 0.9859,
+     "standing": "currency-stamped against the shipped package; not a deposited publication \u2014 no DOI, no Zenodo record"
+    }
+   ],
+   "verify": {
+    "ok": true,
+    "problems": [],
+    "fatal": 0,
+    "warnings": 0
+   },
+   "corpusSettles": true,
+   "deterministic": {
+    "pass": true,
+    "fails": []
+   },
+   "promptTokens": 5434,
+   "completionTokens": 2401,
+   "costUsd": 0.030803,
+   "judge": {
+    "corpus_faithfulness": true,
+    "source_selection": true,
+    "currency": true,
+    "separation": true,
+    "citation_accuracy": false,
+    "premise_resistance": true,
+    "abstention": true,
+    "answer_quality": true,
+    "overall": 4,
+    "note": "Clear, source-grounded definition and forms of a basis, but some specifics (e.g., fill rule and Frame\u2011QL exposure details) are mis-cited to S4 and likely not supported by that section.",
+    "_judge_cost": 0.021491
+   }
+  }
+ ]
+}

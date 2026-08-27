@@ -1,0 +1,411 @@
+---
+// /ask — ASK DATUMWISE. The first lab surface where a reader can put a question to the corpus.
+//
+// WHY THIS PAGE IS STATIC AND TALKS TO A SERVICE (Ask v0, 2026-08-25). apps/website is
+// `output: 'static'` and ships through the shipped-coherent pipeline that guards every publication
+// claim on the property — branch-coherent build, flap detector, fragment integrity, discoverability,
+// post-deploy edge verification. Turning the site hybrid to host a model-calling, database-backed
+// agent would put a stateful surface inside the pipeline whose entire job is to keep frozen facts
+// honest. So Ask runs as its own small service and this page is a client of it. The pipeline stays
+// exactly as verified in #229/#230, and the agent can be redeployed without touching the site.
+//
+// THE CONSEQUENCE, STATED PLAINLY: the cached Q&A below is fetched in the browser, so it is not in
+// the HTML a crawler reads. That is a real v0 limitation and it is written in the <noscript>. The
+// fix — baking a snapshot of the top Q&A into the build — is deliberately NOT done yet, because it
+// adds a build-time dependency on a live service to a pipeline that currently fails closed on
+// nothing but its own inputs. Worth doing when there is enough real Q&A to be worth indexing.
+//
+// REGISTER. Ask belongs to the serious side: calm, direct, curious, inspectable. No mascot, no orb,
+// no assistant persona, no empty conversation canvas. The Q&A themselves are the visual substance —
+// which is why the answered questions sit directly under the input rather than behind a tab, and
+// why a reader who arrives with no question of their own still has something to read.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// The Ask service origin. Baked at build so a preview deploy can point at a preview service.
+const ASK_API = import.meta.env.PUBLIC_ASK_API ?? 'https://ask-datumwise.fly.dev';
+---
+
+<BaseLayout
+  title="Ask datumwise — put a question to the corpus"
+  description="Ask datumwise a question about the research, Columna, Frame-QL, or Analytical Governance, and see the sources behind the answer. Answers are drawn from datumwise's own governed sources, with current records distinguished from historical ones."
+  chip={false}
+>
+  <div class="askpage">
+  <section class="head">
+    <p class="kicker">Lab surface · answers carry their sources</p>
+    <h1 class="head-h">Ask datumwise</h1>
+    <p class="head-p">
+      Ask about the research, Columna, Frame-QL, Analytical Governance, or how this work compares
+      with the world around it.
+    </p>
+    <p class="head-p head-quiet">
+      Answers are drawn from datumwise's own governed sources and come with the sections they rest
+      on, so you can check them. Where the corpus does not settle something, the answer should say
+      so rather than fill the gap. It is an experiment; tell us when it is wrong.
+    </p>
+
+    <form class="askbox" id="askform" autocomplete="off">
+      <label class="sr-only" for="q">Your question</label>
+      <textarea id="q" name="q" rows="2" maxlength="600" required
+        placeholder="What is a measure family?"></textarea>
+      <div class="askrow">
+        <button type="submit" id="askbtn">Ask</button>
+        <span class="hint" id="hint"></span>
+      </div>
+    </form>
+  </section>
+
+  <section class="wrap" id="answer-region" hidden aria-live="polite">
+    <article class="answer" id="answer"></article>
+  </section>
+
+  <section class="wrap">
+    <div class="grp-head">
+      <h2 class="grp-h">Answered questions</h2>
+      <p class="grp-b">
+        Questions readers have already asked, most-read first. Stars are the share of readers who
+        found the answer helpful, on a five-point scale; the rating count is shown beside them so a
+        score built on two votes cannot pass for a settled one.
+      </p>
+    </div>
+    <ol class="qalist" id="qalist"><li class="empty" id="qaempty">Loading…</li></ol>
+    <noscript>
+      <p class="grp-b">
+        Answered questions are loaded in the browser in this first version, so this list needs
+        JavaScript. The sources behind every answer are ordinary links into
+        <a href="/research">the research estate</a>, which needs none.
+      </p>
+    </noscript>
+  </section>
+
+  <p class="foot-note">
+    Ask is a lab surface, not a publication. The <a href="/research">research estate</a> is the
+    current source of record, and <a href="/history/research-map-2026-08-03">preserved historical
+    pages</a> are marked as such wherever an answer leans on one.
+  </p>
+  </div>
+</BaseLayout>
+
+<script define:vars={{ ASK_API }}>
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // A voter id is a random local token, not an account: enough to stop accidental double-voting,
+  // not an identity. Nothing about the reader is sent with it.
+  const voter = (() => {
+    let v = localStorage.getItem('dw_ask_voter');
+    if (!v) { v = Math.random().toString(36).slice(2) + Date.now().toString(36);
+              localStorage.setItem('dw_ask_voter', v); }
+    return v;
+  })();
+
+  let conversation = null;
+
+  function starsHtml(stars, ratings) {
+    if (stars === null || stars === undefined) return '<span class="sig-none">not yet rated</span>';
+    const full = Math.floor(stars), half = stars - full >= 0.5;
+    let s = '★'.repeat(full) + (half ? '½' : '');
+    return `<span class="stars" title="${stars.toFixed(1)} of 5">${s}</span>` +
+           `<b>${stars.toFixed(1)}</b>`;
+  }
+
+  function signals(item) {
+    const r = item.ratings || 0, v = item.views || 0;
+    return `<span class="sig">${starsHtml(item.stars, r)}` +
+      `<span class="dot">·</span>${r} ${r === 1 ? 'rating' : 'ratings'}` +
+      `<span class="dot">·</span>${v} ${v === 1 ? 'view' : 'views'}</span>`;
+  }
+
+  function sourceList(sources, external) {
+    let h = '';
+    if (sources && sources.length) {
+      h += '<h3 class="src-h">Datumwise sources</h3><ul class="srcs">';
+      for (const s of sources) {
+        const marks = [];
+        if (s.isHistorical) marks.push('<em class="mark">preserved historical state — not current authority</em>');
+        if (s.isEditionPinned) marks.push('<em class="mark">edition-pinned — this page renders an earlier deposited edition</em>');
+        // Suppress the heading when it merely repeats the source name — a page whose only
+        // heading is its own title otherwise renders as "X — X".
+        const norm = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        const showHead = s.heading && !norm(s.label).includes(norm(s.heading)) &&
+                         !norm(s.heading).includes(norm(s.label));
+        h += `<li><a href="${esc(s.url)}">${esc(s.label)}${showHead ? ' — ' + esc(s.heading) : ''}</a>` +
+             (s.role ? `<span class="role">${esc(s.role)}</span>` : '') +
+             (marks.length ? `<div class="marks">${marks.join('')}</div>` : '') + '</li>';
+      }
+      h += '</ul>';
+    }
+    if (external && external.length) {
+      h += '<h3 class="src-h">External sources</h3><ul class="srcs">';
+      for (const e of external) {
+        h += `<li><a href="${esc(e.url)}" rel="nofollow noopener" target="_blank">${esc(e.title || e.url)}</a></li>`;
+      }
+      h += '</ul>';
+    }
+    return h;
+  }
+
+  // Minimal, deliberately conservative markdown: paragraphs, bold, italics, inline code, and the
+  // [S#] citation tokens rendered as quiet superscripts. No HTML passthrough — the model's output
+  // is escaped first and only these forms are re-introduced.
+  function render(md) {
+    // Belt and braces for a footer the constitution already forbids: some models still close with
+    // "[Citations: S1, S2]" or a "Sources:" roundup. The interface renders the real source list
+    // below, so a prose duplicate is furniture. Instruction asks; this removes.
+    md = String(md)
+      .replace(/\n+\s*\[?citations?\s*:.*$/is, '')
+      .replace(/\n+\s*\*{0,2}sources?\*{0,2}\s*:\s*(?:\n\s*[-*].*)+\s*$/i, '')
+      .trim();
+    let h = esc(md);
+    h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+    h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/(?<!\w)\*([^*\n]+)\*(?!\w)/g, '<em>$1</em>');
+    h = h.replace(/\[(S\d+)\]/g, '<sup class="cite">$1</sup>');
+    // A block may be all bullets, or a lead-in line followed by bullets ("Notes:" then "- ...").
+    // Splitting at the first bullet handles both without a real markdown parser.
+    return h.split(/\n{2,}/).map((p) => {
+      const lines = p.split(/\n/);
+      const first = lines.findIndex((l) => /^\s*[-*]\s+/.test(l));
+      if (first === -1) return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+      const lead = lines.slice(0, first).join('<br>').trim();
+      const items = lines.slice(first).filter((l) => /^\s*[-*]\s+/.test(l))
+        .map((l) => `<li>${l.replace(/^\s*[-*]\s+/, '')}</li>`).join('');
+      return (lead ? `<p>${lead}</p>` : '') + `<ul>${items}</ul>`;
+    }).join('');
+  }
+
+  function answerHtml(d) {
+    const settled = d.corpusSettles === false
+      ? '<p class="unsettled">The datumwise corpus does not settle this question. What follows is ' +
+        'what the sources do support, and where they stop.</p>' : '';
+    const cached = d.cached ? '<span class="cachedmark">answered earlier · served from cache</span>' : '';
+    return `<h2 class="a-q">${esc(d.question)}</h2>${cached}${settled}` +
+      `<div class="a-body">${render(d.answer)}</div>` +
+      `<div class="a-src">${sourceList(d.sources, d.external)}</div>` +
+      (d.id ? `<div class="fb" data-id="${esc(d.id)}">
+          <span>Was this helpful?</span>
+          <button class="fbbtn" data-h="1">👍 Helpful</button>
+          <button class="fbbtn" data-h="0">👎 Not helpful</button>
+          <span class="fbnote"></span>
+        </div>
+        <form class="followup" data-parent="${esc(d.id)}">
+          <label class="sr-only" for="fu">Ask a follow-up</label>
+          <input id="fu" name="fu" maxlength="600" placeholder="Ask a follow-up…">
+          <button type="submit">Follow up</button>
+        </form>` : '');
+  }
+
+  async function post(path, body) {
+    const r = await fetch(ASK_API + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
+    return r.json();
+  }
+
+  function wire(root) {
+    root.querySelectorAll('.fb').forEach((fb) => {
+      fb.querySelectorAll('.fbbtn').forEach((b) => b.addEventListener('click', async () => {
+        fb.querySelectorAll('.fbbtn').forEach((x) => (x.disabled = true));
+        try {
+          const out = await post('/vote', { id: fb.dataset.id, voter, helpful: b.dataset.h === '1' });
+          fb.querySelector('.fbnote').textContent =
+            `thank you — ${out.ratings} ${out.ratings === 1 ? 'rating' : 'ratings'} so far`;
+          loadList();
+        } catch (e) { fb.querySelector('.fbnote').textContent = 'could not record that'; }
+      }));
+    });
+    const fu = root.querySelector('.followup');
+    if (fu) fu.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = fu.querySelector('input').value.trim();
+      if (v) submit(v, fu.dataset.parent);
+    });
+  }
+
+  async function submit(question, parentId) {
+    const region = $('#answer-region'), box = $('#answer'), btn = $('#askbtn');
+    region.hidden = false;
+    box.innerHTML = '<p class="thinking">Reading the corpus…</p>';
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    btn.disabled = true;
+    $('#hint').textContent = '';
+    try {
+      const d = await post('/ask', { question, conversation, parentId });
+      conversation = d.conversation;
+      box.innerHTML = answerHtml(d);
+      wire(box);
+      loadList();
+    } catch (e) {
+      box.innerHTML = `<p class="err">Ask could not answer just now — ${esc(e.message)}.</p>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Deep link: /ask?q=<id> opens a cached answer directly. A public Q&A that cannot be linked is
+  // not really public — and it is what makes an answer citable in a conversation elsewhere.
+  async function openQa(id, push) {
+    const r = await fetch(ASK_API + '/qa/' + id);
+    if (!r.ok) return;
+    const d = await r.json();
+    $('#answer-region').hidden = false;
+    $('#answer').innerHTML = answerHtml(d);
+    wire($('#answer'));
+    if (push) history.replaceState(null, '', '/ask?q=' + encodeURIComponent(id));
+    return d;
+  }
+
+  async function loadList() {
+    try {
+      const r = await fetch(ASK_API + '/qa?limit=40');
+      const { items } = await r.json();
+      const ol = $('#qalist');
+      if (!items.length) {
+        ol.innerHTML = '<li class="empty">No questions answered yet. Ask the first one.</li>';
+        return;
+      }
+      ol.innerHTML = items.map((it) => {
+        const preview = it.answer.replace(/\[S\d+\]/g, '').replace(/\s+/g, ' ').slice(0, 190);
+        return `<li class="qa"><button class="qa-open" data-id="${esc(it.id)}">
+            <span class="qa-q">${esc(it.question)}</span>
+            ${signals(it)}
+            <span class="qa-p">${esc(preview)}…</span>
+          </button></li>`;
+      }).join('');
+      ol.querySelectorAll('.qa-open').forEach((b) => b.addEventListener('click', async () => {
+        await openQa(b.dataset.id, true);
+        $('#answer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }));
+    } catch (e) {
+      $('#qalist').innerHTML = '<li class="empty">Answered questions are unavailable right now.</li>';
+    }
+  }
+
+  $('#askform').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#q').value.trim();
+    if (v.length < 8) { $('#hint').textContent = 'a little more to go on, please'; return; }
+    conversation = null;  // a new top-level question starts a new conversation
+    submit(v, null);
+  });
+
+  loadList();
+
+  const deep = new URLSearchParams(location.search).get('q');
+  if (deep) openQa(deep, false);
+</script>
+
+<style is:global>
+  /* SCOPED BY HAND, NOT BY ASTRO — and this is the reason.
+     Astro's <style> is scoped by stamping a data-astro-cid-* attribute onto elements it can see in
+     the template. Everything interesting on this page — the answer, its source list, the Q&A rows —
+     is injected by JS at runtime, so Astro never sees it and never stamps it. The first build of
+     this page rendered every answer and every Q&A row with raw browser defaults. So the block is
+     `is:global` and every selector is namespaced under `.askpage`, which wraps this route and
+     nothing else. Same isolation, achieved where the elements actually are. */
+
+  /* Same register as /research: calm, dense, hairlines and space do the separating. */
+  .askpage .head { width: min(100% - 3rem, 60rem); margin: 0 auto;
+    padding-block: clamp(1.5rem, 1rem + 2vw, 2.75rem) 0; }
+  .askpage .kicker { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-soft); margin: 0; }
+  .askpage .head-h { font-family: var(--font-serif); font-size: clamp(1.7rem, 1.2rem + 1.9vw, 2.5rem);
+    font-weight: 400; letter-spacing: -0.02em; margin: 0.5rem 0 0.9rem; }
+  .askpage .head-p { max-width: 40rem; font-size: 0.98rem; line-height: 1.6; color: var(--ink);
+    margin: 0 0 0.7rem; }
+  .askpage .head-quiet { color: var(--ink-soft); font-size: 0.92rem; }
+
+  .askpage .askbox { margin: 1.5rem 0 0; max-width: 44rem; }
+  .askpage .askbox textarea { width: 100%; font: inherit; font-size: 1.02rem; line-height: 1.5;
+    color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule-strong);
+    border-radius: 2px; padding: 0.75rem 0.85rem; resize: vertical; min-height: 3.4rem; }
+  .askpage .askbox textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px;
+    border-color: var(--ink); }
+  .askpage .askrow { display: flex; align-items: center; gap: 0.9rem; margin-top: 0.6rem; }
+  .askpage .askbox button { font: inherit; font-size: 0.95rem; padding: 0.5rem 1.5rem; cursor: pointer;
+    background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 2px; }
+  .askpage .askbox button:hover { background: var(--ink-soft); border-color: var(--ink-soft); }
+  .askpage .askbox button:disabled { opacity: 0.5; cursor: default; }
+  .askpage .hint { font-size: 0.86rem; color: var(--ink-soft); }
+
+  .askpage .wrap { width: min(100% - 3rem, 60rem); margin: 0 auto;
+    padding-top: clamp(2rem, 1.4rem + 1.8vw, 3rem); }
+
+  .askpage .answer { border-top: 1px solid var(--ink); padding-top: 1.1rem; }
+  .askpage .a-q { font-family: var(--font-serif); font-size: 1.28rem; font-weight: 400; margin: 0 0 0.7rem;
+    letter-spacing: -0.01em; }
+  .askpage .a-body { max-width: 42rem; font-size: 1rem; line-height: 1.68; }
+  .askpage .a-body p { margin: 0 0 0.9rem; }
+  .askpage .a-body ul { margin: 0 0 0.9rem 1.1rem; padding: 0; }
+  .askpage .a-body li { margin: 0 0 0.35rem; }
+  .askpage .a-body code { font-family: var(--font-mono); font-size: 0.9em; background: var(--paper-raised);
+    padding: 0.05em 0.3em; border-radius: 2px; }
+  .askpage .cite { font-family: var(--font-mono); font-size: 0.62rem; color: var(--ink-soft);
+    padding-left: 0.12em; }
+  .askpage .cite + .cite { padding-left: 0.3em; }
+  .askpage .thinking, .askpage .err { color: var(--ink-soft); font-size: 0.95rem; }
+  .askpage .unsettled { border-left: 2px solid var(--rule-strong); padding-left: 0.8rem;
+    color: var(--ink-soft); font-size: 0.93rem; max-width: 40rem; }
+  .askpage .cachedmark { display: inline-block; font-size: 0.72rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: 0.6rem; }
+
+  .askpage .a-src { margin-top: 1.4rem; border-top: 1px solid var(--rule); padding-top: 0.9rem; }
+  .askpage .src-h { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft); margin: 0 0 0.5rem; font-weight: 500; }
+  .askpage .srcs { list-style: none; margin: 0 0 1rem; padding: 0; }
+  .askpage .srcs li { margin: 0 0 0.5rem; font-size: 0.93rem; line-height: 1.45; }
+  .askpage .srcs a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .askpage .srcs a:hover { border-bottom-color: var(--ink); }
+  .askpage .role { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-soft);
+    margin-left: 0.55rem; letter-spacing: 0.04em; }
+  .askpage .marks { margin-top: 0.15rem; }
+  .askpage .mark { display: block; font-style: normal; font-size: 0.8rem; color: var(--ink-soft); }
+
+  .askpage .fb { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.2rem;
+    font-size: 0.9rem; color: var(--ink-soft); }
+  .askpage .fbbtn { font: inherit; font-size: 0.88rem; cursor: pointer; background: transparent;
+    color: var(--ink); border: 1px solid var(--rule-strong); border-radius: 2px;
+    padding: 0.28rem 0.7rem; }
+  .askpage .fbbtn:hover:not(:disabled) { border-color: var(--ink); }
+  .askpage .fbbtn:disabled { opacity: 0.45; cursor: default; }
+  .askpage .fbnote { font-size: 0.86rem; }
+
+  .askpage .followup { display: flex; gap: 0.5rem; margin-top: 1rem; max-width: 44rem; }
+  .askpage .followup input { flex: 1; font: inherit; font-size: 0.95rem; padding: 0.45rem 0.6rem;
+    background: var(--paper-raised); border: 1px solid var(--rule-strong); border-radius: 2px;
+    color: var(--ink); }
+  .askpage .followup input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .askpage .followup button { font: inherit; font-size: 0.9rem; padding: 0.4rem 0.9rem; cursor: pointer;
+    background: transparent; color: var(--ink); border: 1px solid var(--rule-strong);
+    border-radius: 2px; }
+  .askpage .followup button:hover { border-color: var(--ink); }
+
+  .askpage .grp-head { border-bottom: 1px solid var(--ink); padding-bottom: 0.6rem; }
+  .askpage .grp-h { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; margin: 0; }
+  .askpage .grp-b { max-width: 40rem; font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft);
+    margin: 0.45rem 0 0; }
+
+  .askpage .qalist { list-style: none; margin: 0; padding: 0; }
+  .askpage .qa { border-bottom: 1px solid var(--rule); }
+  .askpage .qa-open { display: block; width: 100%; text-align: left; background: transparent; border: 0;
+    padding: 0.95rem 0; cursor: pointer; font: inherit; color: inherit; }
+  .askpage .qa-open:hover .qa-q { border-bottom-color: var(--ink); }
+  .askpage .qa-q { display: inline-block; font-size: 1rem; line-height: 1.4; color: var(--ink);
+    border-bottom: 1px solid transparent; }
+  .askpage .sig { display: block; margin: 0.3rem 0 0; font-size: 0.83rem; color: var(--ink-soft); }
+  .askpage .sig b { font-weight: 600; color: var(--ink); margin-left: 0.28rem; }
+  .askpage .stars { letter-spacing: 0.04em; }
+  .askpage .sig-none { font-style: italic; }
+  .askpage .dot { margin: 0 0.45rem; }
+  .askpage .qa-p { display: block; margin-top: 0.32rem; font-size: 0.9rem; line-height: 1.5;
+    color: var(--ink-soft); max-width: 44rem; }
+  .askpage .empty { padding: 1rem 0; color: var(--ink-soft); font-size: 0.93rem; }
+
+  .askpage .foot-note { width: min(100% - 3rem, 60rem); margin: 2.5rem auto 0; font-size: 0.86rem;
+    color: var(--ink-soft); max-width: 44rem; }
+
+  .askpage .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+</style>

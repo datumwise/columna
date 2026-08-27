@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-26.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -537,17 +537,58 @@ def main() -> int:
     # The registry's FIRST POST-PHASE-1 SUPERSESSION EVENT (Huayin, 2026-08-21). Pinned here rather
     # than trusted to the mint rule, because "latest deposit wins" is what PRODUCES this answer and an
     # acceptance test that re-derives its expectation from the rule under test asserts nothing.
+    # AG v2.0 (Huayin, 2026-08-26) supersedes the 2026-08-21 acceptance, which pinned v1.1 as
+    # current. Updated rather than deleted: the chain is the assertion, and it is now three records
+    # long. A gate that only ever pins the newest edition would stop testing that supersession
+    # PRESERVES what it supersedes, which is the property the registry exists to hold.
     ag = current_of("w-analytical-governance")
-    if not ag or ag["doi"] != "10.5281/zenodo.22046037" or ag["version"] != "1.1":
-        fail("G9", f"AG v1.1: the current Analytical Governance record must be v1.1 / 22046037; got "
+    if not ag or ag["doi"] != "10.5281/zenodo.22115819" or ag["version"] != "2.0":
+        fail("G9", f"AG v2.0: the current Analytical Governance record must be v2.0 / 22115819; got "
                    f"{ag and (ag['version'], ag['doi'])}")
     else:
         prev = by_record.get(ag.get("supersedes") or "")
-        if not prev or prev["doi"] != "10.5281/zenodo.21959749" or prev["version"] != "1.0":
-            fail("G9", "AG v1.1: v1.1 must supersede v1.0 (21959749) by recordId, not by DOI or by date")
+        if not prev or prev["doi"] != "10.5281/zenodo.22046037" or prev["version"] != "1.1":
+            fail("G9", "AG v2.0: v2.0 must supersede v1.1 (22046037) by recordId, not by DOI or by date")
         elif prev["status"] != "superseded":
-            fail("G9", "AG v1.1: v1.0 must remain a first-class historical record with status `superseded` — "
-                       "superseded is a status, not a deletion")
+            fail("G9", "AG v2.0: v1.1 must remain a first-class historical record with status "
+                       "`superseded` — superseded is a status, not a deletion")
+        else:
+            first = by_record.get(prev.get("supersedes") or "")
+            if not first or first["doi"] != "10.5281/zenodo.21959749" or first["version"] != "1.0":
+                fail("G9", "AG: the chain must reach v1.0 (21959749) through v1.1, by recordId")
+            elif first["status"] != "superseded":
+                fail("G9", "AG: v1.0 must remain a first-class historical record")
+
+    # The Ground for Certainty v1.1 (Huayin, 2026-08-26) supersedes The Theory of Certainty v1.0,
+    # which this block pinned as current earlier the same day. Updated rather than deleted, on the
+    # same reasoning as the AG chain above: the CHAIN is the assertion.
+    #
+    # THIS EDGE IS A SUPERSESSION AND A RENAME AT ONCE, and that is why it is asserted field by
+    # field rather than by DOI alone. The title moved; the work did not. So the gate pins BOTH
+    # deposited titles — r02's new one and r01's old one — because the failure this catches is not
+    # a missing record, it is a helpful hand tidying the superseded record's title to match the
+    # current one. That would erase the fact that AG v2.0's bibliography cited a real title.
+    gfc = current_of("w-theory-of-certainty")
+    if not gfc or gfc["doi"] != "10.5281/zenodo.22118479" or gfc["version"] != "1.1":
+        fail("G9", f"GfC v1.1: the current Certainty record must be v1.1 / 22118479; got "
+                   f"{gfc and (gfc['version'], gfc['doi'])}")
+    elif gfc["title"] != "The Ground for Certainty":
+        fail("G9", f"GfC v1.1: the current record's deposited title must be 'The Ground for "
+                   f"Certainty'; got {gfc['title']!r}")
+    else:
+        prev = by_record.get(gfc.get("supersedes") or "")
+        if not prev or prev["doi"] != "10.5281/zenodo.22114802" or prev["version"] != "1.0":
+            fail("G9", "GfC v1.1: v1.1 must supersede v1.0 (22114802) by recordId, not by DOI or by date")
+        elif prev["status"] != "superseded":
+            fail("G9", "GfC v1.1: v1.0 must remain a first-class historical record with status "
+                       "`superseded` — superseded is a status, not a deletion")
+        elif prev["title"] != "The Theory of Certainty":
+            fail("G9", f"GfC v1.1: the superseded record must KEEP its own deposited title, 'The "
+                       f"Theory of Certainty'. A record's title is what was published under that "
+                       f"DOI, and citations made to it while it was current must still resolve to "
+                       f"the words that were actually cited; got {prev['title']!r}")
+        elif prev.get("supersedes"):
+            fail("G9", f"GfC: a work's first record supersedes nothing; got {prev['supersedes']!r}")
 
     # ── THE PHASE 3B.1 RULINGS, ASSERTED (Huayin, 2026-08-21) ────────────────────────────────
     # Pinned here, not left to the mint rule, for the reason G9 exists at all: an acceptance test that

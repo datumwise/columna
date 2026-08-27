@@ -1,0 +1,236 @@
+{
+ "$comment": [
+  "ASK AUTHORITY — which sources Ask may use, and what each of them is entitled to establish.",
+  "",
+  "THIS FILE IS ASK'S, AND ONLY ASK'S. It was split out of registry/sources/current-corpus.json on",
+  "2026-08-26 because that file is read by apps/website/src/data/sources.ts to build the /research",
+  "page's REPRESENTATIVE list. One file was therefore governing two different questions at once:",
+  "what the website shows a reader, and what an agent may assert datumwise's position from. Those",
+  "are not the same question and must be allowed to diverge without either one silently moving the",
+  "other. /research and /framework are editorial and navigational; this is an authority manifest.",
+  "",
+  "SAME WORDS, DIFFERENT MEMBERSHIP (Huayin, 2026-08-26). A Framework page's Core/Reference lists",
+  "mean 'constitutes that framework' / 'useful material around it'. Ask's Core/Reference mean",
+  "'entitled to establish the current datumwise position' / 'usable but not independently",
+  "constitutive of it'. Heavy overlap is expected. Identity is not, and neither list governs the",
+  "other.",
+  "",
+  "THE THREE ENTITLEMENTS:",
+  "  CORE      — may establish 'datumwise holds ...'.",
+  "  REFERENCE — may explain, contextualise, develop, compare, or supply implementation detail.",
+  "              Does NOT independently establish the current datumwise position. This is not a",
+  "              statement about quality: several reference sources are the HIGHEST authority for",
+  "              the thing they actually establish. It is a statement about jurisdiction.",
+  "  EXTERNAL  — not in this file at all, because it is not datumwise material. Describes the",
+  "              outside world and supports comparison, context and criticism. Never establishes a",
+  "              datumwise position.",
+  "",
+  "CORE AND REFERENCE ARE GOVERNED SEPARATELY. Each carries its own ruledOn/ruledBy/history, so a",
+  "ruling that moves one does not implicitly re-ratify the other.",
+  "",
+  "SEEDED, NOT INVENTED: core[] and reference[] were taken verbatim from current-corpus.json's",
+  "`in` and `referenceOnly` as ruled by Huayin on 2026-08-25. This split changes ownership, not",
+  "membership. The first divergence between the two files will be a ruling, and it will be",
+  "recorded in the history block of whichever set moved."
+ ],
+ "core": {
+  "ruledOn": "2026-08-26",
+  "ruledBy": "Huayin",
+  "sourceIds": [
+   "s-theory-of-data",
+   "s-statistical-bridge",
+   "s-analytical-governance",
+   "s-missingness-has-a-universe",
+   "s-two-anchors",
+   "s-contract-calculus",
+   "s-where-does-probability-live",
+   "s-certifiable-state",
+   "s-regime-has-a-contract",
+   "s-conditioning-bar",
+   "s-data-has-its-own-ontology",
+   "s-tod-introduction",
+   "s-tod-primer",
+   "s-frameql-introduction",
+   "s-frameql-primer",
+   "s-statistical-bridge-primer",
+   "s-theory-of-certainty"
+  ],
+  "history": [
+   {
+    "on": "2026-08-25",
+    "by": "Huayin",
+    "what": "ruled the 16 sources that currently state and explain datumwise's position"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "membership carried into ask-authority.json unchanged; Ask authority separated from the /research editorial list"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "The Theory of Certainty v1.0 -> Core. Analytical Governance stays Core and moves to v2.0; its v1.1 edition leaves Core entirely and is ruled Reference/historical under a separate source identity, because one sourceId cannot be both current authority and preserved history"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "The Ground for Certainty v1.1 supersedes The Theory of Certainty v1.0 as the current foundational publication. s-theory-of-certainty stays Core and re-resolves to r02; the v1.0 edition leaves Core under its own source identity, s-theory-of-certainty-v1-0, Reference/historical -- the same ruling applied to AG v1.1 on this date, in the same shape. 'Theory of Certainty' remains valid terminology for the broader theoretical framework and is NOT renamed in conceptual prose; this is a publication-title and current-record change. CLARIFIED the same day: the rule is that the title must match the new paper WHEN CITING THE ARTICLE, and nowhere else -- 'not all Theory of Relativity are in books titled Theory of Relativity'. So canonicalLabel follows the deposited title because that is how the corpus cites the work; prose naming the theory, the discipline or the account does not move"
+   }
+  ]
+ },
+ "reference": {
+  "ruledOn": "2026-08-26",
+  "ruledBy": "Huayin",
+  "entries": [
+   {
+    "sourceId": "s-two-great-sources",
+    "jurisdiction": "position"
+   },
+   {
+    "sourceId": "s-never-let-your-agent",
+    "jurisdiction": "position"
+   },
+   {
+    "sourceId": "s-practice-needs-a-firmer-foundation",
+    "jurisdiction": "position"
+   },
+   {
+    "sourceId": "s-row-table-join",
+    "jurisdiction": "position"
+   },
+   {
+    "sourceId": "s-silent-failure-atlas",
+    "jurisdiction": "position"
+   },
+   {
+    "sourceId": "s-nine-model-study",
+    "jurisdiction": "study"
+   },
+   {
+    "sourceId": "s-frameql-manual",
+    "jurisdiction": "normative"
+   },
+   {
+    "sourceId": "s-shipped-grammar",
+    "jurisdiction": "normative"
+   },
+   {
+    "sourceId": "s-framework-manual",
+    "jurisdiction": "normative"
+   },
+   {
+    "sourceId": "s-reference-manual",
+    "jurisdiction": "normative"
+   },
+   {
+    "sourceId": "s-start-here",
+    "jurisdiction": "teaching"
+   },
+   {
+    "sourceId": "s-park-when-is-it-data",
+    "jurisdiction": "teaching"
+   },
+   {
+    "sourceId": "s-case",
+    "jurisdiction": "evidence"
+   },
+   {
+    "sourceId": "s-exhibit-b",
+    "jurisdiction": "evidence"
+   },
+   {
+    "sourceId": "s-explorer",
+    "jurisdiction": "evidence"
+   },
+   {
+    "sourceId": "s-known-issues",
+    "jurisdiction": "defects"
+   },
+   {
+    "sourceId": "s-multi-universe-processing",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-tod-foundations-note",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-silent-seam",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-tod-primer-applied",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-regression-has-an-anchor",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-tod-applied",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-reading-rethinking",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-reading-bayesian-workflow",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-contract-calculus-supplement",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-open-planner",
+    "jurisdiction": "prior-research"
+   },
+   {
+    "sourceId": "s-research-map-2026-08-03",
+    "jurisdiction": "historical"
+   },
+   {
+    "sourceId": "s-analytical-governance-v1-1",
+    "jurisdiction": "historical"
+   },
+   {
+    "sourceId": "s-theory-of-certainty-v1-0",
+    "jurisdiction": "historical"
+   }
+  ],
+  "history": [
+   {
+    "on": "2026-08-25",
+    "by": "Huayin",
+    "what": "ruled 27 reference sources and their jurisdictions"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "membership carried into ask-authority.json unchanged"
+   },
+   {
+    "on": "2026-08-26",
+    "by": "Huayin",
+    "what": "Analytical Governance v1.1 admitted as historical. Trust v0.6 deliberately NOT admitted, in any layer: it is developing work, and registering it at all would make the a1 and s1 hallucination traps assert something false"
+   }
+  ]
+ },
+ "out": [],
+ "jurisdictions": {
+  "$comment": [
+   "What each reference jurisdiction GOVERNS. This is the source-precedence constitution, and it",
+   "is deliberately not a linear hierarchy: different sources govern different questions.",
+   "Ask enters a reference jurisdiction when the question calls for it, and says which one."
+  ],
+  "position": "Stances datumwise holds, with their evidence. Explains and applies the research; does not enlarge it.",
+  "normative": "The shipped language and system, within their stated jurisdiction. Authoritative for what Columna actually does.",
+  "study": "Empirical findings datumwise produced. Governs what the study found, not what the theory holds.",
+  "evidence": "What the implementation demonstrably did, generated by running the shipped package.",
+  "defects": "Disclosed current defects. Governs what is presently broken or contained.",
+  "teaching": "Explains the governing research in plain language. Explains but does not enlarge it.",
+  "prior-research": "Earlier or adjacent research, applications and readings. Available when explicitly relevant.",
+  "historical": "Preserved prior states. Governs questions explicitly about what was said then."
+ }
+}

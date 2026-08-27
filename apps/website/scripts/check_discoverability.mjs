@@ -58,6 +58,15 @@ const PROTECTED = [
     linkedFrom: [['/', 'the global footer meta line — one durable link, unstyled and unalarmed']],
     inLlms: true,
   },
+  {
+    route: '/case',
+    why: 'Huayin 2026-08-25 ruled The Case out of the primary nav: three doors, Analytical Governance · Research · Columna. /case remains public as the evidence record and must stay strongly reachable through Columna. Before that change the header supplied two links on EVERY page, so most pages lost their only route to it — this row is what converts the ruling into a gate instead of a convention.',
+    linkedFrom: [
+      ['/columna', 'the ruled primary path — Columna already carried six editorial links to the record'],
+      ['/', 'the homepage must not lose its one editorial route to the evidence record'],
+    ],
+    inLlms: true,
+  },
 ];
 
 const failures = [];

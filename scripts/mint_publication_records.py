@@ -20,7 +20,10 @@ for versions not yet modeled, and recomputes `status` and `supersedes` in public
 
 IT PROPOSES CURRENCY; IT DOES NOT RATIFY IT. "Latest deposit is the current record" is a rule, not a
 law: an erratum, a withdrawn version, or a deposit made in the wrong order would each make it wrong.
-So every status change is PRINTED LOUDLY and lands as bytes in a diff, where a person approves it.
+So every status change is PRINTED LOUDLY and lands as bytes in a diff, where a person approves it. So
+is every bibliographic field that moves — a deposited title, date or DOI changing under a recid is
+either a correction made at the deposit or a harvest against the wrong record, and both deserve a
+line rather than a silent rewrite.
 The registry is machine-maintained and human-ratified, in that order.
 
 New works are NOT invented here. A concept the snapshot knows and works.json does not is reported and
@@ -42,7 +45,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-08-23.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-08-26.json"
 
 
 def main() -> int:
@@ -73,6 +76,16 @@ def main() -> int:
     out: list[dict] = []
     minted: list[str] = []
     changed: list[str] = []
+    # BIBLIOGRAPHIC DRIFT IS ALSO A REPORT, not only a diff (2026-08-26).
+    #
+    # This script refreshes title, version, date, doi, authors, licence and resourceType from the
+    # snapshot on every run, and until today it printed NOTHING when one of them moved — a run that
+    # rewrote a deposited title said "nothing to mint; registry already matches the snapshot". That
+    # sentence was false in the one register that matters: the registry did NOT match the snapshot,
+    # which is exactly what G5 asserts. Found while correcting the Analytical Governance v2.0 title
+    # after the deposit itself was corrected at Zenodo. Currency was printed loudly; a title
+    # correction, which changes what every derived surface renders, was silent.
+    fields: list[str] = []
 
     for w in sorted(works, key=lambda w: w["workId"]):
         concepts = [c["recid"] for c in w.get("attachedConcepts", [])]
@@ -120,6 +133,9 @@ def main() -> int:
             }
             if prev_id:
                 record["supersedes"] = prev_id
+            for f in ("title", "version", "date", "doi", "authors", "license", "resourceType"):
+                if prior and prior.get(f) != record[f]:
+                    fields.append(f"{record_id}.{f}: {prior.get(f)!r} -> {record[f]!r}")
             if prior and prior.get("status") != record["status"]:
                 changed.append(f"{record_id}: status {prior.get('status')} -> {record['status']}  "
                                f"(v{record['version']}, {record['doi']})")
@@ -133,12 +149,19 @@ def main() -> int:
 
     for line in minted:
         print(f"MINTED   {line}")
+    for line in fields:
+        print(f"FIELD    {line}")
     for line in changed:
         print(f"CURRENCY {line}")
+    if fields:
+        print("\n^ A BIBLIOGRAPHIC FIELD MOVED. The snapshot is the evidence and the registry is being\n"
+              "  brought to it — but a deposited title, date or DOI changing is either a correction at\n"
+              "  the deposit or a harvest against the wrong record. Read the snapshot diff before\n"
+              "  merging, the same way currency changes are read.")
     if changed:
         print("\n^ CURRENCY CHANGES ARE PROPOSALS. 'Latest deposit is current' is a rule, not a law —\n"
               "  an erratum or an out-of-order deposit breaks it. Read the diff before merging.")
-    if not minted and not changed:
+    if not minted and not changed and not fields:
         print("nothing to mint; registry already matches the snapshot")
 
     if not args.dry_run:

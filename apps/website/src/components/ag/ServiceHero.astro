@@ -1,0 +1,144 @@
+---
+/**
+ * ServiceHero — the first screen of the v2.0 doorway. PAPER register only.
+ *
+ * WHAT CHANGED FROM THE v1.1 HERO, AND WHY (CG2 final E rulings, 2026-08-26 15:59, items 3 and 7). v1.1 organised the
+ * category around CAN vs MAY. v2.0 organises it around the LEGITIMACY OF A SERVICE and demotes
+ * servability from the thesis to a gate inside it — "Service is the mission. Servability is a
+ * governing gate." So the old proposition ("What can be computed is not yet what may be served") is
+ * not merely reworded: it is no longer the organising claim. It returns in §The servability gap, in
+ * the record's own words, and the preserved v1.1 hero keeps it at
+ * /history/analytical-governance-v1-1.
+ *
+ * THE H1 IS RULED, AND THE WORD "CORRECT" IS DELIBERATELY ABSENT (Huayin, final E rulings,
+ * 2026-08-26 15:59, item 3, as refined at 16:04). An earlier draft read "A correct number can still
+ * fail the service." It was refused for a precise reason: a result can be completely correct under a
+ * NARROWLY DEFINED operation, query, derivation or analytical object, while in the wider sense "the
+ * correct answer" already includes whether it answers the right question under the required grounds.
+ * Calling the number correct and then saying it failed equivocates on the word. The ruled H1 uses the
+ * paper's own two terms instead, whose definitions are typed on this page:
+ *
+ *     Result — the product of the governed analytical process.
+ *     Answer — a result served as responsive to the request.
+ *
+ * THE CRITERION BAND is v2.0-grounded. The v1.1 aphorism "If it cannot refuse, it is not governed"
+ * is NOT inherited: v2.0 does not state it, and item 9 of the final E rulings forbids carrying retired material into
+ * current authority. What v2.0 does state is the §12 requirement (a servability gate capable of
+ * withholding or qualifying analytical permission) and the §5 line (refusal is evidence that
+ * analytical permission is real). Both are used, in that order.
+ *
+ * The signpost is REGISTRY-DERIVED. No version, date or DOI is typed on this page.
+ */
+import { citation, longDate } from '../../data/publications';
+
+const paper = citation('w-analytical-governance');
+---
+
+<section class="ag-hero ds ds-paper ds-section" id="service" aria-labelledby="ag-thesis">
+  <div class="ds-measure-wide">
+    <p class="ds-label">Analytical Governance</p>
+
+    <h1 id="ag-thesis" class="proposition">
+      Producing a result is not the same as serving an answer.
+    </h1>
+
+    <p class="organizing">
+      Analytical Governance is the discipline governing the <em>legitimacy of the analytical
+      service</em>: the user&rsquo;s purpose must survive the passage from expressed intent to an
+      answer, the result must be established under the analytical law and support that apply, and the
+      answer must carry no more authority than its grounds warrant.
+    </p>
+
+    <div class="criterion">
+      <p class="test-label">Conformance test</p>
+      <p class="test-line">
+        A conforming analytical service must be able to <strong>withhold or qualify analytical
+        permission</strong>. Refusal is not an error state; it is the evidence that the permission is
+        real.
+      </p>
+    </div>
+
+    <p class="signpost">
+      <a href={paper.href} rel="noopener" target="_blank">{paper.title}</a>
+      <span class="meta">Huayin Wang · Version {paper.version} · {longDate(paper.date)} · DOI {paper.doi}</span>
+      <span class="role">The category paper. This page is a doorway; the deposit governs.</span>
+    </p>
+  </div>
+</section>
+
+<style>
+  .ag-hero { padding-block: clamp(3.5rem, 2rem + 8vw, 7.5rem) var(--ds-turn); }
+
+  .proposition {
+    font-family: var(--font-serif);
+    font-size: var(--ds-hero);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+
+  .organizing {
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 54ch;
+    margin: var(--ds-space-3) 0 0;
+  }
+  .organizing em { font-style: italic; color: var(--ink); }
+
+  .criterion {
+    margin-top: var(--ds-space-5);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule-strong);
+  }
+  .test-label {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .test-line {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--ds-lead);
+    line-height: 1.4;
+    color: var(--ink-soft);
+    max-width: 58ch;
+  }
+  .test-line strong { color: var(--ink); font-weight: 600; }
+
+  .signpost {
+    margin: var(--ds-space-4) 0 0;
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-rule);
+    display: grid;
+    gap: 0.35rem;
+  }
+  .signpost a {
+    font-family: var(--font-serif);
+    font-size: var(--ds-body);
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ds-rule-strong);
+    padding-bottom: 2px;
+    justify-self: start;
+  }
+  .signpost a:hover { border-bottom-color: var(--ink); }
+  .signpost .meta,
+  .signpost .role {
+    font-family: var(--font-sans);
+    font-size: var(--ds-meta);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 46rem) {
+    .proposition { max-width: none; }
+    .test-line { max-width: none; }
+  }
+</style>

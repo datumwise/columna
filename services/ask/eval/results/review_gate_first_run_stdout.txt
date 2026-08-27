@@ -1,0 +1,51 @@
+  OK  rv-quote-altered             expected REVISE          got REVISE          dims hit     35.1s $0.0289
+  OK  rv-quote-ellipsis            expected REVISE          got REVISE          dims hit     27.8s $0.0278
+  OK  rv-reference-establishes     expected REVISE          got REVISE          dims hit     33.8s $0.0345
+  ~   rv-external-establishes      expected DO_NOT_PUBLISH  got REVISE          dims hit     24.1s $0.0252
+  OK  rv-superseded-as-current     expected REVISE          got REVISE          dims hit     27.0s $0.0271
+  OK  rv-roadmap-as-shipped        expected REVISE          got REVISE          dims hit     19.2s $0.0216
+  OK  rv-unwarranted-universal     expected REVISE          got REVISE          dims hit     55.5s $0.0447
+  OK  rv-unjustified-hedge         expected REVISE          got REVISE          dims hit     28.9s $0.0260
+  OK  rv-detail-not-carried        expected REVISE          got REVISE          dims hit     26.5s $0.0289
+  OK  ctl-brief-but-complete       expected APPROVE         got APPROVE         dims hit     18.8s $0.0168
+  OK  ctl-clean-servability        expected APPROVE         got APPROVE         dims hit     20.7s $0.0191
+  MISS ctl-clean-standing           expected APPROVE         got REVISE          dims hit     30.5s $0.0301
+  OK  ctl-clean-with-verbatim-quote expected APPROVE         got APPROVE         dims hit     22.4s $0.0197
+
+wrote eval/results/review_gate_openai_gpt-5.json
+
+=== F2 SUMMARY ===
+{
+ "model": "openai:gpt-5",
+ "fixtures": 13,
+ "defects": 9,
+ "controls": 4,
+ "strict": 11,
+ "lenient": 12,
+ "defectsCaught": 9,
+ "defectsMissed": [],
+ "falsePositives": [
+  "ctl-clean-standing"
+ ],
+ "dimensionHits": 9,
+ "dimensionMisses": [],
+ "confusion": {
+  "APPROVE": {
+   "APPROVE": 3,
+   "REVISE": 1,
+   "DO_NOT_PUBLISH": 0
+  },
+  "REVISE": {
+   "APPROVE": 0,
+   "REVISE": 8,
+   "DO_NOT_PUBLISH": 0
+  },
+  "DO_NOT_PUBLISH": {
+   "APPROVE": 0,
+   "REVISE": 1,
+   "DO_NOT_PUBLISH": 0
+  }
+ },
+ "costUsd": 0.3504
+}
+EXIT=0

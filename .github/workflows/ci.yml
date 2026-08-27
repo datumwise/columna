@@ -88,6 +88,18 @@ jobs:
         # a fixture, so it rides the job that already exists rather than getting one of its own.
         run: python scripts/check_publications.py --selftest --report
 
+      - name: Check current-corpus membership (fails closed on an unadjudicated source)
+        # Membership is EXHAUSTIVE by construction: every catalogued source must be ruled IN,
+        # REFERENCE ONLY or OUT. A new source fails the build until someone rules on it — the same
+        # discipline as G7's echo audit, applied to corpus standing instead of publication facts.
+        run: python scripts/check_corpus_membership.py
+
+      - name: Check the ingested deposit corpus (offline, no Zenodo dependency)
+        # Verifies the stored deposited texts still match their recorded checksums AND that each is
+        # pinned to the record the registry currently rules `current`. Offline on purpose: CI must
+        # not fail because Zenodo is having a bad afternoon.
+        run: python services/ask/ask/ingest_deposits.py --check
+
   # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
   # acceptance. Two legs, and the second one is the point:
   #

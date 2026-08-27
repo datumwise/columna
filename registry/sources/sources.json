@@ -1,315 +1,354 @@
 {
-  "$comment": "See registry/sources/README.md. Publication facts (title, version, date, DOI, currency) are NEVER stored here — they derive from registry/publications via workId/recordId.",
-  "sources": [
-    {
-      "sourceId": "s-silent-failure-atlas",
-      "role": "catalog",
-      "purpose": "The catalogue of silent analytical failure modes, graded.",
-      "route": "/atlas",
-      "workId": "w-silent-failure-atlas",
-      "recordId": "w-silent-failure-atlas.r01",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-silent-seam",
-      "role": "position",
-      "purpose": "The seam where a correct pipeline still produces an unlicensed claim.",
-      "route": "/why",
-      "workId": "w-silent-seam",
-      "recordId": "w-silent-seam.r01",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-two-anchors",
-      "role": "foundation",
-      "purpose": "Every measure carries two anchors; confusing them is how a rate goes wrong.",
-      "workId": "w-two-anchors"
-    },
-    {
-      "sourceId": "s-nine-model-study",
-      "role": "study",
-      "purpose": "A blind, nine-model cross-comparison of single-shot text-to-SQL.",
-      "workId": "w-nine-model-study"
-    },
-    {
-      "sourceId": "s-multi-universe-processing",
-      "role": "foundation",
-      "purpose": "Territories, frontiers, and the lawful passage of meaning between universes.",
-      "workId": "w-multi-universe-processing"
-    },
-    {
-      "sourceId": "s-two-great-sources",
-      "role": "position",
-      "purpose": "The structural sources of silent analytical failure.",
-      "route": "/positions/the-two-great-sources-of-silent-analytical-failure",
-      "workId": "w-two-great-sources",
-      "recordId": "w-two-great-sources.r01",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-open-planner",
-      "role": "program-note",
-      "purpose": "Certified analytical plans from untrusted searchers — a research program note.",
-      "workId": "w-open-planner"
-    },
-    {
-      "sourceId": "s-tod-foundations-note",
-      "role": "foundation",
-      "purpose": "A short note on what the foundation is doing and why it is stated this way.",
-      "workId": "w-tod-foundations-note"
-    },
-    {
-      "sourceId": "s-theory-of-data",
-      "role": "foundation",
-      "purpose": "The foundation, with the proofs: what an analytical object is, and when a number exists.",
-      "workId": "w-theory-of-data"
-    },
-    {
-      "sourceId": "s-contract-calculus",
-      "role": "foundation",
-      "purpose": "A calculus for transformations that must preserve governed meaning.",
-      "workId": "w-contract-calculus"
-    },
-    {
-      "sourceId": "s-contract-calculus-supplement",
-      "role": "supplement",
-      "purpose": "The technical supplements the Contract Calculus refers out to.",
-      "workId": "w-contract-calculus-supplement"
-    },
-    {
-      "sourceId": "s-missingness-has-a-universe",
-      "role": "foundation",
-      "purpose": "Why absence is not one thing, and where each kind of absence lives.",
-      "workId": "w-missingness-has-a-universe"
-    },
-    {
-      "sourceId": "s-frameql-introduction",
-      "role": "introduction",
-      "purpose": "Frame-QL as a conceptual account — the fuller on-ramp.",
-      "route": "/learn/frameql-an-introduction",
-      "workId": "w-frameql-introduction",
-      "recordId": "w-frameql-introduction.r07",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-tod-introduction",
-      "role": "introduction",
-      "purpose": "The Theory of Data as a conceptual account, without the proofs.",
-      "route": "/learn/what-is-the-theory-of-data",
-      "workId": "w-tod-introduction",
-      "recordId": "w-tod-introduction.r05",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-practice-needs-a-firmer-foundation",
-      "role": "position",
-      "purpose": "Why analytical practice needs a theory under it, not more tooling.",
-      "route": "/positions/practice-needs-a-theory",
-      "workId": "w-practice-needs-a-firmer-foundation",
-      "recordId": "w-practice-needs-a-firmer-foundation.r02",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-row-table-join",
-      "role": "position",
-      "purpose": "Rows, tables and joins are not the foundations of analytical meaning.",
-      "route": "/positions/row-table-join-no-longer-primitives",
-      "workId": "w-row-table-join",
-      "recordId": "w-row-table-join.r02",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-never-let-your-agent",
-      "role": "position",
-      "purpose": "Why the model should never hold your database credentials, and what to put between them.",
-      "route": "/positions/never-let-your-agent-touch-the-database",
-      "workId": "w-never-let-your-agent",
-      "recordId": "w-never-let-your-agent.r02",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-regression-has-an-anchor",
-      "role": "applied",
-      "purpose": "Regression, given an anchor — the theory applied to the most familiar tool.",
-      "workId": "w-regression-has-an-anchor"
-    },
-    {
-      "sourceId": "s-statistical-bridge",
-      "role": "foundation",
-      "purpose": "How statistical claims are licensed — the passage from evidence to inference to claim.",
-      "workId": "w-statistical-bridge"
-    },
-    {
-      "sourceId": "s-regime-has-a-contract",
-      "role": "foundation",
-      "purpose": "What a regime commits to, stated as a contract.",
-      "workId": "w-regime-has-a-contract"
-    },
-    {
-      "sourceId": "s-tod-primer",
-      "role": "primer",
-      "purpose": "The Theory of Data vocabulary, carefully, in dependency order.",
-      "workId": "w-tod-primer"
-    },
-    {
-      "sourceId": "s-reading-rethinking",
-      "role": "reading",
-      "purpose": "Statistical Rethinking, read through the Bridge.",
-      "workId": "w-reading-rethinking"
-    },
-    {
-      "sourceId": "s-statistical-bridge-primer",
-      "role": "primer",
-      "purpose": "The Bridge vocabulary, carefully, in dependency order.",
-      "workId": "w-statistical-bridge-primer"
-    },
-    {
-      "sourceId": "s-frameql-primer",
-      "role": "primer",
-      "purpose": "The shortest Frame-QL on-ramp. Not the normative reference.",
-      "route": "/learn/frameql-primer",
-      "workId": "w-frameql-primer",
-      "recordId": "w-frameql-primer.r05",
-      "editionPinned": true
-    },
-    {
-      "sourceId": "s-analytical-governance",
-      "role": "foundation",
-      "purpose": "From a human question to an answer entitled to be served, and where the entitlement stops.",
-      "workId": "w-analytical-governance"
-    },
-    {
-      "sourceId": "s-tod-applied",
-      "role": "applied",
-      "purpose": "The theory put to work on ordinary analytical problems.",
-      "workId": "w-tod-applied"
-    },
-    {
-      "sourceId": "s-tod-primer-applied",
-      "role": "primer",
-      "purpose": "The applied vocabulary, in dependency order.",
-      "workId": "w-tod-primer-applied"
-    },
-    {
-      "sourceId": "s-certifiable-state",
-      "role": "foundation",
-      "purpose": "What can still be certified once information has been lost.",
-      "workId": "w-certifiable-state"
-    },
-    {
-      "sourceId": "s-where-does-probability-live",
-      "role": "foundation",
-      "purpose": "Where in an analytical world a probability is entitled to sit.",
-      "workId": "w-where-does-probability-live"
-    },
-    {
-      "sourceId": "s-reading-bayesian-workflow",
-      "role": "reading",
-      "purpose": "Bayesian Workflow, read through the Bridge.",
-      "workId": "w-reading-bayesian-workflow"
-    },
-    {
-      "sourceId": "s-data-has-its-own-ontology",
-      "role": "position",
-      "purpose": "Data is not a representation of something else. It has its own ontology.",
-      "workId": "w-data-has-its-own-ontology"
-    },
-    {
-      "sourceId": "s-conditioning-bar",
-      "role": "foundation",
-      "purpose": "The two jobs the conditioning bar is quietly doing at once.",
-      "workId": "w-conditioning-bar"
-    },
-    {
-      "sourceId": "s-frameql-manual",
-      "role": "normative-reference",
-      "title": "The Frame-QL Manual (Second Edition)",
-      "purpose": "Authoritative for shipped Frame-QL semantics and behaviour. The language as it actually runs.",
-      "route": "/docs/frameql",
-      "gates": [
-        "currency-stamp"
-      ]
-    },
-    {
-      "sourceId": "s-shipped-grammar",
-      "role": "generated-reference",
-      "title": "The shipped grammar",
-      "purpose": "What the parser actually accepts, generated from columna-core so it cannot drift from what ships.",
-      "route": "/docs/grammar",
-      "generatedBy": "scripts/gen_grammar.py"
-    },
-    {
-      "sourceId": "s-framework-manual",
-      "role": "normative-reference",
-      "title": "The Columna framework manual",
-      "purpose": "The framework manual: the Manifold, its declarations, and how a governed world is written.",
-      "route": "/docs/framework"
-    },
-    {
-      "sourceId": "s-reference-manual",
-      "role": "normative-reference",
-      "title": "The Columna reference manual",
-      "purpose": "A distinct manual — the object model, the definition language, the Certificate layer.",
-      "route": "/docs/reference"
-    },
-    {
-      "sourceId": "s-exhibit-b",
-      "role": "machine-evidence",
-      "title": "Exhibit B — four requests, four earned verdicts",
-      "purpose": "Four different requests, four earned verdicts, re-adjudicated when the page renders.",
-      "route": "/the-argument#exhibit-b",
-      "generatedBy": "scripts/gen_transcript.py",
-      "gates": [
-        "build-adjudicated"
-      ]
-    },
-    {
-      "sourceId": "s-case",
-      "role": "machine-evidence",
-      "title": "The Case — Cascadia Retail",
-      "purpose": "The full evidence record: a realistic warehouse, its Manifold, and recorded agent transcripts.",
-      "route": "/case",
-      "generatedBy": "scripts/gen_case.py + scripts/gen_firstlight.py",
-      "gates": [
-        "build-adjudicated"
-      ]
-    },
-    {
-      "sourceId": "s-explorer",
-      "role": "machine-evidence",
-      "title": "The Manifold Explorer",
-      "purpose": "The demo Manifold, browsable — every declared object as the shipped package describes it.",
-      "route": "/explorer",
-      "generatedBy": "scripts/gen_transcript.py"
-    },
-    {
-      "sourceId": "s-start-here",
-      "role": "teaching",
-      "title": "The Theory of Data in One Afternoon",
-      "purpose": "The whole idea in one sitting, from a cold start. A teaching artifact, not a deposited publication.",
-      "route": "/start-here"
-    },
-    {
-      "sourceId": "s-park-when-is-it-data",
-      "role": "teaching",
-      "title": "When is it data?",
-      "purpose": "A four-minute walk from a bare number to a complete analytical name. Not a publication.",
-      "route": "/park/when-is-it-data"
-    },
-    {
-      "sourceId": "s-known-issues",
-      "role": "negative-record",
-      "title": "Known issues",
-      "purpose": "Confirmed defects and active investigations that materially affect reproducibility, a correctness claim, or an exhibit.",
-      "route": "/known-issues"
-    },
-    {
-      "sourceId": "s-research-map-2026-08-03",
-      "role": "historical-record",
-      "title": "The research map, 3 August 2026",
-      "purpose": "The research corpus map as it was written on 3 August 2026. Preserved, not maintained.",
-      "route": "/history/research-map-2026-08-03",
-      "preservedState": "2026-08-03"
-    }
-  ]
+ "$comment": "See registry/sources/README.md. Publication facts (title, version, date, DOI, currency) are NEVER stored here — they derive from registry/publications via workId/recordId.",
+ "sources": [
+  {
+   "sourceId": "s-theory-of-certainty",
+   "role": "foundation",
+   "purpose": "What grounds carry a conclusion, what they establish, where their warrant stops, and whether they can bear the reliance placed on them.",
+   "workId": "w-theory-of-certainty",
+   "readingRoute": "/read/theory-of-certainty"
+  },
+  {
+   "sourceId": "s-theory-of-certainty-v1-0",
+   "role": "historical-record",
+   "title": "The Theory of Certainty v1.0, 26 August 2026",
+   "purpose": "The v1.0 edition, deposited as 'The Theory of Certainty: Grounds for Analytical and Operational Reliance' and superseded the same day by 'The Ground for Certainty' v1.1. The substantive framework is carried forward unchanged; what changed is the publication's title. Kept so that citations made to v1.0 while it was current, and questions explicitly about what v1.0 said, resolve to the record whose words were actually cited. It is not current authority and may not establish datumwise's current position.",
+   "workId": "w-theory-of-certainty",
+   "recordId": "w-theory-of-certainty.r01",
+   "preservedState": "2026-08-26"
+  },
+  {
+   "sourceId": "s-analytical-governance-v1-1",
+   "role": "historical-record",
+   "title": "Analytical Governance v1.1, 21 August 2026",
+   "purpose": "The v1.1 edition of Analytical Governance, superseded by v2.0 on 26 August 2026, and the doorway page that compressed it, preserved at its own address. Kept so the development of the framework stays answerable; it is not current authority and may not establish datumwise's current position.",
+   "workId": "w-analytical-governance",
+   "recordId": "w-analytical-governance.r02",
+   "preservedState": "2026-08-21",
+   "route": "/history/analytical-governance-v1-1"
+  },
+  {
+   "sourceId": "s-silent-failure-atlas",
+   "role": "catalog",
+   "purpose": "The catalogue of silent analytical failure modes, graded.",
+   "route": "/atlas",
+   "workId": "w-silent-failure-atlas",
+   "recordId": "w-silent-failure-atlas.r01",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-silent-seam",
+   "role": "position",
+   "purpose": "The seam where a correct pipeline still produces an unlicensed claim.",
+   "route": "/why",
+   "workId": "w-silent-seam",
+   "recordId": "w-silent-seam.r01",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-two-anchors",
+   "role": "foundation",
+   "purpose": "Every measure carries two anchors; confusing them is how a rate goes wrong.",
+   "workId": "w-two-anchors",
+   "readingRoute": "/read/two-anchors"
+  },
+  {
+   "sourceId": "s-nine-model-study",
+   "role": "study",
+   "purpose": "A blind, nine-model cross-comparison of single-shot text-to-SQL.",
+   "workId": "w-nine-model-study"
+  },
+  {
+   "sourceId": "s-multi-universe-processing",
+   "role": "foundation",
+   "purpose": "Territories, frontiers, and the lawful passage of meaning between universes.",
+   "workId": "w-multi-universe-processing"
+  },
+  {
+   "sourceId": "s-two-great-sources",
+   "role": "position",
+   "purpose": "The structural sources of silent analytical failure.",
+   "route": "/positions/the-two-great-sources-of-silent-analytical-failure",
+   "workId": "w-two-great-sources",
+   "recordId": "w-two-great-sources.r01",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-open-planner",
+   "role": "program-note",
+   "purpose": "Certified analytical plans from untrusted searchers — a research program note.",
+   "workId": "w-open-planner"
+  },
+  {
+   "sourceId": "s-tod-foundations-note",
+   "role": "foundation",
+   "purpose": "A short note on what the foundation is doing and why it is stated this way.",
+   "workId": "w-tod-foundations-note"
+  },
+  {
+   "sourceId": "s-theory-of-data",
+   "role": "foundation",
+   "purpose": "The foundation, with the proofs: what an analytical object is, and when a number exists.",
+   "workId": "w-theory-of-data",
+   "readingRoute": "/read/theory-of-data"
+  },
+  {
+   "sourceId": "s-contract-calculus",
+   "role": "foundation",
+   "purpose": "A calculus for transformations that must preserve governed meaning.",
+   "workId": "w-contract-calculus",
+   "readingRoute": "/read/contract-calculus"
+  },
+  {
+   "sourceId": "s-contract-calculus-supplement",
+   "role": "supplement",
+   "purpose": "The technical supplements the Contract Calculus refers out to.",
+   "workId": "w-contract-calculus-supplement"
+  },
+  {
+   "sourceId": "s-missingness-has-a-universe",
+   "role": "foundation",
+   "purpose": "Why absence is not one thing, and where each kind of absence lives.",
+   "workId": "w-missingness-has-a-universe",
+   "readingRoute": "/read/missingness-has-a-universe"
+  },
+  {
+   "sourceId": "s-frameql-introduction",
+   "role": "introduction",
+   "purpose": "Frame-QL as a conceptual account — the fuller on-ramp.",
+   "route": "/learn/frameql-an-introduction",
+   "workId": "w-frameql-introduction",
+   "recordId": "w-frameql-introduction.r07",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-tod-introduction",
+   "role": "introduction",
+   "purpose": "The Theory of Data as a conceptual account, without the proofs.",
+   "route": "/learn/what-is-the-theory-of-data",
+   "workId": "w-tod-introduction",
+   "recordId": "w-tod-introduction.r05",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-practice-needs-a-firmer-foundation",
+   "role": "position",
+   "purpose": "Why analytical practice needs a theory under it, not more tooling.",
+   "route": "/positions/practice-needs-a-theory",
+   "workId": "w-practice-needs-a-firmer-foundation",
+   "recordId": "w-practice-needs-a-firmer-foundation.r02",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-row-table-join",
+   "role": "position",
+   "purpose": "Rows, tables and joins are not the foundations of analytical meaning.",
+   "route": "/positions/row-table-join-no-longer-primitives",
+   "workId": "w-row-table-join",
+   "recordId": "w-row-table-join.r02",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-never-let-your-agent",
+   "role": "position",
+   "purpose": "Why the model should never hold your database credentials, and what to put between them.",
+   "route": "/positions/never-let-your-agent-touch-the-database",
+   "workId": "w-never-let-your-agent",
+   "recordId": "w-never-let-your-agent.r02",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-regression-has-an-anchor",
+   "role": "applied",
+   "purpose": "Regression, given an anchor — the theory applied to the most familiar tool.",
+   "workId": "w-regression-has-an-anchor"
+  },
+  {
+   "sourceId": "s-statistical-bridge",
+   "role": "foundation",
+   "purpose": "How statistical claims are licensed — the passage from evidence to inference to claim.",
+   "workId": "w-statistical-bridge",
+   "readingRoute": "/read/statistical-bridge"
+  },
+  {
+   "sourceId": "s-regime-has-a-contract",
+   "role": "foundation",
+   "purpose": "What a regime commits to, stated as a contract.",
+   "workId": "w-regime-has-a-contract",
+   "readingRoute": "/read/regime-has-a-contract"
+  },
+  {
+   "sourceId": "s-tod-primer",
+   "role": "primer",
+   "purpose": "The Theory of Data vocabulary, carefully, in dependency order.",
+   "workId": "w-tod-primer",
+   "readingRoute": "/read/tod-primer"
+  },
+  {
+   "sourceId": "s-reading-rethinking",
+   "role": "reading",
+   "purpose": "Statistical Rethinking, read through the Bridge.",
+   "workId": "w-reading-rethinking"
+  },
+  {
+   "sourceId": "s-statistical-bridge-primer",
+   "role": "primer",
+   "purpose": "The Bridge vocabulary, carefully, in dependency order.",
+   "workId": "w-statistical-bridge-primer",
+   "readingRoute": "/read/statistical-bridge-primer"
+  },
+  {
+   "sourceId": "s-frameql-primer",
+   "role": "primer",
+   "purpose": "The shortest Frame-QL on-ramp. Not the normative reference.",
+   "route": "/learn/frameql-primer",
+   "workId": "w-frameql-primer",
+   "recordId": "w-frameql-primer.r05",
+   "editionPinned": true
+  },
+  {
+   "sourceId": "s-analytical-governance",
+   "role": "foundation",
+   "purpose": "From a human question to an answer entitled to be served, and where the entitlement stops.",
+   "workId": "w-analytical-governance",
+   "readingRoute": "/read/analytical-governance"
+  },
+  {
+   "sourceId": "s-tod-applied",
+   "role": "applied",
+   "purpose": "The theory put to work on ordinary analytical problems.",
+   "workId": "w-tod-applied"
+  },
+  {
+   "sourceId": "s-tod-primer-applied",
+   "role": "primer",
+   "purpose": "The applied vocabulary, in dependency order.",
+   "workId": "w-tod-primer-applied"
+  },
+  {
+   "sourceId": "s-certifiable-state",
+   "role": "foundation",
+   "purpose": "What can still be certified once information has been lost.",
+   "workId": "w-certifiable-state",
+   "readingRoute": "/read/certifiable-state"
+  },
+  {
+   "sourceId": "s-where-does-probability-live",
+   "role": "foundation",
+   "purpose": "Where in an analytical world a probability is entitled to sit.",
+   "workId": "w-where-does-probability-live",
+   "readingRoute": "/read/where-does-probability-live"
+  },
+  {
+   "sourceId": "s-reading-bayesian-workflow",
+   "role": "reading",
+   "purpose": "Bayesian Workflow, read through the Bridge.",
+   "workId": "w-reading-bayesian-workflow"
+  },
+  {
+   "sourceId": "s-data-has-its-own-ontology",
+   "role": "position",
+   "purpose": "Data is not a representation of something else. It has its own ontology.",
+   "workId": "w-data-has-its-own-ontology",
+   "readingRoute": "/read/data-has-its-own-ontology"
+  },
+  {
+   "sourceId": "s-conditioning-bar",
+   "role": "foundation",
+   "purpose": "The two jobs the conditioning bar is quietly doing at once.",
+   "workId": "w-conditioning-bar",
+   "readingRoute": "/read/conditioning-bar"
+  },
+  {
+   "sourceId": "s-frameql-manual",
+   "role": "normative-reference",
+   "title": "The Frame-QL Manual (Second Edition)",
+   "purpose": "Authoritative for shipped Frame-QL semantics and behaviour. The language as it actually runs.",
+   "route": "/docs/frameql",
+   "gates": [
+    "currency-stamp"
+   ]
+  },
+  {
+   "sourceId": "s-shipped-grammar",
+   "role": "generated-reference",
+   "title": "The shipped grammar",
+   "purpose": "What the parser actually accepts, generated from columna-core so it cannot drift from what ships.",
+   "route": "/docs/grammar",
+   "generatedBy": "scripts/gen_grammar.py"
+  },
+  {
+   "sourceId": "s-framework-manual",
+   "role": "normative-reference",
+   "title": "The Columna framework manual",
+   "purpose": "The framework manual: the Manifold, its declarations, and how a governed world is written.",
+   "route": "/docs/framework"
+  },
+  {
+   "sourceId": "s-reference-manual",
+   "role": "normative-reference",
+   "title": "The Columna reference manual",
+   "purpose": "A distinct manual — the object model, the definition language, the Certificate layer.",
+   "route": "/docs/reference"
+  },
+  {
+   "sourceId": "s-exhibit-b",
+   "role": "machine-evidence",
+   "title": "Exhibit B — four requests, four earned verdicts",
+   "purpose": "Four different requests, four earned verdicts, re-adjudicated when the page renders.",
+   "route": "/the-argument#exhibit-b",
+   "generatedBy": "scripts/gen_transcript.py",
+   "gates": [
+    "build-adjudicated"
+   ]
+  },
+  {
+   "sourceId": "s-case",
+   "role": "machine-evidence",
+   "title": "The Case — Cascadia Retail",
+   "purpose": "The full evidence record: a realistic warehouse, its Manifold, and recorded agent transcripts.",
+   "route": "/case",
+   "generatedBy": "scripts/gen_case.py + scripts/gen_firstlight.py",
+   "gates": [
+    "build-adjudicated"
+   ]
+  },
+  {
+   "sourceId": "s-explorer",
+   "role": "machine-evidence",
+   "title": "The Manifold Explorer",
+   "purpose": "The demo Manifold, browsable — every declared object as the shipped package describes it.",
+   "route": "/explorer",
+   "generatedBy": "scripts/gen_transcript.py"
+  },
+  {
+   "sourceId": "s-start-here",
+   "role": "teaching",
+   "title": "The Theory of Data in One Afternoon",
+   "purpose": "The whole idea in one sitting, from a cold start. A teaching artifact, not a deposited publication.",
+   "route": "/start-here"
+  },
+  {
+   "sourceId": "s-park-when-is-it-data",
+   "role": "teaching",
+   "title": "When is it data?",
+   "purpose": "A four-minute walk from a bare number to a complete analytical name. Not a publication.",
+   "route": "/park/when-is-it-data"
+  },
+  {
+   "sourceId": "s-known-issues",
+   "role": "negative-record",
+   "title": "Known issues",
+   "purpose": "Confirmed defects and active investigations that materially affect reproducibility, a correctness claim, or an exhibit.",
+   "route": "/known-issues"
+  },
+  {
+   "sourceId": "s-research-map-2026-08-03",
+   "role": "historical-record",
+   "title": "The research map, 3 August 2026",
+   "purpose": "The research corpus map as it was written on 3 August 2026. Preserved, not maintained.",
+   "route": "/history/research-map-2026-08-03",
+   "preservedState": "2026-08-03"
+  }
+ ]
 }

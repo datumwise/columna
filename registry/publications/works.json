@@ -273,7 +273,7 @@
  },
  {
   "workId": "w-analytical-governance",
-  "canonicalLabel": "Analytical Governance: From User Intent to Governed Analytical Execution",
+  "canonicalLabel": "Analytical Governance",
   "kind": "unclassified",
   "attachedConcepts": [
    {
@@ -356,6 +356,17 @@
    {
     "recid": "22010142",
     "doi": "10.5281/zenodo.22010142"
+   }
+  ]
+ },
+ {
+  "workId": "w-theory-of-certainty",
+  "canonicalLabel": "The Ground for Certainty",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "22114801",
+    "doi": "10.5281/zenodo.22114801"
    }
   ]
  }

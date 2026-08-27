@@ -1,0 +1,232 @@
+---
+/**
+ * /read/<slug> — THE PUBLICATION OF RECORD, READABLE HERE.
+ *
+ * WHY THIS EXISTS (Huayin, ruling 7 of 2026-08-27). Fourteen of the seventeen Core works — the
+ * works through which datumwise currently states its position — had no onsite reading route.
+ * /research said "deposit only — not readable here" fourteen times, and a reader following a
+ * foundational question to its source had to leave the domain to read it.
+ *
+ * And the text was already here. services/ask/deposits/ holds those works as markdown, fetched from
+ * the record the registry rules CURRENT and md5-verified against Zenodo's own checksum before they
+ * entered the tree. They were ingested so an AGENT could read the corpus. A machine could quote The
+ * Theory of Data on this property and a person could not.
+ *
+ * ONE ROUTE, N WORKS, ZERO BESPOKE PAGES. The ruling asked for a lightweight surface and explicitly
+ * not for fourteen framework pages, so nothing here is per-work: every page is this file plus a
+ * manifest row plus a registry record.
+ *
+ * THE CROSSING IS THE POINT (ruling 7: "a reader should know clearly when they have crossed from
+ * editorial discussion into the publication of record"). This site already changes register at the
+ * moment it stops asserting and starts showing — paper to wire, on the homepage. The same move is
+ * made here one level up: ONE typed block carries the adjudicable facts, and everything after it is
+ * the deposited text, unedited. Editorial voice stops at that block. The boundary is visible rather
+ * than stated.
+ *
+ * NOT A REPLACEMENT FOR THE RECORD. Every page links the Zenodo record. The source of record is
+ * never replaced here, only reached.
+ *
+ * READ FROM DISK AT BUILD, NOT IMPORTED. The deposits are deliberately NOT put through Astro's
+ * markdown import: that pipeline resolves relative asset URLs, and the Contract Calculus deposit
+ * references three figures that live in its PDF and not in this repo — which failed the build the
+ * first time it was tried. Reading the bytes and rendering them explicitly also lets this page
+ * compute the sha256 it displays, so the byte-fidelity claim is made from the bytes being shown
+ * rather than copied from a manifest.
+ *
+ * NO PUBLICATION FACT IS TYPED HERE. Title, version, date, DOI and standing are read from
+ * registry/publications at build. The existing /learn/ hosted editions each carry
+ * `const DOI = '10.5281/…'` as a literal; that pattern is not repeated.
+ */
+// Only what the TEMPLATE needs is imported at module scope. Everything getStaticPaths uses — node
+// builtins, the markdown processor, the manifest, the source catalog — is imported INSIDE it, so
+// none of it is pulled into the client-facing module graph.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { longDate } from '../../data/publications';
+
+export async function getStaticPaths() {
+  const fsx = (await import('node:fs')).default;
+  const pathx = (await import('node:path')).default;
+  const cryptox = (await import('node:crypto')).default;
+  const { createMarkdownProcessor: mk } = await import('@astrojs/markdown-remark');
+  const { currentRecord: cur, work: wk, doiUrl: dURL } =
+    await import('../../data/publications');
+  const mf = (await import('../../../../../services/ask/deposits/manifest.json')).default as any;
+  const srcJson = (await import('../../../../../registry/sources/sources.json')).default as any;
+  const dir = pathx.resolve(process.cwd(), '../../services/ask/deposits');
+  const proc = await mk({});
+  const byId: Record<string, any> = {};
+  for (const s of srcJson.sources) byId[s.sourceId] = s;
+
+  const out = [];
+  for (const d of mf.deposits) {
+    const src = byId[d.sourceId];
+    // PRESERVED EDITIONS ARE OUT OF SCOPE for this surface. A preserved edition needs its own
+    // "not current" chrome, and AG v1.1 already has a preserved DOORWAY page that is a different
+    // object from its paper. Deliberately a follow-on, not a silent inclusion.
+    if (!src || src.role === 'historical-record') continue;
+    // A work the site already hosts as an authored surface is not re-hosted here.
+    if (src.route) continue;
+
+    const record = cur(d.workId);
+    // The manifest is pinned to the record the registry rules current; if they ever disagree, the
+    // page must not quietly render the wrong edition.
+    if (record.recordId !== d.recordId) {
+      throw new Error(
+        `/read: ${d.sourceId} is ingested at ${d.recordId} but the registry rules ` +
+        `${record.recordId} current. Re-run ask/ingest_deposits before building.`
+      );
+    }
+
+    const raw = fsx.readFileSync(pathx.join(dir, d.file), 'utf8');
+    const sha256 = cryptox.createHash('sha256').update(fsx.readFileSync(pathx.join(dir, d.file))).digest('hex');
+    if (sha256 !== d.sha256) {
+      throw new Error(`/read: ${d.file} does not match the sha256 recorded in the deposit manifest.`);
+    }
+
+    // Strip the YAML front matter — it is pandoc build instructions (papersize, fontsize, LaTeX
+    // header-includes), not the author's prose. Everything after it is rendered untouched.
+    const body = raw.replace(/^---\n[\s\S]*?\n---\n/, '');
+    // Figures live in the deposited PDF and are not in this repository. They are REMOVED and
+    // COUNTED rather than left to render as broken images: a reading surface that silently drops
+    // part of a publication is worse than one that says what it does not carry.
+    const figures = (body.match(/!\[[^\]]*\]\([^)]*\)/g) || []).length;
+    const rendered = await proc.render(body.replace(/!\[[^\]]*\]\([^)]*\)\s*/g, ''));
+
+    out.push({
+      params: { slug: d.sourceId.replace(/^s-/, '') },
+      props: {
+        html: rendered.code,
+        label: wk(d.workId).canonicalLabel,
+        purpose: src.purpose ?? '',
+        title: record.title,
+        version: record.version,
+        date: record.date,
+        doi: record.doi,
+        doiHref: dURL(record),
+        recordId: record.recordId,
+        provenance: d.provenance,
+        bytes: d.bytes,
+        sha256,
+        figures,
+        words: body.split(/\s+/).filter(Boolean).length,
+      },
+    });
+  }
+  return out;
+}
+
+const p = Astro.props as any;
+const verified = p.provenance === 'zenodo';
+---
+
+<BaseLayout
+  title={`${p.title} — datumwise`}
+  description={`${p.title}, version ${p.version} — the deposited publication of record, read here.`}
+  wide={false}
+  chip={false}
+>
+  <article class="read">
+    <p class="kicker"><a href="/research">Research</a> · publication of record</p>
+
+    {/* THE CROSSING. One typed block, in the site's adjudicable register: everything a reader needs
+        to know about WHAT they are about to read and how faithfully it is reproduced. Editorial
+        voice ends here. */}
+    <section class="crossing" aria-labelledby="crossing-h">
+      <h2 id="crossing-h" class="crossing-h">You are reading the publication</h2>
+      <p class="crossing-lede">
+        Everything below this block is the deposited text of <strong>{p.title}</strong>, reproduced
+        here in full. datumwise has not summarised, sequenced or introduced it on this page.
+      </p>
+      <dl class="facts">
+        <div><dt>Work</dt><dd>{p.label}</dd></div>
+        <div><dt>Edition</dt><dd>Version {p.version} · {longDate(p.date)}</dd></div>
+        <div><dt>Record</dt><dd><a href={p.doiHref} rel="noopener" target="_blank">{p.doi}</a></dd></div>
+        <div>
+          <dt>Fidelity</dt>
+          <dd>
+            {verified ? (
+              <>
+                Byte-identical to the deposited record: {p.bytes.toLocaleString()} bytes,
+                sha256 <code class="mono">{p.sha256.slice(0, 16)}…</code>, verified against Zenodo's
+                own checksum before it entered this repository.
+              </>
+            ) : (
+              <>
+                <strong>Weaker provenance.</strong> This work is deposited on Zenodo as a
+                <strong> PDF only</strong>. The text below is the author's own markdown copy of that
+                edition, supplied directly. It is <strong>not byte-verifiable against a deposited
+                markdown or text source</strong>, and no independent party can reproduce these bytes
+                from the record. Its integrity is pinned here ({p.bytes.toLocaleString()} bytes,
+                sha256 <code class="mono">{p.sha256.slice(0, 16)}…</code>) but that pin attests only
+                that the file has not changed since it was placed here.
+              </>
+            )}
+          </dd>
+        </div>
+        {p.figures > 0 && (
+          <div>
+            <dt>Not reproduced</dt>
+            <dd>
+              {p.figures} figure{p.figures === 1 ? '' : 's'} in the deposited edition
+              {p.figures === 1 ? ' is' : ' are'} not carried here. Read the record for
+              {p.figures === 1 ? ' it' : ' them'}.
+            </dd>
+          </div>
+        )}
+      </dl>
+    </section>
+
+    <hr class="rule rule-strong" />
+
+    <div class="deposit" set:html={p.html} />
+
+    <hr class="rule" />
+    <p class="foot">
+      The record is the authority. This page reproduces it; it does not replace it.
+      <a href={p.doiHref} rel="noopener" target="_blank">Open the deposited record →</a>
+      · <a href="/research">the rest of the corpus</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .read { width: min(100% - 3rem, 46rem); margin: 0 auto; padding: 3rem 0 5rem; }
+  .kicker { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 1.5rem; }
+  .kicker a { color: var(--ink-faint); }
+
+  /* The crossing block is the one piece of page chrome. It is set apart by rule and ground, not by
+     colour: the register changes, the palette does not. */
+  .crossing { background: var(--paper-raised); border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule); padding: 1.5rem 1.5rem 1.25rem; }
+  .crossing-h { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink); margin: 0 0 0.75rem; font-weight: 400; }
+  .crossing-lede { font-family: var(--font-serif); font-size: 1rem; line-height: 1.55;
+    color: var(--ink-soft); margin: 0 0 1.25rem; }
+  .facts { margin: 0; }
+  .facts > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 1rem;
+    align-items: baseline; border-top: 1px solid var(--rule); padding: 0.6rem 0; }
+  .facts dt { font-family: var(--font-mono); font-size: var(--ds-mono-sm); color: var(--ink-faint);
+    letter-spacing: 0.04em; }
+  .facts dd { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--ink-soft); }
+  .mono { font-family: var(--font-mono); font-size: 0.85em; }
+
+  .deposit { margin-top: 2.5rem; }
+  .deposit :global(h1) { font-family: var(--font-serif); font-size: clamp(1.8rem, 1.4rem + 1.5vw, 2.6rem);
+    line-height: 1.15; margin: 0 0 1rem; }
+  .deposit :global(h2) { font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.25;
+    margin: 2.5rem 0 0.75rem; }
+  .deposit :global(h3) { font-family: var(--font-serif); font-size: 1.2rem; margin: 2rem 0 0.5rem; }
+  .deposit :global(p), .deposit :global(li) { font-family: var(--font-serif); font-size: 1.02rem;
+    line-height: 1.65; color: var(--ink-soft); }
+  .deposit :global(blockquote) { margin: 1.5rem 0; padding-left: 1.25rem;
+    border-left: 2px solid var(--rule-strong); color: var(--ink); }
+  .deposit :global(code) { font-family: var(--font-mono); font-size: 0.88em; }
+  .deposit :global(table) { width: 100%; border-collapse: collapse; margin: 1.5rem 0;
+    font-size: 0.92rem; }
+  .deposit :global(th), .deposit :global(td) { border-top: 1px solid var(--rule);
+    padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
+  .deposit :global(hr) { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+
+  .foot { font-size: 0.92rem; color: var(--ink-faint); line-height: 1.6; }
+</style>

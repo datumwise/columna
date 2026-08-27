@@ -1,0 +1,292 @@
+{
+ "note": "F2 — the review gate, evaluated against PLANTED defects (approved 2026-08-26 16:35, item 2). Each fixture is a hand-authored provisional answer with exactly one known defect, or a clean control. The expected disposition and the dimension it should trip are chosen HERE, before any reviewer call: ground truth is authored, never inferred from a model. Passages are not pasted — each source names a chunk in the shipped index by (sourceId, heading) and the runner resolves the real text at run time, so a fixture's defect is a defect against what the corpus actually says. Quote verification is NOT broadened for this evaluation; it still answers only whether a string is in a text. One control (ctl-clean-standing) came back REVISE on the first run because it contained two real defects I had not noticed while authoring it; it is preserved unedited and ctl-clean-standing-v2 is the corrected control. A fixture set that quietly repairs its own misses is not evidence.",
+ "fixtures": [
+  {
+   "id": "rv-quote-altered",
+   "defect": "A direct quotation of a real Core sentence, altered: 'merely because it traveled' rewritten as 'simply because it has travelled', and 'more authoritative' kept. Every word looks right; the sentence is not the one the source wrote.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "factual_grounding"
+   ],
+   "question": "Why does datumwise say standing is boundary-specific?",
+   "answer": "Standing is boundary-specific because authority does not travel with a result by default. As Analytical Governance puts it, “Standing prevents a result from becoming more authoritative simply because it has travelled” [S1]. A result may stand for exploratory display and not for compensation, and an estimate may stand as an estimate and not as a causal claim [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "7. Standing: what the service may pass forward",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-quote-ellipsis",
+   "defect": "An ellipsis-compressed quotation whose fragments are all present in the source. Mechanically NOT VERBATIM: the compressed sentence is not a sentence the source wrote.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "factual_grounding"
+   ],
+   "question": "Is Escalate one of the serving moods?",
+   "answer": "No. The paper is explicit: “Escalate is not a fifth serving mood … escalation does not produce an unofficial answer” [S1]. It is a governance-process transition, not a verdict returned at the machine boundary [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "Escalate",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-reference-establishes",
+   "defect": "A claim about datumwise's CURRENT POSITION resting only on a Reference source (the Frame-QL Manual). Reference material may explain and develop; it may not independently establish the current position.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "core_support",
+    "reference_use"
+   ],
+   "question": "What does datumwise hold about where analytical permission is decided?",
+   "answer": "datumwise holds that analytical permission is decided by the query language's envelope: what the shipped grammar accepts is what may be served, and the boundary of the envelope is therefore the boundary of governance [S1].",
+   "sources": [
+    {
+     "sourceId": "s-frameql-manual",
+     "heading": "Preface",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-external-establishes",
+   "defect": "A datumwise position resting on an EXTERNAL source. External material describes the outside world and may never establish a datumwise position.",
+   "expected": "DO_NOT_PUBLISH",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "external_claims",
+    "core_support"
+   ],
+   "question": "Is analytical governance just a runtime permission check?",
+   "answer": "datumwise's position is that analytical governance is a runtime permission check performed at query time, in line with how the wider data-governance industry describes it [X1]. Once the check passes, the result may be served for any downstream use [X1].",
+   "sources": [],
+   "external": [
+    {
+     "cite": "X1",
+     "title": "Data Governance Weekly — What is query-time policy enforcement?",
+     "url": "https://example.invalid/query-time-policy",
+     "text": "Query-time policy enforcement evaluates each request against access rules at execution time and either permits or blocks it. Vendors typically describe this as runtime authorization; it governs access to data rather than the analytical meaning of a result."
+    }
+   ]
+  },
+  {
+   "id": "rv-superseded-as-current",
+   "defect": "A superseded edition's sentence presented as the CURRENT datumwise position. The quotation is real and is v1.1's; v2.0 does not carry it, and the passage arrives labelled PRESERVED HISTORICAL STATE.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "currency"
+   ],
+   "question": "Does datumwise currently hold that a system which cannot refuse is not governed?",
+   "answer": "Yes. datumwise's current conformance test is that “A governed analytical system must be capable of withholding analytical permission. If it cannot refuse, it is not governed.” [S1] That is the criterion by which a system qualifies as governed today [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance-v1-1",
+     "heading": "What can be computed is not yet what may be served.",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-roadmap-as-shipped",
+   "defect": "Design-stage material presented as shipped behaviour. The cited passage says in terms that the form is NOT part of the shipped envelope.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "currency"
+   ],
+   "question": "Can I restrict a single column reference in Frame-QL?",
+   "answer": "Yes. Frame-QL supports a bracket filter that restricts a column reference to a subset of its domain — revenue[region = \"east\"] — and it ships in the current engine, producing a degenerate column that carries its restriction as part of its identity [S1].",
+   "sources": [
+    {
+     "sourceId": "s-frameql-manual",
+     "heading": "2.8 Subsetting and scans [ROADMAP]",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-unwarranted-universal",
+   "defect": "An unwarranted universal. The source establishes what a conforming practice needs; it says nothing about what other systems can or cannot do.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "claim_calibration"
+   ],
+   "question": "How does Columna compare with other analytical platforms on governance?",
+   "answer": "No other analytical platform can withhold analytical permission — Columna is the only system that implements a servability gate, and every other platform on the market will always return a number when asked [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "12. Requirements and non-claims",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-unjustified-hedge",
+   "defect": "The other direction of miscalibration: a position Core settles exactly, hedged into vagueness. The source states the condition as a conjunction, in a display line.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "claim_calibration"
+   ],
+   "question": "What makes a request servable?",
+   "answer": "It is difficult to say precisely. datumwise seems to suggest that servability might perhaps involve some notion of available support, and possibly also something about whether the request is lawful, though the materials do not really commit to what is required [S1]. Readers should treat servability as an open question in the framework [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "4. The servability gap: from governed request to answer",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "rv-detail-not-carried",
+   "defect": "A specific number attached to a citation that does not carry it: the cited section lists SEVEN minimum requirements, not nine, and does not name a 'disclosure ledger'.",
+   "expected": "REVISE",
+   "acceptable": [
+    "REVISE",
+    "DO_NOT_PUBLISH"
+   ],
+   "expectedDimensions": [
+    "citation_support"
+   ],
+   "question": "What does a conforming analytical-governance architecture need?",
+   "answer": "Analytical Governance lists nine minimum requirements for a conforming practice or architecture, including a servability gate capable of withholding or qualifying analytical permission, a disclosure ledger for every served result, and execution faithful to what governance authorized [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "12. Requirements and non-claims",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "ctl-brief-but-complete",
+   "defect": null,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "expectedDimensions": [],
+   "question": "Is Escalate returned at the machine boundary?",
+   "answer": "No. Escalate is a governance-process transition rather than a serving verdict: the request leaves the serving path and enters an authoring, declaration, review or ratification process capable of changing the governed world, and until that returns, serving remains unresolved [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "Escalate",
+     "cite": "S1"
+    }
+   ],
+   "controlNote": "THE BRIEF-BUT-COMPLETE CONTROL (ruling item 2: 'thin but correct answer that should still APPROVE'). Read carefully: the reviewer's own `worth_publishing` dimension makes a THIN, OBVIOUS OR DUPLICATIVE answer a DO_NOT_PUBLISH, and that is not in tension with the ruling — a brief answer that fully answers a narrow question is not thin in that sense. So this control is authored short and complete, not short and empty. If the reviewer rejects it for length alone, that is a false positive and the matrix will say so."
+  },
+  {
+   "id": "ctl-clean-servability",
+   "defect": null,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "expectedDimensions": [],
+   "question": "What is the servability gap?",
+   "answer": "The servability gap is the distance between a faithfully formulated request and an answer that may actually be served: a faithful request does not imply a servable one [S1]. Two conditions have to hold together — the requested analytical object must exist under the governed model and the requested derivation must be lawful (analytical establishment), and the evidence and sufficient state this particular request requires must presently be available (support sufficiency) [S1].\n\nThe failures are distinguishable. A missing feed can leave a lawful request unsupported; an unlawful reduction can leave abundant data unable to establish the requested result [S1]. Servability is therefore not a property of a dataset or a platform but a determination about a particular request under current grounds [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "4. The servability gap: from governed request to answer",
+     "cite": "S1"
+    }
+   ]
+  },
+  {
+   "id": "ctl-clean-standing",
+   "defect": null,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "expectedDimensions": [],
+   "question": "Once an answer has been served, is it settled what it may be used for?",
+   "answer": "No — that is a further question, and datumwise types it separately. Servability asks whether a candidate result may be served as the answer; standing asks what the served result may then be treated as, and it is claim- and boundary-specific [S1]. A result may stand for exploratory display and not for compensation; an estimate may stand as an estimate and not as a causal claim; a result may require disclosure before publication [S1].\n\nThe reason the distinction is kept is stated in the paper: standing prevents a result from becoming more authoritative merely because it traveled [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "7. Standing: what the service may pass forward",
+     "cite": "S1"
+    }
+   ],
+   "postRunNote": "RAN 2026-08-26 AND CAME BACK REVISE — a false positive by the matrix, and NOT the reviewer's error. It named two real defects in prose I had labelled clean: (1) 'datumwise types it separately' is a datumwise-position claim the provided passage does not carry, and (2) 'an estimate may stand as an estimate' broadens S1's 'A statistical estimate'. Both are mine. The fixture is kept UNEDITED as the record of what was actually asked, and a corrected control was added beside it as ctl-clean-standing-v2 rather than by rewriting this one — evidence is not edited after the fact."
+  },
+  {
+   "id": "ctl-clean-with-verbatim-quote",
+   "defect": null,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "expectedDimensions": [],
+   "question": "Does datumwise claim its framework guarantees good analytical decisions?",
+   "answer": "No, and it says so directly. The paper states that the framework “does not guarantee perfect intent, perfect data, perfect governed declarations, or perfect decisions” and that it does not replace semantic knowledge, statistical inference, security engineering, physical optimization or decision governance [S1]. What it claims is narrower: it coordinates the points at which those outputs become part of an analytical service and acquire or lose permission to proceed [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "12. Requirements and non-claims",
+     "cite": "S1"
+    }
+   ],
+   "controlNote": "A control that carries a REAL verbatim quotation, so a VERBATIM MATCH is exercised on the clean side too. Without it, every quote-bearing fixture in the set would be a defect and the reviewer could score well by distrusting quotations in general."
+  },
+  {
+   "id": "ctl-clean-standing-v2",
+   "defect": null,
+   "expected": "APPROVE",
+   "acceptable": [
+    "APPROVE"
+   ],
+   "expectedDimensions": [],
+   "question": "Once an answer has been served, is it settled what it may be used for?",
+   "answer": "No — that is a further question, and the paper treats it separately under standing. Servability asks whether a candidate result may be served as the answer; standing asks what the served result may then be treated as, or relied upon for, and it is claim- and boundary-specific [S1]. A result may stand for exploratory display and not for compensation; a statistical estimate may stand as an estimate and not as a causal claim; a result may require disclosure before publication [S1].\n\nThe reason the distinction is kept is stated in the paper: standing prevents a result from becoming more authoritative merely because it traveled [S1].",
+   "sources": [
+    {
+     "sourceId": "s-analytical-governance",
+     "heading": "7. Standing: what the service may pass forward",
+     "cite": "S1"
+    }
+   ],
+   "controlNote": "The corrected control. Same question and the same source; the two defects the reviewer found in ctl-clean-standing are removed — the unsupported 'datumwise types it separately' is replaced by a claim the passage carries, and 'a statistical estimate' is restored to S1's scope. Nothing else changed, so a REVISE here would be a false positive with no cause left to point at."
+  }
+ ]
+}

@@ -1,0 +1,310 @@
+"""The ask pipeline: retrieve -> constitute -> call -> verify -> record.
+
+Model selection is a parameter and appears nowhere in the logic, per the brief. Every step is
+inspectable and no step silently repairs another's output.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+
+from . import external, providers, retrieve, standing, store, verify
+from .skill import build_prompt
+
+# The public/private rule, kept as small and conservative as the brief asks. This decides whether a
+# successfully-answered question becomes a PUBLIC cached Q&A. It is not moderation of the answer —
+# the reader always gets their answer — it is a decision about republication to strangers.
+_PRIVATE_SIGNALS = [
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "contains an email address"),
+    (re.compile(r"\b(?:\+?\d[\d\s().-]{7,}\d)\b"), "contains what looks like a phone number"),
+    (re.compile(r"\b(?:sk-|ghp_|xox[baprs]-|AKIA)[A-Za-z0-9_-]{8,}"), "contains what looks like a credential"),
+    (re.compile(r"\b(my|our|we|i)\s+(company|employer|team|client|boss|manager|startup)\b", re.I),
+     "appears to describe the asker's own organisation"),
+    (re.compile(r"\b(my name is|i am called|i work at|i work for)\b", re.I), "identifies the asker"),
+]
+_ABUSE = re.compile(r"\b(fuck|shit|cunt|bitch|retard|nigg|faggot)\w*\b", re.I)
+
+
+def publishability(question: str) -> tuple[bool, str | None]:
+    """ELIGIBILITY FOR REVIEW, not for publication (renamed in meaning, 2026-08-26).
+
+    This filter used to decide whether a fresh answer entered the public Q&A collection. It now
+    decides something narrower: whether an answer may be put in front of a reviewer at all. A
+    private-looking or abusive question should never reach a human's queue; everything that passes
+    is a CANDIDATE, and publication is an act a person performs afterwards.
+
+    Conservative and dumb on purpose. Not a moderation research project (brief's words).
+    """
+    q = question.strip()
+    if len(q) < 8:
+        return False, "too short to be a useful public question"
+    if len(q) > 600:
+        return False, "too long to be a useful public question"
+    if _ABUSE.search(q):
+        return False, "contains abusive language"
+    for pat, why in _PRIVATE_SIGNALS:
+        if pat.search(q):
+            return False, why
+    return True, None
+
+
+# OBSERVED FAILURE, 2026-08-25, and the reason this is two patterns and not one.
+#
+# The constitution asks the model to close with a ```json fenced block. On the very first
+# edition-pinned question asked through the live service, gpt-5 closed with the JSON object and NO
+# FENCE. The fenced-only regex missed it, `used` came back empty, and an otherwise excellent answer
+# — it correctly said "the route renders v1.1; the current record is v1.2" — was published with ZERO
+# source receipts. An answer without receipts defeats the entire point of Ask.
+#
+# The lesson is not "write a sterner instruction". It is that an output CONTRACT enforced only by
+# instruction is the brittle joint, and the repair belongs in the parser: accept both shapes, and
+# then stop depending on the block at all (see _resolve_used below).
+_JSON_TAIL = re.compile(r"(?:```(?:json)?\s*)?(\{[^{}]*\"used\".*?\})\s*(?:```)?\s*$", re.S)
+_INLINE_CITE = re.compile(r"\[(S\d+)\]")
+# External sources get their OWN token space. A reader, a reviewer and the verifier can
+# all tell at a glance which class a citation belongs to, without a lookup — which is the
+# separation requirement expressed as a lexical fact rather than an instruction.
+_INLINE_EXT = re.compile(r"\[(X\d+)\]")
+# ...and so does the publication registry (2026-08-26, ruling C). Three namespaces, three
+# entitlements: [S#] says what the corpus says, [X#] is the outside world, [R#] says what a work is
+# CALLED and which version is CURRENT — and nothing else.
+_INLINE_REG = re.compile(r"\[(R\d+)\]")
+_ANY_CITE = re.compile(r"\[([SXR]\d+)\]")
+
+
+def _split_answer(text: str) -> tuple[str, dict]:
+    """Peel the trailing JSON block off, fenced or bare. Report failure rather than guessing."""
+    m = _JSON_TAIL.search(text.strip())
+    if not m:
+        return text.strip(), {"used": [], "external": [], "corpus_settles": None, "_missing": True}
+    body = text[: m.start()].strip()
+    try:
+        return body, json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return body, {"used": [], "external": [], "corpus_settles": None, "_malformed": True}
+
+
+def _resolve_used(body: str, meta: dict) -> tuple[list[str], bool]:
+    """Which source tokens did the answer actually use?
+
+    THE BLOCK IS THE HINT; THE PROSE IS THE EVIDENCE. `meta["used"]` is what the model SAID it used.
+    The inline [S#] markers are what it actually attached to claims, in the text a reader will read.
+    We take the union, because either one alone loses receipts:
+      · block-only loses everything when the format drifts (the failure above);
+      · prose-only loses a source the model leaned on without marking a specific sentence.
+    Returns (tokens, recovered) where `recovered` records that the prose rescued citations the
+    block did not carry — worth logging, because it is a signal about the output contract.
+    """
+    declared = [t for t in (meta.get("used") or []) if isinstance(t, str)]
+    inline = _ANY_CITE.findall(body)
+    union = sorted(set(declared) | set(inline), key=lambda t: (t[0], int(t[1:])))
+    return union, bool(inline) and not declared
+
+
+def ask(
+    question: str,
+    model: str | None = None,
+    k: int = 8,
+    history: list[dict] | None = None,
+    use_cache: bool = True,
+    external_urls: list[str] | None = None,
+) -> dict:
+    """Answer one question. Returns everything needed to display, store, and audit it."""
+    # A question answered WITH external sources is a different question from the same words asked
+    # without them, so it must not be served from, or written to, the cache keyed on the words
+    # alone. Cheaper to re-ask than to serve the wrong shape of answer.
+    if use_cache and not history and not external_urls:
+        cached = store.find_cached(question)
+        if cached:
+            return {**cached, "cached": True}
+
+    passages = retrieve.search(question, k=k)
+    # Identity and currency facts have exactly one entitled source, and it is not a passage. See
+    # ask/identity.py — empty on every question that is not about what a work is called.
+    reg_cards = retrieve.registry_cards(question)
+    ext_sources, ext_failures = external.fetch_all(external_urls or [])
+    messages = build_prompt(question, passages, history=history, external=ext_sources,
+                            registry=reg_cards)
+    comp = providers.complete(messages, model=model)
+    body, meta = _split_answer(comp.text)
+
+    # Map the model's [S#] tokens back to real sources. A token it did not receive is dropped, not
+    # invented into a citation — and the drop is recorded.
+    by_token = {f"S{i}": p for i, p in enumerate(passages, 1)}
+    ext_by_token = {f"X{i}": e for i, e in enumerate(ext_sources, 1)}
+    reg_by_token = {f"R{i}": r for i, r in enumerate(reg_cards, 1)}
+    all_used, recovered = _resolve_used(body, meta)
+    used_tokens = [t for t in all_used if t in by_token]
+    used_ext = [t for t in all_used if t in ext_by_token]
+    used_reg = [t for t in all_used if t in reg_by_token]
+    phantom = [t for t in all_used if t not in by_token and t not in ext_by_token
+               and t not in reg_by_token]
+    sources = [
+        {
+            "cite": t,
+            # Both, and the same way `standing`/`standingAtAnswer` are stored both: the row is then
+            # self-describing, and citations.resolve() re-resolves `label` without having to infer
+            # which of the two it is reading. See citations.py.
+            "label": by_token[t].get("sourceLabel") or by_token[t]["title"],
+            "labelAtAnswer": by_token[t].get("sourceLabel") or by_token[t]["title"],
+            "heading": by_token[t]["heading"],
+            "url": by_token[t]["url"],
+            "route": by_token[t]["route"],
+            "role": by_token[t].get("role"),
+            # The ENTITLEMENT travels with the citation. The reviewer's first job is deciding
+            # whether a datumwise-position claim rests on a Core source, and it cannot do that
+            # from a source list that does not say which class each source belongs to.
+            "layer": by_token[t].get("layer"),
+            "jurisdiction": by_token[t].get("jurisdiction"),
+            # IDENTITY, not presentation. `standing` below is the sentence as it read when this
+            # answer was written; these three fields are what let it be re-resolved from the
+            # registry later, so a durable answer never goes on calling a superseded record
+            # current. See citations.py.
+            "sourceId": by_token[t].get("sourceId"),
+            "readableRecordId": by_token[t].get("readableRecordId"),
+            "currentRecordIdAtAnswer": by_token[t].get("currentRecordId"),
+            "standingTemplate": by_token[t].get("standingRaw"),
+            "standing": by_token[t]["standing"],
+            "standingAtAnswer": by_token[t]["standing"],
+            "isHistorical": by_token[t]["isHistorical"],
+            "isEditionPinned": by_token[t]["isEditionPinned"],
+        }
+        for t in used_tokens
+    ]
+
+    # THE EVIDENCE THE ANSWER WAS BUILT ON, kept with the answer.
+    #
+    # Added 2026-08-26 because the reviewer was being asked to verify direct quotations against
+    # sources it could not read: `sources` carried label, heading and standing, but never the
+    # passage text. Verification against a FRESH retrieval would also be wrong — it would check the
+    # answer against evidence it never saw. What has to be preserved is the text that was actually
+    # in front of the model when it wrote the sentence.
+    evidence = [
+        {"cite": t, "label": by_token[t].get("sourceLabel") or by_token[t]["title"],
+         "heading": by_token[t]["heading"], "layer": by_token[t].get("layer"),
+         "standing": by_token[t]["standing"], "text": by_token[t]["text"]}
+        for t in used_tokens
+    ] + [
+        {"cite": t, "label": ext_by_token[t]["title"], "heading": "", "layer": "external",
+         "standing": "EXTERNAL — not a datumwise source",
+         "text": ext_by_token[t]["text"]}
+        for t in used_ext
+    ] + [
+        # A registry card is EVIDENCE and not a citation. It is preserved with the answer so a
+        # reviewer can check an identity claim against what the registry actually said at the time,
+        # and it is deliberately NOT written into `sources`: `sources` is the durable-citation
+        # model, whose whole job is to re-resolve a stored presentation against the registry later.
+        # A citation OF the registry has nothing to re-resolve — it was the registry — and putting
+        # one there would make the durability invariant assert something circular.
+        {"cite": t, "label": f"publication registry — {reg_by_token[t]['label']}", "heading": "",
+         "layer": "registry", "standing": reg_by_token[t]["standing"],
+         "text": reg_by_token[t]["text"]}
+        for t in used_reg
+    ]
+
+    v = verify.check(body)
+    if _INLINE_CITE.search(body) and not sources and not used_reg:
+        # Cited in the prose, resolved to nothing. Whatever the cause, the reader would be shown
+        # citation markers with no sources behind them. Never publish that.
+        v = {**v, "problems": v["problems"] + [{
+            "kind": "unresolved-citations",
+            "value": ",".join(sorted(set(_INLINE_CITE.findall(body)))),
+            "detail": "the answer cites source tokens that resolved to no source",
+        }], "ok": False, "fatal": v["fatal"] + 1}
+    if phantom:
+        v = {**v, "problems": v["problems"] + [
+            {"kind": "phantom-citation", "value": t,
+             "detail": "cited a source token that was not supplied"} for t in phantom
+        ], "ok": False, "fatal": v["fatal"] + len(phantom)}
+
+    return {
+        "question": question,
+        "answer": body,
+        "sources": sources,
+        # `external` is now the sources it was GIVEN and actually cited, plus anything it declared
+        # from its own knowledge. Fetch failures are reported rather than dropped: an answer built
+        # from three sources when four were asked for is a different answer.
+        "external": [
+            {"cite": t, "title": ext_by_token[t]["title"], "url": ext_by_token[t]["url"],
+             "fetchedAt": ext_by_token[t]["fetchedAt"], "truncated": ext_by_token[t]["truncated"]}
+            for t in used_ext
+        ] + [e for e in (meta.get("external") or []) if isinstance(e, dict)],
+        "externalOffered": [{"title": e["title"], "url": e["url"]} for e in ext_sources],
+        "externalFailures": ext_failures,
+        "corpusSettles": meta.get("corpus_settles"),
+        "retrieved": [
+            {"cite": f"S{i}", "label": p.get("sourceLabel") or p["title"], "heading": p["heading"],
+             "url": p["url"], "score": p["score"], "standing": p["standing"]}
+            for i, p in enumerate(passages, 1)
+        ],
+        "evidence": evidence,
+        "verify": v,
+        "provider": comp.provider,
+        "model": f"{comp.provider}:{comp.model}",
+        "promptTokens": comp.prompt_tokens,
+        "completionTokens": comp.completion_tokens,
+        "costUsd": comp.cost_usd,
+        "cached": False,
+        "metaMissing": bool(meta.get("_missing") or meta.get("_malformed")),
+        "citationsRecoveredFromProse": recovered,
+    }
+
+
+def ask_and_record(question: str, conversation: str, model: str | None = None,
+                   history: list[dict] | None = None, parent_id: str | None = None,
+                   external_urls: list[str] | None = None) -> dict:
+    """Answer, log the turn, and record it as a PROVISIONAL candidate.
+
+    Nothing here publishes. Until 2026-08-26 a fresh answer that passed the privacy filter entered
+    the public collection immediately; now it is stored provisional and unpublished, and the same
+    filter decides only whether it is eligible to reach a reviewer.
+    """
+    res = ask(question, model=model, history=history,
+              use_cache=not history and not external_urls, external_urls=external_urls)
+
+    if res.get("cached"):
+        # Technical reuse. No view bump: views belong to a published object, and a reused
+        # provisional answer is not one. See standing.py.
+        store.get(res["id"])
+        store.log_turn(conversation=conversation, qa_id=res["id"], question=question,
+                       answer=res["answer"], sources=res["sources"], external=res["external"],
+                       provider=res["provider"], model=res["model"], cached=True,
+                       corpus_settles=res.get("corpusSettles", True))
+        return {**res, "standing": res.get("standing", standing.PROVISIONAL),
+                "notice": standing.notice(res.get("standing", standing.PROVISIONAL),
+                                          res.get("notice", {}).get("reviewedAt"))}
+
+    reviewable, why = publishability(question)
+    # An answer that failed the identifier gate does not go to a reviewer. The asker still sees it —
+    # with the failure attached — because hiding it would destroy the evidence.
+    if reviewable and not res["verify"]["ok"]:
+        reviewable, why = False, "failed the source-identifier check"
+    # A follow-up in a conversation is context-dependent by construction; it does not stand alone as
+    # a public Q&A, so it is not a review candidate either.
+    if history:
+        reviewable, why = False, "follow-up turn: only meaningful inside its conversation"
+
+    qa_id = store.save_qa(
+        question=question, answer=res["answer"], provider=res["provider"], model=res["model"],
+        sources=res["sources"], external=res["external"],
+        corpus_settles=bool(res.get("corpusSettles", True)), public=reviewable,
+        evidence=res.get("evidence", []), withheld_reason=why, verify=res["verify"], prompt_tokens=res["promptTokens"],
+        completion_tokens=res["completionTokens"], cost_usd=res["costUsd"], parent_id=parent_id,
+    )
+    # Remember it for cheap reuse. A cache entry is not a publication and does not imply one; it
+    # expires on its own schedule and carries no reputation. Follow-ups are never cached: they only
+    # mean anything inside their conversation.
+    if not history:
+        store.cache_put(question, qa_id, res["model"])
+    store.log_turn(conversation=conversation, qa_id=qa_id, question=question, answer=res["answer"],
+                   sources=res["sources"], external=res["external"], provider=res["provider"],
+                   model=res["model"], cached=False,
+                   corpus_settles=bool(res.get("corpusSettles", True)), verify=res["verify"],
+                   prompt_tokens=res["promptTokens"], completion_tokens=res["completionTokens"],
+                   cost_usd=res["costUsd"])
+    # No view bump on creation. Views are a property of a published object, and nothing is
+    # published here.
+    return {**res, "id": qa_id, "standing": standing.PROVISIONAL,
+            "notice": standing.notice(standing.PROVISIONAL),
+            "reviewEligible": reviewable, "withheldReason": why}
