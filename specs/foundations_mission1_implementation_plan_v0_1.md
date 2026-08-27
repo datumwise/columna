@@ -1,7 +1,11 @@
-# Foundations mission 1 — bounded implementation plan (PROPOSED)
+# Foundations mission 1 — bounded implementation plan (SHIPPED — closed 2026-08-27)
+
+> **STATUS CLOSED, 2026-08-27.** All six steps shipped in `e1d806a` and deployed. The plan's own
+> status line — "Nothing implemented. No reader-facing file changed." — was true when written and
+> false within hours; it is corrected here rather than left to be read as current. **The plan is
+> preserved unedited below**; only this block and the title's status marker are new.
 
 Against the rulings of 2026-08-27. Companion to `foundations_mission1_recon_v0_1.md`.
-**Nothing implemented. No reader-facing file changed.**
 
 Six steps. Each is independently shippable, independently revertible, and ends at a stop point with a
 named verification. Rulings 7 and 8 (onsite readability, the orphaned Ground for Certainty) are

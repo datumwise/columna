@@ -2,7 +2,7 @@
 
 The **Columna MCP server** (ADR-032 D8): a library of Manifolds exposed to AI agents over MCP, with
 **one contract** — every tool returns the same outcome/disclosure structure the Python API returns.
-This is the wedge product: the first metrics MCP server that can say *"it depends."*
+It is an MCP server that can answer *"it depends"* — a clarify or a refuse is a first-class outcome on the wire, not an error.
 
 ## Run
 

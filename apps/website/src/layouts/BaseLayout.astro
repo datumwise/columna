@@ -62,7 +62,12 @@ export interface Props {
 }
 const {
   title,
-  description = 'datumwise builds and stewards Columna — an open-source data framework (Manifold, FrameQL, an honest engine) that refuses to return a confident wrong number.',
+  // DATUMWISE-FIRST (Huayin, 2026-08-27, positioning repair §3). The default that stood here —
+  // "datumwise builds and stewards Columna — an open-source data framework (Manifold, FrameQL, an
+  // honest engine) that refuses to return a confident wrong number." — defined the project entirely
+  // by one of its works, on every page that sets no description of its own (/install, /thesis, /why
+  // and others). datumwise is the only thing that needs positioning; this is its ruled identity.
+  description = 'datumwise is an independent research project exploring central topics of our time around data, analytics and technology — foundations, languages, and systems for analytics across data, certainty, and intelligence.',
   wide = false,
   chip,
   footer = 'general',
@@ -100,9 +105,13 @@ const structuredIdentity = {
       '@id': `${ORIGIN}/#datumwise`,
       name: 'datumwise',
       url: ORIGIN,
+      // Datumwise-first, and Columna named as one work among several rather than as the definition
+      // of the project (positioning repair §3, 2026-08-27). "Not a company" stays: it is the
+      // load-bearing anti-confusion fact this block was minted for.
       description:
-        'An independent open-source research project — not a company. It builds and stewards Columna, ' +
-        'the grammar layer for AI analytics.',
+        'An independent research project — not a company — exploring central topics of our time ' +
+        'around data, analytics and technology. Its work includes the Theory of Data, Analytical ' +
+        'Governance, Frame-QL, and Columna.',
       disambiguatingDescription:
         'datumwise (datumwise.ai) is not affiliated with Datawise, datawise.ai, or columns.ai.',
       email: 'contact@datumwise.ai',
@@ -122,9 +131,10 @@ const structuredIdentity = {
       license: 'https://www.apache.org/licenses/LICENSE-2.0',
       author: { '@id': `${ORIGIN}/#datumwise` },
       description:
-        'An open-source data framework — a data model (Manifold), a query language (FrameQL), and an ' +
-        'engine — built so that no layer of it can return a confident wrong number. Every answer is ' +
-        'one of four moods: serve, disclose, clarify, refuse.',
+        'Infrastructure for governed analytical service, open source under Apache-2.0: a data model ' +
+        '(Manifold), a query language (Frame-QL), and an engine that adjudicates what the declared ' +
+        'world and current support entitle it to serve. Every answer is one of four outcomes: ' +
+        'serve, disclose, clarify, refuse. The shipped packages are columna-core and columna-server.',
       disambiguatingDescription:
         'Columna is a project of datumwise (datumwise.ai) — not affiliated with Datawise, datawise.ai, ' +
         'or columns.ai. It is not a data-cataloguing or documentation-generation product: it does not ' +

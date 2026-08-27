@@ -3,7 +3,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Content } from '../content/corpus/columna_thesis_v0_4.md';
 import TermChipStrip from '../components/TermChipStrip.astro';
 ---
-<BaseLayout title="The Columna Thesis — datumwise">
+<BaseLayout title="The Columna Thesis — datumwise"
+  description="The Columna Thesis (v0.7) — a dated position piece, reproduced as written.">
+  {/* STANDING, NOT A REWRITE (Huayin, 2026-08-27, positioning repair §4). The essay below is a
+      frozen corpus edition and its bytes may not be edited. It argues from the launch-era framing
+      and contains sentences — "Columna is our proof that the discipline can be made executable" —
+      that read as current positioning when the page gives them no date. The repair is chrome only:
+      say what edition this is and when it was written, and let the argument stand as written. */}
+  <p class="standing wayfinding">
+    <span class="standing-mark mono">edition</span>
+    <span>The Columna Thesis, <strong>v0.7</strong> — reproduced here as written. It is a dated
+    position piece, not a current statement of what datumwise or Columna is; for that, see
+    <a href="/about">About</a> and <a href="/columna">Columna</a>.</span>
+  </p>
   <article class="prose">
     <Content />
   </article>
@@ -16,6 +28,13 @@ import TermChipStrip from '../components/TermChipStrip.astro';
 </BaseLayout>
 
 <style>
+  .standing { display: flex; gap: 0.7rem; align-items: baseline; margin: 0 0 2rem;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--rule); font-size: 0.88rem;
+    color: var(--ink-soft); }
+  .standing-mark { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-faint); white-space: nowrap; }
+  .standing a { color: var(--ink); }
+
   .engage { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
     font-size: 0.92rem; color: var(--ink-soft); }
 </style>

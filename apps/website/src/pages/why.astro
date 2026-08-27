@@ -8,6 +8,16 @@ import TermChipStrip from '../components/TermChipStrip.astro';
   <div class="page-head">
     <p class="kicker">Why</p>
   </div>
+  {/* STANDING, NOT A REWRITE (positioning repair §4, 2026-08-27) — see thesis.astro for the ruling.
+      Both essays below are frozen corpus editions; the bytes are not edited. "The semantic layer was
+      only ever half the answer. The other half now exists." is the launch-era argument as published,
+      and it stays. What was missing was the date on it. */}
+  <p class="standing wayfinding">
+    <span class="standing-mark mono">editions</span>
+    <span><em>Metadata Independence</em> (draft v0.2) and <em>The Silent Seam</em> (v1.0, June 2026),
+    reproduced here as written. Both are dated arguments, not current statements of what datumwise or
+    Columna is; for that, see <a href="/about">About</a> and <a href="/columna">Columna</a>.</span>
+  </p>
   <article class="prose">
     <Essay />
     <hr />
@@ -19,6 +29,13 @@ import TermChipStrip from '../components/TermChipStrip.astro';
 </BaseLayout>
 
 <style>
+  .standing { display: flex; gap: 0.7rem; align-items: baseline; margin: 0 0 2rem;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--rule); font-size: 0.88rem;
+    color: var(--ink-soft); }
+  .standing-mark { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-faint); white-space: nowrap; }
+  .standing a { color: var(--ink); }
+
   .further-reading { width: min(100% - 3rem, 46rem); margin: 2rem auto 0; font-size: 0.92rem; color: var(--ink-soft, #555); }
   /* editorial reconciliation note (the site's voice) — the reproduced Seam essay is byte-identical */
   .seam-note { width: min(100% - 3rem, 46rem); margin: 0 auto 1.5rem; font-size: 0.86rem; font-style: italic; color: var(--ink-soft, #666); }

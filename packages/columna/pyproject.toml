@@ -13,7 +13,7 @@ requires-python = ">=3.10,<3.14"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Datumwise" }]
-keywords = ["analytics", "semantic-layer", "duckdb", "polars", "manifold", "frame-ql", "metapackage"]
+keywords = ["analytics", "duckdb", "manifold", "frame-ql", "metapackage"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

@@ -1,4 +1,26 @@
-# Columna Core (0.7.8-core)
+# Columna Core
+
+**Columna Core is the shipped open-source engine: the definition language, adjudication, and query
+engine of Columna, by datumwise.** You declare what your data means — populations, measures, the
+anchors they live at, which reductions are lawful — Core checks that declaration against the data,
+and answers in one of four outcomes: **serve** (the number), **disclose** (the number and what rides
+with it), **clarify** (the request has more than one lawful reading), **refuse** (the declared world
+does not define this, and why). Every outcome is structured data, not prose.
+
+The installed version is the authority on what this package is: `columna_core.__version__`, and
+`pip show columna-core`. **This file states no version of its own** — the heading used to carry one,
+and it went stale by nine minor releases while the package kept shipping. The per-release record is
+`CHANGELOG.md`.
+
+Backend: **DuckDB** (including Parquet and object storage through it). It is the only connector that
+ships — `columna_core.connector` defines one, `DuckDBConnector`.
+
+<details>
+<summary><strong>Early release notes (0.6.0 – 0.7.8), kept as a historical record</strong></summary>
+
+The notes below were written at the time of those releases and are preserved unedited, including
+their later supersession marks. They are **not** a description of the current package.
+
 
 > **v0.7.8-core — packaging hardening + the disclosure wire adapter.** Declares the hard `pyarrow`
 > runtime dependency and resolves `COLUMNA_BENCH_WAREHOUSE` absolutely (WP-0 audit finds); reconciles
@@ -26,6 +48,8 @@
 > **v0.6.0-core — inform-and-serve reconciliation (Frame-QL Manual).** **[SUPERSEDED 2026-08-20 — ADR-036, the generated-family law: this release's central move is reversed. A structurally prohibited reduction REFUSES again (`blocked_reduction`, no values), because *Disclose exists inside the lawful region; it cannot legalize an operation the governed law does not possess.* The refusal now holds in every spelling — written member, inline reducer generated above a lawful sibling (`sum(stock.last@day)`), and any unary/binary/scalar/scan/DERIVED carrier: family generation creates a new analytical family, not a new operator permission. `b_anchor_crossing` is tombstoned as a producer and retained, still wired, so archived wires resolve. The rest of this entry — refusals reserved for static planner cases, the severity lattice and its frame-level rollup — stands. The original text is kept below as the record of what 0.6.0 shipped.]** A B-anchor crossing (e.g. summing a stock over time) is now **served with a critical `b_anchor_crossing` disclosure** that names the alternative reducer — no longer refused. Refusals are reserved for the planner's static clarify/inform cases (fan-out across an M:N edge — now naming all three remedies; out-of-universe; unknown operator; type error). The engine, once handed an executable atom, never withholds on analytical grounds. Disclosures now carry a severity lattice (none<info<caution<critical) with a frame-level rollup. 57 checks across 7 suites pass.
 
 
+</details>
+
 The column-foundation implementation specified in **ADR-031** and the **Manifold object model** — multi-table, transport-based, validated against the real benchmark warehouse (299,934 transactions).
 
 This is **not** the ADR-030 kernel. The kernel proved correctness *techniques* on a single denormalized table; Core implements the architecture: **the backend delivers single-table column-atoms and functional relationship-columns; the engine *transports* and relates them; the backend never joins.**
@@ -42,7 +66,7 @@ This is **not** the ADR-030 kernel. The kernel proved correctness *techniques* o
 
 1. **Transport replaces the join** — `revenue@region` computed from a single-table `revenue@store` delivery + the `store→region` mapping, related *in the engine*; exact vs. ground truth; **zero joins pushed down**.
 2. **Coordinate rollup is the same operation** — `revenue@cal.month` via the `day→month` mapping.
-3. **★ Fan-out is inexpressible ★** — `revenue@category` is **refused** at the planner (`transaction↔category` is M:N); for contrast, the naive join *silently inflates revenue 1.44× — a 44% overcount*. The refusal names its alternatives (allocation = Pro; membership = rephrase). The flagship.
+3. **★ Fan-out is inexpressible ★** — `revenue@category` is **refused** at the planner (`transaction↔category` is M:N); for contrast, the naive join *silently inflates revenue 1.44× — a 44% overcount*. The refusal names its alternatives (allocation = not in Core; membership = rephrase). The flagship.
 4. **B-anchor blocks per-lineage** — `level.sum@(region,day)` *works* (additive over the store axis); `level.sum@store` is *refused* (would sum a stock across days — non-reconciling over the calendar lineage). Same metric, opposite verdicts, by edge. *(2026-08-20, ADR-036: this line has always said `refused`, and as of the generated-family law the shipped verdict agrees with it again — reason `blocked_reduction`, and refused in every spelling, including a `sum` generated inline above `level.last`. The 0.6.0 banner above, which served the crossing with a critical caveat instead, is the entry that moved. Note the second half of the row is the ruling's other half: the bar is per operator × lineage, so summing the same stock across **stores** stays lawful — there is no stock/flow type.)*
 5. **Pre/post-agg boundary** — `aov = revenue/orders` computed post-aggregation = correct AOV (not the avg-of-avgs the shipped `monthly_avg_order_value` would give).
 6. **Sketch reaggregation** — `visitors@cal.quarter` by HLL-merging per-day sketches; ≈ true distinct, vs. a naive sum-of-daily-distincts that overcounts.
@@ -87,7 +111,7 @@ DERIVED <name> = <expr>
 
 **Logical types, checked at compile time** (`types.py`, `types_demo.py`): every measure declares a **logical (Polars) dtype** and every operator carries a **type signature** (`sum: Numeric∪Duration→same`, `distinct: any→Int64`, `median: Numeric∪Temporal→same`, `last: T→T`). The *signature* is vocabulary the planner holds; the *mechanics* (witness/combine/deliver_sql) stay engine-side. So "operator not supported" and "wrong type for this operator" are **vocabulary errors caught at the planner, before the engine is ever asked** — proven by zero backend fetches on a refused frame. A static type-inference pass runs as a compile step ahead of resolution (`type_error` is its refusal reason, a sibling of unknown-operator). The **connector owns logical→physical**: a measure declares logical `Float64` over a raw column, and the connector supplies the `TRY_CAST` when the physical type is a dirty `VARCHAR` — so the author writes no casts, and a cast *failure* is a coverage fact at resolution, never a type error.
 
-In scope and working: multi-table Manifolds, universes **with runtime predicate confinement**, the coordinate DAG, transport, measure-families with per-lineage B-anchors, **the operator registry (reaggregation as a monoid property, plus type signatures)**, **logical types with a compile-time planner typecheck**, derived columns, structured refusals, EXPLAIN, the definition-language parser + well-formedness checks, **the universe-support consistency check**, **the two projections as an enforced boundary**. Deliberately out (Pro): multiple backends/federation, cloud, custom operators/types, sophisticated optimization, **allocation** (the M:N split — Core catches the case rather than computing it).
+In scope and working: multi-table Manifolds, universes **with runtime predicate confinement**, the coordinate DAG, transport, measure-families with per-lineage B-anchors, **the operator registry (reaggregation as a monoid property, plus type signatures)**, **logical types with a compile-time planner typecheck**, derived columns, structured refusals, EXPLAIN, the definition-language parser + well-formedness checks, **the universe-support consistency check**, **the two projections as an enforced boundary**. Deliberately out of Core: multiple backends/federation, custom operators/types, sophisticated optimization, **allocation** (the M:N split — Core catches the case rather than computing it). These are direction, not product: nothing beyond Core is available, sold or scheduled here.
 
 **Two projections, enforced** (`projection.py`, `projection_demo.py`): one authored Manifold has two projections. The **planner** holds a `PlannerView` — vocabulary/shape only: logical names, the DAG *topology* (`frm→to` + lineage, no physical columns), family member *names*, derived formulas, M:N pairs for fan-out. The **engine** holds the full Manifold — sources, realizations, the universe predicate, missingness, costs, the operator registry. This makes "the planner cannot see provenance" *structural*: `home_table`, `pre_expr`, `realized_by`, `provider_table`, and the predicate are simply absent from the planner's object — no source string is reachable from it — yet it still does real work (fan-out and out-of-universe are refused from shape alone). The handoff down is a logical request `(measure, member, anchor)`; the return up is a frame + a `Disclosure` (caveats, not sources). Disclosures cross the boundary; provenance does not.
 

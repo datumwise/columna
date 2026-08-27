@@ -1,7 +1,17 @@
-# Readable-site mission 1 — recon and redesign proposal (PROPOSED, not implemented)
+# Readable-site mission 1 — recon and redesign proposal (SHIPPED — closed 2026-08-27)
 
-Recon of the actual repo and built site against the rulings of 2026-08-26. **No reader-facing file
-has been changed.** Every quotation below is from the current tree or the current build.
+> **STATUS CLOSED, 2026-08-27.** This document was written as a recon and a proposal, and its status
+> line said "PROPOSED, not implemented" for as long as that was true. **It is no longer true.** The
+> work it proposed shipped in `e1d806a` (Foundations mission 1) and is live: the bearing reads
+> *Data · Certainty · Intelligence*, /research's group is *Theory and results*, and the fourteen
+> onsite reading routes exist. The status line is corrected here because a stale "not implemented"
+> is a second source of truth — a later reader (human or agent) sweeping this tree would conclude
+> the retired wording is still shipped, which is exactly what happened during the positioning audit
+> of 2026-08-27. **Everything below is preserved unedited as the recon it was**; only this block and
+> the title's status marker are new.
+
+Recon of the actual repo and built site against the rulings of 2026-08-26, **as they stood on that
+date**. Every quotation below was from the tree or the build at the time of writing.
 
 The eleven requested items are answered in order at §1–§11. Read §0 first: three of the eleven
 answers change shape once you know what is already there.
