@@ -5,7 +5,8 @@
    "sourceId": "s-theory-of-certainty",
    "role": "foundation",
    "purpose": "What grounds carry a conclusion, what they establish, where their warrant stops, and whether they can bear the reliance placed on them.",
-   "workId": "w-theory-of-certainty"
+   "workId": "w-theory-of-certainty",
+   "readingRoute": "/read/theory-of-certainty"
   },
   {
    "sourceId": "s-theory-of-certainty-v1-0",
@@ -48,7 +49,8 @@
    "sourceId": "s-two-anchors",
    "role": "foundation",
    "purpose": "Every measure carries two anchors; confusing them is how a rate goes wrong.",
-   "workId": "w-two-anchors"
+   "workId": "w-two-anchors",
+   "readingRoute": "/read/two-anchors"
   },
   {
    "sourceId": "s-nine-model-study",
@@ -87,13 +89,15 @@
    "sourceId": "s-theory-of-data",
    "role": "foundation",
    "purpose": "The foundation, with the proofs: what an analytical object is, and when a number exists.",
-   "workId": "w-theory-of-data"
+   "workId": "w-theory-of-data",
+   "readingRoute": "/read/theory-of-data"
   },
   {
    "sourceId": "s-contract-calculus",
    "role": "foundation",
    "purpose": "A calculus for transformations that must preserve governed meaning.",
-   "workId": "w-contract-calculus"
+   "workId": "w-contract-calculus",
+   "readingRoute": "/read/contract-calculus"
   },
   {
    "sourceId": "s-contract-calculus-supplement",
@@ -105,7 +109,8 @@
    "sourceId": "s-missingness-has-a-universe",
    "role": "foundation",
    "purpose": "Why absence is not one thing, and where each kind of absence lives.",
-   "workId": "w-missingness-has-a-universe"
+   "workId": "w-missingness-has-a-universe",
+   "readingRoute": "/read/missingness-has-a-universe"
   },
   {
    "sourceId": "s-frameql-introduction",
@@ -162,19 +167,22 @@
    "sourceId": "s-statistical-bridge",
    "role": "foundation",
    "purpose": "How statistical claims are licensed — the passage from evidence to inference to claim.",
-   "workId": "w-statistical-bridge"
+   "workId": "w-statistical-bridge",
+   "readingRoute": "/read/statistical-bridge"
   },
   {
    "sourceId": "s-regime-has-a-contract",
    "role": "foundation",
    "purpose": "What a regime commits to, stated as a contract.",
-   "workId": "w-regime-has-a-contract"
+   "workId": "w-regime-has-a-contract",
+   "readingRoute": "/read/regime-has-a-contract"
   },
   {
    "sourceId": "s-tod-primer",
    "role": "primer",
    "purpose": "The Theory of Data vocabulary, carefully, in dependency order.",
-   "workId": "w-tod-primer"
+   "workId": "w-tod-primer",
+   "readingRoute": "/read/tod-primer"
   },
   {
    "sourceId": "s-reading-rethinking",
@@ -186,7 +194,8 @@
    "sourceId": "s-statistical-bridge-primer",
    "role": "primer",
    "purpose": "The Bridge vocabulary, carefully, in dependency order.",
-   "workId": "w-statistical-bridge-primer"
+   "workId": "w-statistical-bridge-primer",
+   "readingRoute": "/read/statistical-bridge-primer"
   },
   {
    "sourceId": "s-frameql-primer",
@@ -201,7 +210,8 @@
    "sourceId": "s-analytical-governance",
    "role": "foundation",
    "purpose": "From a human question to an answer entitled to be served, and where the entitlement stops.",
-   "workId": "w-analytical-governance"
+   "workId": "w-analytical-governance",
+   "readingRoute": "/read/analytical-governance"
   },
   {
    "sourceId": "s-tod-applied",
@@ -219,13 +229,15 @@
    "sourceId": "s-certifiable-state",
    "role": "foundation",
    "purpose": "What can still be certified once information has been lost.",
-   "workId": "w-certifiable-state"
+   "workId": "w-certifiable-state",
+   "readingRoute": "/read/certifiable-state"
   },
   {
    "sourceId": "s-where-does-probability-live",
    "role": "foundation",
    "purpose": "Where in an analytical world a probability is entitled to sit.",
-   "workId": "w-where-does-probability-live"
+   "workId": "w-where-does-probability-live",
+   "readingRoute": "/read/where-does-probability-live"
   },
   {
    "sourceId": "s-reading-bayesian-workflow",
@@ -237,13 +249,15 @@
    "sourceId": "s-data-has-its-own-ontology",
    "role": "position",
    "purpose": "Data is not a representation of something else. It has its own ontology.",
-   "workId": "w-data-has-its-own-ontology"
+   "workId": "w-data-has-its-own-ontology",
+   "readingRoute": "/read/data-has-its-own-ontology"
   },
   {
    "sourceId": "s-conditioning-bar",
    "role": "foundation",
    "purpose": "The two jobs the conditioning bar is quietly doing at once.",
-   "workId": "w-conditioning-bar"
+   "workId": "w-conditioning-bar",
+   "readingRoute": "/read/conditioning-bar"
   },
   {
    "sourceId": "s-frameql-manual",

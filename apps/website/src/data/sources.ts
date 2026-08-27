@@ -38,6 +38,22 @@ export interface Source {
   title?: string;
   purpose: string;
   route?: string;
+  /**
+   * A FAITHFUL ONSITE READING SURFACE for the deposited work — /read/<slug> (2026-08-27).
+   *
+   * DELIBERATELY NOT `route`, and the separation is load-bearing (Huayin, ruling R4). `route` means
+   * "a page THIS SITE AUTHORED about this source" — /learn/what-is-the-theory-of-data is a hosted
+   * edition wrapped in page chrome the site wrote. A reading surface is not that: it is the work
+   * itself, and the site says nothing on it after the crossing block.
+   *
+   * AND OVERLOADING `route` WOULD HAVE MOVED THE AGENT'S CORPUS. This catalog is read by Ask as
+   * well as by the website. `ask/ingest_deposits.targets()` SKIPS any source that has a `route`
+   * ("already readable from the shipped site build"), so writing these fourteen reading pages into
+   * `route` would have silently switched fourteen Core works from deposit-derived chunks to
+   * route-derived ones — and, if the manifest were not regenerated in the same change, indexed each
+   * of them twice. Two meanings in one field, with the agent as the reader that pays for it.
+   */
+  readingRoute?: string;
   workId?: string;
   recordId?: string;
   editionPinned?: boolean;
@@ -132,7 +148,7 @@ if (REPRESENTATIVE.length !== CORPUS_IN.length) {
  * serious reader most often wants, which is not the order the corpus was written in.
  */
 export const GROUPS: { title: string; blurb: string; roles: SourceRole[] }[] = [
-  { title: 'Foundations',
+  { title: 'Theory and results',
     blurb: 'The theory itself, and the results that establish it.',
     roles: ['foundation', 'supplement'] },
   { title: 'Introductions and primers',
@@ -175,6 +191,11 @@ export function actions(s: ResolvedSource): { label: string; href: string; hint?
       'Read';
     out.push({ label: verb, href: s.route });
   }
+  // THE PUBLICATION, READABLE HERE (2026-08-27). Offered before the record link, because a reader
+  // who can read the work on this site should be told that before being sent to a DOI resolver.
+  // The record link is never removed: the deposit remains the authority, and this page reaches it
+  // rather than replacing it.
+  if (s.readingRoute) out.push({ label: 'Read the publication', href: s.readingRoute, hint: 'in full, here' });
   if (s.currentHref) out.push({ label: 'Record', href: s.currentHref, hint: 'the deposit' });
   return out;
 }

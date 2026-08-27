@@ -1,0 +1,288 @@
+---
+/**
+ * /foundations — WHERE THE FOUNDATIONAL DISCUSSIONS HAPPEN (Huayin, 2026-08-27).
+ *
+ * NOT A CATALOG. The organising units are QUESTIONS, not publications. A publication appears here
+ * as a contribution to a discussion — a way into it — never as the thing the section is about. The
+ * complete source estate is /research, one link away, and is never reproduced here.
+ *
+ * NAME THE TRIAD; DO NOT DIAGRAM IT. Data · Certainty · Intelligence are never depicted as
+ * equivalent, exhaustive, independently bounded, equally mature, or three symmetrical datumwise
+ * theories. There is no diagram on this page and no arrow between the three, because every
+ * left-to-right arrangement of three things is read as a sequence and this is not one.
+ *
+ * WHY THE RETIRED ThreeQuestions SHELL IS NOT REUSED, THOUGH ITS REUSE WAS APPROVED. That component
+ * is a three-column field, `repeat(3, minmax(0, 1fr))`. Three equal columns state equivalence and
+ * equal maturity as a fact of layout, before any sentence can deny it — and the three territories
+ * are explicitly NOT equally mature. Padding Intelligence to column height would be the manufactured
+ * symmetry the ruling forbids; leaving it short in an equal column reads as a broken cell rather
+ * than as an honest boundary. So the sections are STACKED, and their different lengths are the
+ * honest statement. What IS reused from that component: the hairline-and-space grammar with no
+ * cards, its jurisdictions-are-not-planes rule, and the Intelligence unit's locked line.
+ *
+ * WHAT WAS RE-AUTHORED, NOT RENAMED. The retired middle territory was `Evidence`, answered with
+ * "Evidence licenses claims only through an explicit governed passage" — Statistical Bridge
+ * doctrine, which is ONE PART of Certainty. Carrying it over would have sized the territory to one
+ * paper, which is the mistake the rename exists to fix. The ordinals 1·2·3 and the formal marks
+ * (`F @ A`, `evidence → inference → claim`, `intent → candidate → authority`) are dropped: the
+ * ordinals draw a pipeline in miniature, and formal notation is the wrong register for a reader who
+ * has just arrived from an essay.
+ *
+ * "JURISDICTION" IS QUALIFIED WHERE IT APPEARS (ruling R7). The word carries two senses in this
+ * corpus — what questions an account claims to govern, and what a running system is authorised to
+ * answer. This page uses the first and says so, once, rather than relying on context.
+ *
+ * EXTERNAL WORK IS CONTEXT, NEVER AUTHORITY (ruling R6). One reference, chosen because the site
+ * already makes the point elsewhere. A link is not an endorsement and does not make outside work
+ * part of what datumwise holds; the prose says so where it appears.
+ *
+ * NO PUBLICATION FACT IS TYPED HERE. Titles and links come from the registry through
+ * data/publications.ts. This is a `derived` surface under G7 and the build fails if a DOI appears.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { citation } from '../data/publications';
+
+const gfc = citation('w-theory-of-certainty');
+const tod = citation('w-theory-of-data');
+const bridge = citation('w-statistical-bridge');
+const ag = citation('w-analytical-governance');
+
+// WAYS IN, not a bibliography. Two or three per territory, chosen for a reader. Anything here
+// because it exists rather than because a reader needs it belongs on /research.
+const TERRITORIES = [
+  {
+    id: 'data',
+    word: 'Data',
+    question: 'What is the analytical thing we are working with?',
+    opens: [
+      'What gives analytical data its identity — what makes two numbers the same thing, or different things?',
+      'Which transformations preserve that identity, and which quietly replace it with something else?',
+      'How can an analytical object stay derivable and consistent as it moves through systems that know nothing about each other?',
+    ],
+    state:
+      'This is the most developed of the three. Identity, existence and lawful derivation have a worked account with proofs behind them, and a query language exists that can only ask for meaning a declared model can defend. The container got its mathematics half a century ago, in the relational model; what the container was carrying did not.',
+    external:
+      "Codd's relational model (1970) is the reference point here — cited as the thing that was settled, not as work datumwise claims or extends.",
+    waysIn: [
+      { label: 'When is it data?', href: '/park/when-is-it-data', hint: 'a four-minute walk, from a single number on a plinth' },
+      { label: 'The Theory of Data in One Afternoon', href: '/start-here', hint: 'the whole idea in one sitting, no prior reading' },
+      { label: tod.label, href: '/read/theory-of-data', hint: 'the full account, with the proofs — readable here' },
+    ],
+    unsettled:
+      'Absence is only definable relative to a domain — you cannot say a value is missing without saying missing from what. Where that domain comes from, when nobody has declared one, is not settled.',
+  },
+  {
+    id: 'certainty',
+    word: 'Certainty',
+    question: 'What gives us sufficient grounds to rely on what we know?',
+    opens: [
+      'What is actually carrying the confidence — knowledge of how something works, a model of how someone chooses, or observed regularity?',
+      'How far does a ground reach, and what happens when confidence earned on one is spent as though another had been established?',
+      'What survives the passage from evidence to inference, to claim, to decision, to action?',
+    ],
+    state:
+      'Substantial, and recent. The families of ground are distinguished and their limits described; the passage from governed evidence to a licensed claim has an account of its own. The word is used narrowly here — being sufficiently sure, on warranted grounds, for the reliance at issue — and not as a philosophical theory of knowledge.',
+    waysIn: [
+      { label: gfc.label, href: '/read/theory-of-certainty', hint: 'the current foundational publication — readable here' },
+      { label: 'The governed passage', href: '/evidence', hint: 'from evidence to a claim that is licensed to travel' },
+      { label: bridge.label, href: '/read/statistical-bridge', hint: 'the full account — readable here' },
+    ],
+    unsettled:
+      'How far observed regularity warrants anything beyond the conditions it was observed under. Behavioural evidence is the ground most often spent past its reach, and the boundary is easier to state than to locate.',
+  },
+  {
+    id: 'intelligence',
+    word: 'Intelligence',
+    question: 'How do intelligent actors understand situations, form purposes, reason, choose, and act?',
+    opens: [
+      'What changes when intelligence itself becomes part of the analytical machinery, rather than the thing operating it?',
+      'How should a person work with an intelligent agent — and a machine with another machine?',
+      'When an actor can explain a principle, reason about it, and act against it, what have we actually established about what it will do?',
+    ],
+    state:
+      'The least settled of the three, and we would rather say so than fill the space. One thing is held firmly, and it is a boundary rather than a theory:',
+    held: 'Interpretation is useful. Interpretation is not authority.',
+    heldSupport:
+      'A person or a machine may interpret, propose, explain and clarify. Execution requires governed authorisation. That is a line we are willing to defend and to build to; it is not an account of how intelligence works.',
+    waysIn: [
+      { label: 'Never let your agent touch the database', href: '/positions/never-let-your-agent-touch-the-database', hint: 'the position, and what to put between them' },
+    ],
+    unsettled:
+      'Almost all of it, and it is worth being specific rather than vague: what an agent’s proposal actually is; what makes a delegation legitimate; what one machine owes another when it hands over a result; and what grounds could warrant relying on an actor whose goals and self-regulation are not established. There is no datumwise theory of intelligence, and we are not writing one to complete a pattern.',
+  },
+];
+---
+
+<BaseLayout
+  title="Foundations — datumwise"
+  description="The foundational problems underneath analytics: what an analytical thing is, what makes it reasonable to rely on an answer, and what changes when the thing reasoning is not a person."
+  chip={false}
+>
+  <article class="foundations">
+    <header class="opening">
+      <p class="kicker">Foundations</p>
+      <h1>Foundations</h1>
+
+      <p class="lede">
+        Most arguments about analytics are arguments about tools. This page is not.
+      </p>
+      <p class="body">
+        Underneath the tools are questions nobody has settled: what an analytical thing actually
+        <em>is</em>; what makes it reasonable to rely on an answer; and what changes when the thing
+        doing the reasoning is not a person. They are older than our work and larger than it.
+      </p>
+      <p class="body">
+        We work on them for a practical reason. Governance cannot be stronger than its account of
+        the thing being governed — and a machine cannot enforce a distinction it cannot represent.
+        Better answers about analytics eventually require better foundations underneath them.
+      </p>
+      <p class="body">
+        This is where we currently think those problems are. It is a map of terrain, not a table of
+        contents, and it can change.
+      </p>
+
+      {/* NAMED. NOT DIAGRAMMED. The same statement the homepage makes, in the place that explains
+          it — no boxes, no columns, no arrows, no ordinals. */}
+      <p class="terrain">Data · Certainty · Intelligence</p>
+
+      <p class="caveat">
+        Three enduring problems that analytical work has to contend with — not an exhaustive account
+        of analytics, not three stages of anything, not three equally developed theories, and not
+        three things we claim to have invented. They are uneven, and the unevenness is visible below
+        rather than smoothed out.
+      </p>
+    </header>
+
+    {TERRITORIES.map((t) => (
+      <section class="territory" id={t.id} aria-labelledby={`${t.id}-h`}>
+        <hr class="rule rule-strong" />
+        <h2 id={`${t.id}-h`} class="word">{t.word}</h2>
+        <p class="question">{t.question}</p>
+
+        <div class="moves">
+          <div class="move">
+            <h3 class="move-h">What it opens</h3>
+            <ul class="opens">{t.opens.map((q) => <li>{q}</li>)}</ul>
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">Where we are</h3>
+            <p class="body">{t.state}</p>
+            {t.held && (
+              <>
+                <blockquote class="held">{t.held}</blockquote>
+                <p class="body">{t.heldSupport}</p>
+              </>
+            )}
+            {t.external && <p class="external">{t.external}</p>}
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">Ways in</h3>
+            <ul class="ways">
+              {t.waysIn.map((w) => (
+                <li>
+                  <a href={w.href}>{w.label}</a>
+                  <span class="hint">{w.hint}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">What is unsettled</h3>
+            <p class="body">{t.unsettled}</p>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <section class="relate" aria-labelledby="relate-h">
+      <hr class="rule rule-strong" />
+      <h2 id="relate-h" class="word">How these relate</h2>
+
+      <p class="body">
+        Not as a sequence, and not as three parts of one thing. They are three different questions,
+        which is why they can be at three different stages of being answered. Nothing here says a
+        result must pass through them in order, and nothing here says that together they cover the
+        subject.
+      </p>
+      <p class="body">
+        Where they do meet, they meet as different <em>intellectual jurisdictions</em> — different
+        questions each account claims to govern. That is a statement about what a body of work
+        answers for, not about what a running system is permitted to do; those are two senses of the
+        same word and only the first is meant here.
+      </p>
+
+      <h3 class="move-h">Analytical Governance sits beside them, not inside them</h3>
+      <p class="body">
+        <a href="/analytical-governance">Analytical Governance</a> is the discipline governing the
+        legitimacy of the analytical service — whether the purpose a person brought survives the
+        passage into a request, a result, an answer, and a consequential use. It necessarily runs
+        into foundational problems in all three territories, and it is filed under none of them: it
+        is not a component of Data, an application of Certainty, or a policy about Intelligence.
+        It has its own account, and its own doorway.
+      </p>
+
+      <h3 class="move-h">Work that is not ours</h3>
+      <p class="body">
+        These are shared problems with long histories, and where we lean on work that is not ours we
+        name it and link it. A link here is context, not endorsement: it does not make that work part
+        of what datumwise holds, and it carries no datumwise authority.
+      </p>
+
+      <hr class="rule" />
+      <p class="record">
+        Every deposited work, with its current version, date and record, is on
+        <a href="/research">the research corpus page</a>. This page is the discussion; that page is
+        the record.
+      </p>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .foundations { width: min(100% - 3rem, 46rem); margin: 0 auto; padding: 3rem 0 5rem; }
+  .kicker { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.75rem; }
+  h1 { font-family: var(--font-serif); font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem);
+    line-height: 1.1; margin: 0 0 1.5rem; }
+  .lede { font-family: var(--font-serif); font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem);
+    line-height: 1.45; color: var(--ink); margin: 0 0 1.25rem; }
+  .body { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.65;
+    color: var(--ink-soft); margin: 0 0 1.1rem; }
+
+  /* The terrain line: the same quiet typographic statement the homepage makes. No links — the
+     sections below are the destination, and they are already on this page. */
+  .terrain { font-family: var(--font-serif); font-size: clamp(1.3rem, 1rem + 1.4vw, 2rem);
+    line-height: 1.3; color: var(--ink); margin: 2.5rem 0 1rem; letter-spacing: 0.01em; }
+  .caveat { font-size: 0.95rem; line-height: 1.6; color: var(--ink-faint); margin: 0 0 1rem;
+    max-width: 38rem; }
+
+  .territory, .relate { margin-top: 3.5rem; }
+  .word { font-family: var(--font-serif); font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+    line-height: 1.15; margin: 2rem 0 0.5rem; }
+  .question { font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.45;
+    color: var(--ink); margin: 0 0 2rem; }
+
+  .moves { display: grid; gap: 2rem; }
+  .move-h { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 400; margin: 0 0 0.7rem; }
+
+  .opens { list-style: none; margin: 0; padding: 0; }
+  .opens li { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.6;
+    color: var(--ink-soft); border-top: 1px solid var(--rule); padding: 0.7rem 0; }
+  .opens li:last-child { border-bottom: 1px solid var(--rule); }
+
+  .held { margin: 1.25rem 0; padding-left: 1.1rem; border-left: 2px solid var(--ink);
+    font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.4; color: var(--ink); }
+  .external { font-size: 0.92rem; line-height: 1.6; color: var(--ink-faint); margin: 0.5rem 0 0; }
+
+  .ways { list-style: none; margin: 0; padding: 0; }
+  .ways li { border-top: 1px solid var(--rule); padding: 0.7rem 0; }
+  .ways li:last-child { border-bottom: 1px solid var(--rule); }
+  .ways a { font-family: var(--font-serif); font-size: 1.02rem; }
+  .hint { display: block; font-size: 0.9rem; color: var(--ink-faint); margin-top: 0.15rem; }
+
+  .record { font-size: 0.95rem; line-height: 1.6; color: var(--ink-faint); }
+</style>
