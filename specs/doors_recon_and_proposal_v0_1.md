@@ -246,10 +246,17 @@ answered. **The correction closes an open ledger item rather than opening a new 
 
 **The registry facts.** `w-two-great-sources` has two records across a concept boundary:
 
-| record | title | version | date | DOI | status |
-|---|---|---|---|---|---|
-| `.r01` | The Two Great Sources of Silent Analytical Failure | (unversioned) | 2026-07-25 | `10.5281/zenodo.21553379` | superseded |
-| `.r02` | **Three Structural Sources of Silent Analytical Failure** | 2.0 | 2026-08-11 | `10.5281/zenodo.21893929` | **current** |
+| record | title | version | date | status |
+|---|---|---|---|---|
+| `.r01` | The Two Great Sources of Silent Analytical Failure | (unversioned) | 2026-07-25 | superseded |
+| `.r02` | **Three Structural Sources of Silent Analytical Failure** | 2.0 | 2026-08-11 | **current** |
+
+*No DOI is typed in this document, deliberately.* The first draft of this file quoted both records'
+Zenodo tokens and **the G7 echo audit failed the build for it** — a hand-authored publication fact
+may not simply appear in a tracked file without a `consumers.json` classification. That is the gate
+working, on the very document describing it, and the right answer was to stop asserting a fact this
+document does not own: records are named by `recordId`, and the registry keeps the DOIs. Any future
+Doors artifact inherits the same rule (K4).
 
 `works.json:63` already carries the current `canonicalLabel`.
 
