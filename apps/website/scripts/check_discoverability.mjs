@@ -67,6 +67,13 @@ const PROTECTED = [
     ],
     inLlms: true,
   },
+  {
+    route: '/doors',
+    why: 'PR #240 landed /doors (Huayin, 2026-08-27). It has exactly ONE inbound link in the whole site — the homepage line above the wayfinding ladder — because ruling R8 keeps Doors OUT of the primary header until The Yes Machine Problem is published. That is the /known-issues condition again: one careless homepage edit orphans the surface and CI stays green. This row defends the inbound relationship ONLY. It is not a step toward navigation, and adding the header link (if it is ever ruled) does not belong here.',
+    linkedFrom: [['/', 'the homepage line beside the wayfinding ladder — deliberately outside the numbered path, and currently the only route to /doors']],
+    // NOT in llms.txt. /doors is an editorial discovery surface, inert to Ask corpus semantics by
+    // ruling; asserting a machine-facing index entry would broaden the guard past what was approved.
+  },
 ];
 
 const failures = [];
