@@ -365,6 +365,13 @@
    "workId": "w-three-worlds-of-analytics",
    "recordId": "w-three-worlds-of-analytics.r01",
    "preservedState": "2026-08-28"
+  },
+  {
+   "sourceId": "s-do-not-let-your-ai-agent-govern-itself",
+   "role": "applied",
+   "purpose": "An AI agent may participate in governance without becoming its final authority: govern the crossings, put ratification outside the agent, and then give it full access to the governed request space.",
+   "workId": "w-do-not-let-your-ai-agent-govern-itself",
+   "readingRoute": "/read/do-not-let-your-ai-agent-govern-itself"
   }
  ]
 }

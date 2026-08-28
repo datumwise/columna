@@ -1292,5 +1292,20 @@
   "license": "cc-by-4.0",
   "resourceType": "Working paper",
   "supersedes": "w-three-worlds-of-analytics.r01"
+ },
+ {
+  "recordId": "w-do-not-let-your-ai-agent-govern-itself.r01",
+  "workId": "w-do-not-let-your-ai-agent-govern-itself",
+  "title": "Do Not Let Your AI Agent Govern Itself",
+  "version": "1.0",
+  "date": "2026-08-28",
+  "doi": "10.5281/zenodo.22148861",
+  "recid": "22148861",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
  }
 ]

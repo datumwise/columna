@@ -210,6 +210,20 @@
    "sha256": "02091f853a135fe780737c0c27357a2567ece46815a4f3f93e18b835c4503d4d"
   },
   {
+   "sourceId": "s-do-not-let-your-ai-agent-govern-itself",
+   "workId": "w-do-not-let-your-ai-agent-govern-itself",
+   "label": "Do Not Let Your AI Agent Govern Itself",
+   "recordId": "w-do-not-let-your-ai-agent-govern-itself.r01",
+   "recid": "22148861",
+   "file": "w-do-not-let-your-ai-agent-govern-itself.r01.md",
+   "zenodoKey": "do_not_let_your_ai_agent_govern_itself_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
+   "md5": "fa5f9a7faf0cd541acbcd2fe460f0fc3",
+   "bytes": 15569,
+   "sha256": "f331ef4c974c1421ed3efbd6fcac940f9d60c9ccdc180bdc730431bf7ad8044f"
+  },
+  {
    "sourceId": "s-analytical-governance-v1-1",
    "workId": "w-analytical-governance",
    "label": "Analytical Governance v1.1, 21 August 2026",
