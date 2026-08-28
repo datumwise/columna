@@ -369,5 +369,16 @@
     "doi": "10.5281/zenodo.22114801"
    }
   ]
+ },
+ {
+  "workId": "w-three-worlds-of-analytics",
+  "canonicalLabel": "The Three Worlds of Analytics",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "22143529",
+    "doi": "10.5281/zenodo.22143529"
+   }
+  ]
  }
 ]

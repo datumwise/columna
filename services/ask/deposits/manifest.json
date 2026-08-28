@@ -196,6 +196,20 @@
    "sha256": "8d22738d343d3060ecceb5ed068414f67591b25e02dd10f3ad90cb1d7ecd7011"
   },
   {
+   "sourceId": "s-three-worlds-of-analytics",
+   "workId": "w-three-worlds-of-analytics",
+   "label": "The Three Worlds of Analytics",
+   "recordId": "w-three-worlds-of-analytics.r02",
+   "recid": "22146487",
+   "file": "w-three-worlds-of-analytics.r02.md",
+   "zenodoKey": "the_three_worlds_of_analytics_v1_1.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
+   "md5": "044bcd52079545fb75af4e95939a5348",
+   "bytes": 17483,
+   "sha256": "02091f853a135fe780737c0c27357a2567ece46815a4f3f93e18b835c4503d4d"
+  },
+  {
    "sourceId": "s-analytical-governance-v1-1",
    "workId": "w-analytical-governance",
    "label": "Analytical Governance v1.1, 21 August 2026",
@@ -222,6 +236,20 @@
    "md5": "a774fc06b725f42c22ec4b8ae6e2eb6e",
    "bytes": 26233,
    "sha256": "e598d52731f9fcc5b8e15b11d647caad130b2b8ec51f785af07865b4c04fade5"
+  },
+  {
+   "sourceId": "s-three-worlds-of-analytics-v1-0",
+   "workId": "w-three-worlds-of-analytics",
+   "label": "The Three Worlds of Analytics v1.0, 28 August 2026",
+   "recordId": "w-three-worlds-of-analytics.r01",
+   "recid": "22143530",
+   "file": "w-three-worlds-of-analytics.r01.md",
+   "zenodoKey": "the_three_worlds_of_analytics_v1_0.md",
+   "provenance": "zenodo",
+   "zenodoVerified": true,
+   "md5": "5fb893248d83ddd18eeaf2fd1a2cff98",
+   "bytes": 18153,
+   "sha256": "ea96786d728d40b63e84ad1a61834698305452a2182cd5ce359c4318004f937e"
   }
  ],
  "missingText": []

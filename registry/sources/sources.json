@@ -349,6 +349,22 @@
    "purpose": "The research corpus map as it was written on 3 August 2026. Preserved, not maintained.",
    "route": "/history/research-map-2026-08-03",
    "preservedState": "2026-08-03"
+  },
+  {
+   "sourceId": "s-three-worlds-of-analytics",
+   "role": "foundation",
+   "purpose": "Analytics crosses three jurisdictions — business meaning, governed data, and material representation — and trouble begins when one silently settles a question belonging to another.",
+   "workId": "w-three-worlds-of-analytics",
+   "readingRoute": "/read/three-worlds-of-analytics"
+  },
+  {
+   "sourceId": "s-three-worlds-of-analytics-v1-0",
+   "role": "historical-record",
+   "title": "The Three Worlds of Analytics v1.0, 28 August 2026",
+   "purpose": "The v1.0 edition, superseded by v1.1 the same day. Kept so that citations made to v1.0 while it was current, and questions explicitly about what v1.0 said, resolve to the record whose words were actually cited. It is not current authority and may not establish datumwise's current position.",
+   "workId": "w-three-worlds-of-analytics",
+   "recordId": "w-three-worlds-of-analytics.r01",
+   "preservedState": "2026-08-28"
   }
  ]
 }

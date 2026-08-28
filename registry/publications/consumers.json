@@ -863,5 +863,21 @@
    "10.5281/zenodo.22115819"
   ],
   "note": "F4's specimen: the first reviewed, human-published Ask answer, captured from GET /qa/<id> on the day it was published (2026-08-26). The DOI appears inside the RESOLVED standing sentence, which is the point of the capture — this file records what a reader was actually served, and a capture whose standing lines were re-resolved later would no longer be a record of that moment. Dated evidence; not maintained against the registry. The live object it was captured from IS maintained, and re-resolves on every read."
+ },
+ {
+  "path": "services/ask/deposits/w-three-worlds-of-analytics.r02.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.22146487"
+  ],
+  "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree. Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The single DOI below is the paper's own identifier, printed in its own front matter — the author's text, not this repo's assertion, which is what `frozen-deposit` means."
+ },
+ {
+  "path": "services/ask/deposits/w-three-worlds-of-analytics.r01.md",
+  "class": "frozen-deposit",
+  "allowedDois": [
+   "10.5281/zenodo.22143530"
+  ],
+  "note": "The preserved v1.0 edition, superseded by v1.1 the same day and kept so that citations made to v1.0 while it was current resolve to the record whose words were actually cited. Fetched and md5-verified exactly like the current edition; pinned to r01 forever rather than floating with the registry. The single DOI below is the paper's own identifier, printed in its own front matter."
  }
 ]

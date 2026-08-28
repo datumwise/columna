@@ -53,7 +53,8 @@
    "s-frameql-introduction",
    "s-frameql-primer",
    "s-statistical-bridge-primer",
-   "s-theory-of-certainty"
+   "s-theory-of-certainty",
+   "s-three-worlds-of-analytics"
   ],
   "history": [
    {
@@ -196,6 +197,10 @@
    },
    {
     "sourceId": "s-theory-of-certainty-v1-0",
+    "jurisdiction": "historical"
+   },
+   {
+    "sourceId": "s-three-worlds-of-analytics-v1-0",
     "jurisdiction": "historical"
    }
   ],
