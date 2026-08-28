@@ -380,5 +380,16 @@
     "doi": "10.5281/zenodo.22143529"
    }
   ]
+ },
+ {
+  "workId": "w-do-not-let-your-ai-agent-govern-itself",
+  "canonicalLabel": "Do Not Let Your AI Agent Govern Itself",
+  "kind": "unclassified",
+  "attachedConcepts": [
+   {
+    "recid": "22148860",
+    "doi": "10.5281/zenodo.22148860"
+   }
+  ]
  }
 ]

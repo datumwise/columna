@@ -334,6 +334,14 @@
     "22143530",
     "22146487"
    ]
+  },
+  "22148860": {
+   "conceptDoi": "10.5281/zenodo.22148860",
+   "conceptRecid": "22148860",
+   "versionCount": 1,
+   "versions": [
+    "22148861"
+   ]
   }
  },
  "note": "Frozen evidence for registry/publications. Regenerate with scripts/harvest_zenodo_snapshot.py. Seeds are every Zenodo id cited in a tracked file, expanded to every version of each seed's concept record.",
@@ -1499,9 +1507,23 @@
    "resourceType": "Working paper",
    "title": "The Three Worlds of Analytics",
    "version": "1.1"
+  },
+  "22148861": {
+   "authors": [
+    "Wang, Huayin"
+   ],
+   "conceptDoi": "10.5281/zenodo.22148860",
+   "conceptRecid": "22148860",
+   "doi": "10.5281/zenodo.22148861",
+   "license": "cc-by-4.0",
+   "publicationDate": "2026-08-28",
+   "recid": "22148861",
+   "resourceType": "Working paper",
+   "title": "Do Not Let Your AI Agent Govern Itself",
+   "version": "1.0"
   }
  },
- "seedCount": 70,
+ "seedCount": 71,
  "source": "https://zenodo.org/api/records",
  "unresolvedSeeds": [
   "218889981",

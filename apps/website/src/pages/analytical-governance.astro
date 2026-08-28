@@ -64,6 +64,8 @@ import { citation } from '../data/publications';
 
 const paper = citation('w-analytical-governance');
 const certainty = citation('w-theory-of-certainty');
+// The applied paper. Label derived; the route is the deposited work's reading surface.
+const agent = citation('w-do-not-let-your-ai-agent-govern-itself');
 
 // §2 · the three obligations by which legitimacy is maintained through the passage (v2.0 §2.1–2.3).
 const OBLIGATIONS = [
@@ -540,6 +542,15 @@ const CLOSING = [
           <span class="p-label">Read the paper</span>
           <a href={paper.href} rel="noopener" target="_blank">{paper.label} &mdash; Version {paper.version}</a>
           <span class="p-meta">DOI {paper.doi}</span>
+        </p>
+        {/* APPLIED, NOT NEIGHBOURING (2026-08-28). Deliberately a `path-out` and NOT a row in
+            NEIGHBOURS above: that section relates FRAMEWORKS to this one — data governance, ToD,
+            the Bridge — and a paper that applies the framework is a different kind of object. It
+            sits here, where the page is already telling a reader where to go next. */}
+        <p class="path-out">
+          <span class="p-label">Applied to AI agents</span>
+          <a href="/read/do-not-let-your-ai-agent-govern-itself">{agent.label} &rarr;</a>
+          <span class="p-meta">the intent and servability gaps, put to work on agent authority</span>
         </p>
         <p class="path-out">
           <span class="p-label">See the executable consequence</span>
