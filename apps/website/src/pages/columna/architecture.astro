@@ -1,0 +1,97 @@
+---
+/**
+ * /columna/architecture — BUILDING ON THE DATA WORLD, the site-authored architecture note.
+ *
+ * WHAT THIS IS, AND THE FOUR THINGS IT IS NOT (Huayin, 2026-08-28, tranche B). This is a LIVING
+ * datumwise account of Columna's architectural design. It is deliberately NOT a Zenodo publication,
+ * NOT a deposited work, NOT Core, and NOT a DOI-bearing artifact — so it does not belong on /read,
+ * which exists only for the publication of record, and it carries no publication block.
+ *
+ * WHY IT IS NOT IN registry/sources/sources.json, AND WHY THAT IS THE POINT (ruling F). A `route`
+ * in that catalog is what puts a page into Ask's standing map and therefore into the agent's
+ * retrievable corpus (services/ask/ask/index_build.py: a route with no catalog entry is skipped as
+ * uncatalogued). A living architecture note is not authority, and having a route must not make it
+ * any. So the note is reachable, readable and linked — and invisible to Ask. That separation is the
+ * route/authority distinction the ruling asked to preserve, and it is enforced by ABSENCE, which is
+ * the only mechanism the catalog offers. If this page is ever added to the catalog, it acquires an
+ * Ask standing nobody ruled.
+ *
+ * SUB-ROUTE, NOT A NEW TOP-LEVEL CATEGORY (ruling B). /columna already exists as the system page;
+ * this is architecture UNDER it, so the header's four doors are untouched and nothing new appears
+ * in primary navigation. The route names the FUNCTION (architecture) rather than the essay title,
+ * so the note can be revised — it is living — without the URL asserting a frozen edition.
+ *
+ * THE DOWNSTREAM RELATION IS REGISTRY-DERIVED, NEVER TYPED (ruling C). The note is downstream of
+ * The Three Worlds of Analytics. Its label, version and DOI href all come from
+ * registry/publications through `citation()`. No DOI string appears in this file; when v1.2 is
+ * deposited, this page follows the registry without an edit.
+ *
+ * THE BYTES BELOW ARE THE SUPPLIED TEXT, UNEDITED. Content fidelity was ruled explicitly (D): no
+ * compression, no restored "two blast walls" framing, no describing Manifold or Frame-QL as the
+ * interfaces themselves, no reduction of the lower crossing to Frame-QL-to-SQL compilation, and the
+ * accountable-ratification section (§4) stays. Chrome is added around the note; nothing inside it
+ * is rewritten.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { Content } from '../../content/corpus/building_on_the_data_world.md';
+import { citation } from '../../data/publications';
+
+// DERIVED, NOT TYPED. label/versionTag/href all resolve from the publication registry at build.
+const tw = citation('w-three-worlds-of-analytics');
+---
+<BaseLayout
+  title="Building on the Data World — datumwise"
+  description="A datumwise architecture note: how Columna uses the independent Data World — governed through Manifold, expressed in Frame-QL — to keep business meaning, data law, and material realization distinct enough to govern."
+  chip={false}
+  footer="columna">
+
+  {/* THE STANDING BLOCK. Two facts a reader is entitled to before the first paragraph: what kind of
+      artifact this is (living, site-authored, not a publication of record), and what it is
+      downstream of. The second is a link, not a claim — the reader can go read the foundation. */}
+  <p class="standing wayfinding">
+    <span class="standing-mark mono">architecture note</span>
+    <span>A <strong>living</strong> datumwise account of Columna's architectural design — revised as
+    the architecture and the implementation mature. It is not a publication of record and carries no
+    DOI. It is downstream of
+    {' '}<a href="/read/three-worlds-of-analytics">{tw.label}</a>{tw.versionTag ? ` ${tw.versionTag}` : ''},
+    which is architecture-independent: Columna does not create or own that distinction.
+    {' '}<a href={tw.href} rel="noopener" target="_blank">The publication of record ↗</a></span>
+  </p>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  {/* ONWARD (ruling G). Back to the foundation this is downstream of, and out to the system it
+      describes. Two destinations, deliberately: a third would make this a menu. */}
+  <p class="engage wayfinding">
+    The foundation this note builds on is
+    {' '}<a href="/read/three-worlds-of-analytics">{tw.label}</a> — readable here in full.
+    The system it describes is at <a href="/columna">Columna</a>.
+  </p>
+</BaseLayout>
+
+<style>
+  .wayfinding { width: min(100% - 3rem, 46rem); margin-inline: auto; }
+
+  /* The standing block, in the same register /thesis uses for its edition line — a marked strip
+     above the prose, not a card and not a banner. */
+  .standing {
+    display: flex; gap: 0.7rem; align-items: baseline; flex-wrap: wrap;
+    margin: 0 auto 2.4rem; padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft);
+  }
+  .standing-mark {
+    font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-faint); white-space: nowrap;
+  }
+  .standing strong { color: var(--ink); }
+
+  .prose { width: min(100% - 3rem, 46rem); margin-inline: auto; }
+
+  .engage {
+    margin: 2.6rem auto 0; padding-top: 1.4rem; border-top: 1px solid var(--rule);
+    font-size: 0.92rem; color: var(--ink-faint); line-height: 1.6;
+  }
+</style>

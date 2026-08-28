@@ -1261,5 +1261,35 @@
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint"
+ },
+ {
+  "recordId": "w-three-worlds-of-analytics.r01",
+  "workId": "w-three-worlds-of-analytics",
+  "title": "The Three Worlds of Analytics",
+  "version": "1.0",
+  "date": "2026-08-28",
+  "doi": "10.5281/zenodo.22143530",
+  "recid": "22143530",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
+ },
+ {
+  "recordId": "w-three-worlds-of-analytics.r02",
+  "workId": "w-three-worlds-of-analytics",
+  "title": "The Three Worlds of Analytics",
+  "version": "1.1",
+  "date": "2026-08-28",
+  "doi": "10.5281/zenodo.22146487",
+  "recid": "22146487",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Working paper"
  }
 ]
