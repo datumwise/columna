@@ -1,0 +1,235 @@
+{
+  "captured_at": "2026-08-29T13:49:44Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 21,
+    "uniques": 5,
+    "views": [
+      {
+        "timestamp": "2026-08-14T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-15T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-16T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-17T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-18T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-19T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-20T00:00:00Z",
+        "count": 4,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-21T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-22T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-23T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-24T00:00:00Z",
+        "count": 2,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-08-25T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-26T00:00:00Z",
+        "count": 10,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-08-27T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      }
+    ]
+  },
+  "clones": {
+    "count": 3445,
+    "uniques": 315,
+    "clones": [
+      {
+        "timestamp": "2026-08-14T00:00:00Z",
+        "count": 5,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-08-15T00:00:00Z",
+        "count": 12,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-08-16T00:00:00Z",
+        "count": 31,
+        "uniques": 8
+      },
+      {
+        "timestamp": "2026-08-17T00:00:00Z",
+        "count": 18,
+        "uniques": 10
+      },
+      {
+        "timestamp": "2026-08-18T00:00:00Z",
+        "count": 39,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-08-19T00:00:00Z",
+        "count": 311,
+        "uniques": 34
+      },
+      {
+        "timestamp": "2026-08-20T00:00:00Z",
+        "count": 144,
+        "uniques": 21
+      },
+      {
+        "timestamp": "2026-08-21T00:00:00Z",
+        "count": 424,
+        "uniques": 48
+      },
+      {
+        "timestamp": "2026-08-22T00:00:00Z",
+        "count": 598,
+        "uniques": 67
+      },
+      {
+        "timestamp": "2026-08-23T00:00:00Z",
+        "count": 384,
+        "uniques": 51
+      },
+      {
+        "timestamp": "2026-08-24T00:00:00Z",
+        "count": 289,
+        "uniques": 35
+      },
+      {
+        "timestamp": "2026-08-25T00:00:00Z",
+        "count": 351,
+        "uniques": 32
+      },
+      {
+        "timestamp": "2026-08-26T00:00:00Z",
+        "count": 377,
+        "uniques": 47
+      },
+      {
+        "timestamp": "2026-08-27T00:00:00Z",
+        "count": 462,
+        "uniques": 56
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "Google",
+      "count": 8,
+      "uniques": 1
+    },
+    {
+      "referrer": "github.com",
+      "count": 8,
+      "uniques": 1
+    },
+    {
+      "referrer": "datumwise.ai",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 9,
+      "uniques": 4
+    },
+    {
+      "path": "/datumwise/columna/pulls",
+      "title": "/pulls",
+      "count": 3,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/5bfd8f1c55d8a9d433eee809abd5466f6478bfee/apps/website/src/content/corpus/launch_post_FINAL.md",
+      "title": "/blob/5bfd8f1c55d8a9d433eee809abd5466f6478bfee/apps/website/src/content/corpus/launch_post_FINAL.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/lab/ask-datumwise-v0/services/ask/docs/servability_candidate_2026-08-26.md",
+      "title": "/blob/lab/ask-datumwise-v0/services/ask/docs/servability_candidate_2026-08-26.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/columna_framework_manual_6e.md",
+      "title": "/blob/main/docs/columna_framework_manual_6e.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/columna_framework_manual_6f.md",
+      "title": "/blob/main/docs/columna_framework_manual_6f.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/columna_framework_manual_6g.md",
+      "title": "/blob/main/docs/columna_framework_manual_6g.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/columna_reference_manual_5e.md",
+      "title": "/blob/main/docs/columna_reference_manual_5e.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/frame_ql_manual_v2.md",
+      "title": "/blob/main/docs/frame_ql_manual_v2.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/discussions/5",
+      "title": "/discussions/5",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
