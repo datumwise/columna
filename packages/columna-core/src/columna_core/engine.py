@@ -249,14 +249,15 @@ class ColumnEngine:
         atom — anchor-preserving), derives an order from the anchor (or `by=`), partitions by
         the rest, and walks the order. The planner routes here knowing only the name/kind/
         signature; the order-walking mechanics live here. Order-only scans are Core; windowed
-        (rolling_*) scans are Pro."""
+        (rolling_*) scans are [ROADMAP] — registered as CONTRACT, not implemented in this build."""
         op = get_operator(scan_op)
         if not op.in_core:
             raise Refusal("unsupported",
-                f"scan '{scan_op}' needs a window= parameter; windowed scans are Pro in this build",
+                f"scan '{scan_op}' needs a window= parameter; windowed scans are not "
+                f"implemented in this build [ROADMAP]",
                 measure=measure, target=str(target),
                 alternatives=("use an order-only scan (cumsum/cummax/cummin/lag/lead/pct_change)",
-                              "windowed scans (rolling_*) [Pro]"))
+                              "windowed scans (rolling_*) [ROADMAP]"))
 
         # 1) the scan input IS the reducer atom served at the (preserved) anchor — and it carries
         #    its own disclosure (e.g. a B-anchor crossing on the underlying reduction rides through).

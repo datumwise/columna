@@ -11,7 +11,7 @@ mechanics.
   (E) a scan over a B-anchor-blocked reduction INHERITS its REFUSAL — a carrier transports an
       operation, it does not grant it a permission (generated-family law, Huayin 2026-08-20,
       superseding the inform-and-serve reading this section used to demonstrate)
-  (F) a windowed scan (rolling_*) is recognized by the planner but is Pro -> clarified, not crashed
+  (F) a windowed scan (rolling_*) is recognized by the planner but is [ROADMAP] -> clarified, not crashed
   (G) only REDUCERS found families: a measure declaring a scan as a family member is rejected at publish
 
 Run:  python3 operator_umbrella_demo.py
@@ -111,11 +111,11 @@ def main():
           and not [c for c in col.disclosure.caveats if c.category == "b_anchor_crossing"],
           "a carrier transports the operation; it does not grant the permission")
 
-    # ── (F) windowed scan: recognized by the planner, but Pro ───────────────
-    print("\n(F) a windowed scan (rolling_sum) is recognized but Pro — clarified, not crashed")
+    # ── (F) windowed scan: recognized by the planner, but [ROADMAP] ─────────
+    print("\n(F) a windowed scan (rolling_sum) is recognized but [ROADMAP] — clarified, not crashed")
     res5 = srv.frame("cal.month").column("roll", "rolling_sum(revenue.sum)").run()
     ref5 = res5.columns[0].refusal
-    check("rolling_sum is in the registry (planner knows it) but in_core=False -> Pro clarification",
+    check("rolling_sum is in the registry (planner knows it) but in_core=False -> ROADMAP clarification",
           ref5 is not None and "window" in ref5.detail.lower(),
           str(ref5)[:96] if ref5 else "")
 

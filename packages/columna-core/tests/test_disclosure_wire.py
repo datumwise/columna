@@ -92,7 +92,7 @@ def test_wire_outcome_coanchor_derives_universe_apply():
 def test_wire_outcome_non_universe_alternative_echoes_verbatim_no_apply():
     o = Outcome("non_functional_transport", "fan-out",
                 alternatives=("membership filter — accept the overlap deliberately",
-                              "WITH allocation — supply a partition-of-unity split [Pro]"))
+                              "WITH allocation — supply a partition-of-unity split [ROADMAP — not available in this build]"))
     w = dw.wire_outcome(o)
     assert w["kind"] == "clarify"
     for a in w["alternatives"]:
