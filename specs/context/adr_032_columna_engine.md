@@ -1,5 +1,23 @@
 # ADR-032: The Columna Engine — the runtime unit, the two-level contract, and the execution axes
 
+> ### ⚠ STANDING: PARTIALLY SUPERSEDED — topology only
+>
+> **D6 and D7 are superseded** on their tier claims by `docs/architecture/topology_core_platform_delivery_v0_1.md` (§17.5).
+>
+> - **D6** recorded execution *strategy* and *mode* as edition properties ("push-down Pro",
+>   "multi-column open for Pro"). Execution placement is **policy below Data World law**, not a
+>   tier. Retired as a tier claim; retained as a description of the two physical axes.
+> - **D7** recorded *"Core = multiple single-Manifold servers; Pro = multi-Manifold router"*.
+>   **Multi-Manifold is a shared Columna capability**, not Platform-only and not a paid tier.
+>   Retired.
+>
+> The rest of this ADR — the runtime unit, the two-level planner contract, the static
+> clarify/refuse case taxonomy, the surface set — **retains its standing**.
+>
+> The text below is preserved as historical evidence. Where it conflicts with the topology
+> record, **the topology record controls**.
+
+
 **Status:** Proposed (captured from design session; builds on ADR-031, refining its D11–D12)
 **Date:** June 2026
 **Track:** Architecture / runtime. ADR-031 fixed the *foundation* (column-atoms, transport, the two-projection spec, layered emission). This ADR names the *runtime as a unit*, consolidates all analytical *judgment* in the planner via a two-level contract, and records the physical-execution axes, the server topology, and the surface set. It is additive to ADR-031's object model; where it touches D11–D12 it sharpens rather than reverses them.

@@ -1,5 +1,22 @@
 # Datumwise enterprise plan v0.2 — Columna Core, Columna Server, and the company surface
 
+> ### ⚠ STANDING: SUPERSEDED — historical only
+>
+> Superseded in full, as a statement of topology and current state, by
+> `docs/architecture/topology_core_platform_delivery_v0_1.md` (§17.5).
+>
+> This plan predates the ruling that **Core and Platform name architectures** while
+> **Cloud, self-hosted, private enterprise, managed service and OEM name delivery forms**.
+> Its "enterprise / L0 backend" framing, its naming ladder *Core → Server → (future) Cloud*,
+> and any tier, edition or commercial-packaging language in it are **retired**. In
+> particular: *Enterprise must not be used as a synonym for Platform*, and hostedness does
+> not create Platform.
+>
+> Its work-package sequencing and specification discipline remain readable as project
+> history. **Nothing in this document may be cited as current architecture, current state,
+> or a current product claim.**
+
+
 **v0.2:** all seven forks ruled (§11 now records the rulings); application named **Columna Server**;
 naming ladder Core → Server → (future) Cloud adopted throughout.
 
