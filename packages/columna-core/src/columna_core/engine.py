@@ -965,7 +965,12 @@ class ColumnEngine:
         T = target[0]
         start, path = paths[T][0], paths[T][1]
         p = meas.sketch_precision
-        ver = self.data_version(meas.home_table)
+        # WITNESS CURRENCY = THE COMPLETE COMPUTATION DEPENDENCY SET, not the home table alone.
+        # A base-grain witness is confined by the universe predicate, so it depends on the predicate's
+        # provider tables too; `data_version_of` folds them and returns None — do not reuse, do not
+        # store — if ANY dependency lacks a trustworthy identity. This is the same token the result
+        # cache uses, and for the same reason.
+        ver = self.data_version_of(self.computation_tables(meas))
 
         # hll_count: base-grain sketches. STORED witness (eager, at publish) is load-bearing here —
         # if present and fresh we read it with NO backend fetch; otherwise we build lazily (fallback).
@@ -974,7 +979,7 @@ class ColumnEngine:
             self._t(trace, f"  hll_count: LOADED {len(sk)} witness sketches @ base '{start}' "
                            f"[HLLSketch({p})] (materialized at publish — no base scan)")
         else:
-            sk = self._build_base_sketches(meas, start, p, where)
+            sk = self._build_base_sketches(meas, start, p, where, trace)
             why = "filtered query" if where is not None else "no witness"
             self._t(trace, f"  hll_count: built {len(sk)} HLL sketches @ base '{start}' "
                            f"[HLLSketch({p})] ({why}; lazy base scan)")
@@ -998,13 +1003,32 @@ class ColumnEngine:
         self._t(trace, f"  hll_estimate: HLLSketch({p}) -> Int64 distinct estimate @ '{T}'")
         return frame, sk
 
-    def _build_base_sketches(self, meas, base_level, precision, where) -> dict:
+    def _build_base_sketches(self, meas, base_level, precision, where, trace=None) -> dict:
         """One base scan -> one HLLSketch per base-level bucket. This is the only sketch step that
-        touches base rows; the backend scans, Columna builds the sketches in-engine."""
-        base_phys = self.m.levels[base_level].realized_by
-        rows = self.con.deliver_base_rows(meas.home_table, [base_phys], meas.distinct_col, where)
+        touches base rows; the backend scans, Columna builds the sketches in-engine.
+
+        CONFINED TO THE UNIVERSE, on the same terms as every other delivery path. A restricted
+        universe carves the population; a sketch built over the UNCONFINED base rows answers a
+        different question from the one the disclosure claims (`[over <universe>]`), and it answers
+        it silently, because a distinct count carries no row the caller could inspect.
+
+        The shape mirrors `_deliver_and_transport_monoid`: augment the delivery grain with the
+        levels the predicate reads, confine at that grain, and only then bucket to `base_level`.
+        Confinement happens on the RAW rows — before `hll_count` — because an HLL sketch cannot be
+        filtered after the fact: an out-of-universe distinct value that reaches the carrier is in it
+        permanently."""
+        pred = self.m.universes[meas.universe].predicate
+        pred_levels = self._predicate_levels(pred) if pred else []
+        grain = list(dict.fromkeys([base_level] + [l for l in pred_levels if l in self.m.levels]))
+        grain_phys = [self.m.levels[b].realized_by for b in grain]
+        rows = self.con.deliver_base_rows(meas.home_table, grain_phys, meas.distinct_col, where)
         self.stats.deliveries += 1
-        rows = rows.rename({base_phys: base_level})
+        rows = rows.rename({self.m.levels[b].realized_by: b for b in grain})
+        if pred is not None:
+            before = rows.height
+            rows = self._confine(rows, meas, pred, trace)
+            self._t(trace, f"  confine sketch base rows to universe '{meas.universe}' "
+                           f"[{self._pred_str(pred)}]: {before}->{rows.height} base rows")
         out = {}
         for r in rows.group_by(base_level).agg(pl.col("_dv")).iter_rows(named=True):
             out[r[base_level]] = hll_count(r["_dv"], precision)
@@ -1023,13 +1047,21 @@ class ColumnEngine:
             if op.witness != OP_SKETCH:
                 continue
             p = meas.sketch_precision
-            ver = self.data_version(meas.home_table)
+            ver = self.data_version_of(self.computation_tables(meas))
+            if ver is None:
+                # Unknown identity closes STORAGE, not just reuse (`data_version`: "DO NOT REUSE and
+                # DO NOT STORE"). A witness stored without a version can never be invalidated, so
+                # storing one converts a missing identity into a permanent claim of freshness.
+                self._t(trace, f"  publish witness: {meas.name}.{member} SKIPPED — no trustworthy "
+                               f"data identity for its dependency set (fail-closed)")
+                continue
             base_dims = sorted(self.m.universes[meas.universe].base_dimensions)
             for base in base_dims:
                 if base not in self.m.levels:
                     continue
-                sketches = self._build_base_sketches(meas, base, p, where=None)
-                self.witnesses.put(Witness(meas.name, member, base, p, ver, sketches))
+                sketches = self._build_base_sketches(meas, base, p, where=None, trace=trace)
+                if not self.witnesses.put(Witness(meas.name, member, base, p, ver, sketches)):
+                    continue
                 built += 1
                 self._t(trace, f"  publish witness: {meas.name}.{member} @ base '{base}' "
                                f"[HLLSketch({p})] — {len(sketches)} sketches stored (1 base scan)")
