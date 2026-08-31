@@ -25,7 +25,7 @@ Grammar (statement-oriented; '#' comments; { } blocks):
     MEASURE <name> ON <universe> FROM <table> AS <agg>(<expr>)
     MEASURE <name> ON <universe> FROM <table> VALUE <expr>
         [M_ANCHOR { <col>, ... }]
-        [FAMILY { <agg> [: <tier>] [BLOCKED { <lineage>, ... }] ... }]
+        [FAMILY { <agg> [BLOCKED { <lineage>, ... }] ... }]
     DERIVED <name> = <expr>
 """
 from __future__ import annotations

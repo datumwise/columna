@@ -119,6 +119,22 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'the first governed publication Columna can serve — and still cannot author',
     date: '2026-08-22',
   },
+  // Said plainly, on the 0.13.3 precedent: the release that names what went wrong is the asset.
+  // Two defects in the sketch/witness path were serving a confident wrong number, and both were
+  // reproduced under the real runtime before they were touched. A distinct count over a universe
+  // with a restriction read OUTSIDE the carve and served 3 where the declared population admits 1 —
+  // while its own disclosure asserted `[over <universe>]`, so the frame claimed the confined
+  // population and delivered the unconfined one. On the same universe a `sum` confined correctly, so
+  // one Manifold answered two different populations depending on the operator. Separately, an
+  // unknown data identity was fail-OPEN on the witness store: `None == None` read as fresh, and a
+  // real mutation stayed invisible at zero backend fetches. The result cache, on the same identity
+  // primitive, was fail-CLOSED throughout — one primitive, two opposite polarities. Stated as the
+  // rule, because the rule is what a reader needs: materialized state answers the same question
+  // fresh computation would, or it does not serve.
+  '0.17.0': {
+    title: 'materialized measure state served the wrong population — a carve now holds, and unknown identity fails closed',
+    date: '2026-08-31',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

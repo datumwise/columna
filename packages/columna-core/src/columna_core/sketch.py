@@ -93,15 +93,31 @@ class WitnessStore:
     def __init__(self):
         self._w: dict = {}
 
-    def put(self, w: Witness):
+    def put(self, w: Witness) -> bool:
+        """Store a witness. REFUSES an unversioned one and returns False.
+
+        A witness whose `version` is None can never be shown stale: `fresh` would compare
+        None == None and report it current forever. Unknown identity must close storage, not
+        merely reuse — see `ColumnEngine.data_version` ("DO NOT REUSE and DO NOT STORE")."""
+        if w.version is None:
+            return False
         self._w[(w.measure, w.member, w.base_level)] = w
+        return True
 
     def get(self, measure: str, member: str, base_level: str):
         return self._w.get((measure, member, base_level))
 
-    def fresh(self, measure: str, member: str, base_level: str, version: str) -> bool:
+    def fresh(self, measure: str, member: str, base_level: str, version) -> bool:
+        """FAIL-CLOSED on unknown identity.
+
+        `version is None` means the caller could not establish a trustworthy identity for this
+        computation's dependencies. That is not evidence of currency, and it must never read as
+        such — the None == None comparison this guard replaces reported a stale witness as fresh
+        and served a wrong number at zero backend fetches."""
+        if version is None:
+            return False
         w = self.get(measure, member, base_level)
-        return w is not None and w.version == version
+        return w is not None and w.version is not None and w.version == version
 
     def materialized(self) -> list:
         return sorted(self._w.keys())

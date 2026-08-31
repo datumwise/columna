@@ -1,5 +1,5 @@
 """
-columna_core.operators — the operator registry, as ONE umbrella (the Core/Pro extension point).
+columna_core.operators — the operator registry, as ONE umbrella (the shared extension point).
 
 Per the Frame-QL Manual (Appendix A): the registry is the *planner's contract with the engine*.
 It holds three KINDS of operator under one roof — REDUCER, SCAN, MAP — and for each it records
@@ -15,7 +15,7 @@ TYPECHECK an operator against its inputs and to ROUTE it by kind:
 The *mechanics* — how `sum` combines, how an HLL sketch merges, how `cumsum` walks an order —
 live in the engine (or, for maps, in the planner's point-wise evaluator); never in the registry.
 This is the same logical/physical split the type system uses: the registry is vocabulary; the
-engine is implementation. Custom operators/types (Pro) are new entries here — which is why a new
+engine is implementation. Custom operators/types [ROADMAP] are new entries here — which is why a new
 operator needs no change to the planner's machinery, only a registry entry the planner can read.
 
 Reaggregability is an OPERATOR-level property of REDUCERS: whether `median` re-derives at a
@@ -132,14 +132,14 @@ REGISTRY: dict = {
     # The planner does not know how to execute these; it routes them to the engine with a derived
     # order (partition by the non-ordered anchor dims, order by the orderable axis). Order-only
     # scans are implemented in Core; windowed (rolling_*) scans are registered as CONTRACT but
-    # carried by Pro (needs_window, in_core=False).
+    # not implemented in this build [ROADMAP] (needs_window, in_core=False).
     "cumsum":  Operator("cumsum",  SCAN, accepts=NUMERIC, out_rule="same", needs_order=True, scan_impl="cumsum"),
     "cummax":  Operator("cummax",  SCAN, accepts=ORDERED, out_rule="same", needs_order=True, scan_impl="cummax"),
     "cummin":  Operator("cummin",  SCAN, accepts=ORDERED, out_rule="same", needs_order=True, scan_impl="cummin"),
     "lag":     Operator("lag",     SCAN, accepts=ANY,     out_rule="same", needs_order=True, scan_impl="lag"),
     "lead":    Operator("lead",    SCAN, accepts=ANY,     out_rule="same", needs_order=True, scan_impl="lead"),
     "pct_change": Operator("pct_change", SCAN, accepts=NUMERIC, out_rule="Float64", needs_order=True, scan_impl="pct_change"),
-    # windowed scans — contract present, mechanics are Pro (require a window= parameter)
+    # windowed scans — contract present, mechanics [ROADMAP] (require a window= parameter)
     "rolling_sum":  Operator("rolling_sum",  SCAN, accepts=NUMERIC, out_rule="same",
                              needs_order=True, needs_window=True, in_core=False),
     "rolling_mean": Operator("rolling_mean", SCAN, accepts=NUMERIC, out_rule="Float64",
@@ -169,7 +169,7 @@ SERIES_REDUCERS: frozenset = frozenset({"sum", "mean", "min", "max", "count"})
 def get_operator(name: str) -> Operator:
     if name not in REGISTRY:
         raise KeyError(f"operator '{name}' is not in the registry "
-                       f"(Core registry: {sorted(REGISTRY)}); custom operators are Pro")
+                       f"(registry: {sorted(REGISTRY)}); custom operators are [ROADMAP]")
     return REGISTRY[name]
 
 

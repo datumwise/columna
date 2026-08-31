@@ -1,5 +1,22 @@
 # ADR-031: Columna Core Architecture — the Column-Processing Foundation
 
+> ### ⚠ STANDING: PARTIALLY SUPERSEDED — topology only
+>
+> **D15 is superseded** by `docs/architecture/topology_core_platform_delivery_v0_1.md` (§17.5), as are the `[Pro]` edition markers appearing in
+> this ADR. The Core/Pro tier line this ADR records — *"the column-foundation differentiator
+> ships in Core (free tier); Pro = federation, cloud, custom ops/types, sophisticated
+> optimization, allocation"* — is **retired**. Core and Platform name **architectures**;
+> Cloud, self-hosted, private enterprise, managed service and OEM name **delivery forms**.
+> Neither is a pricing tier, and no commercial tier named "Pro" exists.
+>
+> Everything else in this ADR — the column-atom foundation (D1), transport, the
+> delivers-columns-never-combines connector contract (D9), the two projections (D3), the
+> determinacy principle — **retains its standing** and is unaffected.
+>
+> The text below is preserved as historical evidence and idea lineage. Where it conflicts
+> with the topology record on Core/Platform/Pro/Cloud naming, **the topology record controls**.
+
+
 **Status:** Proposed (captured from design session; supersedes the structural decisions of ADR-030)
 **Date:** June 2026
 **Track:** Runtime / implementation. ADR-030 specified a single-table *kernel* that validated correctness mechanics (disclosure propagation, anchored cache, sketch reaggregation, pre/post-agg boundary, EXPLAIN). This ADR specifies **Columna Core** — the full open-source product — on the correct foundation. The kernel's *techniques* survive; its *structure* (single denormalized table, table-level operations) is replaced.

@@ -358,7 +358,7 @@ class Planner:
                     alternatives = ("membership filter — accept the overlap deliberately ('revenue "
                                     "touching each "+T+"')",
                                     "primary designation — make the "+nf+"\u2192"+nt+" edge functional",
-                                    "WITH allocation — supply a partition-of-unity split [Pro]")
+                                    "WITH allocation — supply a partition-of-unity split [ROADMAP — not available in this build]")
                 raise Refusal("non_functional_transport",
                     f"{measure} @ {T}: relating crosses a non-functional (M:N) edge "
                     f"{nf}\u2194{nt} ({detail}); this aggregate-across is underdetermined — the "

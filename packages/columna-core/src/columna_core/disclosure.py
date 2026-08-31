@@ -320,7 +320,7 @@ class Outcome:
     measure: Optional[str] = None
     target: Optional[str] = None
     edge: Optional[str] = None
-    alternatives: tuple = ()         # e.g. ("allocation (Pro)", "membership (rephrase)")
+    alternatives: tuple = ()         # e.g. ("allocation (ROADMAP)", "membership (rephrase)")
     kind: Optional[str] = None       # the planner's verdict; None until classified()
     discriminator: Optional[str] = None   # engine-attached seam: 'ambiguous' | 'unsupported'
 

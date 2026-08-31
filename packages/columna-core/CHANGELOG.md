@@ -7,6 +7,81 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.17.0 — materialized measure state stops serving wrong numbers
+
+**Two defects in the sketch/witness path were serving a confident wrong number.** Both were
+reproduced under the real runtime before they were touched, and both now carry standing tests that
+were verified to FAIL against the pre-fix source.
+
+### Fixed
+
+**Universe confinement on the sketch path.** `_build_base_sketches` delivered base rows and never
+confined them — it did not call `_confine`, did not augment the delivery grain with the levels the
+universe predicate reads, and the `where` it forwarded was the *query* WHERE, not the universe
+predicate. A distinct count over a restricted universe therefore served the **unconfined**
+population while its own disclosure asserted `[over <universe>]`. In the shipped reproduction the
+engine returned **3** where the declared carve admits **1**. The monoid path on the identical
+universe confined correctly throughout, so a `sum` and a `distinct` on one universe answered two
+different populations.
+
+Both the eager published witness and the lazy fallback build were wrong identically — one shared
+defect, not a materialization bug. The fix mirrors `_deliver_and_transport_monoid`: augment the
+grain, confine at that grain, then bucket to the base level. Confinement happens on the RAW rows,
+before `hll_count`, because an HLL sketch cannot be filtered afterwards — an out-of-universe value
+that reaches the carrier is in it permanently.
+
+**Unknown data identity was fail-OPEN on the witness store.** `WitnessStore.fresh` compared
+`None == None` and reported a stale witness as current. A real data mutation was invisible: the
+answer stayed **2** against a ground truth of **3**, at **zero backend fetches**, with no staleness
+disclosure. The result cache, built on the same identity primitive, was fail-CLOSED throughout —
+one primitive, two opposite polarities.
+
+The rule was already written down twice and implemented once (`connector.py`: *"`None` is not a
+failure to serve; it is a failure to REUSE"*; `engine.py`: *"`None` … means DO NOT REUSE and DO NOT
+STORE"*). `fresh()` now refuses an unknown or unversioned identity, and `WitnessStore.put()` refuses
+to store an unversioned witness at all — unknown identity must close STORAGE, not merely reuse,
+because a witness stored without a version can never be shown stale and so becomes a permanent
+claim of freshness.
+
+**Witness currency now uses the complete computation dependency set.** Currency was
+`data_version(home_table)` while the result cache on the same request used
+`data_version_of(computation_tables(...))`. A change to a universe-predicate provider re-derived the
+monoid answer and left the witness "fresh". Both now use one token, which also fails closed when any
+dependency lacks a trustworthy identity.
+
+These three shipped together deliberately. The currency defect was latent *only because* the
+confinement defect existed — the witness never read the predicate, so its content genuinely depended
+on the home table alone. Fixing confinement alone would have converted a cancelled defect into an
+active staleness bug.
+
+### Changed — user-visible strings
+
+Four refusal and clarification strings reachable at runtime named a commercial tier that does not
+exist. Each is reclassified individually; there was no global replacement.
+
+| surface | was | now |
+|---|---|---|
+| `planner.py` fan-out clarify | `WITH allocation — … [Pro]` | `[ROADMAP — not available in this build]` |
+| `engine.py` windowed-scan refusal | `windowed scans are Pro in this build` | `not implemented in this build [ROADMAP]` |
+| `engine.py` scan alternative | `windowed scans (rolling_*) [Pro]` | `… [ROADMAP]` |
+| `operators.py` unknown operator | `(Core registry: …); custom operators are Pro` | `(registry: …); custom operators are [ROADMAP]` |
+
+The operator registry is the **shared** extension point, not a Core/Pro seam; `operators.py` no
+longer describes it as one. Custom operators are ROADMAP — unbuilt, not withheld.
+
+Consumers matching on these strings should read the wire `code` and `materiality` fields instead;
+the codes did not change.
+
+### Tests
+
+`test_witness_non_interference.py` — ten standing tests stating the rule rather than the
+workaround: a carved universe stays carved in materialized state (eager and lazy paths tested
+separately, since they were wrong together), unknown identity never reads as unchanged and never
+becomes stored state, and materialized-state currency uses the complete dependency set. One test is
+a fixture guard asserting the carve is observable at all, so the suite cannot pass vacuously.
+
+---
+
 ## Unreleased — 0.16.0 — the Core-P1 K0 compiler
 
 **A governed publication plus a private realization now becomes a Core execution image.** The
