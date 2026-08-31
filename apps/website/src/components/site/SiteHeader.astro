@@ -66,10 +66,52 @@
 // ASK IS STILL NOT HERE, deliberately (Huayin, same ruling): its navigation role is a question for
 // the upcoming Ask mission, not a symmetry to be completed now. Do not add it to this array as
 // tidying-up.
+//
+// ═══ THE SHELVES REPLACE THE MIXTURE (Huayin + CG2, 2026-08-30) ═══════════════════════════════════
+//
+// The rail above was Foundations · Analytical Governance · Doors · Columna: a LAYER, a single
+// paper's DOORWAY, a reader-entry ROLE, and a SYSTEM. Four items, four different kinds of thing, and
+// a reader learns the false parallel on first glance, before any page can correct it.
+//
+// It is now Start Here · Foundations · Architecture · Columna. Three shelves and one entrance.
+//
+// ARCHITECTURE IS A NEW SHELF, NOT A RENAME. `/analytical-governance` held a rail slot because there
+// was nowhere else to put it — and it is the doorway to ONE deposited record, which it may compress
+// and connect but explicitly not extend. It keeps its URL, its prose and its history route; it is
+// now a work INSIDE /architecture rather than a peer of Foundations. That is a correction of level,
+// not a demotion: its prominence is preserved by /architecture presenting three major works with
+// their governing questions, which is more coherent than an unexplained nav item.
+//
+// DOORS LEAVES THE RAIL, REVERSING AN EXPLICIT RULING — SO THE REASON IS RECORDED. It entered on
+// 2026-08-27 as "the first deliberate widening of the shell", on the ground that the count of
+// entries never determined whether Doors is a legitimate destination. That reasoning is not
+// withdrawn and /doors is not demoted: it stays live, unchanged, and is surfaced from the homepage
+// and from Start Here, where a first-time reader actually is.
+//
+// What changed is the question the rail answers. A Door is a ROLE — what a piece does for a reader —
+// and pages/doors.astro rules exactly that: "DOOR IS A ROLE, NOT AN ARTIFACT TYPE. It is not a
+// publication type, an authority class, a provenance class, a standing, or a corpus layer." The
+// other three items answer "what kind of work is this?". A rail cannot ask both questions at once
+// without teaching the reader that Doors is a fourth kind of work. It is not; a Foundations or
+// Architecture paper may ALSO be a Door.
+//
+// START HERE TAKES THE FIRST SLOT, AND MEETS THE 2026-08-27 BAR. That ruling set the price of the
+// next widening: "a ruling that says the surface is a destination in its own right." /start-here is
+// one — it renders a complete artifact and is where a new reader is meant to land. It is also not a
+// shelf, and it does not pretend to be: it is the entrance, placed first because that is what an
+// entrance is.
+//
+// CROSS-LISTING IS EXPECTED, NOT A DEFECT (Huayin, 2026-08-30). A work may sit on two shelves
+// because a reader might look for it on either. Do NOT build a membership rule that forces a choice
+// between Foundations and Architecture; the shelves exist to help people find things, and the
+// practical task is sharing the work, not maintaining a taxonomy.
+//
+// ASK IS STILL NOT HERE, deliberately, and for the same reason as before. Do not add it as
+// tidying-up.
 const NAV = [
+  { label: 'Start Here', href: '/start-here' },
   { label: 'Foundations', href: '/foundations' },
-  { label: 'Analytical Governance', href: '/analytical-governance' },
-  { label: 'Doors', href: '/doors' },
+  { label: 'Architecture', href: '/architecture' },
   { label: 'Columna', href: '/columna' },
 ];
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
