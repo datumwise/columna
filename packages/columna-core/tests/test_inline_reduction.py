@@ -338,10 +338,10 @@ def test_wire_contract_version_is_current(fixture_connector):
     # semantics (per-lineage, not per-folder) -> contract "3"; the bump is global, so this frame wire
     # reports "3" too though no analytical behavior changed here.
     from columna_core.disclosure_wire import CONTRACT_VERSION
-    assert CONTRACT_VERSION == "3"
+    assert CONTRACT_VERSION == "4"
     s = _srv(fixture_connector)
     w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
-    assert w["contract_version"] == "3"
+    assert w["contract_version"] == "4"
     # the composite pin's reduction column is keyed by its canonical expression (WP-NAME-1)
     assert w["columns"][0]["name"] == "avg(revenue @ {store*product*cal.month})"
 

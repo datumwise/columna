@@ -5,7 +5,7 @@ The public catalog is organized by governed Manifold publication identity + vers
 authority-incomplete runtimes remain explicitly classified compatibility entries. Publication existence
 (`versions[]`/`latest_version`) and local realizability (`realizable`) are SEPARATE public facts. The
 order is deterministic (never filesystem/load order). Only stable condition codes cross the wire — no
-raw details, parser text, paths, or exception reprs. contract_version is "3".
+raw details, parser text, paths, or exception reprs. contract_version is "4".
 """
 import json
 import os
@@ -73,8 +73,8 @@ def _rows(store, kind):
     return [r for r in list_manifolds(store)["manifolds"] if r["kind"] == kind]
 
 
-def test_contract_version_is_3(tmp_path):
-    assert list_manifolds(_scrambled_store(tmp_path))["contract_version"] == "3"
+def test_contract_version_is_4(tmp_path):
+    assert list_manifolds(_scrambled_store(tmp_path))["contract_version"] == "4"
 
 
 def test_deterministic_order_governed_then_legacy_then_incomplete(tmp_path):

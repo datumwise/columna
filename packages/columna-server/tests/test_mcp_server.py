@@ -17,7 +17,7 @@ async def test_list_and_describe_roundtrip(mcp_session):
     async with mcp_session() as client:
         lst = await client.call("list_manifolds")
         dm = await client.call("describe_manifold", manifold_id="benchmark")
-    assert lst["contract_version"] == "3"
+    assert lst["contract_version"] == "4"
     # v3 catalog: the benchmark fixture .cml carries no SOURCE_MANIFOLD, so it is a LEGACY runtime row
     # (runtime_id, no manifold_id, no per-realization fields — those live on describe).
     bm = next(m for m in lst["manifolds"] if m.get("runtime_id") == "benchmark")
@@ -195,7 +195,7 @@ def _assert_caveat_shape(d):
 
 
 def _assert_frame_shape(w):
-    assert w["contract_version"] == "3"
+    assert w["contract_version"] == "4"
     assert w["outcome"] in ("serve", "disclose", "clarify", "refuse", "error")
     fr = w["frame"]
     assert set(fr) >= {"anchor", "universe", "rollup_severity", "disclosures"}
@@ -251,7 +251,7 @@ async def test_check_frame_query_is_zero_fetch_and_returns_a_mood(mcp_session):
     # the whole point: planned, not executed — zero backend fetches
     assert ok["executed"] is False and ok["fetches_delta"] == 0
     assert ok["outcome"] in {"serve", "disclose", "clarify", "refuse", "error"}
-    assert ok["contract_version"] == "3"
+    assert ok["contract_version"] == "4"
     # a syntax error is an error wire, never an exception
     assert bad["outcome"] == "error" and bad["error"]["reason"] == "frameql_syntax"
 
@@ -261,7 +261,7 @@ async def test_frame_ql_grammar_is_verbatim_and_versioned(mcp_session):
         g = await client.call("frame_ql_grammar")
     assert "SELECT" in g["grammar"] and "AT {" in g["grammar"]
     assert g["generated_by"].startswith("columna-core ")
-    assert g["contract_version"] == "3"
+    assert g["contract_version"] == "4"
 
 
 async def test_discovery_lists_askable_measures_and_anchors(mcp_session):
@@ -300,7 +300,7 @@ async def test_execute_frame_query_annotates_executed_and_fetch_delta(mcp_sessio
     assert w["outcome"] == "serve" and w["columns"][0]["status"] == "served"
     assert w["executed"] is True                       # emitted on the executing path now
     assert isinstance(w["fetches_delta"], int) and w["fetches_delta"] >= 1   # it actually touched data
-    assert w["contract_version"] == "3"
+    assert w["contract_version"] == "4"
 
 
 async def test_query_is_a_deprecated_alias_with_identical_wire(mcp_session):

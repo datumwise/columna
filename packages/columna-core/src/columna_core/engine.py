@@ -24,7 +24,7 @@ from .model import Manifold, parse_faced, ASSIGN, ALLOC, ORDER_MIN
 from .operators import get_operator, VALUE, ORDERED_W as ORDERED, HOLISTIC as OP_HOLISTIC, SKETCH as OP_SKETCH
 from .sketch import (hll_count, hll_merge, hll_estimate, rse, Witness, WitnessStore)
 from .disclosure import (Disclosure, Caveat, Refusal, AMBIGUOUS,
-                         FRESHNESS, APPROXIMATION, TRANSPORT, DECLARED_FILL, UNKNOWN_ABSENCE, UNCONFIRMED,
+                         FRESHNESS, APPROXIMATION, TRANSPORT, COVERAGE, DECLARED_FILL, UNKNOWN_ABSENCE, UNCONFIRMED,
                          OVER_COUNT, SHADOW, RECONCILIATION)
 
 
@@ -61,9 +61,21 @@ def canonical_delta(delta: float, tol: float) -> float:
 
 @dataclass
 class CacheEntry:
+    """A cached frame AND the semantic disclosure the cold path produced for it.
+
+    STORING THE DISCLOSURE IS THE POINT, not an optimisation. The cache key is pinned to a data
+    version, so the same key at the same version denotes the same data and therefore the same
+    semantic facts. Recomputing them on a hit would be equivalent; NOT carrying them was the defect
+    (P1-04) -- the touch path returned early, before coverage and the fill dispositions were
+    computed, so a warm answer was quieter than the identical cold one.
+
+    `disclosure` is Optional only because the sketch and holistic writers do not need it. A reader
+    must treat None as "recompute", never as "no caveats"."""
+
     frame: pl.DataFrame
     sketches: Optional[dict] = None
     version: str = ""
+    disclosure: object = None
 
 
 @dataclass
@@ -218,7 +230,7 @@ class ColumnEngine:
         if ver is not None and key in self.cache and self.cache[key].version == ver:
             self.stats.cache_hits += 1
             self._t(trace, "  cache-hit")
-            disc = self._disc(meas, fam, op, uni).with_caveat(Caveat(FRESHNESS, "served from cache"))
+            disc = self._disc(meas, fam, op, uni).with_mechanical(Caveat(FRESHNESS, "served from cache"))
             return self.cache[key].frame, disc
 
         # deliver + (reduce | recompute), dispatched by the operator's witness
@@ -480,9 +492,12 @@ class ColumnEngine:
             f"single-counted to each {rel.frm}'s ORDER {face.order} {face.selection} {rel.to}: "
             f"{n_shadow} memberships unrepresented (the shadow). {note}", severity="caution", shadow=n_shadow))
         if uncovered.height:
-            base = base.with_caveat(Caveat(TRANSPORT,
+            # P1-05, the ASSIGN face's half of the same rule. A key in no membership is dropped from
+            # every cell, so the answer is computed over a smaller denominator than the one it names.
+            # That is a COVERAGE fact (MATERIAL), not a faithful-step provenance note.
+            base = base.with_caveat(Caveat(COVERAGE,
                 f"{uncovered.height} of {n_total} {rel.frm} are in no {rel.to} — dropped from every cell; "
-                f"coverage {n_total - uncovered.height}/{n_total}", severity="info"))
+                f"coverage {n_total - uncovered.height}/{n_total}", severity="caution"))
         return base
 
     def _resolve_alloc(self, meas, fam, op, target, T, coord, rel, face, where, trace, *,
@@ -585,9 +600,20 @@ class ColumnEngine:
         ver = self.data_version_of(self.computation_tables(meas, {other: p}, rel=rel))
         disc = self._touch_disc(meas, fam, op, uni, rel, face)
         if ver is not None and key in self.cache and self.cache[key].version == ver:
-            self.stats.cache_hits += 1
-            self._t(trace, "  cache-hit (touch)")
-            return self.cache[key].frame, disc.with_caveat(Caveat(FRESHNESS, "served from cache"))
+            entry = self.cache[key]
+            # P1-04, the standing rule: WARM MUST NEVER BE QUIETER THAN FRESH. The caveats built
+            # below the cache check -- bridge coverage and the fill dispositions -- are facts about
+            # the DATA, and the key is pinned to a data version, so the cold path's semantic
+            # disclosure IS this call's semantic disclosure. Returning `disc` alone (which carries
+            # only the call-invariant face caveats) silently dropped them, one of them MATERIAL.
+            #
+            # `disclosure is None` means an entry from a writer that does not carry one: fall
+            # through and recompute rather than serve a quieter answer.
+            if entry.disclosure is not None:
+                self.stats.cache_hits += 1
+                self._t(trace, "  cache-hit (touch)")
+                return entry.frame, entry.disclosure.with_mechanical(
+                    Caveat(FRESHNESS, "served from cache"))
 
         # 1) deliver the measure at the reachable endpoint grain (reuse the monoid delivery).
         # the pre-crossing frame is delivered at the single endpoint grain: one level, so the
@@ -610,10 +636,16 @@ class ColumnEngine:
         n_uncov = uncovered.height
         if n_uncov:
             lost = uncovered["_value"].sum()
-            disc = disc.with_caveat(Caveat(TRANSPORT,
+            # P1-05: a SHORTFALL states which denominator the answer was computed over, so it is
+            # COVERAGE (-> `denominator_population`, MATERIAL) and can trip `disclose` on its own.
+            # It rode TRANSPORT (-> `provenance`, IMMATERIAL) until 2026-08-31, which could not:
+            # the MATERIAL slot existed, was wired, and had no producer -- this line's own comment
+            # said COVERAGE while the code said TRANSPORT. Full coverage below stays TRANSPORT;
+            # "no shortfall" is a faithful-step record, not a material condition.
+            disc = disc.with_caveat(Caveat(COVERAGE,
                 f"{n_uncov} of {n_total} {other} are in no {T.split('.')[0]} — excluded from every cell; "
                 f"the touch total falls short of the grand total by {lost} ({meas.name}). coverage "
-                f"{n_total - n_uncov}/{n_total}", severity="info"))
+                f"{n_total - n_uncov}/{n_total}", severity="caution"))
         else:
             disc = disc.with_caveat(Caveat(TRANSPORT,
                 f"coverage {n_total}/{n_total}: every {other} carrying {meas.name} is categorized "
@@ -644,7 +676,7 @@ class ColumnEngine:
                     f"{n_absent} {T} with no touched {meas.name} left unknown per the declared fill rule — a "
                     f"value existed but was not recorded; not filled")))
         touched = touched.sort(T).select([T, "_value"])
-        if ver is not None: self.cache[key] = CacheEntry(touched, None, ver)
+        if ver is not None: self.cache[key] = CacheEntry(touched, None, ver, disc)
         return touched, disc
 
     def _touch_disc(self, meas, fam, op, uni, rel, face):
