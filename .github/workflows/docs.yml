@@ -7,9 +7,9 @@ name: docs
 on:
   push:
     branches: [main, wp-manuals-alignment]
-    paths: ['docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
   pull_request:
-    paths: ['docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
   # THE MASKING FIX (Huayin, 2026-07-25). The path filter above is what let a red `main` hide from
   # 2026-07-19 to 2026-07-25: regen-check was broken by purged grammar, but nothing touched `docs/**`,
   # so the job simply never ran and no one saw a failure. A weekly run means the truth about `main`
@@ -39,6 +39,14 @@ jobs:
       # parser rejects. Green once columna-core is 0.9.0 (the envelope parser); this rides the flip.
       - name: FrameQL manual parses against the shipped parser
         run: python docs/tools/check_manual_frameql.py
+
+      # UNIT C (2026-08-31). The manuals asserted a purchasable "Pro" tier for four days after the
+      # ruling that retired it, on two live routes and in the /ask retrieval index — because prose is
+      # the one surface with no compiler and nothing in CI read it. This is that compiler. It also
+      # enforces the other half of §17.5: preserved prior-edition records must SAY they are preserved,
+      # since a stale document with no banner is indistinguishable from a current one.
+      - name: No tier claims on a current surface
+        run: python docs/tools/check_no_tier_claims.py
 
       # THE LEDGER HEARTBEAT (Huayin, 2026-07-25). The weekly run prints every OPEN row of both
       # ledgers into this job's summary, so the ledger ARRIVES instead of waiting to be consulted —

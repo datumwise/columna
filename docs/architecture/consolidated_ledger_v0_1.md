@@ -454,7 +454,7 @@ and `tests/test_basis_absence.py:116` pins as inert. It reaches the wire via
 Ranked by exposure × falsity. Full per-line inventory with proposed replacements is in the
 current-voice repair; this ledger records the claims and their standing.
 
-### P0-01 · `/docs/frameql` announces a two-tier product in the present tense · **CRITICAL** · SV
+### P0-01 · `/docs/frameql` announces a two-tier product in the present tense · **CRITICAL** · **FIXED** in Unit C · SV
 
 `docs/frame_ql_manual_v2.md:62`, rendered live by `apps/website/src/pages/docs/frameql.astro:5`:
 
@@ -465,13 +465,13 @@ There is one tier. There is no Pro. All 13 `[Pro]` construct tags in the manual 
 falsity from this sentence, which explicitly tells the reader the tags denote purchasable
 availability. Retired by topology record §17.5.
 
-### P0-02 · `/docs/reference` carries a "Pro extensions" chapter and a `Pro connectors` matrix · **CRITICAL** · SV
+### P0-02 · `/docs/reference` carries a "Pro extensions" chapter and a `Pro connectors` matrix · **CRITICAL** · **FIXED** in Unit C · SV
 
 `docs/columna_reference_manual_5e.md:653-657, 1573-1575, 1588-1589`. Includes named,
 enumerated capabilities with concrete rule identifiers (`equal_split`, `weighted`,
 `proportional_to`) in a matrix whose other rows are true.
 
-### P0-03 · Two live manuals contradict each other about which backends exist · **CRITICAL** · SV
+### P0-03 · Two live manuals contradict each other about which backends exist · **CRITICAL** · **FIXED** in Unit C · SV
 
 `columna_reference_manual_5e.md:1575` presents a **`Polars (Core)`** column with fifteen rows
 of capability entries. `columna_framework_manual_6g.md:640` says *"Core ships **one backend:
@@ -488,7 +488,7 @@ Each reclassified individually to `[ROADMAP]`; `operators.py:172` additionally d
 registry" (the registry is shared, not a tier seam). Pinned assertion at
 `tests/test_disclosure_wire.py:95` moved in lockstep. Suite green.
 
-### P0-05 · "Columna Core is the shipped open-source engine" · **CRITICAL** · SV
+### P0-05 · "Columna Core is the shipped open-source engine" · **CRITICAL** · **FIXED** in Unit C · SV
 
 `docs/columna_framework_manual_6g.md:625`, live. The most structurally dangerous P0 because
 it is *almost* right: it collapses the architecture/package distinction (record §17.1) and
@@ -496,7 +496,7 @@ thereby silently converts everything §3 assigns to the Core architecture — St
 authoring, multi-Manifold lifecycle — into a claim about what a reader just installed. It
 survives inside a chapter otherwise carefully repaired on 2026-08-27.
 
-### P0-06 · A monitoring product described as operating today · **HIGH** · SV
+### P0-06 · A monitoring product described as operating today · **HIGH** · **FIXED** in Unit C · SV
 
 `columna_reference_manual_5e.md:881`: *"In Core, drift is detected and recorded. In Pro, the
 operational monitoring infrastructure — alerts, dashboards, escalation — consumes the events."*
@@ -504,7 +504,7 @@ Nothing consumes those events. Compounded at `:857`, which folds the nonexistent
 a sentence about what the framework can determine. Legitimate residue:
 **DELIVERY-OPERATIONS**, unbuilt.
 
-### P0-07 · Three nonexistent commercial products in one paragraph · **HIGH** · SV
+### P0-07 · Three nonexistent commercial products in one paragraph · **HIGH** · **FIXED** in Unit C · SV
 
 `docs/columna_framework_manual_6f.md:637` and `6e:633`: *"Pro includes a cloud-hosted service
 … as a managed subscription … self-hosted license, cloud subscription, and professional
@@ -537,7 +537,7 @@ record §3 forbids. Blocked behind the same version gate as P0-08.
 `parser.py:475` has no `: tier` alternative — an author following the documented grammar gets
 a bare `ParseError`.
 
-### P0-11 · Package front doors omit the honest typing the website carries · **MEDIUM** · SV
+### P0-11 · Package front doors omit the honest typing the website carries · **MEDIUM** · **FIXED** in Unit C · SV
 
 `README.md:11-59` — the ten-minute quickstart is the Cascadia demo end to end, closing *"That
 transcript is the product."* No mention of `firstlight`, of `ENTRY_LEGACY`, or of
@@ -548,31 +548,65 @@ though that package ships it**.
 (`GovernedStanding.astro:5-9`, and `gen_firstlight.py` fails the build closed). The risk is a
 reader inferring it from the absence of any contrary signal at the default entry point.
 
-### P0-12 · `/docs/reference` page chrome names two superseded editions · **MEDIUM** · SV
+### P0-12 · `/docs/reference` page chrome names two superseded editions · **MEDIUM** · **FIXED** in Unit C · SV
 
 `apps/website/src/pages/docs/reference.astro:15` — *"the framework manual (**6e**) and the
 FrameQL manual (**v1**)"*. Current: 6g and v2.
 
-### P0-13 · Stale versions · **MEDIUM/LOW** · SV
+### P0-13 · Stale versions · **MEDIUM/LOW** · **FIXED** in Unit C · SV
 
 `packages/columna-core/README.md:1` — `# Columna Core (0.7.8-core)` vs actual `0.16.2`, nine
 minor versions stale, in the H1 PyPI renders. `docs/README.md:15` says the FrameQL manual is
 synced to `columna-core 0.14.0 / wire "2"`; the manual's own currency block says `0.16.2 /
 wire "3"` — the index contradicts the manual it indexes.
 
-### P0-14 · `/ask` retrieval index serves the false claims to the site agent · **HIGH** · SV
+### P0-14 · `/ask` retrieval index serves the false claims to the site agent · **HIGH** · **FIXED** in Unit C · SV
 
 `services/ask/index/chunks.json` — 27 `Pro` hits across 1400 chunks, built from the three
 manuals. **Do not hand-edit.** Fix the source manuals, then rebuild via
 `services/ask/ask/index_build.py`.
 
-### P0-15 · `core_p1_compiler_input.md` still reads as unbuilt · **MEDIUM** · SV
+### P0-15 · `core_p1_compiler_input.md` still reads as unbuilt · **MEDIUM** · **FIXED** in Unit C · SV
 
 `:3` — *"Status: design checkpoint / pre-implementation (no compiler code yet)"* — while
 `columna_core/compiler/` has shipped since 2026-08-22. The authoritative placement matrix
 reads as speculative; an auditor may discount it.
 
-### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · SV
+
+### P0-17 · The reference manual's operator matrix marks fifteen operators available that do not resolve · **HIGH** · **FIXED** in Unit C · VX
+
+Found while repairing P0-03, in the same table. Appendix A's capability matrix presented every
+operator class as `native` on a named backend column. Resolving each through the shipped lookup:
+
+```
+shipped registry (columna-core 0.18.0), by execution: 26 operators
+  * + - / count cummax cummin cumsum distinct first hll_count hll_estimate hll_merge
+  lag last lead max mean median min mode neg pct_change rolling_mean rolling_sum sum
+
+get_operator(...) raises KeyError for all fifteen of:
+  AVG  COUNT_DISTINCT  APPROX_DISTINCT  APPROX_QUANTILE  APPROX_FREQUENCY  PRODUCT
+  BOOL_OR  BOOL_AND  WEIGHTED_MEAN  VARIANCE  STDDEV  VALUE_AT_MAX  VALUE_AT_MIN
+  NTH  rank  ewm_mean
+```
+
+No alias rescues them — `get_operator("avg")` and `get_operator("count_distinct")` both raise, so
+the near-misses (`mean`, `distinct`) are not reachable under the documented spelling either.
+
+**The manual has a partial defence and it is worth stating**, because it shapes the repair: the
+matrix is introduced as *"the framework's logical catalog — the union of what the supported stacks
+can serve — not a mandate that every backend computes every operator natively."* As a catalog it is
+legitimate. What made it false was the column headers — `Polars (Core)` / `DuckDB (Core)` — which
+made a framework claim read as a package claim, next to a `Core` label a reader has just been told
+means what they installed.
+
+**Repaired by separating the two claims rather than deleting either.** The matrix keeps its catalog
+rows and gains a `Registered (0.18.0)` column stating what `get_operator` resolves; an operator
+marked `—` is *catalog, not capability*, and the legend says naming it in a declaration raises rather
+than returning a number.
+
+Not in the original inventory — the six audits found the tier claim in this table and stopped there.
+
+### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · **FIXED** in Unit C · SV
 
 Its "current task" is launch-checklist steps 3-8; it predates the K0 compiler, the lowering
 receipt, the provisioner and the firstlight fixture. `store.py:1-3` still calls itself the
@@ -730,6 +764,78 @@ contract rather than only in prose.
 vocabularies in one dict) remain open. None is a wrong-number defect; P1-06 is the sharpest and is
 gated behind `Planner.install_scope` acquiring a cache-invalidation obligation, which is design work
 rather than repair.
+
+---
+
+## Unit C — CLOSED, 2026-08-31
+
+The P0 class: false, stale or contradictory **current user-facing claims**. Authorized directly from
+topology record §17.4 (the replacement vocabulary — ROADMAP / DELIVERY-OPERATIONS / RETIRED) and
+§17.5 (which retired `[Pro]` as an edition marker outright). **No fork was ruled and none was
+needed** — every claim below was already false by a ruling that had landed; only the sentences had
+not moved.
+
+| row | claim | where it was | struck by |
+|---|---|---|---|
+| **P0-01** | *"Columna ships in two tiers"* + 11 `[Pro]` construct tags | `/docs/frameql`, live | §Editions and availability, each construct re-typed |
+| **P0-02** | a "Pro extensions" registry chapter + a `Pro connectors` matrix column | `/docs/reference`, live | §8.3 rewritten as the registry extension point; column struck |
+| **P0-03** | a `Polars (Core)` column with 15 capability rows, contradicting 6g | `/docs/reference`, live | column struck — `PolarsConnector` is six documents and zero code |
+| **P0-05** | *"Columna Core is the shipped open-source engine"* | `/docs/framework`, live | package/architecture distinction stated where the chapter starts |
+| **P0-06** | a monitoring product described as operating today | `/docs/reference`, live | typed **[DELIVERY-OPERATIONS — unbuilt]**; "nothing consumes those events" said plainly |
+| **P0-07** | three nonexistent commercial products in one paragraph | 6e/6f, unbannered | standing banner naming exactly what is false below it |
+| **P0-11** | front doors omit the typing the website carries | both package READMEs | Cascadia typed `ENTRY_LEGACY`; firstlight named; consume-not-produce stated |
+| **P0-12** | page chrome naming editions 6e and v1 | `reference.astro` | 6g, v2 |
+| **P0-13** | an index contradicting the manual it indexes | `docs/README.md`, core README H1 | the index stopped restating the version; H1 0.17.0 → 0.18.0 |
+| **P0-14** | the `/ask` index served the false claims to the site agent | `services/ask/index/` | rebuilt from the repaired site build |
+| **P0-15** | a shipped compiler whose boundary record read *"no compiler code yet"* | `core_p1_compiler_input.md` | restamped IMPLEMENTED |
+| **P0-16** | `CLAUDE.md` current-task predates the compiler, receipt, provisioner | `CLAUDE.md` | current task replaced |
+| **P0-17** | 15 operators marked available that `get_operator` does not resolve | `/docs/reference`, live | **found by this repair**; a `Registered (0.18.0)` column separates catalog from capability |
+
+### Two things the repair found that the six audits had not
+
+**The tier marker was hiding shipped capability, not only inventing unshipped capability.** Every
+`[Pro]` construct was re-typed against what the package *executes* rather than against the ledger's
+description of it. Two came back **shipped**: MNAR exclusion and coverage. Verified by execution — an
+`M_ANCHOR { self }` measure serves with `unconfirmed_assumption: '...' is MNAR (missingness depends
+on its own value) — averages are selection-biased`, and a touch face with a real shortfall serves
+with a `coverage` caveat. So the sentence *"constructs available only in Frame-QL Pro"* was
+**withholding, in prose, capability the open package already serves**. A false claim about a product
+boundary does not fail in only one direction.
+
+**An enumerated blocklist finds what someone already found.** The check was first written from this
+ledger's own inventory and passed on 25 of 32 loci. Widening the last pattern to the bare token
+surfaced seven more the six audits had missed: two `(Pro)` parentheticals on capability lines, a
+`ROADMAP — Pro/enterprise` tag, and four ADR provenance comments. P0-17 came out of the same pass.
+This is the argument for the check being a *check* rather than a longer errand list.
+
+### What makes this class not recur
+
+`docs/tools/check_no_tier_claims.py`, wired into `docs.yml`. Prose was the one surface with no
+compiler: the ruling landed 2026-08-27 and the claims were still live on 2026-08-31, because nothing
+in CI reads a sentence. Two rules — no current document carries a live tier claim; every preserved
+prior-edition record says on its face that it is preserved. Genuinely historical prose is exempted by
+an explicit `<!-- tier-history -->` marker, so *"we kept this deliberately"* is greppable and never
+confused with *"nobody noticed."*
+
+The path filter was widened at the same time. It read `docs/**` only — the same masking shape Huayin
+fixed in this workflow on 2026-07-25 — which would have let a tier claim reappear in a package README
+without ever running the job.
+
+### Not closed by Unit C, and deliberately so
+
+**P2-01 / P2-02 / P2-03 / P2-09 remain open, and are the top of the queue.** They are the two of the
+original top-four that Unit B did not reach, and they are a **design fork, not a repair**: Appendix A
+records that a generic refusal-before-omission rule *"will refuse publications that compile today,"*
+and P2-03 moves `root_evaluator` across the governance line. Neither is mine to rule. P2-02's
+sharpest form is worth stating for whoever takes it: the four-mappings-one-digest reproduction is not
+really a receipt defect — the binding does distinguish the four images — it is the publication
+**under-determining its own meaning** (P2-05), which the receipt was deliberately built not to
+compensate for. Fixing P2-03 substantially dissolves P2-02; adding a mapping digest to the binding
+would not.
+
+**Q1 of Appendix C is untouched.** Deposited essays rendering retired closure claims on `/thesis`
+and `/why` is the one place where *retire from current voice* collides with *do not edit deposited
+bytes*. This unit did not edit a single deposited byte, and did not resolve the collision.
 
 ---
 

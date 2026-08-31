@@ -4,6 +4,15 @@ The **Columna MCP server** (ADR-032 D8): a library of Manifolds exposed to AI ag
 **one contract** — every tool returns the same outcome/disclosure structure the Python API returns.
 This is the wedge product: the first metrics MCP server that can say *"it depends."*
 
+> **What ships here, typed honestly.** The packaged demo (**Cascadia**) is hand-authored, carries no
+> `SOURCE_MANIFOLD`, and is classified `ENTRY_LEGACY` by admission: it demonstrates serving and the
+> four moods, **not** the governed path. The governed artifact is **firstlight**
+> (`columna_server/governed/firstlight/`) — a governed publication, a compiled execution image and the
+> lowering receipt that binds them, admitted `ENTRY_GOVERNED` and exercised by standing tests. And
+> this package **consumes** governed publications rather than producing them: the author → ratify →
+> publish third of the lifecycle is not here, and no public governed authoring surface is open
+> (topology record §§17.2–17.3).
+
 ## Run
 
 ```bash

@@ -58,6 +58,23 @@ That transcript *is* the product. (No path arguments needed — the demo Manifol
 ship in the package. For a richer run over the full benchmark warehouse, see
 [`packages/columna-server/README.md`](packages/columna-server/README.md).)
 
+### What the demo is, and what it is not
+
+The demo Manifold (**Cascadia**) is **hand-authored**. It carries no `SOURCE_MANIFOLD`, admission
+classifies it `ENTRY_LEGACY`, and it demonstrates *serving* — the four moods, the disclosure
+contract, the refusals. **It does not demonstrate the governed path**, and nothing here should be
+read as saying it does.
+
+The governed path has its own artifact and it ships in `columna-server`: the **firstlight** runtime
+unit (`columna_server/governed/firstlight/`) — a governed publication, a compiled execution image,
+and a **lowering receipt** binding them — admitted as `ENTRY_GOVERNED` and exercised end to end by
+standing tests. That is the repository's governed machine evidence.
+
+One more piece of honest typing, because a reader can only infer it from silence otherwise: these
+packages **consume** governed publications; they do not **produce** them. The author → ratify →
+publish third of the lifecycle is not in the published packages, and no public governed authoring
+surface is open (topology record §17.2).
+
 ## Connect an agent
 
 `columna-server demo` (no `--play`) serves the same demo over MCP stdio — five read-only tools, no

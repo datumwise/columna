@@ -10,9 +10,14 @@ upload after that.
 - [`columna_framework_manual_6g.md`](columna_framework_manual_6g.md) — the framework manual (6th ed.,
   revision 6g; terminology aligned with Theory of Data v4.0 — measure/member/series, 2026-08-03).
   [`columna_framework_manual_6f.md`](columna_framework_manual_6f.md) (v3.1) and
-  [`columna_framework_manual_6e.md`](columna_framework_manual_6e.md) are retained as prior-edition records.
+  [`columna_framework_manual_6e.md`](columna_framework_manual_6e.md) are retained as prior-edition
+  records. **They are not current and they contain retired product claims** — each opens with a
+  standing banner saying so. Read them as evidence of what was once claimed.
 - [`frame_ql_manual_v2.md`](frame_ql_manual_v2.md) — the Frame-QL query-language manual (Second Edition;
-  supersedes the First Edition — mechanically reconciled to columna-core 0.14.0 / wire contract `"2"`).
+  supersedes the First Edition). **Its own Currency block is the authority on which release it is
+  current for** — this index deliberately does not restate the version, because a number repeated in
+  two places goes stale in one of them, and this one had (it read `0.14.0` / wire `"2"` while the
+  manual said `0.18.0` / contract `"4"`).
 
 Each construct in the reference manual's Chapter 26 carries a shipping status mark
 (**[SHIPPED vX.Y]** · **[SCHEDULED — <WP>]** · **[ROADMAP — <note>]**); unmarked constructs do not
