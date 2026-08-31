@@ -1120,6 +1120,60 @@ run against `v0.16.0..main`.
 
 ---
 
+### P1-13 · An unpinned reduction REFUSES "no lawful reading" at an anchor where two explicit pins serve · **HIGH** · **OPEN — no repair authorized** · VX
+
+Found 2026-08-31 by the Mission B semantic gate, on a fixture whose universe declares the output
+level as a base dimension.
+
+```text
+SELECT avg(aov) AT {customer}                -> refuse  blocked_reduction
+SELECT avg(aov @ {day}) AT {customer}        -> serve
+SELECT avg(aov @ {transaction}) AT {customer} -> serve
+```
+
+`_unpinned_disposition` (`planner.py`) is correct given its input: |L| = 0 means no lawful reading
+survives, and refusing is right. **`_lawful_pins` computes L wrongly** — it returns `[]` where two
+candidates demonstrably exist and serve when named. The refusal therefore tells the asker *"this ask
+has no reading to serve"* while two readings do, which is a **confident wrong disposition**, the same
+family as the wrong-number rows and not merely an honesty defect.
+
+Sensitive to universe shape: with the same measures under `UNIVERSE sales = transaction` the anchor
+yields |L| = 1 and the ask serves with the MATERIAL defaulted-anchor caveat. It appears when the
+output level is itself a **base dimension** of the population.
+
+**Not repaired here**: candidate enumeration is anchor/participation law, which Mission B is
+explicitly barred from touching. Rowed for the mission that owns that law.
+
+### P1-14 · `WHERE` plans and does not execute · **HIGH** · **OPEN — no repair authorized** · VX
+
+Found 2026-08-31 by the Mission B semantic gate. The clause parses, its dimensions are checked for
+reachability, and it plans — an unreachable dimension correctly clarifies `filter_unreachable`, which
+is real shipped behaviour. **The filtered frame then fails in the engine** (`BinderException`), and
+it fails for a dimension that is a coordinate of the fact itself, not only for one reached across a
+join — so it is a gap in the clause, not in a schema.
+
+Verified against **two independent adjudicated fixtures** (the Manual fixture and the shipped
+`afternoon.cml` world), which is what rules out a fixture artifact.
+
+Consequence recorded honestly: the `IN (…)` predicate repaired in Mission B A5 is real at the parse
+and plan layers and **cannot be observed at execution** while this row is open. §4.1 and §6.8 are
+marked `[SCHEDULED]` in the Manual for the same reason.
+
+### P1-15 · A composite pin whose levels are reached by SEPARATE hierarchies does not assemble · **MEDIUM** · **OPEN — no repair authorized** · VX
+
+The residual of Mission B A1, kept visible rather than folded into that repair's closure (ruled
+Huayin, 2026-08-31). A1 fixed the pin's **interpretation** — every spelling is now read, and the
+documented map-with-pinned-operands form plans. On a manifold where the pinned levels are reached
+from the base by separate hierarchies through one table, the frame still fails to assemble in the
+engine (`ColumnNotFoundError`); on a chained-calendar shape the identical form executes and serves.
+
+It contradicts a shipped Manual commitment — §6.15 and §6.16 present the composite input anchor as
+producing a result — so those sections are marked `[SCHEDULED]` until this closes. Pinned by
+`test_composite_pin_map_still_fails_IN_THE_ENGINE_on_this_manifold_shape`, which asserts the CURRENT
+state and is to be struck when the engine grows the capability.
+
+---
+
 ## P3 — Studio / authoring artifact-and-authority boundary
 
 ### P3-01 · The in-repo authoring surface authors the execution image · **CRITICAL** · SV

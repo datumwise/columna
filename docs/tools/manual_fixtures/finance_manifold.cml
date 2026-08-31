@@ -6,7 +6,7 @@ MANIFOLD finance_manifold VERSION 1
 # and the second reading is always available, so the finding would never be safe to act on. Every
 # name the Manual's finance examples reference is declared here, at the grain its prose states.
 
-UNIVERSE sales     = transaction BASIS events
+UNIVERSE sales     = customer * day * transaction BASIS events
 UNIVERSE inventory = store * day  BASIS spine
 # The face drivers live HERE, not on `sales`: adjudication refuses an ASSIGN/ALLOC driver drawn from
 # an events universe, because a raw events measure has no single value per member to rank or weight.
@@ -15,18 +15,17 @@ UNIVERSE membership = product * category BASIS spine
 
 LEVEL transaction = txn_id      BASE
 LEVEL store       = store_id    BASE
-LEVEL customer    = customer_id
+LEVEL customer    = customer_id BASE
+LEVEL day         = day         BASE
 LEVEL region      = region
 LEVEL product     = product_id  BASE
 LEVEL category    = category_id
-LEVEL day         = day
 LEVEL date        = txn_date
 LEVEL month       = month
 LEVEL year        = year
 
 HIERARCHY customers {
-    transaction -> customer VIA txns(txn_id, customer_id) ;
-    customer    -> region   VIA customers(customer_id, region)
+    customer -> region VIA customers(customer_id, region)
 }
 HIERARCHY geography {
     store -> region VIA stores(store_id, region)
@@ -46,10 +45,9 @@ RELATE product <-> category VIA product_categories(product_id, category_id)
     }
     NOTE "a product belongs to up to 3 categories"
 HIERARCHY calendar {
-    transaction -> day   VIA txns(txn_id, day) ;
-    transaction -> date  VIA txns(txn_id, txn_date) ;
-    day         -> month VIA calendar(day, month) ;
-    month       -> year  VIA calendar(month, year)
+    transaction -> date VIA txns(txn_id, txn_date) ;
+    day   -> month VIA calendar(day, month) ;
+    month -> year  VIA calendar(month, year)
 }
 
 # The DEFAULT-FAMILY sugar of Chapter 3.1 needs a default to exist: `SELECT revenue AT {customer}`

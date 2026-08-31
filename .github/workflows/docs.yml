@@ -37,7 +37,14 @@ jobs:
       # FrameQL example in the manual parses clean against the shipped parser, or is fenced
       # `frameql-illformed` (deliberately ill-formed). The manual can never document syntax its own
       # parser rejects. Green once columna-core is 0.9.0 (the envelope parser); this rides the flip.
-      - name: FrameQL manual parses against the shipped parser
+      # MISSION B (2026-08-31): this was PARSE-ONLY and reported 37/37 green while seventeen of
+      # those examples died at planning or execution, and while four Chapter 6 examples used forms
+      # §2.8 itself calls unshipped, unmarked. It now plans every shipped example through the real
+      # planning surface and EXECUTES the ones that plan to serve/disclose — because an example
+      # presented as executable is not validated until the stage at which its claimed behaviour is
+      # observable. Needs the adjudicated fixtures under docs/tools/manual_fixtures/, which publish
+      # against an in-process DuckDB world (no parquet, nothing to fetch).
+      - name: FrameQL manual reaches its documented outcome against the shipped planner
         run: python docs/tools/check_manual_frameql.py
 
       # UNIT C (2026-08-31). The manuals asserted a purchasable "Pro" tier for four days after the

@@ -273,12 +273,26 @@ This chapter specifies the **series** — one output column's expression — in 
 
 Canonically, a series is a reduction (or a map, or a composite of both) over column references, each reference carrying its input anchor, and the whole statement carrying one output anchor:
 
-```
+```frameql-schematic
 SELECT op( col_1 @ {a_1}, col_2 @ {a_2}, ... ) AS name
 AT { A }
 ```
 
-Every grain is named: every reduction reads an explicit input grain and produces the output grain `A`; a nested subexpression carries its own input anchor. The framework parses this form directly, type-checks it, and plans it. The sugars of Chapter 3 are normalizations to it.
+Every grain is named: every reduction reads an explicit input grain and produces the output grain `A`; a nested subexpression carries its own input anchor. The sugars of Chapter 3 are normalizations to it.
+
+> **▸ Second-Edition sync (the multi-input shape is [ROADMAP], 2026-08-31).** This paragraph used to
+> end *"The framework parses this form directly, type-checks it, and plans it."* That is true of the
+> **single-input** shape — `op(col @ {a})` — and false of the multi-input one written above with
+> `col_1, col_2, …`: **shipped reducers are arity-1**, so a reduction over several inputs is refused
+> on arity before any grain question is reached. The block above is therefore a **schematic** of the
+> canonical form, not a query that runs.
+>
+> The consequence is recorded rather than left for a reader to discover: the multi-input
+> `input_anchor_ambiguous` clarification described in §2.3 is **unreachable**, because the arity
+> refusal fires first. The shape remains the leading candidate for the future Column Algebra
+> surface — it is already canonical, and building it would repair the language rather than enlarge
+> it — but it requires the participation / joint-support law first, and no `(a,b) @ A` alternative
+> is to be introduced in its place (ruled Huayin, 2026-08-31).
 
 Two facts give the canonical form its standing, and they are two views of one thing.
 
@@ -309,10 +323,40 @@ The first sums transaction-grain revenue up to customer — the natural extensiv
 The third's choice of input anchor matters, and this is the central rule the canonical form enforces: **when the answer depends on the input grain, the input anchor must be explicit.** "Average per customer" is not well-defined without saying *what is averaged* — daily values? weekly? per-transaction? — and each gives a different number. For fertile reducers on a column with a **unique** natural grain, the input grain is determined and the sugar of Chapter 3 supplies it; for mules (`avg`, `mean`, a rate, a snapshot) and for genuinely underdetermined cases, the pin must be named. When it is omitted and the grain is underdetermined —
 
 ```
-SELECT avg(aov) AT {customer}
+SELECT avg(aov) AT {region}     -- clarify: input_anchor_ambiguous
 ```
 
-— the framework does not guess. It **clarifies** on the shipped reason **`input_anchor_ambiguous`**, naming the candidate input grains as substitutable alternatives. The same reason covers the multi-input case — a reduction over several inputs whose common input grain is not determined — raised once per contested dimension (OF-1: one reason per contested dimension). *An average with no declared input grain is a question, not an answer.*
+— the framework does not guess. What it does instead depends on how many readings are actually
+available, and the rule has **three** branches, not one (ruled 2026-08-20 §9). Let **L** be the
+*lawful* candidate input grains — the ones that both reach the output anchor and do not make the
+reduction cross a lineage the governed law bars:
+
+| | | |
+|---|---|---|
+| **\|L\| = 0** | **Refuse** | no lawful reading survives; there is nothing to choose between, and an operation with no lawful reading is not a choice a reader can be asked to make |
+| **\|L\| = 1** | **proceed, and disclose** | one lawful reading, so nothing is contested — the input anchor is defaulted to it and the answer carries the **MATERIAL** `input_anchor` caveat, because a defaulted anchor is a condition the reader must weigh |
+| **\|L\| > 1** | **Clarify** | on the shipped reason **`input_anchor_ambiguous`**, naming the lawful candidates as substitutable alternatives, raised once per contested dimension (OF-1) |
+
+Only the third branch clarifies, so whether `SELECT avg(aov) AT {customer}` clarifies is a fact about
+the *Manifold*, not about the query: it clarifies where the structure offers several lawful grains
+between the input and `{customer}`, and it serves-with-disclosure where it offers exactly one. Both
+are the same law refusing to guess — one of them simply has nothing left to ask about. A candidate
+that is already structurally unlawful is never offered, because a clarify is a menu of readings the
+asker may choose between, and an unlawful reading is not a choice.
+
+*An average with no declared input grain is a question, not an answer — and where only one answer is
+lawful, it is a question the structure has already settled, which the disclosure then says out loud.*
+
+> **▸ Second-Edition sync (2026-08-31).** This paragraph previously stated the clarify
+> unconditionally — *"the framework does not guess. It clarifies…"* — describing the `|L| > 1` branch
+> as if it were the whole rule. The `|L| = 1` branch has shipped since 2026-08-20 and is the common
+> case on a shallow Manifold, so a reader following the old text would have expected a clarification
+> and received a served number with a material caveat. Corrected against the shipped disposition.
+
+The **multi-input** case — a reduction over several inputs whose common input grain is not determined
+— is **[ROADMAP]**, not shipped: reducers are arity-1 today, so a multi-input reduction is refused on
+arity before any anchor question is reached, and the `input_anchor_ambiguous` path documented for it
+is unreachable. See §2.1.
 
 > **▸ Second-Edition sync (tombstone).** The First Edition named the multi-input case with a *distinct* reason, **`co_anchor_ambiguous`**. That reason is **retired** — tombstoned 2026-07-16 under the §2c expression law, with a retirement-pin test asserting it is never emitted. The cross-universe rate it originally named is now the **`cross_universe`** category error (§2.5), and within one universe the denotation rule leaves nothing to disambiguate, so the shipped planner emits **`input_anchor_ambiguous`** here. The spelling is kept only as a dated tombstone, so old transcripts stay interpretable.
 
@@ -372,9 +416,26 @@ SELECT max( sum(revenue @ {transaction}) @ {customer, month} ) AS peak_month AT 
 
 For each customer, the maximum monthly revenue. The inner `sum(revenue @ {transaction}) @ {customer, month}` produces monthly revenues per customer; the outer `max` reduces those monthlies to one peak. The intermediate anchor `@ {customer, month}` is essential — "max revenue per customer" is ambiguous without saying *what kind* of revenue (daily? monthly? transactional?), and omitting it clarifies `input_anchor_ambiguous`. A composite reduction is not a separate construct; it is the anchor-ascription rule applied recursively — nested ascriptions, each local, read by the planner as two atoms, the inner feeding the outer (§2.1). Any composite reduction requires an `AS` alias, since no defensible default name can be derived from a nested expression (Chapter 1.6).
 
-### 2.8 Subsetting and scans **[ROADMAP]**
+### 2.8 Subsetting and scans **[ROADMAP]** / **[SCHEDULED]**
 
 Two further expression forms are documented as the language the envelope **grows into by ruling** (ADR-035 D1); they are *not* part of the shipped envelope (columna-core 0.18.1), and the ratified grammar spec keeps them roadmap (they are grammar the engine does not yet have). They enter the language when ruled in, not by accretion.
+
+> **▸ Second-Edition sync (recognition is not capability, 2026-08-31).** The two forms are *not*
+> unshipped in the same way, and the difference is worth naming because the shipped behaviour can
+> mislead a reader who checks only whether a query is accepted.
+>
+> - **The bracket filter is not shipped at all.** `revenue[region = "east"]` does not parse.
+> - **Scan operators ARE registered and DO plan through Frame-QL** — `cumsum`, `lag`, `lead`,
+>   `pct_change`, `rolling_mean`, `rolling_sum`, `cummax`, `cummin` are in the shipped operator
+>   registry, and a scan expression type-checks and returns a plan. **Scan execution is not
+>   available in the current Core build.** A planner that answers `serve` is answering about the
+>   plan, not about a result; do not read it as shipped capability.
+> - **`reset =` and `step =` are a narrower roadmap item still.** The shipped scan signatures accept
+>   `n =` and `by =`; the family-aware calendar parameters described below are not implemented, so
+>   the year-to-date and year-over-year spellings are unshipped on two counts rather than one.
+>
+> Every worked example in Chapter 6 that is presented as *producing* a scan result is marked
+> `[ROADMAP]` for this reason, even though its syntax and planning path already ship.
 
 **The bracket filter** restricts a column reference to a subset of its domain — `revenue[region = "east"]` — producing a degenerate column that carries its restriction as part of its identity (framework manual, Chapter 6). It differs from `WHERE` (Chapter 4.1): `WHERE` restricts the whole statement's input; a bracket filter restricts an individual reference within one expression. Whether an emptied bucket is even *expected* — a point on the grid — is decided by the destination universe's **basis** (Chapter 1.5): an events population has no point where nothing occurred, while a spine/product population expects the full grid and reports a missing one as a gap carrying `incomplete_data`. What an emptied-but-expected bucket *denotes* — a zero, or an absent value — is the **measure's fill rule Φ**, not the basis (columna#148); the resolved basis, the fill rule, and any gap ride in the annotation.
 
@@ -382,7 +443,23 @@ Two further expression forms are documented as the language the envelope **grows
 
 ### 2.9 The grammar grows by ruling
 
-The envelope is deliberately small, and it **grows by ruling** (ADR-035 D1), not by accretion: a construct enters the language when it is ruled in, and until then it does not exist. This is why Chapter 6's examples carry a shipping mark — an executable example runs against the shipped package or it is marked pending/roadmap; the manual is structurally incapable of documenting a query it did not run. What ships through columna-core 0.18.1 is the envelope of Chapter 1 with the series forms of §§2.1–2.7: reductions with explicit input pins — single-level or a **product grain** (§2.3, the composite input anchor of WP-GRAIN-1) — maps, composite reductions, the anchor product, one universe per expression, every grain either determined or pinned — and every answer one of the four moods (serve · disclose · clarify · refuse). The same rule governs the theory: **theory evolution does not automatically enlarge Frame-QL.** A Theory-of-Data distinction enters this language when it is implemented, tested, versioned, and ruled in — not when it is published.
+The envelope is deliberately small, and it **grows by ruling** (ADR-035 D1), not by accretion: a construct enters the language when it is ruled in, and until then it does not exist. This is why Chapter 6's examples carry a shipping mark — an executable example runs against the shipped package or it is marked pending/roadmap.
+
+> **▸ Second-Edition sync (the claim is now enforced, 2026-08-31).** The sentence above used to end
+> *"the manual is structurally incapable of documenting a query it did not run"*, and that was
+> **false when written**: the standing gate checked GRAMMAR ONLY, so four Chapter 6 examples using
+> forms §2.8 itself calls unshipped sat unmarked and parse-clean, and seventeen of the Manual's
+> thirty-seven examples parsed cleanly and then failed at planning or execution. A guard that proves
+> a query is well-formed proves nothing about whether it runs, and the gap between those two is
+> exactly where a manual goes quietly wrong.
+>
+> The claim is now carried by a gate rather than by a promise. `docs/tools/check_manual_frameql.py`
+> plans **every** example marked shipped through the real planning surface, against adjudicated
+> fixtures declaring this Manual's own vocabulary, and **executes** the ones that plan to serve or
+> disclose — because an example presented as executable is not validated until the stage at which
+> its claimed behaviour is observable. An example documented to Clarify or Refuse must reach that
+> outcome *with the reason the prose names*; a generic failure is not a pass. The expectations live
+> in this document — its section marks and its fences — so there is no second copy of them to drift. What ships through columna-core 0.18.1 is the envelope of Chapter 1 with the series forms of §§2.1–2.7: reductions with explicit input pins — single-level or a **product grain** (§2.3, the composite input anchor of WP-GRAIN-1) — maps, composite reductions, the anchor product, one universe per expression, every grain either determined or pinned — and every answer one of the four moods (serve · disclose · clarify · refuse). The same rule governs the theory: **theory evolution does not automatically enlarge Frame-QL.** A Theory-of-Data distinction enters this language when it is implemented, tested, versioned, and ruled in — not when it is published.
 
 ## Chapter 3. Sugars
 
@@ -436,13 +513,23 @@ The combination is: the language gives the writer one defensible default (the co
 
 ## Chapter 4. Clauses
 
-### 4.1 The `WHERE` clause: pre-query input filtering
+### 4.1 The `WHERE` clause: pre-query input filtering **[SCHEDULED]**
+
+> **▸ Second-Edition sync (`WHERE` plans but does not execute, 2026-08-31).** The same
+> recognition-is-not-capability split §2.8 records for scans applies to this clause. `WHERE` is
+> parsed, its dimensions are checked for reachability, and it plans — an unreachable dimension
+> correctly clarifies `filter_unreachable`, which is shipped behaviour a reader can rely on. **The
+> filtered frame does not execute in the current Core build**: the predicate does not reach the
+> backend in a bindable form, and the ask returns an engine error. This holds for a dimension that
+> is a coordinate of the fact itself, not only for one reached across a join, so it is a gap in the
+> clause rather than in any particular schema. Verified against two independent adjudicated
+> fixtures. Marked here rather than left for a reader to discover by running it.
 
 `WHERE` restricts the input to the query — applied before reductions, narrowing what data the reducers see. Its predicate references dimensions and column values at the *input* grain (the data being reduced), not the output grain (the result of the reduction).
 
-```
+```frameql-roadmap
 FROM finance_manifold
-SELECT sum(revenue) AT {customer}
+SELECT sum(revenue @ {transaction}) AT {customer}
 WHERE region = "east" AND date >= "2024-01-01"
 ```
 
@@ -456,17 +543,31 @@ This computes per-customer revenue *over transactions where region is east and d
 
 **When series have different input grains, the predicate applies per series, at each series' own input grain.** A query whose series draw from `{transaction}` and from `{warehouse, day}` under `WHERE region = "east"` restricts each series' input independently: each predicate dimension must be reachable from that series' input anchor (directly as a coordinate, or through a verified hierarchy edge — `region` reached from `transaction` via `transaction → customer → region`). If a predicate dimension is not reachable from some series' input anchor, the query is underdetermined for that series — there is no defensible way to apply the restriction — and the framework asks for clarification rather than silently applying the predicate to some series and not others.
 
-### 4.2 The `HAVING` clause: post-query output filtering
+### 4.2 The `HAVING` clause: post-query output filtering **[ROADMAP — the `count(*)` series only]**
+
+*(`HAVING` itself ships — §6.9 is the shipped worked example. The illustration below additionally uses query-level `count(*)`, which does not; see the note under it.)*
 
 `HAVING` filters the output frame after the series have been computed. Its predicate references the *output* columns — the series expressions and the anchor dimensions — and is applied after reduction:
 
-```
+```frameql-roadmap
 FROM finance_manifold
 SELECT sum(revenue) AS total_revenue,
        count(*) AS transaction_count
        AT {customer}
 HAVING total_revenue > 10000
 ```
+
+> **▸ Second-Edition sync (query-level `count(*)` is unresolved architecture, 2026-08-31).** The
+> example above uses `count(*)` **as a series in `SELECT`**, and that form does not ship: it has no
+> determinate analytical object to count. A `UNIVERSE` declares coordinates, not a fact table — only
+> a `MEASURE` carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being
+> counted, and at least three readings are open: the physical source-row count, the count of
+> existing analytical points, and the count of observations of some measure. **The Manual does not
+> choose among them**; picking one silently is how a number acquires a meaning nobody declared.
+> Resolving it is a language ruling, not a parser fix.
+>
+> **`AS count(*)` in a `.cml` MEASURE is a different and established case** and is unaffected: there
+> the source table is declared on the measure, so what is counted is not in question.
 
 This computes per-customer total revenue and transaction count, then keeps only the rows where total_revenue exceeds 10,000. The framework applies the reduction first, then evaluates the `HAVING` predicate against each row of the output frame.
 
@@ -560,7 +661,9 @@ The output anchor of every series in a query must be the same (the query's outpu
 
 For inputs within an expression, anchors must compose correctly:
 
-- **For maps**: all operands must be co-anchored. The framework checks that all input column references resolve to the same input anchor. If they do not, the writer must bring them to a common anchor explicitly (by aggregation or broadcast) before mapping. A common anchor is, in full, a common *(anchor, universe)*: columns combined **in one expression** at a shared anchor are checked for **co-universality** — same declared universe, verified by reference. A single expression combining measures from *different* universes is not served with an asymmetry disclosure; it is the **`cross_universe`** category error (§2c, Chapters 2.5, 7.3), on the query-error channel. Several populations in one *view* coexist by **juxtaposition** — separate series, each evaluating in its own universe at a shared anchor — never by combination in one expression.
+- **For maps**: all operands must be co-anchored, and the writer must bring operands at different grains to a common anchor explicitly (by aggregation or broadcast) before mapping.
+
+  **What the framework checks, stated exactly** (corrected 2026-08-31): it holds a **declared** input pin to the grain the expression is read at — `(revenue @ {day}) - (cost @ {customer})` is refused, naming the disagreement — and co-anchoring otherwise holds *by construction*, because a map hands both operands the same output anchor and joins on it. There is **no general check that two unpinned column references resolve to the same input anchor**; the earlier claim that there was is withdrawn. The distinction matters to a reader deciding how much a passing query proves: an unpinned map is co-anchored because it could not be anything else, not because a check confirmed it. A common anchor is, in full, a common *(anchor, universe)*: columns combined **in one expression** at a shared anchor are checked for **co-universality** — same declared universe, verified by reference. A single expression combining measures from *different* universes is not served with an asymmetry disclosure; it is the **`cross_universe`** category error (§2c, Chapters 2.5, 7.3), on the query-error channel. Several populations in one *view* coexist by **juxtaposition** — separate series, each evaluating in its own universe at a shared anchor — never by combination in one expression.
 
 - **For aggregations**: the input anchor must be finer than or equal to the output anchor in the relevant dimensions. The framework checks that the input-to-output path is valid (via drops and climbs, per the framework manual's Chapter 4).
 
@@ -624,10 +727,15 @@ A query that declares one of the three resolutions is computed under it with no 
 >     NOTE "a product belongs to up to 3 categories"
 > ```
 > ```
-> SELECT revenue AT {category.touch}       -- disclose: over_count (material) + coverage (info)
+> SELECT revenue AT {category.touch}       -- disclose: multi_counted (material) + coverage (info)
 > SELECT revenue AT {category.assign}      -- disclose: memberships_unrepresented (the shadow of dropped memberships)
 > SELECT revenue AT {category.alloc}       -- serve: reconciliation certificate (immaterial unless it shortfalls)
 > ```
+>
+> *(Corrected 2026-08-31: this line read `over_count`, which is the caveat's INTERNAL name
+> (`disclosure.py`); the code a caller actually receives is `multi_counted`
+> (`disclosure_wire.py`). The two lines beside it already named wire codes, so the vocabulary was
+> mixed within one block — and the semantic gate is what noticed, by asking the runtime.)*
 >
 > The bare `{category}` stays uniformly barred and now clarifies with the face menu; each faced coordinate executes and honours its disposition. `{category.touch}` executes the join-multiply and serves in **disclose**, carrying the over-count as a material caveat and the coverage (the covered/uncovered count) as an informational one; `{category.assign}` single-counts and discloses the shadow; `{category.alloc}` reconciles and serves the badge. Naming honesty holds: `category.touch` ≠ `category.assign` ≠ `category.alloc` ≠ `category`, each marked in the grain name. **Per-basis licensing, v1 = events only** — the crossing serves on an events population, where the arithmetic is honest; on a spine/grid it refuses (`events-only in v1`), because replication or redistribution would corrupt the grid's own completeness claim, until that thinking lands.
 >
@@ -666,9 +774,9 @@ Canonical: `FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {custom
 
 Computes per-customer revenue total.
 
-### 6.2 Multiple metrics at a shared anchor
+### 6.2 Multiple metrics at a shared anchor **[ROADMAP — the `count(*)` series only]**
 
-```
+```frameql-roadmap
 FROM finance_manifold
 SELECT revenue,
        cost,
@@ -676,7 +784,22 @@ SELECT revenue,
        AT {customer, month}
 ```
 
-Computes per-customer-month revenue, cost, and transaction count. All three series share the output anchor `{customer, month}`.
+*Would compute* per-customer-month revenue, cost, and transaction count, all three series sharing the
+output anchor `{customer, month}`. The shared-anchor point it makes is real and ships; the
+`count(*)` series is what does not.
+
+> **▸ Second-Edition sync (query-level `count(*)` is unresolved architecture, 2026-08-31).** The
+> example above uses `count(*)` **as a series in `SELECT`**, and that form does not ship: it has no
+> determinate analytical object to count. A `UNIVERSE` declares coordinates, not a fact table — only
+> a `MEASURE` carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being
+> counted, and at least three readings are open: the physical source-row count, the count of
+> existing analytical points, and the count of observations of some measure. **The Manual does not
+> choose among them**; picking one silently is how a number acquires a meaning nobody declared.
+> Resolving it is a language ruling, not a parser fix.
+>
+> **`AS count(*)` in a `.cml` MEASURE is a different and established case** and is unaffected: there
+> the source table is declared on the measure, so what is counted is not in question.
+
 
 ### 6.3 Composite reduction with explicit intermediate anchor
 
@@ -716,20 +839,28 @@ SELECT ( revenue @ {customer} ) / ( revenue @ {} ) AS share_of_total
 
 Computes each customer's share of total revenue. The numerator is per-customer revenue; the denominator is the Manifold-wide grand total (`{}` being the Manifold's defining boundaries collapsed to one point). The denominator is broadcast — replicated unchanged — to every customer for the division.
 
-### 6.7 Bracket filter on a column
+### 6.7 Bracket filter on a column **[ROADMAP]**
 
-```
+**Not shipped** (§2.8) — it is accepted by the statement grammar and then refused at planning, which is precisely why a grammar-only gate could not see it. It shows the form the language grows into, not
+a query that runs today. The `WHERE` clause of §6.8 is the shipped way to restrict input.
+
+```frameql-roadmap
 FROM finance_manifold
 SELECT revenue[region = "east"] AS east_revenue,
        revenue AS total_revenue
        AT {customer}
 ```
 
-Computes per-customer east-region revenue alongside total revenue. The bracket filter restricts the revenue column to its east-region subset; the result column appears alongside unrestricted revenue.
+*Would compute* per-customer east-region revenue alongside total revenue: the bracket filter
+restricts the revenue column to its east-region subset, and the result column appears alongside
+unrestricted revenue.
 
-### 6.8 WHERE: pre-query filtering
+### 6.8 WHERE: pre-query filtering **[SCHEDULED]**
 
-```
+**Parses and plans; does not execute** (§4.1). The clause is designed and committed;
+the filtered frame is not available in this build.
+
+```frameql-roadmap
 FROM finance_manifold
 SELECT revenue AT {customer}
 WHERE date >= "2024-01-01" AND region IN ("east", "west")
@@ -758,15 +889,21 @@ LIMIT 5 PER {category}
 
 Computes per-category-product revenue, sorts by category then by revenue descending, then keeps the top 5 products per category. The result has up to 5 rows per category, with each category's rows ordered by revenue.
 
-### 6.11 Scan for running total
+### 6.11 Scan for running total **[ROADMAP]**
 
-```
+**Parses and plans; does not execute** (§2.8). `cumsum` is a registered operator and this expression
+type-checks and returns a plan, so a reader who checks only whether the query is *accepted* will
+conclude it ships. It does not: scan execution is not available in the current Core build, and this
+example is marked for what it would *produce*, not for what the planner will say about it.
+
+```frameql-roadmap
 FROM finance_manifold
 SELECT cumsum( revenue @ {customer, day} ) AS revenue_to_date
        AT {customer, day}
 ```
 
-Computes the running cumulative revenue per customer, ordered by day. The scan partitions by customer and accumulates by day; the result is co-anchored with the input.
+*Would compute* the running cumulative revenue per customer, ordered by day. The scan partitions by
+customer and accumulates by day; the result is co-anchored with the input.
 
 ### 6.12 Many-to-many with allocation `[ROADMAP]`
 
@@ -782,23 +919,28 @@ SELECT sum( revenue @ {product} ) AT {category}
 
 Computes per-category revenue when products belong to multiple categories. The `WITH allocation` clause declares the allocation rule the framework uses to apportion each product's revenue across its categories; without this declaration, the aggregation across the many-to-many relationship would be served with membership semantics and an overlap disclosure (Chapter 5.6 — or, under the column-foundation, raised as a clarification; see the revision note there); the allocation supplies the partition-of-unity that makes per-category totals reconcile, with no precondition finding.
 
-### 6.13 Time intelligence: year-to-date and year-over-year
+### 6.13 Time intelligence: year-to-date and year-over-year **[ROADMAP]**
 
-```
+**Unshipped on two counts** (§2.8): scan execution is not available in the current Core build,
+*and* the family-aware parameters these two examples turn on — `reset =` and `step =` — are not
+implemented at all. The shipped scan signatures accept `n =` and `by =`, so unlike §6.11 these
+two do not even plan.
+
+```frameql-roadmap
 FROM finance_manifold
 SELECT cumsum( revenue @ {customer, day}, reset = year ) AS revenue_ytd
        AT {customer, day}
 ```
 
-Computes per-customer year-to-date revenue: the running sum restarts at each year boundary, the year level reached from `day` through the verified time family.
+*Would compute* per-customer year-to-date revenue: the running sum restarts at each year boundary, the year level reached from `day` through the verified time family.
 
-```
+```frameql-roadmap
 FROM finance_manifold
 SELECT ( revenue - lag(revenue, 1, step = year) ) / lag(revenue, 1, step = year) AS yoy_growth
        AT {customer, month}
 ```
 
-Computes per-customer year-over-year revenue growth at month grain: `lag(…, 1, step = year)` is the same month one year earlier, and the growth is an ordinary map over the co-anchored pair.
+*Would compute* per-customer year-over-year revenue growth at month grain: `lag(…, 1, step = year)` is the same month one year earlier, and the growth is an ordinary map over the co-anchored pair.
 
 ### 6.14 Macro bindings for reuse
 
@@ -813,11 +955,16 @@ LIMIT 10
 
 The `profit` macro expands textually at every reference site before type-checking; as a bare-macro series it takes `profit` as its default name. The statement desugars to one canonical query with `(revenue - cost) AS profit` selected, filtered, and sorted — visible in full via `EXPLAIN`.
 
-### 6.15 The envelope, end to end
+### 6.15 The envelope, end to end **[SCHEDULED]**
+
+**Plans; does not execute on this build** — the composite input anchor is now *read* correctly
+(Mission B A1), but assembling a frame whose pinned levels are reached by separate hierarchies
+still fails in the engine. That residual is rowed separately; it is a capability gap, not a defect
+in the form shown here.
 
 The top-3 stores per region by gross, with each region's typical order value — the ratified acceptance target for the envelope (ADR-035), exercising anchor products, an auto-leading coarser coordinate, a `WITH` macro, two different input grains juxtaposed in one frame, and `PER ⊆ ORDER BY`:
 
-```
+```frameql-roadmap
 FROM retail
 WITH line = revenue @ {transaction}
 SELECT sum(line)        AS gross,
@@ -829,9 +976,14 @@ LIMIT 3 PER { region }
 
 Reading it clause by clause: `AT {region * store}` stands at the (region, store) grid — `region` **auto-leads** as the coarser coordinate (the edge `region ← store` carries it), an anchor coordinate rather than a selected series, and so nameable by `ORDER BY`/`PER`. `WITH line = revenue @ {transaction}` binds the transaction-grain line once; `sum(line)` reduces it to (region, store) — the reduction is edge-carried (transaction → store → region), the grammar admitting it while the kernel's edge verdict decides serve vs disclose. `typical = avg(aov @ {day})` reads `aov` at **day** grain and averages to (region, store) — two different input grains (transaction, day) collapsing into one frame, legal because each series names its own `@`. `ORDER BY region, gross DESC` references the frame's own columns; `region` leads so groups are contiguous, `gross DESC` ranks within. `LIMIT 3 PER {region}` keeps the top 3 per region — well-posed because **`region` is both an anchor coordinate AND an `ORDER BY` key** (the conjoined `PER` law: `PER` keys are anchor coordinates only, and `PER ⊆ ORDER BY`). `PER {typical}` would refuse (an alias, not a coordinate); `PER {store}` would refuse unless `store` is added to `ORDER BY`.
 
-### 6.16 Composite input anchor: a two-stage statistic
+### 6.16 Composite input anchor: a two-stage statistic **[SCHEDULED]**
 
-```
+**Plans; does not execute on this build** — the composite input anchor is now *read* correctly
+(Mission B A1), but assembling a frame whose pinned levels are reached by separate hierarchies
+still fails in the engine. That residual is rowed separately; it is a capability gap, not a defect
+in the form shown here.
+
+```frameql-roadmap
 FROM retail
 SELECT avg( revenue @ {store*product*cal.month} ) AS avg_monthly_product_revenue
        AT {store}
@@ -963,11 +1115,16 @@ Frame-QL is a small language: a query has a fixed clause structure, expressions 
 
 This is by design. The formal language stays small and analyzable; surface sugars handle ergonomics. The framework type-checks the desugared Frame-QL, so any sugar that produces well-formed Frame-QL is admissible; sugar that produces ill-formed Frame-QL is rejected at the framework boundary, no matter how natural it looked at the surface.
 
-### 8.2 Name aliases
+### 8.2 Name aliases **[ROADMAP]**
+
+**No authoring surface for operator aliases ships.** The `.cml` grammar has no way to declare
+one, and the shipped registry resolves operator names directly, so the example below does not
+run — `total` is not a registered operator. The paragraph describes a facility the language is
+designed for, not one a Manifold author can use today.
 
 A Manifold may declare operator aliases through its operator registry — `total` for `sum`, `unique_visitors` for `count_distinct(visitor_id)`, etc. — that are valid in queries against that Manifold:
 
-```
+```frameql-roadmap
 FROM retail_manifold
 SELECT total(revenue), unique_visitors AT {store}
 ```
