@@ -597,7 +597,14 @@ class Planner:
         def repl(m):
             inner = m.group(1).strip()
             if not inner:
-                self._synerr("an input anchor `@ { }` is empty — name the grain, e.g. avg(aov @ {day})")
+                # `@ {}` IS A DECLARED GRAIN, not a missing one (§2.6 — Mission B repair). It is the
+                # Manifold-wide scalar: "`{}` being the defining boundaries collapsed to one point",
+                # the denominator of `revenue @ {customer} / revenue @ {}`. It was refused here as
+                # malformed, which made the documented broadcast form unreachable in both places the
+                # Manual shows it. The empty product is the empty tuple, and `AT {}` already resolves
+                # at that grain, so the grain needed no invention — only the pin spelling did.
+                return "@ ()"
+
             levels = [t.strip() for t in re.split(r"[*,]", inner)]
             if any(not t for t in levels):
                 self._synerr(f"malformed input anchor `@ {{{inner}}}` — name each level, "
@@ -675,7 +682,16 @@ class Planner:
         series = []
         for s in stmt.series:
             expr = self._canon_expr(self._apply_subs(s.expr, subs))
-            name = s.alias or self._default_name(expr)   # canonical expression IS the identity (WP-NAME-1)
+            # A MACRO BINDING'S NAME SURVIVES ITS OWN INLINING (§4.5, §6.14 — Mission B repair).
+            # `WITH profit = (revenue - cost) SELECT profit` used to be refused "series
+            # '((revenue - cost))' has no derivable name": substitution ran first, and by the time
+            # naming looked at the series the only name anyone had written was gone. Adding `AS
+            # profit` served, which is the tell — the expression was always fine, the identity was
+            # dropped. A binding is a DECLARED NAME, exactly like an alias, so it is read off the
+            # series as WRITTEN rather than off the expression it expands to. WP-NAME-1 is untouched:
+            # it governs a series with no name of its own, and this one has one.
+            written = s.expr.strip() if isinstance(s.expr, str) else None
+            name = s.alias or (written if written in subs else None) or self._default_name(expr)
             series.append(E.Series(expr=expr, alias=name))
         anchor = self.resolve_anchor(stmt.anchor)
         return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
@@ -726,20 +742,45 @@ class Planner:
                                  f"each group, so the partition key must also sort; add {d!r} to ORDER BY "
                                  f"(e.g. ORDER BY {d}, …)")
 
+    #: `col IN (v, v, …)` — set membership (§6.8, Mission B repair). Matched with word boundaries and
+    #: a parenthesised right side so a column whose NAME contains "in" (`inventory`, `margin`) cannot
+    #: be mistaken for the operator — the substring test the comparison ops use would do exactly that.
+    _IN = re.compile(r"^\s*(?P<col>[\w.]+)\s+IN\s*\((?P<vals>.*)\)\s*$", re.IGNORECASE | re.DOTALL)
+
+    def _in_predicate(self, pred: str):
+        """(column, [values]) for an `IN` predicate, or None if this is not one."""
+        m = self._IN.match(pred)
+        if not m:
+            return None
+        raw = [v.strip() for v in m.group("vals").split(",") if v.strip()]
+        if not raw:
+            self._synerr(f"predicate {pred!r} has an empty IN list — an empty set matches nothing; "
+                         f"say so directly rather than writing a filter that cannot pass")
+        return m.group("col"), [self._literal(v) for v in raw]
+
     def _predicate_column(self, pred: str) -> str:
+        hit = self._in_predicate(pred)
+        if hit is not None:
+            return hit[0]
         for op, _m in self._CMP:
             if op in pred:
                 return pred.split(op, 1)[0].strip()
-        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` (op: > < >= <= == !=)")
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` "
+                     f"(op: > < >= <= == !=) or `column IN (v, …)`")
 
     def _apply_predicate(self, data, pred: str):
+        hit = self._in_predicate(pred)
+        if hit is not None:
+            col, vals = hit
+            return data.filter(pl.col(col).is_in(vals))
         for op, method in self._CMP:
             if op in pred:
                 col, rhs = pred.split(op, 1)
                 col, rhs = col.strip(), rhs.strip()
                 val = self._literal(rhs)
                 return data.filter(getattr(pl.col(col), method)(val))
-        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value`")
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` "
+                     f"or `column IN (v, …)`")
 
     @staticmethod
     def _literal(s: str):
@@ -924,15 +965,25 @@ class Planner:
                 f"(e.g. {node.func.id}(aov@day) to pin the input anchor)")
         arg = node.args[0]
         if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
-            right = arg.right
-            elts = right.elts if isinstance(right, ast.Tuple) else [right]
-            levels = [self._level_name(e) for e in elts]
-            if any(lv is None for lv in levels):
+            levels = self._pin_levels(arg.right)
+            if levels is None:
                 raise Refusal("unknown",
                     f"inline reduction input anchor must be level name(s), "
                     f"e.g. {node.func.id}(aov@{{day}}) or {node.func.id}(aov@{{store*day}})")
-            return r, arg.left, tuple(dict.fromkeys(levels))     # order-preserving; exact dups collapse
+            return r, arg.left, levels                           # order-preserving; exact dups collapse
         return r, arg, None
+
+    def _pin_levels(self, right):
+        """The level names an input pin denotes, or None if the right side is not level name(s).
+
+        ONE reader for both pin sites — the inline reduction and the map operand. They used to be one
+        site, and the map form simply had no handler; giving the second site its own copy of this
+        walk is how the two spellings would drift apart on the next change to either."""
+        elts = right.elts if isinstance(right, ast.Tuple) else [right]
+        levels = [self._level_name(e) for e in elts]
+        if any(lv is None for lv in levels):
+            return None
+        return tuple(dict.fromkeys(levels))                      # `@ {}` -> () — the scalar grain
 
     @staticmethod
     def _fmt_pin(pinned: tuple) -> str:
@@ -951,6 +1002,42 @@ class Planner:
                            if t not in pinned
                            and not any(self.m.find_path({p}, t) is not None for p in pinned))
         return tuple(dict.fromkeys(tuple(pinned) + orthogonal))
+
+    def _check_map_operand_pin(self, node, anchor: tuple):
+        """Hold a MAP-OPERAND pin (`X @ {G}` outside a reducer) to what it declares.
+
+        ONE implementation for the two dispatchers that must agree about it. `_infer` is the static
+        chokepoint `plan()` runs and `_node` is the resolution path; a branch present in only one of
+        them still dies in the other, which is precisely how this form came to parse clean and be
+        unreachable. Keeping the law in one method is what stops them drifting apart again."""
+        pinned = self._pin_levels(node.right)
+        if pinned is None:
+            raise Refusal("unknown",
+                f"input anchor after `@` must be level name(s), got "
+                f"'{ast.unparse(node.right)}' — e.g. (revenue @ {{day}}) or (revenue @ {{store*day}})")
+        if pinned == ():
+            # THE BROADCAST CASE (§2.6), and the one place a coarser pin is lawful. `revenue @ {}` is
+            # the Manifold-wide scalar broadcast unchanged to every output coordinate. It is exempt
+            # from the co-anchoring equality below BY DECLARATION, not by accident: §2.6 names
+            # broadcast as the sanctioned way to bring a coarse value to a finer anchor, and the
+            # double-count hazard it would otherwise open is foreclosed structurally by the B-anchor
+            # of any reducer that would sum the replicated value back up.
+            return
+        self._check_pin_laws(pinned, anchor)                     # Law 1: a pin coarser than the output
+        if tuple(dict.fromkeys(pinned)) != tuple(dict.fromkeys(anchor)):
+            # A pin FINER than the grain the map is read at needs a reduction, and §2.4 says so in
+            # words: operands at different grains "must first be brought to a common grain (by
+            # reduction, or by broadcast of a coarse value down a functional edge)". Writing that
+            # reduction is the asker's to do — inferring one here would be the framework choosing an
+            # aggregation nobody asked for, which is the thing the canonical form exists to prevent.
+            # Refused with the remedy named rather than guessed at.
+            raise Refusal("unsupported",
+                f"map operand '{ast.unparse(node.left)}' declares input anchor "
+                f"{self._fmt_pin(pinned)}, but the expression is read at {_fmt_anchor(anchor)} — a "
+                f"map's operands must be co-anchored (§2.4). Bring it to the common grain with an "
+                f"explicit reduction, e.g. sum({ast.unparse(node.left)} @ "
+                f"{{{self._fmt_pin(pinned)}}}).",
+                target=_fmt_anchor(anchor))
 
     def _check_pin_laws(self, pinned: tuple, anchor: tuple):
         """WP-GRAIN-1 Laws 1 & 2, as STATIC planner checks over the pin × output-anchor lattice
@@ -1124,6 +1211,8 @@ class Planner:
         if rc is not None:
             _r, inner, _pinned = rc                 # inline reduction: its atoms are the inner's
             return self._atoms(inner, anchor)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            return self._atoms(node.left, anchor)   # a map-operand pin names LEVELS; atoms are the left's
         sc = self._scan_call(node)
         if sc is not None:
             _op, arg, _n, _by = sc
@@ -1448,6 +1537,15 @@ class Planner:
             # _resolve_inline_reduction). Typecheck the inner at that composite grain.
             in_dt = self._infer(inner, self._pin_input_grain(pinned, anchor), population)
             return self._reducer_out_dtype(reducer, in_dt)
+        # The MAP-OPERAND input pin, statically (mirror of the `_node` branch — see it for why a pin
+        # outside a reducer is a DECLARATION of the grain the operand is read at, not a selection).
+        # Both dispatchers must know the form: `_infer` is the static chokepoint `plan()` runs, so a
+        # branch present only in `_node` would still die here, before execution was ever reached.
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            self._check_map_operand_pin(node, anchor)
+            grain = () if self._pin_levels(node.right) == () else anchor
+            return self._infer(node.left, grain, population)
+
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, _n, _by = sc
@@ -1540,9 +1638,54 @@ class Planner:
         if rc is not None:
             return self._resolve_inline_reduction(rc, anchor, where, trace)
 
+        # ── the MAP-OPERAND input pin (§2.4 / §5.2) ──────────────────────────────────────────────
+        # `X @ {G}` outside a reducer call. Before this branch the pin fell through to the generic
+        # BinOp path, which read the level as a column: `(revenue @ {transaction}) / (orders @
+        # {transaction})` died `unknown column 'transaction'` and the composite spelling died
+        # `unsupported expression node Tuple` — so the whole documented map-with-pinned-operands form
+        # was unreachable in EVERY pin spelling, while parsing clean (P0-18, Mission B).
+        #
+        # WHAT A MAP-OPERAND PIN IS. `anchor` here IS the grain this expression is being read at:
+        # `_resolve_inline_reduction` re-enters `_node` with the pinned input grain, so an operand
+        # inside `sum(… @ {transaction})` is already being read at transaction. A map operand's pin
+        # is therefore a DECLARATION of that grain — exactly what §2.4 calls it ("the operands of a
+        # map must be co-anchored — the same input anchor for all"). It selects nothing the context
+        # has not already fixed; it STATES it, and the framework holds it to what it states.
+        #
+        # DELIBERATELY NOT A JOINT-OPERAND SURFACE (ruled Huayin, 2026-08-31): `@ {a,b}` keeps its one
+        # meaning, composite analytical GRAIN. Nothing here introduces `(a,b) @ A` or enlarges
+        # reducer arity.
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            self._check_map_operand_pin(node, anchor)
+            if self._pin_levels(node.right) == ():
+                # BROADCAST (§2.6). Resolve at the scalar grain, then hand the map a SCALAR — the
+                # kind `_apply` already broadcasts, the same one a literal arrives as. The engine
+                # cannot join a frame carrying no anchor columns against one that does (that is the
+                # `ColumnNotFoundError` this form died on), and it should not have to: "broadcast
+                # unchanged to every customer" IS one value against many coordinates, which is what
+                # the scalar kind means. Reusing it keeps one broadcast path instead of minting a
+                # second, and the B-anchor that forecloses the double-count hazard is untouched.
+                k, payload, disc, dtype = self._node(node.left, (), where, trace)
+                if k == "scalar":
+                    return k, payload, disc, dtype
+                if payload.height != 1:
+                    raise Refusal("unsupported",
+                        f"'{ast.unparse(node.left)} @ {{}}' is the Manifold-wide scalar and must "
+                        f"resolve to exactly one value; it resolved to {payload.height}")
+                return "scalar", payload[_V][0], disc, dtype
+            return self._node(node.left, anchor, where, trace)
+
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, n, by = sc
+            # A scan's input may carry its own input pin — `cumsum(revenue @ {customer, day})` is the
+            # Manual's own §6.11 spelling. `_infer` reads the pin (see its MatMult branch) and this
+            # path must read it too, or the two dispatchers disagree and the ask plans `serve` and
+            # then dies in the engine. That divergence is the exact failure Mission B is about, so it
+            # is not acceptable to leave it here just because it is one level down.
+            if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
+                self._check_map_operand_pin(arg, anchor)
+                arg = arg.left
             m_name, member = self._measure_ref(arg)
             if m_name is None or m_name not in self.m.measures:
                 raise Refusal("unknown",
