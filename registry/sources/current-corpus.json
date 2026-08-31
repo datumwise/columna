@@ -50,7 +50,8 @@
   "s-statistical-bridge-primer",
   "s-theory-of-certainty",
   "s-three-worlds-of-analytics",
-  "s-do-not-let-your-ai-agent-govern-itself"
+  "s-do-not-let-your-ai-agent-govern-itself",
+  "s-governing-across-ontological-worlds"
  ],
  "referenceOnly": [
   {
@@ -195,6 +196,11 @@
    "on": "2026-08-25",
    "by": "Huayin",
    "note": "Initial adjudication. 16 IN, 27 REFERENCE ONLY, 0 OUT, covering all 43 catalogued sources exactly."
+  },
+  {
+   "on": "2026-08-30",
+   "by": "Huayin",
+   "note": "Governing Across Ontological Worlds v1.0 ruled IN on ingest. It states a general architectural result -- a crossing can be governed as a crossing only while its two sides remain distinct -- which Three Worlds instantiates rather than implies, and of which Do Not Let Your AI Agent Govern Itself is a corollary. Both of those are already IN. Constitutive of the current position, not merely useful to Ask."
   }
  ]
 }
