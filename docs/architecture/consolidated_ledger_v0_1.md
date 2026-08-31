@@ -1094,12 +1094,26 @@ merely sit inert — the shipped-coherent deploy wedge pins the exact versions t
 **fails closed** when they are not on PyPI. Bumping to clear a CI gate would trade a stale README for
 a broken production deploy, and would manufacture a release decision inside a documentation repair.
 
-**Where the packaged half lives:** branch `unit-c/package-front-doors`, as an open PR against `main`
-carrying the two README edits alone — a live PR, not a parked commit. It is expected to be red on the
-stale-payload gate, and that redness is the row: it goes green the moment a release bumps the
-versions, and it should ride the next release rather than mint one. The decision it is waiting on is
-**a version decision, and it is Huayin's** — the same decision P0-08 waited on, made once in Unit B
-when 0.17.0 shipped.
+**Where the packaged half lives:** [PR #251](https://github.com/datumwise/columna/pull/251), carrying
+the two README edits alone — a live PR, not a parked commit. It is expected to be red on the
+stale-payload gate, and that redness is the row.
+
+**RULED (Huayin, 2026-08-31): ride the next release. Do not mint one.** The reasoning, recorded so
+the decision does not have to be re-derived: what remains false is two PyPI front pages — a stale H1
+version and a missing `firstlight` mention — which is the quietest surface in the P0 set, and not
+comparable to a purchasable tier asserted on two live routes. `release_pins.py` already carries the
+house's value against minting releases *"whose only content is a version number."* And waiting is
+reversible where a burned version number is not.
+
+**The condition that would flip it**, also recorded: if no code release is expected within roughly a
+month, mint `columna-core 0.18.1` + `columna 0.18.1` (lockstep) + `columna-server 0.11.1` rather than
+let two false front doors outlive the unit meant to close them.
+
+**What makes waiting safe rather than hopeful.** The P0-08 orphaning is structurally closed here — a
+live PR, the reason recorded on it, and P0-11/P0-13 marked PARTLY FIXED rather than struck. Beyond
+that, `docs/RELEASE_ORDER.md` gained a **step 0**: sweep `gh pr list --label release-gated` and fold
+those PRs in, or decide explicitly not to. #251 carries the label. "The next release will remember"
+is not a mechanism; a labelled query is.
 
 ### Not closed by Unit C, and deliberately so
 

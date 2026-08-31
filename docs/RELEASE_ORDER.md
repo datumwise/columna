@@ -8,6 +8,11 @@ this order is what makes "publish-first means installable" structurally true ins
 ## The order
 
 ```
+0. SWEEP FOR RELEASE-GATED WORK and fold it in:
+       gh pr list --label release-gated --state open
+   Each one is a repair that is CORRECT and BLOCKED ONLY on a version bump.
+   Take them now or decide explicitly not to. Do not skip this by
+   remembering — a repair nobody swept for is a repair nobody ships.
 1. Land the work on a release branch. CI green.
 2. TAG the release branch — v<version> — and cut the GitHub Release from that tag.
 3. Publish fires (OIDC Trusted Publisher). Wait for it green,
@@ -19,7 +24,31 @@ this order is what makes "publish-first means installable" structurally true ins
    packages already installable and clears the wedge on attempt 1.
 ```
 
-**Tag before merge. Publish before deploy. Every time.**
+**Sweep before tag. Tag before merge. Publish before deploy. Every time.**
+
+## Step 0 — why a sweep, and why a label rather than a memory
+
+Added 2026-08-31, on the ruling *"ride the next release"* for the Unit C package front doors.
+
+**The class this closes.** A package README is the wheel's `long_description`, so editing one changes
+`*.dist-info/METADATA`. If that version is already on PyPI, `build + check dists` refuses — correctly,
+because `skip-existing` would upload nothing and the release would ship the OLD payload while
+claiming the new tree. The repair is *right*; it is simply not releasable until something bumps. So a
+correct fix ends up parked, waiting for a release it has no way to attach itself to.
+
+**This has already cost us once.** P0-08: the package-copy repair was reverted eight minutes after
+landing and parked on `lab/package-copy-repair` — a branch that **points at the reverted commit and
+is an ancestor of `HEAD`**, so it carried nothing forward and was recoverable only by cherry-picking
+hunks out of a superseded commit. Four days orphaned, and it took a whole unit to notice.
+
+**Why a label and not a paragraph.** "The next release will remember" is not a mechanism; it is a
+hope, and the P0-08 row is what a hope looks like after four days. `--label release-gated` makes the
+sweep a **query with an answer** — a release either ran it or did not, and that is checkable after
+the fact. The label is applied when the PR is opened, by whoever discovers the block.
+
+**Deciding not to take one is a fine outcome** — it just has to be a decision. A release-gated PR
+that a release deliberately passes over stays open with a comment saying so; one that is passed over
+silently is the failure this step exists to prevent.
 
 ## Why — the race this removes
 
