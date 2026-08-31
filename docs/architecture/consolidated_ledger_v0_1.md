@@ -696,6 +696,43 @@ governance line and not declarable.
 
 ---
 
+## Unit B — CLOSED, 2026-08-31
+
+Every row Unit B was authorized to repair is fixed, shipped and installable. Rows are struck here
+rather than deleted: the evidence of what was wrong is the reason the standing tests exist.
+
+| row | defect | shipped in | standing test |
+|---|---|---|---|
+| **P1-01** | witness/sketch read outside the declared universe carve — served 3 where the carve admits 1, while claiming `[over sales]` | 0.17.0 | `test_witness_non_interference.py` |
+| **P1-02** | `data_identity() -> None` was fail-OPEN on the witness store — 2 served against a truth of 3, at zero fetches | 0.17.0 | same |
+| **P1-03** | witness currency was home-table only; a predicate-provider change left it "fresh" | 0.17.0 | same |
+| **P1-04** | warm TOUCH was quieter than cold, dropping a MATERIAL caveat | 0.18.0 | `test_disclosure_channels.py` |
+| **P1-05** | coverage shortfall graded IMMATERIAL on a code whose MATERIAL slot had no producer — **both** faces | 0.18.0 | same |
+| **OF-24** | a mechanical fact wore a semantic name on the semantic channel | 0.18.0 | same |
+| **P0-04** | `[Pro]` reachable on the wire — four runtime strings | 0.17.0 | pinned in `test_disclosure_wire.py` |
+| **P0-08/09/10/13** | the orphaned package-copy repair, unblocked by the version decision | 0.17.0 | — |
+
+**Two of these served a confident wrong number** (P1-01, P1-02). The rest are honesty defects: the
+system knew something true and did not say it, or said it on the wrong channel.
+
+### What Unit B changed about the architecture, not just the code
+
+The wire now separates **semantic authority** from **mechanical observation**. `disclosures` says
+what is true of the answer and is call-invariant; `mechanical` says what happened on this call and
+may vary freely. That is the same boundary the Architecture work names — a channel that is allowed
+to differ cannot be the one a caller reads to learn what a number means — arriving in the wire
+contract rather than only in prose.
+
+### Not closed by Unit B, and deliberately so
+
+**P1-06** (a cached frame served under narrowed admission), **P1-07** (the ASSIGN face serving
+`null` for a cell its own caveat says was filled), **P1-08** (unbounded cache) and **P1-09** (two key
+vocabularies in one dict) remain open. None is a wrong-number defect; P1-06 is the sharpest and is
+gated behind `Planner.install_scope` acquiring a cache-invalidation obligation, which is design work
+rather than repair.
+
+---
+
 ## Appendix A — Coupling constraints
 
 Rows that **must** be repaired together, or a fix creates a new defect:
