@@ -26,8 +26,9 @@ WHAT THESE TESTS PIN, and why each one exists:
 
 NOT FIXED BY THIS, deliberately: P1-10. There the two operands are members of one family and both
 produce a row at the anchor; the divergence is in the underlying observation counts, not in the
-anchor coordinates, so there is no coordinate for an alignment domain to preserve. Pinned below so
-the scope boundary cannot rot into an assumption that this repair covered it.
+anchor coordinates, so there was no coordinate for an alignment domain to preserve. It took its own
+repair — `count`'s delivery, see `test_family_member_support.py`. Pinned below so the two cannot be
+confused for one.
 """
 import duckdb
 import pytest
@@ -153,13 +154,15 @@ def test_warm_and_cold_agree():
 
 # ── the scope boundary, pinned ───────────────────────────────────────────────────────────────────
 
-def test_p1_10_is_not_addressed_by_the_alignment_domain():
-    """SCOPE PIN, not an endorsement. P1-10 divides two members of ONE family; both produce a row at
-    the anchor, so the alignment domain is identical and there is no coordinate to preserve. Its
-    divergence lives in the underlying observation counts (`count(*)` counts the null row, `sum`
-    skips it), which needs support as a set of OBSERVATIONS rather than of coordinates.
+def test_p1_10_is_a_separate_repair_not_this_one():
+    """SCOPE PIN. P1-10 divides two members of ONE family; both produce a row at the anchor, so the
+    alignment domain is identical and there was no coordinate for it to preserve. Repairing the join
+    did NOT repair P1-10 — that took a separate change to `count`'s delivery (see
+    `test_family_member_support.py`), because its divergence lives in the underlying OBSERVATION
+    counts rather than in the anchor coordinates.
 
-    This test exists so the coupling claim cannot rot: repairing the join did NOT repair P1-10."""
+    This test exists so the two repairs cannot be confused for one. It asserts the post-P1-10 value;
+    if it ever reads 20.0 again, the count delivery regressed, not the alignment domain."""
     cml = """
 MANIFOLD p2 VERSION 1
 UNIVERSE ops = store BASIS spine
@@ -178,5 +181,5 @@ DERIVED avg_line = revenue.sum / revenue.count
     srv.publish()
     w = _ask(srv, "SELECT avg_line AS d AT {store}")
     assert w["outcome"] == "serve"
-    assert not _codes(w), "P1-10 remains OPEN — if this starts failing, P1-10 was fixed; strike it"
-    assert float(_rows(w)[0]["value"]) == 20.0
+    assert not _codes(w), "supports are equal by construction now — nothing to disclose"
+    assert float(_rows(w)[0]["value"]) == 25.0, "mean per OBSERVATION; 20.0 would mean count regressed to rows"

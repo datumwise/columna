@@ -80,8 +80,20 @@ REGISTRY: dict = {
     # ---- REDUCERS (found families; reaggregate by monoid structure) ----------
     "sum":   Operator("sum",   REDUCER, VALUE, True, linear=True, accepts=NUMERIC | {DURATION}, out_rule="same",
                       deliver_sql=lambda p: f"sum({p})",  combine="sum"),
+    # P1-10. This delivered `count(*)` — DISCARDING its operand — so `count` as a family member over a
+    # declared VALUE counted ROWS while its siblings (`sum`/`min`/`max`, and SQL generally) count
+    # OBSERVATIONS. Two members of one family therefore carried different supports, and
+    # `revenue.sum / revenue.count` served a mean over mismatched denominators, silently.
+    #
+    # THE DISTINCTION WAS ALREADY DECLARED; only the delivery threw it away. The parser normalizes the
+    # AS-form `count(...)` to `pre_expr = "1"` (`parser.py:453` — in that form `count` MEANS rows), while
+    # the VALUE+FAMILY form carries the declared value expression. So passing the operand through
+    # honours both readings with one lambda: `count(1)` is exactly `count(*)` (a literal is never null,
+    # verified against DuckDB), and `count(<value>)` is the observation count its siblings already use.
+    # The engine's own inline path had it right all along — `_SERIES_REDUCE["count"]` is polars
+    # `.count()`, which skips nulls.
     "count": Operator("count", REDUCER, VALUE, True, accepts=ANY, out_rule="Int64",
-                      deliver_sql=lambda p: "count(*)",   combine="sum"),
+                      deliver_sql=lambda p: f"count({p})", combine="sum"),
     "min":   Operator("min",   REDUCER, VALUE, True, accepts=ORDERED, out_rule="same",
                       deliver_sql=lambda p: f"min({p})",  combine="min"),
     "max":   Operator("max",   REDUCER, VALUE, True, accepts=ORDERED, out_rule="same",

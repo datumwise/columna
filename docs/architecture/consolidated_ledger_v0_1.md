@@ -250,7 +250,7 @@ would alias.
 
 ---
 
-### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · VX
+### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · **FIXED** in Mission A′ · VX
 
 Found 2026-08-31 while testing the P2-03 ontology argument by execution. **It is the v5 family
 container producing a number**, which is why it is filed in P1 rather than left inside a P2
@@ -303,6 +303,54 @@ minting a support caveat on mixed-support ratios — treats the symptom while le
 that groups a row-cardinality with three value reducers under one name. The support caveat is
 nonetheless the cheap partial mitigation if Unit D runs long, and `validate_universe_support` already
 computes it.
+
+
+#### Repaired — Mission A′, 2026-08-31
+
+**The divergence was removed at its source rather than disclosed.** The invariant — *a shared output
+coordinate does not establish shared analytical support* — can be satisfied two ways: retain the
+divergence and disclose it, or remove a divergence that had no reason to exist. A family member over
+a declared VALUE is a reducer **over that value**; `count` counting rows instead was not a fact about
+the world, it was a discarded operand.
+
+**One lambda, and the distinction was already declared.** `count` was registered
+`deliver_sql=lambda p: "count(*)"`, discarding `p`. The parser already normalizes the AS-form
+`count(...)` to `pre_expr = "1"` (`parser.py:453` — in that form `count` MEANS rows), while the
+VALUE+FAMILY form carries the declared value. Passing the operand through honours both readings:
+
+| declaration | `pre_expr` | delivered | meaning |
+|---|---|---|---|
+| `MEASURE lines … AS count(*)` | `"1"` | `count(1)` ≡ `count(*)` | rows — **unchanged** |
+| `MEASURE revenue … VALUE v FAMILY { sum count }` | `"v"` | `count(v)` | observations — now equal to its siblings' support |
+
+`count(1)` is exactly `count(*)`: a literal is never null (verified against DuckDB). The engine's own
+inline path already had it right — `_SERIES_REDUCE["count"]` is polars `.count()`, which skips nulls,
+so the two paths had disagreed about the meaning of one word.
+
+```
+5 rows, 4 observations                     before        after
+  revenue.count                            5             4
+  avg_obs  = revenue.sum / revenue.count   20.0          25.0     <- mean per observation
+  lines    = AS count(*)                   5             5        <- unchanged
+  avg_line = revenue.sum / lines           20.0          20.0     <- a different, declared question
+```
+
+**Nothing is hidden and no capability is lost.** Row-counting stays fully addressable via
+`AS count(*)`, and the two readings can be asked side by side and seen to differ. The ambiguity is
+removed; the choice is not.
+
+**Zero governed-artifact impact.** The only shipped declaration of `count` over a VALUE is the
+`firstlight` governed fixture, whose `sales_lines` has no null amounts (6 rows, 6 observations), so
+its served numbers, publication digest, image digest and lowering receipt are byte-identical.
+
+**Ineligible observations are excluded before aggregation and were never at issue** — a universe
+carve removes them from the population, and both members honour it identically (probed: 5 rows, 1
+pre-opening ineligible, 1 unsupported → `sum` 60.0, `count` 3, mean 20.0).
+
+Standing test: `tests/test_family_member_support.py` (9 cases — equal support unchanged; divergent
+support at an identical coordinate; both readings available; the AS-form byte-for-byte unchanged; all
+VALUE-family members share one support; ineligible-by-carve; warm/cold; disclosure parity; and the
+residual blocker below pinned as a fact).
 
 ---
 
@@ -405,6 +453,41 @@ Standing test: `tests/test_alignment_domain.py` (10 cases — equal supports inv
 side may be short; the population claim now matches what is served; ineligible stays immaterial and
 `serve`; `zero` never fills; provenance caveats still ride alongside; warm/cold agree; and the
 P1-10 scope boundary is pinned so the coupling claim cannot rot again).
+
+### P1-12 · Support divergence across measures at a SHARED coordinate is not representable · **MEDIUM** · **BOUNDED BLOCKER — no repair authorized** · VX
+
+The residual after P1-10 and P1-11, recorded so the gap stays visible and dated rather than being
+rediscovered. **This row is a fact about the runtime, not a defect to fix now.**
+
+Two *different* measures may both have a row at a coordinate while resting on different underlying
+support — `revenue` over 4 observations and `lines` over 5 rows, both at `s1`. Neither repair sees it:
+
+- **P1-11's alignment domain cannot** — the coordinate exists for both operands, so there is nothing
+  to preserve.
+- **P1-10's repair cannot** — they are not members of one family, so no shared VALUE makes their
+  supports equal by construction.
+
+In the probed case the divergence is *declared* (`lines` is `AS count(*)`; asking revenue-per-line is
+a legitimate question and 20.0 is its right answer). **The blocker is that the runtime cannot
+distinguish a declared divergence from an accidental one.** The engine delivers ONE aggregate per
+measure per coordinate (`engine.py:313-314`); the observation count is consumed inside the SQL
+aggregate and never returned. `validate_universe_support` computes a per-measure cardinality at the
+universe base grain, has zero callers, and is the wrong granularity besides.
+
+**What it would take:** a companion support carrier on every delivery, or a declared support contract
+per operator. That is new runtime machinery, not a small change, and it is not supported by current
+doctrine — which is why it is rowed rather than attempted (Huayin's instruction: *"if the current
+runtime lacks enough retained support information to distinguish the cases, stop and report that as
+the architectural blocker rather than guessing"*).
+
+**Relationship to the Column Algebra work:** this is the same fact the design record's §4.2.1 is
+about — *joint eligible frame* versus *co-supported realized points* — at the level of underlying
+observations rather than coordinates. It belongs with Mission C (participation as declared law), not
+with a correctness sweep.
+
+Pinned by `tests/test_family_member_support.py::test_the_residual_is_not_representable`, which
+asserts the CURRENT state; if it starts failing, the runtime grew a support representation and this
+row can be struck.
 
 ---
 
@@ -1284,7 +1367,7 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 | **P1-01 + P1-03** | P1-03 is latent only because P1-01 exists. Fixing confinement without widening the witness currency key converts latent under-invalidation into active staleness |
 | **P1-04 + P1-05** | Both concern what the TOUCH path discloses. Re-grading coverage to MATERIAL while the warm path still drops it means the warm/cold divergence becomes outcome-visible (`disclose` cold, `serve` warm) — a strictly worse failure than today's |
 | **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today. **Eased 2026-08-31:** P2-03's repair is now understood to be **additive** (a governed `Law(F)` carrier) rather than a relocation of a required field, so the set of publications a refusal rule would reject is materially smaller than this row assumed |
-| **P1-10 + P1-11** | ~~A repair at the join addresses both~~ — **CORRECTED 2026-08-31 by execution.** Mission A repaired the join and P1-10 is **unchanged**: `revenue.sum / revenue.count` still serves 20.0 with zero caveats. Both members produce a row at the anchor, so the alignment domain is identical and there is no coordinate for it to preserve. P1-10's divergence lives in the **underlying observation counts**, which needs support as a set of OBSERVATIONS, not of coordinates. The two rows share a collapse site and nothing else. Pinned by `test_alignment_domain.py::test_p1_10_is_not_addressed_by_the_alignment_domain` |
+| **P1-10 + P1-11** | ~~A repair at the join addresses both~~ *(both now closed by SEPARATE repairs; residual rowed as P1-12)* — **CORRECTED 2026-08-31 by execution.** Mission A repaired the join and P1-10 is **unchanged**: `revenue.sum / revenue.count` still serves 20.0 with zero caveats. Both members produce a row at the anchor, so the alignment domain is identical and there is no coordinate for it to preserve. P1-10's divergence lives in the **underlying observation counts**, which needs support as a set of OBSERVATIONS, not of coordinates. The two rows share a collapse site and nothing else. Pinned by `test_alignment_domain.py::test_p1_10_is_not_addressed_by_the_alignment_domain` |
 | **P1-10 + P2-03** | P1-10 is the v5 family container producing a number. Re-typing `count` or minting a support caveat treats the symptom and leaves the container. The caveat is the cheap partial mitigation if P2-03 runs long |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 
