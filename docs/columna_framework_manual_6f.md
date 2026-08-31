@@ -1,3 +1,22 @@
+<!-- tier-history:start -->
+> ## ⚠ SUPERSEDED PRIOR-EDITION RECORD
+>
+> **This is not the current framework manual.** The current edition is
+> [`columna_framework_manual_6g.md`](columna_framework_manual_6g.md); this revision is retained as a
+> prior-edition record under topology record §17.5, which preserves historical text and supersedes
+> its *standing*.
+>
+> **What is false in the text below.** Chapter 13 describes a commercial **Pro** tier in the present
+> tense — a self-hosted licence, a cloud subscription, and professional services, called "three
+> delivery models for three buyer situations." **None of these exists.** There is one tier, no
+> licence, nothing hosted and nothing for sale (§17.4: no product claim may be created for a
+> delivery form with no factual referent). 6g repaired exactly this chapter on 2026-08-27; this
+> revision was left behind, and `docs/README.md` invites a reader to open it — which is why the
+> warning is here rather than only in a ledger.
+>
+> Read this document as evidence of what was once claimed, never as a statement of what ships.
+<!-- tier-history:end -->
+
 # The Columna Framework
 
 *A Manual for the Column-Operator-Frame substrate — the grammar layer beneath the tools, where silent failure has no syntax.*

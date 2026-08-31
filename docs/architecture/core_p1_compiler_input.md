@@ -1,6 +1,9 @@
 # Core-P1 — Compiler-input boundary record
 
-**Status:** design checkpoint / pre-implementation (no compiler code yet)
+**Status:** IMPLEMENTED. `columna_core/compiler/` has shipped since 2026-08-22; this record is
+the authoritative placement matrix it was built against, not a proposal.
+*(Originally written 2026-08-13 as a design checkpoint / pre-implementation record; restamped
+2026-08-31 — an auditor was discounting the matrix as speculative. P0-15.)*
 **Date:** 2026-08-13
 **Sources traced:**
 - `columna` @ `1a7e213` (`columna-core` `0.15.0-core`): `.cml` grammar/model (`parser.py`, `model.py`), demo `benchmark.cml`; old pre-split P1 trace under `specs/open_planner/` (pinned `0.14.0-core` / Substrait 0.46.0) and `specs/columna_manifold_spec_current.md` §8/§10.
