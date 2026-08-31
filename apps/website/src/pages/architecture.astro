@@ -1,0 +1,302 @@
+---
+/**
+ * /architecture — THE THIRD SHELF (Huayin + CG2, 2026-08-30).
+ *
+ * WHY IT EXISTS. The rail was Foundations · Analytical Governance · Doors · Columna — a layer, a
+ * single paper's doorway, a reader-entry surface, and a system. Those are not four of a kind.
+ * `/analytical-governance` says so about itself: it is the doorway to ONE deposited record, which it
+ * may compress and connect but not extend. It held a rail slot because there was no shelf to put it
+ * on. This page is that shelf, and Analytical Governance is now a work inside it.
+ *
+ * NOT A MISCELLANY, AND NOT A DESIGN-PATTERNS PAGE. The membership question is not "is this
+ * theoretical?" — that would make Architecture a residual category for work Foundations did not
+ * want. The works here share a subject: each governs a PASSAGE. Foundations answers what exists and
+ * what laws hold. Architecture answers what may pass, and under whose authority.
+ *
+ * THE TEST IS A DESCRIPTION, NOT A GATE (Huayin, 2026-08-30). It is here to help write the page, not
+ * to adjudicate membership. Cross-listing is fine and expected: a work may sit on two shelves
+ * because a reader might look for it on either. Do not build a rule that forces a choice. The
+ * Statistical Bridge is the live case — it establishes what must EXIST for inference to be
+ * possible AND governs the passage from governed evidence to a defensible claim, so it appears
+ * here and on /foundations, and neither placement is a demotion of the other.
+ *
+ * GOVERNING ACROSS LEADS, AND IS NOT FILED UNDER THREE WORLDS. Its central claim is general: if two
+ * independently governed objects are merged, the relation between them stops being representable as
+ * an independently governed act. That holds vertically across the three worlds and horizontally
+ * between two business domains — the paper spends a third of its argument on a case where no
+ * ontological boundary is crossed at all. So Three Worlds INSTANTIATES this rule; it does not imply
+ * it. The reading order Three Worlds → Governing Across is pedagogy, not dependency, and the prose
+ * says so rather than letting the sequence assert otherwise.
+ *
+ * ORDER IS A READING MOVEMENT, NOT A DEPENDENCY GRAPH. General rule, then the passage of an
+ * analytical service, then what changes when an agent traverses it. No arrows, no numbering: every
+ * numbered list of three is read as a pipeline, and this is not one.
+ *
+ * NO PUBLICATION FACT IS TYPED HERE. Titles, versions, dates and records come from the registry
+ * through data/publications.ts. This is a `derived` surface under G7 and the build fails if a DOI
+ * is typed into this file.
+ *
+ * COLUMNA IS THE NEXT ROOM, NOT THE EVIDENCE. The page ends by pointing at Columna as one system
+ * that can be evaluated against the principle — general architectural principle → an implementation
+ * that can be checked. Not "Columna proves this": the deduction does not depend on it.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { citation } from '../data/publications';
+
+const gaow = citation('w-governing-across-ontological-worlds');
+const ag = citation('w-analytical-governance');
+const agent = citation('w-do-not-let-your-ai-agent-govern-itself');
+const bridge = citation('w-statistical-bridge');
+const tw = citation('w-three-worlds-of-analytics');
+
+// One entry per crossing. `question` is what the work answers for — the governing question, in the
+// reader's words, not the paper's abstract.
+const CROSSINGS = [
+  {
+    id: 'between-worlds',
+    word: 'Between worlds',
+    question: 'How may independently governed objects and jurisdictions compose?',
+    opens: [
+      'When two systems agree they mean the same supplier, what else — if anything — has been agreed?',
+      'If a business definition and its analytical identity are one object, where did the transfer of authority go?',
+      'What is left of a governed relation once the architecture declares its two sides to be one thing?',
+    ],
+    state:
+      'The claim is a negative one, and it is load-bearing: a crossing can be governed as a crossing ' +
+      'only while the worlds on its two sides remain distinct. Merge them and the transfer of ' +
+      'authority still happens — it simply stops being representable as a separate, challengeable act.',
+    held: 'Permissionless reference is not permissionless authority.',
+    heldSupport:
+      'A shared identifier can be strong evidence for a relation. It does not establish the chain ' +
+      'that runs from same referent through same meaning to same standing for use, because each of ' +
+      'those is a separate claim that someone has to make.',
+    waysIn: [
+      { href: '/read/governing-across-ontological-worlds', label: gaow.label,
+        hint: 'The general rule, and the three recurring ways architectures break it.' },
+      { href: '/read/three-worlds-of-analytics', label: tw.label,
+        hint: 'The jurisdictions this rule is most often applied to. Read first if you like — that is pedagogy, not dependency.' },
+    ],
+    unsettled:
+      'A crossing is defined here as a governed relation — endpoints, purpose, evidence, authority, ' +
+      'permitted consequences, revision. What is not settled is what CARRIES it. A declaration can ' +
+      'be authoritative in one environment and become mere data when it is serialised and handed to ' +
+      'another, and nothing yet says how a receiving side establishes that identity, evidence and ' +
+      'standing survived the passage.',
+  },
+  {
+    id: 'through-the-service',
+    word: 'Through the service',
+    question: 'When is an analytical service legitimate?',
+    opens: [
+      'Does the purpose a person arrived with survive being turned into a request?',
+      'What must a served result carry for the answer built on it to be defensible?',
+      'What should a system do when it can compute a number but cannot stand behind it?',
+    ],
+    state:
+      'The subject is the legitimacy of the whole passage — purpose, request, result, answer, ' +
+      'consequential use — rather than the correctness of any one step in it. Servability is a gate ' +
+      'inside that question, not the question.',
+    waysIn: [
+      { href: '/analytical-governance', label: ag.label,
+        hint: 'The doorway to the current record, with the worked example.' },
+    ],
+    unsettled:
+      'Standing is the least settled part. A result that is legitimate here is not automatically ' +
+      'legitimate once it crosses into another system, and what a result must carry with it to keep ' +
+      'its standing is an open question rather than a solved one.',
+  },
+  {
+    id: 'by-an-agent',
+    word: 'By an agent',
+    question: 'How can an intelligent agent traverse a governed system without becoming the source of its own authority?',
+    opens: [
+      'Which of the boundaries a person used to stand at were ever written down?',
+      'What is the difference between reaching an object and being permitted to use it?',
+      'If every local step is valid, what stops an upstream settlement travelling further than its grounds?',
+    ],
+    state:
+      'AI did not create these passages. It changed the conditions under which they are traversed. ' +
+      'The people at the boundaries were called translators; they were doing something else — ' +
+      'carrying authority distinctions the systems themselves did not represent. An agent crosses ' +
+      'all of them in one continuous motion.',
+    held: 'Let intelligence traverse broadly. Let authority traverse only through governed passages.',
+    heldSupport:
+      'This permits more capable agents, not weaker ones. A system can safely expose more of its ' +
+      'legitimate request space once reaching an object is no longer confused with authority to ' +
+      'make every use of it.',
+    waysIn: [
+      { href: '/read/do-not-let-your-ai-agent-govern-itself', label: agent.label,
+        hint: 'Authority separation applied directly to agents.' },
+      { href: '/read/statistical-bridge', label: bridge.label,
+        hint: 'The passage from governed evidence to a claim it licenses. Also on Foundations — it belongs to both.' },
+    ],
+    unsettled:
+      'An agent may propose a relation that does not yet exist. What it may not do is ratify its ' +
+      'own proposal. Who ratifies, on what evidence, and how quickly enough to be usable, is an ' +
+      'organisational question this work states rather than answers.',
+  },
+];
+---
+
+<BaseLayout
+  title="Architecture — datumwise"
+  description="How authority, meaning, data and execution are allowed to compose — and why the boundary at which one kind of authority becomes another has to survive the composing."
+>
+  <article class="arch">
+    <header class="opening">
+      <p class="kicker">Architecture</p>
+      <h1>Architecture</h1>
+
+      <p class="lede">
+        How independently governed things compose without losing the boundary at which one kind of
+        authority becomes another.
+      </p>
+      <p class="body">
+        <a href="/foundations">Foundations</a> asks what exists and what laws hold over it. These
+        questions are different: they are about <em>passage</em>. What may cross from one governed
+        object to another, on whose authority, for what purpose, and with what left behind.
+      </p>
+      <p class="body">
+        The problem is not integration. Enterprise systems have every reason to seek shared meaning,
+        common identifiers and reusable metrics. The problem is where integration is made
+        authoritative — because coupling that erases a boundary does not remove the transfer of
+        authority across it. It removes the ability to govern that transfer as its own act.
+      </p>
+
+      <p class="terrain">Separate the worlds. Govern the crossings. Compose through the crossings.</p>
+      <p class="caveat">
+        Three crossings, not three stages. A result does not pass through them in order, and together
+        they do not claim to cover the subject. They are three places where authority moves and where
+        an architecture can quietly stop representing that it did.
+      </p>
+    </header>
+
+    {CROSSINGS.map((c) => (
+      <section class="crossing" id={c.id} aria-labelledby={`${c.id}-h`}>
+        <hr class="rule rule-strong" />
+        <h2 id={`${c.id}-h`} class="word">{c.word}</h2>
+        <p class="question">{c.question}</p>
+
+        <div class="moves">
+          <div class="move">
+            <h3 class="move-h">What it opens</h3>
+            <ul class="opens">{c.opens.map((q) => <li>{q}</li>)}</ul>
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">Where we are</h3>
+            <p class="body">{c.state}</p>
+            {c.held && (
+              <>
+                <blockquote class="held">{c.held}</blockquote>
+                <p class="body">{c.heldSupport}</p>
+              </>
+            )}
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">Ways in</h3>
+            <ul class="ways">
+              {c.waysIn.map((w) => (
+                <li>
+                  <a href={w.href}>{w.label}</a>
+                  <span class="hint">{w.hint}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="move">
+            <h3 class="move-h">What is unsettled</h3>
+            <p class="body">{c.unsettled}</p>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <section class="relate" aria-labelledby="relate-h">
+      <hr class="rule rule-strong" />
+      <h2 id="relate-h" class="word">How these relate</h2>
+
+      <p class="body">
+        One general result and two of the places it bites hardest. The general result is that merging
+        independently governed objects destroys the very act you would want to hold someone to. That
+        applies vertically — between business meaning, governed data and material execution — and
+        horizontally, between two business domains that legitimately mean different things by the
+        same word. Neither direction is a special case of the other.
+      </p>
+      <p class="body">
+        So the reading order below is a movement, not a dependency. Nothing here has to be read first
+        for the next thing to make sense, and a work that helps you see another one is not thereby a
+        chapter of it.
+      </p>
+
+      <h3 class="move-h">Some works sit here and on Foundations</h3>
+      <p class="body">
+        That is intended. <a href="/read/statistical-bridge">{bridge.label}</a> establishes what must
+        exist before inference is possible <em>and</em> governs the passage from governed evidence to
+        a claim it licenses. It is on both shelves because a reader might reasonably look for it on
+        either, and neither placement is the truer one. The shelves are there to help you find
+        things, not to rule on what a work fundamentally is.
+      </p>
+
+      <h3 class="move-h">Columna is the next room</h3>
+      <p class="body">
+        <a href="/columna">Columna</a> is one system built so that these boundaries survive being
+        implemented. It is not offered as proof — the argument does not depend on it, and a working
+        system is not an argument. It is offered the other way round: here is a principle, here is
+        something built to it, and here is enough of its behaviour exposed that you can check.
+      </p>
+
+      <hr class="rule" />
+      <p class="record">
+        Every deposited work, with its current version, date and record, is on
+        <a href="/research">the research corpus page</a>. This page is the discussion; that page is
+        the record.
+      </p>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .arch { width: min(100% - 3rem, 46rem); margin: 0 auto; padding: 3rem 0 5rem; }
+  .kicker { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.75rem; }
+  h1 { font-family: var(--font-serif); font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem);
+    line-height: 1.1; margin: 0 0 1.5rem; }
+  .lede { font-family: var(--font-serif); font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem);
+    line-height: 1.45; color: var(--ink); margin: 0 0 1.25rem; }
+  .body { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.65;
+    color: var(--ink-soft); margin: 0 0 1.1rem; }
+
+  .terrain { font-family: var(--font-serif); font-size: clamp(1.2rem, 1rem + 1vw, 1.7rem);
+    line-height: 1.35; color: var(--ink); margin: 2.5rem 0 1rem; letter-spacing: 0.01em; }
+  .caveat { font-size: 0.95rem; line-height: 1.6; color: var(--ink-faint); margin: 0 0 1rem;
+    max-width: 38rem; }
+
+  .crossing, .relate { margin-top: 3.5rem; }
+  .word { font-family: var(--font-serif); font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.2rem);
+    line-height: 1.15; margin: 2rem 0 0.5rem; }
+  .question { font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.45;
+    color: var(--ink); margin: 0 0 2rem; }
+
+  .moves { display: grid; gap: 2rem; }
+  .move-h { font-family: var(--font-mono); font-size: var(--ds-mono-sm); letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 400; margin: 0 0 0.7rem; }
+
+  .opens { list-style: none; margin: 0; padding: 0; }
+  .opens li { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.6;
+    color: var(--ink-soft); border-top: 1px solid var(--rule); padding: 0.7rem 0; }
+  .opens li:last-child { border-bottom: 1px solid var(--rule); }
+
+  .held { margin: 1.25rem 0; padding-left: 1.1rem; border-left: 2px solid var(--ink);
+    font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.4; color: var(--ink); }
+
+  .ways { list-style: none; margin: 0; padding: 0; }
+  .ways li { border-top: 1px solid var(--rule); padding: 0.7rem 0; }
+  .ways li:last-child { border-bottom: 1px solid var(--rule); }
+  .ways a { font-family: var(--font-serif); font-size: 1.02rem; }
+  .hint { display: block; font-size: 0.9rem; color: var(--ink-faint); margin-top: 0.15rem; }
+
+  .record { font-size: 0.95rem; line-height: 1.6; color: var(--ink-faint); }
+</style>
