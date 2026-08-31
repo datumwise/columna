@@ -1025,7 +1025,52 @@ receipt, the provisioner and the firstlight fixture. `store.py:1-3` still calls 
 
 ---
 
-### P0-19 · The hand-maintained `__version__` code-identity line stopped moving; three packages disagree with themselves · **MEDIUM** · **OPEN — recon complete, no repair authorized** · VX
+### P0-19 · The hand-maintained `__version__` code-identity line stopped moving; three packages disagree with themselves · **MEDIUM** · **CORRECTION PREPARED — RELEASE-GATED, must ride the next release** · VX
+
+> **Ruled, Huayin, 2026-08-31,** on the reconnaissance below. *"Keep the distinction between
+> distribution version and code identity, but stop using `__version__` as a hand-maintained
+> code-identity label."* The correction is prepared and gated; **no immediate patch release is
+> required, but P0-19 must ride the next package release — the false umbrella `__version__` must not
+> survive another one.** No frozen governed artifact is regenerated for version hygiene.
+>
+> **What the ruling settled, and what was done for each part:**
+>
+> 1. **The `__version__` surface is preserved and derived.** All three packages report the installed
+>    distribution via `importlib.metadata`, with `"unknown"` — deliberately not a plausible version —
+>    outside an installed distribution. No human bump is possible or required.
+> 2. **Code identity is NOT silently redefined as the distribution version.** The `-core` label was a
+>    claim about which *source* produced a build; the distribution version is a different fact. The
+>    concept stays legitimate and unnamed for now; if it is needed operationally it gets an explicit
+>    name and is **derived from content**, not from another constant someone must bump. Recorded in
+>    each package's version block so the next reader cannot mistake one for the other.
+> 3. **Future lowering receipts record the producing `columna-core` DISTRIBUTION version**
+>    (`fixtures/firstlight/build.py::_producer_version`), which is truthful by construction. It
+>    refuses rather than guessing when metadata is absent: a producer claim that cannot be
+>    established must not be invented.
+> 4. **The frozen firstlight receipt is NOT regenerated.** Its `0.16.0-core` statement is true, and
+>    rewriting it would move `established_at` and destroy a historical record to fix nothing.
+> 5. **`/case` now dates the claim.** `established_at` ships in the payload and renders beside the
+>    compiler version — *"the producer of these frozen bytes, not the version shipping today"* —
+>    because a true statement presented as a current one is the defect the currency guard is for.
+> 6. **`specs/columna_manifold_spec_current.md` was adjudicated, not bumped.** It is a snapshot, and
+>    is renamed to `specs/columna_manifold_spec_v0_15_0_core.md` with a §17.5 superseded banner. See
+>    the determination below.
+> 7. **The guard is inverted.** `test_fixture_drift.py` asserted the stale literal; it now asserts
+>    agreement with package metadata, and `scripts/check_version_attributes.py` covers all three in
+>    CI — including the umbrella, which ships a package directory, has no test suite of its own, and
+>    is exactly the one that drifted furthest.
+>
+> **THE `_current.md` DETERMINATION (evidence, since the ruling asked which is true).** It is a
+> **0.15 / contract-2 snapshot**, not a current reference, and the finding is not close: last
+> substantive edit **2026-08-12** (`164d3d1`), with **nine releases shipped since**; it claims wire
+> contract `"2"` where shipped is `"4"` and contains **zero** occurrences of `mechanical`; its §5
+> grammar still shows `FAMILY { <agg> [: <tier>] }`, which the shipped parser does not accept; and it
+> knows nothing of the K0 compiler, the lowering receipt, the provisioner, governed admission, the
+> declared alignment domain or family-member support. Its **single** inbound citation
+> (`core_p1_compiler_input.md:9`) already pinned it at `0.15.0-core`. Reconciling it would also mint a
+> **second** current as-built reference beside `docs/frame_ql_manual_v2.md` — which is already the
+> normative one and already enrolled in the currency manifest — i.e. the same fact written down
+> twice, the class this ledger keeps paying for. So it retires rather than being refreshed.
 
 Found 2026-08-31 during the v0.18.1 release verification, reported rather than fixed, and rowed here
 on Huayin's instruction before any correction is proposed.
@@ -1098,7 +1143,7 @@ to detect the drift; it **pins it in place**.
    one field that would let a reader date the claim is dropped, and a historical version is printed
    bare beside the word "shipped". The value is true; the *presentation* invites reading it as
    current.
-4. **`specs/columna_manifold_spec_current.md`** — a filename and title that say *current* — opens
+4. **`specs/columna_manifold_spec_current.md`** (since renamed — see the ruling above) — a filename and title that said *current* — opened
    *"As-built reference for `columna-core` `0.15.0-core` (wire `contract_version` `"2"`)"*. The
    contract is `"4"`. This is a separate, unenrolled current-state claim of the exact class the
    currency manifest exists for. The `(0.15.0-core)` stamps in `docs/architecture/*.md` are

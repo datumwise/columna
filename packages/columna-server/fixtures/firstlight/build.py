@@ -136,6 +136,30 @@ def produce(agent_repo: Path, studio_repo: Path, out: Path) -> None:
 
 
 # ── stage: runtime ───────────────────────────────────────────────────────────────────────────────
+def _producer_version() -> str:
+    """The columna-core DISTRIBUTION version that is performing this compilation.
+
+    P0-19 (ruled Huayin, 2026-08-31). This used to read `columna_core.__version__` when that was a
+    hand-maintained CODE-IDENTITY label, and the label had stopped moving — so a rebuild would have
+    stamped a stale producer claim into a governed artifact, and every guard in the path would have
+    passed, because `compiler` is opaque provenance by design and correctly so.
+
+    A lowering receipt records ONE HISTORICAL ACT of compilation. The distribution that performed it
+    is truthful by construction and cannot go stale. It is coarser than a code identity — a release
+    that did not touch the compiler still mints a new number — and coarseness is not a defect in a
+    historical record, whereas falsity is.
+
+    Refuses rather than guessing: a producer claim we cannot establish must not be invented.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+    try:
+        return version("columna-core")
+    except PackageNotFoundError as exc:                      # pragma: no cover - not installed
+        raise SystemExit(
+            "REFUSING to build a receipt: columna-core is not an installed distribution, so the "
+            "producing compiler version cannot be established. Install it and rebuild — a receipt "
+            "must not carry a producer claim that was guessed."
+        ) from exc
 def build_runtime() -> None:
     """Compile the COMMITTED publication with the SHIPPED compiler, then provision.
 
@@ -143,7 +167,6 @@ def build_runtime() -> None:
     `compile_k0`, the receipt from `build_receipt`, and the unit from `provision_runtime_unit` —
     the same generic machinery a user gets from PyPI, with no fixture-specific branch anywhere."""
     import duckdb
-    import columna_core
     from columna_core.compiler import (build_receipt, compile_k0, parse_mapping,
                                        parse_publication, render_receipt)
     from columna_server.lowering_receipt import LOWERING_RECEIPT
@@ -156,7 +179,7 @@ def build_runtime() -> None:
     receipt = build_receipt(
         manifold_id=image.manifold_id, version=image.version,
         publication_bytes=pub_bytes, image_bytes=image.encode(),
-        compiler_name="columna-core-p1-k0", compiler_version=columna_core.__version__,
+        compiler_name="columna-core-p1-k0", compiler_version=_producer_version(),
         mapping_provenance={"mapping_format_version": mapping["mapping_format_version"]},
         established_at="2026-08-22T00:00:00Z")
 

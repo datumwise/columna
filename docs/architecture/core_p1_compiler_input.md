@@ -6,7 +6,7 @@ the authoritative placement matrix it was built against, not a proposal.
 2026-08-31 — an auditor was discounting the matrix as speculative. P0-15.)*
 **Date:** 2026-08-13
 **Sources traced:**
-- `columna` @ `1a7e213` (`columna-core` `0.15.0-core`): `.cml` grammar/model (`parser.py`, `model.py`), demo `benchmark.cml`; old pre-split P1 trace under `specs/open_planner/` (pinned `0.14.0-core` / Substrait 0.46.0) and `specs/columna_manifold_spec_current.md` §8/§10.
+- `columna` @ `1a7e213` (`columna-core` `0.15.0-core`): `.cml` grammar/model (`parser.py`, `model.py`), demo `benchmark.cml`; old pre-split P1 trace under `specs/open_planner/` (pinned `0.14.0-core` / Substrait 0.46.0) and `specs/columna_manifold_spec_v0_15_0_core.md` §8/§10 (renamed 2026-08-31; this citation already pinned it at `0.15.0-core`, which is what it is).
 - `manifold-agent` @ `d9ea705` (`0.12.0`): authored Manifold + governed publication (`manifold.py`, `validate.py`, `logical.py`, `publication.py`, `mapping.py`).
 
 This is the Core-P1 boundary record; read alongside `f0_reconnaissance.md` and `s2_closure.md`.

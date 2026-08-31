@@ -95,10 +95,16 @@ const ZEROED: Array<[string, number]> = [
     <div class="link rcpt">
       <p class="link-head">the lowering receipt <span class="sub">what binds the two</span></p>
       <dl>
-        <div><dt>compiler</dt><dd><code>{fl.receipt.compiler.name}</code> <code>{fl.receipt.compiler.version}</code></dd></div>
+        <div><dt>compiler</dt><dd><code>{fl.receipt.compiler.name}</code> <code>{fl.receipt.compiler.version}</code>{fl.receipt.established_at && (
+          <span class="sub"> · recorded {fl.receipt.established_at.slice(0, 10)}</span>
+        )}</dd></div>
         <div><dt>publication digest</dt><dd><code class="digest">{fl.receipt.publication_digest}</code></dd></div>
         <div><dt>image digest</dt><dd><code class="digest">{fl.receipt.image_digest}</code></dd></div>
       </dl>
+      {fl.receipt.established_at && (
+        <p class="dated">The compiler version is the producer of <em>these frozen bytes</em>, recorded
+          when the receipt was established — not the version shipping today.</p>
+      )}
       {fl.image_reproduces && (
         <p class="reproduces">✓ recompiling the committed publication reproduces this image byte for byte</p>
       )}
@@ -180,6 +186,16 @@ const ZEROED: Array<[string, number]> = [
   .omitted { margin: 0.35rem 0 0; font-size: 0.7rem; color: #a49e91; }
 
   .chain { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; align-items: start; }
+  /* THE GRID-BLOWOUT FIX (found 2026-08-31 while dating the receipt; PRE-EXISTING — the baseline
+     renders the same way). A grid item's default `min-width: auto` is its MIN-CONTENT width, and
+     the middle column holds a `<pre>` whose longest line is `MEASURE revenue ON sales FROM
+     sales_lines TYPE Float64 VALUE amount`. That min-content is wider than a third of the row, so
+     it stole the space `1fr 1fr 1fr` promised the other two: at ~1300px the side columns collapsed
+     to roughly one CHARACTER, and `ref`, `published by` and both digests wrapped vertically, one
+     letter per line, on a live public page. `min-width: 0` lets the columns keep the split they
+     declare, and the image scrolls in its own box rather than dragging its neighbours off. */
+  .chain > * { min-width: 0; }
+  .chain pre { overflow-x: auto; }
   @media (max-width: 900px) { .chain { grid-template-columns: 1fr; } }
   .link { border: 1px solid #e5e2dc; border-radius: 8px; padding: 0.55rem 0.7rem; background: #fff; }
   .link.pub { border-left: 4px solid #2456a6; }
@@ -188,10 +204,23 @@ const ZEROED: Array<[string, number]> = [
   .link-head { margin: 0 0 0.45rem; font-size: 0.8rem; font-weight: 600; }
   .link-head .sub { display: block; font-weight: 400; }
   .link dl { margin: 0; font-size: 0.75rem; }
-  .link dl > div { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0.3rem;
-    padding: 0.2rem 0; border-bottom: 1px solid #f1efe9; }
-  .link dt { color: #8a8478; margin: 0; }
-  .link dd { margin: 0; word-break: break-all; }
+  /* STACKED, NOT TWO-COLUMN (2026-08-31). This was `grid-template-columns: 8.5rem 1fr`, and the
+     label column alone is 136px — wider than the ~116px of content each of these three cards gets
+     at any ordinary desktop width, because `.chain` is 3-up inside an already-narrow prose column.
+     The dt therefore consumed the row and every value was squeezed to about one character: `ref`,
+     `published by`, `universes ratified` and both digests rendered as a vertical column of single
+     letters. It is not a narrow-screen case — `.chain` only goes 3-up above 900px, and 3-up never
+     had room for a fixed 8.5rem label, so this was wrong at every width it has ever shipped at.
+     Stacking needs no width to be correct: short label, long value beneath it. */
+  .link dl > div { padding: 0.3rem 0; border-top: 1px solid #f0eee9; }
+  .link dl > div:first-child { border-top: 0; padding-top: 0; }
+  .link dt { color: #8a8478; margin: 0 0 0.12rem; font-size: 0.7rem; }
+  .link dd { margin: 0; overflow-wrap: anywhere; }
+  /* `break-all` is for the digests, which have no break opportunities and must wrap
+     anywhere. It was on every `dd`, so the first prose value added here wrapped one
+     CHARACTER per line. Digests keep it; prose gets normal word wrapping. */
+  .link dd .digest { word-break: break-all; }
+  .dated { margin: 0.45rem 0 0; font-size: 0.72rem; color: #8a8478; line-height: 1.5; }
   .digest { font-size: 0.66rem; }
   .reproduces { margin: 0.5rem 0 0; font-size: 0.74rem; color: #2f6b34; }
 
