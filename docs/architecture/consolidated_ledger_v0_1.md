@@ -1120,29 +1120,68 @@ run against `v0.16.0..main`.
 
 ---
 
-### P1-13 · An unpinned reduction REFUSES "no lawful reading" at an anchor where two explicit pins serve · **HIGH** · **OPEN — no repair authorized** · VX
+### P1-13 · An unpinned reduction REFUSES "no lawful reading" where six explicit pins serve · **HIGH** · **DIAGNOSED — implementation bug; no repair authorized** · VX
 
-Found 2026-08-31 by the Mission B semantic gate, on a fixture whose universe declares the output
-level as a base dimension.
+Found 2026-08-31 by the Mission B semantic gate. Reconnaissance completed 2026-08-31, **read-only**;
+no source was modified.
 
 ```text
-SELECT avg(aov) AT {customer}                -> refuse  blocked_reduction
-SELECT avg(aov @ {day}) AT {customer}        -> serve
+SELECT avg(aov) AT {customer}                 -> refuse  blocked_reduction   ("no lawful reading")
+SELECT avg(aov @ {day}) AT {customer}         -> serve
 SELECT avg(aov @ {transaction}) AT {customer} -> serve
 ```
 
-`_unpinned_disposition` (`planner.py`) is correct given its input: |L| = 0 means no lawful reading
-survives, and refusing is right. **`_lawful_pins` computes L wrongly** — it returns `[]` where two
-candidates demonstrably exist and serve when named. The refusal therefore tells the asker *"this ask
-has no reading to serve"* while two readings do, which is a **confident wrong disposition**, the same
-family as the wrong-number rows and not merely an honesty defect.
+**CLASSIFICATION: an implementation bug against already-established candidate-enumeration law.** Not
+unspecified law — the law is ratified and the shipped EXECUTION path already implements it. Two
+functions in one planner hold two different definitions of "a lawful pin":
 
-Sensitive to universe shape: with the same measures under `UNIVERSE sales = transaction` the anchor
-yields |L| = 1 and the ask serves with the MATERIAL defaulted-anchor caveat. It appears when the
-output level is itself a **base dimension** of the population.
+| | rule it applies | admits an ORTHOGONAL pin? |
+|---|---|---|
+| `_pin_input_grain` (execution) | WP-GRAIN-1: input grain = **pinned + orthogonal output targets**, its own docstring saying orthogonal dims "join the input grain so the series carries them" | **yes** — `pin (day,)` at `{customer}` → grain `('day','customer')` |
+| `_lawful_pins` (enumeration) | the pre-WP-GRAIN-1 test: `find_path({L}, T)` for some `T` in the anchor — the pin must **reach** the anchor | **no** — both candidates dropped here |
 
-**Not repaired here**: candidate enumeration is anchor/participation law, which Mission B is
-explicitly barred from touching. Rowed for the mission that owns that law.
+**How two explicit pins Serve while the unpinned form finds zero readings.** A pin does not have to
+reach the output anchor; where it does not, WP-GRAIN-1 *joins the anchor's orthogonal levels into the
+input grain*, so `avg(aov @ {day}) AT {customer}` resolves at `(day, customer)` and reduces to
+`(customer)`. That is why naming the pin serves. The enumeration never asks that question: it filters
+candidates by reachability first, finds none, and `_unpinned_disposition` then correctly applies
+`|L| = 0 -> Refuse`. **The disposition is right given L; L is computed against a superseded rule.**
+Verified read-only: both candidates pass `_check_pin_laws` and carry no generated-travel violation,
+so the reachability filter is the *sole* reason for their exclusion.
+
+This is the same shape as the Mission B A1 defect: a generalization landed in one dispatcher and not
+in the sibling that has to agree with it.
+
+**Severity.** Not an honesty defect. The planner tells the asker *"this ask has no reading to
+serve"* while **six** readings serve — a confident wrong disposition, the family the wrong-number
+rows belong to. It is wrong under **every** candidate ruling below, so the defect does not depend on
+resolving them.
+
+**THE REPAIR IS NOT "DELETE THE FILTER", and the candidate set is NOT settled by the two working
+examples** (Huayin's caution, taken literally and then tested). Removing line 1506's filter and
+keeping the remaining checks yields a **seven-item** menu on the Manual fixture:
+
+```text
+date  day  month  product  store  transaction  year        (region correctly dropped: pin_coarser_than_output)
+```
+
+of which **`store` refuses `out_of_universe` when actually named** — so the naive correction would
+offer a structurally illegal reading, the exact thing `_lawful_pins`' own docstring forbids ("a
+clarify is a menu of readings the asker may choose between, and an unlawful reading is not a
+choice"). That case is *also* covered by established law — §2c, one expression one universe — which
+the enumeration simply does not apply either.
+
+**What a repair owes, therefore:** replace the reachability filter with the WP-GRAIN-1 admissibility
+test that `_pin_input_grain` already encodes, **and** apply the §2c universe filter the enumeration
+is missing. Both are established law. What remains genuinely open is narrower and is an ergonomics
+question rather than a correctness one: with both filters right, `avg(aov) AT {customer}` clarifies
+over roughly six same-universe candidates, and whether a six-item menu is the intended shape of a
+Clarify — or whether `year` and `product` belong on a menu for "average order value per customer" —
+is not settled by OF-1's one-reason-per-contested-dimension rule. **That question does not block the
+correctness repair and must not be used to defer it.**
+
+Not repaired: candidate enumeration is anchor/participation law, which Mission B was barred from
+touching. Rowed for the mission that owns that law.
 
 ### P1-14 · `WHERE` planned `serve` for two forms the build cannot execute · **HIGH** · **CAPABILITY GATE SHIPPED; the two underlying gaps remain OPEN** · VX
 
