@@ -104,8 +104,26 @@ class Caveat:
 
 @dataclass(frozen=True)
 class Disclosure:
+    """TWO CHANNELS, ONE OBJECT (OF-24 ruling (a), implemented 2026-08-31).
+
+    `caveats` is the SEMANTIC channel: what is true of the answer. It is CALL-INVARIANT — the same
+    question over the same data yields the same semantic caveats however the answer was obtained,
+    and every mood, materiality and severity rollup is derived from this channel alone.
+
+    `mechanical` is the OBSERVATIONAL channel: what happened to produce this particular call.
+    "Served from cache" is the whole of it today. It is legitimately VARIANT between two identical
+    asks, which is exactly why it may not sit beside the semantic caveats — a channel that is
+    allowed to differ cannot be the one a caller reads to learn what the number means.
+
+    OF-24 found the defect by its consequence: on a fresh store the first asker received LESS
+    disclosure than the second for the same question on the same data, because a mechanical fact was
+    wearing a semantic name (FRESHNESS) on the semantic channel. Every property below reads
+    `caveats` and never `mechanical`, so the semantic channel is call-invariant by construction
+    rather than by discipline."""
+
     caveats: tuple = ()
     population: Optional[str] = None     # the universe/sub-population this column resolved over
+    mechanical: tuple = ()               # observational provenance; never affects mood or severity
 
     @staticmethod
     def clean(population=None): return Disclosure((), population)
@@ -135,18 +153,26 @@ class Disclosure:
 
     def has(self, cat): return any(c.category == cat for c in self.caveats)
 
-    def with_caveat(self, c): return Disclosure(self.caveats + (c,), self.population)
+    def with_caveat(self, c):
+        return Disclosure(self.caveats + (c,), self.population, self.mechanical)
+
+    def with_mechanical(self, c):
+        """Record an observational fact about THIS call. Never reaches mood, severity or
+        materiality — see the class docstring."""
+        return Disclosure(self.caveats, self.population, self.mechanical + (c,))
 
     @staticmethod
     def merge(*parts, population=None):
-        seen, pop = {}, population
+        seen, mech, pop = {}, {}, population
         for d in parts:
             if d is None:
                 continue
             pop = pop or d.population
             for c in d.caveats:
                 seen[(c.category, c.detail, c.rel_error, c.source)] = c
-        return Disclosure(tuple(seen.values()), pop)
+            for c in d.mechanical:
+                mech[(c.category, c.detail, c.rel_error, c.source)] = c
+        return Disclosure(tuple(seen.values()), pop, tuple(mech.values()))
 
     @staticmethod
     def combine(op, a, b, label=""):

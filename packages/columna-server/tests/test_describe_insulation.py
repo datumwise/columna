@@ -80,7 +80,7 @@ def test_describe_manifold_carries_relates_declared_mn_on_the_wire():
     blob = json.dumps(dm)
     assert "product_categories" not in blob, "the VIA bridge table leaked onto the wire (map-layer breach)"
     # contract_version rides additive (DESCRIPTION precedent) — the field's arrival does not bump it
-    assert dm["contract_version"] == "3"
+    assert dm["contract_version"] == "4"
 
 
 def test_describe_manifold_has_the_d1_extension_blocks():

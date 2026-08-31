@@ -135,6 +135,20 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'materialized measure state served the wrong population — a carve now holds, and unknown identity fails closed',
     date: '2026-08-31',
   },
+  // OF-24, ruled (a) on 2026-07-27 and landed here. The defect was found by its consequence: on a
+  // fresh store the FIRST asker received LESS disclosure than the second, for the same question on
+  // the same data. Content truthful, values identical — a MECHANICAL fact ("served from cache") was
+  // wearing a semantic name on the semantic channel. The wire now carries two channels, and the
+  // semantic one is call-invariant by construction rather than by discipline. Two more repairs ride
+  // with it, and had to: the TOUCH path returned from its cache before coverage and the fill
+  // dispositions were computed (so a warm answer was quieter than the identical cold one, dropping a
+  // MATERIAL caveat), and the coverage shortfall itself was graded IMMATERIAL on a wire code whose
+  // MATERIAL slot existed, was wired, and had no producer. Re-grading coverage without fixing the
+  // warm path would have made the divergence outcome-visible — strictly worse than the quiet version.
+  '0.18.0': {
+    title: 'warm answers were quieter than fresh ones — the wire now separates what a number means from how it was obtained',
+    date: '2026-08-31',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

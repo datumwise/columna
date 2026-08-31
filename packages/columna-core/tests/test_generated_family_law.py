@@ -276,7 +276,7 @@ def test_the_wire_contract_did_not_move():
     refusal channel is additive. This is an INTERNAL vocabulary correction, not a wire break."""
     from columna_core.disclosure_wire import CONTRACT_VERSION
 
-    assert CONTRACT_VERSION == "3"
+    assert CONTRACT_VERSION == "4"
 
 
 # ══ PLAN PREDICTS WHAT RUN DOES ══════════════════════════════════════════════════════════════════

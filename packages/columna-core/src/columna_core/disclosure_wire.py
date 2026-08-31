@@ -22,7 +22,26 @@ from typing import Optional
 
 from .disclosure import Caveat, Outcome
 
-CONTRACT_VERSION = "3"
+# ── CONTRACT "3" -> "4" (2026-08-31, OF-24 ruling (a)) ───────────────────────────────────────────
+# The wire gains a second disclosure channel. `disclosures` stays the SEMANTIC channel — what is true
+# of the answer, call-invariant, and the sole input to `outcome`, `rollup_severity` and materiality.
+# The new `mechanical` array carries observational facts about the particular call, which today means
+# exactly one thing: "served from cache".
+#
+# THIS IS A BUMP, NOT AN ADDITION, because `freshness` MOVED. The same utterance over the same data
+# previously emitted `freshness` inside `disclosures` on a warm call and not on a cold one; it now
+# never appears there. That is a changed value for an existing field on an unchanged utterance — the
+# canonical break-by-version case, and the same reasoning that bumped "1" -> "2" for WP-NAME-1.
+#
+# WHY IT HAD TO MOVE: OF-24 found that on a fresh store the FIRST asker received less disclosure than
+# the second for the same question on the same data. The content was true and the values identical;
+# the defect was a mechanical fact wearing a semantic name on the semantic channel. Splitting the
+# channels lets the semantic one be call-invariant by construction, and lets the mechanical one vary
+# freely, because it was never a claim about meaning.
+#
+# `mechanical` is emitted on EVERY column and frame, empty when there is nothing to say, so a
+# consumer never has to distinguish absence-of-facts from absence-of-support.
+CONTRACT_VERSION = "4"
 # ── VERSION HISTORY ─────────────────────────────────────────────────────────────────────────────────
 # "2" → "3" (S2.2b-2): list_manifolds catalog semantics changed. `manifolds[]` was a runtime-FOLDER
 #   inventory (one row per loaded folder, each with name/description/n_measures/universes); it is now a
@@ -222,10 +241,14 @@ def wire_column(cr) -> dict:
             "status": oc.kind,                       # clarify | refuse | error
             "population": None,
             "disclosures": [],
+            "mechanical": [],
             "no_result": wire_outcome(cr.refusal),
         }
     out = {"name": cr.name, "status": "served", "population": cr.disclosure.population,
-           "disclosures": [wire_caveat(c) for c in cr.disclosure.caveats]}
+           "disclosures": [wire_caveat(c) for c in cr.disclosure.caveats],
+           # OF-24: the OBSERVATIONAL channel, emitted separately and always present (possibly empty)
+           # so a consumer never has to distinguish "no mechanical facts" from "old wire".
+           "mechanical": [wire_caveat(c) for c in cr.disclosure.mechanical]}
     if cr.frame is not None:
         kind, payload = _values(cr.frame, cr.name)
         out[kind] = payload
@@ -279,6 +302,7 @@ def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
             "universe": universe,
             "rollup_severity": fr.disclosure.severity,
             "disclosures": frame_disclosures,
+            "mechanical": [wire_caveat(c) for c in fr.disclosure.mechanical],
         },
         "columns": columns,
     }

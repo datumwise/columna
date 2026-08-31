@@ -7,6 +7,64 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.18.0 — the wire separates what a number means from how it was obtained
+
+**Wire contract `"3"` -> `"4"`.** `disclosures` stays the SEMANTIC channel — what is true of the
+answer, and the sole input to `outcome`, `rollup_severity` and materiality. A new `mechanical` array
+carries observational facts about the particular call, which today means exactly one thing:
+`"served from cache"`.
+
+This is a bump rather than an addition because **`freshness` moved**. The same utterance over the
+same data previously emitted it inside `disclosures` on a warm call and not on a cold one; it now
+never appears there. A changed value for an existing field on an unchanged utterance is the
+canonical break-by-version case — the same reasoning that bumped `"1"` -> `"2"` for WP-NAME-1.
+
+`mechanical` is emitted on every column and frame, empty when there is nothing to say, so a consumer
+never has to distinguish absence-of-facts from absence-of-support.
+
+### Fixed
+
+**OF-24 — a mechanical fact was wearing a semantic name.** Ruled (a) on 2026-07-27, landed here. The
+defect was found by its consequence: on a fresh store the FIRST asker received LESS disclosure than
+the second, for the same question on the same data. Every value was identical and every caveat was
+true; the channel was wrong. Splitting them lets the semantic channel be call-invariant *by
+construction* — every severity, materiality and mood property reads `caveats` and never `mechanical`
+— rather than by discipline.
+
+**Warm TOUCH answers were quieter than fresh ones.** The touch path returned from its cache before
+the bridge-coverage caveat and the fill dispositions were computed, and `CacheEntry` had nowhere to
+put them, so a warm answer silently dropped real semantic facts — including a MATERIAL one. The
+cache now carries the semantic disclosure the cold path produced. The key is already pinned to a
+data version, so the same key at the same version denotes the same data and therefore the same
+semantic facts. An entry with no stored disclosure falls through and recomputes rather than serving
+a quieter answer.
+
+**A coverage shortfall is MATERIAL.** It rode `TRANSPORT` -> `provenance` -> IMMATERIAL, which could
+not trip `disclose` on its own, while the correct slot — `coverage` -> `denominator_population`,
+MATERIAL — sat wired with no producer. The emitting line's own comment said COVERAGE while the code
+said TRANSPORT. Fixed on **both** faces that can have a shortfall: TOUCH and ASSIGN. Full coverage
+stays `TRANSPORT`; "no shortfall" is a faithful-step record, not a material condition.
+
+These landed together deliberately. Re-grading coverage to MATERIAL while the warm path still
+dropped it would have made the divergence OUTCOME-visible — `disclose` cold, `serve` warm — which is
+strictly worse than the quiet version it replaced.
+
+### For consumers
+
+If you read `disclosures` to decide what an answer means, nothing changes except that `freshness`
+is no longer among them. If you relied on `freshness` appearing there, read `mechanical` instead.
+Outcome and severity are unaffected by the mechanical channel by construction.
+
+### Tests
+
+`test_disclosure_channels.py` — nine standing tests: the semantic set is equal cold and warm
+(asserted in both directions, so a caveat added only on the warm path fails too); a mechanical
+caveat cannot move severity or cleanliness even when marked critical; both channels are always
+emitted; and a shortfall alone, with every co-caveat stripped, is enough to move a frame off
+`serve`.
+
+---
+
 ## 0.17.0 — materialized measure state stops serving wrong numbers
 
 **Two defects in the sketch/witness path were serving a confident wrong number.** Both were

@@ -33,7 +33,7 @@ refuses questions the data cannot answer. Nor is it Columnar (columnar.tech), th
 pipe one letter from our name — they move columns fast; we govern what columns say.
 
 ## The four moods
-Every answer is one of four, returned as structured data on one contract (contract_version "3"):
+Every answer is one of four, returned as structured data on one contract (contract_version "4"):
 - serve — here's the number.
 - disclose — here's the number, plus something you should know about it (e.g. you summed a snapshot
   across months, so you get the per-month figures with a note on why they don't add to a real total).
