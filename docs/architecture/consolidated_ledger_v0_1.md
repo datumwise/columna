@@ -537,7 +537,7 @@ record §3 forbids. Blocked behind the same version gate as P0-08.
 `parser.py:475` has no `: tier` alternative — an author following the documented grammar gets
 a bare `ParseError`.
 
-### P0-11 · Package front doors omit the honest typing the website carries · **MEDIUM** · **FIXED** in Unit C · SV
+### P0-11 · Package front doors omit the honest typing the website carries · **MEDIUM** · **PARTLY FIXED** in Unit C — the packaged half is RELEASE-GATED · SV
 
 `README.md:11-59` — the ten-minute quickstart is the Cascadia demo end to end, closing *"That
 transcript is the product."* No mention of `firstlight`, of `ENTRY_LEGACY`, or of
@@ -553,7 +553,7 @@ reader inferring it from the absence of any contrary signal at the default entry
 `apps/website/src/pages/docs/reference.astro:15` — *"the framework manual (**6e**) and the
 FrameQL manual (**v1**)"*. Current: 6g and v2.
 
-### P0-13 · Stale versions · **MEDIUM/LOW** · **FIXED** in Unit C · SV
+### P0-13 · Stale versions · **MEDIUM/LOW** · **PARTLY FIXED** in Unit C — the `README.md:1` half is RELEASE-GATED · SV
 
 `packages/columna-core/README.md:1` — `# Columna Core (0.7.8-core)` vs actual `0.16.2`, nine
 minor versions stale, in the H1 PyPI renders. `docs/README.md:15` says the FrameQL manual is
@@ -783,9 +783,9 @@ not moved.
 | **P0-05** | *"Columna Core is the shipped open-source engine"* | `/docs/framework`, live | package/architecture distinction stated where the chapter starts |
 | **P0-06** | a monitoring product described as operating today | `/docs/reference`, live | typed **[DELIVERY-OPERATIONS — unbuilt]**; "nothing consumes those events" said plainly |
 | **P0-07** | three nonexistent commercial products in one paragraph | 6e/6f, unbannered | standing banner naming exactly what is false below it |
-| **P0-11** | front doors omit the typing the website carries | both package READMEs | Cascadia typed `ENTRY_LEGACY`; firstlight named; consume-not-produce stated |
+| **P0-11** | front doors omit the typing the website carries | repo README **merged**; both *package* READMEs **release-gated** | Cascadia typed `ENTRY_LEGACY`; firstlight named; consume-not-produce stated |
 | **P0-12** | page chrome naming editions 6e and v1 | `reference.astro` | 6g, v2 |
-| **P0-13** | an index contradicting the manual it indexes | `docs/README.md`, core README H1 | the index stopped restating the version; H1 0.17.0 → 0.18.0 |
+| **P0-13** | an index contradicting the manual it indexes | `docs/README.md` **merged**; core README H1 **release-gated** | the index stopped restating the version; H1 0.17.0 → 0.18.0 |
 | **P0-14** | the `/ask` index served the false claims to the site agent | `services/ask/index/` | rebuilt from the repaired site build |
 | **P0-15** | a shipped compiler whose boundary record read *"no compiler code yet"* | `core_p1_compiler_input.md` | restamped IMPLEMENTED |
 | **P0-16** | `CLAUDE.md` current-task predates the compiler, receipt, provisioner | `CLAUDE.md` | current task replaced |
@@ -820,6 +820,37 @@ confused with *"nobody noticed."*
 The path filter was widened at the same time. It read `docs/**` only — the same masking shape Huayin
 fixed in this workflow on 2026-07-25 — which would have let a tier claim reappear in a package README
 without ever running the job.
+
+
+### The release gate, and why the packaged half is not in this merge
+
+A package README is the wheel's `long_description`, so editing one changes `*.dist-info/METADATA`.
+The build gate refused, correctly:
+
+```
+✗ STALE PAYLOAD: columna-core==0.18.0 is already on PyPI, and this tree would build a
+  DIFFERENT package under that same version. Differences — changed: *.dist-info/METADATA
+✗ STALE PAYLOAD: columna-server==0.11.0 …
+```
+
+**This is the same gate that orphaned P0-08 for four days**, and P0-08's row records the failure mode
+precisely: the repair was reverted eight minutes later and parked on a branch that is an *ancestor of
+HEAD*, so it carried nothing forward and was recoverable only by cherry-picking hunks out of a
+superseded commit. The lesson is not *don't defer* — it is *don't defer onto a dead branch*.
+
+**Why the bump is not simply taken here.** `scripts/release_pins.py` binds umbrella and core in
+lockstep, and `docs/RELEASE_ORDER.md` (ratified 2026-07-27) fixes the order as **publish, verify the
+pin resolves, THEN merge**. So a version bump merged to `main` ahead of a published release does not
+merely sit inert — the shipped-coherent deploy wedge pins the exact versions this commit claims and
+**fails closed** when they are not on PyPI. Bumping to clear a CI gate would trade a stale README for
+a broken production deploy, and would manufacture a release decision inside a documentation repair.
+
+**Where the packaged half lives:** branch `unit-c/package-front-doors`, as an open PR against `main`
+carrying the two README edits alone — a live PR, not a parked commit. It is expected to be red on the
+stale-payload gate, and that redness is the row: it goes green the moment a release bumps the
+versions, and it should ride the next release rather than mint one. The decision it is waiting on is
+**a version decision, and it is Huayin's** — the same decision P0-08 waited on, made once in Unit B
+when 0.17.0 shipped.
 
 ### Not closed by Unit C, and deliberately so
 
