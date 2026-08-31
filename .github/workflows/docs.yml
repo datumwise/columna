@@ -7,9 +7,14 @@ name: docs
 on:
   push:
     branches: [main, wp-manuals-alignment]
-    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/**', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
   pull_request:
-    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/**', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+  # `packages/**` WIDENED FROM `packages/*/README.md` (Mission B, 2026-08-31). The manual gate now
+  # PLANS and EXECUTES its examples against the shipped planner, so a change to `columna_core` can
+  # break a documented outcome without touching a single file under `docs/`. Left as it was, the job
+  # would not have run — which is precisely the masking failure the note below records, arriving by a
+  # new route: the guard's inputs grew and its trigger did not.
   # THE MASKING FIX (Huayin, 2026-07-25). The path filter above is what let a red `main` hide from
   # 2026-07-19 to 2026-07-25: regen-check was broken by purged grammar, but nothing touched `docs/**`,
   # so the job simply never ran and no one saw a failure. A weekly run means the truth about `main`
