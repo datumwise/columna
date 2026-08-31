@@ -27,7 +27,6 @@ Fixing confinement without widening currency would have converted a cancelled de
 active staleness bug — which is why they are tested together here.
 """
 import duckdb
-import pytest
 
 from columna_core import ManifoldServer, DuckDBConnector
 from columna_core.parser import parse_manifold

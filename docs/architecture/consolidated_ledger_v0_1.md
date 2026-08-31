@@ -707,6 +707,62 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 | **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 
+## Appendix C — Absorbed from the positioning audit (PR #237, closed as superseded)
+
+`specs/positioning_consistency_audit_v0_1.md` (27 August) found the Pro-tier exposure this ledger
+now carries with fuller evidence — its headline findings are P0-07, P0-03 and P0-13. The audit is
+closed rather than merged, so that there is one inventory and not two. Two things it carried are
+NOT findings and would otherwise have been lost with it.
+
+### C.1 · Four questions the ruling does not settle
+
+Recorded as open. None is a defect; each is a decision nobody has made.
+
+**Q1 · Frozen corpus rendered in current editorial voice.** `/thesis` and `/why` render deposited
+essays verbatim, and those contain the closest things on the site to a retired closure claim —
+*"Columna is our proof that the discipline can be made executable"*, *"The semantic layer was only
+ever half the answer. The other half now exists."* The bytes are frozen and must not be edited, yet
+they render on live routes with no edition pin and no disclosure. **This is the only place where
+"retire from current voice" collides with "do not edit deposited bytes."** Correct as a rendering,
+misleading as a current statement.
+
+**Q2 · `/ladder` exists to be competitor-relative.** A ratified page whose stated purpose is *"how is
+this different from X?"*, with `/why` and `/the-argument` both pointing at it — while the positioning
+brief forbids competitor-relative claims for Columna. Either `/ladder` is the sanctioned exception (a
+measuring stick that grades us too, which is how it is written), or it is now out of doctrine. It
+cannot be left in the middle.
+
+**Q3 · "Governed analytical service" already belongs to Analytical Governance.** The ruled Columna
+description — *"infrastructure for governed analytical service"* — appears nowhere in the repo, and
+its key phrase is currently AG's subject: the deposited record reads *"Analytical Governance is the
+discipline governing the legitimacy of the analytical service"*, and the AG page types Columna as
+*"an executable consequence of"* that category, explicitly not its definition. Adopting the ruled
+sentence is coherent — infrastructure *for* a service the category defines — but it puts Columna and
+AG in one noun phrase for the first time. Worth ruling deliberately rather than discovering later.
+
+**Q4 · A deposited public claim is in tension with the manual.** `open_planner_deposit_v1_3.md:45`
+(DOI'd, frozen) states *"There is no SQL anywhere in the system"*; `columna_framework_manual_6g.md:132`
+states *"Columna's only contact with the physical layer is SQL used narrowly to extract column-wise
+data and metadata"*, and `DuckDBConnector` ships. Both are defensible under different readings of
+"in the system", and both are public.
+
+### C.2 · A method note worth keeping
+
+The audit recorded a finding that was wrong before it was checked, and said the correction mattered
+more than the finding. Two sweeps were scoped to disjoint trees; the one that could not see
+`apps/website/src/**` concluded that `Data · Evidence · Intelligence` was the shipped wording,
+because inside `specs/` the change existed only as an unimplemented proposal. Production had served
+`Data · Certainty · Intelligence` since 2026-08-27.
+
+> **A spec that says "PROPOSED, not implemented" outlives its own execution unless someone closes it.**
+
+`specs/foundations_mission1_recon_v0_1.md` and `specs/foundations_mission1_implementation_plan_v0_1.md`
+both still read as pending work that has in fact shipped. That is the same defect class as P0-15 and
+P0-16 — a record correct as history, misleading as a current statement — and it is the reason every
+row in this ledger carries an evidence grade rather than a citation alone.
+
+---
+
 ## Appendix B — What is genuinely sound
 
 Recorded because a ledger of defects misrepresents the system without it.
