@@ -116,17 +116,26 @@ def test_beat_3_the_flow_coarsened_both_ways_serves(afternoon):
 def test_beat_4_unpinned_max_clarifies_over_exactly_the_lawful_grains(afternoon):
     """`SELECT max(revenue) AT {region, month}` -> Clarify / input_anchor_ambiguous.
 
-    The ratified witness (Huayin, 2026-08-20): a GENUINE two-lawful-candidate ask. Clarify is for
+    The ratified witness (Huayin, 2026-08-20): a GENUINE multi-lawful-candidate ask. Clarify is for
     unresolved choice among LAWFUL meanings — never a softer way to refuse. The alternative set is
     asserted exactly, because a clarify that enumerated an unlawful grain would be offering a way in.
-    """
+
+    THE SET GREW BY ONE ON 2026-08-31 (P1-13), and the page moved with it. This read `["day", "store"]`
+    and the essay said "two governed meanings". Both were the SUPERSEDED enumeration talking: it
+    required a candidate to REACH the output anchor, so `order` — which reaches neither `region` nor
+    `month` — was dropped, even though `max(revenue @ {order}) AT {region, month}` serves and always
+    did. Three readings are governed here, not two. Asserted exactly, and each one checked below
+    against the law an explicit pin is held to, so the count can never again be a leftover."""
     w = _ask(afternoon, "SELECT max(revenue) AT {region, month}")
     assert w["outcome"] == "clarify"
     nr = _column(w)["no_result"]
     assert nr["reason"] == "input_anchor_ambiguous"
     assert nr["kind"] == "clarify"
-    assert _pinned_levels(w) == ["day", "store"]           # exactly two, exactly these
+    assert _pinned_levels(w) == ["day", "order", "store"]  # exactly three, exactly these
     assert _rows(w) == []                                  # a clarify hands back no numbers
+    for L in _pinned_levels(w):                            # every offered reading actually serves
+        served = _ask(afternoon, f"SELECT max(revenue @ {{{L}}}) AT {{region, month}}")
+        assert served["outcome"] in ("serve", "disclose"), f"offered an unlawful reading: {L}"
 
 
 # ── beat 5 ───────────────────────────────────────────────────────────────────────────────────────

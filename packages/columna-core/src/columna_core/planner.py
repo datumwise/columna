@@ -451,6 +451,10 @@ class Planner:
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
             where_unreachable: Optional[dict] = None) -> FrameResult:
         self._refresh_scope_currency()     # P0.5b-0: one data-identity probe per request, not per column
+        # P1-14a: the ONE place a Frame-QL predicate becomes backend SQL. Normalizing here (rather than
+        # at the envelope, which is only one of the callers) means the direct `run(...)` API and the
+        # statement path converge on the same literal law instead of drifting apart again.
+        where = self._to_backend_predicate(where)
         results = []
         for name, expr in columns:
             trace = []
@@ -866,9 +870,32 @@ class Planner:
                     out[name] = unsupported
         return out
 
-    #: A Frame-QL string literal in DOUBLE quotes. Frame-QL's own `_literal` accepts either quote, but
-    #: the predicate is pushed to the backend verbatim, and in SQL `"east"` is an IDENTIFIER.
+    #: A Frame-QL string literal in DOUBLE quotes. Frame-QL's own `_literal` accepts either quote, so
+    #: this IS a string literal at the language level — but SQL reads `"east"` as an IDENTIFIER, so a
+    #: predicate handed to the backend verbatim would be reinterpreted by the substrate.
     _DQ_LITERAL = re.compile(r'(?<![\w"])"[^"]*"')
+
+    @classmethod
+    def _to_backend_predicate(cls, where: Optional[str]) -> Optional[str]:
+        """PATH CONVERGENCE, not a new filtering capability (ruled Huayin, 2026-08-31; P1-14a).
+
+        Frame-QL already accepts `'east'` and `"east"` as THE SAME language-level kind — one string
+        literal — and `_literal` (the polars/HAVING path) already honours both. Only the push-down
+        path diverged: it handed the predicate to the backend verbatim, where SQL's own quoting rule
+        re-read the double-quoted literal as a column name. Two paths, one language, two answers.
+
+        This normalizes the Frame-QL literal into the substrate's spelling for the same value BEFORE
+        the predicate becomes SQL, so the substrate cannot reinterpret it. It changes NO adjudication
+        and admits NO dimension that was not already filterable: `WHERE region == "east"` is still
+        `filter_unsupported`, for the joined-dimension reason, exactly as `'east'` is. What changes is
+        that the two spellings of one literal now reach the same disposition — which is what
+        `_literal` said they were all along.
+
+        Embedded single quotes are doubled, SQL's own escape, so the normalization cannot smuggle a
+        quote out of the literal and into the predicate's syntax."""
+        if not where:
+            return where
+        return cls._DQ_LITERAL.sub(lambda m: "'" + m.group(0)[1:-1].replace("'", "''") + "'", where)
 
     def _where_unsupported(self, predicates: list, base: frozenset, uni: str):
         """CAPABILITY HONESTY FOR `WHERE` (P1-14, ruled Huayin 2026-08-31).
@@ -879,30 +906,27 @@ class Planner:
         ask was fine. An EXPLAIN that says `serve` about a query that cannot run is worse than no
         EXPLAIN: it is a wrong answer to the one question EXPLAIN exists to answer.
 
-        The two conditions, each verified on two independent adjudicated fixtures:
+        THE ONE CONDITION THIS GATE NOW HOLDS — **a dimension reached only across an edge.** `WHERE
+        region == 'east'` dies where `region` is reachable but is not a coordinate of the fact itself:
+        the filter is pushed to the measure's source table, which carries the BASE dimensions and not
+        the joined ones. Verified on two independent adjudicated fixtures. It is a real capability gap
+        and stays gated until a ruling says whether a filter may join.
 
-        1. **A double-quoted string literal.** `WHERE day >= "2024-01-01"` dies; the same predicate in
-           single quotes SERVES. The predicate reaches the backend verbatim and SQL reads `"…"` as an
-           identifier, so the engine looks for a column by that name. This is a *quoting translation*
-           gap, not a missing capability — see the ledger row; it is reported rather than repaired
-           here because repairing it changes what the build can do, which this mission does not
-           authorize.
-        2. **A dimension reached only across an edge.** `WHERE region == 'east'` dies where `region`
-           is reachable but is not a coordinate of the fact itself. The filter is pushed to the
-           measure's source table, which carries the BASE dimensions and not the joined ones.
+        THE SECOND CONDITION IS GONE BECAUSE IT WAS REPAIRED. A double-quoted string literal was gated
+        here on 2026-08-31 and REPAIRED the same day (P1-14a): `_to_backend_predicate` converges the
+        push-down path onto the language-level rule `_literal` already stated, so `"east"` and
+        'east' execute identically. A gate is a statement about what the build CANNOT do; keeping
+        this one after the build could do it would make the gate itself the dishonesty.
 
-        SCOPED TIGHT, DELIBERATELY. A base-dimension predicate with a single-quoted or numeric literal
-        is exactly what ships and is untouched — the gate must not classify a working capability as
-        unsupported, which is the failure mode of a capability gate written one notch too wide."""
+        SCOPED TIGHT, DELIBERATELY. A base-dimension predicate is exactly what ships and is untouched,
+        in EITHER quote spelling — the gate must not classify a working capability as unsupported,
+        which is the failure mode of a capability gate written one notch too wide."""
         for pred in predicates:
-            if self._DQ_LITERAL.search(pred):
-                return Refusal("filter_unsupported",
-                    f"WHERE predicate {pred!r} uses a double-quoted string literal, which this build "
-                    f"cannot execute: the predicate reaches the backend verbatim and \"…\" is read "
-                    f"there as a column name, not a value. Refused before execution rather than "
-                    f"planned `serve` and failed after.",
-                    target=pred,
-                    alternatives=("write the literal in single quotes (e.g. region == 'east')",))
+            # The double-quoted-literal condition this gate ALSO carried is REPAIRED, not gated
+            # (P1-14a, authorized 2026-08-31): `_to_backend_predicate` normalizes the Frame-QL literal
+            # before it becomes SQL, so both spellings now execute and there is nothing left here to
+            # be honest about. The branch is removed rather than left dormant — a capability gate that
+            # still refuses a capability the build HAS is the failure mode it exists to prevent.
             lvl = self._predicate_column(pred)
             if lvl not in base:
                 return Refusal("filter_unsupported",
@@ -1172,23 +1196,71 @@ class Planner:
         the asker may choose between; an unlawful reading is not a choice, and offering it makes
         Clarify reachable before lawfulness — which is how a reader gets talked into a laundered
         answer one keystroke later."""
-        lawful = self._lawful_pins(reducer, inner, tuple(anchor))
+        lawful, refused = self._pin_verdicts(reducer, inner, tuple(anchor))
         if len(lawful) == 1:
             return (lawful[0],)
         if lawful:
             raise self._unpinned_reduction_refusal(reducer, inner, anchor, lawful)
-        raise self._no_lawful_pin_refusal(reducer, inner, anchor)
+        # |L| = 0. A REFUSAL EVERY CANDIDATE EARNS IS NOT ABOUT ANY CANDIDATE (P1-13). Where the
+        # whole candidate set fails for ONE reason, that reason is a property of the ASK — most often
+        # the OUTPUT anchor, which sits in every candidate's input grain and so refuses under every
+        # pin (`sum(aov) AT {date, store}`: `store` is outside the measure's universe no matter what
+        # is pinned). Replacing that precise diagnosis with the generic "no lawful input anchor"
+        # trades a true answer for a vaguer one — the same class of loss P1-14 was about. Re-raised
+        # verbatim, so the unpinned form says exactly what the pinned form says.
+        #
+        # THE TEST IS UNANIMITY, NOT A REASON LIST, AND IT IS DELIBERATELY LAZY. An earlier draft
+        # re-raised eagerly on a fixed set of "ask defect" reasons and broke generated-family ruling
+        # §1: `sum(on_hand)` at {store, month} errored `unknown` ("specify a member") instead of
+        # refusing the prohibited temporal sum, because ONE candidate got past the travel law and
+        # died on the family-member question. Collecting every verdict first and only speaking when
+        # they AGREE keeps the law that matters (`blocked_reduction`) in front of the incidental one.
+        reasons = {r.reason for _L, r in refused}
+        if len(reasons) == 1 and reasons != {"blocked_reduction"}:
+            raise refused[0][1]
+        raise self._no_lawful_pin_refusal(reducer, inner, anchor, refused)
 
-    def _no_lawful_pin_refusal(self, reducer, inner, anchor):
-        """|L| = 0. Either the structure offers no finer input anchor at all, or every one it offers
-        would make this reduction cross a lineage the governed law bars. Both are REFUSE: an operation
-        with no lawful reading is not a choice the reader can be asked to make.
+    def _no_lawful_pin_refusal(self, reducer, inner, anchor, refused=None):
+        """|L| = 0 with the candidates disagreeing about WHY. REFUSE: an operation with no lawful
+        reading is not a choice the reader can be asked to make.
+
+        THE DETAIL REPORTS THE VERDICTS; IT DOES NOT ASSERT A CAUSE (P1-13). This message used to
+        state that every candidate "would reduce across a lineage the governed law blocks for it" —
+        true when the lineage law was the only filter the enumeration applied, and FALSE once §2c and
+        transport joined it, because a candidate may now be excluded for being out of the universe
+        instead. A refusal that names the wrong cause sends the reader to fix the wrong thing, which
+        is the `filter_unreachable`/`filter_unsupported` distinction one level down. Where the whole
+        set agrees on a reason, `_unpinned_disposition` re-raises THAT refusal and never reaches here.
 
         Enumerated over the WHOLE anchor, not just a single-level one: a refusal owes the reader the
         lawful neighbours (DG-2 invariant 5), and `sum(on_hand) AT {store, month}` — the Afternoon's
         third beat — is exactly the multi-level case, so leaving it terse would strip the remedy from
         the very ask the correction exists for."""
         expr = ast.unparse(inner)
+        if refused and {r.reason for _L, r in refused} == {"blocked_reduction"}:
+            # THE RATIFIED §9 CASE, unchanged in wording and now exact in its candidate list: it is
+            # read off the verdicts actually reached rather than re-derived by a second enumeration.
+            return Refusal("blocked_reduction",
+                f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                f"{_fmt_anchor(anchor)}: every candidate grain "
+                f"({', '.join(L for L, _r in refused)}) would reduce by '{reducer}' across a lineage "
+                f"the governed law blocks for it. Generating the family does not create the "
+                f"permission, so there is no pin that rescues this ask.",
+                target=_fmt_anchor(anchor),
+                alternatives=("use a reducer that IS applicable along the blocked lineage "
+                              "(e.g. '.last' for a stock collapsed over time)",
+                              "address at an anchor the reduction does not have to cross"))
+        if refused:
+            verdicts = ", ".join(f"{L} ({r.reason})" for L, r in refused)
+            return Refusal("blocked_reduction",
+                f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                f"{_fmt_anchor(anchor)}: every candidate grain is excluded, and not all for the same "
+                f"reason — {verdicts}. Each verdict is the one the pin would earn if it were written "
+                f"out, so there is no pin that rescues this ask.",
+                target=_fmt_anchor(anchor),
+                alternatives=("address at an anchor the reduction does not have to cross",
+                              "use a reducer that IS applicable along a blocked lineage "
+                              "(e.g. '.last' for a stock collapsed over time)"))
         blocked_out = [L for T in anchor for L in self._candidate_input_anchors(T)]
         blocked_out = sorted(dict.fromkeys(blocked_out))
         if blocked_out:
@@ -1490,31 +1562,89 @@ class Planner:
             if r is not None:
                 raise r
 
+    def _admit_pin(self, reducer, inner, pin: tuple, anchor: tuple, population=None) -> str:
+        """THE ONE ADMISSIBILITY LAW for a pinned generated reduction `R(inner @ pin)` at `anchor`.
+        Raises the Refusal the pin earns; returns the inner's inferred dtype when it is admissible.
+
+        WHY THIS EXISTS (P1-13, repaired 2026-08-31). Explicit-pin VALIDATION and candidate-pin
+        ENUMERATION previously held two different definitions of "a lawful pin", and they had drifted:
+        `_lawful_pins` still required a candidate to REACH the output anchor — the pre-WP-GRAIN-1
+        rule — while the shipped execution path had moved on. So `avg(aov) AT {customer}` REFUSED
+        "no lawful reading" at an anchor where six explicit pins served. The governing invariant is
+        now structural rather than remembered:
+
+            Explicit pin validation and candidate-pin enumeration must use the same canonical
+            admissibility law.
+
+        Both callers below are the only two adjudicators of a pin, and both are this method. The
+        three laws it composes are each already ratified and none is new here:
+
+          * **WP-GRAIN-1 Laws 1 & 2** (`_check_pin_laws`) — no pin coarser than an output level; no
+            two cross-comparable pin levels.
+          * **WP-GRAIN-1's input grain** (`_pin_input_grain`) — the pin need NOT reach the anchor. An
+            orthogonal output level joins the input grain so the series carries it, which is exactly
+            why `avg(aov @ {day}) AT {customer}` resolves at `(day, customer)` and serves. The deleted
+            reachability filter contradicted this; it is REPLACED by the law it contradicted, not
+            merely removed.
+          * **§2c and transport at that grain** (`_infer` at the input grain) — the candidate must
+            remain inside the resolved universe. This is the filter the enumeration never had: on the
+            Manual fixture `sum(revenue) AT {region}` offered `store`, which refuses `out_of_universe`
+            the moment it is actually named. An unlawful reading is not a choice.
+
+        `population` (the `ON UNIVERSE` pin) is deliberately NOT threaded in from enumeration: it is a
+        frame-level assertion about which population is intended, identical for every candidate, and
+        it is applied to the chosen pin by the explicit path regardless. Passing it here would make a
+        population mismatch look like "no lawful input grain", which is a different and false claim."""
+        self._check_pin_laws(pin, tuple(anchor))
+        grain = self._pin_input_grain(pin, tuple(anchor))
+        violation = self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin))
+        if violation is not None:
+            raise violation
+        return self._infer(inner, grain, population)
+
+    def _pin_candidates(self, anchor) -> list:
+        """The STRUCTURAL candidate pins for an unpinned reduction at `anchor`: every DECLARED level
+        that is not itself an output target. Structure only — lawfulness is `_admit_pin`'s question,
+        applied on top of this set and never folded into it, because the two questions want different
+        answers ("does this level exist" vs "is reading the ask at it lawful") and a refusal has to be
+        able to tell a reader which one it failed.
+
+        Enumerated over the declared level set rather than over the levels an edge happens to touch:
+        a base dimension with no out-edge is a perfectly addressable input grain, and reading the
+        candidate set off `_edges` was a second place the enumeration could disagree with what an
+        explicit pin accepts."""
+        return sorted(L for L in self.m.levels if L not in anchor)
+
+    def _pin_verdicts(self, reducer, inner, anchor) -> tuple:
+        """`(lawful, refused)` — the candidate levels that SURVIVE `_admit_pin`, and the (level,
+        Refusal) pairs for the ones that do not. Splitting the verdict out from the set is what lets
+        a |L| = 0 disposition say WHY there was nothing to offer instead of asserting a cause."""
+        lawful, refused = [], []
+        for L in self._pin_candidates(anchor):
+            try:
+                self._admit_pin(reducer, inner, (L,), tuple(anchor))
+            except Refusal as r:
+                refused.append((L, r)); continue
+            lawful.append(L)
+        return lawful, refused
+
     def _lawful_pins(self, reducer, inner, anchor) -> list:
-        """The GOVERNED CANDIDATE input anchors for an unpinned generated reduction, filtered to the
-        ones for which the requested generated operation is actually LAWFUL (ruling §9).
+        """The candidate input anchors for an unpinned generated reduction that SURVIVE the explicit-
+        pin law (ruling §9; brought forward to WP-GRAIN-1 + §2c on 2026-08-31, P1-13).
 
         Never offer a candidate that is already structurally illegal: a clarify is a menu of readings
         the asker may choose between, and an unlawful reading is not a choice — offering it would make
         Clarify reachable before lawfulness, which is how a reader gets talked into a laundered answer.
-        Both the pin lattice laws and the generated-family law are applied here."""
-        levels = {e.frm for e in self.m._edges} | {e.to for e in self.m._edges}
-        out = []
-        for L in sorted(levels):
-            if L in anchor:
-                continue
-            if not any(self.m.find_path({L}, T) is not None for T in anchor):
-                continue
-            pin = (L,)
-            try:
-                self._check_pin_laws(pin, tuple(anchor))
-            except Refusal:
-                continue                                    # pin_coarser_than_output / redundant_pin
-            grain = self._pin_input_grain(pin, tuple(anchor))
-            if self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin)):
-                continue                                    # structurally prohibited: not a choice
-            out.append(L)
-        return out
+        The guarantee is now by construction: every level here has been put through `_admit_pin`, the
+        same predicate that adjudicates the pin when the asker writes it out, so "offered" and
+        "serves when named" cannot come apart again.
+
+        NO RANKING, NO HEURISTIC, NO HIDDEN PRUNING (ruled Huayin, 2026-08-31). This returns the
+        lawful set, in level order, and `_unpinned_disposition` applies the unchanged 0/1/>1 rule to
+        it. Whether a six-item menu is the right ERGONOMICS for a Clarify is a real question and a
+        separate one; answering it here would mean the framework quietly choosing among lawful
+        readings, which is the thing the Clarify exists to refuse to do."""
+        return self._pin_verdicts(reducer, inner, anchor)[0]
 
     def _column_fill_rule(self, node, anchor):
         """Φ_v for a column: the fill rule of its member(s) (columna#143). A column resolves to ONE
@@ -1583,11 +1713,14 @@ class Planner:
                 pinned = self._unpinned_disposition(reducer, inner, anchor)
             # WP-GRAIN-1: a pinned reduction serves at a MULTI-level anchor with a COMPOSITE input
             # anchor. Laws 1 & 2 are static checks over the pin × output lattice (refuse coarser-than-
-            # output pins; clarify cross-comparable pins), classified here at the static chokepoint.
-            self._check_pin_laws(pinned, anchor)
-            # The pinned levels pin their lineage; orthogonal output dims join the input grain (see
-            # _resolve_inline_reduction). Typecheck the inner at that composite grain.
-            in_dt = self._infer(inner, self._pin_input_grain(pinned, anchor), population)
+            # output pins; clarify cross-comparable pins); the pinned levels pin their lineage and
+            # orthogonal output dims join the input grain, and the inner is typechecked there.
+            #
+            # ALL OF THAT IS `_admit_pin`, WHICH IS ALSO WHAT `_lawful_pins` ENUMERATES THROUGH
+            # (P1-13). The explicit pin and the offered candidate are adjudicated by one method, so
+            # they cannot drift into two definitions of "a lawful pin" again — which is precisely
+            # what they had done.
+            in_dt = self._admit_pin(reducer, inner, pinned, anchor, population)
             return self._reducer_out_dtype(reducer, in_dt)
         # The MAP-OPERAND input pin, statically (mirror of the `_node` branch — see it for why a pin
         # outside a reducer is a DECLARATION of the grain the operand is read at, not a selection).

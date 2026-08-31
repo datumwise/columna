@@ -1120,112 +1120,188 @@ run against `v0.16.0..main`.
 
 ---
 
-### P1-13 · An unpinned reduction REFUSES "no lawful reading" where six explicit pins serve · **HIGH** · **DIAGNOSED — implementation bug; no repair authorized** · VX
+### P1-13 · An unpinned reduction REFUSED "no lawful reading" where six explicit pins serve · **HIGH** · **FIXED 2026-08-31** · VX
 
-Found 2026-08-31 by the Mission B semantic gate. Reconnaissance completed 2026-08-31, **read-only**;
-no source was modified.
+Found 2026-08-31 by the Mission B semantic gate; diagnosed read-only the same day; repaired under
+Huayin's authorization the same day. **The governing invariant, as ruled:**
+
+> Explicit pin validation and candidate-pin enumeration must use the same canonical admissibility law.
 
 ```text
-SELECT avg(aov) AT {customer}                 -> refuse  blocked_reduction   ("no lawful reading")
+SELECT avg(aov) AT {customer}                 -> refuse  blocked_reduction   ("no lawful reading")   BEFORE
 SELECT avg(aov @ {day}) AT {customer}         -> serve
 SELECT avg(aov @ {transaction}) AT {customer} -> serve
 ```
 
-**CLASSIFICATION: an implementation bug against already-established candidate-enumeration law.** Not
-unspecified law — the law is ratified and the shipped EXECUTION path already implements it. Two
-functions in one planner hold two different definitions of "a lawful pin":
+**THE DEFECT.** Two functions in one planner held two definitions of "a lawful pin". `_pin_input_grain`
+(execution) implemented WP-GRAIN-1 — the input grain is *pinned + the output's orthogonal levels*, so a
+pin need not REACH the anchor — while `_lawful_pins` (enumeration) still filtered candidates by
+`find_path({L}, T)`, the pre-WP-GRAIN-1 rule. The disposition was right *given* L; **L was computed
+against a superseded rule**. Same shape as the Mission B A1 defect: a generalization landed in one
+dispatcher and not in the sibling that has to agree with it.
 
-| | rule it applies | admits an ORTHOGONAL pin? |
+A SECOND, opposite gap sat beside it: the enumeration applied the pin-lattice and lineage laws but
+**not §2c**, so it OFFERED candidates that refuse the moment they are named. On the Manual fixture
+`SELECT sum(revenue) AT {region}` offered `store`, and `sum(revenue @ {store})` refuses
+`out_of_universe`. Under-enumerating in one direction and over-enumerating in the other, from the same
+root cause: enumeration was not the explicit-pin law.
+
+**WHAT SHIPPED.** Not a deletion of the reachability filter — a **replacement of it by the law it
+contradicted**, plus the missing filter, routed so the two paths cannot diverge again:
+
+| | before | after |
 |---|---|---|
-| `_pin_input_grain` (execution) | WP-GRAIN-1: input grain = **pinned + orthogonal output targets**, its own docstring saying orthogonal dims "join the input grain so the series carries them" | **yes** — `pin (day,)` at `{customer}` → grain `('day','customer')` |
-| `_lawful_pins` (enumeration) | the pre-WP-GRAIN-1 test: `find_path({L}, T)` for some `T` in the anchor — the pin must **reach** the anchor | **no** — both candidates dropped here |
+| explicit pin `R(x @ {L})` | `_check_pin_laws` → `_pin_input_grain` → `_infer` | **`_admit_pin`** |
+| enumerated candidate `L` | reachability + `_check_pin_laws` + travel law | **`_admit_pin`** |
 
-**How two explicit pins Serve while the unpinned form finds zero readings.** A pin does not have to
-reach the output anchor; where it does not, WP-GRAIN-1 *joins the anchor's orthogonal levels into the
-input grain*, so `avg(aov @ {day}) AT {customer}` resolves at `(day, customer)` and reduces to
-`(customer)`. That is why naming the pin serves. The enumeration never asks that question: it filters
-candidates by reachability first, finds none, and `_unpinned_disposition` then correctly applies
-`|L| = 0 -> Refuse`. **The disposition is right given L; L is computed against a superseded rule.**
-Verified read-only: both candidates pass `_check_pin_laws` and carry no generated-travel violation,
-so the reachability filter is the *sole* reason for their exclusion.
+`_admit_pin` composes three ratified laws and mints none: WP-GRAIN-1 Laws 1 & 2; WP-GRAIN-1's input
+grain (the pin need not reach the anchor); and §2c/transport at that grain. `_pin_candidates` supplies
+the structural set — every DECLARED level not an output target — and carries no law at all.
 
-This is the same shape as the Mission B A1 defect: a generalization landed in one dispatcher and not
-in the sibling that has to agree with it.
+**NO RANKING, NO HEURISTIC, NO HIDDEN PRUNING** (ruled). The lawful set is returned in level order and
+the unchanged §9 rule is applied to it: |L| = 0 refuse, |L| = 1 default + material `input_anchor`
+caveat, |L| > 1 the existing `input_anchor_ambiguous` Clarify.
 
-**Severity.** Not an honesty defect. The planner tells the asker *"this ask has no reading to
-serve"* while **six** readings serve — a confident wrong disposition, the family the wrong-number
-rows belong to. It is wrong under **every** candidate ruling below, so the defect does not depend on
-resolving them.
+**TWO REFINEMENTS THE EVIDENCE FORCED**, both found by running the corrected law over the whole ask
+surface rather than over the two witnesses:
 
-**THE REPAIR IS NOT "DELETE THE FILTER", and the candidate set is NOT settled by the two working
-examples** (Huayin's caution, taken literally and then tested). Removing line 1506's filter and
-keeping the remaining checks yields a **seven-item** menu on the Manual fixture:
+1. **A refusal every candidate earns is not ABOUT any candidate.** `sum(aov) AT {date, store}` fails
+   under *every* pin, because `store` is in the OUTPUT anchor and therefore in every candidate's input
+   grain. Collapsing that into "no lawful input anchor" traded a true diagnosis (`out_of_universe`) for
+   a vaguer one — the same class of loss P1-14 is about. When the whole candidate set agrees on a
+   reason, that refusal is now re-raised verbatim, so the unpinned form says what the pinned form says.
+   The test is **unanimity, not a reason list, and it is lazy**: an earlier draft re-raised eagerly on a
+   fixed "ask defect" set and broke generated-family ruling §1 — `sum(on_hand)` at `{store, month}`
+   errored `unknown` ("specify a member") instead of refusing the prohibited temporal sum.
+2. **The |L| = 0 detail reports the verdicts; it no longer asserts a cause.** It used to state that every
+   candidate "would reduce across a lineage the governed law blocks for it" — true while the lineage law
+   was the only filter, false once §2c joined it. It now names each candidate with the refusal that pin
+   would earn if written out. A refusal that names the wrong cause sends the reader to fix the wrong
+   thing, which is the `filter_unreachable`/`filter_unsupported` distinction one level down.
+
+**ADVERSARIAL EVIDENCE.** A 24,865-cell pre/post disposition matrix over the three adjudicated Manual
+fixtures (every reducer × measure × 1- and 2-level anchor, unpinned and every explicit pin):
+
+- **explicit-pin cells changed: 0.** Every pin that served still serves, same rows. The shared predicate
+  did not move the explicit path at all.
+- **3,480 offered candidates named back at the planner; 0 are refused.** The invariant holds by
+  construction, not by sampling.
+- `store` — the observed out-of-universe offer — is gone from every menu it appeared in.
+- 1,460 unpinned cells changed. **300 stopped serving** (|L| = 1 defaulted-disclose → |L| > 1 Clarify):
+  those numbers were one of several lawful readings chosen silently, which is the laundered answer the
+  Clarify exists to prevent. **30 started serving.** The rest are refusals moving to a truer reason.
+
+**CONSEQUENCES ON RECORD, not folded into the closure:**
+
+- **P1-15 is now reachable from a Clarify menu.** A candidate whose input grain spans two hierarchy
+  branches PLANS `serve` and dies in the engine (`unsupported`). It is *pre-existing and unchanged* —
+  verified identical pre- and post-repair on the explicit spelling — but the corrected enumeration
+  surfaces it, so a reader can now be *offered* a reading the build cannot execute. Filtering the menu
+  by engine capability would be a new capability gate and hidden pruning; **not taken.** See P1-15.
+- **The Afternoon page's count was wrong and is corrected.** `max(revenue) AT {region, month}` has
+  THREE governed readings (`day`, `order`, `store`), not two: `order` reaches neither output level and
+  the superseded rule dropped it, though `max(revenue @ {order})` has always served. The essay said
+  "Two governed meanings remain"; the sentence is corrected, and flagged rather than slipped in.
+- **The ergonomics question is open and is P1-17.** With both filters right, `avg(aov) AT {customer}`
+  clarifies over six same-universe candidates. Whether that is the intended shape of a Clarify is not
+  settled by OF-1, and it did not block this repair.
+
+Pinned by `tests/test_pin_admissibility.py` (9 cases; **6 fail against the pre-repair source**, the
+other three are "still works" guards and are non-discriminating by design), and by the anchor swaps
+recorded in `test_inline_reduction.py`, `test_afternoon_page_gate.py`, `test_envelope_*.py` and
+`test_mcp_server.py` — eleven standing tests whose premises ("only `day` reaches `cal.month`") were the
+superseded rule stated as fact. Each was re-aimed at an anchor where its premise is TRUE under the
+corrected law, never at whatever the new behavior happened to be.
+
+### P1-14 · The planner promised `serve` for a `WHERE` form the build cannot execute · **HIGH** · **CAPABILITY GATE SHIPPED; the underlying gap remains OPEN** · VX
+
+**THE ORIGINAL DIAGNOSIS IN THIS ROW WAS WRONG TWICE, and both corrections are recorded rather than
+quietly edited.** It first read *"`WHERE` plans and does not execute"* — false; `WHERE` executes. That
+evidence tested only the spelling the Manual uses (double-quoted literals) and generalised from it. The
+correction on 2026-08-31 then named TWO conditions under one row; one of them has since been repaired
+and **has been split out to P1-16**, because keeping a fixed defect inside an open row's umbrella is the
+same over-claim in a smaller form.
+
+**WHAT THIS ROW IS NOW, and only this:** a planner must not return a positive Serve/Disclose disposition
+for a form the current build cannot execute — and it did, for **a dimension reached only across a
+relationship**.
 
 ```text
-date  day  month  product  store  transaction  year        (region correctly dropped: pin_coarser_than_output)
+SELECT revenue AT {store} WHERE day    >= '2025-01-13'   -> serve, 3 rows      SHIPPED
+SELECT revenue AT {store} WHERE day    >= "2025-01-13"   -> serve, 3 rows      SHIPPED (P1-16, repaired)
+SELECT revenue AT {store} WHERE region == 'north'        -> error  filter_unsupported
+SELECT revenue AT {store} WHERE amount >= 100            -> clarify filter_unreachable   correct, pre-existing
 ```
 
-of which **`store` refuses `out_of_universe` when actually named** — so the naive correction would
-offer a structurally illegal reading, the exact thing `_lawful_pins`' own docstring forbids ("a
-clarify is a menu of readings the asker may choose between, and an unlawful reading is not a
-choice"). That case is *also* covered by established law — §2c, one expression one universe — which
-the enumeration simply does not apply either.
+`region` is *reachable*, so this is emphatically not `filter_unreachable`; the predicate is pushed to
+the measure's own source, which carries the universe's BASE coordinates and not the joined ones.
+Confirmed on **two independent adjudicated fixtures** (the Manual fixture and the shipped
+`afternoon.cml` world).
 
-**What a repair owes, therefore:** replace the reachability filter with the WP-GRAIN-1 admissibility
-test that `_pin_input_grain` already encodes, **and** apply the §2c universe filter the enumeration
-is missing. Both are established law. What remains genuinely open is narrower and is an ergonomics
-question rather than a correctness one: with both filters right, `avg(aov) AT {customer}` clarifies
-over roughly six same-universe candidates, and whether a six-item menu is the intended shape of a
-Clarify — or whether `year` and `product` belong on a menu for "average order value per customer" —
-is not settled by OF-1's one-reason-per-contested-dimension rule. **That question does not block the
-correctness repair and must not be used to defer it.**
+**What shipped:** the capability-honesty gate only, classified at `_where_reachability` — the seam that
+already adjudicates WHERE before the engine — on the minted reason **`filter_unsupported`** (ERROR),
+sibling to `filter_unreachable` and deliberately distinct from it: *unreachable is a fact about the
+Manifold and the asker can fix it; unsupported is a fact about the build and no rewording helps.*
+Collapsing them would tell a reader to fix something that is not theirs to fix.
 
-Not repaired: candidate enumeration is anchor/participation law, which Mission B was barred from
-touching. Rowed for the mission that owns that law.
+**What is still open:** the gap itself. Whether a filter may join is a language ruling, not a fix.
+§4.1.1 and §6.8a of the Frame-QL Manual carry the form under `[SCHEDULED]` and say why.
 
-### P1-14 · `WHERE` planned `serve` for two forms the build cannot execute · **HIGH** · **CAPABILITY GATE SHIPPED; the two underlying gaps remain OPEN** · VX
+Pinned by `tests/test_where_capability_gate.py`.
 
-**THE ORIGINAL DIAGNOSIS IN THIS ROW WAS WRONG, and is corrected here rather than quietly edited.**
-It read *"`WHERE` plans and does not execute"*. That is false: **`WHERE` executes.** The first
-evidence tested only the spelling the Manual uses — double-quoted literals — and generalised from it.
-One level further down:
+### P1-16 · A double-quoted Frame-QL string literal was re-read by SQL as an identifier · **MEDIUM** · **FIXED 2026-08-31** · VX
 
-```text
-SELECT revenue AT {store} WHERE day >= '2025-01-13'   -> serve, 3 rows      SHIPPED
-SELECT revenue AT {store} WHERE day >= "2025-01-13"   -> engine error       (a)
-SELECT revenue AT {store} WHERE region == 'north'     -> engine error       (b)
-SELECT revenue AT {store} WHERE amount >= 100         -> clarify            correct, pre-existing
-```
+Split out of P1-14 on 2026-08-31 (ruled Huayin): it was gated there as one of two conditions, it is a
+different defect from the joined-dimension gap, and it is now repaired while that one is not. A closed
+defect inside an open row's diagnosis is a false umbrella.
 
-Two narrow gaps, not one broad one, each confirmed on **two independent adjudicated fixtures** (the
-Manual fixture and the shipped `afternoon.cml` world):
+**THE DEFECT — one fact written twice, once wrong.** Frame-QL accepts `'east'` and `"east"` as the SAME
+language-level kind: `_literal` says so, and the polars/HAVING path honoured both. Only the push-down
+path diverged — it handed the predicate to the backend verbatim, where SQL's own quoting rule re-read
+`"east"` as a **column name**. The ask was one character from working, in the spelling the Manual
+documented.
 
-- **(a) A double-quoted string literal is passed to SQL as an IDENTIFIER.** Frame-QL's own `_literal`
-  accepts either quote, and the polars filter path honours both; the push-down path hands the
-  predicate to the backend verbatim, where `"east"` names a column. **The same fact written twice,
-  once wrong** — the class this ledger keeps paying for. It is a *quoting translation* gap, not a
-  missing capability: the ask is one character from working, and the Manual documents the character
-  that fails.
-- **(b) A dimension reached only across an edge cannot be filtered.** The predicate is pushed to the
-  measure's own source, which carries the universe's BASE coordinates and not the joined ones.
-  `region` is *reachable* — this is emphatically not `filter_unreachable` — and still not filterable.
+**THE REPAIR IS PATH CONVERGENCE, NOT A FILTERING FEATURE** (ruled). `Planner._to_backend_predicate`
+normalizes the Frame-QL literal into the substrate's spelling before the predicate becomes SQL, at the
+single point where that crossing happens — in `run()`, so the direct API and the statement path converge
+rather than the envelope alone. Embedded single quotes are doubled, SQL's own escape, so the
+normalization cannot carry a quote out of the literal and into the predicate's syntax.
 
-**What shipped (this mission, authorized):** the capability-honesty gate only. Both conditions are
-now classified at `_where_reachability` — the seam that already adjudicates WHERE before the engine —
-on the minted reason **`filter_unsupported`** (ERROR), sibling to `filter_unreachable` and
-deliberately distinct from it: *unreachable is a fact about the Manifold and the asker can fix it;
-unsupported is a fact about the build and no rewording of the ask helps.* Collapsing them would tell
-a reader to fix something that is not theirs to fix.
+It admits **no dimension that was not already filterable**: `WHERE region == "east"` is still
+`filter_unsupported` for the P1-14 reason, exactly as `'east'` is, and `WHERE amount >= "100"` is still
+`filter_unreachable`. The two reasons stay distinct.
 
-**What did NOT ship, and why:** neither (a) nor (b) is repaired. (a) is a one-line normalization and
-tempting; repairing it changes what the build can do, which this mission did not authorize, and it
-would also make §4.1/§6.8 executable and their `[SCHEDULED]` marks wrong. **Recommendation: authorize
-(a) as its own bounded repair** — it is small, it is a genuine defect rather than a missing feature,
-and it makes the Manual's own documented spelling work. (b) is a real capability gap and needs a
-ruling about whether a filter may join.
+**The `filter_unsupported` branch that gated this condition is REMOVED, not left dormant.** A capability
+gate is a statement about what the build cannot do; keeping one after the build could do it would make
+the gate itself the dishonesty it was minted to prevent.
 
-Pinned by `tests/test_where_capability_gate.py` (7 cases; 4 fail against the pre-gate source, the
-other three are the "still works" guards and are non-discriminating by design).
+**Manual status, moved only as far as the evidence earns** (ruled): §4.1 is no longer marked
+`[SCHEDULED]` — the clause executes on a base dimension in either quote spelling, and the note that said
+otherwise is corrected in place rather than replaced. The examples that filter through a
+relationship-derived dimension did NOT become executable and moved to §4.1.1 / §6.8a, which stay
+`[SCHEDULED]` for the P1-14 reason. The semantic gate reads 40 examples / 0 FAIL (was 37), with three
+moving from `roadmap` to `shipped, planned and executed`.
+
+Pinned by `tests/test_where_capability_gate.py` (11 cases; 4 fail against the pre-repair source). The
+convergence test asserts the two spellings reach the same disposition **and the same rows**, written as
+one parametrized comparison rather than two hand-copied expectations — because the defect *was* the same
+fact written twice with one copy wrong.
+
+### P1-17 · A corrected Clarify menu can offer six lawful readings · **LOW** · **OPEN — design question, deliberately not answered** · VX
+
+Opened 2026-08-31 out of P1-13, at Huayin's instruction that ergonomic narrowing is a separate question
+and must not be used to defer the correctness repair.
+
+With enumeration brought forward to WP-GRAIN-1 + §2c, `SELECT avg(aov) AT {customer}` clarifies over six
+same-universe candidates (`date`, `day`, `month`, `product`, `transaction`, `year`). Every one of them
+serves when named — the menu is *correct*. The open question is whether a six-item menu is the intended
+SHAPE of a Clarify, and whether `year` and `product` belong on a menu for "average order value per
+customer". OF-1's one-reason-per-contested-dimension rule does not settle it.
+
+**Nothing may be added here without a ruling.** Ranking, a "reasonable pin" heuristic, or pruning by
+what the engine can currently assemble would each mean the framework quietly choosing among lawful
+readings — the precise thing the Clarify exists to refuse to do. A narrowing that is a *law* (a declared
+default input anchor, say) is a different proposal and would be one.
 
 ### P1-15 · A composite pin whose levels are reached by SEPARATE hierarchies does not assemble · **MEDIUM** · **OPEN — no repair authorized** · VX
 
@@ -1239,6 +1315,15 @@ It contradicts a shipped Manual commitment — §6.15 and §6.16 present the com
 producing a result — so those sections are marked `[SCHEDULED]` until this closes. Pinned by
 `test_composite_pin_map_still_fails_IN_THE_ENGINE_on_this_manifold_shape`, which asserts the CURRENT
 state and is to be struck when the engine grows the capability.
+
+**SEVERITY RAISED IN PRACTICE 2026-08-31 (from P1-13), though the defect itself is untouched.** The
+corrected candidate enumeration now OFFERS such pins in a Clarify menu, so a reader can be handed a
+reading that plans `serve` and then dies in the engine — the P1-14 rule, one level removed. Verified
+identical pre- and post-repair on the explicit spelling (`sum(aov@product) AT {date}`: plan `serve`,
+run `error/unsupported`, both), so nothing regressed; what changed is reach. **Filtering the menu by
+what the engine can currently assemble was NOT taken**: it would be a new capability gate and hidden
+pruning, neither authorized. The honest options are to fix this row or to rule on the gate; leaving it
+silent is not one, which is why it is written down here.
 
 ---
 

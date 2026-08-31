@@ -216,10 +216,16 @@ def test_envelope_unpinned_single_lawful_reading_discloses(fixture_server):
     # FIRST; when exactly ONE survives there is nothing to choose between, so the planner defaults to
     # it and PROCEEDS — wire outcome `disclose`, carrying a MATERIAL `input_anchor` caveat that names
     # the defaulted grain. Never a clarify: a menu of one is not a question.
-    w = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    # ANCHOR SWAPPED 2026-08-31 (P1-13). This used `{cal.month}` on the claim that `day` is the ONLY
+    # lawful input anchor there — true under the SUPERSEDED enumeration, which required a candidate to
+    # REACH the output anchor, and false under WP-GRAIN-1, where eight levels are lawful readings at
+    # `cal.month`. Defaulting silently to one of eight was the defect. `{customer, day, store}` is a
+    # genuine one-reading anchor: `product` is the only level that survives the same law an explicit
+    # pin is held to. The DISPOSITION LAW under test is unchanged.
+    w = _wire(fixture_server, "SELECT avg(aov) AT {customer, day, store}")
     assert w["outcome"] == "disclose"
     assert w["columns"][0].get("no_result") is None
     codes = [(d["code"], d["materiality"]) for d in w["columns"][0]["disclosures"]]
     assert ("input_anchor", "material") in codes
     detail = next(d["detail"] for d in w["columns"][0]["disclosures"] if d["code"] == "input_anchor")
-    assert "DEFAULTED to 'day'" in detail
+    assert "DEFAULTED to 'product'" in detail

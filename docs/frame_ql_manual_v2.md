@@ -513,19 +513,49 @@ The combination is: the language gives the writer one defensible default (the co
 
 ## Chapter 4. Clauses
 
-### 4.1 The `WHERE` clause: pre-query input filtering **[SCHEDULED]**
+### 4.1 The `WHERE` clause: pre-query input filtering
 
-> **▸ Second-Edition sync (`WHERE` plans but does not execute, 2026-08-31).** The same
-> recognition-is-not-capability split §2.8 records for scans applies to this clause. `WHERE` is
-> parsed, its dimensions are checked for reachability, and it plans — an unreachable dimension
-> correctly clarifies `filter_unreachable`, which is shipped behaviour a reader can rely on. **The
-> filtered frame does not execute in the current Core build**: the predicate does not reach the
-> backend in a bindable form, and the ask returns an engine error. This holds for a dimension that
-> is a coordinate of the fact itself, not only for one reached across a join, so it is a gap in the
-> clause rather than in any particular schema. Verified against two independent adjudicated
-> fixtures. Marked here rather than left for a reader to discover by running it.
+> **▸ Second-Edition sync (this section's previous note was WRONG, and is corrected rather than
+> quietly replaced, 2026-08-31).** An earlier revision of this note said *"`WHERE` is parsed … the
+> filtered frame does not execute in the current Core build … This holds for a dimension that is a
+> coordinate of the fact itself."* **That is false, and the claim was made from evidence that tested
+> only one spelling.** `WHERE` on a **base dimension executes and serves**, in either quote spelling:
+>
+> ```
+> FROM finance_manifold SELECT revenue AT {customer} WHERE day >= "2024-01-01"
+> ```
+>
+> What is genuinely unsupported is narrower and is stated in §4.1.1: a predicate on a dimension
+> reached only **across a relationship** — the filter is pushed to the measure's own source, which
+> carries the universe's base coordinates and not the joined ones. That form is refused before
+> execution with `filter_unsupported`, which is a statement about the BUILD; the separate
+> `filter_unreachable` clarify remains a statement about the MANIFOLD, and the two are deliberately
+> not the same reason.
 
 `WHERE` restricts the input to the query — applied before reductions, narrowing what data the reducers see. Its predicate references dimensions and column values at the *input* grain (the data being reduced), not the output grain (the result of the reduction).
+
+```
+FROM finance_manifold
+SELECT sum(revenue @ {transaction}) AT {customer}
+WHERE day >= "2024-01-01"
+```
+
+This computes per-customer revenue *over transactions from 2024 onward*. The framework restricts the input data to the predicate's satisfying rows, then performs the reduction over the restricted input. The output is per-customer sums of 2024+ revenue.
+
+`WHERE` predicates may reference any dimension or column at the input grain of any series in the query. They are evaluated before reduction, so they see the raw data; references to series expressions (which are output columns) are not permitted in `WHERE` — those belong in `HAVING`.
+
+`WHERE` is a query-time expression-level restriction, not a Manifold-level state change. The Manifold's columns retain their declared coverage; the query's *result* is restricted to what the predicate permits.
+
+> **▸ Second-Edition sync (literal quoting at `WHERE` — the follow-up this note rowed is now SHIPPED, 2026-08-31).** The prior revision of this note told readers that a `WHERE` string literal had to be **single-quoted**, because the predicate reached the backend verbatim and SQL read `"2024-06-01"` as an *identifier*. **That divergence is repaired.** Frame-QL accepts `'x'` and `"x"` as the same language-level kind — one string literal — and the predicate is now normalized into the substrate's spelling before it becomes backend SQL, so **both spellings execute and return the same rows**. Frame-QL's literal law is Frame-QL's; the substrate no longer reinterprets it. (This is quote-path convergence, not a new filtering capability: it admits no dimension that was not already filterable — see §4.1.1.)
+
+#### 4.1.1 Filtering through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
+
+A predicate on a dimension that the universe reaches only **across a relationship** — `region` from
+`customer`, `date` from `transaction` — is *lawful and not executable in this build*. The filter is
+pushed to the measure's own source table, which carries the universe's base coordinates only, so the
+joined coordinate is not there to bind against. It is refused **before** execution, with
+`filter_unsupported` and the base dimensions named as the remedy, rather than planned `serve` and
+failed after.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -533,13 +563,10 @@ SELECT sum(revenue @ {transaction}) AT {customer}
 WHERE region = "east" AND date >= "2024-01-01"
 ```
 
-This computes per-customer revenue *over transactions where region is east and date is in 2024 or later*. The framework restricts the input data to the predicate's satisfying rows, then performs the reduction over the restricted input. The output is per-customer sums of east-region 2024+ revenue.
-
-`WHERE` predicates may reference any dimension or column at the input grain of any series in the query. They are evaluated before reduction, so they see the raw data; references to series expressions (which are output columns) are not permitted in `WHERE` — those belong in `HAVING`.
-
-`WHERE` is a query-time expression-level restriction, not a Manifold-level state change. The Manifold's columns retain their declared coverage; the query's *result* is restricted to what the predicate permits.
-
-> **▸ Second-Edition sync (literal quoting at `WHERE`, shipped behavior).** A `WHERE` predicate is currently evaluated by the backend, so its **string literals follow the backend's literal dialect**: on the shipped DuckDB connector a string literal is **single-quoted** (`WHERE day >= '2024-06-01'`), and a double-quoted token is read as an *identifier*, not a string — so `day >= "2024-06-01"` fails to bind. Normalizing FrameQL's own literal quoting at the `WHERE` boundary is a rowed follow-up; until then, single-quote string literals in `WHERE`.
+*Would compute* per-customer revenue over transactions where region is east and date is 2024 or
+later. Note what this is **not**: `region` IS reachable from `customer`, so this is not
+`filter_unreachable` — the asker cannot fix it by rewording, because the limit is the build's, not
+the Manifold's. Whether a filter may join is an open ruling.
 
 **When series have different input grains, the predicate applies per series, at each series' own input grain.** A query whose series draw from `{transaction}` and from `{warehouse, day}` under `WHERE region = "east"` restricts each series' input independently: each predicate dimension must be reachable from that series' input anchor (directly as a coordinate, or through a verified hierarchy edge — `region` reached from `transaction` via `transaction → customer → region`). If a predicate dimension is not reachable from some series' input anchor, the query is underdetermined for that series — there is no defensible way to apply the restriction — and the framework asks for clarification rather than silently applying the predicate to some series and not others.
 
@@ -855,10 +882,23 @@ SELECT revenue[region = "east"] AS east_revenue,
 restricts the revenue column to its east-region subset, and the result column appears alongside
 unrestricted revenue.
 
-### 6.8 WHERE: pre-query filtering **[SCHEDULED]**
+### 6.8 WHERE: pre-query filtering on a base dimension
 
-**Parses and plans; does not execute** (§4.1). The clause is designed and committed;
-the filtered frame is not available in this build.
+```
+FROM finance_manifold
+SELECT revenue AT {customer}
+WHERE day >= "2024-01-01"
+```
+
+Restricts the input to transactions from 2024 onward before computing per-customer revenue. The
+output is per-customer revenue *over the restricted input*. `day` is a base dimension of the `sales`
+universe, which is what makes this executable; the literal may be written in either quote (§4.1).
+
+### 6.8a WHERE through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
+
+**Plans, and is refused before execution with `filter_unsupported`** (§4.1.1). `date` and `region`
+are reached from this universe only across a relationship, and the filter is pushed to the measure's
+own source, which carries the base coordinates alone.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -866,7 +906,8 @@ SELECT revenue AT {customer}
 WHERE date >= "2024-01-01" AND region IN ("east", "west")
 ```
 
-Restricts the input to transactions in 2024+ and east or west regions before computing per-customer revenue. The output is per-customer revenue *over the restricted input*.
+*Would restrict* the input to transactions in 2024+ and east or west regions before computing
+per-customer revenue.
 
 ### 6.9 HAVING: post-query filtering
 
