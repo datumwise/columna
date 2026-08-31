@@ -306,7 +306,7 @@ computes it.
 
 ---
 
-### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · VX
+### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · **FIXED** in Mission A · VX
 
 Found 2026-08-31 in the Column Algebra Mission 1 reconciliation
 (`specs/column_algebra_reconciliation_m1_v0_1.md`). **Sibling of P1-10, not the same row**: P1-10 is
@@ -366,6 +366,45 @@ disclosing after an inner join has already discarded an analytical point. Preser
 alignment facts/domain first; only then apply the map's declared/currently established
 eligibility-support semantics."* The defect is that substrate alignment chooses participation before
 Φ/support law can see the discarded point; the repair must remove that authority from the substrate.
+
+
+#### Repaired — Mission A, 2026-08-31
+
+**The alignment domain is now declared rather than inherited from the substrate.** `_apply` joins
+`how="full"` (`planner.py`), which is the §2c FRAME LAW applied one level down — one alignment law,
+not two, and the `LAW -> EXECUTION DIRECTIVE -> SUBSTRATE` shape f0 ruling 10 asks for.
+
+Per Huayin's governing refinement, the repair does **not** disclose after the fact. The coordinate is
+preserved first; only then does declared law speak. Each operand's own Φ travels into the map, so the
+one distinction current law can make survives:
+
+| absent operand's Φ | the coordinate is | caveat | materiality | mood |
+|---|---|---|---|---|
+| `undefined` | **ineligible** — outside that operand's population | `out_of_population` | immaterial | `serve` |
+| `unknown` | **eligible but unsupported** — a real shortfall | `data_gap` -> `incomplete_data` | MATERIAL | `disclose` |
+| `zero` / mixed / none | undetermined — see the missing representation below | `data_gap` | MATERIAL | `disclose` |
+
+**A `zero` rule never fills a divergence gap.** `zero` declares what an absence of *that measure*
+denotes; it says nothing about a coordinate where one operand was present and the other absent.
+Filling would assert the expression was nil when what is true is that it is undefined. The guard is
+conservative by construction — a column carrying any divergence gap is not filled at all, because the
+two null-origins are not separable per cell at that point, and not-filling is the only direction that
+cannot fabricate a value.
+
+**No wire field, no contract bump.** `DATA_GAP` was already declared and already wired MATERIAL as
+`incomplete_data` with zero producers; it now has one. `derive_outcome` supplies the mood flip.
+
+**THE MISSING REPRESENTATION, reported rather than invented** (per the ruling): **nothing declares how
+Φ composes through an operator.** `_column_fill_rule` infers a column's Φ by unanimity over its atoms,
+which is sound for measure absence and silent about expression absence. Two operands declaring `zero`
+do not thereby declare that `a / b` is nil where `b` is absent — that is division by an absent
+denominator, not a nil quantity. Mission A therefore refuses to fill and says so on the wire. A
+declared Φ-composition law is Mission C's territory, not this one's.
+
+Standing test: `tests/test_alignment_domain.py` (10 cases — equal supports invent nothing; either
+side may be short; the population claim now matches what is served; ineligible stays immaterial and
+`serve`; `zero` never fills; provenance caveats still ride alongside; warm/cold agree; and the
+P1-10 scope boundary is pinned so the coupling claim cannot rot again).
 
 ---
 
@@ -1245,7 +1284,7 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 | **P1-01 + P1-03** | P1-03 is latent only because P1-01 exists. Fixing confinement without widening the witness currency key converts latent under-invalidation into active staleness |
 | **P1-04 + P1-05** | Both concern what the TOUCH path discloses. Re-grading coverage to MATERIAL while the warm path still drops it means the warm/cold divergence becomes outcome-visible (`disclose` cold, `serve` warm) — a strictly worse failure than today's |
 | **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today. **Eased 2026-08-31:** P2-03's repair is now understood to be **additive** (a governed `Law(F)` carrier) rather than a relocation of a required field, so the set of publications a refusal rule would reject is materially smaller than this row assumed |
-| **P1-10 + P1-11** | One collapse site (`planner.py:1791`), two independent causes — divergent support *within* a family (P1-10) and *across* measures (P1-11). A repair at the join addresses both; a repair to `count`'s null semantics addresses only P1-10 |
+| **P1-10 + P1-11** | ~~A repair at the join addresses both~~ — **CORRECTED 2026-08-31 by execution.** Mission A repaired the join and P1-10 is **unchanged**: `revenue.sum / revenue.count` still serves 20.0 with zero caveats. Both members produce a row at the anchor, so the alignment domain is identical and there is no coordinate for it to preserve. P1-10's divergence lives in the **underlying observation counts**, which needs support as a set of OBSERVATIONS, not of coordinates. The two rows share a collapse site and nothing else. Pinned by `test_alignment_domain.py::test_p1_10_is_not_addressed_by_the_alignment_domain` |
 | **P1-10 + P2-03** | P1-10 is the v5 family container producing a number. Re-typing `count` or minting a support caveat treats the symptom and leaves the container. The caveat is the cheap partial mitigation if P2-03 runs long |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 
