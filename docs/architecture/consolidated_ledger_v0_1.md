@@ -1025,6 +1025,101 @@ receipt, the provisioner and the firstlight fixture. `store.py:1-3` still calls 
 
 ---
 
+### P0-19 · The hand-maintained `__version__` code-identity line stopped moving; three packages disagree with themselves · **MEDIUM** · **OPEN — recon complete, no repair authorized** · VX
+
+Found 2026-08-31 during the v0.18.1 release verification, reported rather than fixed, and rowed here
+on Huayin's instruction before any correction is proposed.
+
+**The design is sound and is not the defect.** `__version__` is deliberately NOT the distribution
+version. It is a **code-identity label**, and the shipped fixture's own `PROVENANCE.md:49` states the
+distinction in as many words — *"columna-core **0.16.1** (code identity `0.16.0-core`)"*. The `-core`
+suffix marks the separate line; `test_fixture_drift.py:53-60` records why it exists: *"The 0.15.1/0.15.2
+releases moved the DISTRIBUTION version without touching core's code, which is why this label sat at
+0.15.0-core across them."* A release that ships no code change should not mint a new code identity.
+That reasoning is correct and should survive whatever repair is chosen.
+
+**The defect is that the label stopped moving when the code did.** Since `v0.16.0` set it, core's
+source has changed across three releases — `git diff v0.16.0..main -- src/columna_core/` is 7 files,
+258 insertions, including `planner.py`, `sketch.py`, `engine.py`, `disclosure.py` and `operators.py`,
+i.e. 0.17.0's witness/carve repairs, 0.18.0's wire-contract split and 0.18.1's Missions A/A′. The
+label still reads `0.16.0-core`.
+
+| package | attribute | distribution | drift |
+| --- | --- | --- | --- |
+| `columna-core` | `"0.16.0-core"` | `0.18.1` | 3 code-changing releases |
+| `columna-server` | `"0.11.0"` | `0.11.1` | 1 release; bare literal, no declared semantics |
+| `columna` (umbrella) | `"0.14.0"` | `0.18.1` | 4 releases — **and its own docstring claims** *"Its version rides in lockstep with `columna-core`"*, so this one is a stated contract violated, not merely a stale label |
+
+`reserve/trutina` and `reserve/trutina-core` hold `0.0.0` in both attribute and pyproject and are in
+agreement — deliberate name-reservation placeholders, not drift.
+
+**WHY IT NEVER SURFACED: the guard points the wrong way.** `test_fixture_drift.py:61` asserts
+`columna_core.__version__ == "0.16.0-core"`. It catches an *unintended bump* and is structurally
+incapable of catching an *omitted* one — the same asymmetry as `assert_pypi_versions.py`, which
+"catches a forgotten bump only when the forgotten version is ABSENT". The test does not merely fail
+to detect the drift; it **pins it in place**.
+
+**IMPACT — what it does NOT touch, established by reading the code rather than assumed:**
+
+- **No digest, identity, cache key or admission decision.** `lowering_receipt.py:44-47` is explicit:
+  `LoweringBinding` — the ref plus the two content digests — *"IS the binding identity, and it is the
+  only thing admission consults"*; `compiler`, `mapping_provenance` and `established_at` are
+  *"retained as OPAQUE PROVENANCE… none of the three participates in the binding, and none is a
+  runtime admission dependency."* `parse_lowering_receipt` requires `compiler.version` to be a
+  non-empty string and never interprets its content.
+- **Not the data-identity token.** The version inside `cdg2/duckdb-…` is `duckdb.__version__`, a
+  third-party version, correctly namespacing a fingerprint algorithm. Unrelated.
+- **No public API contract.** `__version__` is absent from `columna_core.__all__` (87 entries) and is
+  documented in no README, manual, or site surface. Three in-repo readers only: the fixture rebuild
+  script, `afternoon_five.py`, and a research trace under `specs/open_planner/`.
+- **Every SHIPPED runtime surface already reads distribution metadata,** not the attribute:
+  `demo.py:171`, `tools.py:364`, all five `apps/website/scripts/gen_*.py`, and the vercel generator
+  all use `importlib.metadata.version(...)`. The canonical source is already in use where it matters.
+
+**IMPACT — where it IS recorded, and how truthful each one is:**
+
+1. **The shipped governed lowering receipt** (`governed/firstlight/lowering-receipt.json`) carries
+   `"compiler": {"version": "0.16.0-core"}`, and this ships inside the `columna-server` wheel.
+   **The claim is TRUE.** The receipt and image are byte-frozen at `b0928ca` (2026-08-22, the day
+   0.16.0 shipped) and have never been regenerated. Better: `git log v0.16.0..main --
+   src/columna_core/compiler/` is **empty** — the compiler subtree is byte-unchanged since the label
+   was set, so a rebuild today would legitimately record the same value, and `gen_firstlight.py`
+   independently asserts the image still reproduces byte-for-byte under the shipped compiler.
+   *The receipt is the one place the coarse label happens to be exactly right.*
+2. **The Afternoon attestation** (`afternoon_five.py:107`) records `attr_version` beside the truthful
+   `dist_version`. The human display line prefers `dist_version or attr_version`, so the stale value
+   surfaces only when distribution metadata is absent — running from an uninstalled source tree,
+   which is precisely the case where it is least trustworthy. No attestation carrying `attr_version`
+   is persisted anywhere in the repository and none is deposited.
+3. **The live public site.** `/case` renders the receipt block, so `columna-core-p1-k0 0.16.0-core`
+   is on datumwise.ai today, under the heading *"the lowering receipt — what binds the two"* and a
+   few lines below *"the execution image emitted by **the shipped** K0 compiler"*. The emitted
+   payload (`gen_firstlight.py:190-196`) includes `compiler` but **omits `established_at`** — so the
+   one field that would let a reader date the claim is dropped, and a historical version is printed
+   bare beside the word "shipped". The value is true; the *presentation* invites reading it as
+   current.
+4. **`specs/columna_manifold_spec_current.md`** — a filename and title that say *current* — opens
+   *"As-built reference for `columna-core` `0.15.0-core` (wire `contract_version` `"2"`)"*. The
+   contract is `"4"`. This is a separate, unenrolled current-state claim of the exact class the
+   currency manifest exists for. The `(0.15.0-core)` stamps in `docs/architecture/*.md` are
+   **dated source records** ("Sources: `columna` @ main (`0.15.0-core`, head `2455509`)") and are
+   correctly out of scope — history is the default.
+
+**THE GOVERNING CONCERN, answered.** *An attestation provenance claim about the producing software
+must be truthful; a stale but plausible version string must not acquire evidentiary standing merely
+because it was recorded.* Today no recorded claim is false — the receipt's is exactly right and the
+attestation prefers the distribution version. **The exposure is that truthfulness is currently an
+accident of the compiler not having changed, not a property the mechanism guarantees.** The moment
+`columna_core/compiler/` changes without someone remembering to move a hand-maintained constant that
+a test pins in place, `build_receipt` will stamp a false producer claim into a governed artifact and
+every guard in the path will pass, because the field is opaque by design and correctly so.
+
+**Evidence:** VX. Recon under the shipped v0.18.1 artifacts; the receipt read out of the installed
+wheel; the public claim read off the live `/case` page; the compiler-subtree and core-subtree diffs
+run against `v0.16.0..main`.
+
+---
+
 ## P3 — Studio / authoring artifact-and-authority boundary
 
 ### P3-01 · The in-repo authoring surface authors the execution image · **CRITICAL** · SV
