@@ -250,7 +250,12 @@ would alias.
 
 ---
 
-### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · VX
+### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · **CLOSED** — shipped in **v0.18.1** · VX
+
+> **Accepted, Huayin, 2026-08-31.** *"P1-10 is accepted as repaired. The distinction between row
+> count (`AS count(*)`) and observation count (`VALUE v` + `count`) is the intended one; no
+> capability was lost."* Repaired in Mission A′ by **removing** the divergence rather than disclosing
+> it, and released in the `columna 0.18.1 / columna-core 0.18.1 / columna-server 0.11.1` set.
 
 Found 2026-08-31 while testing the P2-03 ontology argument by execution. **It is the v5 family
 container producing a number**, which is why it is filed in P1 rather than left inside a P2
@@ -303,6 +308,195 @@ minting a support caveat on mixed-support ratios — treats the symptom while le
 that groups a row-cardinality with three value reducers under one name. The support caveat is
 nonetheless the cheap partial mitigation if Unit D runs long, and `validate_universe_support` already
 computes it.
+
+
+#### Repaired — Mission A′, 2026-08-31
+
+**The divergence was removed at its source rather than disclosed.** The invariant — *a shared output
+coordinate does not establish shared analytical support* — can be satisfied two ways: retain the
+divergence and disclose it, or remove a divergence that had no reason to exist. A family member over
+a declared VALUE is a reducer **over that value**; `count` counting rows instead was not a fact about
+the world, it was a discarded operand.
+
+**One lambda, and the distinction was already declared.** `count` was registered
+`deliver_sql=lambda p: "count(*)"`, discarding `p`. The parser already normalizes the AS-form
+`count(...)` to `pre_expr = "1"` (`parser.py:453` — in that form `count` MEANS rows), while the
+VALUE+FAMILY form carries the declared value. Passing the operand through honours both readings:
+
+| declaration | `pre_expr` | delivered | meaning |
+|---|---|---|---|
+| `MEASURE lines … AS count(*)` | `"1"` | `count(1)` ≡ `count(*)` | rows — **unchanged** |
+| `MEASURE revenue … VALUE v FAMILY { sum count }` | `"v"` | `count(v)` | observations — now equal to its siblings' support |
+
+`count(1)` is exactly `count(*)`: a literal is never null (verified against DuckDB). The engine's own
+inline path already had it right — `_SERIES_REDUCE["count"]` is polars `.count()`, which skips nulls,
+so the two paths had disagreed about the meaning of one word.
+
+```
+5 rows, 4 observations                     before        after
+  revenue.count                            5             4
+  avg_obs  = revenue.sum / revenue.count   20.0          25.0     <- mean per observation
+  lines    = AS count(*)                   5             5        <- unchanged
+  avg_line = revenue.sum / lines           20.0          20.0     <- a different, declared question
+```
+
+**Nothing is hidden and no capability is lost.** Row-counting stays fully addressable via
+`AS count(*)`, and the two readings can be asked side by side and seen to differ. The ambiguity is
+removed; the choice is not.
+
+**Zero governed-artifact impact.** The only shipped declaration of `count` over a VALUE is the
+`firstlight` governed fixture, whose `sales_lines` has no null amounts (6 rows, 6 observations), so
+its served numbers, publication digest, image digest and lowering receipt are byte-identical.
+
+**Ineligible observations are excluded before aggregation and were never at issue** — a universe
+carve removes them from the population, and both members honour it identically (probed: 5 rows, 1
+pre-opening ineligible, 1 unsupported → `sum` 60.0, `count` 3, mean 20.0).
+
+Standing test: `tests/test_family_member_support.py` (9 cases — equal support unchanged; divergent
+support at an identical coordinate; both readings available; the AS-form byte-for-byte unchanged; all
+VALUE-family members share one support; ineligible-by-carve; warm/cold; disclosure parity; and the
+residual blocker below pinned as a fact).
+
+---
+
+### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · **CLOSED** — shipped in **v0.18.1** · VX
+
+Found 2026-08-31 in the Column Algebra Mission 1 reconciliation
+(`specs/column_algebra_reconciliation_m1_v0_1.md`). **Sibling of P1-10, not the same row**: P1-10 is
+support divergence *within* one family (`count(*)` vs null-skipping `sum`); this is support
+divergence *across measures*. Same collapse site, two independent causes.
+
+**The defect is not the dropped rows. It is the claim left behind.**
+
+```
+universe 'ops' basis spine = 3 stores
+revenue   support {s1,s2,s3}      headcount support {s1,s2}
+
+SELECT rev_per_head AT {store}          -- DERIVED revenue / headcount
+  frame outcome     : serve
+  column population : ops               <-- the assertion
+  coordinates served: ['s1','s2']       <-- 2 of 3
+  disclosures       : []
+```
+
+The same two measures served side by side return 3 rows **and** an `unknown_absence` caveat. Combined
+by an operator they return 2 rows and nothing. The disclosure is not merely omitted — the column
+positively asserts `population: ops` while serving the intersection.
+
+**Root cause, one line.** `Planner._apply` (`planner.py:1790-1792`):
+
+```python
+if lk == "col" and rk == "col":
+    j = lp.join(rp, on=keys, how="inner", suffix="_r")
+```
+
+An undeclared complete-case (listwise) participation policy, chosen by the substrate. Φ then runs
+frame-side at `planner.py:524-547` — *after* the inner join has discarded the very null it would have
+typed — so `n_absent == 0`, the pass `continue`s, and the absence disappears.
+
+**The loss is specific to support.** A DERIVED over an HLL measure keeps its `approximation` caveat:
+`Disclosure.combine` (`disclosure.py:177-187`) is sound. Provenance disclosures propagate; support
+and absence do not, because they are frame-side facts rather than operand-level ones.
+
+**Doctrine contradicted:**
+
+| # | doctrine | locus | how it breaks |
+|---|---|---|---|
+| 1 | **§2c FRAME LAW** — *"each column keeping its own population semantics"* | `planner.py:504-513` (`how="full"`) | the expression path does the opposite, 1,280 lines later in the same file |
+| 2 | **P1-01's aggravating rule** — a disclosure that *claims* one population while delivering another | this ledger, P1-01 | identical shape, reversed direction: claims `ops`, delivers the intersection |
+| 3 | **Unit B's ratified wire boundary** — `disclosures` is semantic authority, call-invariant, *what is true of the answer* | contract 4, `disclosure_wire.py:25-44` | `population` is a semantic claim, and it is false |
+| 4 | **"disclosed, never silent"** (addendum §5) | `disclosure_wire.py:166` | zero disclosures on a material population change |
+| 5 | **the four moods sort by lawfulness** — *disclose* = lawful, a material condition travels | Manual ch. 7 | a material condition exists and does not travel |
+| 6 | **ADR-036 determinacy** — served *"with a disclosure if that number is risky"* | Manual `:1210` | risky, undisclosed |
+| 7 | **f0 ruling 10** — `LAW -> EXECUTION DIRECTIVE -> SUBSTRATE` | `f0_reconnaissance.md:150`; `:147` already names *"participation/absence"* among ~19 embedded decisions | an un-lifted substrate default |
+
+**Classification.** Not a wrong-number defect in the P1-01/P1-02 sense — the arithmetic over the
+surviving coordinates is correct. It is a **silent population substitution**, and it is worse-behaved
+than a plain omission in one respect: the wire makes a positive assertion that is false.
+
+**Repair discipline (ruled, Huayin 2026-08-31).** *"Do not cure population substitution merely by
+disclosing after an inner join has already discarded an analytical point. Preserve the governed
+alignment facts/domain first; only then apply the map's declared/currently established
+eligibility-support semantics."* The defect is that substrate alignment chooses participation before
+Φ/support law can see the discarded point; the repair must remove that authority from the substrate.
+
+
+#### Repaired — Mission A, 2026-08-31
+
+**The alignment domain is now declared rather than inherited from the substrate.** `_apply` joins
+`how="full"` (`planner.py`), which is the §2c FRAME LAW applied one level down — one alignment law,
+not two, and the `LAW -> EXECUTION DIRECTIVE -> SUBSTRATE` shape f0 ruling 10 asks for.
+
+Per Huayin's governing refinement, the repair does **not** disclose after the fact. The coordinate is
+preserved first; only then does declared law speak. Each operand's own Φ travels into the map, so the
+one distinction current law can make survives:
+
+| absent operand's Φ | the coordinate is | caveat | materiality | mood |
+|---|---|---|---|---|
+| `undefined` | **ineligible** — outside that operand's population | `out_of_population` | immaterial | `serve` |
+| `unknown` | **eligible but unsupported** — a real shortfall | `data_gap` -> `incomplete_data` | MATERIAL | `disclose` |
+| `zero` / mixed / none | undetermined — see the missing representation below | `data_gap` | MATERIAL | `disclose` |
+
+**A `zero` rule never fills a divergence gap.** `zero` declares what an absence of *that measure*
+denotes; it says nothing about a coordinate where one operand was present and the other absent.
+Filling would assert the expression was nil when what is true is that it is undefined. The guard is
+conservative by construction — a column carrying any divergence gap is not filled at all, because the
+two null-origins are not separable per cell at that point, and not-filling is the only direction that
+cannot fabricate a value.
+
+**No wire field, no contract bump.** `DATA_GAP` was already declared and already wired MATERIAL as
+`incomplete_data` with zero producers; it now has one. `derive_outcome` supplies the mood flip.
+
+**THE MISSING REPRESENTATION, reported rather than invented** (per the ruling): **nothing declares how
+Φ composes through an operator.** `_column_fill_rule` infers a column's Φ by unanimity over its atoms,
+which is sound for measure absence and silent about expression absence. Two operands declaring `zero`
+do not thereby declare that `a / b` is nil where `b` is absent — that is division by an absent
+denominator, not a nil quantity. Mission A therefore refuses to fill and says so on the wire. A
+declared Φ-composition law is Mission C's territory, not this one's.
+
+Standing test: `tests/test_alignment_domain.py` (10 cases — equal supports invent nothing; either
+side may be short; the population claim now matches what is served; ineligible stays immaterial and
+`serve`; `zero` never fills; provenance caveats still ride alongside; warm/cold agree; and the
+P1-10 scope boundary is pinned so the coupling claim cannot rot again).
+
+### P1-12 · Support divergence across measures at a SHARED coordinate is not representable · **MEDIUM** · **BOUNDED BLOCKER — no repair authorized · MISSION C** · VX
+
+> **Ruled, Huayin, 2026-08-31.** *"Record P1-12 as the bounded remaining support-representation gap
+> and leave it for Mission C. Do not attempt to solve it in this release."* The row ships open and
+> dated with v0.18.1; it is the declared residual of Missions A and A′, not an oversight in them.
+
+The residual after P1-10 and P1-11, recorded so the gap stays visible and dated rather than being
+rediscovered. **This row is a fact about the runtime, not a defect to fix now.**
+
+Two *different* measures may both have a row at a coordinate while resting on different underlying
+support — `revenue` over 4 observations and `lines` over 5 rows, both at `s1`. Neither repair sees it:
+
+- **P1-11's alignment domain cannot** — the coordinate exists for both operands, so there is nothing
+  to preserve.
+- **P1-10's repair cannot** — they are not members of one family, so no shared VALUE makes their
+  supports equal by construction.
+
+In the probed case the divergence is *declared* (`lines` is `AS count(*)`; asking revenue-per-line is
+a legitimate question and 20.0 is its right answer). **The blocker is that the runtime cannot
+distinguish a declared divergence from an accidental one.** The engine delivers ONE aggregate per
+measure per coordinate (`engine.py:313-314`); the observation count is consumed inside the SQL
+aggregate and never returned. `validate_universe_support` computes a per-measure cardinality at the
+universe base grain, has zero callers, and is the wrong granularity besides.
+
+**What it would take:** a companion support carrier on every delivery, or a declared support contract
+per operator. That is new runtime machinery, not a small change, and it is not supported by current
+doctrine — which is why it is rowed rather than attempted (Huayin's instruction: *"if the current
+runtime lacks enough retained support information to distinguish the cases, stop and report that as
+the architectural blocker rather than guessing"*).
+
+**Relationship to the Column Algebra work:** this is the same fact the design record's §4.2.1 is
+about — *joint eligible frame* versus *co-supported realized points* — at the level of underlying
+observations rather than coordinates. It belongs with Mission C (participation as declared law), not
+with a correctness sweep.
+
+Pinned by `tests/test_family_member_support.py::test_the_residual_is_not_representable`, which
+asserts the CURRENT state; if it starts failing, the runtime grew a support representation and this
+row can be struck.
 
 ---
 
@@ -783,6 +977,46 @@ than returning a number.
 
 Not in the original inventory — the six audits found the tier claim in this table and stopped there.
 
+### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · VX
+
+Found 2026-08-31 in the Column Algebra Mission 1 reconciliation. Same defect class as **P0-17**
+(operators marked available that do not resolve) and **OF-18**'s form-primacy finding (a careful
+reader learns a form the parser rejects).
+
+Verified through the real ask surface (`parse_statement` -> `run_statement` -> `wire_frame`):
+
+```
+manual 2.4 / 6.5  bare map (documented)     -> serve   served
+manual 2.4        PINNED map operands       -> error   unknown column 'transaction'
+manual 2.4        pinned, composite pin     -> error   unsupported expression node Tuple
+manual 2.1        multi-input canonical     -> error   'corr' is not a scan operator
+multi-arg shipped reducer                   -> error   'avg' takes exactly one column argument
+```
+
+Three distinct false claims:
+
+- **`:277`** states the canonical multi-input shape `op(col_1 @ {a_1}, col_2 @ {a_2}, ...)` and adds
+  *"The framework parses this form directly, type-checks it, and plans it."* Reducers are
+  hard-arity-1 at `planner.py:908`.
+- **`:329-331`** shows pinned map operands as executable examples. Both error.
+- **`:561`** states *"The framework checks that all input column references resolve to the same input
+  anchor."* **No such check exists.** Co-anchoring holds only because `_node` hands both operands the
+  identical output anchor (`planner.py:1609-1610`) and joins on it.
+
+A fourth, consequential: the multi-input clarify documented at **`:315`** (`input_anchor_ambiguous`
+*"covers the multi-input case"*) is **unreachable** — the arity gate fires first with a generic
+`unknown`.
+
+**Why the standing gate did not catch it — the structural finding.**
+`docs/tools/check_manual_frameql.py` is **grammar-only by design**, and says so: *"it may still
+refuse/clarify at PLAN time; that is semantics, not grammar — this check is grammar only."* Every
+example above **parses clean**. The gate proves the manual cannot document syntax its own parser
+rejects; it proves nothing about whether the documented form *runs*.
+
+**Recommendation:** extend the standing check to **plan** each example against a fixture manifold,
+asserting each either resolves or carries a documented refusal — the same upgrade OF-18 asked for on
+status marks, applied to executable form. That is Mission B, not this row.
+
 ### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · **FIXED** in Unit C · SV
 
 Its "current task" is launch-checklist steps 3-8; it predates the K0 compiler, the lowering
@@ -1142,6 +1376,7 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 | **P1-01 + P1-03** | P1-03 is latent only because P1-01 exists. Fixing confinement without widening the witness currency key converts latent under-invalidation into active staleness |
 | **P1-04 + P1-05** | Both concern what the TOUCH path discloses. Re-grading coverage to MATERIAL while the warm path still drops it means the warm/cold divergence becomes outcome-visible (`disclose` cold, `serve` warm) — a strictly worse failure than today's |
 | **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today. **Eased 2026-08-31:** P2-03's repair is now understood to be **additive** (a governed `Law(F)` carrier) rather than a relocation of a required field, so the set of publications a refusal rule would reject is materially smaller than this row assumed |
+| **P1-10 + P1-11** | ~~A repair at the join addresses both~~ *(both now closed by SEPARATE repairs; residual rowed as P1-12)* — **CORRECTED 2026-08-31 by execution.** Mission A repaired the join and P1-10 is **unchanged**: `revenue.sum / revenue.count` still serves 20.0 with zero caveats. Both members produce a row at the anchor, so the alignment domain is identical and there is no coordinate for it to preserve. P1-10's divergence lives in the **underlying observation counts**, which needs support as a set of OBSERVATIONS, not of coordinates. The two rows share a collapse site and nothing else. Pinned by `test_alignment_domain.py::test_p1_10_is_not_addressed_by_the_alignment_domain` |
 | **P1-10 + P2-03** | P1-10 is the v5 family container producing a number. Re-typing `count` or minting a support caveat treats the symptom and leaves the container. The caveat is the cheap partial mitigation if P2-03 runs long |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 

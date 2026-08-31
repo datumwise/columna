@@ -3,7 +3,22 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
-## [Unreleased] — 0.11.0 — the first public governed fixture
+## 0.11.1 — the front door says what ships
+
+No behaviour change. The packaged README — the page a stranger reads on PyPI — now types the
+distinction the package already enforces, rather than letting the demo imply otherwise: the packaged
+**Cascadia** demo is hand-authored, carries no `SOURCE_MANIFOLD`, and is classified `ENTRY_LEGACY` by
+admission, so it demonstrates serving and the four moods and **not** the governed path; the governed
+artifact is **firstlight**, admitted `ENTRY_GOVERNED` and exercised by standing tests. And this
+package *consumes* governed publications rather than producing them — the author → ratify → publish
+third of the lifecycle is not here, and no public governed authoring surface is open (topology record
+§§17.2–17.3).
+
+A README is the wheel's `long_description`, so this is a payload change and the version advances for
+it. That is the rule, not an exception to it: `skip-existing` must never turn "same version" into
+"therefore same package".
+
+## 0.11.0 — the first public governed fixture
 
 **`firstlight` — a governed publication this release can serve and cannot make.** Every governed
 runtime the tests exercised until now was assembled in `tmp_path`; nothing governed shipped. This

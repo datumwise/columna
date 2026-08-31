@@ -2,16 +2,18 @@
 """P1-10 — a family member whose support disagrees with its siblings, and the ratio that serves.
 
 Reproduction for the ledger row of the same name (`docs/architecture/consolidated_ledger_v0_1.md`).
-Kept as a script rather than a test because the row is OPEN: a test would have to assert the defect,
-and a green suite asserting a defect is a worse artifact than a script that shows one. When P1-10 is
-repaired this becomes a standing test and the assertion flips.
+REPAIRED 2026-08-31 (Mission A'). Kept as the reproduction of what was wrong — running it now shows
+the CORRECTED behaviour, which is the point: `revenue.count` is 4, not 5, and the ratio is 25.0. The
+assertion flipped into a standing test, as this note said it would:
+`packages/columna-core/tests/test_family_member_support.py`.
 
     python docs/architecture/repro/p1_10_mixed_denominator.py
 
-WHAT IT SHOWS. `count` is registered `deliver_sql=lambda p: "count(*)"` (operators.py:84). Inside one
-declared family, `sum` skips nulls and `count` does not, so two members carry different SUPPORTS.
-Their ratio serves with no caveat, and which figure is "right" depends on a law nobody declared —
-which is the P2-03 argument arriving as a number.
+WHAT IT SHOWED. `count` was registered `deliver_sql=lambda p: "count(*)"`, discarding its operand, so
+inside one declared family `sum` skipped nulls and `count` did not: two members, two supports. Their
+ratio served 20.0 with no caveat, where the mean per revenue observation was 25.0, and which figure
+was "right" depended on a law nobody declared. The operand is now passed through, so a family member
+over a declared VALUE counts that value's observations and the supports agree by construction.
 """
 import duckdb
 
@@ -64,11 +66,13 @@ def main() -> int:
     print(f"   caveats  : {[(c.category, c.detail) for c in col.disclosure.caveats]}")
 
     print(f"""
-   mean per revenue OBSERVATION : {total} / {obs} = {total / obs}
-   mean per LINE                : {total} / {rows} = {total / rows}   <- what serves
+   mean per revenue OBSERVATION : {total} / {obs} = {total / obs}   <- what serves now
+   mean per LINE                : {total} / {rows} = {total / rows}   <- what served before the repair
 
-Neither is wrong on its face. Which one the number IS depends on a family law that
-nothing declares, and the wire says nothing either way. See P2-03.""")
+REPAIRED. `revenue.count` counts observations of the declared VALUE, so every member of the family
+is about the same support and the ratio has one denominator. Row-counting is still fully available
+and separately addressable as `MEASURE lines ... AS count(*)` — the ambiguity was removed, not the
+choice. See the ledger row P1-10 and tests/test_family_member_support.py.""")
     return 0
 
 

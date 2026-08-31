@@ -19,6 +19,7 @@ from .projection import PlannerView
 from .engine import ColumnEngine
 from .disclosure import (Disclosure, Refusal, Caveat, TRANSPORT, UNCONFIRMED,
                          DECLARED_FILL, UNKNOWN_ABSENCE, OUT_OF_POPULATION, UNDECLARED_ABSENCE,
+                         DATA_GAP,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
 
@@ -529,7 +530,19 @@ class Planner:
                 if not n_absent:
                     continue
                 phi = c.fill_rule
-                if phi == "zero":
+                # A DIVERGENCE GAP IS NOT A MEASURE ABSENCE, so Φ must not fill it (P1-11). `zero`
+                # declares that an absence of THAT MEASURE denotes nil; it says nothing about a
+                # coordinate where one operand of an expression was present and the other was not.
+                # Filling there would assert the expression was nil when what is true is that it is
+                # undefined. Conservative by construction: a column carrying any divergence gap is
+                # not filled at all, because the two null-origins are not distinguishable per cell
+                # at this point — and not-filling is the direction that cannot fabricate a value.
+                if phi == "zero" and c.disclosure.has(DATA_GAP):
+                    c.disclosure = c.disclosure.with_caveat(Caveat(UNDECLARED_ABSENCE, severity="caution", detail=(
+                        f"{n_absent} absent cell(s) NOT filled despite a declared `zero` rule — the "
+                        f"column carries a support gap from an expression operand, and `zero` does not "
+                        f"declare what an absence of the expression denotes")))
+                elif phi == "zero":
                     data = data.with_columns(pl.col(c.name).fill_null(0))
                     c.disclosure = c.disclosure.with_caveat(Caveat(DECLARED_FILL, severity="info", detail=(
                         f"{n_absent} absent cell(s) filled with 0 per the declared fill rule — the quantity "
@@ -1608,7 +1621,12 @@ class Planner:
             lk, lp, ld, ldt = self._node(node.left, anchor, where, trace)
             rk, rp, rd, rdt = self._node(node.right, anchor, where, trace)
             op = _OP[type(node.op)]
-            return self._apply(op, lk, lp, ld, ldt, rk, rp, rd, rdt, list(anchor))
+            # Each operand's OWN declared Φ travels with it into the map (P1-11). It is the only
+            # governed fact current law has about what THAT operand's absence means, and `_apply`
+            # cannot recover it from a frame — a null carries no provenance.
+            return self._apply(op, lk, lp, ld, ldt, rk, rp, rd, rdt, list(anchor),
+                               self._column_fill_rule(node.left, anchor),
+                               self._column_fill_rule(node.right, anchor))
 
         raise Refusal("unknown", f"unsupported expression node {type(node).__name__}")
 
@@ -1775,7 +1793,43 @@ class Planner:
                     + self._would_be_defaulted_caveats(node.right, anchor))
         return out
 
-    def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys):
+    # Φ_v, read for the operand it belongs to, says what an absence of THAT MEASURE denotes. It does
+    # not say what an absence of an EXPRESSION denotes — nothing declares how Φ composes through an
+    # operator, and this pass deliberately does not invent that rule (P1-11; the ruling is "report the
+    # missing representation rather than invent a default"). So the two cases current law CAN
+    # distinguish are typed, and the rest is disclosed as a gap and never filled.
+    _DIVERGENCE = {
+        # Φ of the ABSENT operand -> (caveat category, severity, what the coordinate is)
+        "undefined": (OUT_OF_POPULATION, "info",
+                      "outside that operand's declared population — the point is INELIGIBLE, so the "
+                      "expression is not defined there"),
+        "unknown":   (DATA_GAP, "caution",
+                      "the operand is ELIGIBLE there but was not observed — a support gap, not a "
+                      "population boundary"),
+    }
+    _DIVERGENCE_UNDECLARED = (DATA_GAP, "caution",
+                              "the operand's own fill rule does not determine what an absence of the "
+                              "EXPRESSION denotes; Φ-composition through an operator is undeclared")
+
+    def _divergence_caveats(self, disc, op, n_l, n_r, lphi, rphi):
+        """One caveat per operand whose support fell short of the alignment domain.
+
+        Reported per SIDE, not merged, because the two sides can be eligible-vs-ineligible for
+        different reasons and merging them would destroy the one distinction current law can make."""
+        for n, phi, side in ((n_l, lphi, "left"), (n_r, rphi, "right")):
+            if not n:
+                continue
+            cat, sev, why = self._DIVERGENCE.get(phi, self._DIVERGENCE_UNDECLARED)
+            disc = disc.with_caveat(Caveat(
+                cat, severity=sev,
+                detail=(f"{n} coordinate(s) present for one operand of '{op}' and absent for the "
+                        f"{side} one: {why}. The alignment domain is the union of the operands' "
+                        f"supports, so these coordinates are IN the frame and carry no value."),
+                remedy=("declare FILL on the absent operand, or restrict the ask to the co-supported "
+                        "population" if cat is DATA_GAP else None)))
+        return disc
+
+    def _apply(self, op, lk, lp, ld, ldt, rk, rp, rd, rdt, keys, lphi=None, rphi=None):
         # map operands are typechecked against the umbrella registry's MAP signature (vocabulary)
         sig = self.m.operators.get(op)
         for side, dt in (("left", ldt), ("right", rdt)):
@@ -1788,7 +1842,24 @@ class Planner:
         f = {"+": lambda a, b: a + b, "-": lambda a, b: a - b,
              "*": lambda a, b: a * b, "/": lambda a, b: a / b}[op]
         if lk == "col" and rk == "col":
-            j = lp.join(rp, on=keys, how="inner", suffix="_r")
+            # ── THE ALIGNMENT DOMAIN IS DECLARED, NOT INHERITED FROM THE SUBSTRATE (P1-11) ─────────
+            # This join used to be `how="inner"`, and that one word was an undeclared complete-case
+            # participation policy chosen by Polars. It discarded any coordinate the two operands did
+            # not share — BEFORE Φ could see it — so the absence had already ceased to exist by the
+            # time the absence pass ran, and the column went on asserting `population: <universe>`
+            # while serving the intersection.
+            #
+            # The law was already written 1,280 lines up, for juxtaposition: *"Absence is only
+            # definable relative to a DOMAIN; the full-outer align supplies one LOCALLY."* An
+            # expression needs a domain for exactly the same reason a frame does. This is that same
+            # law applied one level down — one alignment law, not two — and it is the shape f0
+            # ruling 10 asks for: LAW ("alignment domain = full outer") -> DIRECTIVE -> SUBSTRATE.
+            j = lp.join(rp, on=keys, how="full", coalesce=True, suffix="_r")
+            l_absent = pl.col(_V).is_null() & pl.col(f"{_V}_r").is_null().not_()
+            r_absent = pl.col(f"{_V}_r").is_null() & pl.col(_V).is_null().not_()
+            n_l, n_r = j.filter(l_absent).height, j.filter(r_absent).height
+            if n_l or n_r:
+                disc = self._divergence_caveats(disc, op, n_l, n_r, lphi, rphi)
             return "col", j.with_columns(f(pl.col(_V), pl.col(f"{_V}_r")).alias(_V)).select(keys + [_V]), disc, out_dt
         if lk == "col":
             return "col", lp.with_columns(f(pl.col(_V), rp).alias(_V)), disc, out_dt
