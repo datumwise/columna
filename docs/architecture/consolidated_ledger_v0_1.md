@@ -250,7 +250,12 @@ would alias.
 
 ---
 
-### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · **FIXED** in Mission A′ · VX
+### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · **CLOSED** — shipped in **v0.18.1** · VX
+
+> **Accepted, Huayin, 2026-08-31.** *"P1-10 is accepted as repaired. The distinction between row
+> count (`AS count(*)`) and observation count (`VALUE v` + `count`) is the intended one; no
+> capability was lost."* Repaired in Mission A′ by **removing** the divergence rather than disclosing
+> it, and released in the `columna 0.18.1 / columna-core 0.18.1 / columna-server 0.11.1` set.
 
 Found 2026-08-31 while testing the P2-03 ontology argument by execution. **It is the v5 family
 container producing a number**, which is why it is filed in P1 rather than left inside a P2
@@ -354,7 +359,7 @@ residual blocker below pinned as a fact).
 
 ---
 
-### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · **FIXED** in Mission A · VX
+### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · **CLOSED** — shipped in **v0.18.1** · VX
 
 Found 2026-08-31 in the Column Algebra Mission 1 reconciliation
 (`specs/column_algebra_reconciliation_m1_v0_1.md`). **Sibling of P1-10, not the same row**: P1-10 is
@@ -454,7 +459,11 @@ side may be short; the population claim now matches what is served; ineligible s
 `serve`; `zero` never fills; provenance caveats still ride alongside; warm/cold agree; and the
 P1-10 scope boundary is pinned so the coupling claim cannot rot again).
 
-### P1-12 · Support divergence across measures at a SHARED coordinate is not representable · **MEDIUM** · **BOUNDED BLOCKER — no repair authorized** · VX
+### P1-12 · Support divergence across measures at a SHARED coordinate is not representable · **MEDIUM** · **BOUNDED BLOCKER — no repair authorized · MISSION C** · VX
+
+> **Ruled, Huayin, 2026-08-31.** *"Record P1-12 as the bounded remaining support-representation gap
+> and leave it for Mission C. Do not attempt to solve it in this release."* The row ships open and
+> dated with v0.18.1; it is the declared residual of Missions A and A′, not an oversight in them.
 
 The residual after P1-10 and P1-11, recorded so the gap stays visible and dated rather than being
 rediscovered. **This row is a fact about the runtime, not a defect to fix now.**

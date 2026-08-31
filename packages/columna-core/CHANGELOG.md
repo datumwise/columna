@@ -7,6 +7,91 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.18.1 — a column serves the population it names
+
+**Wire contract stays `"4"`.** No field is added, removed or moved. Two columns that were serving a
+confident wrong number now serve the right one, and one previously-unproduced wire code acquires a
+producer.
+
+### Fixed
+
+**P1-11 — a binary map inherited its alignment domain from the substrate.** `Planner._apply` joined
+its operands `how="inner"`. That one word is a complete-case participation policy, and nobody
+declared it: every coordinate the operands did not share was discarded *before* the absence pass
+ran, so by the time Φ could have spoken the absence had ceased to exist. The column went on
+asserting `population: <universe>` while serving the intersection — the frame naming one population
+and delivering another.
+
+The alignment domain is now **declared**. The coordinate is preserved first; only then does law
+speak. Each operand's own Φ travels into the map (a null carries no provenance, and `_apply` cannot
+recover it from a frame), which preserves the one distinction current law can make:
+
+| absent operand | reading | wire |
+| --- | --- | --- |
+| Φ = `undefined` | ineligible | `out_of_population`, immaterial → **serve** |
+| Φ = `unknown` | eligible but unsupported | `data_gap`, MATERIAL → **disclose** |
+| `zero` / mixed / none | undetermined | `data_gap`, MATERIAL → **disclose** |
+
+A `zero` rule **never** fills a divergence gap. `zero` declares what an absence of *that measure*
+denotes; it says nothing about a coordinate where one operand was present and the other absent, and
+filling there would assert the expression is nil when what is true is that it is undefined. A column
+carrying any divergence gap is not filled at all — the two null-origins are not separable per cell,
+and not-filling is the only direction that cannot fabricate a value.
+
+`DATA_GAP` was already declared and already wired MATERIAL as `incomplete_data` with zero producers.
+It now has one.
+
+**P1-10 — a family member reduced something its siblings did not.** `count` was registered
+`deliver_sql=lambda p: "count(*)"`, discarding the operand. So in a family over a declared VALUE its
+siblings reduced the value and `count` counted rows, and `revenue.sum / revenue.count` divided a sum
+over 4 observations by a count of 5 rows — serving **20.0** where **25.0** is the answer, with zero
+caveats, because a shared output coordinate looks like shared support and isn't.
+
+The divergence is **removed at its source rather than disclosed**, because it had no reason to
+exist: a family member over a declared VALUE is a reducer *over that value*. The distinction was
+already declared and only the delivery threw it away — the parser normalizes the AS-form
+`count(...)` to `pre_expr = "1"` (in that form `count` means rows), while the `VALUE`+`FAMILY` form
+carries the declared value. Passing the operand through honours both readings:
+
+```
+MEASURE lines   ... AS count(*)                 pre_expr "1" -> count(1) == count(*)   unchanged
+MEASURE revenue ... VALUE v FAMILY {sum count}  pre_expr "v" -> count(v)   observations
+```
+
+`count(1)` is exactly `count(*)` — a literal is never null. The engine's inline path already had it
+right (`_SERIES_REDUCE["count"]` is polars `.count()`, which skips nulls), so two paths had disagreed
+about the meaning of one word.
+
+**No capability is lost.** Row-counting stays fully addressable through `AS count(*)`, and the two
+readings can be asked side by side and seen to differ. The ambiguity is removed; the choice is not.
+Governed impact is zero: the only shipped declaration of `count` over a VALUE is the `firstlight`
+fixture, whose `sales_lines` has no null amounts — served numbers, publication digest, image digest
+and lowering receipt are byte-identical across the change.
+
+### Not fixed, and rowed instead
+
+**P1-12 — support divergence across *different* measures at a shared coordinate is not
+representable.** Two measures may both have a row at a coordinate while resting on different
+underlying support. Neither repair above sees it: P1-11's alignment domain cannot (the coordinate
+exists for both operands), and P1-10's cannot (they are not members of one family, so no shared
+VALUE makes their supports equal). The engine delivers one aggregate per measure per coordinate and
+the observation count is consumed inside the SQL aggregate, so the runtime **cannot distinguish a
+declared divergence from an accidental one**. Detecting it needs a companion support carrier on
+every delivery — new machinery, not a small change — so it is recorded as a bounded blocker in the
+consolidated ledger and left for Mission C rather than guessed at.
+
+### Standing tests
+
+`tests/test_alignment_domain.py` (10 cases) and `tests/test_family_member_support.py` (9), including
+a test that asserts P1-12's residual is *not* representable today: if it starts failing, the runtime
+grew a support representation and that ledger row can be struck.
+
+### Documentation
+
+The packaged README's front-door version stamp is now enrolled in
+`scripts/currency_stamps.toml` — it was corrected by hand one release earlier and went stale again
+inside the same release, which is the argument for a guard rather than a habit.
+
 ## 0.18.0 — the wire separates what a number means from how it was obtained
 
 **Wire contract `"3"` -> `"4"`.** `disclosures` stays the SEMANTIC channel — what is true of the

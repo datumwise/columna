@@ -149,6 +149,23 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'warm answers were quieter than fresh ones — the wire now separates what a number means from how it was obtained',
     date: '2026-08-31',
   },
+  // Two wrong numbers, both reproduced under the real runtime before anything was touched, and both
+  // the same shape: a column asserted a population it had not served. In a binary map the substrate
+  // picked the policy — `_apply` joined `how="inner"`, so every coordinate the operands did not share
+  // was discarded BEFORE the absence pass could see it, and the column went on declaring
+  // `population: <universe>` while serving the intersection. In a measure family the divergence was
+  // one lambda: `count` was registered to count ROWS, throwing away the declared VALUE its siblings
+  // reduce, so `revenue.sum / revenue.count` divided a sum over 4 observations by a count of 5 rows
+  // and served 20.0 where 25.0 is the answer — silently, with no caveat. Stated as the two rules
+  // rather than the two patches: an alignment domain is DECLARED, not inherited from whatever the
+  // join happened to do; and every member of a family over one VALUE reduces THAT VALUE, so one
+  // family is one support by construction. Row-counting keeps its own spelling (`AS count(*)`) and
+  // loses nothing — the ambiguity is removed, the choice is not. This set also carries the two
+  // packaged front doors, correct since 14:11 UTC and released off the gate they were waiting on.
+  '0.18.1': {
+    title: 'a column now serves the population it names — an alignment domain is declared, and one family is one support',
+    date: '2026-08-31',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];

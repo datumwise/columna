@@ -23,9 +23,13 @@
 # Templates are matched as PLAIN TEXT, so they must not span a line wrap in the target file. Where a
 # claim wraps, enrol the half that carries the version.
 #
-# COVERAGE (ruled 2026-08-22): the three surfaces repaired in PR #210 and nothing else. Not the
-# bibliography citations (a citation naming the version it documented is dated, not stale), not
-# /learn, not /docs/reference, not any dated historical note.
+# COVERAGE (ruled 2026-08-22): the three surfaces repaired in PR #210. Not the bibliography
+# citations (a citation naming the version it documented is dated, not stale), not /learn, not
+# /docs/reference, not any dated historical note.
+#
+# COVERAGE, EXTENDED (2026-08-31, v0.18.1): one fourth surface — the packaged core README's H1, see
+# the block at the foot of this file. Enrolment is how coverage grows; it grows by a named entry in
+# this file and a reason beside it, never by the guard deciding on its own what looks current.
 
 # ── docs/frame_ql_manual_v2.md ───────────────────────────────────────────────────────────────────
 # The Manual is the normative reference for shipped syntax and behaviour, so every sentence in it
@@ -94,3 +98,18 @@ template = 'on one contract (contract_version "{contract}"):'
 file = "apps/website/src/components/ExhibitB.astro"
 claim = "askWire copy — the contract the wire arrives on"
 template = '"{contract}"), identical over MCP or a direct API call.'
+
+# ── the packaged front door that carries a version (enrolled 2026-08-31, v0.18.1) ────────────────
+# `packages/columna-core/README.md` is the wheel's `long_description` — the page a stranger reads on
+# PyPI. Its H1 states the shipped version. PR #251 (P0-11/P0-13, packaged half) brought it level with
+# 0.18.0 by hand, and it went stale again within the same release the moment the set moved to 0.18.1
+# — found by this release, not by a guard, which is the whole argument for enrolling it. A version
+# printed on the front door is a current-state claim of exactly the kind this manifest is for.
+#
+# Enrolled with a deliberately NARROW template: the H1 alone. The rest of that README — its version
+# history blocks, its dated notes — stays history and stays out of the guard's reach.
+
+[[stamp]]
+file = "packages/columna-core/README.md"
+claim = "packaged front door — the H1 states the shipped core version"
+template = "# columna-core ({core})"

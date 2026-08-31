@@ -33,7 +33,7 @@ and [`specs/doctrine_gaps.md`](specs/doctrine_gaps.md) (doctrine ahead of code).
 
 ## Shipped state
 
-`columna-core` **0.18.0** · `columna-server` **0.11.0** · wire `contract_version` **4**.
+`columna-core` **0.18.1** · `columna-server` **0.11.1** · wire `contract_version` **4**.
 Read the version from `pyproject.toml`, never from prose.
 
 ## Closed units
@@ -59,9 +59,16 @@ retired formulation (Huayin, 2026-08-31): the reducer law belongs to the measure
 measure inherits — so the repair is expected to be **additive** (a governed `Law(F)` carrier) and
 `root_evaluator` may correctly stay where it is, as root *formation*.
 
-**P1-10** is the same fossil arriving as a served number — two members of one family with different
-supports, ratio serves 20.0 with zero caveats. Reproduce with
-`python docs/architecture/repro/p1_10_mixed_denominator.py`.
+**P1-10 and P1-11 are CLOSED** (v0.18.1, Missions A and A′ — accepted by Huayin 2026-08-31). The
+family fossil no longer arrives as a served number: a member over a declared VALUE reduces that
+value, so `revenue.sum / revenue.count` serves 25.0 and `AS count(*)` keeps row-counting in its own
+spelling. `python docs/architecture/repro/p1_10_mixed_denominator.py` now demonstrates the corrected
+reading rather than the defect.
+
+**P1-12 is the bounded residual and belongs to Mission C** — support divergence across *different*
+measures at a shared coordinate is not representable, because the runtime cannot distinguish a
+declared divergence from an accidental one. **No repair is authorized**; read the ledger row before
+proposing one.
 
 ## The rule that governs how work is picked up here
 
