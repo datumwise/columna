@@ -4,13 +4,44 @@
 
 **Version:** 0.3 · **Date:** 31 August 2026
 **Supersedes:** *Column Algebra / Frame-QL Expansion — Design Record v0.2*
-**Status:** design record. **No implementation, grammar, Manual, ledger or site change is
-authorized by this document.**
-**Name:** **provisional**, pending Unit D / D1.
+**Status:** design record. **No implementation is authorized by this document.**
+**Name:** adopted, and **no longer provisional on Unit D / D1 grounds** — that formulation was
+retracted 2026-08-31. The name rests directly on ToD v6.1 §1.2; any further change to it is a naming
+ruling, not an output of the crosswalk.
 
 ---
 
 ## 1. Standing, scope, and name
+
+### 1.0 The foundation
+
+> **The Measure Algebra of the Theory of Data is designed directly against canonical ToD v6.1. It is
+> not derived from current Columna runtime vocabulary. Columna's migration from its mixed v5/v6
+> implementation is a separate Unit D problem.**
+
+```text
+Theory of Data v6.1
+        |
+        v
+Measure Algebra            designed directly in canonical v6 terms
+
+  ...separately...
+
+Current Columna Core       mixed v5/v6 vocabulary
+        |
+        v
+Unit D / D1 crosswalk
+        |
+        v
+eventual implementation mapping
+```
+
+**The two programs meet at the implementation boundary and nowhere earlier.** If a future Columna
+implementation of reusable state has to touch today's `family` / `member` / `root_evaluator`
+structures, *that implementation* may need D1 first. **That is an implementation sequencing
+constraint, not a dependency of the algebra.** This corrects v0.3's first draft, which made the
+record's own theoretical status "pending D1" — an entanglement the standing ruling that Unit D is
+*"not connected to Column Algebra or the current Frame-QL research"* forbids in both directions.
 
 ### 1.1 Scope
 
@@ -66,18 +97,17 @@ document may later be cited as having established.
    of structure ToD already carries, not invention. Where something is genuinely new it is marked
    **NEW LAW**; where it is exhibition it is marked **LATENT**.
 
-3. **Its final status remains subject to Unit D / D1's v5→v6 reconciliation.** Unit D was opened
-   2026-08-31; *"this unit's deliverable is a **crosswalk, not a change**"*, and its governing
-   question is *"what concepts in current Core correspond to v5 Measure, v5 Member, root evaluator,
-   and family reducer — and what should each become under the canonical v6 MeasureFamily / Measure
-   `F@A` / `Law(F)` model?"* Until it rules, this record's *name*, its *vocabulary*, and the standing
-   of anything depending on reusable-state identity are provisional; sections marked **[D1-GATED]**
-   are held entirely.
+3. **Its design is NOT gated on Unit D / D1.** *(Corrected 2026-08-31; the earlier "final status
+   remains subject to D1" is retracted.)* The algebra is written in canonical v6 terms, which ToD
+   v6.1 already publishes — so there is nothing about it for a v5→v6 crosswalk of *Columna's*
+   vocabulary to settle. Unit D's deliverable is *"a crosswalk, not a change"* for **current Core**,
+   and it is held *"not connected to Column Algebra or the current Frame-QL research"* by ruling.
+   Honouring that separation means not treating D1 as a gate on this record any more than treating
+   this record as an input to D1: **the isolation runs both ways.**
 
-   **Unit D is also held SEPARATE from this work by explicit ruling** — *"not connected to Column
-   Algebra or the current Frame-QL research"* (2026-08-31). *Subject to* is therefore not *entangled
-   with*: this record must not do D1's work, pre-empt its crosswalk, or be cited in it as having
-   settled a vocabulary question. The dependency runs one way.
+   What *is* gated is narrower and strictly downstream: **implementation into today's hybrid Core**,
+   wherever it must touch `family` / `member` / `root_evaluator`. That is a sequencing constraint on
+   a future build, recorded in §10 as such.
 
 4. **"Data Algebra" is intentionally rejected as too broad.** The name would claim jurisdiction over
    the whole substrate — sources, carriers, transport, the physical image — when the governed
@@ -110,6 +140,20 @@ Everything in this record is organized by one distinction, and it is the distinc
 | changes when | a ruling changes | code changes |
 | a violation is | **an error in the theory** | **a gap in the product** |
 | the honest response to a limit | narrow the law, or record it as open | **refuse before the ask, and say which** |
+
+**They are two OBJECTS, not two fields of one profile** *(sharpened 2026-08-31).* A single record
+with a law half and a build half still invites reading one off the other, which is exactly what
+`witness` invites today. **Declared state law** is an object; **realization capability** is a
+different object; they are related by *evidence about a build*, not by *containment in a schema*.
+
+The principal boundary of this record follows:
+
+> ### **Analytical impossibility and implementation absence are different facts.**
+
+`median` has **no finite sufficient state** — analytical impossibility. `mean` has one, `(Σx, N)`,
+and this build implements no decomposition — implementation absence. Both currently answer
+`witness=holistic`. One is a fact about mathematics and one is a fact about a release, and a system
+that stores them in the same field will eventually reason from the wrong one.
 
 **Two corollaries, both ruled, both load-bearing:**
 
@@ -172,13 +216,35 @@ Explicitly, and with reasons, because the pressure to promote runs one way:
 |---|---|
 | `witness` | **realization-capability evidence.** `median` is holistic because no finite sufficient state closes it — *law*. `mean` is holistic because this build implements no decomposition — *build*. One field, two kinds of fact. A taxonomy read off `witness` would have falsified v0.2's own flagship reusable state `(N, Σx, Σxxᵀ)`, whose first customer is `mean`. **Do not promote `witness`;** split it into `sufficient_state` (law) and `decomposition_built` (build). |
 | `in_core` | a release fact, sitting in the same dataclass as the law fields. That adjacency is the *mechanism* of the confusion, not an accident of it. |
-| `anchor_consumption` | **status open, deliberately.** That a distinct-class measure's output anchor is *spent* at a frontier grain looks like law; that the currently crossing-admitted set is exactly `sum`/`min`/`max` looks like build. Mission 1 recommended declaring it as a law dimension. **This record does not adopt that recommendation.** The term has **zero occurrences in Core** — it exists only as that recommendation; the behaviour is hardcoded at the G5 site in the engine, where the test is `op.is_monoid and op.witness == VALUE`. Hardcoding is wrong either way; *which profile it belongs to is open.* |
+| `anchor_consumption` | **NOT established law — a design candidate, and not canonized here.** See §2.3. |
 | current crossing support | the *set* of operators admitted across a face is a build fact until something rules otherwise. |
 | `is_monoid` | closer to law than the others, but it is currently doing double duty as an execution dispatch key; its law content must be re-derived, not inherited. |
 
 > **Rule of construction for this record:** a present build limitation does not become foundational
 > law by being the only thing currently written down. Where the profile is unclear, the item is
 > marked open — not resolved in whichever direction the code happens to point.
+
+### 2.3 Movement conditions — the requirement, stated without canonizing a mechanism
+
+`anchor_consumption` is **not established law.** It is a **design candidate extracted from today's
+hard-coded G5 behaviour**, it has **zero occurrences in Core**, and Mission 1's recommendation to
+declare it as a law dimension is **not adopted**. Naming a mechanism this early is the same error as
+promoting `witness`: it would freeze one shape of an answer before the question is settled.
+
+What the record states instead is the *requirement*:
+
+> **The analytical law profile must declare whatever movement / transport conditions materially
+> constrain continuation. Current Core hard-codes part of this for face crossings.**
+
+And the specific reason not to canonize the candidate: **movement capability may depend on the KIND
+of movement, not on a single `preserved | spent` scalar.** Crossing a face, climbing a certified
+hierarchy edge, marginalizing an axis away and broadcasting down are different movements, and a
+distinct-class measure does not stand in one relation to all of them. A binary field would have to
+pick one relation and call it the operator's, which is precisely the flattening that produced five
+disagreeing ladders.
+
+So: the requirement is law; the mechanism is open; and the current hard-coding is neither — it is a
+build fact that happens to be the only written record of a law nobody has stated yet.
 
 ---
 
@@ -276,8 +342,15 @@ Same law-field values; opposite outcomes; and the *reason* they are both marked 
 kind. `median` has no finite sufficient state — **law**. `mean` has one, `(Σx, N)`, and this build
 does not implement the decomposition — **build**.
 
-**`witness` is realization-capability evidence, not authoritative state law.** An earlier Mission 1
-draft proposed promoting it and the proposal was retracted under ruling. It is recorded here as a
+**`witness` is realization-capability evidence, not authoritative state law** — and the grounding is
+now the theory's own, not merely an inference from the `mean`/`median` pair: **§4.7 says the class is
+determined by the *declared state law*, and that operator names are insufficient.** `witness` is an
+operator-keyed dispatch marker. By §4.7's own test it is not a source for this taxonomy. The declared
+state law and the realization capability are **separate objects** (§2), and §2's principal boundary —
+*analytical impossibility and implementation absence are different facts* — is what the `mean`/`median`
+pair demonstrates rather than what it establishes.
+
+An earlier Mission 1 draft proposed promoting `witness` and the proposal was retracted under ruling. It is recorded here as a
 retraction rather than omitted, because the argument for promoting it was good — it is the only field
 that currently *looks* like a state taxonomy — and the same argument will be available again.
 
@@ -519,13 +592,26 @@ Two properties worth stating explicitly because they are easy to lose:
 
 ---
 
-## 10. Held behind Unit D / D1 **[D1-GATED]**
+## 10. Reusable shared state, and where Unit D actually bites
 
-Held **entirely**, and not summarized in a way that could be cited as a position:
+**Corrected 2026-08-31.** The first draft of this section held reusable-state identity and keying as
+**[D1-GATED]** outright. That was too strong, and it is retracted.
 
-- **Reusable shared-state identity and keying.** What makes two requests *the same state*, how that
-  state is named, and how it is invalidated. This is v0.2 items 7–9; it was held out of Mission 1 so
-  that reconnaissance could not accidentally ratify the current hybrid vocabulary, and it stays held.
+> **The algebraic design proceeds now. Only implementation into the current hybrid Core may be
+> gated, and only where D1 is actually required.**
+
+- **Reusable shared-state identity and keying — DESIGN OPEN, not gated.** What makes two requests
+  *the same state*, how that state is named, and how it is invalidated are questions in canonical v6
+  terms, and ToD v6.1 supplies those terms. They can be designed against `F@A` and `Law(F)` without
+  reference to `family` / `member` / `root_evaluator` — indeed **they must be**, because designing
+  them against the hybrid vocabulary is how the algebra would inherit a migration artifact as a law.
+  Held out of Mission 1 for exactly that reason; that was a reconnaissance discipline, not a
+  permanent gate.
+- **IMPLEMENTATION of the above into today's Core — genuinely sequenced behind D1**, wherever it must
+  touch `family` / `member` / `root_evaluator`. One thing is already ruled out for the crosswalk:
+  `root_evaluator` *"must not remain the thing that tells a measure which reducer family it belongs
+  to."* A reusable-state implementation that keyed off it would be building on a structure already
+  ruled out. **That is the whole of the dependency, and it is a build dependency.**
 - **The implementation vocabulary decision** (OF-28). Retention of v5 terms is currently ratified as
   unchanged; whether it is permanent is undecided, and it gates one thing absolutely: **no public
   governed-publication authoring surface opens while it is unresolved.** An authoring surface mints
@@ -536,12 +622,11 @@ Held **entirely**, and not summarized in a way that could be cited as a position
   mapped to its v6 counterpart or explicitly marked as having none. One thing is already ruled out:
   `root_evaluator` *"must not remain the thing that tells a measure which reducer family it belongs
   to."* Everything downstream of that mapping is a guess without it.
-- **This record's own name.**
-
-**And a separation, not merely a dependency.** Unit D is *"not connected to Column Algebra or the
-current Frame-QL research"* by ruling, and its acceptance test is *"a document Huayin can rule on,
-not a passing test."* This record therefore neither contributes to D1 nor draws on unfinished parts
-of it; where it needs a v6 term it uses the published ToD v6.1 text and nothing else.
+**A separation, not a dependency.** Unit D is *"not connected to Column Algebra or the current
+Frame-QL research"* by ruling, and its acceptance test is *"a document Huayin can rule on, not a
+passing test."* This record therefore neither contributes to D1 nor draws on unfinished parts of it;
+where it needs a v6 term it uses the published ToD v6.1 text and nothing else. **The isolation runs
+both ways** — which is why nothing here is marked as waiting on it.
 
 **No implementation of any of the above is authorized, and no part of this record should be read as
 having prepared the ground for one.**
@@ -559,7 +644,7 @@ Carried as problems, not as designs. Each names what would close it.
 | **O3** | **Result standing.** No result can state the license, verdict or scope under which it was constructed. | licenses attach to results; the wire carries standing |
 | **O4** | **`anchor_consumption`'s profile.** Law or capability — currently hardcoded either way, and declared nowhere. | a ruling places it on one side of the wall. **Not D1's** — D1 is the vocabulary crosswalk and is held separate |
 | **O5** | **Lawful-but-unrealizable at the ask.** A correct Clarify may offer a reading this build cannot execute (P1-15 × P1-13). | the realization gap closes, or a capability gate is ruled — **not** by silent pruning |
-| **O6** | **Query-level `count(*)`.** | see below |
+| **O6** | **Query-level `count(*)`.** Now rowed as **OF-30** — it had lived only in the Manual. | a language ruling among the three readings — **not** by inheriting SQL's |
 | **O7** | **Clarify ergonomics** (P1-17). | a *law* that narrows, or an explicit ruling that the menu is correct as-is |
 
 ### 11.1 Query-level `count(*)` — unresolved, and it must not be resolved by inheritance
@@ -578,6 +663,10 @@ observations of some measure. These are different numbers with different meaning
 `AS count(*)` **in a `.cml` MEASURE is a different and established case** and is unaffected: there the
 source table is declared on the measure, so what is counted is not in question. Resolving the
 query-level form is a language ruling.
+
+**Rowed as OF-30 (2026-08-31).** Until now the question existed only in the Manual, with no ledger or
+fork entry — and a real architectural fork that lives only in prose is one nobody is obliged to
+reread.
 
 ### 11.2 The Statistical Bridge boundary
 
@@ -627,6 +716,8 @@ the real runtime · **SV** read at file:line · **INF** inferred.
 | **ToD v6.1 §1.2** | `F@A` — `measure = measure family @ anchor`; `member` retired from the core ontology | SV |
 | **ToD v6.1 §4.7** | the four state-law classes; *"the row is determined by the declared state law"*; approximation orthogonal | SV |
 | **Manual Preface / §4.2 / §2.1** | stage-one jurisdiction; query-level `count(*)`; the multi-input retraction | SV |
+| **P0-18** (**CLOSED** 2026-08-31) | the Manual's four false form-claims — two repaired, two retracted; the gate is now staged | VX |
+| **OF-30 / OF-31** | `count(*)`'s three readings as an open fork; the Manual's surviving "Column Algebra" label | SV |
 
 ---
 
@@ -661,8 +752,11 @@ the real runtime · **SV** read at file:line · **INF** inferred.
 | 12 | **operator admission tiers** | **rejected.** Five ladders disagree about `mean`; capability is anti-correlated with admission. **Profiles, not tiers**; tiers survive only as a derived reading |
 | 13 | Statistical Bridge boundary | retained; **the MNAR leak recorded** rather than left implicit |
 
-**Items 7–9** — reusable state, semantic state key, invalidation: **held, unchanged, [D1-GATED]**.
-Not summarized, so that nothing here can be cited as a position on them.
+**Items 7–9** — reusable state, semantic state key, invalidation: **design open, not gated.** Mission 1
+held them so reconnaissance could not ratify the hybrid vocabulary; that was a reconnaissance
+discipline. v0.3 records that the *algebraic* design proceeds now in canonical v6 terms, and that only
+*implementation into today's Core* is sequenced behind D1 (§10). No position is taken on their content
+here — the correction is about standing, not substance.
 
 **New in v0.3, with no v0.2 antecedent**
 
@@ -683,6 +777,15 @@ Not summarized, so that nothing here can be cited as a position on them.
   the joint where law meets a realization and becomes *current admission*.
 - §1.1's explicit statement that how v5 `member` maps into `F@A` is **D1's question, not this
   record's**, and §10's separation clause.
+
+**Corrections applied to v0.3 after the citation pass (2026-08-31), recorded rather than folded in**
+
+| was | is |
+|---|---|
+| the record's status "pending Unit D / D1"; the name provisional on D1 grounds | **retracted.** §1.0: the algebra is designed directly against canonical ToD v6.1; **the isolation from Unit D runs both ways.** Only *implementation into today's hybrid Core* is sequenced behind D1 |
+| items 7–9 **[D1-GATED]** | **design open, not gated** (§10). The algebraic design proceeds now; the gate is on implementation, where D1 is actually required |
+| `anchor_consumption` as an open-but-named law dimension | **not canonized** (§2.3). It is a design candidate extracted from hard-coded G5 behaviour. The record states the *requirement* — declare whatever movement/transport conditions materially constrain continuation — and notes that capability may depend on the **kind** of movement, not a `preserved \| spent` scalar |
+| law and build as two halves of one profile | **two OBJECTS** (§2), with the record's principal boundary stated: **analytical impossibility and implementation absence are different facts.** `witness`'s rejection is now grounded in ToD §4.7's own rider, not only in the `mean`/`median` pair |
 
 **Corrections of fact carried from Mission 1** — three v0.2 premises were wrong: the multi-input
 premise (§3.2), the reading of the Manual as evidence of machinery (C2), and the assumption that

@@ -977,7 +977,7 @@ than returning a number.
 
 Not in the original inventory — the six audits found the tier claim in this table and stopped there.
 
-### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · VX
+### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · **CLOSED 2026-08-31** · VX
 
 Found 2026-08-31 in the Column Algebra Mission 1 reconciliation. Same defect class as **P0-17**
 (operators marked available that do not resolve) and **OF-18**'s form-primacy finding (a careful
@@ -1016,6 +1016,46 @@ rejects; it proves nothing about whether the documented form *runs*.
 **Recommendation:** extend the standing check to **plan** each example against a fixture manifold,
 asserting each either resolves or carries a documented refusal — the same upgrade OF-18 asked for on
 status marks, applied to executable form. That is Mission B, not this row.
+
+#### Adjudicated CLOSED — 2026-08-31
+
+Ruled by Huayin, 2026-08-31: *"P0-18 appears not to have been formally closed in the ledger, even
+though Mission B has now done the work the row pointed toward… I would have CC adjudicate that row
+rather than leave the ledger suggesting the defect is still open."* **Adjudicated on re-run evidence,
+not on the mission's say-so** — the row's own probe table, replayed against HEAD on the adjudicated
+Manual fixtures:
+
+```text
+2.4/6.5 bare map (documented)   -> serve      (was serve)
+2.4 PINNED map operands         -> serve      (was error: unknown column 'transaction')   REPAIRED
+2.4 pinned, composite pin       -> serve      (was error: unsupported expression node Tuple) REPAIRED
+2.1 multi-input canonical       -> error      (unchanged — now correctly documented [ROADMAP])
+multi-arg shipped reducer       -> error      (unchanged — now correctly documented [ROADMAP])
+```
+
+**The row is about FALSE CLAIMS, and all four are gone** — two by repair and two by retraction, which
+are both legitimate closures of a claim defect:
+
+| # | the false claim | how it is now false-free |
+|---|---|---|
+| `:277` | *"the framework parses this form directly, type-checks it, and plans it"* of the multi-input shape | **retracted in place.** The Manual's own sync note quotes the withdrawn sentence, states that it is true of the single-input shape and false of the multi-input one, and marks the block a **schematic** under a `[ROADMAP]` section |
+| `:329-331` | pinned map operands shown as executable | **REPAIRED** (Mission B A1). Every pin spelling is now read; both examples serve |
+| `:561` | *"the framework checks that all input column references resolve to the same input anchor"* | **withdrawn in place**, and replaced by *"what the framework checks, stated exactly"* — a declared pin IS held; co-anchoring otherwise holds **by construction**; *"there is no general check… the earlier claim that there was is withdrawn"* |
+| `:315` | the multi-input `input_anchor_ambiguous` clarify | documented as **unreachable** and `[ROADMAP]`, with the arity refusal named as what fires first |
+
+**The structural finding is closed too, and that is the durable half.** The grammar-only gate is
+replaced by a **staged semantic gate**: a shipped-fenced example must parse **and plan**, and if it
+plans `serve`/`disclose` it is **executed** and its final disposition asserted; a `roadmap` fence
+asserts the section's mark instead. Standing at **40 examples / 0 FAIL** (was 37 while seventeen of
+them died at planning or execution). The general rule it now enforces — *a claim is not validated
+until the stage at which its claimed behaviour is observable* — is the thing that stops this row's
+defect class recurring, and it is what makes closure safe rather than optimistic.
+
+**Residuals are rowed, not folded into this closure.** The multi-input surface itself remains
+unbuilt and correctly marked (its canonical shape is `op(a @ A, b @ A, …)`, and it requires the
+participation / joint-support law first); the composite-pin engine-assembly gap is **P1-15**; the
+`WHERE` capability gap is **P1-14**. None of them is a Manual claim defect, which is what this row
+is.
 
 ### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · **FIXED** in Unit C · SV
 
