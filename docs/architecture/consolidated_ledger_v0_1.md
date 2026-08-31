@@ -306,6 +306,69 @@ computes it.
 
 ---
 
+### P1-11 · Cross-measure silent population substitution — the served column asserts a population it did not serve · **HIGH** · VX
+
+Found 2026-08-31 in the Column Algebra Mission 1 reconciliation
+(`specs/column_algebra_reconciliation_m1_v0_1.md`). **Sibling of P1-10, not the same row**: P1-10 is
+support divergence *within* one family (`count(*)` vs null-skipping `sum`); this is support
+divergence *across measures*. Same collapse site, two independent causes.
+
+**The defect is not the dropped rows. It is the claim left behind.**
+
+```
+universe 'ops' basis spine = 3 stores
+revenue   support {s1,s2,s3}      headcount support {s1,s2}
+
+SELECT rev_per_head AT {store}          -- DERIVED revenue / headcount
+  frame outcome     : serve
+  column population : ops               <-- the assertion
+  coordinates served: ['s1','s2']       <-- 2 of 3
+  disclosures       : []
+```
+
+The same two measures served side by side return 3 rows **and** an `unknown_absence` caveat. Combined
+by an operator they return 2 rows and nothing. The disclosure is not merely omitted — the column
+positively asserts `population: ops` while serving the intersection.
+
+**Root cause, one line.** `Planner._apply` (`planner.py:1790-1792`):
+
+```python
+if lk == "col" and rk == "col":
+    j = lp.join(rp, on=keys, how="inner", suffix="_r")
+```
+
+An undeclared complete-case (listwise) participation policy, chosen by the substrate. Φ then runs
+frame-side at `planner.py:524-547` — *after* the inner join has discarded the very null it would have
+typed — so `n_absent == 0`, the pass `continue`s, and the absence disappears.
+
+**The loss is specific to support.** A DERIVED over an HLL measure keeps its `approximation` caveat:
+`Disclosure.combine` (`disclosure.py:177-187`) is sound. Provenance disclosures propagate; support
+and absence do not, because they are frame-side facts rather than operand-level ones.
+
+**Doctrine contradicted:**
+
+| # | doctrine | locus | how it breaks |
+|---|---|---|---|
+| 1 | **§2c FRAME LAW** — *"each column keeping its own population semantics"* | `planner.py:504-513` (`how="full"`) | the expression path does the opposite, 1,280 lines later in the same file |
+| 2 | **P1-01's aggravating rule** — a disclosure that *claims* one population while delivering another | this ledger, P1-01 | identical shape, reversed direction: claims `ops`, delivers the intersection |
+| 3 | **Unit B's ratified wire boundary** — `disclosures` is semantic authority, call-invariant, *what is true of the answer* | contract 4, `disclosure_wire.py:25-44` | `population` is a semantic claim, and it is false |
+| 4 | **"disclosed, never silent"** (addendum §5) | `disclosure_wire.py:166` | zero disclosures on a material population change |
+| 5 | **the four moods sort by lawfulness** — *disclose* = lawful, a material condition travels | Manual ch. 7 | a material condition exists and does not travel |
+| 6 | **ADR-036 determinacy** — served *"with a disclosure if that number is risky"* | Manual `:1210` | risky, undisclosed |
+| 7 | **f0 ruling 10** — `LAW -> EXECUTION DIRECTIVE -> SUBSTRATE` | `f0_reconnaissance.md:150`; `:147` already names *"participation/absence"* among ~19 embedded decisions | an un-lifted substrate default |
+
+**Classification.** Not a wrong-number defect in the P1-01/P1-02 sense — the arithmetic over the
+surviving coordinates is correct. It is a **silent population substitution**, and it is worse-behaved
+than a plain omission in one respect: the wire makes a positive assertion that is false.
+
+**Repair discipline (ruled, Huayin 2026-08-31).** *"Do not cure population substitution merely by
+disclosing after an inner join has already discarded an analytical point. Preserve the governed
+alignment facts/domain first; only then apply the map's declared/currently established
+eligibility-support semantics."* The defect is that substrate alignment chooses participation before
+Φ/support law can see the discarded point; the repair must remove that authority from the substrate.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
@@ -783,6 +846,46 @@ than returning a number.
 
 Not in the original inventory — the six audits found the tier claim in this table and stopped there.
 
+### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · VX
+
+Found 2026-08-31 in the Column Algebra Mission 1 reconciliation. Same defect class as **P0-17**
+(operators marked available that do not resolve) and **OF-18**'s form-primacy finding (a careful
+reader learns a form the parser rejects).
+
+Verified through the real ask surface (`parse_statement` -> `run_statement` -> `wire_frame`):
+
+```
+manual 2.4 / 6.5  bare map (documented)     -> serve   served
+manual 2.4        PINNED map operands       -> error   unknown column 'transaction'
+manual 2.4        pinned, composite pin     -> error   unsupported expression node Tuple
+manual 2.1        multi-input canonical     -> error   'corr' is not a scan operator
+multi-arg shipped reducer                   -> error   'avg' takes exactly one column argument
+```
+
+Three distinct false claims:
+
+- **`:277`** states the canonical multi-input shape `op(col_1 @ {a_1}, col_2 @ {a_2}, ...)` and adds
+  *"The framework parses this form directly, type-checks it, and plans it."* Reducers are
+  hard-arity-1 at `planner.py:908`.
+- **`:329-331`** shows pinned map operands as executable examples. Both error.
+- **`:561`** states *"The framework checks that all input column references resolve to the same input
+  anchor."* **No such check exists.** Co-anchoring holds only because `_node` hands both operands the
+  identical output anchor (`planner.py:1609-1610`) and joins on it.
+
+A fourth, consequential: the multi-input clarify documented at **`:315`** (`input_anchor_ambiguous`
+*"covers the multi-input case"*) is **unreachable** — the arity gate fires first with a generic
+`unknown`.
+
+**Why the standing gate did not catch it — the structural finding.**
+`docs/tools/check_manual_frameql.py` is **grammar-only by design**, and says so: *"it may still
+refuse/clarify at PLAN time; that is semantics, not grammar — this check is grammar only."* Every
+example above **parses clean**. The gate proves the manual cannot document syntax its own parser
+rejects; it proves nothing about whether the documented form *runs*.
+
+**Recommendation:** extend the standing check to **plan** each example against a fixture manifold,
+asserting each either resolves or carries a documented refusal — the same upgrade OF-18 asked for on
+status marks, applied to executable form. That is Mission B, not this row.
+
 ### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · **FIXED** in Unit C · SV
 
 Its "current task" is launch-checklist steps 3-8; it predates the K0 compiler, the lowering
@@ -1142,6 +1245,7 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 | **P1-01 + P1-03** | P1-03 is latent only because P1-01 exists. Fixing confinement without widening the witness currency key converts latent under-invalidation into active staleness |
 | **P1-04 + P1-05** | Both concern what the TOUCH path discloses. Re-grading coverage to MATERIAL while the warm path still drops it means the warm/cold divergence becomes outcome-visible (`disclose` cold, `serve` warm) — a strictly worse failure than today's |
 | **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today. **Eased 2026-08-31:** P2-03's repair is now understood to be **additive** (a governed `Law(F)` carrier) rather than a relocation of a required field, so the set of publications a refusal rule would reject is materially smaller than this row assumed |
+| **P1-10 + P1-11** | One collapse site (`planner.py:1791`), two independent causes — divergent support *within* a family (P1-10) and *across* measures (P1-11). A repair at the join addresses both; a repair to `count`'s null semantics addresses only P1-10 |
 | **P1-10 + P2-03** | P1-10 is the v5 family container producing a number. Re-typing `count` or minting a support caveat treats the symptom and leaves the container. The caveat is the cheap partial mitigation if P2-03 runs long |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 
