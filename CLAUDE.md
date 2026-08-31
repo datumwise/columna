@@ -49,10 +49,19 @@ Read the version from `pyproject.toml`, never from prose.
 
 ## Open, and next
 
-**P2-01 / P2-02 / P2-03 / P2-09 are the top of the queue** — two of the original top-four findings,
-both **VX**. They are a **design fork, not a repair**: Appendix A of the ledger records that a generic
-refusal-before-omission rule will refuse publications that compile today, and P2-03 moves
-`root_evaluator` across the governance line. **These need Huayin's ruling before code moves.**
+**Unit D is open — scope only, no implementation authorized.** Its deliverable is the **v5→v6
+crosswalk**: what current Core concepts (`measure`, `member`, `family`, `root_member`,
+`root_evaluator`, `FAMILY {...}`) become under the canonical v6 MeasureFamily / `F@A` / `Law(F)`
+model. Read the Unit D section of the ledger before touching anything in this area.
+
+**Do not "move `root_evaluator` into the governed publication."** That was the wrong framing and is a
+retired formulation (Huayin, 2026-08-31): the reducer law belongs to the measure **family**, which the
+measure inherits — so the repair is expected to be **additive** (a governed `Law(F)` carrier) and
+`root_evaluator` may correctly stay where it is, as root *formation*.
+
+**P1-10** is the same fossil arriving as a served number — two members of one family with different
+supports, ratio serves 20.0 with zero caveats. Reproduce with
+`python docs/architecture/repro/p1_10_mixed_denominator.py`.
 
 ## The rule that governs how work is picked up here
 
