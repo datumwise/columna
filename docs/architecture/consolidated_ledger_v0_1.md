@@ -1144,20 +1144,49 @@ output level is itself a **base dimension** of the population.
 **Not repaired here**: candidate enumeration is anchor/participation law, which Mission B is
 explicitly barred from touching. Rowed for the mission that owns that law.
 
-### P1-14 · `WHERE` plans and does not execute · **HIGH** · **OPEN — no repair authorized** · VX
+### P1-14 · `WHERE` planned `serve` for two forms the build cannot execute · **HIGH** · **CAPABILITY GATE SHIPPED; the two underlying gaps remain OPEN** · VX
 
-Found 2026-08-31 by the Mission B semantic gate. The clause parses, its dimensions are checked for
-reachability, and it plans — an unreachable dimension correctly clarifies `filter_unreachable`, which
-is real shipped behaviour. **The filtered frame then fails in the engine** (`BinderException`), and
-it fails for a dimension that is a coordinate of the fact itself, not only for one reached across a
-join — so it is a gap in the clause, not in a schema.
+**THE ORIGINAL DIAGNOSIS IN THIS ROW WAS WRONG, and is corrected here rather than quietly edited.**
+It read *"`WHERE` plans and does not execute"*. That is false: **`WHERE` executes.** The first
+evidence tested only the spelling the Manual uses — double-quoted literals — and generalised from it.
+One level further down:
 
-Verified against **two independent adjudicated fixtures** (the Manual fixture and the shipped
-`afternoon.cml` world), which is what rules out a fixture artifact.
+```text
+SELECT revenue AT {store} WHERE day >= '2025-01-13'   -> serve, 3 rows      SHIPPED
+SELECT revenue AT {store} WHERE day >= "2025-01-13"   -> engine error       (a)
+SELECT revenue AT {store} WHERE region == 'north'     -> engine error       (b)
+SELECT revenue AT {store} WHERE amount >= 100         -> clarify            correct, pre-existing
+```
 
-Consequence recorded honestly: the `IN (…)` predicate repaired in Mission B A5 is real at the parse
-and plan layers and **cannot be observed at execution** while this row is open. §4.1 and §6.8 are
-marked `[SCHEDULED]` in the Manual for the same reason.
+Two narrow gaps, not one broad one, each confirmed on **two independent adjudicated fixtures** (the
+Manual fixture and the shipped `afternoon.cml` world):
+
+- **(a) A double-quoted string literal is passed to SQL as an IDENTIFIER.** Frame-QL's own `_literal`
+  accepts either quote, and the polars filter path honours both; the push-down path hands the
+  predicate to the backend verbatim, where `"east"` names a column. **The same fact written twice,
+  once wrong** — the class this ledger keeps paying for. It is a *quoting translation* gap, not a
+  missing capability: the ask is one character from working, and the Manual documents the character
+  that fails.
+- **(b) A dimension reached only across an edge cannot be filtered.** The predicate is pushed to the
+  measure's own source, which carries the universe's BASE coordinates and not the joined ones.
+  `region` is *reachable* — this is emphatically not `filter_unreachable` — and still not filterable.
+
+**What shipped (this mission, authorized):** the capability-honesty gate only. Both conditions are
+now classified at `_where_reachability` — the seam that already adjudicates WHERE before the engine —
+on the minted reason **`filter_unsupported`** (ERROR), sibling to `filter_unreachable` and
+deliberately distinct from it: *unreachable is a fact about the Manifold and the asker can fix it;
+unsupported is a fact about the build and no rewording of the ask helps.* Collapsing them would tell
+a reader to fix something that is not theirs to fix.
+
+**What did NOT ship, and why:** neither (a) nor (b) is repaired. (a) is a one-line normalization and
+tempting; repairing it changes what the build can do, which this mission did not authorize, and it
+would also make §4.1/§6.8 executable and their `[SCHEDULED]` marks wrong. **Recommendation: authorize
+(a) as its own bounded repair** — it is small, it is a genuine defect rather than a missing feature,
+and it makes the Manual's own documented spelling work. (b) is a real capability gap and needs a
+ruling about whether a filter may join.
+
+Pinned by `tests/test_where_capability_gate.py` (7 cases; 4 fail against the pre-gate source, the
+other three are the "still works" guards and are non-discriminating by design).
 
 ### P1-15 · A composite pin whose levels are reached by SEPARATE hierarchies does not assemble · **MEDIUM** · **OPEN — no repair authorized** · VX
 

@@ -229,6 +229,17 @@ REASON_OUTCOME = {
                                                         #   admissible pins), never a refuse. Sibling to
                                                         #   `ambiguous_grain`; own reason per OF-1 (one reason
                                                         #   per contested dimension). MINTED 2026-07-30.
+    "filter_unsupported":       (ERROR,   None),        # P1-14 (minted 2026-08-31): a WHERE dimension the
+                                                        #   series CAN reach, in a filter this build cannot
+                                                        #   EXECUTE. Sibling to `filter_unreachable` and
+                                                        #   deliberately a different reason: unreachable is a
+                                                        #   fact about the MANIFOLD and the asker can fix it by
+                                                        #   choosing another dimension; unsupported is a fact
+                                                        #   about the BUILD and no rewording of the ask helps.
+                                                        #   Collapsing them would tell a reader to fix
+                                                        #   something that is not theirs to fix. ERROR, not
+                                                        #   REFUSE: a capability limit is not an analytical
+                                                        #   verdict about the data (see `unsupported`).
     "filter_unreachable":       (CLARIFY, AMBIGUOUS),   # a WHERE dimension cannot lawfully reach a series'
                                                         #   input anchor (the filter's grain is not
                                                         #   addressable in that series' universe). MINTED

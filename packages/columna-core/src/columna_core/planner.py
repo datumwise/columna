@@ -860,7 +860,59 @@ class Planner:
                         alternatives=(f"restrict the predicate to a reachable dimension ({', '.join(reachable)})",
                                       f"change series '{name}' to an input anchor that reaches '{lvl}'"))
                     break
+            else:
+                unsupported = self._where_unsupported(where_predicates, base, uni)
+                if unsupported is not None:
+                    out[name] = unsupported
         return out
+
+    #: A Frame-QL string literal in DOUBLE quotes. Frame-QL's own `_literal` accepts either quote, but
+    #: the predicate is pushed to the backend verbatim, and in SQL `"east"` is an IDENTIFIER.
+    _DQ_LITERAL = re.compile(r'(?<![\w"])"[^"]*"')
+
+    def _where_unsupported(self, predicates: list, base: frozenset, uni: str):
+        """CAPABILITY HONESTY FOR `WHERE` (P1-14, ruled Huayin 2026-08-31).
+
+        THE RULE THIS ENFORCES: *a planner must not return a positive Serve/Disclose disposition for a
+        form the current build cannot execute.* Both conditions below planned `serve` and then died
+        inside the engine with a bare `unsupported` — after the plan had already told the caller the
+        ask was fine. An EXPLAIN that says `serve` about a query that cannot run is worse than no
+        EXPLAIN: it is a wrong answer to the one question EXPLAIN exists to answer.
+
+        The two conditions, each verified on two independent adjudicated fixtures:
+
+        1. **A double-quoted string literal.** `WHERE day >= "2024-01-01"` dies; the same predicate in
+           single quotes SERVES. The predicate reaches the backend verbatim and SQL reads `"…"` as an
+           identifier, so the engine looks for a column by that name. This is a *quoting translation*
+           gap, not a missing capability — see the ledger row; it is reported rather than repaired
+           here because repairing it changes what the build can do, which this mission does not
+           authorize.
+        2. **A dimension reached only across an edge.** `WHERE region == 'east'` dies where `region`
+           is reachable but is not a coordinate of the fact itself. The filter is pushed to the
+           measure's source table, which carries the BASE dimensions and not the joined ones.
+
+        SCOPED TIGHT, DELIBERATELY. A base-dimension predicate with a single-quoted or numeric literal
+        is exactly what ships and is untouched — the gate must not classify a working capability as
+        unsupported, which is the failure mode of a capability gate written one notch too wide."""
+        for pred in predicates:
+            if self._DQ_LITERAL.search(pred):
+                return Refusal("filter_unsupported",
+                    f"WHERE predicate {pred!r} uses a double-quoted string literal, which this build "
+                    f"cannot execute: the predicate reaches the backend verbatim and \"…\" is read "
+                    f"there as a column name, not a value. Refused before execution rather than "
+                    f"planned `serve` and failed after.",
+                    target=pred,
+                    alternatives=("write the literal in single quotes (e.g. region == 'east')",))
+            lvl = self._predicate_column(pred)
+            if lvl not in base:
+                return Refusal("filter_unsupported",
+                    f"WHERE dimension '{lvl}' is addressable in universe '{uni}' but is not one of its "
+                    f"base dimensions ({', '.join(sorted(base))}), and this build pushes the filter to "
+                    f"the measure's own source, which carries the base coordinates only. The ask is "
+                    f"lawful; the build cannot execute it.",
+                    target=lvl,
+                    alternatives=(f"filter on a base dimension ({', '.join(sorted(base))})",))
+        return None
 
     def _engine_columns(self, desugared) -> list:
         """The canonical desugared series -> [(name, expr)] the engine consumes. The ONLY transform is
