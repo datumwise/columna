@@ -49,7 +49,6 @@ region | mean(revenue)
 ------ | -------------
 east | 250
 west | 300
-# disclosure[mean(revenue)]: freshness (immaterial)
 # disclosure[mean(revenue)]: provenance (immaterial)
 # disclosure[mean(revenue)]: input_anchor (material)
 ```

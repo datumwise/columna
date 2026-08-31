@@ -30,8 +30,12 @@ def main() -> int:
         print("FAIL: moods appeared out of contract order: %s" % ordering)
         return 1
 
-    if '"contract_version": "3"' not in payload:
-        print('FAIL: no \'"contract_version": "3"\' in demo --play output')
+    # DERIVED, not typed. This fact lived here three times (two literals plus the success line) and
+    # a bump had to find all three. It is one fact, so it is read once, from the package under test.
+    from columna_core.disclosure_wire import CONTRACT_VERSION as _CV
+    stamp = '"contract_version": "%s"' % _CV
+    if stamp not in payload:
+        print("FAIL: no %s in demo --play output" % stamp)
         return 1
 
     # ASCII ONLY, deliberately. This file is the harness that proves the product handles non-ASCII
@@ -51,7 +55,7 @@ def main() -> int:
         print("      prints nothing has lost it. Either way this transcript proves less than it looks.")
         return 1
 
-    print("demo --play OK - four moods in contract order, contract_version 3, seed integrity verified")
+    print("demo --play OK - four moods in contract order, contract_version %s, seed integrity verified" % _CV)
     return 0
 
 

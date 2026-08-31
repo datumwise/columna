@@ -61,7 +61,7 @@ jobs:
           columna-server demo --play | python -c "import sys; s=sys.stdin.read(); \
           i=[s.find('\"outcome\": \"%s\"' % m) for m in ('clarify','refuse','disclose','serve')]; \
           assert -1 not in i and i == sorted(i), i; \
-          assert '\"contract_version\": \"3\"' in s; print('demo --play smoke OK:', i)"
+          assert '\"contract_version\": \"4\"' in s; print('demo --play smoke OK:', i)"
 
   # THE PUBLICATION REGISTRY GATE (Slice 2 item 1, 2026-08-21). Runs on EVERY push and PR, with no
   # path filter, deliberately: its whole job is to catch a publication fact appearing somewhere nobody
