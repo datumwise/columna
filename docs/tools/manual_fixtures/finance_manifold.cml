@@ -1,0 +1,83 @@
+MANIFOLD finance_manifold VERSION 1
+# ── THE MANUAL'S OWN VOCABULARY, and nothing else ────────────────────────────────────────────────
+# This fixture exists so a plan-time refusal can mean only ONE thing: the shipped planner rejects the
+# FORM the Manual documents. Planned against a fixture that merely resembled the Manual's schema,
+# every `unknown column` would be ambiguous between "the Manual is wrong" and "my fixture is thin" —
+# and the second reading is always available, so the finding would never be safe to act on. Every
+# name the Manual's finance examples reference is declared here, at the grain its prose states.
+
+UNIVERSE sales     = transaction BASIS events
+UNIVERSE inventory = store * day  BASIS spine
+# The face drivers live HERE, not on `sales`: adjudication refuses an ASSIGN/ALLOC driver drawn from
+# an events universe, because a raw events measure has no single value per member to rank or weight.
+# A driver must be a SPINE at the frontier grain — the (product, category) membership itself.
+UNIVERSE membership = product * category BASIS spine
+
+LEVEL transaction = txn_id      BASE
+LEVEL store       = store_id    BASE
+LEVEL customer    = customer_id
+LEVEL region      = region
+LEVEL product     = product_id  BASE
+LEVEL category    = category_id
+LEVEL day         = day
+LEVEL date        = txn_date
+LEVEL month       = month
+LEVEL year        = year
+
+HIERARCHY customers {
+    transaction -> customer VIA txns(txn_id, customer_id) ;
+    customer    -> region   VIA customers(customer_id, region)
+}
+HIERARCHY geography {
+    store -> region VIA stores(store_id, region)
+}
+HIERARCHY products {
+    transaction -> product VIA txns(txn_id, product_id)
+}
+# §5.6's relationship, copied from the Manual's OWN declaration in that section — same face names
+# (`touch`/`assign`/`alloc`) and same drivers, so `AT {category.touch}` addresses the thing the
+# Manual says it addresses. Faces are AUTHOR-NAMED, so a fixture that named them anything else would
+# make the Manual's three examples unaddressable for a reason that has nothing to do with the Manual.
+RELATE product <-> category VIA product_categories(product_id, category_id)
+    FACES {
+        touch  = TOUCH -- "revenue reaches every category a product sits in — multi-counted; totals exceed the grand total"
+        assign = ASSIGN BY category_rank ORDER MIN -- "revenue lands in the product's single primary category; the rest disclosed as the shadow"
+        alloc  = ALLOC BY category_weight -- "revenue splits across a product's categories by weight; totals reconcile to the grand total"
+    }
+    NOTE "a product belongs to up to 3 categories"
+HIERARCHY calendar {
+    transaction -> day   VIA txns(txn_id, day) ;
+    transaction -> date  VIA txns(txn_id, txn_date) ;
+    day         -> month VIA calendar(day, month) ;
+    month       -> year  VIA calendar(month, year)
+}
+
+# The DEFAULT-FAMILY sugar of Chapter 3.1 needs a default to exist: `SELECT revenue AT {customer}`
+# desugars to `sum(revenue @ {transaction})` only because `sum` IS revenue's family. The AS-form
+# declares exactly that single-member family, which is what the Manual's 6.1 note assumes in words
+# ("assuming `sum` is revenue's default family"). Reducers the examples apply explicitly — `max`,
+# `avg`, `count` — reach the column through the INLINE reduction path and need no family membership.
+MEASURE revenue ON sales FROM txns AS sum(amount)
+MEASURE cost    ON sales FROM txns AS sum(cost_amount)
+MEASURE orders  ON sales FROM txns AS count(*)
+
+# §2.5's juxtaposition example puts `revenue` and `level.last` in ONE frame at {region}: two
+# populations, side by side, each honest about where it comes from. That needs a SECOND universe
+# carrying a stock, and a `last` member for the position reading.
+# `aov` is DERIVED, exactly as the Manual's 6.6 ratio idiom builds it — and that is also what makes
+# 2.3's clarify reachable. A derived ratio has no single root grain, so `avg(aov)` with no pin has
+# more than one candidate input grain to be ambiguous BETWEEN. Declared as a base measure it would
+# have exactly one candidate, `avg(aov)` would quietly serve, and the gate would report the Manual's
+# documented clarify as a contradiction when the only thing wrong was the fixture.
+DERIVED aov = revenue / orders
+
+MEASURE category_rank   ON membership FROM product_categories AS min(rank)
+MEASURE category_weight ON membership FROM product_categories AS sum(weight)
+
+MEASURE level ON inventory FROM inv VALUE units
+    FAMILY {
+        last ORDER day
+        max
+        min
+        count
+    }
