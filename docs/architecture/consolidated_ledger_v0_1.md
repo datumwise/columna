@@ -63,6 +63,18 @@ authority debt below, and it is why P1 leads this ledger rather than P0.
 | **P2-01** | "REFUSAL BEFORE OMISSION" is enforced only over five declaration **kinds** — governed law inside a declaration **body**, and whole unknown kinds, are silently dropped while the receipt attests the binding | VX |
 | **P2-02** | The lowering receipt binds publication↔image but **not** publication↔mapping — four different meanings of one governed `root_member` under one publication digest, four valid receipts | VX |
 
+**Amended 2026-08-31.** This table is left as ratified, but two of its four rows have moved and a
+reader should know before using it:
+
+- **P2-02 is not the row it looks like.** The binding *does* distinguish the four images. What the
+  reproduction shows is the publication **under-determining its own meaning**, which the receipt was
+  deliberately built not to compensate for. It is expected to **dissolve** under P2-03's repair
+  rather than be fixed on its own terms.
+- **P2-03 now outranks it,** and is the real fourth finding. Merged with the former P2-04 and
+  re-graded **VX**: the reducer law is attached to the measure rather than the family — a ToD v5
+  ontology fossil, not a field in the wrong file. It is the subject of **Unit D**, and **P1-10** is
+  it arriving as a served number.
+
 ---
 
 ## P1 — Correctness, fail-closed, disclosure, non-interference
@@ -238,6 +250,62 @@ would alias.
 
 ---
 
+### P1-10 · A family member whose support disagrees with its siblings serves a silent mixed-denominator ratio · **HIGH** · VX
+
+Found 2026-08-31 while testing the P2-03 ontology argument by execution. **It is the v5 family
+container producing a number**, which is why it is filed in P1 rather than left inside a P2
+ontology row: P1 is where a served figure is at stake.
+
+`count` is registered with `deliver_sql=lambda p: "count(*)"` (`operators.py:84`). So inside one
+declared family, `sum` skips nulls and `count` does not — the two members have **different
+supports**, and nothing says so.
+
+Reproduced — five rows, one carrying no revenue observation:
+
+```
+warehouse           rows = 5 | non-null amount = 4 | sum(amount) = 100.0
+
+MEASURE revenue ON sales FROM sales_lines TYPE Float64 VALUE amount
+    FAMILY { sum count min max }
+
+revenue.sum    ->  100.0     (4 observations)
+revenue.count  ->    5       (5 rows — count(*), including the row with no revenue)
+
+DERIVED avg_line = revenue.sum / revenue.count
+    outcome: serve      value: 20.0      caveats: []
+```
+
+Mean per *revenue observation* is 25.0. **20.0 is not flatly wrong** — read as a per-line average it
+is defensible — and that is precisely the defect: **which one it is depends on a law nobody
+declared.** There is no `Law(F)`, so there is no fact of the matter about the denominator, and the
+wire is silent either way.
+
+**Why nothing catches it.** Three guards are adjacent and all miss:
+
+- The **co-anchor guard** (a ratio is determinate only when numerator and denominator resolve over
+  one shared population) **passes** — both members resolve over `sales`. The divergence is in
+  *support within* the universe, which the guard does not see.
+- `Engine.validate_universe_support` (`engine.py:1104`) computes exactly this shortfall. It has
+  **zero callers repo-wide** — P2-14 recorded "zero non-demo callers"; it is now zero, full stop.
+- `describe` **asserts the grouping** rather than qualifying it (`columna_server/tools.py:276`):
+  `"family": {"root": "revenue", "members": [...], "reducer_kind": {...}}`, plus per-member
+  `blocked_lineages` / `order_by` / `is_monoid`. Nothing about support. A requester is told `count`
+  is a member of the revenue family rooted at revenue, which is the reading that makes the ratio look
+  safe.
+
+**Not a new mechanism — a new consequence.** P2-05 class D already recorded `count ≡ count(*)`
+(*"rows, not observations — so `revenue_count` counts rows and SQL null-exclusion is silently
+reversed"*), but filed it as a law living only in Core source. It had not been connected to a served
+figure.
+
+**Coupled to P2-03**, and should not be repaired independently. A local fix — re-typing `count`, or
+minting a support caveat on mixed-support ratios — treats the symptom while leaving the container
+that groups a row-cardinality with three value reducers under one name. The support caveat is
+nonetheless the cheap partial mitigation if Unit D runs long, and `validate_universe_support` already
+computes it.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
@@ -293,51 +361,160 @@ Four meanings, one governed digest, four valid self-consistent receipts. **The m
 meaning flips is `revenue_sum` — the measure's declared `root_member`.** A green test
 institutionalises the shape (`tests/test_k0_compiler.py:264-272`, and again at `:283`).
 
-### P2-03 · `root_evaluator` is identity-bearing Data World information placed below the governance line · **CRITICAL** · SV
+### P2-03 · The reducer law is attached to the measure, not the family — a ToD v5 ontology fossil · **CRITICAL** · VX
 
-Per the ruling: under ToD v6.1 a measure family `F` has one full coherent family law
-`Law(F)`; `Law(F)` is a constituent of the identity signature `Σ(F)`; a measure is `F@A` and
-inherits its family identity and law. `root_evaluator` selects the operator/family law that
-determines what an old-style governed member means. It is therefore identity-bearing.
+**Merged row.** This absorbs the former **P2-04** (*"the execution grammar is v5-ontology; the
+publication is v6-ontology"*), which was the same finding seen from the other end. They were split,
+and the split is what let the finding be re-summarized as a field-placement problem — this row's
+previous title was *"`root_evaluator` is identity-bearing Data World information placed below the
+governance line,"* and a title that understates its body is the title that gets carried forward.
+**Placement is the least of it** (Huayin, 2026-08-31).
 
-Current placement is wrong in four separate ways (`compiler/inputs.py:176`, required at
-`:260-264`; `fixtures/firstlight/private-core-mapping.json`):
+#### The claim
 
-- **too weak in type** — a bare operator name is not the full family law. ToD v6.1 §5.1: two
-  operations both called `SUM` need not instantiate the same family law if participation,
-  multiplicity, support, regime or approximation differ;
-- **wrongly placed** — beside the physical endpoint in the private mapping;
-- **outside the receipt binding** (P2-02);
-- **absent from the shipped runtime unit** and discarded after compilation.
+Under ToD v6.1 the vocabulary moves `v5 measure -> v6 measure family` and `v5 member -> v6 measure
+F@A`. A measure family `F` has one full coherent family law `Law(F)`; `Law(F)` is a constituent of
+the identity signature `Σ(F)`; a measure is `F@A` and **inherits** its family's identity and law. The
+law belongs to **F**, and is not rediscovered per `F@A`.
 
-The compiler's own docstring names the boundary it is protecting (`inputs.py:168-169`):
-*"`root_evaluator` is captured, never invented: a compiler that chose a reducer would be
-manufacturing analytical law."* It refuses to manufacture the law; it has nowhere governed to
-write down the law it was handed.
+Columna associates reducer identity with the individual **measure/member**, through
+`root_evaluator`. That is the v5 shape, and it survives as a fossil of an implementation written
+while the Theory was still moving. **The correction is not to relocate `root_evaluator` into the
+governed publication** — that would preserve the mistake in a better postcode. It is to restore
+**family law as canonical**, with the measure inheriting it.
 
-**Retired formulation — do not carry forward:** *"root evaluator != family/default reducer."*
-The governing fact belongs to the measure family.
+#### What the artifacts actually contain
 
-### P2-04 · The execution grammar is v5-ontology; the publication is v6-ontology · **CRITICAL** · SV
+The four governed members of `firstlight` are **byte-identical except for their names**
+(`fixtures/firstlight/governed-publication.json`):
 
-ToD v6 retires `member` from the core ontology: what v5 called a member of a measure is now
-a **measure** (`F@A`); what v5 called a measure is now a **measure family**.
+```
+member revenue_sum   -> {"anchor":"sale_at","measure":"revenue","universe":"sales"}
+member revenue_count -> {"anchor":"sale_at","measure":"revenue","universe":"sales"}
+member revenue_min   -> {"anchor":"sale_at","measure":"revenue","universe":"sales"}
+member revenue_max   -> {"anchor":"sale_at","measure":"revenue","universe":"sales"}
+```
 
-`MEASURE revenue FAMILY { sum count min max }` must **not** be read as one v6 family with
-four members. It is a v5-style execution container grouping what v6 may treat as **distinct
-governed families** — differing reducer laws establish differing family identities (ToD v6.1
-§5.6: `revenue@B ==γ_MAX=> max_revenue_B@B` is an identity event even where displayed values
-coincide).
+The governed layer does not *under-specify* their meaning — it says **nothing whatsoever** about it.
+The string `revenue_count` is the only thing suggesting counting, and a name is not governed content.
+Their entire distinguishing meaning is `root_evaluator` in the private mapping
+(`fixtures/firstlight/private-core-mapping.json`), which the compiler reads, uses, and discards:
+governed member names disappear and the Core family is rebuilt keyed by **operator**
+(`manifold.cml`: `FAMILY { count max min sum }`).
 
-The two artifacts key the same family differently:
+The two governed artifacts key the same family differently and **neither carries the association**:
 
-| artifact | family is keyed by | contains |
+| artifact | family keyed by | contains |
 |---|---|---|
-| `governed-publication.json` | member **name** | `revenue_sum`, `revenue_count`, `revenue_min`, `revenue_max`; no reducers |
+| `governed-publication.json` | member **name** | `revenue_sum` … `revenue_max`; no reducers |
 | `manifold.cml` | **operator** | `FAMILY { count max min sum }`; no member names |
 
-Neither governed artifact carries the association. Core's word *family* and ToD's word
-*family* are near-inverses — Core's is a set of reducers over one column; ToD's is one law.
+Core's word *family* and ToD's word *family* are **near-inverses** — Core's is a set of reducers over
+one column; ToD's is one law.
+
+#### Why `MEASURE revenue FAMILY { sum count min max }` is not a v6 family
+
+It is a v5-style execution container grouping what v6 may treat as **distinct governed families**:
+differing reducer laws establish differing family identities (ToD v6.1 §5.6 —
+`revenue@B ==γ_MAX=> max_revenue_B@B` is an identity event even where displayed values coincide). If
+MAX over monthly revenue is a genuinely different analytical quantity, it is `MaxMonthlyRevenue`
+(root `Revenue@StoreMonth`, reducer law MAX) — a different family, not another entry inside Revenue.
+Likewise COUNT is plausibly an `OrderCount` family. **Different operator names do not constitute a
+family set; family identity and family law do.**
+
+That this is not merely hygiene is now demonstrated by execution — see **P1-10**, where two members of
+this one container carry different denominators and their ratio serves silently.
+
+#### `root_evaluator` may be in the RIGHT file — which changes the shape of the repair
+
+Two bullets this row previously carried are **retired**, and the retirement matters:
+
+- ~~*wrongly placed* — beside the physical endpoint in the private mapping~~
+- ~~*outside the receipt binding* (P2-02)~~
+
+The older Theory distinguished two different jobs, and the v6 transfer material preserves the
+distinction: **root formation / root evaluator** is the empirical/physical constitution of the native
+member, while a **family reducer** is an identity-preserving role under the measure law. If
+`root_evaluator` is genuinely the former, the private mapping is the **correct** home for it — it is
+physical, and it belongs below the governance line.
+
+The defect is then not a field in the wrong file. It is that **the governed layer has no `Law(F)`
+carrier at all**. That makes the repair **additive rather than a relocation**, which materially
+shrinks the P2-01 compatibility problem: a new governed slot refuses far less of what compiles today
+than a moved required field would.
+
+What survives from the original four bullets, and is now the headline:
+
+- **too weak in type** — a bare operator name is not a full family law. ToD v6.1 §5.1: two operations
+  both called `SUM` need not instantiate the same family law if participation, multiplicity, support,
+  regime or approximation differ.
+- **absent from the shipped runtime unit** and discarded after compilation.
+
+The compiler's own docstring names the boundary it is protecting (`compiler/inputs.py:168-169`):
+*"`root_evaluator` is captured, never invented: a compiler that chose a reducer would be
+manufacturing analytical law."* It correctly refuses to manufacture the law. It has nowhere governed
+to write down the law it was handed.
+
+#### The fossil is narrower than "Core is operator-keyed"
+
+Two facts bound the blast radius, and both were missed by the six audits:
+
+**The shipped demo already does it the v6 way.** `tests/fixtures/benchmark.cml:44-46` declares three
+separate measures, not one four-flavoured family:
+
+```
+MEASURE revenue  ON transactions FROM transactions AS sum(amount)
+MEASURE orders   ON transactions FROM transactions AS count(*)
+MEASURE visitors ON transactions FROM transactions AS distinct(customer_id)
+```
+
+`orders` is its own measure. The v5 container is concentrated in the **governed fixture**, not in the
+execution grammar generally.
+
+**`FAMILY` also does a second, legitimate job, and it is already `Law(F)`-shaped**
+(`tests/fixtures/benchmark.cml:52-57`):
+
+```
+MEASURE level ON store_days FROM eom_inventory VALUE level
+    FAMILY {
+        sum  BLOCKED { calendar }
+        last ORDER day
+    }
+```
+
+That is not two flavours of a quantity. It is **one** quantity carrying *per-lineage movement law* —
+summing inventory across time is non-reconciling; period-end `last` is the point. Movement law,
+closure and blocked lineages are `Law(F)` content, present in the grammar today. So the crosswalk is
+not starting from zero, and `FAMILY` must not simply be deleted as a fossil: it **conflates** the v5
+member-container with a real delivery/movement grouping, and separating those two jobs is the first
+concrete deliverable. The practical cost lives here too — one `.cml` declaration currently yields one
+delivery reduced several ways, and a strict family-per-law model needs somewhere for that fertility
+grouping to go.
+
+#### What this gates
+
+**OF-28** (`specs/open_forks.md`) is an open stop-gate in its own words: *"no public governed-
+publication authoring surface opens while the implementation vocabulary decision remains
+unresolved… an authoring surface mints governed objects under whichever vocabulary it exposes, and
+that choice is not reversible by documentation afterwards."* The v5→v6 crosswalk **is** that
+decision. Unit D therefore unblocks the author → ratify → publish third of the lifecycle rather than
+sitting adjacent to it.
+
+**Retired formulations — do not carry forward:** *"root evaluator != family/default reducer"*; and
+*"move `root_evaluator` from the private mapping into the governed publication"* (the placement
+framing, corrected by Huayin 2026-08-31).
+
+**Sources.** `compiler/inputs.py:176`, required at `:260-264`;
+`fixtures/firstlight/private-core-mapping.json`; `fixtures/firstlight/governed-publication.json`;
+`governed/firstlight/manifold.cml`; ToD v6.1 §§1.2, 5.1, 5.6; the Three Pillars reconstruction
+(Huayin, 2026-08-31).
+
+### P2-04 · *(merged into P2-03, 2026-08-31)*
+
+Kept as a tombstone because the ledger's ids are cited elsewhere and a stable id must not become a
+dangling reference. Its content — *"the execution grammar is v5-ontology; the publication is
+v6-ontology"* — is the same finding as P2-03 seen from the execution end, and the two are now one
+row. **See P2-03.**
 
 ### P2-05 · Twenty-six Data World laws live only in Core-private artifacts · **CRITICAL** · SV
 
@@ -730,6 +907,78 @@ governance line and not declarable.
 
 ---
 
+## Unit D — OPEN · scope only · **no implementation authorized**
+
+Opened 2026-08-31 on Huayin's ruling. **This unit's deliverable is a crosswalk, not a change.** No
+code, no schema, no artifact edit is authorized by this section, and the acceptance test below is a
+document. That constraint is the point: the mistake this unit exists to avoid is answering *"where
+should `root_evaluator` live?"* — a question that presupposes the fossil it is trying to remove.
+
+### The question
+
+> **What concepts in current Core correspond to v5 Measure, v5 Member, root evaluator, and family
+> reducer — and what should each become under the canonical v6 MeasureFamily / Measure `F@A` /
+> `Law(F)` model?**
+
+Only after that crosswalk can it be decided whether `root_evaluator` disappears, survives as a
+realization / root-constitution field, is renamed, or moves into a lower-level realization contract.
+The one thing already ruled out: **it must not remain the thing that tells a measure which reducer
+family it belongs to** (Huayin, 2026-08-31).
+
+### Why it is a crosswalk and not a repair
+
+Columna was built while the Theory was moving, and absorbed both eras. The result is hybrid — a v5
+publication ontology, an operator-keyed Core family, `root_evaluator` per old-style member, and
+partial v6 terminology. The compiler's behaviour is the fossil in one sentence: it sees governed
+`member`s, ignores `root_member`, reads the member's `root_evaluator`, drops the governed member
+name, and rebuilds the Core family from operator names. Viewed through v6 that is not one misplaced
+field; it is an older ontology still load-bearing.
+
+### Deliverables
+
+| # | deliverable | why it is first |
+|---|---|---|
+| **D1** | **The v5→v6 crosswalk table.** Every current Core concept — `measure`, `member`, `family`, `MeasureColumn`, `FamilyMember`, `root_member`, `root_evaluator`, `FAMILY {...}`, `K0_REDUCERS` — mapped to its v6 counterpart, or explicitly marked as having none | Everything else is a guess without it |
+| **D2** | **Separate `FAMILY`'s two jobs.** It currently conflates the v5 member-container with a *legitimate* per-lineage movement grouping (`sum BLOCKED {calendar}` / `last ORDER day`) that is already `Law(F)`-shaped. Name both; decide which keeps the word | The construct must not be deleted as a fossil when half of it is the thing we want |
+| **D3** | **Rule `root_evaluator`'s fate** against D1 — including the live possibility that it stays exactly where it is as root *formation*, and the governed layer gains a `Law(F)` carrier beside it | Determines whether the repair is additive or a migration |
+| **D4** | **State the compatibility consequence**, quantified against `firstlight` and the demo corpus: which publications that compile today would stop compiling, under each option | P2-01's coupling is the whole cost, and it is currently an assertion, not a count |
+
+### What this unit does NOT do
+
+- **No implementation.** Not the governed slot, not a compiler change, not a fixture rewrite.
+- **No renaming in the runtime.** The v6 runtime checkpoint §11 ratified *"No renaming"* and that
+  stands until D1 says otherwise.
+- **No deposited bytes edited.** ToD v6.1 is published under a DOI; the crosswalk reads it, and
+  a fork ledger is not a publication authority.
+- **Not connected to Column Algebra or the current Frame-QL research** — held separate at Huayin's
+  explicit instruction (2026-08-31), unless he connects them later.
+
+### Acceptance
+
+A crosswalk document that a reader can use to answer *"what is this concept, under v6?"* for every
+row of D1 without consulting a person — plus D4's count. **Green is a document Huayin can rule on,
+not a passing test.**
+
+### Rows it governs
+
+**P2-03** (the merged ontology-fossil row) is the subject. **P1-10** is coupled to it and is the
+reason the unit has a wrong-number consequence rather than only an ontological one. **P2-01** and
+**P2-09** are coupled through Appendix A. **P2-02** is expected to dissolve rather than be repaired:
+the receipt binding already distinguishes the four images, and what the four-mappings reproduction
+actually shows is the publication under-determining its own meaning — restoring `Law(F)` to the
+governed layer removes the under-determination at its source, which adding a mapping digest to the
+binding would not.
+
+### What it unblocks
+
+**OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a
+precondition for opening any public governed authoring surface: *"an authoring surface mints governed
+objects under whichever vocabulary it exposes, and that choice is not reversible by documentation
+afterwards."* Unit D is that decision, so it stands in front of the author → ratify → publish third
+of the governed lifecycle rather than beside it.
+
+---
+
 ## Unit B — CLOSED, 2026-08-31
 
 Every row Unit B was authorized to repair is fixed, shipped and installable. Rows are struck here
@@ -878,7 +1127,8 @@ Rows that **must** be repaired together, or a fix creates a new defect:
 |---|---|
 | **P1-01 + P1-03** | P1-03 is latent only because P1-01 exists. Fixing confinement without widening the witness currency key converts latent under-invalidation into active staleness |
 | **P1-04 + P1-05** | Both concern what the TOUCH path discloses. Re-grading coverage to MATERIAL while the warm path still drops it means the warm/cold divergence becomes outcome-visible (`disclose` cold, `serve` warm) — a strictly worse failure than today's |
-| **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today |
+| **P2-01 + P2-03 + P2-09** | Φ and `root_evaluator` are both *silently dropped* rather than refused. A generic refusal-before-omission rule (P2-01) makes both fail closed immediately, which is correct but will refuse publications that compile today. **Eased 2026-08-31:** P2-03's repair is now understood to be **additive** (a governed `Law(F)` carrier) rather than a relocation of a required field, so the set of publications a refusal rule would reject is materially smaller than this row assumed |
+| **P1-10 + P2-03** | P1-10 is the v5 family container producing a number. Re-typing `count` or minting a support caveat treats the symptom and leaves the container. The caveat is the cheap partial mitigation if P2-03 runs long |
 | **P0-08 + P0-09 + P0-10 + P0-13** | All four are blocked behind one version-bump decision. They must ship as one release or not at all |
 
 ## Appendix C — Absorbed from the positioning audit (PR #237, closed as superseded)
