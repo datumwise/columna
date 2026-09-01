@@ -110,6 +110,21 @@ class FrameResult:
         return "\n".join(lines)
 
 
+class _ExpressionFault(Exception):
+    """INTERNAL. A refusal that is about the EXPRESSION, not about the candidate pin being tried.
+
+    P1-25. `_admit_pin` composes candidate laws (pin laws, input grain, travel) and then calls
+    `_infer`, which adjudicates the expression itself — its names, its types, its family member.
+    `_infer`'s answer does not depend on the pin, so it is the same for every candidate; recording it
+    as that candidate's verdict manufactures evidence. This wrapper is how the enumeration tells
+    "this level is unlawful" from "this ask never became adjudicable", structurally rather than by
+    matching reason strings, so it stays correct as laws are added on either side."""
+
+    def __init__(self, refusal):
+        self.refusal = refusal
+        super().__init__(str(refusal))
+
+
 class Planner:
     def __init__(self, view: PlannerView, engine: ColumnEngine):
         self.m = view          # provenance-free PROJECTION (vocabulary/shape only)
@@ -1296,7 +1311,7 @@ class Planner:
         the asker may choose between; an unlawful reading is not a choice, and offering it makes
         Clarify reachable before lawfulness — which is how a reader gets talked into a laundered
         answer one keystroke later."""
-        lawful, refused = self._pin_verdicts(reducer, inner, tuple(anchor))
+        lawful, refused, faults = self._pin_verdicts(reducer, inner, tuple(anchor))
         if len(lawful) == 1:
             return (lawful[0],)
         if lawful:
@@ -1316,9 +1331,63 @@ class Planner:
         # died on the family-member question. Collecting every verdict first and only speaking when
         # they AGREE keeps the law that matters (`blocked_reduction`) in front of the incidental one.
         reasons = {r.reason for _L, r in refused}
-        if len(reasons) == 1 and reasons != {"blocked_reduction"}:
+        # P1-25 — WHAT MAY BE CLAIMED, AND WHEN. `faults` are candidates whose EXPRESSION never became
+        # adjudicable, so they earned no verdict about themselves. The order below is the whole
+        # repair:
+        #
+        #  1. A STRUCTURAL PROHIBITION EVERY ADJUDICATED CANDIDATE EARNS OUTRANKS AN UNRESOLVED
+        #     AMBIGUITY, because it holds however the ambiguity is resolved. This is the ratified §9
+        #     case (`sum(on_hand)` @ {store, month} -> blocked_reduction) and it must survive a fault
+        #     being present, which is exactly the situation that ruling was made about.
+        #  2. Otherwise, if any candidate faulted, THE ASK IS NOT YET ADJUDICABLE and nothing may be
+        #     claimed about pins at all. The fault is the answer. This is what `max(level) AT {store}`
+        #     needed: 8 candidates faulted on the family question and 1 earned a real verdict, and the
+        #     old code reported all 9 as pin verdicts under "there is no pin that rescues this ask" —
+        #     while `max(level.max @ {day})` serves.
+        #  3. With no faults, the pre-existing unanimity re-raise, unchanged.
+        if faults and self._any_member_has_a_lawful_pin(reducer, inner, anchor):
+            raise faults[0][1]
+        if len(reasons) == 1 and reasons != {"blocked_reduction"} and not faults:
             raise refused[0][1]
         raise self._no_lawful_pin_refusal(reducer, inner, anchor, refused)
+
+    def _any_member_has_a_lawful_pin(self, reducer, inner, anchor) -> bool:
+        """Would naming a family member give this ask a lawful pin? (P1-25.)
+
+        The ambiguity and the prohibition can both be true at once, and which one the reader is owed
+        is not a matter of taste — it is a matter of whether resolving the ambiguity would help:
+
+          * `sum(on_hand)` @ {store, month} — the temporal sum is barred for EVERY member, so naming
+            one rescues nothing. The prohibition outranks the ambiguity, which is generated-family
+            ruling §1 and is ratified. Reporting the member question here would send the reader to
+            fix something that is not the problem.
+          * `max(level)` @ {store} — `max(level.max @ {day})` serves. The prohibition is NOT
+            invariant, so claiming "there is no pin that rescues this ask" is simply false, and the
+            member question is exactly what stands in the way.
+
+        So the question is asked rather than guessed at, by re-adjudicating under each member. Bounded
+        by the family size, and only ever reached on a |L| = 0 ask that already faulted."""
+        meas = self._family_ambiguous_measure(inner)
+        if meas is None:
+            return False
+        name, members = meas
+        for member in members:
+            probe = ast.Attribute(value=ast.Name(id=name, ctx=ast.Load()), attr=member, ctx=ast.Load())
+            ast.fix_missing_locations(probe)
+            try:
+                if self._pin_verdicts(reducer, probe, tuple(anchor))[0]:
+                    return True
+            except Refusal:
+                continue
+        return False
+
+    def _family_ambiguous_measure(self, inner):
+        """`(measure_name, members)` when `inner` is a bare multi-member measure reference, else None."""
+        if isinstance(inner, ast.Name) and inner.id in self.m.measures:
+            meas = self.m.measures[inner.id]
+            if len(meas.family) > 1:
+                return inner.id, list(meas.family)
+        return None
 
     def _no_lawful_pin_refusal(self, reducer, inner, anchor, refused=None):
         """|L| = 0 with the candidates disagreeing about WHY. REFUSE: an operation with no lawful
@@ -1662,7 +1731,26 @@ class Planner:
             if r is not None:
                 raise r
 
-    def _admit_pin(self, reducer, inner, pin: tuple, anchor: tuple, population=None) -> str:
+    def _family_member_clarify(self, meas_name: str, meas, what: str = "") -> Refusal:
+        """Several lawful family members and no authorized default -> CLARIFY (v0.2 §12, P1-25).
+
+        This was `Refusal("unknown", ...)`, which classifies ERROR — the vocabulary bucket. But the
+        measure is known and the ask is well formed; what is under-determined is WHICH lawful
+        reduction is meant, which is |L(Q)| > 1 and belongs to the reader to settle. Filing it as a
+        vocabulary miss also had a second cost, and it is the one P1-25 is named for: a Stage-A
+        verdict was then counted as Stage-B evidence that a pin was unlawful.
+
+        The members are offered as alternatives in declaration order and NOT ranked — §12 forbids a
+        realization fact, insertion order included, from selecting one."""
+        members = list(meas.family)
+        return Refusal("family_member_ambiguous",
+            f"'{meas_name}' has a family {members} and the ask selects no member{what} — each is a "
+            f"different lawful reduction, so there is no single reading to serve. Name the member.",
+            measure=meas_name, discriminator=AMBIGUOUS,
+            alternatives=tuple(f"{meas_name}.{m}" for m in members))
+
+    def _admit_pin(self, reducer, inner, pin: tuple, anchor: tuple, population=None,
+                   stage_faults: bool = False) -> str:
         """THE ONE ADMISSIBILITY LAW for a pinned generated reduction `R(inner @ pin)` at `anchor`.
         Raises the Refusal the pin earns; returns the inner's inferred dtype when it is admissible.
 
@@ -1700,7 +1788,27 @@ class Planner:
         violation = self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin))
         if violation is not None:
             raise violation
-        return self._infer(inner, grain, population)
+        # P1-25. The three laws above adjudicate THE CANDIDATE. `_infer` adjudicates THE EXPRESSION —
+        # its names, its types, its family member — and its answer is the same for every candidate,
+        # because none of that depends on the pin. Enumeration must be able to tell the two apart:
+        # counting an expression fault as a verdict about a level is how `max(level) AT {store}` came
+        # to refuse "every candidate grain is excluded ... there is no pin that rescues this ask"
+        # while three pins rescued it and one served. The distinction is structural — WHERE the
+        # refusal was raised — rather than a list of reasons to special-case, so it stays correct for
+        # laws added to either side later.
+        if not stage_faults:
+            return self._infer(inner, grain, population)        # explicit pin: one pin, one verdict
+        try:
+            return self._infer(inner, grain, population)
+        except Refusal as r:
+            # ONLY the pin-INDEPENDENT half of `_infer` is a fault. `_infer` does two jobs: it checks
+            # the expression (names, types, family member), and it checks §2c/transport AT THIS GRAIN
+            # — and the grain comes from the pin, so `out_of_universe` here IS a verdict about the
+            # candidate and must stay one. The family-member question is the part that provably
+            # cannot depend on the pin, so it is the part that is staged.
+            if r.reason == "family_member_ambiguous":
+                raise _ExpressionFault(r) from None
+            raise
 
     def _pin_candidates(self, anchor) -> list:
         """The STRUCTURAL candidate pins for an unpinned reduction at `anchor`: every DECLARED level
@@ -1716,17 +1824,29 @@ class Planner:
         return sorted(L for L in self.m.levels if L not in anchor)
 
     def _pin_verdicts(self, reducer, inner, anchor) -> tuple:
-        """`(lawful, refused)` — the candidate levels that SURVIVE `_admit_pin`, and the (level,
-        Refusal) pairs for the ones that do not. Splitting the verdict out from the set is what lets
-        a |L| = 0 disposition say WHY there was nothing to offer instead of asserting a cause."""
-        lawful, refused = [], []
+        """`(lawful, refused, faults)` for the candidate pins.
+
+        `lawful`  — levels that SURVIVE `_admit_pin`.
+        `refused` — (level, Refusal) where the CANDIDATE was adjudicated and lost. These are verdicts
+                    about the pin, and only these may be reported as such.
+        `faults`  — (level, Refusal) where the EXPRESSION never became adjudicable (`_ExpressionFault`).
+                    Invariant across candidates by construction, so they are evidence about the ask,
+                    never about a level.
+
+        Splitting the verdict out from the set is what lets a |L| = 0 disposition say WHY there was
+        nothing to offer instead of asserting a cause. Splitting FAULTS out from the verdicts (P1-25)
+        is what keeps that WHY true: a refusal may only claim "no pin rescues this ask" when every
+        candidate actually earned a verdict."""
+        lawful, refused, faults = [], [], []
         for L in self._pin_candidates(anchor):
             try:
-                self._admit_pin(reducer, inner, (L,), tuple(anchor))
+                self._admit_pin(reducer, inner, (L,), tuple(anchor), stage_faults=True)
+            except _ExpressionFault as f:
+                faults.append((L, f.refusal)); continue
             except Refusal as r:
                 refused.append((L, r)); continue
             lawful.append(L)
-        return lawful, refused
+        return lawful, refused, faults
 
     def _lawful_pins(self, reducer, inner, anchor) -> list:
         """The candidate input anchors for an unpinned generated reduction that SURVIVE the explicit-
@@ -1872,8 +1992,7 @@ class Planner:
                                       f"use a measure bound to '{population}'"))
             if member is None:
                 if len(meas.family) != 1:
-                    raise Refusal("unknown",
-                        f"'{meas_name}' has a family {list(meas.family)} — specify a member")
+                    raise self._family_member_clarify(meas_name, meas)
                 member = next(iter(meas.family))
             elif member not in meas.family:
                 if member not in self.m.operators:
@@ -1980,8 +2099,7 @@ class Planner:
             if member is None:
                 member = next(iter(meas.family)) if len(meas.family) == 1 else None
                 if member is None:
-                    raise Refusal("unknown",
-                        f"'{m_name}' has a family {list(meas.family)} — specify a member to scan")
+                    raise self._family_member_clarify(m_name, meas, " to scan")
             out_dtype = self.m.output_dtype(scan_op, self.m.output_dtype(member, meas.logical_type))
             routes = {}                                        # P0.5a: plan, then execute the plan
             for T in anchor:
@@ -2006,8 +2124,7 @@ class Planner:
             meas = self.m.measures[meas_name]
             if member is None:
                 if len(meas.family) != 1:
-                    raise Refusal("unknown",
-                        f"'{meas_name}' has a family {list(meas.family)} — specify a member, e.g. {meas_name}.{next(iter(meas.family))}")
+                    raise self._family_member_clarify(meas_name, meas)
                 member = next(iter(meas.family))
             elif member not in meas.family:
                 # operator-not-supported is a VOCABULARY error, caught here, not a data error:

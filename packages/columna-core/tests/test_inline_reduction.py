@@ -181,9 +181,21 @@ def test_unpinned_with_no_lawful_candidate_refuses(fixture_connector):
     nr = w["columns"][0]["no_result"]
     assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "blocked_reduction", "unsupported")
     assert "no lawful input anchor" in nr["detail"]
-    # The detail REPORTS the verdicts rather than asserting one cause (P1-13): each candidate is
-    # named with the refusal the pin would earn if it were written out.
-    assert "blocked_reduction" in nr["detail"] and "day" in nr["detail"]
+    # P1-25 (2026-09-01). This used to assert the MIXED-VERDICT wording, "day (blocked_reduction),
+    # cal.quarter (unknown), ...", on the strength of P1-13's rule that the detail reports verdicts
+    # rather than asserting a cause. That rule stands; what changed is that half those "verdicts"
+    # were not verdicts. `cal.quarter (unknown)` was the family-member question — a property of
+    # `sum(level)` itself, identical under every pin — recorded as though `cal.quarter` had been
+    # adjudicated and lost. The tell was one line away in the same suite: `sum(level.sum)` gives
+    # `cal.quarter (out_of_universe)`, the REAL verdict the `unknown` was standing in for.
+    #
+    # With expression faults no longer counted as pin verdicts, the surviving verdicts are unanimous,
+    # so this is now the ratified §9 wording. Both claims in it are checked, not assumed: `day` did
+    # earn `blocked_reduction`, and "no pin rescues this ask" is verified by re-adjudicating under
+    # every family member before it is said.
+    assert "would reduce by 'sum' across a lineage the governed law blocks" in nr["detail"]
+    assert "day" in nr["detail"]
+    assert "unknown" not in nr["detail"], "a family question is not a verdict about a candidate pin"
     assert nr.get("alternatives"), "a refusal owes the reader a lawful neighbour (DG-2 invariant 5)"
 
 

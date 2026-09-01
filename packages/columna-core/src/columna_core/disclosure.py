@@ -270,6 +270,18 @@ REASON_OUTCOME = {
                                                         #   alternatives; two-path remedy: restrict the
                                                         #   predicate to reachable dims, or change the series'
                                                         #   input anchor. S1a: registry is the source of truth.
+    "family_member_ambiguous":  (CLARIFY, AMBIGUOUS, ANALYTICAL),    # P1-25 (minted 2026-09-01).
+                                                        #   A VALID expression naming a measure whose
+                                                        #   family has several members, with no
+                                                        #   authorized default selecting one: v0.2
+                                                        #   §12, several lawful capability readings
+                                                        #   -> Clarify. Was `unknown`/ERROR, i.e.
+                                                        #   filed as a vocabulary miss — the measure
+                                                        #   is known and the ask is well formed; what
+                                                        #   is under-determined is WHICH lawful
+                                                        #   reduction is meant. An OF-1 sibling of
+                                                        #   `input_anchor_ambiguous`: its own
+                                                        #   contested dimension, its own reason.
     # ── P1-24 (minted 2026-09-01) · explicit order selection ──────────────────────────────────────
     #   Ruled Huayin: "Explicit `by=` may select governed order standing. It may not create it."
     #   `plan_order_axis` used to begin `if by is not None: return by`, so a named axis was never
