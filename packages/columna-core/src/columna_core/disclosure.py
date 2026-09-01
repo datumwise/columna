@@ -79,6 +79,26 @@ ERROR    = "error"            # vocabulary/capability failure — not an analyti
 AMBIGUOUS   = "ambiguous"     # no unique answer under the Manifold's rules   -> CLARIFY
 UNSUPPORTED = "unsupported"   # the data cannot support a result              -> REFUSE
 
+# ---- JURISDICTION (Step 1 of the jurisdiction repair, 2026-09-01) -----------------------------
+# Which of the three stages a no-result belongs to, per Frame-QL Request Adjudication and
+# Disposition Ruling v0.2 §1. This is INTERNAL: it is stamped on every Outcome and is available to
+# the decision machinery, but it does not reach the wire. The wire MOODS stay as they are until the
+# separate compatibility ruling (v0.2 §13; Step 6), so this commit changes no observable behaviour.
+#
+# The distinction the moods cannot express, and the whole reason for this seam: `error` currently
+# carries BOTH "this never became a valid Frame-QL request" and "this is a valid admitted request
+# this build cannot realize", which v0.2 §3 rules must not share one status. Jurisdiction says which,
+# without yet changing what the caller sees.
+LANGUAGE    = "language"      # Stage A — the request never became a valid canonical request
+ANALYTICAL  = "analytical"    # Stage B — a valid request, adjudicated under governed analytical law
+REALIZATION = "realization"   # Stage C — admitted, but this profile/build cannot realize it
+# `unruled` is NOT a fourth jurisdiction. It marks a reason whose stage is a live, deliberately open
+# doctrinal question, so that classifying the table did not silently decide it. Ruling 0.1 §9/§13 and
+# v0.2 both decline the certification/admission question, and the 2026-09-01 sweep recorded it as
+# "not scored". Registering `unruled` keeps the table exhaustive and fail-closed while leaving the
+# doctrine to the architects; it must not be used for a reason merely because classifying is hard.
+UNRULED     = "unruled"       # deliberately unclassified — see `UNRULED_REASONS`
+
 # severity lattice: none < info < caution < critical
 _SEV_RANK = {"none": 0, "info": 1, "caution": 2, "critical": 3}
 
@@ -205,31 +225,31 @@ class Disclosure:
 # single-meaning (an attribute keyed at several levels), and the input-anchor dimension gets its own
 # `input_anchor_ambiguous` — sibling to `co_anchor_ambiguous`.
 REASON_OUTCOME = {
-    "non_functional_transport": (CLARIFY, AMBIGUOUS),   # fan-out (M:N): no single total exists
-    "ambiguous_grain":          (CLARIFY, AMBIGUOUS),   # attribute keyed at several levels
+    "non_functional_transport": (CLARIFY, AMBIGUOUS, ANALYTICAL),   # fan-out (M:N): no single total exists
+    "ambiguous_grain":          (CLARIFY, AMBIGUOUS, ANALYTICAL),   # attribute keyed at several levels
     # ── TOMBSTONE ── `co_anchor_ambiguous` was (CLARIFY, AMBIGUOUS) — "ratio over >1 population: rate's
     #   population ambiguous". RETIRED 2026-07-16 (§2c expression law, Huayin's ruling): a cross-universe
     #   expression is a language-law CATEGORY ERROR, not a clarify (see `cross_universe` below); within one
     #   universe the denotation rule leaves nothing ambiguous. Its emitter left the language entirely and a
     #   retirement-pin test asserts it is never emitted. Kept here as a dated tombstone so old transcripts
     #   and docs remain interpretable — vocabularies grow by rule and shrink by tombstone, never silently.
-    "cross_universe":           (ERROR,   None),        # a column expression combines measures from >1
+    "cross_universe":           (ERROR, None, LANGUAGE),        # a column expression combines measures from >1
                                                         #   universe (§2c expression law: a column evaluates in
                                                         #   ONE universe, never crosses the boundary). A category
                                                         #   error — rides the ERROR channel, not the four moods.
                                                         #   Minted 2026-07-16 (§2c). Remedy: juxtapose or declare.
-    "input_anchor_ambiguous":   (CLARIFY, AMBIGUOUS),   # inline reduction with no pinned input anchor:
+    "input_anchor_ambiguous":   (CLARIFY, AMBIGUOUS, ANALYTICAL),   # inline reduction with no pinned input anchor:
                                                         #   the grain to resolve the inner at is under-
                                                         #   determined (names the same dimension OF-2's
                                                         #   immaterial input-anchor note records)
-    "redundant_pin":            (CLARIFY, AMBIGUOUS),   # WP-GRAIN-1 Law 2: a composite input anchor pins
+    "redundant_pin":            (CLARIFY, AMBIGUOUS, ANALYTICAL),   # WP-GRAIN-1 Law 2: a composite input anchor pins
                                                         #   two levels where one functionally determines the
                                                         #   other (p_i -> p_j), so the pair fixes ONE axis,
                                                         #   not two — a CLARIFY (the reader picks between two
                                                         #   admissible pins), never a refuse. Sibling to
                                                         #   `ambiguous_grain`; own reason per OF-1 (one reason
                                                         #   per contested dimension). MINTED 2026-07-30.
-    "filter_unsupported":       (ERROR,   None),        # P1-14 (minted 2026-08-31): a WHERE dimension the
+    "filter_unsupported":       (ERROR, None, REALIZATION),        # P1-14 (minted 2026-08-31): a WHERE dimension the
                                                         #   series CAN reach, in a filter this build cannot
                                                         #   EXECUTE. Sibling to `filter_unreachable` and
                                                         #   deliberately a different reason: unreachable is a
@@ -240,7 +260,7 @@ REASON_OUTCOME = {
                                                         #   something that is not theirs to fix. ERROR, not
                                                         #   REFUSE: a capability limit is not an analytical
                                                         #   verdict about the data (see `unsupported`).
-    "filter_unreachable":       (CLARIFY, AMBIGUOUS),   # a WHERE dimension cannot lawfully reach a series'
+    "filter_unreachable":       (CLARIFY, AMBIGUOUS, ANALYTICAL),   # a WHERE dimension cannot lawfully reach a series'
                                                         #   input anchor (the filter's grain is not
                                                         #   addressable in that series' universe). MINTED
                                                         #   2026-07-17 (WP-FrameQL envelope, Huayin) — the
@@ -250,7 +270,7 @@ REASON_OUTCOME = {
                                                         #   alternatives; two-path remedy: restrict the
                                                         #   predicate to reachable dims, or change the series'
                                                         #   input anchor. S1a: registry is the source of truth.
-    "blocked_reduction":        (REFUSE,  UNSUPPORTED), # GENERATED-FAMILY LAW (minted 2026-08-20). A
+    "blocked_reduction":        (REFUSE, UNSUPPORTED, ANALYTICAL), # GENERATED-FAMILY LAW (minted 2026-08-20). A
                                                         #   reduction — written as a declared family member
                                                         #   or GENERATED by an inline reducer above one —
                                                         #   travels a lineage that operator is declared
@@ -264,8 +284,8 @@ REASON_OUTCOME = {
                                                         #   spelling with the CAVEAT code it replaces (one
                                                         #   concept, two channels — the caveat side is now
                                                         #   tombstoned in disclosure_wire.CATEGORY_TABLE).
-    "out_of_universe":          (REFUSE,  UNSUPPORTED), # addressed outside the contracted space
-    "pin_coarser_than_output":  (REFUSE,  UNSUPPORTED), # WP-GRAIN-1 Law 1: a composite input anchor pins a
+    "out_of_universe":          (REFUSE, UNSUPPORTED, ANALYTICAL), # addressed outside the contracted space
+    "pin_coarser_than_output":  (REFUSE, UNSUPPORTED, ANALYTICAL), # WP-GRAIN-1 Law 1: a composite input anchor pins a
                                                         #   level COARSER than the output grain (output level
                                                         #   `a` reaches pin `p`, a -> p) — a coarser pin cannot
                                                         #   resolve at a finer output without inventing rows it
@@ -274,13 +294,13 @@ REASON_OUTCOME = {
                                                         #   (the pin choosing an ill-fitting grain vs a plan
                                                         #   discovering unreachability at run-time), with a
                                                         #   pin-specific teaching message. MINTED 2026-07-30.
-    "contradicted_edge":        (REFUSE,  UNSUPPORTED), # data violates a declared functional edge (tested+refuted)
-    "uncertified_edge":         (REFUSE,  UNSUPPORTED), # P0.5a: a declared functional edge that is NOT positively
+    "contradicted_edge":        (REFUSE, UNSUPPORTED, ANALYTICAL), # data violates a declared functional edge (tested+refuted)
+    "uncertified_edge":         (REFUSE, UNSUPPORTED, UNRULED), # P0.5a: a declared functional edge that is NOT positively
                                                         #   certified (UNTESTABLE / unadjudicated) — declaration makes
                                                         #   a capability eligible for certification, not executable.
                                                         #   Distinct from `contradicted_edge` (a stronger factual claim:
                                                         #   tested and refuted). MINTED 2026-08-13.
-    "uncertified_face":         (REFUSE,  UNSUPPORTED), # P0.5a: a declared crossing face that is NOT positively
+    "uncertified_face":         (REFUSE, UNSUPPORTED, UNRULED), # P0.5a: a declared crossing face that is NOT positively
                                                         #   admitted (license=None / no adjudication / not
                                                         #   VERIFIED|CORROBORATED). Same polarity law as edges.
     # ── TOMBSTONE ── `conflicting_data` was (REFUSE, UNSUPPORTED) — "a declared invariant (ASSERT) the
@@ -294,7 +314,7 @@ REASON_OUTCOME = {
     #   🔒 NOT the same referent as the RESERVED caveat code of the same name (disclosure_wire.py): that one
     #   is RETAINED, reserved and unwired for a possible future soft-assert/disclosed-not-cut path. Same
     #   string, different channel — probe the referent, not the spelling.
-    "chained_crossing":         (REFUSE,  UNSUPPORTED), # REGISTERED 2026-08-20 (vocabulary integrity). Was
+    "chained_crossing":         (REFUSE, UNSUPPORTED, REALIZATION), # REGISTERED 2026-08-20 (vocabulary integrity). Was
                                                         #   ORPHANED — emitted at engine.py's G4 chain guard
                                                         #   but absent from this table, so it fell through
                                                         #   `outcome_for`'s silent default and shipped as an
@@ -304,16 +324,16 @@ REASON_OUTCOME = {
                                                         #   the same REFUSE/UNSUPPORTED family as
                                                         #   `uncertified_face`. Registered to its EXISTING
                                                         #   intent, not to a convenient one.
-    "anchor_spent":             (REFUSE,  UNSUPPORTED), # REGISTERED 2026-08-20 (vocabulary integrity). Also
+    "anchor_spent":             (REFUSE, UNSUPPORTED, ANALYTICAL), # REGISTERED 2026-08-20 (vocabulary integrity). Also
                                                         #   orphaned; emitted at the G5 anchor law. Its call
                                                         #   site says a distinct-class measure's anchor is
                                                         #   SPENT at the frontier grain — per-member counts
                                                         #   "cannot be summed, weighted, or routed". A
                                                         #   structural prohibition with named alternatives:
                                                         #   REFUSE/UNSUPPORTED, never an ERROR.
-    "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
-    "type_error":               (ERROR,   None),        # vocabulary/type failure
-    "unknown":                  (ERROR,   None),        # unknown column / operator / construct
+    "unsupported":              (ERROR, None, REALIZATION),        # not implemented in this build (capability)
+    "type_error":               (ERROR, None, LANGUAGE),        # vocabulary/type failure
+    "unknown":                  (ERROR, None, LANGUAGE),        # unknown column / operator / construct
 }
 
 
@@ -335,12 +355,33 @@ def outcome_for(reason: str):
     This is INTERNAL vocabulary integrity. It is not a wire change: `no_result.reason` remains an
     extensible reason string in shape, and CONTRACT_VERSION stays "3"."""
     try:
-        return REASON_OUTCOME[reason]
+        return REASON_OUTCOME[reason][:2]
     except KeyError:
         raise UnregisteredReason(
             f"refusal reason {reason!r} has no REASON_OUTCOME entry, so it has no verdict. "
             f"Register it (with a dated note on its intent) rather than letting it default; "
             f"known reasons: {sorted(REASON_OUTCOME)}") from None
+
+
+UNRULED_REASONS = frozenset({"uncertified_edge", "uncertified_face"})
+"""The reasons whose STAGE is an open doctrinal question, listed once so the exception is auditable.
+
+Whether missing positive certification is `|L(Q)| = 0` (analytical Refuse), a Stage-A category
+failure, or a realization/evidence gap is precisely the question Ruling 0.1 §9/§13 declined and v0.2
+does not reopen. The 2026-09-01 sweep recorded it as "not scored". This set is the honest form of
+that: the reasons are registered, so the table stays closed and fail-closed, but no stage is claimed
+for them. Shrinking this set requires a ruling, not an implementation decision."""
+
+
+def jurisdiction_for(reason: str) -> str:
+    """The STAGE a reason belongs to (v0.2 §1) — `language` / `analytical` / `realization`, or
+    `unruled` for the deliberately open ones.
+
+    Reads the same closed, fail-closed table as `outcome_for`, which is what makes the classification
+    exhaustive BY CONSTRUCTION: a reason cannot reach a surface without a jurisdiction, because it
+    cannot reach a surface without an entry. That property is the reason this repair is a table edit
+    rather than a sweep of call sites."""
+    return REASON_OUTCOME[reason][2] if reason in REASON_OUTCOME else outcome_for(reason)
 
 
 @dataclass(frozen=True)
@@ -360,15 +401,19 @@ class Outcome:
     alternatives: tuple = ()         # e.g. ("allocation (ROADMAP)", "membership (rephrase)")
     kind: Optional[str] = None       # the planner's verdict; None until classified()
     discriminator: Optional[str] = None   # engine-attached seam: 'ambiguous' | 'unsupported'
+    jurisdiction: Optional[str] = None    # v0.2 §1 stage: 'language' | 'analytical' | 'realization'
+                                          # (or 'unruled'). INTERNAL — never serialized to the wire.
 
     def classified(self) -> "Outcome":
         """Planner-side classification (idempotent): stamp (kind, discriminator) from the reason
         policy unless already set. Applied at the planner's single chokepoint, so every no-result —
         the engine's and the planner's own static ones — is verdicted in one place."""
         if self.kind is not None:
-            return self
+            return self if self.jurisdiction is not None else replace(
+                self, jurisdiction=jurisdiction_for(self.reason))
         kind, disc = outcome_for(self.reason)
-        return replace(self, kind=kind, discriminator=self.discriminator or disc)
+        return replace(self, kind=kind, discriminator=self.discriminator or disc,
+                       jurisdiction=self.jurisdiction or jurisdiction_for(self.reason))
 
     @property
     def _kind(self): return self.kind or outcome_for(self.reason)[0]
@@ -402,8 +447,15 @@ class Refusal(Exception):
     `Outcome`, never this exception. Call sites keep `raise Refusal(reason, detail, ...)` unchanged."""
 
     def __init__(self, reason, detail, measure=None, target=None, edge=None,
-                 alternatives=(), kind=None, discriminator=None):
-        self.outcome = Outcome(reason, detail, measure, target, edge, alternatives, kind, discriminator)
+                 alternatives=(), kind=None, discriminator=None, jurisdiction=None):
+        # `jurisdiction=` overrides the reason's table default FOR THIS CALL SITE. It exists because
+        # jurisdiction is a property of the FAILURE, and one reason string is currently emitted from
+        # sites in different stages: `unsupported` carries both a real build gap and the co-anchor
+        # LANGUAGE law (P1-23), and `unknown` carries both a genuine vocabulary miss and the family
+        # ambiguity that is a Stage-B question (P1-25). Splitting those reasons is Step 4; until then
+        # a call site can state its own stage truthfully without minting a reason or changing a mood.
+        self.outcome = Outcome(reason, detail, measure, target, edge, alternatives, kind,
+                               discriminator, jurisdiction)
         super().__init__(str(self.outcome))
 
     def classified(self) -> "Outcome":

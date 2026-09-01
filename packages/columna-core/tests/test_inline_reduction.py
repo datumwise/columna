@@ -237,8 +237,8 @@ def test_derived_carrier_refuses_the_same_way(fixture_connector):
 def test_input_anchor_ambiguous_is_a_distinct_clarify_reason():
     """OF-1 ruling: `input_anchor_ambiguous` is its OWN reason (CLARIFY/AMBIGUOUS), sibling to
     `co_anchor_ambiguous` — not a reuse of `ambiguous_grain`, whose gloss stays single-meaning."""
-    from columna_core.disclosure import REASON_OUTCOME, CLARIFY, AMBIGUOUS
-    assert REASON_OUTCOME["input_anchor_ambiguous"] == (CLARIFY, AMBIGUOUS)
+    from columna_core.disclosure import ANALYTICAL, REASON_OUTCOME, CLARIFY, AMBIGUOUS
+    assert REASON_OUTCOME["input_anchor_ambiguous"] == (CLARIFY, AMBIGUOUS, ANALYTICAL)
     assert "input_anchor_ambiguous" != "ambiguous_grain"          # one reason per contested dimension
 
 
@@ -293,8 +293,8 @@ def test_law1_pin_coarser_than_output_refuses(fixture_connector):
 def test_law1_is_its_own_dimension_per_of1():
     """OF-1 (one reason per contested dimension): Law 1 mints its OWN reason, REFUSE family, distinct
     from `out_of_universe` (which owns the run-time-unreachability dimension)."""
-    from columna_core.disclosure import REASON_OUTCOME, REFUSE, UNSUPPORTED
-    assert REASON_OUTCOME["pin_coarser_than_output"] == (REFUSE, UNSUPPORTED)
+    from columna_core.disclosure import ANALYTICAL, REASON_OUTCOME, REFUSE, UNSUPPORTED
+    assert REASON_OUTCOME["pin_coarser_than_output"] == (REFUSE, UNSUPPORTED, ANALYTICAL)
     assert "pin_coarser_than_output" != "out_of_universe"
 
 
@@ -312,8 +312,8 @@ def test_law2_redundant_pin_clarifies(fixture_connector):
 
 
 def test_law2_is_a_clarify_sibling_of_ambiguous_grain():
-    from columna_core.disclosure import REASON_OUTCOME, CLARIFY, AMBIGUOUS
-    assert REASON_OUTCOME["redundant_pin"] == (CLARIFY, AMBIGUOUS)
+    from columna_core.disclosure import ANALYTICAL, REASON_OUTCOME, CLARIFY, AMBIGUOUS
+    assert REASON_OUTCOME["redundant_pin"] == (CLARIFY, AMBIGUOUS, ANALYTICAL)
 
 
 # ── Law 4 rendering: the two-stage-statistic disclosure, generalized to the composite pin ──
