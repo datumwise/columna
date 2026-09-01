@@ -79,7 +79,7 @@ reader should know before using it:
 
 ## P1 — Correctness, fail-closed, disclosure, non-interference
 
-### P1-01 · Universe confinement violated on the witness/sketch path · **CRITICAL** · VX
+### P1-01 · Universe confinement violated on the witness/sketch path · **CRITICAL** · **CLOSED 2026-08-30** — adjudicated 2026-09-01 · VX
 
 `_build_base_sketches` (`packages/columna-core/src/columna_core/engine.py:1000-1010`) calls
 `deliver_base_rows(meas.home_table, [base_phys], meas.distinct_col, where)` and returns. It
@@ -100,6 +100,25 @@ one shared defect, not a materialization bug.
 
 Violates topology record §9 and standing rule *"Materialized state must be confined to the
 governed universe."*
+
+**ADJUDICATED CLOSED, 2026-09-01.** Established by execution, not inferred from subsequent work.
+
+- **Closed by `7f4194c`** (PR #246, *"Topology ruling, consolidated ledger, and two wrong-number
+  fixes"*, 2026-08-30) — the repair adds `_predicate_levels`, augments the delivery grain, and calls
+  `_confine` on the RAW rows before `hll_count`, with the reason stated in the docstring: *"an HLL
+  sketch cannot be filtered after the fact: an out-of-universe distinct value that reaches the
+  carrier is in it permanently."*
+- **Shipped in the published artifact.** Verified against the `columna-core==0.18.1` sdist downloaded
+  from PyPI (not the working tree): `_build_base_sketches` in the artifact contains the confinement.
+- **Reproduced against the published artifact.** The row's own scenario, run on 0.18.1:
+  eager path `buyers s1 = 1`, lazy path `buyers s1 = 1`, `revenue s1 = 70.0`. The defect signature
+  (`buyers s1 = 3`, `revenue s1 = 100.0`) does not appear on either path.
+- **The regression evidence has teeth.** `tests/test_witness_non_interference.py` (194 lines, added
+  by the same PR) covers the eager path, the lazy path, and sketch/monoid agreement, and carries
+  `test_the_carve_is_observable_at_all` — a fixture guard whose docstring names the failure mode it
+  exists to prevent: *"If confined and unconfined agreed, every test below would pass vacuously —
+  which is exactly how a confinement defect survives a green suite."* **Mutation-checked**: disabling
+  the single `_confine` call fails 5 of 10 tests, including both paths.
 
 ### P1-02 · `data_identity() -> None` is fail-OPEN on the witness store · **CRITICAL** · VX
 
