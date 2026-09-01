@@ -379,6 +379,13 @@
       "purpose": "A crossing can be governed as a crossing only while its two sides remain distinct — so integration that merges independently governed objects destroys the very act it was meant to make accountable.",
       "workId": "w-governing-across-ontological-worlds",
       "readingRoute": "/read/governing-across-ontological-worlds"
+    },
+    {
+      "sourceId": "s-measure-algebra",
+      "role": "foundation",
+      "purpose": "The operation layer over governed measures: what can be formed, what information must survive an operation, and when a result preserves a measure family or must establish a new one.",
+      "workId": "w-measure-algebra",
+      "readingRoute": "/read/measure-algebra"
     }
   ]
 }

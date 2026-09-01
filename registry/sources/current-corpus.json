@@ -29,7 +29,7 @@
   "philosophical claim about the works. Moving a source between lists is a one-line diff plus a",
   "note in `history` below."
  ],
- "ruledOn": "2026-08-25",
+ "ruledOn": "2026-09-01",
  "ruledBy": "Huayin",
  "in": [
   "s-theory-of-data",
@@ -51,7 +51,8 @@
   "s-theory-of-certainty",
   "s-three-worlds-of-analytics",
   "s-do-not-let-your-ai-agent-govern-itself",
-  "s-governing-across-ontological-worlds"
+  "s-governing-across-ontological-worlds",
+  "s-measure-algebra"
  ],
  "referenceOnly": [
   {
@@ -201,6 +202,11 @@
    "on": "2026-08-30",
    "by": "Huayin",
    "note": "Governing Across Ontological Worlds v1.0 ruled IN on ingest. It states a general architectural result -- a crossing can be governed as a crossing only while its two sides remain distinct -- which Three Worlds instantiates rather than implies, and of which Do Not Let Your AI Agent Govern Itself is a corollary. Both of those are already IN. Constitutive of the current position, not merely useful to Ask."
+  },
+  {
+   "on": "2026-09-01",
+   "by": "Huayin",
+   "note": "The Measure Algebra of the Theory of Data v1.0 ruled IN on ingest, on Huayin's publication instruction: it is the publication of record for the Measure Algebra work and a Foundations work. It states datumwise's position on the operation layer over governed measures — what may be formed, what must survive an operation, and when a result preserves a measure family or must establish a new one — reading the Contract Calculus fragments (already IN) under the Theory of Data v6.1 ontology (already IN). Constitutive of the current position, not merely useful to Ask. It authorizes no implementation: the multi-input Frame-QL surface remains roadmap and `corr` is explicitly not admitted merely because it is numerically implementable."
   }
  ]
 }
