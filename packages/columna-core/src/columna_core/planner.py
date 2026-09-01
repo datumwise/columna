@@ -953,11 +953,51 @@ class Planner:
         return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
 
     def _where_reachability(self, columns: list, where_predicates: list) -> dict:
-        """§WHERE reachability (filter_unreachable, minted 2026-07-17): a WHERE dimension must be
-        addressable in each series' OWN universe (the filter binds pre-reduction, at the series' input).
-        Returns {series_name: Outcome} for series that cannot reach some WHERE dimension — a per-series
-        CLARIFY so reachable siblings still serve. Adjudicated HERE, before Polars/engine (directive 7)."""
+        """§WHERE reachability: a WHERE dimension must be addressable in each series' OWN universe
+        (the filter binds pre-reduction, at the series' input). Returns {series_name: Outcome} for the
+        series that cannot bind some WHERE dimension. Adjudicated HERE, before Polars/engine
+        (directive 7).
+
+        P1-22 (ruled Huayin, 2026-09-01) — ONE REASON WAS SPANNING THREE JURISDICTIONS. Everything a
+        predicate could fail on arrived as `filter_unreachable`, a CLARIFY:
+
+            WHERE amount >= 100          `amount` is a source column, not a declared level
+            WHERE zzz_not_a_name >= 1    not a name anywhere
+            WHERE store == 'S1'          a declared level, in another universe
+
+        The first two never became valid Frame-QL filter references at all, and the third is a valid
+        governed dimension with no lawful reading here. Neither is an under-determined request, so
+        neither is a Clarify — and the Clarify was doing real harm, because a Clarify asks the reader
+        to CHOOSE. Its two "alternatives" were rewrites of the ask rather than readings of it, one of
+        them offering to reach a name that does not exist; and of the eight dimensions the menu
+        listed, five answered `filter_unsupported` when actually named.
+
+        Now, in three jurisdictions:
+
+            not a declared level              -> LANGUAGE, `unknown`, raised for the whole request
+            declared but unreachable here     -> ANALYTICAL, `filter_unreachable`, per series
+            reachable but not a base dimension -> REALIZATION, `filter_unsupported` (P1-14, unchanged)
+
+        The language check is raised rather than returned per-series, and that is v0.2 §13's rollup
+        read forwards: a predicate that is not a valid reference is not a fact about one series, so
+        `any Invalid -> Invalid frame` is settled here instead of being assembled from per-series
+        outcomes that would each have to repeat it."""
         levels = [self._predicate_column(p) for p in where_predicates]
+        # STAGE A, decided once for the request. Whether a name is a declared level does not depend on
+        # which series is being filtered, so this is one fact about the ask, not a per-series verdict;
+        # L(Q) is never formed for a request naming a dimension that does not exist (v0.2 §5). It is
+        # DELIVERED on every series because that is the channel this seam has, and because it is true
+        # of every series — the frame rolls up to one disposition either way (§13), and each column
+        # then carries the real reason rather than a derived one.
+        for lvl in levels:
+            if lvl not in self.m.levels:
+                invalid = Refusal("unknown",
+                    f"WHERE names '{lvl}', which is not a declared dimension "
+                    f"(declared: {', '.join(sorted(self.m.levels))}). A filter binds to governed "
+                    f"structure; naming something else is not a narrower question — it is not a "
+                    f"question this Manifold can be asked.",
+                    target=lvl)
+                return {name: invalid for name, _expr in columns}
         out = {}
         for name, expr in columns:
             try:
@@ -967,17 +1007,41 @@ class Planner:
             if uni is None:
                 continue
             base = self.m.universes[uni].base_dimensions
-            reachable = sorted({lv for lv in ({e.frm for e in self.m._edges} | {e.to for e in self.m._edges} | set(base))
-                                if lv in base or self.m.find_path(base, lv) is not None})
             for lvl in levels:
                 if lvl not in base and self.m.find_path(base, lvl) is None:
+                    # STAGE B. The dimension is governed structure; it simply has no lawful reading
+                    # for THIS series. What follows are REMEDIES, not readings: they change the ask,
+                    # which is exactly why they may not be offered as Clarify alternatives (ruled
+                    # Huayin, 2026-09-01) and why this is a Refuse.
+                    #
+                    # The base dimensions are named because they are the ones the pre-reduction
+                    # filter can BIND to — an analytical fact, and the only one this seam is entitled
+                    # to assert. It deliberately does NOT promise they execute: a base-dimension
+                    # predicate can still meet a realization gap (on the Manual fixture,
+                    # `WHERE customer == 'C1'` answers `unsupported` on a BinderException, the
+                    # logical level not reaching its physical column in the push-down). That is a
+                    # different jurisdiction and is reported as one when it happens; claiming it
+                    # cannot happen would be the same over-promise, one level down.
+                    #
+                    # Reachable non-base dimensions are lawful but answer `filter_unsupported` here,
+                    # so they are DESCRIBED with what is true of them rather than offered as a fix —
+                    # hiding them would be a lie of omission, offering them a lie of commission.
+                    reachable_non_base = sorted(
+                        lv for lv in self.m.levels
+                        if lv not in base and self.m.find_path(base, lv) is not None)
+                    remedies = [f"filter on a dimension the series can bind — the base dimensions "
+                                f"of '{uni}' ({', '.join(sorted(base))})"]
+                    if reachable_non_base:
+                        remedies.append(
+                            f"'{lvl}' cannot be reached at all; dimensions reachable from '{uni}' "
+                            f"({', '.join(reachable_non_base)}) are lawful but are not executable as "
+                            f"filters on this build (filter_unsupported)")
+                    remedies.append(f"select a series whose universe reaches '{lvl}'")
                     out[name] = Refusal("filter_unreachable",
-                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is not "
-                        f"addressable in that series' universe '{uni}', so the pre-reduction filter has no "
-                        f"grain to bind to; the answer would be silently partial.",
-                        target=lvl, measure=name, discriminator=AMBIGUOUS,
-                        alternatives=(f"restrict the predicate to a reachable dimension ({', '.join(reachable)})",
-                                      f"change series '{name}' to an input anchor that reaches '{lvl}'"))
+                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is "
+                        f"not addressable in that series' universe '{uni}', so the pre-reduction "
+                        f"filter has no grain to bind to and the ask has no lawful reading to serve.",
+                        target=lvl, measure=name, alternatives=tuple(remedies))
                     break
             else:
                 unsupported = self._where_unsupported(where_predicates, base, uni)

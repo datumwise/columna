@@ -260,7 +260,14 @@ REASON_OUTCOME = {
                                                         #   something that is not theirs to fix. ERROR, not
                                                         #   REFUSE: a capability limit is not an analytical
                                                         #   verdict about the data (see `unsupported`).
-    "filter_unreachable":       (CLARIFY, AMBIGUOUS, ANALYTICAL),   # a WHERE dimension cannot lawfully reach a series'
+    # RE-CLASSIFIED 2026-09-01 (P1-22, ruled Huayin). Was (CLARIFY, AMBIGUOUS): one reason spanning
+    #   three jurisdictions. A predicate naming something that is not a declared level at all is a
+    #   LANGUAGE failure and now raises `unknown`; a declared level that cannot reach the series'
+    #   universe has no lawful reading and is this REFUSE; a reachable-but-not-base dimension is a
+    #   build gap and is `filter_unsupported`. The Clarify was a polite failure: its "alternatives"
+    #   were rewrites of the ask, not competing readings of it, and five of the eight dimensions it
+    #   offered answered `filter_unsupported` when named.
+    "filter_unreachable":       (REFUSE,  UNSUPPORTED, ANALYTICAL),  # a WHERE dimension cannot lawfully reach a series'
                                                         #   input anchor (the filter's grain is not
                                                         #   addressable in that series' universe). MINTED
                                                         #   2026-07-17 (WP-FrameQL envelope, Huayin) — the

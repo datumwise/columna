@@ -155,12 +155,18 @@ def test_where_pre_reduction_runs(fixture_server):
         assert v <= fmap[st] + 1e-9
 
 
-def test_where_unreachable_clarifies(fixture_server):
-    # filter_unreachable (flag 2, minted): `level` lives in store_days; `customer` is transactions-only,
-    # so the WHERE dimension cannot reach the series' input anchor -> a per-series CLARIFY (adjudicated
-    # before the engine is invoked).
+def test_where_unreachable_refuses(fixture_server):
+    # filter_unreachable: `level` lives in store_days; `customer` is transactions-only, so the WHERE
+    # dimension cannot reach the series' input anchor -> a per-series refusal, adjudicated before the
+    # engine is invoked.
+    #
+    # WAS `clarify` UNTIL P1-22 (ruled Huayin, 2026-09-01). `customer` is real governed structure, so
+    # this is not a language failure — but there is no lawful reading of THIS request either, and a
+    # Clarify asks the reader to choose among readings. There was nothing here to choose between: the
+    # "alternatives" were rewrites of the ask. Clarify is reserved for genuine multiple lawful
+    # readings; this is |L(Q)| = 0, and |L(Q)| = 0 is Refuse.
     w = _wire(fixture_server, "SELECT level.sum AT {store} WHERE customer = 'C001'")
-    assert w["outcome"] == "clarify"
+    assert w["outcome"] == "refuse"
     nr = w["columns"][0]["no_result"]
     assert nr["reason"] == "filter_unreachable"
     assert "customer" in nr["detail"] and len(nr["alternatives"]) >= 1

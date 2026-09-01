@@ -81,11 +81,29 @@ def test_an_IN_predicate_on_a_base_dimension_still_serves(srv):
     assert sorted(r["revenue"] for r in fr.data.to_dicts()) == [80.0, 200.0]
 
 
-def test_an_unreachable_dimension_still_clarifies_not_refuses(srv):
-    """`filter_unreachable` is a fact about the MANIFOLD and stays a CLARIFY: the asker can fix it by
-    choosing another dimension. The new reason must not have absorbed it."""
+def test_a_name_that_is_not_a_dimension_is_a_LANGUAGE_failure(srv):
+    """WAS `test_an_unreachable_dimension_still_clarifies_not_refuses`, and its example was never an
+    unreachable dimension: `amount` is a source column of `txns`, not a declared level at all. It
+    reached `filter_unreachable`/CLARIFY because one reason spanned three jurisdictions — which is
+    P1-22, found through this very test's example.
+
+    The distinction this test was written to defend — MANIFOLD fact vs BUILD fact — is intact and is
+    asserted below; what was wrong was the disposition and the example. A predicate naming something
+    that is not governed structure never became a valid Frame-QL filter reference, so no L(Q) is
+    formed for it (v0.2 §5). The genuinely-unreachable-DIMENSION case needs a second universe and is
+    covered in `test_filter_jurisdiction.py` on the Manual fixture."""
     w = _plan(srv, "SELECT revenue AT {customer} WHERE amount >= 100")
-    assert w["outcome"] == "clarify" and _reason(w) == "filter_unreachable"
+    assert w["outcome"] == "error" and _reason(w) == "unknown"
+
+
+def test_the_manifold_fact_and_the_build_fact_remain_distinct(srv):
+    """The scope guard this file exists for, restated over the reasons rather than the moods:
+    `filter_unsupported` (a BUILD limit on a reachable dimension) must not absorb, or be absorbed by,
+    the analytical refusal for a dimension the universe cannot reach."""
+    from columna_core.disclosure import jurisdiction_for
+    assert jurisdiction_for("filter_unsupported") == "realization"
+    assert jurisdiction_for("filter_unreachable") == "analytical"
+    assert _reason(_plan(srv, "SELECT revenue AT {customer} WHERE region == 'east'")) == "filter_unsupported"
 
 
 # ── the forms the build cannot execute are now classified BEFORE the engine ─────────────────────
@@ -119,8 +137,12 @@ def test_normalization_is_a_quote_swap_and_not_a_filtering_feature(srv):
     one still `filter_unreachable` — exactly as the single-quoted spelling is."""
     joined = _plan(srv, 'SELECT revenue AT {customer} WHERE region == "east"')
     assert joined["outcome"] == "error" and _reason(joined) == "filter_unsupported"
+    # `amount` is not a declared level, so this is a LANGUAGE failure (P1-22); it was
+    # `clarify`/`filter_unreachable` when one reason spanned three jurisdictions. The point of the
+    # assertion is unchanged and is the point of this test: normalizing the quote admits NO dimension
+    # that was not already filterable, whatever the disposition happens to be called.
     unreach = _plan(srv, 'SELECT revenue AT {customer} WHERE amount >= "100"')
-    assert unreach["outcome"] == "clarify" and _reason(unreach) == "filter_unreachable"
+    assert unreach["outcome"] == "error" and _reason(unreach) == "unknown"
 
 
 def test_an_embedded_single_quote_cannot_escape_the_literal(srv):
