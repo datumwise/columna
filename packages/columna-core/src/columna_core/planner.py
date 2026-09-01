@@ -590,6 +590,23 @@ class Planner:
             expr = re.sub(rf"\b{re.escape(name)}\b", f"({sub})", expr)
         return expr
 
+    _ATOMIC_SUB = re.compile(r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$")
+
+    def _apply_subs_predicate(self, pred: str, subs: dict) -> str:
+        """`_apply_subs` for a PREDICATE, where the left-hand side is read as a bare column name.
+
+        `_apply_subs` wraps every substitution in parentheses to preserve precedence, which is right
+        for an expression and wrong here: `WHERE d >= '2024-01-01'` with `WITH d = day` would become
+        `(day) >= '2024-01-01'`, and `_predicate_column` reads the LHS by splitting on the operator,
+        so it would see the column `'(day)'` and refuse a predicate that is perfectly good. An ATOMIC
+        substitution — a bare identifier or dotted level, which is what a filterable dimension is —
+        can never need parentheses, so it is substituted bare and the canonical text stays the text a
+        reader would have written. Compound substitutions keep their parentheses."""
+        for name, sub in subs.items():
+            repl = sub if self._ATOMIC_SUB.match(sub.strip()) else f"({sub})"
+            pred = re.sub(rf"\b{re.escape(name)}\b", repl.replace("\\", "\\\\"), pred)
+        return pred
+
     def _convert_input_anchor(self, expr: str) -> str:
         """`@ {X}` -> a form the expression parser reads as the input-anchor pin (WP-GRAIN-1):
           • single level `@ {day}` -> `@ day`         (bare Name/Attribute — the legacy shape, unchanged)
@@ -698,9 +715,41 @@ class Planner:
             name = s.alias or (written if written in subs else None) or self._default_name(expr)
             series.append(E.Series(expr=expr, alias=name))
         anchor = self.resolve_anchor(stmt.anchor)
+        where = [self._expand_total(p, subs, "WHERE") for p in stmt.where]
+        # HAVING / ORDER BY are NOT expanded here, and that is the law rather than an omission
+        # (P1-27, ruled 2026-09-01). `_validate_clause_refs` states the §5 clause-reference law:
+        # they "reference the output frame's OWN columns only — no hidden pulls". A macro's name
+        # SURVIVES its own inlining as the series name (see the naming note above, Mission B), so a
+        # bare-macro series named `profit` puts a column called `profit` on the frame and
+        # `HAVING profit > 0` resolves against THAT — an output-column reference, not an unexpanded
+        # macro. Expanding here would rewrite it to `(revenue - cost) > 0`, which names measures the
+        # output frame does not carry, and would break §6.14 by violating the very law that makes it
+        # work. WHERE is different in kind: it binds PRE-reduction, over the series' own input, so a
+        # macro there is an input expression and must be expanded to mean what the Manual says it
+        # means (§4.5: "the canonical form of a statement is the canonical form of its full expansion").
         return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
-                           from_manifold=stmt.from_manifold, bindings=[], where=list(stmt.where),
+                           from_manifold=stmt.from_manifold, bindings=[], where=where,
                            having=list(stmt.having), order_by=list(stmt.order_by), limit=stmt.limit)
+
+    def _expand_total(self, text: str, subs: dict, clause: str) -> str:
+        """Substitute WITH bindings into a clause and PROVE the expansion was total (P1-27).
+
+        The substitution is not the repair; this assertion is. Before it, `desugar` inlined bindings
+        into the series and copied WHERE verbatim, so `WITH day = month ... WHERE day >= '2024-02'`
+        planned the predicate `day >= '2024-02'` — and where the macro's name collided with a declared
+        level, the unexpanded name resolved to the HOMONYM and a different question was answered and
+        SERVED clean, with no disclosure. That is the state Ruling v0.2 §9 forbids ("Binding may supply
+        omitted context. It may not override explicit canonical meaning") and §14 forbids again for
+        realization. It must be unreachable, not merely fixed, so the canonical form is required to be
+        a FIXED POINT of its own substitution: expanding twice must equal expanding once. If a binding
+        reintroduces a bound name, the statement has no total canonical form and cannot be adjudicated,
+        which is a language-validity failure and is raised as one."""
+        once = self._apply_subs_predicate(text, subs)
+        if self._apply_subs_predicate(once, subs) != once:
+            self._synerr(f"{clause} predicate {text!r} has no total canonical form — a WITH binding "
+                         f"reintroduces a bound name, so the expansion does not terminate. Rename the "
+                         f"binding so it does not shadow a name its own expansion uses.")
+        return once
 
     def _check_name_collisions(self, columns: list, anchor: tuple):
         """§4: collisions are REFUSED, never suffixed — incl. a column name vs an anchor-dimension name."""

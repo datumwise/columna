@@ -288,6 +288,56 @@ def _syntax_error_wire(detail: str, universe: Optional[str]) -> dict:
             "columns": [], "error": {"reason": "frameql_syntax", "detail": detail}}
 
 
+def _invalid_request_wire(reason: str, detail: str) -> dict:
+    return {"contract_version": CONTRACT_VERSION, "outcome": "error",
+            "frame": {"anchor": [], "universe": None, "rollup_severity": "none", "disclosures": []},
+            "columns": [], "error": {"reason": reason, "detail": detail}}
+
+
+def _resolve_for_request(store: ManifoldStore, manifold_id: str, ref, lm, stmt,
+                         version: Optional[str] = None):
+    """Redirect to the runtime THE STATEMENT NAMES, when it names one (P1-19; Ruling v0.2 §9-§10).
+
+    Called AFTER the surface binding has been resolved structurally, so every pre-existing ordering and
+    every pre-existing error channel is preserved: an unresolvable ``manifold_id`` ARGUMENT still raises
+    through the MCP-error channel before anything is parsed, and a syntax error is still disclosed
+    against the resolved publication. This function changes exactly one thing — a statement that names a
+    DIFFERENT Manifold is served from that Manifold instead of silently from the bound one.
+
+    Returns ``(lm, ref, effective_id, invalid)``; ``invalid`` is a wire dict or ``None``.
+
+    Before this, no consumer of ``stmt.from_manifold`` existed anywhere in the tree. The parser
+    preserved it and `desugar` carried it, but every statement-taking tool resolved from the argument
+    alone, so `FROM product_manifold SELECT revenue AT {customer}` served from the bound manifold and so
+    did `FROM no_such_manifold`. §10 is explicit: "If `FROM M` names a governed Manifold and the request
+    is otherwise valid, realization must address `M`", and "A surface-bound Manifold may not silently
+    replace an explicitly named different Manifold."
+
+    The two failure channels stay apart. An unresolvable ARGUMENT is the caller addressing the tool
+    wrongly — structural, pre-adjudication, raised by `_resolve`. An unresolvable Manifold named INSIDE
+    the request is a defect of the request — §10 "Explicit unknown Manifold ... **Invalid**" — so it
+    belongs in the wire. It rides the transitional `error` mood under its own reason string, because
+    reason strings are extensible while the wire MOODS are held pending a separate ruling (v0.2 §13;
+    Step 6 of the repair sequence).
+    """
+    named = getattr(stmt, "from_manifold", None)
+    if not named or named == manifold_id:
+        return lm, ref, manifold_id, None
+    try:
+        lm2, ref2 = store.resolve_public(named, None)
+    except (PublicationNotFound, NotRealizableHere, KeyError):
+        # KeyError is the compatibility-fallback miss inside `resolve_public` (store.py:296) — the
+        # same "no such Manifold" fact arriving by a third path. All three are §10's "Explicit
+        # unknown Manifold", so all three land in the wire rather than the structural channel.
+        return lm, ref, manifold_id, _invalid_request_wire(
+            "from_manifold_unresolvable",
+            f"FROM names {named!r}, which is not a governed publication this surface can realize "
+            f"(governed lineages: {store.governed_ids()}; compatibility runtimes: {store.ids()}). "
+            f"An explicitly named Manifold governs the request and is never silently replaced by the "
+            f"bound one; omit FROM to use the surface binding {manifold_id!r}.")
+    return lm2, ref2, named, None
+
+
 def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
                         version: Optional[str] = None) -> dict:
     """Execute a FrameQL ENVELOPE statement (`SELECT <series> AT {anchor} [WHERE][HAVING][ORDER BY]
@@ -296,15 +346,19 @@ def execute_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
     fetches this run cost) — the executing counterpart of `check_frame_query`'s zero-fetch pre-flight."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm, ref = _resolve(store, manifold_id, version)
-    before = _fetch_count(lm.provider)
+    eff_id = manifold_id
     try:
         stmt = parse_statement(frameql)
+        lm, ref, eff_id, invalid = _resolve_for_request(store, manifold_id, ref, lm, stmt, version)
+        if invalid is not None:
+            return _disclose(invalid, eff_id, ref)
+        before = _fetch_count(lm.provider)
         fr = lm.provider.run(stmt)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return _disclose(_syntax_error_wire(str(e), None), manifold_id, ref)
+        return _disclose(_syntax_error_wire(str(e), None), eff_id, ref)
     after = _fetch_count(lm.provider)
     delta = (after - before) if (before is not None and after is not None) else None
-    return _disclose(dw.wire_frame(fr, executed=True, fetches_delta=delta), manifold_id, ref)
+    return _disclose(dw.wire_frame(fr, executed=True, fetches_delta=delta), eff_id, ref)
 
 
 def query(store: ManifoldStore, manifold_id: str, frameql: str, version: Optional[str] = None) -> dict:
@@ -321,13 +375,17 @@ def explain_statement(store: ManifoldStore, manifold_id: str, statement: str,
     (WP-FrameQL) — distinct from the query wire; a first-class MCP tool beside `query`."""
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
     lm, ref = _resolve(store, manifold_id, version)
+    eff_id = manifold_id
+    _syn = lambda d: {"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
+                      "outcome": "error", "error": d}
     try:
         stmt = parse_statement(statement)
-        return _disclose(lm.provider.explain(stmt), manifold_id, ref)
+        lm, ref, eff_id, invalid = _resolve_for_request(store, manifold_id, ref, lm, stmt, version)
+        if invalid is not None:
+            return _disclose(_syn(invalid["error"]), eff_id, ref)
+        return _disclose(lm.provider.explain(stmt), eff_id, ref)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return _disclose({"contract_version": CONTRACT_VERSION, "executed": False, "fetches_delta": 0,
-                          "outcome": "error", "error": {"reason": "frameql_syntax", "detail": str(e)}},
-                         manifold_id, ref)
+        return _disclose(_syn({"reason": "frameql_syntax", "detail": str(e)}), eff_id, ref)
 
 
 # --- the no-engine tools: introspection + validation, zero data -----------------------------
@@ -345,15 +403,19 @@ def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
     thinner than `explain` (no cone/atom decomposition), just: is this askable, and how would it land?"""
     from columna_core.envelope import EnvelopeSyntaxError, parse_statement
     lm, ref = _resolve(store, manifold_id, version)
+    eff_id = manifold_id
     try:
         stmt = parse_statement(frameql)
     except (EnvelopeSyntaxError, FrameQLSyntaxError) as e:
-        return _disclose(_syntax_error_wire(str(e), None), manifold_id, ref)
+        return _disclose(_syntax_error_wire(str(e), None), eff_id, ref)
+    lm, ref, eff_id, invalid = _resolve_for_request(store, manifold_id, ref, lm, stmt, version)
+    if invalid is not None:
+        return _disclose(invalid, eff_id, ref)
     before = _fetch_count(lm.provider)
     fr = lm.provider.plan(stmt)
     after = _fetch_count(lm.provider)
     delta = (after - before) if (before is not None and after is not None) else None
-    return _disclose(dw.wire_frame(fr, executed=False, fetches_delta=delta), manifold_id, ref)
+    return _disclose(dw.wire_frame(fr, executed=False, fetches_delta=delta), eff_id, ref)
 
 
 def frame_ql_grammar() -> dict:
