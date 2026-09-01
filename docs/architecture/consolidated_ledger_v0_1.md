@@ -1368,7 +1368,7 @@ silent is not one, which is why it is written down here.
 
 ---
 
-## The 2026-09-01 adjudication sweep — P1-19 … P1-27, P0-20
+## The 2026-09-01 adjudication sweep — P1-19 … P1-28, P0-20
 
 Ten rows opened 2026-09-01 from the Frame-QL reconnaissance sweep, adjudicated against
 **Frame-QL Request Adjudication and Disposition Ruling v0.2** and rowed **without repair** (ruled
@@ -2172,6 +2172,77 @@ directions — six operators execute, `rolling_sum` does not, and the Manual sta
 structurally outside the gate). Cross-references: P0-18 (the gate this row's defect survives), P0-19
 (version split), P1-17 (the six-candidate menu §3.2 lands in).
 
+
+### P1-28 · A base dimension of the measure's own universe cannot be filtered unless its governed level name happens to equal its physical column · **HIGH** · **OPEN — no repair authorized** · VX
+
+Opened 2026-09-01, out of the P1-22 repair, at Huayin's instruction. **Kept deliberately separate from
+P1-14**, which is the *relationship-derived* filtering gap: this defect is one universe wide and needs
+no join at all.
+
+**HOW IT WAS FOUND — by writing an invariant test too strongly.** P1-22's repair narrows
+`filter_unreachable`'s remedy list to the dimensions a filter can bind to, and the test asserted that
+every dimension it names SERVES when submitted. That test failed, and it was right to.
+
+```text
+LEVEL day         = day          BASE      WHERE day == '2024-01-05'   plan=serve  run=serve
+LEVEL customer    = customer_id  BASE      WHERE customer == 'C1'      plan=serve  run=error  unsupported
+LEVEL transaction = txn_id       BASE      WHERE transaction == 'T1'   plan=serve  run=error  unsupported
+
+detail: this frame could not be resolved in the engine (BinderException); the ask is not supported in
+        this build.
+```
+
+All three are BASE dimensions of `sales`, the very universe the measure is declared on. A controlled
+comparison inside one universe: the only difference between the working case and the two broken ones
+is that `day`'s governed level name **happens to equal** its physical column, while `customer` and
+`transaction` are declared onto `customer_id` and `txn_id`.
+
+**THE MECHANISM.** The predicate reaches the backend as written. `connector.py:267-268` (and the
+sibling delivery paths at `:280-281`, `:303`) do:
+
+```python
+        if where:
+            q += f" WHERE {where}"
+```
+
+`key_cols` are passed separately and ARE mapped to physical columns; the predicate is not mapped at
+all. `Planner._to_backend_predicate` (`planner.py:1095-1120`) is the only transform applied to it, and
+it normalizes QUOTING only — it is P1-16's repair and says so. So no level→key substitution exists on
+the WHERE path, and `day` works by coincidence of naming rather than by translation.
+
+**WHY THIS IS NOT P1-14, AND NOT P1-22.** P1-14 is a *reachable but non-base* dimension the build
+cannot push across a join, correctly reported as `filter_unsupported` with the detail *"The ask is
+lawful; the build cannot execute it."* This one never leaves the base grain. And P1-22's repair is
+correct as it stands — it establishes that the dimension is **analytically bindable**, which is all
+that seam can know. The distinction ruled by Huayin 2026-09-01 and to be preserved:
+
+> **analytically bindable ≠ currently realizable by this build**
+
+P1-22's remedy text and its invariant test were both deliberately weakened to assert only the first,
+with this row cited in the code comment, rather than binding P1-22 to a defect that is not its own.
+
+**IT IS ALSO A PLAN/RUN DIVERGENCE.** `plan=serve` and `run=error` on both broken spellings — the
+P1-14 rule (a planner must not return a positive disposition for a form the build cannot execute)
+violated on a *third* path, after `WHERE`-across-a-join (gated, P1-14) and the face path (P1-21). This
+matters for sequencing: the shared plan/run repair may subsume the *disposition* half of this row
+without touching the mapping defect underneath it.
+
+**DEPENDENCY NOTE.** Whether this shares a realization seam with P1-14 is not settled here. P1-14's
+gate classifies at `_where_reachability`, which is the same seam that would have to learn the
+level→key mapping — so a repair may well be one change at one site, but the two rows' *causes* are
+different (a missing translation vs an absent join capability) and are not merged on that suspicion.
+
+**Reason classification, for the record.** The current reason is bare `unsupported` (ERROR,
+REALIZATION), which is jurisdictionally CORRECT — the ask is lawful and the build cannot execute it —
+though the detail names a substrate exception (`BinderException`) rather than the governed fact.
+
+**Pinned by:** nothing asserts the working case is not a coincidence.
+`test_filter_jurisdiction.py::test_every_named_remedy_dimension_is_at_least_analytically_lawful`
+documents the boundary and cites this row.
+
+**Jurisdiction: realization/profile correctness** (primary). Secondaries: **diagnostic/wire
+correctness** (the caller receives a substrate exception name where a governed fact is available);
+**analytical-adjudication correctness** (the plan/run divergence).
 
 ---
 
