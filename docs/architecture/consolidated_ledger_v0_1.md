@@ -1895,7 +1895,51 @@ unfalsifiable under the fence chosen.
 both unreachable by the gate). Realization/profile correctness is **held open** pending the §16
 adjudication of canonical status.
 
-### P1-27 · A macro inside `WHERE` is not expanded — and where the name collides with a declared level, a wrong answer is SERVED · **CRITICAL** · **OPEN — no repair authorized** · VX
+### P1-27 · A macro inside `WHERE` is not expanded — and where the name collides with a declared level, a wrong answer is SERVED · **CRITICAL** · **REPAIRED 2026-09-01 (Step 0)** · VX
+
+**SCOPE CORRECTED 2026-09-01 (ruled Huayin), and the correction is recorded rather than quietly
+edited.** This row was opened as a general clause-expansion defect. It is not:
+
+> **P1-27 is a WHERE macro-expansion defect, not a general clause-expansion defect.**
+
+The row's original text below calls §6.14's pass "coincidence, not expansion". **That is wrong, and
+the row was wrong to say it.** `_validate_clause_refs` (`planner.py:719-730`) states the §5
+clause-reference law: ORDER BY / HAVING "reference the output frame's OWN columns only — no hidden
+pulls". A macro's name SURVIVES its own inlining as the series name — deliberately, by the Mission B
+repair documented in `desugar` (`planner.py:690-699`: *"A binding is a DECLARED NAME, exactly like an
+alias"*) — so a bare-macro series named `profit` puts a column called `profit` on the frame and
+`HAVING profit > 0` resolves against THAT. It is an output-column reference, not an unexpanded macro.
+Expanding it would rewrite it to `(revenue - cost) > 0`, naming measures the output frame does not
+carry, and would break §6.14 *by violating the very law that makes §6.14 work*. The HAVING behaviour
+is lawful and is now pinned by `test_having_is_not_expanded_by_law` so a later reader does not
+"repair" it.
+
+**The surviving invariant, ruled:**
+
+> **Canonical substitution must be total before pre-reduction WHERE interpretation begins.**
+
+WHERE is different in kind from the output clauses: it binds PRE-reduction, over the series' own
+input, so a macro there is an input expression and must mean its expansion (§4.5:661).
+
+**REPAIRED in Step 0 of the jurisdiction repair** (`repair/step0-canonical-conformance`). `desugar`
+now expands WHERE, and the canonical form is REQUIRED to be a FIXED POINT of its own substitution —
+the substitution makes the common case right, the assertion makes the wrong-question state
+unreachable. A binding that reintroduces a bound name has no total canonical form and is refused as a
+language failure rather than half-expanded and answered; an identity binding is a fixed point and is
+left alone, which is why it is a fixed-point check and not a contains-a-bound-name check. Observed
+after repair: the shadowing case now returns exactly what its own expansion returns (`error`, not
+`serve`), and the free-macro case serves rows identical to the hand-written predicate.
+
+One thing the repair surfaced that the row did not predict: `_apply_subs` parenthesizes every
+substitution for precedence, which is right for an expression and wrong for a predicate — `WHERE d >=
+x` became `(day) >= x`, and `_predicate_column` splits on the operator, so it read a column literally
+named `(day)`. Atomic substitutions are now substituted bare.
+
+Pinned by `packages/columna-core/tests/test_canonical_conformance.py` (8 tests).
+
+---
+
+**The original row, as filed 2026-09-01, retained below for the record.**
 
 **THE BRIEF THAT OPENED THIS ROW WAS WRONG TWICE, and both corrections are recorded rather than
 quietly edited.** The line is `frame_ql_manual_v2.md:657`, not `:659` (`:659` is the default-name
