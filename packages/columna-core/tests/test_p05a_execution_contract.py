@@ -253,12 +253,20 @@ def test_uncertified_temporal_hierarchy_confers_no_order_axis():
     assert "order axis" in detail and "CERTIFIED" in detail, detail
     assert "uncertified_edge" not in detail, f"refused for transport, not the axis: {detail}"
 
-    # ...but the gate is on DERIVING an axis from uncertified structure, not on scanning as such:
-    # `by=` is the author naming the axis explicitly, and the base grain crosses no edge, so it serves.
+    # ...and NAMING IT DOES NOT RESCUE IT. This assertion is inverted from what it said before
+    # P1-24 (ruled Huayin, 2026-09-01): "`by=` is the author naming the axis explicitly ... so it
+    # serves." That was the loophole. The test asserts three lines above that the uncertified lineage
+    # confers NO orderable level; honouring `by='day'` anyway let an explicit name manufacture the
+    # standing the certification withheld, which is exactly what
+    #     "explicit `by=` may SELECT governed order standing; it may not CREATE it"
+    # forbids. The gate is on the STANDING, not on how the axis was arrived at.
     named = srv.frame("day").column("c", "cumsum(revenue.sum, by='day')").run()
-    assert named.outcome in ("serve", "disclose"), named.outcome
-    assert {r["day"]: float(r["c"]) for r in named.data.iter_rows(named=True)} == \
-        {"d1": 10.0, "d2": 30.0, "d3": 60.0}
+    assert named.outcome == "refuse", named.outcome
+    assert named.columns[0].refusal.reason == "order_not_governed"
+    assert named.data is None, "a refused scan must not also return the walk it refused to justify"
+    # The cumulative walk itself is NOT lost from the suite — it is asserted, on a CERTIFIED
+    # hierarchy where it is lawful, by the very next test. That test is also the standing evidence
+    # that scan execution works, which P0-20 needs; nothing here may weaken it.
 
 
 def test_certified_temporal_hierarchy_yields_a_planned_axis_the_engine_uses():

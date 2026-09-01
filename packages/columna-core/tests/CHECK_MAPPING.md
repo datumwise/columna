@@ -111,7 +111,7 @@ All 124 demo `check()` assertions are mirrored 1:1 as pytest items.
 | 4 | the reducer and map columns in the same frame are unaffected (revenue.sum exact) | `test_check[the reducer and map columns in the same frame are unaffected (revenue.sum exact)]` |
 | 5 | lag(revenue.sum,n=1) shifts the series by one month (first month has no predecessor) | `test_check[lag(revenue.sum,n=1) shifts the series by one month (first month has no predecessor)]` |
 | 6 | pct_change(revenue.sum) is month-over-month growth (first is null) | `test_check[pct_change(revenue.sum) is month-over-month growth (first is null)]` |
-| 7 | cumsum(revenue.sum)@region has no temporal axis -> refused (clarify), names by= | `test_check[cumsum(revenue.sum)@region has no temporal axis -> refused (clarify), names by=]` |
+| 7 | cumsum(revenue.sum)@region has no governed order axis -> Refuse, and does NOT advise by= | `test_check[cumsum(revenue.sum)@region has no governed order axis -> Refuse, and does NOT advise by=]` |
 | 8 | the scan is REFUSED (blocked_reduction), inheriting the underlying sum's unlawfulness | `test_check[the scan is REFUSED (blocked_reduction), inheriting the underlying sum's unlawfulness]` |
 | 9 | rolling_sum is in the registry (planner knows it) but in_core=False -> ROADMAP clarification | `test_check[rolling_sum is in the registry (planner knows it) but in_core=False -> ROADMAP clarification]` |
 | 10 | a measure whose family declares a scan ('cumsum') is rejected at publish | `test_check[a measure whose family declares a scan ('cumsum') is rejected at publish]` |

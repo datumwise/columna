@@ -239,26 +239,77 @@ class Planner:
         """The lawful ORDER AXIS for a scan @ anchor — the planner's decision, not the engine's.
 
         P0.5a: the axis is execution-relevant (it fixes the sort the scan walks, so it moves shipped
-        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only. An explicit
-        `by=` is the author naming the axis and is honoured as before."""
+        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only.
+
+        P1-24 (ruled Huayin, 2026-09-01):
+
+            Explicit `by=` may SELECT governed order standing. It may not CREATE it.
+
+        This method used to begin `if by is not None: return by` — the named axis was never validated
+        against anything. `by='customer'` therefore SERVED: a real level, present in the anchor,
+        carrying no governed order at all, silently walking an axis the unnamed path refuses to
+        derive. `by='zzz_not_a_level'` fell through to a bare `ColumnNotFoundError` in the engine and
+        was reported as a build capability gap — an invalid request wearing a realization gap's
+        clothes. The `by=` escape hatch that both refusals recommended was unchecked in every
+        direction.
+
+        The five cases of v0.2 §11, each in its own jurisdiction:
+
+            by= names something that is not a declared level   -> LANGUAGE   (`unknown`)
+            by= names a level with no governed order standing
+              for THIS operation (absent from the anchor, or
+              present and conferring no order)                 -> ANALYTICAL (`order_not_governed`)
+            no by=, several lawful governed orders             -> ANALYTICAL (`order_axis_ambiguous`)
+            no by=, no lawful governed order                   -> ANALYTICAL (`order_not_governed`)
+            no by=, exactly one lawful governed order          -> proceed
+
+        WHAT THE GOVERNED ORDER SET IS, and what this change deliberately does NOT decide. The set is
+        `orderable_levels()` — levels on ADMITTED temporal lineages. The ruling is explicit that a
+        temporal level is "one common source of governed order, not the definition of order", so that
+        set may later widen. Widening it means declaring a NEW SOURCE of order standing, which is
+        declaration law and not this repair's to invent. So this method validates against the set the
+        build actually derives today and says so; if the set grows, every case below follows it
+        without further change."""
+        governed = self.m.orderable_levels()
+        in_anchor = governed & set(anchor)
         if by is not None:
+            if by not in self.m.levels:
+                raise Refusal("unknown",
+                    f"scan '{scan_op}': by={by!r} is not a declared level "
+                    f"(declared: {sorted(self.m.levels)}). An order axis must name governed "
+                    f"structure; naming something else does not create it.",
+                    measure=measure, target=str(anchor))
+            if by not in in_anchor:
+                why = ("is not a coordinate of this frame's anchor" if by not in set(anchor)
+                       else "carries no governed order standing (no CERTIFIED temporal lineage "
+                            "admits it)")
+                raise Refusal("order_not_governed",
+                    f"scan '{scan_op}' @ {anchor}: by={by!r} {why}, so it confers no order for this "
+                    f"operation. Naming an axis SELECTS governed order standing; it does not create "
+                    f"it. Orders governed here: {sorted(in_anchor) or 'none'}.",
+                    measure=measure, target=str(anchor),
+                    alternatives=tuple(f"order by the governed axis {lv!r} with by={lv!r}"
+                                       for lv in sorted(in_anchor))
+                               or ("publish/adjudicate so a temporal hierarchy over this anchor is "
+                                   "certified",))
             return by
-        orderable = self.m.orderable_levels() & set(anchor)
-        if len(orderable) == 1:
-            return next(iter(orderable))
-        if not orderable:
-            raise Refusal("unknown",
-                f"scan '{scan_op}' @ {anchor} has no derivable order axis (no CERTIFIED temporal "
-                f"level in the anchor); name it with by=<level>. A declared-but-uncertified "
-                f"hierarchy confers no order axis — declaration makes structure eligible for "
-                f"certification, not executable.",
+        if len(in_anchor) == 1:
+            return next(iter(in_anchor))
+        if not in_anchor:
+            raise Refusal("order_not_governed",
+                f"scan '{scan_op}' @ {anchor} has no governed order axis (no CERTIFIED temporal "
+                f"level in the anchor). A declared-but-uncertified hierarchy confers no order axis — "
+                f"declaration makes structure eligible for certification, not executable. There is "
+                f"no lawful reading of this ask to serve.",
                 measure=measure, target=str(anchor),
-                alternatives=("name the axis explicitly with by=<level>",
+                alternatives=("address at an anchor that carries a certified temporal level",
                               "publish/adjudicate so the temporal hierarchy is certified"))
-        raise Refusal("unknown",
-            f"scan '{scan_op}' @ {anchor} order axis is ambiguous ({sorted(orderable)}); "
-            f"name it with by=<level>", measure=measure, target=str(anchor),
-            alternatives=("name the axis explicitly with by=<level>",))
+        raise Refusal("order_axis_ambiguous",
+            f"scan '{scan_op}' @ {anchor} has several lawful governed order axes "
+            f"({sorted(in_anchor)}) and the ask selects none; each would walk a different sequence, "
+            f"so they are different lawful readings rather than one answer. Name the axis.",
+            measure=measure, target=str(anchor),
+            alternatives=tuple(f"by={lv!r}" for lv in sorted(in_anchor)))
 
     def plan_routes(self, measure: str, anchor: tuple):
         """PUBLIC: the certified route plan for `measure` @ `anchor`, as (routes, split).
