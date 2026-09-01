@@ -1365,6 +1365,864 @@ what the engine can currently assemble was NOT taken**: it would be a new capabi
 pruning, neither authorized. The honest options are to fix this row or to rule on the gate; leaving it
 silent is not one, which is why it is written down here.
 
+
+---
+
+## The 2026-09-01 adjudication sweep — P1-19 … P1-27, P0-20
+
+Ten rows opened 2026-09-01 from the Frame-QL reconnaissance sweep, adjudicated against
+**Frame-QL Request Adjudication and Disposition Ruling v0.2** and rowed **without repair** (ruled
+Huayin: "do not repair them yet unless an item is already covered by an existing authorized row").
+
+The ruling's three-stage model governs every classification below:
+
+```text
+LANGUAGE VALIDITY      failure -> Invalid          (not analytical Refuse)
+        v
+ANALYTICAL ADJUDICATION  |L(Q)|=0 -> Refuse   =1 -> Serve/Disclose   >1 -> Clarify
+        v
+REALIZATION STANDING   failure -> Realization gap  (not analytical Refuse)
+```
+
+Two vocabulary rulings are applied throughout and are **not** yet applied to the code: bare
+`unsupported` is not used as the profile concept for realization incapability (the tree already uses
+that word with an analytical-refusal meaning, `disclosure.py:80` vs `:314`), and canonical Frame-QL ->
+Core/Platform execution representation is called **realization mapping**, never "lowering" (the
+repository already uses "lowering" for publication->image receipts).
+
+**Numbering note.** P1-18 (`region_label`) exists only on `ledger/p1-01-adjudication-and-p1-18`
+(PR #262), which is not in this branch's ancestry. These rows start at P1-19 so the two can merge in
+either order without collision. Nine rows are P1; **P0-20 is a P0 row kept here with the sweep** rather
+than filed under P0, because its evidence is the same run and separating it would hide that the gate
+defect and the disposition defects were found together.
+
+**Evidence.** Every row below is **VX** — reproduced under the real runtime at `f18ba06` on the
+adjudicated Manual fixtures (`docs/tools/manual_fixtures/harness.py`, `servers()` with `publish()`
+actually run), `pyarrow` present, `__pycache__` cleared, `PYTHONDONTWRITEBYTECODE=1`. Sub-claims that
+are source-read only are marked SV inline. The companion evidence document is
+`specs/frameql_build_conformance_matrix_v0_1.md` (99 forms, measured not inferred).
+
+
+### P1-19 · Explicit `FROM` is parsed, carried, and then ignored — an explicitly named Manifold does not govern the request · **CRITICAL** · **OPEN — no repair authorized** · VX
+
+**The governing invariant, as ruled** (Ruling v0.2 §9): *"Binding may supply omitted context. It may not override explicit canonical meaning."*
+
+```text
+SELECT revenue AT {customer}                          -> serve, 3 rows   (C1 200.0, C2 200.0, C3 150.0)
+FROM product_manifold SELECT revenue AT {customer}    -> serve, 3 rows   (C1 200.0, C2 200.0, C3 150.0)
+FROM no_such_manifold SELECT revenue AT {customer}    -> serve, 3 rows   (C1 200.0, C2 200.0, C3 150.0)
+
+  finance_manifold measures: ['category_rank','category_weight','cost','level','orders','revenue']
+  product_manifold measures: ['category_weight','engagement_score','product_revenue']
+  product_manifold asked DIRECTLY: SELECT revenue AT {customer} -> error/unknown "unknown column 'revenue'"
+
+  wire, MCP tool arg manifold_id='finance_manifold':
+    FROM product_manifold SELECT revenue AT {customer} -> outcome=serve  manifold_id=finance_manifold
+    FROM no_such_manifold SELECT revenue AT {customer} -> outcome=serve  manifold_id=finance_manifold
+```
+
+**THE DEFECT — the clause is read and then dropped.** `envelope.py:366-369` parses it
+(`from_manifold = _parse_ident(bounds["FROM"], ...)`); `planner.py:702` faithfully carries it into the
+desugared statement (`from_manifold=stmt.from_manifold`); `tools.py:298-302` resolves the runtime
+**from the `manifold_id` ARGUMENT alone** — `lm, ref = _resolve(store, manifold_id, version)` …
+`fr = lm.provider.run(stmt)` — and never consults `stmt.from_manifold`.
+
+**NO CONSUMER EXISTS ANYWHERE.** A whole-tree grep returns 13 hits (excluding `.pyc`). Every one is a
+writer, an echo, or a test of the parse: `envelope.py:83, 366-369, 384`, `envelope.py:97-98`
+(`render_canonical` re-emits it), `planner.py:702`, `specs/open_planner/map2/cert_v0_2.py:46` (a
+`parse_digest` field), and `docs/tools/manual_fixtures/harness.py:66`. **The doc harness is the only
+router in the repository** — `return srvs[BINDING.get(stmt.from_manifold, "finance_manifold")]` — and
+it silently defaults an unknown name to `finance_manifold`, so the evidence surface that certifies the
+Manual's `FROM`-bearing examples performs the same substitution the language forbids.
+
+**WHAT THE MANUAL PROMISES, contradicted.** `docs/frame_ql_manual_v2.md:141`: *"A statement that names
+its Manifold is self-contained: it means the same thing regardless of who submits it"*, and, on a
+multi-Manifold surface, a statement naming none *"is not underdetermined-by-guess, it refuses, naming
+the available Manifolds and asking which"* — that refusal is implemented nowhere. `:150`: *"A
+programmatic client against the same planner may write any `FROM` it likes."* It may; it has no effect.
+
+**Under Ruling v0.2 §10.** `FROM product_manifold` names a governed Manifold, so realization must
+address `product_manifold`, whose own answer is Stage-A **Invalid** (`unknown column 'revenue'`).
+`FROM no_such_manifold` is *Explicit unknown Manifold* → **Invalid**. Both were **Served**, from a
+Manifold the request did not name. §14: neither Core nor Platform may *"reinterpret explicit canonical
+meaning after adjudication."*
+
+**NOT CLAIMED.** The wire annotation is not false — it echoes `manifold_id: finance_manifold`,
+truthfully naming what it served. The defect is that the statement's own explicit naming had no effect
+on what that was. No claim is made that a multi-Manifold serving surface exists today; the absence is
+the same fact.
+
+**Pinning test: none for routing.** `test_envelope_parser.py:73-74` and `:121-122` assert
+`st.from_manifold == "retail"` — the parse, which works. Nothing tests that the parsed name governs.
+
+**Jurisdiction: canonical-language correctness** (primary). Secondary: **documentation/conformance-gate
+correctness** — the Manual's §1.3 commitments and the doc harness's silent `BINDING.get(...)` default.
+
+### P1-20 · A face driver's family member is selected by the engine with `next(iter(family))`, after the planner would have required clarification · **HIGH** · **OPEN — no repair authorized** · VX
+
+**The governing invariant, as ruled** (Ruling v0.2 §12): *"A realization layer may not use insertion
+order, dictionary order, delivery-frame availability, or another physical fact to select one
+silently."* … *"Realization facts cannot resolve analytical ambiguity."*
+
+```text
+driver declared  FAMILY { min max }   ->  next(iter(dmeas.family)) = 'min'
+   SELECT category_rank AT {category}     -> error/unknown "'category_rank' has a family ['min','max'] — specify a member"
+   SELECT revenue AT {category.assign}    -> serve          K1 350.0   K2 200.0
+
+driver declared  FAMILY { max min }   ->  next(iter(dmeas.family)) = 'max'
+   SELECT category_rank AT {category}     -> error/unknown "'category_rank' has a family ['max','min'] — specify a member"
+   SELECT revenue AT {category.assign}    -> serve          K1  80.0   K2 470.0
+
+disclosure on the served frame: [shadow/caution] "single-counted to each product's ORDER min
+category_rank category: 1 memberships unrepresented (the shadow)."      <- names the MEASURE, not the member
+```
+
+**THE DEFECT.** `engine.py:431-432`: `dmeas = self.m.measures[face.selection]` /
+`dmember = next(iter(dmeas.family))`. No cardinality guard. Two frames above, the planner's own law on
+the same question is `if len(meas.family) != 1: raise Refusal("unknown", f"'{meas_name}' has a family
+{list(meas.family)} — specify a member")` (`planner.py:1774-1777`, and again at `1908-1911`). One
+ambiguity, two answers: the engine picks silently, the planner stops.
+
+**THIS IS A DIVERGENT NUMBER, NOT ONLY A DIVERGENT CHOICE.** A constructed fixture (finance_manifold
+with the ASSIGN driver re-declared `VALUE rank FAMILY { min max }` over a four-row driver table; `/tmp`
+only, no repo file touched) publishes clean — `certified_faces = ['product<->category.alloc',
+'product<->category.assign', 'product<->category.touch']`, no blocked edges — and serves **350/200
+under `min` and 80/470 under `max`**. The two runs differ in exactly one thing: the textual order of
+the two members inside the `FAMILY` block. The served answer to `SELECT revenue AT {category.assign}`
+is determined by declaration order via `dict` iteration — the precise realization fact §12 names.
+
+**IT REACHES THE PUBLICATION, NOT ONLY THE QUERY.** `adjudication.py:682` calls the same
+`eng._serve_driver(face, frontier, _routes)` inside the face proof. The face battery checks driver
+universe basis, frontier grain, servability, ASSIGN ties, ALLOC negativity and zero-sum
+(`adjudication.py:660-723`) — **no family-cardinality check** — and the license basis it mints
+(`:709-711`, SV) names `'{face.selection}'` and never the member. So a governed face is certified on a
+silently chosen reading, and the served frame's own caveat likewise names the driver measure, not the
+member.
+
+**A SECOND, SMALLER FINDING, kept separate.** The planner's guard is not Clarify either: it raises
+`Refusal("unknown", ...)`, observed as mood **`error`**. Under §3 `error` is not a canonical
+disposition and under §12/§16 the required disposition is **Clarify**. This row does not propose that
+repair; it records that neither of the two answers in the tree is the ruled one.
+
+**NOT CLAIMED.** No shipped fixture declares a multi-member face driver, so this is not reachable on
+today's adjudicated worlds; it is a live gap in the engine's law, demonstrated on a fixture that
+publishes under the real adjudicator. **Pinning test: none.** Nothing in the tree asserts a cardinality
+guard at `_serve_driver`.
+
+**Jurisdiction: analytical-adjudication correctness** (primary — Clarify was required before
+realization, §16). Secondary: **realization/profile correctness** (the selection is made in the
+realization layer from a physical fact) and **diagnostic/wire correctness** (neither the served
+disclosure nor the publication license names the member used).
+
+### P1-21 · A single face crossing is refused as `chained_crossing`, on a false diagnostic, after the plan said serve · **HIGH** · **OPEN — no repair authorized** · VX
+
+**The governing invariant, as ruled** (Ruling v0.2 §16): *"If the request has one lawful analytical
+reading but current build cannot realize the shape: **Realization gap**, not analytical Refuse. Any
+diagnostic claiming two faces when one was crossed is separately false."*
+
+```text
+SELECT revenue AT {category.touch}
+   _plan -> serve      [guard @ engine.py:388] faced=['category.touch'] len=1  target=('category.touch',) len=1        -> False
+   _run  -> serve, 2 rows
+
+SELECT revenue AT {category.touch*month}
+   _plan -> serve      [guard @ engine.py:388] faced=['category.touch'] len=1  target=('category.touch','month') len=2 -> True
+   _run  -> refuse/chained_crossing 'this ask would cross two declared faces in sequence; chained
+            crossings are not yet licensed — ask at one frontier at a time.'
+
+wire, same statement, the two MCP tools:
+   check_frame_query  (plan) -> outcome=serve   no_result=None
+   execute_frame_query (run) -> outcome=refuse  {'kind':'refuse','discriminator':'unsupported',
+                                                 'reason':'chained_crossing', ...}
+```
+
+**THREE DEFECTS AT ONE SITE, kept separate.**
+
+**(a) The cardinality guard is wrong.** `engine.py:388`: `if len(faced) != 1 or len(target) != 1:`.
+Instrumented at the call, `faced` has **exactly one** element. It is `len(target) != 1` that trips —
+the anchor carries one faced coordinate plus one ordinary functional level (`month`). The guard refuses
+a request that satisfies its own stated condition.
+
+**(b) The detail string asserts a fact that is false of this ask.** `engine.py:389-392` states *"this
+ask would cross two declared faces in sequence"*. One face was named. A refusal that names the wrong
+cause sends the reader to fix the wrong thing — the rule this ledger already applied at P1-13.
+
+**(c) The limitation is realization-specific by the code's own account, and lands as canonical
+Refuse.** `engine.py:381`: *"G4 the chain guard — a multi-hop face path is not yet licensed
+(disclosure-stacking undesigned)"*. `disclosure.py:297` registers `"chained_crossing": (REFUSE,
+UNSUPPORTED)`. Under §16 this is a **Realization gap**; §4 additionally forbids `unsupported` as the
+conceptual name for it. `specs/open_forks.md:51` (OF-26) and
+`specs/open_planner/map2/beat3_report_v0_1.md:36` already state the boundary as a *build* fact — *"a
+single faced coordinate is the maximal expressible CROSS seam at v1"* — so the tree knows it is a
+capability limit and ships it as an analytical refusal anyway.
+
+**THE PLAN/RUN DISAGREEMENT IS THE P1-14 RULE, STILL LIVE ON THE FACE PATH.** `_plan` returns
+**serve**; `_run` returns **refuse**. On the wire, `check_frame_query` — the advertised zero-fetch
+pre-flight — says `serve` for a statement `execute_frame_query` refuses. This is the same class PR #258
+gated for `WHERE` at `_where_reachability` (**see P1-14**, where the ruled invariant is that a planner
+must not return a positive disposition for a form the current build cannot execute). No equivalent seam
+exists for faces.
+
+**A TRUER CLASSIFICATION EXISTS ONE FRAME BELOW AND IS UNREACHABLE.** `engine.py:568-572` carries the
+identical predicate with an accurate detail — *"touch v1 resolves a single faced coordinate anchor (got
+target …); mixed/multi-faced anchors are post-launch"* — inside `_resolve_touch`, which `_resolve_faced`
+only calls at `:424`, after the guard at `:388` has already raised. Its reason word is still the bare
+`unsupported` §4 rejects; what is better is the **detail**, which is true of this ask.
+
+**Pinned — pinning the defect.** `packages/columna-server/tests/test_case_demo_recapture.py:222-231`
+asserts exactly this ask (`SELECT revenue AT {category.touch, cal.month}`) reaches `("refuse",
+"chained_crossing", "unsupported")`, under a docstring reading *"A well-formed ask with no lawful path
+is a REFUSE"* — the false premise, ratified. `packages/columna-core/tests/test_inline_reduction.py:396-409`
+pins the composite-pin variant. `docs/frame_ql_manual_v2.md:773` calls the corner *"a named refusal,
+never a silent number"* and does not disclose that the planner says `serve` first.
+
+**NOT CLAIMED.** No wrong number is served, and the licensing gap itself (OF-26) is a real,
+deliberately deferred capability decision; this row is about its disposition, its diagnostic, and the
+plan/run disagreement, not about closing it.
+
+**Jurisdiction: analytical-adjudication correctness** (primary — a Realization gap emitted as analytical
+Refuse, and a positive plan disposition for a form the build cannot realize). Secondary:
+**diagnostic/wire correctness** (the detail asserts a false fact and the wire discriminator is
+`unsupported`); **realization/profile correctness** (the guard is a build limit sited above the
+adjudication boundary); **documentation/conformance-gate correctness** (two standing tests and the
+Manual note ratify the misclassification).
+
+
+### P1-22 · `filter_unreachable` is a blanket Clarify whose offered alternatives are rewrites of the ask, not lawful readings of it · **MEDIUM** · **OPEN — no repair authorized** · VX
+
+Opened against Ruling v0.2 §16, which **splits this row's cases** — and the split is the finding. One
+reason string, one disposition, three jurisdictions:
+
+```text
+SELECT revenue AT {customer} WHERE amount >= 100          -> clarify  filter_unreachable
+SELECT revenue AT {customer} WHERE store == 'S1'          -> clarify  filter_unreachable
+SELECT revenue AT {customer} WHERE zzz_not_a_name >= 1    -> clarify  filter_unreachable
+```
+
+Reproduced on the adjudicated `finance_manifold` fixture; plan and run agree. `amount` is **not a
+declared LEVEL** (`sorted(m.levels)` = `category, customer, date, day, month, product, region, store,
+transaction, year`; `'amount' in m.levels` is `False`) — a source column, so under §16 that is
+**Invalid**. `zzz_not_a_name` is not a name anywhere — also **Invalid**, and the emitted remedy is
+*"change series 'revenue' to an input anchor that reaches 'zzz_not_a_name'"*, an instruction to reach
+something that does not exist. `store` **is** a declared LEVEL, base of the `inventory` universe,
+unreachable from `sales` — that one is §16's **Refuse**. The single detail template collapses all three:
+
+```text
+detail=WHERE dimension 'amount' cannot lawfully reach series 'revenue' — 'amount' is not addressable
+in that series' universe 'sales', so the pre-reduction filter has no grain to bind to; the answer
+would be silently partial.
+```
+
+`planner.py:859-866` raises exactly one `Refusal("filter_unreachable", ..., discriminator=AMBIGUOUS)`
+from a test that asks only `if lvl not in base and self.m.find_path(base, lvl) is None`
+(`planner.py:858`) — a reachability question that returns the same answer for "not a level" and "a
+level in another universe". `disclosure.py:243` registers `"filter_unreachable": (CLARIFY, AMBIGUOUS)`.
+
+Neither alternative is a reading of the submitted request (§6): both construct a *different* request.
+Worse, alternative 1's menu is not even executable — of the eight dimensions offered for `revenue`
+(`customer, date, day, month, product, region, transaction, year`), **five** (`date, month, product,
+region, year`) return `error / filter_unsupported` when named. Same defect class as P1-13's `store`
+offer, one level down.
+
+**REPAIR COST.** `test_where_capability_gate.py:84-88` deliberately preserves this:
+*"`filter_unreachable` is a fact about the MANIFOLD and stays a CLARIFY"*, asserting
+`w["outcome"] == "clarify"`. Repairing this row means amending a test written on purpose, under
+P1-14/P1-16, to hold this shape.
+
+**Jurisdiction: analytical-adjudication correctness** (primary). Secondaries: **canonical-language
+correctness** (the `amount`/`zzz` cases are Stage-A vocabulary failures adjudicated as Stage-B
+underdetermination); **diagnostic/wire correctness** (one reason string carrying two jurisdictions, and
+a menu of unexecutable options).
+
+### P1-23 · Analytical prohibitions are emitted on the build-incapability reason — a jurisdiction inversion · **MEDIUM** · **OPEN — no repair authorized** · VX
+
+The **mirror of P1-21**: P1-21 reports a realization gap as analytical Refuse; this row reports
+analytical Refuse as a realization gap. Ruling v0.2 §16: *"If analytical law prohibits the map:
+**Refuse**, not Realization gap."*
+
+```text
+SELECT (revenue @ {transaction}) / orders AS r AT {customer}  -> plan error / run error, reason unsupported
+  detail=map operand 'revenue' declares input anchor transaction, but the expression is read at
+  customer — a map's operands must be co-anchored (§2.4). Bring it to the common grain with an
+  explicit reduction, e.g. sum(revenue @ {transaction}).
+```
+
+`planner.py:1110-1116` raises `Refusal("unsupported", ...)` and the string it carries **cites the
+language law** — §2.4, co-anchoring — not a build limit. Nothing here is about capability; a maximally
+capable build would refuse identically.
+
+Two more sites, same inversion, and these also **plan `serve` and then fail** (the P1-14 rule):
+
+```text
+SELECT category_weight AT {category.touch}   -> plan serve / run error, reason unsupported
+  detail=crossing product<->category is events-only in v1: universe 'membership' is 'spine' basis,
+  where replication corrupts completeness — declare an events population or use a functional designation
+```
+
+`engine.py:398-402`, reproduced VX on the fixture's `membership` universe. *"Replication corrupts
+completeness"* is an analytical claim about what the answer would mean, shipped on a capability reason.
+`engine.py:579-584` is the `touch`-path sibling with the same text — **SV**: the 398 site fires first on
+this fixture. `planner.py:1970-1972` (`"resolution-anchor metric '{name}' is served at a single level —
+its meaning is a reduction of the '{res}'-resolved series"`) is a statement of the metric's *declared
+meaning*; no Manual fixture declares a resolution anchor, so it was reproduced on a bespoke published
+manifold (`DERIVED rate = revenue / orders AT day FAMILY { avg FERTILE { cal } }`) — plan `serve`, run
+`error / unsupported`.
+
+**THE NAMING COLLISION THE ARCHITECTS RULED ON (§4)** is visible inside one file. The discriminator:
+
+```python
+UNSUPPORTED = "unsupported"   # the data cannot support a result              -> REFUSE
+```
+— `disclosure.py:80`. The reason *string* of the same spelling:
+```python
+    "unsupported":              (ERROR,   None),        # not implemented in this build (capability)
+```
+— `disclosure.py:314`. One word, two opposed jurisdictions, thirty lines apart. v0.2 renames the
+profile concept to **Realization gap** and leaves these reason strings as build vocabulary until
+separately migrated; this row is the argument for that migration, not a repair request.
+
+Pinned: `test_map_operand_pin.py:93-99` asserts `nr["reason"] == "unsupported"` for the co-anchor case
+— repairing it amends a standing test.
+
+**Jurisdiction: analytical-adjudication correctness** (primary). Secondaries: **realization/profile
+correctness** (§4 `unsupported` collision, §17); **diagnostic/wire correctness** (plan `serve` / run
+`error` at the two engine sites and the resolution-anchor site).
+
+### P1-24 · Scan order disposition is wrong in both directions, and plan disagrees with run · **HIGH** · **OPEN — no repair authorized** · VX
+
+Ruling v0.2 §11 names four cases. **The tree can currently distinguish exactly one of them.**
+
+```text
+SELECT cumsum(revenue.sum) AS c AT {month}                     -> plan serve  / run serve
+SELECT cumsum(revenue.sum) AS c AT {month, year}               -> plan serve  / run error  unknown
+  detail=scan 'cumsum' @ ('month', 'year') order axis is ambiguous (['month', 'year']); name it with by=<level>
+SELECT cumsum(revenue.sum) AS c AT {customer}                  -> plan serve  / run error  unknown
+  detail=scan 'cumsum' @ ('customer',) has no derivable order axis (no CERTIFIED temporal level in
+  the anchor); name it with by=<level>. ...
+SELECT cumsum(revenue.sum, by='zzz_not_a_level') AS c AT {customer, day} -> plan serve / run error unsupported
+  detail=this frame could not be resolved in the engine (ColumnNotFoundError); the ask is not supported in this build.
+SELECT cumsum(revenue.sum, by='customer') AS c AT {customer, day}        -> plan serve / run serve
+```
+
+**Several lawful orders** (`{month, year}`) must be **Clarify**; it is `error`. **No lawful order**
+(`{customer}`) must be **Refuse**; it is `error`. Both from `planner.py:249-261`, both on reason
+`unknown`, which `disclosure.py:316` registers `(ERROR, None)` — *"unknown column / operator /
+construct"*. An order-axis adjudication is neither.
+
+**Invalid named order is not detected at all.** `plan_order_axis` begins `if by is not None: return by`
+(`planner.py:244-245`) — the named axis is never validated. `by='zzz_not_a_level'` and `by='region'` (a
+real level, not in the anchor) both fall through to a bare `ColumnNotFoundError` reported as a **build
+capability gap** — the exact §3/§18 collapse, an Invalid request wearing a realization gap's clothes.
+And `by='customer'` — valid, in-anchor, non-temporal, conferring no certified order — **serves**,
+silently walking an axis the unnamed path refuses to derive. The `by=` escape hatch both refusals offer
+is unchecked in every direction.
+
+A separate diagnostic falsehood sits in front of it: `by=month` (bare name, not a string) returns
+*"scan 'cumsum': unknown parameter 'by' (accepts n=, by=)"* — `planner.py:1324` rejects the *value form*
+and blames the parameter it just listed as accepted.
+
+**PLAN DISAGREES WITH RUN in every failing case above**: plan `serve`, run `error`. Same class as
+**P1-14** (fixed for `WHERE` only) and **P1-21** (face path). Taking the ambiguity refusal's own remedy
+at `{month, year}` lands in `error / unsupported (ColumnNotFoundError)` — but note `SELECT revenue AT
+{month, year}` fails identically without any scan, so that is the **P1-15**-class composite-anchor gap,
+not a scan defect; recorded so it is not double-counted.
+
+Pinned: `test_p05a_execution_contract.py:246-249` asserts only `fr.outcome in ("refuse", "error")`, so a
+repair to Refuse passes unchanged. **No test pins the ambiguous case, and none pins `by=` validation.**
+
+**Jurisdiction: analytical-adjudication correctness** (primary). Secondaries: **canonical-language
+correctness** (invalid named order never validated — §11 Invalid); **diagnostic/wire correctness**
+(plan/run divergence; the false `unknown parameter 'by'` message); **realization/profile correctness**
+(the remedy path terminates in an unlabelled realization gap).
+
+### P1-25 · Several lawful family members are an ERROR, not a Clarify — and the vocabulary failure then corrupts a downstream Refuse · **HIGH** · **OPEN — no repair authorized** · VX
+
+**THE FIRST HALF** is textbook §12. `planner.py:1907-1911`: `if len(meas.family) != 1: raise
+Refusal("unknown", f"'{meas_name}' has a family {list(meas.family)} — specify a member ...")`.
+
+```text
+SELECT sum(level) AS s AT {region}    -> plan error / run error, reason unknown
+  detail='level' has a family ['last', 'max', 'min', 'count'] — specify a member
+```
+
+Four lawful capability readings survive, no authorized default selects one: §12 says **Clarify**. It is
+emitted on `unknown`, registered `(ERROR, None)` at `disclosure.py:316` as *"unknown column / operator /
+construct"* — a Stage-A vocabulary bucket.
+
+**THE SECOND HALF IS THE DEFECT.** Because the ambiguity is filed as a vocabulary failure, it is then
+*counted as analytical evidence*:
+
+```text
+SELECT max(level) AS s AT {store}      -> refuse / blocked_reduction
+  detail=inline reduction 'max(level)' has no lawful input anchor at store: every candidate grain is
+  excluded, and not all for the same reason — category (unknown), customer (unknown), date (unknown),
+  day (unknown), month (unknown), product (unknown), region (pin_coarser_than_output), transaction
+  (unknown), year (unknown). Each verdict is the one the pin would earn if it were written out, so
+  there is no pin that rescues this ask.
+
+SELECT max(level.max) AS s AT {store}  -> clarify / input_anchor_ambiguous  (day, month, year)
+SELECT max(level.max @ {day}) AS s AT {store} -> serve
+```
+
+**The refusal's central sentence is false.** Three pins rescue the ask; one of them serves. Eight of
+nine "verdicts" are the family question, not a pin verdict.
+
+**THE MECHANISM, precisely.** `_admit_pin` (`planner.py:1598-1603`) applies the pin laws, the input
+grain and the travel law, then ends `return self._infer(inner, grain, population)` — and `_infer` is
+where the Stage-A family error is raised. `_pin_verdicts` (`planner.py:1622-1629`) wraps the whole call
+in one catch:
+
+```python
+            try:
+                self._admit_pin(reducer, inner, (L,), tuple(anchor))
+            except Refusal as r:
+                refused.append((L, r)); continue
+```
+
+`Refusal` is a single class carrying every jurisdiction, so the catch cannot tell "this level is
+analytically unlawful" from "this expression never became a request". `_unpinned_disposition`
+(`planner.py:1219-1221`) then only re-raises when the verdicts are **unanimous** — a deliberate laziness
+added for this exact class, and documented at `planner.py:1214-1218` — so a mixed set (8 `unknown` + 1
+`pin_coarser_than_output`) falls through to `_no_lawful_pin_refusal:1254-1263`, which emits
+`blocked_reduction` — **REFUSE / UNSUPPORTED** — asserting each entry is *"the verdict the pin would
+earn if it were written out."* It is not; it is the verdict the *unformed* expression earns everywhere.
+
+A controlled comparison on the `benchmark.cml` fixture isolates it — same ask, member named:
+
+```text
+sum(level)     @ cal.month*category -> ... cal.quarter (unknown),        ... day (blocked_reduction)
+sum(level.sum) @ cal.month*category -> ... cal.quarter (out_of_universe), ... day (blocked_reduction)
+```
+
+The `unknown` verdicts are standing in for the real analytical verdicts. **`test_inline_reduction.py:165-187`
+pins the corrupted form** (`sum(level)`, asserting `refuse/blocked_reduction`); it passes on the one true
+verdict in a list of eight false ones.
+
+Under §5, `L(Q)` was never formed, so this cannot be `|L(Q)| = 0`.
+
+**Jurisdiction: analytical-adjudication correctness** (primary — for both halves, but they fail at
+different seams). Half one is a **canonical-language / analytical-adjudication boundary error**: a
+Stage-B §12 ambiguity is filed in the Stage-A vocabulary bucket. Half two is squarely
+analytical-adjudication correctness: Stage-A verdicts are tallied as Stage-B evidence and change the
+disposition (Refuse where Clarify over three serving pins is due). Secondary: **diagnostic/wire
+correctness** — the served refusal states a falsifiable claim that is false.
+
+
+### P1-26 · The bracket filter escapes the disposition machinery entirely — a raw CPython `SyntaxError` reaches the caller as the language's answer · **HIGH** · **OPEN — no repair authorized** · VX
+
+Reproduced under the real runtime on the adjudicated Manual fixtures, using the Manual's own §6.7
+statement verbatim (`frame_ql_manual_v2.md:875-878`).
+
+**The envelope admits it. The planner does not refuse it — it dies.**
+
+```text
+=== STAGE 1: parse_statement (envelope) ===
+parse_statement SUCCEEDED. type: Statement
+   Series(expr='revenue[region = "east"]', alias='east_revenue')
+   Series(expr='revenue', alias='total_revenue')
+   anchor: ('customer',)  from: finance_manifold
+
+=== STAGE 2: plan_statement ===
+RAISED: builtins.SyntaxError
+MRO: ['SyntaxError', 'Exception', 'BaseException', 'object']
+Traceback (most recent call last):
+  File ".../columna_core/planner.py", line 961, in plan_statement
+    return self.run_statement(stmt, execute=False)
+  File ".../columna_core/planner.py", line 956, in run_statement
+    fr = (self.run if execute else self.plan)(d.anchor, columns, where, where_unreachable=unreachable)
+  File ".../columna_core/planner.py", line 1673, in plan
+    tree = ast.parse(expr, mode="eval")
+  File "/usr/local/lib/python3.12/ast.py", line 52, in parse
+    return compile(source, filename, mode, flags,
+  File "<unknown>", line 1
+    revenue[region = "east"]
+            ^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+```
+
+No Refusal, no reason, no discriminator, no alternatives — **no wire frame at all.**
+`builtins.SyntaxError` is not a `ValueError`, so it is not even of the family every in-tree handler
+catches (`FrameQLSyntaxError`/`EnvelopeSyntaxError` are both `ValueError`, `frameql.py:163`,
+`envelope.py:43`). It crosses `provider.py:102-105` untouched.
+
+**TWO THINGS ARE WRONG AND MUST STAY SEPARATE.**
+
+**(a) The substrate-grammar escape, which is a defect on its own terms.** Ruling v0.2 §16: *"A raw
+CPython error must not escape as the language disposition."* Worse than a bare escape: CPython's own
+repair advice — *"Maybe you meant '==' or ':=' instead of '='?"* — is handed to a Frame-QL reader as if
+it were Frame-QL counsel. Under §5, this is not `|L(Q)| = 0`; `L(Q)` was never formed. Under §3, it is
+not even the temporary `error` umbrella, which at least carries a discriminator.
+
+**The one guard that exists points the reader INTO the leak.** Drop the `AS` and the naming path
+catches the same `SyntaxError` at `planner.py:638` and converts it:
+
+```text
+UNALIASED (no AS):
+   columna_core.frameql.FrameQLSyntaxError: cannot name series 'revenue[region = "east"]' — give it a name with AS
+   innermost columna frames: planner.py:961 -> 951 -> 698 -> 639 -> 585
+aliased (the Manual's own §6.7 statement):
+   builtins.SyntaxError  (frames: planner.py:961 -> 956 -> 1673)
+```
+
+Taking that advice — adding `AS` — is what produces the raw CPython escape.
+
+**(b) THE CANONICAL STATUS IS UNDECIDED, AND IS REPORTED AS AN OPEN ADJUDICATION QUESTION, NOT
+FORCED.** §16 offers two readings — *"not admitted canonical Frame-QL → Invalid / not-admitted
+construct; admitted but not realized → Realization gap"* — and the corpus does not decide between them.
+§2.8:421 calls both forms *"the language the envelope grows into by ruling (ADR-035 D1)"*, which reads
+as not-yet-admitted; §6.7:869 marks the section `[ROADMAP]`, which the gate treats as
+*documented-unshipped*, i.e. admitted-but-unbuilt. Whichever way that is ruled, (a) is a defect.
+
+**THE MANUAL CONTRADICTS ITSELF ABOUT THIS FORM, AND BOTH HALVES ARE WRONG.** Both verified directly:
+
+| line | claim | verdict |
+|---|---|---|
+| `:427` | *"**The bracket filter is not shipped at all.** `revenue[region = "east"]` does not parse."* | **FALSE at the envelope layer.** `parse_statement` returns a `Statement` carrying `expr='revenue[region = "east"]'` as uninterpreted text — with or without `FROM`, with or without `AS`. |
+| `:871` | *"it is accepted by the statement grammar and then refused at planning, which is precisely why a grammar-only gate could not see it"* | **Right about the grammar, wrong about "refused."** Nothing is refused. The planner raises through the caller. |
+
+**GATE CONSEQUENCE.** §6.7's block is fenced ` ```frameql-roadmap ` (`:874`), so
+`check_manual_frameql.py` asserts only the section mark. Fenced ` ```frameql-illformed ` — the fence
+§2.8:427's own words ask for — `check_manual_frameql.py:215-222` would have raised
+`marked-illformed-but-parses` / *"the teaching went stale: this now parses"*. Confirmed by re-running
+the gate's `_fenced_blocks`/`_statements` over the live block. The two Manual sentences are jointly
+unfalsifiable under the fence chosen.
+
+**No test pins any of this.** No test in `packages/` or `services/` references the bracket-filter form.
+
+**Jurisdiction: canonical-language correctness** (primary). Secondaries: **diagnostic/wire correctness**
+(no disposition of any kind reaches the wire; substrate advice is emitted as language advice);
+**documentation/conformance-gate correctness** (`:427` false, `:871` false, and the fence choice makes
+both unreachable by the gate). Realization/profile correctness is **held open** pending the §16
+adjudication of canonical status.
+
+### P1-27 · A macro inside `WHERE` is not expanded — and where the name collides with a declared level, a wrong answer is SERVED · **CRITICAL** · **OPEN — no repair authorized** · VX
+
+**THE BRIEF THAT OPENED THIS ROW WAS WRONG TWICE, and both corrections are recorded rather than
+quietly edited.** The line is `frame_ql_manual_v2.md:657`, not `:659` (`:659` is the default-name
+bullet); the section is §4.5 *The `WITH` clause: named bindings* (heading `:649`). And the failure is
+**not silent** — it is worse than silence in one condition and worse than a refusal in the other.
+
+The Manual admits the form in as many words, `:657`:
+
+> A macro may be referenced in `SELECT` series, `WHERE`, `HAVING`, `ORDER BY`, and later `WITH`
+> bindings. Whether the expanded expression is *valid* at a site is decided by that clause's ordinary
+> rules…
+
+and `:661` states the invariant: *"The canonical form of a statement is the canonical form of its full
+expansion."*
+
+**THE MECHANISM, not the symptom.** `Planner.desugar` (`planner.py:684-702`) builds the substitution
+map and applies `_apply_subs` (`planner.py:587-591`) to **`stmt.bindings` and `stmt.series` only**. The
+other three clauses are copied verbatim at `planner.py:701-702`:
+
+```python
+where=list(stmt.where), having=list(stmt.having), order_by=list(stmt.order_by), limit=stmt.limit
+```
+
+The docstring at `:675` states the intended law — *"WITH bindings inlined into the series (the
+canonical form carries no WITH)"* — and **"the series" is the whole of it.** `WHERE`, `HAVING` and
+`ORDER BY` reach the planner with macro names unexpanded.
+
+**CONDITION 1 — the macro name is free: a FALSE Clarify that names its own answer as the remedy.**
+
+```text
+FROM finance_manifold / WITH d = day / SELECT revenue AT {customer} / WHERE d >= '2024-01-01'
+   desugared WHERE: ["d >= '2024-01-01'"]          <- unexpanded
+   OUTCOME: clarify  reason: filter_unreachable
+   detail: WHERE dimension 'd' cannot lawfully reach series 'revenue' — 'd' is not addressable
+           in that series' universe 'sales' ...
+   alternatives: ["restrict the predicate to a reachable dimension (customer, date, day, month,
+                  product, region, transaction, year)", ...]
+
+control, hand-written:  WHERE day >= '2024-01-01'
+   OUTCOME: serve   revenue = [{'customer':'C2','value':200.0},{'customer':'C1','value':200.0}]
+```
+
+The reader is told `d` is unreachable and offered, as the fix, `day` — which is exactly what `d` is
+bound to. The Clarify is lawful in shape and false in content.
+
+**CONDITION 2 — the macro name collides with a declared level: a WRONG ANSWER, SERVED, WITH NO
+DISCLOSURE.** This is why the row is CRITICAL.
+
+```text
+FROM finance_manifold / WITH day = month / SELECT revenue AT {customer} / WHERE day >= '2024-02'
+   desugared WHERE: ["day >= '2024-02'"]
+   OUTCOME: serve   revenue = [{'customer': 'C2', 'value': 200.0}]
+
+what the Manual promises it means (the expansion):  WHERE month >= '2024-02'
+   OUTCOME: error   filter_unsupported
+what actually ran (the literal level):              WHERE day  >= '2024-02'
+   OUTCOME: serve   revenue = [{'customer': 'C2', 'value': 200.0}]   <- identical
+unfiltered baseline:  C1 200.0, C2 200.0, C3 150.0
+```
+
+A request this build **cannot honour** comes back as a clean Serve with a plausible number, because the
+unexpanded name silently resolved to a homonymous declared level. Ruling v0.2 §9: *"Binding may supply
+omitted context. It may not override explicit canonical meaning."* §14: realization *"may not
+reinterpret explicit canonical meaning after adjudication."*
+
+**§4.5's own guard against this does not fire.** `:660` — *"Macro names share the namespace of columns,
+dimensions, and aliases; collisions are refused."* `WITH region = customer SELECT revenue AS r AT
+{customer}` serves, no refusal. The one rule that would have made condition 2 unreachable is documented
+and unbuilt.
+
+**WHY §6.14 PASSES THE GATE ANYWAY — the pass is coincidence, not expansion.** §6.14's shipped-fenced
+example serves because the bare-macro series takes the macro's identifier as its alias
+(`planner.py:697-699`), so the unexpanded `HAVING profit > 0` accidentally resolves against an output
+column that happens to be called `profit`. Give the series a different alias and the coincidence
+evaporates:
+
+```text
+WITH profit = (revenue - cost) SELECT profit AS margin AT {customer, month} HAVING profit > 0
+   -> FrameQLSyntaxError: HAVING references 'profit', which is not a column of the frame
+```
+
+**CLASSIFICATION.** Condition 1 is an unlawful non-Serve — under §4.5:661 the canonical form is the
+expansion, so the lawful disposition is the control's Serve; instead Stage B produces a Clarify on a
+false premise, which §6 forbids. Condition 2 is **not** a language, adjudication or realization defect
+at all: it is a **serving defect** — one lawful reading admitted, and a *different* request answered.
+**Nothing in the ruling's six statuses covers "answered the wrong question correctly," which is itself
+recorded here as an open adjudication question.**
+
+**No test pins any of it.** `test_envelope_sugars.py:35` and `test_envelope_planner.py:82` exercise
+`WITH` in `SELECT` only; no test in the tree puts a macro in `WHERE`, and none exercises the §4.5:660
+collision rule.
+
+**Jurisdiction: canonical-language correctness** (primary — the canonical form the planner adjudicates
+is not the canonical form of the statement's full expansion, contrary to §4.5:661). Secondaries:
+**analytical-adjudication correctness** (condition 1's false `filter_unreachable` Clarify); **serving
+correctness** (condition 2's wrong-but-plausible Serve — the severity driver, and a class the five
+named jurisdictions do not contain); **diagnostic/wire correctness** (alternatives that name the
+macro's own binding as the remedy); **documentation/conformance-gate correctness** (§4.5:657 and
+§4.5:660 are both unbacked by gate or test).
+
+
+### P0-20 · The Manual's semantic gate is one-way: it cannot catch the Manual UNDERSTATING the build, and it skips 9 of 44 blocks · **HIGH** · **OPEN — no repair authorized** · VX
+
+Same claim-defect class as **P0-17** and **P0-18**, arrived at from the opposite direction. P0-18
+closed on a gate that catches the Manual *overstating* capability. Nothing catches the reverse, and the
+reverse has happened.
+
+**(a) THE FALSE CLAIMS. `cumsum` executes; so do four more scan operators the Manual lists as
+unavailable.** Two Manual sentences, both verified:
+
+- `:430-431` (§2.8) — *"**Scan execution is not available in the current Core build.** A planner that
+  answers `serve` is answering about the plan, not about a result; do not read it as shipped
+  capability."*
+- `:937` (§6.11) — *"It does not: scan execution is not available in the current Core build, and this
+  example is marked for what it would produce, not for what the planner will say about it."*
+
+Run against the adjudicated fixtures, §6.11's statement **verbatim**:
+
+```text
+§6.11 VERBATIM: SELECT cumsum( revenue @ {customer, day} ) AS revenue_to_date AT {customer, day}
+   PLAN: serve   EXECUTE: serve
+   revenue_to_date = [{'customer':'C1','day':'2024-01-05','value':120.0},
+                      {'customer':'C1','day':'2024-01-19','value':200.0},   <- the cumulative walk
+                      {'customer':'C2','day':'2024-02-02','value':200.0},
+                      {'customer':'C3','day':'2023-02-03','value':150.0}]
+
+lag(revenue @ {customer, day}, n = 1)  PLAN serve  EXECUTE disclose  [None, 120.0, None, None]
+lead(..., n = 1)                       PLAN serve  EXECUTE disclose  [80.0, None, None, None]
+cummax(...)                            PLAN serve  EXECUTE serve     [120.0, 120.0, 200.0, 150.0]
+cummin(...)                            PLAN serve  EXECUTE serve     [120.0,  80.0, 200.0, 150.0]
+pct_change(...)                        PLAN serve  EXECUTE disclose  [None, -0.3333..., None, None]
+rolling_sum(..., n = 2)                PLAN serve  EXECUTE error / unsupported
+```
+
+Six of the eight operators §2.8:428-429 names execute and return correct values. `rolling_sum` is the
+one for which the blanket claim is true — so the sentence is not merely stale, it is **false in six
+cases and right in one**, presented as a build-wide fact. `lag` needs the keyword spelling `n = 1`;
+positional errors `unknown`, which is a separate diagnostic wart.
+
+**A standing test has pinned scan execution as WORKING all along.**
+`test_p05a_execution_contract.py:277-281` asserts the cumulative walk
+`{"d1": 10.0, "d2": 30.0, "d3": 60.0}` and passes today (4 passed). The build's own test suite and the
+Manual state opposite facts about the same capability, and no guard compares them.
+
+**(b) THE STRUCTURAL CAUSE — every gate we have points one way.** `check_manual_frameql.py:225-232`:
+
+```python
+if kind == "frameql-roadmap":
+    # Assert the MARK, never today's failure: pinning the failure would turn shipping the
+    # capability into a red gate, which is the wrong incentive to build into a guard.
+    if mark is None: ... else: counts["roadmap"] += len(stmts) or 1
+    continue
+```
+
+The reasoning is sound and should survive any repair — pinning today's failure *is* the wrong
+incentive. But the consequence is that a roadmap-fenced example asserts the presence of a
+`[ROADMAP]`/`[SCHEDULED]` heading and **nothing about behaviour, in either direction**. The Manual can
+drift understating capability indefinitely and the gate stays green. This is the exact asymmetry P0-19
+found in `test_fixture_drift.py:61` — *"It catches an unintended bump and is structurally incapable of
+catching an omitted one"* — reappearing in the conformance gate.
+
+**(c) THE GATE SKIPS 9 OF 44 BLOCKS, INCLUDING BOTH SUGAR ILLUSTRATIONS.** Verified by re-driving the
+gate's own `_fenced_blocks`/`_statements`/`sections` helpers over the live Manual:
+
+```text
+TOTAL fenced blocks: 44   CONSIDERED: 35 -> 40 statements   SKIPPED: 9
+  by kind: frameql 22, frameql-roadmap 11, frameql-schematic 1, frameql-illformed 1
+
+SKIPPED
+  L117   (bare)  §1.2 The skeleton                              [EXPLAIN] [FROM ...] SELECT ...
+  L137   text    §1.3 The `FROM` clause                         FROM finance_manifold
+  L474   (bare)  §3.1 Sugar: default-family reduction implicit  revenue AT {customer} -- sugared ...
+  L495   (bare)  §3.2 Sugar: omitting `@ root(col)`             sum(revenue) AT {customer} -- sugared ...
+  L609   (bare)  §4.3 The `ORDER BY` clause                     ORDER BY total_revenue DESC, customer ASC
+  L621   (bare)  §4.4 LIMIT n / LIMIT n PER {dims}              ORDER BY total_revenue DESC LIMIT 100
+  L630   (bare)  §4.4 LIMIT n / LIMIT n PER {dims}              ORDER BY ... LIMIT 5 PER {region}
+  L747   (bare)  §5.6 Many-to-many                              RELATE product <-> category VIA ...
+  L1283  (bare)  §Appendix D: the retired terse `@`-form        aov @ cal.month ...
+```
+
+Seven of the nine are bare fences whose first line does not begin `EXPLAIN|FROM|WITH|SELECT`, so
+`_STMT_START` never promotes them to `frameql` (`check_manual_frameql.py:200-202`). L747 and L1283 are
+correctly out of scope (a `RELATE` declaration; a retired form). **The other seven are Frame-QL,
+unchecked.**
+
+**Current gate result, verbatim, exit 0:**
+
+```text
+manual FrameQL examples: 40 total — 27 shipped (planned, and executed where they plan to
+serve/disclose), 11 roadmap, 1 marked ill-formed, 1 schematic, 0 FAIL
+```
+
+**The 44 → 40 gap is not 4 missing examples; the near-coincidence conceals it.** 44 blocks − 9 skipped
+= 35 checked blocks; three of those (L315, L374, L756) carry more than one statement, contributing 5
+extra, for 40 *statements*. Blocks and examples are different units and the headline number reports only
+the second, so nine unchecked blocks are invisible in the one line anyone reads.
+
+**AND ONE OF THE SKIPPED SUGAR BLOCKS IS FALSE.** §3.2:502-505 asserts the equivalence directly —
+*"`sum(revenue) AT {customer}` — sugared / `sum(revenue @ {transaction}) AT {customer}` — canonical"* —
+and `:507`: *"that inference is silent and automatic."* Tested by hand, because the gate cannot:
+
+```text
+§3.1 sugared  SELECT revenue AT {customer}                       -> serve   C1 200, C2 200, C3 150
+canonical     SELECT sum(revenue @ {transaction}) AT {customer}  -> serve   C1 200, C2 200, C3 150
+§3.2 sugared  SELECT sum(revenue) AT {customer}                  -> CLARIFY  input_anchor_ambiguous
+   detail: inline reduction 'sum(revenue)' does not pin its input anchor ...
+   alternatives: date, day, month, product, transaction, year   (six)
+```
+
+§3.1 holds. **§3.2 does not** — the language's only worked statement of what the most-used sugar expands
+to is contradicted by the shipped planner on the Manual's own adjudicated fixture. The six-candidate
+menu is P1-17's shape exactly; whether this is a §3.2 claim defect or a consequence of P1-13's corrected
+enumeration is **an open attribution, not a causal claim** (the pre-P1-13 source was not run), and
+should not be settled by whoever repairs the gate.
+
+**Minor sub-item — the version split is COVERED BY P0-19; not duplicated here.**
+`packages/columna-core/pyproject.toml:9` (`version = "0.18.1"`) against `columna_core/__init__.py:47`
+(`__version__ = "0.16.0-core"`), with the Manual citing 0.18.1 at `:5`, `:7`, `:16`, `:39`, `:421`, is
+row one of P0-19's drift table verbatim, together with its finding that the design is sound and the
+*label* is what stopped moving. Cross-reference P0-19; add nothing.
+
+**Pinned by:** for (a), `test_p05a_execution_contract.py:277-281` pins scan execution as working, i.e.
+the *code* side is pinned and the Manual side is not. For (b) and (c), **no test exists** — nothing
+asserts the gate's coverage, and no test pins the §3.1/§3.2 sugar equivalences.
+
+**Jurisdiction: documentation/conformance-gate correctness** (primary). Secondaries:
+**realization/profile correctness** (the build's actual scan realization is misstated in both
+directions — six operators execute, `rolling_sum` does not, and the Manual states one blanket fact);
+**canonical-language correctness** (§3.2's sugar equivalence is false against the shipped planner and
+structurally outside the gate). Cross-references: P0-18 (the gate this row's defect survives), P0-19
+(version split), P1-17 (the six-candidate menu §3.2 lands in).
+
+
+---
+
+## The 2026-09-01 sweep — jurisdiction classification and repair sequence
+
+### Classification
+
+Ruled per row above; collected here so the repair sequence can be read off it. A row appears once under
+its PRIMARY jurisdiction; secondaries are listed in the row itself.
+
+| jurisdiction | rows | what the class means here |
+|---|---|---|
+| **canonical-language correctness** | **P1-19**, **P1-26**, **P1-27** | the canonical form the planner adjudicates is not the canonical form of the submitted statement |
+| **analytical-adjudication correctness** | **P1-20**, **P1-21**, **P1-22**, **P1-23**, **P1-24**, **P1-25** | the right stage ran, on the wrong side of a Stage-A/B/C boundary |
+| **realization/profile correctness** | *(no primary; secondary on P1-20, P1-21, P1-23, P1-24, P0-20)* | no row is purely a realization defect — every one crosses a jurisdiction it should not |
+| **diagnostic/wire correctness** | *(no primary; secondary on P1-20…P1-27)* | six rows carry a diagnostic that is false, not merely unhelpful |
+| **documentation/conformance-gate correctness** | **P0-20** | the gate is structurally one-way and nine blocks are outside it |
+
+**The shape of the finding, stated plainly.** Only one row is a documentation defect. Eight of the ten
+are one defect wearing nine costumes: **`Refusal` is a single class with no jurisdiction, and `error` is
+a single mood carrying Stage-A vocabulary failures and Stage-C build gaps together.** Every mislabelled
+disposition, and P1-25's corrupted refusal, descends from that. It is why the repair sequence below is
+short.
+
+### The smallest coherent repair sequence
+
+Five stages, ordered by dependency, not by severity. Nothing here is authorized; this is the sequence a
+future authorization should follow.
+
+**Stage 0 — stop serving wrong answers. `P1-27` (condition 2), `P1-19`.**
+The only two rows where a **wrong number reaches a reader**, and the only two needing no new ruling —
+v0.2 §9 and §14 already decide both. Two single-site changes: extend `_apply_subs` past `stmt.series`
+to `where`/`having`/`order_by` (`planner.py:701-702`), and make the serving surface honour
+`stmt.from_manifold` or refuse the request (`tools.py:298-302`). Independent of everything below, and
+of each other. **Do this first even if the rest waits.**
+
+**Stage 1 — one seam, not seven. Prerequisite for Stage 2.**
+Give `Refusal` a jurisdiction (Invalid / Refuse / Clarify / Realization gap) and teach `_pin_verdicts`
+(`planner.py:1622-1629`) to distinguish them. This is the highest-leverage single change in the sweep:
+it structurally repairs **P1-25**'s corrupted `blocked_reduction` — which today tallies Stage-A verdicts
+as Stage-B evidence and emits a refusal whose central sentence is false — and it converts Stage 2 from
+seven rewrites into seven relabelings. Without it, each relabeling below is a local patch that the next
+one can undo.
+
+**Stage 2 — relabel to §16, once jurisdiction exists. `P1-21`, `P1-22`, `P1-23`, `P1-24`, `P1-25` (first
+half), `P1-20` (second finding).**
+Mechanical after Stage 1, and each one is already ruled by §16: split `filter_unreachable` into Invalid
+and Refuse; co-anchor prohibition to Refuse; `chained_crossing` to Realization gap with a detail true of
+the ask; scan order to Clarify / Refuse / Invalid across §11's four cases; family ambiguity to Clarify.
+**Every one of these amends a standing test that pins the current, wrong behaviour** —
+`test_where_capability_gate.py:84-88`, `test_map_operand_pin.py:93-99`,
+`test_inline_reduction.py:165-187`, `test_case_demo_recapture.py:222-231`. That is expected and should
+be named in the authorization rather than discovered during it.
+
+**Stage 3 — plan/run parity beyond `WHERE`. `P1-21`, `P1-24`.**
+P1-14 established the invariant (a planner must not return a positive disposition for a form the build
+cannot execute) and PR #258 built the seam for `WHERE` only. The face path and the scan path both still
+plan `serve` and run `error`. One generalization of `_where_reachability`'s approach, not three.
+
+**Stage 4 — close the guards that let this accumulate. `P0-20`, `P1-20` (cardinality), `P1-26` (escape).**
+Make the conformance gate two-way, promote the seven unchecked bare Frame-QL blocks, correct §3.2, add
+the missing `len(family) != 1` guard at `_serve_driver` (`engine.py:431`), and stop `builtins.SyntaxError`
+escaping `planner.py:1673`. These are what make the sweep unnecessary next time.
+
+### Open adjudication questions — reported, not forced
+
+Per the mission's instruction that Ruling v0.2 deliberately leaves some boundaries open, the following
+are **not** classified into the table above and should not be closed by whoever repairs the rows.
+
+1. **Bracket filter canonical status (P1-26b).** §16 offers "not admitted → Invalid" or "admitted but
+   not realized → Realization gap". `frame_ql_manual_v2.md:421` reads as not-yet-admitted; §6.7's
+   `[ROADMAP]` mark reads as admitted-but-unbuilt. The corpus does not decide. **The substrate escape is
+   a defect either way** — that half needs no ruling.
+2. **"Answered the wrong question correctly" (P1-27 condition 2).** One lawful reading is admitted and a
+   *different* request is answered. This is not Invalid, Refuse, Clarify, Serve, Disclose, or
+   Realization gap. Either the status model needs a sixth analytical outcome, or this is ruled a pure
+   serving-contract defect outside the disposition model. It is currently neither.
+3. **`cross_universe`.** `planner.py:223-230` treats it as a language-law CATEGORY ERROR and
+   `disclosure.py:216-220` deliberately marks it "not a clarify". Under §2 that reads as Stage-A
+   **Invalid**; under a `|L(Q)| = 0` reading it is **Refuse**. Both are defensible from the corpus.
+4. **Certification-as-standing.** `uncertified_edge` / `uncertified_face` rest on the doctrine that
+   "declaration makes a capability eligible for certification, not executable" (`disclosure.py:278-285`).
+   Whether missing positive certification is `|L(Q)| = 0`, a Stage-A category failure, or a
+   realization-evidence gap is precisely the question §9/§13 of Ruling 0.1 declined and v0.2 does not
+   reopen. **Not scored.**
+5. **§3.2 sugar attribution (P0-20).** Whether §3.2's false equivalence is a claim defect or a
+   consequence of P1-13's corrected enumeration was not determined; the pre-P1-13 source was not run.
+
+**Deliberately excluded from this sweep** (ruled Huayin, 2026-09-01), and not folded into any row above:
+P1-18 `region_label`; P1-12 support-representation blocker; the multiple-finalizer Measure Algebra
+formal question; default-anchor materiality / over-disclosure — which v0.2 §16 independently routes to a
+future **disclosure-materiality ruling**, *"not an ambiguity ruling"*; and positive capability-admission
+representation.
+
+
 ---
 
 ## P3 — Studio / authoring artifact-and-authority boundary
