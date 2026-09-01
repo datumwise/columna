@@ -289,6 +289,29 @@ REASON_OUTCOME = {
                                                         #   reduction is meant. An OF-1 sibling of
                                                         #   `input_anchor_ambiguous`: its own
                                                         #   contested dimension, its own reason.
+    # ── P1-23 (minted 2026-09-01) · analytical law that was riding the build-gap reason ──────────
+    #   Ruled Huayin: "analytical law failures belong to the analytical jurisdiction even when the
+    #   current implementation historically routed them through a realization-capability reason."
+    #   Each of these was `Refusal("unsupported", ...)` — (ERROR, REALIZATION) — while the string it
+    #   carried cited the LANGUAGE or the DECLARED MEANING, not a build limit. A maximally capable
+    #   build refuses all three identically, which is the test that tells the jurisdictions apart.
+    "co_anchor_required":       (REFUSE,  UNSUPPORTED, ANALYTICAL),  # §2.4: a map's operands must be
+                                                        #   co-anchored. The remedy is an explicit
+                                                        #   reduction, i.e. a different ASK — never a
+                                                        #   more capable engine.
+    "resolution_anchor_arity":  (REFUSE,  UNSUPPORTED, ANALYTICAL),  # a resolution-anchor metric IS a
+                                                        #   reduction of the resolved series, so it
+                                                        #   is served at a single level. A statement
+                                                        #   of the metric's declared meaning.
+    "crossing_basis_not_events": (REFUSE, UNSUPPORTED, ANALYTICAL),  # crossing a non-events basis
+                                                        #   would replicate rows, and "replication
+                                                        #   corrupts completeness" is a claim about
+                                                        #   what the ANSWER would mean. Its remedy is
+                                                        #   a DECLARATION (an events population), not
+                                                        #   a build upgrade. Deliberately NOT applied
+                                                        #   to its neighbour "ordered/holistic/sketch
+                                                        #   crossings are post-launch", which really
+                                                        #   is a build limit and stays `unsupported`.
     # ── P1-24 (minted 2026-09-01) · explicit order selection ──────────────────────────────────────
     #   Ruled Huayin: "Explicit `by=` may select governed order standing. It may not create it."
     #   `plan_order_axis` used to begin `if by is not None: return by`, so a named axis was never

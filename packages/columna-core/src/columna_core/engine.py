@@ -395,7 +395,7 @@ class ColumnEngine:
         uni = meas.universe
         basis = self.m.universes[uni].basis
         if basis is not None and basis != "events":
-            raise Refusal("unsupported",
+            raise Refusal("crossing_basis_not_events",
                           f"crossing {rel.frm}<->{rel.to} is events-only in v1: universe '{uni}' is "
                           f"'{basis}' basis, where replication corrupts completeness — declare an events "
                           f"population or use a functional designation",
@@ -577,7 +577,7 @@ class ColumnEngine:
         # that thinking is done. (An UNDECLARED basis keeps today's behavior — the crossing still serves.)
         basis = self.m.universes[uni].basis
         if basis is not None and basis != "events":
-            raise Refusal("unsupported",
+            raise Refusal("crossing_basis_not_events",
                           f"touch across {rel.frm}<->{rel.to} is events-only in v1: universe '{uni}' is "
                           f"'{basis}' basis, where replication corrupts completeness — declare an events "
                           f"population or use a functional designation",

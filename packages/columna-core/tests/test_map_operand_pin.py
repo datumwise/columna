@@ -92,11 +92,17 @@ def test_composite_pin_map_still_fails_IN_THE_ENGINE_on_this_manifold_shape(srv)
 
 def test_the_pin_is_held_to_what_it_declares(srv):
     """A pin is a DECLARATION of the grain the operand is read at, so a pin that disagrees with the
-    grain must not be quietly ignored — a pin that does nothing is worse than one that refuses."""
+    grain must not be quietly ignored — a pin that does nothing is worse than one that refuses.
+
+    P1-23 (ruled Huayin, 2026-09-01): this asserted `error` / `unsupported`, i.e. a BUILD-CAPABILITY
+    gap. It never was one — the detail it carries cites §2.4, the co-anchoring law, and a maximally
+    capable engine refuses this ask identically. An analytical prohibition reported as a build limit
+    tells the reader to wait for a release that will never fix it. It is now the analytical refusal
+    `co_anchor_required`; the law it enforces, and this test's subject, are unchanged."""
     w = _plan(srv, "SELECT (revenue @ {customer}) - (cost @ {day}) AS bad AT {customer}")
-    assert w["outcome"] == "error"
+    assert w["outcome"] == "refuse"
     nr = w["columns"][0]["no_result"]
-    assert nr["reason"] == "unsupported" and "co-anchored" in nr["detail"]
+    assert nr["reason"] == "co_anchor_required" and "co-anchored" in nr["detail"]
 
 
 def test_composite_pin_is_grain_not_joint_operands(srv):

@@ -1286,7 +1286,7 @@ class Planner:
             # reduction is the asker's to do — inferring one here would be the framework choosing an
             # aggregation nobody asked for, which is the thing the canonical form exists to prevent.
             # Refused with the remedy named rather than guessed at.
-            raise Refusal("unsupported",
+            raise Refusal("co_anchor_required",
                 f"map operand '{ast.unparse(node.left)}' declares input anchor "
                 f"{self._fmt_pin(pinned)}, but the expression is read at {_fmt_anchor(anchor)} — a "
                 f"map's operands must be co-anchored (§2.4). Bring it to the common grain with an "
@@ -2248,7 +2248,7 @@ class Planner:
         sibling, and the engine NEVER substitutes one reading for the other (never-substitute)."""
         res = dshape.resolution_anchor
         if len(anchor) != 1:
-            raise Refusal("unsupported",
+            raise Refusal("resolution_anchor_arity",
                 f"resolution-anchor metric '{name}' is served at a single level — its meaning is a "
                 f"reduction of the '{res}'-resolved series; asked at {_fmt_anchor(anchor)}")
         if len(dshape.members) != 1:
