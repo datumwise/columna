@@ -204,9 +204,15 @@ def test_a_mixed_refusal_reports_the_verdicts_instead_of_asserting_a_cause(srv):
     """|L| = 0 where the candidates DISAGREE about why. The detail used to state that every candidate
     "would reduce across a lineage the governed law blocks for it" — true when the lineage law was
     the only filter, and false once §2c and transport joined it. A refusal that names the wrong cause
-    sends the reader to fix the wrong thing."""
+    sends the reader to fix the wrong thing.
+
+    THE REASON MOVED TOO (ruled Huayin, 2026-09-02). This case used to report `blocked_reduction`,
+    so the detail told the truth while the reason it travelled under did not: no lineage is blocked
+    here, the candidates simply all failed adjudication for reasons that disagree. That is
+    `input_anchor_unavailable` — §2.3's |R| = 0 branch, sibling to `input_anchor_ambiguous`.
+    `blocked_reduction` now names only the condition it describes: a governed BLOCKED lineage."""
     w = _plan(srv, ("customer", "day"), "sum(revenue)")
-    assert w["outcome"] == "refuse" and _reason(w) == "blocked_reduction"
+    assert w["outcome"] == "refuse" and _reason(w) == "input_anchor_unavailable"
     detail = w["columns"][0]["no_result"]["detail"]
     assert "no lawful input anchor" in detail
     assert w["columns"][0]["no_result"].get("alternatives"), \

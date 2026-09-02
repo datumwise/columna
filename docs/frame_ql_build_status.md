@@ -30,6 +30,17 @@ a defect in the Manual.
   rewording does not help, and the analytical reachability of the dimension is not in question.
 - **The roadmap expression forms** (language reference §2.8). These are not part of the shipped envelope (columna-core 0.18.1).
 
+**Query-error reason fidelity.** The query-error channel (language reference §7.3) carries two
+jurisdictions — a request the language does not accept, and a valid, admissible request this
+realization cannot carry out. **This build's `reason` does not reliably separate them.**
+`cross_universe` and `type_error` carry their own reason and `unsupported` marks a realization
+failure; every other language-invalid case reports `reason = "unknown"` and puts the information in
+`detail`. The detail is precise; the reason is not yet a field to branch on. A second route exists
+too: an unregistered operator (`wibble(revenue)`) reaches the caller as a raised error rather than as
+a frame, so a caller that reads only frames will not see the whole channel. Both are interface facts
+about columna-core 0.18.1, not language law — the language states the distinction, and this build's
+wire does not yet express it fully.
+
 **String literals.** Frame-QL treats `'east'` and `"east"` as one literal. This build normalizes the
 predicate into the backend's spelling before it becomes SQL, so both forms run and return the same
 rows; the substrate does not reinterpret Frame-QL's literals.

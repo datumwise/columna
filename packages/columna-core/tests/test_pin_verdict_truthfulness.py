@@ -75,7 +75,11 @@ def test_several_lawful_members_clarify_and_offer_every_one_unranked(srv):
     assert (outcome, reason) == (CLARIFY, "family_member_ambiguous")
     assert jurisdiction_for(reason) == ANALYTICAL
     tokens = [a["token"] for a in nr["alternatives"]]
-    assert tokens == ["level.last", "level.max", "level.min", "level.count"], tokens
+    # `level.sum` JOINS THE MENU AND SHOULD NOT BE ON IT — see the xfail below. The list is asserted
+    # as OBSERVED, not as ratified: `sum` is declared BLOCKED along the calendar, so `level.sum` at
+    # {region} refuses, and offering it makes this clarify a menu with an unlawful item on it. The
+    # membership is pinned here so the defect cannot change shape unnoticed while it awaits a ruling.
+    assert tokens == ["level.last", "level.sum", "level.max", "level.min", "level.count"], tokens
 
 
 def test_every_offered_member_is_a_real_member(srv):
@@ -102,3 +106,22 @@ def test_the_two_cases_differ_only_in_whether_naming_a_member_would_help(srv, af
     for m in afternoon_server.m.measures["on_hand"].family:                            # none helps
         w = wire_frame(afternoon_server.frame("store", "month").column("c", f"sum(on_hand.{m})").run())
         assert w["outcome"] in ("refuse", "error", "clarify"), (m, w["outcome"])
+
+
+@pytest.mark.xfail(strict=True, reason="UNRATIFIED — awaiting a ruling. The family-member clarify "
+                                       "menu is not filtered for lawfulness; the input-anchor menu "
+                                       "is (ruling 2026-08-20 §9). Same law, one menu.")
+def test_the_family_member_menu_offers_only_lawful_readings(srv):
+    """A clarify is a menu of readings you may choose between, so every item on it must serve.
+
+    §2.3 states this for the input-anchor menu and the Afternoon gate tests it there
+    (`test_beat_4` walks every offered pin and asserts it serves). The family-member menu makes the
+    same promise and does not keep it: `SELECT sum(level) AT {region}` offers `level.sum`, and
+    `SELECT level.sum AT {region}` refuses `blocked_reduction`, because `sum` is declared BLOCKED
+    along the calendar and reducing inventory to region collapses the day axis.
+
+    Invisible until 2026-09-02, when a fixture first declared a BLOCKED lineage at all."""
+    _outcome, _reason, nr = _w(srv, "SELECT sum(level) AS s AT {region}")
+    for token in [a["token"] for a in nr["alternatives"]]:
+        out, _r, _nr = _w(srv, f"SELECT {token} AS s AT {{region}}")
+        assert out in ("serve", "disclose"), f"the menu offers an unlawful reading: {token}"

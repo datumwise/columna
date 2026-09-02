@@ -391,16 +391,22 @@ One reading is reached two ways, and they are not the same situation:
 The four branches, each with an example the gate checks:
 
 ```
-FROM finance_manifold SELECT level.sum AT {store}                   -- refuse: blocked_reduction
+FROM finance_manifold SELECT sum(revenue) AT {store}                 -- refuse: input_anchor_unavailable
 FROM finance_manifold SELECT max(category_rank) AS rank AT {product} -- disclose: input_anchor
-FROM finance_manifold SELECT sum(revenue) AT {customer}             -- serve
-FROM finance_manifold SELECT max(revenue) AT {customer}             -- clarify: input_anchor_ambiguous
+FROM finance_manifold SELECT sum(revenue) AT {customer}              -- serve
+FROM finance_manifold SELECT max(revenue) AT {customer}              -- clarify: input_anchor_ambiguous
 ```
 
-Reading down: `sum` is declared `BLOCKED` along the calendar for `level`, so no lawful reading
-survives and there is nothing to choose between. `category_rank` reaches `{product}` at exactly one
-grain, so that grain is defaulted to and disclosed. `sum(revenue)`'s lawful grains all mean the same
-thing, so it serves clean. `max(revenue)`'s do not, so the framework asks.
+Reading down: no grain both reaches `{store}` and admits the reduction — every candidate was
+adjudicated and every one failed — so there is nothing to choose between. `category_rank` reaches
+`{product}` at exactly one grain, so that grain is defaulted to and disclosed. `sum(revenue)`'s
+lawful grains all mean the same thing, so it serves clean. `max(revenue)`'s do not, so the framework
+asks.
+
+**Zero readings is not the same as a blocked lineage.** `input_anchor_unavailable` says the
+candidates were adjudicated and none survived. `blocked_reduction` (§5.3) says the governed law
+prohibits this reduction along a lineage, however it is pinned. Both refuse; they send the reader to
+fix different things, so they are different reasons.
 
 Clarify carries the shipped reason **`input_anchor_ambiguous`**, names the lawful candidates as
 substitutable alternatives, and is raised once per contested dimension (OF-1). An unlawful candidate
@@ -950,6 +956,20 @@ create a new operator permission.* The scope is per operator × lineage, with no
 type: `sum` of a stock across *stores*, and `mean`/`min`/`max`/`count` of a stock across *time*,
 remain lawful, because the author barred `sum` along `calendar` and barred nothing else.
 
+`level` is a stock on `store * day` whose author declared `sum BLOCKED { calendar }`. Both spellings
+refuse, and the reducers the author did not bar still serve:
+
+```
+FROM finance_manifold SELECT level.sum AT {store}                        -- refuse: blocked_reduction
+FROM finance_manifold SELECT sum(level.last @ {store, day}) AT {store}   -- refuse: blocked_reduction
+FROM finance_manifold SELECT level.max AT {store}                        -- serve
+FROM finance_manifold SELECT level.last AT {store}                       -- serve
+```
+
+The second is the one worth pausing on: nothing in it names `sum` on `level`. The reader wrote a
+lawful `last`, and the inline `sum` above it *generates* the reduction the declaration bars. The
+prohibition follows the operation, not the spelling.
+
 **A crossing is decided at the planner, and no route-around dissolves it.** The B-anchor and the
 path's eliminated families are knowable from the declaration, before any data is touched, so the
 refusal is static and costs zero backend fetches. Recomputing from detail performs the same
@@ -960,8 +980,9 @@ A B-anchor crossing is a **structural prohibition**, not a soundness finding and
 ### 5.4 Family selection
 
 When a reference names a reducer other than the default, that reducer must be in the column's family
-set. Calling one the family set does not declare is refused, and the refusal lists the reducers that
-are available.
+set. Naming one the family set does not declare is not a refusal and not a clarification — the
+reference is not valid Frame-QL against this Manifold, so it goes to the query-error channel (§7.3),
+and the message lists the members that are available.
 
 When the default-family sugar applies (§3.1), the framework uses the column's declared default
 family's reducer.
@@ -1379,7 +1400,7 @@ is not yours to have, while these two tell you to fix your request, or to expect
 succeed on a build that can execute it. Collapsing them would let a build limitation read as an
 analytical narrowing.
 
-On the current wire both arrive as `error`, and the reason separates them:
+Both arrive on the same channel, `outcome = "error"`:
 
 ```
 FROM finance_manifold SELECT level.mode AS m AT {store}                  -- error: unknown
@@ -1387,21 +1408,16 @@ FROM finance_manifold SELECT sum(revenue) + level.last AS x AT {region}  -- erro
 FROM finance_manifold SELECT sum(revenue @ {product, date}) AS s AT {product} -- error: unsupported
 ```
 
-The first two are language-invalid: `level`'s family has no `mode` member, and the third combines
-measures from two universes, which no single expression may do (§2.5). The last is a realization
+The first two are language-invalid: `level`'s family has no `mode` member, and the second combines
+measures from two universes, which no single expression may do (§2.5). The third is a realization
 failure, and is the instructive one — it **plans clean** and fails in the engine, because a composite
 input grain whose levels are reached by separate hierarchies is admissible law that this build cannot
-assemble. Its detail says so: *"this frame could not be resolved in the engine; the ask is not
-supported in this build."* Nothing about the question was wrong.
+assemble. Nothing about the question was wrong.
 
-Two properties of the channel as it ships today, stated because a reader will meet them:
-
-- **`unknown` is a catch-all, not a category.** `cross_universe` and `type_error` carry their own
-  reason; every other language-invalid case reports `unknown` and puts the information in `detail`.
-  The detail is precise; the reason is not yet a thing to branch on.
-- **Some language-invalid cases arrive as a raised error rather than as a frame.** An unregistered
-  operator (`wibble(revenue)`) is the same jurisdiction reaching the caller by a different route.
-  One channel, two deliveries — a caller that reads only frames will not see all of it.
+**The channel holds two jurisdictions; do not read the reason as telling you which.** How completely
+a given build's `reason` separates language-invalidity from realization failure is a property of that
+build's interface, not of the language, and it is recorded in `frame_ql_build_status.md`. A caller
+that needs the distinction should not infer it from the reason spelling alone.
 
 ### 7.4 The withholding outcomes, enumerated
 
@@ -1409,10 +1425,11 @@ A query yields no result in exactly these cases:
 
 **Clarifications — the query cannot be executed as posed:**
 
-*(Four conditions the First Edition listed here are not clarifications and have moved to §7.3's
-error channel: an unregistered operator, a family member the column does not declare, a type the
-operator's signature does not accept, and a cross-universe expression. None of them is a question the
-reader can answer by choosing between readings, which is what a clarification is for.)*
+*Clarify is reserved for one condition: **more than one distinct lawful analytical reading**. Four
+entries the First Edition listed here do not meet it and have moved to §7.3's error channel — an
+unregistered operator, a family member the column does not declare, a type the operator's signature
+does not accept, and a cross-universe expression. None of them offers the reader a choice between
+readings, which is the only thing a clarification is for.*
 
 - **Missing output anchor.** No `AT` clause. What to clarify: the output anchor.
 - **Missing required alias.** A series with no defensible default name (composite reduction, map expression, bracket filter, conditional) and no `AS`. What to clarify: the name.

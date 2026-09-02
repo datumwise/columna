@@ -77,6 +77,11 @@ _V = "_v"
 _Travel = namedtuple("_Travel", "op frm to subject law written")
 
 
+#: Verdicts about a PIN'S SHAPE against the output rather than about the reduction's lawfulness
+#: (§2.3 Laws 1 and 2). Excluded from the unanimity test in `_no_lawful_pin_refusal` — see there.
+_PIN_SHAPE_REASONS = frozenset({"pin_coarser_than_output", "redundant_pin"})
+
+
 def _fmt_anchor(anchor) -> str:
     """Spell an anchor with the canonical product separator `*` (never a comma). Every surface that
     WRITES an anchor — the EXPLAIN header, error/clarify messages, traces — routes through here so no
@@ -1671,8 +1676,21 @@ class Planner:
         return None
 
     def _no_lawful_pin_refusal(self, reducer, inner, anchor, refused=None):
-        """|L| = 0 with the candidates disagreeing about WHY. REFUSE: an operation with no lawful
-        reading is not a choice the reader can be asked to make.
+        """|L| = 0. REFUSE: an operation with no lawful reading is not a choice the reader can be
+        asked to make.
+
+        TWO REASONS LEAVE HERE, AND THE SPLIT IS ANALYTICAL (ruled Huayin, 2026-09-02). This method
+        used to emit `blocked_reduction` on all four exits, so one reason spelling carried two
+        different conditions and a caller branching on it could be told a lineage was blocked when
+        none was:
+
+          * `blocked_reduction` — the prohibition is INVARIANT under the pin. Every candidate earned
+            the same blocked-lineage verdict, so naming a pin rescues nothing: the governed law does
+            not possess the operation at any grain. This is the canonical case the Manual teaches.
+          * `input_anchor_unavailable` — the pins were adjudicated and none survived, for reasons
+            that DISAGREE (out of universe, non-functional transport, coarser-than-output), or no
+            declared level both reaches the anchor and admits the reduction. Nothing was blocked;
+            there was nowhere to stand. §2.3's |R| = 0 branch, sibling to `input_anchor_ambiguous`.
 
         THE DETAIL REPORTS THE VERDICTS; IT DOES NOT ASSERT A CAUSE (P1-13). This message used to
         state that every candidate "would reduce across a lineage the governed law blocks for it" —
@@ -1687,7 +1705,31 @@ class Planner:
         third beat — is exactly the multi-level case, so leaving it terse would strip the remedy from
         the very ask the correction exists for."""
         expr = ast.unparse(inner)
-        if refused and {r.reason for _L, r in refused} == {"blocked_reduction"}:
+        # WHICH VERDICTS GET A VOTE ON THE REASON (ruled Huayin, 2026-09-02). `pin_coarser_than_output`
+        # and `redundant_pin` are verdicts about the PIN'S SHAPE against this output — §2.3's Laws 1
+        # and 2 — not about whether the reduction is lawful. A candidate excluded by one of them never
+        # reached the lawfulness question, so it cannot be evidence that the candidates "disagree"
+        # about lawfulness. Counting them did exactly that: the Afternoon's ratified §9 case
+        # (`sum(on_hand)` @ {store, month}) has day=blocked_reduction and quarter=region=coarser-
+        # than-output, and a naive unanimity test read that as disagreement and demoted a governed
+        # prohibition to "no anchor available". The prohibition is the finding; the incoherent pins
+        # are noise.
+        adjudicated = [(L, r) for L, r in (refused or []) if r.reason not in _PIN_SHAPE_REASONS]
+        if adjudicated and {r.reason for _L, r in adjudicated} == {"blocked_reduction"}:
+            if len(adjudicated) < len(refused):
+                # Honest about a mixed set: naming every candidate as blocked would be false.
+                shaped = ", ".join(L for L, r in refused if r.reason in _PIN_SHAPE_REASONS)
+                return Refusal("blocked_reduction",
+                    f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                    f"{_fmt_anchor(anchor)}: of the candidate grains, "
+                    f"{', '.join(L for L, _r in adjudicated)} would reduce by '{reducer}' across a "
+                    f"lineage the governed law blocks for it, and the rest ({shaped}) are not "
+                    f"admissible pins at this output. Generating the family does not create the "
+                    f"permission, so there is no pin that rescues this ask.",
+                    target=_fmt_anchor(anchor),
+                    alternatives=("use a reducer that IS applicable along the blocked lineage "
+                                  "(e.g. '.last' for a stock collapsed over time)",
+                                  "address at an anchor the reduction does not have to cross"))
             # THE RATIFIED §9 CASE, unchanged in wording and now exact in its candidate list: it is
             # read off the verdicts actually reached rather than re-derived by a second enumeration.
             return Refusal("blocked_reduction",
@@ -1702,7 +1744,7 @@ class Planner:
                               "address at an anchor the reduction does not have to cross"))
         if refused:
             verdicts = ", ".join(f"{L} ({r.reason})" for L, r in refused)
-            return Refusal("blocked_reduction",
+            return Refusal("input_anchor_unavailable",
                 f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
                 f"{_fmt_anchor(anchor)}: every candidate grain is excluded, and not all for the same "
                 f"reason — {verdicts}. Each verdict is the one the pin would earn if it were written "
@@ -1723,7 +1765,7 @@ class Planner:
                 alternatives=("use a reducer that IS applicable along the blocked lineage "
                               "(e.g. '.last' for a stock collapsed over time)",
                               "address at an anchor the reduction does not have to cross"))
-        return Refusal("blocked_reduction",
+        return Refusal("input_anchor_unavailable",
             f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
             f"{_fmt_anchor(anchor)} — no declared level both reaches this anchor and admits the "
             f"reduction, so the ask has no reading to serve.",

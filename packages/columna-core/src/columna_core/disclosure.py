@@ -367,6 +367,20 @@ REASON_OUTCOME = {
                                                         #   spelling with the CAVEAT code it replaces (one
                                                         #   concept, two channels — the caveat side is now
                                                         #   tombstoned in disclosure_wire.CATEGORY_TABLE).
+    "input_anchor_unavailable": (REFUSE, UNSUPPORTED, ANALYTICAL), # THE SEMANTIC SPLIT (ruled Huayin,
+                                                        #   2026-09-02). No lawful input-anchor reading
+                                                        #   survives adjudication: the candidate grains were
+                                                        #   enumerated and every one earned a verdict against
+                                                        #   it — out of universe, non-functional transport, a
+                                                        #   coarser-than-output pin — and they do NOT agree on
+                                                        #   why. This is the |R| = 0 branch of §2.3 and it is
+                                                        #   NOT a blocked lineage; it used to borrow
+                                                        #   `blocked_reduction`'s spelling, so one reason
+                                                        #   carried two analytical conditions and a reader
+                                                        #   branching on it was told a lineage was blocked
+                                                        #   when none was. Natural sibling of
+                                                        #   `input_anchor_ambiguous`: same contested dimension,
+                                                        #   zero surviving readings instead of several.
     "out_of_universe":          (REFUSE, UNSUPPORTED, ANALYTICAL), # addressed outside the contracted space
     "pin_coarser_than_output":  (REFUSE, UNSUPPORTED, ANALYTICAL), # WP-GRAIN-1 Law 1: a composite input anchor pins a
                                                         #   level COARSER than the output grain (output level
