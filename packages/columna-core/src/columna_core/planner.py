@@ -1632,7 +1632,13 @@ class Planner:
         #     while `max(level.max @ {day})` serves.
         #  3. With no faults, the pre-existing unanimity re-raise, unchanged.
         if faults and self._any_member_has_a_lawful_pin(reducer, inner, anchor):
-            raise faults[0][1]
+            # THE MENU IS ADJUDICATED AT THE ANCHOR THE READER ASKED AT (ruled Huayin, 2026-09-02).
+            # A fault is minted deep inside `_pin_verdicts`, where the anchor in scope is the
+            # CANDIDATE PIN being tried — so a member filtered there is filtered against a grain the
+            # reader never named, and `level.sum` survived because it IS lawful at {store*day} while
+            # the ask stands at {region}. Re-adjudicated here, against the output anchor, which is
+            # the grain every offered token would actually be read at.
+            raise self._reoffer_at_output_anchor(faults[0][1], inner, anchor)
         if len(reasons) == 1 and reasons != {"blocked_reduction"} and not faults:
             raise refused[0][1]
         raise self._no_lawful_pin_refusal(reducer, inner, anchor, refused)
@@ -1666,6 +1672,19 @@ class Planner:
             except Refusal:
                 continue
         return False
+
+    def _reoffer_at_output_anchor(self, fault, inner, anchor):
+        """Rebuild a `family_member_ambiguous` fault so its menu is lawful AT THE OUTPUT ANCHOR.
+
+        Any other fault is returned untouched: this narrows one menu on one stated ground, and is not
+        a general precedence rule."""
+        if getattr(fault, "reason", None) != "family_member_ambiguous":
+            return fault
+        meas = self._family_ambiguous_measure(inner)
+        if meas is None:
+            return fault
+        name, _members = meas
+        return self._family_member_clarify(name, self.m.measures[name], anchor=anchor)
 
     def _family_ambiguous_measure(self, inner):
         """`(measure_name, members)` when `inner` is a bare multi-member measure reference, else None."""
@@ -2093,7 +2112,38 @@ class Planner:
             if r is not None:
                 raise r
 
-    def _family_member_clarify(self, meas_name: str, meas, what: str = "") -> Refusal:
+    def _lawful_family_members(self, meas_name: str, meas, anchor) -> tuple:
+        """The family members that are LAWFUL READINGS at this output anchor, in declaration order,
+        plus the analytical refusal the excluded ones earned.
+
+        A CLARIFY MENU IS A MENU OF LAWFUL READINGS (ruled Huayin, 2026-09-02). Each member is
+        adjudicated as the reading it actually is — `meas_name.member` at this anchor, through
+        `_check_expression_law`, the same single law chokepoint the written form goes through. A
+        member is dropped because THAT READING is analytically unlawful, never for any other reason:
+        a candidate that fails for pin shape, transport, universe or anything else is KEPT, because
+        those verdicts are not statements about the member's lawfulness and suppressing on them
+        would narrow the menu on grounds the reader was never told about.
+
+        This is the discipline the input-anchor menu has had since the 2026-08-20 §9 ruling, applied
+        to the other menu. Until a fixture first declared a BLOCKED lineage (2026-09-02) the gap was
+        unobservable: `SELECT sum(level) AT {region}` offered `level.sum`, and taking that offer
+        refused `blocked_reduction`."""
+        lawful, unlawful = [], None
+        for m in meas.family:
+            probe = ast.Attribute(value=ast.Name(id=meas_name, ctx=ast.Load()), attr=m, ctx=ast.Load())
+            ast.fix_missing_locations(probe)
+            try:
+                self._check_expression_law(probe, tuple(anchor))
+            except Refusal as e:
+                if e.reason == "blocked_reduction":            # the reading itself is unlawful
+                    unlawful = e
+                    continue
+            except Exception:
+                pass                                            # not a lawfulness verdict — keep it
+            lawful.append(m)
+        return tuple(lawful), unlawful
+
+    def _family_member_clarify(self, meas_name: str, meas, what: str = "", anchor=()) -> Refusal:
         """Several lawful family members and no authorized default -> CLARIFY (v0.2 §12, P1-25).
 
         This was `Refusal("unknown", ...)`, which classifies ERROR — the vocabulary bucket. But the
@@ -2103,11 +2153,22 @@ class Planner:
         verdict was then counted as Stage-B evidence that a pin was unlawful.
 
         The members are offered as alternatives in declaration order and NOT ranked — §12 forbids a
-        realization fact, insertion order included, from selecting one."""
-        members = list(meas.family)
+        realization fact, insertion order included, from selecting one. They are also filtered for
+        lawfulness first: see `_lawful_family_members`. Where every member is unlawful the count of
+        readings is ZERO, so the ask refuses rather than opening a menu with nothing on it."""
+        members, unlawful = self._lawful_family_members(meas_name, meas, anchor)
+        if not members:
+            return unlawful if unlawful is not None else Refusal("blocked_reduction",
+                f"'{meas_name}' has no family member that is a lawful reading here.",
+                measure=meas_name)
+        withheld = [m for m in meas.family if m not in members]
+        note = (f" ({', '.join(meas_name + '.' + m for m in withheld)} "
+                f"{'is' if len(withheld) == 1 else 'are'} not offered: not a lawful reading here)"
+                if withheld else "")
         return Refusal("family_member_ambiguous",
-            f"'{meas_name}' has a family {members} and the ask selects no member{what} — each is a "
-            f"different lawful reduction, so there is no single reading to serve. Name the member.",
+            f"'{meas_name}' has a family {list(members)} and the ask selects no member{what} — each "
+            f"is a different lawful reduction, so there is no single reading to serve. Name the "
+            f"member.{note}",
             measure=meas_name, discriminator=AMBIGUOUS,
             alternatives=tuple(f"{meas_name}.{m}" for m in members))
 
@@ -2354,7 +2415,7 @@ class Planner:
                                       f"use a measure bound to '{population}'"))
             if member is None:
                 if len(meas.family) != 1:
-                    raise self._family_member_clarify(meas_name, meas)
+                    raise self._family_member_clarify(meas_name, meas, anchor=anchor)
                 member = next(iter(meas.family))
             elif self._resolve_member(meas, member) in meas.family:
                 member = self._resolve_member(meas, member)
@@ -2463,7 +2524,7 @@ class Planner:
             if member is None:
                 member = next(iter(meas.family)) if len(meas.family) == 1 else None
                 if member is None:
-                    raise self._family_member_clarify(m_name, meas, " to scan")
+                    raise self._family_member_clarify(m_name, meas, " to scan", anchor=anchor)
             out_dtype = self.m.output_dtype(scan_op, self.m.output_dtype(member, meas.logical_type))
             routes = {}                                        # P0.5a: plan, then execute the plan
             for T in anchor:
@@ -2488,7 +2549,7 @@ class Planner:
             meas = self.m.measures[meas_name]
             if member is None:
                 if len(meas.family) != 1:
-                    raise self._family_member_clarify(meas_name, meas)
+                    raise self._family_member_clarify(meas_name, meas, anchor=anchor)
                 member = next(iter(meas.family))
             elif self._resolve_member(meas, member) in meas.family:
                 member = self._resolve_member(meas, member)

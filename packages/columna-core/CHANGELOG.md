@@ -7,6 +7,52 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
+## 0.19.0 — one reason, one condition; and a menu of lawful readings
+
+**Wire contract stays `"4"`.** No field is added, removed or moved. The wire's REASON VOCABULARY
+grows by one, which is why this is a minor and not a patch: `input_anchor_unavailable` is new public
+surface a caller can receive and branch on, and vocabulary growth is a semantic change even when the
+envelope around it is untouched (ruled Huayin, 2026-09-02 — 0.18.2 would understate it).
+
+### Added
+
+**`input_anchor_unavailable` (REFUSE / UNSUPPORTED / ANALYTICAL).** No lawful input-anchor reading
+survives adjudication: the candidate grains were enumerated and every one earned a verdict against
+it. Sibling of `input_anchor_ambiguous` — same contested dimension, zero surviving readings rather
+than several.
+
+### Changed
+
+**`blocked_reduction` was carrying two analytical conditions and now carries one.** It named both "a
+governed BLOCKED lineage prohibits this reduction" and "no candidate pin survived", so a caller
+branching on it could be told a lineage was blocked when none was. It now names only the first; the
+second is `input_anchor_unavailable`.
+
+The split is not a unanimity test over every verdict. `pin_coarser_than_output` and `redundant_pin`
+are verdicts about a PIN'S SHAPE against the output, not about the reduction's lawfulness, so a
+candidate excluded by one never reached the lawfulness question and cannot be evidence that the
+candidates disagree about it. Counting them demoted the ratified §9 case (`sum(on_hand)` at
+{store, month}, whose verdicts are day=blocked / quarter=region=coarser-than-output) from a governed
+prohibition to "no anchor available". They are excluded from the vote; where the set is genuinely
+mixed the message says so instead of calling every candidate blocked.
+
+### Fixed
+
+**A Clarify menu was offering a reading that refuses.** `SELECT sum(level) AT {region}` offered
+`level.sum` while `SELECT level.sum AT {region}` refused `blocked_reduction`. A Clarify menu is a
+menu of lawful readings, not of syntactically available family members — the discipline the
+input-anchor menu has had since the 2026-08-20 §9 ruling, now applied to the family-member menu.
+
+Each member is adjudicated as the reading it actually is, at the anchor **the reader asked at**,
+through the same single law chokepoint the written form goes through. Two properties are deliberate:
+a member is dropped only because THAT READING is analytically unlawful — never for pin shape,
+transport, universe or anything else, since those are not statements about the member's lawfulness —
+and a member barred at one anchor is still offered where it is lawful (`max(level.sum @ {store,day})`
+at {store} serves, so `level.sum` stays on that menu). Where no member is lawful the reading count is
+zero and the ask refuses rather than opening an empty menu.
+
+Unobservable until 2026-09-02, when a fixture first declared a `BLOCKED` lineage at all.
+
 ## 0.18.1 — a column serves the population it names
 
 **Wire contract stays `"4"`.** No field is added, removed or moved. Two columns that were serving a

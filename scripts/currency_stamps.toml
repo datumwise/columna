@@ -51,6 +51,15 @@ file = "docs/frame_ql_build_status.md"
 claim = "current packages — documents it as implemented"
 template = "documents Frame-QL **as implemented** (columna-core {core})."
 
+# ENROLLED 2026-09-02: the query-error reason-fidelity note, added when §7.3 moved the two
+# build/interface facts out of canonical prose. It names the build it is a fact ABOUT, so it is a
+# current-state claim like the six above it — and an unenrolled one would have gone stale at the very
+# next bump with nothing to catch it, which is the failure this manifest exists for.
+[[stamp]]
+file = "docs/frame_ql_build_status.md"
+claim = "query-error reason fidelity — the build it measures"
+template = "about columna-core {core}, not language law"
+
 [[stamp]]
 file = "docs/frame_ql_build_status.md"
 claim = "how the examples are checked — the parser"

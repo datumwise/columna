@@ -1,4 +1,4 @@
-# columna-core (0.18.1)
+# columna-core (0.19.0)
 
 *One runtime package of the Columna Core architecture — not the complete Core system.*
 

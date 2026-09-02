@@ -128,7 +128,23 @@ async def test_generated_blocked_reduction_refuses_on_the_wire(mcp_session):
     col = w["columns"][0]
     assert col["status"] == "refuse" and "values" not in col and col["disclosures"] == []
     nr = col["no_result"]
-    assert (nr["kind"], nr["discriminator"], nr["reason"]) == ("refuse", "unsupported", "blocked_reduction")
+    # REASON MOVED 2026-09-02 (Huayin — the `blocked_reduction` split); THE SUBJECT DID NOT.
+    # `blocked_reduction` now names only the condition it describes: a governed BLOCKED lineage
+    # prohibits this reduction, however it is pinned. That does not hold here. `day` is blocked, but
+    # the other seven candidates are excluded for `uncertified_edge` and `out_of_universe` — real
+    # adjudications, not blocked lineages. Naming the whole set `blocked_reduction` asserted ONE
+    # cause for a MIXED set, which is what P1-13 corrected in the detail and left standing in the
+    # reason. `input_anchor_unavailable` finishes that repair. (The DECLARED spelling above, whose
+    # prohibition does hold under every pin, still reports `blocked_reduction` — that is the split.)
+    #
+    # GENERATED-FAMILY LAW §2 IS UNTOUCHED, AND IS STILL PINNED BY THIS TEST. Its claim is that the
+    # refusal does not depend on the SPELLING: `sum(level.last)` never names `level.sum` and is
+    # refused anyway, because generating a family does not create a permission the declaration
+    # withholds. That is the `refuse` above and the `day (blocked_reduction)` verdict below — both
+    # still asserted. What changed is which field carries the blocked-lineage fact, not whether the
+    # reader is told it.
+    assert (nr["kind"], nr["discriminator"]) == ("refuse", "unsupported")
+    assert nr["reason"] == "input_anchor_unavailable"
     # The detail REPORTS each candidate's verdict rather than asserting one cause (P1-13), so the
     # generated sum's own exclusion is visible by name instead of being asserted of the whole set.
     assert "day (blocked_reduction)" in nr["detail"]

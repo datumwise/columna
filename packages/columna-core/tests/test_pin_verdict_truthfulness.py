@@ -75,17 +75,23 @@ def test_several_lawful_members_clarify_and_offer_every_one_unranked(srv):
     assert (outcome, reason) == (CLARIFY, "family_member_ambiguous")
     assert jurisdiction_for(reason) == ANALYTICAL
     tokens = [a["token"] for a in nr["alternatives"]]
-    # `level.sum` JOINS THE MENU AND SHOULD NOT BE ON IT — see the xfail below. The list is asserted
-    # as OBSERVED, not as ratified: `sum` is declared BLOCKED along the calendar, so `level.sum` at
-    # {region} refuses, and offering it makes this clarify a menu with an unlawful item on it. The
-    # membership is pinned here so the defect cannot change shape unnoticed while it awaits a ruling.
-    assert tokens == ["level.last", "level.sum", "level.max", "level.min", "level.count"], tokens
+    # `level.sum` IS DECLARED IN THE FAMILY AND IS NOT ON THIS MENU. `sum` is BLOCKED along the
+    # calendar, and reducing inventory to {region} collapses the day axis, so `level.sum` is not a
+    # lawful reading HERE — and a Clarify menu offers lawful readings, not declared members
+    # (ruled Huayin, 2026-09-02). It is still offered where it IS lawful: see
+    # `test_the_lawful_member_is_still_offered_where_it_is_lawful`.
+    assert tokens == ["level.last", "level.max", "level.min", "level.count"], tokens
 
 
 def test_every_offered_member_is_a_real_member(srv):
+    """No invented vocabulary on the menu. SUBSET, not equality, since 2026-09-02: the menu offers
+    the LAWFUL readings, which is a subset of the declared family whenever some member is barred
+    here. Equality would re-assert the very thing the lawfulness ruling removed."""
     _o, _r, nr = _w(srv, "SELECT sum(level) AS s AT {region}")
     members = set(srv.planner.m.measures["level"].family)
-    assert {a["token"].split(".", 1)[1] for a in nr["alternatives"]} == members
+    offered = {a["token"].split(".", 1)[1] for a in nr["alternatives"]}
+    assert offered <= members, offered - members
+    assert offered, "a clarify must offer something"
 
 
 # ── the ratified precedence survives: an invariant prohibition still outranks the ambiguity ───────
@@ -108,20 +114,34 @@ def test_the_two_cases_differ_only_in_whether_naming_a_member_would_help(srv, af
         assert w["outcome"] in ("refuse", "error", "clarify"), (m, w["outcome"])
 
 
-@pytest.mark.xfail(strict=True, reason="UNRATIFIED — awaiting a ruling. The family-member clarify "
-                                       "menu is not filtered for lawfulness; the input-anchor menu "
-                                       "is (ruling 2026-08-20 §9). Same law, one menu.")
 def test_the_family_member_menu_offers_only_lawful_readings(srv):
     """A clarify is a menu of readings you may choose between, so every item on it must serve.
 
-    §2.3 states this for the input-anchor menu and the Afternoon gate tests it there
-    (`test_beat_4` walks every offered pin and asserts it serves). The family-member menu makes the
-    same promise and does not keep it: `SELECT sum(level) AT {region}` offers `level.sum`, and
-    `SELECT level.sum AT {region}` refuses `blocked_reduction`, because `sum` is declared BLOCKED
-    along the calendar and reducing inventory to region collapses the day axis.
+    §2.3 states this for the input-anchor menu and the Afternoon gate tests it there (`test_beat_4`
+    walks every offered pin and asserts it serves). This is the same law on the other menu, ruled
+    2026-09-02: `SELECT sum(level) AT {region}` must not offer `level.sum`, because `SELECT
+    level.sum AT {region}` refuses — `sum` is declared BLOCKED along the calendar and reducing
+    inventory to region collapses the day axis.
 
     Invisible until 2026-09-02, when a fixture first declared a BLOCKED lineage at all."""
     _outcome, _reason, nr = _w(srv, "SELECT sum(level) AS s AT {region}")
-    for token in [a["token"] for a in nr["alternatives"]]:
+    offered = [a["token"] for a in nr["alternatives"]]
+    assert offered, "a clarify must offer something"
+    for token in offered:
         out, _r, _nr = _w(srv, f"SELECT {token} AS s AT {{region}}")
+        assert out in ("serve", "disclose"), f"the menu offers an unlawful reading: {token}"
+
+
+def test_the_lawful_member_is_still_offered_where_it_is_lawful(srv):
+    """THE OTHER HALF, and the one that keeps the repair honest. A member is withheld because THAT
+    READING is unlawful — never because the member is unlawful somewhere else.
+
+    `level.sum` is off the {region} menu above. At a pin where the reduction does not cross the
+    blocked lineage it is a lawful reading, it serves, and it must still be offered: filtering on
+    anything coarser would narrow the menu on grounds the reader was never told about."""
+    _outcome, _reason, nr = _w(srv, "SELECT max(level @ {store, day}) AS s AT {store}")
+    offered = [a["token"] for a in nr["alternatives"]]
+    assert "level.sum" in offered, offered
+    for token in offered:
+        out, _r, _nr = _w(srv, f"SELECT max({token} @ {{store, day}}) AS s AT {{store}}")
         assert out in ("serve", "disclose"), f"the menu offers an unlawful reading: {token}"
