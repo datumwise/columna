@@ -163,7 +163,23 @@ REGISTRY: dict = {
 # Frame-QL spells the inline average `avg`; the canonical governed operator is `mean`. This is an
 # ALIAS, not a second operator: `avg` and `mean` name the SAME law subject, so a BLOCKED/FERTILE
 # declaration written against `mean` governs both spellings and there is exactly one thing to declare.
-ALIASES: dict = {"avg": "mean"}
+#
+# `approx_distinct` -> `distinct` (ruled Huayin, 2026-09-01). ONE CAPABILITY, TWO ROLES:
+#   Frame-QL surface spelling : approx_distinct   — the honest name. The answer IS approximate: an
+#                               HLL-backed estimate carrying a relative-standard-error disclosure.
+#   Core capability identity  : distinct          — the implementation/legacy name, composed by the
+#                               engine from hll_count -> hll_merge -> hll_estimate.
+# The Manual keeps `approx_distinct` and is NOT renamed to `distinct`: renaming would make an
+# approximate result sound exact to satisfy a registry spelling, which is the wrong direction of
+# repair. Declared here because ALIASES is where "one law subject, several spellings" is already
+# said — so a BLOCKED/FERTILE declaration written against either name governs both.
+#
+# NOT YET A RESOLUTION PATH. `canonical()` is not wired into member/operator lookup (the live
+# call-position table is `Planner._INLINE_REDUCERS`), so writing `visitors.approx_distinct` in a
+# query does not resolve today; the shipped spelling is `visitors.distinct`. This declares the
+# IDENTITY, which is what the ruling asked for; making the canonical surface spelling resolve is a
+# separate change and is reported, not smuggled in here.
+ALIASES: dict = {"avg": "mean", "approx_distinct": "distinct"}
 
 
 def canonical(name: str) -> str:

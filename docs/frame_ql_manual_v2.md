@@ -504,26 +504,62 @@ Some specific cases where the sugar does *not* apply, and the canonical form is 
 
 - **Ambiguous paths.** When a column's root can reach the output anchor by multiple paths (because the dimension lattice has independent hierarchies the path goes through), the framework cannot infer which path is meant. The writer must specify the input anchor explicitly via the canonical form.
 
-### 3.2 Sugar: omitting `@ root(col)` for direct fertile reduction
+### 3.2 Sugar: omitting the input anchor when the lawful readings coincide
 
-A specific common case deserves separate notice because it is the most-used form. When a column reference appears as an input to a fertile reducer, *and* the column's root is the deepest grain involved in the reduction, the input anchor `@ <root>` may be omitted:
+A specific common case deserves separate notice because it is the most-used form: a reduction written
+with no input anchor at all.
+
+**The rule is an equivalence law, not a hidden root.** Omitting `@ a` does not mean "the framework
+silently supplies the column's root". It means the framework enumerates the *lawful* input anchors and
+then asks whether they are **distinct analytical readings**. Candidate anchors that are syntactically
+distinct but provably equivalent under governed analytical law do not constitute multiple readings:
+
+Take the lawful candidate anchors, quotient them by governed analytical equivalence, and count the
+resulting *readings* — not the spellings. **Zero readings → Refuse. One reading → proceed. More than
+one → Clarify.**
+
+The equivalence that licenses the collapse is **re-entrancy**: finalizing at an intermediate lawful
+partition and then applying the capability again must denote the same result as continuing sufficient
+state directly. For a capability κ with finalization ρ, re-entry η and combine ⊕, over the governed
+reachable state:
+
+> ρ( ⊕ᵢ η(ρ(sᵢ)) ) = ρ( ⊕ᵢ sᵢ )
+
+This is strictly stronger than monoidality, and the difference is the point. `sum` satisfies it — its
+finalization and re-entry are both the identity, so an intermediate partition is invisible to the
+result. `count` does not: its state combines additively, but *counting intermediate displayed counts*
+is not the same operation as combining count state. `mean` and approximate-distinct do not, for the
+same reason in different clothing — a mean of means is not a mean, and an estimate re-entered as a
+sketch is not the sketch it came from.
+
+Where the readings do collapse, **no material input-anchor disclosure is owed**: realization used one
+representative of one meaning, and no analytical choice was made.
+
+Below, the sugared and canonical spellings of the most common form:
 
 ```
-FROM finance_manifold SELECT sum(revenue) AT {customer}
-FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {customer}
+FROM finance_manifold SELECT sum(revenue) AT {customer}                  -- clarify: input_anchor_ambiguous
+FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {customer}  -- serve
 ```
 
-> **▸ OPEN — this equivalence is not currently true of the build (2026-09-01).** The canonical form
-> serves; the sugared form **clarifies** with `input_anchor_ambiguous`, offering six lawful input
-> anchors. Two things are unresolved, and they are separate. First, this section's premise:
-> `root(col)` is not a language object the shipped Core has — a measure declares name, universe,
-> family, logical type, blocked lineages and fill rule, and no root — so "the column's root" is not a
-> fact the planner can read. Second, whether those six lawful pins are *distinct analytical readings*
-> at all. Under the ruling of 2026-09-01 the 0/1/many rule counts readings, not spellings, and
-> candidates provably equivalent under governed law collapse to one; but that equivalence must be
-> established **ex ante from declared law**, and the declaration it needs — an operator's lift and
-> projection — is not currently projected to the planner. The gate is red here on purpose until that
-> is ruled.
+> **▸ Build status (2026-09-01): the law above is canonical; this build cannot yet apply it.** The
+> canonical spelling serves. The sugared spelling **clarifies** with `input_anchor_ambiguous`,
+> offering its six lawful anchors — and that is the correct conservative behaviour, not a defect,
+> because re-entrancy must be established **ex ante from declared law** and shipped Core has no
+> declaration that establishes it. The registry declares each reducer's witness and combine; it does
+> not declare its finalization ρ or its re-entry η, and those are exactly what the law quantifies
+> over. Nothing currently in the registry may stand in for them: `is_monoid` is true of `count`,
+> `linear` is a different question and excludes `max`/`min`, and output dtype is a type-signature
+> coincidence. Observed agreement of today's numbers is not admissible evidence either.
+>
+> So the framework declines to collapse readings it cannot prove coincide. When the governed
+> declaration lands, `sum(revenue) AT {customer}` will serve — with no input-anchor disclosure, since
+> there was no analytical choice — and this note retires.
+>
+> *(The prior edition stated this rule as "omitting `@ root(col)`". That is retired: `root(col)` is
+> not a language object the shipped Core has — a measure declares name, universe, family, logical
+> type, blocked lineages and fill rule, and no root — so the old rule rested on a concept nothing
+> could read. The equivalence law above replaces it and needs no hidden root.)*
 
 This is technically a corollary of the path-determinism case of Sugar 3.1, but it is so common that it is worth stating directly. When the writer omits `@ a` and the framework infers it as the column's root, that inference is silent and automatic, and the resulting form is what almost all simple queries look like.
 
@@ -1248,7 +1284,7 @@ The framework places no constraints on what surfaces do, as long as what they ha
 | `variance`, `stddev` | mule | computed from count, sum, sum-of-squares. **[ROADMAP — not in the shipped registry]** |
 | `median` (exact) | mule | no fertile carrier; recomputed from base at the output grain, not re-aggregable past it |
 | `mode` | mule | no fertile carrier; recomputed from base at the output grain, not re-aggregable past it |
-| `approx_distinct` | fertile via HLL | HLL sketch is fertile; estimate at presentation. Ships (`HLLSketch(p)`) |
+| `approx_distinct` | fertile via HLL | HLL sketch is fertile; estimate at presentation. **Ships** (`HLLSketch(p)`), and the answer is an estimate carrying its relative-standard-error. `approx_distinct` is the canonical Frame-QL **surface spelling**; current Core's capability identity is `distinct` (composed from `hll_count` → `hll_merge` → `hll_estimate`), and the correspondence is declared in `operators.ALIASES`. One capability, two roles — the shipped member spelling is `<measure>.distinct`. |
 | `approx_quantile` | fertile via t-digest | t-digest sketch is fertile. **[ROADMAP — no t-digest ships]** |
 | `approx_frequency` | fertile via count-min | count-min sketch is fertile. **[ROADMAP — no count-min ships]** |
 | `last` | ordered, fertile-along-its-order | requires an order; path-invariant along the order |

@@ -1483,48 +1483,53 @@ class Planner:
         return sorted(L for L in levels
                       if L != target and self.m.find_path({L}, target) is not None)
 
-    def _regroup_invariant(self, reducer, inner) -> bool:
-        """Is `reducer` applied to `inner` REGROUP-INVARIANT — does applying it to its own delivered
-        intermediate values, over ANY lawful partition of its input, denote the same analytical object
-        as applying it to the base? This is the predicate the §3.2 quotient below needs.
+    def _re_entrant(self, reducer, inner) -> bool:
+        """Is this capability RE-ENTRANT over the governed reachable state — the property that lets
+        several lawful input anchors collapse to one analytical reading (ruled Huayin, 2026-09-01)?
 
-        IT CANNOT BE ESTABLISHED FROM DECLARED LAW TODAY, SO IT RETURNS FALSE (fail-closed).
+            rho( (+)_i eta(rho(s_i)) )  ==  rho( (+)_i s_i )
 
-        THE SHAPE OF THE PROBLEM. `op(m @ {L}) AT {A}` is a COMPOSITION, and the two halves are not
-        the same operator: the inner delivery resolves `m` at grain `L ∪ A` using the MEASURE's family
-        member, and the outer `op` then reduces along `L` to `A`. Invariance across `L` therefore needs
-        the outer surface application to agree with the inner delivery — which is a fact about the
-        operator's LIFT and PROJECTION, not about its witness.
+        In words: finalizing at an intermediate lawful partition and then applying the capability
+        again must denote the same result as continuing sufficient state directly. `rho` is
+        finalization, `eta` re-entry, `(+)` the governed combine.
 
-        WHY EVERY AVAILABLE DECLARATION IS A PROXY, AND WHY A PROXY IS NOT ALLOWED HERE (ruled Huayin,
-        2026-09-01: "if current Core cannot prove the property without inventing law, stop and report
-        rather than using numerical agreement as evidence"):
+        IT CANNOT BE ESTABLISHED FROM DECLARED LAW TODAY, SO IT RETURNS FALSE (fail-closed), AND THE
+        FRAMEWORK KEEPS CLARIFYING. That is the conservative answer, not a defect: a reading may only
+        be collapsed on proof, and there is no proof to read.
 
-          * `is_monoid` — REJECTED BY THE RULING, and rightly. It declares that the WITNESS combines
-            associatively (`operators.py` docstring: sum and count share witness=VALUE, combine=`+`).
-            `count` is the counterexample the ruling names: its state combines additively, while
-            counting intermediate DISPLAYED counts is not the same operation as combining count state.
-            Monoid-ness is sufficient-state law; it does not reach surface self-application.
-          * `linear` — the WP-B symbolic gate for derived formulas (distributes over addition). True
-            for `sum` only, so it would exclude `max`/`min`, which DO have the property when they are
-            the delivering family member. Under-approximates, and it answers a different question.
-          * `witness == VALUE and out_rule == "same"` — sorts today's registry correctly, and that is
-            exactly why it is dangerous: it is a TYPE-SIGNATURE coincidence, not an algebraic
-            declaration. It would silently mis-sort the first operator whose dtypes happen to line up
-            while its lift is not identity. That is inventing law.
+        WHY THE REGISTRY CANNOT ANSWER IT. The law quantifies over `rho` and `eta`. The registry
+        declares each reducer's WITNESS and its COMBINE — sufficient-state law — and neither
+        finalization nor re-entry is a declared fact. The distinction is invisible at that level: in
+        `operators.py`'s own table `sum` and `count` share witness=VALUE and combine=`+`, and they
+        differ only in re-entry. `sum` re-enters a displayed value as itself; `count` re-enters it as
+        one item (`parser.py`: `if agg == "count": pre_expr = "1"`), so counting displayed counts is
+        not combining count state. `mean` finalizes to a quotient that cannot be re-entered as
+        (sum, n); the approximate-distinct family finalizes through a non-identity projection, and an
+        estimate re-entered is not the state it came from.
 
-        WHAT IS ACTUALLY MISSING is the lift and the projection. `Operator` declares `witness` and
-        `combine` but no `lift`; `MeasureShape.family` is documented as "member NAMES only — no
-        order_by, home_table, pre_expr", and `pre_expr` IS the lift. `count` = fold(+) over a unit
-        lift; the approximate-distinct family carries a non-VALUE witness and a non-identity
-        projection; `last`/`first` carry `(value, order_key)`. None of that reaches the planner, by
-        design — and the registry is the right place for it to be declared, not here.
+        NOTHING PRESENT MAY STAND IN (each rejected by the ruling, and each wrong on its own):
+          * `is_monoid`  — TRUE of `count`. Monoidality is about the witness combining, not about
+                           surface re-application. This is the ruling's own counterexample.
+          * `linear`     — the WP-B symbolic gate for derived formulas; a different question, and it
+                           would exclude `max`/`min`, which ARE re-entrant.
+          * `witness` / `out_rule` — sorts today's registry correctly by coincidence of type
+                           signatures. The first operator whose dtypes line up while its re-entry is
+                           not the identity would be silently mis-sorted. That is inventing law.
+          * observed equality of current outputs — expressly inadmissible. Seven spellings agreeing
+                           on today's fixture is a fact about the fixture.
 
-        THE PRECEDENT FOR STOPPING HERE is `DerivedShape` (ruling 2026-08-20 §1): a correction once
-        had the planner read `FERTILE {..}` as travel permission, "running it proved FERTILE cannot
-        carry that meaning", and the shape was left alone rather than "carry half a semantics". Same
-        discipline. One new declared fact per operator would settle this — see the report; until it is
-        ruled in, no pins are provably equivalent and the ordinary ambiguity rule applies unchanged."""
+        THE REPRESENTATION THIS NEEDS — one governed declaration, and the cleanest place is the
+        registry, because the property is VOCABULARY (a law about the capability) and not MECHANICS
+        (how the engine finalizes). Declaring `rho`/`eta` themselves would drag mechanics into the
+        registry and break the split the architecture keeps — there is a standing test asserting this
+        module names no approximate-carrier internals at all, precisely to keep it. So: a boolean
+        asserting the law, defaulting False, fail-closed, set only where the law is proven. `sum`
+        true; `max`/`min` true; `count`, `mean`, the approximate-distinct family, `last`/`first`,
+        and every holistic reducer false.
+
+        PRECEDENT FOR STOPPING SHORT OF IT: `DerivedShape` (ruling 2026-08-20 sec.1), where reading
+        `FERTILE {..}` as travel permission was tried, run, proved wrong, and the shape was left
+        alone rather than "carry half a semantics"."""
         return False
 
     def _distinct_readings(self, reducer, inner, anchor, lawful):
@@ -1538,10 +1543,10 @@ class Planner:
         rather than lawful spellings. Six realizations of one meaning is not a choice the asker can be
         asked to make; six meanings is. Establishing this ex ante from declared law — never by
         observing that candidates agree on today's data — is the whole point, which is why the
-        predicate is `_regroup_invariant` and not a value comparison."""
+        predicate is `_re_entrant` and not a value comparison."""
         if not lawful:
             return []
-        if self._regroup_invariant(reducer, inner):
+        if self._re_entrant(reducer, inner):
             return [list(lawful)]                              # one denotation, several realizations
         return [[L] for L in lawful]                           # each spelling is its own reading
 
