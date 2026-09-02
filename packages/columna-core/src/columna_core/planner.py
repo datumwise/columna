@@ -1747,13 +1747,43 @@ class Planner:
         if len(node.args) != 1:
             raise Refusal("unknown", f"scan '{name}' takes one input expression and keyword params (n=, by=)")
         n, by = 1, None
+        # A KNOWN PARAMETER IN A BAD VALUE FORM IS NOT AN UNKNOWN PARAMETER, AND `window` IS NOT
+        # UNKNOWN AT ALL. Both spellings used to land on one message — "unknown parameter 'by'
+        # (accepts n=, by=)", which denies and admits the same parameter in a single sentence, and
+        # "unknown parameter 'window'" for a parameter the registry declares (`needs_window`),
+        # Appendix A documents, and the engine's own roadmap error tells the reader to supply. Same
+        # class as P1-13/P1-14: a refusal that names the wrong thing sends the reader to fix the
+        # wrong thing.
         for kw in node.keywords:
-            if kw.arg == "n" and isinstance(kw.value, ast.Constant):
+            if kw.arg == "n":
+                if not isinstance(kw.value, ast.Constant) or isinstance(kw.value.value, bool) \
+                        or not isinstance(kw.value.value, int):
+                    raise Refusal("unknown",
+                        f"scan '{name}': n= takes an integer offset, not "
+                        f"'{ast.unparse(kw.value)}'")
                 n = int(kw.value.value)
-            elif kw.arg == "by" and isinstance(kw.value, ast.Constant):
+            elif kw.arg == "by":
+                if not isinstance(kw.value, ast.Constant) or not isinstance(kw.value.value, str):
+                    raise Refusal("unknown",
+                        f"scan '{name}': by= names the order axis as a quoted level, e.g. "
+                        f"by=\"{ast.unparse(kw.value)}\" — not a bare '{ast.unparse(kw.value)}'")
                 by = str(kw.value.value)
+            elif kw.arg == "window":
+                # DECLARED, NOT IMPLEMENTED. Every operator carrying needs_window is in_core=False,
+                # so supplying the parameter reaches the same governed roadmap answer as omitting it
+                # — which is the point: the two spellings must not disagree about what is true.
+                if not sig.needs_window:
+                    raise Refusal("unknown",
+                        f"scan '{name}' is not a windowed scan and takes no window= "
+                        f"(windowed scans are {sorted(o for o, s in self.m.operators.items() if s.needs_window)})")
+                raise Refusal("unsupported",
+                    f"scan '{name}' is a windowed scan; windowed scans are registered as contract "
+                    f"but not implemented in this build [ROADMAP]",
+                    alternatives=("use an order-only scan (cumsum/cummax/cummin/lag/lead/pct_change)",
+                                  "windowed scans (rolling_*) [ROADMAP]"))
             else:
-                raise Refusal("unknown", f"scan '{name}': unknown parameter '{kw.arg}' (accepts n=, by=)")
+                raise Refusal("unknown",
+                    f"scan '{name}': unknown parameter '{kw.arg}' (accepts n=, by=, window=)")
         return name, node.args[0], n, by
 
     # ---- B-anchor crossing detection (STRUCTURAL — shape-only, hoisted from the engine) ----

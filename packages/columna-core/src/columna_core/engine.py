@@ -264,9 +264,14 @@ class ColumnEngine:
         (rolling_*) scans are [ROADMAP] — registered as CONTRACT, not implemented in this build."""
         op = get_operator(scan_op)
         if not op.in_core:
+            # SAY ONLY WHAT IS TRUE. This used to read "needs a window= parameter; windowed scans are
+            # not implemented" — but it fires on `not op.in_core`, which has nothing to do with
+            # whether the asker supplied a window. It told a reader who HAD supplied `window=7` that
+            # they had not, while the planner told the same reader that `window` was unknown. One
+            # fact, two layers, three different stories. The fact is the second clause alone.
             raise Refusal("unsupported",
-                f"scan '{scan_op}' needs a window= parameter; windowed scans are not "
-                f"implemented in this build [ROADMAP]",
+                f"scan '{scan_op}' is a windowed scan; windowed scans are registered as contract "
+                f"but not implemented in this build [ROADMAP]",
                 measure=measure, target=str(target),
                 alternatives=("use an order-only scan (cumsum/cummax/cummin/lag/lead/pct_change)",
                               "windowed scans (rolling_*) [ROADMAP]"))
