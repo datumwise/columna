@@ -34,7 +34,7 @@
   "recorded in the history block of whichever set moved."
  ],
  "core": {
-  "ruledOn": "2026-08-26",
+  "ruledOn": "2026-09-01",
   "ruledBy": "Huayin",
   "sourceIds": [
    "s-theory-of-data",
@@ -55,7 +55,9 @@
    "s-statistical-bridge-primer",
    "s-theory-of-certainty",
    "s-three-worlds-of-analytics",
-   "s-do-not-let-your-ai-agent-govern-itself"
+   "s-do-not-let-your-ai-agent-govern-itself",
+   "s-measure-algebra",
+   "s-governing-across-ontological-worlds"
   ],
   "history": [
    {
@@ -77,6 +79,16 @@
     "on": "2026-08-26",
     "by": "Huayin",
     "what": "The Ground for Certainty v1.1 supersedes The Theory of Certainty v1.0 as the current foundational publication. s-theory-of-certainty stays Core and re-resolves to r02; the v1.0 edition leaves Core under its own source identity, s-theory-of-certainty-v1-0, Reference/historical -- the same ruling applied to AG v1.1 on this date, in the same shape. 'Theory of Certainty' remains valid terminology for the broader theoretical framework and is NOT renamed in conceptual prose; this is a publication-title and current-record change. CLARIFIED the same day: the rule is that the title must match the new paper WHEN CITING THE ARTICLE, and nowhere else -- 'not all Theory of Relativity are in books titled Theory of Relativity'. So canonicalLabel follows the deposited title because that is how the corpus cites the work; prose naming the theory, the discipline or the account does not move"
+   },
+   {
+    "on": "2026-09-01",
+    "by": "Huayin",
+    "what": "The Measure Algebra of the Theory of Data v1.0 -> Core, carrying the same ruling as its current-corpus membership."
+   },
+   {
+    "on": "2026-09-01",
+    "by": "Huayin",
+    "what": "REPAIR of a carry-over omission, not a new ruling. Governing Across Ontological Worlds was ruled IN on 2026-08-30 (current-corpus.json history) but was never carried into Ask authority, so its deposited chunks indexed as layer `unruled` and test_every_chunk_is_ruled_into_a_layer has been red on main since that ingest. Membership is carried here unchanged, per this file's 2026-08-26 note."
    }
   ]
  },

@@ -278,6 +278,20 @@
       "md5": "37d0c63c6f151eb986752c3d9f7ba1a8",
       "bytes": 47987,
       "sha256": "e89fdffb6c89fe04824be4c1f0b97ab7e7f13afb17f89a80a47b4a454bb063df"
+    },
+    {
+      "sourceId": "s-measure-algebra",
+      "workId": "w-measure-algebra",
+      "label": "The Measure Algebra of the Theory of Data v1.0, 1 September 2026",
+      "recordId": "w-measure-algebra.r01",
+      "recid": "22219691",
+      "file": "w-measure-algebra.r01.md",
+      "zenodoKey": "the_measure_algebra_of_the_theory_of_data_v1_0_zenodo_22219691.md",
+      "provenance": "zenodo",
+      "zenodoVerified": true,
+      "md5": "8a37a9914d9a2c7e8cc14c5eb072bcad",
+      "bytes": 39237,
+      "sha256": "3eee609a50f2b6a7627a1fe45f414482ccf4e3740899dd3b50459fdc230b9923"
     }
   ],
   "missingText": []
