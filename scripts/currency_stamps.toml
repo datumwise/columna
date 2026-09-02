@@ -31,53 +31,53 @@
 # the block at the foot of this file. Enrolment is how coverage grows; it grows by a named entry in
 # this file and a reason beside it, never by the guard deciding on its own what looks current.
 
-# ── docs/frame_ql_manual_v2.md ───────────────────────────────────────────────────────────────────
+# ── docs/frame_ql_language.md ───────────────────────────────────────────────────────────────────
 # The Manual is the normative reference for shipped syntax and behaviour, so every sentence in it
 # that names what ships is enrolled — not merely the Currency paragraph. These nine are exactly the
 # current-state stamps corrected in PR #210.
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "Currency paragraph — the package triad"
 template = "current for **columna {umbrella} · columna-core {core} ·"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "Currency paragraph — the server and the wire contract"
 template = 'columna-server {server}**, wire `contract_version` **`"{contract}"`**.'
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "edition block — 'documents it as implemented'"
 template = "documents it **as implemented** (columna-core {core})."
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "harness note — the parser the examples are checked against"
 template = "parser (`columna_core.envelope.parse_statement`, columna-core {core})"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "revision note — the standing self-check's package"
 template = "run against the shipped columna-core — {core} at this revision)"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "2.8 — the roadmap forms are not in the shipped envelope"
 template = "part of the shipped envelope (columna-core {core})"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "2.9 — what ships"
 template = "What ships through columna-core {core} is the envelope"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "Appendix B — the shipped statement keywords"
 template = "**The shipped envelope statement keywords** (columna-core {core};"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
+file = "docs/frame_ql_language.md"
 claim = "colophon — the edition's current shipped set"
 template = 'current for columna-core {core} / columna-server {server} and wire contract `"{contract}"`'
 

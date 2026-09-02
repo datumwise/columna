@@ -372,7 +372,7 @@
     "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
   },
   {
-    "path": "docs/frame_ql_manual_v2.md",
+    "path": "docs/frame_ql_language.md",
     "class": "edition-pinned",
     "allowedDois": [
       "10.5281/zenodo.22013410"

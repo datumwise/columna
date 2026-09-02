@@ -65,7 +65,7 @@ except ModuleNotFoundError:                                    # pragma: no cove
     sys.stderr.write("columna_core not importable — install columna-core (0.9.0+) first.\n")
     sys.exit(2)
 
-MANUAL = pathlib.Path(__file__).resolve().parents[1] / "frame_ql_manual_v2.md"
+MANUAL = pathlib.Path(__file__).resolve().parents[1] / "frame_ql_language.md"
 
 _FENCE = re.compile(r"^(\s*)```([A-Za-z0-9_-]*)\s*$")
 _STMT_START = re.compile(r"^\s*(EXPLAIN|FROM|WITH|SELECT)\b", re.IGNORECASE)
