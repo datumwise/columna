@@ -37,7 +37,7 @@ jobs:
           python -m pip install -U pip
           pip install ./packages/columna-core ./packages/columna-server
       - name: Regenerate Frame-QL examples by execution (check mode)
-        run: python docs/tools/regen_examples.py --check
+        run: python scripts/gates.py --gate regen-examples
       # Standing test riding the manuals merge (from the CP-M2 parser self-verification rider): every
       # FrameQL example in the manual parses clean against the shipped parser, or is fenced
       # `frameql-illformed` (deliberately ill-formed). The manual can never document syntax its own
@@ -57,12 +57,12 @@ jobs:
       # disposition adjudicated in one manual can no longer sit contradicted in another, because
       # neither manual states it independently any more.
       - name: Canonical capabilities, profile contract, and measured build agree
-        run: python docs/tools/capability_authority.py
+        run: python scripts/gates.py --gate capability-authority
       - name: Capability tables are current projections of the authority
-        run: python docs/tools/regen_capability_tables.py --check
+        run: python scripts/gates.py --gate capability-tables
 
       - name: FrameQL manual reaches its documented outcome against the shipped planner
-        run: python docs/tools/check_manual_frameql.py
+        run: python scripts/gates.py --gate manual-frameql
 
       # UNIT C (2026-08-31). The manuals asserted a purchasable "Pro" tier for four days after the
       # ruling that retired it, on two live routes and in the /ask retrieval index — because prose is
@@ -70,7 +70,7 @@ jobs:
       # enforces the other half of §17.5: preserved prior-edition records must SAY they are preserved,
       # since a stale document with no banner is indistinguishable from a current one.
       - name: No tier claims on a current surface
-        run: python docs/tools/check_no_tier_claims.py
+        run: python scripts/gates.py --gate no-tier-claims
 
       # THE LEDGER HEARTBEAT (Huayin, 2026-07-25). The weekly run prints every OPEN row of both
       # ledgers into this job's summary, so the ledger ARRIVES instead of waiting to be consulted —
@@ -83,4 +83,4 @@ jobs:
         # ledger in the JOB LOG too — so it is readable from the API/CLI and verifiable after the
         # fact, not only by eye in the run UI. (A redirect alone made the content unreadable
         # anywhere but the browser, which is a poor property for a thing meant to be checked.)
-        run: python scripts/print_ledgers.py | tee -a "$GITHUB_STEP_SUMMARY"
+        run: python scripts/gates.py --gate ledger-heartbeat | tee -a "$GITHUB_STEP_SUMMARY"

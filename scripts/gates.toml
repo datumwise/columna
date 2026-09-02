@@ -1,0 +1,219 @@
+# THE REQUIRED GATE SET — ONE AUTHORITATIVE DEFINITION (P1-30, ruled Huayin 2026-09-02).
+#
+#     There is one authoritative definition of the required gate set. CI and local complete
+#     sweeps select from that same authority.
+#
+#     A workflow must not be able to add a known gate invocation outside that authority
+#     without the meta-gate failing.
+#
+# WHY THIS FILE EXISTS, AND WHY IT IS NOT A CONVENIENCE CHECKLIST. Before it, ~40 gate steps were
+# inline `run:` blocks across four workflows. The complete set existed only as a property of YAML
+# that no tool read and no command ran, so completeness could be ASSERTED and never CHECKED — and it
+# was asserted wrongly twice in one session (2026-09-02), each time missing gates that lived in a
+# workflow the sweeper had not thought to read.
+#
+# A hand-written `make gates` would have been a FIFTH enumeration, free to drift from the four it
+# summarized, drifting in the direction that matters: a gate added to CI and not to the list makes
+# the local sweep quietly incomplete again, which is the defect. The property that makes this file
+# different is not that it is a list — it is that **CI EXECUTES FROM IT**. A workflow step runs
+# `python scripts/gates.py --gate <id>`, so a gate that is not here does not run in CI either, and
+# the two cannot disagree about what the required set is.
+#
+# `meta-gate` enforces the second half: no workflow may invoke a known gate script directly.
+#
+# ── FIELDS ───────────────────────────────────────────────────────────────────────────────────────
+#   id           stable name; what CI invokes and what a human types
+#   cmd          the command, verbatim. One shell line.
+#   workflow     the workflow that owns it — the meta-gate checks the invocation is really there
+#   local        can a developer run this on a laptop and get a meaningful verdict?
+#   skip_reason  REQUIRED when local = false. A gate omitted from the local sweep must say why,
+#                out loud, every time. Silent omission is the failure this file exists to end.
+#   needs        setup ids that must run first (see [[setup]])
+#   network      true if the gate reaches the internet; the local sweep says so before running it
+#   kind         "gate" (default) — an assertion that can fail — or "report", which cannot
+
+# ── setup steps: prerequisites, not assertions ───────────────────────────────────────────────────
+[[setup]]
+id = "dists"
+cmd = "python -m pip install -q --upgrade build twine && rm -rf dist && python -m build packages/columna-core --outdir dist && python -m build packages/columna-server --outdir dist && python -m build packages/columna --outdir dist"
+note = "the three sdists+wheels the payload and metadata gates read"
+
+# ── ci.yml ───────────────────────────────────────────────────────────────────────────────────────
+[[gate]]
+id = "ruff-core"
+cmd = "ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "ruff-server"
+cmd = "ruff check packages/columna-server/src packages/columna-server/tests"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "version-attributes"
+cmd = "python scripts/check_version_attributes.py"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "pytest-core"
+cmd = "pytest packages/columna-core -q"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "pytest-server"
+cmd = "pytest packages/columna-server -q"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "publications"
+cmd = "python scripts/check_publications.py --selftest --report"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "corpus-membership"
+cmd = "python scripts/check_corpus_membership.py"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "deposit-corpus"
+cmd = "python services/ask/ask/ingest_deposits.py --check"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "dep-caps"
+cmd = "python scripts/assert_dep_caps.py"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "release-set"
+cmd = "python scripts/release_pins.py --check"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "release-set-selftest"
+cmd = "python scripts/release_pins.py --selftest"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "currency-stamps"
+cmd = "python scripts/check_currency_stamps.py"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "purged-grammar"
+cmd = "python scripts/check_purged_grammar.py"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "demo-wheel-install"
+cmd = "columna-server demo --play | python scripts/assert_demo_play.py"
+workflow = "ci.yml"
+local = false
+runner = false
+skip_reason = "builds wheels, then installs and runs them in a clean venv across an OS matrix (ubuntu/macos/windows). The proof is that the PACKAGED artifact works on a machine that is not this one, which a laptop run cannot supply."
+runner_reason = "the assertion runs INSIDE the clean venv, against the entry point that venv resolved — that is the whole proof. Routing it through the runner would run it against THIS tree's interpreter and test the wrong thing. Recorded here so the local sweep knows the gate exists and reports it as deferred, which is the property that matters."
+
+# ── docs.yml ─────────────────────────────────────────────────────────────────────────────────────
+[[gate]]
+id = "regen-examples"
+cmd = "python docs/tools/regen_examples.py --check"
+workflow = "docs.yml"
+local = true
+
+[[gate]]
+id = "capability-authority"
+cmd = "python docs/tools/capability_authority.py"
+workflow = "docs.yml"
+local = true
+
+[[gate]]
+id = "capability-tables"
+cmd = "python docs/tools/regen_capability_tables.py --check"
+workflow = "docs.yml"
+local = true
+
+[[gate]]
+id = "manual-frameql"
+cmd = "python docs/tools/check_manual_frameql.py"
+workflow = "docs.yml"
+local = true
+
+[[gate]]
+id = "no-tier-claims"
+cmd = "python docs/tools/check_no_tier_claims.py"
+workflow = "docs.yml"
+local = true
+
+[[gate]]
+id = "ledger-heartbeat"
+cmd = "python scripts/print_ledgers.py"
+workflow = "docs.yml"
+local = true
+kind = "report"
+
+# ── publish.yml ──────────────────────────────────────────────────────────────────────────────────
+[[gate]]
+id = "twine-metadata"
+cmd = "twine check dist/*"
+workflow = "publish.yml"
+local = true
+needs = ["dists"]
+
+[[gate]]
+id = "payload-coherence"
+cmd = "python scripts/release_pins.py --check-payload dist"
+workflow = "publish.yml"
+local = true
+needs = ["dists"]
+network = true
+
+[[gate]]
+id = "pypi-versions"
+cmd = "python scripts/assert_pypi_versions.py"
+workflow = "publish.yml"
+local = false
+network = true
+skip_reason = "asserts POST-PUBLISH state — that every intended version is live on the index. It lives in the `publish` job, behind `if: github.event_name == 'release'`, and is meaningful only after an upload. On a working tree it fails for any version not yet released, which is the normal state of main between releases. (Marked local=true on the first draft of this manifest; the local sweep failed it against main and was right to.)"
+
+[[gate]]
+id = "release-set-tag"
+cmd = "python scripts/release_pins.py --check --release ${RELEASE_TAG}"
+workflow = "publish.yml"
+local = false
+skip_reason = "binds the release set to a git TAG, which only exists on a published release. There is no tag to check on a working tree, and inventing one would test nothing."
+
+# ── the meta-gate ────────────────────────────────────────────────────────────────────────────────
+[[gate]]
+id = "meta-gate"
+cmd = "python scripts/gates.py --verify"
+workflow = "ci.yml"
+local = true
+
+# ── enrolled non-gate uses ───────────────────────────────────────────────────────────────────────
+# A gate script used as a DATA SOURCE rather than as an assertion. The pattern cannot tell the two
+# apart, and a guard that cries wolf on a legitimate use gets silenced — so each one is enrolled by
+# hand with a reason, exactly like `skip_reason`. Coverage grows by a named entry, never by the
+# guard quietly deciding something looked fine.
+
+[[allow]]
+workflow = "website.yml"
+script = "scripts/release_pins.py"
+reason = "read for its VALUE, not its exit code: `PINS_STR=\"$(python .../release_pins.py || true)\"` takes the pin string the site deploys against. The `|| true` is the tell — a gate whose failure is discarded is not being used as a gate. Its assertion role is covered by the `release-set` and `release-set-tag` gates above."
+
+[[allow]]
+workflow = "ci.yml"
+script = "scripts/assert_demo_play.py"
+reason = "the `demo-wheel-install` gate, invoked inside the clean matrix venv by necessity — see its runner_reason. It IS in the manifest; this entry allows the direct invocation, it does not hide the gate."
