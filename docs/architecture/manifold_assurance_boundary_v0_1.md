@@ -88,10 +88,24 @@ A Manifold error has different consequences by kind:
 | declaration contradicted by evidence | cannot obtain or retain the relevant certification |
 | two authoritative representations disagree | parity failure — repair the declarations |
 | attested data changes and invalidates a certified claim | withdraw / recompute standing |
-| the author omitted something | per the law, remain **undeclared** rather than silently inventing a declaration |
+| the author omitted something | **when omission has no governed default, it remains undeclared.** A default may supply a declaration only when the governing law explicitly says it does |
 
 The remedy is generally **repair, or withdraw standing** — never "make the query engine accommodate
 the mistake."
+
+**On omission and defaults** (amended by Huayin, 2026-09-02):
+
+> **When omission has no governed default, it remains undeclared. A default may supply a declaration
+> only when the governing law explicitly says it does.**
+>
+> Silence does not manufacture meaning. But a governed language law may itself define the meaning of
+> omission.
+
+This does **not** rule that defaults are illegitimate. A declared default that the language law
+states — as `TYPE`'s absent case does today for 63 of 64 shipped declarations — is a governed
+declaration, not silence. What is prohibited is meaning arriving from nowhere: a default asserted by
+a reader, a tool, or a physical carrier rather than by the law.
+
 
 ## 4. The two questions this separates
 

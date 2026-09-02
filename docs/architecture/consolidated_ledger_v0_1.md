@@ -857,7 +857,7 @@ apply, and have the agent's clarify-pick reformulate the query rather than apply
 canonical question is not new and is not reopened here; P1-32 inherits it as a dependency and guesses
 nothing.
 
-**RECONNAISSANCE, 2026-09-02 (ordered by Huayin before any implementation).**
+**RECONNAISSANCE, 2026-09-02 (ordered by Huayin before any implementation).** *It completed before the bounded-work rule — local repair by default, expand only to a specific blocking dependency — was adopted later the same day, and is preserved rather than trimmed: the evidence is what settled the row.*
 
 *Who consumes it.* **Nothing in this repository does, at runtime or at build time.** The deployed
 URL survives in exactly one place — `apps/website/src/data/seeded_queries.json:2` — and that file is
