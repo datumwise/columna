@@ -58,6 +58,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "manual_fixture
 
 try:
     from columna_core.envelope import parse_statement, EnvelopeSyntaxError
+    from columna_core.frameql import FrameQLSyntaxError
+    from columna_core.disclosure import Refusal
     from columna_core.disclosure_wire import wire_frame
 except ModuleNotFoundError:                                    # pragma: no cover
     sys.stderr.write("columna_core not importable — install columna-core (0.9.0+) first.\n")
@@ -128,6 +130,47 @@ def _annotation(body_line: str):
     return m.group("outcome").lower(), (m.group("reason") or None)
 
 
+# ── PROSE CLAIMS ─────────────────────────────────────────────────────────────────────────────────
+#: The Manual makes behavioural claims in PROSE as well as in fences, and prose is where the drift
+#: hid: §2.8 "Scan execution is not available in the current Core build" was false in six of the
+#: eight operators it named, and §§6.11/6.15/6.16 each assert "plans; does not execute" for examples
+#: the gate never planned. A claim the gate cannot read is a claim nothing can falsify.
+_CLAIM_PLANS = re.compile(r"\b(?:parses and plans|plans)\b[^.]{0,40}?(?:;|,|\.|$)", re.I)
+_CLAIM_NO_EXEC = re.compile(r"does not execute|is not available in the current core build|"
+                            r"not executable in this build|does not run", re.I)
+_CLAIM_NO_PARSE = re.compile(r"does not parse|is not shipped at all", re.I)
+
+
+def section_body(text: str, secs, lineno: int) -> str:
+    """The prose of the section owning `lineno`, so a claim written in a sentence is as checkable as
+    one written in a fence."""
+    lines = text.splitlines()
+    start = 0
+    end = len(lines)
+    for i, (ln, _h, _m) in enumerate(secs):
+        if ln <= lineno:
+            start = ln
+            end = secs[i + 1][0] - 1 if i + 1 < len(secs) else len(lines)
+        else:
+            break
+    return "\n".join(lines[start:end])
+
+
+#: Direction of a drift, because the REMEDY differs and the wrong remedy is how a capability gets
+#: reverted by a contributor in a hurry.
+EXCEEDS = "CLAIM_EXCEEDS_BUILD"      # the Manual promises more than the build delivers
+IMPROVED = "CAPABILITY_IMPROVED"     # the build delivers more than the Manual claims
+UNCHECKED = "UNCHECKED"              # the gate cannot see this claim at all
+_REMEDY = {
+    EXCEEDS: "the Manual is wrong, or the build regressed — check the build FIRST, then the text",
+    IMPROVED: "UPDATE THE DOCUMENTATION, NEVER REVERT THE CODE. The build grew a capability the "
+              "Manual still denies; the fix is a one-line mark/prose edit, and reverting the "
+              "capability to make this green would be exactly backwards",
+    UNCHECKED: "label the fence (```frameql, ```frameql-roadmap, ```frameql-illformed, "
+              "```frameql-schematic, ```frameql-fragment) so the claim becomes checkable",
+}
+
+
 def sections(text: str):
     """(line, heading, mark) for every heading. A `[ROADMAP]`/`[SCHEDULED]` mark is the MANUAL
     declaring a form unshipped — the only honest source for "documented not to run", and the reason
@@ -176,8 +219,14 @@ def _disposition(srvs, harness, stmt_text, execute):
     srv = harness.server_for(srvs, st)
     try:
         fr = srv.planner.plan_statement(st)
-    except Exception as e:                                     # FrameQLSyntaxError & friends
-        return "plan", "syntax-error", str(e)[:90]
+    except (EnvelopeSyntaxError, FrameQLSyntaxError, Refusal) as e:
+        return "plan", "syntax-error", str(e)[:90]             # a GOVERNED refusal to proceed
+    except Exception as e:
+        # AN UNGOVERNED SUBSTRATE ESCAPE (P1-26). A raw CPython `SyntaxError` — or any exception the
+        # language does not own — reaching the caller IS the defect, whatever the Manual says about
+        # the form, and whatever its canonical status turns out to be. Given its own outcome so the
+        # gate can never mistake it for a disposition.
+        return "plan", "substrate-error", f"{type(e).__module__}.{type(e).__name__}: {str(e)[:70]}"
     w = wire_frame(fr, executed=False)
     if not (execute and w["outcome"] in ("serve", "disclose")):
         return "plan", w["outcome"], _reason(w)
@@ -190,8 +239,11 @@ def _disposition(srvs, harness, stmt_text, execute):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--report", action="store_true",
+                    help="print the drift report and exit 0 — for reading the deltas before the "
+                         "Manual has been corrected to match a repaired build")
     args = ap.parse_args()
 
     import harness
@@ -199,38 +251,48 @@ def main() -> int:
     secs = sections(text)
     srvs = harness.servers()
 
-    counts = {"shipped": 0, "illformed": 0, "roadmap": 0, "schematic": 0}
-    failures, rows = [], []
+    counts = {"shipped": 0, "illformed": 0, "roadmap": 0, "schematic": 0, "fragment": 0}
+    blocks_seen = blocks_checked = 0
+    stmts_seen = 0
+    failures, rows, unchecked = [], [], []
+
+    def fail(direction, lineno, head, kind, stmt, why):
+        failures.append((direction, lineno, head, kind, stmt, why))
 
     for lineno, info, body in _fenced_blocks(text):
         stmts = _statements(body)
         kind = info
         if info in ("", "frameql") and stmts and _STMT_START.match(stmts[0]):
             kind = "frameql"
-        if kind not in ("frameql", "frameql-illformed", "frameql-roadmap", "frameql-schematic"):
+        blocks_seen += 1
+
+        if kind not in ("frameql", "frameql-illformed", "frameql-roadmap", "frameql-schematic",
+                        "frameql-fragment"):
+            # UNCHECKED. Previously these were `continue`d in silence and the headline counted only
+            # STATEMENTS, so nine unlabelled blocks were invisible behind "40 total". A block the
+            # gate skips is a claim nothing can falsify, so skipping is now itself reportable — and
+            # a block that PARSES while unlabelled is worse, because it is a real Frame-QL claim
+            # sitting outside every check.
+            parses = []
+            for st in stmts:
+                try:
+                    parse_statement(st); parses.append(st)
+                except Exception:
+                    pass
+            unchecked.append((lineno, owning_section(secs, lineno)[1], info or "(bare)", stmts, parses))
             continue
+
+        blocks_checked += 1
+        stmts_seen += len(stmts)
         _, head, mark = owning_section(secs, lineno)
         annots = [a for a in (_annotation(ln) for ln in body.splitlines()) if a]
+        prose = section_body(text, secs, lineno)
+        claims_plans = bool(_CLAIM_PLANS.search(prose))
+        claims_no_exec = bool(_CLAIM_NO_EXEC.search(prose))
+        claims_no_parse = bool(_CLAIM_NO_PARSE.search(prose))
 
-        if kind == "frameql-illformed":
-            for stmt in stmts:
-                try:
-                    parse_statement(stmt)
-                    failures.append((lineno, head, "marked-illformed-but-parses", stmt,
-                                     "the teaching went stale: this now parses"))
-                except EnvelopeSyntaxError:
-                    counts["illformed"] += 1
-            continue
-
-        if kind == "frameql-roadmap":
-            # Assert the MARK, never today's failure: pinning the failure would turn shipping the
-            # capability into a red gate, which is the wrong incentive to build into a guard.
-            if mark is None:
-                failures.append((lineno, head, "roadmap-without-mark", stmts[0] if stmts else "",
-                                 "a ```frameql-roadmap example must sit under a section marked "
-                                 "[ROADMAP] or [SCHEDULED] — the reader sees the heading, not the fence"))
-            else:
-                counts["roadmap"] += len(stmts) or 1
+        if kind == "frameql-fragment":
+            counts["fragment"] += len(stmts) or 1              # illustrative; declared as such
             continue
 
         if kind == "frameql-schematic":
@@ -238,53 +300,129 @@ def main() -> int:
                 try:
                     parse_statement(stmt); counts["schematic"] += 1
                 except EnvelopeSyntaxError as e:
-                    failures.append((lineno, head, "schematic-does-not-parse", stmt, str(e)[:80]))
+                    fail(EXCEEDS, lineno, head, "schematic-does-not-parse", stmt, str(e)[:80])
             continue
 
-        # ── shipped ────────────────────────────────────────────────────────────────────────────
-        if mark is not None:
-            failures.append((lineno, head, "shipped-example-in-roadmap-section", stmts[0] if stmts else "",
-                             f"section is marked [{mark}] but the example is fenced as shipped — "
-                             f"mark the fence ```frameql-roadmap or unmark the section"))
+        if kind == "frameql-illformed":
+            for stmt in stmts:
+                try:
+                    parse_statement(stmt)
+                    fail(IMPROVED, lineno, head, "marked-illformed-but-parses", stmt,
+                         "the teaching went stale: this now parses")
+                except EnvelopeSyntaxError:
+                    counts["illformed"] += 1
             continue
+
+        # ── EVERY REMAINING BLOCK IS MEASURED, whatever it is marked ─────────────────────────────
+        # The old gate returned early for `frameql-roadmap` and asserted only the MARK, on the sound
+        # reasoning that pinning today's failure would make shipping a capability turn the gate red.
+        # That reasoning is kept — see the IMPROVED remedy — but the CONSEQUENCE was a one-way gate:
+        # the Manual could understate the build indefinitely and stay green, and it did. `cumsum`
+        # and four more scan operators execute while §2.8 says scan execution is unavailable.
         for n, stmt in enumerate(stmts):
             want = annots[n] if n < len(annots) else None
             stage, outcome, reason = _disposition(srvs, harness, stmt, execute=True)
+            rows.append((lineno, head, kind, stage, outcome, reason, stmt))
+            reached_positive = outcome in ("serve", "disclose")
+            if outcome == "substrate-error":
+                # Unconditional, and deliberately ahead of every fence rule: no Manual mark can make
+                # it acceptable for an exception the language does not own to reach a reader as the
+                # language's answer. Independent of the form's canonical status, which stays open.
+                fail(EXCEEDS, lineno, head, "substrate-exception-escapes", stmt,
+                     f"an exception Frame-QL does not own reached the caller: {reason}")
+                continue
+
+            if kind == "frameql-roadmap":
+                counts["roadmap"] += 1
+                if mark is None:
+                    fail(EXCEEDS, lineno, head, "roadmap-without-mark", stmt,
+                         "a ```frameql-roadmap example must sit under a section marked [ROADMAP] "
+                         "or [SCHEDULED] — the reader sees the heading, not the fence")
+                if reached_positive:
+                    fail(IMPROVED, lineno, head, "roadmap-but-shipped", stmt,
+                         f"documented as roadmap, but this {outcome}s at {stage} today")
+                elif claims_plans and outcome in ("syntax-error", "substrate-error"):
+                    fail(EXCEEDS, lineno, head, "claims-planning-but-does-not-plan", stmt,
+                         f"the section says it plans; it never reaches a plan ({reason})")
+                if claims_no_exec and stage == "execute" and reached_positive:
+                    fail(IMPROVED, lineno, head, "claims-no-execution-but-executes", stmt,
+                         "the section says it does not execute; it executes")
+                if claims_no_parse:
+                    try:
+                        parse_statement(stmt)
+                        fail(IMPROVED, lineno, head, "claims-no-parse-but-parses", stmt,
+                             "the section says this does not parse; it parses")
+                    except Exception:
+                        pass
+                continue
+
+            # ── shipped ──────────────────────────────────────────────────────────────────────────
             counts["shipped"] += 1
-            rows.append((lineno, head, stage, outcome, reason, stmt))
+            if mark is not None:
+                fail(EXCEEDS, lineno, head, "shipped-example-in-roadmap-section", stmt,
+                     f"section is marked [{mark}] but the example is fenced as shipped — "
+                     f"mark the fence ```frameql-roadmap or unmark the section")
+                continue
             if outcome == "syntax-error":
-                failures.append((lineno, head, f"dies-at-{stage}", stmt, reason))
+                fail(EXCEEDS, lineno, head, f"dies-at-{stage}", stmt, reason)
                 continue
             if want is None:
-                if outcome in ("clarify", "refuse", "error"):
-                    failures.append((lineno, head, f"{outcome}-at-{stage}", stmt,
-                                     f"presented as shipped but reaches {outcome}"
-                                     + (f" ({reason})" if reason else "")
-                                     + " — document the outcome inline (`-- refuse: <reason>`), or "
-                                       "mark the example roadmap"))
+                if not reached_positive:
+                    fail(EXCEEDS, lineno, head, f"{outcome}-at-{stage}", stmt,
+                         f"presented as shipped but reaches {outcome}"
+                         + (f" ({reason})" if reason else "")
+                         + " — document the outcome inline (`-- refuse: <reason>`), or "
+                           "mark the example roadmap")
                 continue
             w_out, w_reason = want
             if outcome != w_out:
-                failures.append((lineno, head, "documented-outcome-not-reached", stmt,
-                                 f"documented `{w_out}`, got `{outcome}` at {stage}"))
+                direction = IMPROVED if (reached_positive and w_out in ("clarify", "refuse")) else EXCEEDS
+                fail(direction, lineno, head, "documented-outcome-not-reached", stmt,
+                     f"documented `{w_out}`, got `{outcome}` at {stage}")
             elif w_reason and reason != w_reason:
-                failures.append((lineno, head, "documented-reason-not-reached", stmt,
-                                 f"documented reason `{w_reason}`, got `{reason or "none"}` — a "
-                                 f"generic failure is not a pass"))
+                fail(EXCEEDS, lineno, head, "documented-reason-not-reached", stmt,
+                     f"documented reason `{w_reason}`, got `{reason or 'none'}` — a "
+                     f"generic failure is not a pass")
 
-    for lineno, head, kind, stmt, why in failures:
-        one = " ".join(str(stmt).split())[:88]
-        print(f"FAIL @L{lineno} §{head[:34]} [{kind}]\n      {one}\n      -> {why}", file=sys.stderr)
+    # ── report ───────────────────────────────────────────────────────────────────────────────────
+    for direction in (EXCEEDS, IMPROVED, UNCHECKED):
+        group = [f for f in failures if f[0] == direction]
+        if direction == UNCHECKED:
+            group = unchecked
+        if not group:
+            continue
+        print(f"\n=== {direction} ({len(group)}) ===", file=sys.stderr)
+        print(f"    remedy: {_REMEDY[direction]}", file=sys.stderr)
+        if direction == UNCHECKED:
+            for lineno, head, info, stmts, parses in group:
+                first = " ".join((stmts[0] if stmts else "").split())[:80]
+                note = f"{len(parses)} of {len(stmts)} parse as Frame-QL" if stmts else "empty"
+                print(f"  L{lineno:<5} §{head[:34]:36} fence={info:18} {note}\n"
+                      f"        {first}", file=sys.stderr)
+        else:
+            for _d, lineno, head, kind, stmt, why in group:
+                one = " ".join(str(stmt).split())[:88]
+                print(f"  L{lineno:<5} §{head[:34]:36} [{kind}]\n        {one}\n        -> {why}",
+                      file=sys.stderr)
+
     if args.verbose:
-        for lineno, head, stage, outcome, reason, stmt in rows:
-            print(f"  L{lineno:<5} {stage:8} {outcome:9} {reason or '':22} {' '.join(stmt.split())[:60]}")
+        for lineno, head, kind, stage, outcome, reason, stmt in rows:
+            print(f"  L{lineno:<5} {kind:18} {stage:8} {outcome:9} {reason or '':24} "
+                  f"{' '.join(stmt.split())[:52]}")
 
-    total = sum(counts.values()) + len(failures)
-    print(f"manual FrameQL examples: {total} total — {counts['shipped']} shipped "
-          f"(planned, and executed where they plan to serve/disclose), {counts['roadmap']} roadmap, "
-          f"{counts['illformed']} marked ill-formed, {counts['schematic']} schematic, "
-          f"{len(failures)} FAIL")
-    return 1 if failures else 0
+    # BLOCKS AND STATEMENTS ARE COUNTED SEPARATELY, and unchecked blocks are on the headline. The old
+    # line reported statements only ("40 total"), and 44 blocks minus 9 skipped plus 5 multi-statement
+    # extras happened to land near it, so the nine were invisible in the one line anyone reads.
+    n_exceeds = sum(1 for f in failures if f[0] == EXCEEDS)
+    n_improved = sum(1 for f in failures if f[0] == IMPROVED)
+    print(f"manual FrameQL: {blocks_seen} blocks ({blocks_checked} checked, {len(unchecked)} UNCHECKED) "
+          f"-> {stmts_seen} statements — {counts['shipped']} shipped, {counts['roadmap']} roadmap, "
+          f"{counts['illformed']} ill-formed, {counts['schematic']} schematic, "
+          f"{counts['fragment']} fragment | drift: {n_exceeds} claim-exceeds-build, "
+          f"{n_improved} capability-improved, {len(unchecked)} unchecked")
+    if args.report:
+        return 0
+    return 1 if (failures or unchecked) else 0
 
 
 if __name__ == "__main__":
