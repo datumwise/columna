@@ -41,7 +41,7 @@ The Second Edition changes no doctrine. It is a **mechanical sync** of the First
 1. **Column identity is the canonical expression, not a mechanical default** (WP-NAME-1, 0.14.0; **wire contract `"1"` → `"2"`**). The `<reducer>_<measure>` default (`sum_revenue`) and the dot-to-underscore mangle (`revenue_sum`) are **retired** — both were invented names, and the input anchor they dropped is half a pinned reduction's denotation (the Two Anchors law). An unaliased series is now keyed by its **canonical expression, verbatim**: `avg(revenue @ {day})` keys as `avg(revenue @ {day})` (the pin visible in the key), a bare measure as `revenue`, member access as `revenue.sum` (dotted, unmangled). `EXPLAIN` emits no redundant `X AS X`. Consumers needing a stable handle key on an `AS` alias, which is author-owned and changes under no future rule. The bump carries exactly one thing — the default key of an unchanged utterance; no value, mood, disclosure, or reason code moves. (Chapters 1.6, 2.7; Appendix D.)
 2. **The composite input anchor: a product grain is a first-class pin** (WP-GRAIN-1, 0.13.4; no wire change, contract stays `"1"` at that release — a minted reason routes by outcome). An inline reduction's input anchor may pin a **product** of levels — `avg(revenue @ {store*product*cal.month})` — not just one. Two reason codes are minted inside the existing vocabulary: **`pin_coarser_than_output`** (REFUSE, Law 1 — a pin level coarser than the output grain cannot resolve at a finer output) and **`redundant_pin`** (CLARIFY, Law 2 — two cross-comparable pin levels fix one axis, not two). Law 4 generalizes the immaterial two-stage-statistic provenance note (still a **serve**). One corner is rowed out: a composite pin whose product includes a *faced* output coordinate meets the G4 chain guard and refuses **`chained_crossing`** — a named refusal, never a silent number. (Chapters 2.3, 2.7; Example 6.16; Chapters 5.6, 7.3.)
 3. **`co_anchor_ambiguous` is tombstoned** (retired 2026-07-16 under the §2c expression law; a retirement-pin test asserts it is never emitted). The First Edition named it the "multi-input case" of the unpinned-reduction clarify; the shipped planner emits **`input_anchor_ambiguous`** there (one reason per contested dimension — OF-1), and the cross-universe rate the reason originally named is now the **`cross_universe`** category error (Chapter 2.5), not a clarify. The spelling is kept as a dated tombstone so old transcripts stay interpretable — vocabularies grow by rule and shrink by tombstone, never silently. (Chapters 2.3, 7.3.)
-4. **Version stamps.** The Second Edition sync documented columna-core **0.14.0** as implemented (preface, harness note, Chapters 2.8–2.9, Appendix B) and cited wire contract **`"2"`**. The retired terse `@`-fragment (Appendix D) and the grow-by-ruling surfaces are unchanged. *(▸ currency update, 2026-08-22: those current-state stamps now read **columna-core 0.16.2** and contract **`"3"`** — see Currency above. This ledger row is left as the record of what the Second-Edition sync did; the sync itself is not restamped.)*
+4. **Version stamps.** The Second Edition sync documented columna-core **0.14.0** as implemented (preface, harness note, Chapters 2.8–2.9, Appendix B) and cited wire contract **`"2"`**. The retired terse `@`-fragment (Appendix D) and the grow-by-ruling surfaces are unchanged. *(▸ currency update, 2026-09-01: those current-state stamps now read **columna-core 0.18.1** and contract **`"4"`** — see Currency above. This ledger row is left as the record of what the Second-Edition sync did; the sync itself is not restamped.)*
 5. **The RELATE face triad completed** (0.12.0; scope amendment to phase (a), ratified 2026-07-31 — shipped-reality drift, the same class as the version stamps). The First Edition documented **`touch` only**, with `assign`/`alloc` declared-but-deferred; 0.12.0 shipped the full triad and all three now execute. Chapter 5.6 now documents each face as the engine emits it: `touch` (over-count, **disclose**), `assign` (`ASSIGN BY … ORDER MIN|MAX`, single-count reconciling to the grand total, shadow `memberships_unrepresented`, **disclose**), and `alloc` (`ALLOC BY …`, weighted split reconciling to the cent, the reconciliation badge `{crossed_total, base_total, delta, tolerance, status}`), plus the fail-closed per-scheme adjudication, the **G5** anchor law (a distinct-class measure refuses at every face), and the **G4** chain guard. (Wire additive; `contract_version` stayed `"1"` at that release.)
 6. **Wire counters `executed` / `fetches_delta`** (additive to contract `"2"`, no doctrine). The annotation carries two server-surface execution counters — `executed` and `fetches_delta` — emitted on both the plan (`EXPLAIN`) and run paths. They are a server-surface detail, not a language feature; they move no value, mood, disclosure, or reason code, and grow no wire chapter here.
 
@@ -114,7 +114,7 @@ A Frame-QL query produces a single output frame. A frame is an assembly of co-an
 
 The complete skeleton of a Frame-QL query — the **envelope** (ADR-035), given here in its fixed clause order:
 
-```
+```frameql-metasyntax
 [EXPLAIN]
 [FROM   <manifold>]
 [WITH   <name> = <expression> [, ...]]
@@ -134,8 +134,9 @@ The query produces a frame whose anchor is the *output anchor* named in `AT`, wh
 
 A query may name its Manifold explicitly (this is the `FROM` clause shown alone, not a whole query):
 
-```text
+```
 FROM finance_manifold
+SELECT revenue AT {customer}
 ```
 
 **`FROM` is optional, and defaults to the bound Manifold.** The demo, the MCP `query` tool, and the agent are each attached to exactly one Manifold, and against a single-Manifold surface a bare `SELECT … AT {…}` resolves against that bound Manifold — no ceremony on the common case. `FROM` earns its keep on a **multi-Manifold surface**: where a surface holds more than one Manifold, a statement that names none is not underdetermined-by-guess, it **refuses**, naming the available Manifolds and asking which. The clause exists so that any surface — a query console, an agent, an MCP client, a planner shared across several Manifolds — can address different Manifolds by naming the target in each statement, **without carrying Manifold identity as ambient session state**. A statement that names its Manifold is self-contained: it means the same thing regardless of who submits it, from where, with what session history — and is therefore reproducible, cacheable, and auditable on its face; and an unnamed one is reproducible all the same, because the resolved identity always rides in the annotation (below).
@@ -424,12 +425,21 @@ Two further expression forms are documented as the language the envelope **grows
 > unshipped in the same way, and the difference is worth naming because the shipped behaviour can
 > mislead a reader who checks only whether a query is accepted.
 >
-> - **The bracket filter is not shipped at all.** `revenue[region = "east"]` does not parse.
-> - **Scan operators ARE registered and DO plan through Frame-QL** — `cumsum`, `lag`, `lead`,
->   `pct_change`, `rolling_mean`, `rolling_sum`, `cummax`, `cummin` are in the shipped operator
->   registry, and a scan expression type-checks and returns a plan. **Scan execution is not
->   available in the current Core build.** A planner that answers `serve` is answering about the
->   plan, not about a result; do not read it as shipped capability.
+> - **The bracket filter is not shipped.** `revenue[region = "east"]` is accepted by the statement
+>   grammar and refused at planning — it does *not* fail to parse (§6.7 says the same; a Second-Edition
+>   sentence claiming "does not parse" was wrong, and the two sections contradicted each other until
+>   2026-09-01). Frame-QL owns that refusal: the raw CPython `SyntaxError` it used to leak is repaired.
+> - **Scan operators are registered, and SIX OF EIGHT EXECUTE.** `cumsum`, `cummax`, `cummin` serve;
+>   `lag`, `lead`, `pct_change` serve with disclosures. `rolling_mean` and `rolling_sum` are
+>   registered as CONTRACT and are not implemented in this build — a governed `unsupported` answer,
+>   not a crash. The per-operator status is Appendix A's scan table, which
+>   `check_manual_frameql.py` diffs against the shipped registry, so this paragraph can no longer
+>   drift from the vocabulary it describes.
+>
+>   *(Until 2026-09-01 this bullet read "Scan execution is not available in the current Core build",
+>   which was false for six of the eight operators it named. It was invisible because no fenced
+>   example exercised them — the reason the gate now reads the operator registry directly rather
+>   than only the examples.)*
 > - **`reset =` and `step =` are a narrower roadmap item still.** The shipped scan signatures accept
 >   `n =` and `by =`; the family-aware calendar parameters described below are not implemented, so
 >   the year-to-date and year-over-year spellings are unshipped on two counts rather than one.
@@ -472,9 +482,15 @@ When a column reference appears in a position that requires a reduction to land 
 In practice this means a writer can usually write `revenue` instead of `sum(revenue)` when revenue's default family is sum:
 
 ```
-revenue AT {customer}               -- sugared
-sum(revenue @ {transaction}) AT {customer}   -- canonical (assuming revenue's root is {transaction})
+FROM finance_manifold SELECT revenue AT {customer}
+FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {customer}
 ```
+
+The first is the sugared spelling, the second the canonical one. Both serve, and both serve the same
+number — but the build reaches them by different routes: the sugared form resolves the measure's
+default family member directly at `{customer}`, while the canonical form delivers at
+`{transaction, customer}` and then reduces. The sugar is not implemented as a textual expansion into
+the canonical form; it is a distinct resolution path that agrees with it.
 
 The sugar applies in two combined ways. First, the default reducer is inferred from the column's declared default family — the framework looks up the column-spec, finds the default family, and uses its reducer. Second, when the column reference has no explicit input anchor and the path from the column's root to the output anchor is determined (a single fertile path), the input anchor is taken to be the column's root.
 
@@ -493,9 +509,21 @@ Some specific cases where the sugar does *not* apply, and the canonical form is 
 A specific common case deserves separate notice because it is the most-used form. When a column reference appears as an input to a fertile reducer, *and* the column's root is the deepest grain involved in the reduction, the input anchor `@ <root>` may be omitted:
 
 ```
-sum(revenue) AT {customer}    -- sugared
-sum(revenue @ {transaction}) AT {customer}   -- canonical, when revenue's root is {transaction}
+FROM finance_manifold SELECT sum(revenue) AT {customer}
+FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {customer}
 ```
+
+> **▸ OPEN — this equivalence is not currently true of the build (2026-09-01).** The canonical form
+> serves; the sugared form **clarifies** with `input_anchor_ambiguous`, offering six lawful input
+> anchors. Two things are unresolved, and they are separate. First, this section's premise:
+> `root(col)` is not a language object the shipped Core has — a measure declares name, universe,
+> family, logical type, blocked lineages and fill rule, and no root — so "the column's root" is not a
+> fact the planner can read. Second, whether those six lawful pins are *distinct analytical readings*
+> at all. Under the ruling of 2026-09-01 the 0/1/many rule counts readings, not spellings, and
+> candidates provably equivalent under governed law collapse to one; but that equivalence must be
+> established **ex ante from declared law**, and the declaration it needs — an operator's lift and
+> projection — is not currently projected to the planner. The gate is red here on purpose until that
+> is ruled.
 
 This is technically a corollary of the path-determinism case of Sugar 3.1, but it is so common that it is worth stating directly. When the writer omits `@ a` and the framework infers it as the column's root, that inference is silent and automatic, and the resulting form is what almost all simple queries look like.
 
@@ -607,6 +635,9 @@ The distinction between `WHERE` and `HAVING` is precise: `WHERE` filters input r
 `ORDER BY` specifies the sort order of the output frame:
 
 ```
+FROM finance_manifold
+SELECT sum(revenue @ {transaction}) AS total_revenue
+       AT {customer}
 ORDER BY total_revenue DESC, customer ASC
 ```
 
@@ -619,6 +650,9 @@ Multiple sort columns are evaluated in left-to-right priority. The framework per
 `LIMIT n` keeps the first `n` rows of the ordered result:
 
 ```
+FROM finance_manifold
+SELECT sum(revenue @ {transaction}) AS total_revenue
+       AT {customer}
 ORDER BY total_revenue DESC
 LIMIT 100
 ```
@@ -628,6 +662,9 @@ This keeps the 100 customers with the highest total revenue — a flat top-N tru
 `LIMIT n PER {dims}` keeps the top `n` rows *within each group* defined by the named dimensions:
 
 ```
+FROM finance_manifold
+SELECT sum(revenue @ {transaction}) AS total_revenue
+       AT {region, customer}
 ORDER BY region, total_revenue DESC
 LIMIT 5 PER {region}
 ```
@@ -744,7 +781,7 @@ A query that declares one of the three resolutions is computed under it with no 
 >
 > A face is **declared on the relationship** (not parameterized per query — `EXPLAIN` stays static and the cache keys the name), described per the folklore rule, and **adjudicated at publish**: a face is closed by default, and its license *opens* the crossing. Faces are addressed as a qualified coordinate, `{<coordinate>.<face>}`:
 >
-> ```
+> ```cml
 > RELATE product <-> category VIA product_categories(product_id, category_id)
 >     FACES {
 >       touch  = TOUCH                             -- "revenue reaches every category a product sits in — multi-counted; totals exceed the grand total"
@@ -930,14 +967,17 @@ LIMIT 5 PER {category}
 
 Computes per-category-product revenue, sorts by category then by revenue descending, then keeps the top 5 products per category. The result has up to 5 rows per category, with each category's rows ordered by revenue.
 
-### 6.11 Scan for running total **[ROADMAP]**
+### 6.11 Scan for running total
 
-**Parses and plans; does not execute** (§2.8). `cumsum` is a registered operator and this expression
-type-checks and returns a plan, so a reader who checks only whether the query is *accepted* will
-conclude it ships. It does not: scan execution is not available in the current Core build, and this
-example is marked for what it would *produce*, not for what the planner will say about it.
+**Executes** (§2.8). `cumsum` is a registered order-only scan and this example runs against the
+shipped engine.
 
-```frameql-roadmap
+> **▸ Currency (2026-09-01).** This section read *"Parses and plans; does not execute"* and was
+> marked `[ROADMAP]`. That was true when written and had stopped being true: order-only scan
+> execution ships. The correction is here rather than in the code because a capability that arrives
+> must make the stale sentence fail — never make the working build look like the regression.
+
+```
 FROM finance_manifold
 SELECT cumsum( revenue @ {customer, day} ) AS revenue_to_date
        AT {customer, day}
@@ -962,10 +1002,14 @@ Computes per-category revenue when products belong to multiple categories. The `
 
 ### 6.13 Time intelligence: year-to-date and year-over-year **[ROADMAP]**
 
-**Unshipped on two counts** (§2.8): scan execution is not available in the current Core build,
-*and* the family-aware parameters these two examples turn on — `reset =` and `step =` — are not
-implemented at all. The shipped scan signatures accept `n =` and `by =`, so unlike §6.11 these
-two do not even plan.
+**Unshipped on one count** (§2.8): the family-aware parameters these two examples turn on —
+`reset =` and `step =` — are not implemented. The shipped scan signatures accept `n =`, `by =` and
+(for windowed scans) `window =`, so unlike §6.11 these two do not even plan; they are refused at
+`_scan_call` as unknown parameters.
+
+> **▸ Currency (2026-09-01).** This read *"unshipped on two counts"*, the first being that "scan
+> execution is not available in the current Core build". That count is gone: `cumsum` executes
+> (§6.11). Only the parameter count remains.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -1197,11 +1241,11 @@ The framework places no constraints on what surfaces do, as long as what they ha
 | `sum` | fertile | extensive monoid; carrier is the value |
 | `count`, `count(*)` | fertile | counts present (non-missing) values |
 | `max`, `min` | fertile | idempotent monoids; overlap-robust |
-| `product` | fertile | watch for overflow / zero |
-| `any`, `all` | fertile | logical monoids on Boolean |
+| `product` | fertile | watch for overflow / zero. **[ROADMAP — not in the shipped registry]** |
+| `any`, `all` | fertile | logical monoids on Boolean. **[ROADMAP — not in the shipped registry]** |
 | `mean` | mule | computed at presentation from sum and count |
-| `weighted_mean` | mule | computed from weighted sum and weight sum |
-| `variance`, `stddev` | mule | computed from count, sum, sum-of-squares |
+| `weighted_mean` | mule | computed from weighted sum and weight sum. **[ROADMAP — not in the shipped registry]** |
+| `variance`, `stddev` | mule | computed from count, sum, sum-of-squares. **[ROADMAP — not in the shipped registry]** |
 | `median` (exact) | mule | no fertile carrier; recomputed from base at the output grain, not re-aggregable past it |
 | `mode` | mule | no fertile carrier; recomputed from base at the output grain, not re-aggregable past it |
 | `approx_distinct` | fertile via HLL | HLL sketch is fertile; estimate at presentation. Ships (`HLLSketch(p)`) |
@@ -1209,36 +1253,59 @@ The framework places no constraints on what surfaces do, as long as what they ha
 | `approx_frequency` | fertile via count-min | count-min sketch is fertile. **[ROADMAP — no count-min ships]** |
 | `last` | ordered, fertile-along-its-order | requires an order; path-invariant along the order |
 | `first` | ordered, fertile-along-its-order | requires an order; path-invariant along the order |
-| `value_at_max`, `value_at_min` | ordered, mule | needs the full set |
+| `value_at_max`, `value_at_min` | ordered, mule | needs the full set. **[ROADMAP — not in the shipped registry]** |
 
 A note on `last` and `first` as family founders: an ordered reducer may appear in a column's family set (a stock measure's `LAST` family is the canonical case — the closing balance over time). Because order is never part of a cache key, what such a family caches is the *un-ordered* slice of its source; the ordered reduction is applied (or recomputed) at serve time against the declared order. The family is path-invariant *along its order* — last-of-lasts is the global last — which is exactly the property the serve-time application relies on.
 
 ### Map functions
 
-Arithmetic: `+`, `-`, `*`, `/`, `%`, unary `-`.
-Comparison: `=`, `!=`, `<`, `<=`, `>`, `>=`, `between`, `in`.
-Logical: `and`, `or`, `not`.
-Conditional: `if(predicate, then, else)`, `case ... when ... then ... else ... end`.
-Null/missing: `is_null`, `is_missing`, `coalesce`.
-Numeric: `log`, `exp`, `sqrt`, `abs`, `sign`, `ceil`, `floor`, `round`.
-String: `concat`, `substring`, `lower`, `upper`, `trim`, `length`.
-Temporal: `year`, `month`, `day`, `week`, `quarter`, `date_diff`, `date_add`.
+> **▸ Currency (2026-09-01).** This block listed eight categories as though they were one
+> vocabulary available in one place. They are not, and the difference is load-bearing: **a map
+> operator lives in a SERIES expression, a comparison lives in a PREDICATE**, and the shipped
+> language has them in different amounts. The list below is split by position and marked against the
+> installed registry and the predicate parser, which is what `check_manual_frameql.py` now diffs it
+> against — so a category that grows stops being a paragraph nobody re-read.
+
+**In a series expression** — the registry's map operators. One status per line, so a mark is never
+ambiguous about which names it covers:
+
+Arithmetic: `+`, `-`, `*`, `/`, `neg` (unary `-`).
+Modulo: `%`. **[ROADMAP]**
+
+**In a `WHERE` / `HAVING` predicate** — a separate shipped vocabulary; these are not registry
+operators and are not available in a series expression:
+
+Comparison: `=`, `!=`, `<`, `<=`, `>`, `>=`.
+Conjunction: `and`.
+Disjunction and negation: `or`, `not`, `between`, `in`. **[ROADMAP]** (Appendix B's reserved-keyword list already omits all four.)
+
+The remaining categories are **[ROADMAP]** in their entirety — none is in the shipped registry, and a
+call to one is refused as an unknown operator rather than evaluated:
+
+Conditional: `if(predicate, then, else)`, `case ... when ... then ... else ... end`. **[ROADMAP]**
+Null/missing: `is_null`, `is_missing`, `coalesce`. **[ROADMAP]**
+Numeric: `log`, `exp`, `sqrt`, `abs`, `sign`, `ceil`, `floor`, `round`. **[ROADMAP]**
+String: `concat`, `substring`, `lower`, `upper`, `trim`, `length`. **[ROADMAP]**
+Temporal: `year`, `month`, `day`, `week`, `quarter`, `date_diff`, `date_add`. **[ROADMAP]**
 
 ### Scan functions
 
-`cumsum`, `cumprod`, `cummin`, `cummax` — running aggregates (prefix of the fertile reducer).
-`rolling_sum`, `rolling_mean`, `rolling_min`, `rolling_max`, `rolling_count` — windowed (require a window).
-`lag(col, n)`, `lead(col, n)` — shifted values.
-`rank`, `dense_rank`, `row_number` — ordinal positions.
-`pct_change` — relative change from previous.
-`ewm_mean` — exponentially-weighted mean.
+Three shipping states, not one — registered **and** executing, registered as contract only, and not
+registered at all (§2.8's "recognition is not capability", made per-operator):
+
+`cumsum`, `cummin`, `cummax` — running aggregates (prefix of the fertile reducer). **Execute.**
+`lag(col, n)`, `lead(col, n)`, `pct_change` — shifted values / relative change. **Execute.**
+`rolling_sum`, `rolling_mean` — windowed (require a window). **Registered as contract; execution [ROADMAP].**
+`cumprod`, `rolling_min`, `rolling_max`, `rolling_count` — **[ROADMAP — not in the shipped registry]**
+`rank`, `dense_rank`, `row_number` — ordinal positions. **[ROADMAP — not in the shipped registry]**
+`ewm_mean` — exponentially-weighted mean. **[ROADMAP — not in the shipped registry]**
 
 Scan parameters, passed by keyword: `window` (rolling extent), `n` (shift offset), `by` (explicit order column), and the family-aware trio `reset` / `within` / `step` (Chapter 2.8), each naming a coarser level in the order axis's dimension family.
 
 ### Type predicates and casts
 
-`is_<type>` — predicate for value type (e.g., `is_integer`, `is_string`).
-`cast(col, <type>)` — explicit type conversion.
+`is_<type>` — predicate for value type (e.g., `is_integer`, `is_string`). **[ROADMAP]**
+`cast(col, <type>)` — explicit type conversion. **[ROADMAP]**
 
 ---
 
@@ -1280,7 +1347,7 @@ Frame-QL deliberately borrows SQL's surface so that the syntax costs a SQL-liter
 
 Before the envelope shipped, Columna's public query surface was a **fragment** of the language: a single output column, its output anchor spelled by a trailing `@`.
 
-```
+```frameql-retired
 aov @ cal.month                 # the fragment: "aov, output-anchored at cal.month"
 revenue, orders @ region        # a short list, one shared trailing-@ output anchor
 name: expr @ anchor             # optional `:` label on a column

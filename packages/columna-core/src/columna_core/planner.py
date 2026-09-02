@@ -1739,10 +1739,19 @@ class Planner:
             return None
         name = node.func.id
         sig = self.m.operators.get(name)
-        if sig is None or sig.kind != "scan":
-            # an unknown call, or a non-scan used in call position — a vocabulary refusal
+        if sig is None:
+            # NO OPERATOR BY THAT NAME AT ALL. This used to answer "'abs' is not a scan operator
+            # (registry scans: [cummax, cummin, …])", which sends a reader looking for `abs`, `round`,
+            # `coalesce` or `cast` to the SCAN list — the one list that could never contain them. The
+            # fact is that the registry has no such operator in any kind. P1-13 class.
             raise Refusal("unknown",
-                f"'{name}' is not a scan operator (registry scans: "
+                f"there is no operator named '{name}' in the registry — Frame-QL's vocabulary is "
+                f"the installed operator registry (Appendix A), and it is not extended by writing "
+                f"a call the substrate happens to parse")
+        if sig.kind != "scan":
+            # It EXISTS, in the wrong kind for this position — a different fact, and a different fix.
+            raise Refusal("unknown",
+                f"'{name}' is a {sig.kind}, not a scan, and cannot be called here (registry scans: "
                 f"{sorted(n for n,s in self.m.operators.items() if s.kind=='scan')})")
         if len(node.args) != 1:
             raise Refusal("unknown", f"scan '{name}' takes one input expression and keyword params (n=, by=)")

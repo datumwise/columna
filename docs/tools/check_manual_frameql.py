@@ -91,7 +91,12 @@ def _fenced_blocks(text: str):
     return out
 
 
-_SELECT = re.compile(r"^\s*SELECT\b", re.IGNORECASE)
+#: SELECT ANYWHERE AT DEPTH 0, NOT ONLY AT LINE START. `FROM m SELECT x AT {a}` on ONE line is a
+#: legal spelling — the fixtures use it throughout — and anchoring this to the start of a line meant
+#: a block of two such one-liners never registered a statement boundary: both lines were glued into
+#: a single "statement" that then died at parse with "FROM appears more than once". The splitter was
+#: reporting a Manual defect it had itself manufactured.
+_SELECT = re.compile(r"\bSELECT\b", re.IGNORECASE)
 
 
 def _statements(body: str):
@@ -106,7 +111,7 @@ def _statements(body: str):
         if at_start and has_select and cur:                    # the prior statement ended; start a new one
             stmts.append("\n".join(cur).strip()); cur, has_select = [], False
         cur.append(ln)
-        if depth == 0 and _SELECT.match(ln):
+        if depth == 0 and _SELECT.search(ln):
             has_select = True
         depth += ln.count("(") + ln.count("{") + ln.count("[")
         depth -= ln.count(")") + ln.count("}") + ln.count("]")
@@ -238,8 +243,19 @@ def operator_reference_drift(text, secs):
     """Both directions across Appendix A. Returns (failures, shipped_named, registry_unnamed)."""
     try:
         from columna_core.operators import REGISTRY, ALIASES
+        from columna_core.planner import Planner
     except ImportError:                                        # pragma: no cover
         return [], set(), set()
+    # PREDICATE POSITION IS A SECOND SHIPPED VOCABULARY, AND THE REGISTRY DOES NOT KNOW ABOUT IT.
+    # `>=` is not a registry operator and never will be — it is not usable in a series expression —
+    # yet `WHERE day >= "2024-01-01"` serves today. Diffing Appendix A against the registry ALONE
+    # would report six shipped comparisons as unshipped, and marking them [ROADMAP] to make the gate
+    # green would be precisely the inverse error the standing rule forbids: capability improvement
+    # must make stale documentation fail, never make working code look like the regression.
+    # `Planner._CMP` is the declared predicate-comparison table, so it is read as a source, not
+    # guessed at. Verified against the fixture: >= <= > < = != and AND serve; IN, OR, NOT, BETWEEN
+    # do not (and Appendix B's reserved-keyword list already omits those four).
+    predicate_ops = {sym for sym, _code in Planner._CMP} | {"and"}
     lines = text.splitlines()
     m = _APX_A.search(text)
     if not m:
@@ -282,21 +298,36 @@ def operator_reference_drift(text, secs):
                 # architecture. Diffing it against the operator registry would answer neither question.
                 continue
             resolved = ALIASES.get(name, name)
-            shipped = resolved in REGISTRY
+            shipped = resolved in REGISTRY or resolved.lower() in predicate_ops
             if shipped:
                 named.add(resolved)
-                if marked:
+                # A MARK ASSERTS "DOES NOT FULLY SHIP", AND THERE ARE TWO WAYS TO NOT FULLY SHIP.
+                # `rolling_sum`/`rolling_mean` ARE in the registry and are `in_core=False` — recognised
+                # by the planner, not executed by the engine. That is §2.8's own "recognition is not
+                # capability", and a mark on such a row is TRUE. Treating marked-and-registered as a
+                # contradiction would push the Manual to un-mark a row that really is roadmap.
+                sig = REGISTRY.get(resolved)
+                fully = sig is None or getattr(sig, "in_core", True)   # predicate ops: no sig, always shipped
+                if marked and fully:
                     fails.append((IMPROVED, i + 1, f"Appendix A / {sub or 'operators'}",
                                   "operator-marked-roadmap-but-registered", name,
                                   "the row is marked unshipped; this operator IS in the shipped "
-                                  "registry" + (f" (as '{resolved}')" if resolved != name else "")))
+                                  "registry and executes"
+                                  + (f" (as '{resolved}')" if resolved != name else "")))
             elif not marked:
                 fails.append((EXCEEDS, i + 1, f"Appendix A / {sub or 'operators'}",
                               "operator-named-but-not-registered", name,
                               "Appendix A presents this as vocabulary, unmarked, and the shipped "
                               "registry has no such operator — mark the row [ROADMAP], or declare "
                               "the alias in operators.ALIASES if it ships under another spelling"))
-    unnamed = {n for n in REGISTRY if n not in named}
+    # THE DISCOVERABILITY DIRECTION IS PROSE-INCLUSIVE, DELIBERATELY. "Does a vocabulary ROW claim
+    # this?" and "can a reader find this name in the reference at all?" are different questions. The
+    # HLL trio is named in Appendix A's opening note as the extension-point case study — engine
+    # mechanics, correctly absent from the reducer TABLE but genuinely documented — so counting only
+    # structured rows here would report them as undocumented, which is false.
+    appendix_text = "\n".join(lines[start:min(end, len(lines))])
+    unnamed = {n for n in REGISTRY
+               if n not in named and f"`{n}`" not in appendix_text}
     return fails, named, unnamed
 
 
