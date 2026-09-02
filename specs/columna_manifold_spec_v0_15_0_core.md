@@ -1,6 +1,38 @@
-# The Columna Manifold — current implemented spec
+<!-- superseded-snapshot:start -->
+> ## ⚠ SUPERSEDED PRIOR-EDITION RECORD
+>
+> **This is not a current reference. It is an as-built SNAPSHOT of `columna-core` `0.15.0-core` at
+> wire `contract_version` `"2"`,** last reconciled 2026-08-12 and preserved unedited under topology
+> record §17.5, which keeps historical text and supersedes its *standing*.
+>
+> **Nine releases have shipped since** (0.15.0 → 0.18.1) and the text was never carried forward, so
+> it is stale in ways a reader must not be left to discover:
+>
+> - the wire contract is **`"4"`**, not `"2"` — two bumps (`"3"` the disclosure split, `"4"` the
+>   `mechanical` channel) happened after this text, which does not mention `mechanical` at all;
+> - §5's grammar still shows `FAMILY { <agg> [: <tier>] }`; the shipped parser has no `: <tier>`
+>   (see `/docs/grammar`, generated from `columna_core.parser`);
+> - nothing here knows about the K0 compiler, the lowering receipt, the provisioner, the governed
+>   admission path, the declared alignment domain, or family-member support.
+>
+> **Where current truth lives.** The normative reference for shipped syntax and behaviour is
+> [`docs/frame_ql_manual_v2.md`](../docs/frame_ql_manual_v2.md), whose current-state claims are
+> enrolled in `scripts/currency_stamps.toml` and fail the build when they go stale. The shipped
+> grammar is generated from the parser at `/docs/grammar`. Neither of those existed when this file
+> was written, which is why this one was needed and why it no longer is.
+>
+> **Why renamed rather than refreshed** (ruled Huayin, 2026-08-31, P0-19). A file called
+> `..._current.md` asserts currency in its own name, so bumping a version stamp inside it would have
+> left the strongest claim on the page untouched. The choice was reconcile-and-enrol or
+> rename-and-retire; nobody has maintained this document since 2026-08-12, its one inbound citation
+> already pins it at `0.15.0-core`, and a second "current as-built reference" beside the Manual would
+> be the same fact written down twice — the class this repository keeps paying for. So it retires.
+<!-- superseded-snapshot:end -->
 
-**As-built reference for `columna-core` `0.15.0-core` (wire `contract_version` `"2"`).**
+# The Columna Manifold — as-built spec, `0.15.0-core` snapshot
+
+**As-built reference for `columna-core` `0.15.0-core` (wire `contract_version` `"2"`), frozen
+2026-08-12.** Historical record — see the banner above for what has changed since.
 Generated from the code, not from prophecy: every construct below is what the parser
 (`columna_core.parser`) accepts and the object model (`columna_core.model`) holds *today*.
 Where a construct was retired, that is stated. The authored logical Manifold's governed population

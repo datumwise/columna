@@ -50,15 +50,26 @@ def test_mini_warehouse_within_budget():
 
 
 def test_import_and_version():
-    import columna_core
+    """`columna_core.__version__` reports the INSTALLED DISTRIBUTION and is never hand-maintained.
 
-    # Deliberately pinned: a version bump is an intentional act, so this test forces the bump to be
-    # made on purpose rather than drifting. 0.13.0 = the ASSERT retirement (breaking, ruling 2026-07-26);
-    # 0.15.0 = the additive SOURCE_MANIFOLD source-identity statement (columna#150 P0(b));
-    # 0.16.0 = the Core-P1 K0 compiler (`columna_core.compiler`), additive — a new module, no change
-    # to any existing surface. The 0.15.1/0.15.2 releases moved the DISTRIBUTION version without
-    # touching core's code, which is why this label sat at 0.15.0-core across them and moves now.
-    assert columna_core.__version__ == "0.16.0-core"
+    THIS TEST USED TO POINT THE WRONG WAY (P0-19, ruled Huayin 2026-08-31). It asserted the literal
+    `"0.16.0-core"`, which made it able to catch an UNINTENDED bump and structurally incapable of
+    catching an OMITTED one — the same asymmetry as `assert_pypi_versions.py`, which catches a
+    forgotten bump only when the forgotten version is ABSENT. Core's source then changed across
+    three releases (0.17.0, 0.18.0, 0.18.1) while the label sat still, and this test held it there.
+
+    So the assertion is inverted: the attribute must AGREE WITH PACKAGE METADATA. A future edit that
+    reintroduces a hand-typed literal passes today and fails the first time a release moves — which
+    is the direction a version guard has to fail in."""
+    import columna_core
+    from importlib.metadata import version
+
+    installed = version("columna-core")
+    assert columna_core.__version__ == installed, (
+        f"columna_core.__version__ is {columna_core.__version__!r} but the installed columna-core "
+        f"distribution is {installed!r}. This attribute is derived from package metadata and must "
+        f"never be a literal — see P0-19 in the consolidated ledger."
+    )
 
 
 @pytest.mark.parametrize("demo,expected", sorted(_EXPECTED_COUNTS.items()))

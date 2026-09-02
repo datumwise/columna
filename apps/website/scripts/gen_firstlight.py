@@ -189,6 +189,12 @@ def main() -> int:
         "image": {"text": image_bytes.decode("utf-8"), "bytes": len(image_bytes)},
         "receipt": {
             "compiler": receipt["compiler"],
+            # P0-19 (ruled Huayin, 2026-08-31). `compiler.version` is a HISTORICAL claim — the
+            # producer of these frozen bytes, not the version of the package a reader just installed.
+            # It was rendered bare, a few lines below the words "the shipped K0 compiler", with the
+            # one field that dates it dropped from this payload. A true statement presented as a
+            # current one is the defect the currency guard exists for, so the date ships with it.
+            "established_at": receipt.get("established_at"),
             "publication_ref": receipt["publication_ref"],
             "publication_digest": receipt["publication_digest"],
             "image_digest": receipt["image_digest"],

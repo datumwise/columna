@@ -36,6 +36,10 @@ jobs:
           # on PyPI. The local editable columna-core already satisfies the server's floor, so pip
           # does not go to the index for it.
           pip install -e "packages/columna-server[test]"
+          # The UMBRELLA, --no-deps (both companions are already editable above). It is installed so
+          # its `__version__` is COVERED: `columna` ships a package directory and has no test suite
+          # of its own, which is exactly how its attribute drifted four releases (P0-19).
+          pip install --no-deps -e packages/columna
           pip install ruff
 
       # Bare invocations: exit codes count (no pipe through tail/head).
@@ -43,6 +47,12 @@ jobs:
         run: |
           ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests
           ruff check packages/columna-server/src packages/columna-server/tests
+
+      # P0-19: every package's `__version__` is the distribution pip actually resolved, never a
+      # literal. Runs before the suites because it is a two-second structural check, and a tree
+      # where the version surface lies is not a tree whose test results mean much.
+      - name: Version attributes report the installed distribution
+        run: python scripts/check_version_attributes.py
 
       # COLUMNA_BENCH_WAREHOUSE is intentionally unset, so the 20 @pytest.mark.warehouse proofs are
       # skipped: columna-core collects 124 / runs 104 / skips 20.
