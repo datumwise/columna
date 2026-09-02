@@ -507,22 +507,10 @@ The combination is: the language gives the writer one defensible default (the co
 
 ## Chapter 4. Clauses
 
-### 4.1 The `WHERE` clause: pre-query input filtering
+### 4.1 `WHERE` — filtering the input
 
-`WHERE` restricts the input before the series are computed.
-
-**String literals may be written with either quote.** `'east'` and `"east"` are the same thing in
-Frame-QL — one string literal, one kind. The predicate is normalized into the substrate's spelling
-before it becomes backend SQL, so both spellings run and return the same rows. Frame-QL's literal
-rule is Frame-QL's; the substrate does not reinterpret it.
-
-**A predicate on a base dimension of the measure's own universe runs and serves.** A predicate on a
-dimension reached only across a relationship does not, and the two failures are deliberately
-different reasons: `filter_unreachable` says the *Manifold* offers no path, and the asker may be able
-to reword; `filter_unsupported` says the *build* cannot push the filter across the join, and no
-rewording helps. See §4.1.1.
-
-`WHERE` restricts the input to the query — applied before reductions, narrowing what data the reducers see. Its predicate references dimensions and column values at the *input* grain (the data being reduced), not the output grain (the result of the reduction).
+`WHERE` restricts the input before the series are computed. Its predicate refers to dimensions and
+column values at the **input** grain — the data being reduced — not at the output grain.
 
 ```
 FROM finance_manifold
@@ -530,20 +518,39 @@ SELECT sum(revenue @ {transaction}) AT {customer}
 WHERE day >= "2024-01-01"
 ```
 
-This computes per-customer revenue *over transactions from 2024 onward*. The framework restricts the input data to the predicate's satisfying rows, then performs the reduction over the restricted input. The output is per-customer sums of 2024+ revenue.
+This computes per-customer revenue over transactions from 2024 onward. The framework restricts the
+input to the rows the predicate admits, then reduces over what remains.
 
-`WHERE` predicates may reference any dimension or column at the input grain of any series in the query. They are evaluated before reduction, so they see the raw data; references to series expressions (which are output columns) are not permitted in `WHERE` — those belong in `HAVING`.
+A predicate may name any dimension or column at the input grain of any series in the query. It may
+not name a series expression: those are output columns, and they belong in `HAVING`.
 
-`WHERE` is a query-time expression-level restriction, not a Manifold-level state change. The Manifold's columns retain their declared coverage; the query's *result* is restricted to what the predicate permits.
+`WHERE` restricts the query's result, not the Manifold. Columns keep their declared coverage.
+
+**Either quote works.** `'east'` and `"east"` are one string literal in Frame-QL. The predicate is
+normalized into the backend's spelling before it becomes SQL, so both forms run and return the same
+rows. The substrate does not reinterpret Frame-QL's literals.
+
+**A predicate on a base dimension of the measure's own universe runs.** A predicate on a dimension
+reached only across a relationship does not, and the two failures carry different reasons on purpose:
+`filter_unreachable` means the *Manifold* offers no path, so rewording may help; `filter_unsupported`
+means the *build* cannot push the filter across the join, and rewording will not help. See §4.1.1.
+
+**Series with different input grains are filtered separately, each at its own input grain.** If one
+series draws from `{transaction}` and another from `{warehouse, day}`, `WHERE region = "east"`
+restricts each independently, and `region` must be reachable from each series' input anchor — either
+as a coordinate or through a verified hierarchy edge, such as `region` from `transaction` via
+`transaction → customer → region`. If some series cannot reach a predicate dimension, the query is
+underdetermined for that series and the framework clarifies. It does not apply the predicate to some
+series and skip others.
 
 #### 4.1.1 Filtering through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
 
-A predicate on a dimension that the universe reaches only **across a relationship** — `region` from
-`customer`, `date` from `transaction` — is *lawful and not executable in this build*. The filter is
-pushed to the measure's own source table, which carries the universe's base coordinates only, so the
-joined coordinate is not there to bind against. It is refused **before** execution, with
-`filter_unsupported` and the base dimensions named as the remedy, rather than planned `serve` and
-failed after.
+A predicate on a dimension the universe reaches only **across a relationship** — `region` from
+`customer`, `date` from `transaction` — is lawful but does not run in this build. The filter is
+pushed to the measure's own source table, which carries the universe's base coordinates and not the
+joined ones, so there is nothing there to bind against. The query is refused before execution with
+`filter_unsupported`, naming the base dimensions as the remedy, rather than planned as `serve` and
+failed afterwards.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -551,18 +558,17 @@ SELECT sum(revenue @ {transaction}) AT {customer}
 WHERE region = "east" AND date >= "2024-01-01"
 ```
 
-*Would compute* per-customer revenue over transactions where region is east and date is 2024 or
-later. Note what this is **not**: `region` IS reachable from `customer`, so this is not
-`filter_unreachable` — the asker cannot fix it by rewording, because the limit is the build's, not
-the Manifold's. Whether a filter may join is an open ruling.
+*Would compute* per-customer revenue over east-region transactions from 2024 onward. This is **not**
+`filter_unreachable`: `region` is reachable from `customer`, so the asker cannot fix it by rewording.
+The limit is the build's, not the Manifold's. Whether a filter may join is an open ruling.
 
-**When series have different input grains, the predicate applies per series, at each series' own input grain.** A query whose series draw from `{transaction}` and from `{warehouse, day}` under `WHERE region = "east"` restricts each series' input independently: each predicate dimension must be reachable from that series' input anchor (directly as a coordinate, or through a verified hierarchy edge — `region` reached from `transaction` via `transaction → customer → region`). If a predicate dimension is not reachable from some series' input anchor, the query is underdetermined for that series — there is no defensible way to apply the restriction — and the framework asks for clarification rather than silently applying the predicate to some series and not others.
+### 4.2 `HAVING` — filtering the output **[ROADMAP — the `count(*)` series only]**
 
-### 4.2 The `HAVING` clause: post-query output filtering **[ROADMAP — the `count(*)` series only]**
+`HAVING` filters the output frame after the series are computed. Its predicate refers to **output**
+columns: the series and the anchor dimensions.
 
-*(`HAVING` itself ships — §6.9 is the shipped worked example. The illustration below additionally uses query-level `count(*)`, which does not; see the note under it.)*
-
-`HAVING` filters the output frame after the series have been computed. Its predicate references the *output* columns — the series expressions and the anchor dimensions — and is applied after reduction:
+`HAVING` itself ships — §6.9 is the worked example. The illustration below also uses query-level
+`count(*)`, which does not ship; see the note beneath it.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -572,26 +578,37 @@ SELECT sum(revenue) AS total_revenue,
 HAVING total_revenue > 10000
 ```
 
-**`count(*)` in `SELECT` is an unruled surface form.** It is a spelling the language recognizes and
-has not given a meaning. A `UNIVERSE` declares coordinates, not a fact table — only a `MEASURE`
-carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being counted. At
-least three readings are open: the physical source-row count, the count of existing analytical
-points, and the count of observations of some measure. **Frame-QL does not choose among them.**
-Picking one silently is how a number acquires a meaning nobody declared. Giving it one is a language
-ruling, not a parser fix, and until that ruling it has no capability identity.
+This computes per-customer revenue and transaction count, then keeps only rows where
+`total_revenue` exceeds 10,000. Reduction happens first; the predicate is then evaluated against each
+row of the output.
 
-`AS count(*)` in a `.cml` `MEASURE` is a different and established case, and is unaffected: there the
+**`count(*)` in `SELECT` is an unruled surface form.** The language recognizes the spelling and has
+not given it a meaning. A `UNIVERSE` declares coordinates, not a fact table — only a `MEASURE` carries
+`FROM <table>` — so a bare `count(*)` does not say what is being counted. At least three readings are
+open: the source-row count, the count of existing analytical points, and the count of observations of
+some measure. Frame-QL does not choose among them, because picking one silently gives a number a
+meaning nobody declared. Choosing requires a ruling, not a parser change, and until then `count(*)`
+has no capability identity.
+
+`AS count(*)` in a `.cml` `MEASURE` is a different, established case and is unaffected: there the
 source table is declared on the measure, so what is counted is not in question.
 
-This computes per-customer total revenue and transaction count, then keeps only the rows where total_revenue exceeds 10,000. The framework applies the reduction first, then evaluates the `HAVING` predicate against each row of the output frame.
+`HAVING` refers to output columns **by name** — a series alias or default name, or an anchor
+dimension. It cannot reach the input grain, which reduction has already consumed. The prior edition
+also allowed referring to a series by repeating its expression. That form is removed: deciding when
+two expressions are "the same" — before or after desugaring, with or without inferred anchors — raised
+more questions than it answered, and macro bindings (§4.5) cover the same reuse by expanding
+identically everywhere.
 
-`HAVING` references output columns **by name** — a series's alias or default name, or an anchor dimension's name. It cannot reference the input grain (that information has been reduced away by the time `HAVING` evaluates). The prior edition also permitted referencing a series by *repeating its expression*; that form is removed — deciding when two expressions are "the same" (before or after desugaring? with or without inferred anchors?) raised more questions than the convenience answered — and the reuse it served is covered cleanly by macro bindings (Chapter 4.5), which expand identically at every site by construction.
+`WHERE` and `HAVING` filter different things. `WHERE` filters input rows before reduction, using
+input-grain columns; `HAVING` filters output rows after reduction, using output-grain columns. Some
+predicates read sensibly as either — `region = "east"` can filter input rows, or output rows when
+`region` is in the anchor — but they mean different things: `WHERE` changes what is reduced, `HAVING`
+changes what is shown.
 
-The distinction between `WHERE` and `HAVING` is precise: `WHERE` filters input rows (before reduction, referencing input-grain columns); `HAVING` filters output rows (after reduction, referencing output-grain columns). Some predicates make sense as both — "region = east" can be a `WHERE` on input rows or a `HAVING` on an output that includes region — but the meaning differs: `WHERE` restricts what is reduced; `HAVING` restricts what is shown.
+### 4.3 `ORDER BY` — sorting the output
 
-### 4.3 The `ORDER BY` clause
-
-`ORDER BY` specifies the sort order of the output frame:
+`ORDER BY` sets the sort order of the output frame:
 
 ```
 FROM finance_manifold
@@ -600,11 +617,13 @@ SELECT sum(revenue @ {transaction}) AS total_revenue
 ORDER BY total_revenue DESC, customer ASC
 ```
 
-Multiple sort columns are evaluated in left-to-right priority. The framework permits sort by any output column — anchor dimensions or series expressions (referenced by alias or expression). `ASC` is the default direction; `DESC` reverses.
+Sort columns apply in left-to-right priority. You can sort by any output column — an anchor dimension
+or a series, named by alias or by expression. `ASC` is the default; `DESC` reverses it.
 
-`ORDER BY` is also consulted by `LIMIT n PER` (next section) to determine within-group ordering when partitioned truncation is requested. The same `ORDER BY` clause serves both purposes: it is the canonical ordering of the result.
+`LIMIT n PER` (§4.4) reads the same `ORDER BY` to rank rows within each group. There is one ordering
+clause, and it serves both purposes.
 
-### 4.4 The `LIMIT n` clause and `LIMIT n PER {dims}`
+### 4.4 `LIMIT n` and `LIMIT n PER {dims}`
 
 `LIMIT n` keeps the first `n` rows of the ordered result:
 
@@ -616,9 +635,9 @@ ORDER BY total_revenue DESC
 LIMIT 100
 ```
 
-This keeps the 100 customers with the highest total revenue — a flat top-N truncation.
+This keeps the 100 customers with the highest revenue.
 
-`LIMIT n PER {dims}` keeps the top `n` rows *within each group* defined by the named dimensions:
+`LIMIT n PER {dims}` keeps the top `n` rows **within each group** named by the dimensions:
 
 ```
 FROM finance_manifold
@@ -628,35 +647,58 @@ ORDER BY region, total_revenue DESC
 LIMIT 5 PER {region}
 ```
 
-This keeps the top 5 customers (by total_revenue) within each region — partitioned top-N. The result has 5 rows per region (or fewer if a region has fewer than 5 customers): 5 from the east, 5 from the west, and so on.
+This keeps the top 5 customers by revenue in each region — 5 rows per region, or fewer where a region
+has fewer customers.
 
-The clause has precise requirements:
+Four rules govern the clause:
 
-**The `PER` dimensions must be coordinates of the output anchor.** Partitioning by something not in the output frame is meaningless — there is nothing in the result to partition by. The framework refuses `PER {region}` if `region` is not part of the query's output anchor.
+**`PER` dimensions must be coordinates of the output anchor.** There is nothing to partition by
+otherwise, so the framework refuses `PER {region}` when `region` is not in the output anchor.
 
-**The `PER` dimensions must be a subset of the `ORDER BY` columns.** This makes the within-group order deterministic: the columns in `PER` group the result, and the remaining `ORDER BY` columns rank within each group. Without `PER ⊆ ORDER BY`, the within-group ranking would be unspecified.
+**`PER` dimensions must be a subset of the `ORDER BY` columns.** The `PER` columns group the result
+and the remaining `ORDER BY` columns rank rows inside each group. Without that, the within-group order
+is unspecified.
 
-**Ties are broken by the remaining `ORDER BY` columns.** If 5 customers tie for the 5th-highest revenue within a region, the framework consults the next `ORDER BY` column to disambiguate. If `ORDER BY` does not fully disambiguate within `PER` groups, the framework discloses the under-determination at plan time and asks for clarification at execution time only if the ambiguity actually arises and matters for the truncation.
+**Ties break on the remaining `ORDER BY` columns.** If several customers tie at the cut-off within a
+region, the next `ORDER BY` column decides. If `ORDER BY` does not fully disambiguate, the framework
+discloses the under-determination at plan time, and clarifies at execution only if the ambiguity
+actually affects which rows survive.
 
-**The empty `PER` set is permitted and reduces to flat `LIMIT n`.** `LIMIT 5 PER {}` partitions the result into one group (the whole result) and takes the top 5 — equivalent to plain `LIMIT 5`. The form is uniform; the empty case is the degenerate flat case.
+**`PER {}` is allowed and means plain `LIMIT n`.** The empty set makes one group of the whole result.
+The form stays uniform; the empty case is the flat case.
 
-The `LIMIT n PER` form is genuinely common in analytics — top products per category, top customers per region, top events per session — and is awkward in conventional SQL. Having it as a first-class clause makes the language match the natural shape of the questions analysts ask.
+Top-N-per-group is a common analytical question — top products per category, top customers per region,
+top events per session — and is awkward to write in SQL. It is a clause here for that reason.
 
-### 4.5 The `WITH` clause: named bindings
+### 4.5 `WITH` — named bindings
 
-The `WITH` clause declares named bindings used by the statement. There are two kinds, sharing a clause but doing different jobs.
+`WITH` declares names the statement uses. Two kinds share the clause and do different jobs.
 
-**Allocation bindings** **[ROADMAP — no allocation operator ships]** — `WITH allocation <name> = <rule>` — declare the partition-of-unity weighting an aggregate-across a many-to-many relationship uses (Chapter 5.6, Example 6.12). They are semantic declarations consumed by the planner. (The undeclared aggregate-across is a clarification, per Chapter 5.6; allocation is one of the readings it names, and the planner says so in those words — *"WITH allocation — supply a partition-of-unity split [ROADMAP — not available in this build]"* — rather than silently splitting.)
+**Allocation bindings** **[ROADMAP — no allocation operator ships]** — `WITH allocation <name> = <rule>`
+— declare the partition-of-unity weighting used when aggregating across a many-to-many relationship
+(§5.6, example 6.12). The planner consumes them as semantic declarations. An undeclared
+aggregate-across clarifies (§5.6), and allocation is one of the readings the clarification offers, in
+those words: *"WITH allocation — supply a partition-of-unity split [ROADMAP — not available in this
+build]"*. The framework does not split silently.
 
-**Macro bindings** — `WITH <name> = <expression>` — are a purely *syntactic* device: name an expression once, reference it by name. Expansion is textual and happens before desugaring and type-checking — each reference is replaced by the bound expression, and then every ordinary rule applies at the site of use. Everything about macros follows from "textual, pre-everything":
+**Macro bindings** — `WITH <name> = <expression>` — are purely syntactic. Name an expression once,
+then use the name. Expansion is textual and happens before desugaring and type-checking: each
+reference is replaced by the bound expression, and the ordinary rules then apply at the site of use.
+Everything else follows from that:
 
-- A macro may be referenced in `SELECT` series, `WHERE`, `HAVING`, `ORDER BY`, and later `WITH` bindings. Whether the expanded expression is *valid* at a site is decided by that clause's ordinary rules — a post-reduction expression expanded into `WHERE` fails `WHERE`'s rules exactly as if it had been written there by hand. The macro mechanism grants no new powers; it removes repetition.
-- Later bindings may reference earlier ones. Recursion, direct or mutual, is refused.
-- A series that consists of exactly a bare macro reference takes the macro's identifier as its **default name** — the writer has literally named it — so `WITH profit = revenue - cost … SELECT profit AT {customer}` needs no `AS`. Any larger expression involving a macro follows the ordinary naming rules of Chapter 1.6.
-- Macro names share the namespace of columns, dimensions, and aliases; collisions are refused.
-- Macros carry no semantics of their own. The canonical form of a statement is the canonical form of its full expansion, and `EXPLAIN` shows the expansion — there is no macro in an atom decomposition.
+- A macro may be used in `SELECT`, `WHERE`, `HAVING`, `ORDER BY`, and in later `WITH` bindings.
+  Whether the expansion is valid at a site is decided by that clause's own rules — a post-reduction
+  expression expanded into `WHERE` fails there exactly as if it had been typed by hand. Macros remove
+  repetition; they grant no new powers.
+- Later bindings may use earlier ones. Recursion, direct or mutual, is refused.
+- A series that is exactly a macro reference takes the macro's name as its **default name** — the
+  writer has already named it — so `WITH profit = revenue - cost … SELECT profit AT {customer}` needs
+  no `AS`. Any larger expression follows the naming rules of §1.6.
+- Macro names share a namespace with columns, dimensions, and aliases. Collisions are refused.
+- Macros carry no semantics of their own. A statement's canonical form is the canonical form of its
+  full expansion, and `EXPLAIN` shows that expansion. No macro appears in an atom decomposition.
 
-A worked example:
+For example:
 
 ```
 FROM finance_manifold
@@ -664,11 +706,15 @@ WITH profit = (revenue - cost)
 SELECT profit AT {customer, month}
 ```
 
-desugars (assuming co-anchorable defaults) to `SELECT (revenue - cost) AS profit AT {customer, month}` — and the same `profit` binding may simultaneously appear in `HAVING profit > 0`, expanding identically there.
+means `SELECT (revenue - cost) AS profit AT {customer, month}`, and the same binding can appear in
+`HAVING profit > 0`, expanding the same way there.
 
-In the shipped envelope's fixed clause order, `WITH` precedes `SELECT` (it binds the names the series then reference); its lexical position carries no scoping meaning beyond that ordering — bindings are visible throughout the statement. (The distinction from `AS` is worth restating because SQL offers nothing like it: an **alias** names an output column *after* reduction and is visible only where output columns exist; a **macro** names an expression template *before* everything and is visible wherever expressions are.)
+`WITH` comes before `SELECT` in the clause order because it binds the names the series use. Its
+position carries no scoping beyond that: bindings are visible throughout the statement.
 
----
+An alias and a macro are different things, which is worth stating because SQL has nothing like the
+second. An **alias** names an output column after reduction, and is visible only where output columns
+exist. A **macro** names an expression before anything, and is visible wherever expressions are.
 
 ## Chapter 5. Type Rules
 
