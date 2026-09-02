@@ -1,27 +1,33 @@
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
-# platform_profile.toml — THE PLATFORM PROFILE: a NORMATIVE realization contract (L3)
+# platform_profile.toml — THE FRAME-QL PLATFORM PROFILE (L3)
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
 #
 # Authored, not inferred — see core_profile.toml for the layer's two standing rules.
 #
-# THE PLATFORM PROFILE ADDS NO CAPABILITY REALIZATION. `columna-server` exposes Core's capabilities
-# over MCP and the natural-language agent; it does not implement an operator Core lacks, and every
-# number it returns is Core's. Declaring that explicitly is the point: an EMPTY `realizes` list is a
-# contract ("the platform adds no analytical capability"), whereas an absent file would merely be
-# silence, and silence is what let hand-maintained claims drift in the first place.
+# THE PLATFORM PROFILE EXTENDS THE CORE PROFILE.
 #
-# A profile may ADD realization capability; it may not change the meaning of canonical Frame-QL. The
-# platform exercises neither half of that permission for capabilities.
+#     Core Profile
+#         |  extended by
+#     Platform Profile
 #
-# OPEN QUESTION, REPORTED NOT ANSWERED: the platform's real additions are SURFACES — MCP tools, the
-# agent, the wire's disclosure levels — not capabilities. Whether "profile" should govern surfaces
-# as well as capabilities is a design question this layer does not settle. Until it is ruled, this
-# file governs capability realization only, and the platform's surface contract lives elsewhere.
+# `extends = "core"` is load-bearing and is not a formality. The effective Platform contract is
+# Core's contract PLUS the additions declared below, so a Platform implementation undertakes
+# everything Core undertakes. The rows here are ADDITIONS OVER CORE, never a standalone list.
+#
+# An empty `adds` therefore means "zero additional Frame-QL realization over Core" — which is a real
+# contract and a different statement from "Platform realizes no Frame-QL". Platform realizes all of
+# Core's Frame-QL; it currently adds nothing to it.
+#
+# WHAT THIS PROFILE DOES NOT COVER. Platform's product surfaces — the MCP tools, the natural-language
+# agent, the disclosure-level views on the wire — are not Frame-QL capability realization and are not
+# pulled in here merely because they ship on Platform. This file governs one thing: which Frame-QL
+# capabilities a conforming Platform implementation realizes, beyond Core. Those surfaces have their
+# own contracts elsewhere.
 
 profile = "platform"
-title = "Platform Profile"
+title = "Frame-QL Platform Profile"
 realizes_authority = "specs/frameql_capabilities.toml"
-inherits = "core"
+extends = "core"
 
-# intentionally empty — see the header
-realizes = []
+# ADDITIONS OVER CORE. Currently none: Platform realizes Core's Frame-QL and adds no capability.
+adds = []

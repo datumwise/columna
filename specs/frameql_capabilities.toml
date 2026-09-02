@@ -47,6 +47,18 @@
 # Whether a PARTICULAR ask may use it additionally depends on the measure's family — that second
 # condition is a Data World question and is adjudicated in the planner, not declared here.
 #
+# THIS FILE HOLDS CAPABILITY IDENTITIES, NOT EVERY SURFACE FORM THE LANGUAGE MENTIONS. `count(*)`
+# was carried here briefly as `proposed` and has been REMOVED (ruled 2026-09-01): sec.4.2 says its
+# MEANING is unresolved — a bare count(*) names no determinate analytical object — and "proposed"
+# says a construct is understood but not yet ruled in, which is a stronger claim than the Manual
+# makes. An unruled SURFACE FORM whose capability identity has not been established is recorded in
+# the Manual prose that discusses it, not given a row here. Inventing an `unruled` standing to hold
+# it would have been the same error one level up.
+#
+# ALIASES ARE DECLARATIONS, NOT RESEMBLANCES. A spelling joins a capability because a ruling says
+# the two name one thing. Reconciliation noticing that `BOOL_OR` looks like `any` is not that, and
+# the relationship is recorded as unresolved on those rows rather than merged.
+#
 # STANDING IS NOT REALIZATION. `proposed` means the language has not ruled the construct in. A build
 # may still realize it (Core executes `cumsum` today while sec.2.8 keeps scans roadmap) — that is a
 # build EXCEEDING canonical standing, it is visible in the matrix, and it is a question for ruling,
@@ -172,7 +184,7 @@ position = "series"
 category = "reducer"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "logical monoid on Boolean"
+note = "logical monoid on Boolean. UNRESOLVED: Reference Manual 5e names BOOL_OR in a matrix row; whether that is this capability under another spelling is NOT declared and is deliberately not inferred here. An alias is a governed identity declaration, not a similarity noticed during reconciliation."
 
 [[capability]]
 id = "all"
@@ -181,7 +193,7 @@ position = "series"
 category = "reducer"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "logical monoid on Boolean"
+note = "logical monoid on Boolean. UNRESOLVED: see `any` — the BOOL_AND relationship is undeclared and is not inferred."
 
 [[capability]]
 id = "weighted_mean"
@@ -254,18 +266,6 @@ category = "reducer"
 standing = "proposed"
 source = "Columna Reference Manual 5e operator matrix"
 note = "ordered; named in Reference Manual 5e only"
-
-[[capability]]
-id = "count_star"
-spellings = ["count(*)"]
-position = "series"
-category = "reducer"
-standing = "proposed"
-source = "Frame-QL Manual Appendix A"
-note = "Query-level count(*) is UNRESOLVED ARCHITECTURE (Frame-QL sec.4.2): a UNIVERSE declares coordinates, not a fact table, so a bare count(*) names no analytical object. The .cml MEASURE spelling AS count(*) is a different, established case and is not this capability."
-
-
-# ── MAPS, SERIES POSITION ────────────────────────────────────────────────────────────────
 
 [[capability]]
 id = "add"

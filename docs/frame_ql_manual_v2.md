@@ -1303,7 +1303,6 @@ The framework places no constraints on what surfaces do, as long as what they ha
 | `approx_frequency` | proposed | — | — |
 | `approx_quantile` | proposed | — | — |
 | `count` | ratified | executes | executes |
-| `count(*)` | proposed | — | — |
 | `first` | ratified | executes | executes |
 | `last` | ratified | executes | executes |
 | `max` | ratified | executes | executes |

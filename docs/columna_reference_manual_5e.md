@@ -1641,7 +1641,6 @@ Legend: **native** — pushed down to the backend; **framework** — computed ab
 | `approx_frequency` | proposed | — | — |
 | `approx_quantile` | proposed | — | — |
 | `count` | ratified | executes | executes |
-| `count(*)` | proposed | — | — |
 | `first` | ratified | executes | executes |
 | `last` | ratified | executes | executes |
 | `max` | ratified | executes | executes |

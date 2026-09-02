@@ -64,19 +64,35 @@ def spelling_index(caps: dict) -> dict:
 
 
 def profile(name: str) -> dict:
-    """A profile's AUTHORED realization contract: capability id -> level."""
+    """A profile's EFFECTIVE realization contract: capability id -> level.
+
+    A profile that `extends` another undertakes everything the base undertakes, plus its own `adds`.
+    So the Platform Profile's effective contract is Core's contract plus its additions — an empty
+    `adds` means "zero additional Frame-QL realization over Core", which is a contract, and is a
+    different statement from "Platform realizes no Frame-QL"."""
     doc = tomllib.loads((PROFILES / f"{name}_profile.toml").read_text())
     out = {}
-    for r in doc.get("realizes", []):
+    base = doc.get("extends")
+    if base:
+        out.update(profile(base))
+    for r in doc.get("realizes", []) + doc.get("adds", []):
         out[r["capability"]] = r.get("level", "none")
     return out
 
 
+def profile_additions(name: str) -> dict:
+    """Only what this profile ADDS over its base — what the profile itself declares."""
+    doc = tomllib.loads((PROFILES / f"{name}_profile.toml").read_text())
+    return {r["capability"]: r.get("level", "none")
+            for r in doc.get("realizes", []) + doc.get("adds", [])}
+
+
 def profile_errors(name: str, caps: dict) -> list:
     """A profile may not name a capability the canonical authority does not have — that would be a
-    profile changing the language rather than realizing it."""
+    profile changing the language rather than realizing it. Checked against the profile's OWN
+    declarations, so an inherited row is not reported twice."""
     return [f"profile '{name}' realizes '{cid}', which is not a canonical capability"
-            for cid in profile(name) if cid not in caps]
+            for cid in profile_additions(name) if cid not in caps]
 
 
 def measure_build(caps: dict) -> dict:
@@ -136,21 +152,40 @@ def build_deltas(caps: dict, prof: dict, built: dict) -> list:
     return rows
 
 
-def standing_exceeded(caps: dict, prof: dict) -> list:
-    """Capabilities a profile undertakes to realize that the LANGUAGE has not ratified. Legitimate
-    and visible — a profile may add realization — but worth naming, because it is how a construct
-    comes to be relied on before it is ruled in."""
-    return [cid for cid, level in prof.items()
-            if level != "none" and caps.get(cid, {}).get("standing") != "ratified"]
+def standing_exceeded(caps: dict, prof: dict, built: dict) -> list:
+    """(capability, profile_level, build_level) where realization runs ahead of CANONICAL STANDING.
+
+    RULED 2026-09-01: A BUILD CANNOT PROMOTE LANGUAGE STANDING BY EXISTING, and a normative profile
+    cannot silently turn a proposed construct into ratified Frame-QL. Core executes `cumsum`,
+    `cummax`, `cummin`, `lag`, `lead` and `pct_change` today while sec.2.8 keeps scans proposed — so
+    this state is real, it is legitimate, and the correct response is to keep it VISIBLE rather than
+    to ratify the construct because something happens to run it. Ratification needs a semantic review
+    of the canonical construct, which is a separate act."""
+    rows = []
+    for cid, c in caps.items():
+        if c.get("standing") == "ratified":
+            continue
+        pl, bl = prof.get(cid, "none"), built.get(cid, "none")
+        if pl != "none" or bl != "none":
+            rows.append((cid, pl, bl))
+    return sorted(rows)
 
 
 def main() -> int:
     caps = canonical_capabilities()
     core = profile("core")
     built = measure_build(caps)
+    platform = profile("platform")
     errs = profile_errors("core", caps) + profile_errors("platform", caps)
+    # A PROFILE THAT EXTENDS ANOTHER MUST NOT DROP ITS BASE'S UNDERTAKINGS. Platform extends Core, so
+    # its effective contract must cover Core's — an "extension" that realized less would be a
+    # different contract wearing the word.
+    for cid, level in core.items():
+        if LEVELS.index(platform.get(cid, "none")) < LEVELS.index(level):
+            errs.append(f"platform profile extends core but realizes '{cid}' at "
+                        f"'{platform.get(cid, 'none')}' < core's '{level}'")
     deltas = build_deltas(caps, core, built)
-    exceeded = standing_exceeded(caps, core)
+    exceeded = standing_exceeded(caps, core, built)
 
     for e in errs:
         print(f"  ERROR {e}", file=sys.stderr)
@@ -161,12 +196,18 @@ def main() -> int:
         for cid, declared, measured, direction in deltas:
             print(f"  {direction.upper():7} {cid:18} profile={declared:8} build={measured}", file=sys.stderr)
     if exceeded:
-        print(f"\n=== PROFILE EXCEEDS CANONICAL STANDING ({len(exceeded)}) ===", file=sys.stderr)
-        print("    the profile undertakes to realize capabilities the language has not ratified —"
-              "\n    legitimate, and named so it cannot become law by habit", file=sys.stderr)
-        print(f"  {', '.join(sorted(exceeded))}", file=sys.stderr)
+        print(f"\n=== REALIZATION EXCEEDS CANONICAL STANDING ({len(exceeded)}) ===", file=sys.stderr)
+        print("    these are realized while the LANGUAGE has not ratified them. Legitimate, and named"
+              "\n    so it cannot become law by habit: a build cannot promote standing by existing,"
+              "\n    and a profile cannot silently make a proposed construct ratified Frame-QL."
+              "\n    Ratification is a separate semantic review of the canonical construct.",
+              file=sys.stderr)
+        for cid, pl, bl in exceeded:
+            print(f"  {cid:16} standing=proposed  profile={pl:8} build={bl}", file=sys.stderr)
 
     ratified = sum(1 for c in caps.values() if c["standing"] == "ratified")
+    adds = profile_additions("platform")
+    print(f"platform profile: extends core, {len(adds)} addition(s) over it")
     print(f"capabilities: {len(caps)} canonical ({ratified} ratified) | core profile: "
           f"{sum(1 for v in core.values() if v != 'none')} realized | build deltas: {len(deltas)} "
           f"({sum(1 for d in deltas if d[3]=='lag')} lag, {sum(1 for d in deltas if d[3]=='exceed')} exceed)")

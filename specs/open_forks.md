@@ -313,3 +313,24 @@ class — **"occurrence conformance"**: frontier-side `bridge ⊆ members` and i
 is **blocked on OF-5's unbuilt domain-read** (min/max/distinct, membership); BASIS minting `UNTESTABLE`
 is the correct interim truth. **Ruling: a dated micro-PR riding OF-5**, not add-now — it lands when the
 domain source is declarable. The figure needs no engine change: it depicts declarations, not conformance.
+
+## OF — `in_core` is overloaded (implementation debt, not semantic authority) — ROWED (Huayin 2026-09-01)
+
+`Operator.in_core` carries at least two different facts under one flag, and reading it as a single
+realization axis mismeasures.
+
+* For `rolling_sum` / `rolling_mean` it means **the mechanics do not exist**: nothing executes, in any
+  position, and the engine answers a governed `unsupported` [ROADMAP].
+* For `mean` it means only that **Core does not serve the average as a declared MEASURE FAMILY
+  MEMBER**. The inline form `mean(x @ {a})` executes today; the registry entry exists so
+  `(operator × lineage)` law has an address, not to gate execution.
+
+Found during the capability-authority reconciliation (2026-09-01): a first measurement that read the
+flag alone reported `mean` as *lagging* a Core Profile it actually meets.
+
+**Ruling: implementation debt, not semantic authority. Do not block Manual work on a refactor.**
+`docs/tools/capability_authority.py` keeps conformance/profile measurement independent of the flag —
+it disambiguates through `SERIES_REDUCERS`, the declared inline-execution vocabulary — and the
+overload is rowed here for later cleanup. The flag must not become the authority for what a profile
+or the language requires; that is what `specs/frameql_capabilities.toml` and `specs/profiles/` are
+for.
