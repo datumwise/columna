@@ -597,7 +597,29 @@ enforcing it at delivery, (c) implement the lift the docstring already claims, o
 combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
 questions and are held for the Finding 2 review.
 
-### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **OPEN — fix recommended, not authorized** · VX
+### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **CLOSED 2026-09-02** — merged in #265 · VX
+
+**CLOSED.** `publish.yml` now triggers on `release`, `pull_request`, `push: [main]`, a weekly
+`schedule` (Mondays 06:31 UTC, offset from docs.yml's 06:17) and `workflow_dispatch`. **No path
+filter was added**, deliberately: the gate already determines what a payload-affecting change is by
+building each wheel and diffing it against the wheel PyPI serves, and a second hand-maintained
+definition would drift silently in the direction that disables the guard.
+
+Confirmed on `main` after merge, run `33623637559`:
+
+```
+event=push  branch=main  conclusion=success
+  job build + check dists                 success
+  job publish to PyPI (Trusted Publisher) skipped     <- release-only path not entered
+
+── gate: payload-coherence  (network)
+payload/version coherence — built wheels vs what PyPI already serves:
+  ok  columna==0.19.0   ok  columna-core==0.19.0   ok  columna-server==0.12.0
+OK — every reused version ships the payload it already published.
+```
+
+The `publish` job stays gated `if: github.event_name == 'release'`, so the new triggers run the
+build job only — no `id-token: write`, no environment, no index upload.
 
 Opened 2026-09-02, surfaced while clearing the eight-PR backlog. **The invariant (ruled Huayin,
 2026-09-02):**
@@ -650,7 +672,42 @@ nothing — see the branch `governance/payload-gate-coverage-and-one-gate-set`.
 
 ---
 
-### P1-30 · No single authoritative definition of the required gate set · **MEDIUM** · **OPEN — fix recommended, not authorized** · SV
+### P1-30 · No single authoritative definition of the required gate set · **MEDIUM** · **CLOSED 2026-09-02** — merged in #265 · VX
+
+**CLOSED.** `scripts/gates.toml` is the one authority — **33 gates** — and `scripts/gates.py` is the
+runner both CI and a human invoke. Every gate step in `ci.yml`, `docs.yml`, `publish.yml` and
+`website.yml` is now `python scripts/gates.py --gate <id>`, so a gate absent from the manifest does
+not run in CI either and the two cannot hold different opinions about the required set.
+
+    One authoritative gate set; every required CI gate has a governed execution path; local
+    sweeps use the same authority and explicitly report what they cannot run.
+
+Confirmed on `main` after merge, run `33623637478`, job `meta-gate`:
+
+```
+meta-gate OK — 33 gate(s), every one invoked through the runner by the workflow that owns it;
+2 enrolled non-gate use(s); no workflow reaches around the manifest.
+```
+
+`python scripts/gates.py --local` → **28 run, all passed; 5 deferred**, each printing why
+(demo-wheel-install, pypi-versions, release-set-tag, preview-serves-commit,
+prod-edge-verification). Silent omission is what the row was about, so the sweep never merely skips.
+
+**A workflow step is not automatically a gate** (ruled 2026-09-02). Of website.yml's ~19 steps per
+job, eight are required correctness assertions and entered the authority; environment, deployment
+and value production stayed with the workflow. The five `gen_*` generators are workflow-owned: their
+output is consumed by the build, which makes them producers whose failure mode is an assertion
+rather than assertions whose output is incidental — and `generator-determinism` is the gate that
+covers their committed outputs.
+
+**Two defects the work found in its own guards, both mutation-tested:**
+
+- `pypi-versions` was drafted `local = true`. The local sweep failed it against main — 0.19.0 is
+  merged and not yet released — because it asserts POST-PUBLISH state. Reclassified.
+- **Meta-property 1 was silently weak.** The stage-1 script pattern matched `.py` only, so restoring
+  `node scripts/check_dollar_math.mjs` directly into website.yml PASSED the meta-gate. A guard that
+  covers the languages you happened to have first is not a guard. `_SCRIPT_RE` now matches
+  `.py|.mjs|.js` and the same mutation is caught.
 
 Opened 2026-09-02. **The invariant (ruled Huayin, 2026-09-02):**
 
