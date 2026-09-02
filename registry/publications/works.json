@@ -402,5 +402,16 @@
         "doi": "10.5281/zenodo.22181381"
       }
     ]
+  },
+  {
+    "workId": "w-measure-algebra",
+    "canonicalLabel": "The Measure Algebra of the Theory of Data",
+    "kind": "unclassified",
+    "attachedConcepts": [
+      {
+        "recid": "22219690",
+        "doi": "10.5281/zenodo.22219690"
+      }
+    ]
   }
 ]
