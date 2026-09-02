@@ -22,7 +22,7 @@ stays exhaustive for reasons minted later, with no discipline required of whoeve
 import pytest
 
 from columna_core.disclosure import (ANALYTICAL, CLARIFY, ERROR, LANGUAGE, REALIZATION,
-                                     REASON_OUTCOME, REFUSE, UNRULED, UNRULED_REASONS, Outcome,
+                                     REASON_OUTCOME, REFUSE, UNRULED, UNRULED_REASONS,
                                      Refusal, UnregisteredReason, jurisdiction_for, outcome_for)
 
 _STAGES = {LANGUAGE, ANALYTICAL, REALIZATION, UNRULED}

@@ -166,6 +166,14 @@ const RELEASE_NOTES: Record<string, { title: string; date: string }> = {
     title: 'a column now serves the population it names — an alignment domain is declared, and one family is one support',
     date: '2026-08-31',
   },
+  // One reason had been carrying two different refusals: "a governed law bars this reduction" and
+  // "no candidate grain survived". A caller branching on it could be told a lineage was blocked when
+  // none was. Splitting them is the release, which is why the rail says `reason` and not a feature —
+  // the vocabulary a caller reads is the surface, and it grew.
+  '0.19.0': {
+    title: 'one refusal reason was doing two jobs — a blocked lineage and an unavailable anchor are now told apart',
+    date: '2026-09-02',
+  },
 };
 
 const RELEASE = RELEASE_NOTES[PACKAGE_VERSION];
