@@ -327,20 +327,28 @@ The third's choice of input anchor matters, and this is the central rule the can
 SELECT avg(aov) AT {region}     -- clarify: input_anchor_ambiguous
 ```
 
-— the framework does not guess. What it does instead depends on how many readings are actually
+— the framework does not guess. What it does instead depends on how many **readings** are actually
 available, and the rule has **three** branches, not one (ruled 2026-08-20 §9). Let **L** be the
 *lawful* candidate input grains — the ones that both reach the output anchor and do not make the
-reduction cross a lineage the governed law bars:
+reduction cross a lineage the governed law bars — and let **R** be the **distinct analytical
+readings** those candidates denote (ruled 2026-09-01: candidates that are syntactically distinct but
+provably equivalent under governed analytical law are one reading, not several — §3.2):
 
 | | | |
 |---|---|---|
-| **\|L\| = 0** | **Refuse** | no lawful reading survives; there is nothing to choose between, and an operation with no lawful reading is not a choice a reader can be asked to make |
-| **\|L\| = 1** | **proceed, and disclose** | one lawful reading, so nothing is contested — the input anchor is defaulted to it and the answer carries the **MATERIAL** `input_anchor` caveat, because a defaulted anchor is a condition the reader must weigh |
-| **\|L\| > 1** | **Clarify** | on the shipped reason **`input_anchor_ambiguous`**, naming the lawful candidates as substitutable alternatives, raised once per contested dimension (OF-1) |
+| **\|R\| = 0** | **Refuse** | no lawful reading survives; there is nothing to choose between, and an operation with no lawful reading is not a choice a reader can be asked to make |
+| **\|R\| = 1**, from one lawful candidate | **proceed, and disclose** | nothing is contested — the input anchor is defaulted to it and the answer carries the **MATERIAL** `input_anchor` caveat, because a defaulted anchor is a condition the reader must weigh |
+| **\|R\| = 1**, from several proven equivalent | **proceed, no caveat** | realization used one representative of one meaning. No analytical choice was made, so no input-anchor disclosure is owed |
+| **\|R\| > 1** | **Clarify** | on the shipped reason **`input_anchor_ambiguous`**, naming the lawful candidates as substitutable alternatives, raised once per contested dimension (OF-1) |
 
-Only the third branch clarifies, so whether `SELECT avg(aov) AT {customer}` clarifies is a fact about
-the *Manifold*, not about the query: it clarifies where the structure offers several lawful grains
-between the input and `{customer}`, and it serves-with-disclosure where it offers exactly one. Both
+The quotient is taken on **declared** law — a capability's re-entry certification (§3.2) — never on
+observing that candidates happen to agree on current data. `sum` is certified; `max`, `min`, `count`
+and the mules are not, so they still clarify over their full lawful menu.
+
+Only the last branch clarifies, so whether `SELECT avg(aov) AT {customer}` clarifies is a fact about
+the *Manifold* and the *capability*, not about the query: it clarifies where the structure offers
+several lawful grains between the input and `{customer}` **and** the capability is not certified to
+treat them as one reading. Both
 are the same law refusing to guess — one of them simply has nothing left to ask about. A candidate
 that is already structurally unlawful is never offered, because a clarify is a menu of readings the
 asker may choose between, and an unlawful reading is not a choice.
