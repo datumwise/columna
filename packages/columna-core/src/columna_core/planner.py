@@ -23,6 +23,41 @@ from .disclosure import (Disclosure, Refusal, Caveat, TRANSPORT, UNCONFIRMED,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
 
+
+# ── THE SUBSTRATE BOUNDARY (P1-26) ───────────────────────────────────────────────────────────────
+# Frame-QL's expression grammar is HOSTED on CPython's `ast`, and that is an implementation choice,
+# not a fact about the language. Every place this planner handed expression text to `ast.parse`, a
+# raw CPython `SyntaxError` could travel all the way out to the caller AS FRAME-QL'S ANSWER — so
+# `count(*)` was answered with "Invalid star expression" and `revenue[region = "east"]` with
+# "Maybe you meant '==' or ':=' instead of '='?". Both are the substrate talking about Python, about
+# forms the Manual documents at length in its own terms, and neither is a thing this language ever
+# said. A language that leaks its host's diagnostics has no boundary.
+#
+# Ruled (Huayin, 2026-09-01): the build defect must be repaired so Frame-QL never leaks substrate
+# syntax or errors as its language answer. This is the ONE crossing point. Nothing below it may call
+# `ast.parse` on text; everything above it sees `FrameQLSyntaxError`, the language's own channel.
+#
+# IT NAMES NO SEMANTICS. Converting the error is not deciding what `count(*)` means or whether the
+# bracket filter ships — those stay exactly as open as §§2.8/4.2 leave them. It only guarantees the
+# refusal is spoken in Frame-QL.
+def _parse_expr(src: str, mode: str = "eval", *, origin: str = "expression"):
+    """Parse Frame-QL expression text. A substrate parse failure becomes FrameQLSyntaxError."""
+    try:
+        return ast.parse(src, mode=mode)
+    except SyntaxError as e:
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(
+            f"Frame-QL cannot read this {origin}: {src!r}. It is not a well-formed series "
+            f"expression (at offset {getattr(e, 'offset', None) or '?'}). See Chapter 2 for the "
+            f"canonical form, and \u00a72.8 for the forms the envelope has not yet grown into."
+        ) from None
+    except ValueError as e:                     # null bytes and friends — also the substrate's, not ours
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(
+            f"Frame-QL cannot read this {origin}: {src!r} ({e})") from None
+
+
+
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
             ast.MatMult,  # `@` — the INPUT-ANCHOR pin inside an inline reduction (aov@day)
@@ -535,7 +570,7 @@ class Planner:
                 # COMPILE: static typecheck (vocabulary, signatures, addressability, expression
                 # typing) — no engine calls. Operator-not-supported and type errors are caught
                 # HERE, before any backend work; they are vocabulary errors, not data errors.
-                tree = ast.parse(expr, mode="eval")
+                tree = _parse_expr(expr, mode="eval")
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
@@ -717,7 +752,7 @@ class Planner:
         derivation. A composite/nested/map/bracket expression is still REFUSED for a name (the
         author owns it with AS — an author-owned name never changes under any future rule)."""
         try:
-            body = ast.parse(self._convert_input_anchor(expr), mode="eval").body
+            body = _parse_expr(self._convert_input_anchor(expr), mode="eval").body
         except SyntaxError:
             self._synerr(f"cannot name series {expr!r} — give it a name with AS")
         rc = self._reduction_call(body) if isinstance(body, ast.Call) else None
@@ -1013,7 +1048,7 @@ class Planner:
             if name in pre_existing:
                 continue
             try:
-                tree = ast.parse(expr, mode="eval").body
+                tree = _parse_expr(expr, mode="eval").body
             except SyntaxError:
                 continue                                 # not adjudicable here; the normal path classifies it
             # SCAN ORDER (P1-24). `plan_order_axis` is already the planner's own adjudicator and is
@@ -1085,7 +1120,7 @@ class Planner:
         out = {}
         for name, expr in columns:
             try:
-                uni = self._check_single_universe(ast.parse(expr, mode="eval").body, ())
+                uni = self._check_single_universe(_parse_expr(expr, mode="eval").body, ())
             except Exception:
                 continue                                         # a malformed series — let the normal run classify it
             if uni is None:
@@ -1232,7 +1267,7 @@ class Planner:
         Manifold, not the projection). Zero data touched. (A fourth element — the cut declaration hit —
         left with the ASSERT retirement in 0.13.0; ruling 2026-07-26.)"""
         engine_expr = self._convert_input_anchor(expr)
-        tree = ast.parse(engine_expr, mode="eval").body
+        tree = _parse_expr(engine_expr, mode="eval").body
         atoms = [{"measure": meas, "member": member,
                   "universe": self.m.measures[meas].universe if meas in self.m.measures else None}
                  for (meas, member) in self._atoms(tree, anchor)]
@@ -1257,7 +1292,7 @@ class Planner:
 
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
-        tree = ast.parse(expr, mode="eval")
+        tree = _parse_expr(expr, mode="eval")
         for n in ast.walk(tree):
             if not isinstance(n, _ALLOWED):
                 raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
@@ -1663,7 +1698,7 @@ class Planner:
         m, mem = self._measure_ref(node)
         if m is not None:
             if m in self.m.derived:
-                return self._atoms(ast.parse(self.m.derived[m].formula, mode="eval").body, anchor)
+                return self._atoms(_parse_expr(self.m.derived[m].formula, mode="eval", origin="declared formula").body, anchor)
             if m not in self.m.measures:
                 return []
             mem = mem or next(iter(self.m.measures[m].family))
@@ -1772,7 +1807,7 @@ class Planner:
         if meas_name is not None:
             if meas_name in self.m.derived:
                 dshape = self.m.derived[meas_name]
-                inner = ast.parse(dshape.formula, mode="eval").body
+                inner = _parse_expr(dshape.formula, mode="eval", origin="declared formula").body
                 if dshape.resolution_anchor is None:
                     return self._law_travels(inner, anchor, out)     # denotation-only: no travel
                 res = (dshape.resolution_anchor,)
@@ -2040,7 +2075,7 @@ class Planner:
                                             refusal=where_unreachable[name].classified(), trace=trace))
                 continue
             try:
-                tree = ast.parse(expr, mode="eval")
+                tree = _parse_expr(expr, mode="eval")
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
@@ -2119,7 +2154,7 @@ class Planner:
                 # an AT-metric typechecks at its RESOLUTION anchor (where the formula is evaluated),
                 # then the reduction is a downstream engine step — not at the asked anchor.
                 infer_anchor = (dshape.resolution_anchor,) if dshape.resolution_anchor else anchor
-                return self._infer(ast.parse(dshape.formula, mode="eval").body, infer_anchor, population)
+                return self._infer(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body, infer_anchor, population)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
             meas = self.m.measures[meas_name]
@@ -2267,7 +2302,7 @@ class Planner:
                 dshape = self.m.derived[meas_name]
                 if dshape.resolution_anchor is not None:
                     return self._resolve_anchored_metric(meas_name, dshape, anchor, where, trace)
-                return self._node(ast.parse(dshape.formula, mode="eval").body,
+                return self._node(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body,
                                   anchor, where, trace)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
@@ -2343,7 +2378,7 @@ class Planner:
                 f"(declared: {list(dshape.members)})")
         target, member = anchor[0], dshape.members[0]
         # evaluate the formula AT the resolution anchor — the denotation there (recompute-from-components)
-        k, frame, disc, dtype = self._node(ast.parse(dshape.formula, mode="eval").body,
+        k, frame, disc, dtype = self._node(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body,
                                            (res,), where, trace)
         if k != "col":
             raise Refusal("unknown", f"resolution-anchor metric '{name}' formula is not a column")
@@ -2477,7 +2512,7 @@ class Planner:
         if meas_name is not None:
             if meas_name in self.m.derived:
                 dshape = self.m.derived[meas_name]
-                inner = ast.parse(dshape.formula, mode="eval").body
+                inner = _parse_expr(dshape.formula, mode="eval", origin="declared formula").body
                 grain = ((dshape.resolution_anchor,) if dshape.resolution_anchor else tuple(anchor))
                 return self._would_be_defaulted_caveats(inner, grain)
             return out
