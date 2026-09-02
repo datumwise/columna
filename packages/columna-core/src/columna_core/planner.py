@@ -1483,24 +1483,102 @@ class Planner:
         return sorted(L for L in levels
                       if L != target and self.m.find_path({L}, target) is not None)
 
-    def _unpinned_disposition(self, reducer, inner, anchor):
-        """The verdict for an unpinned generated reduction (ruling 2026-08-20 §9):
+    def _regroup_invariant(self, reducer, inner) -> bool:
+        """Is `reducer` applied to `inner` REGROUP-INVARIANT — does applying it to its own delivered
+        intermediate values, over ANY lawful partition of its input, denote the same analytical object
+        as applying it to the base? This is the predicate the §3.2 quotient below needs.
 
-            |L| = 0  ->  Refuse   — no lawful candidate survives; there is nothing to choose between
-            |L| = 1  ->  proceed  — one lawful reading, so nothing is contested; the DEFAULTED input
-                                    anchor is returned and the caller owes the MATERIAL input_anchor
-                                    caveat (OF-2: a defaulted anchor is a condition the reader weighs)
-            |L| > 1  ->  Clarify  — over the LAWFUL candidates only
+        IT CANNOT BE ESTABLISHED FROM DECLARED LAW TODAY, SO IT RETURNS FALSE (fail-closed).
+
+        THE SHAPE OF THE PROBLEM. `op(m @ {L}) AT {A}` is a COMPOSITION, and the two halves are not
+        the same operator: the inner delivery resolves `m` at grain `L ∪ A` using the MEASURE's family
+        member, and the outer `op` then reduces along `L` to `A`. Invariance across `L` therefore needs
+        the outer surface application to agree with the inner delivery — which is a fact about the
+        operator's LIFT and PROJECTION, not about its witness.
+
+        WHY EVERY AVAILABLE DECLARATION IS A PROXY, AND WHY A PROXY IS NOT ALLOWED HERE (ruled Huayin,
+        2026-09-01: "if current Core cannot prove the property without inventing law, stop and report
+        rather than using numerical agreement as evidence"):
+
+          * `is_monoid` — REJECTED BY THE RULING, and rightly. It declares that the WITNESS combines
+            associatively (`operators.py` docstring: sum and count share witness=VALUE, combine=`+`).
+            `count` is the counterexample the ruling names: its state combines additively, while
+            counting intermediate DISPLAYED counts is not the same operation as combining count state.
+            Monoid-ness is sufficient-state law; it does not reach surface self-application.
+          * `linear` — the WP-B symbolic gate for derived formulas (distributes over addition). True
+            for `sum` only, so it would exclude `max`/`min`, which DO have the property when they are
+            the delivering family member. Under-approximates, and it answers a different question.
+          * `witness == VALUE and out_rule == "same"` — sorts today's registry correctly, and that is
+            exactly why it is dangerous: it is a TYPE-SIGNATURE coincidence, not an algebraic
+            declaration. It would silently mis-sort the first operator whose dtypes happen to line up
+            while its lift is not identity. That is inventing law.
+
+        WHAT IS ACTUALLY MISSING is the lift and the projection. `Operator` declares `witness` and
+        `combine` but no `lift`; `MeasureShape.family` is documented as "member NAMES only — no
+        order_by, home_table, pre_expr", and `pre_expr` IS the lift. `count` = fold(+) over a unit
+        lift; the approximate-distinct family carries a non-VALUE witness and a non-identity
+        projection; `last`/`first` carry `(value, order_key)`. None of that reaches the planner, by
+        design — and the registry is the right place for it to be declared, not here.
+
+        THE PRECEDENT FOR STOPPING HERE is `DerivedShape` (ruling 2026-08-20 §1): a correction once
+        had the planner read `FERTILE {..}` as travel permission, "running it proved FERTILE cannot
+        carry that meaning", and the shape was left alone rather than "carry half a semantics". Same
+        discipline. One new declared fact per operator would settle this — see the report; until it is
+        ruled in, no pins are provably equivalent and the ordinary ambiguity rule applies unchanged."""
+        return False
+
+    def _distinct_readings(self, reducer, inner, anchor, lawful):
+        """Quotient the lawful SYNTACTIC pins by governed analytical equivalence (ruled Huayin,
+        2026-09-01):
+
+            Candidate anchors that are syntactically distinct but provably equivalent under governed
+            analytical law do not constitute multiple analytical readings.
+
+        Returns the equivalence CLASSES, so the 0/1/>1 rule below counts distinct lawful READINGS
+        rather than lawful spellings. Six realizations of one meaning is not a choice the asker can be
+        asked to make; six meanings is. Establishing this ex ante from declared law — never by
+        observing that candidates agree on today's data — is the whole point, which is why the
+        predicate is `_regroup_invariant` and not a value comparison."""
+        if not lawful:
+            return []
+        if self._regroup_invariant(reducer, inner):
+            return [list(lawful)]                              # one denotation, several realizations
+        return [[L] for L in lawful]                           # each spelling is its own reading
+
+    def _unpinned_disposition(self, reducer, inner, anchor):
+        """The verdict for an unpinned generated reduction (ruling 2026-08-20 §9, quotiented by the
+        analytical-equivalence ruling of 2026-09-01). Over DISTINCT LAWFUL READINGS, not over lawful
+        syntactic pins:
+
+            |R| = 0  ->  Refuse   — no lawful candidate survives; there is nothing to choose between
+            |R| = 1  ->  proceed  — one lawful reading. Two ways to get here, and they differ in what
+                                    the caller owes: a single lawful CANDIDATE still owes the MATERIAL
+                                    input_anchor caveat (OF-2 — the separate default-anchor materiality
+                                    question, expressly left open); several candidates PROVEN
+                                    equivalent owe nothing, because realization picked a representative
+                                    and no meaning-bearing choice was made.
+            |R| > 1  ->  Clarify  — over the lawful readings only
 
         Never offer a candidate that is already structurally illegal. A clarify is a menu of readings
         the asker may choose between; an unlawful reading is not a choice, and offering it makes
         Clarify reachable before lawfulness — which is how a reader gets talked into a laundered
-        answer one keystroke later."""
+        answer one keystroke later.
+
+        Returns the pin tuple. `_unpinned_reading` returns it alongside whether a meaning-bearing
+        choice was made, which is what gates the OF-2 caveat."""
+        return self._unpinned_reading(reducer, inner, anchor)[0]
+
+    def _unpinned_reading(self, reducer, inner, anchor):
+        """(pin, meaning_bearing). `meaning_bearing` is False exactly when the pin is a REPRESENTATIVE
+        of several candidates proven to denote one reading — the case that owes no disclosure."""
         lawful, refused, faults = self._pin_verdicts(reducer, inner, tuple(anchor))
-        if len(lawful) == 1:
-            return (lawful[0],)
-        if lawful:
-            raise self._unpinned_reduction_refusal(reducer, inner, anchor, lawful)
+        readings = self._distinct_readings(reducer, inner, anchor, lawful)
+        if len(readings) == 1:
+            klass = readings[0]
+            return (klass[0],), len(klass) == 1
+        if readings:
+            raise self._unpinned_reduction_refusal(reducer, inner, anchor,
+                                                   [k[0] for k in readings])
         # |L| = 0. A REFUSAL EVERY CANDIDATE EARNS IS NOT ABOUT ANY CANDIDATE (P1-13). Where the
         # whole candidate set fails for ONE reason, that reason is a property of the ASK — most often
         # the OUTPUT anchor, which sits in every candidate's input grain and so refuses under every
@@ -2410,9 +2488,16 @@ class Planner:
         already made deliberately. Unpinned is caught statically in `_infer`; this defends the
         direct-`_node` path."""
         reducer, inner, pinned = rc
+        # DEFAULTED, AND WHETHER DEFAULTING DECIDED ANYTHING (ruled Huayin, 2026-09-01). Where several
+        # candidate pins are PROVEN analytically equivalent, realization used one representative rather
+        # than another and no meaning-bearing choice was made — so no MATERIAL input-anchor disclosure
+        # is owed. Where there is a single lawful candidate, the omitted anchor may still itself be
+        # material; that is the separate default-anchor question, expressly left open, and it keeps
+        # its caveat below.
         defaulted = pinned is None
+        meaning_bearing = True
         if defaulted:
-            pinned = self._unpinned_disposition(reducer, inner, anchor)
+            pinned, meaning_bearing = self._unpinned_reading(reducer, inner, anchor)
         self._check_pin_laws(pinned, anchor)                   # defends the direct-_node path (see _infer)
         # WP-GRAIN-1: the pinned levels pin THEIR lineage's resolution; output reduction dimensions
         # ORTHOGONAL to the pin (reachable from no pin level) join the input grain so the series carries
@@ -2465,7 +2550,7 @@ class Planner:
                     f"to '{pin_str}'), not the pooled value at {target}")
         note = Caveat(TRANSPORT, text, source=f"{pin_str}->{target}")
         out = Disclosure.merge(disc, Disclosure.of(note), population=disc.population)
-        if defaulted:
+        if defaulted and meaning_bearing:
             out = out.with_caveat(self._defaulted_anchor_caveat(reducer, inner, pinned, anchor))
         return "col", served, out, out_dtype
 
