@@ -90,8 +90,14 @@ def test_omitted_input_anchor_defaults_and_discloses_when_one_lawful_reading(fix
     # and when exactly one survives the planner defaults to it and PROCEEDS. The choice it made for the
     # reader rides on the wire as a MATERIAL `input_anchor` caveat — disclose, never a silent serve —
     # and the sugar path and the shipped terse path agree on that too.
-    sugar = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
-    shipped = wire_frame(fixture_server.frame("cal.month").column("rate", "avg(aov)").run())
+    # ANCHOR SWAPPED 2026-08-31 (P1-13). This used `{cal.month}` on the claim that `day` is the ONLY
+    # lawful input anchor there — true under the SUPERSEDED enumeration, which required a candidate to
+    # REACH the output anchor, and false under WP-GRAIN-1, where eight levels are lawful readings at
+    # `cal.month`. Defaulting silently to one of eight was the defect. `{customer, day, store}` is a
+    # genuine one-reading anchor: `product` is the only level that survives the same law an explicit
+    # pin is held to. The DISPOSITION LAW under test is unchanged.
+    sugar = _wire(fixture_server, "SELECT avg(aov) AT {customer, day, store}")
+    shipped = wire_frame(fixture_server.frame("customer", "day", "store").column("rate", "avg(aov)").run())
     assert sugar["outcome"] == shipped["outcome"] == "disclose"
     assert sugar["columns"][0].get("no_result") is None
 

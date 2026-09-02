@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "columna-server"
-version = "0.11.1"
+version = "0.12.0"
 description = "Columna MCP server — a library of Manifolds exposed to AI agents over MCP, one contract (the four moods as data)."
 readme = "README.md"
 # Matches columna-core's ceiling — see that file for why. Declared here too rather than inherited
@@ -46,6 +46,12 @@ dependencies = [
 [project.optional-dependencies]
 http = ["uvicorn>=0.23,<1.0", "starlette>=0.37,<2.0"]
 agent = ["anthropic>=0.40,<1.0"]
+# The test extra deliberately does NOT re-list `mcp`: it is a hard runtime dependency above, capped
+# `<2.0` since the 2026-07-29 live break, so any env built by INSTALLING this package gets the cap.
+# Recorded 2026-09-01 because an env assembled by hand-picking imports instead (`pip install mcp`
+# beside a PYTHONPATH pointing at src/) resolves mcp 2.x, where FastMCP was renamed to MCPServer —
+# `tests/conftest.py` then fails to import and the WHOLE server suite aborts at collection, which
+# reads like a code break rather than an env one. Install the package; do not assemble by hand.
 test = ["pytest>=8.0,<10.0", "pytest-asyncio>=0.23,<2.0"]
 
 [project.scripts]

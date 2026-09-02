@@ -1,0 +1,24 @@
+MANIFOLD product_manifold VERSION 1
+# The Manual's product-side vocabulary (6.4 mean with explicit input anchor, 6.10 top-N per group,
+# 6.12 allocation). Same rule as finance_manifold: every referenced name is declared.
+
+UNIVERSE engagement = customer * week BASIS events
+UNIVERSE catalog    = product BASIS spine
+
+LEVEL customer = customer_id BASE
+LEVEL week     = week        BASE
+LEVEL product  = product_id  BASE
+LEVEL category = category_id
+
+# A DIFFERENT table from finance_manifold's many-to-many `product_categories`, deliberately.
+# §5.6's relationship is genuinely M:N (a product sits in several categories); §6.10's top-N-per-
+# group example needs a FUNCTIONAL product -> category to climb. One table cannot honestly be both,
+# and adjudication proves functionality against the data — so it refuses the contradiction rather
+# than letting the fixture assert a rollup its own rows disprove.
+HIERARCHY catalogue {
+    product -> category VIA product_primary(product_id, category_id)
+}
+
+MEASURE engagement_score ON engagement FROM engagements AS sum(score)
+MEASURE product_revenue ON catalog FROM product_sales AS sum(amount)
+MEASURE category_weight ON catalog FROM product_categories AS sum(weight)

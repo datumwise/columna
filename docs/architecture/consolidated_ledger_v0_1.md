@@ -1055,7 +1055,7 @@ than returning a number.
 
 Not in the original inventory — the six audits found the tier claim in this table and stopped there.
 
-### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · VX
+### P0-18 · The Manual documents Frame-QL forms the shipped planner refuses · **HIGH** · **CLOSED 2026-08-31** · VX
 
 Found 2026-08-31 in the Column Algebra Mission 1 reconciliation. Same defect class as **P0-17**
 (operators marked available that do not resolve) and **OF-18**'s form-primacy finding (a careful
@@ -1094,6 +1094,46 @@ rejects; it proves nothing about whether the documented form *runs*.
 **Recommendation:** extend the standing check to **plan** each example against a fixture manifold,
 asserting each either resolves or carries a documented refusal — the same upgrade OF-18 asked for on
 status marks, applied to executable form. That is Mission B, not this row.
+
+#### Adjudicated CLOSED — 2026-08-31
+
+Ruled by Huayin, 2026-08-31: *"P0-18 appears not to have been formally closed in the ledger, even
+though Mission B has now done the work the row pointed toward… I would have CC adjudicate that row
+rather than leave the ledger suggesting the defect is still open."* **Adjudicated on re-run evidence,
+not on the mission's say-so** — the row's own probe table, replayed against HEAD on the adjudicated
+Manual fixtures:
+
+```text
+2.4/6.5 bare map (documented)   -> serve      (was serve)
+2.4 PINNED map operands         -> serve      (was error: unknown column 'transaction')   REPAIRED
+2.4 pinned, composite pin       -> serve      (was error: unsupported expression node Tuple) REPAIRED
+2.1 multi-input canonical       -> error      (unchanged — now correctly documented [ROADMAP])
+multi-arg shipped reducer       -> error      (unchanged — now correctly documented [ROADMAP])
+```
+
+**The row is about FALSE CLAIMS, and all four are gone** — two by repair and two by retraction, which
+are both legitimate closures of a claim defect:
+
+| # | the false claim | how it is now false-free |
+|---|---|---|
+| `:277` | *"the framework parses this form directly, type-checks it, and plans it"* of the multi-input shape | **retracted in place.** The Manual's own sync note quotes the withdrawn sentence, states that it is true of the single-input shape and false of the multi-input one, and marks the block a **schematic** under a `[ROADMAP]` section |
+| `:329-331` | pinned map operands shown as executable | **REPAIRED** (Mission B A1). Every pin spelling is now read; both examples serve |
+| `:561` | *"the framework checks that all input column references resolve to the same input anchor"* | **withdrawn in place**, and replaced by *"what the framework checks, stated exactly"* — a declared pin IS held; co-anchoring otherwise holds **by construction**; *"there is no general check… the earlier claim that there was is withdrawn"* |
+| `:315` | the multi-input `input_anchor_ambiguous` clarify | documented as **unreachable** and `[ROADMAP]`, with the arity refusal named as what fires first |
+
+**The structural finding is closed too, and that is the durable half.** The grammar-only gate is
+replaced by a **staged semantic gate**: a shipped-fenced example must parse **and plan**, and if it
+plans `serve`/`disclose` it is **executed** and its final disposition asserted; a `roadmap` fence
+asserts the section's mark instead. Standing at **40 examples / 0 FAIL** (was 37 while seventeen of
+them died at planning or execution). The general rule it now enforces — *a claim is not validated
+until the stage at which its claimed behaviour is observable* — is the thing that stops this row's
+defect class recurring, and it is what makes closure safe rather than optimistic.
+
+**Residuals are rowed, not folded into this closure.** The multi-input surface itself remains
+unbuilt and correctly marked (its canonical shape is `op(a @ A, b @ A, …)`, and it requires the
+participation / joint-support law first); the composite-pin engine-assembly gap is **P1-15**; the
+`WHERE` capability gap is **P1-14**. None of them is a Manual claim defect, which is what this row
+is.
 
 ### P0-16 · `CLAUDE.md` is stale relative to HEAD · **LOW** · **FIXED** in Unit C · SV
 
@@ -1195,6 +1235,213 @@ every guard in the path will pass, because the field is opaque by design and cor
 **Evidence:** VX. Recon under the shipped v0.18.1 artifacts; the receipt read out of the installed
 wheel; the public claim read off the live `/case` page; the compiler-subtree and core-subtree diffs
 run against `v0.16.0..main`.
+
+---
+
+### P1-13 · An unpinned reduction REFUSED "no lawful reading" where six explicit pins serve · **HIGH** · **FIXED 2026-08-31** · VX
+
+Found 2026-08-31 by the Mission B semantic gate; diagnosed read-only the same day; repaired under
+Huayin's authorization the same day. **The governing invariant, as ruled:**
+
+> Explicit pin validation and candidate-pin enumeration must use the same canonical admissibility law.
+
+```text
+SELECT avg(aov) AT {customer}                 -> refuse  blocked_reduction   ("no lawful reading")   BEFORE
+SELECT avg(aov @ {day}) AT {customer}         -> serve
+SELECT avg(aov @ {transaction}) AT {customer} -> serve
+```
+
+**THE DEFECT.** Two functions in one planner held two definitions of "a lawful pin". `_pin_input_grain`
+(execution) implemented WP-GRAIN-1 — the input grain is *pinned + the output's orthogonal levels*, so a
+pin need not REACH the anchor — while `_lawful_pins` (enumeration) still filtered candidates by
+`find_path({L}, T)`, the pre-WP-GRAIN-1 rule. The disposition was right *given* L; **L was computed
+against a superseded rule**. Same shape as the Mission B A1 defect: a generalization landed in one
+dispatcher and not in the sibling that has to agree with it.
+
+A SECOND, opposite gap sat beside it: the enumeration applied the pin-lattice and lineage laws but
+**not §2c**, so it OFFERED candidates that refuse the moment they are named. On the Manual fixture
+`SELECT sum(revenue) AT {region}` offered `store`, and `sum(revenue @ {store})` refuses
+`out_of_universe`. Under-enumerating in one direction and over-enumerating in the other, from the same
+root cause: enumeration was not the explicit-pin law.
+
+**WHAT SHIPPED.** Not a deletion of the reachability filter — a **replacement of it by the law it
+contradicted**, plus the missing filter, routed so the two paths cannot diverge again:
+
+| | before | after |
+|---|---|---|
+| explicit pin `R(x @ {L})` | `_check_pin_laws` → `_pin_input_grain` → `_infer` | **`_admit_pin`** |
+| enumerated candidate `L` | reachability + `_check_pin_laws` + travel law | **`_admit_pin`** |
+
+`_admit_pin` composes three ratified laws and mints none: WP-GRAIN-1 Laws 1 & 2; WP-GRAIN-1's input
+grain (the pin need not reach the anchor); and §2c/transport at that grain. `_pin_candidates` supplies
+the structural set — every DECLARED level not an output target — and carries no law at all.
+
+**NO RANKING, NO HEURISTIC, NO HIDDEN PRUNING** (ruled). The lawful set is returned in level order and
+the unchanged §9 rule is applied to it: |L| = 0 refuse, |L| = 1 default + material `input_anchor`
+caveat, |L| > 1 the existing `input_anchor_ambiguous` Clarify.
+
+**TWO REFINEMENTS THE EVIDENCE FORCED**, both found by running the corrected law over the whole ask
+surface rather than over the two witnesses:
+
+1. **A refusal every candidate earns is not ABOUT any candidate.** `sum(aov) AT {date, store}` fails
+   under *every* pin, because `store` is in the OUTPUT anchor and therefore in every candidate's input
+   grain. Collapsing that into "no lawful input anchor" traded a true diagnosis (`out_of_universe`) for
+   a vaguer one — the same class of loss P1-14 is about. When the whole candidate set agrees on a
+   reason, that refusal is now re-raised verbatim, so the unpinned form says what the pinned form says.
+   The test is **unanimity, not a reason list, and it is lazy**: an earlier draft re-raised eagerly on a
+   fixed "ask defect" set and broke generated-family ruling §1 — `sum(on_hand)` at `{store, month}`
+   errored `unknown` ("specify a member") instead of refusing the prohibited temporal sum.
+2. **The |L| = 0 detail reports the verdicts; it no longer asserts a cause.** It used to state that every
+   candidate "would reduce across a lineage the governed law blocks for it" — true while the lineage law
+   was the only filter, false once §2c joined it. It now names each candidate with the refusal that pin
+   would earn if written out. A refusal that names the wrong cause sends the reader to fix the wrong
+   thing, which is the `filter_unreachable`/`filter_unsupported` distinction one level down.
+
+**ADVERSARIAL EVIDENCE.** A 24,865-cell pre/post disposition matrix over the three adjudicated Manual
+fixtures (every reducer × measure × 1- and 2-level anchor, unpinned and every explicit pin):
+
+- **explicit-pin cells changed: 0.** Every pin that served still serves, same rows. The shared predicate
+  did not move the explicit path at all.
+- **3,480 offered candidates named back at the planner; 0 are refused.** The invariant holds by
+  construction, not by sampling.
+- `store` — the observed out-of-universe offer — is gone from every menu it appeared in.
+- 1,460 unpinned cells changed. **300 stopped serving** (|L| = 1 defaulted-disclose → |L| > 1 Clarify):
+  those numbers were one of several lawful readings chosen silently, which is the laundered answer the
+  Clarify exists to prevent. **30 started serving.** The rest are refusals moving to a truer reason.
+
+**CONSEQUENCES ON RECORD, not folded into the closure:**
+
+- **P1-15 is now reachable from a Clarify menu.** A candidate whose input grain spans two hierarchy
+  branches PLANS `serve` and dies in the engine (`unsupported`). It is *pre-existing and unchanged* —
+  verified identical pre- and post-repair on the explicit spelling — but the corrected enumeration
+  surfaces it, so a reader can now be *offered* a reading the build cannot execute. Filtering the menu
+  by engine capability would be a new capability gate and hidden pruning; **not taken.** See P1-15.
+- **The Afternoon page's count was wrong and is corrected.** `max(revenue) AT {region, month}` has
+  THREE governed readings (`day`, `order`, `store`), not two: `order` reaches neither output level and
+  the superseded rule dropped it, though `max(revenue @ {order})` has always served. The essay said
+  "Two governed meanings remain"; the sentence is corrected, and flagged rather than slipped in.
+- **The ergonomics question is open and is P1-17.** With both filters right, `avg(aov) AT {customer}`
+  clarifies over six same-universe candidates. Whether that is the intended shape of a Clarify is not
+  settled by OF-1, and it did not block this repair.
+
+Pinned by `tests/test_pin_admissibility.py` (9 cases; **6 fail against the pre-repair source**, the
+other three are "still works" guards and are non-discriminating by design), and by the anchor swaps
+recorded in `test_inline_reduction.py`, `test_afternoon_page_gate.py`, `test_envelope_*.py` and
+`test_mcp_server.py` — eleven standing tests whose premises ("only `day` reaches `cal.month`") were the
+superseded rule stated as fact. Each was re-aimed at an anchor where its premise is TRUE under the
+corrected law, never at whatever the new behavior happened to be.
+
+### P1-14 · The planner promised `serve` for a `WHERE` form the build cannot execute · **HIGH** · **CAPABILITY GATE SHIPPED; the underlying gap remains OPEN** · VX
+
+**THE ORIGINAL DIAGNOSIS IN THIS ROW WAS WRONG TWICE, and both corrections are recorded rather than
+quietly edited.** It first read *"`WHERE` plans and does not execute"* — false; `WHERE` executes. That
+evidence tested only the spelling the Manual uses (double-quoted literals) and generalised from it. The
+correction on 2026-08-31 then named TWO conditions under one row; one of them has since been repaired
+and **has been split out to P1-16**, because keeping a fixed defect inside an open row's umbrella is the
+same over-claim in a smaller form.
+
+**WHAT THIS ROW IS NOW, and only this:** a planner must not return a positive Serve/Disclose disposition
+for a form the current build cannot execute — and it did, for **a dimension reached only across a
+relationship**.
+
+```text
+SELECT revenue AT {store} WHERE day    >= '2025-01-13'   -> serve, 3 rows      SHIPPED
+SELECT revenue AT {store} WHERE day    >= "2025-01-13"   -> serve, 3 rows      SHIPPED (P1-16, repaired)
+SELECT revenue AT {store} WHERE region == 'north'        -> error  filter_unsupported
+SELECT revenue AT {store} WHERE amount >= 100            -> clarify filter_unreachable   correct, pre-existing
+```
+
+`region` is *reachable*, so this is emphatically not `filter_unreachable`; the predicate is pushed to
+the measure's own source, which carries the universe's BASE coordinates and not the joined ones.
+Confirmed on **two independent adjudicated fixtures** (the Manual fixture and the shipped
+`afternoon.cml` world).
+
+**What shipped:** the capability-honesty gate only, classified at `_where_reachability` — the seam that
+already adjudicates WHERE before the engine — on the minted reason **`filter_unsupported`** (ERROR),
+sibling to `filter_unreachable` and deliberately distinct from it: *unreachable is a fact about the
+Manifold and the asker can fix it; unsupported is a fact about the build and no rewording helps.*
+Collapsing them would tell a reader to fix something that is not theirs to fix.
+
+**What is still open:** the gap itself. Whether a filter may join is a language ruling, not a fix.
+§4.1.1 and §6.8a of the Frame-QL Manual carry the form under `[SCHEDULED]` and say why.
+
+Pinned by `tests/test_where_capability_gate.py`.
+
+### P1-16 · A double-quoted Frame-QL string literal was re-read by SQL as an identifier · **MEDIUM** · **FIXED 2026-08-31** · VX
+
+Split out of P1-14 on 2026-08-31 (ruled Huayin): it was gated there as one of two conditions, it is a
+different defect from the joined-dimension gap, and it is now repaired while that one is not. A closed
+defect inside an open row's diagnosis is a false umbrella.
+
+**THE DEFECT — one fact written twice, once wrong.** Frame-QL accepts `'east'` and `"east"` as the SAME
+language-level kind: `_literal` says so, and the polars/HAVING path honoured both. Only the push-down
+path diverged — it handed the predicate to the backend verbatim, where SQL's own quoting rule re-read
+`"east"` as a **column name**. The ask was one character from working, in the spelling the Manual
+documented.
+
+**THE REPAIR IS PATH CONVERGENCE, NOT A FILTERING FEATURE** (ruled). `Planner._to_backend_predicate`
+normalizes the Frame-QL literal into the substrate's spelling before the predicate becomes SQL, at the
+single point where that crossing happens — in `run()`, so the direct API and the statement path converge
+rather than the envelope alone. Embedded single quotes are doubled, SQL's own escape, so the
+normalization cannot carry a quote out of the literal and into the predicate's syntax.
+
+It admits **no dimension that was not already filterable**: `WHERE region == "east"` is still
+`filter_unsupported` for the P1-14 reason, exactly as `'east'` is, and `WHERE amount >= "100"` is still
+`filter_unreachable`. The two reasons stay distinct.
+
+**The `filter_unsupported` branch that gated this condition is REMOVED, not left dormant.** A capability
+gate is a statement about what the build cannot do; keeping one after the build could do it would make
+the gate itself the dishonesty it was minted to prevent.
+
+**Manual status, moved only as far as the evidence earns** (ruled): §4.1 is no longer marked
+`[SCHEDULED]` — the clause executes on a base dimension in either quote spelling, and the note that said
+otherwise is corrected in place rather than replaced. The examples that filter through a
+relationship-derived dimension did NOT become executable and moved to §4.1.1 / §6.8a, which stay
+`[SCHEDULED]` for the P1-14 reason. The semantic gate reads 40 examples / 0 FAIL (was 37), with three
+moving from `roadmap` to `shipped, planned and executed`.
+
+Pinned by `tests/test_where_capability_gate.py` (11 cases; 4 fail against the pre-repair source). The
+convergence test asserts the two spellings reach the same disposition **and the same rows**, written as
+one parametrized comparison rather than two hand-copied expectations — because the defect *was* the same
+fact written twice with one copy wrong.
+
+### P1-17 · A corrected Clarify menu can offer six lawful readings · **LOW** · **OPEN — design question, deliberately not answered** · VX
+
+Opened 2026-08-31 out of P1-13, at Huayin's instruction that ergonomic narrowing is a separate question
+and must not be used to defer the correctness repair.
+
+With enumeration brought forward to WP-GRAIN-1 + §2c, `SELECT avg(aov) AT {customer}` clarifies over six
+same-universe candidates (`date`, `day`, `month`, `product`, `transaction`, `year`). Every one of them
+serves when named — the menu is *correct*. The open question is whether a six-item menu is the intended
+SHAPE of a Clarify, and whether `year` and `product` belong on a menu for "average order value per
+customer". OF-1's one-reason-per-contested-dimension rule does not settle it.
+
+**Nothing may be added here without a ruling.** Ranking, a "reasonable pin" heuristic, or pruning by
+what the engine can currently assemble would each mean the framework quietly choosing among lawful
+readings — the precise thing the Clarify exists to refuse to do. A narrowing that is a *law* (a declared
+default input anchor, say) is a different proposal and would be one.
+
+### P1-15 · A composite pin whose levels are reached by SEPARATE hierarchies does not assemble · **MEDIUM** · **OPEN — no repair authorized** · VX
+
+The residual of Mission B A1, kept visible rather than folded into that repair's closure (ruled
+Huayin, 2026-08-31). A1 fixed the pin's **interpretation** — every spelling is now read, and the
+documented map-with-pinned-operands form plans. On a manifold where the pinned levels are reached
+from the base by separate hierarchies through one table, the frame still fails to assemble in the
+engine (`ColumnNotFoundError`); on a chained-calendar shape the identical form executes and serves.
+
+It contradicts a shipped Manual commitment — §6.15 and §6.16 present the composite input anchor as
+producing a result — so those sections are marked `[SCHEDULED]` until this closes. Pinned by
+`test_composite_pin_map_still_fails_IN_THE_ENGINE_on_this_manifold_shape`, which asserts the CURRENT
+state and is to be struck when the engine grows the capability.
+
+**SEVERITY RAISED IN PRACTICE 2026-08-31 (from P1-13), though the defect itself is untouched.** The
+corrected candidate enumeration now OFFERS such pins in a Clarify menu, so a reader can be handed a
+reading that plans `serve` and then dies in the engine — the P1-14 rule, one level removed. Verified
+identical pre- and post-repair on the explicit spelling (`sum(aov@product) AT {date}`: plan `serve`,
+run `error/unsupported`, both), so nothing regressed; what changed is reach. **Filtering the menu by
+what the engine can currently assemble was NOT taken**: it would be a new capability gate and hidden
+pruning, neither authorized. The honest options are to fix this row or to rule on the gate; leaving it
+silent is not one, which is why it is written down here.
 
 ---
 

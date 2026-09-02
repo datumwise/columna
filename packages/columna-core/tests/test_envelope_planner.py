@@ -155,12 +155,18 @@ def test_where_pre_reduction_runs(fixture_server):
         assert v <= fmap[st] + 1e-9
 
 
-def test_where_unreachable_clarifies(fixture_server):
-    # filter_unreachable (flag 2, minted): `level` lives in store_days; `customer` is transactions-only,
-    # so the WHERE dimension cannot reach the series' input anchor -> a per-series CLARIFY (adjudicated
-    # before the engine is invoked).
+def test_where_unreachable_refuses(fixture_server):
+    # filter_unreachable: `level` lives in store_days; `customer` is transactions-only, so the WHERE
+    # dimension cannot reach the series' input anchor -> a per-series refusal, adjudicated before the
+    # engine is invoked.
+    #
+    # WAS `clarify` UNTIL P1-22 (ruled Huayin, 2026-09-01). `customer` is real governed structure, so
+    # this is not a language failure — but there is no lawful reading of THIS request either, and a
+    # Clarify asks the reader to choose among readings. There was nothing here to choose between: the
+    # "alternatives" were rewrites of the ask. Clarify is reserved for genuine multiple lawful
+    # readings; this is |L(Q)| = 0, and |L(Q)| = 0 is Refuse.
     w = _wire(fixture_server, "SELECT level.sum AT {store} WHERE customer = 'C001'")
-    assert w["outcome"] == "clarify"
+    assert w["outcome"] == "refuse"
     nr = w["columns"][0]["no_result"]
     assert nr["reason"] == "filter_unreachable"
     assert "customer" in nr["detail"] and len(nr["alternatives"]) >= 1
@@ -216,10 +222,16 @@ def test_envelope_unpinned_single_lawful_reading_discloses(fixture_server):
     # FIRST; when exactly ONE survives there is nothing to choose between, so the planner defaults to
     # it and PROCEEDS — wire outcome `disclose`, carrying a MATERIAL `input_anchor` caveat that names
     # the defaulted grain. Never a clarify: a menu of one is not a question.
-    w = _wire(fixture_server, "SELECT avg(aov) AT {cal.month}")
+    # ANCHOR SWAPPED 2026-08-31 (P1-13). This used `{cal.month}` on the claim that `day` is the ONLY
+    # lawful input anchor there — true under the SUPERSEDED enumeration, which required a candidate to
+    # REACH the output anchor, and false under WP-GRAIN-1, where eight levels are lawful readings at
+    # `cal.month`. Defaulting silently to one of eight was the defect. `{customer, day, store}` is a
+    # genuine one-reading anchor: `product` is the only level that survives the same law an explicit
+    # pin is held to. The DISPOSITION LAW under test is unchanged.
+    w = _wire(fixture_server, "SELECT avg(aov) AT {customer, day, store}")
     assert w["outcome"] == "disclose"
     assert w["columns"][0].get("no_result") is None
     codes = [(d["code"], d["materiality"]) for d in w["columns"][0]["disclosures"]]
     assert ("input_anchor", "material") in codes
     detail = next(d["detail"] for d in w["columns"][0]["disclosures"] if d["code"] == "input_anchor")
-    assert "DEFAULTED to 'day'" in detail
+    assert "DEFAULTED to 'product'" in detail

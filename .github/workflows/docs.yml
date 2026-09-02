@@ -7,9 +7,14 @@ name: docs
 on:
   push:
     branches: [main, wp-manuals-alignment]
-    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/**', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
   pull_request:
-    paths: ['docs/**', 'packages/*/README.md', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'packages/**', 'apps/website/src/pages/docs/**', '.github/workflows/docs.yml']
+  # `packages/**` WIDENED FROM `packages/*/README.md` (Mission B, 2026-08-31). The manual gate now
+  # PLANS and EXECUTES its examples against the shipped planner, so a change to `columna_core` can
+  # break a documented outcome without touching a single file under `docs/`. Left as it was, the job
+  # would not have run — which is precisely the masking failure the note below records, arriving by a
+  # new route: the guard's inputs grew and its trigger did not.
   # THE MASKING FIX (Huayin, 2026-07-25). The path filter above is what let a red `main` hide from
   # 2026-07-19 to 2026-07-25: regen-check was broken by purged grammar, but nothing touched `docs/**`,
   # so the job simply never ran and no one saw a failure. A weekly run means the truth about `main`
@@ -37,7 +42,26 @@ jobs:
       # FrameQL example in the manual parses clean against the shipped parser, or is fenced
       # `frameql-illformed` (deliberately ill-formed). The manual can never document syntax its own
       # parser rejects. Green once columna-core is 0.9.0 (the envelope parser); this rides the flip.
-      - name: FrameQL manual parses against the shipped parser
+      # MISSION B (2026-08-31): this was PARSE-ONLY and reported 37/37 green while seventeen of
+      # those examples died at planning or execution, and while four Chapter 6 examples used forms
+      # §2.8 itself calls unshipped, unmarked. It now plans every shipped example through the real
+      # planning surface and EXECUTES the ones that plan to serve/disclose — because an example
+      # presented as executable is not validated until the stage at which its claimed behaviour is
+      # observable. Needs the adjudicated fixtures under docs/tools/manual_fixtures/, which publish
+      # against an in-process DuckDB world (no parquet, nothing to fetch).
+      # THE CAPABILITY AUTHORITY (2026-09-01). One governed capability disposition has ONE authority;
+      # every manual/profile/build representation is a checked projection. These two steps are what
+      # make that true rather than aspirational — the first joins canonical standing (specs/) against
+      # the AUTHORED profile contract and the MEASURED build, the second fails if a committed
+      # capability table has drifted from the authority. Together they close the P0-17 class: a
+      # disposition adjudicated in one manual can no longer sit contradicted in another, because
+      # neither manual states it independently any more.
+      - name: Canonical capabilities, profile contract, and measured build agree
+        run: python docs/tools/capability_authority.py
+      - name: Capability tables are current projections of the authority
+        run: python docs/tools/regen_capability_tables.py --check
+
+      - name: FrameQL manual reaches its documented outcome against the shipped planner
         run: python docs/tools/check_manual_frameql.py
 
       # UNIT C (2026-08-31). The manuals asserted a purchasable "Pro" tier for four days after the

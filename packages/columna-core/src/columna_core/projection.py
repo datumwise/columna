@@ -68,6 +68,9 @@ class OperatorSig:
     is_monoid: bool = True  # reducer reduces by an associative combine (holistic => False)
     linear: bool = False    # ALGEBRAIC (WP-B): preserves linear combinations — the sum-fertility
                             # symbolic gate (sum,+,-,neg True; *,/ conditional via the scalar rule)
+    re_entrant: bool = False  # RE-ENTRY CERTIFIED (see operators.py): finalizing at a lawful
+                              # intermediate partition and re-applying denotes the same result.
+                              # Governs whether several lawful input anchors are ONE reading.
 
 @dataclass(frozen=True)
 class UniverseShape:
@@ -168,7 +171,7 @@ class PlannerView:
         # operator SIGNATURES (vocabulary): name -> (kind, accepts, out_rule, flags). NOT mechanics.
         self.operators = {n: OperatorSig(n, op.kind, op.accepts, op.out_rule,
                                          op.needs_order, op.needs_window, op.in_core, op.is_monoid,
-                                         op.linear)
+                                         op.linear, op.re_entrant)
                           for n, op in REGISTRY.items()}
 
     def output_dtype(self, op_name: str, in_dtype: str) -> str:

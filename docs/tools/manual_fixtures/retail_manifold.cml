@@ -1,0 +1,32 @@
+MANIFOLD retail_manifold VERSION 1
+# The Manual's `FROM retail` / `FROM retail_manifold` examples (6.15 the envelope end to end, 6.16
+# the composite input anchor, 8.2 name aliases). They address {region * store} and pin
+# {store*product*cal.month}, so store, product and a dotted `cal.month` must all be coordinates of
+# the same universe — which is why this is a third manifold and not an alias of the finance one.
+
+UNIVERSE sales = transaction BASIS events
+
+LEVEL transaction = txn_id     BASE
+LEVEL store       = store_id
+LEVEL product     = product_id
+LEVEL region      = region
+LEVEL day         = day
+LEVEL cal.month   = month
+
+HIERARCHY location {
+    transaction -> store  VIA rtxns(txn_id, store_id) ;
+    store       -> region VIA stores(store_id, region)
+}
+HIERARCHY catalogue {
+    transaction -> product VIA rtxns(txn_id, product_id)
+}
+HIERARCHY calendar {
+    transaction -> day       VIA rtxns(txn_id, day) ;
+    day         -> cal.month VIA calendar(day, month)
+}
+
+MEASURE revenue         ON sales FROM rtxns AS sum(amount)
+MEASURE orders          ON sales FROM rtxns AS count(*)
+MEASURE unique_visitors ON sales FROM rtxns AS distinct(customer_id)
+
+DERIVED aov = revenue / orders

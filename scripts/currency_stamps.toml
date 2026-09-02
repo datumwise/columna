@@ -31,55 +31,57 @@
 # the block at the foot of this file. Enrolment is how coverage grows; it grows by a named entry in
 # this file and a reason beside it, never by the guard deciding on its own what looks current.
 
-# ── docs/frame_ql_manual_v2.md ───────────────────────────────────────────────────────────────────
+# ── docs/frame_ql_language.md ───────────────────────────────────────────────────────────────────
 # The Manual is the normative reference for shipped syntax and behaviour, so every sentence in it
 # that names what ships is enrolled — not merely the Currency paragraph. These nine are exactly the
 # current-state stamps corrected in PR #210.
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "Currency paragraph — the package triad"
+file = "docs/frame_ql_build_status.md"
+claim = "current packages — the package triad"
 template = "current for **columna {umbrella} · columna-core {core} ·"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "Currency paragraph — the server and the wire contract"
+file = "docs/frame_ql_build_status.md"
+claim = "current packages — the server and the wire contract"
 template = 'columna-server {server}**, wire `contract_version` **`"{contract}"`**.'
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "edition block — 'documents it as implemented'"
-template = "documents it **as implemented** (columna-core {core})."
+file = "docs/frame_ql_build_status.md"
+claim = "current packages — documents it as implemented"
+template = "documents Frame-QL **as implemented** (columna-core {core})."
+
+# ENROLLED 2026-09-02: the query-error reason-fidelity note, added when §7.3 moved the two
+# build/interface facts out of canonical prose. It names the build it is a fact ABOUT, so it is a
+# current-state claim like the six above it — and an unenrolled one would have gone stale at the very
+# next bump with nothing to catch it, which is the failure this manifest exists for.
+[[stamp]]
+file = "docs/frame_ql_build_status.md"
+claim = "query-error reason fidelity — the build it measures"
+template = "about columna-core {core}, not language law"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "harness note — the parser the examples are checked against"
+file = "docs/frame_ql_build_status.md"
+claim = "how the examples are checked — the parser"
 template = "parser (`columna_core.envelope.parse_statement`, columna-core {core})"
 
+# RE-ENROLLED 2026-09-01: the manual split by jurisdiction, and both of these are REALIZATION claims
+# — they name a version, so they belong in the build-status document and not in the language manual,
+# which is now build-independent by design. Moved, not reworded.
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "revision note — the standing self-check's package"
+file = "docs/frame_ql_build_status.md"
+claim = "what ships — the standing self-check's package"
 template = "run against the shipped columna-core — {core} at this revision)"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "2.8 — the roadmap forms are not in the shipped envelope"
+file = "docs/frame_ql_build_status.md"
+claim = "unrealized surfaces — the roadmap forms"
 template = "part of the shipped envelope (columna-core {core})"
 
 [[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "2.9 — what ships"
+file = "docs/frame_ql_build_status.md"
+claim = "what ships — the envelope"
 template = "What ships through columna-core {core} is the envelope"
-
-[[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "Appendix B — the shipped statement keywords"
-template = "**The shipped envelope statement keywords** (columna-core {core};"
-
-[[stamp]]
-file = "docs/frame_ql_manual_v2.md"
-claim = "colophon — the edition's current shipped set"
-template = 'current for columna-core {core} / columna-server {server} and wire contract `"{contract}"`'
 
 # ── the two public surfaces that carry the contract claim ────────────────────────────────────────
 # `llms_index.txt` is served verbatim at /llms.txt and /llms-full.txt — the document a stranger's

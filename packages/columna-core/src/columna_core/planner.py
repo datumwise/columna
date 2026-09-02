@@ -23,6 +23,41 @@ from .disclosure import (Disclosure, Refusal, Caveat, TRANSPORT, UNCONFIRMED,
                          SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
 from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
 
+
+# ── THE SUBSTRATE BOUNDARY (P1-26) ───────────────────────────────────────────────────────────────
+# Frame-QL's expression grammar is HOSTED on CPython's `ast`, and that is an implementation choice,
+# not a fact about the language. Every place this planner handed expression text to `ast.parse`, a
+# raw CPython `SyntaxError` could travel all the way out to the caller AS FRAME-QL'S ANSWER — so
+# `count(*)` was answered with "Invalid star expression" and `revenue[region = "east"]` with
+# "Maybe you meant '==' or ':=' instead of '='?". Both are the substrate talking about Python, about
+# forms the Manual documents at length in its own terms, and neither is a thing this language ever
+# said. A language that leaks its host's diagnostics has no boundary.
+#
+# Ruled (Huayin, 2026-09-01): the build defect must be repaired so Frame-QL never leaks substrate
+# syntax or errors as its language answer. This is the ONE crossing point. Nothing below it may call
+# `ast.parse` on text; everything above it sees `FrameQLSyntaxError`, the language's own channel.
+#
+# IT NAMES NO SEMANTICS. Converting the error is not deciding what `count(*)` means or whether the
+# bracket filter ships — those stay exactly as open as §§2.8/4.2 leave them. It only guarantees the
+# refusal is spoken in Frame-QL.
+def _parse_expr(src: str, mode: str = "eval", *, origin: str = "expression"):
+    """Parse Frame-QL expression text. A substrate parse failure becomes FrameQLSyntaxError."""
+    try:
+        return ast.parse(src, mode=mode)
+    except SyntaxError as e:
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(
+            f"Frame-QL cannot read this {origin}: {src!r}. It is not a well-formed series "
+            f"expression (at offset {getattr(e, 'offset', None) or '?'}). See Chapter 2 for the "
+            f"canonical form, and \u00a72.8 for the forms the envelope has not yet grown into."
+        ) from None
+    except ValueError as e:                     # null bytes and friends — also the substrate's, not ours
+        from .frameql import FrameQLSyntaxError
+        raise FrameQLSyntaxError(
+            f"Frame-QL cannot read this {origin}: {src!r} ({e})") from None
+
+
+
 _ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
             ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
             ast.MatMult,  # `@` — the INPUT-ANCHOR pin inside an inline reduction (aov@day)
@@ -40,6 +75,11 @@ _V = "_v"
 #             open by default, so an empty set means no prohibition, never no permission).
 #   written   True if the reader spelled the reducer as a declared member; False if it was GENERATED.
 _Travel = namedtuple("_Travel", "op frm to subject law written")
+
+
+#: Verdicts about a PIN'S SHAPE against the output rather than about the reduction's lawfulness
+#: (§2.3 Laws 1 and 2). Excluded from the unanimity test in `_no_lawful_pin_refusal` — see there.
+_PIN_SHAPE_REASONS = frozenset({"pin_coarser_than_output", "redundant_pin"})
 
 
 def _fmt_anchor(anchor) -> str:
@@ -108,6 +148,21 @@ class FrameResult:
             else:
                 lines.append(f"      └─ {c.disclosure.render_human()}")
         return "\n".join(lines)
+
+
+class _ExpressionFault(Exception):
+    """INTERNAL. A refusal that is about the EXPRESSION, not about the candidate pin being tried.
+
+    P1-25. `_admit_pin` composes candidate laws (pin laws, input grain, travel) and then calls
+    `_infer`, which adjudicates the expression itself — its names, its types, its family member.
+    `_infer`'s answer does not depend on the pin, so it is the same for every candidate; recording it
+    as that candidate's verdict manufactures evidence. This wrapper is how the enumeration tells
+    "this level is unlawful" from "this ask never became adjudicable", structurally rather than by
+    matching reason strings, so it stays correct as laws are added on either side."""
+
+    def __init__(self, refusal):
+        self.refusal = refusal
+        super().__init__(str(refusal))
 
 
 class Planner:
@@ -239,26 +294,77 @@ class Planner:
         """The lawful ORDER AXIS for a scan @ anchor — the planner's decision, not the engine's.
 
         P0.5a: the axis is execution-relevant (it fixes the sort the scan walks, so it moves shipped
-        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only. An explicit
-        `by=` is the author naming the axis and is honoured as before."""
+        numbers), so it is derived from POSITIVELY ADMITTED hierarchy structure only.
+
+        P1-24 (ruled Huayin, 2026-09-01):
+
+            Explicit `by=` may SELECT governed order standing. It may not CREATE it.
+
+        This method used to begin `if by is not None: return by` — the named axis was never validated
+        against anything. `by='customer'` therefore SERVED: a real level, present in the anchor,
+        carrying no governed order at all, silently walking an axis the unnamed path refuses to
+        derive. `by='zzz_not_a_level'` fell through to a bare `ColumnNotFoundError` in the engine and
+        was reported as a build capability gap — an invalid request wearing a realization gap's
+        clothes. The `by=` escape hatch that both refusals recommended was unchecked in every
+        direction.
+
+        The five cases of v0.2 §11, each in its own jurisdiction:
+
+            by= names something that is not a declared level   -> LANGUAGE   (`unknown`)
+            by= names a level with no governed order standing
+              for THIS operation (absent from the anchor, or
+              present and conferring no order)                 -> ANALYTICAL (`order_not_governed`)
+            no by=, several lawful governed orders             -> ANALYTICAL (`order_axis_ambiguous`)
+            no by=, no lawful governed order                   -> ANALYTICAL (`order_not_governed`)
+            no by=, exactly one lawful governed order          -> proceed
+
+        WHAT THE GOVERNED ORDER SET IS, and what this change deliberately does NOT decide. The set is
+        `orderable_levels()` — levels on ADMITTED temporal lineages. The ruling is explicit that a
+        temporal level is "one common source of governed order, not the definition of order", so that
+        set may later widen. Widening it means declaring a NEW SOURCE of order standing, which is
+        declaration law and not this repair's to invent. So this method validates against the set the
+        build actually derives today and says so; if the set grows, every case below follows it
+        without further change."""
+        governed = self.m.orderable_levels()
+        in_anchor = governed & set(anchor)
         if by is not None:
+            if by not in self.m.levels:
+                raise Refusal("unknown",
+                    f"scan '{scan_op}': by={by!r} is not a declared level "
+                    f"(declared: {sorted(self.m.levels)}). An order axis must name governed "
+                    f"structure; naming something else does not create it.",
+                    measure=measure, target=str(anchor))
+            if by not in in_anchor:
+                why = ("is not a coordinate of this frame's anchor" if by not in set(anchor)
+                       else "carries no governed order standing (no CERTIFIED temporal lineage "
+                            "admits it)")
+                raise Refusal("order_not_governed",
+                    f"scan '{scan_op}' @ {anchor}: by={by!r} {why}, so it confers no order for this "
+                    f"operation. Naming an axis SELECTS governed order standing; it does not create "
+                    f"it. Orders governed here: {sorted(in_anchor) or 'none'}.",
+                    measure=measure, target=str(anchor),
+                    alternatives=tuple(f"order by the governed axis {lv!r} with by={lv!r}"
+                                       for lv in sorted(in_anchor))
+                               or ("publish/adjudicate so a temporal hierarchy over this anchor is "
+                                   "certified",))
             return by
-        orderable = self.m.orderable_levels() & set(anchor)
-        if len(orderable) == 1:
-            return next(iter(orderable))
-        if not orderable:
-            raise Refusal("unknown",
-                f"scan '{scan_op}' @ {anchor} has no derivable order axis (no CERTIFIED temporal "
-                f"level in the anchor); name it with by=<level>. A declared-but-uncertified "
-                f"hierarchy confers no order axis — declaration makes structure eligible for "
-                f"certification, not executable.",
+        if len(in_anchor) == 1:
+            return next(iter(in_anchor))
+        if not in_anchor:
+            raise Refusal("order_not_governed",
+                f"scan '{scan_op}' @ {anchor} has no governed order axis (no CERTIFIED temporal "
+                f"level in the anchor). A declared-but-uncertified hierarchy confers no order axis — "
+                f"declaration makes structure eligible for certification, not executable. There is "
+                f"no lawful reading of this ask to serve.",
                 measure=measure, target=str(anchor),
-                alternatives=("name the axis explicitly with by=<level>",
+                alternatives=("address at an anchor that carries a certified temporal level",
                               "publish/adjudicate so the temporal hierarchy is certified"))
-        raise Refusal("unknown",
-            f"scan '{scan_op}' @ {anchor} order axis is ambiguous ({sorted(orderable)}); "
-            f"name it with by=<level>", measure=measure, target=str(anchor),
-            alternatives=("name the axis explicitly with by=<level>",))
+        raise Refusal("order_axis_ambiguous",
+            f"scan '{scan_op}' @ {anchor} has several lawful governed order axes "
+            f"({sorted(in_anchor)}) and the ask selects none; each would walk a different sequence, "
+            f"so they are different lawful readings rather than one answer. Name the axis.",
+            measure=measure, target=str(anchor),
+            alternatives=tuple(f"by={lv!r}" for lv in sorted(in_anchor)))
 
     def plan_routes(self, measure: str, anchor: tuple):
         """PUBLIC: the certified route plan for `measure` @ `anchor`, as (routes, split).
@@ -451,6 +557,10 @@ class Planner:
     def run(self, anchor: tuple, columns: list, where: Optional[str] = None, population: Optional[str] = None,
             where_unreachable: Optional[dict] = None) -> FrameResult:
         self._refresh_scope_currency()     # P0.5b-0: one data-identity probe per request, not per column
+        # P1-14a: the ONE place a Frame-QL predicate becomes backend SQL. Normalizing here (rather than
+        # at the envelope, which is only one of the callers) means the direct `run(...)` API and the
+        # statement path converge on the same literal law instead of drifting apart again.
+        where = self._to_backend_predicate(where)
         results = []
         for name, expr in columns:
             trace = []
@@ -465,7 +575,7 @@ class Planner:
                 # COMPILE: static typecheck (vocabulary, signatures, addressability, expression
                 # typing) — no engine calls. Operator-not-supported and type errors are caught
                 # HERE, before any backend work; they are vocabulary errors, not data errors.
-                tree = ast.parse(expr, mode="eval")
+                tree = _parse_expr(expr, mode="eval")
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
@@ -586,6 +696,23 @@ class Planner:
             expr = re.sub(rf"\b{re.escape(name)}\b", f"({sub})", expr)
         return expr
 
+    _ATOMIC_SUB = re.compile(r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$")
+
+    def _apply_subs_predicate(self, pred: str, subs: dict) -> str:
+        """`_apply_subs` for a PREDICATE, where the left-hand side is read as a bare column name.
+
+        `_apply_subs` wraps every substitution in parentheses to preserve precedence, which is right
+        for an expression and wrong here: `WHERE d >= '2024-01-01'` with `WITH d = day` would become
+        `(day) >= '2024-01-01'`, and `_predicate_column` reads the LHS by splitting on the operator,
+        so it would see the column `'(day)'` and refuse a predicate that is perfectly good. An ATOMIC
+        substitution — a bare identifier or dotted level, which is what a filterable dimension is —
+        can never need parentheses, so it is substituted bare and the canonical text stays the text a
+        reader would have written. Compound substitutions keep their parentheses."""
+        for name, sub in subs.items():
+            repl = sub if self._ATOMIC_SUB.match(sub.strip()) else f"({sub})"
+            pred = re.sub(rf"\b{re.escape(name)}\b", repl.replace("\\", "\\\\"), pred)
+        return pred
+
     def _convert_input_anchor(self, expr: str) -> str:
         """`@ {X}` -> a form the expression parser reads as the input-anchor pin (WP-GRAIN-1):
           • single level `@ {day}` -> `@ day`         (bare Name/Attribute — the legacy shape, unchanged)
@@ -597,7 +724,14 @@ class Planner:
         def repl(m):
             inner = m.group(1).strip()
             if not inner:
-                self._synerr("an input anchor `@ { }` is empty — name the grain, e.g. avg(aov @ {day})")
+                # `@ {}` IS A DECLARED GRAIN, not a missing one (§2.6 — Mission B repair). It is the
+                # Manifold-wide scalar: "`{}` being the defining boundaries collapsed to one point",
+                # the denominator of `revenue @ {customer} / revenue @ {}`. It was refused here as
+                # malformed, which made the documented broadcast form unreachable in both places the
+                # Manual shows it. The empty product is the empty tuple, and `AT {}` already resolves
+                # at that grain, so the grain needed no invention — only the pin spelling did.
+                return "@ ()"
+
             levels = [t.strip() for t in re.split(r"[*,]", inner)]
             if any(not t for t in levels):
                 self._synerr(f"malformed input anchor `@ {{{inner}}}` — name each level, "
@@ -623,7 +757,7 @@ class Planner:
         derivation. A composite/nested/map/bracket expression is still REFUSED for a name (the
         author owns it with AS — an author-owned name never changes under any future rule)."""
         try:
-            body = ast.parse(self._convert_input_anchor(expr), mode="eval").body
+            body = _parse_expr(self._convert_input_anchor(expr), mode="eval").body
         except SyntaxError:
             self._synerr(f"cannot name series {expr!r} — give it a name with AS")
         rc = self._reduction_call(body) if isinstance(body, ast.Call) else None
@@ -675,12 +809,53 @@ class Planner:
         series = []
         for s in stmt.series:
             expr = self._canon_expr(self._apply_subs(s.expr, subs))
-            name = s.alias or self._default_name(expr)   # canonical expression IS the identity (WP-NAME-1)
+            # A MACRO BINDING'S NAME SURVIVES ITS OWN INLINING (§4.5, §6.14 — Mission B repair).
+            # `WITH profit = (revenue - cost) SELECT profit` used to be refused "series
+            # '((revenue - cost))' has no derivable name": substitution ran first, and by the time
+            # naming looked at the series the only name anyone had written was gone. Adding `AS
+            # profit` served, which is the tell — the expression was always fine, the identity was
+            # dropped. A binding is a DECLARED NAME, exactly like an alias, so it is read off the
+            # series as WRITTEN rather than off the expression it expands to. WP-NAME-1 is untouched:
+            # it governs a series with no name of its own, and this one has one.
+            written = s.expr.strip() if isinstance(s.expr, str) else None
+            name = s.alias or (written if written in subs else None) or self._default_name(expr)
             series.append(E.Series(expr=expr, alias=name))
         anchor = self.resolve_anchor(stmt.anchor)
+        where = [self._expand_total(p, subs, "WHERE") for p in stmt.where]
+        # HAVING / ORDER BY are NOT expanded here, and that is the law rather than an omission
+        # (P1-27, ruled 2026-09-01). `_validate_clause_refs` states the §5 clause-reference law:
+        # they "reference the output frame's OWN columns only — no hidden pulls". A macro's name
+        # SURVIVES its own inlining as the series name (see the naming note above, Mission B), so a
+        # bare-macro series named `profit` puts a column called `profit` on the frame and
+        # `HAVING profit > 0` resolves against THAT — an output-column reference, not an unexpanded
+        # macro. Expanding here would rewrite it to `(revenue - cost) > 0`, which names measures the
+        # output frame does not carry, and would break §6.14 by violating the very law that makes it
+        # work. WHERE is different in kind: it binds PRE-reduction, over the series' own input, so a
+        # macro there is an input expression and must be expanded to mean what the Manual says it
+        # means (§4.5: "the canonical form of a statement is the canonical form of its full expansion").
         return E.Statement(series=series, anchor=anchor, explain=stmt.explain,
-                           from_manifold=stmt.from_manifold, bindings=[], where=list(stmt.where),
+                           from_manifold=stmt.from_manifold, bindings=[], where=where,
                            having=list(stmt.having), order_by=list(stmt.order_by), limit=stmt.limit)
+
+    def _expand_total(self, text: str, subs: dict, clause: str) -> str:
+        """Substitute WITH bindings into a clause and PROVE the expansion was total (P1-27).
+
+        The substitution is not the repair; this assertion is. Before it, `desugar` inlined bindings
+        into the series and copied WHERE verbatim, so `WITH day = month ... WHERE day >= '2024-02'`
+        planned the predicate `day >= '2024-02'` — and where the macro's name collided with a declared
+        level, the unexpanded name resolved to the HOMONYM and a different question was answered and
+        SERVED clean, with no disclosure. That is the state Ruling v0.2 §9 forbids ("Binding may supply
+        omitted context. It may not override explicit canonical meaning") and §14 forbids again for
+        realization. It must be unreachable, not merely fixed, so the canonical form is required to be
+        a FIXED POINT of its own substitution: expanding twice must equal expanding once. If a binding
+        reintroduces a bound name, the statement has no total canonical form and cannot be adjudicated,
+        which is a language-validity failure and is raised as one."""
+        once = self._apply_subs_predicate(text, subs)
+        if self._apply_subs_predicate(once, subs) != once:
+            self._synerr(f"{clause} predicate {text!r} has no total canonical form — a WITH binding "
+                         f"reintroduces a bound name, so the expansion does not terminate. Rename the "
+                         f"binding so it does not shadow a name its own expansion uses.")
+        return once
 
     def _check_name_collisions(self, columns: list, anchor: tuple):
         """§4: collisions are REFUSED, never suffixed — incl. a column name vs an anchor-dimension name."""
@@ -726,20 +901,45 @@ class Planner:
                                  f"each group, so the partition key must also sort; add {d!r} to ORDER BY "
                                  f"(e.g. ORDER BY {d}, …)")
 
+    #: `col IN (v, v, …)` — set membership (§6.8, Mission B repair). Matched with word boundaries and
+    #: a parenthesised right side so a column whose NAME contains "in" (`inventory`, `margin`) cannot
+    #: be mistaken for the operator — the substring test the comparison ops use would do exactly that.
+    _IN = re.compile(r"^\s*(?P<col>[\w.]+)\s+IN\s*\((?P<vals>.*)\)\s*$", re.IGNORECASE | re.DOTALL)
+
+    def _in_predicate(self, pred: str):
+        """(column, [values]) for an `IN` predicate, or None if this is not one."""
+        m = self._IN.match(pred)
+        if not m:
+            return None
+        raw = [v.strip() for v in m.group("vals").split(",") if v.strip()]
+        if not raw:
+            self._synerr(f"predicate {pred!r} has an empty IN list — an empty set matches nothing; "
+                         f"say so directly rather than writing a filter that cannot pass")
+        return m.group("col"), [self._literal(v) for v in raw]
+
     def _predicate_column(self, pred: str) -> str:
+        hit = self._in_predicate(pred)
+        if hit is not None:
+            return hit[0]
         for op, _m in self._CMP:
             if op in pred:
                 return pred.split(op, 1)[0].strip()
-        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` (op: > < >= <= == !=)")
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` "
+                     f"(op: > < >= <= == !=) or `column IN (v, …)`")
 
     def _apply_predicate(self, data, pred: str):
+        hit = self._in_predicate(pred)
+        if hit is not None:
+            col, vals = hit
+            return data.filter(pl.col(col).is_in(vals))
         for op, method in self._CMP:
             if op in pred:
                 col, rhs = pred.split(op, 1)
                 col, rhs = col.strip(), rhs.strip()
                 val = self._literal(rhs)
                 return data.filter(getattr(pl.col(col), method)(val))
-        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value`")
+        self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` "
+                     f"or `column IN (v, …)`")
 
     @staticmethod
     def _literal(s: str):
@@ -792,34 +992,254 @@ class Planner:
                 data = data.head(stmt.limit.n)
         return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
 
+    def _scan_order_standing(self, tree, anchor: tuple):
+        """The order-axis verdict for any scan in `tree`, or None. Data-free (P1-24 + the shared
+        plan/run repair)."""
+        for node in ast.walk(tree):
+            try:
+                sc = self._scan_call(node)
+            except Refusal:
+                # `_scan_call` RAISES for any non-scan call in call position — `avg(aov)` included —
+                # so a walk over every Call node hits it constantly. That is the normal path's
+                # verdict to give, not this pass's: swallowed here, and reached again with full
+                # context on the run path. Claiming it from a pre-branch scan would report every
+                # inline reduction as "not a scan operator".
+                continue
+            if sc is None:
+                continue
+            scan_op, arg, _n, by = sc
+            try:
+                m_name, _member = self._measure_ref(arg)
+            except Exception:
+                return None                              # not a plain measure ref; let the normal path speak
+            try:
+                self.plan_order_axis(scan_op, m_name, tuple(anchor), by)
+            except Refusal as r:
+                return r
+        return None
+
+    def _realization_standing(self, anchor: tuple, columns: list, standing: dict) -> dict:
+        """Settle, BEFORE the plan/run branch, every disposition this build already knows — so the
+        pre-flight and the execution cannot disagree about them.
+
+        THE INVARIANT (ruled Huayin, 2026-09-01):
+
+            A positive preflight disposition must not be returned when the same build already knows
+            that the admitted request cannot be realized.
+
+        `plan()` and `run()` had drifted because `plan()` re-implements a SUBSET of `run()`'s checks
+        rather than sharing them, so `check_frame_query` answered `serve` for asks
+        `execute_frame_query` then refused. This method does not add a second copy of anything: every
+        entry below is produced by calling the SAME predicate the run path calls, and those predicates
+        are data-free by construction. `_where_reachability` (P1-14's gate) was the only occupant of
+        this region and is the pattern being generalized.
+
+        The stage order the ruling asks for is preserved rather than flattened: this runs AFTER
+        canonical validity and analytical adjudication, and what it collects is a mix of analytical
+        readings (a face-driver ambiguity is |L| > 1) and realization standing (a crossing this build
+        cannot express). They keep their own jurisdictions; only the TIMING is shared.
+
+        DELIBERATELY NOT COVERED, because a shared symptom is not a shared cause (ruled Huayin):
+
+          * P1-28 — a base dimension whose level name is not translated to its physical key. Encoding
+            that here would ratify a mapping DEFECT as a capability of the build. It stays a divergence
+            until the mapping is repaired, which is its own row.
+          * P1-15 — a composite anchor whose levels are reached by separate hierarchies fails in frame
+            assembly, which is not knowable without attempting it.
+          * P1-14 — already parity-correct via `_where_reachability`; nothing to add.
+        """
+        pre_existing = set(standing)
+        for name, expr in columns:
+            if name in pre_existing:
+                continue
+            try:
+                tree = _parse_expr(expr, mode="eval").body
+            except SyntaxError:
+                continue                                 # not adjudicable here; the normal path classifies it
+            # SCAN ORDER (P1-24). `plan_order_axis` is already the planner's own adjudicator and is
+            # data-free; it was simply never reached from `plan()`, because `plan()` does not walk
+            # the expression the way `_node` does. Calling it here is the same predicate, not a copy.
+            scan_verdict = self._scan_order_standing(tree, anchor)
+            if scan_verdict is not None:
+                standing[name] = scan_verdict.classified()
+                continue
+            for meas_name, _member in self._atoms(tree, anchor):
+                meas = self.m.measures.get(meas_name)
+                if meas is None:
+                    continue
+                faced = [T for T in anchor if parse_faced(T, self.m.non_functional) is not None]
+                if not faced:
+                    break
+                verdict = self.engine.face_crossing_standing(meas, tuple(anchor), faced)
+                if verdict is not None:
+                    standing[name] = verdict.classified()
+                    break
+        return standing
+
     def _where_reachability(self, columns: list, where_predicates: list) -> dict:
-        """§WHERE reachability (filter_unreachable, minted 2026-07-17): a WHERE dimension must be
-        addressable in each series' OWN universe (the filter binds pre-reduction, at the series' input).
-        Returns {series_name: Outcome} for series that cannot reach some WHERE dimension — a per-series
-        CLARIFY so reachable siblings still serve. Adjudicated HERE, before Polars/engine (directive 7)."""
+        """§WHERE reachability: a WHERE dimension must be addressable in each series' OWN universe
+        (the filter binds pre-reduction, at the series' input). Returns {series_name: Outcome} for the
+        series that cannot bind some WHERE dimension. Adjudicated HERE, before Polars/engine
+        (directive 7).
+
+        P1-22 (ruled Huayin, 2026-09-01) — ONE REASON WAS SPANNING THREE JURISDICTIONS. Everything a
+        predicate could fail on arrived as `filter_unreachable`, a CLARIFY:
+
+            WHERE amount >= 100          `amount` is a source column, not a declared level
+            WHERE zzz_not_a_name >= 1    not a name anywhere
+            WHERE store == 'S1'          a declared level, in another universe
+
+        The first two never became valid Frame-QL filter references at all, and the third is a valid
+        governed dimension with no lawful reading here. Neither is an under-determined request, so
+        neither is a Clarify — and the Clarify was doing real harm, because a Clarify asks the reader
+        to CHOOSE. Its two "alternatives" were rewrites of the ask rather than readings of it, one of
+        them offering to reach a name that does not exist; and of the eight dimensions the menu
+        listed, five answered `filter_unsupported` when actually named.
+
+        Now, in three jurisdictions:
+
+            not a declared level              -> LANGUAGE, `unknown`, raised for the whole request
+            declared but unreachable here     -> ANALYTICAL, `filter_unreachable`, per series
+            reachable but not a base dimension -> REALIZATION, `filter_unsupported` (P1-14, unchanged)
+
+        The language check is raised rather than returned per-series, and that is v0.2 §13's rollup
+        read forwards: a predicate that is not a valid reference is not a fact about one series, so
+        `any Invalid -> Invalid frame` is settled here instead of being assembled from per-series
+        outcomes that would each have to repeat it."""
         levels = [self._predicate_column(p) for p in where_predicates]
+        # STAGE A, decided once for the request. Whether a name is a declared level does not depend on
+        # which series is being filtered, so this is one fact about the ask, not a per-series verdict;
+        # L(Q) is never formed for a request naming a dimension that does not exist (v0.2 §5). It is
+        # DELIVERED on every series because that is the channel this seam has, and because it is true
+        # of every series — the frame rolls up to one disposition either way (§13), and each column
+        # then carries the real reason rather than a derived one.
+        for lvl in levels:
+            if lvl not in self.m.levels:
+                invalid = Refusal("unknown",
+                    f"WHERE names '{lvl}', which is not a declared dimension "
+                    f"(declared: {', '.join(sorted(self.m.levels))}). A filter binds to governed "
+                    f"structure; naming something else is not a narrower question — it is not a "
+                    f"question this Manifold can be asked.",
+                    target=lvl)
+                return {name: invalid for name, _expr in columns}
         out = {}
         for name, expr in columns:
             try:
-                uni = self._check_single_universe(ast.parse(expr, mode="eval").body, ())
+                uni = self._check_single_universe(_parse_expr(expr, mode="eval").body, ())
             except Exception:
                 continue                                         # a malformed series — let the normal run classify it
             if uni is None:
                 continue
             base = self.m.universes[uni].base_dimensions
-            reachable = sorted({lv for lv in ({e.frm for e in self.m._edges} | {e.to for e in self.m._edges} | set(base))
-                                if lv in base or self.m.find_path(base, lv) is not None})
             for lvl in levels:
                 if lvl not in base and self.m.find_path(base, lvl) is None:
+                    # STAGE B. The dimension is governed structure; it simply has no lawful reading
+                    # for THIS series. What follows are REMEDIES, not readings: they change the ask,
+                    # which is exactly why they may not be offered as Clarify alternatives (ruled
+                    # Huayin, 2026-09-01) and why this is a Refuse.
+                    #
+                    # The base dimensions are named because they are the ones the pre-reduction
+                    # filter can BIND to — an analytical fact, and the only one this seam is entitled
+                    # to assert. It deliberately does NOT promise they execute: a base-dimension
+                    # predicate can still meet a realization gap (on the Manual fixture,
+                    # `WHERE customer == 'C1'` answers `unsupported` on a BinderException, the
+                    # logical level not reaching its physical column in the push-down). That is a
+                    # different jurisdiction and is reported as one when it happens; claiming it
+                    # cannot happen would be the same over-promise, one level down.
+                    #
+                    # Reachable non-base dimensions are lawful but answer `filter_unsupported` here,
+                    # so they are DESCRIBED with what is true of them rather than offered as a fix —
+                    # hiding them would be a lie of omission, offering them a lie of commission.
+                    reachable_non_base = sorted(
+                        lv for lv in self.m.levels
+                        if lv not in base and self.m.find_path(base, lv) is not None)
+                    remedies = [f"filter on a dimension the series can bind — the base dimensions "
+                                f"of '{uni}' ({', '.join(sorted(base))})"]
+                    if reachable_non_base:
+                        remedies.append(
+                            f"'{lvl}' cannot be reached at all; dimensions reachable from '{uni}' "
+                            f"({', '.join(reachable_non_base)}) are lawful but are not executable as "
+                            f"filters on this build (filter_unsupported)")
+                    remedies.append(f"select a series whose universe reaches '{lvl}'")
                     out[name] = Refusal("filter_unreachable",
-                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is not "
-                        f"addressable in that series' universe '{uni}', so the pre-reduction filter has no "
-                        f"grain to bind to; the answer would be silently partial.",
-                        target=lvl, measure=name, discriminator=AMBIGUOUS,
-                        alternatives=(f"restrict the predicate to a reachable dimension ({', '.join(reachable)})",
-                                      f"change series '{name}' to an input anchor that reaches '{lvl}'"))
+                        f"WHERE dimension '{lvl}' cannot lawfully reach series '{name}' — '{lvl}' is "
+                        f"not addressable in that series' universe '{uni}', so the pre-reduction "
+                        f"filter has no grain to bind to and the ask has no lawful reading to serve.",
+                        target=lvl, measure=name, alternatives=tuple(remedies))
                     break
+            else:
+                unsupported = self._where_unsupported(where_predicates, base, uni)
+                if unsupported is not None:
+                    out[name] = unsupported
         return out
+
+    #: A Frame-QL string literal in DOUBLE quotes. Frame-QL's own `_literal` accepts either quote, so
+    #: this IS a string literal at the language level — but SQL reads `"east"` as an IDENTIFIER, so a
+    #: predicate handed to the backend verbatim would be reinterpreted by the substrate.
+    _DQ_LITERAL = re.compile(r'(?<![\w"])"[^"]*"')
+
+    @classmethod
+    def _to_backend_predicate(cls, where: Optional[str]) -> Optional[str]:
+        """PATH CONVERGENCE, not a new filtering capability (ruled Huayin, 2026-08-31; P1-14a).
+
+        Frame-QL already accepts `'east'` and `"east"` as THE SAME language-level kind — one string
+        literal — and `_literal` (the polars/HAVING path) already honours both. Only the push-down
+        path diverged: it handed the predicate to the backend verbatim, where SQL's own quoting rule
+        re-read the double-quoted literal as a column name. Two paths, one language, two answers.
+
+        This normalizes the Frame-QL literal into the substrate's spelling for the same value BEFORE
+        the predicate becomes SQL, so the substrate cannot reinterpret it. It changes NO adjudication
+        and admits NO dimension that was not already filterable: `WHERE region == "east"` is still
+        `filter_unsupported`, for the joined-dimension reason, exactly as `'east'` is. What changes is
+        that the two spellings of one literal now reach the same disposition — which is what
+        `_literal` said they were all along.
+
+        Embedded single quotes are doubled, SQL's own escape, so the normalization cannot smuggle a
+        quote out of the literal and into the predicate's syntax."""
+        if not where:
+            return where
+        return cls._DQ_LITERAL.sub(lambda m: "'" + m.group(0)[1:-1].replace("'", "''") + "'", where)
+
+    def _where_unsupported(self, predicates: list, base: frozenset, uni: str):
+        """CAPABILITY HONESTY FOR `WHERE` (P1-14, ruled Huayin 2026-08-31).
+
+        THE RULE THIS ENFORCES: *a planner must not return a positive Serve/Disclose disposition for a
+        form the current build cannot execute.* Both conditions below planned `serve` and then died
+        inside the engine with a bare `unsupported` — after the plan had already told the caller the
+        ask was fine. An EXPLAIN that says `serve` about a query that cannot run is worse than no
+        EXPLAIN: it is a wrong answer to the one question EXPLAIN exists to answer.
+
+        THE ONE CONDITION THIS GATE NOW HOLDS — **a dimension reached only across an edge.** `WHERE
+        region == 'east'` dies where `region` is reachable but is not a coordinate of the fact itself:
+        the filter is pushed to the measure's source table, which carries the BASE dimensions and not
+        the joined ones. Verified on two independent adjudicated fixtures. It is a real capability gap
+        and stays gated until a ruling says whether a filter may join.
+
+        THE SECOND CONDITION IS GONE BECAUSE IT WAS REPAIRED. A double-quoted string literal was gated
+        here on 2026-08-31 and REPAIRED the same day (P1-14a): `_to_backend_predicate` converges the
+        push-down path onto the language-level rule `_literal` already stated, so `"east"` and
+        'east' execute identically. A gate is a statement about what the build CANNOT do; keeping
+        this one after the build could do it would make the gate itself the dishonesty.
+
+        SCOPED TIGHT, DELIBERATELY. A base-dimension predicate is exactly what ships and is untouched,
+        in EITHER quote spelling — the gate must not classify a working capability as unsupported,
+        which is the failure mode of a capability gate written one notch too wide."""
+        for pred in predicates:
+            # The double-quoted-literal condition this gate ALSO carried is REPAIRED, not gated
+            # (P1-14a, authorized 2026-08-31): `_to_backend_predicate` normalizes the Frame-QL literal
+            # before it becomes SQL, so both spellings now execute and there is nothing left here to
+            # be honest about. The branch is removed rather than left dormant — a capability gate that
+            # still refuses a capability the build HAS is the failure mode it exists to prevent.
+            lvl = self._predicate_column(pred)
+            if lvl not in base:
+                return Refusal("filter_unsupported",
+                    f"WHERE dimension '{lvl}' is addressable in universe '{uni}' but is not one of its "
+                    f"base dimensions ({', '.join(sorted(base))}), and this build pushes the filter to "
+                    f"the measure's own source, which carries the base coordinates only. The ask is "
+                    f"lawful; the build cannot execute it.",
+                    target=lvl,
+                    alternatives=(f"filter on a base dimension ({', '.join(sorted(base))})",))
+        return None
 
     def _engine_columns(self, desugared) -> list:
         """The canonical desugared series -> [(name, expr)] the engine consumes. The ONLY transform is
@@ -835,8 +1255,10 @@ class Planner:
         columns = self._engine_columns(d)
         self._check_name_collisions(columns, d.anchor)           # §4 collisions REFUSED
         where = " AND ".join(d.where) if d.where else None       # per-series pre-reduction (existing plumbing)
-        unreachable = self._where_reachability(columns, d.where) if d.where else None
-        fr = (self.run if execute else self.plan)(d.anchor, columns, where, where_unreachable=unreachable)
+        standing = self._where_reachability(columns, d.where) if d.where else {}
+        standing = self._realization_standing(d.anchor, columns, dict(standing or {}))
+        fr = (self.run if execute else self.plan)(d.anchor, columns, where,
+                                                  where_unreachable=standing or None)
         return self._apply_output_clauses(fr, d, d.anchor, columns)
 
     def plan_statement(self, stmt) -> FrameResult:
@@ -850,7 +1272,7 @@ class Planner:
         Manifold, not the projection). Zero data touched. (A fourth element — the cut declaration hit —
         left with the ASSERT retirement in 0.13.0; ruling 2026-07-26.)"""
         engine_expr = self._convert_input_anchor(expr)
-        tree = ast.parse(engine_expr, mode="eval").body
+        tree = _parse_expr(engine_expr, mode="eval").body
         atoms = [{"measure": meas, "member": member,
                   "universe": self.m.measures[meas].universe if meas in self.m.measures else None}
                  for (meas, member) in self._atoms(tree, anchor)]
@@ -875,12 +1297,27 @@ class Planner:
 
     # ---- expression evaluation (post-agg over measure columns) -------------
     def _eval(self, expr: str, anchor, where, trace):
-        tree = ast.parse(expr, mode="eval")
+        tree = _parse_expr(expr, mode="eval")
         for n in ast.walk(tree):
             if not isinstance(n, _ALLOWED):
                 raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
         kind, payload, disc, _dtype = self._node(tree.body, anchor, where, trace)
         return payload, disc
+
+    def _resolve_member(self, meas, member):
+        """A family member name, honouring canonical SURFACE SPELLINGS (2026-09-01).
+
+        `approx_distinct` is the canonical Frame-QL spelling of the approximate-distinct
+        capability; current Core's capability identity is `distinct`. One capability, two roles — so
+        `visitors.approx_distinct` must resolve to the same member as `visitors.distinct`, and both
+        must keep working. The declared correspondence is `operators.ALIASES`, reached here through
+        `PlannerView.canonical_op`; this method never guesses a mapping.
+
+        THE DECLARED NAME WINS. The raw member is checked against the family FIRST by the caller, so
+        a manifold that declares a member under the surface spelling keeps it; canonicalisation is
+        only consulted when the literal name is not a member. That is what makes this additive —
+        no existing declaration changes meaning."""
+        return self.m.canonical_op(member)
 
     def _measure_ref(self, node):
         """Name('revenue') -> (revenue, default-member). Attribute(level, 'sum') -> (level, sum)."""
@@ -890,11 +1327,19 @@ class Planner:
             return node.id, None
         return None, None
 
-    # inline reduction OF a derivation (capture v0.8; WP-B.1). `avg`/`mean`/`sum`/`min`/`max`/`count`
-    # collapse a finer-resolved series to the frame anchor. Distinct from a SCAN (order-preserving) —
-    # and from the DECLARED AT-metric (this is the same reading expressed inline, no declaration).
-    _INLINE_REDUCERS = {"avg": "mean", "mean": "mean", "sum": "sum",
-                        "min": "min", "max": "max", "count": "count"}
+    # inline reduction OF a derivation (capture v0.8; WP-B.1): the reducers that collapse a
+    # finer-resolved series to the frame anchor. Distinct from a SCAN (order-preserving) — and from
+    # the DECLARED AT-metric (this is the same reading expressed inline, no declaration).
+    #
+    # ONE ALIAS AUTHORITY (2026-09-01). This was a hand-maintained dict that independently defined
+    # `avg` -> `mean` — a second surface-name law, agreeing with `operators.ALIASES` only by hand.
+    # Two authorities for one fact is how `approx_distinct` could be a declared alias and still not
+    # resolve. It is now DERIVED: the alias table says what a spelling means, `SERIES_REDUCERS` says
+    # which capabilities may collapse a series, and both already ride on `PlannerView`.
+    def _inline_reducer(self, name):
+        """The canonical inline reducer for a surface spelling, or None if it is not one."""
+        canon = self.m.canonical_op(name)
+        return canon if canon in self.m.series_reducers else None
 
     @staticmethod
     def _level_name(node):
@@ -915,7 +1360,7 @@ class Planner:
         clarify — capture v0.8)."""
         if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
             return None
-        r = self._INLINE_REDUCERS.get(node.func.id)
+        r = self._inline_reducer(node.func.id)
         if r is None:
             return None
         if len(node.args) != 1 or node.keywords:
@@ -924,15 +1369,25 @@ class Planner:
                 f"(e.g. {node.func.id}(aov@day) to pin the input anchor)")
         arg = node.args[0]
         if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
-            right = arg.right
-            elts = right.elts if isinstance(right, ast.Tuple) else [right]
-            levels = [self._level_name(e) for e in elts]
-            if any(lv is None for lv in levels):
+            levels = self._pin_levels(arg.right)
+            if levels is None:
                 raise Refusal("unknown",
                     f"inline reduction input anchor must be level name(s), "
                     f"e.g. {node.func.id}(aov@{{day}}) or {node.func.id}(aov@{{store*day}})")
-            return r, arg.left, tuple(dict.fromkeys(levels))     # order-preserving; exact dups collapse
+            return r, arg.left, levels                           # order-preserving; exact dups collapse
         return r, arg, None
+
+    def _pin_levels(self, right):
+        """The level names an input pin denotes, or None if the right side is not level name(s).
+
+        ONE reader for both pin sites — the inline reduction and the map operand. They used to be one
+        site, and the map form simply had no handler; giving the second site its own copy of this
+        walk is how the two spellings would drift apart on the next change to either."""
+        elts = right.elts if isinstance(right, ast.Tuple) else [right]
+        levels = [self._level_name(e) for e in elts]
+        if any(lv is None for lv in levels):
+            return None
+        return tuple(dict.fromkeys(levels))                      # `@ {}` -> () — the scalar grain
 
     @staticmethod
     def _fmt_pin(pinned: tuple) -> str:
@@ -951,6 +1406,42 @@ class Planner:
                            if t not in pinned
                            and not any(self.m.find_path({p}, t) is not None for p in pinned))
         return tuple(dict.fromkeys(tuple(pinned) + orthogonal))
+
+    def _check_map_operand_pin(self, node, anchor: tuple):
+        """Hold a MAP-OPERAND pin (`X @ {G}` outside a reducer) to what it declares.
+
+        ONE implementation for the two dispatchers that must agree about it. `_infer` is the static
+        chokepoint `plan()` runs and `_node` is the resolution path; a branch present in only one of
+        them still dies in the other, which is precisely how this form came to parse clean and be
+        unreachable. Keeping the law in one method is what stops them drifting apart again."""
+        pinned = self._pin_levels(node.right)
+        if pinned is None:
+            raise Refusal("unknown",
+                f"input anchor after `@` must be level name(s), got "
+                f"'{ast.unparse(node.right)}' — e.g. (revenue @ {{day}}) or (revenue @ {{store*day}})")
+        if pinned == ():
+            # THE BROADCAST CASE (§2.6), and the one place a coarser pin is lawful. `revenue @ {}` is
+            # the Manifold-wide scalar broadcast unchanged to every output coordinate. It is exempt
+            # from the co-anchoring equality below BY DECLARATION, not by accident: §2.6 names
+            # broadcast as the sanctioned way to bring a coarse value to a finer anchor, and the
+            # double-count hazard it would otherwise open is foreclosed structurally by the B-anchor
+            # of any reducer that would sum the replicated value back up.
+            return
+        self._check_pin_laws(pinned, anchor)                     # Law 1: a pin coarser than the output
+        if tuple(dict.fromkeys(pinned)) != tuple(dict.fromkeys(anchor)):
+            # A pin FINER than the grain the map is read at needs a reduction, and §2.4 says so in
+            # words: operands at different grains "must first be brought to a common grain (by
+            # reduction, or by broadcast of a coarse value down a functional edge)". Writing that
+            # reduction is the asker's to do — inferring one here would be the framework choosing an
+            # aggregation nobody asked for, which is the thing the canonical form exists to prevent.
+            # Refused with the remedy named rather than guessed at.
+            raise Refusal("co_anchor_required",
+                f"map operand '{ast.unparse(node.left)}' declares input anchor "
+                f"{self._fmt_pin(pinned)}, but the expression is read at {_fmt_anchor(anchor)} — a "
+                f"map's operands must be co-anchored (§2.4). Bring it to the common grain with an "
+                f"explicit reduction, e.g. sum({ast.unparse(node.left)} @ "
+                f"{{{self._fmt_pin(pinned)}}}).",
+                target=_fmt_anchor(anchor))
 
     def _check_pin_laws(self, pinned: tuple, anchor: tuple):
         """WP-GRAIN-1 Laws 1 & 2, as STATIC planner checks over the pin × output-anchor lattice
@@ -1020,36 +1511,267 @@ class Planner:
         return sorted(L for L in levels
                       if L != target and self.m.find_path({L}, target) is not None)
 
-    def _unpinned_disposition(self, reducer, inner, anchor):
-        """The verdict for an unpinned generated reduction (ruling 2026-08-20 §9):
+    def _re_entrant(self, reducer, inner) -> bool:
+        """Is this ask licensed to collapse its lawful input anchors into ONE analytical reading?
 
-            |L| = 0  ->  Refuse   — no lawful candidate survives; there is nothing to choose between
-            |L| = 1  ->  proceed  — one lawful reading, so nothing is contested; the DEFAULTED input
-                                    anchor is returned and the caller owes the MATERIAL input_anchor
-                                    caveat (OF-2: a defaulted anchor is a condition the reader weighs)
-            |L| > 1  ->  Clarify  — over the LAWFUL candidates only
+        THE LAW (ruled Huayin, 2026-09-01) — a capability is certified to preserve analytical
+        denotation when finalized values are lawfully regrouped and re-entered through the SAME
+        continuation:
+
+            rho( (+)_i eta(rho(s_i)) )  ==  rho( (+)_i s_i )
+
+        The certification itself is a governed DECLARATION, `Operator.re_entrant`, read here and
+        never re-derived: no proxy (`is_monoid` is true of `count`), no algebraic guess, and never
+        the observed equality of today's outputs. Undeclared means uncertified means Clarify.
+
+        TWO CONDITIONS, AND THE SECOND IS THE ONE THAT IS EASY TO MISS. "The same continuation" is
+        part of the law, not decoration. `op(m @ {L}) AT {A}` is a COMPOSITION: the inner delivery
+        resolves `m` through the MEASURE's family member, and the outer `op` then reduces along L.
+        The law quantifies over a single kappa, so it licenses the collapse only when the outer
+        reducer IS the member doing the inner delivery. This is exactly why `max(revenue)` must keep
+        clarifying even though `max` is algebraically idempotent: revenue's family is (sum), so the
+        inner delivers SUMS and the outer takes a max OF SUMS — a different analytical object at each
+        candidate grain, and not the composition the certification speaks about.
+
+        DELIBERATELY NARROW: a bare single-measure atom whose sole family member is the requested
+        reducer. Derived columns, multi-atom expressions and multi-member families are left to
+        Clarify — the certification is about an operator, and carrying it across a derivation is a
+        claim no declaration here supports."""
+        atoms = self._atoms(inner, ())
+        if len(atoms) != 1:
+            return False                                   # a derivation or a compound: not this case
+        meas_name, member = atoms[0]
+        meas = self.m.measures.get(meas_name)
+        if meas is None or len(meas.family) != 1:
+            return False                                   # family-ambiguous: a different question
+        member = member or next(iter(meas.family))
+        if member != reducer:
+            return False                                   # NOT the same continuation (see above)
+        sig = self.m.operators.get(reducer)
+        return bool(sig is not None and sig.re_entrant)
+
+    def _distinct_readings(self, reducer, inner, anchor, lawful):
+        """Quotient the lawful SYNTACTIC pins by governed analytical equivalence (ruled Huayin,
+        2026-09-01):
+
+            Candidate anchors that are syntactically distinct but provably equivalent under governed
+            analytical law do not constitute multiple analytical readings.
+
+        Returns the equivalence CLASSES, so the 0/1/>1 rule below counts distinct lawful READINGS
+        rather than lawful spellings. Six realizations of one meaning is not a choice the asker can be
+        asked to make; six meanings is. Establishing this ex ante from declared law — never by
+        observing that candidates agree on today's data — is the whole point, which is why the
+        predicate is `_re_entrant` and not a value comparison."""
+        if not lawful:
+            return []
+        if self._re_entrant(reducer, inner):
+            return [list(lawful)]                              # one denotation, several realizations
+        return [[L] for L in lawful]                           # each spelling is its own reading
+
+    def _unpinned_disposition(self, reducer, inner, anchor):
+        """The verdict for an unpinned generated reduction (ruling 2026-08-20 §9, quotiented by the
+        analytical-equivalence ruling of 2026-09-01). Over DISTINCT LAWFUL READINGS, not over lawful
+        syntactic pins:
+
+            |R| = 0  ->  Refuse   — no lawful candidate survives; there is nothing to choose between
+            |R| = 1  ->  proceed  — one lawful reading. Two ways to get here, and they differ in what
+                                    the caller owes: a single lawful CANDIDATE still owes the MATERIAL
+                                    input_anchor caveat (OF-2 — the separate default-anchor materiality
+                                    question, expressly left open); several candidates PROVEN
+                                    equivalent owe nothing, because realization picked a representative
+                                    and no meaning-bearing choice was made.
+            |R| > 1  ->  Clarify  — over the lawful readings only
 
         Never offer a candidate that is already structurally illegal. A clarify is a menu of readings
         the asker may choose between; an unlawful reading is not a choice, and offering it makes
         Clarify reachable before lawfulness — which is how a reader gets talked into a laundered
-        answer one keystroke later."""
-        lawful = self._lawful_pins(reducer, inner, tuple(anchor))
-        if len(lawful) == 1:
-            return (lawful[0],)
-        if lawful:
-            raise self._unpinned_reduction_refusal(reducer, inner, anchor, lawful)
-        raise self._no_lawful_pin_refusal(reducer, inner, anchor)
+        answer one keystroke later.
 
-    def _no_lawful_pin_refusal(self, reducer, inner, anchor):
-        """|L| = 0. Either the structure offers no finer input anchor at all, or every one it offers
-        would make this reduction cross a lineage the governed law bars. Both are REFUSE: an operation
-        with no lawful reading is not a choice the reader can be asked to make.
+        Returns the pin tuple. `_unpinned_reading` returns it alongside whether a meaning-bearing
+        choice was made, which is what gates the OF-2 caveat."""
+        return self._unpinned_reading(reducer, inner, anchor)[0]
+
+    def _unpinned_reading(self, reducer, inner, anchor):
+        """(pin, meaning_bearing). `meaning_bearing` is False exactly when the pin is a REPRESENTATIVE
+        of several candidates proven to denote one reading — the case that owes no disclosure."""
+        lawful, refused, faults = self._pin_verdicts(reducer, inner, tuple(anchor))
+        readings = self._distinct_readings(reducer, inner, anchor, lawful)
+        if len(readings) == 1:
+            klass = readings[0]
+            return (klass[0],), len(klass) == 1
+        if readings:
+            raise self._unpinned_reduction_refusal(reducer, inner, anchor,
+                                                   [k[0] for k in readings])
+        # |L| = 0. A REFUSAL EVERY CANDIDATE EARNS IS NOT ABOUT ANY CANDIDATE (P1-13). Where the
+        # whole candidate set fails for ONE reason, that reason is a property of the ASK — most often
+        # the OUTPUT anchor, which sits in every candidate's input grain and so refuses under every
+        # pin (`sum(aov) AT {date, store}`: `store` is outside the measure's universe no matter what
+        # is pinned). Replacing that precise diagnosis with the generic "no lawful input anchor"
+        # trades a true answer for a vaguer one — the same class of loss P1-14 was about. Re-raised
+        # verbatim, so the unpinned form says exactly what the pinned form says.
+        #
+        # THE TEST IS UNANIMITY, NOT A REASON LIST, AND IT IS DELIBERATELY LAZY. An earlier draft
+        # re-raised eagerly on a fixed set of "ask defect" reasons and broke generated-family ruling
+        # §1: `sum(on_hand)` at {store, month} errored `unknown` ("specify a member") instead of
+        # refusing the prohibited temporal sum, because ONE candidate got past the travel law and
+        # died on the family-member question. Collecting every verdict first and only speaking when
+        # they AGREE keeps the law that matters (`blocked_reduction`) in front of the incidental one.
+        reasons = {r.reason for _L, r in refused}
+        # P1-25 — WHAT MAY BE CLAIMED, AND WHEN. `faults` are candidates whose EXPRESSION never became
+        # adjudicable, so they earned no verdict about themselves. The order below is the whole
+        # repair:
+        #
+        #  1. A STRUCTURAL PROHIBITION EVERY ADJUDICATED CANDIDATE EARNS OUTRANKS AN UNRESOLVED
+        #     AMBIGUITY, because it holds however the ambiguity is resolved. This is the ratified §9
+        #     case (`sum(on_hand)` @ {store, month} -> blocked_reduction) and it must survive a fault
+        #     being present, which is exactly the situation that ruling was made about.
+        #  2. Otherwise, if any candidate faulted, THE ASK IS NOT YET ADJUDICABLE and nothing may be
+        #     claimed about pins at all. The fault is the answer. This is what `max(level) AT {store}`
+        #     needed: 8 candidates faulted on the family question and 1 earned a real verdict, and the
+        #     old code reported all 9 as pin verdicts under "there is no pin that rescues this ask" —
+        #     while `max(level.max @ {day})` serves.
+        #  3. With no faults, the pre-existing unanimity re-raise, unchanged.
+        if faults and self._any_member_has_a_lawful_pin(reducer, inner, anchor):
+            # THE MENU IS ADJUDICATED AT THE ANCHOR THE READER ASKED AT (ruled Huayin, 2026-09-02).
+            # A fault is minted deep inside `_pin_verdicts`, where the anchor in scope is the
+            # CANDIDATE PIN being tried — so a member filtered there is filtered against a grain the
+            # reader never named, and `level.sum` survived because it IS lawful at {store*day} while
+            # the ask stands at {region}. Re-adjudicated here, against the output anchor, which is
+            # the grain every offered token would actually be read at.
+            raise self._reoffer_at_output_anchor(faults[0][1], inner, anchor)
+        if len(reasons) == 1 and reasons != {"blocked_reduction"} and not faults:
+            raise refused[0][1]
+        raise self._no_lawful_pin_refusal(reducer, inner, anchor, refused)
+
+    def _any_member_has_a_lawful_pin(self, reducer, inner, anchor) -> bool:
+        """Would naming a family member give this ask a lawful pin? (P1-25.)
+
+        The ambiguity and the prohibition can both be true at once, and which one the reader is owed
+        is not a matter of taste — it is a matter of whether resolving the ambiguity would help:
+
+          * `sum(on_hand)` @ {store, month} — the temporal sum is barred for EVERY member, so naming
+            one rescues nothing. The prohibition outranks the ambiguity, which is generated-family
+            ruling §1 and is ratified. Reporting the member question here would send the reader to
+            fix something that is not the problem.
+          * `max(level)` @ {store} — `max(level.max @ {day})` serves. The prohibition is NOT
+            invariant, so claiming "there is no pin that rescues this ask" is simply false, and the
+            member question is exactly what stands in the way.
+
+        So the question is asked rather than guessed at, by re-adjudicating under each member. Bounded
+        by the family size, and only ever reached on a |L| = 0 ask that already faulted."""
+        meas = self._family_ambiguous_measure(inner)
+        if meas is None:
+            return False
+        name, members = meas
+        for member in members:
+            probe = ast.Attribute(value=ast.Name(id=name, ctx=ast.Load()), attr=member, ctx=ast.Load())
+            ast.fix_missing_locations(probe)
+            try:
+                if self._pin_verdicts(reducer, probe, tuple(anchor))[0]:
+                    return True
+            except Refusal:
+                continue
+        return False
+
+    def _reoffer_at_output_anchor(self, fault, inner, anchor):
+        """Rebuild a `family_member_ambiguous` fault so its menu is lawful AT THE OUTPUT ANCHOR.
+
+        Any other fault is returned untouched: this narrows one menu on one stated ground, and is not
+        a general precedence rule."""
+        if getattr(fault, "reason", None) != "family_member_ambiguous":
+            return fault
+        meas = self._family_ambiguous_measure(inner)
+        if meas is None:
+            return fault
+        name, _members = meas
+        return self._family_member_clarify(name, self.m.measures[name], anchor=anchor)
+
+    def _family_ambiguous_measure(self, inner):
+        """`(measure_name, members)` when `inner` is a bare multi-member measure reference, else None."""
+        if isinstance(inner, ast.Name) and inner.id in self.m.measures:
+            meas = self.m.measures[inner.id]
+            if len(meas.family) > 1:
+                return inner.id, list(meas.family)
+        return None
+
+    def _no_lawful_pin_refusal(self, reducer, inner, anchor, refused=None):
+        """|L| = 0. REFUSE: an operation with no lawful reading is not a choice the reader can be
+        asked to make.
+
+        TWO REASONS LEAVE HERE, AND THE SPLIT IS ANALYTICAL (ruled Huayin, 2026-09-02). This method
+        used to emit `blocked_reduction` on all four exits, so one reason spelling carried two
+        different conditions and a caller branching on it could be told a lineage was blocked when
+        none was:
+
+          * `blocked_reduction` — the prohibition is INVARIANT under the pin. Every candidate earned
+            the same blocked-lineage verdict, so naming a pin rescues nothing: the governed law does
+            not possess the operation at any grain. This is the canonical case the Manual teaches.
+          * `input_anchor_unavailable` — the pins were adjudicated and none survived, for reasons
+            that DISAGREE (out of universe, non-functional transport, coarser-than-output), or no
+            declared level both reaches the anchor and admits the reduction. Nothing was blocked;
+            there was nowhere to stand. §2.3's |R| = 0 branch, sibling to `input_anchor_ambiguous`.
+
+        THE DETAIL REPORTS THE VERDICTS; IT DOES NOT ASSERT A CAUSE (P1-13). This message used to
+        state that every candidate "would reduce across a lineage the governed law blocks for it" —
+        true when the lineage law was the only filter the enumeration applied, and FALSE once §2c and
+        transport joined it, because a candidate may now be excluded for being out of the universe
+        instead. A refusal that names the wrong cause sends the reader to fix the wrong thing, which
+        is the `filter_unreachable`/`filter_unsupported` distinction one level down. Where the whole
+        set agrees on a reason, `_unpinned_disposition` re-raises THAT refusal and never reaches here.
 
         Enumerated over the WHOLE anchor, not just a single-level one: a refusal owes the reader the
         lawful neighbours (DG-2 invariant 5), and `sum(on_hand) AT {store, month}` — the Afternoon's
         third beat — is exactly the multi-level case, so leaving it terse would strip the remedy from
         the very ask the correction exists for."""
         expr = ast.unparse(inner)
+        # WHICH VERDICTS GET A VOTE ON THE REASON (ruled Huayin, 2026-09-02). `pin_coarser_than_output`
+        # and `redundant_pin` are verdicts about the PIN'S SHAPE against this output — §2.3's Laws 1
+        # and 2 — not about whether the reduction is lawful. A candidate excluded by one of them never
+        # reached the lawfulness question, so it cannot be evidence that the candidates "disagree"
+        # about lawfulness. Counting them did exactly that: the Afternoon's ratified §9 case
+        # (`sum(on_hand)` @ {store, month}) has day=blocked_reduction and quarter=region=coarser-
+        # than-output, and a naive unanimity test read that as disagreement and demoted a governed
+        # prohibition to "no anchor available". The prohibition is the finding; the incoherent pins
+        # are noise.
+        adjudicated = [(L, r) for L, r in (refused or []) if r.reason not in _PIN_SHAPE_REASONS]
+        if adjudicated and {r.reason for _L, r in adjudicated} == {"blocked_reduction"}:
+            if len(adjudicated) < len(refused):
+                # Honest about a mixed set: naming every candidate as blocked would be false.
+                shaped = ", ".join(L for L, r in refused if r.reason in _PIN_SHAPE_REASONS)
+                return Refusal("blocked_reduction",
+                    f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                    f"{_fmt_anchor(anchor)}: of the candidate grains, "
+                    f"{', '.join(L for L, _r in adjudicated)} would reduce by '{reducer}' across a "
+                    f"lineage the governed law blocks for it, and the rest ({shaped}) are not "
+                    f"admissible pins at this output. Generating the family does not create the "
+                    f"permission, so there is no pin that rescues this ask.",
+                    target=_fmt_anchor(anchor),
+                    alternatives=("use a reducer that IS applicable along the blocked lineage "
+                                  "(e.g. '.last' for a stock collapsed over time)",
+                                  "address at an anchor the reduction does not have to cross"))
+            # THE RATIFIED §9 CASE, unchanged in wording and now exact in its candidate list: it is
+            # read off the verdicts actually reached rather than re-derived by a second enumeration.
+            return Refusal("blocked_reduction",
+                f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                f"{_fmt_anchor(anchor)}: every candidate grain "
+                f"({', '.join(L for L, _r in refused)}) would reduce by '{reducer}' across a lineage "
+                f"the governed law blocks for it. Generating the family does not create the "
+                f"permission, so there is no pin that rescues this ask.",
+                target=_fmt_anchor(anchor),
+                alternatives=("use a reducer that IS applicable along the blocked lineage "
+                              "(e.g. '.last' for a stock collapsed over time)",
+                              "address at an anchor the reduction does not have to cross"))
+        if refused:
+            verdicts = ", ".join(f"{L} ({r.reason})" for L, r in refused)
+            return Refusal("input_anchor_unavailable",
+                f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
+                f"{_fmt_anchor(anchor)}: every candidate grain is excluded, and not all for the same "
+                f"reason — {verdicts}. Each verdict is the one the pin would earn if it were written "
+                f"out, so there is no pin that rescues this ask.",
+                target=_fmt_anchor(anchor),
+                alternatives=("address at an anchor the reduction does not have to cross",
+                              "use a reducer that IS applicable along a blocked lineage "
+                              "(e.g. '.last' for a stock collapsed over time)"))
         blocked_out = [L for T in anchor for L in self._candidate_input_anchors(T)]
         blocked_out = sorted(dict.fromkeys(blocked_out))
         if blocked_out:
@@ -1062,7 +1784,7 @@ class Planner:
                 alternatives=("use a reducer that IS applicable along the blocked lineage "
                               "(e.g. '.last' for a stock collapsed over time)",
                               "address at an anchor the reduction does not have to cross"))
-        return Refusal("blocked_reduction",
+        return Refusal("input_anchor_unavailable",
             f"inline reduction '{reducer}({expr})' has no lawful input anchor at "
             f"{_fmt_anchor(anchor)} — no declared level both reaches this anchor and admits the "
             f"reduction, so the ask has no reading to serve.",
@@ -1096,21 +1818,60 @@ class Planner:
             return None
         name = node.func.id
         sig = self.m.operators.get(name)
-        if sig is None or sig.kind != "scan":
-            # an unknown call, or a non-scan used in call position — a vocabulary refusal
+        if sig is None:
+            # NO OPERATOR BY THAT NAME AT ALL. This used to answer "'abs' is not a scan operator
+            # (registry scans: [cummax, cummin, …])", which sends a reader looking for `abs`, `round`,
+            # `coalesce` or `cast` to the SCAN list — the one list that could never contain them. The
+            # fact is that the registry has no such operator in any kind. P1-13 class.
             raise Refusal("unknown",
-                f"'{name}' is not a scan operator (registry scans: "
+                f"there is no operator named '{name}' in the registry — Frame-QL's vocabulary is "
+                f"the installed operator registry (Appendix A), and it is not extended by writing "
+                f"a call the substrate happens to parse")
+        if sig.kind != "scan":
+            # It EXISTS, in the wrong kind for this position — a different fact, and a different fix.
+            raise Refusal("unknown",
+                f"'{name}' is a {sig.kind}, not a scan, and cannot be called here (registry scans: "
                 f"{sorted(n for n,s in self.m.operators.items() if s.kind=='scan')})")
         if len(node.args) != 1:
             raise Refusal("unknown", f"scan '{name}' takes one input expression and keyword params (n=, by=)")
         n, by = 1, None
+        # A KNOWN PARAMETER IN A BAD VALUE FORM IS NOT AN UNKNOWN PARAMETER, AND `window` IS NOT
+        # UNKNOWN AT ALL. Both spellings used to land on one message — "unknown parameter 'by'
+        # (accepts n=, by=)", which denies and admits the same parameter in a single sentence, and
+        # "unknown parameter 'window'" for a parameter the registry declares (`needs_window`),
+        # Appendix A documents, and the engine's own roadmap error tells the reader to supply. Same
+        # class as P1-13/P1-14: a refusal that names the wrong thing sends the reader to fix the
+        # wrong thing.
         for kw in node.keywords:
-            if kw.arg == "n" and isinstance(kw.value, ast.Constant):
+            if kw.arg == "n":
+                if not isinstance(kw.value, ast.Constant) or isinstance(kw.value.value, bool) \
+                        or not isinstance(kw.value.value, int):
+                    raise Refusal("unknown",
+                        f"scan '{name}': n= takes an integer offset, not "
+                        f"'{ast.unparse(kw.value)}'")
                 n = int(kw.value.value)
-            elif kw.arg == "by" and isinstance(kw.value, ast.Constant):
+            elif kw.arg == "by":
+                if not isinstance(kw.value, ast.Constant) or not isinstance(kw.value.value, str):
+                    raise Refusal("unknown",
+                        f"scan '{name}': by= names the order axis as a quoted level, e.g. "
+                        f"by=\"{ast.unparse(kw.value)}\" — not a bare '{ast.unparse(kw.value)}'")
                 by = str(kw.value.value)
+            elif kw.arg == "window":
+                # DECLARED, NOT IMPLEMENTED. Every operator carrying needs_window is in_core=False,
+                # so supplying the parameter reaches the same governed roadmap answer as omitting it
+                # — which is the point: the two spellings must not disagree about what is true.
+                if not sig.needs_window:
+                    raise Refusal("unknown",
+                        f"scan '{name}' is not a windowed scan and takes no window= "
+                        f"(windowed scans are {sorted(o for o, s in self.m.operators.items() if s.needs_window)})")
+                raise Refusal("unsupported",
+                    f"scan '{name}' is a windowed scan; windowed scans are registered as contract "
+                    f"but not implemented in this build [ROADMAP]",
+                    alternatives=("use an order-only scan (cumsum/cummax/cummin/lag/lead/pct_change)",
+                                  "windowed scans (rolling_*) [ROADMAP]"))
             else:
-                raise Refusal("unknown", f"scan '{name}': unknown parameter '{kw.arg}' (accepts n=, by=)")
+                raise Refusal("unknown",
+                    f"scan '{name}': unknown parameter '{kw.arg}' (accepts n=, by=, window=)")
         return name, node.args[0], n, by
 
     # ---- B-anchor crossing detection (STRUCTURAL — shape-only, hoisted from the engine) ----
@@ -1124,6 +1885,8 @@ class Planner:
         if rc is not None:
             _r, inner, _pinned = rc                 # inline reduction: its atoms are the inner's
             return self._atoms(inner, anchor)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            return self._atoms(node.left, anchor)   # a map-operand pin names LEVELS; atoms are the left's
         sc = self._scan_call(node)
         if sc is not None:
             _op, arg, _n, _by = sc
@@ -1131,7 +1894,7 @@ class Planner:
         m, mem = self._measure_ref(node)
         if m is not None:
             if m in self.m.derived:
-                return self._atoms(ast.parse(self.m.derived[m].formula, mode="eval").body, anchor)
+                return self._atoms(_parse_expr(self.m.derived[m].formula, mode="eval", origin="declared formula").body, anchor)
             if m not in self.m.measures:
                 return []
             mem = mem or next(iter(self.m.measures[m].family))
@@ -1240,7 +2003,7 @@ class Planner:
         if meas_name is not None:
             if meas_name in self.m.derived:
                 dshape = self.m.derived[meas_name]
-                inner = ast.parse(dshape.formula, mode="eval").body
+                inner = _parse_expr(dshape.formula, mode="eval", origin="declared formula").body
                 if dshape.resolution_anchor is None:
                     return self._law_travels(inner, anchor, out)     # denotation-only: no travel
                 res = (dshape.resolution_anchor,)
@@ -1349,31 +2112,182 @@ class Planner:
             if r is not None:
                 raise r
 
+    def _lawful_family_members(self, meas_name: str, meas, anchor) -> tuple:
+        """The family members that are LAWFUL READINGS at this output anchor, in declaration order,
+        plus the analytical refusal the excluded ones earned.
+
+        A CLARIFY MENU IS A MENU OF LAWFUL READINGS (ruled Huayin, 2026-09-02). Each member is
+        adjudicated as the reading it actually is — `meas_name.member` at this anchor, through
+        `_check_expression_law`, the same single law chokepoint the written form goes through. A
+        member is dropped because THAT READING is analytically unlawful, never for any other reason:
+        a candidate that fails for pin shape, transport, universe or anything else is KEPT, because
+        those verdicts are not statements about the member's lawfulness and suppressing on them
+        would narrow the menu on grounds the reader was never told about.
+
+        This is the discipline the input-anchor menu has had since the 2026-08-20 §9 ruling, applied
+        to the other menu. Until a fixture first declared a BLOCKED lineage (2026-09-02) the gap was
+        unobservable: `SELECT sum(level) AT {region}` offered `level.sum`, and taking that offer
+        refused `blocked_reduction`."""
+        lawful, unlawful = [], None
+        for m in meas.family:
+            probe = ast.Attribute(value=ast.Name(id=meas_name, ctx=ast.Load()), attr=m, ctx=ast.Load())
+            ast.fix_missing_locations(probe)
+            try:
+                self._check_expression_law(probe, tuple(anchor))
+            except Refusal as e:
+                if e.reason == "blocked_reduction":            # the reading itself is unlawful
+                    unlawful = e
+                    continue
+            except Exception:
+                pass                                            # not a lawfulness verdict — keep it
+            lawful.append(m)
+        return tuple(lawful), unlawful
+
+    def _family_member_clarify(self, meas_name: str, meas, what: str = "", anchor=()) -> Refusal:
+        """Several lawful family members and no authorized default -> CLARIFY (v0.2 §12, P1-25).
+
+        This was `Refusal("unknown", ...)`, which classifies ERROR — the vocabulary bucket. But the
+        measure is known and the ask is well formed; what is under-determined is WHICH lawful
+        reduction is meant, which is |L(Q)| > 1 and belongs to the reader to settle. Filing it as a
+        vocabulary miss also had a second cost, and it is the one P1-25 is named for: a Stage-A
+        verdict was then counted as Stage-B evidence that a pin was unlawful.
+
+        The members are offered as alternatives in declaration order and NOT ranked — §12 forbids a
+        realization fact, insertion order included, from selecting one. They are also filtered for
+        lawfulness first: see `_lawful_family_members`. Where every member is unlawful the count of
+        readings is ZERO, so the ask refuses rather than opening a menu with nothing on it."""
+        members, unlawful = self._lawful_family_members(meas_name, meas, anchor)
+        if not members:
+            return unlawful if unlawful is not None else Refusal("blocked_reduction",
+                f"'{meas_name}' has no family member that is a lawful reading here.",
+                measure=meas_name)
+        withheld = [m for m in meas.family if m not in members]
+        note = (f" ({', '.join(meas_name + '.' + m for m in withheld)} "
+                f"{'is' if len(withheld) == 1 else 'are'} not offered: not a lawful reading here)"
+                if withheld else "")
+        return Refusal("family_member_ambiguous",
+            f"'{meas_name}' has a family {list(members)} and the ask selects no member{what} — each "
+            f"is a different lawful reduction, so there is no single reading to serve. Name the "
+            f"member.{note}",
+            measure=meas_name, discriminator=AMBIGUOUS,
+            alternatives=tuple(f"{meas_name}.{m}" for m in members))
+
+    def _admit_pin(self, reducer, inner, pin: tuple, anchor: tuple, population=None,
+                   stage_faults: bool = False) -> str:
+        """THE ONE ADMISSIBILITY LAW for a pinned generated reduction `R(inner @ pin)` at `anchor`.
+        Raises the Refusal the pin earns; returns the inner's inferred dtype when it is admissible.
+
+        WHY THIS EXISTS (P1-13, repaired 2026-08-31). Explicit-pin VALIDATION and candidate-pin
+        ENUMERATION previously held two different definitions of "a lawful pin", and they had drifted:
+        `_lawful_pins` still required a candidate to REACH the output anchor — the pre-WP-GRAIN-1
+        rule — while the shipped execution path had moved on. So `avg(aov) AT {customer}` REFUSED
+        "no lawful reading" at an anchor where six explicit pins served. The governing invariant is
+        now structural rather than remembered:
+
+            Explicit pin validation and candidate-pin enumeration must use the same canonical
+            admissibility law.
+
+        Both callers below are the only two adjudicators of a pin, and both are this method. The
+        three laws it composes are each already ratified and none is new here:
+
+          * **WP-GRAIN-1 Laws 1 & 2** (`_check_pin_laws`) — no pin coarser than an output level; no
+            two cross-comparable pin levels.
+          * **WP-GRAIN-1's input grain** (`_pin_input_grain`) — the pin need NOT reach the anchor. An
+            orthogonal output level joins the input grain so the series carries it, which is exactly
+            why `avg(aov @ {day}) AT {customer}` resolves at `(day, customer)` and serves. The deleted
+            reachability filter contradicted this; it is REPLACED by the law it contradicted, not
+            merely removed.
+          * **§2c and transport at that grain** (`_infer` at the input grain) — the candidate must
+            remain inside the resolved universe. This is the filter the enumeration never had: on the
+            Manual fixture `sum(revenue) AT {region}` offered `store`, which refuses `out_of_universe`
+            the moment it is actually named. An unlawful reading is not a choice.
+
+        `population` (the `ON UNIVERSE` pin) is deliberately NOT threaded in from enumeration: it is a
+        frame-level assertion about which population is intended, identical for every candidate, and
+        it is applied to the chosen pin by the explicit path regardless. Passing it here would make a
+        population mismatch look like "no lawful input grain", which is a different and false claim."""
+        self._check_pin_laws(pin, tuple(anchor))
+        grain = self._pin_input_grain(pin, tuple(anchor))
+        violation = self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin))
+        if violation is not None:
+            raise violation
+        # P1-25. The three laws above adjudicate THE CANDIDATE. `_infer` adjudicates THE EXPRESSION —
+        # its names, its types, its family member — and its answer is the same for every candidate,
+        # because none of that depends on the pin. Enumeration must be able to tell the two apart:
+        # counting an expression fault as a verdict about a level is how `max(level) AT {store}` came
+        # to refuse "every candidate grain is excluded ... there is no pin that rescues this ask"
+        # while three pins rescued it and one served. The distinction is structural — WHERE the
+        # refusal was raised — rather than a list of reasons to special-case, so it stays correct for
+        # laws added to either side later.
+        if not stage_faults:
+            return self._infer(inner, grain, population)        # explicit pin: one pin, one verdict
+        try:
+            return self._infer(inner, grain, population)
+        except Refusal as r:
+            # ONLY the pin-INDEPENDENT half of `_infer` is a fault. `_infer` does two jobs: it checks
+            # the expression (names, types, family member), and it checks §2c/transport AT THIS GRAIN
+            # — and the grain comes from the pin, so `out_of_universe` here IS a verdict about the
+            # candidate and must stay one. The family-member question is the part that provably
+            # cannot depend on the pin, so it is the part that is staged.
+            if r.reason == "family_member_ambiguous":
+                raise _ExpressionFault(r) from None
+            raise
+
+    def _pin_candidates(self, anchor) -> list:
+        """The STRUCTURAL candidate pins for an unpinned reduction at `anchor`: every DECLARED level
+        that is not itself an output target. Structure only — lawfulness is `_admit_pin`'s question,
+        applied on top of this set and never folded into it, because the two questions want different
+        answers ("does this level exist" vs "is reading the ask at it lawful") and a refusal has to be
+        able to tell a reader which one it failed.
+
+        Enumerated over the declared level set rather than over the levels an edge happens to touch:
+        a base dimension with no out-edge is a perfectly addressable input grain, and reading the
+        candidate set off `_edges` was a second place the enumeration could disagree with what an
+        explicit pin accepts."""
+        return sorted(L for L in self.m.levels if L not in anchor)
+
+    def _pin_verdicts(self, reducer, inner, anchor) -> tuple:
+        """`(lawful, refused, faults)` for the candidate pins.
+
+        `lawful`  — levels that SURVIVE `_admit_pin`.
+        `refused` — (level, Refusal) where the CANDIDATE was adjudicated and lost. These are verdicts
+                    about the pin, and only these may be reported as such.
+        `faults`  — (level, Refusal) where the EXPRESSION never became adjudicable (`_ExpressionFault`).
+                    Invariant across candidates by construction, so they are evidence about the ask,
+                    never about a level.
+
+        Splitting the verdict out from the set is what lets a |L| = 0 disposition say WHY there was
+        nothing to offer instead of asserting a cause. Splitting FAULTS out from the verdicts (P1-25)
+        is what keeps that WHY true: a refusal may only claim "no pin rescues this ask" when every
+        candidate actually earned a verdict."""
+        lawful, refused, faults = [], [], []
+        for L in self._pin_candidates(anchor):
+            try:
+                self._admit_pin(reducer, inner, (L,), tuple(anchor), stage_faults=True)
+            except _ExpressionFault as f:
+                faults.append((L, f.refusal)); continue
+            except Refusal as r:
+                refused.append((L, r)); continue
+            lawful.append(L)
+        return lawful, refused, faults
+
     def _lawful_pins(self, reducer, inner, anchor) -> list:
-        """The GOVERNED CANDIDATE input anchors for an unpinned generated reduction, filtered to the
-        ones for which the requested generated operation is actually LAWFUL (ruling §9).
+        """The candidate input anchors for an unpinned generated reduction that SURVIVE the explicit-
+        pin law (ruling §9; brought forward to WP-GRAIN-1 + §2c on 2026-08-31, P1-13).
 
         Never offer a candidate that is already structurally illegal: a clarify is a menu of readings
         the asker may choose between, and an unlawful reading is not a choice — offering it would make
         Clarify reachable before lawfulness, which is how a reader gets talked into a laundered answer.
-        Both the pin lattice laws and the generated-family law are applied here."""
-        levels = {e.frm for e in self.m._edges} | {e.to for e in self.m._edges}
-        out = []
-        for L in sorted(levels):
-            if L in anchor:
-                continue
-            if not any(self.m.find_path({L}, T) is not None for T in anchor):
-                continue
-            pin = (L,)
-            try:
-                self._check_pin_laws(pin, tuple(anchor))
-            except Refusal:
-                continue                                    # pin_coarser_than_output / redundant_pin
-            grain = self._pin_input_grain(pin, tuple(anchor))
-            if self._travel_violation(self._generated_travel(reducer, inner, grain, anchor, pin)):
-                continue                                    # structurally prohibited: not a choice
-            out.append(L)
-        return out
+        The guarantee is now by construction: every level here has been put through `_admit_pin`, the
+        same predicate that adjudicates the pin when the asker writes it out, so "offered" and
+        "serves when named" cannot come apart again.
+
+        NO RANKING, NO HEURISTIC, NO HIDDEN PRUNING (ruled Huayin, 2026-08-31). This returns the
+        lawful set, in level order, and `_unpinned_disposition` applies the unchanged 0/1/>1 rule to
+        it. Whether a six-item menu is the right ERGONOMICS for a Clarify is a real question and a
+        separate one; answering it here would mean the framework quietly choosing among lawful
+        readings, which is the thing the Clarify exists to refuse to do."""
+        return self._pin_verdicts(reducer, inner, anchor)[0]
 
     def _column_fill_rule(self, node, anchor):
         """Φ_v for a column: the fill rule of its member(s) (columna#143). A column resolves to ONE
@@ -1399,7 +2313,7 @@ class Planner:
                                             refusal=where_unreachable[name].classified(), trace=trace))
                 continue
             try:
-                tree = ast.parse(expr, mode="eval")
+                tree = _parse_expr(expr, mode="eval")
                 for n in ast.walk(tree):
                     if not isinstance(n, _ALLOWED):
                         raise Refusal("unknown", f"illegal expression construct: {type(n).__name__}")
@@ -1442,12 +2356,24 @@ class Planner:
                 pinned = self._unpinned_disposition(reducer, inner, anchor)
             # WP-GRAIN-1: a pinned reduction serves at a MULTI-level anchor with a COMPOSITE input
             # anchor. Laws 1 & 2 are static checks over the pin × output lattice (refuse coarser-than-
-            # output pins; clarify cross-comparable pins), classified here at the static chokepoint.
-            self._check_pin_laws(pinned, anchor)
-            # The pinned levels pin their lineage; orthogonal output dims join the input grain (see
-            # _resolve_inline_reduction). Typecheck the inner at that composite grain.
-            in_dt = self._infer(inner, self._pin_input_grain(pinned, anchor), population)
+            # output pins; clarify cross-comparable pins); the pinned levels pin their lineage and
+            # orthogonal output dims join the input grain, and the inner is typechecked there.
+            #
+            # ALL OF THAT IS `_admit_pin`, WHICH IS ALSO WHAT `_lawful_pins` ENUMERATES THROUGH
+            # (P1-13). The explicit pin and the offered candidate are adjudicated by one method, so
+            # they cannot drift into two definitions of "a lawful pin" again — which is precisely
+            # what they had done.
+            in_dt = self._admit_pin(reducer, inner, pinned, anchor, population)
             return self._reducer_out_dtype(reducer, in_dt)
+        # The MAP-OPERAND input pin, statically (mirror of the `_node` branch — see it for why a pin
+        # outside a reducer is a DECLARATION of the grain the operand is read at, not a selection).
+        # Both dispatchers must know the form: `_infer` is the static chokepoint `plan()` runs, so a
+        # branch present only in `_node` would still die here, before execution was ever reached.
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            self._check_map_operand_pin(node, anchor)
+            grain = () if self._pin_levels(node.right) == () else anchor
+            return self._infer(node.left, grain, population)
+
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, _n, _by = sc
@@ -1466,7 +2392,7 @@ class Planner:
                 # an AT-metric typechecks at its RESOLUTION anchor (where the formula is evaluated),
                 # then the reduction is a downstream engine step — not at the asked anchor.
                 infer_anchor = (dshape.resolution_anchor,) if dshape.resolution_anchor else anchor
-                return self._infer(ast.parse(dshape.formula, mode="eval").body, infer_anchor, population)
+                return self._infer(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body, infer_anchor, population)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
             meas = self.m.measures[meas_name]
@@ -1489,9 +2415,10 @@ class Planner:
                                       f"use a measure bound to '{population}'"))
             if member is None:
                 if len(meas.family) != 1:
-                    raise Refusal("unknown",
-                        f"'{meas_name}' has a family {list(meas.family)} — specify a member")
+                    raise self._family_member_clarify(meas_name, meas, anchor=anchor)
                 member = next(iter(meas.family))
+            elif self._resolve_member(meas, member) in meas.family:
+                member = self._resolve_member(meas, member)
             elif member not in meas.family:
                 if member not in self.m.operators:
                     raise Refusal("unknown",
@@ -1540,9 +2467,54 @@ class Planner:
         if rc is not None:
             return self._resolve_inline_reduction(rc, anchor, where, trace)
 
+        # ── the MAP-OPERAND input pin (§2.4 / §5.2) ──────────────────────────────────────────────
+        # `X @ {G}` outside a reducer call. Before this branch the pin fell through to the generic
+        # BinOp path, which read the level as a column: `(revenue @ {transaction}) / (orders @
+        # {transaction})` died `unknown column 'transaction'` and the composite spelling died
+        # `unsupported expression node Tuple` — so the whole documented map-with-pinned-operands form
+        # was unreachable in EVERY pin spelling, while parsing clean (P0-18, Mission B).
+        #
+        # WHAT A MAP-OPERAND PIN IS. `anchor` here IS the grain this expression is being read at:
+        # `_resolve_inline_reduction` re-enters `_node` with the pinned input grain, so an operand
+        # inside `sum(… @ {transaction})` is already being read at transaction. A map operand's pin
+        # is therefore a DECLARATION of that grain — exactly what §2.4 calls it ("the operands of a
+        # map must be co-anchored — the same input anchor for all"). It selects nothing the context
+        # has not already fixed; it STATES it, and the framework holds it to what it states.
+        #
+        # DELIBERATELY NOT A JOINT-OPERAND SURFACE (ruled Huayin, 2026-08-31): `@ {a,b}` keeps its one
+        # meaning, composite analytical GRAIN. Nothing here introduces `(a,b) @ A` or enlarges
+        # reducer arity.
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+            self._check_map_operand_pin(node, anchor)
+            if self._pin_levels(node.right) == ():
+                # BROADCAST (§2.6). Resolve at the scalar grain, then hand the map a SCALAR — the
+                # kind `_apply` already broadcasts, the same one a literal arrives as. The engine
+                # cannot join a frame carrying no anchor columns against one that does (that is the
+                # `ColumnNotFoundError` this form died on), and it should not have to: "broadcast
+                # unchanged to every customer" IS one value against many coordinates, which is what
+                # the scalar kind means. Reusing it keeps one broadcast path instead of minting a
+                # second, and the B-anchor that forecloses the double-count hazard is untouched.
+                k, payload, disc, dtype = self._node(node.left, (), where, trace)
+                if k == "scalar":
+                    return k, payload, disc, dtype
+                if payload.height != 1:
+                    raise Refusal("unsupported",
+                        f"'{ast.unparse(node.left)} @ {{}}' is the Manifold-wide scalar and must "
+                        f"resolve to exactly one value; it resolved to {payload.height}")
+                return "scalar", payload[_V][0], disc, dtype
+            return self._node(node.left, anchor, where, trace)
+
         sc = self._scan_call(node)
         if sc is not None:
             scan_op, arg, n, by = sc
+            # A scan's input may carry its own input pin — `cumsum(revenue @ {customer, day})` is the
+            # Manual's own §6.11 spelling. `_infer` reads the pin (see its MatMult branch) and this
+            # path must read it too, or the two dispatchers disagree and the ask plans `serve` and
+            # then dies in the engine. That divergence is the exact failure Mission B is about, so it
+            # is not acceptable to leave it here just because it is one level down.
+            if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.MatMult):
+                self._check_map_operand_pin(arg, anchor)
+                arg = arg.left
             m_name, member = self._measure_ref(arg)
             if m_name is None or m_name not in self.m.measures:
                 raise Refusal("unknown",
@@ -1552,8 +2524,7 @@ class Planner:
             if member is None:
                 member = next(iter(meas.family)) if len(meas.family) == 1 else None
                 if member is None:
-                    raise Refusal("unknown",
-                        f"'{m_name}' has a family {list(meas.family)} — specify a member to scan")
+                    raise self._family_member_clarify(m_name, meas, " to scan", anchor=anchor)
             out_dtype = self.m.output_dtype(scan_op, self.m.output_dtype(member, meas.logical_type))
             routes = {}                                        # P0.5a: plan, then execute the plan
             for T in anchor:
@@ -1571,16 +2542,17 @@ class Planner:
                 dshape = self.m.derived[meas_name]
                 if dshape.resolution_anchor is not None:
                     return self._resolve_anchored_metric(meas_name, dshape, anchor, where, trace)
-                return self._node(ast.parse(dshape.formula, mode="eval").body,
+                return self._node(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body,
                                   anchor, where, trace)
             if meas_name not in self.m.measures:
                 raise Refusal("unknown", f"unknown column '{meas_name}'")
             meas = self.m.measures[meas_name]
             if member is None:
                 if len(meas.family) != 1:
-                    raise Refusal("unknown",
-                        f"'{meas_name}' has a family {list(meas.family)} — specify a member, e.g. {meas_name}.{next(iter(meas.family))}")
+                    raise self._family_member_clarify(meas_name, meas, anchor=anchor)
                 member = next(iter(meas.family))
+            elif self._resolve_member(meas, member) in meas.family:
+                member = self._resolve_member(meas, member)
             elif member not in meas.family:
                 # operator-not-supported is a VOCABULARY error, caught here, not a data error:
                 # distinguish "no such operator in the language" from "this measure lacks it".
@@ -1639,7 +2611,7 @@ class Planner:
         sibling, and the engine NEVER substitutes one reading for the other (never-substitute)."""
         res = dshape.resolution_anchor
         if len(anchor) != 1:
-            raise Refusal("unsupported",
+            raise Refusal("resolution_anchor_arity",
                 f"resolution-anchor metric '{name}' is served at a single level — its meaning is a "
                 f"reduction of the '{res}'-resolved series; asked at {_fmt_anchor(anchor)}")
         if len(dshape.members) != 1:
@@ -1648,7 +2620,7 @@ class Planner:
                 f"(declared: {list(dshape.members)})")
         target, member = anchor[0], dshape.members[0]
         # evaluate the formula AT the resolution anchor — the denotation there (recompute-from-components)
-        k, frame, disc, dtype = self._node(ast.parse(dshape.formula, mode="eval").body,
+        k, frame, disc, dtype = self._node(_parse_expr(dshape.formula, mode="eval", origin="declared formula").body,
                                            (res,), where, trace)
         if k != "col":
             raise Refusal("unknown", f"resolution-anchor metric '{name}' formula is not a column")
@@ -1680,9 +2652,16 @@ class Planner:
         already made deliberately. Unpinned is caught statically in `_infer`; this defends the
         direct-`_node` path."""
         reducer, inner, pinned = rc
+        # DEFAULTED, AND WHETHER DEFAULTING DECIDED ANYTHING (ruled Huayin, 2026-09-01). Where several
+        # candidate pins are PROVEN analytically equivalent, realization used one representative rather
+        # than another and no meaning-bearing choice was made — so no MATERIAL input-anchor disclosure
+        # is owed. Where there is a single lawful candidate, the omitted anchor may still itself be
+        # material; that is the separate default-anchor question, expressly left open, and it keeps
+        # its caveat below.
         defaulted = pinned is None
+        meaning_bearing = True
         if defaulted:
-            pinned = self._unpinned_disposition(reducer, inner, anchor)
+            pinned, meaning_bearing = self._unpinned_reading(reducer, inner, anchor)
         self._check_pin_laws(pinned, anchor)                   # defends the direct-_node path (see _infer)
         # WP-GRAIN-1: the pinned levels pin THEIR lineage's resolution; output reduction dimensions
         # ORTHOGONAL to the pin (reachable from no pin level) join the input grain so the series carries
@@ -1735,7 +2714,7 @@ class Planner:
                     f"to '{pin_str}'), not the pooled value at {target}")
         note = Caveat(TRANSPORT, text, source=f"{pin_str}->{target}")
         out = Disclosure.merge(disc, Disclosure.of(note), population=disc.population)
-        if defaulted:
+        if defaulted and meaning_bearing:
             out = out.with_caveat(self._defaulted_anchor_caveat(reducer, inner, pinned, anchor))
         return "col", served, out, out_dtype
 
@@ -1782,7 +2761,7 @@ class Planner:
         if meas_name is not None:
             if meas_name in self.m.derived:
                 dshape = self.m.derived[meas_name]
-                inner = ast.parse(dshape.formula, mode="eval").body
+                inner = _parse_expr(dshape.formula, mode="eval", origin="declared formula").body
                 grain = ((dshape.resolution_anchor,) if dshape.resolution_anchor else tuple(anchor))
                 return self._would_be_defaulted_caveats(inner, grain)
             return out
