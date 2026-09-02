@@ -139,7 +139,24 @@ governed universe."*
   which is exactly how a confinement defect survives a green suite."* **Mutation-checked**: disabling
   the single `_confine` call fails 5 of 10 tests, including both paths.
 
-### P1-02 · `data_identity() -> None` is fail-OPEN on the witness store · **CRITICAL** · VX
+### P1-02 · `data_identity() -> None` is fail-OPEN on the witness store · **CRITICAL** · **CLOSED — repaired 2026-08-30 in `7f4194c` (#246); adjudicated on current main 2026-09-02** · VX
+
+**ALREADY REPAIRED, and this row simply never carried the disposition.** The fix landed with P1-01 in the same change — the ledger closed P1-01 and left its two siblings undisposed. Re-adjudicated on current `main` by an independent probe (not by running the repair's own tests), and adversarially against the pre-fix tree `7f4194c^`:
+
+```
+                              pre-fix 7f4194c^        current main
+witnesses stored at publish   2                       0        <- unknown identity closes STORAGE
+served, pre-mutation          {s1: 3}  truth {s1: 1}  {s1: 1}  truth {s1: 1}
+served, post-mutation         {s1: 3}  truth {s1: 2}  {s1: 2}  truth {s1: 2}
+backend fetches               0                       2
+```
+
+Pre-fix, a real in-universe mutation (a genuinely new distinct customer) was invisible: the answer did not move, at ZERO fetches, with no staleness disclosure — the row's claim, reproduced. On current main the witness is never stored under an unknown identity, the mutation is visible, and it costs a recompute.
+
+The invariant now holds in both polarities: `WitnessStore.fresh` refuses `version is None` outright (`sketch.py:110-121`) and `put` refuses to store an unversioned witness at all (`sketch.py:94-105`) — *unknown identity closes storage, not merely reuse*, because a witness stored without a version can never be shown stale and so becomes a permanent claim of freshness. Standing tests: `tests/test_witness_non_interference.py` (10). Verified capable of detecting the defect: run against `7f4194c^` the file fails **9 of 10** (the tenth is the fixture guard asserting the carve is observable at all, so the suite cannot pass vacuously).
+
+Original finding, preserved:
+
 
 `Witness.version` stores `None` (`engine.py:1030`); `WitnessStore.fresh` (`sketch.py:105`)
 evaluates `w.version == version` as `None == None -> True`.
@@ -161,7 +178,25 @@ witness store under data_identity()->None:  reused, version=None, fresh()=True  
 
 Violates standing rule *"Unknown data identity must fail closed."*
 
-### P1-03 · Witness currency is blind to every dependency but the home table · **HIGH** · VX
+### P1-03 · Witness currency is blind to every dependency but the home table · **HIGH** · **CLOSED — repaired 2026-08-30 in `7f4194c` (#246); adjudicated on current main 2026-09-02** · VX
+
+**ALREADY REPAIRED; same change, same undisposed row.** Both witness sites now compute `data_version_of(computation_tables(meas))` — the identical token the result cache uses (`engine.py:1078` sketch path, `engine.py:1155` publish path) — and it returns `None`, closing reuse and storage, if ANY dependency lacks a trustworthy identity.
+
+Adjudicated structurally, because the value test alone cannot see this row:
+
+```
+at publish, witness.version ==       pre-fix 7f4194c^   current main
+  data_version_of(computation_tables)   False              True
+  data_version(home_table)              True               False
+computation_tables(buyers) = {transactions, stores}   home_table = transactions
+```
+
+**The value check passes on BOTH trees, and that is the row's own coupling constraint executing.** Pre-fix, P1-01 meant the witness never read the predicate, so moving the predicate provider changed nothing it had recorded and the two defects cancelled into one wrong answer ({s1: 3} before and after, against a truth that moved 1 -> 3). The defect is visible only in the CURRENCY TOKEN, which is what the structural line measures. On current main the same move stales the witness and the served answer follows the truth (`{s1: 1} -> {s1: 3}`).
+
+The dependency set is composed from what the planner already decided — home table, planned route providers, M:N bridge, universe-predicate providers (`engine.py:136-152`) — not rediscovered from whatever tables the execution happened to touch, which is the governed computation-dependency notion the row required. Standing tests: `test_witness_currency_covers_the_predicate_provider` and `test_witness_version_is_the_result_cache_token_not_the_home_table_token`; both fail against `7f4194c^`.
+
+Original finding, preserved:
+
 
 `engine.py:967` and `engine.py:1025` both compute `ver = self.data_version(meas.home_table)`.
 The result cache on the same request uses `data_version_of(computation_tables(...))`
@@ -170,7 +205,7 @@ The result cache on the same request uses `data_version_of(computation_tables(..
 Reproduced: the predicate table moved; `revenue` correctly re-derived `70.0 -> 100.0`; the
 witness stayed `fresh() = True`.
 
-**Coupling constraint — P1-01 and P1-03 must land in one change.** This is latent *only
+**Coupling constraint (SATISFIED — they did land in one change, `7f4194c`).** This is latent *only
 because* P1-01 exists: the witness never reads the predicate, so its content genuinely
 depends on the home table alone. The two defects cancel into a single wrong answer. Fixing
 P1-01 without widening the witness key converts P1-03 from latent to active staleness. (INF
