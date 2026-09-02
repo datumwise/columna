@@ -1484,53 +1484,43 @@ class Planner:
                       if L != target and self.m.find_path({L}, target) is not None)
 
     def _re_entrant(self, reducer, inner) -> bool:
-        """Is this capability RE-ENTRANT over the governed reachable state — the property that lets
-        several lawful input anchors collapse to one analytical reading (ruled Huayin, 2026-09-01)?
+        """Is this ask licensed to collapse its lawful input anchors into ONE analytical reading?
+
+        THE LAW (ruled Huayin, 2026-09-01) — a capability is certified to preserve analytical
+        denotation when finalized values are lawfully regrouped and re-entered through the SAME
+        continuation:
 
             rho( (+)_i eta(rho(s_i)) )  ==  rho( (+)_i s_i )
 
-        In words: finalizing at an intermediate lawful partition and then applying the capability
-        again must denote the same result as continuing sufficient state directly. `rho` is
-        finalization, `eta` re-entry, `(+)` the governed combine.
+        The certification itself is a governed DECLARATION, `Operator.re_entrant`, read here and
+        never re-derived: no proxy (`is_monoid` is true of `count`), no algebraic guess, and never
+        the observed equality of today's outputs. Undeclared means uncertified means Clarify.
 
-        IT CANNOT BE ESTABLISHED FROM DECLARED LAW TODAY, SO IT RETURNS FALSE (fail-closed), AND THE
-        FRAMEWORK KEEPS CLARIFYING. That is the conservative answer, not a defect: a reading may only
-        be collapsed on proof, and there is no proof to read.
+        TWO CONDITIONS, AND THE SECOND IS THE ONE THAT IS EASY TO MISS. "The same continuation" is
+        part of the law, not decoration. `op(m @ {L}) AT {A}` is a COMPOSITION: the inner delivery
+        resolves `m` through the MEASURE's family member, and the outer `op` then reduces along L.
+        The law quantifies over a single kappa, so it licenses the collapse only when the outer
+        reducer IS the member doing the inner delivery. This is exactly why `max(revenue)` must keep
+        clarifying even though `max` is algebraically idempotent: revenue's family is (sum), so the
+        inner delivers SUMS and the outer takes a max OF SUMS — a different analytical object at each
+        candidate grain, and not the composition the certification speaks about.
 
-        WHY THE REGISTRY CANNOT ANSWER IT. The law quantifies over `rho` and `eta`. The registry
-        declares each reducer's WITNESS and its COMBINE — sufficient-state law — and neither
-        finalization nor re-entry is a declared fact. The distinction is invisible at that level: in
-        `operators.py`'s own table `sum` and `count` share witness=VALUE and combine=`+`, and they
-        differ only in re-entry. `sum` re-enters a displayed value as itself; `count` re-enters it as
-        one item (`parser.py`: `if agg == "count": pre_expr = "1"`), so counting displayed counts is
-        not combining count state. `mean` finalizes to a quotient that cannot be re-entered as
-        (sum, n); the approximate-distinct family finalizes through a non-identity projection, and an
-        estimate re-entered is not the state it came from.
-
-        NOTHING PRESENT MAY STAND IN (each rejected by the ruling, and each wrong on its own):
-          * `is_monoid`  — TRUE of `count`. Monoidality is about the witness combining, not about
-                           surface re-application. This is the ruling's own counterexample.
-          * `linear`     — the WP-B symbolic gate for derived formulas; a different question, and it
-                           would exclude `max`/`min`, which ARE re-entrant.
-          * `witness` / `out_rule` — sorts today's registry correctly by coincidence of type
-                           signatures. The first operator whose dtypes line up while its re-entry is
-                           not the identity would be silently mis-sorted. That is inventing law.
-          * observed equality of current outputs — expressly inadmissible. Seven spellings agreeing
-                           on today's fixture is a fact about the fixture.
-
-        THE REPRESENTATION THIS NEEDS — one governed declaration, and the cleanest place is the
-        registry, because the property is VOCABULARY (a law about the capability) and not MECHANICS
-        (how the engine finalizes). Declaring `rho`/`eta` themselves would drag mechanics into the
-        registry and break the split the architecture keeps — there is a standing test asserting this
-        module names no approximate-carrier internals at all, precisely to keep it. So: a boolean
-        asserting the law, defaulting False, fail-closed, set only where the law is proven. `sum`
-        true; `max`/`min` true; `count`, `mean`, the approximate-distinct family, `last`/`first`,
-        and every holistic reducer false.
-
-        PRECEDENT FOR STOPPING SHORT OF IT: `DerivedShape` (ruling 2026-08-20 sec.1), where reading
-        `FERTILE {..}` as travel permission was tried, run, proved wrong, and the shape was left
-        alone rather than "carry half a semantics"."""
-        return False
+        DELIBERATELY NARROW: a bare single-measure atom whose sole family member is the requested
+        reducer. Derived columns, multi-atom expressions and multi-member families are left to
+        Clarify — the certification is about an operator, and carrying it across a derivation is a
+        claim no declaration here supports."""
+        atoms = self._atoms(inner, ())
+        if len(atoms) != 1:
+            return False                                   # a derivation or a compound: not this case
+        meas_name, member = atoms[0]
+        meas = self.m.measures.get(meas_name)
+        if meas is None or len(meas.family) != 1:
+            return False                                   # family-ambiguous: a different question
+        member = member or next(iter(meas.family))
+        if member != reducer:
+            return False                                   # NOT the same continuation (see above)
+        sig = self.m.operators.get(reducer)
+        return bool(sig is not None and sig.re_entrant)
 
     def _distinct_readings(self, reducer, inner, anchor, lawful):
         """Quotient the lawful SYNTACTIC pins by governed analytical equivalence (ruled Huayin,

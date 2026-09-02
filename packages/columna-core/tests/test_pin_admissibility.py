@@ -155,17 +155,22 @@ def test_an_out_of_universe_candidate_is_never_offered(srv):
 
 # ── the 0 / 1 / >1 disposition law is untouched ─────────────────────────────────────────────────
 def test_the_disposition_trichotomy_is_unchanged(srv):
-    """§9 is not what was wrong: |L| = 1 defaults and discloses, |L| > 1 clarifies over the lawful
-    set, |L| = 0 refuses. The repair corrected L, not the rule applied to it."""
+    """§9 is not what was wrong: |L| = 1 defaults and discloses, |L| > 1 clarifies, |L| = 0 refuses.
+    The repair corrected L, not the rule applied to it.
+
+    THE RULE NOW COUNTS READINGS, NOT SPELLINGS (ruled Huayin, 2026-09-01), so this carries the
+    trichotomy on an UNCERTIFIED capability. `max` is deliberate: its lawful set here is identical to
+    `sum`'s, so the only thing that differs is the re-entry certification — which is exactly the
+    variable under test. `sum` collapsing is asserted separately, below."""
     from columna_core.planner import Planner
 
     pl = srv.planner
-    lawful = {a: pl._lawful_pins("sum", ast.parse("revenue", mode="eval").body, a)
+    lawful = {a: pl._lawful_pins("max", ast.parse("revenue", mode="eval").body, a)
               for a in (("region",), ("customer",), ("customer", "day"))}
     assert len(lawful[("customer", "day")]) == 0                  # nothing left to pin
     assert len(lawful[("region",)]) > 1                           # a real menu
-    assert _plan(srv, ("region",), "sum(revenue)")["outcome"] == "clarify"
-    assert isinstance(Planner._lawful_pins(pl, "sum", ast.parse("revenue", mode="eval").body, ("region",)), list)
+    assert _plan(srv, ("region",), "max(revenue)")["outcome"] == "clarify"
+    assert isinstance(Planner._lawful_pins(pl, "max", ast.parse("revenue", mode="eval").body, ("region",)), list)
 
 
 def test_a_single_lawful_reading_defaults_and_discloses(srv):
@@ -214,7 +219,48 @@ def test_the_menu_is_the_lawful_set_in_level_order(srv):
     unchanged 0/1/>1 rule to it. Whether a long menu is the right ERGONOMICS is a separate design
     question; answering it here would mean the framework quietly choosing among lawful readings,
     which is the thing the Clarify exists to refuse to do."""
-    w = _plan(srv, ("region",), "sum(revenue)")
+    w = _plan(srv, ("region",), "max(revenue)")
     menu = _menu(w)
     assert menu == sorted(menu) and len(menu) == len(set(menu))
-    assert menu == srv.planner._lawful_pins("sum", ast.parse("revenue", mode="eval").body, ("region",))
+    assert menu == srv.planner._lawful_pins("max", ast.parse("revenue", mode="eval").body, ("region",))
+
+
+# ── re-entry certification: several lawful spellings, one analytical reading ─────────────────────
+def test_certified_re_entry_collapses_lawful_anchors_to_one_reading(srv):
+    """Ruled (Huayin, 2026-09-01): candidate anchors proven equivalent under governed analytical law
+    are ONE reading, so the 0/1/many rule counts readings rather than raw candidates.
+
+    `sum` carries `re_entrant=True` — finalizing at a lawful intermediate partition and re-applying
+    denotes the same result. Two lawful pins therefore collapse and the ask SERVES where it used to
+    offer a menu. And because no analytical choice was made, NO material input-anchor disclosure is
+    owed: realization merely picked a representative."""
+    lawful = srv.planner._lawful_pins("sum", ast.parse("revenue", mode="eval").body, ("region",))
+    assert len(lawful) > 1, "the collapse is only meaningful with a real menu behind it"
+
+    w = _run(srv, ("region",), "sum(revenue)")
+    assert w["outcome"] in ("serve", "disclose"), "certified re-entry must not clarify"
+    codes = {(d["code"], d.get("materiality")) for d in (w["columns"][0].get("disclosures") or [])}
+    assert ("input_anchor", "material") not in codes, \
+        "no meaning-bearing choice was made, so no MATERIAL input-anchor caveat is owed"
+
+
+def test_uncertified_capabilities_still_clarify(srv):
+    """The certification is a DECLARATION, not an algebraic guess. `max` is idempotent and `count`
+    combines additively — both would pass a plausibility test, and both stay uncertified because no
+    governed contract establishes re-entry for them. Undeclared means Clarify."""
+    for reducer in ("max", "count", "mean"):
+        w = _plan(srv, ("region",), f"{reducer}(revenue)")
+        assert w["outcome"] == "clarify", f"{reducer} is uncertified and must still clarify"
+
+
+def test_the_collapse_requires_the_SAME_continuation(srv):
+    """The law quantifies over ONE kappa: re-entry through the *same* continuation. `sum(revenue)`
+    collapses because revenue's family member IS `sum`, so inner delivery and outer reduction are
+    the same capability. `max(revenue)` must not borrow that certification: revenue's family is
+    (sum), so the inner delivers SUMS and the outer takes a max OF SUMS — a different analytical
+    object at each candidate grain."""
+    pl = srv.planner
+    inner = ast.parse("revenue", mode="eval").body
+    assert pl._re_entrant("sum", inner) is True
+    assert pl._re_entrant("max", inner) is False, \
+        "max must not inherit sum's certification just because sum delivers its input"

@@ -538,24 +538,30 @@ representative of one meaning, and no analytical choice was made.
 Below, the sugared and canonical spellings of the most common form:
 
 ```
-FROM finance_manifold SELECT sum(revenue) AT {customer}                  -- clarify: input_anchor_ambiguous
+FROM finance_manifold SELECT sum(revenue) AT {customer}                  -- serve
 FROM finance_manifold SELECT sum(revenue @ {transaction}) AT {customer}  -- serve
 ```
 
-> **▸ Build status (2026-09-01): the law above is canonical; this build cannot yet apply it.** The
-> canonical spelling serves. The sugared spelling **clarifies** with `input_anchor_ambiguous`,
-> offering its six lawful anchors — and that is the correct conservative behaviour, not a defect,
-> because re-entrancy must be established **ex ante from declared law** and shipped Core has no
-> declaration that establishes it. The registry declares each reducer's witness and combine; it does
-> not declare its finalization ρ or its re-entry η, and those are exactly what the law quantifies
-> over. Nothing currently in the registry may stand in for them: `is_monoid` is true of `count`,
-> `linear` is a different question and excludes `max`/`min`, and output dtype is a type-signature
-> coincidence. Observed agreement of today's numbers is not admissible evidence either.
->
-> So the framework declines to collapse readings it cannot prove coincide. When the governed
-> declaration lands, `sum(revenue) AT {customer}` will serve — with no input-anchor disclosure, since
-> there was no analytical choice — and this note retires.
->
+Both spellings serve, and neither carries an input-anchor caveat: `sum` is **certified re-entrant**,
+its lawful anchors collapse to one reading, and picking a representative among them is not a decision
+the reader was asked to make.
+
+**Certification is declared, never inferred.** A capability collapses its anchors only when a
+governed declaration says it may. `max` and `min` are *not* certified — `max`-of-`max`es is
+algebraically the maximum, and that plausibility is exactly what the declaration exists to refuse:
+certifying them would have to cover empty and absent intermediate cells, whose denotation is the
+measure's fill rule Φ, and Φ is per-measure and may be undeclared. A condition that matters is never
+flattened into a blanket certification. `count` is not certified (it re-enters a finalized value as
+one item, so counting displayed counts is not combining count state); `mean`, `median` and `mode` are
+holistic; approximate-distinct finalizes through a non-identity projection. All of them still
+Clarify, and offer their full lawful menu.
+
+**The certification is about one capability, applied twice.** `sum(revenue)` collapses because
+`revenue`'s family member *is* `sum`, so the inner resolution and the outer reduction are the same
+continuation. `max(revenue)` may not borrow that: `revenue`'s family is `sum`, so the inner delivers
+*sums* and the outer takes a maximum *of sums* — a different analytical object at every candidate
+grain, and not the composition the law speaks about.
+
 > *(The prior edition stated this rule as "omitting `@ root(col)`". That is retired: `root(col)` is
 > not a language object the shipped Core has — a measure declares name, universe, family, logical
 > type, blocked lineages and fill rule, and no root — so the old rule rested on a concept nothing
