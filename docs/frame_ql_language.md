@@ -2,23 +2,11 @@
 
 *The formal query language of Columna, by datumwise*
 
-*The formal query language of Columna. This edition documents it **as implemented** (columna-core 0.18.1). How the text reached its current state — the edition lineage, the retired fragment, and the dated syncs — is recorded in [`frame_ql_revision_history.md`](frame_ql_revision_history.md).*
+*The formal query language of Columna, Second Edition. How the text reached its current state — the edition lineage, the retired fragment, and the dated syncs — is recorded in [`frame_ql_revision_history.md`](frame_ql_revision_history.md).*
 
-**Currency (2026-08-22).** This edition is current for **columna 0.18.1 · columna-core 0.18.1 ·
-columna-server 0.11.1**, wire `contract_version` **`"4"`**. The `"2"` → `"3"` bump changed the
-**installation catalog** (`list_manifolds`, which became a governed publication lineage catalog) and
-nothing this manual documents; `CONTRACT_VERSION` is global, so `query` / `check` / `EXPLAIN` /
-`describe` merely report `"3"` — no Frame-QL syntax, analytical behavior, mood, disclosure or reason
-code moved with it. Earlier changes and their dates are recorded in
-[`frame_ql_revision_history.md`](frame_ql_revision_history.md); they are history and are not restamped.
+*This reference describes the language. Which package versions realize it, and which wire contract they speak, is recorded in [`frame_ql_build_status.md`](frame_ql_build_status.md).*
 
-*About the examples (stated once): every FrameQL example in this manual is checked against the shipped
-parser (`columna_core.envelope.parse_statement`, columna-core 0.18.1) by `docs/tools/check_manual_frameql.py`,
-which rides the manuals merge as a standing test — the manual can never document syntax its own parser
-rejects. A code block fenced `frameql-illformed` is **deliberately ill-formed**: it shows a syntax the
-parser rejects (a `[SCHEDULED]`/`[ROADMAP]` surface not yet shipped, or a teaching non-example), and the
-check asserts it does **not** parse. Every other FrameQL block parses clean (it may still refuse or
-clarify at plan time — that is semantics, which the four moods report, not grammar).*
+*Examples in this reference are conformance-checked. A block fenced `frameql-illformed` is deliberately ill-formed and is checked to confirm the parser rejects it. How the checking works, and against which package, is in [`frame_ql_build_status.md`](frame_ql_build_status.md).*
 
 ---
 
@@ -378,7 +366,7 @@ For each customer, the maximum monthly revenue. The inner `sum(revenue @ {transa
 
 ### 2.8 Subsetting and scans **[ROADMAP]** / **[SCHEDULED]**
 
-Two further expression forms are documented as the language the envelope **grows into by ruling** (ADR-035 D1); they are *not* part of the shipped envelope (columna-core 0.18.1), and the ratified grammar spec keeps them roadmap (they are grammar the engine does not yet have). They enter the language when ruled in, not by accretion.
+Two further expression forms are documented as the language the envelope **grows into by ruling** (ADR-035 D1); they are *not* part of the envelope, and the ratified grammar spec keeps them roadmap (they are grammar the engine does not yet have). They enter the language when ruled in, not by accretion.
 
 **The bracket filter** restricts a column reference to a subset of its domain — `revenue[region = "east"]` — producing a degenerate column that carries its restriction as part of its identity (framework manual, Chapter 6). It differs from `WHERE` (Chapter 4.1): `WHERE` restricts the whole statement's input; a bracket filter restricts an individual reference within one expression. Whether an emptied bucket is even *expected* — a point on the grid — is decided by the destination universe's **basis** (Chapter 1.5): an events population has no point where nothing occurred, while a spine/product population expects the full grid and reports a missing one as a gap carrying `incomplete_data`. What an emptied-but-expected bucket *denotes* — a zero, or an absent value — is the **measure's fill rule Φ**, not the basis (columna#148); the resolved basis, the fill rule, and any gap ride in the annotation.
 
@@ -526,14 +514,16 @@ not name a series expression: those are output columns, and they belong in `HAVI
 
 `WHERE` restricts the query's result, not the Manifold. Columns keep their declared coverage.
 
-**Either quote works.** `'east'` and `"east"` are one string literal in Frame-QL. The predicate is
-normalized into the backend's spelling before it becomes SQL, so both forms run and return the same
-rows. The substrate does not reinterpret Frame-QL's literals.
+**Either quote works.** `'east'` and `"east"` are one string literal in Frame-QL, and both forms
+mean the same thing.
 
-**A predicate on a base dimension of the measure's own universe runs.** A predicate on a dimension
-reached only across a relationship does not, and the two failures carry different reasons on purpose:
-`filter_unreachable` means the *Manifold* offers no path, so rewording may help; `filter_unsupported`
-means the *build* cannot push the filter across the join, and rewording will not help. See §4.1.1.
+**A predicate dimension must be reachable from the series' input anchor.** It may be a coordinate of
+that grain, or reached from it through a verified hierarchy edge. When no path exists, the query is
+underdetermined and the framework clarifies with `filter_unreachable` — a fact about the Manifold,
+which the asker may be able to fix by rewording.
+
+Reachability is an analytical question, not an implementation one. A dimension reached across a
+relationship is reachable, and filtering on it is a lawful query. §4.1.1 covers it.
 
 **Series with different input grains are filtered separately, each at its own input grain.** If one
 series draws from `{transaction}` and another from `{warehouse, day}`, `WHERE region = "east"`
@@ -545,12 +535,13 @@ series and skip others.
 
 #### 4.1.1 Filtering through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
 
-A predicate on a dimension the universe reaches only **across a relationship** — `region` from
-`customer`, `date` from `transaction` — is lawful but does not run in this build. The filter is
-pushed to the measure's own source table, which carries the universe's base coordinates and not the
-joined ones, so there is nothing there to bind against. The query is refused before execution with
-`filter_unsupported`, naming the base dimensions as the remedy, rather than planned as `serve` and
-failed afterwards.
+A dimension the universe reaches **across a relationship** — `region` from `customer`, `date` from
+`transaction` — is reachable, and filtering on it is a lawful query. Reachability is an analytical
+property of the Manifold: the path exists or it does not, and here it does.
+
+Whether an implementation can execute such a filter is a separate question, and this build cannot.
+See [`frame_ql_build_status.md`](frame_ql_build_status.md), which also names the reason such a query
+carries.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -559,8 +550,8 @@ WHERE region = "east" AND date >= "2024-01-01"
 ```
 
 *Would compute* per-customer revenue over east-region transactions from 2024 onward. This is **not**
-`filter_unreachable`: `region` is reachable from `customer`, so the asker cannot fix it by rewording.
-The limit is the build's, not the Manifold's. Whether a filter may join is an open ruling.
+`filter_unreachable`: `region` is reachable from `customer`, and the query is well-formed. Whether a
+filter may join is an open ruling.
 
 ### 4.2 `HAVING` — filtering the output **[ROADMAP — the `count(*)` series only]**
 
@@ -940,9 +931,8 @@ universe, which is what makes this executable; the literal may be written in eit
 
 ### 6.8a WHERE through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
 
-**Plans, and is refused before execution with `filter_unsupported`** (§4.1.1). `date` and `region`
-are reached from this universe only across a relationship, and the filter is pushed to the measure's
-own source, which carries the base coordinates alone.
+Filtering on a dimension reached across a relationship — the rule is §4.1.1. This build does not run
+it.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -1360,7 +1350,7 @@ The **type predicates and casts** `is_<type>` and `cast(col, <type>)` are propos
 
 ## Appendix B: Reserved Keywords
 
-**The shipped envelope statement keywords** (columna-core 0.18.1; case-insensitive, whole-word): `EXPLAIN`, `FROM`, `WITH`, `SELECT`, `AS`, `AT`, `WHERE`, `HAVING`, `ORDER`, `BY`, `LIMIT`, `PER`, `ASC`, `DESC`, `AND`. These are the clauses of the envelope (Chapter 1.2), in fixed order; `SELECT` and `AT` are required, the rest optional (`FROM` defaults to the bound Manifold).
+**The envelope statement keywords** (case-insensitive, whole-word): `EXPLAIN`, `FROM`, `WITH`, `SELECT`, `AS`, `AT`, `WHERE`, `HAVING`, `ORDER`, `BY`, `LIMIT`, `PER`, `ASC`, `DESC`, `AND`. These are the clauses of the envelope (Chapter 1.2), in fixed order; `SELECT` and `AT` are required, the rest optional (`FROM` defaults to the bound Manifold).
 
 **Structural markers.** `@ {…}` — the **input** anchor, on a column reference or reduction, the input-anchor marker **universally**; `AT {…}` — the **output** grain, the sole output-anchor declaration; `*` — the anchor product (`store * cal.month`), the same operator as `UNIVERSE u = store * day` (comma accepted on input, `*` canonical); `{…}` — an anchor set (a product of levels). *The trailing-`@` output form is **retired** — a top-level `@` no longer spells an output anchor (Appendix D).*
 
@@ -1415,4 +1405,4 @@ What the envelope **absorbed** from the fragment: the per-subexpression input an
 
 ---
 
-*End of the Frame-QL Manual, Second Edition — current for columna-core 0.18.1 / columna-server 0.11.1 and wire contract `"4"` (a mechanically-reconciled continuation of the First Edition, whose sync point was columna-core 0.14.0 / 0.13.4 and contract `"2"`; itself a renamed continuation of the Coframe-QL Manual, Third Edition, reconciled to the shipped envelope grammar, ADR-035).*
+*End of the Frame-QL language reference, Second Edition.*
