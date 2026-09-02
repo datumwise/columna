@@ -28,6 +28,25 @@ rounds of source reading were **falsified** by execution.
 | **SV** | SOURCE-VERIFIED — read at the cited file:line, not executed |
 | **INF** | INFERENCE — a conclusion drawn from source, not observed |
 
+### Picking an identifier
+
+**The P-number space is allocated across the whole repository, not inside this file.** `P1-19` …
+`P1-28` are live in source, tests and CHANGELOGs and have no row here, so the highest heading in this
+document is NOT the highest identifier in use — reading only the ledger and taking the next heading
+number yields a collision. It did on 2026-09-02: P1-19 (explicit `FROM` ignored) and P1-20
+(multi-member face-driver selection) were both re-issued and had to be renumbered to P1-29/P1-30
+before landing.
+
+Before minting one, sweep the tree, not this file:
+
+```
+grep -rhoE "\bP1-[0-9]{2}\b" --include=* . | sort -u | tail -1
+```
+
+Identifiers stay historically unique even after the row is repaired and closed: a retired number is
+still the name of a thing that happened, and archived transcripts, commit messages and test comments
+resolve against it.
+
 ### Priority classes
 
 | class | meaning |
@@ -578,7 +597,7 @@ enforcing it at delivery, (c) implement the lift the docstring already claims, o
 combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
 questions and are held for the Finding 2 review.
 
-### P1-19 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **OPEN — fix recommended, not authorized** · VX
+### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **OPEN — fix recommended, not authorized** · VX
 
 Opened 2026-09-02, surfaced while clearing the eight-PR backlog. **The invariant (ruled Huayin,
 2026-09-02):**
@@ -631,7 +650,7 @@ nothing — see the branch `governance/payload-gate-coverage-and-one-gate-set`.
 
 ---
 
-### P1-20 · No single authoritative definition of the required gate set · **MEDIUM** · **OPEN — fix recommended, not authorized** · SV
+### P1-30 · No single authoritative definition of the required gate set · **MEDIUM** · **OPEN — fix recommended, not authorized** · SV
 
 Opened 2026-09-02. **The invariant (ruled Huayin, 2026-09-02):**
 

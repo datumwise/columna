@@ -6,6 +6,32 @@ on:
   release:
     types: [published]
   pull_request:
+  # THE GATE WAS REACHABLE ONLY FROM A PULL REQUEST (P1-29, ruled Huayin 2026-09-02).
+  #
+  #     Every change capable of altering a shipped payload must encounter the payload-coherence
+  #     gate before release.
+  #
+  # With `release` + `pull_request` alone there are exactly two routes in, and a payload-affecting
+  # change sitting on a branch with no PR meets the gate for the first time AT RELEASE — the one
+  # moment refusing is no longer free. That is not hypothetical: columna-server payload drift landed
+  # on a branch that carried no PR for two days (8b2a29e, 5dc2ef5) and was found on 2026-09-02 only
+  # because someone ran the gate by hand.
+  #
+  # NO PATH FILTER, DELIBERATELY. The obvious repair — enumerate the payload-affecting paths — would
+  # create a SECOND, hand-maintained definition of "payload-affecting change" beside the one this job
+  # already computes by building each wheel and diffing it against the wheel PyPI serves. Two
+  # definitions drift, and the one that drifts SILENTLY is the path filter: it goes stale by omission,
+  # and its failure mode is a gate that does not run. The gate needs no such definition. It answers
+  # the question empirically, on every trigger, and costs ~90s to do it.
+  push:
+    branches: [main]
+  # THE INDEPENDENT HEARTBEAT. `push: main` covers what lands; this covers what is ALREADY there. A
+  # red main must be able to surface on its own schedule rather than waiting for someone to happen to
+  # open a PR — the same has-to-be-loud principle docs.yml adopted after the 2026-07-19 masking
+  # incident, applied to the guard whose failure is the most expensive of the three.
+  schedule:
+    - cron: '31 6 * * 1'        # Mondays 06:31 UTC — offset from docs.yml's 06:17
+  workflow_dispatch:
 
 jobs:
   build:
