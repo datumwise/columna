@@ -215,6 +215,8 @@ _FENCES = ("frameql", "frameql-illformed", "frameql-roadmap", "frameql-schematic
 # real but undeclared, the remedy is to DECLARE it (one reviewable line), not to teach the gate to
 # infer it.
 _APX_A = re.compile(r"^##\s+Appendix A", re.M)
+CA_BEGIN = "<!-- BEGIN GENERATED: capability-reference -->"
+CA_END = "<!-- END GENERATED: capability-reference -->"
 _OP_TOKEN = re.compile(r"`([^`]+)`")
 #: table rows are `| \`sum\` | fertile | … |` — the first cell holds the names
 _ROW = re.compile(r"^\|\s*(?P<first>[^|]*)\|")
@@ -240,95 +242,83 @@ def _op_names(cell: str):
 
 
 def operator_reference_drift(text, secs):
-    """Both directions across Appendix A. Returns (failures, shipped_named, registry_unnamed)."""
+    """Appendix A's capability tables are now a GENERATED PROJECTION of the canonical authority
+    (`specs/frameql_capabilities.toml`), emitted by `regen_capability_tables.py` and drift-checked
+    there. So this no longer re-diffs those rows — that would only re-derive what the generator just
+    wrote, which is a tautology dressed as a check.
+
+    WHAT IS STILL WORTH ASKING, and what this now asks:
+
+      1. Has a hand-maintained vocabulary table come BACK, outside the generated block? That is how
+         the P0-17 class returns: a second independent claim about the same governed disposition,
+         kept in step by hand until it isn't. Any structured vocabulary row found outside the markers
+         is reported, whatever it says.
+      2. Does every name such a row uses resolve to a CANONICAL CAPABILITY? Resolution goes through
+         the authority's own spelling index — never through the shipped registry, which would make
+         one implementation's membership the test of what the language has.
+
+    Returns (failures, named, unnamed) with the same shape as before; the registry-completeness
+    direction moved to `capability_authority.py`, where the three layers are joined."""
     try:
-        from columna_core.operators import REGISTRY, ALIASES
-        from columna_core.planner import Planner
-    except ImportError:                                        # pragma: no cover
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import capability_authority as CA
+        caps = CA.canonical_capabilities()
+        spellings = CA.spelling_index(caps)
+    except Exception:                                          # pragma: no cover
         return [], set(), set()
-    # PREDICATE POSITION IS A SECOND SHIPPED VOCABULARY, AND THE REGISTRY DOES NOT KNOW ABOUT IT.
-    # `>=` is not a registry operator and never will be — it is not usable in a series expression —
-    # yet `WHERE day >= "2024-01-01"` serves today. Diffing Appendix A against the registry ALONE
-    # would report six shipped comparisons as unshipped, and marking them [ROADMAP] to make the gate
-    # green would be precisely the inverse error the standing rule forbids: capability improvement
-    # must make stale documentation fail, never make working code look like the regression.
-    # `Planner._CMP` is the declared predicate-comparison table, so it is read as a source, not
-    # guessed at. Verified against the fixture: >= <= > < = != and AND serve; IN, OR, NOT, BETWEEN
-    # do not (and Appendix B's reserved-keyword list already omits those four).
-    predicate_ops = {sym for sym, _code in Planner._CMP} | {"and"}
+
     lines = text.splitlines()
     m = _APX_A.search(text)
     if not m:
         return [], set(), set()
     start = text[:m.start()].count("\n")
+    # BOUNDED AT THE NEXT APPENDIX, and generated lines are SKIPPED IN PLACE rather than stripped —
+    # stripping shifted every reported line number, and an unbounded scan walked into Appendix B and
+    # reported its reserved-keyword list (INHERIT, JOIN, COMPOSE, ...) as unknown capabilities. A
+    # checker that mislocates its findings is worse than one that misses them.
     end = next((ln - 1 for ln, h, _k in secs if ln > start + 1 and h.startswith("Appendix B")),
                len(lines))
+    generated = set()
+    depth = 0
+    for i, raw in enumerate(lines):
+        if CA_BEGIN in raw:
+            depth = 1
+        if depth:
+            generated.add(i)
+        if CA_END in raw:
+            depth = 0
     fails, named = [], set()
-    sub = None                                                  # the "### Reducers" / "### Scan functions" head
-    sub_marked = False
+    sub = None
     for i in range(start, min(end, len(lines))):
+        if i in generated:
+            continue
         raw = lines[i]
         if raw.startswith("###"):
-            sub = raw.lstrip("# ").strip()
-            sub_marked = ("[ROADMAP" in raw or "[SCHEDULED" in raw)
-            continue
-        # ONLY THE THREE STRUCTURED SHAPES ARE OPERATOR LISTS. Appendix A is mostly PROSE, and prose
-        # mentions operators without claiming them as vocabulary rows — "a stock measure's `LAST`
-        # family is the canonical case" is an illustration, not a table entry. Reading every
-        # backticked token in the appendix would flag it, which is a checker inventing claims the
-        # Manual did not make. So: a table row, a `Label: ...` list, or a backtick-leading scan line.
+            sub = raw.lstrip("# ").strip(); continue
         row = _ROW.match(raw)
         listy = _LIST_LINE.match(raw)
-        scanline = raw.startswith("`")
-        if not (row or listy or scanline) or raw.lstrip().startswith("|---"):
+        if not (row or listy) or raw.lstrip().startswith("|---"):
             continue
-        # `Scan parameters, passed by keyword: ...` names PARAMETERS, not operators — excluded by the
-        # label pattern (it has a comma), and named here so the exclusion is deliberate, not lucky.
         cell = row.group("first") if row else raw
-        # THE MARK IS PER LINE, then per subsection: a table row carries its own
-        # `**[ROADMAP — no t-digest ships]**`, and a whole block may be marked at its heading.
-        marked = sub_marked or "[ROADMAP" in raw or "[SCHEDULED" in raw
-        for name in _op_names(cell):
-            if name in ("fertile", "mule", "native", "same", "identity"):
-                continue
-            if name == "count(*)":
-                # A MEASURE-DECLARATION SPELLING, NOT A QUERY OPERATOR. `AS count(*)` in a `.cml`
-                # MEASURE ships and keeps its own lift (parser.py: `if agg == "count": pre_expr = "1"`),
-                # while the QUERY-level series form is dispositioned separately at §4.2 as unresolved
-                # architecture. Diffing it against the operator registry would answer neither question.
-                continue
-            resolved = ALIASES.get(name, name)
-            shipped = resolved in REGISTRY or resolved.lower() in predicate_ops
-            if shipped:
-                named.add(resolved)
-                # A MARK ASSERTS "DOES NOT FULLY SHIP", AND THERE ARE TWO WAYS TO NOT FULLY SHIP.
-                # `rolling_sum`/`rolling_mean` ARE in the registry and are `in_core=False` — recognised
-                # by the planner, not executed by the engine. That is §2.8's own "recognition is not
-                # capability", and a mark on such a row is TRUE. Treating marked-and-registered as a
-                # contradiction would push the Manual to un-mark a row that really is roadmap.
-                sig = REGISTRY.get(resolved)
-                fully = sig is None or getattr(sig, "in_core", True)   # predicate ops: no sig, always shipped
-                if marked and fully:
-                    fails.append((IMPROVED, i + 1, f"Appendix A / {sub or 'operators'}",
-                                  "operator-marked-roadmap-but-registered", name,
-                                  "the row is marked unshipped; this operator IS in the shipped "
-                                  "registry and executes"
-                                  + (f" (as '{resolved}')" if resolved != name else "")))
-            elif not marked:
+        names = [n for n in _op_names(cell)
+                 if n not in ("fertile", "mule", "native", "same", "identity", "Capability")]
+        if not names:
+            continue
+        for name in names:
+            cid = spellings.get(name)
+            if cid is None:
                 fails.append((EXCEEDS, i + 1, f"Appendix A / {sub or 'operators'}",
-                              "operator-named-but-not-registered", name,
-                              "Appendix A presents this as vocabulary, unmarked, and the shipped "
-                              "registry has no such operator — mark the row [ROADMAP], or declare "
-                              "the alias in operators.ALIASES if it ships under another spelling"))
-    # THE DISCOVERABILITY DIRECTION IS PROSE-INCLUSIVE, DELIBERATELY. "Does a vocabulary ROW claim
-    # this?" and "can a reader find this name in the reference at all?" are different questions. The
-    # HLL trio is named in Appendix A's opening note as the extension-point case study — engine
-    # mechanics, correctly absent from the reducer TABLE but genuinely documented — so counting only
-    # structured rows here would report them as undocumented, which is false.
-    appendix_text = "\n".join(lines[start:min(end, len(lines))])
-    unnamed = {n for n in REGISTRY
-               if n not in named and f"`{n}`" not in appendix_text}
-    return fails, named, unnamed
+                              "operator-not-a-canonical-capability", name,
+                              "this names no capability in specs/frameql_capabilities.toml — add it "
+                              "to the canonical authority, or declare it as a spelling of one"))
+            else:
+                named.add(cid)
+                fails.append((EXCEEDS, i + 1, f"Appendix A / {sub or 'operators'}",
+                              "hand-maintained-vocabulary-table", name,
+                              "a vocabulary row outside the generated block is a SECOND authority for "
+                              "a governed disposition — the P0-17 class. Move it into "
+                              "specs/frameql_capabilities.toml and let the table be projected"))
+    return fails, named, set()
 
 
 def sections(text: str):

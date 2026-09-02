@@ -1,0 +1,27 @@
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# platform_profile.toml — THE PLATFORM PROFILE: a NORMATIVE realization contract (L3)
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# Authored, not inferred — see core_profile.toml for the layer's two standing rules.
+#
+# THE PLATFORM PROFILE ADDS NO CAPABILITY REALIZATION. `columna-server` exposes Core's capabilities
+# over MCP and the natural-language agent; it does not implement an operator Core lacks, and every
+# number it returns is Core's. Declaring that explicitly is the point: an EMPTY `realizes` list is a
+# contract ("the platform adds no analytical capability"), whereas an absent file would merely be
+# silence, and silence is what let hand-maintained claims drift in the first place.
+#
+# A profile may ADD realization capability; it may not change the meaning of canonical Frame-QL. The
+# platform exercises neither half of that permission for capabilities.
+#
+# OPEN QUESTION, REPORTED NOT ANSWERED: the platform's real additions are SURFACES — MCP tools, the
+# agent, the wire's disclosure levels — not capabilities. Whether "profile" should govern surfaces
+# as well as capabilities is a design question this layer does not settle. Until it is ruled, this
+# file governs capability realization only, and the platform's surface contract lives elsewhere.
+
+profile = "platform"
+title = "Platform Profile"
+realizes_authority = "specs/frameql_capabilities.toml"
+inherits = "core"
+
+# intentionally empty — see the header
+realizes = []

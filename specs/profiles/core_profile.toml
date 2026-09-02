@@ -1,0 +1,142 @@
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# core_profile.toml — THE CORE PROFILE: a NORMATIVE realization contract (L3)
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# A PROFILE IS AUTHORED, NOT INFERRED. This file is not a description of what `columna-core`
+# currently happens to do; it is a declaration of what the Core Profile UNDERTAKES to realize. The
+# distinction is the whole point of the layer:
+#
+#     canonical language standing   (specs/frameql_capabilities.toml — what Frame-QL HAS)
+#             |
+#     profile realization standing  (THIS FILE — what a conforming implementation MUST realize)
+#             |
+#     current build realization     (MEASURED from the installed package, never authored)
+#
+# TWO STANDING RULES GOVERN THIS LAYER (ruled Huayin, 2026-09-01):
+#
+#   * A profile may ADD realization capability; it may NOT change the meaning of canonical Frame-QL.
+#     Every `capability` named below must exist in the canonical authority, and nothing here may
+#     redefine what it means. A profile that names an unknown capability is an error, not an
+#     extension.
+#
+#   * A shipped build may CONFORM TO, LAG, or EXCEED this declaration; it does not silently redefine
+#     it. All three are legitimate states and all three are VISIBLE — the conformance gate measures
+#     the build against this file and reports the delta in whichever direction it runs. A build that
+#     lags does not lower the contract; a build that exceeds does not raise it.
+#
+# THIS DECLARATION WAS AUTHORED FROM THE DOCUMENTED REALIZATION CLAIMS — the Reference Manual 5e
+# operator matrix and Frame-QL sec.2.8 / Appendix A — which are normative statements someone made,
+# NOT from reading the registry. Where the build then disagrees, that disagreement is a finding.
+#
+# level:  execute  the profile undertakes to run this and return a result
+#         plan     recognized and planned as contract; execution not undertaken
+#         none     not undertaken (omitted rows default to none)
+
+profile = "core"
+title = "Core Profile"
+realizes_authority = "specs/frameql_capabilities.toml"
+
+# ── reducers the profile undertakes to execute ────────────────────────────────────────────────
+[[realizes]]
+capability = "sum"
+level = "execute"
+[[realizes]]
+capability = "count"
+level = "execute"
+[[realizes]]
+capability = "min"
+level = "execute"
+[[realizes]]
+capability = "max"
+level = "execute"
+[[realizes]]
+capability = "mean"
+level = "execute"
+[[realizes]]
+capability = "median"
+level = "execute"
+[[realizes]]
+capability = "mode"
+level = "execute"
+[[realizes]]
+capability = "last"
+level = "execute"
+[[realizes]]
+capability = "first"
+level = "execute"
+[[realizes]]
+capability = "approx_distinct"
+level = "execute"
+note = "the one sketch family the profile undertakes; composed engine-side"
+
+# ── series-position maps ──────────────────────────────────────────────────────────────────────
+[[realizes]]
+capability = "add"
+level = "execute"
+[[realizes]]
+capability = "subtract"
+level = "execute"
+[[realizes]]
+capability = "multiply"
+level = "execute"
+[[realizes]]
+capability = "divide"
+level = "execute"
+[[realizes]]
+capability = "negate"
+level = "execute"
+
+# ── predicate position ────────────────────────────────────────────────────────────────────────
+[[realizes]]
+capability = "eq"
+level = "execute"
+[[realizes]]
+capability = "ne"
+level = "execute"
+[[realizes]]
+capability = "lt"
+level = "execute"
+[[realizes]]
+capability = "le"
+level = "execute"
+[[realizes]]
+capability = "gt"
+level = "execute"
+[[realizes]]
+capability = "ge"
+level = "execute"
+[[realizes]]
+capability = "conjunction"
+level = "execute"
+
+# ── scans ─────────────────────────────────────────────────────────────────────────────────────
+# NOTE: every capability below is canonically `proposed` — sec.2.8 has not ruled scans into the
+# language. The profile nonetheless undertakes to realize them, which is a build/profile EXCEEDING
+# canonical standing. That is representable here on purpose rather than being hidden by promoting
+# the capability, and it is reported as an open canonical question.
+[[realizes]]
+capability = "cumsum"
+level = "execute"
+[[realizes]]
+capability = "cummax"
+level = "execute"
+[[realizes]]
+capability = "cummin"
+level = "execute"
+[[realizes]]
+capability = "lag"
+level = "execute"
+[[realizes]]
+capability = "lead"
+level = "execute"
+[[realizes]]
+capability = "pct_change"
+level = "execute"
+[[realizes]]
+capability = "rolling_sum"
+level = "plan"
+note = "windowed; registered as contract, execution not undertaken by this profile"
+[[realizes]]
+capability = "rolling_mean"
+level = "plan"
+note = "windowed; registered as contract, execution not undertaken by this profile"

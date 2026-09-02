@@ -1,0 +1,819 @@
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# frameql_capabilities.toml — THE CANONICAL FRAME-QL CAPABILITY AUTHORITY (L2)
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# ONE GOVERNED CAPABILITY DISPOSITION HAS ONE AUTHORITY. Every Manual, profile and build
+# representation of a capability's canonical standing is a CHECKED PROJECTION of this file, never an
+# independently maintained claim. This closes the P0-17 class: eight reducer rows were adjudicated
+# [ROADMAP] in the Reference Manual, that ruling's repair scope was `/docs/reference` only, and the
+# Frame-QL Manual carried the contradicting claim for months because nothing coupled them.
+#
+# IT LIVES IN `specs/`, NOT IN `columna-core`, DELIBERATELY. Canonical standing is a fact about the
+# LANGUAGE. Housing it in one implementation would make the language's own law ship with a Python
+# package and would invite exactly the conflation this separation exists to prevent — registry
+# membership or `in_core` quietly becoming canonical Frame-QL law. A build realizes capabilities; it
+# does not decide which capabilities the language has.
+#
+# ── WHAT BELONGS HERE (and nothing else) ──────────────────────────────────────────────────────
+#   id                    canonical capability identity
+#   spellings             canonical surface spelling(s) and declared aliases
+#   position              SYNTAX POSITION — a canonical category, not a realization artifact.
+#                         "series" (inside a SELECT series expression) or "predicate" (WHERE/HAVING).
+#                         A comparison ships in predicate position and can never be a series
+#                         operator; that is language structure, not a build accident.
+#   category              reducer | scan | map — the canonical kind the language distinguishes
+#   standing              ratified | proposed | retired  (ADR-035 D1: the grammar grows BY RULING)
+#   re_entry_certified    the capability-INTRINSIC certification (Frame-QL Manual sec.3.2)
+#
+# ── WHAT IS DELIBERATELY EXCLUDED ─────────────────────────────────────────────────────────────
+# This is a CANONICAL CAPABILITY authority, not a universal analytical-law registry.
+#
+#   * Anything scoped to a Data World — measure family membership, blocked lineages, fill rule Phi,
+#     population/universe, per-Manifold certification. Those are governed DECLARATIONS of a Data
+#     World and stay there. They are not language-capability facts merely because the current
+#     implementation happens to keep them nearby.
+#   * Mechanics — witness, combine, deliver_sql, scan_impl. Engine implementation.
+#   * `in_core`, registry membership, backend support. REALIZATION: see the profile declarations and
+#     the measured build matrix.
+#   * `is_monoid`, `linear`. Analytical properties consumed by Data-World-dependent adjudication
+#     (the B-anchor crossing check, the WP-B symbolic gate) rather than facts about the capability
+#     standing alone.
+#   * Type signatures (`accepts` / `out_rule`) and `needs_order` / `needs_window`. Arguably canonical
+#     and deliberately left out of v1 pending a ruling — today only Core declares them, and pulling
+#     them in would mean transcribing one implementation's signatures as language law.
+#
+# `re_entry_certified` is here because it IS capability-intrinsic and unconditional: it is a property
+# of the capability's own finalization and re-entry, true wherever the capability is lawfully used.
+# Whether a PARTICULAR ask may use it additionally depends on the measure's family — that second
+# condition is a Data World question and is adjudicated in the planner, not declared here.
+#
+# STANDING IS NOT REALIZATION. `proposed` means the language has not ruled the construct in. A build
+# may still realize it (Core executes `cumsum` today while sec.2.8 keeps scans roadmap) — that is a
+# build EXCEEDING canonical standing, it is visible in the matrix, and it is a question for ruling,
+# not something this file may quietly settle by promoting the capability.
+
+schema_version = 1
+
+# ── REDUCERS ─────────────────────────────────────────────────────────────────────────────
+
+[[capability]]
+id = "sum"
+spellings = ["sum"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = true
+source = "Frame-QL Manual Appendix A"
+note = "Certified re-entrant: additive monoid, finalization and re-entry are both the identity."
+
+[[capability]]
+id = "count"
+spellings = ["count"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "NOT re-entrant: re-enters a finalized value as one item, so counting displayed counts is not combining count state."
+
+[[capability]]
+id = "min"
+spellings = ["min"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Uncertified: an honest certification must cover empty/absent intermediate cells, whose denotation is the measure fill rule Phi."
+
+[[capability]]
+id = "max"
+spellings = ["max"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Uncertified for the same reason as min. Algebraic idempotence is not a certification."
+
+[[capability]]
+id = "mean"
+spellings = ["mean", "avg"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Holistic mule; a mean of means is not a mean."
+
+[[capability]]
+id = "median"
+spellings = ["median"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Holistic; no finite witness closes it."
+
+[[capability]]
+id = "mode"
+spellings = ["mode"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Holistic; no finite witness closes it."
+
+[[capability]]
+id = "last"
+spellings = ["last"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Ordered; witness is (value, order_key), not the finalized value."
+
+[[capability]]
+id = "first"
+spellings = ["first"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "Ordered; see last."
+
+[[capability]]
+id = "approx_distinct"
+spellings = ["approx_distinct", "distinct"]
+position = "series"
+category = "reducer"
+standing = "ratified"
+re_entry_certified = false
+source = "Frame-QL Manual Appendix A"
+note = "APPROXIMATE. approx_distinct is the canonical surface spelling; distinct is the Core capability identity. Finalization is a non-identity projection, so not re-entrant. NOTE: Reference Manual 5e files distinct under exact mules alongside median/mode, which contradicts the build and sketch.py - reported."
+
+[[capability]]
+id = "product"
+spellings = ["product"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "watch for overflow / zero"
+
+[[capability]]
+id = "any"
+spellings = ["any"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "logical monoid on Boolean"
+
+[[capability]]
+id = "all"
+spellings = ["all"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "logical monoid on Boolean"
+
+[[capability]]
+id = "weighted_mean"
+spellings = ["weighted_mean"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "mule, from weighted sum and weight sum"
+
+[[capability]]
+id = "variance"
+spellings = ["variance"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "mule"
+
+[[capability]]
+id = "stddev"
+spellings = ["stddev"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "mule"
+
+[[capability]]
+id = "approx_quantile"
+spellings = ["approx_quantile"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "t-digest sketch"
+
+[[capability]]
+id = "approx_frequency"
+spellings = ["approx_frequency"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "count-min sketch"
+
+[[capability]]
+id = "value_at_max"
+spellings = ["value_at_max"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "ordered mule"
+
+[[capability]]
+id = "value_at_min"
+spellings = ["value_at_min"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "ordered mule"
+
+[[capability]]
+id = "nth"
+spellings = ["nth"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Columna Reference Manual 5e operator matrix"
+note = "ordered; named in Reference Manual 5e only"
+
+[[capability]]
+id = "count_star"
+spellings = ["count(*)"]
+position = "series"
+category = "reducer"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "Query-level count(*) is UNRESOLVED ARCHITECTURE (Frame-QL sec.4.2): a UNIVERSE declares coordinates, not a fact table, so a bare count(*) names no analytical object. The .cml MEASURE spelling AS count(*) is a different, established case and is not this capability."
+
+
+# ── MAPS, SERIES POSITION ────────────────────────────────────────────────────────────────
+
+[[capability]]
+id = "add"
+spellings = ["+"]
+position = "series"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "subtract"
+spellings = ["-"]
+position = "series"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "multiply"
+spellings = ["*"]
+position = "series"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "divide"
+spellings = ["/"]
+position = "series"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "negate"
+spellings = ["neg", "unary -"]
+position = "series"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "modulo"
+spellings = ["%"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "if"
+spellings = ["if"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "conditional"
+
+[[capability]]
+id = "case"
+spellings = ["case"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "conditional"
+
+[[capability]]
+id = "is_null"
+spellings = ["is_null"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "is_missing"
+spellings = ["is_missing"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "coalesce"
+spellings = ["coalesce"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "log"
+spellings = ["log"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "exp"
+spellings = ["exp"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "sqrt"
+spellings = ["sqrt"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "abs"
+spellings = ["abs"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "sign"
+spellings = ["sign"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "ceil"
+spellings = ["ceil"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "floor"
+spellings = ["floor"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "round"
+spellings = ["round"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "concat"
+spellings = ["concat"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "substring"
+spellings = ["substring"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "lower"
+spellings = ["lower"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "upper"
+spellings = ["upper"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "trim"
+spellings = ["trim"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "length"
+spellings = ["length"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "year"
+spellings = ["year"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "month"
+spellings = ["month"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "day"
+spellings = ["day"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "week"
+spellings = ["week"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "quarter"
+spellings = ["quarter"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "date_diff"
+spellings = ["date_diff"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "date_add"
+spellings = ["date_add"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "is_type"
+spellings = ["is_<type>"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "cast"
+spellings = ["cast"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+
+# ── PREDICATE POSITION ───────────────────────────────────────────────────────────────────
+
+# A canonical vocabulary governed by SYNTAX POSITION (ruled 2026-09-01). These are not
+# series-expression operators and never will be; profile/build support is a separate question.
+
+[[capability]]
+id = "eq"
+spellings = ["=", "=="]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "ne"
+spellings = ["!="]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "lt"
+spellings = ["<"]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "le"
+spellings = ["<="]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "gt"
+spellings = [">"]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "ge"
+spellings = [">="]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "conjunction"
+spellings = ["and"]
+position = "predicate"
+category = "map"
+standing = "ratified"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "disjunction"
+spellings = ["or"]
+position = "predicate"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "Appendix B's reserved-keyword list already omits this."
+
+[[capability]]
+id = "negation"
+spellings = ["not"]
+position = "predicate"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "Appendix B's reserved-keyword list already omits this."
+
+[[capability]]
+id = "between"
+spellings = ["between"]
+position = "predicate"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "Appendix B's reserved-keyword list already omits this."
+
+[[capability]]
+id = "membership"
+spellings = ["in"]
+position = "predicate"
+category = "map"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "Appendix B's reserved-keyword list already omits this."
+
+
+# ── SCANS ────────────────────────────────────────────────────────────────────────────────
+
+# sec.2.8 keeps scans roadmap: they 'enter the language when ruled in'. Core nevertheless
+# EXECUTES six of them today. That is a build exceeding canonical standing - visible in the
+# matrix, and a question for ruling rather than something this file may settle.
+
+[[capability]]
+id = "cumsum"
+spellings = ["cumsum"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "cumprod"
+spellings = ["cumprod"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "cummin"
+spellings = ["cummin"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "cummax"
+spellings = ["cummax"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "rolling_sum"
+spellings = ["rolling_sum"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "windowed"
+
+[[capability]]
+id = "rolling_mean"
+spellings = ["rolling_mean"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "windowed"
+
+[[capability]]
+id = "rolling_min"
+spellings = ["rolling_min"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "windowed"
+
+[[capability]]
+id = "rolling_max"
+spellings = ["rolling_max"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "windowed"
+
+[[capability]]
+id = "rolling_count"
+spellings = ["rolling_count"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+note = "windowed"
+
+[[capability]]
+id = "lag"
+spellings = ["lag"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "lead"
+spellings = ["lead"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "rank"
+spellings = ["rank"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "dense_rank"
+spellings = ["dense_rank"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "row_number"
+spellings = ["row_number"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "pct_change"
+spellings = ["pct_change"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+[[capability]]
+id = "ewm_mean"
+spellings = ["ewm_mean"]
+position = "series"
+category = "scan"
+standing = "proposed"
+source = "Frame-QL Manual Appendix A"
+
+
+# ── ALLOCATION BRIDGES ───────────────────────────────────────────────────────────────────
+
+[[capability]]
+id = "equal_split"
+spellings = ["equal_split"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Columna Reference Manual 5e operator matrix"
+note = "Allocation bridge; no allocation operator ships."
+
+[[capability]]
+id = "weighted"
+spellings = ["weighted"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Columna Reference Manual 5e operator matrix"
+note = "Allocation bridge; no allocation operator ships."
+
+[[capability]]
+id = "proportional_to"
+spellings = ["proportional_to"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Columna Reference Manual 5e operator matrix"
+note = "Allocation bridge; no allocation operator ships."
+
+[[capability]]
+id = "custom"
+spellings = ["custom"]
+position = "series"
+category = "map"
+standing = "proposed"
+source = "Columna Reference Manual 5e operator matrix"
+note = "Allocation bridge; no allocation operator ships."

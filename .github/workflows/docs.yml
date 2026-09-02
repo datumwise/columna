@@ -49,6 +49,18 @@ jobs:
       # presented as executable is not validated until the stage at which its claimed behaviour is
       # observable. Needs the adjudicated fixtures under docs/tools/manual_fixtures/, which publish
       # against an in-process DuckDB world (no parquet, nothing to fetch).
+      # THE CAPABILITY AUTHORITY (2026-09-01). One governed capability disposition has ONE authority;
+      # every manual/profile/build representation is a checked projection. These two steps are what
+      # make that true rather than aspirational — the first joins canonical standing (specs/) against
+      # the AUTHORED profile contract and the MEASURED build, the second fails if a committed
+      # capability table has drifted from the authority. Together they close the P0-17 class: a
+      # disposition adjudicated in one manual can no longer sit contradicted in another, because
+      # neither manual states it independently any more.
+      - name: Canonical capabilities, profile contract, and measured build agree
+        run: python docs/tools/capability_authority.py
+      - name: Capability tables are current projections of the authority
+        run: python docs/tools/regen_capability_tables.py --check
+
       - name: FrameQL manual reaches its documented outcome against the shipped planner
         run: python docs/tools/check_manual_frameql.py
 
