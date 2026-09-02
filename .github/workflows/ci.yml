@@ -45,22 +45,21 @@ jobs:
       # Bare invocations: exit codes count (no pipe through tail/head).
       - name: Ruff (correctness only — F, E9)
         run: |
-          ruff check packages/columna-core/src packages/columna-core/demos packages/columna-core/tests
-          ruff check packages/columna-server/src packages/columna-server/tests
+          python scripts/gates.py --gate ruff-core ruff-server
 
       # P0-19: every package's `__version__` is the distribution pip actually resolved, never a
       # literal. Runs before the suites because it is a two-second structural check, and a tree
       # where the version surface lies is not a tree whose test results mean much.
       - name: Version attributes report the installed distribution
-        run: python scripts/check_version_attributes.py
+        run: python scripts/gates.py --gate version-attributes
 
       # COLUMNA_BENCH_WAREHOUSE is intentionally unset, so the 20 @pytest.mark.warehouse proofs are
       # skipped: columna-core collects 124 / runs 104 / skips 20.
       - name: Pytest — columna-core (fixture-backed; warehouse proofs skipped)
-        run: pytest packages/columna-core -q
+        run: python scripts/gates.py --gate pytest-core
 
       - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
-        run: pytest packages/columna-server -q
+        run: python scripts/gates.py --gate pytest-server
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
       # Post-§2c the tour is clarify -> refuse -> disclose -> serve; disclose is driven by
@@ -96,19 +95,19 @@ jobs:
         # --selftest first: the attachment set-semantics fixtures are hermetic (no registry, no
         # network) and pin that `attachedConcepts` order carries no law. A fixture nobody runs is not
         # a fixture, so it rides the job that already exists rather than getting one of its own.
-        run: python scripts/check_publications.py --selftest --report
+        run: python scripts/gates.py --gate publications
 
       - name: Check current-corpus membership (fails closed on an unadjudicated source)
         # Membership is EXHAUSTIVE by construction: every catalogued source must be ruled IN,
         # REFERENCE ONLY or OUT. A new source fails the build until someone rules on it — the same
         # discipline as G7's echo audit, applied to corpus standing instead of publication facts.
-        run: python scripts/check_corpus_membership.py
+        run: python scripts/gates.py --gate corpus-membership
 
       - name: Check the ingested deposit corpus (offline, no Zenodo dependency)
         # Verifies the stored deposited texts still match their recorded checksums AND that each is
         # pinned to the record the registry currently rules `current`. Offline on purpose: CI must
         # not fail because Zenodo is having a bad afternoon.
-        run: python services/ask/ask/ingest_deposits.py --check
+        run: python scripts/gates.py --gate deposit-corpus
 
   # Item (c): prove the packaged demo runs from a clean-venv WHEEL install — the package-data-ships
   # acceptance. Two legs, and the second one is the point:
@@ -184,7 +183,7 @@ jobs:
       # failure class arrives WITHOUT a diff, so it must be checked on every build, not only on
       # the ones that touch packaging.
       - name: Every declared dependency carries an upper bound
-        run: python scripts/assert_dep_caps.py
+        run: python scripts/gates.py --gate dep-caps
 
   release-set:
     name: release-set coherence guard
@@ -205,9 +204,9 @@ jobs:
       # No path filter, and it runs on push as well as PR: like the cap guard, this failure class
       # arrives WITHOUT a diff — it is what a diff FORGOT to contain.
       - name: Umbrella and core share the release version, and the floor does not lag
-        run: python scripts/release_pins.py --check
+        run: python scripts/gates.py --gate release-set
       - name: The guard's own regression fixtures (incl. the 2026-08-20 stale-resolvable state)
-        run: python scripts/release_pins.py --selftest
+        run: python scripts/gates.py --gate release-set-selftest
 
   currency-stamps:
     name: currency-stamp guard
@@ -239,7 +238,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e packages/columna-core
       - name: Documented current-state stamps match the shipped set
-        run: python scripts/check_currency_stamps.py
+        run: python scripts/gates.py --gate currency-stamps
 
   purged-grammar:
     name: purged-grammar guard
@@ -255,7 +254,22 @@ jobs:
       # finds them are ROWED against an OPEN fork, and the guard fails if that row is ever closed
       # while the fossil remains. No path filter — fossils accumulated silently once.
       - name: No purged grammar anywhere in the repo
-        run: python scripts/check_purged_grammar.py
+        run: python scripts/gates.py --gate purged-grammar
+
+  # THE META-GATE (P1-30). Everything above runs THROUGH scripts/gates.py, from the one manifest in
+  # scripts/gates.toml. This job is what stops that from decaying: it fails if a workflow invokes a
+  # known gate script directly (a gate CI runs that the local sweep does not know exists — the exact
+  # defect), or if the manifest names a gate no workflow actually runs (a row that reads as coverage
+  # while running nowhere). Cheap, no install, and it guards every other gate's reachability.
+  meta-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: The gate manifest is the one authority, and no workflow reaches around it
+        run: python scripts/gates.py --gate meta-gate
 
   build:
     name: build wheels + sdists

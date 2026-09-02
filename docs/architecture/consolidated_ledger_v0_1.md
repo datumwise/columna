@@ -28,6 +28,25 @@ rounds of source reading were **falsified** by execution.
 | **SV** | SOURCE-VERIFIED — read at the cited file:line, not executed |
 | **INF** | INFERENCE — a conclusion drawn from source, not observed |
 
+### Picking an identifier
+
+**The P-number space is allocated across the whole repository, not inside this file.** `P1-19` …
+`P1-28` are live in source, tests and CHANGELOGs and have no row here, so the highest heading in this
+document is NOT the highest identifier in use — reading only the ledger and taking the next heading
+number yields a collision. It did on 2026-09-02: P1-19 (explicit `FROM` ignored) and P1-20
+(multi-member face-driver selection) were both re-issued and had to be renumbered to P1-29/P1-30
+before landing.
+
+Before minting one, sweep the tree, not this file:
+
+```
+grep -rhoE "\bP1-[0-9]{2}\b" --include=* . | sort -u | tail -1
+```
+
+Identifiers stay historically unique even after the row is repaired and closed: a retired number is
+still the name of a thing that happened, and archived transcripts, commit messages and test comments
+resolve against it.
+
 ### Priority classes
 
 | class | meaning |
@@ -577,6 +596,93 @@ disagrees with its source yields a well-formed document, a clean `check()`, and 
 enforcing it at delivery, (c) implement the lift the docstring already claims, or (d) some
 combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
 questions and are held for the Finding 2 review.
+
+### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **OPEN — fix recommended, not authorized** · VX
+
+Opened 2026-09-02, surfaced while clearing the eight-PR backlog. **The invariant (ruled Huayin,
+2026-09-02):**
+
+> Every change capable of altering a shipped payload must encounter the payload-coherence gate
+> before release.
+
+The gate itself is sound. `scripts/release_pins.py --check-payload` builds each wheel and compares
+it against the wheel PyPI already serves for that same version, and it refuses a tree that would
+ship changed content under a reused version. It is correct, it is cheap, and when it finally ran it
+found a real defect on the first attempt.
+
+**Its TRIGGER is the defect.** `publish.yml` declares:
+
+```yaml
+on:
+  release:
+    types: [published]
+  pull_request:
+```
+
+There is no `push:` trigger and no `schedule:`. So the gate is reachable by exactly two routes —
+opening/updating a PR, or publishing a release — and a payload-affecting change that is on a branch
+without a PR meets it for the first time **at release**, which is the one moment refusing is no
+longer free.
+
+**Observed, not inferred (VX).** `columna-server` payload drift landed in `8b2a29e` and `5dc2ef5` on
+`repair/p1-26-substrate-boundary` on 2026-08-31. That branch carried no PR for two days, so no
+`pull_request` event ever fired and the gate was never consulted. It was found on 2026-09-02 only
+because Huayin asked for the gate to be run by hand:
+
+```
+STALE PAYLOAD: columna-server==0.11.1 is already on PyPI, and this tree would build a
+DIFFERENT package under that same version. Differences — changed: columna_server/tools.py
+```
+
+Fixed in `columna-server 0.12.0` (#264, #255). The DRIFT is closed; the TRIGGER GAP is this row.
+
+**The same shape as the 2026-07-19 docs masking incident**, which `docs.yml` already carries a
+weekly `cron` to answer: *a guard whose inputs grew and whose trigger did not*. `docs.yml` learned
+that lesson for itself. `publish.yml` did not, and it holds the guard with the most expensive
+failure mode of the three.
+
+**Not to be fixed with a path filter.** The obvious repair — teach the workflow which paths are
+payload-affecting — would create a second, hand-maintained definition of "payload-affecting change"
+sitting beside the one the gate already computes by building and diffing. Those two would drift, and
+the copy that drifts silently is the path filter. **The gate needs no such definition: it determines
+the answer empirically.** The recommended repair is therefore to widen the trigger and define
+nothing — see the branch `governance/payload-gate-coverage-and-one-gate-set`.
+
+---
+
+### P1-30 · No single authoritative definition of the required gate set · **MEDIUM** · **OPEN — fix recommended, not authorized** · SV
+
+Opened 2026-09-02. **The invariant (ruled Huayin, 2026-09-02):**
+
+> One authoritative gate definition, invoked by CI and by the local complete-sweep command.
+
+Roughly forty gate steps are enumerated as inline `run:` blocks across four workflows — `ci.yml`,
+`docs.yml`, `publish.yml`, `website.yml`. Nothing outside those files knows what the required set
+is, so a developer or agent running gates locally must **reconstruct the list by reading the
+workflows**, and that reconstruction is a judgment call made fresh every time.
+
+**Observed twice in one session (SV, and self-reported).** Working the Frame-QL Manual redesign, the
+agent enumerated gates from `docs.yml` and the release scripts and reported the branch green — twice
+— having missed `check_publications.py`, the Ruff step, and the website's fail-closed release rail,
+all of which live in `ci.yml` and `website.yml`. The code was correct on both occasions; the sweep
+was not. CI caught all three on PR #264.
+
+**The failure mode is specific.** It is not that gates were skipped deliberately, and not that any
+gate was wrong. It is that "the complete set" existed only as a property of four YAML files that no
+tool reads and no command runs, so completeness could only ever be asserted, never checked.
+
+**A convenience checklist would reproduce the defect.** A hand-written `make gates` listing the
+commands would be a fifth enumeration, free to drift from the four it summarizes, and drift in the
+direction that matters: a gate added to CI and not to the checklist makes the local sweep quietly
+incomplete again — which is exactly the state this row describes. The definition has to be
+**consumed by CI**, not merely parallel to it.
+
+**Not every CI step is locally runnable**, and a recommendation that ignores that is not usable: the
+Vercel preview deploy, the clean-container wheel install, and the PyPI-pinned deploy wedge need CI's
+environment. The manifest therefore has to carry that fact per gate rather than pretend the sets are
+identical.
+
+---
 
 ## P2 — Authority-carrier and ontology contradictions
 
