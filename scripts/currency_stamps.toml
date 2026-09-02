@@ -56,9 +56,12 @@ file = "docs/frame_ql_language.md"
 claim = "harness note — the parser the examples are checked against"
 template = "parser (`columna_core.envelope.parse_statement`, columna-core {core})"
 
+# RE-ENROLLED 2026-09-01: the manual split by jurisdiction, and both of these are REALIZATION claims
+# — they name a version, so they belong in the build-status document and not in the language manual,
+# which is now build-independent by design. Moved, not reworded.
 [[stamp]]
-file = "docs/frame_ql_language.md"
-claim = "revision note — the standing self-check's package"
+file = "docs/frame_ql_build_status.md"
+claim = "what ships — the standing self-check's package"
 template = "run against the shipped columna-core — {core} at this revision)"
 
 [[stamp]]
@@ -67,8 +70,8 @@ claim = "2.8 — the roadmap forms are not in the shipped envelope"
 template = "part of the shipped envelope (columna-core {core})"
 
 [[stamp]]
-file = "docs/frame_ql_language.md"
-claim = "2.9 — what ships"
+file = "docs/frame_ql_build_status.md"
+claim = "what ships — the envelope"
 template = "What ships through columna-core {core} is the envelope"
 
 [[stamp]]

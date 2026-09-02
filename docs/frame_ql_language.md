@@ -2,15 +2,15 @@
 
 *The formal query language of Columna, by datumwise*
 
-*Frame-QL Second Edition — a mechanically-reconciled continuation of the Frame-QL Manual, First Edition (which it supersedes). This edition preserves the First Edition's text and syncs it to shipped reality through **columna-core 0.14.0** (wire contract `"2"`): the canonical column identity of WP-NAME-1 (0.14.0), the composite input anchor of WP-GRAIN-1 (0.13.4), the minted and tombstoned reason codes, and the version stamps — each change flagged in place with a **▸ Second-Edition sync** note and ledgered below. The First Edition was itself a renamed, lightly-revised continuation of the Coframe-QL Manual, Third Edition (which it superseded): it renamed that text to Columna/Frame-QL/Manifold and reconciled it to the column-foundation redesign (ADR-031), the edition split it then carried (since retired — topology record §17.5), and the shipped **envelope grammar** (ADR-035). It inherits the v4 operator model (ADR-009…015), the V/M/B anchor vocabulary (ADR-024), the anchor-ascription rule, family-aware scans, macro bindings, EXPLAIN, and the (anchor, universe) grain (ADR-025…028). The **envelope** — `SELECT <series> [AS <alias>], … AT {anchor}` with its optional `FROM`, `WHERE`, `HAVING`, `ORDER BY`, `LIMIT … PER`, and `WITH` clauses, where `@ {…}` is the input-anchor marker universally and `AT {…}` is the sole output-grain declaration — is the language, and this edition documents it **as implemented** (columna-core 0.18.1). The pre-launch shipped surface was a *fragment* of it — the terse `cols @ anchor` form, where a trailing `@` spelled the output anchor; that fragment is **retired** (its two `@`s meant opposite things) and preserved for lineage in Appendix D. The fourth outcome, named `inform` under ADR-020's inform-and-serve doctrine, ships on the wire as the `refuse` mood; this edition uses **`refuse`** throughout (Chapter 7). The §2c universe law (structural universe resolution; one expression, one universe; `cross_universe`), the corrected B3 basis rule (the basis fixes which points the frame *expects*; a measure's fill rule Φ fixes what an absence *denotes* — columna#148), and the shipped reason codes are reconciled into the semantics they govern.*
+*The formal query language of Columna. This edition documents it **as implemented** (columna-core 0.18.1). How the text reached its current state — the edition lineage, the retired fragment, and the dated syncs — is recorded in [`frame_ql_revision_history.md`](frame_ql_revision_history.md).*
 
 **Currency (2026-08-22).** This edition is current for **columna 0.18.1 · columna-core 0.18.1 ·
 columna-server 0.11.1**, wire `contract_version` **`"4"`**. The `"2"` → `"3"` bump changed the
 **installation catalog** (`list_manifolds`, which became a governed publication lineage catalog) and
 nothing this manual documents; `CONTRACT_VERSION` is global, so `query` / `check` / `EXPLAIN` /
 `describe` merely report `"3"` — no Frame-QL syntax, analytical behavior, mood, disclosure or reason
-code moved with it. The dated `▸` notes below record when each earlier change entered; they are
-history and are not restamped.
+code moved with it. Earlier changes and their dates are recorded in
+[`frame_ql_revision_history.md`](frame_ql_revision_history.md); they are history and are not restamped.
 
 *About the examples (stated once): every FrameQL example in this manual is checked against the shipped
 parser (`columna_core.envelope.parse_statement`, columna-core 0.18.1) by `docs/tools/check_manual_frameql.py`,
@@ -34,40 +34,9 @@ A note on scope. This manual specifies the language: its grammar, its semantics,
 
 The grammar is given formally in the companion *Frame-QL BNF Grammar*; this manual covers semantics and usage. Where this manual and the BNF differ, the BNF is authoritative on syntax and this manual on meaning. A separate theoretical authority supplies the analytical concepts used to explain the language. The stack, stated once: the **BNF** is authoritative on **formal syntax**; **this manual** on **shipped semantics, canonical form, operators, outcomes, reason codes, implementation terminology, and version-specific behaviour**; the **Theory of Data** (v6.1, below) on the **analytical concepts and laws** those distinctions exist to serve. What the parser accepts is a BNF question; what a shipped construct means is a question for this manual; why the language draws a line where it does is a question for the Theory. **This manual is not Theory-of-Data documentation and does not become it.**
 
-### Revision note (Frame-QL Second Edition) — the mechanical sync
-
-The Second Edition changes no doctrine. It is a **mechanical sync** of the First Edition's text to the shipped package through **columna-core 0.14.0 / 0.13.4** — names, pins, reason codes, and version stamps brought level with what the parser and planner actually do. The rule the desk keeps for its own transcripts is now the manual's: **every FrameQL example is verified against the running parser, not written from memory** (the standing self-check of `docs/tools/check_manual_frameql.py`, run against the shipped columna-core — 0.18.1 at this revision). Each change is flagged in place with a **▸ Second-Edition sync** note. The ledger:
-
-1. **Column identity is the canonical expression, not a mechanical default** (WP-NAME-1, 0.14.0; **wire contract `"1"` → `"2"`**). The `<reducer>_<measure>` default (`sum_revenue`) and the dot-to-underscore mangle (`revenue_sum`) are **retired** — both were invented names, and the input anchor they dropped is half a pinned reduction's denotation (the Two Anchors law). An unaliased series is now keyed by its **canonical expression, verbatim**: `avg(revenue @ {day})` keys as `avg(revenue @ {day})` (the pin visible in the key), a bare measure as `revenue`, member access as `revenue.sum` (dotted, unmangled). `EXPLAIN` emits no redundant `X AS X`. Consumers needing a stable handle key on an `AS` alias, which is author-owned and changes under no future rule. The bump carries exactly one thing — the default key of an unchanged utterance; no value, mood, disclosure, or reason code moves. (Chapters 1.6, 2.7; Appendix D.)
-2. **The composite input anchor: a product grain is a first-class pin** (WP-GRAIN-1, 0.13.4; no wire change, contract stays `"1"` at that release — a minted reason routes by outcome). An inline reduction's input anchor may pin a **product** of levels — `avg(revenue @ {store*product*cal.month})` — not just one. Two reason codes are minted inside the existing vocabulary: **`pin_coarser_than_output`** (REFUSE, Law 1 — a pin level coarser than the output grain cannot resolve at a finer output) and **`redundant_pin`** (CLARIFY, Law 2 — two cross-comparable pin levels fix one axis, not two). Law 4 generalizes the immaterial two-stage-statistic provenance note (still a **serve**). One corner is rowed out: a composite pin whose product includes a *faced* output coordinate meets the G4 chain guard and refuses **`chained_crossing`** — a named refusal, never a silent number. (Chapters 2.3, 2.7; Example 6.16; Chapters 5.6, 7.3.)
-3. **`co_anchor_ambiguous` is tombstoned** (retired 2026-07-16 under the §2c expression law; a retirement-pin test asserts it is never emitted). The First Edition named it the "multi-input case" of the unpinned-reduction clarify; the shipped planner emits **`input_anchor_ambiguous`** there (one reason per contested dimension — OF-1), and the cross-universe rate the reason originally named is now the **`cross_universe`** category error (Chapter 2.5), not a clarify. The spelling is kept as a dated tombstone so old transcripts stay interpretable — vocabularies grow by rule and shrink by tombstone, never silently. (Chapters 2.3, 7.3.)
-4. **Version stamps.** The Second Edition sync documented columna-core **0.14.0** as implemented (preface, harness note, Chapters 2.8–2.9, Appendix B) and cited wire contract **`"2"`**. The retired terse `@`-fragment (Appendix D) and the grow-by-ruling surfaces are unchanged. *(▸ currency update, 2026-09-01: those current-state stamps now read **columna-core 0.18.1** and contract **`"4"`** — see Currency above. This ledger row is left as the record of what the Second-Edition sync did; the sync itself is not restamped.)*
-5. **The RELATE face triad completed** (0.12.0; scope amendment to phase (a), ratified 2026-07-31 — shipped-reality drift, the same class as the version stamps). The First Edition documented **`touch` only**, with `assign`/`alloc` declared-but-deferred; 0.12.0 shipped the full triad and all three now execute. Chapter 5.6 now documents each face as the engine emits it: `touch` (over-count, **disclose**), `assign` (`ASSIGN BY … ORDER MIN|MAX`, single-count reconciling to the grand total, shadow `memberships_unrepresented`, **disclose**), and `alloc` (`ALLOC BY …`, weighted split reconciling to the cent, the reconciliation badge `{crossed_total, base_total, delta, tolerance, status}`), plus the fail-closed per-scheme adjudication, the **G5** anchor law (a distinct-class measure refuses at every face), and the **G4** chain guard. (Wire additive; `contract_version` stayed `"1"` at that release.)
-6. **Wire counters `executed` / `fetches_delta`** (additive to contract `"2"`, no doctrine). The annotation carries two server-surface execution counters — `executed` and `fetches_delta` — emitted on both the plan (`EXPLAIN`) and run paths. They are a server-surface detail, not a language feature; they move no value, mood, disclosure, or reason code, and grow no wire chapter here.
-
-### Revision note (Frame-QL First Edition)
-
-This edition is the vetted Third-Edition text, renamed and reconciled. The reconciliations are small and are flagged in place with a **▸ Frame-QL revision** note. The ledger:
-
-1. **Many-to-many aggregate-across (fan-out) is a clarification, not a served disclosure** (Chapters 5.6, 7.3, 7.4). Under the column-foundation (ADR-031) the engine *transports* along functional edges and never *joins*; a non-functional (M:N) edge is therefore not a traversable path, and the membership aggregation the Third Edition served is not expressible without a declared resolution. The unmet precondition is reported, *statically and before execution*, as a clarification naming the same three remedies. This replaces "serve membership with overlap disclosure" for the undeclared case.
-2. **The inform-and-serve boundary is the planner/engine boundary** (Chapters 5, 7.2). Everything statically catchable — ambiguity, unknown operator, unknown column, type mismatch, non-traversable edge, governance/access — is decided by the *planner*, before resolution, and may yield a clarify/refuse with no result. Analytical risk that survives to the *column engine* is served-and-disclosed, never withheld. A B-anchor crossing is *detected* at the planner (it attaches the critical disclosure) and may be *downgraded* to a route-around at the engine (Chapter 5.3); the number is always served. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: the last clause no longer holds for the **structurally prohibited** reduction. A reducer travelling a lineage it is declared `BLOCKED` along is refused at the planner, before any number exists — see item 7 below and Chapter 5.3. The boundary itself is unchanged: everything statically catchable is still decided by the planner, and analytical *risk* surviving to the engine is still served-and-disclosed.)*
-3. **Mule recompute is recompute-from-base at the output grain** where no fertile decomposition exists (Chapter 7.4, Appendix A) — stated explicitly, consistent with the Third Edition.
-4. **Universe depth.** The `(anchor, universe)` grain is unchanged at the language surface; the basis-driven empty-bucket rule is **corrected** (Chapter 1.5, columna#148) — the basis still fixes which points the frame expects, but what an absent value *means* is now the measure's fill rule Φ, not the universe basis. Beneath the surface, Columna enriches *universe* with a population-consistency layer (support reconciliation across a universe's columns; path-independence of a reduced total across anchorings). This is semantics under the syntax, not new syntax.
-5. **The envelope is the language; the terse `@`-fragment is retired** (Preface; Chapters 1–4; Appendix D). The pre-launch surface spelled the output anchor with a trailing `@` (`aov @ cal.month`); the ratified envelope (ADR-035) makes `@ {…}` the input-anchor marker *universally* and `AT {…}` the sole output-grain declaration, and adds the `FROM`/`WHERE`/`HAVING`/`ORDER BY`/`LIMIT … PER`/`WITH` clauses. This edition documents the envelope as implemented; the terse form moves to Appendix D (lineage). **`FROM` is optional** — it defaults to the bound Manifold and is required only where a surface holds more than one (Chapter 1.3).
-6. **The fourth mood is `refuse`, not `inform`** (Chapter 7). The shipped wire's four moods are **serve · disclose · clarify · refuse**. The withholding outcome this manual's Third-Edition lineage called *inform* (ADR-020's "inform-and-serve" doctrine) is the wire's `refuse`; the doctrine's spirit — withhold only structurally, disclose analytical risk — is unchanged, and this edition uses `refuse` throughout. (The separate `cross_universe` category error rides the query-**error** channel, not a mood — Chapters 2, 7.)
-7. **Structurally prohibited reductions refuse; Disclose cannot legalize them** (Chapters 5.3, 7.2, 7.3, 7.4). *(Ratified 2026-08-20 — ADR-036, superseding ADR-020's inform-and-serve rule for this case only.)* A reduction that travels a lineage its operator is declared `BLOCKED` along has no lawful reading, so it is **refused** (`blocked_reduction`; no values on the wire), in *every* spelling: written as a declared family member (`level.sum`), **generated** by an inline reducer above a lawful sibling (`sum(level.last @ {day})`), or wrapped in a unary, binary, scalar, scan or `DERIVED` carrier. *Family generation creates a new analytical family. It does not create a new operator permission.* Applicability stays **per operator × lineage** — there is no stock/flow/rating type (ADR-031 D5 clarified, not reversed): summing a stock across *stores* stays lawful, and `avg`/`min`/`max`/`count` over a stock across time stay lawful, because the author barred `sum` and barred nothing else. The disclosure code `b_anchor_crossing` is **tombstoned as a producer** and retained, still wired, so archived wires and deposited transcripts still resolve (7.4). `CONTRACT_VERSION` stays `"3"`; the reason string is additive on the existing Refuse channel.
-
 ### Editions and availability
 
 <!-- tier-history:start -->
-> **▸ Currency repair, 2026-08-31.** This section previously read *"Columna ships in two tiers, and
-> this one manual covers both,"* and thirteen constructs below carried an inline **[Pro]** marker
-> denoting purchasable availability. **There is one tier.** The marker is retired by topology record
-> §17.5 and the claim by §17.4: no product claim may be created for a delivery form with no factual
-> referent. Each tagged construct has been re-typed below against what the shipped package
-> *executes*, and two of them — MNAR exclusion (Chapter 7.4) and coverage (Chapters 5.7, 7.4) —
-> turned out to **ship today**, so the marker had been withholding, in prose, capability the open
-> package already serves.
 <!-- tier-history:end -->
 
 **There is one Columna, and this manual documents it.** No construct here is withheld from a reader
@@ -141,10 +110,7 @@ SELECT revenue AT {customer}
 
 **`FROM` is optional, and defaults to the bound Manifold.** The demo, the MCP `query` tool, and the agent are each attached to exactly one Manifold, and against a single-Manifold surface a bare `SELECT … AT {…}` resolves against that bound Manifold — no ceremony on the common case. `FROM` earns its keep on a **multi-Manifold surface**: where a surface holds more than one Manifold, a statement that names none is not underdetermined-by-guess, it **refuses**, naming the available Manifolds and asking which. The clause exists so that any surface — a query console, an agent, an MCP client, a planner shared across several Manifolds — can address different Manifolds by naming the target in each statement, **without carrying Manifold identity as ambient session state**. A statement that names its Manifold is self-contained: it means the same thing regardless of who submits it, from where, with what session history — and is therefore reproducible, cacheable, and auditable on its face; and an unnamed one is reproducible all the same, because the resolved identity always rides in the annotation (below).
 
-**Resolved identity is never silent.** A Manifold is a versioned artifact, and the result's annotation always records the resolved identity — `(Manifold, version, refresh, certificate state)` — so that even a statement that named neither the Manifold nor a version is exactly reproducible after the fact, from its own annotation. An `EXPLAIN` shows the resolved identity before anything runs. *(▸ Frame-QL revision, shipped-law — `[SCHEDULED]`: explicit version pinning — a `VERSION n` on `FROM` —
-is **designed but not yet in the shipped envelope grammar**; it enters by ruling (ADR-035 D1), not by
-default. `[SCHEDULED]` (not `[ROADMAP]`) because the surface is designed and committed, only unshipped —
-the resolved version is always disclosed today, so nothing is lost by pinning arriving later.)*
+**Resolved identity is never silent.** A Manifold is a versioned artifact, and the result's annotation always records the resolved identity — `(Manifold, version, refresh, certificate state)` — so that even a statement that named neither the Manifold nor a version is exactly reproducible after the fact, from its own annotation. An `EXPLAIN` shows the resolved identity before anything runs.
 
 **Surfaces may supply `FROM` on the user's behalf — licensed by disclosure.** A user or client working against a single Manifold should not have to type its name in every statement, and the formal language does not bend to spare them: the resolution is the *surface's* job. A surface whose context makes the target Manifold unambiguous injects the `FROM` clause before submission (the sanctioned sugar of Chapter 8.3). What licenses the injection is the disclosure machinery: the annotation's canonical form carries the statement *as executed*, `FROM` and resolved version included, on every round trip — so the convenience can never become hidden state. The user need not know the clause exists; the record always shows it.
 
@@ -272,6 +238,13 @@ This chapter specifies the **series** — one output column's expression — in 
 
 ### 2.1 The shape of the canonical form
 
+**The multi-input shape is canonical and is not ruled in.** `op(col_1 @ {a_1}, col_2 @ {a_2}, …)` is
+part of the canonical form, but shipped reducers take one input, so a reduction written over several
+is refused on arity before any grain question is reached. The block below is therefore a schematic —
+a shape, not a query that runs. It remains the leading candidate for the future Column Algebra
+surface, and it needs the participation / joint-support law first. **No `(a, b) @ A` alternative is
+to be introduced in its place.**
+
 Canonically, a series is a reduction (or a map, or a composite of both) over column references, each reference carrying its input anchor, and the whole statement carrying one output anchor:
 
 ```frameql-schematic
@@ -280,20 +253,6 @@ AT { A }
 ```
 
 Every grain is named: every reduction reads an explicit input grain and produces the output grain `A`; a nested subexpression carries its own input anchor. The sugars of Chapter 3 are normalizations to it.
-
-> **▸ Second-Edition sync (the multi-input shape is [ROADMAP], 2026-08-31).** This paragraph used to
-> end *"The framework parses this form directly, type-checks it, and plans it."* That is true of the
-> **single-input** shape — `op(col @ {a})` — and false of the multi-input one written above with
-> `col_1, col_2, …`: **shipped reducers are arity-1**, so a reduction over several inputs is refused
-> on arity before any grain question is reached. The block above is therefore a **schematic** of the
-> canonical form, not a query that runs.
->
-> The consequence is recorded rather than left for a reader to discover: the multi-input
-> `input_anchor_ambiguous` clarification described in §2.3 is **unreachable**, because the arity
-> refusal fires first. The shape remains the leading candidate for the future Column Algebra
-> surface — it is already canonical, and building it would repair the language rather than enlarge
-> it — but it requires the participation / joint-support law first, and no `(a,b) @ A` alternative
-> is to be introduced in its place (ruled Huayin, 2026-08-31).
 
 Two facts give the canonical form its standing, and they are two views of one thing.
 
@@ -356,18 +315,10 @@ asker may choose between, and an unlawful reading is not a choice.
 *An average with no declared input grain is a question, not an answer — and where only one answer is
 lawful, it is a question the structure has already settled, which the disclosure then says out loud.*
 
-> **▸ Second-Edition sync (2026-08-31).** This paragraph previously stated the clarify
-> unconditionally — *"the framework does not guess. It clarifies…"* — describing the `|L| > 1` branch
-> as if it were the whole rule. The `|L| = 1` branch has shipped since 2026-08-20 and is the common
-> case on a shallow Manifold, so a reader following the old text would have expected a clarification
-> and received a served number with a material caveat. Corrected against the shipped disposition.
-
 The **multi-input** case — a reduction over several inputs whose common input grain is not determined
 — is **[ROADMAP]**, not shipped: reducers are arity-1 today, so a multi-input reduction is refused on
 arity before any anchor question is reached, and the `input_anchor_ambiguous` path documented for it
 is unreachable. See §2.1.
-
-> **▸ Second-Edition sync (tombstone).** The First Edition named the multi-input case with a *distinct* reason, **`co_anchor_ambiguous`**. That reason is **retired** — tombstoned 2026-07-16 under the §2c expression law, with a retirement-pin test asserting it is never emitted. The cross-universe rate it originally named is now the **`cross_universe`** category error (§2.5), and within one universe the denotation rule leaves nothing to disambiguate, so the shipped planner emits **`input_anchor_ambiguous`** here. The spelling is kept only as a dated tombstone, so old transcripts stay interpretable.
 
 **The input anchor may pin a product of levels — the composite input anchor.** A pin is not restricted to a single level: `avg(revenue @ {store*product*cal.month})` pins the inner reduction at the (store, product, month) product grain, then averages those figures to the output anchor. This is the genuine two-stage statistic — a mean *of* per-(store, product, month) revenues — and the product pin is exactly what makes it a determinate question rather than an underdetermined "average revenue." Two laws adjudicate the pin against the output grain:
 
@@ -413,7 +364,7 @@ SELECT (revenue @ {customer}) / (revenue @ {}) AS share_of_total AT {customer}
 
 The denominator `revenue @ {}` is the Manifold-wide scalar — `{}` being the defining boundaries collapsed to one point — broadcast unchanged to every customer for the division. Broadcast has a single semantics — **replicate**: every finer point receives the same coarse value, whether intensive or extensive. Its purpose is to make a coarse value available at a finer grain for a downstream comparison (share-of-total, deviation-from-group-mean) — never to *distribute* a total into a finer-grained quantity. Proportional down-allocation is not an operation in the language.
 
-The double-count hazard of replicating an extensive value — spreading a total and summing it back up — is foreclosed structurally: a broadcast value carries, in the B-anchor of any reducer that would sum it, the dimension family it was broadcast along, so an attempt to re-aggregate it back across that family is caught by the ordinary B-anchor check (Chapter 5.3) and **refused**. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: this read "served, if at all, only with the corresponding critical disclosure" until the crossing became a structural refusal.)* There is no allocation rule to supply and none to get wrong.
+The double-count hazard of replicating an extensive value — spreading a total and summing it back up — is foreclosed structurally: a broadcast value carries, in the B-anchor of any reducer that would sum it, the dimension family it was broadcast along, so an attempt to re-aggregate it back across that family is caught by the ordinary B-anchor check (Chapter 5.3) and **refused**. There is no allocation rule to supply and none to get wrong.
 
 ### 2.7 Composite reductions
 
@@ -429,55 +380,20 @@ For each customer, the maximum monthly revenue. The inner `sum(revenue @ {transa
 
 Two further expression forms are documented as the language the envelope **grows into by ruling** (ADR-035 D1); they are *not* part of the shipped envelope (columna-core 0.18.1), and the ratified grammar spec keeps them roadmap (they are grammar the engine does not yet have). They enter the language when ruled in, not by accretion.
 
-> **▸ Second-Edition sync (recognition is not capability, 2026-08-31).** The two forms are *not*
-> unshipped in the same way, and the difference is worth naming because the shipped behaviour can
-> mislead a reader who checks only whether a query is accepted.
->
-> - **The bracket filter is not shipped.** `revenue[region = "east"]` is accepted by the statement
->   grammar and refused at planning — it does *not* fail to parse (§6.7 says the same; a Second-Edition
->   sentence claiming "does not parse" was wrong, and the two sections contradicted each other until
->   2026-09-01). Frame-QL owns that refusal: the raw CPython `SyntaxError` it used to leak is repaired.
-> - **Scan operators are registered, and SIX OF EIGHT EXECUTE.** `cumsum`, `cummax`, `cummin` serve;
->   `lag`, `lead`, `pct_change` serve with disclosures. `rolling_mean` and `rolling_sum` are
->   registered as CONTRACT and are not implemented in this build — a governed `unsupported` answer,
->   not a crash. The per-operator status is Appendix A's scan table, which
->   `check_manual_frameql.py` diffs against the shipped registry, so this paragraph can no longer
->   drift from the vocabulary it describes.
->
->   *(Until 2026-09-01 this bullet read "Scan execution is not available in the current Core build",
->   which was false for six of the eight operators it named. It was invisible because no fenced
->   example exercised them — the reason the gate now reads the operator registry directly rather
->   than only the examples.)*
-> - **`reset =` and `step =` are a narrower roadmap item still.** The shipped scan signatures accept
->   `n =` and `by =`; the family-aware calendar parameters described below are not implemented, so
->   the year-to-date and year-over-year spellings are unshipped on two counts rather than one.
->
-> Every worked example in Chapter 6 that is presented as *producing* a scan result is marked
-> `[ROADMAP]` for this reason, even though its syntax and planning path already ship.
-
 **The bracket filter** restricts a column reference to a subset of its domain — `revenue[region = "east"]` — producing a degenerate column that carries its restriction as part of its identity (framework manual, Chapter 6). It differs from `WHERE` (Chapter 4.1): `WHERE` restricts the whole statement's input; a bracket filter restricts an individual reference within one expression. Whether an emptied bucket is even *expected* — a point on the grid — is decided by the destination universe's **basis** (Chapter 1.5): an events population has no point where nothing occurred, while a spine/product population expects the full grid and reports a missing one as a gap carrying `incomplete_data`. What an emptied-but-expected bucket *denotes* — a zero, or an absent value — is the **measure's fill rule Φ**, not the basis (columna#148); the resolved basis, the fill rule, and any gap ride in the annotation.
 
 **Scans** are order-dependent, anchor-preserving operations — `cumsum(revenue @ {customer, day})`, `lag(...)`, `rolling_mean(..., window=7d)` — whose output at each point depends on an order and on neighbors. The order is derived from an orderable axis in the anchor (day) or named explicitly; an order-dependent operation whose order is neither derivable nor named is a clarification. The **family-aware parameters** `reset` / `within` / `step` lean on the verified dimension-family structure to express calendar and hierarchy intelligence directly (year-to-date via `reset = year`; same-period-last-year via `step = year`); each names a coarser level in the order axis's family, reached by a verified climb, and a parameter riding a `CONTRADICTED` edge carries that finding. (The full scan reference is Appendix A.)
 
 ### 2.9 The grammar grows by ruling
 
-The envelope is deliberately small, and it **grows by ruling** (ADR-035 D1), not by accretion: a construct enters the language when it is ruled in, and until then it does not exist. This is why Chapter 6's examples carry a shipping mark — an executable example runs against the shipped package or it is marked pending/roadmap.
+The envelope is deliberately small, and it grows **by ruling**, not by accretion: a construct enters
+the language when it is ruled in, and until then it does not exist.
 
-> **▸ Second-Edition sync (the claim is now enforced, 2026-08-31).** The sentence above used to end
-> *"the manual is structurally incapable of documenting a query it did not run"*, and that was
-> **false when written**: the standing gate checked GRAMMAR ONLY, so four Chapter 6 examples using
-> forms §2.8 itself calls unshipped sat unmarked and parse-clean, and seventeen of the Manual's
-> thirty-seven examples parsed cleanly and then failed at planning or execution. A guard that proves
-> a query is well-formed proves nothing about whether it runs, and the gap between those two is
-> exactly where a manual goes quietly wrong.
->
-> The claim is now carried by a gate rather than by a promise. `docs/tools/check_manual_frameql.py`
-> plans **every** example marked shipped through the real planning surface, against adjudicated
-> fixtures declaring this Manual's own vocabulary, and **executes** the ones that plan to serve or
-> disclose — because an example presented as executable is not validated until the stage at which
-> its claimed behaviour is observable. An example documented to Clarify or Refuse must reach that
-> outcome *with the reason the prose names*; a generic failure is not a pass. The expectations live
-> in this document — its section marks and its fences — so there is no second copy of them to drift. What ships through columna-core 0.18.1 is the envelope of Chapter 1 with the series forms of §§2.1–2.7: reductions with explicit input pins — single-level or a **product grain** (§2.3, the composite input anchor of WP-GRAIN-1) — maps, composite reductions, the anchor product, one universe per expression, every grain either determined or pinned — and every answer one of the four moods (serve · disclose · clarify · refuse). The same rule governs the theory: **theory evolution does not automatically enlarge Frame-QL.** A Theory-of-Data distinction enters this language when it is implemented, tested, versioned, and ruled in — not when it is published.
+The same rule governs the theory. **Theory evolution does not automatically enlarge Frame-QL.** A
+Theory-of-Data distinction enters this language when it is implemented, tested, versioned, and ruled
+in — not when it is published.
+
+The envelope is deliberately small, and it **grows by ruling** (ADR-035 D1), not by accretion: a construct enters the language when it is ruled in, and until then it does not exist. This is why Chapter 6's examples carry a shipping mark — an executable example runs against the shipped package or it is marked pending/roadmap.
 
 ## Chapter 3. Sugars
 
@@ -593,22 +509,18 @@ The combination is: the language gives the writer one defensible default (the co
 
 ### 4.1 The `WHERE` clause: pre-query input filtering
 
-> **▸ Second-Edition sync (this section's previous note was WRONG, and is corrected rather than
-> quietly replaced, 2026-08-31).** An earlier revision of this note said *"`WHERE` is parsed … the
-> filtered frame does not execute in the current Core build … This holds for a dimension that is a
-> coordinate of the fact itself."* **That is false, and the claim was made from evidence that tested
-> only one spelling.** `WHERE` on a **base dimension executes and serves**, in either quote spelling:
->
-> ```
-> FROM finance_manifold SELECT revenue AT {customer} WHERE day >= "2024-01-01"
-> ```
->
-> What is genuinely unsupported is narrower and is stated in §4.1.1: a predicate on a dimension
-> reached only **across a relationship** — the filter is pushed to the measure's own source, which
-> carries the universe's base coordinates and not the joined ones. That form is refused before
-> execution with `filter_unsupported`, which is a statement about the BUILD; the separate
-> `filter_unreachable` clarify remains a statement about the MANIFOLD, and the two are deliberately
-> not the same reason.
+`WHERE` restricts the input before the series are computed.
+
+**String literals may be written with either quote.** `'east'` and `"east"` are the same thing in
+Frame-QL — one string literal, one kind. The predicate is normalized into the substrate's spelling
+before it becomes backend SQL, so both spellings run and return the same rows. Frame-QL's literal
+rule is Frame-QL's; the substrate does not reinterpret it.
+
+**A predicate on a base dimension of the measure's own universe runs and serves.** A predicate on a
+dimension reached only across a relationship does not, and the two failures are deliberately
+different reasons: `filter_unreachable` says the *Manifold* offers no path, and the asker may be able
+to reword; `filter_unsupported` says the *build* cannot push the filter across the join, and no
+rewording helps. See §4.1.1.
 
 `WHERE` restricts the input to the query — applied before reductions, narrowing what data the reducers see. Its predicate references dimensions and column values at the *input* grain (the data being reduced), not the output grain (the result of the reduction).
 
@@ -623,8 +535,6 @@ This computes per-customer revenue *over transactions from 2024 onward*. The fra
 `WHERE` predicates may reference any dimension or column at the input grain of any series in the query. They are evaluated before reduction, so they see the raw data; references to series expressions (which are output columns) are not permitted in `WHERE` — those belong in `HAVING`.
 
 `WHERE` is a query-time expression-level restriction, not a Manifold-level state change. The Manifold's columns retain their declared coverage; the query's *result* is restricted to what the predicate permits.
-
-> **▸ Second-Edition sync (literal quoting at `WHERE` — the follow-up this note rowed is now SHIPPED, 2026-08-31).** The prior revision of this note told readers that a `WHERE` string literal had to be **single-quoted**, because the predicate reached the backend verbatim and SQL read `"2024-06-01"` as an *identifier*. **That divergence is repaired.** Frame-QL accepts `'x'` and `"x"` as the same language-level kind — one string literal — and the predicate is now normalized into the substrate's spelling before it becomes backend SQL, so **both spellings execute and return the same rows**. Frame-QL's literal law is Frame-QL's; the substrate no longer reinterprets it. (This is quote-path convergence, not a new filtering capability: it admits no dimension that was not already filterable — see §4.1.1.)
 
 #### 4.1.1 Filtering through a relationship-derived dimension **[SCHEDULED — the filter push-down does not join]**
 
@@ -662,17 +572,16 @@ SELECT sum(revenue) AS total_revenue,
 HAVING total_revenue > 10000
 ```
 
-> **▸ Second-Edition sync (query-level `count(*)` is unresolved architecture, 2026-08-31).** The
-> example above uses `count(*)` **as a series in `SELECT`**, and that form does not ship: it has no
-> determinate analytical object to count. A `UNIVERSE` declares coordinates, not a fact table — only
-> a `MEASURE` carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being
-> counted, and at least three readings are open: the physical source-row count, the count of
-> existing analytical points, and the count of observations of some measure. **The Manual does not
-> choose among them**; picking one silently is how a number acquires a meaning nobody declared.
-> Resolving it is a language ruling, not a parser fix.
->
-> **`AS count(*)` in a `.cml` MEASURE is a different and established case** and is unaffected: there
-> the source table is declared on the measure, so what is counted is not in question.
+**`count(*)` in `SELECT` is an unruled surface form.** It is a spelling the language recognizes and
+has not given a meaning. A `UNIVERSE` declares coordinates, not a fact table — only a `MEASURE`
+carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being counted. At
+least three readings are open: the physical source-row count, the count of existing analytical
+points, and the count of observations of some measure. **Frame-QL does not choose among them.**
+Picking one silently is how a number acquires a meaning nobody declared. Giving it one is a language
+ruling, not a parser fix, and until that ruling it has no capability identity.
+
+`AS count(*)` in a `.cml` `MEASURE` is a different and established case, and is unaffected: there the
+source table is declared on the measure, so what is counted is not in question.
 
 This computes per-customer total revenue and transaction count, then keeps only the rows where total_revenue exceeds 10,000. The framework applies the reduction first, then evaluates the `HAVING` predicate against each row of the output frame.
 
@@ -763,7 +672,7 @@ In the shipped envelope's fixed clause order, `WITH` precedes `SELECT` (it binds
 
 ## Chapter 5. Type Rules
 
-This chapter specifies the rules the framework applies when type-checking and planning a query. The rules divide into two kinds, and the division matters (Chapter 7 develops it fully). **Well-formedness rules** are about whether the query is an executable instruction at all — whether it determines one answer. A query failing a well-formedness rule cannot be executed, and the framework responds with a structured **clarification** naming what is underdetermined. **Soundness checks** are about the analytical risk of an executable query — coverage gaps, missingness mechanisms, contradicted preconditions. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: **B-anchor crossings left this list.** A crossing is not a risk attached to a lawful answer; it is an operation the governed law does not grant, and it is refused — §5.3.)* Per the inform-and-serve doctrine, a query that fails a soundness check is *not* withheld on that account: it is executed, and the risk is returned as a **disclosure** bound to the result, with severity, quantification, and remedy. The framework withholds a result only when it cannot execute (well-formedness), when the data is not there, or when a declared governance rule forbids it — never on its own analytical judgment.
+This chapter specifies the rules the framework applies when type-checking and planning a query. The rules divide into two kinds, and the division matters (Chapter 7 develops it fully). **Well-formedness rules** are about whether the query is an executable instruction at all — whether it determines one answer. A query failing a well-formedness rule cannot be executed, and the framework responds with a structured **clarification** naming what is underdetermined. **Soundness checks** are about the analytical risk of an executable query — coverage gaps, missingness mechanisms, contradicted preconditions. Per the inform-and-serve doctrine, a query that fails a soundness check is *not* withheld on that account: it is executed, and the risk is returned as a **disclosure** bound to the result, with severity, quantification, and remedy. The framework withholds a result only when it cannot execute (well-formedness), when the data is not there, or when a declared governance rule forbids it — never on its own analytical judgment.
 
 ### 5.1 Output anchor required
 
@@ -790,11 +699,21 @@ For every reduction in a query, the framework checks whether the reducer's B-anc
 - A `drop` (removing a coordinate from the anchor) crosses the B-anchor when the column's family-set entry for the reducer lists the dropped axis's dimension family.
 - A `climb` (replacing a coordinate with a coarser one in the same family) crosses the B-anchor when the family-set entry lists the climbed family.
 
+**The check is on the operation, not on the leaf.** Every point in an expression where a reduction
+actually travels — whether the reader wrote the reducer or the framework generated it — is
+adjudicated against the governed ancestry's B-anchor over the lineages it crosses. So `level.sum`,
+`sum(level.last @ {day})`, `-level.sum`, `2 * level.sum`, a scan over any of them, and a `DERIVED`
+column carrying one all refuse alike. *Family generation creates a new analytical family. It does not
+create a new operator permission.* The scope is per operator × lineage, with no stock/flow/rating
+type: `sum` of a stock across *stores*, and `mean`/`min`/`max`/`count` of a stock across *time*,
+remain lawful, because the author barred `sum` along `calendar` and barred nothing else.
+
+**A crossing is decided at the planner, and no route-around dissolves it.** The B-anchor and the
+path's eliminated families are knowable from the declaration, before any data is touched, so the
+refusal is static and costs zero backend fetches. Recomputing from detail performs the same
+prohibited travel, so it is not an escape.
+
 A B-anchor crossing is a **structural prohibition**, not a soundness finding and not a well-formedness failure: the arithmetic is computable, but the governed law does not grant the operation, so the query determines no *lawful* answer and the framework **refuses** it — `blocked_reduction`, no values on the wire. The refusal names the column, the reducer, and the crossed lineage, and offers the two lawful edits: an alternative reducer from the column's family set applicable along that lineage (typically `last` for the time axis of a stock), or an output anchor the reduction does not have to cross. The route-around that dissolves other findings does not reach this one: recomputing from a fertile source at the column's root instead of re-aggregating a cached image changes *where* the reduction is performed, not *whether* the law permits it — the recomputed sum crosses the same lineage and refuses the same way. (That is the ruling's law-preservation point, seen from the engine's side.) A Manifold author may additionally declare a hard stop (`WITHHOLD`) on a (column, reducer); that withholding is the author's *governance* rule, reported as such, and it is a different thing from this structural refusal, which the engine owes no author a declaration to enforce.
-
-> **▸ Frame-QL revision (generated-family law, 2026-08-20).** Ratified as **ADR-036**, superseding ADR-020's inform-and-serve rule *for this case only*: **structurally prohibited analytical operations refuse. Disclose exists inside the lawful region; it cannot legalize an operation the governed law does not possess.** Until this ruling the paragraph above read *served, bound to a critical disclosure* — the number was produced and the prohibition rode out with it. The mechanism of that error is now on the record: a caveat attached to a number that should never have been produced is what let the same meaningless total keep being served, one wrapper at a time. The check is on the **operation**, not on the leaf — every point in an expression where a reduction actually travels, whether the reader *wrote* the reducer or *generated* it, is adjudicated against the governed ancestry's B-anchor over the lineages it crosses — so `level.sum`, `sum(level.last @ {day})`, `-level.sum`, `2 * level.sum`, a scan over any of them, and a `DERIVED` column carrying one all refuse alike. *Family generation creates a new analytical family. It does not create a new operator permission.* The **scope** of applicability is untouched: per operator × lineage, no stock/flow/rating type (ADR-031 D5 clarified, not reversed) — `sum` of a stock across *stores*, and `avg`/`min`/`max`/`count` of a stock across *time*, all remain lawful, because the author barred `sum` along `calendar` and barred nothing else. The disclosure code `b_anchor_crossing` is tombstoned as a producer, retained and still wired (7.4).
-
-> **▸ Frame-QL revision (locus).** The B-anchor crossing is *detected statically by the planner* — the B-anchor and the path's eliminated families are knowable from the spec, before any data is touched — and it is the planner that attaches the critical disclosure. What is *not* static is whether a route-around dissolves the crossing; that is a resolution fact, so the **column engine** may, during execution, recompute from a fertile root and *downgrade* the finding to an informational route-around (`RECOMPUTED_FROM_DETAIL`), or leave it `critical` when no sound route exists. The disclosure thus originates at the planner and has its final severity settled at the engine; in every case the number is served. This is the inform-and-serve boundary in miniature: the planner names the risk, the engine never withholds on it. *(▸ 2026-08-20, ADR-036: the **locus** finding stands verbatim — detection is static, from the spec, at the planner. Its **verdict** does not, and neither does the downgrade path it describes: a crossing is refused at the planner outright, and no engine route-around dissolves it, because recomputing from detail performs the same prohibited travel. Read this note for where the check lives; read the note above it for what the check now decides.)*
 
 ### 5.4 Family selection
 
@@ -817,47 +736,52 @@ For the family-aware scan parameters (`reset`, `within`, `step` — Chapter 2.8)
 
 Aggregating a measure across a many-to-many relationship has a precondition the relationship does not supply — functionality, the partition property that makes per-bucket totals reconcile to the grand total. The check applies specifically to aggregate-across operations; queries that use the many-to-many in other ways (filtering, listing memberships, querying either side independently) invoke no such precondition and are unaffected.
 
-When a query aggregates across a many-to-many without a declared resolution, the framework serves the **membership aggregation** — each fine entity contributing its full value to every bucket it belongs to — bound to a disclosure stating that the precondition is unmet: per-bucket totals overlap, their sum exceeds the grand total by the overlap amount (quantified in the finding), and the result answers a membership question ("revenue of products *in* each category"), not a partition question. The disclosure names the three resolutions as remedies: a **membership filter** (accept the overlap deliberately), a **primary designation** (convert the relationship to functional), or an **allocation** declared via `WITH allocation` (Example 6.12), which supplies the partition-of-unity that makes totals reconcile.
+When a query aggregates across a many-to-many without a declared resolution, the framework
+**clarifies**. It does not serve a number. Frame-QL's engine transports a measure along functional
+edges and never joins, so a non-functional (M:N) edge is not a traversable path and the membership
+aggregation is not expressible at all until one of the resolutions below is supplied. The
+clarification is returned statically, before execution, with no result: *"this aggregate-across rides
+a non-functional edge and is underdetermined; supply a membership filter, a primary designation, or
+`WITH allocation`."*
+
+This is the one place where the inform-and-serve doctrine yields to well-formedness. The engine still
+never withholds a number it can produce; here it genuinely cannot produce one.
 
 A query that declares one of the three resolutions is computed under it with no precondition finding.
 
-> **▸ Frame-QL revision (column-foundation).** The paragraph above describes a join-based engine, where the membership aggregation is always computable and so can be *served* with an overlap disclosure. Frame-QL's engine (ADR-031) *transports* a measure along functional edges and never joins; a non-functional (M:N) edge is **not a traversable path**, so the membership aggregation is not expressible at all without one of the three resolutions. The undeclared aggregate-across is therefore caught by the planner as a **well-formedness clarification** — *"this aggregate-across rides a non-functional edge and is underdetermined; supply a membership filter, a primary designation, or `WITH allocation`"* — returned statically, before execution, with **no result**. The three remedies are unchanged; only the outcome class moves, from *serve-with-disclosure* to *clarify*, because the engine cannot fabricate a number it has no path to. A declared resolution makes the query well-formed exactly as before. (This is the one place the inform-and-serve doctrine yields to well-formedness: the engine still never withholds a number it *can* produce — here it genuinely cannot.)
+#### Faces
 
-> **▸ Frame-QL revision (RELATE faces, v0.11).** The clarification above is now a **menu**. A relationship may declare **faces** — named crossing dispositions — and the undeclared-aggregate-across clarify *lists the declared faces with their folklore* as its alternatives, so the human re-issues by naming one. A face names the value's **disposition on the trip**, never the selection criterion; the three are a self-teaching verb triad, mutually exclusive and jointly covering the sensible crossings of a many-to-many by an additive quantity:
->
-> - **`touch`** — the value reaches *every* match. Per-bucket totals overlap and their sum **exceeds** the grand total (and, where the fine side has members in *no* bucket, can also fall **short** of it — both skews disclosed). This is the membership question ("revenue of products *in* each category"), now **executed**, not just described.
-> - **`assign`** — the value goes to *exactly one* match, a **declared** canonical pick. Declared `FACE a = ASSIGN BY <driver> ORDER MIN|MAX` (the driver is a declared measure; `ORDER` is **mandatory, no default** — "top" is ambiguous across driver kinds: rank-like → `MIN`, score-like → `MAX`). The engine restricts the bridge to each member's top-ranked pair and **single-counts**, so per-bucket totals **reconcile** to the grand total; the dropped non-top memberships are disclosed as the **shadow** (wire `memberships_unrepresented`, material → **disclose**). Collapses the M:N into a functional edge.
-> - **`alloc`** — the value **splits across** matches by a declared weight. Declared `FACE a = ALLOC BY <driver>` (no `ORDER` — it splits by the per-member-normalized driver, it does not rank); per-bucket totals **reconcile to the cent**, certified by the **reconciliation badge** `{crossed_total, base_total, delta, tolerance, status}` — an *immaterial* commutation certificate when it reconciles, **material** on a shortfall. The `WITH allocation` construct of §6.12 is this face's per-query cousin.
->
-> A face is **declared on the relationship** (not parameterized per query — `EXPLAIN` stays static and the cache keys the name), described per the folklore rule, and **adjudicated at publish**: a face is closed by default, and its license *opens* the crossing. Faces are addressed as a qualified coordinate, `{<coordinate>.<face>}`:
->
-> ```cml
-> RELATE product <-> category VIA product_categories(product_id, category_id)
->     FACES {
->       touch  = TOUCH                             -- "revenue reaches every category a product sits in — multi-counted; totals exceed the grand total"
->       assign = ASSIGN BY category_rank ORDER MIN -- "revenue lands in the product's single primary category; the rest disclosed as the shadow"
->       alloc  = ALLOC BY category_weight          -- "revenue splits across a product's categories by weight; totals reconcile to the grand total"
->     }
->     NOTE "a product belongs to up to 3 categories"
-> ```
-> ```
-> SELECT revenue AT {category.touch}       -- disclose: multi_counted (material) + coverage (info)
-> SELECT revenue AT {category.assign}      -- disclose: memberships_unrepresented (the shadow of dropped memberships)
-> SELECT revenue AT {category.alloc}       -- serve: reconciliation certificate (immaterial unless it shortfalls)
-> ```
->
-> *(Corrected 2026-08-31: this line read `over_count`, which is the caveat's INTERNAL name
-> (`disclosure.py`); the code a caller actually receives is `multi_counted`
-> (`disclosure_wire.py`). The two lines beside it already named wire codes, so the vocabulary was
-> mixed within one block — and the semantic gate is what noticed, by asking the runtime.)*
->
-> The bare `{category}` stays uniformly barred and now clarifies with the face menu; each faced coordinate executes and honours its disposition. `{category.touch}` executes the join-multiply and serves in **disclose**, carrying the over-count as a material caveat and the coverage (the covered/uncovered count) as an informational one; `{category.assign}` single-counts and discloses the shadow; `{category.alloc}` reconciles and serves the badge. Naming honesty holds: `category.touch` ≠ `category.assign` ≠ `category.alloc` ≠ `category`, each marked in the grain name. **Per-basis licensing, v1 = events only** — the crossing serves on an events population, where the arithmetic is honest; on a spine/grid it refuses (`events-only in v1`), because replication or redistribution would corrupt the grid's own completeness claim, until that thinking lands.
->
-> **Crossed-grain absence follows the measure's Φ, not the crossing** (columna#149). Fill is applied at the member, *before* the transport, so a face carries whatever fill produced and performs no fill of its own. Absence a face *creates* — a target category that no measure-side member reaches — belongs to the **target** member and follows that measure's fill rule Φ (Chapter 1.5): `zero` fills 0, and an undeclared rule discloses (`undeclared_absence`) rather than filling a silent zero.
->
-> **▸ Second-Edition sync (the triad completed, 0.12.0).** The First Edition documented **`touch` only** — `assign` and `alloc` were declared-but-deferred, a fail-closed parse refusal. That deferral is **retired**: 0.12.0 shipped the full triad, and all three faces now execute (wire additive; `contract_version` stayed `"1"` — `relates[].faces[]` gained `driver`, `assign` answers carry `memberships_unrepresented`, `alloc` answers carry `reconciliation {crossed_total, base_total, delta, tolerance, status}`). Adjudication is **fail-closed, per scheme, at publish**: `assign` requires a *unique* top per member (a tie names the tied members and the affected products); `alloc` requires a non-negative driver with a strictly-positive per-member sum (a zero-sum member is an undefined split), and the driver must be a **spine** at the frontier grain (an events-derived driver is frozen first). The **anchor law (G5)** holds across all three: a *distinct-class* measure — a count-distinct or sketch reducer — refuses at **every** face, because its output anchor is spent at the frontier grain (per-member counts cannot be summed, weighted, or routed); the message speaks the declaration dialect (`distinct(...)`), never the sketch representation. The **chain guard (G4)** refuses a multi-hop face path — one frontier at a time (the composite-pin × faced-output corner below is one instance).
+The clarification is a **menu**. A relationship may declare **faces** — named crossing dispositions — and the undeclared-aggregate-across clarify *lists the declared faces with their folklore* as its alternatives, so the human re-issues by naming one. A face names the value's **disposition on the trip**, never the selection criterion; the three are a self-teaching verb triad, mutually exclusive and jointly covering the sensible crossings of a many-to-many by an additive quantity:
 
-> **▸ Second-Edition sync (the composite-pin × faced-output corner, OF-26).** The composite input anchor (§2.3) and a faced output coordinate meet in one corner the shipped engine does *not* yet serve: a composite pin whose product **includes a faced output coordinate** — `sum(revenue @ {product*category.touch}) AT {category.touch}` — resolves the inner at a base+faced composite grain, which trips the **G4 chain guard** and refuses **`chained_crossing`** (one frontier at a time). The plain faced output `revenue AT {category.touch}` serves unchanged; the corner is a *named* refusal, never a silent number, rowed out (WP-GRAIN-1 residue) until a real case demands the disclosure-stacking across a face at a base+faced grain that it needs.
+- **`touch`** — the value reaches *every* match. Per-bucket totals overlap and their sum **exceeds** the grand total (and, where the fine side has members in *no* bucket, can also fall **short** of it — both skews disclosed). This is the membership question ("revenue of products *in* each category"), now **executed**, not just described.
+- **`assign`** — the value goes to *exactly one* match, a **declared** canonical pick. Declared `FACE a = ASSIGN BY <driver> ORDER MIN|MAX` (the driver is a declared measure; `ORDER` is **mandatory, no default** — "top" is ambiguous across driver kinds: rank-like → `MIN`, score-like → `MAX`). The engine restricts the bridge to each member's top-ranked pair and **single-counts**, so per-bucket totals **reconcile** to the grand total; the dropped non-top memberships are disclosed as the **shadow** (wire `memberships_unrepresented`, material → **disclose**). Collapses the M:N into a functional edge.
+- **`alloc`** — the value **splits across** matches by a declared weight. Declared `FACE a = ALLOC BY <driver>` (no `ORDER` — it splits by the per-member-normalized driver, it does not rank); per-bucket totals **reconcile to the cent**, certified by the **reconciliation badge** `{crossed_total, base_total, delta, tolerance, status}` — an *immaterial* commutation certificate when it reconciles, **material** on a shortfall. The `WITH allocation` construct of §6.12 is this face's per-query cousin.
+
+A face is **declared on the relationship** (not parameterized per query — `EXPLAIN` stays static and the cache keys the name), described per the folklore rule, and **adjudicated at publish**: a face is closed by default, and its license *opens* the crossing. Faces are addressed as a qualified coordinate, `{<coordinate>.<face>}`:
+
+```cml
+RELATE product <-> category VIA product_categories(product_id, category_id)
+    FACES {
+      touch  = TOUCH                             -- "revenue reaches every category a product sits in — multi-counted; totals exceed the grand total"
+      assign = ASSIGN BY category_rank ORDER MIN -- "revenue lands in the product's single primary category; the rest disclosed as the shadow"
+      alloc  = ALLOC BY category_weight          -- "revenue splits across a product's categories by weight; totals reconcile to the grand total"
+    }
+    NOTE "a product belongs to up to 3 categories"
+```
+```
+SELECT revenue AT {category.touch}       -- disclose: multi_counted (material) + coverage (info)
+SELECT revenue AT {category.assign}      -- disclose: memberships_unrepresented (the shadow of dropped memberships)
+SELECT revenue AT {category.alloc}       -- serve: reconciliation certificate (immaterial unless it shortfalls)
+```
+
+
+The bare `{category}` stays uniformly barred and now clarifies with the face menu; each faced coordinate executes and honours its disposition. `{category.touch}` executes the join-multiply and serves in **disclose**, carrying the over-count as a material caveat and the coverage (the covered/uncovered count) as an informational one; `{category.assign}` single-counts and discloses the shadow; `{category.alloc}` reconciles and serves the badge. Naming honesty holds: `category.touch` ≠ `category.assign` ≠ `category.alloc` ≠ `category`, each marked in the grain name. **Per-basis licensing, v1 = events only** — the crossing serves on an events population, where the arithmetic is honest; on a spine/grid it refuses (`events-only in v1`), because replication or redistribution would corrupt the grid's own completeness claim, until that thinking lands.
+
+**Crossed-grain absence follows the measure's Φ, not the crossing** (columna#149). Fill is applied at the member, *before* the transport, so a face carries whatever fill produced and performs no fill of its own. Absence a face *creates* — a target category that no measure-side member reaches — belongs to the **target** member and follows that measure's fill rule Φ (Chapter 1.5): `zero` fills 0, and an undeclared rule discloses (`undeclared_absence`) rather than filling a silent zero.
+
+**Adjudication is fail-closed, per scheme, at publish.** `assign` requires a *unique* top per member (a tie names the tied members and the affected products); `alloc` requires a non-negative driver with a strictly-positive per-member sum (a zero-sum member is an undefined split), and the driver must be a **spine** at the frontier grain (an events-derived driver is frozen first). The **anchor law (G5)** holds across all three: a *distinct-class* measure — a count-distinct or sketch reducer — refuses at **every** face, because its output anchor is spent at the frontier grain (per-member counts cannot be summed, weighted, or routed); the message speaks the declaration dialect (`distinct(...)`), never the sketch representation. The **chain guard (G4)** refuses a multi-hop face path — one frontier at a time.
+
+**The composite-pin × faced-output corner.** The composite input anchor (§2.3) and a faced output coordinate meet in one corner the shipped engine does *not* yet serve: a composite pin whose product **includes a faced output coordinate** — `sum(revenue @ {product*category.touch}) AT {category.touch}` — resolves the inner at a base+faced composite grain, which trips the **G4 chain guard** and refuses **`chained_crossing`** (one frontier at a time). The plain faced output `revenue AT {category.touch}` serves unchanged; the corner is a *named* refusal, never a silent number, rowed out (WP-GRAIN-1 residue) until a real case demands the disclosure-stacking across a face at a base+faced grain that it needs.
 
 ### 5.7 Coverage compatibility
 
@@ -901,19 +825,6 @@ SELECT revenue,
 *Would compute* per-customer-month revenue, cost, and transaction count, all three series sharing the
 output anchor `{customer, month}`. The shared-anchor point it makes is real and ships; the
 `count(*)` series is what does not.
-
-> **▸ Second-Edition sync (query-level `count(*)` is unresolved architecture, 2026-08-31).** The
-> example above uses `count(*)` **as a series in `SELECT`**, and that form does not ship: it has no
-> determinate analytical object to count. A `UNIVERSE` declares coordinates, not a fact table — only
-> a `MEASURE` carries `FROM <table>` — so a bare `count(*)` in a query does not name what is being
-> counted, and at least three readings are open: the physical source-row count, the count of
-> existing analytical points, and the count of observations of some measure. **The Manual does not
-> choose among them**; picking one silently is how a number acquires a meaning nobody declared.
-> Resolving it is a language ruling, not a parser fix.
->
-> **`AS count(*)` in a `.cml` MEASURE is a different and established case** and is unaffected: there
-> the source table is declared on the measure, so what is counted is not in question.
-
 
 ### 6.3 Composite reduction with explicit intermediate anchor
 
@@ -1022,11 +933,6 @@ Computes per-category-product revenue, sorts by category then by revenue descend
 **Executes** (§2.8). `cumsum` is a registered order-only scan and this example runs against the
 shipped engine.
 
-> **▸ Currency (2026-09-01).** This section read *"Parses and plans; does not execute"* and was
-> marked `[ROADMAP]`. That was true when written and had stopped being true: order-only scan
-> execution ships. The correction is here rather than in the code because a capability that arrives
-> must make the stale sentence fail — never make the working build look like the regression.
-
 ```
 FROM finance_manifold
 SELECT cumsum( revenue @ {customer, day} ) AS revenue_to_date
@@ -1056,10 +962,6 @@ Computes per-category revenue when products belong to multiple categories. The `
 `reset =` and `step =` — are not implemented. The shipped scan signatures accept `n =`, `by =` and
 (for windowed scans) `window =`, so unlike §6.11 these two do not even plan; they are refused at
 `_scan_call` as unknown parameters.
-
-> **▸ Currency (2026-09-01).** This read *"unshipped on two counts"*, the first being that "scan
-> execution is not available in the current Core build". That count is gone: `cumsum` executes
-> (§6.11). Only the parameter count remains.
 
 ```frameql-roadmap
 FROM finance_manifold
@@ -1155,11 +1057,11 @@ Four outcomes exhaust the contract — the shipped wire's four moods, **serve ·
 
 **Clarify.** The query is not an executable instruction: it does not determine one answer. The framework returns no result and opens a structured clarification naming exactly what is underdetermined and what would determine it. How the clarification is conducted is a surface decision — a console may show the message, an agent may ask the question in the requester's vocabulary, an MCP client may receive the structured payload and resubmit.
 
-**Refuse.** The query is well-formed but no result can or may be produced for a non-analytical reason: the data is not there, a declared governance rule withholds it, or **the governed law does not grant the operation at all** — a reduction travelling a lineage its operator is declared `BLOCKED` along has no lawful reading to serve (§5.3, 7.3). The framework returns no result and states the reason and the remedy. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: the third limb is new, and it is not an analytical-risk withholding. The four moods sort by **lawfulness**, not by confidence — *serve*: lawful, no material condition; *disclose*: lawful, a material condition travels with the answer; *clarify*: several lawful meanings remain; *refuse*: no lawful path exists.)* *(▸ shipped-law: this is the wire's fourth mood, `refuse`. The Third-Edition lineage called it *inform*, under ADR-020's "inform-and-serve" doctrine — same outcome, same spirit; the shipped name is `refuse`.)*
+**Refuse.** The query is well-formed but no result can or may be produced for a non-analytical reason: the data is not there, a declared governance rule withholds it, or **the governed law does not grant the operation at all** — a reduction travelling a lineage its operator is declared `BLOCKED` along has no lawful reading to serve (§5.3, 7.3). The framework returns no result and states the reason and the remedy.
 
-There is no fifth outcome. In particular there is no analytical-risk withholding: any result that is determinate and producible for an entitled caller is produced, with its risk on its face. *(▸ 2026-08-20, ADR-036: "determinate and producible" is to be read as **lawful** and producible. A structurally prohibited reduction is arithmetically determinate and is still refused — the prohibition is on the operation, not on the confidence of its answer — and no fifth outcome is minted for it: it is an ordinary `refuse`.)*
+There is no fifth outcome. In particular there is no analytical-risk withholding: any result that is determinate and producible for an entitled caller is produced, with its risk on its face.
 
-> **▸ Frame-QL revision (the doctrine's locus).** The four outcomes map cleanly onto the two-projection architecture (Chapter 2.1). **Clarify** and the governance/no-data half of **refuse** are *planner* outcomes: they are decided statically, from vocabulary and shape, before the column engine resolves anything — ambiguity, a missing anchor, an unknown operator, a type mismatch, a non-traversable edge, a `WITHHOLD` or access rule, an empty realized support. *(▸ 2026-08-20, ADR-036: the **structural** refusal joins that list, and the sentence below already reserved its place — "the planner may refuse what is not an executable, **permitted** instruction." A blocked reduction is executable and not permitted; the B-anchor is knowable from shape alone, so it is adjudicated there, with zero backend fetches.)* **Serve, clean** and **serve, with disclosures** are *engine* outcomes: once a query is well-formed and permitted, the engine resolves it and any surviving analytical risk rides out as a disclosure. The boundary between "may withhold" and "must serve" is therefore the boundary between the planner and the engine — the planner may refuse what is not an executable, permitted instruction; the engine, having an executable one, never withholds on its own analytical judgment. This is why the canonical form is both the type-checked meaning *and* the unit of planning: the same decomposition that the planner validates is the decomposition the engine serves.
+**Where each outcome is decided.** The four outcomes map cleanly onto the two-projection architecture (Chapter 2.1). **Clarify** and the governance/no-data half of **refuse** are *planner* outcomes: they are decided statically, from vocabulary and shape, before the column engine resolves anything — ambiguity, a missing anchor, an unknown operator, a type mismatch, a non-traversable edge, a `WITHHOLD` or access rule, an empty realized support. The **structural** refusal joins that list: a blocked reduction is executable and not permitted, and the B-anchor is knowable from shape alone, so it is adjudicated at the planner with zero backend fetches. **Serve, clean** and **serve, with disclosures** are *engine* outcomes: once a query is well-formed and permitted, the engine resolves it and any surviving analytical risk rides out as a disclosure. The boundary between "may withhold" and "must serve" is therefore the boundary between the planner and the engine — the planner may refuse what is not an executable, permitted instruction; the engine, having an executable one, never withholds on its own analytical judgment. This is why the canonical form is both the type-checked meaning *and* the unit of planning: the same decomposition that the planner validates is the decomposition the engine serves.
 
 ### 7.3 The withholding outcomes, enumerated
 
@@ -1171,41 +1073,48 @@ A query yields no result in exactly these cases:
 - **Missing required alias.** A series with no defensible default name (composite reduction, map expression, bracket filter, conditional) and no `AS`. What to clarify: the name.
 - **Name collision.** Two series whose default or declared names collide, or a series colliding with an anchor dimension's name. What to clarify: a disambiguating alias.
 - **Anchor incompatibility.** Operands of a map that do not resolve to a common input anchor, with no expressed path to one. What to clarify: the explicit aggregation or broadcast that brings them together, or a restructuring.
-- **Mule without explicit input anchor** (shipped reason: **`input_anchor_ambiguous`**, one reason per contested dimension — including the multi-input case). A reduction whose answer depends on an input grain that has not been named. What to clarify: the input pin (Chapter 2.3). *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: the menu enumerates the **lawful** candidate pins only. Where exactly one candidate is lawful nothing is contested, so the framework proceeds on the defaulted anchor and owes the material `input_anchor` note; where **none** is lawful the ask refuses `blocked_reduction` rather than clarifying, because an unlawful reading is not a choice the asker can be offered — offering it is how a reader gets talked into a laundered answer one keystroke later.)* *(▸ shipped-law reconciliation, 2026-07-17: the input anchor is written inline — `avg(revenue @ {day})` — and a composite pin `@ {a*b*c}` is admissible, §2.3.)* *(▸ Second-Edition sync: the First Edition named the multi-input case `co_anchor_ambiguous`; that reason is **tombstoned** (retired 2026-07-16, §2c expression law; never emitted) — the planner emits `input_anchor_ambiguous` per contested dimension, and the cross-universe rate the reason once named is now the `cross_universe` category error below.)*
-- **Redundant pin** (shipped reason: **`redundant_pin`**). A composite input anchor (§2.3) pinning two cross-comparable levels — one functionally determines the other — so the pair fixes one axis, not two (Law 2). What to clarify: which of the two admissible pins. *(▸ Second-Edition sync: minted 2026-07-30, WP-GRAIN-1.)*
+- **Mule without explicit input anchor** (shipped reason: **`input_anchor_ambiguous`**, one reason per contested dimension — including the multi-input case). A reduction whose answer depends on an input grain that has not been named. What to clarify: the input pin (Chapter 2.3).
+- **Redundant pin** (shipped reason: **`redundant_pin`**). A composite input anchor (§2.3) pinning two cross-comparable levels — one functionally determines the other — so the pair fixes one axis, not two (Law 2). What to clarify: which of the two admissible pins.
 - **Ambiguous path.** A column whose root reaches the output anchor by more than one hierarchy path (sibling hierarchies), unnamed. What to clarify: which family is climbed.
-- **Attribute keyed at several levels** (shipped reason: **`ambiguous_grain`**). An attribute table keyed at more than one level, so the engine cannot infer which level the attribute is a property of — and where a delivery grain is available, it pins none of the candidates uniquely. The engine reports the fact and the candidate frames; it does not choose. What to clarify: the attribute's level, which the message enumerates (`key at '<level>'` per candidate). *(▸ currency addition, 2026-08-22: shipped code named here for the first time; the condition is long-standing.)*
-- **Type mismatch, on the query-error channel** (shipped reason: **`type_error`**, on the query-error channel — NOT a clarify, like `cross_universe` below). The shipped planner typechecks against the operator's signature and raises `type_error` when an operator or scan is applied to a logical type its signature does not accept, naming the type it received and the types it accepts. The bullet above describes the same condition as a clarification; the shipped classification is the error channel. *(▸ currency addition, 2026-08-22: shipped code and channel recorded as emitted. The taxonomic question — whether the manual's clarify framing or the shipped error channel is the intended reading — is left open here rather than settled in a documentation pass.)*
-- **Cross-universe expression** (shipped reason: **`cross_universe`**, on the query-error channel — NOT a clarify). A single column expression that combines measures from more than one universe. This is a category error, not a hedged answer: an expression evaluates in exactly one universe (the §2c expression law, Chapter 2.5). What to do: ask each population separately, or reconcile them — and to place several populations in one view, **juxtapose** them (separate series, each in its own universe). *(▸ shipped-law reconciliation, 2026-07-17: net-new — the retired cross-universe "wedge" lands here.)*
+- **Attribute keyed at several levels** (shipped reason: **`ambiguous_grain`**). An attribute table keyed at more than one level, so the engine cannot infer which level the attribute is a property of — and where a delivery grain is available, it pins none of the candidates uniquely. The engine reports the fact and the candidate frames; it does not choose. What to clarify: the attribute's level, which the message enumerates (`key at '<level>'` per candidate).
+- **Type mismatch, on the query-error channel** (shipped reason: **`type_error`**, on the query-error channel — NOT a clarify, like `cross_universe` below). The shipped planner typechecks against the operator's signature and raises `type_error` when an operator or scan is applied to a logical type its signature does not accept, naming the type it received and the types it accepts. The bullet above describes the same condition as a clarification; the shipped classification is the error channel.
+- **Cross-universe expression** (shipped reason: **`cross_universe`**, on the query-error channel — NOT a clarify). A single column expression that combines measures from more than one universe. This is a category error, not a hedged answer: an expression evaluates in exactly one universe (the §2c expression law, Chapter 2.5). What to do: ask each population separately, or reconcile them — and to place several populations in one view, **juxtapose** them (separate series, each in its own universe).
 - **Order missing.** An order-dependent operation (scan, ordered reducer) whose order is neither derivable from the anchor nor specified. What to clarify: the order.
 - **Family not declared.** A reducer named on a column whose family set does not declare it. What to clarify: a declared reducer (the clarification lists the family set), or an extension of the column-spec.
-- **Unknown operator.** An operator name that resolves to no reducer, scan, or map function in the Manifold's operator registry (distinct from *family not declared*, which is a known reducer absent from *this* column's family set). What to clarify: a registered operator, or an extension of the registry. *(▸ Frame-QL revision: made explicit; the planner typechecks operator names against the registry before resolution.)*
-- **Type mismatch.** An operator applied to an input whose type its signature does not accept (e.g. a numeric reducer on a String column). What to clarify: a cast, or a type-appropriate operator. *(▸ Frame-QL revision: made explicit; signatures are checked at the planner.)*
-- **Non-traversable edge (fan-out)** (shipped reason: **`non_functional_transport`**). An aggregate-across that rides a non-functional (M:N) relationship without a declared resolution (Chapter 5.6). What to clarify: a membership filter, a primary designation, or `WITH allocation`. *(▸ Frame-QL revision: under the column-foundation this is a clarification, not a served membership aggregation.)*
-- **Unreachable predicate dimension** (shipped reason: **`filter_unreachable`**). A `WHERE` dimension not reachable from some series' input anchor (Chapter 4.1). *(▸ shipped-law reconciliation, 2026-07-17: the shipped envelope planner raises `filter_unreachable` for a `WHERE` predicate whose dimension no series' input grain can reach.)*
+- **Unknown operator.** An operator name that resolves to no reducer, scan, or map function in the Manifold's operator registry (distinct from *family not declared*, which is a known reducer absent from *this* column's family set). What to clarify: a registered operator, or an extension of the registry.
+- **Type mismatch.** An operator applied to an input whose type its signature does not accept (e.g. a numeric reducer on a String column). What to clarify: a cast, or a type-appropriate operator.
+- **Non-traversable edge (fan-out)** (shipped reason: **`non_functional_transport`**). An aggregate-across that rides a non-functional (M:N) relationship without a declared resolution (Chapter 5.6). What to clarify: a membership filter, a primary designation, or `WITH allocation`.
+- **Unreachable predicate dimension** (shipped reason: **`filter_unreachable`**). A `WHERE` dimension not reachable from some series' input anchor (Chapter 4.1).
 
 **Refusals — the governed law does not grant the operation, the query executes against nothing, a pin is incoherent, or a rule withholds it:**
 
-- **Structurally prohibited reduction** (shipped reason: **`blocked_reduction`**). A reduction that travels a lineage its operator is declared `BLOCKED` along for that column — summing a stock across the calendar (`level.sum AT {store*cal.month}`, `level.sum AT {store}`), re-summing a broadcast value along the axis it was spread across (§2.6). The arithmetic is computable and the ask is refused anyway: the governed law does not possess the operation, so there is no lawful reading to serve — in *any* spelling, whether the reducer was written as a declared family member, **generated** by an inline reducer above a lawful sibling (`sum(level.last @ {day})`), or carried inside a unary, binary, scalar, scan or `DERIVED` wrapper. A **lawfulness** refusal, shipped as REFUSE/UNSUPPORTED (the same outcome family as `out_of_universe`), distinct from the coherence, no-data and governance refusals around it. What to fix: the two lawful edits the message names — a reducer that *is* applicable along the lineage (`.last` for a stock collapsed over time), or an anchor the reduction does not have to cross. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: minted here, and moved here **from 7.4**, where ADR-020 had placed it as a served critical disclosure. **Family generation creates a new analytical family. It does not create a new operator permission.** Scope is unchanged — per operator × lineage, no stock/flow type: `sum` of the same stock across *stores*, and `avg`/`min`/`max`/`count` of it across time, all stay lawful.)*
-- **Pin coarser than output** (shipped reason: **`pin_coarser_than_output`**). A composite input anchor (§2.3) pinning a level *coarser* than the output grain — an output level functionally reaches the pin — which cannot resolve at the finer output without inventing rows it does not distinguish (Law 1). A **coherence** refusal — the pin names a grain incoherent with the output — shipped as REFUSE/UNSUPPORTED (the same outcome family as `out_of_universe`), distinct from the no-data and governance refusals below. What to fix: the two lawful edits the message names. *(▸ Second-Edition sync: minted 2026-07-30, WP-GRAIN-1.)*
-- **Uncertified transport** (shipped reason: **`uncertified_edge`**). A transport the planner did not positively admit a route for. The engine fails closed rather than choosing one: *a declaration makes an edge eligible for certification, not executable* — so the executed route is always the certified route. Named alternatives: publish/adjudicate so the edge is certified on the attested data, or address at a grain that does not need the transport. *(▸ currency addition, 2026-08-22: minted 2026-08-19, after the Second-Edition sync point.)*
-- **Uncertified crossing face** (shipped reason: **`uncertified_face`**). The same law at the M:N frontier (Chapter 5.6): the ask names a declared face, but adjudication has not positively admitted it — or the admission is stale. A declaration makes a crossing eligible for certification, not executable. Named alternatives: publish/adjudicate so the face is certified, or, where it was refuted on the data, fix the data and re-attest. *(▸ currency addition, 2026-08-22: minted 2026-08-20, after the sync point.)*
-- **Spent distinct anchor at a face** (shipped reason: **`anchor_spent`**). The **G5** anchor law (Chapter 5.6) as the engine emits it: a distinct-class measure — a count-distinct or sketch reducer — refuses at every face, because its output anchor is spent at the frontier grain and per-member counts cannot be summed, weighted, or routed. The message speaks the declaration dialect, and names the two lawful readings: declare a weighted composite as a value measure, or ask the crossed-population count. *(▸ currency addition, 2026-08-22: minted 2026-08-20; the law was already documented at 5.6, the code was not named here.)*
-- **Refuted transport edge** (shipped reason: **`contradicted_edge`**). Transport along an edge whose declared functional dependence is **refuted on the attested data** — a key with more than one parent — so the reduction across it is withheld: serving never outruns the verdicts. Distinct from a *contradicted precondition* served with a disclosure (7.4): there the planner routes around the contradiction, here there is no route that avoids the refuted edge. Named alternatives: fix the data and re-attest, amend the hierarchy, or address at a grain that does not cross this edge. *(▸ currency addition, 2026-08-22: shipped code named here for the first time; the condition is long-standing.)*
+- **Structurally prohibited reduction** (shipped reason: **`blocked_reduction`**). A reduction that travels a lineage its operator is declared `BLOCKED` along for that column — summing a stock across the calendar (`level.sum AT {store*cal.month}`, `level.sum AT {store}`), re-summing a broadcast value along the axis it was spread across (§2.6). The arithmetic is computable and the ask is refused anyway: the governed law does not possess the operation, so there is no lawful reading to serve — in *any* spelling, whether the reducer was written as a declared family member, **generated** by an inline reducer above a lawful sibling (`sum(level.last @ {day})`), or carried inside a unary, binary, scalar, scan or `DERIVED` wrapper. A **lawfulness** refusal, shipped as REFUSE/UNSUPPORTED (the same outcome family as `out_of_universe`), distinct from the coherence, no-data and governance refusals around it. What to fix: the two lawful edits the message names — a reducer that *is* applicable along the lineage (`.last` for a stock collapsed over time), or an anchor the reduction does not have to cross.
+- **Pin coarser than output** (shipped reason: **`pin_coarser_than_output`**). A composite input anchor (§2.3) pinning a level *coarser* than the output grain — an output level functionally reaches the pin — which cannot resolve at the finer output without inventing rows it does not distinguish (Law 1). A **coherence** refusal — the pin names a grain incoherent with the output — shipped as REFUSE/UNSUPPORTED (the same outcome family as `out_of_universe`), distinct from the no-data and governance refusals below. What to fix: the two lawful edits the message names.
+- **Uncertified transport** (shipped reason: **`uncertified_edge`**). A transport the planner did not positively admit a route for. The engine fails closed rather than choosing one: *a declaration makes an edge eligible for certification, not executable* — so the executed route is always the certified route. Named alternatives: publish/adjudicate so the edge is certified on the attested data, or address at a grain that does not need the transport.
+- **Uncertified crossing face** (shipped reason: **`uncertified_face`**). The same law at the M:N frontier (Chapter 5.6): the ask names a declared face, but adjudication has not positively admitted it — or the admission is stale. A declaration makes a crossing eligible for certification, not executable. Named alternatives: publish/adjudicate so the face is certified, or, where it was refuted on the data, fix the data and re-attest.
+- **Spent distinct anchor at a face** (shipped reason: **`anchor_spent`**). The **G5** anchor law (Chapter 5.6) as the engine emits it: a distinct-class measure — a count-distinct or sketch reducer — refuses at every face, because its output anchor is spent at the frontier grain and per-member counts cannot be summed, weighted, or routed. The message speaks the declaration dialect, and names the two lawful readings: declare a weighted composite as a value measure, or ask the crossed-population count.
+- **Refuted transport edge** (shipped reason: **`contradicted_edge`**). Transport along an edge whose declared functional dependence is **refuted on the attested data** — a key with more than one parent — so the reduction across it is withheld: serving never outruns the verdicts. Distinct from a *contradicted precondition* served with a disclosure (7.4): there the planner routes around the contradiction, here there is no route that avoids the refuted edge. Named alternatives: fix the data and re-attest, amend the hierarchy, or address at a grain that does not cross this edge.
 - **No data / gap** (shipped reason: **`incomplete_data`** / **`data_gap`**). The rows are not there: an empty realized anchor, disjoint filtered restrictions, a requested combination the bound data cannot support — or, in a spine/product universe, a gap in the expected grid (per the basis law, Chapter 1.5). The figure covers what is present; the gap is disclosed, never a silent zero.
 - **Quarantined column.** A cross-column combination touching a column whose incompleteness the author has not declared usable (Chapter 5.7) — the author's standing coverage governance.
 - **Author hard stop.** A `(column, reducer)` the Manifold author has declared `WITHHOLD` (see 7.5): a governance rule, reported as the author's rule with the declared rationale and the alternative families.
 - **Authorization.** The caller is not entitled to the data under the Manifold's access rules. (The access-rule layer is specified separately; the outcome category is reserved here.)
 
-Everything formerly in this chapter's refusal taxonomy that does not appear above — mule re-aggregation, many-to-many aggregate-across, coverage mismatch, MNAR, contradicted integrity preconditions — has moved to 7.4: those queries are served, with disclosures. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: **B-anchor violations are no longer in that list.** The Third-Edition taxonomy refused them; ADR-020 moved them here to 7.4; ADR-036 returns them to the refusals above — this time as a structural prohibition rather than an analytical judgment, which is precisely the distinction the intervening reading lacked.)*
+Most of what the prior edition's refusal taxonomy listed has moved to 7.4 and is served with disclosures: mule re-aggregation, coverage mismatch, MNAR, contradicted integrity preconditions. **B-anchor violations are not among them** — they refuse (see `blocked_reduction` above). An undeclared many-to-many aggregate-across is not among them either: it clarifies.
 
 ### 7.4 The disclosure catalog
+
+**Retired reasons.** `co_anchor_ambiguous` is **tombstoned**: it is never emitted, and a
+retirement-pin test asserts so. The First Edition used it for the multi-input case; within one
+universe the denotation rule leaves nothing to disambiguate, and the cross-universe rate it
+originally named is now the `cross_universe` category error (§2.5). The planner emits
+`input_anchor_ambiguous` where the old reason would have appeared. The spelling is kept only so older
+transcripts stay readable — vocabularies grow by rule and shrink by tombstone, never silently.
 
 The principal soundness findings, each carrying the fields of 7.1:
 
 - **B-anchor crossing** — **TOMBSTONED as a producer, 2026-08-20 (ADR-036); retained, and still wired** (`critical`; shipped code: **`b_anchor_crossing`** / **`blocked_reduction`**). A reduction coarsening across a blocked family — summing a stock over time (`level.sum @ store*cal.month`), re-summing a broadcast value along its broadcast axis. This was the canonical served-with-a-critical-disclosure case; it now **refuses** (7.3), because Disclose exists inside the lawful region and cannot legalize an operation the governed law does not possess. The code is *not* deleted: archived wires, recorded transcripts and the deposited editions still resolve against it, and the Refuse channel's reason carries the same spelling — one concept, two channels, so probe the referent and not the spelling. Nothing fresh is emitted under it. What it used to carry as a remedy is now the refusal's first named alternative (`.last` for a stock over time; Chapter 5.3).
 - **Mule re-aggregation** (route-around, `info`; `caution` if no route). An attempt to re-aggregate a sterile result is recomputed from the fertile sources at root where they exist (the average is rebuilt from sum and count — `RECOMPUTED_FROM_DETAIL`); where no fertile decomposition exists (exact distinct count, exact median, mode), the result is **recomputed from base at the output grain** — the grain at which it is computable — and the finding states it cannot be soundly re-aggregated past that grain, with the sketch-backed approximate family (`approx_distinct`, `approx_quantile`) as the reaggregable remedy.
-- **Many-to-many membership aggregation** (`caution`/`critical` by overlap). Aggregate-across without a declared resolution, served with membership semantics and the overlap quantified (Chapter 5.6); remedies: filter, primary designation, `WITH allocation`. *(▸ Frame-QL revision: this served-disclosure applies to a join-capable engine; under the column-foundation the undeclared case is a planner clarification, not a served result — see the revision note in Chapter 5.6.)*
+- **Many-to-many crossing at a declared face** (`caution`/`critical` by overlap). A crossing that names a declared face is served and carries its disposition: `touch` discloses the over-count, `assign` discloses the shadow of dropped memberships, `alloc` carries the reconciliation certificate (Chapter 5.6). An aggregate-across with **no** declared resolution is not here: it clarifies at the planner and produces no result.
 - **Contradicted precondition in the dependency cone** (route-around where possible; otherwise `caution`/`critical`). A broken hierarchy edge, a failed co-anchoring, a coverage drift: where a route that avoids the contradicted condition exists, the planner takes it and discloses the routing; otherwise the result is served carrying the finding with the contradiction's specifics ("customer 19847 maps to both 'east' and 'west'") and its `certificate_state = CONTRADICTED`.
 - **MNAR exclusion** (`caution`/`critical`, `certificate_state = UNTESTABLE`). A reduction over a column whose missingness is declared value-dependent: no correction the observed data supports exists; the result is served as the observed-data figure with the unknown-direction bias stated, never presented as a population estimate.
 - **Rescaling applied** **[ROADMAP — no rescaling behaviour ships; a reduction is not silently rescaled]** (`info`/`caution`). An extensive reduction under MCAR has been skip-and-rescaled to an unbiased population-total estimate; the finding carries the rescale factor (N_total / N_observed) so the result can be reconciled against a raw source-system sum.
@@ -1220,7 +1129,7 @@ The principal soundness findings, each carrying the fields of 7.1:
   | `out_of_population` | `info` — immaterial | `undefined` | left null — the point is outside the measure's population |
   | `undeclared_absence` | `caution` — material | *(none)* | left null — no rule declared; the engine discloses rather than choose a value, and never fills |
 
-The disclosure severities are findings about the data and the operation; they are never the engine's grounds for withholding. *(▸ 2026-08-20, ADR-036: unchanged, and now unambiguous — a severity never withholds, because everything that reaches a disclosure is already lawful. What withholds is the prior question of §5.3: whether the governed law grants the operation at all.)* The safety asymmetry of the certificate is preserved verbatim in the findings: a finding's `certificate_state` retains the state a pre-ADR-020 refusal would have minted — `CONTRADICTED` or `UNTESTABLE` — demotable at most to `CORROBORATED` by a passing data check, never silently to `VERIFIED`.
+The disclosure severities are findings about the data and the operation; they are never the engine's grounds for withholding. The safety asymmetry of the certificate is preserved verbatim in the findings: a finding's `certificate_state` retains the state a pre-ADR-020 refusal would have minted — `CONTRADICTED` or `UNTESTABLE` — demotable at most to `CORROBORATED` by a passing data check, never silently to `VERIFIED`.
 
 ### 7.5 The four-party control model
 
@@ -1228,13 +1137,13 @@ Withholding and handling are governed by four parties, each with a distinct, leg
 
 **The Manifold author** exercises corporate governance. The author already controls the Manifold's entire shape — scope, sources, columns, operators, the V/M/B declarations — and the same authority extends to declared withholding rules: per-(column, reducer) hard stops (`WITHHOLD` in the definition language), access and entitlement rules, and policy customization of operator behavior. When an author rule fires, the engine reports it as the author's rule: the *refuse* outcome names the declaration, its rationale where given, and the permitted alternatives.
 
-**The engine** withholds only what it cannot do: an ambiguous query is not an executable instruction and must be clarified first; an empty data support cannot be served; and an operation the governed law does not grant has no lawful reading to execute (§5.3). These are the engine's only inherent non-serves — soft, structural, and free of judgment. *(▸ shipped-law reconciliation, 2026-08-20, ADR-036: the third clause is new, and it is *structural* in exactly the sense the sentence already claims — it reads a declaration the author wrote, not an opinion the engine formed. The author declares `BLOCKED { calendar }` once; the engine enforces it everywhere, including in the spellings the author never anticipated.)* In every other case the engine's stance is fixed: *serve, and disclose.* The engine executes governance rules it did not author and produces disclosures it does not act on; it never withholds on its own analytical opinion.
+**The engine** withholds only what it cannot do: an ambiguous query is not an executable instruction and must be clarified first; an empty data support cannot be served; and an operation the governed law does not grant has no lawful reading to execute (§5.3). These are the engine's only inherent non-serves — soft, structural, and free of judgment. In every other case the engine's stance is fixed: *serve, and disclose.* The engine executes governance rules it did not author and produces disclosures it does not act on; it never withholds on its own analytical opinion.
 
 **The surface** — a query console, the agent, an MCP server, an embedding application — decides how outcomes are *handled*: how a clarification dialogue is conducted, how a refuse is presented, and what to do with a served result given its disclosure content. Severity-driven presentation gates (blur-until-acknowledged on `requires_acknowledgment`, confirmation steps on `critical` findings) are surface decisions, applied to presentation, never API-level withholding — entitled programmatic callers receive the bytes with the annotation, or composition breaks.
 
 **The user** may declare their own suppression preferences — "do not return results whose disclosures match these conditions" — implemented at the surface, or communicated to the engine as a per-call policy. This is the user governing their own consumption, the symmetric counterpart of the author governing the corpus.
 
-One sentence holds the model together: *the author may forbid, the engine may only clarify, report emptiness, or decline what the declared law does not permit, the surface decides presentation, and the user decides their own threshold — and every one of these is visible in the annotation, so no withholding and no risk is ever silent.* *(▸ 2026-08-20, ADR-036: the engine's clause gained its third limb. Note what did not change — the engine still forms no analytical opinion of its own; declining a blocked reduction is the author's `BLOCKED` declaration being carried out, in every spelling of it.)*
+One sentence holds the model together: *the author may forbid, the engine may only clarify, report emptiness, or decline what the declared law does not permit, the surface decides presentation, and the user decides their own threshold — and every one of these is visible in the annotation, so no withholding and no risk is ever silent.*
 
 ### 7.6 Message conventions
 
@@ -1416,8 +1325,6 @@ The **type predicates and casts** `is_<type>` and `cast(col, <type>)` are propos
 Reserved for future use: `INHERIT`, `JOIN`, `COMPOSE`, `ASSERT`, `ACCESS`.
 
 Operator names from Appendix A are reserved when used in operator position; the same identifiers may be used as column names in Manifolds that declare them.
-
-> **▸ shipped-law reconciliation (2026-07-17), RESOLVED.** The prior edition of this appendix flagged `FROM`/`SELECT`/`AT`/`{…}` as "Coframe canonical form, not the shipped grammar," pending the Coframe→envelope rewrite. That rewrite has landed: the **envelope** `SELECT … AT {…}` *is* the shipped grammar (Chapter 1), so these are the shipped query keywords, reconciled above. The retired terse `@`-fragment (its `:` label and trailing-`@` output) moves to Appendix D.
 
 ---
 
