@@ -167,8 +167,137 @@ _REMEDY = {
               "Manual still denies; the fix is a one-line mark/prose edit, and reverting the "
               "capability to make this green would be exactly backwards",
     UNCHECKED: "label the fence (```frameql, ```frameql-roadmap, ```frameql-illformed, "
-              "```frameql-schematic, ```frameql-fragment) so the claim becomes checkable",
+              "```frameql-schematic, ```frameql-fragment, ```frameql-retired, "
+              "```frameql-metasyntax, ```cml) so the claim becomes checkable",
 }
+
+#: EVERY FENCE THE GATE UNDERSTANDS, and what each one ASSERTS. A block whose fence is not here is
+#: UNCHECKED — reported, never skipped in silence.
+#:
+#: The last three close the hole that nine unlabelled blocks sat in. Two of them make a REAL claim
+#: rather than merely being excused:
+#:   frameql-retired    — a form the language REMOVED (Appendix D's trailing-`@`). Asserting that it
+#:                        still does not parse is how a retirement stays retired; if one of these
+#:                        starts parsing again, the build regressed and the gate says so.
+#:   frameql-metasyntax — BNF/template ABOUT the language, not a sentence IN it (§1.2's skeleton, with
+#:                        its `[optional]` brackets and `<placeholders>`). It must NOT parse; a
+#:                        skeleton that parses as a query has stopped being a skeleton.
+#:   cml                — a different language (§5.6's `RELATE … FACES`). EXPLICITLY out of scope for
+#:                        a Frame-QL gate, per the ruling — but NAMED and COUNTED, because "excluded
+#:                        on purpose" and "invisible" must never look the same in the report.
+_FENCES = ("frameql", "frameql-illformed", "frameql-roadmap", "frameql-schematic",
+           "frameql-fragment", "frameql-retired", "frameql-metasyntax", "cml")
+
+
+# ── THE OPERATOR REFERENCE, CHECKED AGAINST THE SHIPPED REGISTRY ─────────────────────────────────
+# APPENDIX A IS A CAPABILITY TABLE, AND A TABLE IS A CLAIM. Every fenced example in this Manual is
+# now measured, and Appendix A was still invisible — so `product`, `any`, `all`, `weighted_mean`,
+# `variance`, `stddev`, `value_at_max`, `value_at_min` sat unmarked in the reducer table, and the
+# whole Map-functions block (comparisons, conditionals, string, temporal, `cast`) sat unmarked
+# beneath it, while the shipped registry has none of them.
+#
+# THIS IS THE OPERATOR-LEVEL SOURCE THE §2.8 BLIND SPOT NEEDED (ruled Huayin, 2026-09-01: "the
+# conformance system must be able to verify capability claims that are not attached to one fenced
+# example ... do not require one artificial example per operator merely to satisfy the checker if a
+# better operator-level conformance source exists"). The better source already existed: the registry
+# IS the planner's contract with the engine, so it is the one place that knows what the language has.
+# No example is manufactured for any operator; the table is diffed against the vocabulary directly.
+#
+# ALIASES ARE READ, NEVER INFERRED. `ALIASES` in operators.py is the declared name→name table; a
+# Manual name that resolves through it is SHIPPED under another spelling, not missing. Guessing that
+# `approx_distinct` "obviously" means `distinct` would be the same error as guessing an equivalence
+# in §3.2 — plausible, undeclared, and therefore not a fact the gate may assert. Where the alias is
+# real but undeclared, the remedy is to DECLARE it (one reviewable line), not to teach the gate to
+# infer it.
+_APX_A = re.compile(r"^##\s+Appendix A", re.M)
+_OP_TOKEN = re.compile(r"`([^`]+)`")
+#: table rows are `| \`sum\` | fertile | … |` — the first cell holds the names
+_ROW = re.compile(r"^\|\s*(?P<first>[^|]*)\|")
+#: `Arithmetic: `+`, `-`, …` — a category label made of letters/slash/space only, so a PROSE sentence
+#: that happens to contain a colon ("A note on `last` and `first` as family founders: …") does not
+#: masquerade as a vocabulary list, and neither does "Scan parameters, passed by keyword:" (comma).
+_LIST_LINE = re.compile(r"^[A-Za-z/ ]{1,24}:\s")
+
+
+def _op_names(cell: str):
+    """Operator names in a table cell or prose list item, normalised to their registry spelling:
+    backticks stripped, a call illustration (`lag(col, n)`) reduced to its head, `count(*)` kept
+    whole because the Manual treats it as its own spelling (and parser.py gives it its own lift)."""
+    out = []
+    for tok in _OP_TOKEN.findall(cell):
+        t = tok.strip()
+        if t.startswith("count(*"):
+            out.append("count(*)"); continue
+        t = re.sub(r"\(.*$", "", t).strip()          # `lag(col, n)` -> lag ; `HLLSketch(p)` -> HLLSketch
+        if t and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*|[-+*/%<>=!]+", t):
+            out.append(t)
+    return out
+
+
+def operator_reference_drift(text, secs):
+    """Both directions across Appendix A. Returns (failures, shipped_named, registry_unnamed)."""
+    try:
+        from columna_core.operators import REGISTRY, ALIASES
+    except ImportError:                                        # pragma: no cover
+        return [], set(), set()
+    lines = text.splitlines()
+    m = _APX_A.search(text)
+    if not m:
+        return [], set(), set()
+    start = text[:m.start()].count("\n")
+    end = next((ln - 1 for ln, h, _k in secs if ln > start + 1 and h.startswith("Appendix B")),
+               len(lines))
+    fails, named = [], set()
+    sub = None                                                  # the "### Reducers" / "### Scan functions" head
+    sub_marked = False
+    for i in range(start, min(end, len(lines))):
+        raw = lines[i]
+        if raw.startswith("###"):
+            sub = raw.lstrip("# ").strip()
+            sub_marked = ("[ROADMAP" in raw or "[SCHEDULED" in raw)
+            continue
+        # ONLY THE THREE STRUCTURED SHAPES ARE OPERATOR LISTS. Appendix A is mostly PROSE, and prose
+        # mentions operators without claiming them as vocabulary rows — "a stock measure's `LAST`
+        # family is the canonical case" is an illustration, not a table entry. Reading every
+        # backticked token in the appendix would flag it, which is a checker inventing claims the
+        # Manual did not make. So: a table row, a `Label: ...` list, or a backtick-leading scan line.
+        row = _ROW.match(raw)
+        listy = _LIST_LINE.match(raw)
+        scanline = raw.startswith("`")
+        if not (row or listy or scanline) or raw.lstrip().startswith("|---"):
+            continue
+        # `Scan parameters, passed by keyword: ...` names PARAMETERS, not operators — excluded by the
+        # label pattern (it has a comma), and named here so the exclusion is deliberate, not lucky.
+        cell = row.group("first") if row else raw
+        # THE MARK IS PER LINE, then per subsection: a table row carries its own
+        # `**[ROADMAP — no t-digest ships]**`, and a whole block may be marked at its heading.
+        marked = sub_marked or "[ROADMAP" in raw or "[SCHEDULED" in raw
+        for name in _op_names(cell):
+            if name in ("fertile", "mule", "native", "same", "identity"):
+                continue
+            if name == "count(*)":
+                # A MEASURE-DECLARATION SPELLING, NOT A QUERY OPERATOR. `AS count(*)` in a `.cml`
+                # MEASURE ships and keeps its own lift (parser.py: `if agg == "count": pre_expr = "1"`),
+                # while the QUERY-level series form is dispositioned separately at §4.2 as unresolved
+                # architecture. Diffing it against the operator registry would answer neither question.
+                continue
+            resolved = ALIASES.get(name, name)
+            shipped = resolved in REGISTRY
+            if shipped:
+                named.add(resolved)
+                if marked:
+                    fails.append((IMPROVED, i + 1, f"Appendix A / {sub or 'operators'}",
+                                  "operator-marked-roadmap-but-registered", name,
+                                  "the row is marked unshipped; this operator IS in the shipped "
+                                  "registry" + (f" (as '{resolved}')" if resolved != name else "")))
+            elif not marked:
+                fails.append((EXCEEDS, i + 1, f"Appendix A / {sub or 'operators'}",
+                              "operator-named-but-not-registered", name,
+                              "Appendix A presents this as vocabulary, unmarked, and the shipped "
+                              "registry has no such operator — mark the row [ROADMAP], or declare "
+                              "the alias in operators.ALIASES if it ships under another spelling"))
+    unnamed = {n for n in REGISTRY if n not in named}
+    return fails, named, unnamed
 
 
 def sections(text: str):
@@ -251,10 +380,11 @@ def main() -> int:
     secs = sections(text)
     srvs = harness.servers()
 
-    counts = {"shipped": 0, "illformed": 0, "roadmap": 0, "schematic": 0, "fragment": 0}
+    counts = {"shipped": 0, "illformed": 0, "roadmap": 0, "schematic": 0, "fragment": 0,
+              "retired": 0, "metasyntax": 0, "cml": 0}
     blocks_seen = blocks_checked = 0
     stmts_seen = 0
-    failures, rows, unchecked = [], [], []
+    failures, rows, unchecked, excluded = [], [], [], []
 
     def fail(direction, lineno, head, kind, stmt, why):
         failures.append((direction, lineno, head, kind, stmt, why))
@@ -266,8 +396,7 @@ def main() -> int:
             kind = "frameql"
         blocks_seen += 1
 
-        if kind not in ("frameql", "frameql-illformed", "frameql-roadmap", "frameql-schematic",
-                        "frameql-fragment"):
+        if kind not in _FENCES:
             # UNCHECKED. Previously these were `continue`d in silence and the headline counted only
             # STATEMENTS, so nine unlabelled blocks were invisible behind "40 total". A block the
             # gate skips is a claim nothing can falsify, so skipping is now itself reportable — and
@@ -290,6 +419,30 @@ def main() -> int:
         claims_plans = bool(_CLAIM_PLANS.search(prose))
         claims_no_exec = bool(_CLAIM_NO_EXEC.search(prose))
         claims_no_parse = bool(_CLAIM_NO_PARSE.search(prose))
+
+        if kind == "cml":
+            # A DIFFERENT LANGUAGE. Out of scope for a Frame-QL gate by ruling — but counted and
+            # listed, so the report distinguishes "deliberately excluded" from "never looked at".
+            counts["cml"] += 1
+            excluded.append((lineno, head, kind, "declares vocabulary in CML, not Frame-QL"))
+            continue
+
+        if kind in ("frameql-retired", "frameql-metasyntax"):
+            # BOTH ASSERT NON-PARSE, for different reasons, so the failure names the right one.
+            why = ("the retirement regressed: this form was removed from the language and the "
+                   "shipped parser accepts it again"
+                   if kind == "frameql-retired" else
+                   "a metasyntactic skeleton that parses as a query has stopped being a skeleton — "
+                   "either the placeholders leaked into real syntax, or this is a real example "
+                   "mislabelled")
+            for stmt in stmts:
+                try:
+                    parse_statement(stmt)
+                    fail(EXCEEDS, lineno, head, f"{kind[8:] if kind.startswith('frameql-') else kind}"
+                                                f"-but-parses", stmt, why)
+                except Exception:
+                    counts["retired" if kind == "frameql-retired" else "metasyntax"] += 1
+            continue
 
         if kind == "frameql-fragment":
             counts["fragment"] += len(stmts) or 1              # illustrative; declared as such
@@ -319,8 +472,21 @@ def main() -> int:
         # That reasoning is kept — see the IMPROVED remedy — but the CONSEQUENCE was a one-way gate:
         # the Manual could understate the build indefinitely and stay green, and it did. `cumsum`
         # and four more scan operators execute while §2.8 says scan execution is unavailable.
+        # FAIL CLOSED ON CARDINALITY (ruled Huayin, 2026-09-01: the gate must not silently check
+        # fewer claims than the block makes). `want = annots[n] if n < len(annots)` was POSITIONAL
+        # TRUNCATION: a three-statement block carrying one `-- refuse: …` checked statement 1 against
+        # it and let statements 2 and 3 through unannotated, so two documented claims went unread and
+        # the headline still said the block passed. No block is mismatched today, which is exactly
+        # when to close it — the check costs nothing and the failure mode is silent.
+        if annots and len(annots) != len(stmts):
+            fail(EXCEEDS, lineno, head, "annotation-cardinality-mismatch", stmts[0] if stmts else "",
+                 f"{len(stmts)} statement(s) but {len(annots)} documented outcome(s) — the gate "
+                 f"would check fewer claims than this block makes. Annotate every statement, or "
+                 f"none of them.")
+            continue
+
         for n, stmt in enumerate(stmts):
-            want = annots[n] if n < len(annots) else None
+            want = annots[n] if annots else None       # cardinality is now 0 or len(stmts), checked above
             stage, outcome, reason = _disposition(srvs, harness, stmt, execute=True)
             rows.append((lineno, head, kind, stage, outcome, reason, stmt))
             reached_positive = outcome in ("serve", "disclose")
@@ -384,6 +550,18 @@ def main() -> int:
                      f"documented reason `{w_reason}`, got `{reason or 'none'}` — a "
                      f"generic failure is not a pass")
 
+    # ── APPENDIX A: the operator table, against the shipped registry ─────────────────────────────
+    op_fails, op_named, op_unnamed = operator_reference_drift(text, secs)
+    failures.extend(op_fails)
+    if op_unnamed:
+        # THE OTHER DIRECTION. Vocabulary the build HAS and the reference never names is a reader
+        # who cannot discover a shipped operator from the operator reference.
+        failures.append((IMPROVED, 0, "Appendix A", "registered-but-undocumented",
+                         ", ".join(sorted(op_unnamed)),
+                         f"{len(op_unnamed)} operator(s) are in the shipped registry and appear "
+                         f"nowhere in Appendix A — the reference is not a complete list of what "
+                         f"the language has"))
+
     # ── report ───────────────────────────────────────────────────────────────────────────────────
     for direction in (EXCEEDS, IMPROVED, UNCHECKED):
         group = [f for f in failures if f[0] == direction]
@@ -405,6 +583,12 @@ def main() -> int:
                 print(f"  L{lineno:<5} §{head[:34]:36} [{kind}]\n        {one}\n        -> {why}",
                       file=sys.stderr)
 
+    if excluded:
+        print(f"\n=== EXCLUDED ({len(excluded)}) — declared out of scope, not invisible ===",
+              file=sys.stderr)
+        for lineno, head, kind, why in excluded:
+            print(f"  L{lineno:<5} \u00a7{head[:34]:36} fence={kind:18} {why}", file=sys.stderr)
+
     if args.verbose:
         for lineno, head, kind, stage, outcome, reason, stmt in rows:
             print(f"  L{lineno:<5} {kind:18} {stage:8} {outcome:9} {reason or '':24} "
@@ -418,7 +602,10 @@ def main() -> int:
     print(f"manual FrameQL: {blocks_seen} blocks ({blocks_checked} checked, {len(unchecked)} UNCHECKED) "
           f"-> {stmts_seen} statements — {counts['shipped']} shipped, {counts['roadmap']} roadmap, "
           f"{counts['illformed']} ill-formed, {counts['schematic']} schematic, "
-          f"{counts['fragment']} fragment | drift: {n_exceeds} claim-exceeds-build, "
+          f"{counts['fragment']} fragment, {counts['retired']} retired, "
+          f"{counts['metasyntax']} metasyntax; {counts['cml']} cml block(s) excluded "
+          f"| operators: {len(op_named)} named+registered, {len(op_unnamed)} registered-unnamed "
+          f"| drift: {n_exceeds} claim-exceeds-build, "
           f"{n_improved} capability-improved, {len(unchecked)} unchecked")
     if args.report:
         return 0
