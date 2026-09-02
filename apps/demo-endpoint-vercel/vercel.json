@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "index.py": {
-      "includeFiles": "{_wire/**,vendor/**}"
+      "maxDuration": 5
     }
   }
 }

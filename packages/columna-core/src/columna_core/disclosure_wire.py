@@ -84,9 +84,10 @@ CONTRACT_VERSION = "4"
 #   · packages/columna-server/tests/test_mcp_server.py, test_demo.py — catalog-shape assertions
 #
 # KNOWN IN-TREE contract_version LITERAL CONSUMERS (any bump must sweep these):
-#   · apps/website/src/scripts/exhibit-b.ts            — the live-demo query endpoint gate
 #   · scripts/assert_demo_play.py, .github/workflows/ci.yml — the demo --play smoke
-#   · apps/demo-endpoint-vercel/scripts/generate.py    — bakes T.CONTRACT_VERSION into _META (auto)
+#   (apps/demo-endpoint-vercel/scripts/generate.py was the third; the endpoint was RETIRED 2026-09-02
+#    under P1-32 and the generator deleted with it. exhibit-b.ts carries no contract literal — it was
+#    listed here as "the live-demo query endpoint gate" after that path was already disabled.)
 # ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 # Materiality is a fixed vocabulary (structured_disclosure_capture.md: the load-bearing field).

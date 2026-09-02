@@ -736,7 +736,58 @@ physical type.
 
 ---
 
-### P1-32 · A publicly served generated artifact cannot be reproduced by its generator, and serves an obsolete contract verbatim · **HIGH** · **OPEN — reconnaissance only, no repair authorized** · VX
+### P1-32 · A publicly served generated artifact cannot be reproduced by its generator, and serves an obsolete contract verbatim · **HIGH** · **CLOSED 2026-09-02 — SURFACE RETIRED** · VX
+
+**PRODUCT/DEMO LIFECYCLE** (the third domain, ruled Huayin 2026-09-02 — `manifold_assurance_boundary_v0_1.md`). Not a Manifold-assurance defect and not an analytics defect: an obsolete public product surface. It was found through a Manifold question and does not reopen one.
+
+> **CLOSED by RETIREMENT, ruled Huayin 2026-09-02.** *"Retire the endpoint. Do not migrate it. … Do not invent current semantics to preserve a dead demo contract."*
+
+**What was done.** The surface no longer presents a stale artifact as current behaviour:
+
+- `_wire/precomputed.json` (6.9 MB, 11 captured entries), `scripts/generate.py` and
+  `vendor/frameql.py` **deleted** — the obsolete generator and its generated artifact cease to
+  be authorities of any kind, rather than being brought forward.
+- `index.py` reduced to a stdlib-only handler that answers **410 Gone** on every path and
+  method with a retirement notice. It reads no data file and returns no analytical result;
+  there is no 200 in it. CORS is permissive by design so a lingering client can READ the
+  notice instead of hitting a CORS failure — there is no data left to protect.
+- **The notice deliberately records no current version, contract or manifold.** Asserting a
+  current fact in a committed file is the exact mechanism that failed here: right on the day
+  it is written, quietly wrong afterwards. It states only what is permanently true — that the
+  surface is retired and what it used to serve — and points at the package for anything
+  current.
+- `apps/website/src/data/seeded_queries.json` **deleted**: orphaned since 2026-08-25, and the
+  only place the endpoint URL survived.
+- `disclosure_wire.py`'s contract-literal sweep list no longer names the deleted generator,
+  and its stale "live-demo query endpoint gate" entry for `exhibit-b.ts` is corrected — that
+  file carries no contract literal and its live path was already disabled.
+- **No freshness or determinism gate was added**, per the ruling: there is no artifact left
+  for one to guard, and a gate over a retired surface is a guard with nothing to protect.
+- **The `universe=` question was not answered.** Retirement removes the need for it; **OF-4**
+  stays open on its own terms, unchanged and untouched by this closure.
+
+**What was deliberately NOT touched.** `apps/website/src/scripts/exhibit-b.ts` stays. It is
+parked for the clarify round-trip arc returning to the TRANSCRIPT (`ExhibitB.astro`: "keeps
+the implementation, parked and unimported, for the day the transcript carries the arc
+again") — its dependency is the generated transcript, not this endpoint. Deleting it would
+have been a website redesign, which is not authorized. The `specs/wp5_1_*` documents and
+`specs/deploy_exceptions.md:33` also stay: they are dated records of what was decided then,
+not live claims about now.
+
+**The live deployment is done, and verified (VX, 2026-09-02).** Its own Vercel project
+(`demo-endpoint-vercel`, deployed by hand, decoupled from the site). The retirement stub was
+deployed to production and probed:
+
+```
+GET  /query                                    -> 410  {"retired": true, "row": "P1-32", ...}
+POST /query    {"frameql":"revenue @ region"}  -> 410  (formerly: serve, real values)
+POST /api/query {"frameql":"region_label @ store, day"}
+                                               -> 410  (formerly: 12,952 rows at "value": null)
+GET  /healthz                                  -> 410  (no 200 remains on this surface)
+```
+
+The old wire-1 payload is no longer served anywhere — not from the repository, which no longer
+contains it, and not from the public URL, which now answers only with the retirement notice.
 
 Opened 2026-09-02, split out of **P1-18 C** by ruling (Huayin). P1-18 closed as the Core
 declaration/parity defect and explicitly did **not** declare this fixed.
@@ -877,8 +928,8 @@ only check worth adding is one that reproduces the artifact.
 
 **Held for review.** No implementation until the public-contract consequence is reviewed.
 
-**No repair authorized.** The public endpoint is not to be regenerated or changed until its intended
-standing is settled — current-behaviour surface, deliberately frozen historical demo, or retired.
+**~~No repair authorized~~ — SUPERSEDED the same day by the retirement ruling.** The standing was
+settled as *retired* on the reconnaissance above; the endpoint was never regenerated or migrated.
 Reconnaissance was ordered before implementation; the migration is held for review of the
 public-contract consequence.
 
@@ -2029,10 +2080,17 @@ cannot be provisioned or admitted by the shared path.
 `provision_runtime_unit` are library-only, reachable in-repo solely from
 `fixtures/firstlight/build.py` and tests. `demo_store()` points at `demo/`, not `governed/`.
 
-### P4-08 · Vendored Frame-QL parser + precomputed wire in the public Vercel endpoint · **MEDIUM** · SV
+### P4-08 · Vendored Frame-QL parser + precomputed wire in the public Vercel endpoint · **MEDIUM** · **CLOSED 2026-09-02 — SUBSUMED BY P1-32** · SV
 
 `apps/demo-endpoint-vercel/index.py:8-22, 37`. Honest about being a replay ("never a
 facsimile"), but a second, drifting copy of a shared surface.
+
+**CLOSED, and closed by DELETION rather than reconciliation.** Both halves of this row —
+`vendor/frameql.py` and `_wire/precomputed.json` — were removed when the surface was retired under
+**P1-32** (2026-09-02). The drifting copy is gone rather than resynchronised, so nothing remains for
+this row to own; it is not left open beside P1-32 describing the same retired mechanism. The row is
+kept, struck, as the record that the second-copy risk was seen before it did the damage — the drift
+it predicted is exactly what P1-32 measured.
 
 ### P4-09 · `APERTURE_SAMPLE_CAP = 1000` — a governance policy constant in connector source · **LOW** · SV
 
