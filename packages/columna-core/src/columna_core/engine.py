@@ -375,6 +375,74 @@ class ColumnEngine:
         return frame.select(list(target) + ["_value"])     # project the witness to the answer
 
     # ---- TOUCH: join-multiply across a non-functional (M:N) edge ----------
+    def face_crossing_standing(self, meas, target, faced):
+        """The crossing standing for `meas` at `target`: a `Refusal` this build already knows it will
+        raise, or None. DATA-FREE — declared model only, no fetch, no frame.
+
+        WHY IT IS A METHOD (the shared plan/run repair, 2026-09-01). These questions were asked deep
+        inside `_resolve_faced`, i.e. only on the RUN path, so `check_frame_query` — the advertised
+        zero-fetch pre-flight — answered `serve` for asks `execute_frame_query` then refused. The
+        invariant ruled by Huayin is:
+
+            A positive preflight disposition must not be returned when the same build already knows
+            that the admitted request cannot be realized.
+
+        The repair is to call the SAME predicate from both sides rather than to teach the planner a
+        second copy of the engine's rules — a duplicate is how the two drifted in the first place, and
+        `plan()` re-implementing a subset of `run()`'s checks is exactly the shape that produced these
+        divergences.
+
+        Two standings live here, and they are deliberately in DIFFERENT jurisdictions:
+
+          * P1-21, REALIZATION. `chained_crossing` used to fire on `len(faced) != 1 or len(target) != 1`
+            and then assert "this ask would cross two declared faces in sequence" — false whenever it
+            was the SECOND clause that tripped, which is the common case (one face plus an ordinary
+            level). The two shapes are now told apart and each is described truthfully. Both are build
+            facts (OF-26: "a single faced coordinate is the maximal expressible CROSS seam at v1"), so
+            both are realization standing rather than analytical Refuse.
+
+          * P1-20, ANALYTICAL. If the face's driver measure has several family members and the ask
+            names none, several lawful readings remain, and v0.2 §12 forbids realization from
+            choosing: "A realization layer may not use insertion order, dictionary order,
+            delivery-frame availability, or another physical fact to select one silently." The engine
+            chose with `next(iter(dmeas.family))`, so the answer moved when the DECLARATION ORDER of
+            two members was swapped. Adjudicated here, before realization, which leaves the engine's
+            pick unreachable rather than merely guarded.
+        """
+        if len(faced) > 1:
+            return Refusal("chained_crossing",
+                           f"this ask crosses {len(faced)} declared faces in sequence "
+                           f"({', '.join(faced)}); chained crossings are not yet licensed — ask at "
+                           f"one frontier at a time.",
+                           measure=meas.name, target=str(target))
+        if len(faced) == 1 and len(target) != 1:
+            ordinary = [T for T in target if T not in faced]
+            return Refusal("mixed_faced_anchor",
+                           f"a faced crossing resolves a single faced coordinate anchor in v1; this "
+                           f"ask pairs '{faced[0]}' with {', '.join(repr(o) for o in ordinary)}. "
+                           f"Mixed anchors are post-launch — ask at the frontier alone, then join.",
+                           measure=meas.name, target=str(target))
+        if not faced:
+            return None
+        parsed = parse_faced(faced[0], self.m.non_functional)
+        if parsed is None:
+            return None
+        _coord, _fname, _rel, face = parsed
+        # `driver` is the face's own field name for the measure that orders/weights the crossing
+        # (`ASSIGN BY <driver>`, `ALLOC BY <driver>`); `_serve_driver` reads `face.selection` from a
+        # resolved shape, which is not what `parse_faced` hands back here.
+        sel = getattr(face, "driver", None) or getattr(face, "selection", None)
+        if sel is not None and sel in self.m.measures:
+            fam = self.m.measures[sel].family
+            if len(fam) > 1:
+                return Refusal("face_driver_ambiguous",
+                               f"the '{faced[0]}' crossing is driven by '{sel}', whose family is "
+                               f"{list(fam)} — each member orders the crossing differently, so the "
+                               f"ask has several lawful readings. Name the member.",
+                               measure=meas.name, target=str(target), discriminator=AMBIGUOUS,
+                               alternatives=tuple(f"{sel}.{m}" for m in fam))
+        return None
+
     def _resolve_faced(self, meas, fam, op, target, faced, where, trace, *, routes=None, split=None):
         """Dispatch a faced crossing (M:N passage, notes v0.2 §3 P2) by the declared face scheme, after
         the crossing guards that are UNIFORM across all three schemes:
@@ -384,12 +452,12 @@ class ColumnEngine:
             distinct-class measure's output anchor is SPENT at the frontier grain (its per-member counts
             cannot be summed, weighted, or routed), so it refuses uniformly for all three schemes. The
             message speaks the DECLARATION dialect (distinct(...)), never the engine's sketch representation."""
-        # G4 — the chain guard (DRAFT copy; Huayin ratifies at the merge gate).
-        if len(faced) != 1 or len(target) != 1:
-            raise Refusal("chained_crossing",
-                          "this ask would cross two declared faces in sequence; chained crossings are not "
-                          "yet licensed — ask at one frontier at a time.",
-                          measure=meas.name, target=str(target))
+        # The crossing standing (G4 and the driver-family question) is DATA-FREE, so it is asked
+        # once, here and again before the plan/run branch, from the same predicate. See
+        # `face_crossing_standing`.
+        standing = self.face_crossing_standing(meas, target, faced)
+        if standing is not None:
+            raise standing
         T = faced[0]
         coord, fname, rel, face = parse_faced(T, self.m.non_functional)
         uni = meas.universe

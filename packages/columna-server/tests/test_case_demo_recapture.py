@@ -219,16 +219,33 @@ def test_e10_touch_executes_and_discloses_the_overcount(corpus):
 # refusal paths (Cascadia is the only fixture carrying declared RELATE faces) and check that the
 # verdict and the reason the reader receives match the intent the call site states in words.
 
-def test_chained_crossing_refuses_because_no_lawful_path_exists(live):
-    """engine.py's G4 chain guard: "chained crossings are not yet licensed — ask at one frontier at a
-    time." A well-formed ask with no lawful path is a REFUSE, in the same family as `uncertified_face`
-    — never an ERROR, which would say the request was malformed. It was not."""
+def test_a_mixed_faced_anchor_is_a_REALIZATION_gap_not_an_analytical_refusal(live):
+    """P1-21, ruled Huayin 2026-09-01. THE DOCSTRING THIS TEST USED TO CARRY WAS THE DEFECT, so it is
+    replaced rather than edited around. It read:
+
+        "A well-formed ask with no lawful path is a REFUSE ... never an ERROR, which would say the
+         request was malformed. It was not."
+
+    Both halves are right about what they deny and wrong about this ask. There IS a lawful path —
+    G4's own account is that the shape is "not yet licensed (disclosure-stacking undesigned)", and
+    OF-26 records "a single faced coordinate is the maximal expressible CROSS seam at v1". Those are
+    statements about THIS BUILD, so the standing is a realization gap: a more capable realization
+    serves this ask unchanged, which is exactly what an analytical Refuse must never be said of.
+
+    The second correction is the diagnostic. This ask names ONE face plus `cal.month`, and the old
+    refusal told the reader it "would cross two declared faces in sequence" — false, and it sends
+    them to remove a face they did not write. The two shapes are now told apart.
+
+    The `error` mood is transitional, not the destination: `unsupported`/`filter_unsupported` ride it
+    too, pending the wire ruling (v0.2 §13, Step 6). What is settled here is the JURISDICTION."""
+    from columna_core.disclosure import REALIZATION, jurisdiction_for
     store, _lm = live
     w = T.query(store, "cascadia", "SELECT revenue AT {category.touch, cal.month}")
     nr = w["columns"][0]["no_result"]
-    assert w["outcome"] == "refuse"
-    assert (nr["kind"], nr["reason"], nr["discriminator"]) == ("refuse", "chained_crossing", "unsupported")
-    assert "one frontier at a time" in nr["detail"]
+    assert nr["reason"] == "mixed_faced_anchor"
+    assert jurisdiction_for(nr["reason"]) == REALIZATION
+    assert "single faced coordinate" in nr["detail"]
+    assert "two declared faces" not in nr["detail"], "the old diagnostic was false of this ask"
 
 
 def test_anchor_spent_refuses_because_the_counts_cannot_travel(live):

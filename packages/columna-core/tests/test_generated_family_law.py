@@ -247,13 +247,14 @@ def test_the_reason_registry_is_closed_and_fails_closed():
     hypothetical — `chained_crossing` and `anchor_spent` both shipped that way, classified ERROR when
     their call sites plainly mean REFUSE. A vocabulary that grows by rule and shrinks by tombstone
     cannot also grow by accident."""
-    from columna_core.disclosure import (ANALYTICAL, REALIZATION, REASON_OUTCOME, REFUSE,
+    from columna_core.disclosure import (ANALYTICAL, ERROR, REALIZATION, REASON_OUTCOME, REFUSE,
                                          UNSUPPORTED, UnregisteredReason, outcome_for)
 
     assert REASON_OUTCOME["blocked_reduction"] == (REFUSE, UNSUPPORTED, ANALYTICAL)
-    assert REASON_OUTCOME["chained_crossing"] == (REFUSE, UNSUPPORTED, REALIZATION)   # P1-21: the mood is
-    #   still REFUSE and the stage says it should not be. The inversion is deliberate and enumerated
-    #   by test_jurisdiction_seam.py; Step 3 closes it.
+    # P1-21, closed 2026-09-01 by the shared plan/run repair: the mood followed the stage. A build
+    # limit is not an analytical verdict, and the engine's own account of G4 is a build fact
+    # ("not yet licensed"; OF-26: "the maximal expressible CROSS seam at v1").
+    assert REASON_OUTCOME["chained_crossing"] == (ERROR, None, REALIZATION)
     assert REASON_OUTCOME["anchor_spent"] == (REFUSE, UNSUPPORTED, ANALYTICAL)
     with pytest.raises(UnregisteredReason):
         outcome_for("a_reason_nobody_registered")

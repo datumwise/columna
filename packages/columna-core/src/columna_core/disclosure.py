@@ -289,6 +289,23 @@ REASON_OUTCOME = {
                                                         #   reduction is meant. An OF-1 sibling of
                                                         #   `input_anchor_ambiguous`: its own
                                                         #   contested dimension, its own reason.
+    # ── P1-21 / P1-20 (minted 2026-09-01) · faced crossings, adjudicated before the branch ───────
+    "mixed_faced_anchor":       (ERROR,   None, REALIZATION),        # ONE faced coordinate plus an
+                                                        #   ordinary level. Split out of
+                                                        #   `chained_crossing`, which claimed the ask
+                                                        #   "would cross two declared faces in
+                                                        #   sequence" — false of this shape. The
+                                                        #   tree's own truthful wording for it sat
+                                                        #   one frame below and unreachable
+                                                        #   (`_resolve_touch`: "touch v1 resolves a
+                                                        #   single faced coordinate anchor").
+    "face_driver_ambiguous":    (CLARIFY, AMBIGUOUS, ANALYTICAL),    # P1-20: a face's driver measure
+                                                        #   has several family members and the ask
+                                                        #   selects none. Adjudicated BEFORE
+                                                        #   realization: the engine's
+                                                        #   `next(iter(family))` was a realization
+                                                        #   fact selecting an analytical reading,
+                                                        #   which v0.2 §12 names outright.
     # ── P1-23 (minted 2026-09-01) · analytical law that was riding the build-gap reason ──────────
     #   Ruled Huayin: "analytical law failures belong to the analytical jurisdiction even when the
     #   current implementation historically routed them through a realization-capability reason."
@@ -380,7 +397,13 @@ REASON_OUTCOME = {
     #   🔒 NOT the same referent as the RESERVED caveat code of the same name (disclosure_wire.py): that one
     #   is RETAINED, reserved and unwired for a possible future soft-assert/disclosed-not-cut path. Same
     #   string, different channel — probe the referent, not the spelling.
-    "chained_crossing":         (REFUSE, UNSUPPORTED, REALIZATION), # REGISTERED 2026-08-20 (vocabulary integrity). Was
+    # RE-MOODED 2026-09-01 (P1-21). Was REFUSE/UNSUPPORTED, and the seam reported it as the tree's
+    #   ONLY reason-level jurisdiction inversion: a REALIZATION standing wearing an analytical Refuse.
+    #   The code's own account is a build fact — G4: "a multi-hop face path is not yet licensed
+    #   (disclosure-stacking undesigned)"; OF-26: "a single faced coordinate is the maximal
+    #   expressible CROSS seam at v1". It now rides the transitional `error` umbrella beside
+    #   `filter_unsupported`, pending the wire ruling (v0.2 §13, Step 6).
+    "chained_crossing":         (ERROR,  None, REALIZATION),         # REGISTERED 2026-08-20 (vocabulary integrity). Was
                                                         #   ORPHANED — emitted at engine.py's G4 chain guard
                                                         #   but absent from this table, so it fell through
                                                         #   `outcome_for`'s silent default and shipped as an

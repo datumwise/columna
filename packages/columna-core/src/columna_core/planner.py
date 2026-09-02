@@ -952,6 +952,90 @@ class Planner:
                 data = data.head(stmt.limit.n)
         return FrameResult(data, fr.disclosure, fr.columns, fr.anchor)
 
+    def _scan_order_standing(self, tree, anchor: tuple):
+        """The order-axis verdict for any scan in `tree`, or None. Data-free (P1-24 + the shared
+        plan/run repair)."""
+        for node in ast.walk(tree):
+            try:
+                sc = self._scan_call(node)
+            except Refusal:
+                # `_scan_call` RAISES for any non-scan call in call position — `avg(aov)` included —
+                # so a walk over every Call node hits it constantly. That is the normal path's
+                # verdict to give, not this pass's: swallowed here, and reached again with full
+                # context on the run path. Claiming it from a pre-branch scan would report every
+                # inline reduction as "not a scan operator".
+                continue
+            if sc is None:
+                continue
+            scan_op, arg, _n, by = sc
+            try:
+                m_name, _member = self._measure_ref(arg)
+            except Exception:
+                return None                              # not a plain measure ref; let the normal path speak
+            try:
+                self.plan_order_axis(scan_op, m_name, tuple(anchor), by)
+            except Refusal as r:
+                return r
+        return None
+
+    def _realization_standing(self, anchor: tuple, columns: list, standing: dict) -> dict:
+        """Settle, BEFORE the plan/run branch, every disposition this build already knows — so the
+        pre-flight and the execution cannot disagree about them.
+
+        THE INVARIANT (ruled Huayin, 2026-09-01):
+
+            A positive preflight disposition must not be returned when the same build already knows
+            that the admitted request cannot be realized.
+
+        `plan()` and `run()` had drifted because `plan()` re-implements a SUBSET of `run()`'s checks
+        rather than sharing them, so `check_frame_query` answered `serve` for asks
+        `execute_frame_query` then refused. This method does not add a second copy of anything: every
+        entry below is produced by calling the SAME predicate the run path calls, and those predicates
+        are data-free by construction. `_where_reachability` (P1-14's gate) was the only occupant of
+        this region and is the pattern being generalized.
+
+        The stage order the ruling asks for is preserved rather than flattened: this runs AFTER
+        canonical validity and analytical adjudication, and what it collects is a mix of analytical
+        readings (a face-driver ambiguity is |L| > 1) and realization standing (a crossing this build
+        cannot express). They keep their own jurisdictions; only the TIMING is shared.
+
+        DELIBERATELY NOT COVERED, because a shared symptom is not a shared cause (ruled Huayin):
+
+          * P1-28 — a base dimension whose level name is not translated to its physical key. Encoding
+            that here would ratify a mapping DEFECT as a capability of the build. It stays a divergence
+            until the mapping is repaired, which is its own row.
+          * P1-15 — a composite anchor whose levels are reached by separate hierarchies fails in frame
+            assembly, which is not knowable without attempting it.
+          * P1-14 — already parity-correct via `_where_reachability`; nothing to add.
+        """
+        pre_existing = set(standing)
+        for name, expr in columns:
+            if name in pre_existing:
+                continue
+            try:
+                tree = ast.parse(expr, mode="eval").body
+            except SyntaxError:
+                continue                                 # not adjudicable here; the normal path classifies it
+            # SCAN ORDER (P1-24). `plan_order_axis` is already the planner's own adjudicator and is
+            # data-free; it was simply never reached from `plan()`, because `plan()` does not walk
+            # the expression the way `_node` does. Calling it here is the same predicate, not a copy.
+            scan_verdict = self._scan_order_standing(tree, anchor)
+            if scan_verdict is not None:
+                standing[name] = scan_verdict.classified()
+                continue
+            for meas_name, _member in self._atoms(tree, anchor):
+                meas = self.m.measures.get(meas_name)
+                if meas is None:
+                    continue
+                faced = [T for T in anchor if parse_faced(T, self.m.non_functional) is not None]
+                if not faced:
+                    break
+                verdict = self.engine.face_crossing_standing(meas, tuple(anchor), faced)
+                if verdict is not None:
+                    standing[name] = verdict.classified()
+                    break
+        return standing
+
     def _where_reachability(self, columns: list, where_predicates: list) -> dict:
         """§WHERE reachability: a WHERE dimension must be addressable in each series' OWN universe
         (the filter binds pre-reduction, at the series' input). Returns {series_name: Outcome} for the
@@ -1131,8 +1215,10 @@ class Planner:
         columns = self._engine_columns(d)
         self._check_name_collisions(columns, d.anchor)           # §4 collisions REFUSED
         where = " AND ".join(d.where) if d.where else None       # per-series pre-reduction (existing plumbing)
-        unreachable = self._where_reachability(columns, d.where) if d.where else None
-        fr = (self.run if execute else self.plan)(d.anchor, columns, where, where_unreachable=unreachable)
+        standing = self._where_reachability(columns, d.where) if d.where else {}
+        standing = self._realization_standing(d.anchor, columns, dict(standing or {}))
+        fr = (self.run if execute else self.plan)(d.anchor, columns, where,
+                                                  where_unreachable=standing or None)
         return self._apply_output_clauses(fr, d, d.anchor, columns)
 
     def plan_statement(self, stmt) -> FrameResult:

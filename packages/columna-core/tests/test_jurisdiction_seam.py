@@ -76,9 +76,9 @@ def test_outcome_for_is_unchanged_for_existing_callers():
 # ── the wire is untouched (Step 6 is blocked) ─────────────────────────────────────────────────────
 def test_jurisdiction_does_not_reach_the_wire():
     from columna_core.disclosure_wire import wire_outcome
-    w = wire_outcome(Refusal("chained_crossing", "d").classified())
+    w = wire_outcome(Refusal("blocked_reduction", "d").classified())
     assert "jurisdiction" not in w
-    assert w["kind"] == REFUSE            # the mood a caller sees today, unchanged by this commit
+    assert w["kind"] == REFUSE            # the mood a caller sees, unaffected by the internal stage
 
 
 # ── the payoff: the open rows become enumerable ───────────────────────────────────────────────────
@@ -88,10 +88,11 @@ def test_jurisdiction_does_not_reach_the_wire():
 # §3 permits. Anything else is a live row, and is listed here with the row id so the ledger and the
 # build cannot drift apart.
 _TRANSITIONAL = {(LANGUAGE, ERROR), (REALIZATION, ERROR)}
-_KNOWN_INVERSIONS = {
-    # reason              (stage, mood)                row     closes in
-    "chained_crossing": ((REALIZATION, REFUSE),       "P1-21", "Step 3"),
-}
+# EMPTY SINCE 2026-09-01. `chained_crossing` was the single entry — a REALIZATION standing wearing an
+# analytical Refuse — and the shared plan/run repair (P1-21) closed it. The set is kept, with this
+# note, because an empty allow-list is the assertion: any future reason whose stage and mood disagree
+# has to be added here deliberately, in front of a reviewer, rather than merging quietly.
+_KNOWN_INVERSIONS = {}
 
 
 def _inversions():

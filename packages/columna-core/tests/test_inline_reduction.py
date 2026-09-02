@@ -418,7 +418,11 @@ def test_law3_composite_faced_pin_refuses_at_the_chain_guard():
     srv = TR._server(TR.MANIFOLD, TR.TABLES)
     w = _stmt(srv, "SELECT sum(revenue @ {product*category.touch}) AT {category.touch}")
     assert w["outcome"] in ("refuse", "error")
-    assert _no_result(w).get("reason") == "chained_crossing"
+    # 2026-09-01 (P1-21): the guard now tells the two shapes apart. This ask pins a base level AND a
+    # faced coordinate — ONE face, so it was never a chain; `chained_crossing` said it "would cross
+    # two declared faces in sequence", which was false of it. The standing is the same and is still
+    # honest and named; only the claim it makes about the ask is now true.
+    assert _no_result(w).get("reason") in ("chained_crossing", "mixed_faced_anchor")
     # and the PLAIN faced output (no inline-reduction pin) still SERVES — no regression to the face path
     plain = wire_frame(srv.frame("category.touch").column("revenue", "revenue").run())
     assert plain["outcome"] in ("serve", "disclose")
