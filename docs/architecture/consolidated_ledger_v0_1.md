@@ -546,6 +546,12 @@ row can be struck.
 > carriers; unknown `TYPE` spellings fail at the language-vocabulary boundary; absent `TYPE`
 > semantics remain unchanged. … Treat P1-18 as the **Core declaration/parity defect** and close it."*
 
+**ABOVE THE MANIFOLD-ASSURANCE BOUNDARY** (ruled Huayin, 2026-09-02 —
+`manifold_assurance_boundary_v0_1.md`). The `.cml` and the code twin disagreed about the Manifold and
+the parity check failed to detect it: a Manifold assurance defect, repaired where it lived. It does
+not claim to solve the broader realization-to-absence problem, which is below the boundary and is
+P1-31.
+
 **WHAT THIS ROW DOES NOT CLAIM.** P1-18 closes as a Core declaration-and-parity defect. It does
 **not** declare the stale precomputed demo endpoint fixed, and nothing in this repair touched
 `apps/demo-endpoint-vercel/`. That endpoint still serves the old NULL `region_label` outputs, and it
@@ -674,6 +680,10 @@ questions and are held for the Finding 2 review.
 
 ### P1-31 · Realization can manufacture NULL from present source evidence, and the absence machinery cannot tell it apart · **HIGH** · **OPEN — recommendation held, no repair authorized** · VX
 
+**BELOW THE MANIFOLD-ASSURANCE BOUNDARY** (ruled Huayin, 2026-09-02 —
+`manifold_assurance_boundary_v0_1.md`): the Manifold has standing and realization fails to honor it.
+Distinct from P1-18, which is the question of whether the declaration was right at all.
+
 Opened 2026-09-02, split out of P1-18 by ruling. **P1-18 is repairable without this** — it was a
 lost declaration plus a parity guard that measured names — so this row carries the general finding
 only, and no repair is authorized.
@@ -789,9 +799,12 @@ universe the engine surfaced). Current Frame-QL rules that out at the language l
 but `disclosure_wire.py:204` still emits `{"token": "on_universe('U')", "apply": {"universe": U}}`
 alternatives, whose docstring says a caller applies them *"via the `query` tool's `universe` arg"* —
 an argument neither `tools.query` nor the MCP `query` tool has. `agent/mcp_client.py:52` still takes
-and forwards `universe=`. **What a caller is supposed to DO with a machine-applicable universe pin
-today is a canonical Frame-QL question and is referred, not guessed** (per the standing instruction:
-do not guess the replacement for `universe=` if that requires a canonical ruling).
+and forwards `universe=`. **This is already rowed: `OF-4` (opened 2026-07-16, CP-1 §2c) —
+"Query-side `universe` arg / ON-UNIVERSE apply removal", kept dormant because no §2c reason emits a
+universe alternative any more, with the recommended disposition (a): remove the arg and the wire
+apply, and have the agent's clarify-pick reformulate the query rather than apply a universe.** So the
+canonical question is not new and is not reopened here; P1-32 inherits it as a dependency and guesses
+nothing.
 
 **RECONNAISSANCE, 2026-09-02 (ordered by Huayin before any implementation).**
 
