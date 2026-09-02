@@ -79,7 +79,7 @@ reader should know before using it:
 
 ## P1 — Correctness, fail-closed, disclosure, non-interference
 
-### P1-01 · Universe confinement violated on the witness/sketch path · **CRITICAL** · VX
+### P1-01 · Universe confinement violated on the witness/sketch path · **CRITICAL** · **CLOSED 2026-08-30** — adjudicated 2026-09-01 · VX
 
 `_build_base_sketches` (`packages/columna-core/src/columna_core/engine.py:1000-1010`) calls
 `deliver_base_rows(meas.home_table, [base_phys], meas.distinct_col, where)` and returns. It
@@ -100,6 +100,25 @@ one shared defect, not a materialization bug.
 
 Violates topology record §9 and standing rule *"Materialized state must be confined to the
 governed universe."*
+
+**ADJUDICATED CLOSED, 2026-09-01.** Established by execution, not inferred from subsequent work.
+
+- **Closed by `7f4194c`** (PR #246, *"Topology ruling, consolidated ledger, and two wrong-number
+  fixes"*, 2026-08-30) — the repair adds `_predicate_levels`, augments the delivery grain, and calls
+  `_confine` on the RAW rows before `hll_count`, with the reason stated in the docstring: *"an HLL
+  sketch cannot be filtered after the fact: an out-of-universe distinct value that reaches the
+  carrier is in it permanently."*
+- **Shipped in the published artifact.** Verified against the `columna-core==0.18.1` sdist downloaded
+  from PyPI (not the working tree): `_build_base_sketches` in the artifact contains the confinement.
+- **Reproduced against the published artifact.** The row's own scenario, run on 0.18.1:
+  eager path `buyers s1 = 1`, lazy path `buyers s1 = 1`, `revenue s1 = 70.0`. The defect signature
+  (`buyers s1 = 3`, `revenue s1 = 100.0`) does not appear on either path.
+- **The regression evidence has teeth.** `tests/test_witness_non_interference.py` (194 lines, added
+  by the same PR) covers the eager path, the lazy path, and sketch/monoid agreement, and carries
+  `test_the_carve_is_observable_at_all` — a fixture guard whose docstring names the failure mode it
+  exists to prevent: *"If confined and unconfined agreed, every test below would pass vacuously —
+  which is exactly how a confinement defect survives a green suite."* **Mutation-checked**: disabling
+  the single `_confine` call fails 5 of 10 tests, including both paths.
 
 ### P1-02 · `data_identity() -> None` is fail-OPEN on the witness store · **CRITICAL** · VX
 
@@ -499,6 +518,65 @@ asserts the CURRENT state; if it starts failing, the runtime grew a support repr
 row can be struck.
 
 ---
+
+### P1-18 · An undeclared `TYPE` silently casts a categorical measure to `DOUBLE` and serves `NULL` · **HIGH** · **OPEN — no repair authorized** · VX
+
+Opened 2026-09-01, surfaced by the Finding 2 reconnaissance. **Rowed separately and deliberately:
+this is a shipped correctness defect, not a research observation, and it must not be repaired inside
+a design document.** (Numbering: P1-14 … P1-17 are reserved by the open PR #258.)
+
+Four shipped fixtures declare:
+
+```
+# a CATEGORICAL measure — only count/distinct/mode are well-typed over it (never sum/median)
+MEASURE region_label ON transactions FROM transactions AS mode(customer_region)
+```
+
+with **no `TYPE` clause**. `parser.py:489-491` defaults `logical_type` to `"Float64"` — so a comment
+declaring the measure categorical sits one line above a declaration that types it numeric.
+
+`DuckDBConnector.realize()` then *honours* the declaration: `_phys_class("VARCHAR") == "string"`
+disagrees with `_logical_class("Float64") == "numeric"`, so it interposes a `TRY_CAST`, and a failed
+cast is **a coverage fact rather than an error** by design (`demos/types_demo.py:41-43`). Verified by
+execution against DuckDB:
+
+```
+physical_type(customer_region) = VARCHAR
+realize under declared Float64 -> TRY_CAST(customer_region AS DOUBLE)   SELECT -> [(None,)]
+realize under declared String  -> customer_region                       SELECT -> [('North',)]
+```
+
+**`check()` does not catch it** because `mode` is registered `accepts=ANY` (`operators.py:130`), so
+the signature check passes against `Float64`. Nothing else compares the declaration to the physical
+type.
+
+**The code-built twin is correct**, which makes the drift legible rather than ambiguous:
+`demos/build_benchmark.py:101-103` declares `logical_type="String"` for the same measure.
+
+**Affected fixtures** — all four carry the identical line:
+
+| file:line |
+|---|
+| `packages/columna-server/src/columna_server/demo/benchmark/manifold.cml:63` |
+| `packages/columna-server/tests/fixtures/manifolds/benchmark/manifold.cml:60` |
+| `packages/columna-core/tests/fixtures/benchmark.cml:63` |
+| `packages/columna-core/demos/benchmark.cml:63` |
+
+`region_label` is the declared **WP-0 parity canary** (`columna-server/tests/test_mcp_server.py:26`)
+and appears in the demo endpoint measure index (`apps/demo-endpoint-vercel/scripts/generate.py:35`).
+
+**Why this is a defect and not only a fixture typo.** The connector executed a wrong declaration
+faithfully and silently. `types.py:9-11` claims the connector *"lifts physical→logical at publish"* —
+**no such function exists**, and the only occurrence of that phrase in the tree is the claim itself.
+The logical type is an unchecked author assertion, and the one place that could compare it against
+reality (`realize()`) instead *enforces* it. The class of defect is therefore: **a declaration that
+disagrees with its source yields a well-formed document, a clean `check()`, and a `NULL` column.**
+
+**Scope.** The `region_label` declaration is the instance. Whether the general repair is (a) declare
+`TYPE String` on the four fixtures, (b) refuse a class-disagreeing cast at publish rather than
+enforcing it at delivery, (c) implement the lift the docstring already claims, or (d) some
+combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
+questions and are held for the Finding 2 review.
 
 ## P2 — Authority-carrier and ontology contradictions
 
