@@ -538,7 +538,72 @@ row can be struck.
 
 ---
 
-### P1-18 · An undeclared `TYPE` silently casts a categorical measure to `DOUBLE` and serves `NULL` · **HIGH** · **OPEN — no repair authorized** · VX
+### P1-18 · An undeclared `TYPE` silently casts a categorical measure to `DOUBLE` and serves `NULL` · **HIGH** · **CLOSED 2026-09-02** (A, B, D; C blocked — see below) · VX
+
+**CLOSED against the demonstrated failure mechanism**, which the commit history showed to be smaller
+than the row first suggested. WP-0 (`19535ea`) already carried the correct declaration —
+`build_benchmark.py:102`, `logical_type="String"`. Eight hours later `f1affb1`, subject *"reconcile
+parity in the .cml's favor (region_label)"*, added the measure to `.cml` **without a `TYPE` clause**
+and, in the same commit, added the parity test meant to stop the two definitions re-drifting. That
+test compared measure NAME SETS. It reported parity for fifty-four days.
+
+    A parity check must measure the semantic declarations it claims to keep in parity, not
+    merely object names.  (ruled Huayin, 2026-09-02)
+
+**A — the parity guard now compares the declaration surface.** `_MEASURE_DECL_FIELDS` (universe,
+home_table, pre_expr, logical_type, fill_rule, m_anchor, distinct_col, sketch_precision) plus each
+family member's declared shape (agg, blocked lineages, order_by), plus level bindings and universe
+base-dimensions/basis. Three fields are excluded and each exclusion is a stated rule: `description`
+(prose), `rejects` (blast-walled map artifact), `evidence` (attestation standing). Not deep equality
+— a bounded named list, the treatment the DERIVED surface has had since WP-B.
+
+On first run it caught three drifts, one of them never previously reported:
+
+```
+measure 'orders'.logical_type:       parsed='Float64'  code='Int64'
+measure 'region_label'.logical_type: parsed='Float64'  code='String'
+measure 'visitors'.logical_type:     parsed='Float64'  code='String'
+```
+
+and then, once those were fixed, two more: `universe 'transactions'.basis` and
+`'store_days'.basis` were declared in the `.cml` and absent from the code twin, which never gained
+BASIS when B3 introduced it.
+
+**B — the declarations are restored**, across all four mirrored benchmark fixtures: `region_label`
+and `visitors` to `TYPE String`, `orders` to `TYPE Int64`, reconciling to the governed declaration
+that already existed in `build_benchmark.py`. Not inference from the VARCHAR carrier. `buyers` and
+`unique_visitors` were deliberately NOT touched — they have no code-built twin, so there is no lost
+declaration to restore and changing them would be carrier inference (rowed under P1-31).
+
+Served behaviour, benchmark warehouse:
+
+```
+before   disclose  values [null, null, null, null]  + undeclared_absence MATERIAL
+after    serve     values ['north','south','east','west']  no disclosure
+```
+
+**D — an explicit `TYPE` token is now validated against the governed vocabulary.** `TYPE` was the
+only declaration clause in the parser with no closed-vocabulary check (BASIS has `BASIS_TYPES`, FILL
+has `FILL_RULES`); `types.is_dtype` existed for exactly this and had zero callers. `TYPE Strng` and
+`TYPE VARCHAR` now raise `ParseError` naming the governed vocabulary, including for a measure with an
+empty family, which previously escaped entirely. The absent case is unchanged — 63 of 64 shipped
+declarations rely on the `Float64` default and the omitted-vs-explicit question is held open.
+
+**C — BLOCKED, and not on the artifact.** `apps/demo-endpoint-vercel/_wire/precomputed.json` holds
+12,952 `region_label` rows at `"value": null` and is served verbatim. It cannot be regenerated: the
+generator does not run against the shipped package.
+
+```
+generate.py:56   T.query(store, DEMO_MANIFOLD_ID, frameql, universe=universe)
+shipped 0.12.0   query(store, manifold_id, frameql, version=None)   -> TypeError
+```
+
+Generator and artifact were both last written in `7f4b416` (2026-07-13) and neither has moved since.
+The artifact records `columna_core 0.7.8 / columna_server 0.1.0 / contract_version "1"`; shipped is
+`0.19.0 / 0.12.0 / "4"`, and `index.py:44` serves the recorded contract verbatim. So regenerating is
+an API migration plus a wire-contract 1->4 change on a live public endpoint — a mission, not a step
+of this one. The generator's own docstring claims it is *"drift-guarded by the recorded versions in
+meta"*; nothing reads those versions. **Not repaired here; awaiting a ruling.**
 
 Opened 2026-09-01, surfaced by the Finding 2 reconnaissance. **Rowed separately and deliberately:
 this is a shipped correctness defect, not a research observation, and it must not be repaired inside
@@ -596,6 +661,60 @@ disagrees with its source yields a well-formed document, a clean `check()`, and 
 enforcing it at delivery, (c) implement the lift the docstring already claims, or (d) some
 combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
 questions and are held for the Finding 2 review.
+
+### P1-31 · Realization can manufacture NULL from present source evidence, and the absence machinery cannot tell it apart · **HIGH** · **OPEN — recommendation held, no repair authorized** · VX
+
+Opened 2026-09-02, split out of P1-18 by ruling. **P1-18 is repairable without this** — it was a
+lost declaration plus a parity guard that measured names — so this row carries the general finding
+only, and no repair is authorized.
+
+    A realization-time conversion can manufacture NULL from present source evidence, after
+    which the ordinary absence machinery cannot tell that NULL from source absence.
+
+`DuckDBConnector.realize()` (`connector.py:244-257`) interposes `TRY_CAST` when
+`_phys_class(physical) != _logical_class(declared)`. A failed cast yields NULL, and downstream
+nothing distinguishes that NULL from a cell that was never recorded. Measured under P1-18's
+declaration, the four `region_label` cells were served as `undeclared_absence`, **material**, "4
+absent cell(s) with no declared fill rule" — a declaration error wearing the vocabulary reserved for
+the data being absent. All four values were present in the source.
+
+**THE CONTROL CASE, PRESERVED — this is why the obvious repair is wrong.** The mechanism is not a
+defect. `demos/types_demo.py:33-43` exists to demonstrate its legitimate use, and
+`demos/build_benchmark.py:90-92` ships one:
+
+> pre_expr is the RAW column 'level' (VARCHAR in the source); logical_type Float64 is the promise
+> the CONNECTOR honors with a TRY_CAST at delivery — the author writes no cast.
+
+Executed side by side, the two cases are indistinguishable by class and separable only by data:
+
+```
+dirty.v          '10.5','20','oops'   declared Float64   present=3/3  cast_ok=2/3   coverage fact
+cat.region_label 'North','South',...  declared Float64   present=3/3  cast_ok=0/3   every row destroyed
+```
+
+So a repair that refuses class-disagreeing casts at publish would break `level`/`stock`, a
+deliberate working declaration in four shipped fixtures. **The trigger cannot be the class
+mismatch.**
+
+**THREE MORE INSTANCES ARE LATENT AND INERT BY ACCIDENT.** `visitors` (benchmark), `buyers`
+(cascadia), `unique_visitors` (retail) are all `distinct(customer_id)` over VARCHAR under the
+`Float64` default. They do not fail today only because the sketch path passes `meas.distinct_col`
+raw to `deliver_base_rows` (`engine.py:1129`) and never calls `realize()`. Nothing declares that
+bypass as a protection; it is a routing detail. (`visitors` had a governed `String` declaration in
+the code twin and was restored under P1-18; `buyers` and `unique_visitors` have no code twin, so
+restoring them would be inference from the carrier and was NOT done.)
+
+**Unsettled, and why the recommendation is held** (ruled Huayin, 2026-09-02): total versus partial
+conversion failure; legitimate numeric-as-text declarations; whether a failure is contradiction,
+realization standing, or support/coverage; interaction with P1-12; and what evidence may refute a
+realization without letting current data redefine logical meaning.
+
+**Also held, no ruling implied:** within-class exactness (a `DOUBLE` carrier under a declared
+`Int64` serves `10.5` — `realize()` emits no cast because both classes read "numeric"); the
+semantics of omitted `TYPE` versus explicit `TYPE Float64`; and inference of logical type from
+physical type.
+
+---
 
 ### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **CLOSED 2026-09-02** — merged in #265 · VX
 

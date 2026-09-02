@@ -42,9 +42,15 @@ def load():
 
 def build_manifold():
     universes = {
-        "transactions": Universe("transactions", frozenset({"customer","store","product","day"})),
+        # BASIS mirrors benchmark.cml:9-10. It was absent here — the `.cml` gained BASIS with B3
+        # (capture §7, columna#143) and this code-built twin never did, so the two readings of one
+        # manifold disagreed about a governed declaration. Surfaced 2026-09-02 by the P1-18 repair of
+        # the parity guard, which until then compared names and could not see it.
+        "transactions": Universe("transactions", frozenset({"customer","store","product","day"}),
+                                 basis="events"),
         "store_days":   Universe("store_days", frozenset({"store","day"}),
-                                 predicate=parse_predicate("day >= stores.opened_date")),
+                                 predicate=parse_predicate("day >= stores.opened_date"),
+                                 basis="spine"),
     }
     levels = {
         "customer": DimensionLevel("customer","customer_id",is_base=True),

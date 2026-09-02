@@ -42,8 +42,8 @@ RELATE product <-> category VIA product_categories NOTE "a product belongs to up
 # Measures.  Inline AS for single-member families; VALUE + FAMILY for multi.
 # ============================================================================
 MEASURE revenue  ON transactions FROM transactions AS sum(amount)
-MEASURE orders   ON transactions FROM transactions AS count(*)
-MEASURE visitors ON transactions FROM transactions AS distinct(customer_id)
+MEASURE orders   ON transactions FROM transactions TYPE Int64 AS count(*)
+MEASURE visitors ON transactions FROM transactions TYPE String AS distinct(customer_id)
 
 # semi-additive stock.  sum: blocked over calendar (totalling stock across time is
 # non-reconciling).  last: an ORDERED monoid over day (carry day as witness) — the
@@ -60,7 +60,7 @@ MEASURE level ON store_days FROM eom_inventory VALUE level
 MEASURE med_amount ON transactions FROM transactions AS median(amount)
 
 # a CATEGORICAL measure — only count/distinct/mode are well-typed over it (never sum/median)
-MEASURE region_label ON transactions FROM transactions AS mode(customer_region)
+MEASURE region_label ON transactions FROM transactions TYPE String AS mode(customer_region)
 
 # ============================================================================
 # Derived columns — post-aggregation over measures.
