@@ -385,7 +385,22 @@ def _disposition(srvs, harness, stmt_text, execute):
     try:
         fr = srv.planner.plan_statement(st)
     except (EnvelopeSyntaxError, FrameQLSyntaxError, Refusal) as e:
-        return "plan", "syntax-error", str(e)[:90]             # a GOVERNED refusal to proceed
+        # THE QUERY-ERROR CHANNEL, REACHING THE CALLER BY RAISE RATHER THAN BY FRAME (classification
+        # ruled Huayin, 2026-09-02: missing required syntax is Invalid / query error, not a Clarify
+        # and not a Refuse). A statement that PARSES and is then rejected at planning as not a valid
+        # Frame-QL request is §7.3's language-invalid case, so the Manual must be able to document it
+        # — before this it was reported as `syntax-error`, an outcome no annotation could name, and
+        # §7.4's three syntax entries would have had to ship as unchecked prose.
+        #
+        # THE GUARD IS NOT WEAKENED. An UNDOCUMENTED shipped example reaching here still fails: it is
+        # not a positive outcome, so the `want is None` branch demands the Manual either document the
+        # outcome or mark the example roadmap. Only an example that explicitly claims `-- error` now
+        # passes, and it must match the reason where one is carried.
+        #
+        # Parse-stage failures keep the `syntax-error` outcome above: those are what
+        # ```frameql-illformed asserts, and conflating "does not parse" with "parses and is invalid"
+        # would let a block marked ill-formed pass on the wrong evidence.
+        return "plan", "error", [getattr(e, "reason", None)] if getattr(e, "reason", None) else str(e)[:90]
     except Exception as e:
         # AN UNGOVERNED SUBSTRATE ESCAPE (P1-26). A raw CPython `SyntaxError` — or any exception the
         # language does not own — reaching the caller IS the defect, whatever the Manual says about

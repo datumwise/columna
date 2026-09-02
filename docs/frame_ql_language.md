@@ -1379,7 +1379,24 @@ is not yours to have, while these two tell you to fix your request, or to expect
 succeed on a build that can execute it. Collapsing them would let a build limitation read as an
 analytical narrowing.
 
-Both arrive on the same channel, `outcome = "error"`:
+**Missing required syntax is the commonest way in.** A query with no `AT` clause, a series with no
+derivable name and no `AS`, two series resolving to one name — none of these is a question the
+framework can weigh, so none of them earns an analytical verdict:
+
+```frameql-illformed
+FROM finance_manifold SELECT sum(revenue @ {transaction})
+```
+
+```
+FROM finance_manifold SELECT (revenue @ {customer,day}) - (cost @ {customer,day}) AT {customer, day}   -- error
+FROM finance_manifold SELECT sum(revenue @ {transaction}) AS x, sum(cost @ {transaction}) AS x AT {customer}  -- error
+```
+
+The first does not parse at all. The second and third parse and are then rejected as invalid
+requests: the language cannot name the series, and cannot tell two series apart. Both are language
+errors, not refusals — nothing was adjudicated.
+
+Both jurisdictions arrive on the same channel, `outcome = "error"`:
 
 ```
 FROM finance_manifold SELECT level.mode AS m AT {store}                  -- error: unknown
@@ -1400,27 +1417,34 @@ that needs the distinction should not infer it from the reason spelling alone.
 
 ### 7.4 The withholding outcomes, enumerated
 
-A query yields no result in exactly these cases:
+A query yields no result in exactly these cases. Which one it yields is settled by counting, in this
+order:
 
-**Clarifications — the query cannot be executed as posed:**
+| | |
+|---|---|
+| missing required syntax | **Invalid** — the query-error channel (§7.3) |
+| valid syntax, zero distinct lawful readings | **Refuse** |
+| valid syntax, one distinct lawful reading | **proceed** (§2.3) |
+| valid syntax, several distinct lawful readings | **Clarify** |
 
-*Clarify is reserved for one condition: **more than one distinct lawful analytical reading**. Four
-entries the First Edition listed here do not meet it and have moved to §7.3's error channel — an
-unregistered operator, a family member the column does not declare, a type the operator's signature
-does not accept, and a cross-universe expression. None of them offers the reader a choice between
-readings, which is the only thing a clarification is for.*
+Read the first row first. A request that is not a valid Frame-QL request never reaches the reading
+count, so it is neither refused nor clarified — there was no admissible question to adjudicate.
 
-- **Missing output anchor.** No `AT` clause. What to clarify: the output anchor.
-- **Missing required alias.** A series with no defensible default name (composite reduction, map expression, bracket filter, conditional) and no `AS`. What to clarify: the name.
-- **Name collision.** Two series whose default or declared names collide, or a series colliding with an anchor dimension's name. What to clarify: a disambiguating alias.
-- **Anchor incompatibility.** Operands of a map that do not resolve to a common input anchor, with no expressed path to one. What to clarify: the explicit aggregation or broadcast that brings them together, or a restructuring.
+*The First Edition's list did not follow this order, and ten of its entries sat under the wrong
+outcome. Seven moved to §7.3's error channel: a missing `AT` clause, a missing required alias, a name
+collision, an unregistered operator, a family member the column does not declare, a type the
+operator's signature does not accept, and a cross-universe expression. Three moved to the refusals
+below: anchor incompatibility, an unreachable `WHERE` dimension, and an ungoverned order. In every one of
+those cases the shipped planner already did the right thing; only the list was wrong.*
+
+**Clarifications — several distinct lawful readings, and the framework may not pick one:**
+
 - **Mule without explicit input anchor** (shipped reason: **`input_anchor_ambiguous`**, one reason per contested dimension — including the multi-input case). A reduction whose answer depends on an input grain that has not been named. What to clarify: the input pin (Chapter 2.3).
 - **Redundant pin** (shipped reason: **`redundant_pin`**). A composite input anchor (§2.3) pinning two cross-comparable levels — one functionally determines the other — so the pair fixes one axis, not two (Law 2). What to clarify: which of the two admissible pins.
 - **Ambiguous path.** A column whose root reaches the output anchor by more than one hierarchy path (sibling hierarchies), unnamed. What to clarify: which family is climbed.
 - **Attribute keyed at several levels** (shipped reason: **`ambiguous_grain`**). An attribute table keyed at more than one level, so the engine cannot infer which level the attribute is a property of — and where a delivery grain is available, it pins none of the candidates uniquely. The engine reports the fact and the candidate frames; it does not choose. What to clarify: the attribute's level, which the message enumerates (`key at '<level>'` per candidate).
-- **Order missing.** An order-dependent operation (scan, ordered reducer) whose order is neither derivable from the anchor nor specified. What to clarify: the order.
+- **Several lawful orders** (shipped reason: **`order_axis_ambiguous`**). An order-dependent operation whose anchor carries more than one governed order and no `by =` selecting one. What to clarify: which order. (Where the axis carries *no* governed order the count is zero, and it refuses — see `order_not_governed` below. The First Edition's single "order missing" entry ran the two together.)
 - **Non-traversable edge (fan-out)** (shipped reason: **`non_functional_transport`**). An aggregate-across that rides a non-functional (M:N) relationship without a declared resolution (Chapter 5.6). What to clarify: a membership filter, a primary designation, or `WITH allocation`.
-- **Unreachable predicate dimension** (shipped reason: **`filter_unreachable`**). A `WHERE` dimension not reachable from some series' input anchor (Chapter 4.1).
 
 **Refusals — the governed law does not grant the operation, the query executes against nothing, a pin is incoherent, or a rule withholds it:**
 
@@ -1431,6 +1455,18 @@ readings, which is the only thing a clarification is for.*
 - **Spent distinct anchor at a face** (shipped reason: **`anchor_spent`**). The **G5** anchor law (Chapter 5.6) as the engine emits it: a distinct-class measure — a count-distinct or sketch reducer — refuses at every face, because its output anchor is spent at the frontier grain and per-member counts cannot be summed, weighted, or routed. The message speaks the declaration dialect, and names the two lawful readings: declare a weighted composite as a value measure, or ask the crossed-population count.
 - **Refuted transport edge** (shipped reason: **`contradicted_edge`**). Transport along an edge whose declared functional dependence is **refuted on the attested data** — a key with more than one parent — so the reduction across it is withheld: serving never outruns the verdicts. Distinct from a *contradicted precondition* served with a disclosure (7.5): there the planner routes around the contradiction, here there is no route that avoids the refuted edge. Named alternatives: fix the data and re-attest, amend the hierarchy, or address at a grain that does not cross this edge.
 - **No data / gap** (shipped reason: **`incomplete_data`** / **`data_gap`**). The rows are not there: an empty realized anchor, disjoint filtered restrictions, a requested combination the bound data cannot support — or, in a spine/product universe, a gap in the expected grid (per the basis law, Chapter 1.5). The figure covers what is present; the gap is disclosed, never a silent zero.
+- **Anchor incompatibility** (shipped reason: **`co_anchor_required`**). Operands of a map that do not resolve to a common input anchor, with no expressed path to one. A map is defined only over co-anchored operands, so at a mismatch there is no lawful reading — not a menu of them. What to fix: the explicit reduction or broadcast that brings the operands to one grain.
+- **Unreachable predicate dimension** (shipped reason: **`filter_unreachable`**). A `WHERE` dimension not reachable from some series' input anchor (Chapter 4.1). The filter has no lawful binding at that anchor, in any spelling.
+- **Ungoverned order** (shipped reason: **`order_not_governed`**). An order-dependent operation whose axis carries no governed order at all — the axis is not a coordinate of the frame, or it is one and confers no order. Zero lawful readings, so a Refuse; the several-orders case clarifies instead (above).
+
+The three that moved here from the clarify list are all zero-reading cases, and they refuse:
+
+```
+FROM finance_manifold SELECT (revenue @ {day}) - (cost @ {customer}) AS d AT {customer, day}    -- refuse: co_anchor_required
+FROM finance_manifold SELECT sum(revenue @ {transaction}) AS s AT {customer} WHERE store = 'S1' -- refuse: filter_unreachable
+FROM finance_manifold SELECT cumsum(revenue @ {customer}) AS r AT {customer}                    -- refuse: order_not_governed
+```
+
 - **Quarantined column.** A cross-column combination touching a column whose incompleteness the author has not declared usable (Chapter 5.7) — the author's coverage governance.
 - **Author hard stop.** A `(column, reducer)` the Manifold author has declared `WITHHOLD` (see 7.6): a governance rule, reported as the author's rule with the declared rationale and the alternative families.
 - **Authorization.** The caller is not entitled to the data under the Manifold's access rules. (The access-rule layer is specified separately; the outcome category is reserved here.)
