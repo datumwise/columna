@@ -1299,6 +1299,21 @@ class Planner:
         kind, payload, disc, _dtype = self._node(tree.body, anchor, where, trace)
         return payload, disc
 
+    def _resolve_member(self, meas, member):
+        """A family member name, honouring canonical SURFACE SPELLINGS (2026-09-01).
+
+        `approx_distinct` is the canonical Frame-QL spelling of the approximate-distinct
+        capability; current Core's capability identity is `distinct`. One capability, two roles — so
+        `visitors.approx_distinct` must resolve to the same member as `visitors.distinct`, and both
+        must keep working. The declared correspondence is `operators.ALIASES`, reached here through
+        `PlannerView.canonical_op`; this method never guesses a mapping.
+
+        THE DECLARED NAME WINS. The raw member is checked against the family FIRST by the caller, so
+        a manifold that declares a member under the surface spelling keeps it; canonicalisation is
+        only consulted when the literal name is not a member. That is what makes this additive —
+        no existing declaration changes meaning."""
+        return self.m.canonical_op(member)
+
     def _measure_ref(self, node):
         """Name('revenue') -> (revenue, default-member). Attribute(level, 'sum') -> (level, sum)."""
         if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
@@ -1307,11 +1322,19 @@ class Planner:
             return node.id, None
         return None, None
 
-    # inline reduction OF a derivation (capture v0.8; WP-B.1). `avg`/`mean`/`sum`/`min`/`max`/`count`
-    # collapse a finer-resolved series to the frame anchor. Distinct from a SCAN (order-preserving) —
-    # and from the DECLARED AT-metric (this is the same reading expressed inline, no declaration).
-    _INLINE_REDUCERS = {"avg": "mean", "mean": "mean", "sum": "sum",
-                        "min": "min", "max": "max", "count": "count"}
+    # inline reduction OF a derivation (capture v0.8; WP-B.1): the reducers that collapse a
+    # finer-resolved series to the frame anchor. Distinct from a SCAN (order-preserving) — and from
+    # the DECLARED AT-metric (this is the same reading expressed inline, no declaration).
+    #
+    # ONE ALIAS AUTHORITY (2026-09-01). This was a hand-maintained dict that independently defined
+    # `avg` -> `mean` — a second surface-name law, agreeing with `operators.ALIASES` only by hand.
+    # Two authorities for one fact is how `approx_distinct` could be a declared alias and still not
+    # resolve. It is now DERIVED: the alias table says what a spelling means, `SERIES_REDUCERS` says
+    # which capabilities may collapse a series, and both already ride on `PlannerView`.
+    def _inline_reducer(self, name):
+        """The canonical inline reducer for a surface spelling, or None if it is not one."""
+        canon = self.m.canonical_op(name)
+        return canon if canon in self.m.series_reducers else None
 
     @staticmethod
     def _level_name(node):
@@ -1332,7 +1355,7 @@ class Planner:
         clarify — capture v0.8)."""
         if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
             return None
-        r = self._INLINE_REDUCERS.get(node.func.id)
+        r = self._inline_reducer(node.func.id)
         if r is None:
             return None
         if len(node.args) != 1 or node.keywords:
@@ -2291,6 +2314,8 @@ class Planner:
                 if len(meas.family) != 1:
                     raise self._family_member_clarify(meas_name, meas)
                 member = next(iter(meas.family))
+            elif self._resolve_member(meas, member) in meas.family:
+                member = self._resolve_member(meas, member)
             elif member not in meas.family:
                 if member not in self.m.operators:
                     raise Refusal("unknown",
@@ -2423,6 +2448,8 @@ class Planner:
                 if len(meas.family) != 1:
                     raise self._family_member_clarify(meas_name, meas)
                 member = next(iter(meas.family))
+            elif self._resolve_member(meas, member) in meas.family:
+                member = self._resolve_member(meas, member)
             elif member not in meas.family:
                 # operator-not-supported is a VOCABULARY error, caught here, not a data error:
                 # distinguish "no such operator in the language" from "this measure lacks it".
