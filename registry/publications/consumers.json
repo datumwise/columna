@@ -372,7 +372,7 @@
     "note": "Same shape as /learn: a FROZEN site edition citing its own deposited record, plus the dated 2026-08-03 ToD v4.0 note."
   },
   {
-    "path": "docs/frame_ql_manual_v2.md",
+    "path": "docs/frame_ql_language.md",
     "class": "edition-pinned",
     "allowedDois": [
       "10.5281/zenodo.22013410"
@@ -899,5 +899,35 @@
       "10.5281/zenodo.22181382"
     ],
     "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree (md5 37d0c63c6f151eb986752c3d9f7ba1a8, 47987 bytes). Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — they are the author's text, not this repo's assertions, which is what `frozen-deposit` means. The paper cites The Theory of Data (22013410), Analytical Governance (22115819), The Three Worlds of Analytics (22146487) and Do Not Let Your AI Agent Govern Itself (22148861); the last of those is a corollary of this paper's general rule and was published two days ahead of it."
+  },
+  {
+    "path": "services/ask/deposits/w-measure-algebra.r01.md",
+    "class": "frozen-deposit",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21972541",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22219691"
+    ],
+    "note": "The deposited artifact itself, fetched from the record the registry rules current and verified byte-for-byte against the Zenodo md5 before it entered the tree (md5 8a37a9914d9a2c7e8cc14c5eb072bcad, 39237 bytes). Byte-identity with the published record is the whole point: Ask reads the Core set from these files, so an edit here would make the agent quote something datumwise never published. The DOIs below are the paper's own reference list plus its own identifier — the author's text, not this repo's assertions, which is what `frozen-deposit` means. The paper cites The Theory of Data v6.1 (22013410) for the measure-family ontology it reads the fragments under, the Contract Calculus (21752373) for the G0/G1/G2 fragments it reconstructs, and The Two Anchors of a Measure (21888464), Missingness Has a Universe (21783563), Certifiable State Under Information Loss (21972541) and The Statistical Bridge (21979821) as the neighbouring results it bounds itself against."
+  },
+  {
+    "path": "specs/family_law_capability_reusable_state_reconciliation_v0_2.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22219691"
+    ],
+    "note": "A v0.2 reconciliation report reading The Measure Algebra of the Theory of Data v1.0 (22219691) and recording where this repo's implementation agrees with it, differs from it, and owes it. Class `ledger`, the class the other reconciliation reports in specs/ already carry (certainty_v1_1_reconciliation_report_v0_1, website_slice2_content_reconciliation_v0_1): the DOI is this repo asserting WHICH published edition the reconciliation was performed against, which is the fact that would go stale if the edition moved and nothing here changed. Not `derived` — a derived surface reads the registry and never types a DOI — and not `frozen`, because this document is ours and is expected to be revised as the reconciliation is worked off. Enrolled 2026-09-02: both files carried the token from the moment they landed and neither was classified, so the gate had been failing closed since, exactly as it should."
+  },
+  {
+    "path": "specs/measure_algebra_finding_2_typed_values_and_state_v0_2.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22219691"
+    ],
+    "note": "A v0.2 reconciliation report reading The Measure Algebra of the Theory of Data v1.0 (22219691) and recording where this repo's implementation agrees with it, differs from it, and owes it. Class `ledger`, the class the other reconciliation reports in specs/ already carry (certainty_v1_1_reconciliation_report_v0_1, website_slice2_content_reconciliation_v0_1): the DOI is this repo asserting WHICH published edition the reconciliation was performed against, which is the fact that would go stale if the edition moved and nothing here changed. Not `derived` — a derived surface reads the registry and never types a DOI — and not `frozen`, because this document is ours and is expected to be revised as the reconciliation is worked off. Enrolled 2026-09-02: both files carried the token from the moment they landed and neither was classified, so the gate had been failing closed since, exactly as it should."
   }
 ]

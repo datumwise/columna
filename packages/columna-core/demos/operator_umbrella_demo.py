@@ -87,12 +87,19 @@ def main():
     check("pct_change(revenue.sum) is month-over-month growth (first is null)",
           rows[0]["mom"] is None and rows[1]["mom"] is not None)
 
-    # ── (D) order derivation: no temporal axis -> clarification ─────────────
-    print("\n(D) a scan with no orderable axis in the anchor is a clarification (name by=)")
+    # ── (D) order derivation: no governed order axis -> analytical Refuse ───
+    # P1-24 (ruled Huayin, 2026-09-01). This check used to require the refusal to say "by=" — i.e.
+    # to send the caller to the escape hatch. That advice was wrong here and is now withheld: NO
+    # level in this anchor carries governed order, so naming one could not have helped, and the only
+    # reason it appeared to was that `by=` was honoured unvalidated. Naming SELECTS governed order
+    # standing; it does not create it. The remedy is to re-anchor or to certify, and the refusal
+    # says so instead.
+    print("\n(D) a scan with no governed order axis in the anchor is an analytical Refuse")
     res3 = srv.frame("region").column("c", "cumsum(revenue.sum)").run()
     ref = res3.columns[0].refusal
-    check("cumsum(revenue.sum)@region has no temporal axis -> refused (clarify), names by=",
-          ref is not None and "order axis" in ref.detail and "by=" in ref.detail,
+    check("cumsum(revenue.sum)@region has no governed order axis -> Refuse, and does NOT advise by=",
+          ref is not None and ref.reason == "order_not_governed" and "order axis" in ref.detail
+          and "by=" not in ref.detail,
           str(ref)[:96] if ref else "")
 
     # ── (E) a scan over a blocked reduction INHERITS its refusal ────────────

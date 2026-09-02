@@ -33,6 +33,7 @@ equality theorem that lets the engine skip it).
 from __future__ import annotations
 
 import ast
+from .planner import _parse_expr
 import re
 from dataclasses import dataclass, field, replace
 from typing import Optional
@@ -127,7 +128,7 @@ def _homogeneous_linear(node: ast.AST, m) -> bool:
     if isinstance(node, ast.Name):
         d = m.derived.get(node.id)
         if d is not None:                 # a derived atom: recurse into its own formula (soundness)
-            return _homogeneous_linear(ast.parse(d.formula, mode="eval"), m)
+            return _homogeneous_linear(_parse_expr(d.formula, mode="eval", origin="declared formula"), m)
         return node.id in m.measures      # a measure atom is a degree-1 term
     if isinstance(node, ast.Attribute):   # dotted family member ref (e.g. level.last) — a data atom
         return isinstance(node.value, ast.Name) and node.value.id in m.measures
@@ -153,7 +154,7 @@ def _prove_math(m, derived, reducer: str) -> Optional[License]:
     op = REGISTRY.get(reducer)
     if op is None or not (op.linear and op.is_monoid):
         return None
-    if not _homogeneous_linear(ast.parse(derived.formula, mode="eval"), m):
+    if not _homogeneous_linear(_parse_expr(derived.formula, mode="eval", origin="declared formula"), m):
         return None
     return License(
         verdict=VERIFIED,
@@ -272,7 +273,7 @@ def _watermark(server, m, derived) -> str:
     """A stable attestation id from the connector versions of the home tables the formula touches —
     so CORROBORATED re-adjudicates when the data is re-attested (a version change ⇒ a new watermark)."""
     con = server.engine.con
-    tables = sorted({m.measures[a].home_table for a in set(_atom_refs(ast.parse(derived.formula, mode="eval")))
+    tables = sorted({m.measures[a].home_table for a in set(_atom_refs(_parse_expr(derived.formula, mode="eval", origin="declared formula")))
                      if a in m.measures})
     try:
         parts = [f"{t}@{con.data_identity(t)}" for t in tables]

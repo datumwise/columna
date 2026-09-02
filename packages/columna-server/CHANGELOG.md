@@ -3,6 +3,31 @@
 All notable changes to **columna-server** are recorded here
 ([Keep a Changelog](https://keepachangelog.com/)).
 
+## 0.12.0 — the statement's `FROM` is addressed, not overridden
+
+**Wire contract stays `"4"`.** No field is added, removed or moved. This is a minor because a public
+tool's BEHAVIOUR changed: a request that names a Manifold is now served from the Manifold it names.
+
+Version-only release, cutting a bump the payload gate had been owed since 0.11.1: the code below
+landed under the released 0.11.1 version, so this tree would have shipped changed content under a
+version already on PyPI. The gate refused it; that refusal is what this entry answers.
+
+### Changed
+
+**`FROM M` in a statement addresses `M` (P1-19; Ruling v0.2 §9-§10).** No consumer of
+`stmt.from_manifold` existed anywhere in the tree — the parser preserved it and `desugar` carried it,
+but every statement-taking tool resolved from the tool ARGUMENT alone. So
+`FROM product_manifold SELECT revenue AT {customer}` was served from whichever Manifold the surface
+happened to be bound to, and so was `FROM no_such_manifold`. §10 is explicit: a surface-bound
+Manifold may not silently replace an explicitly named different one.
+
+The two failure channels stay apart, which is the care this change needed. An unresolvable
+Manifold in the tool ARGUMENT is the caller addressing the tool wrongly — structural,
+pre-adjudication, still raised through the MCP-error channel before anything is parsed. An
+unresolvable Manifold named INSIDE the request is a defect of the request, so it belongs on the wire
+(§10, "Explicit unknown Manifold ... Invalid"), riding the transitional `error` mood under its own
+reason string.
+
 ## 0.11.1 — the front door says what ships
 
 No behaviour change. The packaged README — the page a stranger reads on PyPI — now types the

@@ -48,7 +48,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 # ── Rule 1 · documents a reader meets in the present tense ───────────────────────────────────────
 CURRENT = [
-    "docs/frame_ql_manual_v2.md",                    # live at /docs/frameql
+    "docs/frame_ql_language.md",                    # live at /docs/frameql
     "docs/columna_reference_manual_5e.md",           # live at /docs/reference
     "docs/columna_framework_manual_6g.md",           # live at /docs/framework
     "docs/README.md",                                # the index that routes a reader to all of them

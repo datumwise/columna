@@ -113,15 +113,42 @@ async def test_generated_blocked_reduction_refuses_on_the_wire(mcp_session):
     # inline reduction over a lawful sibling — and it still refuses `blocked_reduction`, because
     # generating a family does not create a permission the declaration withholds. This is the
     # laundering route the old inform-and-serve reading left open.
+    #
+    # ANCHOR SWAPPED 2026-08-31 (P1-13). This asked at `{cal.month}`, where the SUPERSEDED enumeration
+    # found `day` as the only candidate and refused. It was never the only one: `sum(level.last@store)`
+    # reduces the stock across the STORE axis at a month, crosses no calendar edge, and SERVES — so
+    # `{cal.month}` is a clarify, and the old expectation was pinning the defect rather than the law.
+    # `{cal.month, category}` keeps this test's actual subject — a GENERATED sum over a stock whose
+    # `sum` is BLOCKED along `calendar`, spelled so it never names `level.sum` — at an anchor where
+    # the exclusion is total. `day` is still excluded for `blocked_reduction`, which is the point.
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark",
-                              frameql="SELECT sum(level.last) AS inv AT {cal.month}")
+                              frameql="SELECT sum(level.last) AS inv AT {cal.month, category}")
     assert w["outcome"] == "refuse"
     col = w["columns"][0]
     assert col["status"] == "refuse" and "values" not in col and col["disclosures"] == []
     nr = col["no_result"]
-    assert (nr["kind"], nr["discriminator"], nr["reason"]) == ("refuse", "unsupported", "blocked_reduction")
-    assert "Generating the family does not create the permission" in nr["detail"]
+    # REASON MOVED 2026-09-02 (Huayin — the `blocked_reduction` split); THE SUBJECT DID NOT.
+    # `blocked_reduction` now names only the condition it describes: a governed BLOCKED lineage
+    # prohibits this reduction, however it is pinned. That does not hold here. `day` is blocked, but
+    # the other seven candidates are excluded for `uncertified_edge` and `out_of_universe` — real
+    # adjudications, not blocked lineages. Naming the whole set `blocked_reduction` asserted ONE
+    # cause for a MIXED set, which is what P1-13 corrected in the detail and left standing in the
+    # reason. `input_anchor_unavailable` finishes that repair. (The DECLARED spelling above, whose
+    # prohibition does hold under every pin, still reports `blocked_reduction` — that is the split.)
+    #
+    # GENERATED-FAMILY LAW §2 IS UNTOUCHED, AND IS STILL PINNED BY THIS TEST. Its claim is that the
+    # refusal does not depend on the SPELLING: `sum(level.last)` never names `level.sum` and is
+    # refused anyway, because generating a family does not create a permission the declaration
+    # withholds. That is the `refuse` above and the `day (blocked_reduction)` verdict below — both
+    # still asserted. What changed is which field carries the blocked-lineage fact, not whether the
+    # reader is told it.
+    assert (nr["kind"], nr["discriminator"]) == ("refuse", "unsupported")
+    assert nr["reason"] == "input_anchor_unavailable"
+    # The detail REPORTS each candidate's verdict rather than asserting one cause (P1-13), so the
+    # generated sum's own exclusion is visible by name instead of being asserted of the whole set.
+    assert "day (blocked_reduction)" in nr["detail"]
+    assert "the pin would earn if it were written out" in nr["detail"]
 
 
 async def test_single_lawful_input_anchor_defaults_and_discloses(mcp_session):
@@ -130,9 +157,14 @@ async def test_single_lawful_input_anchor_defaults_and_discloses(mcp_session):
     # PROCEEDS — there is nothing to choose between, so the engine defaults to the single lawful
     # reading and owes the reader a MATERIAL `input_anchor` caveat naming the default. So the mood
     # is DISCLOSE, not clarify: the number is served, with the assumption attached.
+    #
+    # ANCHOR SWAPPED 2026-08-31 (P1-13): `{cal.month}` had exactly one candidate only because the
+    # enumeration still required a candidate to REACH the anchor. Under WP-GRAIN-1 it has several, so
+    # it clarifies — correctly. `{customer, day, store}` is a genuine |L| == 1 anchor (`product` is
+    # the only level that survives the explicit-pin law), which is what this test needs.
     async with mcp_session() as client:
         w = await client.call("query", manifold_id="benchmark",
-                              frameql="SELECT avg(aov) AS rate AT {cal.month}")
+                              frameql="SELECT avg(aov) AS rate AT {customer, day, store}")
     assert w["outcome"] == "disclose"
     col = w["columns"][0]
     assert col["status"] == "served" and "values" in col and col["values"]
@@ -140,7 +172,7 @@ async def test_single_lawful_input_anchor_defaults_and_discloses(mcp_session):
     pin = [d for d in col["disclosures"] if d["code"] == "input_anchor"]
     assert len(pin) == 1
     assert (pin[0]["materiality"], pin[0]["category"]) == ("material", "unconfirmed_assumption")
-    assert "DEFAULTED to 'day'" in pin[0]["detail"]       # the defaulted anchor is named, not implied
+    assert "DEFAULTED to 'product'" in pin[0]["detail"]   # the defaulted anchor is named, not implied
 
 
 # --- acceptance #6: refuse vs error are distinguishable ------------------------------------
@@ -223,8 +255,11 @@ async def test_wire_contract_schema_and_scoping(mcp_session):
         # the DISCLOSE witness (inform-and-serve) and now refuses, so it becomes the REFUSE witness and
         # the disclose leg moves to the |L| == 1 defaulted input anchor — a served frame carrying a
         # material caveat, which is what this schema test actually needs to exercise.
+        # |L| == 1 ANCHOR SWAPPED 2026-08-31 (P1-13): see
+        # test_single_lawful_input_anchor_defaults_and_discloses — `{cal.month}` stopped being a
+        # one-lawful-reading anchor when the enumeration was brought forward to WP-GRAIN-1.
         disclose = await client.call("query", manifold_id="benchmark",
-                                     frameql="SELECT avg(aov) AS rate AT {cal.month}")
+                                     frameql="SELECT avg(aov) AS rate AT {customer, day, store}")
         refuse = await client.call("query", manifold_id="benchmark", frameql="SELECT level.sum AS inv AT {store}")
         clarify = await client.call("query", manifold_id="benchmark", frameql=_CLARIFY_Q)
         error = await client.call("query", manifold_id="benchmark",

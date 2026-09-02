@@ -122,7 +122,10 @@ def test_explain_outcome_equals_plan_outcome(fixture_server):
 # deriving it twice is how they drift.
 def test_would_be_predicts_the_defaulted_input_anchor_caveat(fixture_server):
     from columna_core.disclosure_wire import wire_frame
-    q = "SELECT avg(aov) AT {cal.month}"
+    # ANCHOR SWAPPED 2026-08-31 (P1-13): `{cal.month}` stopped being a one-lawful-reading anchor when
+    # the enumeration was brought forward to WP-GRAIN-1. `{customer, day, store}` is one, so the
+    # plan/run agreement this test exists to check is exercised on a real |L| = 1 default.
+    q = "SELECT avg(aov) AT {customer, day, store}"
     ex = _explain(fixture_server, q)
     ran = wire_frame(fixture_server.planner.run_statement(parse_statement(q)))
     assert ran["outcome"] == "disclose"                                    # what run actually does

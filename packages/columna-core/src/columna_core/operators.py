@@ -64,8 +64,50 @@ class Operator:
     needs_window: bool = False           # SCAN: requires a `window=` parameter (rolling_*)
     scan_impl: Optional[str] = None      # SCAN mechanics tag the engine dispatches on (None => not in Core)
     in_core: bool = True                 # False => recognized by the planner (contract) but not executed by Core
+    re_entrant: bool = False             # RE-ENTRY CERTIFICATION (ruled Huayin, 2026-09-01) — see below
 
 
+# ── RE-ENTRY CERTIFICATION (`re_entrant`) ────────────────────────────────────────────────────────
+# A capability is certified to preserve analytical denotation when finalized values are lawfully
+# regrouped and re-entered through the same continuation:
+#
+#     rho( (+)_i eta(rho(s_i)) )  ==  rho( (+)_i s_i )
+#
+# — finalizing at an intermediate lawful partition and re-applying the capability denotes the same
+# result as continuing sufficient state directly. This is what lets several lawful input anchors
+# collapse to ONE analytical reading (Frame-QL Manual sec.3.2): six realizations of one meaning are
+# not six meanings, and choosing a representative among them incurs no input-anchor disclosure.
+#
+# IT IS STRICTLY STRONGER THAN MONOIDALITY, AND `is_monoid` MAY NOT STAND IN FOR IT. `sum` and
+# `count` share witness=VALUE and combine=`sum` in the table below and differ ONLY in re-entry:
+# `sum` re-enters a finalized value as itself, `count` re-enters it as one item (the parser's lift,
+# `parser.py`: `if agg == "count": pre_expr = "1"`), so counting displayed counts is not combining
+# count state. `linear` is a different question (the WP-B symbolic gate) and output dtype is a type
+# coincidence. Observed equality of current outputs is not evidence.
+#
+# FAIL CLOSED. The default is False and it means UNCERTIFIED, not "false" — an operator is left
+# uncertified until a governed contract actually justifies it, and the framework keeps Clarifying.
+#
+# `True` MEANS UNCONDITIONALLY CERTIFIED for every lawful use covered by the capability. If type,
+# order, support or anchor conditions would qualify the certification, the case must NOT be flattened
+# into True; it stays uncertified until the declaration can express the condition. That is why this
+# is deliberately sparse:
+#
+#   sum          CERTIFIED. Additive monoid, witness IS the value, finalization and re-entry are both
+#                the identity, and `combine` is the operator's own fold. Over NUMERIC | DURATION,
+#                along lineages the B-anchor has not blocked — and unlawful candidates are removed
+#                before this is consulted, so the certification is not carrying that burden.
+#   count        NOT certified — non-identity lift (see above).
+#   min, max     NOT certified. Algebraically max-of-maxes = max, and that is exactly the reasoning
+#                this declaration exists to refuse: the certification would have to cover empty and
+#                absent intermediate cells, whose denotation is the measure's fill rule Phi — and Phi
+#                is per-measure and may be UNDECLARED. A condition that matters may not be flattened
+#                into True, so these stay uncertified until it can be expressed.
+#   mean, median, mode   NOT certified — holistic; no finite witness closes them.
+#   distinct, hll_*      NOT certified — finalization is a non-identity projection.
+#   last, first          NOT certified — the witness is (value, order_key), not the finalized value.
+#
+# Scans and maps are not reductions and the property does not apply to them.
 def output_dtype(op: "Operator", in_dtype: Optional[str]) -> Optional[str]:
     """The operator's output logical dtype, from its signature."""
     if op.out_rule == "same":
@@ -79,7 +121,7 @@ def output_dtype(op: "Operator", in_dtype: Optional[str]) -> Optional[str]:
 REGISTRY: dict = {
     # ---- REDUCERS (found families; reaggregate by monoid structure) ----------
     "sum":   Operator("sum",   REDUCER, VALUE, True, linear=True, accepts=NUMERIC | {DURATION}, out_rule="same",
-                      deliver_sql=lambda p: f"sum({p})",  combine="sum"),
+                      deliver_sql=lambda p: f"sum({p})",  combine="sum", re_entrant=True),
     # P1-10. This delivered `count(*)` — DISCARDING its operand — so `count` as a family member over a
     # declared VALUE counted ROWS while its siblings (`sum`/`min`/`max`, and SQL generally) count
     # OBSERVATIONS. Two members of one family therefore carried different supports, and
@@ -163,7 +205,23 @@ REGISTRY: dict = {
 # Frame-QL spells the inline average `avg`; the canonical governed operator is `mean`. This is an
 # ALIAS, not a second operator: `avg` and `mean` name the SAME law subject, so a BLOCKED/FERTILE
 # declaration written against `mean` governs both spellings and there is exactly one thing to declare.
-ALIASES: dict = {"avg": "mean"}
+#
+# `approx_distinct` -> `distinct` (ruled Huayin, 2026-09-01). ONE CAPABILITY, TWO ROLES:
+#   Frame-QL surface spelling : approx_distinct   — the honest name. The answer IS approximate: an
+#                               HLL-backed estimate carrying a relative-standard-error disclosure.
+#   Core capability identity  : distinct          — the implementation/legacy name, composed by the
+#                               engine from hll_count -> hll_merge -> hll_estimate.
+# The Manual keeps `approx_distinct` and is NOT renamed to `distinct`: renaming would make an
+# approximate result sound exact to satisfy a registry spelling, which is the wrong direction of
+# repair. Declared here because ALIASES is where "one law subject, several spellings" is already
+# said — so a BLOCKED/FERTILE declaration written against either name governs both.
+#
+# NOT YET A RESOLUTION PATH. `canonical()` is not wired into member/operator lookup (the live
+# call-position table is `Planner._INLINE_REDUCERS`), so writing `visitors.approx_distinct` in a
+# query does not resolve today; the shipped spelling is `visitors.distinct`. This declares the
+# IDENTITY, which is what the ruling asked for; making the canonical surface spelling resolve is a
+# separate change and is reported, not smuggled in here.
+ALIASES: dict = {"avg": "mean", "approx_distinct": "distinct"}
 
 
 def canonical(name: str) -> str:

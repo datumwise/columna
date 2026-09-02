@@ -1591,21 +1591,44 @@ The operator catalog of Chapter 2 is the framework's logical catalog — the uni
 
 Legend: **native** — pushed down to the backend; **framework** — computed above the boundary by the framework (the engine's sketch library for sketch reducers, the planner for presentation-time mules and scans the backend cannot run). The **registered** column is what `get_operator` resolves in columna-core 0.18.0: an operator marked **—** is catalog, not capability, and naming it in a declaration raises rather than returning a number.
 
-| Operator (class) | DuckDB — the one shipped connector | Registered (0.18.0) |
-|---|---|---|
-| `SUM`, `COUNT`, `MIN`, `MAX` | native | `sum` `count` `min` `max` |
-| `PRODUCT`, `BOOL_OR`, `BOOL_AND` | native | — **[ROADMAP]** |
-| `APPROX_DISTINCT` (HLL) | native (HLL), framework merge | as `hll_count` / `hll_merge` / `hll_estimate` — the one sketch family that ships |
-| `APPROX_QUANTILE` (t-digest) | native approximation, framework merge | — **[ROADMAP — no t-digest]** |
-| `APPROX_FREQUENCY` (count-min) | framework sketch library | — **[ROADMAP — no count-min]** |
-| `AVG`, `WEIGHTED_MEAN`, `VARIANCE`, `STDDEV` | presentation-time from fertile sources (framework), fertile parts pushed native | `mean` only; the other three **[ROADMAP]** |
-| `COUNT_DISTINCT`, `MEDIAN`, `MODE` (exact mules) | native at computed grain; never re-aggregated anywhere | `distinct` `median` `mode` |
-| `LAST`, `FIRST` (ordered) | native | `last` `first` |
-| `VALUE_AT_MAX/MIN`, `NTH` | native or framework | — **[ROADMAP]** |
-| Scans (`cumsum`, `rolling_*`, `lag`/`lead`, `rank`, `ewm_mean`) | native (window functions) | `cumsum` `cummax` `cummin` `rolling_sum` `rolling_mean` `lag` `lead` `pct_change`; `rank` and `ewm_mean` **[ROADMAP]** |
-| Maps (arithmetic, comparison, conditional, string, temporal) | native | arithmetic (`+` `-` `*` `/` `neg`); the rest **[ROADMAP]** |
-| Allocation bridges (`equal_split`, `weighted`, `proportional_to`, `custom`) | — | — **[ROADMAP — no allocation operator]** |
-| Sophisticated estimators (model-based, multiple imputation, IPW, selection models) | — | — **[ROADMAP — no estimator]** |
+> **▸ The capability columns are a generated projection (2026-09-01).** This matrix used to carry a
+> hand-maintained `Registered (0.18.0)` column — a second, independent claim about the same
+> governed dispositions the Frame-QL Manual states, kept in step by hand. That is the P0-17 defect
+> class: eight reducer rows were adjudicated [ROADMAP] here, the repair scope was `/docs/reference`
+> only, and the other manual carried the contradiction for months. Canonical standing and
+> realization now project from one authority for both manuals — see the generated block below. The
+> rows that remain here are what this manual uniquely owns: **backend** realization per connector.
+
+| Operator (class) | DuckDB — the one shipped connector |
+|---|---|
+| `SUM`, `COUNT`, `MIN`, `MAX` | native |
+| `PRODUCT`, `BOOL_OR`, `BOOL_AND` | native |
+| `APPROX_DISTINCT` (HLL) | native (HLL), framework merge |
+| `APPROX_QUANTILE` (t-digest) | native approximation, framework merge |
+| `APPROX_FREQUENCY` (count-min) | framework sketch library |
+| `AVG`, `WEIGHTED_MEAN`, `VARIANCE`, `STDDEV` | presentation-time from fertile sources (framework), fertile parts pushed native |
+| `MEDIAN`, `MODE` (exact mules) | native at computed grain; never re-aggregated anywhere |
+| `LAST`, `FIRST` (ordered) | native |
+| `VALUE_AT_MAX/MIN`, `NTH` | native or framework |
+| Scans (`cumsum`, `rolling_*`, `lag`/`lead`, `rank`, `ewm_mean`) | native (window functions) |
+| Maps (arithmetic, comparison, conditional, string, temporal) | native |
+| Allocation bridges (`equal_split`, `weighted`, `proportional_to`, `custom`) | — |
+| Sophisticated estimators (model-based, multiple imputation, IPW, selection models) | — |
+
+> **▸ Correction (2026-09-01).** The row above read `COUNT_DISTINCT, MEDIAN, MODE (exact mules)`
+> with `distinct` in its Registered column — filing the shipped `distinct` under **exact** mules.
+> It is not exact: `distinct` is the approximate, HLL-backed capability (witness a sketch, combine
+> a union), whose answer carries a relative-standard-error caveat. Its canonical Frame-QL spelling
+> is `approx_distinct`. `COUNT_DISTINCT` as an *exact* mule is not a shipped capability and is not
+> in the canonical authority; if it is wanted, it enters by ruling like anything else.
+
+> **▸ Frame-QL capability standing lives in the Frame-QL documents (2026-09-01).** This manual used
+> to carry its own `Registered` column, and briefly carried a generated copy of the capability
+> tables. Both are gone. A pointer is not a second authority; a table is. For what Frame-QL has
+> ruled in see [`frame_ql_language.md`](frame_ql_language.md); for what a conforming Core
+> implementation undertakes see [`core_profile.md`](core_profile.md); for what the shipped build
+> runs see [`frame_ql_build_status.md`](frame_ql_build_status.md). The matrix above stays here
+> because per-connector backend realization is this manual's own subject.
 
 Additional backends are **[ROADMAP]**; each will publish its own column here when a connector for it ships, and not before.
 
