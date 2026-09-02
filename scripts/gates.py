@@ -45,7 +45,14 @@ except ModuleNotFoundError:                                    # pragma: no cove
 
 #: Scripts that ARE gates. The meta-gate fails if a workflow invokes one of these directly instead
 #: of through this runner. Derived from the manifest itself, so it cannot fall out of step with it.
-_SCRIPT_RE = re.compile(r"(?:scripts|docs/tools|services/ask/ask)/[A-Za-z0-9_]+\.py")
+#:
+#: `.mjs` IS IN THE PATTERN BECAUSE IT WAS NOT, AND THAT SILENTLY WEAKENED META-PROPERTY 1. The
+#: stage-1 pattern matched `.py` only. Stage 2 brought in four node gates, and a mutation test —
+#: restoring `node scripts/check_dollar_math.mjs` directly into website.yml — passed the meta-gate.
+#: A guard that covers the languages you happened to have first is not a guard; the extension is
+#: what keeps "a workflow cannot invoke a known gate outside the manifest" true for every gate
+#: rather than for the Python ones.
+_SCRIPT_RE = re.compile(r"(?:scripts|docs/tools|services/ask/ask)/[A-Za-z0-9_]+\.(?:py|mjs|js)")
 
 
 def load() -> dict:
@@ -79,8 +86,8 @@ def _validate(m: dict) -> list[str]:
     return errs
 
 
-def _run(cmd: str, env: dict | None = None) -> int:
-    return subprocess.run(cmd, shell=True, cwd=ROOT,
+def _run(cmd: str, env: dict | None = None, cwd: str | None = None) -> int:
+    return subprocess.run(cmd, shell=True, cwd=ROOT / (cwd or "."),
                           env={**os.environ, **(env or {})}).returncode
 
 
@@ -116,8 +123,15 @@ def run_gates(gates: list[dict], setups: list[dict], skipped: list[dict]) -> int
             if need in done_setup:
                 continue
             s = by_id[need]
+            for pre in s.get("needs", []):          # setups may chain (site-build needs site-deps)
+                if pre not in done_setup:
+                    ps = by_id[pre]
+                    print(f"\n\033[1m── setup: {pre}\033[0m — {ps.get('note','')}", flush=True)
+                    if _run(ps["cmd"], cwd=ps.get("cwd")) != 0:
+                        failed.append(f"setup:{pre}")
+                    done_setup.add(pre)
             print(f"\n\033[1m── setup: {need}\033[0m — {s.get('note','')}", flush=True)
-            if _run(s["cmd"]) != 0:
+            if _run(s["cmd"], cwd=s.get("cwd")) != 0:
                 print(f"   SETUP FAILED: {need}. Gates needing it cannot be judged.")
                 failed.append(f"setup:{need}")
             done_setup.add(need)
@@ -125,7 +139,7 @@ def run_gates(gates: list[dict], setups: list[dict], skipped: list[dict]) -> int
         tag = "report" if g.get("kind") == "report" else "gate"
         net = "  (network)" if g.get("network") else ""
         print(f"\n\033[1m── {tag}: {g['id']}\033[0m{net}\n   $ {g['cmd']}", flush=True)
-        rc = _run(g["cmd"])
+        rc = _run(g["cmd"], cwd=g.get("cwd"))
         if rc != 0 and g.get("kind") != "report":
             failed.append(g["id"])
             print(f"   \033[31mFAILED\033[0m ({g['id']}, exit {rc})")
@@ -245,9 +259,12 @@ def verify(m: dict) -> int:
             # must be enrolled, so "exempt" can never be reached by simply omitting a field.
             if not g.get("runner_reason"):
                 errs.append(f"{g['id']}: runner = false with no runner_reason.")
-            if not any(a["workflow"] == wf and a["script"] in g["cmd"] + " " + g["id"]
-                       or (a["workflow"] == wf and a["script"] in g["cmd"])
-                       for a in m.get("allow", [])):
+            # An [[allow]] is required only when the cmd names a gate SCRIPT — that is the thing
+            # the meta-gate would otherwise flag, so that is the thing that must be enrolled. A
+            # runner-exempt gate whose cmd is inline shell has nothing to enrol; its runner_reason
+            # is the whole record, and it is required above.
+            if _SCRIPT_RE.findall(g["cmd"]) and not any(
+                    a["workflow"] == wf and a["script"] in g["cmd"] for a in m.get("allow", [])):
                 errs.append(f"{g['id']}: runner = false, but no [[allow]] enrols its direct "
                             f"invocation in {wf}. The exemption must be visible from both sides.")
         elif wf and g["id"] not in invoked.get(wf, set()):

@@ -31,6 +31,9 @@
 #   needs        setup ids that must run first (see [[setup]])
 #   network      true if the gate reaches the internet; the local sweep says so before running it
 #   kind         "gate" (default) — an assertion that can fail — or "report", which cannot
+#   cwd          working directory, repo-relative (website.yml sets working-directory: apps/website)
+#   runner       false = CI must invoke it directly; requires runner_reason. Still in the manifest,
+#                so the local sweep knows it exists and reports it rather than never hearing of it.
 
 # ── setup steps: prerequisites, not assertions ───────────────────────────────────────────────────
 [[setup]]
@@ -194,6 +197,102 @@ cmd = "python scripts/release_pins.py --check --release ${RELEASE_TAG}"
 workflow = "publish.yml"
 local = false
 skip_reason = "binds the release set to a git TAG, which only exists on a published release. There is no tag to check on a working tree, and inventing one would test nothing."
+
+# ── website.yml (stage 2) ────────────────────────────────────────────────────────────────────────
+# A WORKFLOW STEP IS NOT AUTOMATICALLY A GATE (ruled Huayin, 2026-09-02). website.yml has ~19 run
+# steps per job and only eight of them are required correctness assertions. What stayed with the
+# workflow, and why:
+#
+#   npm ci · npm run build · pip install the BRANCH/SHIPPED package    ENVIRONMENT
+#   npx vercel pull/build/deploy (preview and production)              DEPLOYMENT
+#   gen_transcript · gen_case · gen_firstlight · gen_universe_visual
+#   · gen_grammar                                                      VALUE PRODUCTION
+#
+# The five generators are the interesting call. Each is named "(fails closed)" and each really does
+# assert — `gen_case` fails on exemplar drift. But every one of them exists to WRITE
+# `src/data/*.generated.json`, which the build then consumes, and the site cannot build without
+# them. Their output is consumed; that makes them producers whose failure mode is an assertion, not
+# assertions whose output is incidental. Putting them here would move site value-production into the
+# gate authority, which is the opposite of the rule. Their assertion role is covered by
+# `generator-determinism`, which IS a gate: it re-runs every committed-output generator and fails if
+# one is not reproducible.
+
+[[setup]]
+id = "site-deps"
+cmd = "npm ci"
+cwd = "apps/website"
+note = "node_modules for the site checks (npm ci, as CI does)"
+
+[[setup]]
+id = "site-build"
+cmd = "npm run build"
+cwd = "apps/website"
+needs = ["site-deps"]
+note = "the built site — three of the four node gates read the built HTML, not the source"
+
+[[gate]]
+id = "site-dollar-math"
+cmd = "node scripts/check_dollar_math.mjs"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+needs = ["site-deps"]
+
+[[gate]]
+id = "site-fragments"
+cmd = "node scripts/check_fragments.mjs"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+needs = ["site-build"]
+
+[[gate]]
+id = "site-discoverability"
+cmd = "node scripts/check_discoverability.mjs"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+needs = ["site-build"]
+
+[[gate]]
+id = "site-bracket-math"
+cmd = "node scripts/check_bracket_math.mjs"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+needs = ["site-build"]
+
+[[gate]]
+id = "prose-coherence"
+cmd = "python scripts/check_prose_coherence.py"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+
+[[gate]]
+id = "generator-determinism"
+cmd = "python scripts/check_generator_determinism.py"
+workflow = "website.yml"
+cwd = "apps/website"
+local = true
+
+[[gate]]
+id = "preview-serves-commit"
+cmd = "(inline in website.yml — see runner_reason)"
+workflow = "website.yml"
+local = false
+runner = false
+skip_reason = "asserts that a LIVE Vercel preview deployment serves this commit. There is no preview URL without a deploy, and a deploy needs the Vercel token and org/project ids."
+runner_reason = "its input is the URL the immediately preceding deploy step produced, and its body is a curl retry loop over that URL. Extracting it into a runner-invocable script would be a redesign of the release rail, not a migration. Recorded here so the local sweep names it as deferred instead of never mentioning it."
+
+[[gate]]
+id = "prod-edge-verification"
+cmd = "(inline in website.yml — see runner_reason)"
+workflow = "website.yml"
+local = false
+runner = false
+skip_reason = "asserts that production serves THIS build and not a stale one, against the live edge. Requires a completed production deploy."
+runner_reason = "same shape as preview-serves-commit: the assertion is over the deployment the previous step just made, and lifting it out is a redesign rather than a migration."
 
 # ── the meta-gate ────────────────────────────────────────────────────────────────────────────────
 [[gate]]

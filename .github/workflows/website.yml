@@ -84,7 +84,7 @@ jobs:
       # deposited bytes that may never be escaped. Getting it wrong is SILENT: the build stays green
       # and the page just says something else. So the rule is checked, and its full reach is printed.
       - name: Math-vs-money rule (every `$…$` conversion, inventoried)
-        run: node scripts/check_dollar_math.mjs
+        run: python ../../scripts/gates.py --gate site-dollar-math
 
       # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
       # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
@@ -104,7 +104,7 @@ jobs:
       # is the guard. Runs against dist/, so it checks the bytes that ship, and fails the build
       # before a deploy can carry a link to a fragment that does not exist.
       - name: Internal-fragment integrity (fails closed)
-        run: node scripts/check_fragments.mjs
+        run: python ../../scripts/gates.py --gate site-fragments
 
       # PROTECTED DISCOVERABILITY (2026-08-24). A SIBLING GATE to the fragment check above, not an
       # extension of it: that one asks whether a link's `#fragment` resolves, and is silent about a
@@ -112,7 +112,7 @@ jobs:
       # pointing elsewhere — /start-here had no homepage link at all while a position piece still wore
       # the "start here" mark. This asserts the ruled inbound relationships, and only those.
       - name: Protected discoverability (fails closed)
-        run: node scripts/check_discoverability.mjs
+        run: python ../../scripts/gates.py --gate site-discoverability
 
       # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
       # extension of it: that one answers "equation or price" about `$`, and overloading it with
@@ -132,7 +132,7 @@ jobs:
       # LaTeX command leaked into visible text, no katex-error, and `family\_id` still a literal
       # underscore rather than a subscript.
       - name: Bracket math (`\[ … \]` and `\( … \)`) — constructs, corpus fidelity, built HTML
-        run: node scripts/check_bracket_math.mjs
+        run: python ../../scripts/gates.py --gate site-bracket-math
 
       # ── PREVIEW DEPLOYMENT (preflight, 2026-08-19) ──────────────────────────────────────────────
       # A reviewable URL for the redesign, built from the PR tree. It reuses THIS job's
@@ -316,7 +316,7 @@ jobs:
       # against a package too old to run the documented (envelope) grammar; it goes green once the pin
       # is the version that ships that grammar. Bump the pin above in the same flip that ships 0.9.0.
       - name: Prose-coherence tripwire (corpus + llms parse against the shipped package)
-        run: python scripts/check_prose_coherence.py
+        run: python ../../scripts/gates.py --gate prose-coherence
 
       - name: Generate the integrity transcript from the SHIPPED package (fails closed)
         run: |
@@ -358,7 +358,7 @@ jobs:
       # artifact, so every deploy was a coin flip. Fixed at the cause in core 0.13.1; this is the
       # structural half, so the CLASS cannot recur silently in any generator.
       - name: Flap detector — every committed-output generator must be reproducible (fails closed)
-        run: python scripts/check_generator_determinism.py
+        run: python ../../scripts/gates.py --gate generator-determinism
 
       - name: Install site dependencies
         run: npm ci
@@ -369,7 +369,7 @@ jobs:
       # deposited bytes that may never be escaped. Getting it wrong is SILENT: the build stays green
       # and the page just says something else. So the rule is checked, and its full reach is printed.
       - name: Math-vs-money rule (every `$…$` conversion, inventoried)
-        run: node scripts/check_dollar_math.mjs
+        run: python ../../scripts/gates.py --gate site-dollar-math
 
       # SITE_BUILD_SHA is exported EXPLICITLY rather than relying on the runner's ambient GITHUB_SHA:
       # this flow builds in a GitHub runner and ships prebuilt, so Vercel's own VERCEL_GIT_COMMIT_SHA
@@ -385,7 +385,7 @@ jobs:
       # is the guard. Runs against dist/, so it checks the bytes that ship, and fails the build
       # before a deploy can carry a link to a fragment that does not exist.
       - name: Internal-fragment integrity (fails closed)
-        run: node scripts/check_fragments.mjs
+        run: python ../../scripts/gates.py --gate site-fragments
 
       # PROTECTED DISCOVERABILITY (2026-08-24). A SIBLING GATE to the fragment check above, not an
       # extension of it: that one asks whether a link's `#fragment` resolves, and is silent about a
@@ -393,7 +393,7 @@ jobs:
       # pointing elsewhere — /start-here had no homepage link at all while a position piece still wore
       # the "start here" mark. This asserts the ruled inbound relationships, and only those.
       - name: Protected discoverability (fails closed)
-        run: node scripts/check_discoverability.mjs
+        run: python ../../scripts/gates.py --gate site-discoverability
 
       # MATH IN LaTeX BRACKETS (2026-08-23). A SIBLING GATE to the math-vs-money rule above, not an
       # extension of it: that one answers "equation or price" about `$`, and overloading it with
@@ -413,7 +413,7 @@ jobs:
       # LaTeX command leaked into visible text, no katex-error, and `family\_id` still a literal
       # underscore rather than a subscript.
       - name: Bracket math (`\[ … \]` and `\( … \)`) — constructs, corpus fidelity, built HTML
-        run: node scripts/check_bracket_math.mjs
+        run: python ../../scripts/gates.py --gate site-bracket-math
 
       - name: Deploy to Vercel (production, prebuilt)
         if: ${{ env.VERCEL_TOKEN != '' }}
