@@ -36,6 +36,7 @@ from .model import (Manifold, Universe, DimensionLevel, FunctionalEdge,
                     MeasureColumn, FamilyMember, BAnchor, DerivedColumn,
                     Ref, Comparison, Predicate, Hierarchy,
                     Relate, Face, FACE_SCHEMES, FACE_ORDERS, TOUCH, ASSIGN)
+from .types import DTYPES, is_dtype       # the governed logical vocabulary — never a carrier's
 
 _KW = ("MANIFOLD", "SOURCE_MANIFOLD", "UNIVERSE", "LEVEL", "RELATE", "MEASURE",
        "DERIVED", "HIERARCHY", "ATTR")   # EDGE purged (§2a); ASSERT retired (0.13.0); ATTR = the inline LEVEL clause
@@ -487,7 +488,24 @@ def _p_measure(s, M):
         m_anchor = frozenset(x.strip() for x in man_block.split(",") if x.strip())
 
     # optional logical dtype: "... TYPE Categorical" (default Float64). Vocabulary, not physical.
+    #
+    # AN EXPLICIT TOKEN IS VALIDATED AGAINST THE GOVERNED VOCABULARY (P1-18, ruled Huayin
+    # 2026-09-02). `TYPE` was the only declaration clause in this parser with no closed-vocabulary
+    # check — BASIS has one (see `BASIS_TYPES` above) and FILL has one (`FILL_RULES`) — so
+    # `TYPE Strng` parsed, and was caught later and misleadingly by the operator-signature loop
+    # ("operator 'mode' does not accept logical type 'Strng'"), which reports a spelling mistake as
+    # a signature failure. Worse, it was not caught AT ALL for a measure with an empty family, since
+    # that loop iterates the family.
+    #
+    # `types.is_dtype` existed for exactly this and had zero callers in the tree.
+    #
+    # ONLY AN EXPLICIT TOKEN IS CHECKED. The absent case still yields "Float64" and is unchanged:
+    # whether omitted TYPE should be distinguishable from an explicit `TYPE Float64` is expressly
+    # held open, and 63 of 64 shipped declarations rely on that default.
     tm = re.search(r"\bTYPE\s+(\w+)", head_portion)
+    if tm and not is_dtype(tm.group(1)):
+        raise ParseError(f"MEASURE '{name}': bad TYPE '{tm.group(1)}' — not a governed logical type "
+                         f"(one of {sorted(DTYPES)})")
     logical_type = tm.group(1) if tm else "Float64"
 
     M["measures"][name] = MeasureColumn(name, universe, table, pre_expr,

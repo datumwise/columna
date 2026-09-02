@@ -538,7 +538,82 @@ row can be struck.
 
 ---
 
-### P1-18 · An undeclared `TYPE` silently casts a categorical measure to `DOUBLE` and serves `NULL` · **HIGH** · **OPEN — no repair authorized** · VX
+### P1-18 · An undeclared `TYPE` silently casts a categorical measure to `DOUBLE` and serves `NULL` · **HIGH** · **CLOSED 2026-09-02** (A, B, D; C separated to **P1-32**) · VX
+
+> **Accepted, Huayin, 2026-09-02.** *"The bounded P1-18 repair now has the right shape: parity
+> measures the governed declaration surface it claims to protect rather than only vocabulary names;
+> the lost declarations are restored from an existing governed twin, not inferred from physical
+> carriers; unknown `TYPE` spellings fail at the language-vocabulary boundary; absent `TYPE`
+> semantics remain unchanged. … Treat P1-18 as the **Core declaration/parity defect** and close it."*
+
+**WHAT THIS ROW DOES NOT CLAIM.** P1-18 closes as a Core declaration-and-parity defect. It does
+**not** declare the stale precomputed demo endpoint fixed, and nothing in this repair touched
+`apps/demo-endpoint-vercel/`. That endpoint still serves the old NULL `region_label` outputs, and it
+is now a separate obligation — **P1-32**. Closing this row does not close that one.
+
+**CLOSED against the demonstrated failure mechanism**, which the commit history showed to be smaller
+than the row first suggested. WP-0 (`19535ea`) already carried the correct declaration —
+`build_benchmark.py:102`, `logical_type="String"`. Eight hours later `f1affb1`, subject *"reconcile
+parity in the .cml's favor (region_label)"*, added the measure to `.cml` **without a `TYPE` clause**
+and, in the same commit, added the parity test meant to stop the two definitions re-drifting. That
+test compared measure NAME SETS. It reported parity for fifty-four days.
+
+    A parity check must measure the semantic declarations it claims to keep in parity, not
+    merely object names.  (ruled Huayin, 2026-09-02)
+
+**A — the parity guard now compares the declaration surface.** `_MEASURE_DECL_FIELDS` (universe,
+home_table, pre_expr, logical_type, fill_rule, m_anchor, distinct_col, sketch_precision) plus each
+family member's declared shape (agg, blocked lineages, order_by), plus level bindings and universe
+base-dimensions/basis. Three fields are excluded and each exclusion is a stated rule: `description`
+(prose), `rejects` (blast-walled map artifact), `evidence` (attestation standing). Not deep equality
+— a bounded named list, the treatment the DERIVED surface has had since WP-B.
+
+On first run it caught three drifts, one of them never previously reported:
+
+```
+measure 'orders'.logical_type:       parsed='Float64'  code='Int64'
+measure 'region_label'.logical_type: parsed='Float64'  code='String'
+measure 'visitors'.logical_type:     parsed='Float64'  code='String'
+```
+
+and then, once those were fixed, two more: `universe 'transactions'.basis` and
+`'store_days'.basis` were declared in the `.cml` and absent from the code twin, which never gained
+BASIS when B3 introduced it.
+
+**B — the declarations are restored**, across all four mirrored benchmark fixtures: `region_label`
+and `visitors` to `TYPE String`, `orders` to `TYPE Int64`, reconciling to the governed declaration
+that already existed in `build_benchmark.py`. Not inference from the VARCHAR carrier. `buyers` and
+`unique_visitors` were deliberately NOT touched — they have no code-built twin, so there is no lost
+declaration to restore and changing them would be carrier inference (rowed under P1-31).
+
+Served behaviour, benchmark warehouse:
+
+```
+before   disclose  values [null, null, null, null]  + undeclared_absence MATERIAL
+after    serve     values ['north','south','east','west']  no disclosure
+```
+
+**D — an explicit `TYPE` token is now validated against the governed vocabulary.** `TYPE` was the
+only declaration clause in the parser with no closed-vocabulary check (BASIS has `BASIS_TYPES`, FILL
+has `FILL_RULES`); `types.is_dtype` existed for exactly this and had zero callers. `TYPE Strng` and
+`TYPE VARCHAR` now raise `ParseError` naming the governed vocabulary, including for a measure with an
+empty family, which previously escaped entirely. The absent case is unchanged — 63 of 64 shipped
+declarations rely on the `Float64` default and the omitted-vs-explicit question is held open.
+
+**C — NOT REPAIRED HERE; SEPARATED TO P1-32 (ruled Huayin, 2026-09-02).**
+`apps/demo-endpoint-vercel/_wire/precomputed.json` holds 12,952 `region_label` rows at
+`"value": null` and is served verbatim. It cannot be regenerated: the generator does not run against
+the shipped package.
+
+```
+generate.py:56   T.query(store, DEMO_MANIFOLD_ID, frameql, universe=universe)
+shipped 0.12.0   query(store, manifold_id, frameql, version=None)   -> TypeError
+```
+
+The blockage is not the type declaration and would not have been cleared by fixing one: it is an
+endpoint that cannot be reproduced from its own generator. The full evidence, the standing question
+and the reconnaissance now live in **P1-32**; this paragraph records only that P1-18's repair stops
+at the package boundary and deliberately leaves the served artifact untouched.
 
 Opened 2026-09-01, surfaced by the Finding 2 reconnaissance. **Rowed separately and deliberately:
 this is a shipped correctness defect, not a research observation, and it must not be repaired inside
@@ -596,6 +671,205 @@ disagrees with its source yields a well-formed document, a clean `check()`, and 
 enforcing it at delivery, (c) implement the lift the docstring already claims, or (d) some
 combination, is **not decided here and no repair is authorized.** (b) and (c) are type-system
 questions and are held for the Finding 2 review.
+
+### P1-31 · Realization can manufacture NULL from present source evidence, and the absence machinery cannot tell it apart · **HIGH** · **OPEN — recommendation held, no repair authorized** · VX
+
+Opened 2026-09-02, split out of P1-18 by ruling. **P1-18 is repairable without this** — it was a
+lost declaration plus a parity guard that measured names — so this row carries the general finding
+only, and no repair is authorized.
+
+    A realization-time conversion can manufacture NULL from present source evidence, after
+    which the ordinary absence machinery cannot tell that NULL from source absence.
+
+`DuckDBConnector.realize()` (`connector.py:244-257`) interposes `TRY_CAST` when
+`_phys_class(physical) != _logical_class(declared)`. A failed cast yields NULL, and downstream
+nothing distinguishes that NULL from a cell that was never recorded. Measured under P1-18's
+declaration, the four `region_label` cells were served as `undeclared_absence`, **material**, "4
+absent cell(s) with no declared fill rule" — a declaration error wearing the vocabulary reserved for
+the data being absent. All four values were present in the source.
+
+**THE CONTROL CASE, PRESERVED — this is why the obvious repair is wrong.** The mechanism is not a
+defect. `demos/types_demo.py:33-43` exists to demonstrate its legitimate use, and
+`demos/build_benchmark.py:90-92` ships one:
+
+> pre_expr is the RAW column 'level' (VARCHAR in the source); logical_type Float64 is the promise
+> the CONNECTOR honors with a TRY_CAST at delivery — the author writes no cast.
+
+Executed side by side, the two cases are indistinguishable by class and separable only by data:
+
+```
+dirty.v          '10.5','20','oops'   declared Float64   present=3/3  cast_ok=2/3   coverage fact
+cat.region_label 'North','South',...  declared Float64   present=3/3  cast_ok=0/3   every row destroyed
+```
+
+So a repair that refuses class-disagreeing casts at publish would break `level`/`stock`, a
+deliberate working declaration in four shipped fixtures. **The trigger cannot be the class
+mismatch.**
+
+**THREE MORE INSTANCES ARE LATENT AND INERT BY ACCIDENT.** `visitors` (benchmark), `buyers`
+(cascadia), `unique_visitors` (retail) are all `distinct(customer_id)` over VARCHAR under the
+`Float64` default. They do not fail today only because the sketch path passes `meas.distinct_col`
+raw to `deliver_base_rows` (`engine.py:1129`) and never calls `realize()`. Nothing declares that
+bypass as a protection; it is a routing detail. (`visitors` had a governed `String` declaration in
+the code twin and was restored under P1-18; `buyers` and `unique_visitors` have no code twin, so
+restoring them would be inference from the carrier and was NOT done.)
+
+**Unsettled, and why the recommendation is held** (ruled Huayin, 2026-09-02): total versus partial
+conversion failure; legitimate numeric-as-text declarations; whether a failure is contradiction,
+realization standing, or support/coverage; interaction with P1-12; and what evidence may refute a
+realization without letting current data redefine logical meaning.
+
+**Also held, no ruling implied:** within-class exactness (a `DOUBLE` carrier under a declared
+`Int64` serves `10.5` — `realize()` emits no cast because both classes read "numeric"); the
+semantics of omitted `TYPE` versus explicit `TYPE Float64`; and inference of logical type from
+physical type.
+
+---
+
+### P1-32 · A publicly served generated artifact cannot be reproduced by its generator, and serves an obsolete contract verbatim · **HIGH** · **OPEN — reconnaissance only, no repair authorized** · VX
+
+Opened 2026-09-02, split out of **P1-18 C** by ruling (Huayin). P1-18 closed as the Core
+declaration/parity defect and explicitly did **not** declare this fixed.
+
+> A surface presented as current must be reproducible from current governed sources.
+>
+> A generated artifact must not acquire authority merely because it is committed and served
+> verbatim.  (ruled Huayin, 2026-09-02)
+
+**The row.** A publicly served generated artifact cannot be reproduced by its current generator, is
+stale against current governed inputs/packages, and serves an obsolete wire contract verbatim with
+no effective freshness guard.
+
+**The evidence, preserved.**
+
+```
+generate.py:56    T.query(store, DEMO_MANIFOLD_ID, frameql, universe=universe)
+shipped 0.12.0    query(store, manifold_id, frameql, version=None)      -> TypeError
+artifact meta     columna_core 0.7.8 / columna_server 0.1.0 / contract_version "1"
+current system    columna_core 0.19.0 / columna_server 0.12.0 / CONTRACT_VERSION 4
+index.py:44-45    _META = _DB["meta"]; _CONTRACT = _META["contract_version"]   -> served verbatim
+```
+
+- The generator still calls the removed `universe=` keyword; the current `columna-server` no longer
+  accepts that call, so the generator cannot run at all against the shipped package.
+- `index.py` serves the *recorded* contract version, not the current one: the endpoint reports
+  `contract_version "1"` to every caller.
+- `scripts/generate.py`'s own docstring says the artifact is *"drift-guarded by the recorded
+  columna_core / columna_server versions in meta"*. **Nothing reads those versions** — not
+  `index.py`, not CI, not `scripts/gates.toml`. The claimed guard is inert metadata.
+- The artifact still contains the old NULL `region_label` outputs (12,952 rows at `"value": null`),
+  which is how the endpoint entered P1-18 in the first place.
+- Generator and artifact were both last written in `7f4b416` (2026-07-13); neither has moved since.
+
+**Drift found beyond the version stamps, measured 2026-09-02 (VX, current source, benchmark deps).**
+The gap is wider than an API migration:
+
+```
+every captured query is now a SYNTAX ERROR:
+  'revenue @ region'                        -> error frameql_syntax
+                                               "a query must SELECT at least one series"
+  server.py:49  "the terse `cols @ anchor` form is retired"
+the recorded manifold is no longer the packaged demo:
+  artifact meta.manifold = "benchmark"      DEMO_MANIFOLD_ID = "cascadia"
+4 of the 6 advertised measures do not exist in the current demo manifold:
+  measure_index  revenue orders visitors level med_amount region_label
+  cascadia       revenue orders buyers units_sold units_returned priority alloc_weight stock
+```
+
+So the endpoint's whole *fool-it* surface (`"%s @ store, day"`) teaches a retired language form over
+a manifold that is no longer the demo. A regeneration is not a re-run: it is a re-authoring.
+
+**The semantic question, NOT answered here.** The old seeded request pinned a query to a universe
+(`universe="transactions"`, and the clarify round-trip replayed the wedge against each candidate
+universe the engine surfaced). Current Frame-QL rules that out at the language level:
+
+> **`ON` is not a query clause.** A population is pinned in *definitions*, and universe is resolved
+> structurally at query time (§2c).  — `docs/frame_ql_language.md:100`
+
+but `disclosure_wire.py:204` still emits `{"token": "on_universe('U')", "apply": {"universe": U}}`
+alternatives, whose docstring says a caller applies them *"via the `query` tool's `universe` arg"* —
+an argument neither `tools.query` nor the MCP `query` tool has. `agent/mcp_client.py:52` still takes
+and forwards `universe=`. **What a caller is supposed to DO with a machine-applicable universe pin
+today is a canonical Frame-QL question and is referred, not guessed** (per the standing instruction:
+do not guess the replacement for `universe=` if that requires a canonical ruling).
+
+**RECONNAISSANCE, 2026-09-02 (ordered by Huayin before any implementation).**
+
+*Who consumes it.* **Nothing in this repository does, at runtime or at build time.** The deployed
+URL survives in exactly one place — `apps/website/src/data/seeded_queries.json:2` — and that file is
+**orphaned**: no `.astro`/`.ts` imports it and there is no `import.meta.glob` over `src/data/`. Its
+former consumer, `apps/website/src/scripts/exhibit-b.ts`, is parked and unimported
+(`ExhibitB.astro:38-39`), disabled in place on 2026-08-25 by `ea90121` — *"the live path failed
+structurally on every request and degraded, while the page said 'live demo temporarily offline' …
+The endpoint is not rebuilt here."* No test, no CHANGELOG entry, no gate references it;
+`pytest.ini` and the ruff gates scope to `packages/**`. `disclosure_wire.py:89` lists the generator
+as a `contract_version` consumer to sweep on a bump — a documented obligation nobody executed.
+
+**But it is live, public and answering (VX, probed 2026-09-02):**
+
+```
+GET https://demo-endpoint-vercel.vercel.app/query   -> 200
+{"ok": true, "contract_version": "1", "manifold": "benchmark",
+ "measures": ["revenue","orders","visitors","level","med_amount","region_label"]}
+GET .../healthz                                     -> 200
+```
+
+So the surface has no *internal* consumer and an unbounded external one. Nothing in the repo would
+notice if it served nonsense — and it currently serves a two-major-old contract for a manifold that
+no longer exists.
+
+*Deployment and freshness.* Manual only: `README.md:42` — `vercel deploy --prod`, "its own project,
+decoupled from the site". `website.yml` path filters exclude `apps/demo-endpoint-vercel/**`; there
+is no entry in `scripts/gates.toml`; `check_generator_determinism.py:55-61` enumerates the five
+website generators and not this one. **There is no freshness check of any kind.** The only stated
+mechanism is the README's manual instruction plus the inert `meta` versions.
+
+*History.* One commit, ever: `7f4b416` (2026-07-13, Irena Wang), *"wp5.1 demo endpoint: live fool-it
+via Vercel (real shipped-package wire)"*, which added the generator and the 259,528-line artifact
+together. Neither has been touched since.
+
+*Intended standing.* Every stated intent says **current behaviour**, never historical snapshot:
+"Powers Exhibit B's **live** fool-it surface", "every byte returned is exactly what
+`columna-server`'s Python API produces", "regenerate on any package bump". It was never designed as
+a frozen exhibit; it is a current-behaviour claim that stopped being current. Already rowed as a
+second copy of a shared surface: **P4-08** (vendored parser + precomputed wire, "a second, drifting
+copy").
+
+*What moves from wire 1 to wire 4.* Not a field rename: the captured payload's language, manifold,
+measure inventory and outcomes are all superseded (see the drift block above). Every one of the 11
+captured entries is a syntax error today; `visitors` and `level` were already captured as `error`
+at seeding; `region_label` — the P1-18 canary — is captured as `serve` with 12,952 NULLs. The site
+has already moved on without it: `seeded_queries.json` now records manifold `cascadia`,
+`contract_version "3"` and envelope-form queries — **and "3" is itself stale against the current 4**,
+so there are three disagreeing records of the contract in one repository (artifact "1", site data
+"3", package 4).
+
+*The repair options, with a recommendation and its condition.* The three are (a) migrate the
+generator and regenerate under the current contract, (b) version/freeze the endpoint as an
+explicitly historical exhibit, (c) retire the surface. **Recommendation: (c) retire, or (a) only if
+a consumer is re-declared.** The reasoning: (a) buys a regenerated artifact for a page that no
+longer calls it, and re-arms the same silent-staleness mechanism unless a freshness gate lands with
+it; (b) is a documentation fix for an artifact whose own text claims to be live and which no
+governed decision ever froze — freezing would be minting authority for a stale artifact, which is
+what the invariant forbids. **This is a public-contract decision and is referred, not taken.**
+
+*The narrowest check, once standing is settled.* Whatever is decided, the guard is the same shape
+and must be **executable, not metadata**: a gate in `scripts/gates.toml` that re-runs the generator
+and byte-compares the result with the committed artifact (the `generator-determinism` guard the
+website generators already have, extended to this one). If the surface is retired, the artifact and
+generator go with it and no gate is needed. If it is frozen, the gate is a *pinned-version* check
+that fails when the package version moves away from the recorded one — the guard `generate.py`'s
+docstring already claims and does not have. Version metadata that nothing reads is not a guard; the
+only check worth adding is one that reproduces the artifact.
+
+**Held for review.** No implementation until the public-contract consequence is reviewed.
+
+**No repair authorized.** The public endpoint is not to be regenerated or changed until its intended
+standing is settled — current-behaviour surface, deliberately frozen historical demo, or retired.
+Reconnaissance was ordered before implementation; the migration is held for review of the
+public-contract consequence.
+
+---
 
 ### P1-29 · The payload-coherence gate is unreachable except from a pull request · **HIGH** · **CLOSED 2026-09-02** — merged in #265 · VX
 
