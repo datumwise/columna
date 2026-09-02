@@ -122,8 +122,15 @@ def _statements(body: str):
 
 #: `-- serve` / `-- disclose: over_count …` / `-- clarify: input_anchor_ambiguous` — the Manual
 #: stating, on the example itself, which mood it commits to. §5.6 already writes them this way.
-_MOODS = ("serve", "disclose", "clarify", "refuse")
-_ANNOT = re.compile(r"--\s*(?P<outcome>serve|disclose|clarify|refuse)\b\s*(?::\s*(?P<reason>\w+))?",
+#:
+#: `error` IS DOCUMENTABLE, AND IS NOT A FIFTH MOOD. The four analytical dispositions are
+#: serve/disclose/clarify/refuse and stay four; `error` is the separate query-error channel (§7.3),
+#: which carries a request the language does not accept and a realization that cannot carry out an
+#: admissible one. It is listed here because the gate can only check a claim the Manual is able to
+#: WRITE: before this, an example reaching `error` had no lawful annotation, so §7.3's own examples
+#: would have had to be presented as unchecked prose — the one thing this gate exists to prevent.
+_MOODS = ("serve", "disclose", "clarify", "refuse", "error")
+_ANNOT = re.compile(r"--\s*(?P<outcome>serve|disclose|clarify|refuse|error)\b\s*(?::\s*(?P<reason>\w+))?",
                     re.IGNORECASE)
 
 
@@ -344,19 +351,27 @@ def owning_section(secs, lineno):
 
 
 def _reason(w):
-    """The reason the Manual would name for this disposition.
+    """The reason(s) the Manual could name for this disposition, as a list — first is the one to
+    PRINT, and any of them satisfies a documented reason.
 
     A withheld answer carries it on `no_result`; a SERVED-but-disclosed one carries it as a
     disclosure CODE, because nothing was withheld and there is no `no_result` to hang it on. §5.6's
     `-- disclose: over_count` documents a disclosure code, so the gate has to look in both places or
-    it would demand that a served answer explain itself through a field only a refusal has."""
+    it would demand that a served answer explain itself through a field only a refusal has.
+
+    WHY A LIST AND NOT THE FIRST CODE (2026-09-02). A disclose carries SEVERAL codes and the wire
+    does not promise their order, so matching only `codes[0]` made a documented code pass or fail on
+    emission order — §5.6's `over_count` passed because it happened to sort first. §2.3's material
+    `input_anchor` caveat rides behind an immaterial `provenance` note on the same column, so under
+    the old rule the Manual could only document the note it is NOT making a claim about. Order is not
+    a thing the Manual should have to know."""
     for c in w["columns"]:
         nr = c.get("no_result") or {}
         if nr.get("reason"):
-            return nr["reason"]
+            return [nr["reason"]]
     codes = [d.get("code") for c in w["columns"] for d in (c.get("disclosures") or []) if d.get("code")]
     codes += [d.get("code") for d in (w.get("frame", {}).get("disclosures") or []) if d.get("code")]
-    return codes[0] if codes else None
+    return codes
 
 
 def _disposition(srvs, harness, stmt_text, execute):
@@ -509,6 +524,11 @@ def main() -> int:
         for n, stmt in enumerate(stmts):
             want = annots[n] if annots else None       # cardinality is now 0 or len(stmts), checked above
             stage, outcome, reason = _disposition(srvs, harness, stmt, execute=True)
+            # `_disposition` hands back a LIST of reasons from the wire paths and a bare string from
+            # the parse/plan-exception paths (there the message IS the reason). Flattened once, here,
+            # so every consumer below reads one shape: `reasons` to check against, `reason` to print.
+            reasons = reason if isinstance(reason, list) else ([reason] if reason else [])
+            reason = reasons[0] if reasons else None
             rows.append((lineno, head, kind, stage, outcome, reason, stmt))
             reached_positive = outcome in ("serve", "disclose")
             if outcome == "substrate-error":
@@ -566,9 +586,9 @@ def main() -> int:
                 direction = IMPROVED if (reached_positive and w_out in ("clarify", "refuse")) else EXCEEDS
                 fail(direction, lineno, head, "documented-outcome-not-reached", stmt,
                      f"documented `{w_out}`, got `{outcome}` at {stage}")
-            elif w_reason and reason != w_reason:
+            elif w_reason and w_reason not in reasons:
                 fail(EXCEEDS, lineno, head, "documented-reason-not-reached", stmt,
-                     f"documented reason `{w_reason}`, got `{reason or 'none'}` — a "
+                     f"documented reason `{w_reason}`, got `{', '.join(reasons) or 'none'}` — a "
                      f"generic failure is not a pass")
 
     # ── APPENDIX A: the operator table, against the shipped registry ─────────────────────────────

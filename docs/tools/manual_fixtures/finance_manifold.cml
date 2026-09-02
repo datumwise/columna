@@ -72,9 +72,19 @@ DERIVED aov = revenue / orders
 MEASURE category_rank   ON membership FROM product_categories AS min(rank)
 MEASURE category_weight ON membership FROM product_categories AS sum(weight)
 
+# `sum BLOCKED { calendar }` IS THE MANUAL'S CANONICAL REFUSAL, MADE OBSERVABLE. §5.3 and §7.4 lead
+# with "summing a stock across the calendar", in both spellings — the declared member (`level.sum`)
+# and the one an inline reducer GENERATES above a lawful sibling (`sum(level.last @ {store*day})`).
+# Until this declaration existed no fixture declared a blocked lineage at all, so the Manual's
+# best-known refusal was asserted in prose and never once observed by the gate, and the generated
+# spelling — the harder half of the claim — rested on nothing. Declaring `sum` blocked along the
+# calendar rather than omitting it from the family is the point: an ABSENT member is a different
+# condition (family-not-declared, the query-error channel) from a member the governed law declares
+# unlawful along a lineage, and the Manual distinguishes them.
 MEASURE level ON inventory FROM inv VALUE units
     FAMILY {
         last ORDER day
+        sum BLOCKED { calendar }
         max
         min
         count
