@@ -1,0 +1,240 @@
+{
+  "captured_at": "2026-09-05T11:49:37Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 46,
+    "uniques": 12,
+    "views": [
+      {
+        "timestamp": "2026-08-22T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-23T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-24T00:00:00Z",
+        "count": 2,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-08-25T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-26T00:00:00Z",
+        "count": 10,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-08-27T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-08-28T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-29T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-30T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-08-31T00:00:00Z",
+        "count": 18,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-09-01T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-02T00:00:00Z",
+        "count": 4,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-03T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-04T00:00:00Z",
+        "count": 7,
+        "uniques": 7
+      }
+    ]
+  },
+  "clones": {
+    "count": 4799,
+    "uniques": 661,
+    "clones": [
+      {
+        "timestamp": "2026-08-22T00:00:00Z",
+        "count": 598,
+        "uniques": 67
+      },
+      {
+        "timestamp": "2026-08-23T00:00:00Z",
+        "count": 384,
+        "uniques": 51
+      },
+      {
+        "timestamp": "2026-08-24T00:00:00Z",
+        "count": 289,
+        "uniques": 35
+      },
+      {
+        "timestamp": "2026-08-25T00:00:00Z",
+        "count": 351,
+        "uniques": 32
+      },
+      {
+        "timestamp": "2026-08-26T00:00:00Z",
+        "count": 377,
+        "uniques": 47
+      },
+      {
+        "timestamp": "2026-08-27T00:00:00Z",
+        "count": 462,
+        "uniques": 56
+      },
+      {
+        "timestamp": "2026-08-28T00:00:00Z",
+        "count": 132,
+        "uniques": 36
+      },
+      {
+        "timestamp": "2026-08-29T00:00:00Z",
+        "count": 42,
+        "uniques": 32
+      },
+      {
+        "timestamp": "2026-08-30T00:00:00Z",
+        "count": 13,
+        "uniques": 13
+      },
+      {
+        "timestamp": "2026-08-31T00:00:00Z",
+        "count": 1507,
+        "uniques": 324
+      },
+      {
+        "timestamp": "2026-09-01T00:00:00Z",
+        "count": 163,
+        "uniques": 26
+      },
+      {
+        "timestamp": "2026-09-02T00:00:00Z",
+        "count": 377,
+        "uniques": 41
+      },
+      {
+        "timestamp": "2026-09-03T00:00:00Z",
+        "count": 80,
+        "uniques": 29
+      },
+      {
+        "timestamp": "2026-09-04T00:00:00Z",
+        "count": 24,
+        "uniques": 11
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "Google",
+      "count": 9,
+      "uniques": 1
+    },
+    {
+      "referrer": "zenodo.org",
+      "count": 9,
+      "uniques": 1
+    },
+    {
+      "referrer": "github.com",
+      "count": 3,
+      "uniques": 1
+    },
+    {
+      "referrer": "datumwise.ai",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna/pulls",
+      "title": "/pulls",
+      "count": 13,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 6,
+      "uniques": 4
+    },
+    {
+      "path": "/datumwise/columna/blob/4026f0ef72ebd8b8c52557bcfcd0a77878cbccda/.github/workflows/publish.yml",
+      "title": "/blob/4026f0ef72ebd8b8c52557bcfcd0a77878cbccda/.github/workflows/publish.yml",
+      "count": 3,
+      "uniques": 3
+    },
+    {
+      "path": "/datumwise/columna/pull/246",
+      "title": "/pull/246",
+      "count": 3,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/discussions/5",
+      "title": "/discussions/5",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main/docs",
+      "title": "/tree/main/docs",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main/docs/architecture",
+      "title": "/tree/main/docs/architecture",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/actions",
+      "title": "/actions",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/actions/workflows/publish.yml",
+      "title": "/actions/workflows/publish.yml",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/5bfd8f1c55d8a9d433eee809abd5466f6478bfee/apps/website/src/content/corpus/launch_post_FINAL.md",
+      "title": "/blob/5bfd8f1c55d8a9d433eee809abd5466f6478bfee/apps/website/src/content/corpus/launch_post_FINAL.md",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
