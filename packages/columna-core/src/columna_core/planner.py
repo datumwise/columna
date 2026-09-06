@@ -623,6 +623,55 @@ class Planner:
         if data is not None:
             data = data.sort(list(anchor))
 
+        # ── R4-C0 · PLACEMENT-LOSS CONTAINMENT (2026-09-06, Huayin) ────────────────────────────
+        # THE INVARIANT: an unresolved required anchor coordinate does not positively establish an
+        # analytical point at that anchor. Core must not serve an ordinary anchor point merely because
+        # the physical GROUP BY produced a NULL key.
+        #
+        # WHAT WAS WRONG (reproduced, M2 recon §2.2): a carrier row whose `day` was lost but whose
+        # amount survived was delivered by `deliver_measure`'s GROUP BY as its own NULL-key group,
+        # joined, sorted and served as an ORDINARY row — `day=null, revenue=70.0` — with no disclosure
+        # of any kind. Value loss IS disclosed (Φ, below); placement loss was not disclosed at all. The
+        # frame was inventing a coordinate and attaching real money to it.
+        #
+        # THE CONTAINMENT, and why it is the smallest one. Placement standing has no carrier in this
+        # architecture (there is no per-point existence/placement/eligibility layer, and this mission is
+        # explicitly NOT to build one). The only two things Core can do with such a row are serve it or
+        # withhold it, and serving it is the false claim. So: CLOSED BY DEFAULT — withhold the row from
+        # the served frame and disclose the withholding at FRAME level. Nothing is reinterpreted: Φ,
+        # NULL, eligibility, support, universe semantics and the wire vocabulary are untouched, and no
+        # new reason code, standing enum or wire field is introduced (`data_gap`/`incomplete_data` is an
+        # existing MATERIAL category carried on the existing frame channel).
+        #
+        # WHY IT FILTERS HERE, ON THE OUTPUT ANCHOR, AND NOWHERE EARLIER: the containment must not cost a
+        # lawful result that does not depend on the lost placement. `AT {store}` has no `day` key, so
+        # nothing is withheld there and the exact total (all four records) still serves — the ruled
+        # expected behaviour. Only the frame that actually claims the lost coordinate loses the row.
+        # Filtering upstream (at delivery) would instead have silently corrupted the coarse total, which
+        # is the opposite of the requirement.
+        #
+        # It runs BEFORE the Φ absence pass so the per-column absence counts describe the frame that is
+        # actually served rather than rows that were never served.
+        unplaced_note = None
+        if data is not None and anchor:
+            _unplaced = None
+            for k in anchor:
+                if k not in data.columns:
+                    continue
+                _e = pl.col(k).is_null()
+                _unplaced = _e if _unplaced is None else (_unplaced | _e)
+            if _unplaced is not None:
+                n_unplaced = int(data.select(_unplaced.sum()).item() or 0)
+                if n_unplaced:
+                    lost = [k for k in anchor if k in data.columns and data[k].null_count()]
+                    data = data.filter(~_unplaced)
+                    unplaced_note = Caveat(DATA_GAP, severity="critical", detail=(
+                        f"{n_unplaced} row(s) WITHHELD from this frame: the required anchor "
+                        f"coordinate(s) {', '.join(lost)} are unresolved for them, so they do not "
+                        f"establish a point at this anchor. Carrier evidence exists and may still be "
+                        f"establishable at a coarser anchor that does not require the unresolved "
+                        f"coordinate(s); this frame is not a complete account of it"))
+
         # ABSENCE SEMANTICS — driven by the DECLARED member fill rule Φ_v (columna#143 step 3), NOT by
         # universe basis (that default is retired: a 0-fill keyed on basis alone was a silent wrong number
         # for a state-valued measure, D4). Absence is only definable relative to a DOMAIN; the juxtaposition
@@ -673,6 +722,10 @@ class Planner:
         # column honesty replaces it — a juxtaposed frame never asserts a single shared population, and
         # ON UNIVERSE is dead in the query grammar (cross-universe combination is an authoring act).
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.frame is not None])
+        # R4-C0: the withholding is a property of the FRAME's anchor grid, not of any one column, so it
+        # rides the frame channel (`frame.disclosures` on the wire, via `_frame_only_caveats`).
+        if unplaced_note is not None:
+            frame_disc = frame_disc.with_caveat(unplaced_note)
         return FrameResult(data, frame_disc, results, anchor)
 
     # ==== ENVELOPE assembly (WP-FrameQL increment 2) ==========================================
