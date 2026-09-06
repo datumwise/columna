@@ -1114,6 +1114,80 @@ identical.
 
 ---
 
+### R4-C0 · An unresolved anchor coordinate was served as an ordinary analytical point · **CRITICAL** · **CLOSED 2026-09-06** — merged in #267 (`05bd45d`) · VX
+
+Identifier note: this row and its residue carry the **R4-C0** names the ruling gave them
+(Huayin, 2026-09-06), not P-numbers. They belong to the Frame-QL vNext R4 standing sequence and are
+cited by that name in the mission text, the commit and the test file; renaming them into the P-space
+would break those citations for no gain.
+
+    A carrier record whose `day` was lost but whose amount survived was delivered by the
+    physical GROUP BY as its own NULL-key group and served as an ORDINARY row —
+    `day=null, revenue=70.0` — with no disclosure of any kind.
+
+Reproduced before any code was written (M2 reconnaissance §2.2,
+`specs/frameql_vnext_m2_reconnaissance_v0_1.md`). Value loss WAS disclosed; placement loss was not
+disclosed at all. The daily frame asserted a day-placed 70.0 that no evidence places on any day —
+a false analytical claim, not semantic debt.
+
+**Governing invariant** (Huayin, 2026-09-06): *an unresolved required anchor coordinate does not
+positively establish an analytical point at that anchor. Core must not serve an ordinary anchor point
+merely because the physical GROUP BY produced a NULL key.*
+
+**The containment, scoped deliberately small.** At frame assembly (`planner.py`, after the
+juxtaposition join, before the Φ absence pass), and only on the OUTPUT anchor's own key columns,
+rows carrying an unresolved coordinate are withheld — closed by default, since the only two available
+acts are serve and withhold and serving is the false claim — and the withholding is disclosed
+MATERIAL at frame level. `AT {store}` has no `day` key, so the exact total still serves: the
+containment costs no lawful result that does not depend on the lost placement.
+
+**What was deliberately NOT built, and remains open.** The existence / placement / eligibility /
+support architecture. Φ, NULL, eligibility, support, universe semantics and wire standing are
+untouched, and no new reason code, standing enum or wire field was introduced — the disclosure rides
+the existing `data_gap` → `incomplete_data` category on the existing frame channel, so
+`contract_version` stays `4`. **There is still no per-point placement standing in this engine.** The
+withheld row is not represented anywhere as "a point whose placement is unsupported"; it is simply
+not served, and the frame says so in aggregate. Full R4 standing is unauthorized and unscheduled.
+
+**The all-unplaced case is accepted as-is** (ruled): an empty frame carrying a material
+`incomplete_data` disclosure is not the same claim as an ordinary empty serve, and must NOT be
+converted to a refusal.
+
+Evidence: 8 regressions in `packages/columna-core/tests/test_placement_containment.py`; corpus 1052
+passed / 23 skipped, unchanged. Instrumented, the containment branch fires **zero** times across the
+entire pre-existing suite — the defect had no coverage at all, which is why it shipped.
+
+---
+
+### R4-C0-R1 · Expression-alignment divergence text goes stale after frame-level withholding · **LOW** · **OPEN — recorded, repair deliberately deferred** (Huayin, 2026-09-06) · VX
+
+    For expression paths, upstream divergence text can still say withheld NULL coordinates
+    are "IN the frame". The numerical result is contained correctly; the explanation
+    becomes stale after frame-level withholding.
+
+Polars does not join NULL to NULL, so a single unplaced carrier record becomes TWO one-sided
+coordinates in an expression's operand alignment, each reported by the divergence machinery as a
+support gap. R4-C0 withholds both rows correctly. But those caveats are produced inside the alignment
+layer (`planner.py::_apply`), upstream of frame assembly, and their detail ends:
+
+> "…the alignment domain is the union of the operands' supports, so **these coordinates are IN the
+> frame** and carry no value."
+
+True before the containment; stale after it for a withheld coordinate. **A stale clause in a caveat,
+not a false number** — and the same payload's frame channel truthfully reports the withholding, so a
+reader is not misled about the result, only about where the gap now lives.
+
+**Do not repair this as part of #267** (ruled). The repair means editing the expression-alignment
+layer, which the R4-C0 scope does not authorize. The regression pin stays:
+`test_expression_over_an_unplaced_record_is_contained_too` records the residue in its comment so it
+is visible rather than discovered twice.
+
+Related pre-existing pathology, NOT introduced here and not rowed separately: the NULL-key non-join
+itself. On unpatched `main` the same expression already served four rows with two spurious gap
+caveats.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
