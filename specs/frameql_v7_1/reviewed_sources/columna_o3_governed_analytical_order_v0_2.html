@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<title>O3 — Governed Analytical Order</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="columna_o3_governed_analytical_order_v0_2.md">Source Markdown</a></div>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#o3-governed-analytical-order" id="toc-o3-governed-analytical-order">O3 — Governed Analytical Order</a>
+<ul>
+<li><a href="#declaration-comparison-identity-and-realization" id="toc-declaration-comparison-identity-and-realization">Declaration,
+comparison, identity, and realization</a></li>
+</ul></li>
+<li><a href="#scope-and-authority" id="toc-scope-and-authority">0. Scope
+and authority</a></li>
+<li><a href="#the-anchor-remains-a-partition" id="toc-the-anchor-remains-a-partition">1. The anchor remains a
+partition</a></li>
+<li><a href="#the-two-levels-of-order" id="toc-the-two-levels-of-order">2. The two levels of order</a></li>
+<li><a href="#the-smallest-logical-declaration-model" id="toc-the-smallest-logical-declaration-model">3. The smallest logical
+declaration model</a>
+<ul>
+<li><a href="#a-point-order-declaration-for-a-constituent-anchor" id="toc-a-point-order-declaration-for-a-constituent-anchor">3.1 A
+point-order declaration for a constituent anchor</a></li>
+<li><a href="#an-order-declaration-for-the-compound-support-anchor" id="toc-an-order-declaration-for-the-compound-support-anchor">3.2 An
+order declaration for the compound support anchor</a></li>
+<li><a href="#the-ordered-familys-binding" id="toc-the-ordered-familys-binding">3.3 The ordered family’s
+binding</a></li>
+</ul></li>
+<li><a href="#what-cdt-supplies-and-what-it-does-not" id="toc-what-cdt-supplies-and-what-it-does-not">4. What CDT supplies,
+and what it does not</a></li>
+<li><a href="#a-complete-example-without-new-query-syntax" id="toc-a-complete-example-without-new-query-syntax">5. A complete
+example without new query syntax</a></li>
+<li><a href="#multiple-orders-defaults-and-family-identity" id="toc-multiple-orders-defaults-and-family-identity">6. Multiple
+orders, defaults, and family identity</a></li>
+<li><a href="#hierarchies-projection-and-order-are-separate-facts" id="toc-hierarchies-projection-and-order-are-separate-facts">7.
+Hierarchies: projection and order are separate facts</a></li>
+<li><a href="#the-family-proof-remains-in-the-theory" id="toc-the-family-proof-remains-in-the-theory">8. The family proof
+remains in the theory</a></li>
+<li><a href="#declaration-completeness-is-not-current-evidence-completeness" id="toc-declaration-completeness-is-not-current-evidence-completeness">9.
+Declaration completeness is not current evidence completeness</a></li>
+<li><a href="#authored-meaning-admission-and-execution" id="toc-authored-meaning-admission-and-execution">10. Authored meaning,
+admission, and execution</a></li>
+<li><a href="#one-resolved-semantic-contract-not-an-explanation-only-overlay" id="toc-one-resolved-semantic-contract-not-an-explanation-only-overlay">11.
+One resolved semantic contract, not an explanation-only overlay</a></li>
+<li><a href="#state-identity-and-reuse" id="toc-state-identity-and-reuse">12. State identity and reuse</a></li>
+<li><a href="#scope-boundaries" id="toc-scope-boundaries">13. Scope
+boundaries</a></li>
+<li><a href="#acceptance-cases" id="toc-acceptance-cases">14. Acceptance
+cases</a></li>
+<li><a href="#validation-status" id="toc-validation-status">15.
+Validation status</a></li>
+<li><a href="#remaining-specification-work" id="toc-remaining-specification-work">16. Remaining specification
+work</a></li>
+<li><a href="#sources-and-evidence-boundaries" id="toc-sources-and-evidence-boundaries">17. Sources and evidence
+boundaries</a></li>
+</ul>
+</nav>
+<section class="level1" id="o3-governed-analytical-order">
+<h1>O3 — Governed Analytical Order</h1>
+<section class="level2" id="declaration-comparison-identity-and-realization">
+<h2>Declaration, comparison, identity, and realization</h2>
+<p><strong>Working Draft 0.2 — 7 September 2026</strong><br/>
+<strong>Status:</strong> Order-interface proposal subordinate to <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">ToD
+v7.1 Full Manuscript Draft 0.4</a> (<strong>T</strong>) and <a href="frameql_language_vnext_working_draft_v0_4.html">Language-Law
+Candidate 0.4</a>.<br/>
+<strong>No schema, syntax, runtime, publication, or implementation
+authorization.</strong></p>
+</section>
+</section>
+<section class="level1" id="scope-and-authority">
+<h1>0. Scope and authority</h1>
+<p>This revision preserves O3’s two-level order construction, sparse
+partition geometry, logical declaration proposal, and
+comparison/realization separation. It replaces the older witness-proof
+and evidence summaries with references to T §§7–10 so that those laws
+have one source.</p>
+<p>The existing order-interface proposal supplies two kinds of logical
+order fact and one family binding, not necessarily three new classes or
+registries. The actual CDT v0.5 API has not been inspected in this
+revision. Requirements below do not imply that a type literally named
+<code>Witness</code> must be added or that no existing structure can
+implement them.</p>
+<p>Historical inspector statements concern the recorded
+<code>bfb3cfe</code> baseline and are not a fresh repository audit. This
+revision does not repeat or close their runtime probes. The <a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">active-source
+index</a> distinguishes current semantic guidance, historical
+implementation evidence, and superseded recommendations.</p>
+</section>
+<section class="level1" id="the-anchor-remains-a-partition">
+<h1>1. The anchor remains a partition</h1>
+<p>Let the governed constituent anchor dimensions be</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>A</mi><mi>n</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+A_1,\ldots,A_n.
+</annotation></semantics></math></p>
+<p>Let their common refinement be the constitutive support anchor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>.
+A point
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>∈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">s\in S</annotation></semantics></math>
+has a projection
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>i</mi></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>s</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>∈</mo><msub><mi>A</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">q_i(s)\in A_i</annotation></semantics></math>
+for every constituent dimension. These projections jointly identify the
+point:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo form="prefix" maxsize="1.2" minsize="1.2" stretchy="false">(</mo><mo>∀</mo><mi>i</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>q</mi><mi>i</mi></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>s</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>=</mo><msub><mi>q</mi><mi>i</mi></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>t</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo form="postfix" maxsize="1.2" minsize="1.2" stretchy="false">)</mo><mo>⇒</mo><mi>s</mi><mo>=</mo><mi>t</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\bigl(\forall i,\ q_i(s)=q_i(t)\bigr)\Longrightarrow s=t.
+</annotation></semantics></math></p>
+<p><strong>Sparse compound geometry (T §2.1.3).</strong> Constituent
+coordinates must not imply that every Cartesian combination exists, that
+the dimensions are statistically independent, or that an anchor has a
+uniquely discoverable factorization. A compound anchor is the common
+refinement through nonempty intersections over the governed
+universe.</p>
+<p>Thus the point coordinates embed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+into a product:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>:</mo><mi>S</mi><mo>↪</mo><munder><mo>∏</mo><mi>i</mi></munder><msub><mi>A</mi><mi>i</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+q:S\hookrightarrow\prod_i A_i,
+</annotation></semantics></math></p>
+<p>but the image need not be the entire product. An order on the
+coordinate product restricts to the analytical points that actually
+exist. Ordering never generates missing combinations.</p>
+<p>The declaration identifies the constituent structure it uses. It does
+not ask an engine to discover “independent dimensions” from currently
+observed rows. Redundant coordinate spellings can be normalized only
+through established partition equivalence. No general factorization
+algorithm is required for O3.</p>
+<p>In this document, <strong>support anchor</strong> means the
+<em>constitutive input anchor</em> of T §§7–8. It is not another anchor
+kind and must not be confused with the subset of points whose operand
+values currently have evidence support.</p>
+</section>
+<section class="level1" id="the-two-levels-of-order">
+<h1>2. The two levels of order</h1>
+<p>For each constituent dimension
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>i</mi></msub><annotation encoding="application/x-tex">A_i</annotation></semantics></math>,
+governance supplies a complete point order
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>&lt;</mo><mi>i</mi></msub><annotation encoding="application/x-tex">&lt;_i</annotation></semantics></math>.
+Here “complete order” means a total order over the declared analytical
+point domain: distinct points are comparable, and the comparison is
+transitive and consistent with point identity. It does not mean an
+order-theoretic completeness property such as the existence of a
+supremum for every subset.</p>
+<p>Governance also supplies a precedence permutation</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>=</mo><mrow><mo form="prefix" stretchy="true">(</mo><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mn>1</mn><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo><mi>…</mi><mo>,</mo><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>n</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\sigma=(\sigma(1),\ldots,\sigma(n)).
+</annotation></semantics></math></p>
+<p>The first entry has the highest comparison priority. Every
+constituent appears exactly once in this initial construction.
+Precedence is part of the declared order, not a property of the order in
+which a query lists its output coordinates.</p>
+<p>For distinct
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>,</mo><mi>t</mi><mo>∈</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">s,t\in S</annotation></semantics></math>,
+let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+be the first position for which</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mrow><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow></mrow></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>s</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>≠</mo><msub><mi>q</mi><mrow><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow></mrow></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>t</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+q_{\sigma(k)}(s)\ne q_{\sigma(k)}(t).
+</annotation></semantics></math></p>
+<p>Then</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><msub><mo>&lt;</mo><mi>S</mi></msub><mi>t</mi><mspace width="1.0em"></mspace><mo>⇔</mo><mspace width="1.0em"></mspace><msub><mi>q</mi><mrow><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow></mrow></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>s</mi><mo form="postfix" stretchy="true">)</mo></mrow><msub><mo>&lt;</mo><mrow><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow></mrow></msub><msub><mi>q</mi><mrow><mi>σ</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow></mrow></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>t</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+s&lt;_S t
+\quad\Longleftrightarrow\quad
+q_{\sigma(k)}(s)&lt;_{\sigma(k)}q_{\sigma(k)}(t).
+</annotation></semantics></math></p>
+<p>A differing component exists because the coordinates jointly identify
+the point. The component comparison determines one direction.
+Transitivity follows from the first-differing-component rule and the
+transitivity of the constituent orders. This is the lexicographic
+construction admitted by T §7.1. The mathematical order argument and the
+institutional authority selecting its definitions remain different
+questions.</p>
+<p>For a one-dimensional support anchor, precedence is trivial. For
+several dimensions, omitting precedence leaves the analytical order
+incomplete. Omitting one constituent point order likewise fails to
+establish this declared complete-order construction. Coincidental
+equality of current results does not fill either omission.</p>
+</section>
+<section class="level1" id="the-smallest-logical-declaration-model">
+<h1>3. The smallest logical declaration model</h1>
+<p>O3 needs two kinds of order fact and one family binding. These are
+semantic requirements, not a demand for three new storage classes or
+registries.</p>
+<section class="level2" id="a-point-order-declaration-for-a-constituent-anchor">
+<h2>3.1 A point-order declaration for a constituent anchor</h2>
+<p>A logical point-order declaration identifies the anchor whose points
+it orders, the governing order rule, and the scope in which that rule is
+authoritative. Point identity and equality come from that anchor’s
+governed structure; display labels do not replace them.</p>
+<p>Conceptually, the declaration carries:</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fact</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Anchor reference</td>
+<td>The particular constituent anchor and its governing
+universe/context.</td>
+</tr>
+<tr class="even">
+<td>Order definition</td>
+<td>A complete ordering rule over that anchor’s analytical points.</td>
+</tr>
+<tr class="odd">
+<td>Semantic dependencies</td>
+<td>The logical point representation and comparison semantics needed by
+the rule.</td>
+</tr>
+<tr class="even">
+<td>Definition reference</td>
+<td>A version-resolved reference when the order is named or reused.</td>
+</tr>
+</tbody>
+</table>
+<p>Normal Manifold authority and publication rules apply. There is no
+order-specific exemption from ratification or evidence requirements.</p>
+<p>The order definition can be represented in two initial ways without
+changing its meaning. A rule-defined order compares a complete logical
+point representation under declared value semantics, as chronology
+compares fully identified Day points. An explicitly declared order lists
+a finite governed domain’s point identities in their intended sequence.
+These are alternative representations of a point order, not two new
+ontological kinds.</p>
+<p>An explicit sequence must cover its declared point domain without
+duplicate identities. A rule-defined order need not enumerate an
+unbounded domain, but its rule must cover that domain. A newly
+encountered point is not automatically appended to an explicit list.
+Either the declared rule already determines its position or the order is
+not established for that enlarged scope.</p>
+</section>
+<section class="level2" id="an-order-declaration-for-the-compound-support-anchor">
+<h2>3.2 An order declaration for the compound support anchor</h2>
+<p>The support-order declaration binds the constituent structure of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+to the selected point-order definitions and records their
+precedence.</p>
+<p>Its semantic content is:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒪</mi><mi>S</mi></msub><mo>=</mo><mo form="prefix" maxsize="1.2" minsize="1.2" stretchy="false">(</mo><mi>S</mi><mo>,</mo><mspace width="0.222em"></mspace><msubsup><mrow><mo form="prefix" stretchy="true">(</mo><msub><mi>A</mi><mi>i</mi></msub><mo>,</mo><msub><mi>O</mi><mi>i</mi></msub><mo form="postfix" stretchy="true">)</mo></mrow><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><mo>,</mo><mspace width="0.222em"></mspace><mi>σ</mi><mo>,</mo><mspace width="0.222em"></mspace><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow><mo form="postfix" maxsize="1.2" minsize="1.2" stretchy="false">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\mathcal O_S=
+\bigl(S,\ (A_i,O_i)_{i=1}^n,\ \sigma,\ \mathrm{lex}\bigr).
+</annotation></semantics></math></p>
+<p>Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>i</mi></msub><annotation encoding="application/x-tex">O_i</annotation></semantics></math>
+is the selected governed point order on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>i</mi></msub><annotation encoding="application/x-tex">A_i</annotation></semantics></math>,
+not a backend sort function. The symbol <code>lex</code> records the
+already-agreed composition law; it is not an invitation to add an
+open-ended catalogue of composition operators in this slice.</p>
+<p>Precedence belongs to this support-order declaration. It is not a
+universal rule that Customer always outranks Day throughout the
+Manifold. Another declared support order can use the same constituent
+orders in another precedence.</p>
+<p>Orders may be inline in governed definitions or named for reuse. The
+requirement is complete, version-resolved meaning, not a new naming
+ceremony for every order. A standalone order registry is not required by
+this proposal.</p>
+</section>
+<section class="level2" id="the-ordered-familys-binding">
+<h2>3.3 The ordered family’s binding</h2>
+<p>A family construction selects a fully resolved governed support order
+and its constitutive operand. The full target specification and family
+contract remain T §4: neither a complete order nor a callable FIRST/LAST
+spelling supplies the remaining obligations.</p>
+<p>For the finite construction in T §8, W is constituted from operand,
+order, and participation with its own witness-selection and continuation
+law. Scalar L has an admitted construction by value projection from W.
+An optional rich retained family R supplies an alternative basis with an
+exact compatible-union compression to W. These names denote ordinary
+analytical families, not mandatory public declaration kinds or engine
+types.</p>
+<p>A declaration must identify whether the referenced analytical object
+is the scalar target, witness-valued family, or another admitted family.
+It must not grant a scalar materialization the continuation capability
+of the witness solely because both concern LAST.</p>
+<p>The order can be reused by another admitted analytical law. A
+human-readable name is optional where canonical construction already
+resolves identity. Institutional publication and ratification remain
+separate from denotation.</p>
+</section>
+</section>
+<section class="level1" id="what-cdt-supplies-and-what-it-does-not">
+<h1>4. What CDT supplies, and what it does not</h1>
+<p><strong>CDT supplies comparison semantics. The Manifold supplies the
+analytical use of those semantics.</strong></p>
+<p>For example, a type specification may supply equality and
+chronological comparison for fully identified calendar dates. The
+Manifold must still establish which logical values identify its Day
+points and select that comparison as the Day order. A sortable Customer
+identifier is not, by that fact alone, the governed Customer order.</p>
+<p>Where a constituent point order is realized through values, let</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><mo>:</mo><mo>Pts</mo><mrow><mo form="prefix" stretchy="true">(</mo><msub><mi>A</mi><mi>i</mi></msub><mo form="postfix" stretchy="true">)</mo></mrow><mo>→</mo><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
+r_i:\operatorname{Pts}(A_i)\to T_i
+</annotation></semantics></math></p>
+<p>be the declared logical representation used by its comparator. A
+sufficient contract is that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi>i</mi></msub><annotation encoding="application/x-tex">r_i</annotation></semantics></math>
+is total over the declared point domain, distinguishes its analytical
+point identities, and uses a total comparator consistent with the type’s
+semantic equality. Then</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><msub><mo>&lt;</mo><mi>i</mi></msub><mi>y</mi><mspace width="1.0em"></mspace><mo>⇔</mo><mspace width="1.0em"></mspace><msub><mo>compare</mo><msub><mi>T</mi><mi>i</mi></msub></msub><mrow><mo form="prefix" stretchy="true">(</mo><msub><mi>r</mi><mi>i</mi></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo><msub><mi>r</mi><mi>i</mi></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>y</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo form="postfix" stretchy="true">)</mo></mrow><mo>&lt;</mo><mn>0</mn><mi>.</mi></mrow><annotation encoding="application/x-tex">
+x&lt;_i y\quad\Longleftrightarrow\quad
+\operatorname{compare}_{T_i}(r_i(x),r_i(y))&lt;0.
+</annotation></semantics></math></p>
+<p>This realizes an order <strong>on points</strong> through their
+governed representations. It does not redefine the order as “sort
+whatever values happen to be in a database column.”</p>
+<p>If two different Customer points have the same priority value, that
+value alone does not realize a complete Customer point order. If two Day
+points have the same display string because the year was omitted, that
+display string is not their complete point identity. In neither case
+should the engine append a row ID, storage address, or lexical
+identifier as an improvised tie-breaker.</p>
+<p>The declaration must already define a complete order. A realization
+that collapses distinct ordered points fails that declaration.</p>
+<p>For the first implementation contract, CDT must be able to express
+the relevant value domain, equality, comparison law, and any
+meaning-bearing parameters. Conversion into that representation is a
+separate obligation: failed conversion is not a new position in the
+order. The exact capability name and type catalogue remain a CDT
+reconciliation question.</p>
+<p>The earlier O2 inspector report identified a gap at its recorded
+baseline: the <code>ORDERED</code> accept-set concerned measure dtypes
+while coordinate levels lacked a declared semantic comparator. That
+observation is historical implementation evidence, not a claim about the
+uninspected CDT specification or the current build. The successor
+contract must be established against the actual type specification
+before conformance is claimed.</p>
+</section>
+<section class="level1" id="a-complete-example-without-new-query-syntax">
+<h1>5. A complete example without new query syntax</h1>
+<p>The following is a semantic ledger, <strong>not proposed Manifold or
+Frame-QL grammar</strong>.</p>
+<pre class="text"><code>Day point order
+    anchor: Day
+    rule: declared chronology over complete Day identities
+
+Customer point order
+    anchor: Customer
+    declared domain in this example: C1, C2
+    order: C1 before C2
+
+Support order O_customer_day
+    anchor: {Customer, Day}
+    precedence: Customer, then Day
+    component orders: Customer point order; Day point order
+
+Support order O_day_customer
+    anchor: {Customer, Day}
+    precedence: Day, then Customer
+    component orders: Day point order; Customer point order
+
+Two family constructions
+    LAST under O_customer_day of F at {Customer, Day}
+    LAST under O_day_customer of F at {Customer, Day}</code></pre>
+<p>Assume the governed support contains exactly these three points and
+the operand is supported at each:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Customer</th>
+<th>Day</th>
+<th style="text-align: right;">F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>C1</td>
+<td>d3</td>
+<td style="text-align: right;">80</td>
+</tr>
+<tr class="even">
+<td>C2</td>
+<td>d1</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr class="odd">
+<td>C2</td>
+<td>d2</td>
+<td style="text-align: right;">40</td>
+</tr>
+</tbody>
+</table>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mn>1</mn><mo>&lt;</mo><mi>d</mi><mn>2</mn><mo>&lt;</mo><mi>d</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">d1&lt;d2&lt;d3</annotation></semantics></math>.
+Customer-first precedence selects <code>(C2,d2)</code> for a global LAST
+and returns 40. Day-first precedence selects <code>(C1,d3)</code> and
+returns 80. No <code>(C2,d3)</code> point is manufactured to complete
+the coordinate product.</p>
+<p>At a target anchor that retains Customer, both constructions happen
+to return 80 for C1 and 40 for C2. That local agreement does not make
+the family identities equal: their governed global orders still
+differ.</p>
+<p>Also, a global LAST selecting one Customer-Day value is not the same
+construction as adding the per-customer LAST values. The latter yields
+120 in this example and would need its own lawful composition. O3 must
+not call every such expression “closing balance” or “closing stock” as
+though the business identity followed automatically from LAST.</p>
+</section>
+<section class="level1" id="multiple-orders-defaults-and-family-identity">
+<h1>6. Multiple orders, defaults, and family identity</h1>
+<p>Several governed orders can coexist on one anchor without ambiguity
+in a family definition. The family binds one of them.</p>
+<p>A request can name an existing family, explicitly select a governed
+order where the language permits it, or use a uniquely declared default.
+It cannot have an engine choose among several orders because one
+resembles a conventional sort.</p>
+<p>The family signature must preserve the operand identity,
+support-anchor identity, selected support-order definition, and other
+constitutive law parameters. A separately requested current anchor
+remains the measure’s location; physical sort strategy, partitioning,
+and row order are not family identity.</p>
+<p>Changing precedence or changing a declared point-order rule requires
+identity succession wherever the analytical meaning changes. Renaming a
+label while preserving its governed identity and definition does not.
+Replacing one physical order implementation with an equivalent
+implementation does not.</p>
+<p>Two order descriptions may be treated as equivalent only when their
+semantic equivalence is established over their governed scope. Equality
+of winners on today’s records is insufficient. O3 does not require a
+universal equivalence prover or a canonical minimal factorization
+algorithm.</p>
+<p>A rule-defined domain can acquire new points under the same unchanged
+order rule. That ordinarily changes the evidence population, not the
+rule definition. By contrast, editing an explicitly declared Customer
+priority sequence changes the order definition. Reusable state must
+remain tied to the applicable order and evidence scope in either
+case.</p>
+<p>Live, mutable priority measures raise a further question: whether the
+order depends on an explicit evaluation context or a frozen declaration.
+<strong>The initial O3 contract does not silently admit mutable ranking
+data as immutable order.</strong> Such a use requires a separately
+specified context/version binding before materialized winners can be
+reused safely.</p>
+</section>
+<section class="level1" id="hierarchies-projection-and-order-are-separate-facts">
+<h1>7. Hierarchies: projection and order are separate facts</h1>
+<p>A hierarchy establishes where finer points project. It does not, by
+itself, establish their point order. Conversely, knowing the order on
+Day does not make every coarser partition’s labels chronologically
+ordered.</p>
+<p>For FIRST/LAST continuation, the required order remains the order on
+the original support points. Let</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>≽</mo><mi>B</mi><mo>≽</mo><mi>A</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+S\succeq B\succeq A.
+</annotation></semantics></math></p>
+<p>An intermediate state at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">b\in B</annotation></semantics></math>
+retains the winning
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>-point.
+Continuing to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+compares those retained
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>-points
+under
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒪</mi><mi>S</mi></msub><annotation encoding="application/x-tex">\mathcal O_S</annotation></semantics></math>.
+It need not invent an order over the points of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>.</p>
+<p>This matters even when the intermediate groups are not contiguous
+under the support order. Suppose</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>2</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>3</mn></msub><mo>&lt;</mo><msub><mi>s</mi><mn>4</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+s_1&lt;s_2&lt;s_3&lt;s_4,
+</annotation></semantics></math></p>
+<p>with intermediate groups <code>{s1,s4}</code> and
+<code>{s2,s3}</code>. Their LAST witnesses are <code>s4</code> and
+<code>s3</code>; comparing them under the original order still selects
+<code>s4</code>. Ordering the group labels instead could select the
+wrong witness.</p>
+<p>If a <strong>new</strong> family starts at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+and its law requires an order on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>-points,
+that order must be established for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>.
+It is not supplied by the mere availability of winning
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>-point
+witnesses from a different family.</p>
+<p>An inherited order on coarser blocks may be justified where the
+partition and the original order support a suitable quotient—for
+example, noninterleaving ordered blocks with a proved correspondence.
+This is an optional derived-order law, not a prerequisite for FIRST/LAST
+witness continuation, and not something O3 assumes for every
+hierarchy.</p>
+<p>The same distinction prevents coordinate normalization from silently
+changing precedence. Adding a redundant <code>Month</code> display
+coordinate to <code>{Customer,Day}</code> must not cause an engine to
+invent a new order or a monthly reset.</p>
+</section>
+<section class="level1" id="the-family-proof-remains-in-the-theory">
+<h1>8. The family proof remains in the theory</h1>
+<p>T §§8.1–8.6 is the sole mathematical account used here. Its
+propositions define coherent-instance witness composition and show that
+extracting an extremum witness from compatible finite point–value sets
+preserves the admitted union/combine operation. No parallel witness
+theorem is introduced in this interface note.</p>
+<p>The complete finite-input fragment fixes coherent operand instance f,
+order, and contribution domain. Known-empty contribution supplies the
+identity; an unsupported contribution is not that identity. Two
+conflicting values for one analytical point do not satisfy the
+coherent-instance premise.</p>
+<p>A representation must preserve original point identity, declared
+order comparison, the associated operand value where required, and the
+distinction between known-empty and unavailable state. It may use a
+typed record, coordinate tuple, governed point reference, or a faithful
+encoding. A nominal built-in type called <code>Witness</code> is not
+required.</p>
+<p>R is an optional sufficient basis, not a prerequisite to serving W or
+L. A direct implementation can establish W without retaining the full
+pair set if its evidence establishes the winning-point claim. An
+adequately justified scalar may be available without an identified
+winner. These possibilities are not a mandatory <code>R → W → L</code>
+runtime pipeline.</p>
+<p>The family law is uniform across coherent instances; the
+instance-relative carrier does not create a new family identity for each
+snapshot. Whether two materializations are compatible instances for a
+proposed use is an evidence/reuse question, not a fact certified by a
+local winner comparison.</p>
+</section>
+<section class="level1" id="declaration-completeness-is-not-current-evidence-completeness">
+<h1>9. Declaration completeness is not current evidence
+completeness</h1>
+<p>A complete declared order does not prove that a current
+materialization can place every required point or recover its comparison
+representation. Conversely, loss of an irrelevant operand value need not
+make a target unavailable. Evidence obligations depend on the requested
+law.</p>
+<p>The following distinctions from T §9 must remain visible in a
+resolved order contract and its supporting evidence:</p>
+<ul>
+<li>A known domain <code>s1 &lt; s2 &lt; s3</code> with supported
+maximal value 30 can establish the coarser witness <code>(s3,30)</code>
+even when a finer intermediate witness at s1 cannot be obtained. Do not
+replace that unavailable intermediate by empty state.</li>
+<li>A fixed LAST law can establish scalar 7 without identifying the
+winner only under an adequate argument; T §9.6’s example requires known
+nonemptiness, exhaustive possible-participant coverage, and supported
+equal values at every possible winner. Equal values among observed rows
+alone are insufficient.</li>
+<li>Missing selected value, unknown possible later participation,
+incomplete point placement, and incomplete declared order are different
+failures. “Last supported value” cannot replace “last participating
+point’s value” silently.</li>
+</ul>
+<p>No order-specific standing enum is introduced here. The needed claim,
+its dependencies, and the evidence supporting it must be distinguished
+however the concrete implementation represents them.</p>
+<p>A false number is not made lawful by adding disclosure later. A late
+frame filter does not repair an earlier ordered walk that consumed an
+unplaceable contribution. Exact outcome policy and current containment
+remain separately authorized engineering work.</p>
+</section>
+<section class="level1" id="authored-meaning-admission-and-execution">
+<h1>10. Authored meaning, admission, and execution</h1>
+<p>The order declaration belongs in the logical Manifold. It identifies
+analytical anchors, point identities, order rules, and semantic
+comparison dependencies. It does not contain physical table/column
+paths, database collation defaults, Polars sort flags, or an
+engine-specific expression.</p>
+<p>The private mapping realizes those facts. A compiler may lower a
+declared chronological comparison to a suitable engine operation, but it
+may not decide that an unknown coordinate should sort first, or that an
+identifier should supply undeclared precedence.</p>
+<p>The existing lifecycle separation applies:</p>
+<pre class="text"><code>logical order declaration
+    -&gt; authorized versioned publication
+    -&gt; realization against private mapping
+    -&gt; evidence / certification of relevant obligations
+    -&gt; admitted ordered capability
+    -&gt; execution of the resolved contract</code></pre>
+<p>These stages need not become separate services. They are distinct
+sources of authority. Logical totality, adequate type semantics, mapping
+fidelity, and current data completeness are different claims. Some can
+be established by construction; others depend on a current attestation.
+[S6]</p>
+<p>A fresh scan that happens to contain no collisions does not prove
+that a declared comparator distinguishes every point in a larger
+intended domain. Conversely, a definition that establishes totality
+mathematically does not prove the current source retained every point or
+value.</p>
+<p>The successor should remove dependence on the spelling of a lineage
+name. A label change from <code>calendar</code> to another label must
+not remove chronology when the governed references and definition remain
+the same. The inspected build’s name-based source of order is a reported
+compatibility gap, not a normative rule to extend. [historical source S3
+in archived O3 v0.1]</p>
+</section>
+<section class="level1" id="one-resolved-semantic-contract-not-an-explanation-only-overlay">
+<h1>11. One resolved semantic contract, not an explanation-only
+overlay</h1>
+<p>A resolved ordered-family request needs to identify its selected
+family law, operand, support anchor, support-order definition, target
+anchor, admitted projection, participation rule, and the status of
+required realization evidence.</p>
+<p>That does not mean every field must appear in a canonical query
+string. Surface round-tripping and resolved meaning are different
+concerns. The current reconstruction report identifies an additive
+EXPLAIN location, while also observing that merely placing data there
+would not make execution consume it. [historical source S5 in archived
+O3 v0.1]</p>
+<p>The proposed invariant is:</p>
+<blockquote>
+<p><strong>Explanation and execution refer to the same resolved semantic
+order contract. EXPLAIN must not describe an order that the engine later
+reconstructs independently.</strong></p>
+</blockquote>
+<p>The planner-facing contract contains logical meaning and established
+obligations. Engine mechanics remain behind the existing execution
+boundary. A resolved reference can be shared without copying physical
+sort implementations into analytical planning.</p>
+<p>Preflight can state which order is selected and which obligations are
+statically established. It cannot claim to have verified current data
+conditions it has not examined. If a missing order declaration or
+missing required type capability is already known at planning time, an
+execution failure must not be postponed and presented as a successful
+preflight.</p>
+<p>No concrete field name or wire-version decision is made here.</p>
+</section>
+<section class="level1" id="state-identity-and-reuse">
+<h1>12. State identity and reuse</h1>
+<p>T §10.7 governs the materialization interface. The retained artifact
+must distinguish what it holds, which target claim is established and
+why, and what later use that information justifies.</p>
+<p>A retained nonempty W can construct scalar L and supply admitted
+witness continuation. A retained L after W was discarded and an L
+established without a winner may share the same scalar family identity
+and value while carrying different establishment records. Neither
+implies retained W. A trace recording historical witness use is not
+present recoverability.</p>
+<p>Compatibility must be established before invoking the
+lossy-composition theorem. With <code>p &lt; q</code>, a source claiming
+<code>(p,10),(q,20)</code> can compress to <code>(q,20)</code> and
+conceal conflict with another source’s <code>(p,11)</code>. Equal-point
+conflict checks on compressed winners are not a global validator. A
+matching context identifier must refer to adequate evidence rather than
+act as assurance by itself.</p>
+<p>Reordering the governed constituent definitions or changing their
+precedence can change family identity. Physical serialization can change
+without changing that identity if its semantic representation remains
+faithful. Evidence refresh can change availability without creating
+another family, but mixing incompatible instances is not authorized by a
+common family name.</p>
+<p>Coarsening sufficiency does not automatically cover deleting the
+winner, restricting it out, or re-forming a contextual input under
+different conditions. Each reuse needs the information and compatible
+premises required by that use. The concrete catalog and certificate
+schema remain outside this note.</p>
+</section>
+<section class="level1" id="scope-boundaries">
+<h1>13. Scope boundaries</h1>
+<p>The following boundaries prevent O3 from growing into a second query
+language.</p>
+<p><strong>No generic tie policy for the foundational family.</strong>
+Complete component orders and complete precedence define the comparison.
+Missing definition, conflicting operand evidence, and loss of a
+comparison representation have their own diagnoses.</p>
+<p><strong>No automatic global order from fiber-local orders.</strong>
+Day order inside each fixed Customer context does not, by itself, supply
+Customer order across contexts. A global <code>{Customer,Day}</code>
+support order needs the user’s full two-level construction. A
+deliberately narrower scoped family does not gain cross-context
+continuation merely because the physical carrier includes both
+customers.</p>
+<p><strong>No automatic family classification by operator name or
+execution cell.</strong> An order declaration can support an admitted
+ordered family. It can also supply order to a general focal expression
+with further context requirements. O3 establishes the order interface,
+not a family-admission shortcut.</p>
+<p><strong>No automatic neighborhood semantics.</strong> A complete
+point order establishes relative position. It does not define what
+“seven days” means as a distance/window, which peers a rank compares, or
+whether a missing observation is skipped. Those remain additional laws
+of the general-expression branch.</p>
+<p><strong>No forced legacy mechanism.</strong> Public
+<code>.last</code> references can be preserved through truthful
+resolution where the necessary meaning exists. A legacy
+<code>ORDER day</code> declaration is not mechanically upgraded to a
+complete multidimensional support order. Missing constituent orders or
+precedence must remain visible.</p>
+</section>
+<section class="level1" id="acceptance-cases">
+<h1>14. Acceptance cases</h1>
+<p>These are semantic requirements for the proposed interface. They are
+not claims about current Core behavior.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Case</th>
+<th>Expected determination</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>One-dimensional Day anchor with complete declared chronology</td>
+<td>Ordered support is defined; precedence is trivial.</td>
+</tr>
+<tr class="even">
+<td>Customer and Day orders complete, no declared precedence</td>
+<td>No complete compound order has been selected.</td>
+</tr>
+<tr class="odd">
+<td>Precedence complete, Customer point order absent</td>
+<td>Compound ordered support is not established.</td>
+</tr>
+<tr class="even">
+<td>Both orders and precedence complete</td>
+<td>Lexicographic point order is determined.</td>
+</tr>
+<tr class="odd">
+<td>Anchor written with coordinates in another display order</td>
+<td>Selected support order remains unchanged.</td>
+</tr>
+<tr class="even">
+<td>Sparse <code>{Customer,Day}</code> universe</td>
+<td>Only existing analytical points participate; no Cartesian
+filling.</td>
+</tr>
+<tr class="odd">
+<td>Two Day labels repeat because year is omitted</td>
+<td>Display label is insufficient as a complete point
+representation.</td>
+</tr>
+<tr class="even">
+<td>Two Customer points share an alleged unique rank</td>
+<td>That representation fails the declared complete Customer order.</td>
+</tr>
+<tr class="odd">
+<td>Several carrier records belong to one support point</td>
+<td>Establish the operand at that point under its own law before
+selection.</td>
+</tr>
+<tr class="even">
+<td>Same support point has conflicting values under one evidence
+context</td>
+<td>Input inconsistency; not a FIRST/LAST tie.</td>
+</tr>
+<tr class="odd">
+<td>Two governed precedence choices produce the same current winner</td>
+<td>No automatic equivalence of order/family identity.</td>
+</tr>
+<tr class="even">
+<td>Complete order definition, required coordinate lost</td>
+<td>Definition remains complete; current realization/support is
+deficient.</td>
+</tr>
+<tr class="odd">
+<td>Latest eligible point known, operand missing</td>
+<td>Do not silently return the previous supported value.</td>
+</tr>
+<tr class="even">
+<td>Lost Day placement, non-ordered total independent of Day</td>
+<td>Preserve the independently lawful total.</td>
+</tr>
+<tr class="odd">
+<td>Lost placement consumed by a scan before row withholding</td>
+<td>Result fails the ordered-domain obligation; final-row filtering is
+insufficient.</td>
+</tr>
+<tr class="even">
+<td>Direct versus staged LAST through arbitrary admitted groups</td>
+<td>Same support-point witness under unchanged order and
+contributions.</td>
+</tr>
+<tr class="odd">
+<td>Intermediate group labels sort differently from their support
+witnesses</td>
+<td>Compare retained support witnesses, not group labels.</td>
+</tr>
+<tr class="even">
+<td>New family starts at a coarser anchor</td>
+<td>Establish that new support anchor’s required point order.</td>
+</tr>
+<tr class="odd">
+<td>Mixed order-definition versions in a cache merge</td>
+<td>No silent merge; prove compatibility or decline reuse.</td>
+</tr>
+<tr class="even">
+<td>Physical permutation of identical governed evidence</td>
+<td>Same result and same relevant analytical determination.</td>
+</tr>
+<tr class="odd">
+<td>Output <code>ORDER BY</code> reverses display</td>
+<td>Inner family order and result remain unchanged.</td>
+</tr>
+<tr class="even">
+<td>EXPLAIN names an order different from execution’s</td>
+<td>Invalid realization of the resolved request.</td>
+</tr>
+<tr class="odd">
+<td>New point outside an explicitly ordered closed domain</td>
+<td>No inferred append position; resolve governed scope/version.</td>
+</tr>
+<tr class="even">
+<td>A business-priority field changes during execution</td>
+<td>No silently mutable relation; bind the required context first.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level1" id="validation-status">
+<h1>15. Validation status</h1>
+<p>The finite mathematical checks reported in O3 v0.1 remain historical
+results of that earlier proposal. They were not rerun or extended for
+this document reconciliation and do not verify the present Columna or
+CDT implementation.</p>
+<p>This revision defers mathematical propositions to the unchanged T
+Draft 0.4. The current acceptance cases are semantic review obligations,
+not a claim that every case has an implementation or that a document
+check proves conformance.</p>
+</section>
+<section class="level1" id="remaining-specification-work">
+<h1>16. Remaining specification work</h1>
+<p>The order structure remains settled as a working theory input. The
+remaining interface review should determine whether the actual CDT
+specification can supply the required equality, point representation,
+and comparison semantics; how logical publication carries the selected
+constituent orders and precedence; and how the same resolved meaning
+reaches explanation and execution.</p>
+<p>This task must not use legacy FIRST/LAST internals as the definition
+of the target. Nor should it introduce a new authoring kind, registry,
+or wire field merely because the requirements are listed separately.
+Recommend the smallest faithful representation after inspecting the
+relevant interfaces.</p>
+<p>No such implementation or schema work is authorized here. The <a href="frameql_vnext_capability_profile_reconciliation_plan_v0_2.html">capability/profile
+reconciliation plan</a> states the separate adoption boundaries.</p>
+</section>
+<section class="level1" id="sources-and-evidence-boundaries">
+<h1>17. Sources and evidence boundaries</h1>
+<p>The fixed theoretical source is <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">T,
+Full Manuscript Working Draft 0.4</a>, especially §§2.1.3, 4–10, and 12.
+The language account is <a href="frameql_language_vnext_working_draft_v0_4.html">Language-Law
+Candidate 0.4</a>. Both are working documents, not published v7.1 or
+shipped-language certification.</p>
+<p>The full original O3 v0.1 is retained in the editorial archive,
+including its sources, historical inspector references, and previous
+validation record. Its opening source hierarchy and duplicated
+witness/evidence summaries are replaced by this note; unchanged
+declaration and geometry content is retained where consistent with
+T.</p>
+<p>The <a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">source/supersession
+index</a> identifies the active note, historical inputs, and withdrawn
+recommendations. No source byte, publication, or runtime was changed by
+this revision.</p>
+</section>
+</body>
+</html>

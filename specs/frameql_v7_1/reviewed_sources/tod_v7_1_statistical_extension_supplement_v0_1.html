@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<meta content="Huayin Wang" name="author"/>
+<title>Purpose and standing</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="tod_v7_1_statistical_extension_supplement_v0_1.md">Source Markdown</a></div>
+<header id="title-block-header">
+<h1 class="title">The Theory of Data — Statistical Extension
+Reference</h1>
+<p class="subtitle">Companion supplement to Version 7.1 Full Manuscript
+Working Draft 0.4</p>
+<p class="author">Huayin Wang</p>
+<p class="date">Working Supplement 0.1 — 7 September 2026</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#purpose-and-standing" id="toc-purpose-and-standing">Purpose and standing</a></li>
+<li><a href="#inherited-entries" id="toc-inherited-entries">Inherited
+entries</a>
+<ul>
+<li><a href="#s.1-weighted-mean" id="toc-s.1-weighted-mean">S.1 Weighted
+mean</a></li>
+<li><a href="#s.2-raw-moments" id="toc-s.2-raw-moments">S.2 Raw
+moments</a></li>
+<li><a href="#s.3-variance-and-standard-deviation" id="toc-s.3-variance-and-standard-deviation">S.3 Variance and standard
+deviation</a></li>
+<li><a href="#s.4-root-mean-square" id="toc-s.4-root-mean-square">S.4
+Root mean square</a></li>
+<li><a href="#s.5-central-moments-skewness-and-kurtosis" id="toc-s.5-central-moments-skewness-and-kurtosis">S.5 Central moments,
+skewness, and kurtosis</a></li>
+<li><a href="#s.6-covariance-and-pearson-correlation" id="toc-s.6-covariance-and-pearson-correlation">S.6 Covariance and
+Pearson correlation</a></li>
+<li><a href="#s.7-quantile-percentile-and-median" id="toc-s.7-quantile-percentile-and-median">S.7 Quantile, percentile,
+and median</a></li>
+<li><a href="#s.8-geometric-and-harmonic-mean" id="toc-s.8-geometric-and-harmonic-mean">S.8 Geometric and harmonic
+mean</a></li>
+</ul></li>
+<li><a href="#s.9-inherited-extension-matrix" id="toc-s.9-inherited-extension-matrix">S.9 Inherited extension
+matrix</a></li>
+<li><a href="#source-and-section-map" id="toc-source-and-section-map">Source and section map</a></li>
+</ul>
+</nav>
+<p><strong>datumwise, an independent open-source research
+project</strong><br/>
+<strong>License:</strong> Creative Commons Attribution 4.0 International
+(CC BY 4.0)<br/>
+<strong>Status:</strong> Working reference supplement; no separate DOI
+or implementation authority.<br/>
+<strong>Foundation:</strong> <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">ToD
+v7.1 — Full Manuscript Working Draft 0.4</a>.</p>
+<section class="level1" id="purpose-and-standing">
+<h1>Purpose and standing</h1>
+<p>This supplement preserves the eight statistical extension entries and
+extension-matrix rows previously included in Full Manuscript Working
+Draft 0.3, §§11.6.1–11.6.8 and Appendix A. Each entry body and each
+matrix row is retained unchanged; the entry headings are renumbered
+S.1–S.8. The relocation is editorial. It is neither a new admission nor
+a withdrawal of an inherited law.</p>
+<p>These entries retain Version 7.0’s conditional catalog standing: an
+entry identifies an intended canonical analytical-law kind, at its
+stated level of contract completion. Admission for realization requires
+the common family-law contract in the main manuscript, including its
+target specification, formation, participation, sufficient-state
+adequacy, and exceptional-case obligations. The four propositions in the
+foundation do not newly prove every formula or convention collected
+here. No TOP-k or rank-correlation admission is added. [2, §6.2]</p>
+<p>The foundation is readable without this supplement. A review of a
+particular extension’s formula or convention should use the
+corresponding entry here as well as the common contract. In the entries,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+is a constitutive input anchor and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+an admitted target with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>≽</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">I\succeq A</annotation></semantics></math>.
+Operands and every role of a basis are interpreted under the
+participation stated by the law. Mathematical forms are not shipped
+Frame-QL syntax.</p>
+</section>
+<section class="level1" id="inherited-entries">
+<h1>Inherited entries</h1>
+<section class="level2" id="s.1-weighted-mean">
+<h2>S.1 Weighted mean</h2>
+<p>For <code>weighted_mean(x@I,w@I)</code>, one sufficient-state basis
+under governed joint participation and a valid weight domain is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo form="prefix" stretchy="true">{</mo><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>w</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo><mspace width="0.278em"></mspace><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>w</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo form="postfix" stretchy="true">}</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\left\{sum((xw)@I),\;sum(w@I)\right\}.
+</annotation></semantics></math></p>
+<p>Its constructor is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>e</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi><mi>e</mi><mi>d</mi><mi>_</mi><mi>m</mi><mi>e</mi><mi>a</mi><mi>n</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>w</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><mfrac><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>w</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>w</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+weighted\_mean(x@I,w@I)@A
+=\frac{sum((xw)@I)@A}{sum(w@I)@A}.
+</annotation></semantics></math></p>
+<p>The product must be formed while the paired values are available at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.
+The denominator must use the same admitted joint participation. Missing,
+zero, negative, or otherwise inadmissible weights and a zero denominator
+require the law’s explicit treatment; the label “weight” supplies none
+of these decisions.</p>
+</section>
+<section class="level2" id="s.2-raw-moments">
+<h2>S.2 Raw moments</h2>
+<p>For integer
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>≥</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k\ge1</annotation></semantics></math>,
+write</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+moment(x@I,k).
+</annotation></semantics></math></p>
+<p>One sufficient basis is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo form="prefix" stretchy="false">{</mo><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><msup><mi>x</mi><mi>k</mi></msup><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo><mi>c</mi><mi>o</mi><mi>u</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo form="postfix" stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\{sum((x^k)@I),count(x@I)\}</annotation></semantics></math>,
+giving</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>k</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><mfrac><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><msup><mi>x</mi><mi>k</mi></msup><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><mrow><mi>c</mi><mi>o</mi><mi>u</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+moment(x@I,k)@A
+=\frac{sum((x^k)@I)@A}{count(x@I)@A}
+</annotation></semantics></math></p>
+<p>on the applicable nonempty domain. The first raw moment may
+canonicalize to MEAN where the analytical law and conventions agree. The
+pointwise power is part of formation at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>,
+not an operation applied after a different aggregation.</p>
+</section>
+<section class="level2" id="s.3-variance-and-standard-deviation">
+<h2>S.3 Variance and standard deviation</h2>
+<p>A variance family carries its convention:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>d</mi><mi>d</mi><mi>o</mi><mi>f</mi><mo>=</mo><mi>d</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+variance(x@I;ddof=d).
+</annotation></semantics></math></p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mi>c</mi><mi>o</mi><mi>u</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><annotation encoding="application/x-tex">n=count(x@I)@A</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>=</mo><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><annotation encoding="application/x-tex">s_1=sum(x@I)@A</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>2</mn></msub><mo>=</mo><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><msup><mi>x</mi><mn>2</mn></msup><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><annotation encoding="application/x-tex">s_2=sum((x^2)@I)@A</annotation></semantics></math>,
+all under matching participation. One exact construction is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>d</mi><mi>d</mi><mi>o</mi><mi>f</mi><mo>=</mo><mi>d</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><mfrac><mrow><msub><mi>s</mi><mn>2</mn></msub><mo>−</mo><msubsup><mi>s</mi><mn>1</mn><mn>2</mn></msubsup><mi>/</mi><mi>n</mi></mrow><mrow><mi>n</mi><mo>−</mo><mi>d</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+variance(x@I;ddof=d)@A
+=\frac{s_2-s_1^2/n}{n-d}
+</annotation></semantics></math></p>
+<p>on the convention’s defined domain. Common
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">d=0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d=1</annotation></semantics></math>
+conventions distinguish population and sample denominators. The formula
+is an analytical equality, not a recommendation that every
+finite-precision engine use this numerically unqualified evaluation
+path.</p>
+<p>Standard deviation has the same-anchor constructor</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>t</mi><mi>d</mi><mi>d</mi><mi>e</mi><mi>v</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>d</mi><mi>d</mi><mi>o</mi><mi>f</mi><mo>=</mo><mi>d</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><msqrt><mrow><mi>v</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>d</mi><mi>d</mi><mi>o</mi><mi>f</mi><mo>=</mo><mi>d</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></msqrt><mi>.</mi></mrow><annotation encoding="application/x-tex">
+stddev(x@I;ddof=d)@A
+=\sqrt{variance(x@I;ddof=d)@A}.
+</annotation></semantics></math></p>
+<p>Variance is sufficient for that target at the same anchor without
+becoming self-sufficient from its finalized scalar for variance
+continuation.</p>
+</section>
+<section class="level2" id="s.4-root-mean-square">
+<h2>S.4 Root mean square</h2>
+<p>The family <code>rms(x@I)</code> has the constructor</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>m</mi><mi>s</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><msqrt><mrow><mi>m</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mn>2</mn><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">
+rms(x@I)@A=\sqrt{moment(x@I,2)@A}
+</annotation></semantics></math></p>
+<p>on the admitted domain. The second raw moment is therefore a
+sufficient-state family for RMS.</p>
+</section>
+<section class="level2" id="s.5-central-moments-skewness-and-kurtosis">
+<h2>S.5 Central moments, skewness, and kurtosis</h2>
+<p>The baseline admits central-moment constructions of the form</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>r</mi><mi>a</mi><mi>l</mi><mi>_</mi><mi>m</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>k</mi><mo>;</mo><mi>c</mi><mi>o</mi><mi>n</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>=</mo><mi>c</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+central\_moment(x@I,k;convention=c).
+</annotation></semantics></math></p>
+<p>For population central moments, raw sums through order
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+and count form one exact sufficient basis. Skewness and kurtosis retain
+their explicit conventions because finite-sample corrections and
+excess-kurtosis choices differ.</p>
+<p>For the population-moment conventions,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>k</mi><mi>e</mi><mi>w</mi><mi>n</mi><mi>e</mi><mi>s</mi><mi>s</mi><mo>=</mo><mfrac><msub><mi>μ</mi><mn>3</mn></msub><msubsup><mi>μ</mi><mn>2</mn><mrow><mn>3</mn><mi>/</mi><mn>2</mn></mrow></msubsup></mfrac><mo>,</mo><mspace width="2.0em"></mspace><mi>k</mi><mi>u</mi><mi>r</mi><mi>t</mi><mi>o</mi><mi>s</mi><mi>i</mi><mi>s</mi><mo>=</mo><mfrac><msub><mi>μ</mi><mn>4</mn></msub><msubsup><mi>μ</mi><mn>2</mn><mn>2</mn></msubsup></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+skewness=\frac{\mu_3}{\mu_2^{3/2}},
+\qquad
+kurtosis=\frac{\mu_4}{\mu_2^2},
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\mu_k</annotation></semantics></math>
+is the corresponding central moment. The law must state its defined
+domain and convention rather than permitting an implementation to select
+one silently.</p>
+</section>
+<section class="level2" id="s.6-covariance-and-pearson-correlation">
+<h2>S.6 Covariance and Pearson correlation</h2>
+<p>For</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>o</mi><mi>v</mi><mi>a</mi><mi>r</mi><mi>i</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>y</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>d</mi><mi>d</mi><mi>o</mi><mi>f</mi><mo>=</mo><mi>d</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+covariance(x@I,y@I;ddof=d),
+</annotation></semantics></math></p>
+<p>let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>
+denote the governed jointly participating points. One exact basis
+carries, over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>J</mi><annotation encoding="application/x-tex">J</annotation></semantics></math>,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∑</mo><mi>x</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∑</mo><mi>y</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∑</mo><mi>x</mi><mi>y</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+n,\quad\sum x,\quad\sum y,\quad\sum xy.
+</annotation></semantics></math></p>
+<p>These may be represented through the appropriate self-sufficient
+sum/count families formed from the paired expression at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.
+Every component must use the same co-participation contract. Marginal
+support of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+does not establish paired support.</p>
+<p>Pearson correlation additionally needs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∑</mo><msup><mi>x</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sum x^2</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∑</mo><msup><mi>y</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\sum y^2</annotation></semantics></math>
+under that same joint participation. A canonical form is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mi>o</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>l</mi><mi>a</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>y</mi><mi>@</mi><mi>I</mi><mo>;</mo><mi>m</mi><mi>e</mi><mi>t</mi><mi>h</mi><mi>o</mi><mi>d</mi><mo>=</mo><mi>p</mi><mi>e</mi><mi>a</mi><mi>r</mi><mi>s</mi><mi>o</mi><mi>n</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+correlation(x@I,y@I;method=pearson).
+</annotation></semantics></math></p>
+<p>The applicable denominator and exceptional cases remain part of the
+law. Rank-based correlation is not admitted here merely by analogy to
+Pearson or by the fact that ranking is executable.</p>
+</section>
+<section class="level2" id="s.7-quantile-percentile-and-median">
+<h2>S.7 Quantile, percentile, and median</h2>
+<p>Exact quantiles can use the multiset family as one sufficient
+basis:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mi>u</mi><mi>a</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>l</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>p</mi><mo>;</mo><mi>c</mi><mi>o</mi><mi>n</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>=</mo><mi>q</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><msub><mi>Q</mi><mrow><mi>p</mi><mo>,</mo><mi>q</mi></mrow></msub><mrow><mo form="prefix" stretchy="true">(</mo><mi>m</mi><mi>u</mi><mi>l</mi><mi>t</mi><mi>i</mi><mi>s</mi><mi>e</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+quantile(x@I,p;convention=q)@A
+=Q_{p,q}(multiset(x@I)@A).
+</annotation></semantics></math></p>
+<p>The convention
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+determines the applicable finite-sample interpolation rule and domain.
+Exact state may retain all participating values with multiplicity;
+analytical materializability does not imply cheap or compact
+storage.</p>
+<p>Under the same convention, percentile and median may canonicalize
+as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>e</mi><mi>r</mi><mi>c</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>l</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>p</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>≡</mo><mi>q</mi><mi>u</mi><mi>a</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>l</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mi>p</mi><mi>/</mi><mn>100</mn><mo form="postfix" stretchy="true">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+percentile(x@I,p)\equiv quantile(x@I,p/100),
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>e</mi><mi>d</mi><mi>i</mi><mi>a</mi><mi>n</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mo>≡</mo><mi>q</mi><mi>u</mi><mi>a</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>l</mi><mi>e</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo>,</mo><mn>0.5</mn><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+median(x@I)\equiv quantile(x@I,0.5).
+</annotation></semantics></math></p>
+<p>The required ordering is over the value domain. These quantile
+constructions do not depend on an order of analytical input points.</p>
+</section>
+<section class="level2" id="s.8-geometric-and-harmonic-mean">
+<h2>S.8 Geometric and harmonic mean</h2>
+<p>For the declared positive domain of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mi>e</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>t</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>_</mi><mi>m</mi><mi>e</mi><mi>a</mi><mi>n</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><mo>exp</mo><mspace width="-0.167em"></mspace><mrow><mo form="prefix" stretchy="true">(</mo><mfrac><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><mo>log</mo><mi>x</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><mrow><mi>c</mi><mi>o</mi><mi>u</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></mfrac><mo form="postfix" stretchy="true">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
+geometric\_mean(x@I)@A
+=\exp\!\left(\frac{sum((\log x)@I)@A}{count(x@I)@A}\right).
+</annotation></semantics></math></p>
+<p>The logarithm is formed pointwise at the constitutive anchor. Nothing
+here claims that taking a logarithm preserves the operand family
+identity.</p>
+<p>For a domain on which the reciprocals and constructor are
+defined,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mi>a</mi><mi>r</mi><mi>m</mi><mi>o</mi><mi>n</mi><mi>i</mi><mi>c</mi><mi>_</mi><mi>m</mi><mi>e</mi><mi>a</mi><mi>n</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi><mo>=</mo><mfrac><mrow><mi>c</mi><mi>o</mi><mi>u</mi><mi>n</mi><mi>t</mi><mrow><mo form="prefix" stretchy="true">(</mo><mi>x</mi><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mrow><mo form="prefix" stretchy="true">(</mo><mrow><mo form="prefix" stretchy="true">(</mo><mn>1</mn><mi>/</mi><mi>x</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>I</mi><mo form="postfix" stretchy="true">)</mo></mrow><mi>@</mi><mi>A</mi></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
+harmonic\_mean(x@I)@A
+=\frac{count(x@I)@A}{sum((1/x)@I)@A}.
+</annotation></semantics></math></p>
+<p>Both constructions require matching participation and explicit
+exceptional cases. Their analytical statements do not assert that any
+particular profile realizes them.</p>
+</section>
+</section>
+<section class="level1" id="s.9-inherited-extension-matrix">
+<h1>S.9 Inherited extension matrix</h1>
+<p>These rows are retained verbatim from Full Manuscript Working Draft
+0.3, Appendix A. The central-moment row already collected an inherited
+construction; its relocation adds no admission.</p>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Standing</th>
+<th>Analytical family or construction</th>
+<th>Sufficient-state basis / continuation</th>
+<th>Required semantic distinctions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Weighted mean: <code>weighted_mean(x@I,w@I)</code></td>
+<td>Sum of paired products and sum of participating weights</td>
+<td>Joint participation, weight domain, denominator</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Raw moment: <code>moment(x@I,k)</code></td>
+<td>Sum of powers and count</td>
+<td>Power formed at constitutive anchor; order-one equivalence where
+admitted</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Variance: <code>variance(x@I;ddof=d)</code></td>
+<td>Count, sum, sum of squares</td>
+<td>Denominator convention and defined domain</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Standard deviation: <code>stddev(x@I;ddof=d)</code></td>
+<td>Same-anchor variance family</td>
+<td>Square root; does not confer variance self-continuation</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>RMS: <code>rms(x@I)</code></td>
+<td>Second raw moment</td>
+<td>Square root and applicable domain</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Central moments:
+<code>central_moment(x@I,k;convention=c)</code></td>
+<td>Raw sums through order
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+and count for the population convention</td>
+<td>Convention, matched participation, definedness</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Skewness</td>
+<td>Moments through order 3 or equivalent admitted basis</td>
+<td>Finite-sample convention, nondegenerate domain</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Kurtosis</td>
+<td>Moments through order 4 or equivalent admitted basis</td>
+<td>Excess / finite-sample convention, nondegenerate domain</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Covariance: <code>covariance(x@I,y@I;ddof=d)</code></td>
+<td>Joint count, sums, cross-product sum</td>
+<td>Same governed pair domain in every role</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Pearson correlation:
+<code>correlation(x@I,y@I;method=pearson)</code></td>
+<td>Joint co-moments through second order</td>
+<td>Same pair domain; denominator and exceptional cases</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Quantile: <code>quantile(x@I,p;convention=q)</code></td>
+<td>Exact multiset or admitted exact-equivalent basis</td>
+<td>Value order, probability level, interpolation convention</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Median</td>
+<td>Alias of quantile at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.5</mn><annotation encoding="application/x-tex">0.5</annotation></semantics></math>
+under the same convention</td>
+<td>No duplicate identity by mere spelling</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Percentile</td>
+<td>Alias of quantile at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>/</mi><mn>100</mn></mrow><annotation encoding="application/x-tex">p/100</annotation></semantics></math>
+under the same convention</td>
+<td>Parameter conversion preserves convention</td>
+</tr>
+<tr class="even">
+<td>Inherited extension</td>
+<td>Geometric mean</td>
+<td>Sum of logarithms and count</td>
+<td>Positive domain; logarithm formed before reduction</td>
+</tr>
+<tr class="odd">
+<td>Inherited extension</td>
+<td>Harmonic mean</td>
+<td>Reciprocal sum and count</td>
+<td>Reciprocal and final-constructor domains</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="level1" id="source-and-section-map">
+<h1>Source and section map</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Former location in Full Manuscript 0.3</th>
+<th>Location here</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>§11.6.1</td>
+<td>§S.1</td>
+</tr>
+<tr class="even">
+<td>§11.6.2</td>
+<td>§S.2</td>
+</tr>
+<tr class="odd">
+<td>§11.6.3</td>
+<td>§S.3</td>
+</tr>
+<tr class="even">
+<td>§11.6.4</td>
+<td>§S.4</td>
+</tr>
+<tr class="odd">
+<td>§11.6.5</td>
+<td>§S.5</td>
+</tr>
+<tr class="even">
+<td>§11.6.6</td>
+<td>§S.6</td>
+</tr>
+<tr class="odd">
+<td>§11.6.7</td>
+<td>§S.7</td>
+</tr>
+<tr class="even">
+<td>§11.6.8</td>
+<td>§S.8</td>
+</tr>
+<tr class="odd">
+<td>Appendix A, inherited-extension rows</td>
+<td>§S.9</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[1]</strong> Wang, Huayin. <em>The Theory of Data: A
+Foundation for Analytical Identity, Derivability, and Consistency</em>.
+Version 7.1, Full Manuscript Working Draft 0.3. Immediate textual
+source. Working Draft 0.4 remains the current foundation review target
+for this packet.</p>
+<p><strong>[2]</strong> Wang, Huayin. <em>The Theory of Data: A
+Foundation for Analytical Identity, Derivability, and Consistency</em>.
+Version 7.0, 3 September 2026. DOI: 10.5281/zenodo.22289091. The
+published predecessor identified by the supplied source. Its §6.2 is the
+inherited catalog; metadata is carried from that source, not newly
+verified here.</p>
+</section>
+</body>
+</html>

@@ -1,0 +1,23 @@
+--- reviewed_sources/frameql_language_vnext_working_draft_v0_4.md
++++ proposed_adoption/frameql_language_vnext_working_draft_v0_4.md
+@@ -744,16 +744,16 @@
+ 
+ which counts participating `x @ I` measures under the governed participation law.
+ 
+-Suppose 100 orders are known to exist but Revenue is supported on only 97.
+-
+-Then, conceptually:
++For this example, governance establishes exactly 100 participating Order points. The declared `count(revenue @ {order})` law counts the Order points with supported Revenue, and exactly 97 satisfy that participation rule.
++
++Under those declared rules:
+ 
+ ```text
+ count(order)              = 100
+ count(revenue @ {order})   = 97
+ ```
+ 
+-unless a separate totality/support rule establishes another result.
++The 97 follows from the stated supported-observation participation rule, not from the spelling `count(x @ I)` alone. Another declared participation rule must be evaluated on its own terms. Neither count permits the intended population of a different target, such as a mean over all 100 Order points, to shrink silently.
+ 
+ This distinction becomes especially important under data loss.
+ 

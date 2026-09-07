@@ -1,0 +1,367 @@
+{
+  "status": "semantic review cases; not executable Columna tests",
+  "theory": "the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+  "language": "frameql_language_vnext_working_draft_v0_4.md",
+  "cases": [
+    {
+      "id": "F01",
+      "topic": "Specified target before bases",
+      "premises": "A proposed family has two mutually agreeing constructors but no nominated defining construction or independent target specification.",
+      "expected": "The family contract is incomplete; agreement has no independently specified target against which adequacy can be judged.",
+      "prohibited_shortcut": "Admit the family solely because the two implementations agree.",
+      "theory_sections": "§§4, 5.3",
+      "language_sections": "§6.5"
+    },
+    {
+      "id": "F02",
+      "topic": "Canonical family without a business name",
+      "premises": "An admitted law and fully specified constitutive input establish mean(revenue@order); no business alias has been assigned.",
+      "expected": "Its canonical family expression can denote the family. Institutional publication remains a separate authority.",
+      "prohibited_shortcut": "Require an AS name or a new authoring ceremony before the analytical identity can be denoted.",
+      "theory_sections": "§§3.9, 4",
+      "language_sections": "§§3.5, 11.1"
+    },
+    {
+      "id": "F03",
+      "topic": "Aliases do not admit law",
+      "premises": "A query computes revenue/orders AS aov without a supplied AOV family contract.",
+      "expected": "The alias names an output; it does not establish the missing law. An explicitly governed AOV family remains possible.",
+      "prohibited_shortcut": "Treat output naming as either automatic family admission or a permanent ban on an AOV family.",
+      "theory_sections": "§§3.5, 3.7, 3.9",
+      "language_sections": "§§2.3, 11.2"
+    },
+    {
+      "id": "F04",
+      "topic": "Constitutive ancestry versus plan",
+      "premises": "Two licensed derivations claim the same family and anchor using different staging paths under matching premises.",
+      "expected": "Consistency applies to the same target; physical path/proof method is not new identity.",
+      "prohibited_shortcut": "Include plan identity in the family signature to evade required agreement.",
+      "theory_sections": "§§2.2, 6.4–6.5",
+      "language_sections": "§§3.1, 10.1"
+    },
+    {
+      "id": "F05",
+      "topic": "Meaning before executable availability",
+      "premises": "Mean over orders and mean over customers are identity-distinct possible readings; only one has a presently executable plan.",
+      "expected": "The unresolved intent distinction remains. Availability can be reported, not silently used to choose meaning.",
+      "prohibited_shortcut": "Serve the available target as though availability resolved the request.",
+      "theory_sections": "§§2.2, 3.9, 9.1",
+      "language_sections": "§10.1"
+    },
+    {
+      "id": "F06",
+      "topic": "Several bases, one target",
+      "premises": "SUM/COUNT and an exact multiset are both adequate and available for the same fixed MEAN with matching participation.",
+      "expected": "They are alternative constructions of one target, not an intent ambiguity.",
+      "prohibited_shortcut": "Return Clarify merely because there are two bases.",
+      "theory_sections": "§§5.3, 5.5",
+      "language_sections": "§§6.6, 10.1"
+    },
+    {
+      "id": "F07",
+      "topic": "Multiplicity remains part of the law",
+      "premises": "Ordinary MEAN is defined over participating values 0,0,6.",
+      "expected": "The mean is 2; replacing the multiset by set {0,6} yields another construction and gives 3.",
+      "prohibited_shortcut": "Declare a deduplicating set an exact basis for this MEAN.",
+      "theory_sections": "§5.3",
+      "language_sections": "§6.6"
+    },
+    {
+      "id": "F08",
+      "topic": "Intake versus continuation",
+      "premises": "Two retained count values 37 and 12 represent compatible disjoint contributions.",
+      "expected": "Count continuation adds them to 49. Counting the two summary rows instead would answer a different question.",
+      "prohibited_shortcut": "Use count-of-summary-rows as count-state merge.",
+      "theory_sections": "§5.2",
+      "language_sections": "§6.6"
+    },
+    {
+      "id": "O01",
+      "topic": "One-dimensional analytical order",
+      "premises": "Day is a governed anchor with complete chronology and the family has its remaining complete contract.",
+      "expected": "Precedence is trivial; the declared order supports the admitted finite FIRST/LAST construction.",
+      "prohibited_shortcut": "Require a new generic tie policy or infer chronology from a lineage label alone.",
+      "theory_sections": "§§7.1, 8",
+      "language_sections": "§9.2"
+    },
+    {
+      "id": "O02",
+      "topic": "Compound precedence required",
+      "premises": "Customer and Day have complete point orders, but no precedence is supplied for the claimed global Customer-Day support.",
+      "expected": "The compound order is not fully selected.",
+      "prohibited_shortcut": "Infer precedence from output column order.",
+      "theory_sections": "§7.1",
+      "language_sections": "§9.2"
+    },
+    {
+      "id": "O03",
+      "topic": "Missing constituent order",
+      "premises": "Precedence is supplied but Customer has no complete governed point order.",
+      "expected": "The claimed complete compound order is unestablished.",
+      "prohibited_shortcut": "Sort Customer IDs lexically as an implicit analytical order.",
+      "theory_sections": "§§7.1–7.3",
+      "language_sections": "§9.2"
+    },
+    {
+      "id": "O04",
+      "topic": "Sparse analytical point space",
+      "premises": "The governed support contains only (C1,d3),(C2,d1),(C2,d2).",
+      "expected": "Only these points participate; order does not create (C2,d3) or another absent combination.",
+      "prohibited_shortcut": "Fill the Cartesian product before LAST without an existence law.",
+      "theory_sections": "§§2.1.3, 7.1",
+      "language_sections": "§9.2"
+    },
+    {
+      "id": "O05",
+      "topic": "Form the support measure first",
+      "premises": "Several Product carrier records lie beneath one Account-Day point.",
+      "expected": "Apply the operand formation law to establish its value at Account-Day before FIRST/LAST consumes that analytical point.",
+      "prohibited_shortcut": "Select a raw row by day or invent SUM as the formation rule merely to collapse duplicates.",
+      "theory_sections": "§§3.1, 7.3",
+      "language_sections": "§9.3"
+    },
+    {
+      "id": "O06",
+      "topic": "Ordered family not automatic legacy conformance",
+      "premises": "FIRST/LAST has an admitted construction in T; a legacy .last spelling is accepted by a particular build.",
+      "expected": "Analytical admission and that execution path’s conformance are separate claims.",
+      "prohibited_shortcut": "Certify every existing .last because the theory now admits an ordered family.",
+      "theory_sections": "§§3.6, 4, 8",
+      "language_sections": "§§9.1, 9.7, 13"
+    },
+    {
+      "id": "O07",
+      "topic": "Original point witness through coarsening",
+      "premises": "For s1<s2<s3<s4, admitted intermediate groups are {s1,s4} and {s2,s3}, with coherent supported values.",
+      "expected": "Retained winners s4 and s3 combine to s4 using the original support order.",
+      "prohibited_shortcut": "Compare intermediate group labels or demand an unrelated new order on B.",
+      "theory_sections": "§§8.3–8.4",
+      "language_sections": "§9.5"
+    },
+    {
+      "id": "O08",
+      "topic": "Scalar is not witness continuation",
+      "premises": "An exact scalar LAST was materialized but its selected point is not retained or recoverable.",
+      "expected": "The scalar target is available; further witness comparison is not licensed from it alone.",
+      "prohibited_shortcut": "Set scalar re-entry true merely because LAST has family standing.",
+      "theory_sections": "§§8.1, 10.7",
+      "language_sections": "§§9.4, 10.6"
+    },
+    {
+      "id": "O09",
+      "topic": "R is optional",
+      "premises": "An adequate argument establishes W; a full retained point–value set is unavailable.",
+      "expected": "W can be used under its actual admitted contract; full R storage is not mandatory.",
+      "prohibited_shortcut": "Impose R→W→L as a required runtime/storage pipeline.",
+      "theory_sections": "§§8.6, 9.2",
+      "language_sections": "§9.4"
+    },
+    {
+      "id": "O10",
+      "topic": "Same results, different laws",
+      "premises": "Two different declared precedence orders currently yield the same winner.",
+      "expected": "Numerical agreement does not merge their analytical identities.",
+      "prohibited_shortcut": "Infer equivalent family identity from observed equality.",
+      "theory_sections": "§§2.2, 7.2",
+      "language_sections": "§§9.2, 10.1"
+    },
+    {
+      "id": "O11",
+      "topic": "Frame selection can coincide with LAST",
+      "premises": "A versioned output ORDER BY/LIMIT PER query selects a row whose value equals a LAST answer.",
+      "expected": "Frame selection remains legitimate in its own scope; no inner family identity or reusable witness follows.",
+      "prohibited_shortcut": "Either ban the frame operation or use it as ambient order/family proof.",
+      "theory_sections": "§12.4",
+      "language_sections": "§9.7"
+    },
+    {
+      "id": "C01",
+      "topic": "Contextual formation can precede a family",
+      "premises": "The law fixes daily predecessor formation over 100,110,95,105 and a separately admitted additive family over the changes.",
+      "expected": "Established changes 10,-15,10 sum to 5 coherently.",
+      "prohibited_shortcut": "Exclude the family solely because formation used neighboring points.",
+      "theory_sections": "§§3.3–3.4",
+      "language_sections": "§6.10"
+    },
+    {
+      "id": "C02",
+      "topic": "Restriction must preserve formation",
+      "premises": "The same change family is requested after grouping the source into pairs.",
+      "expected": "Reusing original changes differs from restarting predecessor formation inside the pairs, which gives 20.",
+      "prohibited_shortcut": "Push a restriction/grouping through formation without an equivalence justification.",
+      "theory_sections": "§§3.3, 10.2",
+      "language_sections": "§§2.4, 6.10"
+    },
+    {
+      "id": "C03",
+      "topic": "Faithful recomputation is not forbidden",
+      "premises": "The original contextual formation and its full governing context can be reproduced from adequate evidence.",
+      "expected": "Recomputation can establish the same constitutive values; caching is not required by the theory.",
+      "prohibited_shortcut": "Interpret “do not change formation” as “never recompute.”",
+      "theory_sections": "§§3.3–3.4",
+      "language_sections": "§6.10"
+    },
+    {
+      "id": "C04",
+      "topic": "Focal window law needs its own contract",
+      "premises": "A rolling expression is written without specifying positional versus time-range neighborhood and material endpoint conventions.",
+      "expected": "The expression’s meaning remains incomplete where these choices change the result.",
+      "prohibited_shortcut": "Treat complete order alone as a full window specification or automatically admit family continuation.",
+      "theory_sections": "§§3.4, 11.4",
+      "language_sections": "§9.6"
+    },
+    {
+      "id": "E01",
+      "topic": "Established output, unplaced source",
+      "premises": "A Day output point exists and Revenue is eligible, but required known source contributions cannot be placed by Day.",
+      "expected": "The target value may be unsupported; the upstream placement cause remains distinct.",
+      "prohibited_shortcut": "Declare the output point nonexistent or forbid target missingness solely because a source placement is unresolved.",
+      "theory_sections": "§§2.3, 9.1–9.4",
+      "language_sections": "§§8.1–8.4"
+    },
+    {
+      "id": "E02",
+      "topic": "Known domain with incomplete operand support",
+      "premises": "Governance establishes exactly 100 participating transactions, with 99 supported Revenue observations.",
+      "expected": "Point count is 100; a count under a declared supported-operand participation law may be 99. A mean over all 100 cannot silently shrink.",
+      "prohibited_shortcut": "Infer intended population from surviving ordinary rows.",
+      "theory_sections": "§§2.3, 4.2, 11.5.1",
+      "language_sections": "§8.5"
+    },
+    {
+      "id": "E03",
+      "topic": "Coarser witness, unavailable staged input",
+      "premises": "Participation s1<s2<s3 and intermediate blocks {s1},{s2,s3} are known; f(s1) unavailable, f(s2)=20 and f(s3)=30 supported.",
+      "expected": "Coarser W=(s3,30) is established by maximality evidence even though a plan consuming both exact intermediate witnesses lacks an input.",
+      "prohibited_shortcut": "Replace unavailable intermediate W with known-empty identity, or infer target impossibility from this plan’s failure.",
+      "theory_sections": "§§6.1, 9.5",
+      "language_sections": "§8.7"
+    },
+    {
+      "id": "E04",
+      "topic": "Scalar without winner identity",
+      "premises": "Fixed LAST law; p<q; p definitely participates; q participation unresolved; p,q exhaust possible participants; both operand values supported as 7.",
+      "expected": "Nonempty scalar L=7 is established; selected-point W is not.",
+      "prohibited_shortcut": "Claim W, choose an arbitrary observed 7 without the exhaustive evidence, or treat W as necessary for every L proof.",
+      "theory_sections": "§9.6",
+      "language_sections": "§8.8"
+    },
+    {
+      "id": "E05",
+      "topic": "Missing selected operand",
+      "premises": "Participation and order identify the latest eligible point, whose operand value is unsupported.",
+      "expected": "Ordinary LAST value is unsupported unless another adequate argument establishes the same target.",
+      "prohibited_shortcut": "Return an earlier supported value by silent support-skipping.",
+      "theory_sections": "§§9.2–9.3",
+      "language_sections": "§8.6"
+    },
+    {
+      "id": "E06",
+      "topic": "Known empty is not unknown",
+      "premises": "An intermediate contribution set is unknown, or the selected value is unsupported.",
+      "expected": "No algebraic unit can stand for that unknown evidence without a separate admitted argument.",
+      "prohibited_shortcut": "Coerce carrier NULL or unknown support to bottom/zero/empty set.",
+      "theory_sections": "§§5.2, 6.1.1, 8.2, 9",
+      "language_sections": "§8.9"
+    },
+    {
+      "id": "E07",
+      "topic": "Late filtering cannot undo ordered influence",
+      "premises": "An unplaceable contribution affects cumulative/lag output, then its own row is withheld.",
+      "expected": "The resulting computation has not been repaired by the late withholding.",
+      "prohibited_shortcut": "Report ordinary established results merely because no NULL-coordinate row remains.",
+      "theory_sections": "§9.4",
+      "language_sections": "§8.10"
+    },
+    {
+      "id": "R01",
+      "topic": "Lossy compression can hide contradiction",
+      "premises": "With p<q, one alleged coherent input has (p,10),(q,20); another has (p,11).",
+      "expected": "Their coherent-instance premise is violated; compressed winner comparison cannot validate it.",
+      "prohibited_shortcut": "Treat equal-point conflict checks or a common context label as a global consistency certificate.",
+      "theory_sections": "§10.6",
+      "language_sections": "§10.7"
+    },
+    {
+      "id": "R02",
+      "topic": "Three materialization claims",
+      "premises": "A catalog holds W, scalar L projected from discarded W, or scalar L established without identifying its winner.",
+      "expected": "Record retained content, established claim and justification, and permitted reuse; the scalar rows need not have different family identities.",
+      "prohibited_shortcut": "Collapse all entries into “LAST available” or create family identity by proof method.",
+      "theory_sections": "§10.7",
+      "language_sections": "§10.6"
+    },
+    {
+      "id": "R03",
+      "topic": "Equal mean display, unequal continuation",
+      "premises": "Exact states (10,1) and (1000,100) both display 10; both are extended by (20,1).",
+      "expected": "The results become 15 and 1020/101; scalar equality did not preserve continuation information.",
+      "prohibited_shortcut": "Merge or substitute displayed means as adequate state.",
+      "theory_sections": "§10.5",
+      "language_sections": "§6.6"
+    },
+    {
+      "id": "R04",
+      "topic": "Restriction or deletion of winner",
+      "premises": "Only the compressed maximal witness is retained, and the next request excludes or deletes that point.",
+      "expected": "A new adequate derivation or richer retained information is required to identify its replacement.",
+      "prohibited_shortcut": "Infer arbitrary filtering/deletion capability from witness coarsening capability.",
+      "theory_sections": "§§10.2–10.3",
+      "language_sections": "§10.8"
+    },
+    {
+      "id": "R05",
+      "topic": "Approximate realization of unchanged target",
+      "premises": "An explicit approximation contract supports an HLL estimate of exact count distinct.",
+      "expected": "It may target the same family while remaining an approximate realization, not an exact sufficient-state basis.",
+      "prohibited_shortcut": "Invent a new target solely from error grade, or silently reuse the estimate as exact state.",
+      "theory_sections": "§10.9",
+      "language_sections": "§§6.9, 10.8"
+    },
+    {
+      "id": "G01",
+      "topic": "EXPLAIN does not observe unperformed checks",
+      "premises": "EXPLAIN resolves meaning and a proposed plan without data execution or applicable evidence for all runtime conditions.",
+      "expected": "It distinguishes what is established from checks outstanding.",
+      "prohibited_shortcut": "Guarantee all future disclosures or complete data support from a data-free explanation.",
+      "theory_sections": "§§9.1, 12.3–12.4",
+      "language_sections": "§10.3"
+    },
+    {
+      "id": "G02",
+      "topic": "Family law versus engine kind",
+      "premises": "An operator belongs to a runtime category or a canonical capability list.",
+      "expected": "Family admission still needs the complete target/law contract; category does not confer authority.",
+      "prohibited_shortcut": "Grant family founding solely from an anchor-changing kind.",
+      "theory_sections": "§3.6",
+      "language_sections": "§13"
+    },
+    {
+      "id": "G03",
+      "topic": "No syntax from theory alone",
+      "premises": "The theory admits tuples, witnesses, order definitions or a family construction not exposed by a shipped grammar/profile.",
+      "expected": "Semantic admission and language/implementation availability remain separate.",
+      "prohibited_shortcut": "Advertise theoretical notation as accepted syntax or edit measured build status to imply support.",
+      "theory_sections": "§§12–13",
+      "language_sections": "§§1, 13"
+    },
+    {
+      "id": "G04",
+      "topic": "CDT interface remains unverified",
+      "premises": "This pass specifies required comparison and representation behavior but does not inspect CDT v0.5.",
+      "expected": "Readiness is unverified; a new nominal Witness type is neither asserted absent nor mandated.",
+      "prohibited_shortcut": "Claim present API support/absence from the theory manuscript.",
+      "theory_sections": "§§8.5, 12.2, 13.3",
+      "language_sections": "§9.5"
+    },
+    {
+      "id": "G05",
+      "topic": "Historical instructions are not active authority",
+      "premises": "An earlier O1/O2/M2/CP document says FIRST/LAST cannot found families or universal formation locality is required.",
+      "expected": "Use the explicit current supersession index and reconciled language target; preserve historical observations at their own snapshots.",
+      "prohibited_shortcut": "Execute an old “settled” instruction because its filename or prior PASS sounds authoritative.",
+      "theory_sections": "Appendix C.4",
+      "language_sections": "§§15–16"
+    }
+  ]
+}

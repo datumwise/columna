@@ -56,3 +56,21 @@ build. `tools/SAMPLE_regeneration.md` is the harness's own smoke fixture.
 > **Note (CP-M1, pre-content-edit):** the manuals are committed here as uploaded (residency). The
 > alignment edits — watermarks, the Chapter-26 status marks, the Appendix B concordance, the Frame-QL
 > Chapter 2/6 rewrite — land after CP-M1's design is ruled and come to CP-M2 as a rendered diff.
+
+## Working successors are NOT here — and that is the point
+
+The reviewed ToD v7.1 / Frame-QL working successor set is staged at
+[`specs/frameql_v7_1/`](../specs/frameql_v7_1/README.md), deliberately outside `docs/`, because of the
+rule at the top of this file: **the merge that publishes a file into `docs/` is the publication.** An
+unpublished working successor placed here would be published by the act of landing it.
+
+So the four Frame-QL documents above continue to describe **the shipped release** and nothing else.
+The successor set describes a *proposed* analytical interpretation that this build does not implement,
+carries no DOI, and is not conformance evidence. Neither one is a version of the other:
+
+- **`docs/frame_ql_language.md`** — what the released language means. Read it to know what the build does.
+- **`specs/frameql_v7_1/`** — the reviewed v7.1 successor target. Read it to know what is proposed.
+
+Superseded working rulings inside that set (the withdrawn categorical FIRST/LAST-family exclusion, the
+universal formation-locality veto, older migration recommendations) are retained as historical evidence
+and are **not** current design authority. Do not implement from them.

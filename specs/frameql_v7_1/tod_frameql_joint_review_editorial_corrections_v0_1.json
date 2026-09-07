@@ -1,0 +1,27 @@
+{
+  "status": "Prepared and replay-checked in memory; NOT applied to the authoritative source files, repository, or publication. Apply during staged documentation adoption.",
+  "edits": [
+    {
+      "id": "J1",
+      "source_file": "frameql_language_vnext_working_draft_v0_4.md",
+      "source_sha256": "7df997395247e6e3f218f2d8db9f21d589ba1cc7fc5914cec7225ea07e1a5820",
+      "section": "§6.3",
+      "start_line": 747,
+      "reason": "Carry the supported-observation participation premise into the local 97-observation example; T §11.5.1 and case E02 already state the rule.",
+      "old": "Suppose 100 orders are known to exist but Revenue is supported on only 97.\n\nThen, conceptually:\n\n```text\ncount(order)              = 100\ncount(revenue @ {order})   = 97\n```\n\nunless a separate totality/support rule establishes another result.",
+      "new": "For this example, governance establishes exactly 100 participating Order points. The declared `count(revenue @ {order})` law counts the Order points with supported Revenue, and exactly 97 satisfy that participation rule.\n\nUnder those declared rules:\n\n```text\ncount(order)              = 100\ncount(revenue @ {order})   = 97\n```\n\nThe 97 follows from the stated supported-observation participation rule, not from the spelling `count(x @ I)` alone. Another declared participation rule must be evaluated on its own terms. Neither count permits the intended population of a different target, such as a mean over all 100 Order points, to shrink silently.",
+      "proposed_content_sha256": "78e84a60ed825c4fdffe7beecc26099d34faaa3b15299536b65179389e5873ab"
+    },
+    {
+      "id": "J2",
+      "source_file": "columna_o3_governed_analytical_order_v0_2.md",
+      "source_sha256": "37307c32f94b2b37f4e42628964df9ae5a3ef61690f144d60aed70a0eb54bc45",
+      "section": "§17, supporting §10",
+      "start_line": 378,
+      "reason": "Resolve the otherwise orphaned [S6] citation in §10 without giving the historical handoff current operational authority.",
+      "old": "The full original O3 v0.1 is retained in the editorial archive, including its sources, historical inspector references, and previous validation record.",
+      "new": "**[S6] Historical architecture handoff.** `START_HERE(2).md`, 14 August 2026, identified as source S6 in O3 v0.1 §17. Section 10 cites it only for the persistent separation of logical publication, private mapping, certification, serving admission, and planner/engine responsibility. Its operational status is historical, not current.\n\nThe full original O3 v0.1 is retained in the editorial archive, including its sources, historical inspector references, and previous validation record.",
+      "proposed_content_sha256": "ae55b0bd4dd1b65feb41fc3db9f7a4d650e6654c53bbd60500fc8d3497dcb707"
+    }
+  ]
+}

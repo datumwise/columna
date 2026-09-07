@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<meta content="Huayin Wang" name="author"/>
+<title>The Result Can Be the Query</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="a_primer_on_frameql_v2_3_working_draft_v0_1.md">Source Markdown</a></div>
+<header id="title-block-header">
+<h1 class="title">A Primer on Frame-QL</h1>
+<p class="subtitle">Why the Result Can Be the Query</p>
+<p class="author">Huayin Wang</p>
+<p class="date">Proposed Version 2.3 - Working Draft 0.1 - 7 September
+2026</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#the-result-can-be-the-query" id="toc-the-result-can-be-the-query">The Result Can Be the
+Query</a></li>
+<li><a href="#why-output-dimensions-are-not-always-enough" id="toc-why-output-dimensions-are-not-always-enough">Why Output
+Dimensions Are Not Always Enough</a></li>
+<li><a href="#why-frame-ql-has-and-at" id="toc-why-frame-ql-has-and-at">Why Frame-QL Has <code>@</code> and
+<code>AT</code></a></li>
+<li><a href="#where-the-missing-work-goes" id="toc-where-the-missing-work-goes">Where the Missing Work
+Goes</a></li>
+<li><a href="#why-this-matters-for-ai" id="toc-why-this-matters-for-ai">Why This Matters for AI</a></li>
+<li><a href="#why-another-query-language" id="toc-why-another-query-language">Why Another Query Language?</a></li>
+<li><a href="#where-to-go-next" id="toc-where-to-go-next">Where to Go
+Next</a></li>
+</ul>
+</nav>
+<p><strong>datumwise, an independent open-source research
+project</strong><br/>
+<strong>License:</strong> Creative Commons Attribution 4.0 International
+(CC BY 4.0)<br/>
+<strong>Status:</strong> Working successor for review; not published, no
+DOI assigned.<br/>
+<strong>Predecessor:</strong> Version 2.2, DOI
+10.5281/zenodo.22071833.<br/>
+<strong>Theory reference:</strong> <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">ToD
+v7.1 Full Manuscript Working Draft 0.4</a>.</p>
+<p>This draft updates the conceptual explanation, not shipped syntax or
+behavior. The three predecessor Frame-QL examples are retained unchanged
+and were not re-executed. The editorial record identifies the complete
+public source and its normalized transcription.</p>
+<p>Suppose someone asks:</p>
+<blockquote>
+<p><strong>What was average order value by region last
+quarter?</strong></p>
+</blockquote>
+<p>Why should that person have to know which warehouse table stores the
+transactions, which join reaches region, which rows constitute an order,
+which intermediate aggregate is safe to reuse, and how to write the
+executable database program?</p>
+<p>Frame-QL begins with a separation:</p>
+<blockquote>
+<p><strong>The requester should say what analytical result is wanted. A
+governed system should determine whether that result is established and
+how it may be produced.</strong></p>
+</blockquote>
+<p>Frame-QL is a query language for declaring analytical results rather
+than relational production procedures.</p>
+<p>Under the <em>Theory of Data</em>, whose v7.1 working manuscript is
+the reference for this draft, Revenue is a <strong>measure
+family</strong>. Revenue at one anchor is a
+<strong>measure</strong>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>u</mi><mi>e</mi><mi>@</mi><mi>A</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+Revenue@A.
+</annotation></semantics></math></p>
+<p>That makes a Frame-QL request unusually literal.</p>
+<section class="level1" id="the-result-can-be-the-query">
+<h1>The Result Can Be the Query</h1>
+<p>Consider:</p>
+<pre class="frameql"><code>FROM retail_manifold
+SELECT revenue
+AT {customer, cal.month}</code></pre>
+<p>The statement does not name a transaction table, choose a foreign
+key, write a join, or say <code>GROUP BY customer, month</code>.</p>
+<p>It declares the governed environment, the requested analytical
+quantity, and the final output anchor.</p>
+<p>Conceptually, it asks for:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>u</mi><mi>e</mi><mi>@</mi><mo form="prefix" stretchy="false">{</mo><mi>C</mi><mi>u</mi><mi>s</mi><mi>t</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>r</mi><mo>,</mo><mi>M</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>h</mi><mo form="postfix" stretchy="false">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+Revenue@\{Customer,Month\}.
+</annotation></semantics></math></p>
+<p>The physical result might come from transaction detail, a verified
+materialization, a cache, an API, or another backend.</p>
+<p>The requester does not need to choose the physical source. The system
+must still establish that the available representation is adequate for
+the requested quantity and use. A cached average, for example, need not
+retain the sums and counts required for another exact aggregation.</p>
+<blockquote>
+<p><strong>Frame-QL is short because responsibility has moved, not
+because analytical work has disappeared.</strong></p>
+</blockquote>
+</section>
+<section class="level1" id="why-output-dimensions-are-not-always-enough">
+<h1>Why Output Dimensions Are Not Always Enough</h1>
+<p>Suppose a governed model establishes Revenue at three source
+anchors—Order, Line, and Customer—and each source measure reconciles to
+the same <strong>$250</strong> region-quarter total. There are three
+orders, six sale lines, and two customers.</p>
+<p>The same region-quarter can then support three mechanically correct
+averages:</p>
+<ul>
+<li>over <strong>orders</strong>: $250/3 = <strong>$83.33</strong>;</li>
+<li>over <strong>lines</strong>: $250/6 = <strong>$41.67</strong>;</li>
+<li>over <strong>customers</strong>: $250/2 =
+<strong>$125.00</strong>.</li>
+</ul>
+<p>The final output anchor is the same.</p>
+<p>What changed is the source measure consumed by the average:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>u</mi><mi>e</mi><mi>@</mi><mi>O</mi><mi>r</mi><mi>d</mi><mi>e</mi><mi>r</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>R</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>u</mi><mi>e</mi><mi>@</mi><mi>L</mi><mi>i</mi><mi>n</mi><mi>e</mi><mo>,</mo><mspace width="2.0em"></mspace><mi>R</mi><mi>e</mi><mi>v</mi><mi>e</mi><mi>n</mi><mi>u</mi><mi>e</mi><mi>@</mi><mi>C</mi><mi>u</mi><mi>s</mi><mi>t</mi><mi>o</mi><mi>m</mi><mi>e</mi><mi>r</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+Revenue@Order,
+\qquad
+Revenue@Line,
+\qquad
+Revenue@Customer.
+</annotation></semantics></math></p>
+<p>So a request shape such as:</p>
+<pre class="text"><code>metric: average_revenue
+dimensions: [region, quarter]</code></pre>
+<p>is sufficient only if <code>average_revenue</code> already names one
+complete governed analytical identity. If the analytical distinction
+still depends on what is being averaged, the request needs a way to
+state that distinction or the system must ask.</p>
+<blockquote>
+<p><strong>Safety should not be achieved by deleting distinctions that
+belong to analytical meaning.</strong></p>
+</blockquote>
+<p>Two different adequate ways to compute one specified average are not
+two different questions. Conversely, when order-level and customer-level
+averages remain distinct possible meanings, having data for only one
+does not tell the system which one the user intended.</p>
+</section>
+<section class="level1" id="why-frame-ql-has-and-at">
+<h1>Why Frame-QL Has <code>@</code> and <code>AT</code></h1>
+<p>The shipped language gives the two responsibilities different
+syntax.</p>
+<p><code>AT {…}</code> is the mandatory final output anchor of the
+frame.</p>
+<p><code>@ {…}</code> is the expression-local <strong>input-anchor
+pin</strong>.</p>
+<p>For example:</p>
+<pre class="frameql"><code>SELECT avg(revenue @ {order})
+AT {region, quarter}</code></pre>
+<p>reads:</p>
+<blockquote>
+<p>average <strong>Revenue at Order</strong>, returned at
+Region-Quarter.</p>
+</blockquote>
+<p>Changing the pin changes the question:</p>
+<pre class="frameql"><code>SELECT avg(revenue @ {customer})
+AT {region, quarter}</code></pre>
+<p>The two queries have the same final output anchor and need not denote
+the same analytical quantity.</p>
+<p>The current Theory of Data no longer says that one measure itself
+carries two current anchors. A measure has one current anchor. The
+Frame-QL <code>@</code> pin identifies the source measure consumed by
+the next operation; <code>AT</code> identifies where the completed
+result frame is returned.</p>
+<p>That is a cleaner theoretical explanation of the same shipped
+syntax.</p>
+<blockquote>
+<p><strong><code>AT</code> says where the frame is returned.
+<code>@</code> says where an expression must exist when the next
+operation consumes it.</strong></p>
+</blockquote>
+<p>The Frame-QL grammar is authoritative for formal syntax. The
+<em>Frame-QL Manual, Second Edition</em> remains authoritative for
+shipped meaning and behavior.</p>
+<p>This draft uses the v7.1 working theory for analytical identity and
+law. A complete admitted canonical construction can denote a family
+without a separate business name. An output alias does not supply a
+missing family law or publish a definition.</p>
+<p>Version 7.1 also admits FIRST/LAST families under complete governed
+analytical-point order and the required sufficient-state law; a scalar
+LAST answer is not automatically reusable witness state. That
+theoretical admission does not certify a legacy <code>.last</code>
+implementation. The fuller Introduction explains this distinction
+without adding syntax here.</p>
+<p>Advances in the theory do not enlarge the shipped language, and
+retained implementation vocabulary does not redefine the theory. The <a href="frameql_language_vnext_working_draft_v0_4.html">working language-law
+candidate</a> is the reconciled semantic target; released behavior
+remains governed by the applicable reference and profile.</p>
+</section>
+<section class="level1" id="where-the-missing-work-goes">
+<h1>Where the Missing Work Goes</h1>
+<p>A Frame-QL request is resolved against a <strong>Manifold</strong>,
+Columna’s versioned governed logical analytical model. It supplies
+names, anchors, universes, analytical laws, and relationship
+contracts.</p>
+<p>The broader serving environment combines that logical publication
+with separate private physical mappings, applicable evidence, and
+available materializations. The authored Manifold does not contain
+physical database bindings as analytical law. Mapping realizes the
+declared meaning; it does not create it.</p>
+<p>Conceptually:</p>
+<pre class="text"><code>user question
+    -&gt; interpretation
+    -&gt; Frame-QL candidate
+    -&gt; governed resolution / adjudication
+    -&gt; trusted planning
+    -&gt; backend execution</code></pre>
+<p>The referenced language presents four serving outcomes: serve,
+disclose, clarify, and refuse. Exact reason codes, errors, and
+availability remain version-specific. A syntactically valid request is
+not guaranteed a number; disclosure does not repair a computation whose
+analytical premises were never established.</p>
+<p>The request language does not need to expose the physical tables and
+joins because those are not what the requester is declaring.</p>
+<p>The physical plan may still contain SQL. Frame-QL does not make
+relational databases disappear.</p>
+<p>It moves physical manufacture behind the analytical request
+boundary.</p>
+</section>
+<section class="level1" id="why-this-matters-for-ai">
+<h1>Why This Matters for AI</h1>
+<p>AI makes the boundary especially visible.</p>
+<p>A model is useful for interpreting ordinary language, searching
+vocabulary, proposing candidate anchors, and asking clarification
+questions.</p>
+<p>Those abilities do not make the model analytically authoritative.</p>
+<p>Frame-QL lets a model propose a bounded analytical declaration rather
+than requiring it to author the final physical program.</p>
+<p>That is one useful architecture, not the only possible one.
+<em>Analytical Governance</em> shows that an independently established
+analytical target can also be paired with candidate SQL and verified
+before execution.</p>
+<p>Frame-QL’s narrower advantage is that the request object itself is
+already shaped around analytical distinctions.</p>
+<blockquote>
+<p><strong>Model-authored does not mean authorized.</strong></p>
+</blockquote>
+</section>
+<section class="level1" id="why-another-query-language">
+<h1>Why Another Query Language?</h1>
+<p>SQL already exists. Semantic layers already expose governed metrics.
+Why introduce another query language?</p>
+<p>Because another language is justified only when it creates a
+different boundary.</p>
+<p>SQL is declarative about relational processing.</p>
+<p>A narrow metric/dimension/filter interface can be safe and effective
+when the metric name already contains the complete analytical
+identity.</p>
+<p>Frame-QL is designed for requests where the analytical distinction
+itself must remain expressible—especially source-anchor
+distinctions—without giving the requester arbitrary physical
+authority.</p>
+<p>The reason is compact:</p>
+<blockquote>
+<p><strong>The query should contain the information required to identify
+the analytical result, not the information required to physically
+manufacture it.</strong></p>
+</blockquote>
+</section>
+<section class="level1" id="where-to-go-next">
+<h1>Where to Go Next</h1>
+<p>For the fuller account in this review set, see <a href="frameql_an_introduction_v2_4_working_draft_v0_1.html"><em>Frame-QL:
+An Introduction</em>, proposed Version 2.4, Working Draft 0.1</a>. Its
+published predecessor is Version 2.3, DOI 10.5281/zenodo.22071910.</p>
+<p>The governing comparison text is <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html"><em>The
+Theory of Data</em>, Version 7.1, Full Manuscript Working Draft 0.4</a>;
+it remains unpublished. The <a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">companion
+authority index</a> identifies the active technical drafts. Exact
+accepted syntax and shipped behavior remain in the applicable grammar
+and language reference; profiles and measured build records keep their
+separate roles.</p>
+<p>The published ToD v7.0 (10.5281/zenodo.22289091), ToD Primer v2.2
+(10.5281/zenodo.22018549), ToD Introduction v2.2
+(10.5281/zenodo.22018598), and Analytical Governance v1.1
+(10.5281/zenodo.22046037) retain their own edition scope.</p>
+<p><strong>Revision note.</strong> This proposed Version 2.3 updates the
+Version 2.2 Primer’s theoretical and authority explanation while
+retaining its section order, central argument, three Frame-QL examples,
+and numerical averaging example. It is not a language release or a
+published replacement. No examples were rerun in this pass.</p>
+</section>
+</body>
+</html>
