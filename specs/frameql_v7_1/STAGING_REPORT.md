@@ -175,12 +175,36 @@ staging.
 
 ## 9. Adoption decisions left open for the reviewer
 
-1. **Upgrade the authority index §4 provenance qualification?** The predecessors are now verified
-   deposit-faithful. Editing a reviewed source is an adoption act, so it was not done here.
-2. **Register the two Frame-QL deposits in `services/ask/deposits/manifest.json`?** That would give
+1. **The provenance wording is now understated in three places, including inside the staged successors
+   themselves.** This is the one item where the staged text says something the evidence contradicts,
+   so it is listed first.
+
+   - *Introduction v2.4* masthead: *"the editorial archive records the normalized text transcription
+     used here. This is not a byte-identical republication of the deposit."*
+   - *Primer v2.3* masthead: *"The editorial record identifies the complete public source and its
+     normalized transcription."*
+   - Authority index §4: *"whitespace-normalized transcriptions, not independently checksum-verified
+     Zenodo deposit bytes"*; and the reconciliation register's *"Direct binary download into the
+     container was unavailable."*
+
+   Against the evidence: the download **was** available today, both deposits **were** checksum-verified,
+   and the Primer's transcription is **byte-identical** to the deposit — so "normalized transcription"
+   is a no-op disclaimer there. For the Introduction the qualification is defensible but narrow: the
+   only divergence is three paragraph splits, with no word changed. Nothing here warrants substituting
+   a predecessor or changing an edition; only the provenance sentences are wrong, and they are wrong in
+   the direction of claiming *less* certainty than the repository can now demonstrate.
+
+   Not corrected here, deliberately: all four documents are reviewed sources, and rewriting a
+   provenance claim inside them is an adoption act, not a staging act. Recommended replacement wording
+   should carry the record IDs, both checksums, byte and line counts, the date of verification, and the
+   explicit statement that carried-across examples were **not** re-executed.
+
+2. **Upgrade the authority index §4 provenance qualification?** Same evidence as above, separated
+   because the index is the document a reader consults for status rather than a masthead.
+3. **Register the two Frame-QL deposits in `services/ask/deposits/manifest.json`?** That would give
    the verification a durable home. It is an ingest-pipeline run, not an edit.
-3. **Rebuild the Introduction v2.4's two inherited paragraph splits from the verified deposit bytes,
+4. **Rebuild the Introduction v2.4's two inherited paragraph splits from the verified deposit bytes,
    or record the divergence?** Either is defensible; recording it is what this staging does.
-4. **Which patch-sheet items, if any, proceed** — on the evidence above, §3 reduced and §11 relocated
+5. **Which patch-sheet items, if any, proceed** — on the evidence above, §3 reduced and §11 relocated
    are the only two adoptable as editorial acts; the rest need rulings, have missing destinations, or
    would overclaim.
