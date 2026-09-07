@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-09-01.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-09-07.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -485,16 +485,35 @@ def main() -> int:
         rs = [r for r in records_of.get(wid, []) if r["status"] == "current"]
         return rs[0] if len(rs) == 1 else None
 
+    # ToD v7.0 (Huayin, ruling of 2026-09-07) supersedes the 2026-08-21 acceptance, which pinned v6.1
+    # as current. Updated rather than deleted, on the same reasoning as the AG chain below: the CHAIN
+    # is the assertion, and it is now three records long. v7.0 was deposited 2026-09-03 under the
+    # work's ALREADY-ATTACHED concept 21707017, and Zenodo's own metadata declares it
+    # `isNewVersionOf` 10.5281/zenodo.22013410 — so this is an ordinary in-concept succession, not a
+    # new work and not a new attachment.
+    #
+    # PUBLISHED-RESEARCH CURRENCY IS NOT IMPLEMENTATION CONFORMANCE (same ruling). What Columna
+    # implements does not decide which research edition is recorded as current, and this assertion
+    # must never be weakened to whatever the runtime happens to cover.
     tod = current_of("w-theory-of-data")
-    if not tod or tod["doi"] != "10.5281/zenodo.22013410" or tod["version"] != "6.1":
-        fail("G9", f"ruling 5: the current record of The Theory of Data must be v6.1 / 22013410; got "
-                   f"{tod and (tod['version'], tod['doi'])}")
+    if not tod or tod["doi"] != "10.5281/zenodo.22289091" or tod["version"] != "7.0":
+        fail("G9", f"ruling 2026-09-07: the current record of The Theory of Data must be v7.0 / "
+                   f"22289091; got {tod and (tod['version'], tod['doi'])}")
     else:
         prev = by_record.get(tod.get("supersedes") or "")
-        if not prev or prev["doi"] != "10.5281/zenodo.21958062" or prev["version"] != "6.0":
-            fail("G9", "ruling 5: v6.1 must supersede v6.0 (21958062) by recordId")
+        if not prev or prev["doi"] != "10.5281/zenodo.22013410" or prev["version"] != "6.1":
+            fail("G9", "ruling 2026-09-07: v7.0 must supersede v6.1 (22013410) by recordId, not by DOI "
+                       "or by date")
         elif prev["status"] != "superseded":
-            fail("G9", "ruling 5: v6.0 must remain historically addressable with status `superseded`")
+            fail("G9", "ruling 2026-09-07: v6.1 must remain a first-class historical record with status "
+                       "`superseded` — superseded is a status, not a deletion")
+        else:
+            first = by_record.get(prev.get("supersedes") or "")
+            if not first or first["doi"] != "10.5281/zenodo.21958062" or first["version"] != "6.0":
+                fail("G9", "ruling 5: the chain must still reach v6.0 (21958062) through v6.1, by "
+                           "recordId")
+            elif first["status"] != "superseded":
+                fail("G9", "ruling 5: v6.0 must remain historically addressable with status `superseded`")
 
     primer = current_of("w-tod-primer")
     if not primer or primer["doi"] != "10.5281/zenodo.22018549" or primer["version"] != "2.2":
