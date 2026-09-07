@@ -1,0 +1,104 @@
+--- a_primer_on_frameql_v2_2_transcribed.md
++++ a_primer_on_frameql_v2_3_working_draft_v0_1.md
+@@ -2,7 +2,7 @@
+ title: "A Primer on Frame-QL"
+ subtitle: "Why the Result Can Be the Query"
+ author: "Huayin Wang"
+-date: "Version 2.2 - 23 August 2026"
++date: "Proposed Version 2.3 - Working Draft 0.1 - 7 September 2026"
+ lang: en-US
+ papersize: letter
+ geometry: margin=0.9in
+@@ -59,8 +59,11 @@
+ 
+ **datumwise, an independent open-source research project**  
+ **License:** Creative Commons Attribution 4.0 International (CC BY 4.0)  
+-**DOI:** 10.5281/zenodo.22071833  
+-**Previous published version:** Version 2.1, DOI 10.5281/zenodo.22071619
++**Status:** Working successor for review; not published, no DOI assigned.  
++**Predecessor:** Version 2.2, DOI 10.5281/zenodo.22071833.  
++**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md).
++
++This draft updates the conceptual explanation, not shipped syntax or behavior. The three predecessor Frame-QL examples are retained unchanged and were not re-executed. The editorial record identifies the complete public source and its normalized transcription.
+ 
+ Suppose someone asks:
+ 
+@@ -74,7 +77,7 @@
+ 
+ Frame-QL is a query language for declaring analytical results rather than relational production procedures.
+ 
+-Under the current *Theory of Data*, Revenue is a **measure family**. Revenue at one anchor is a **measure**:
++Under the *Theory of Data*, whose v7.1 working manuscript is the reference for this draft, Revenue is a **measure family**. Revenue at one anchor is a **measure**:
+ 
+ $$
+ Revenue@A.
+@@ -104,7 +107,7 @@
+ 
+ The physical result might come from transaction detail, a verified materialization, a cache, an API, or another backend.
+ 
+-The requester does not need to choose.
++The requester does not need to choose the physical source. The system must still establish that the available representation is adequate for the requested quantity and use. A cached average, for example, need not retain the sums and counts required for another exact aggregation.
+ 
+ > **Frame-QL is short because responsibility has moved, not because analytical work has disappeared.**
+ 
+@@ -141,6 +144,8 @@
+ 
+ > **Safety should not be achieved by deleting distinctions that belong to analytical meaning.**
+ 
++Two different adequate ways to compute one specified average are not two different questions. Conversely, when order-level and customer-level averages remain distinct possible meanings, having data for only one does not tell the system which one the user intended.
++
+ # Why Frame-QL Has `@` and `AT`
+ 
+ The shipped language gives the two responsibilities different syntax.
+@@ -177,13 +182,17 @@
+ 
+ The Frame-QL grammar is authoritative for formal syntax. The *Frame-QL Manual, Second Edition* remains authoritative for shipped meaning and behavior.
+ 
+-The current *Theory of Data*, Version 6.1, defines the theoretical vocabulary and governing laws of analytical data; the shipped language may retain earlier vocabulary with Manual-defined meanings under its compatibility provision. Advances in the Theory do not enlarge the language, and retained vocabulary does not redefine the Theory; the Manual states this relationship normatively.
++This draft uses the v7.1 working theory for analytical identity and law. A complete admitted canonical construction can denote a family without a separate business name. An output alias does not supply a missing family law or publish a definition.
++
++Version 7.1 also admits FIRST/LAST families under complete governed analytical-point order and the required sufficient-state law; a scalar LAST answer is not automatically reusable witness state. That theoretical admission does not certify a legacy `.last` implementation. The fuller Introduction explains this distinction without adding syntax here.
++
++Advances in the theory do not enlarge the shipped language, and retained implementation vocabulary does not redefine the theory. The [working language-law candidate](frameql_language_vnext_working_draft_v0_4.md) is the reconciled semantic target; released behavior remains governed by the applicable reference and profile.
+ 
+ # Where the Missing Work Goes
+ 
+-A Frame-QL request is resolved against a **Manifold**, Columna's versioned governed analytical environment.
+-
+-The Manifold can contain the information needed by the implementation to resolve names, anchors, universes, operator rules, sufficient-state requirements, relationship semantics, support, evidence, and physical bindings.
++A Frame-QL request is resolved against a **Manifold**, Columna's versioned governed logical analytical model. It supplies names, anchors, universes, analytical laws, and relationship contracts.
++
++The broader serving environment combines that logical publication with separate private physical mappings, applicable evidence, and available materializations. The authored Manifold does not contain physical database bindings as analytical law. Mapping realizes the declared meaning; it does not create it.
+ 
+ Conceptually:
+ 
+@@ -196,7 +205,7 @@
+     -> backend execution
+ ```
+ 
+-Adjudication has four shipped outcomes: the system can serve the result, serve it with disclosures, ask for clarification, or refuse with a stated reason. A syntactically valid request is not guaranteed a number.
++The referenced language presents four serving outcomes: serve, disclose, clarify, and refuse. Exact reason codes, errors, and availability remain version-specific. A syntactically valid request is not guaranteed a number; disclosure does not repair a computation whose analytical premises were never established.
+ 
+ The request language does not need to expose the physical tables and joins because those are not what the requester is declaring.
+ 
+@@ -238,13 +247,10 @@
+ 
+ # Where to Go Next
+ 
+-For the fuller language account, see *Frame-QL: An Introduction — Query by Declaring the Result*, Version 2.2, DOI **10.5281/zenodo.22071508**. For formal syntax, use the Frame-QL grammar; for shipped meaning and behavior, use *The Frame-QL Manual, Second Edition*.
+-
+-For the analytical foundation and architecture:
+-
+-- *The Theory of Data*, Version 6.1 — DOI **10.5281/zenodo.22013410**
+-- *A Primer on the Theory of Data*, Version 2.2 — DOI **10.5281/zenodo.22018549**
+-- *Introduction to the Theory of Data*, Version 2.2 — DOI **10.5281/zenodo.22018598**
+-- *Analytical Governance: From User Intent to Governed Analytical Execution*, Version 1.1 — DOI **10.5281/zenodo.22046037**
+-
+-This Version 2.2 supersedes *A Primer on Frame-QL*, Version 2.1, DOI **10.5281/zenodo.22071619**. Version 2.2 corrects the formal-syntax authority wording to distinguish the Frame-QL grammar from the Manual and updates the companion reference to *Introduction to the Theory of Data*, Version 2.2. Shipped Frame-QL syntax and behavior are unchanged.
++For the fuller account in this review set, see [*Frame-QL: An Introduction*, proposed Version 2.4, Working Draft 0.1](frameql_an_introduction_v2_4_working_draft_v0_1.md). Its published predecessor is Version 2.3, DOI 10.5281/zenodo.22071910.
++
++The governing comparison text is [*The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md); it remains unpublished. The [companion authority index](frameql_v7_1_authority_and_supersession_index_v0_1.md) identifies the active technical drafts. Exact accepted syntax and shipped behavior remain in the applicable grammar and language reference; profiles and measured build records keep their separate roles.
++
++The published ToD v7.0 (10.5281/zenodo.22289091), ToD Primer v2.2 (10.5281/zenodo.22018549), ToD Introduction v2.2 (10.5281/zenodo.22018598), and Analytical Governance v1.1 (10.5281/zenodo.22046037) retain their own edition scope.
++
++**Revision note.** This proposed Version 2.3 updates the Version 2.2 Primer's theoretical and authority explanation while retaining its section order, central argument, three Frame-QL examples, and numerical averaging example. It is not a language release or a published replacement. No examples were rerun in this pass.

@@ -1,0 +1,67 @@
+[
+  {
+    "source": "frameql_language_vnext_working_draft_v0_3.md",
+    "disposition": "Superseded as the local language-law target",
+    "replacement": "frameql_language_vnext_working_draft_v0_4.md; chapters 3, 6, 8–13 and acceptance set replace the outdated rules. Preserve @/AT, broadcast, co-participation and frame boundaries."
+  },
+  {
+    "source": "frameql_vnext_o1_ordered_expression_compatibility_ruling_v0_1.md",
+    "disposition": "Superseded for current design",
+    "replacement": "frameql_v7_1_supporting_contract_notes_v0_1.md §1 and LQ §10 retain complete governed resolution; categorical non-family FIRST/LAST and compulsory legacy migration are withdrawn."
+  },
+  {
+    "source": "frameql_vnext_o2_ordered_expression_semantic_architecture_v0_2.md",
+    "disposition": "Superseded as a unified admission architecture",
+    "replacement": "frameql_v7_1_supporting_contract_notes_v0_1.md §2 and LQ §9 retain analytical domain/context insights; do not apply its non-family verdict to admitted ordered families."
+  },
+  {
+    "source": "frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md",
+    "disposition": "Superseded despite its title",
+    "replacement": "frameql_v7_1_supporting_contract_notes_v0_1.md §§2.3–2.4; withdraw universal formation-locality exclusion and incomplete TOP-k promotion. Use T §3.4."
+  },
+  {
+    "source": "frameql_vnext_r4_standing_amendment_v0_2.md",
+    "disposition": "Subsumed and qualified",
+    "replacement": "frameql_v7_1_supporting_contract_notes_v0_1.md §3 and LQ §8 preserve standing distinctions; remove all-input/placement prerequisites that would block target-relative evidence arguments."
+  },
+  {
+    "source": "columna_o3_governed_analytical_order_v0_1.md",
+    "disposition": "Superseded by interface revision",
+    "replacement": "columna_o3_governed_analytical_order_v0_2.md preserves order structure, updates W/L/R and evidence/reuse, and no longer carries an independent proof account."
+  },
+  {
+    "source": "frameql_vnext_capability_profile_reconciliation_plan_v0_1.md",
+    "disposition": "Superseded as a migration proposal",
+    "replacement": "frameql_vnext_capability_profile_reconciliation_plan_v0_2.md withdraws categorical FIRST/LAST non-family/re-entry-inapplicable instructions and freezes no replacement schema."
+  },
+  {
+    "source": "frameql_vnext_authority_reconciliation_v0_1.md",
+    "disposition": "Historical reconciliation plan",
+    "replacement": "frameql_v7_1_authority_and_supersession_index_v0_1.md and LQ §1 preserve authority separation; old admission/registry recommendations are not current."
+  },
+  {
+    "source": "frameql_vnext_current_manual_migration_matrix_v0_1.md",
+    "disposition": "Historical source map, not an edit instruction",
+    "replacement": "Reference integration patch sheet replaces its semantic dispositions. Old repository line numbers are not assumed current."
+  },
+  {
+    "source": "frameql_vnext_m1_semantic_review_v0_1.md",
+    "disposition": "Historical review under earlier premises",
+    "replacement": "Broadcast/WHERE discoveries survive. Its PASS does not endorse the superseded order or locality boundary."
+  },
+  {
+    "source": "FRAMEQL_VNEXT_M2_CC_RECONNAISSANCE.md",
+    "disposition": "Historical mission text; not reusable authorization",
+    "replacement": "Observed implementation evidence belongs to its report/snapshot. Do not reuse its old settled exclusions or initiate code work from it."
+  },
+  {
+    "source": "FRAMEQL_VNEXT_O2_CC_DESIGN_RECONNAISSANCE.md",
+    "disposition": "Historical mission text; not reusable authorization",
+    "replacement": "Questions can inform a future bounded mission; instructions excluding FIRST/LAST families are withdrawn."
+  },
+  {
+    "source": "frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+    "disposition": "Historical assessment, now dispositioned",
+    "replacement": "Its findings are mapped to the outputs in the reconciliation register. It remains evidence of what needed changing, not an active competing specification."
+  }
+]

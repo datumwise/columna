@@ -1,0 +1,344 @@
+[
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Rebase O3 authority to fixed complete manuscript",
+    "before": "# O3 — Governed Analytical Order\n## Declaration, comparison, identity, and realization\n\n**Working architecture proposal 0.1 — 6 September 2026**  \n**Program:** Theory of Data v7.1 / Frame-QL vNext / Columna  \n**Basis:** the agreed two-level order construction in the ToD v7.1 amendment 0.2 and its O2 reconciliation.  \n**Status:** design for review. No repository, syntax, publication, or implementation change is authorized by this document.\n\n> **The Manifold governs the order of analytical points. Columna Data Types supplies the value semantics used to realize that order. An ordered family selects that governed order as part of its law. Execution preserves it.**\n\n# 0. What this proposal does\n\nThe agreed construction has two levels: complete point order within each constituent anchor dimension, and comparison precedence among those dimensions. Their lexicographic composition determines the order of points of the support anchor. FIRST and LAST consume that ordered analytical space after the operand has been established at its constitutive anchor. They do not select arbitrary carrier records. [S1, §§3–11]\n\nO3 proposes where those facts belong, how they are referenced, what the type layer must supply, and what an implementation must establish before using them. It does not introduce another definition of analytical order or a generic tie-selection mechanism.\n\nThe source-derived commitments and the new proposals are deliberately separate:\n\n| Standing | Content |\n|---|---|\n| Inherited from the current working amendment | Complete constituent point orders; explicit dimension precedence; analytical order distinct from enumeration; FIRST/LAST family standing conditional on the family contract. |\n| Inherited from the architectural handoff | Logical-only authored Manifold; separate private realization; publication, certification, and serving admission are different authorities. |\n| Proposed here | Reusable logical order declarations; typed realization obligations; explicit family/order binding; order-relative state compatibility; a resolved order contract shared by explanation and execution. |\n| Not decided here | Concrete Manifold schema, CDT capability names, query syntax, wire shape, operator-kind migration, or the full standing representation. |\n\nThe engineering baseline in the inspector reports is `bfb3cfe`. Statements about that implementation below are attributed to those reports, not presented as a new inspection of current `main`. The separate CDT v0.5 specification was not retrieved in this pass; the CDT section states requirements, not a claim that its existing API already satisfies them. [S3–S6]\n\n",
+    "after": "# O3 — Governed Analytical Order\n## Declaration, comparison, identity, and realization\n\n**Working Draft 0.2 — 7 September 2026**  \n**Status:** Order-interface proposal subordinate to [ToD v7.1 Full Manuscript Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md) (**T**) and [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md).  \n**No schema, syntax, runtime, publication, or implementation authorization.**\n\n# 0. Scope and authority\n\nThis revision preserves O3's two-level order construction, sparse partition geometry, logical declaration proposal, and comparison/realization separation. It replaces the older witness-proof and evidence summaries with references to T §§7–10 so that those laws have one source.\n\nThe existing order-interface proposal supplies two kinds of logical order fact and one family binding, not necessarily three new classes or registries. The actual CDT v0.5 API has not been inspected in this revision. Requirements below do not imply that a type literally named `Witness` must be added or that no existing structure can implement them.\n\nHistorical inspector statements concern the recorded `bfb3cfe` baseline and are not a fresh repository audit. This revision does not repeat or close their runtime probes. The [active-source index](frameql_v7_1_authority_and_supersession_index_v0_1.md) distinguishes current semantic guidance, historical implementation evidence, and superseded recommendations.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Use incorporated sparse geometry instead of amendment conflict",
+    "before": "**Precision correction to amendment 0.2, §3.** Its schematic product notation and the word “independent” must not imply that every Cartesian combination exists, that the dimensions are statistically independent, or that an anchor has a uniquely discoverable factorization. The earlier ToD partition account defines a compound anchor through nonempty intersections over its governed universe. That account is preserved here. [S7, §2.7]",
+    "after": "**Sparse compound geometry (T §2.1.3).** Constituent coordinates must not imply that every Cartesian combination exists, that the dimensions are statistically independent, or that an anchor has a uniquely discoverable factorization. A compound anchor is the common refinement through nonempty intersections over the governed universe."
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Connect support term to core terminology",
+    "before": "In this document, **support anchor** retains the amendment's meaning of *constitutive input anchor*. It must not be confused with the subset of points whose operand values currently have evidence support.",
+    "after": "In this document, **support anchor** means the *constitutive input anchor* of T §§7–8. It is not another anchor kind and must not be confused with the subset of points whose operand values currently have evidence support."
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "One source for order construction",
+    "before": "This is the standard lexicographic construction; the external reference [E1] corroborates the mathematical construction only and supplies no Columna governance authority.",
+    "after": "This is the lexicographic construction admitted by T §7.1. The mathematical order argument and the institutional authority selecting its definitions remain different questions."
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Bind complete target and W/L identities without defining them again",
+    "before": "## 3.3 The ordered family's binding\n\nA family construction selects the governed support order:\n\n\\[\nG=\\operatorname{LAST}_{\\mathcal O_S}(F@S).\n\\]\n\nIts defining contract still includes its operand, participation law, sufficient-state basis, admitted movements, and finalization. A complete support order does not by itself establish the operand or admit every coarser target.\n\nThe support order can be reused by FIRST, LAST, or another admitted law. It is therefore more appropriately declared with the analytical geometry than buried inside a physical `last` implementation.\n\n",
+    "after": "## 3.3 The ordered family's binding\n\nA family construction selects a fully resolved governed support order and its constitutive operand. The full target specification and family contract remain T §4: neither a complete order nor a callable FIRST/LAST spelling supplies the remaining obligations.\n\nFor the finite construction in T §8, W is constituted from operand, order, and participation with its own witness-selection and continuation law. Scalar L has an admitted construction by value projection from W. An optional rich retained family R supplies an alternative basis with an exact compatible-union compression to W. These names denote ordinary analytical families, not mandatory public declaration kinds or engine types.\n\nA declaration must identify whether the referenced analytical object is the scalar target, witness-valued family, or another admitted family. It must not grant a scalar materialization the continuation capability of the witness solely because both concern LAST.\n\nThe order can be reused by another admitted analytical law. A human-readable name is optional where canonical construction already resolves identity. Institutional publication and ratification remain separate from denotation.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "No unverified current API claim",
+    "before": "The inspector report identified why this interface matters: the inspected build's `ORDERED` set classifies accepted measure dtypes, while coordinate levels have no dtype and no declared comparison operation. That is evidence of the gap, not a template for the successor. [S3, §§F.0–F.1]",
+    "after": "The earlier O2 inspector report identified a gap at its recorded baseline: the `ORDERED` accept-set concerned measure dtypes while coordinate levels lacked a declared semantic comparator. That observation is historical implementation evidence, not a claim about the uninspected CDT specification or the current build. The successor contract must be established against the actual type specification before conformance is claimed."
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Remove redundant old proof and make T the single witness-law source",
+    "before": "# 8. The finite sufficient-state law, fully stated\n\nThis section makes the complete, finite FIRST/LAST fragment explicit. It is not a full missingness calculus.\n\nFix one family definition, one governed order, one eligible participation domain \\(D\\subseteq S\\), and one coherent operand evidence instance. Assume every participating point in this fragment has an established value \\(f(s)\\). For a target point \\(a\\), the contributing set is\n\n\\[\nD(a)=D\\cap\\pi_{S\\to A}^{-1}(a).\n\\]\n\nFor the initial finite fragment, every nonempty \\(D(a)\\) has a unique extremum under the total support order. A total order on an infinite unbounded fiber would not alone guarantee an extremum; such cases are outside this proved fragment, not an invitation to weaken the complete-order requirement.\n\nDefine the witness state space\n\n\\[\nW=\\{\\bot\\}\\cup\\{(s,f(s)):s\\in D\\}.\n\\]\n\nHere \\(\\bot\\) means an empty **contribution state**. It does not mean unsupported existence, an unknown value, zero, or a semantic Null.\n\nFor LAST, \\(\\oplus\\) retains the later support-point witness. Define the previously unstated cases as well:\n\n\\[\n\\bot\\oplus w=w\\oplus\\bot=w,\n\\qquad\nw\\oplus w=w.\n\\]\n\nFor two distinct support-point witnesses, use their governed support-point comparison. FIRST uses the earlier witness.\n\nBecause one coherent operand instance assigns one value to each participating point, two valid witnesses for the same point agree. Conflicting values attributed to the same point and evidence context are not a tie for LAST to resolve; they fail the premise that the input measure is established. Mixing snapshots or differently constituted orders likewise fails state compatibility. Idempotence is not blanket permission to duplicate source contributions in other laws.\n\nUnder these premises, \\((W,\\oplus,\\bot)\\) is a commutative monoid: an identity exists, swapping operands does not change their extremum, and grouping three operands does not change their common extremum.\n\nFor every target point,\n\n\\[\nw_A(a)=\\bigoplus_{s\\in D(a)}(s,f(s)).\n\\]\n\nPartitioning the same set of contributions through \\(B\\) gives\n\n\\[\nw_A(a)=\n\\bigoplus_{b\\subseteq a}\n\\left(\\bigoplus_{s\\in D\\cap\\pi_{S\\to B}^{-1}(b)}(s,f(s))\\right).\n\\]\n\nThus direct and staged results agree, provided they retain compatible witnesses, use the same participation rule and evidence, and follow admitted projections. No requirement that the intermediate groups be consecutive has entered the proof.\n\nThis proof concerns continuation after the constitutive operand has been established. It does not prove a universal prohibition on all contextually formed families. The broader “projection-fiber locality” claim in the previous stress test should not be expanded into a new general admission theorem merely through O3.\n\n",
+    "after": "# 8. The family proof remains in the theory\n\nT §§8.1–8.6 is the sole mathematical account used here. Its propositions define coherent-instance witness composition and show that extracting an extremum witness from compatible finite point–value sets preserves the admitted union/combine operation. No parallel witness theorem is introduced in this interface note.\n\nThe complete finite-input fragment fixes coherent operand instance f, order, and contribution domain. Known-empty contribution supplies the identity; an unsupported contribution is not that identity. Two conflicting values for one analytical point do not satisfy the coherent-instance premise.\n\nA representation must preserve original point identity, declared order comparison, the associated operand value where required, and the distinction between known-empty and unavailable state. It may use a typed record, coordinate tuple, governed point reference, or a faithful encoding. A nominal built-in type called `Witness` is not required.\n\nR is an optional sufficient basis, not a prerequisite to serving W or L. A direct implementation can establish W without retaining the full pair set if its evidence establishes the winning-point claim. An adequately justified scalar may be available without an identified winner. These possibilities are not a mandatory `R → W → L` runtime pipeline.\n\nThe family law is uniform across coherent instances; the instance-relative carrier does not create a new family identity for each snapshot. Whether two materializations are compatible instances for a proposed use is an evidence/reuse question, not a fact certified by a local winner comparison.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "O3 target-relative evidence summaries and complete premises",
+    "before": "# 9. Declaration completeness is not current evidence completeness\n\nA complete order law can exist while the system lacks the evidence needed to position a particular point under it. The order has not become partial. Its current realization is unsupported for that request.\n\nThe request must distinguish the following questions:\n\n| Question | Possible failure |\n|---|---|\n| Which points exist in the governed domain? | Point existence or population completeness is unsupported. |\n| Which support point does the evidence belong to? | Required analytical placement is unsupported. |\n| How are established support points compared? | The declared order is incomplete, or a required comparison representation is unavailable. |\n| Does the operand apply at the selected point? | Eligibility is unresolved or the measure is ineligible. |\n| What is its value there? | The selected eligible value lacks support. |\n\nO3 does not turn these into one `is_null` check or mandate new runtime enums.\n\nIn particular, if the latest eligible analytical point exists but its operand value is unavailable, FIRST/LAST must not silently retreat to a different supported point. “LAST over the eligible points” and “LAST over supported observations” use different participation rules. They can be separately governed, but one cannot quietly replace the other.\n\nLikewise, a known point with unresolved Day placement must not be assigned “nulls first” and consumed by a cumulative computation. Dropping it and serving the surviving sequence as the full answer is not a repair either. A separately defined restricted result can sometimes be served with truthful conditions, but a disclosure does not make an undefined ordering determinate.\n\nNot every support defect invalidates every result. A total that does not require Day placement may remain established. Establishing a winner may also require less operand evidence than reconstructing every nonwinning value. Any such optimization needs a specific justification; missing comparison information cannot simply be ignored.\n\nThese distinctions refine the containment boundary but do not implement full R4. The inspector report's examples show both selected-value skipping and ordered contributions surviving after final-frame withholding. They remain implementation findings awaiting a bounded disposition. [S4, §§1–3]\n\n",
+    "after": "# 9. Declaration completeness is not current evidence completeness\n\nA complete declared order does not prove that a current materialization can place every required point or recover its comparison representation. Conversely, loss of an irrelevant operand value need not make a target unavailable. Evidence obligations depend on the requested law.\n\nThe following distinctions from T §9 must remain visible in a resolved order contract and its supporting evidence:\n\n- A known domain `s1 < s2 < s3` with supported maximal value 30 can establish the coarser witness `(s3,30)` even when a finer intermediate witness at s1 cannot be obtained. Do not replace that unavailable intermediate by empty state.\n- A fixed LAST law can establish scalar 7 without identifying the winner only under an adequate argument; T §9.6's example requires known nonemptiness, exhaustive possible-participant coverage, and supported equal values at every possible winner. Equal values among observed rows alone are insufficient.\n- Missing selected value, unknown possible later participation, incomplete point placement, and incomplete declared order are different failures. “Last supported value” cannot replace “last participating point's value” silently.\n\nNo order-specific standing enum is introduced here. The needed claim, its dependencies, and the evidence supporting it must be distinguished however the concrete implementation represents them.\n\nA false number is not made lawful by adding disclosure later. A late frame filter does not repair an earlier ordered walk that consumed an unplaceable contribution. Exact outcome policy and current containment remain separately authorized engineering work.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "CF materialization boundary and hidden-conflict obligation",
+    "before": "# 12. State identity and reuse\n\nA retained extremum witness is interpretable only under the support order and family law that selected it. Safe reuse therefore needs a reference to that semantic context as well as enough point information to compare the winner later.\n\nThe exact representation may be a structured analytical point reference, a governed order-preserving encoding, or an equivalent certified representation. O3 does not require storing a complete coordinate tuple in every physical state. It requires that compression preserve the relevant comparison and identity.\n\nA materialization must not compare states from different precedence rules merely because both expose the same scalar dtype. Nor may it silently compare witnesses from incompatible order-definition versions or evidence contexts.\n\nA carrier containing only the displayed FIRST/LAST value generally lacks the selected point witness. A valid recovery rule might reconstruct it in a special case, but recoverability has to be established. The default is not to infer the winner from its value.\n\nThis carries forward the existing distinction between analytical identity, sufficient state, and materialized availability; it does not revive an independent information-quotient ontology. [S1, §§14–18; S7, §7.10]\n\n",
+    "after": "# 12. State identity and reuse\n\nT §10.7 governs the materialization interface. The retained artifact must distinguish what it holds, which target claim is established and why, and what later use that information justifies.\n\nA retained nonempty W can construct scalar L and supply admitted witness continuation. A retained L after W was discarded and an L established without a winner may share the same scalar family identity and value while carrying different establishment records. Neither implies retained W. A trace recording historical witness use is not present recoverability.\n\nCompatibility must be established before invoking the lossy-composition theorem. With `p < q`, a source claiming `(p,10),(q,20)` can compress to `(q,20)` and conceal conflict with another source's `(p,11)`. Equal-point conflict checks on compressed winners are not a global validator. A matching context identifier must refer to adequate evidence rather than act as assurance by itself.\n\nReordering the governed constituent definitions or changing their precedence can change family identity. Physical serialization can change without changing that identity if its semantic representation remains faithful. Evidence refresh can change availability without creating another family, but mixing incompatible instances is not authorized by a common family name.\n\nCoarsening sufficiency does not automatically cover deleting the winner, restricting it out, or re-forming a contextual input under different conditions. Each reuse needs the information and compatible premises required by that use. The concrete catalog and certificate schema remain outside this note.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "No inherited validation count presented as new execution",
+    "before": "# 15. Finite mathematical checks\n\nA local reference calculation tested the formal construction. It did not run Columna, DuckDB, Polars, or any repository tests and made no repository changes.\n\nThe model used a two-point dimension and a three-point dimension, both precedence choices, and both orientations of each component order: eight complete orders. It considered every subset of the six-point coordinate product, both FIRST and LAST, every enumeration of each subset, and every nested set partition for staged reduction. Intermediate blocks were not constrained to be contiguous.\n\n| Check | Instances checked | Result |\n|---|---:|---|\n| Trichotomy of the induced order | 288 | All passed |\n| Transitivity of the induced order | 1,728 | All passed |\n| Witness-merge commutativity | 784 | All passed |\n| Witness-merge associativity | 5,488 | All passed |\n| Empty-state identity and witness idempotence | 112 | All passed |\n| FIRST/LAST × order × support-subset cases | 1,024 | All passed |\n| Enumeration permutations | 31,312 | All passed |\n| Direct/staged target-fiber comparisons | 215,856 | All passed |\n\nThese checks support the finite construction and guard the examples. The proof in §8, not a finite test count, establishes the stated general finite-fiber result. The checks do not validate source completeness, comparison realizations, any current compiler, or the broader family-admission claims in earlier drafts.\n\n",
+    "after": "# 15. Validation status\n\nThe finite mathematical checks reported in O3 v0.1 remain historical results of that earlier proposal. They were not rerun or extended for this document reconciliation and do not verify the present Columna or CDT implementation.\n\nThis revision defers mathematical propositions to the unchanged T Draft 0.4. The current acceptance cases are semantic review obligations, not a claim that every case has an implementation or that a document check proves conformance.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Remaining work is targeted interface verification only",
+    "before": "# 16. Review decisions and next unit\n\nThe proposed O3 boundary is now small enough to review as one unit:\n\n1. Component point orders are logical declarations attached to their governed anchors.\n2. Compound support orders select those orders and state dimension precedence.\n3. Family definitions select complete support orders as constitutive law.\n4. CDT supplies the required equality/comparison semantics; realization must preserve them.\n5. Resolved semantics, explanation, and execution share one order contract.\n\nBefore incorporating O3 into a full ToD v7.1 text, amend the earlier schematic product language as noted in §1, state the finite/extremum and empty-state premises, and separately review the breadth of the earlier projection-fiber-locality admission claim. None of those editorial obligations changes the agreed two-level order construction.\n\nThe next implementation-facing unit should be **a focused contract review**, not another broad reconnaissance and not a request to build all ordered operations. CC already supplied the relevant implementation evidence. The useful return would map this proposal onto the actual CDT specification, identify the smallest logical publication representation, and identify the consumed resolved-contract seam. Concrete syntax and class names remain CC recommendations subject to the semantic boundary above.\n\nThe reproduced current defects remain a separate correctness obligation. They need not wait for a full order-authoring UI or a universal standing model: a system can decline to assert an ordered result whose required point formation or order is not established. Conversely, a small containment patch cannot claim O3 implementation merely because it refuses the known bad cases.\n\nNo new CC mission has been sent by this document. No changes to `.cml`, operator kinds, profiles, wire contracts, or public compatibility surfaces are authorized.\n\n",
+    "after": "# 16. Remaining specification work\n\nThe order structure remains settled as a working theory input. The remaining interface review should determine whether the actual CDT specification can supply the required equality, point representation, and comparison semantics; how logical publication carries the selected constituent orders and precedence; and how the same resolved meaning reaches explanation and execution.\n\nThis task must not use legacy FIRST/LAST internals as the definition of the target. Nor should it introduce a new authoring kind, registry, or wire field merely because the requirements are listed separately. Recommend the smallest faithful representation after inspecting the relevant interfaces.\n\nNo such implementation or schema work is authorized here. The [capability/profile reconciliation plan](frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) states the separate adoption boundaries.\n\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Current source index, original references preserved as historical evidence",
+    "before": "# 17. Sources and evidence boundaries\n\n**[S1] Working theory input.** `tod_v7_1_ordered_measure_families_amendment_v0_2.md`, 6 September 2026. Especially §§3–11 (constituents, precedence, family construction), §§14–18 (state, coherence, identity), and §§24–25 (admission and revised boundary). This is an agreed working amendment, not asserted here to be a published v7.1 release.\n\n**[S2] Working language input.** `frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md`, 6 September 2026. Especially §§3–4, 12–18. It identifies the eight O3 questions addressed by this proposal.\n\n**[S3] andFam, order representation and strength inspector.** Attached as `Pasted markdown (3)(9).md`; report headings `F. ORDER RELATION REPRESENTATION` and `G. ORDER STRENGTH / TIES`, reported HEAD `bfb3cfe`. Used for the coordinate-type, comparison, lineage-name, and incomplete legacy-order findings. Its v7.0-era categorical family conclusions are not adopted over S1.\n\n**[S4] andFam, participation and standing inspector.** Attached as `Pasted markdown(20260906-221513).md`; heading `H / O2-Q4 — Participation and standing for ordered expressions (post-R4-C0)`, reported HEAD `bfb3cfe`. Used for lost-placement contamination and operand-skipping evidence. Its runtime probes were reported by andFam, not independently rerun here.\n\n**[S5] andFam, resolved artifact and descriptor inspector.** Attached as `Pasted markdown (4)(4).md`, reported HEAD `bfb3cfe`. Especially §§2–4 and §5.3. Used for the surface/resolved distinction and planner/engine authority boundary.\n\n**[S6] Architectural handoff.** `START_HERE(2).md`, 14 August 2026. Used only for persistent authority boundaries: logical authored Manifold, private mapping, publication/certification/admission, and planner/engine roles. Its operational status is historical, not current.\n\n**[S7] Huayin Wang, The Theory of Data, v6.0.** `theory_of_data_v6_0_zenodo_21958062.md`. Used narrowly for the unchanged partition/common-refinement account in §2.7 and materialization distinction in §7.10, not as a replacement for later theoretical revisions.\n\n**[E1] External mathematical cross-check.** Mathlib, `Mathlib.Data.Prod.Lex`, especially `Prod.Lex.instLinearOrder` and the defining lexicographic comparison. Retrieved 6 September 2026. It supports only the ordinary mathematical fact that lexicographic composition of linear orders is a linear order. It is not a ToD or Columna source. Source address: `https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/Prod/Lex.html`.\n\nThe repository's current live status and a definitive CDT v0.5 interface were not established in this pass. This proposal does not attribute proposed fields or capabilities to an implementation that has not been inspected.\n",
+    "after": "# 17. Sources and evidence boundaries\n\nThe fixed theoretical source is [T, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), especially §§2.1.3, 4–10, and 12. The language account is [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md). Both are working documents, not published v7.1 or shipped-language certification.\n\nThe full original O3 v0.1 is retained in the editorial archive, including its sources, historical inspector references, and previous validation record. Its opening source hierarchy and duplicated witness/evidence summaries are replaced by this note; unchanged declaration and geometry content is retained where consistent with T.\n\nThe [source/supersession index](frameql_v7_1_authority_and_supersession_index_v0_1.md) identifies the active note, historical inputs, and withdrawn recommendations. No source byte, publication, or runtime was changed by this revision.\n"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Retain historical source attribution without dangling active reference",
+    "before": "[S3, §F.3]",
+    "after": "[historical source S3 in archived O3 v0.1]"
+  },
+  {
+    "document": "columna_o3_governed_analytical_order_v0_2.md",
+    "reason": "Retain historical explanation-path attribution",
+    "before": "[S5, §§2–4]",
+    "after": "[historical source S5 in archived O3 v0.1]"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Provisional successor edition",
+    "before": "date: \"Version 2.3 - 23 August 2026\"",
+    "after": "date: \"Proposed Version 2.4 - Working Draft 0.1 - 7 September 2026\""
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Status, exact predecessor and source limit",
+    "before": "**DOI:** 10.5281/zenodo.22071910  \n**Previous published version:** Version 2.2, DOI 10.5281/zenodo.22071508",
+    "after": "**Status:** Working successor for review; not published, no DOI assigned.  \n**Predecessor:** Version 2.3, DOI 10.5281/zenodo.22071910.  \n**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md).\n\nThis draft revises the explanation, not shipped syntax or behavior. The predecessor's Frame-QL code examples are retained unchanged and were not re-executed in this pass. Its full public source was read; the editorial archive records the normalized text transcription used here. This is not a byte-identical republication of the deposit."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Fixed theory reference, not published claim",
+    "before": "The language is naturally explained using the current *Theory of Data*, Version 6.1.",
+    "after": "This working successor explains the language using *The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Separate theory candidate and shipped reference",
+    "before": "The *Theory of Data*, Version 6.1, is the conceptual reference for analytical identity and lawful transformation, and the Manual states normatively how retained implementation vocabulary relates to the current Theory.",
+    "after": "The theory reference for this draft is the reviewed v7.1 working manuscript, not a claim that the shipped language implements all of it. The [reconciled language-law candidate](frameql_language_vnext_working_draft_v0_4.md) supplies the companion semantic target. Applicable versioned grammar and shipped references remain the source for released behavior."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Avoid vague current version",
+    "before": "The current Theory of Data uses the following vocabulary:",
+    "after": "The theory reference uses the following vocabulary:"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Relational sufficient state",
+    "before": "- **sufficient state** — state required for lawful exact continuation;",
+    "after": "- **sufficient state** — a target-relative relationship among measure families whose measures supply an admitted construction; retained continuation capability remains law-specific;"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Retain v5 implementation vocabulary guard",
+    "before": "three foundational anchor kinds in ToD v6.",
+    "after": "three foundational anchor kinds in the Theory of Data."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Accurate historical/current authority distinction",
+    "before": "The relationship between the two vocabularies is stated once, normatively, in the *Frame-QL Manual, Second Edition*, and this introduction inherits it: the *Theory of Data*, Version 6.1, defines the current theoretical vocabulary and governing laws of analytical data; the shipped Frame-QL/Columna implementation may retain vocabulary from earlier versions, with Manual-defined meanings, under v6.1's compatibility provision.",
+    "after": "The predecessor explained the vocabulary boundary against ToD v6.1. This draft carries that separation forward to the v7.1 working theory: analytical identity and admission come from the selected governed laws; versioned grammar and reference documentation define accepted syntax and shipped behavior. Retained implementation vocabulary is not a theoretical primitive."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Syntax authority separate from Manual",
+    "before": "The Manual remains the normative boundary for what Frame-QL actually accepts and does.",
+    "after": "The applicable grammar and shipped reference remain the boundary for what a released Frame-QL version accepts and does."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Retain intellectual structure without old-only reference",
+    "before": "Under ToD v6 terminology,",
+    "after": "Under the retained family/measure distinction,"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Explicit version continuity",
+    "before": "Version 6 simplifies that distinction:",
+    "after": "Version 6 introduced, and Version 7.1 preserves, the distinction:"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "No obsolete theory qualifier",
+    "before": "It is not, in ToD v6, a new foundational analytical identity parallel to measure family or measure.",
+    "after": "It is not a new foundational analytical identity parallel to measure family or measure."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Current anchor continuity",
+    "before": "Version 6 treats the measure as having one **current** anchor.",
+    "after": "Version 7.1 retains one **current** anchor per measure."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Constitutive versus current anchor explanation",
+    "before": "This is the v6 interpretation of what earlier Frame-QL writing called the \"input-anchor/output-anchor\" distinction. The distinction remains real; the ontology no longer needs to say that one measure itself carries two current anchors.",
+    "after": "The input-anchor/output-anchor distinction remains real: the constitutive input can change which family is requested, while the final anchor locates its present measure. It does not give one measure two current anchors."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Target resolution not availability selection",
+    "before": "Not every input anchor must be written. If the shipped planner can determine one unique, immaterial reading under the governed model, it may resolve the omission. Where multiple materially different readings remain, the request is under-specified and the correct shipped outcome is clarification.",
+    "after": "Not every input anchor must be written. A governed single-valued completion can resolve an omission when it determines one analytical meaning. Several identity-distinct readings require clarification; having only one executable plan does not select the user's intent. Two adequate bases for the same fixed target are instead alternative ways to answer one question. The applicable release reference specifies which completions the shipped planner supports."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Logical-only Manifold",
+    "before": "The Manifold is one implementation of the broader idea that analytical knowledge can be represented as data rather than reconstructed in every query. Depending on the class of request the implementation supports, it can contain:",
+    "after": "The Manifold is one implementation of the broader idea that analytical knowledge can be represented as data rather than reconstructed in every query. The authored Manifold is logical-only. Its governing definitions can identify:"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Neutral law language",
+    "before": "- operator and reducer declarations;",
+    "after": "- analytical-law declarations and admitted movements;"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Remove physical bindings from authored ontology",
+    "before": "- evidence, provenance, and integrity findings;\n- physical bindings and materializations.",
+    "after": "- the logical contracts whose evidence must be established.\n\nThe broader serving environment also needs private physical bindings, applicable evidence and certification, and available materializations. Those facts have distinct roles. The privileged realization boundary combines the logical publication with its private mapping; physical bindings do not create analytical meaning."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Current evidence and retained capability",
+    "before": "In ToD v6 terms, the conceptual question is whether the governed environment contains enough information to establish the requested family identity, source measure, anchor movement, required state, and material support.",
+    "after": "The conceptual question is whether the selected model and its applicable evidence establish the requested identity and a lawful available construction. A retained result need not retain the sufficient state required for every later use."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Avoid importing unverified allocation availability",
+    "before": "The current Manual exposes shipped mechanisms for these cases, including the RELATE face semantics and `WITH allocation`. Those are language-specific ways to express governed relationship behavior. The broader principle is independent of the implementation:",
+    "after": "The applicable reference and profile state which relationship mechanisms are available, including their exact face or allocation surfaces. This working introduction does not enlarge that coverage. The broader principle is independent of the implementation:"
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "FROM not physical authority",
+    "before": "It selects the governed environment in which names, anchors, universes, operator rules, integrity information, and physical bindings are resolved.",
+    "after": "It selects the governed environment for analytical resolution. Private bindings and current evidence are combined with its logical definitions only by the authorized realization components."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Meaning before availability",
+    "before": "A bare governed name can request its corresponding analytical quantity at the frame output anchor when the shipped planner has a unique supported interpretation.",
+    "after": "A bare governed name resolves the intended family in the selected namespace. Whether evidence and a realization are available for that quantity is a separate question."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Canonical denotation and publication",
+    "before": "That distinction matters in Version 6. A stable new family exists only when the governed analytical model establishes the new identity and its lineage. Frame-QL can still return and name an expression under its shipped result rules without pretending that an `AS` alias alone has performed that governance act.",
+    "after": "The distinction remains in v7.1. A complete admitted canonical family construction can denote analytical identity without a separate business name. A ratio can also be governed explicitly as an AOV family. But neither arithmetic syntax nor an output alias supplies a missing target specification or family law, and naming an output is not publishing or ratifying a definition."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "WHERE formation scope and output stages",
+    "before": "The condition shapes the requested result. It does not expose a user-authored scan plan.",
+    "after": "The condition restricts the request's input under its declared formation scope; it does not expose a user-authored scan plan. `HAVING` selects already-formed output, while `ORDER BY` and `LIMIT` order or select the frame. A restriction must not silently re-form an already-constituted contextual quantity under a different context."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "EXPLAIN not complete runtime evidence",
+    "before": "That is useful to people and agents because interpretation becomes inspectable before physical execution.",
+    "after": "That is useful to people and agents because interpretation becomes inspectable before physical execution. A data-free explanation does not, by itself, establish every data-dependent support condition or disclosure. The resolved meaning, applicable assurance, proposed plan, and remaining checks must remain distinguishable."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "No new closure taxonomy",
+    "before": "ToD v6 sharpens a distinction that the earlier Frame-QL Introduction described as \"closure.\"",
+    "after": "The Theory of Data distinguishes family-preserving continuation, family formation, and ordinary analytical expressions. Version 7.1 makes the conditions for these judgments explicit rather than deciding them from operator names."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Clarify that continuation premises belong to the particular plan",
+    "before": "The source anchor must be real; the source measure must exist there; the source must refine the target; the edge must be licensed; and required state must be available.",
+    "after": "The source anchor must be real; the source measure must exist there; the source must refine the target; the edge must be licensed; and required state must be available for this particular continuation. Failure of this plan to obtain an intermediate state does not exclude another adequate derivation of the same target."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Lineage qualifier",
+    "before": "ToD v6 records such family-changing construction in analytical lineage.",
+    "after": "Constitutive analytical lineage records such family-changing construction. Alternative proof methods or faithful execution paths to the already specified target do not create new identities."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Concise ordered-family and materialization successor explanation",
+    "before": "That keeps query syntax and analytical governance separate.",
+    "after": "That keeps query syntax and analytical governance separate. Canonical denotation of a family under an admitted analytical law is not a new publication act, and an `AS` label is not an admission rule.\n\n## 8.4 Governed order and retained capability\n\nVersion 7.1 withdraws Version 7.0's categorical exclusion of analytical-point-order-dependent families. A complete governed order may be constitutive of a family law whose sufficient-state combination remains invariant to evidence enumeration. For compound support, complete point orders within its constituent anchors and declared precedence induce the order over the analytical points that actually exist.\n\nFIRST/LAST illustrates the distinction. The witness-valued family W retains the selected constitutive point and its value; the scalar family L can be constructed by taking that value. A witness may support admitted continuation even when its displayed scalar cannot. The optional retained point–value family R is another sufficient basis, not a mandatory storage stage. These are mathematical family names, not new Frame-QL syntax.\n\nA stored scalar LAST, a retained witness, and a scalar established without identifying a winner are not interchangeable materializations. The artifact must say what it retains, which claim is established and why, and what reuse is justified. A scalar-only argument requires adequate evidence; the particular constant-value example in T requires a fixed law, known nonemptiness, exhaustive possible-participant coverage, and supported equal values at every possible winner.\n\nNone of this certifies a legacy `.last` implementation or prescribes its replacement syntax. General focal operations such as LAG and rolling still need their contextual contracts. They do not gain continuation merely by being named, and contextual formation does not categorically bar a separately admitted family."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Separate stored knowledge jurisdictions",
+    "before": "Names, anchor relations, support conditions, reducer rules, relationship behavior, and physical bindings can be declared once rather than reconstructed in every query.",
+    "after": "Names, anchor relations, analytical laws, and relationship contracts can be governed once rather than reconstructed in each request. Their private physical mappings and current evidence remain separately maintained."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "No implementation inflation",
+    "before": "Some ToD v6 distinctions are not exposed directly in the shipped Frame-QL surface.",
+    "after": "The reviewed v7.1 target goes beyond what this introduction can claim for a particular shipped build."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Four-authority version separation",
+    "before": "Where the two use different vocabulary, this introduction translates between them. It does not rewrite shipped behavior to make the implementation look more theoretically complete than it is.",
+    "after": "This working edition translates analytical concepts while retaining the released syntax boundary. The [language-law candidate](frameql_language_vnext_working_draft_v0_4.md) describes the reconciled semantic target; Core/Platform profiles state authored obligations, and build-status records report measured coverage. Neither is a blanket proof of v7.1 conformance. No capability promise or generated measurement is changed by this introduction."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Current conclusion",
+    "before": "Under ToD v6, Revenue is a governed measure family.",
+    "after": "Under the Theory of Data, Revenue is a governed measure family."
+  },
+  {
+    "document": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "reason": "Updated reading set and honest validation/publication status",
+    "before": "## Implementation and further reading\n\nFor a shorter conceptual entry point, see *A Primer on Frame-QL: Why the Result Can Be the Query*, Version 2.2, DOI **10.5281/zenodo.22071833**. For formal syntax, use the Frame-QL grammar; for shipped meaning and behavior, use *The Frame-QL Manual, Second Edition*.\n\nFor the current analytical foundation, see:\n\n- Huayin Wang. *The Theory of Data*. Version 6.1. DOI **10.5281/zenodo.22013410**.\n- Huayin Wang. *A Primer on the Theory of Data*. Version 2.2. DOI **10.5281/zenodo.22018549**.\n- Huayin Wang. *Introduction to the Theory of Data*. Version 2.2. DOI **10.5281/zenodo.22018598**.\n- Huayin Wang. *The Theory of Data Applied*. Version 1.0. DOI **10.5281/zenodo.21959941**.\n- Huayin Wang. *Analytical Governance: From User Intent to Governed Analytical Execution*. Version 1.1. DOI **10.5281/zenodo.22046037**.\n\nThis Version 2.3 supersedes *Frame-QL: An Introduction*, Version 2.2, DOI **10.5281/zenodo.22071508**. Version 2.3 corrects the formal-syntax authority wording to distinguish the Frame-QL grammar from the Manual and updates the companion references to *A Primer on Frame-QL*, Version 2.2, and *Introduction to the Theory of Data*, Version 2.2. Shipped Frame-QL syntax and behavior are unchanged.\n",
+    "after": "## Implementation and further reading\n\nFor the shorter companion in this review set, see [*A Primer on Frame-QL*, proposed Version 2.3, Working Draft 0.1](a_primer_on_frameql_v2_3_working_draft_v0_1.md). Its published predecessor is Version 2.2, DOI 10.5281/zenodo.22071833.\n\nThe fixed analytical reference is [*The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md). It is not a published edition and has no confirmed assigned DOI in this packet. Version 7.0, DOI 10.5281/zenodo.22289091, and Version 6.1, DOI 10.5281/zenodo.22013410, remain historical publications under their own versioned positions.\n\nFor the reconciled technical account, use [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md) and its [authority index](frameql_v7_1_authority_and_supersession_index_v0_1.md). For actual formal syntax and released behavior, use the applicable grammar, language reference, profiles, and build record. These working documents do not enlarge the shipped language.\n\nOther useful published companions remain *A Primer on the Theory of Data* v2.2 (10.5281/zenodo.22018549), *Introduction to the Theory of Data* v2.2 (10.5281/zenodo.22018598), *The Theory of Data Applied* v1.0 (10.5281/zenodo.21959941), and *Analytical Governance* v1.1 (10.5281/zenodo.22046037). Their publication versions remain explicit; they are not all silently relabeled v7.1.\n\n**Revision note.** This proposed Version 2.4 succeeds the explanation in Version 2.3, DOI 10.5281/zenodo.22071910, for review purposes only. It updates the theory reference, separates logical definition from realization, clarifies family denotation and target resolution, and adds a bounded order/reuse explanation. All predecessor `frameql` code blocks are retained unchanged. No example was rerun and no syntax, outcome, implementation, repository, or publication was changed.\n"
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Provisional successor edition",
+    "before": "date: \"Version 2.2 - 23 August 2026\"",
+    "after": "date: \"Proposed Version 2.3 - Working Draft 0.1 - 7 September 2026\""
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Publication scope and source provenance",
+    "before": "**DOI:** 10.5281/zenodo.22071833  \n**Previous published version:** Version 2.1, DOI 10.5281/zenodo.22071619",
+    "after": "**Status:** Working successor for review; not published, no DOI assigned.  \n**Predecessor:** Version 2.2, DOI 10.5281/zenodo.22071833.  \n**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md).\n\nThis draft updates the conceptual explanation, not shipped syntax or behavior. The three predecessor Frame-QL examples are retained unchanged and were not re-executed. The editorial record identifies the complete public source and its normalized transcription."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Fixed theory target",
+    "before": "Under the current *Theory of Data*,",
+    "after": "Under the *Theory of Data*, whose v7.1 working manuscript is the reference for this draft,"
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Availability versus adequate retained state",
+    "before": "The requester does not need to choose.",
+    "after": "The requester does not need to choose the physical source. The system must still establish that the available representation is adequate for the requested quantity and use. A cached average, for example, need not retain the sums and counts required for another exact aggregation."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Target resolution separated from bases and executability",
+    "before": "> **Safety should not be achieved by deleting distinctions that belong to analytical meaning.**",
+    "after": "> **Safety should not be achieved by deleting distinctions that belong to analytical meaning.**\n\nTwo different adequate ways to compute one specified average are not two different questions. Conversely, when order-level and customer-level averages remain distinct possible meanings, having data for only one does not tell the system which one the user intended."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Small theory succession and no new syntax",
+    "before": "The current *Theory of Data*, Version 6.1, defines the theoretical vocabulary and governing laws of analytical data; the shipped language may retain earlier vocabulary with Manual-defined meanings under its compatibility provision. Advances in the Theory do not enlarge the language, and retained vocabulary does not redefine the Theory; the Manual states this relationship normatively.",
+    "after": "This draft uses the v7.1 working theory for analytical identity and law. A complete admitted canonical construction can denote a family without a separate business name. An output alias does not supply a missing family law or publish a definition.\n\nVersion 7.1 also admits FIRST/LAST families under complete governed analytical-point order and the required sufficient-state law; a scalar LAST answer is not automatically reusable witness state. That theoretical admission does not certify a legacy `.last` implementation. The fuller Introduction explains this distinction without adding syntax here.\n\nAdvances in the theory do not enlarge the shipped language, and retained implementation vocabulary does not redefine the theory. The [working language-law candidate](frameql_language_vnext_working_draft_v0_4.md) is the reconciled semantic target; released behavior remains governed by the applicable reference and profile."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Logical-only Manifold and realization environment",
+    "before": "A Frame-QL request is resolved against a **Manifold**, Columna's versioned governed analytical environment.\n\nThe Manifold can contain the information needed by the implementation to resolve names, anchors, universes, operator rules, sufficient-state requirements, relationship semantics, support, evidence, and physical bindings.",
+    "after": "A Frame-QL request is resolved against a **Manifold**, Columna's versioned governed logical analytical model. It supplies names, anchors, universes, analytical laws, and relationship contracts.\n\nThe broader serving environment combines that logical publication with separate private physical mappings, applicable evidence, and available materializations. The authored Manifold does not contain physical database bindings as analytical law. Mapping realizes the declared meaning; it does not create it."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Outcome scope without implying complete runtime conformance",
+    "before": "Adjudication has four shipped outcomes: the system can serve the result, serve it with disclosures, ask for clarification, or refuse with a stated reason. A syntactically valid request is not guaranteed a number.",
+    "after": "The referenced language presents four serving outcomes: serve, disclose, clarify, and refuse. Exact reason codes, errors, and availability remain version-specific. A syntactically valid request is not guaranteed a number; disclosure does not repair a computation whose analytical premises were never established."
+  },
+  {
+    "document": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "reason": "Successor reading references and no false DOI",
+    "before": "# Where to Go Next\n\nFor the fuller language account, see *Frame-QL: An Introduction — Query by Declaring the Result*, Version 2.2, DOI **10.5281/zenodo.22071508**. For formal syntax, use the Frame-QL grammar; for shipped meaning and behavior, use *The Frame-QL Manual, Second Edition*.\n\nFor the analytical foundation and architecture:\n\n- *The Theory of Data*, Version 6.1 — DOI **10.5281/zenodo.22013410**\n- *A Primer on the Theory of Data*, Version 2.2 — DOI **10.5281/zenodo.22018549**\n- *Introduction to the Theory of Data*, Version 2.2 — DOI **10.5281/zenodo.22018598**\n- *Analytical Governance: From User Intent to Governed Analytical Execution*, Version 1.1 — DOI **10.5281/zenodo.22046037**\n\nThis Version 2.2 supersedes *A Primer on Frame-QL*, Version 2.1, DOI **10.5281/zenodo.22071619**. Version 2.2 corrects the formal-syntax authority wording to distinguish the Frame-QL grammar from the Manual and updates the companion reference to *Introduction to the Theory of Data*, Version 2.2. Shipped Frame-QL syntax and behavior are unchanged.\n",
+    "after": "# Where to Go Next\n\nFor the fuller account in this review set, see [*Frame-QL: An Introduction*, proposed Version 2.4, Working Draft 0.1](frameql_an_introduction_v2_4_working_draft_v0_1.md). Its published predecessor is Version 2.3, DOI 10.5281/zenodo.22071910.\n\nThe governing comparison text is [*The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md); it remains unpublished. The [companion authority index](frameql_v7_1_authority_and_supersession_index_v0_1.md) identifies the active technical drafts. Exact accepted syntax and shipped behavior remain in the applicable grammar and language reference; profiles and measured build records keep their separate roles.\n\nThe published ToD v7.0 (10.5281/zenodo.22289091), ToD Primer v2.2 (10.5281/zenodo.22018549), ToD Introduction v2.2 (10.5281/zenodo.22018598), and Analytical Governance v1.1 (10.5281/zenodo.22046037) retain their own edition scope.\n\n**Revision note.** This proposed Version 2.3 updates the Version 2.2 Primer's theoretical and authority explanation while retaining its section order, central argument, three Frame-QL examples, and numerical averaging example. It is not a language release or a published replacement. No examples were rerun in this pass.\n"
+  }
+]

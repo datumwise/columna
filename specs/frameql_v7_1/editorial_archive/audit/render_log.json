@@ -1,0 +1,74 @@
+[
+  {
+    "file": "START_HERE.md",
+    "html": "START_HERE.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "html": "a_primer_on_frameql_v2_3_working_draft_v0_1.html",
+    "math_elements": 3,
+    "warnings": ""
+  },
+  {
+    "file": "columna_o3_governed_analytical_order_v0_2.md",
+    "html": "columna_o3_governed_analytical_order_v0_2.html",
+    "math_elements": 34,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "html": "frameql_an_introduction_v2_4_working_draft_v0_1.html",
+    "math_elements": 12,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_language_vnext_working_draft_v0_4.md",
+    "html": "frameql_language_vnext_working_draft_v0_4.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_v7_1_authority_and_supersession_index_v0_1.md",
+    "html": "frameql_v7_1_authority_and_supersession_index_v0_1.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_v7_1_reconciliation_register_v0_1.md",
+    "html": "frameql_v7_1_reconciliation_register_v0_1.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+    "html": "frameql_v7_1_reference_integration_patch_sheet_v0_1.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+    "html": "frameql_v7_1_semantic_acceptance_cases_v0_1.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_v7_1_supporting_contract_notes_v0_1.md",
+    "html": "frameql_v7_1_supporting_contract_notes_v0_1.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+    "html": "frameql_vnext_capability_profile_reconciliation_plan_v0_2.html",
+    "math_elements": 0,
+    "warnings": ""
+  },
+  {
+    "file": "tod_v7_1_statistical_extension_supplement_v0_1.md",
+    "html": "tod_v7_1_statistical_extension_supplement_v0_1.html",
+    "math_elements": 44,
+    "warnings": ""
+  }
+]

@@ -1,0 +1,608 @@
+{
+  "kind": "document integrity and explicit editorial safeguards only; no runtime or mathematical suite execution",
+  "checks_total": 120,
+  "checks_passed": 120,
+  "failures": [],
+  "checks": [
+    {
+      "check": "source hash: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_language_vnext_working_draft_v0_3.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_o1_ordered_expression_compatibility_ruling_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_o2_ordered_expression_semantic_architecture_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_r4_standing_amendment_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: columna_o3_governed_analytical_order_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_capability_profile_reconciliation_plan_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_authority_reconciliation_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_current_manual_migration_matrix_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_vnext_m1_semantic_review_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: FRAMEQL_VNEXT_M2_CC_RECONNAISSANCE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: FRAMEQL_VNEXT_O2_CC_DESIGN_RECONNAISSANCE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_companion_corpus_assessment_source_manifest_v0_1.json",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: a_primer_on_frameql_v2_2_transcribed.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "source hash: frameql_an_introduction_v2_3_transcribed.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "fixed theory unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "fixed theory expected hash",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_language_vnext_working_draft_v0_3.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_o1_ordered_expression_compatibility_ruling_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_o2_ordered_expression_semantic_architecture_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_r4_standing_amendment_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: columna_o3_governed_analytical_order_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_capability_profile_reconciliation_plan_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_authority_reconciliation_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_current_manual_migration_matrix_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_vnext_m1_semantic_review_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: FRAMEQL_VNEXT_M2_CC_RECONNAISSANCE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: FRAMEQL_VNEXT_O2_CC_DESIGN_RECONNAISSANCE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "original preserved: frameql_companion_corpus_assessment_source_manifest_v0_1.json",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "recorded edit replay: frameql_language_vnext_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "recorded edit replay: columna_o3_governed_analytical_order_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "recorded edit replay: frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "recorded edit replay: a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "frameql_an_introduction all Frame-QL examples unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "frameql_an_introduction original displayed equations unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "frameql_an_introduction main section order unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "frameql_an_introduction no invented assigned DOI",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "a_primer_on_frameql all Frame-QL examples unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "a_primer_on_frameql original displayed equations unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "a_primer_on_frameql main section order unchanged",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "a_primer_on_frameql no invented assigned DOI",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: START_HERE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: START_HERE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: START_HERE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: START_HERE.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: columna_o3_governed_analytical_order_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: columna_o3_governed_analytical_order_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: columna_o3_governed_analytical_order_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: columna_o3_governed_analytical_order_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_language_vnext_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_language_vnext_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_language_vnext_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_language_vnext_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_v7_1_authority_and_supersession_index_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_v7_1_authority_and_supersession_index_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_v7_1_authority_and_supersession_index_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_v7_1_authority_and_supersession_index_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_v7_1_reconciliation_register_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_v7_1_reconciliation_register_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_v7_1_reconciliation_register_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_v7_1_reconciliation_register_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_v7_1_supporting_contract_notes_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_v7_1_supporting_contract_notes_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_v7_1_supporting_contract_notes_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_v7_1_supporting_contract_notes_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown parses: tod_v7_1_statistical_extension_supplement_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "balanced display dollar delimiters: tod_v7_1_statistical_extension_supplement_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "closed code fences: tod_v7_1_statistical_extension_supplement_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "local Markdown links: tod_v7_1_statistical_extension_supplement_v0_1.md",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: single governing family contract",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: explicit target specification",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: constituive lineage distinction",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: contextual formation not excluded",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: no executable-intent shortcut",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: bases not multiple questions",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: known-empty not missing",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: guarded scalar argument",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: lossy-state premise",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: O3 proof not duplicated",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: exact approximation boundary",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "guard: runtime not claimed",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "withdrawn rule absent: The family ontology remains order-independent.",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "withdrawn rule absent: `last`\n\n is an ordered expression",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "withdrawn rule absent: FAIL AS ORDINARY LAG",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "withdrawn rule absent: TOP-k can also pass in principle",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "withdrawn rule absent: only for the request being made",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "40 unique semantic cases",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "case Markdown matches JSON identifiers",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "every case has source and premises",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "13 exact older guidance files dispositioned",
+      "pass_": true,
+      "detail": ""
+    },
+    {
+      "check": "old instructions not current authorization",
+      "pass_": true,
+      "detail": ""
+    }
+  ]
+}

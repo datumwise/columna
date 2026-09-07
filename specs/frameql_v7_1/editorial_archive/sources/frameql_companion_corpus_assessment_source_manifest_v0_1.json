@@ -1,0 +1,136 @@
+{
+  "assessment": "Frame-QL companion-corpus assessment against ToD v7.1, v0.1",
+  "date": "2026-09-07",
+  "theory_target": {
+    "file": "the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+    "bytes": 142698,
+    "sha256": "6d44576eb6af2469c3223370c91f4efcd6c033d7f273d1fabd32060651edacd0",
+    "lines": 1474
+  },
+  "local_sources": [
+    {
+      "file": "the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "bytes": 142698,
+      "sha256": "6d44576eb6af2469c3223370c91f4efcd6c033d7f273d1fabd32060651edacd0",
+      "lines": 1474
+    },
+    {
+      "file": "frameql_language_vnext_working_draft_v0_3.md",
+      "bytes": 48769,
+      "sha256": "352be6f8570b412ca98d70e6cff40c8dc3a78b76805c59722fc81fc6cfb581bf",
+      "lines": 2103
+    },
+    {
+      "file": "frameql_vnext_o1_ordered_expression_compatibility_ruling_v0_1.md",
+      "bytes": 11537,
+      "sha256": "ac1b5c27a1c095024209a957f9cdd5eb0fc217b3a412afb5afe3194e61a70c71",
+      "lines": 532
+    },
+    {
+      "file": "frameql_vnext_o2_ordered_expression_semantic_architecture_v0_2.md",
+      "bytes": 28457,
+      "sha256": "5db4a50712f7d943442115787869313866acf1fa603ecc075fbce60db2e102cd",
+      "lines": 1204
+    },
+    {
+      "file": "frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md",
+      "bytes": 12471,
+      "sha256": "d1061b78251212a2c09f30ab61bdd7b8b4548f20fdac064033909e9776011de7",
+      "lines": 464
+    },
+    {
+      "file": "frameql_vnext_r4_standing_amendment_v0_2.md",
+      "bytes": 21740,
+      "sha256": "21e3e054c4bf56a4f5d3c4165d921341c2d78701323063e109991c9db85472d7",
+      "lines": 910
+    },
+    {
+      "file": "columna_o3_governed_analytical_order_v0_1.md",
+      "bytes": 37682,
+      "sha256": "25e8cabe4c70c8ca3852664139a65a96fbe93fc04488d0f8f46f7fc00b643894",
+      "lines": 479
+    },
+    {
+      "file": "frameql_vnext_authority_reconciliation_v0_1.md",
+      "bytes": 21871,
+      "sha256": "f07c95dd423d4fb1890268a21074a8c81152a1a48ece3a288b9729a9e908fd91",
+      "lines": 847
+    },
+    {
+      "file": "frameql_vnext_capability_profile_reconciliation_plan_v0_1.md",
+      "bytes": 12567,
+      "sha256": "b76e2ea7ef5397f277fd2b1d8a8ec424369e1092f6d2102c1ae874684b56775d",
+      "lines": 654
+    },
+    {
+      "file": "frameql_vnext_current_manual_migration_matrix_v0_1.md",
+      "bytes": 23953,
+      "sha256": "b55389d2aec3125b2369435fc2bc8c92cf969a514ff5f1be04c38cdd702b4ef4",
+      "lines": 501
+    },
+    {
+      "file": "frameql_vnext_m1_semantic_review_v0_1.md",
+      "bytes": 10888,
+      "sha256": "a39a9c8a6dcf6e27d82bd28bb1ee2c2268639be99bf38871243f3676166a9f11",
+      "lines": 478
+    },
+    {
+      "file": "FRAMEQL_VNEXT_M2_CC_RECONNAISSANCE.md",
+      "bytes": 17131,
+      "sha256": "c73118f3bf2e296d457a22d8da015920917bb04d9018ececcff1c0a0b85e57c5",
+      "lines": 711
+    },
+    {
+      "file": "FRAMEQL_VNEXT_O2_CC_DESIGN_RECONNAISSANCE.md",
+      "bytes": 15575,
+      "sha256": "c46705af4a267a5fa2139d77894e4302d9ce4f00621ebe1e076344c201b7f5a5",
+      "lines": 671
+    },
+    {
+      "file": "frameql_an_introduction_v2_0_zenodo_21960798.md",
+      "bytes": 27164,
+      "sha256": "0b1f97d39a9826b2ad37b4dc3bff645e11c699afe5e0de3cc0be0e280dd105d2",
+      "lines": 607
+    },
+    {
+      "file": "a_primer_on_frameql_v2_0_publication_ready.md",
+      "bytes": 8359,
+      "sha256": "86f947d01af6774d57c4211ff25e9b12d60bab2ac50b7def9eff3c8655be9f67",
+      "lines": 245
+    }
+  ],
+  "coverage_note": "Principal local companions read directly; supporting migration/handoff sources inspected for relevant instructions. Latest published Introduction v2.3 and Primer v2.2 assessed from retrieved passages, not whole local sources. Older local v2.0 texts were historical context only.",
+  "web_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/docs/frame_ql_language.md",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/specs/frameql_capabilities.toml",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/docs/core_profile.md",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/docs/platform_profile.md",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/docs/frame_ql_build_status.md",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/datumwise/columna/main/docs/frame_ql_revision_history.md",
+      "coverage": "Web-reader text; moving main URL, not commit-pinned; no runtime verification"
+    }
+  ],
+  "sources_unchanged": true,
+  "runtime_or_mathematical_validation_performed": false,
+  "assessment_file": {
+    "file": "frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+    "bytes": 32065,
+    "sha256": "d9a4cf1c637234cb15f5222d1fb3cc4a8fa7212e4dd78f82808ecb54296e3f00"
+  }
+}

@@ -1,0 +1,300 @@
+--- frameql_an_introduction_v2_3_transcribed.md
++++ frameql_an_introduction_v2_4_working_draft_v0_1.md
+@@ -2,7 +2,7 @@
+ title: "Frame-QL: An Introduction"
+ subtitle: "Query by Declaring the Result"
+ author: "Huayin Wang"
+-date: "Version 2.3 - 23 August 2026"
++date: "Proposed Version 2.4 - Working Draft 0.1 - 7 September 2026"
+ lang: en-US
+ papersize: letter
+ geometry: margin=0.82in
+@@ -60,14 +60,17 @@
+ 
+ **datumwise, an independent open-source research project**  
+ **License:** Creative Commons Attribution 4.0 International (CC BY 4.0)  
+-**DOI:** 10.5281/zenodo.22071910  
+-**Previous published version:** Version 2.2, DOI 10.5281/zenodo.22071508
++**Status:** Working successor for review; not published, no DOI assigned.  
++**Predecessor:** Version 2.3, DOI 10.5281/zenodo.22071910.  
++**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md).
++
++This draft revises the explanation, not shipped syntax or behavior. The predecessor's Frame-QL code examples are retained unchanged and were not re-executed in this pass. Its full public source was read; the editorial archive records the normalized text transcription used here. This is not a byte-identical republication of the deposit.
+ 
+ ## Abstract
+ 
+ Frame-QL is a query language for declaring a governed analytical result. The requester names the analytical quantities to be returned, declares the final anchor at which the result frame should exist, and states conditions that shape the request. The requester does not prescribe the relational operations or physical commands used to produce the result.
+ 
+-The language is naturally explained using the current *Theory of Data*, Version 6.1. A **measure family** is a uniquely governed analytical family such as Revenue. A **measure** is that family at one anchor:
++This working successor explains the language using *The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4. A **measure family** is a uniquely governed analytical family such as Revenue. A **measure** is that family at one anchor:
+ 
+ $$
+ \boxed{Measure = MeasureFamily @ Anchor}
+@@ -91,7 +94,7 @@
+ 
+ The Frame-QL grammar is authoritative for formal syntax. The *Frame-QL Manual, Second Edition* remains authoritative for shipped semantics, canonical form, operators, outcomes, reason codes, implementation terminology, and version-specific behavior. This introduction does not import unshipped Theory of Data features into the language.
+ 
+-The *Theory of Data*, Version 6.1, is the conceptual reference for analytical identity and lawful transformation, and the Manual states normatively how retained implementation vocabulary relates to the current Theory.
++The theory reference for this draft is the reviewed v7.1 working manuscript, not a claim that the shipped language implements all of it. The [reconciled language-law candidate](frameql_language_vnext_working_draft_v0_4.md) supplies the companion semantic target. Applicable versioned grammar and shipped references remain the source for released behavior.
+ 
+ ## Terminology and scope
+ 
+@@ -99,20 +102,20 @@
+ 
+ > **A Frame-QL query declares the output data. It does not prescribe the process used to produce it.**
+ 
+-The current Theory of Data uses the following vocabulary:
++The theory reference uses the following vocabulary:
+ 
+ - **measure family** — a governed analytical family such as Revenue;
+ - **measure** — that family at one anchor, written $F@A$;
+ - **anchor** — a governed partition of a universe;
+ - **reducer** — a lawful contraction from a strictly finer source anchor to a coarser target anchor;
+-- **sufficient state** — state required for lawful exact continuation;
++- **sufficient state** — a target-relative relationship among measure families whose measures supply an admitted construction; retained continuation capability remains law-specific;
+ - **analytical lineage** — constitutive ancestry among measure families.
+ 
+-The shipped Frame-QL / Columna implementation also has its own vocabulary—columns, series, family sets, V/M/B anchors, integrity certificates, and reason codes. Those terms retain their Manual-defined implementation meanings. In particular, this introduction does **not** reinterpret the Manual's V-anchor, M-anchor, and B-anchor as three foundational anchor kinds in ToD v6.
+-
+-The relationship between the two vocabularies is stated once, normatively, in the *Frame-QL Manual, Second Edition*, and this introduction inherits it: the *Theory of Data*, Version 6.1, defines the current theoretical vocabulary and governing laws of analytical data; the shipped Frame-QL/Columna implementation may retain vocabulary from earlier versions, with Manual-defined meanings, under v6.1's compatibility provision.
+-
+-Neither direction transfers authority: advances in the Theory do not enlarge the shipped language, and retained implementation vocabulary does not redefine the Theory. The Theory may distinguish analytical structures that the current language does not expose. The Manual remains the normative boundary for what Frame-QL actually accepts and does.
++The shipped Frame-QL / Columna implementation also has its own vocabulary—columns, series, family sets, V/M/B anchors, integrity certificates, and reason codes. Those terms retain their Manual-defined implementation meanings. In particular, this introduction does **not** reinterpret the Manual's V-anchor, M-anchor, and B-anchor as three foundational anchor kinds in the Theory of Data.
++
++The predecessor explained the vocabulary boundary against ToD v6.1. This draft carries that separation forward to the v7.1 working theory: analytical identity and admission come from the selected governed laws; versioned grammar and reference documentation define accepted syntax and shipped behavior. Retained implementation vocabulary is not a theoretical primitive.
++
++Neither direction transfers authority: advances in the Theory do not enlarge the shipped language, and retained implementation vocabulary does not redefine the Theory. The Theory may distinguish analytical structures that the current language does not expose. The applicable grammar and shipped reference remain the boundary for what a released Frame-QL version accepts and does.
+ 
+ The language is concise because responsibility has been divided, not because the omitted work has disappeared.
+ 
+@@ -128,7 +131,7 @@
+ 
+ The surface is deliberately familiar. A SQL-literate reader can see a source, a selected quantity, and an output location. But the statement is not a compressed relational program.
+ 
+-Under ToD v6 terminology, `revenue` is a governed family name. `AT {customer, cal.month}` declares the final anchor of the requested frame. Where the governed model establishes the family and the lawful path, the requested analytical object is:
++Under the retained family/measure distinction, `revenue` is a governed family name. `AT {customer, cal.month}` declares the final anchor of the requested frame. Where the governed model establishes the family and the lawful path, the requested analytical object is:
+ 
+ $$
+ Revenue@\{Customer,Month\}.
+@@ -144,7 +147,7 @@
+ 
+ # 2. Measure families and requested measures
+ 
+-The Version 5 vocabulary used **measure** for the family and **member** for one governed realization at an analytical location. Version 6 simplifies that distinction:
++The Version 5 vocabulary used **measure** for the family and **member** for one governed realization at an analytical location. Version 6 introduced, and Version 7.1 preserves, the distinction:
+ 
+ $$
+ \boxed{Measure = MeasureFamily @ Anchor}
+@@ -175,7 +178,7 @@
+ 
+ A Frame-QL query returns a **frame**: selected result series co-located at one final output anchor.
+ 
+-A frame is important to the language because it is the requested result container. It is not, in ToD v6, a new foundational analytical identity parallel to measure family or measure.
++A frame is important to the language because it is the requested result container. It is not a new foundational analytical identity parallel to measure family or measure.
+ 
+ The selected fields may denote governed measures, expressions over governed measures, or implementation-defined result series whose status is carried explicitly. The frame assembles them for one requested output location.
+ 
+@@ -213,9 +216,9 @@
+ Revenue@Customer.
+ $$
+ 
+-Version 6 treats the measure as having one **current** anchor. An operation consumes a source measure at its source anchor and produces a result at another anchor if the applicable reducer law allows it. When the operation establishes a genuinely new analytical quantity, the source anchor may remain constitutive through the new family's identity and lineage.
+-
+-This is the v6 interpretation of what earlier Frame-QL writing called the "input-anchor/output-anchor" distinction. The distinction remains real; the ontology no longer needs to say that one measure itself carries two current anchors.
++Version 7.1 retains one **current** anchor per measure. An operation consumes a source measure at its source anchor and produces a result at another anchor if the applicable reducer law allows it. When the operation establishes a genuinely new analytical quantity, the source anchor may remain constitutive through the new family's identity and lineage.
++
++The input-anchor/output-anchor distinction remains real: the constitutive input can change which family is requested, while the final anchor locates its present measure. It does not give one measure two current anchors.
+ 
+ # 3. Why Frame-QL has `@` and `AT`
+ 
+@@ -260,7 +263,7 @@
+ 
+ > **`AT` says where the completed frame is returned. `@` says where an expression must be available when it is consumed by the next operation.**
+ 
+-Not every input anchor must be written. If the shipped planner can determine one unique, immaterial reading under the governed model, it may resolve the omission. Where multiple materially different readings remain, the request is under-specified and the correct shipped outcome is clarification.
++Not every input anchor must be written. A governed single-valued completion can resolve an omission when it determines one analytical meaning. Several identity-distinct readings require clarification; having only one executable plan does not select the user's intent. Two adequate bases for the same fixed target are instead alternative ways to answer one question. The applicable release reference specifies which completions the shipped planner supports.
+ 
+ This is analytical expressiveness without physical procedure.
+ 
+@@ -270,18 +273,19 @@
+ 
+ In Columna, the **Manifold** supplies the governed environment.
+ 
+-The Manifold is one implementation of the broader idea that analytical knowledge can be represented as data rather than reconstructed in every query. Depending on the class of request the implementation supports, it can contain:
++The Manifold is one implementation of the broader idea that analytical knowledge can be represented as data rather than reconstructed in every query. The authored Manifold is logical-only. Its governing definitions can identify:
+ 
+ - governed names and analytical identities;
+ - source and requested anchors;
+ - universe and support information;
+-- operator and reducer declarations;
++- analytical-law declarations and admitted movements;
+ - sufficient-state requirements;
+ - relationship functionality and declared face/allocation rules;
+-- evidence, provenance, and integrity findings;
+-- physical bindings and materializations.
+-
+-In ToD v6 terms, the conceptual question is whether the governed environment contains enough information to establish the requested family identity, source measure, anchor movement, required state, and material support.
++- the logical contracts whose evidence must be established.
++
++The broader serving environment also needs private physical bindings, applicable evidence and certification, and available materializations. Those facts have distinct roles. The privileged realization boundary combines the logical publication with its private mapping; physical bindings do not create analytical meaning.
++
++The conceptual question is whether the selected model and its applicable evidence establish the requested identity and a lawful available construction. A retained result need not retain the sufficient state required for every later use.
+ 
+ A SQL expression describes a procedure. The Manifold represents the governed knowledge against which a Frame-QL request is resolved.
+ 
+@@ -324,7 +328,7 @@
+ - filtering at the original product measure;
+ - or refusal/clarification until an applicable rule is declared.
+ 
+-The current Manual exposes shipped mechanisms for these cases, including the RELATE face semantics and `WITH allocation`. Those are language-specific ways to express governed relationship behavior. The broader principle is independent of the implementation:
++The applicable reference and profile state which relationship mechanisms are available, including their exact face or allocation surfaces. This working introduction does not enlarge that coverage. The broader principle is independent of the implementation:
+ 
+ > **A join can realize a declared analytical passage; it does not create the passage law merely by existing.**
+ 
+@@ -346,7 +350,7 @@
+ AT {region}
+ ```
+ 
+-`FROM` names a Manifold, not a physical table. It selects the governed environment in which names, anchors, universes, operator rules, integrity information, and physical bindings are resolved.
++`FROM` names a Manifold, not a physical table. It selects the governed environment for analytical resolution. Private bindings and current evidence are combined with its logical definitions only by the authorized realization components.
+ 
+ The Manual defines exactly when `FROM` may be omitted and how the bound Manifold is represented.
+ 
+@@ -357,7 +361,7 @@
+ AT {region, cal.month}
+ ```
+ 
+-A bare governed name can request its corresponding analytical quantity at the frame output anchor when the shipped planner has a unique supported interpretation.
++A bare governed name resolves the intended family in the selected namespace. Whether evidence and a realization are available for that quantity is a separate question.
+ 
+ An expression can also construct a result series:
+ 
+@@ -368,7 +372,7 @@
+ 
+ The expression and alias do not, by themselves, establish a new canonical ToD measure-family identity called `AverageOrderValue`.
+ 
+-That distinction matters in Version 6. A stable new family exists only when the governed analytical model establishes the new identity and its lineage. Frame-QL can still return and name an expression under its shipped result rules without pretending that an `AS` alias alone has performed that governance act.
++The distinction remains in v7.1. A complete admitted canonical family construction can denote analytical identity without a separate business name. A ratio can also be governed explicitly as an AOV family. But neither arithmetic syntax nor an output alias supplies a missing target specification or family law, and naming an output is not publishing or ratifying a definition.
+ 
+ ## 6.3 `AT` declares the frame output anchor
+ 
+@@ -390,7 +394,7 @@
+ WHERE order_status = "completed"
+ ```
+ 
+-The condition shapes the requested result. It does not expose a user-authored scan plan.
++The condition restricts the request's input under its declared formation scope; it does not expose a user-authored scan plan. `HAVING` selects already-formed output, while `ORDER BY` and `LIMIT` order or select the frame. A restriction must not silently re-form an already-constituted contextual quantity under a different context.
+ 
+ The planner determines whether the predicate is reachable for the selected expressions under the shipped rules. Other clauses—`HAVING`, `ORDER BY`, `LIMIT … PER`, and `WITH`—likewise have Manual-defined semantics that describe the requested frame without turning the statement into a relational execution script.
+ 
+@@ -430,11 +434,11 @@
+ AT {customer, cal.month}
+ ```
+ 
+-That is useful to people and agents because interpretation becomes inspectable before physical execution.
++That is useful to people and agents because interpretation becomes inspectable before physical execution. A data-free explanation does not, by itself, establish every data-dependent support condition or disclosure. The resolved meaning, applicable assurance, proposed plan, and remaining checks must remain distinguishable.
+ 
+ # 8. Same-family reduction, new-family identity, and ordinary result expressions
+ 
+-ToD v6 sharpens a distinction that the earlier Frame-QL Introduction described as "closure."
++The Theory of Data distinguishes family-preserving continuation, family formation, and ordinary analytical expressions. Version 7.1 makes the conditions for these judgments explicit rather than deciding them from operator names.
+ 
+ ## 8.1 Same-family reduction
+ 
+@@ -462,7 +466,7 @@
+ \text{sufficient state}.
+ $$
+ 
+-The source anchor must be real; the source measure must exist there; the source must refine the target; the edge must be licensed; and required state must be available.
++The source anchor must be real; the source measure must exist there; the source must refine the target; the edge must be licensed; and required state must be available for this particular continuation. Failure of this plan to obtain an intermediate state does not exclude another adequate derivation of the same target.
+ 
+ ## 8.2 New-family establishment
+ 
+@@ -470,7 +474,7 @@
+ 
+ For example, an average begun over orders can establish a family whose identity differs from an average begun over customers. Likewise `MAX` begun at Order differs from `MAX` begun after Revenue has first been formed at Day.
+ 
+-ToD v6 records such family-changing construction in analytical lineage.
++Constitutive analytical lineage records such family-changing construction. Alternative proof methods or faithful execution paths to the already specified target do not create new identities.
+ 
+ Frame-QL can express source-anchor distinctions needed by such operations. The shipped language does not thereby become the complete ToD family-lineage calculus. Whether an expression corresponds to a canonical governed family identity is determined by the governed analytical model, not by the presence of an operator token or `AS` alias.
+ 
+@@ -488,7 +492,17 @@
+ \text{new governed family identity}.
+ $$
+ 
+-That keeps query syntax and analytical governance separate.
++That keeps query syntax and analytical governance separate. Canonical denotation of a family under an admitted analytical law is not a new publication act, and an `AS` label is not an admission rule.
++
++## 8.4 Governed order and retained capability
++
++Version 7.1 withdraws Version 7.0's categorical exclusion of analytical-point-order-dependent families. A complete governed order may be constitutive of a family law whose sufficient-state combination remains invariant to evidence enumeration. For compound support, complete point orders within its constituent anchors and declared precedence induce the order over the analytical points that actually exist.
++
++FIRST/LAST illustrates the distinction. The witness-valued family W retains the selected constitutive point and its value; the scalar family L can be constructed by taking that value. A witness may support admitted continuation even when its displayed scalar cannot. The optional retained point–value family R is another sufficient basis, not a mandatory storage stage. These are mathematical family names, not new Frame-QL syntax.
++
++A stored scalar LAST, a retained witness, and a scalar established without identifying a winner are not interchangeable materializations. The artifact must say what it retains, which claim is established and why, and what reuse is justified. A scalar-only argument requires adequate evidence; the particular constant-value example in T requires a fixed law, known nonemptiness, exhaustive possible-participant coverage, and supported equal values at every possible winner.
++
++None of this certifies a legacy `.last` implementation or prescribes its replacement syntax. General focal operations such as LAG and rolling still need their contextual contracts. They do not gain continuation merely by being named, and contextual formation does not categorically bar a separately admitted family.
+ 
+ # 9. Frame-QL as an AI analytical-request boundary
+ 
+@@ -530,7 +544,7 @@
+ Once the requested output becomes the unit of declaration, several responsibilities move to more appropriate places.
+ 
+ **Analytical knowledge becomes reusable.**  
+-Names, anchor relations, support conditions, reducer rules, relationship behavior, and physical bindings can be declared once rather than reconstructed in every query.
++Names, anchor relations, analytical laws, and relationship contracts can be governed once rather than reconstructed in each request. Their private physical mappings and current evidence remain separately maintained.
+ 
+ **Physical plans become replaceable.**  
+ A request can remain stable while tables, materializations, engines, and backends change.
+@@ -554,7 +568,7 @@
+ 
+ The language is broader than any one backend.
+ 
+-The current implementation supports a defined grammar, operator set, relationship model, outcome vocabulary, canonical form, and annotation contract. Some ToD v6 distinctions are not exposed directly in the shipped Frame-QL surface.
++The current implementation supports a defined grammar, operator set, relationship model, outcome vocabulary, canonical form, and annotation contract. The reviewed v7.1 target goes beyond what this introduction can claim for a particular shipped build.
+ 
+ That is acceptable.
+ 
+@@ -564,7 +578,7 @@
+ 
+ > **The Frame-QL grammar is normative for shipped syntax. The Frame-QL Manual is authoritative for shipped behavior, outcomes, and canonical form. The Theory of Data is authoritative for the analytical concepts used to explain why those language distinctions matter.**
+ 
+-Where the two use different vocabulary, this introduction translates between them. It does not rewrite shipped behavior to make the implementation look more theoretically complete than it is.
++This working edition translates analytical concepts while retaining the released syntax boundary. The [language-law candidate](frameql_language_vnext_working_draft_v0_4.md) describes the reconciled semantic target; Core/Platform profiles state authored obligations, and build-status records report measured coverage. Neither is a blanket proof of v7.1 conformance. No capability promise or generated measurement is changed by this introduction.
+ 
+ # 12. Conclusion
+ 
+@@ -572,7 +586,7 @@
+ 
+ Revenue is not exhausted by one physical column at one grain.
+ 
+-Under ToD v6, Revenue is a governed measure family. Revenue at a requested anchor is a measure:
++Under the Theory of Data, Revenue is a governed measure family. Revenue at a requested anchor is a measure:
+ 
+ $$
+ Revenue@A.
+@@ -600,14 +614,12 @@
+ 
+ ## Implementation and further reading
+ 
+-For a shorter conceptual entry point, see *A Primer on Frame-QL: Why the Result Can Be the Query*, Version 2.2, DOI **10.5281/zenodo.22071833**. For formal syntax, use the Frame-QL grammar; for shipped meaning and behavior, use *The Frame-QL Manual, Second Edition*.
+-
+-For the current analytical foundation, see:
+-
+-- Huayin Wang. *The Theory of Data*. Version 6.1. DOI **10.5281/zenodo.22013410**.
+-- Huayin Wang. *A Primer on the Theory of Data*. Version 2.2. DOI **10.5281/zenodo.22018549**.
+-- Huayin Wang. *Introduction to the Theory of Data*. Version 2.2. DOI **10.5281/zenodo.22018598**.
+-- Huayin Wang. *The Theory of Data Applied*. Version 1.0. DOI **10.5281/zenodo.21959941**.
+-- Huayin Wang. *Analytical Governance: From User Intent to Governed Analytical Execution*. Version 1.1. DOI **10.5281/zenodo.22046037**.
+-
+-This Version 2.3 supersedes *Frame-QL: An Introduction*, Version 2.2, DOI **10.5281/zenodo.22071508**. Version 2.3 corrects the formal-syntax authority wording to distinguish the Frame-QL grammar from the Manual and updates the companion references to *A Primer on Frame-QL*, Version 2.2, and *Introduction to the Theory of Data*, Version 2.2. Shipped Frame-QL syntax and behavior are unchanged.
++For the shorter companion in this review set, see [*A Primer on Frame-QL*, proposed Version 2.3, Working Draft 0.1](a_primer_on_frameql_v2_3_working_draft_v0_1.md). Its published predecessor is Version 2.2, DOI 10.5281/zenodo.22071833.
++
++The fixed analytical reference is [*The Theory of Data*, Version 7.1, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md). It is not a published edition and has no confirmed assigned DOI in this packet. Version 7.0, DOI 10.5281/zenodo.22289091, and Version 6.1, DOI 10.5281/zenodo.22013410, remain historical publications under their own versioned positions.
++
++For the reconciled technical account, use [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md) and its [authority index](frameql_v7_1_authority_and_supersession_index_v0_1.md). For actual formal syntax and released behavior, use the applicable grammar, language reference, profiles, and build record. These working documents do not enlarge the shipped language.
++
++Other useful published companions remain *A Primer on the Theory of Data* v2.2 (10.5281/zenodo.22018549), *Introduction to the Theory of Data* v2.2 (10.5281/zenodo.22018598), *The Theory of Data Applied* v1.0 (10.5281/zenodo.21959941), and *Analytical Governance* v1.1 (10.5281/zenodo.22046037). Their publication versions remain explicit; they are not all silently relabeled v7.1.
++
++**Revision note.** This proposed Version 2.4 succeeds the explanation in Version 2.3, DOI 10.5281/zenodo.22071910, for review purposes only. It updates the theory reference, separates logical definition from realization, clarifies family denotation and target resolution, and adds a bounded order/reuse explanation. All predecessor `frameql` code blocks are retained unchanged. No example was rerun and no syntax, outcome, implementation, repository, or publication was changed.
