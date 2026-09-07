@@ -2,7 +2,7 @@
 
 **Working Draft 0.4 — 7 September 2026**  
 **Status:** Reconciled working semantic target; not the shipped Manual.  
-**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), abbreviated **T** below.  
+**Theory reference:** [ToD v7.1 Full Manuscript Working Draft 0.4](../reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), abbreviated **T** below.  
 **Scope:** Expression and request meaning, evidence and reuse obligations, and compatibility boundaries. This is not a complete grammar reference or a release-conformance claim.  
 **No DOI assigned. Not a syntax release. Not an implementation authorization.**
 
@@ -1255,7 +1255,7 @@ Refusal, clarification, partial-result contracts, and errors retain their versio
 
 The canonical language defines expression meaning and language standing. Profiles undertake subsets of those capabilities; build records report measured realization. T independently decides whether a construction satisfies analytical family law. A callable spelling or runtime kind does not answer all these questions.
 
-In particular, distinguish analytical-point-order dependence, family-law admission, retained value/state capability, and the operation a representation is licensed to perform next. These distinctions do not require four new registry columns. The [rebased reconciliation plan](frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) gives the constraints for a later schema review.
+In particular, distinguish analytical-point-order dependence, family-law admission, retained value/state capability, and the operation a representation is licensed to perform next. These distinctions do not require four new registry columns. The [rebased reconciliation plan](../reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) gives the constraints for a later schema review.
 
 An implementation may route FIRST/LAST through legacy machinery while the successor theory has a different account of their admitted laws. That is a declared implementation gap or compatibility boundary, not evidence that the machinery already conforms. A displayed-value re-entry flag cannot be changed merely because ordered family admission is now possible.
 
@@ -1265,7 +1265,7 @@ No Core promise is reduced or enlarged in this document. No Platform-only dialec
 
 # 14. Semantic acceptance suite
 
-The [companion acceptance set](frameql_v7_1_semantic_acceptance_cases_v0_1.md) records the reconciled expectations with premises, expected judgments, prohibited shortcuts, and source sections. These are semantic review cases, **not executed Columna tests or a new formal proof suite**.
+The [companion acceptance set](../reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md) records the reconciled expectations with premises, expected judgments, prohibited shortcuts, and source sections. These are semantic review cases, **not executed Columna tests or a new formal proof suite**.
 
 The principal questions are whether FIRST/LAST can be admitted without certifying legacy paths, whether a target is distinguished from its bases, whether partial evidence is handled under the actual law, whether retained content limits reuse, and whether versioned syntax/coverage stays separate from theory.
 
@@ -1287,6 +1287,6 @@ The draft successors of the Introduction and Primer preserve their entry-point p
 
 This is a local working language-law candidate aligned to T Draft 0.4, not a published language edition or implementation authorization. T remains unchanged. Its proofs and their recorded validation status are referenced, not reproduced or rerun here.
 
-The [active-source index](frameql_v7_1_authority_and_supersession_index_v0_1.md) is the reading entry point. The [supporting notes](frameql_v7_1_supporting_contract_notes_v0_1.md) own the order-completion, contextual-domain, standing, and order-realization explanations subordinate to this candidate. The [acceptance set](frameql_v7_1_semantic_acceptance_cases_v0_1.md) records semantic checks. The [capability/profile plan](frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) records future reconciliation constraints without changing those authorities.
+The [active-source index](frameql_v7_1_authority_and_supersession_index_v0_1.md) is the reading entry point. The [supporting notes](../reviewed_sources/frameql_v7_1_supporting_contract_notes_v0_1.md) own the order-completion, contextual-domain, standing, and order-realization explanations subordinate to this candidate. The [acceptance set](../reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md) records semantic checks. The [capability/profile plan](../reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) records future reconciliation constraints without changing those authorities.
 
 The source and change register supplies exact local input hashes, full-text Intro/Primer retrieval provenance, and the diff against candidate 0.3. Historical publications retain their own versioned statements. Only the active working guidance identified in this package is superseded for current design.

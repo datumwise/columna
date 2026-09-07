@@ -2,7 +2,7 @@
 ## Declaration, comparison, identity, and realization
 
 **Working Draft 0.2 — 7 September 2026**  
-**Status:** Order-interface proposal subordinate to [ToD v7.1 Full Manuscript Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md) (**T**) and [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md).  
+**Status:** Order-interface proposal subordinate to [ToD v7.1 Full Manuscript Draft 0.4](../reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md) (**T**) and [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md).  
 **No schema, syntax, runtime, publication, or implementation authorization.**
 
 # 0. Scope and authority
@@ -369,11 +369,11 @@ The order structure remains settled as a working theory input. The remaining int
 
 This task must not use legacy FIRST/LAST internals as the definition of the target. Nor should it introduce a new authoring kind, registry, or wire field merely because the requirements are listed separately. Recommend the smallest faithful representation after inspecting the relevant interfaces.
 
-No such implementation or schema work is authorized here. The [capability/profile reconciliation plan](frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) states the separate adoption boundaries.
+No such implementation or schema work is authorized here. The [capability/profile reconciliation plan](../reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) states the separate adoption boundaries.
 
 # 17. Sources and evidence boundaries
 
-The fixed theoretical source is [T, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), especially §§2.1.3, 4–10, and 12. The language account is [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md). Both are working documents, not published v7.1 or shipped-language certification.
+The fixed theoretical source is [T, Full Manuscript Working Draft 0.4](../reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), especially §§2.1.3, 4–10, and 12. The language account is [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md). Both are working documents, not published v7.1 or shipped-language certification.
 
 **[S6] Historical architecture handoff.** `START_HERE(2).md`, 14 August 2026, identified as source S6 in O3 v0.1 §17. Section 10 cites it only for the persistent separation of logical publication, private mapping, certification, serving admission, and planner/engine responsibility. Its operational status is historical, not current.
 

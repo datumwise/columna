@@ -200,7 +200,9 @@ SELECT revenue AS total_revenue,
        AT {customer}
 ```
 
-Without `AS`, the framework names the column by its **canonical expression** — verbatim, not a mechanical rewrite. A column's identity is *what it is*: either the name you give it with `AS`, or the expression itself. No name is invented, and none is mangled.
+Without `AS`, the framework names the column by its **canonical expression** — verbatim, not a mechanical rewrite. A column's **output key** is *what it is*: either the name you give it with `AS`, or the expression itself. No name is invented, and none is mangled.
+
+An alias supplies an output column key and follows the visibility and collision rules below. It does not establish analytical family identity, and changing the output key does not change the already-resolved analytical quantity.
 
 **Bare column reference.** The column's own name. `revenue` → `revenue`.
 
@@ -1570,6 +1572,8 @@ The framework places no constraints on what surfaces do, as long as what they ha
 ## Appendix A: Operator Reference
 
 > **The registry is one umbrella, and it is the planner's contract with the engine.** Reducers, scans, and map functions are three *kinds* of operator in one installation-level registry. The registry holds, for each operator, its name, its kind, and its type signature; the planner reads exactly this to **typecheck** an operator against its inputs and to **route** it — a reducer is decomposed into an atom `op(input @ a_in) @ a_out`, a scan is handed to the column engine to run against a derived order, a map is evaluated by the planner over co-anchored results. The *mechanics* — how `sum` combines, how an HLL sketch merges, how `rolling_mean` walks a window — live in the engine, never in the registry. This is the same logical/physical split the type system uses: the registry is vocabulary (names, kinds, signatures, fertility, the `{mechanism → behavior}` map), the engine is implementation. Custom operators and custom datatypes (e.g. an `HLLSketch`-typed column with an `approx_distinct` fertile reducer) are added here, at the registry, which is why a new operator needs no change to the planner's machinery — only a new registry entry the planner can read. The extension point itself **ships**: the distinct family is built through it — a custom TYPE (`HLLSketch`) plus three registered custom operators (`hll_count` / `hll_merge` / `hll_estimate`). The sketch reducers below beyond HLL are **[ROADMAP]** — the registry can name them; no engine mechanics exist for them yet.
+
+These entries record distinct authorities, identified by their columns and source files: canonical standing is language law, a profile states an authored obligation, and build status reports measured coverage. Callable availability is not full analytical-law conformance. No theoretical revision silently changes operator standing, profile promises, or measured release coverage.
 
 <!-- BEGIN GENERATED: capability-reference -->
 

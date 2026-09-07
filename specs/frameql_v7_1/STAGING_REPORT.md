@@ -103,23 +103,29 @@ because the sheet itself warns that older line numbers are stale.
 | § | destination in the current reference | exists? | conflict | recommendation |
 |---|---|---|---|---|
 | 2 opening authority notice | `frame_ql_language.md` §Editions and availability + §The Theory of Data (two headings, not one) | partly | would-overclaim-shipped · jurisdiction regression | **do not adopt** |
-| 3 alias ≠ identity | §1.6 Series names and the `AS` alias | yes | mild stale-target | **adopt reduced** (3 of 5 sentences) |
+| 3 alias ≠ identity | §1.6 Series names and the `AS` alias | yes | mild stale-target | **APPLIED, reduced** — family-admission sentence dropped |
 | 4 EXPLAIN | §1.7 | yes | needs-semantic-ruling · stale adoption condition | **do not adopt as-is** |
 | 5 canonical vs decomposition | §2.1 | yes | needs-semantic-ruling | **do not adopt** |
 | 6 default completion | §3.1–3.3 | yes | **already fixed** — no-op | **do not adopt** |
-| 7 family / FIRST-LAST / ordered ops | **no such section** | **NO** | destination-missing · generated-artifact | **do not adopt** |
+| 7 family / FIRST-LAST / ordered ops | §2.2 carries family-variant prose (see correction below) | yes | no exact replacement destination as written | **not applied** |
 | 8 WHERE / HAVING | §4.1–4.4 | yes | already distinguished · needs-semantic-ruling | **do not adopt** |
 | 9 Φ / NULL / support | §1.5, §7.5 | yes | would-overclaim-shipped (unbuilt R4) | **do not adopt the enumeration** |
 | 10 bracket roadmap withdrawal | §2.8, §6.7 | yes | needs-semantic-ruling · moves a gate census | **do not adopt** |
-| 11 profile / generated-table notice | inside the generated blocks | mislocated | **generated-artifact** | **adopt only above `BEGIN GENERATED`** |
+| 11 profile / generated-table notice | authored prose above `BEGIN GENERATED` | yes | generated-artifact if written inside the block | **APPLIED outside the block** — family-continuation sentence dropped |
 | 12 checklist | — | — | — | two items verified holding |
 
 Three findings worth the reviewer's attention:
 
-1. **§7's destinations do not exist.** There is no family/member section, no FIRST/LAST description
-   and no ordered-operation section beyond §5.5's two-bullet order rule. The only enumeration of
-   `first`/`last` in the manual is **inside a machine-generated capability block** projected from
-   `specs/frameql_capabilities.toml`. Generated tables stay generated.
+1. **§7 — CORRECTION to this report as first written.** It said the family / FIRST-LAST / ordered-
+   operation destinations "do not exist". **That was an overstatement and is withdrawn.** §2.2 *Bare
+   names: inputs versus complete series* carries family-variant prose explicitly — *"A **family
+   variant** is the measure under one named reduction of its family, written with a dot: `level.last`,
+   `level.sum`… `SELECT level.last AT {store}` reads the end-of-period inventory snapshot per store"* —
+   and it goes on to distinguish a family variant from a `member`. The subject is **not absent from
+   non-generated prose.** What is true is narrower: the §7 proposal supplies **no exact replacement
+   destination matching the current headings**, and the only *enumeration* of `first`/`last` sits
+   inside a machine-generated capability block, which is not hand-editable. A future version of the
+   proposal needs text pinned to §2.2.
 2. **§2 and §9 would present unshipped successor obligations as facts about the shipped release** — a
    v7.1 candidate authority that is not a published edition, and the existence/placement/eligibility/
    support architecture that the consolidated ledger records as explicitly **not built and not
@@ -146,9 +152,26 @@ into 4 documents, **0 drifted**; 49 manual blocks → 67 statements with **0 dri
 enrolled currency claims across 4 files matching `columna 0.19.0 · columna-core 0.19.0 ·
 columna-server 0.12.0 · contract_version "4"`.
 
-The package's own integrity audit reproduces **in-repo**: `cd specs/frameql_v7_1 && python
-audit_joint_review.py` matches `tod_frameql_joint_review_document_audit_v0_1.json` byte-for-byte, and
-`MANIFEST_SHA256.json` was independently re-hashed — 40 files, 0 mismatches.
+### 6.1 Two integrity scopes, reported separately
+
+An earlier version of this report said the archived audit "reproduces in-repo". **That conflated two
+different claims and is corrected here.** `audit_joint_review.py` was written against the review
+package's exact membership and resolves local links as siblings; run as-is in the *expanded* staging
+directory it now **fails**, because `editorial_archive/sources/` holds a second copy of the theory
+manuscript whose siblings differ. That is a scope artifact of the expansion, not a loss of integrity,
+and the archived check was **not weakened** to accommodate it.
+
+`python specs/frameql_v7_1/verify_staging.py` runs both scopes and reports them apart:
+
+- **CHECK 1 — pristine-package integrity.** Exactly the membership recorded in `MANIFEST_SHA256.json`
+  is reconstructed from this repository into a temporary tree and the archived audit runs there
+  **unmodified**. Result: *40 files, 0 hash problems; status `passed`; output identical to the archived
+  audit JSON.*
+- **CHECK 2 — adoption-tree integrity.** A different claim, covering this staging's own additions:
+  *adopted-set local links 60 checked / 0 broken; archived `reviewed_sources/` links 57 checked / 0
+  broken (still intact); adopted copies are exactly the 5 documents this pass edits.*
+
+Both pass. Neither result is offered as the other.
 
 ## 7. Confirmations required by the return
 
@@ -173,38 +196,60 @@ postponing them until publication**, and makes no claim about their status on cu
 reproduced evidence lives in a separate, non-merged reconnaissance branch and is not part of this
 staging.
 
-## 9. Adoption decisions left open for the reviewer
+## 9. Adoption decisions — resolved 7 September 2026
 
-1. **The provenance wording is now understated in three places, including inside the staged successors
-   themselves.** This is the one item where the staged text says something the evidence contradicts,
-   so it is listed first.
+All five open items were ruled and are now recorded in the branch. Their resolutions:
 
-   - *Introduction v2.4* masthead: *"the editorial archive records the normalized text transcription
-     used here. This is not a byte-identical republication of the deposit."*
-   - *Primer v2.3* masthead: *"The editorial record identifies the complete public source and its
-     normalized transcription."*
-   - Authority index §4: *"whitespace-normalized transcriptions, not independently checksum-verified
-     Zenodo deposit bytes"*; and the reconciliation register's *"Direct binary download into the
-     container was unavailable."*
+1. **Provenance wording** — **resolved: accept and record the new evidence, keeping three facts apart.**
+   The adopted Introduction and Primer mastheads and the adopted authority index §4 now distinguish what
+   the original editorial pass had available, what was verified later against the deposited Markdown, and
+   the exact transcription differences and successor edits. Durable evidence:
+   `proposed_adoption/PROVENANCE_EVIDENCE.md`. The archived notes, manifests and register are **not**
+   rewritten, so the later verification is never attributed to the original pass; and verifying
+   predecessor bytes is stated not to make a revised successor a byte-identical republication.
+2. **Authority index §4** — resolved as part of 1, in the **adopted** copy only. The archived baseline is
+   preserved unedited.
+3. **Deposit registration** — **not done, by instruction.** The ingest pipeline was not run and
+   `services/ask/deposits/manifest.json` was not edited. The verification's durable home is the evidence
+   record above.
+4. **The two inherited Introduction paragraph splits** — **retained and recorded as editorial changes**,
+   itemised in the evidence record. No rebuild was performed to undo them.
+5. **Patch sheet** — **two proposals applied, nine not.** §3 applied reduced (family-admission sentence
+   dropped); §11 applied in the authored prose above `BEGIN GENERATED` (family-continuation sentence
+   dropped). Dispositions for all eleven recorded in `proposed_adoption/PATCH_SHEET_DISPOSITIONS.md` so
+   the sheet cannot later be applied wholesale. **Withholding an edit does not certify the existing
+   wording as correct** — EXPLAIN (§4) and the §5, §8 and §10 contract questions remain open.
 
-   Against the evidence: the download **was** available today, both deposits **were** checksum-verified,
-   and the Primer's transcription is **byte-identical** to the deposit — so "normalized transcription"
-   is a no-op disclaimer there. For the Introduction the qualification is defensible but narrow: the
-   only divergence is three paragraph splits, with no word changed. Nothing here warrants substituting
-   a predecessor or changing an edition; only the provenance sentences are wrong, and they are wrong in
-   the direction of claiming *less* certainty than the repository can now demonstrate.
+## 10. Adopted reading paths
 
-   Not corrected here, deliberately: all four documents are reviewed sources, and rewriting a
-   provenance claim inside them is an adoption act, not a staging act. Recommended replacement wording
-   should carry the record IDs, both checksums, byte and line counts, the date of verification, and the
-   explicit statement that carried-across examples were **not** re-executed.
+`proposed_adoption/INDEX.md` is the single unambiguous adoption-facing reading index. It selects the
+corrected copy of every document that has one and the archived copy of every document this pass does not
+change. Adopted copies exist for exactly five documents — language 0.4 (J1), O3 0.2 (J2), Introduction
+v2.4, Primer v2.3, and the authority index — and every local link in them resolves under one rule: a
+target with an adopted copy stays same-directory, a target this pass does not change points to
+`../reviewed_sources/`.
 
-2. **Upgrade the authority index §4 provenance qualification?** Same evidence as above, separated
-   because the index is the document a reader consults for status rather than a masthead.
-3. **Register the two Frame-QL deposits in `services/ask/deposits/manifest.json`?** That would give
-   the verification a durable home. It is an ingest-pipeline run, not an edit.
-4. **Rebuild the Introduction v2.4's two inherited paragraph splits from the verified deposit bytes,
-   or record the divergence?** Either is defensible; recording it is what this staging does.
-5. **Which patch-sheet items, if any, proceed** — on the evidence above, §3 reduced and §11 relocated
-   are the only two adoptable as editorial acts; the rest need rulings, have missing destinations, or
-   would overclaim.
+The archived baseline index still selects the uncorrected copies **and is deliberately left that way**,
+with an adoption-facing header on the corrected copy saying so. No archived file was edited to fix a link.
+
+Editorial revisions and hashes for these link and provenance edits are in
+`proposed_adoption/EDITORIAL_FOLLOWUP.md`, kept **separate** from `proposed_adoption/REVISION_METADATA.md`,
+which preserves the original J1/J2 replay evidence exactly as first written.
+
+## 11. Authority descriptions corrected
+
+Both README accounts of the four-document split were wrong in the same way — they read as four
+statements about what the released build does.
+
+- `docs/README.md`: the language reference is now described as **adopted language meaning and canonical
+  standing**, build status as **measured implementation coverage** (and named as the only one of the four
+  that reports build behaviour), profiles as authored obligations, and the successor set as **not yet
+  adopted language law, establishing no implementation conformance**.
+- `specs/frameql_v7_1/README.md`: the same correction in its jurisdiction table.
+
+Two further `docs/README.md` repairs, both required and both bounded: the stale **"no roadmap marks"**
+assertion is corrected by describing the document accurately (eleven `[ROADMAP]`/`[SCHEDULED]` marks are
+present) — **no roadmap construct was removed and no standing changed**; and the **duplicate, obsolete
+Currency pointer** to a Currency block that no longer exists in the language document is deleted rather
+than restated, because restating a version there is the drift it was written to warn about. **No
+build-version stamp was reintroduced into language law.**
