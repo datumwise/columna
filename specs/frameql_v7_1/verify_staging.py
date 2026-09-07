@@ -91,7 +91,71 @@ def check_2_adoption() -> bool:
         print(f"   adopted copies are exactly the {len(named)} documents this pass edits")
     return ok
 
+def check_3_entry_point() -> bool:
+    """The staging README is the entry point. Verify what it actually SAYS, not just that its links
+    resolve: the command it documents must be the command that exists and runs, and the reading set it
+    points at must be the corrected one."""
+    print("\nCHECK 3 - entry-point agreement (specs/frameql_v7_1/README.md)")
+    ok = True
+    readme = (BASE / "README.md").read_text()
+    idx = (BASE / "proposed_adoption" / "INDEX.md").read_text()
+
+    def want(cond, msg):
+        nonlocal ok
+        print(f"   {'ok  ' if cond else 'FAIL'} {msg}")
+        if not cond: ok = False
+
+    # 1. the documented command is the real one, invoked from the repository root
+    want("python specs/frameql_v7_1/verify_staging.py" in readme,
+         "documents `python specs/frameql_v7_1/verify_staging.py` (repo-root invocation)")
+    want((BASE / "verify_staging.py").is_file(), "that script exists at the documented path")
+
+    # 2. it must NOT tell a reader to run the archived audit here, nor promise it reproduces
+    want("cd specs/frameql_v7_1 && python audit_joint_review.py" not in readme,
+         "does not instruct running the archived audit in the expanded tree")
+    want("Do not run `audit_joint_review.py` directly in this directory" in readme,
+         "warns against that invocation explicitly")
+
+    # 3. reading order is delegated, not duplicated
+    want("proposed_adoption/INDEX.md" in readme, "delegates the reading order to the adoption-facing index")
+    want("does not repeat that list" in readme, "states that it keeps no competing list")
+    numbered = sum(1 for line in readme.splitlines()
+                   if re.match(r"^\s*\d+\.\s+\[", line) and "_v0_" in line)
+    want(numbered == 0, f"maintains no competing numbered document list (found {numbered})")
+
+    # 4. the baselines stay reachable as history
+    want("reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md" in readme,
+         "keeps the archived baseline index reachable as history")
+
+    # 5. patch-sheet status agrees with the recorded dispositions
+    want("not applied to any repository file" not in readme,
+         "no longer claims the patch sheet is applied to no repository file")
+    want("PATCH_SHEET_DISPOSITIONS.md" in readme, "points at the recorded dispositions")
+
+    # 6. INTENDED DOCUMENT SELECTIONS: the index picks corrected copies for the edited documents,
+    #    and archived copies for the rest.
+    edited = {"frameql_language_vnext_working_draft_v0_4.md", "columna_o3_governed_analytical_order_v0_2.md",
+              "frameql_an_introduction_v2_4_working_draft_v0_1.md", "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+              "frameql_v7_1_authority_and_supersession_index_v0_1.md"}
+    for name in sorted(edited):
+        want(f"]({name})" in idx and f"](../reviewed_sources/{name})" not in idx,
+             f"index selects the CORRECTED copy of {name}")
+    for name in ("the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+                 "frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+                 "frameql_v7_1_reference_integration_patch_sheet_v0_1.md"):
+        want(f"](../reviewed_sources/{name})" in idx,
+             f"index selects the ARCHIVED copy of {name}")
+
+    # 7. the archived audit is preserved byte-identical to its manifest hash
+    exp = dict((r, s if not isinstance(s, dict) else s.get("sha256")) for r, s in manifest_entries())
+    want(sha(BASE / "audit_joint_review.py") == exp.get("audit_joint_review.py"),
+         "audit_joint_review.py is unchanged (matches MANIFEST_SHA256.json)")
+    return ok
+
+
 if __name__ == "__main__":
-    a = check_1_pristine(); b = check_2_adoption()
-    print(f"\nCHECK 1 pristine-package: {'PASS' if a else 'FAIL'}   CHECK 2 adoption-tree: {'PASS' if b else 'FAIL'}")
-    sys.exit(0 if (a and b) else 1)
+    a = check_1_pristine(); b = check_2_adoption(); c = check_3_entry_point()
+    print(f"\nCHECK 1 pristine-package: {'PASS' if a else 'FAIL'}   "
+          f"CHECK 2 adoption-tree: {'PASS' if b else 'FAIL'}   "
+          f"CHECK 3 entry-point: {'PASS' if c else 'FAIL'}")
+    sys.exit(0 if (a and b and c) else 1)

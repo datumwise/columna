@@ -14,6 +14,12 @@ parser grammar, planner or engine behaviour, operator or family admission, capab
 profile promises, measured build coverage, type definitions, wire fields, contract version, or serving
 outcomes.
 
+Two editorial items from the reference integration patch sheet were separately authorized and **have
+been applied** to `docs/frame_ql_language.md` — a §1.6 output-key clarification and an authority notice
+in the authored prose above the generated capability block. Both are prose; neither changes behaviour or
+a generated row. Their status and the disposition of the other nine proposals are recorded in
+[`proposed_adoption/PATCH_SHEET_DISPOSITIONS.md`](proposed_adoption/PATCH_SHEET_DISPOSITIONS.md).
+
 ## Why this set lives in `specs/` and not in `docs/`
 
 `docs/README.md` states the repository's publication rule directly: *"The merge that published these
@@ -39,47 +45,61 @@ shipped authority. Nothing here is evidence that the current build implements it
 
 ```
 specs/frameql_v7_1/
-   START_HERE.md                     the review package's own entry point
-   README.md                         this file — repository staging status and reading index
-   reviewed_sources/                 the reviewed set, PRISTINE — byte-identical to the review package
-   proposed_adoption/                the two J1/J2-corrected files, and only those
-   historical_provenance/            historical evidence — NOT active instructions
-   audit_joint_review.py             re-runnable file-integrity audit
-   MANIFEST_SHA256.json              covers every packaged file except itself
-   J1_editorial_correction.diff      the supplied unified diffs, retained as adoption evidence
-   J2_editorial_correction.diff
+   README.md                         this file — status and entry point
+   STAGING_REPORT.md                 the staging return: decisions, evidence, verification
+   verify_staging.py                 the verification command (see below)
+
+   proposed_adoption/                THE ADOPTED READING SET — start at INDEX.md
+       INDEX.md                          the one adoption-facing reading index
+       …five corrected documents…        language 0.4 (J1) · O3 0.2 (J2) · Introduction v2.4 ·
+                                         Primer v2.3 · authority index
+       REVISION_METADATA.md              original J1/J2 replay evidence, as first written
+       EDITORIAL_FOLLOWUP.md             later link/provenance edits, with before/after hashes
+       PROVENANCE_EVIDENCE.md            deposit verification: ids, artifacts, checksums, limits
+       PATCH_SHEET_DISPOSITIONS.md       all eleven patch-sheet proposals, ruled
+
+   reviewed_sources/                 HISTORY — the reviewed set, PRISTINE, byte-identical to the
+                                     review package. Twelve documents plus the acceptance-case JSON
+                                     and the browser reading copies
+   editorial_archive/                HISTORY — how the successors were built; superseded inputs
+   historical_provenance/            HISTORY — evidence only, NOT active instructions
+
+   START_HERE.md                     the review package's own entry point, archived unedited
+   audit_joint_review.py             the archived integrity audit — preserved unchanged
+   MANIFEST_SHA256.json              the package membership the archived audit is written against
+   J1_/J2_editorial_correction.diff  the supplied unified diffs, retained as adoption evidence
    tod_frameql_joint_*.{md,json}     review report, forty-case ledger, corrections, manifests, audit
 ```
 
-`reviewed_sources/` is deliberately **not** edited. The review package preserves its baselines rather
-than overwriting their provenance, and the supplied diffs are written against a
-`reviewed_sources/ -> proposed_adoption/` pair, so that convention is reproduced here rather than
-invented. The consequence worth knowing: to read a corrected document you read `proposed_adoption/`;
-to verify what was reviewed you read `reviewed_sources/`.
+**Nothing under `reviewed_sources/`, `editorial_archive/` or `historical_provenance/` is edited.** They
+are byte-identical to the packages they came from, and they stay that way so the baselines remain
+traceable and the archived audit still describes something real. The corrected copies live in
+`proposed_adoption/`, which is the convention the supplied diffs are themselves written against
+(`--- reviewed_sources/… +++ proposed_adoption/…`).
+
+So: **to read the set, read `proposed_adoption/`. To see what was reviewed, read `reviewed_sources/`.**
 
 ## Reading order
 
-**Use [`proposed_adoption/INDEX.md`](proposed_adoption/INDEX.md).** It is the one unambiguous
-adoption-facing reading index: it selects the corrected copy of every document that has one and the
-archived copy of every document this pass does not change. The list below is kept for orientation and
-agrees with it.
+**Start at [`proposed_adoption/INDEX.md`](proposed_adoption/INDEX.md).** It is the single
+adoption-facing reading index: it gives the order, and for each document it selects the corrected copy
+where one exists and the archived copy where this pass changed nothing.
 
-The archived baseline index at
-[`reviewed_sources/…index_v0_1.md`](reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md)
-is preserved unedited and **selects the uncorrected copies** — read it to see what was reviewed, not to
-read the adopted set. Roles and supersessions are as it states them:
+This file deliberately **does not repeat that list.** A second ordering maintained here would drift
+from it, and a reader would have no way to tell which one was current.
 
-1. [ToD v7.1 Full Manuscript Draft 0.4](reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md) — fixed working analytical foundation; unchanged in this pass; unpublished.
-2. [Frame-QL Language-Law Candidate 0.4](proposed_adoption/frameql_language_vnext_working_draft_v0_4.md) — the reconciled expression/request semantic target. **Not the shipped Manual.** (J1 applied; reviewed baseline in `reviewed_sources/`.)
-3. [Supporting Contract Notes 0.1](reviewed_sources/frameql_v7_1_supporting_contract_notes_v0_1.md)
-4. [O3 Order Interface 0.2](proposed_adoption/columna_o3_governed_analytical_order_v0_2.md) — (J2 applied; reviewed baseline in `reviewed_sources/`.)
-5. [Semantic Acceptance Cases 0.1](reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md) — **premises and expectations for review, not executed engine tests.**
-6. [Capability/Profile Plan 0.2](reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) — no registry, promise, or measurement changed.
-7. [Release-reference integration patch sheet](reviewed_sources/frameql_v7_1_reference_integration_patch_sheet_v0_1.md) — **proposed wording only; not applied to any repository file by this staging.** See the staging report for the reconciliation against the exact current reference.
-8. [Introduction proposed v2.4, draft 0.1](reviewed_sources/frameql_an_introduction_v2_4_working_draft_v0_1.md) and [Primer proposed v2.3, draft 0.1](reviewed_sources/a_primer_on_frameql_v2_3_working_draft_v0_1.md) — proposed edition numbers, **not publication metadata. No v7.1 DOI exists and none is invented here.**
+**The reviewed baselines remain plainly available as history.** Two other indexes exist and neither is
+the one to read from:
 
-A new conceptual reader may begin with the Primer and Introduction; neither replaces the technical
-authority above.
+- [`reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md`](reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md)
+  — the **archived baseline index**, preserved unedited. It selects the *uncorrected* copies, by
+  construction. Read it to see what was reviewed.
+- [`START_HERE.md`](START_HERE.md) — the review package's own entry point, also archived unedited.
+
+Two things about the set that a reader should carry into it, and that the index states in full: the
+**semantic acceptance cases are premises and expectations for review, not executed engine tests**; and
+the **Introduction and Primer edition numbers are proposed, not publication metadata — no v7.1 DOI
+exists and none is invented here.**
 
 ## Superseded working guidance — do not execute it
 
@@ -104,13 +124,29 @@ Both are named in §6 of the set's own authority index. Their reproduced evidenc
 design reconnaissance record, which is a separate, non-merged branch and is **not** part of this
 staging.
 
-## Re-verifying this directory
+## Verifying this staging
+
+From the **repository root**:
 
 ```sh
-cd specs/frameql_v7_1 && python audit_joint_review.py
+python specs/frameql_v7_1/verify_staging.py
 ```
 
-The output should match `tod_frameql_joint_review_document_audit_v0_1.json` exactly. The audit checks
-file hashes, source locations, exact patch replay, preservation of equations and fenced examples, and
-local link destinations. **It does not prove semantics**, and it ran no analytical suite, no Columna
-test, no CDT API inspection, and no live source.
+It reports **two integrity scopes separately**, because they are different claims:
+
+- **Pristine-package integrity** — exactly the membership recorded in `MANIFEST_SHA256.json` is
+  reconstructed into a temporary tree and the archived `audit_joint_review.py` is run there
+  **unmodified**. This is the claim *"the reviewed package is intact in this repository"*.
+- **Adoption-tree integrity** — a separate claim covering this staging's own additions: that the
+  adopted reading set's links resolve, that the archived trees are untouched, and that the adopted
+  copies are exactly the documents this pass edits.
+
+**Do not run `audit_joint_review.py` directly in this directory, and do not expect that invocation to
+reproduce the archived result.** It was written against the review package's exact membership and
+resolves local links as siblings; this staged tree deliberately contains more than the package, so
+running it here fails on a link that is fine in the package. That is a scope artifact of the expansion,
+not a loss of integrity — which is precisely why the two scopes are checked apart, and why
+`audit_joint_review.py` is **preserved unchanged** rather than relaxed to accommodate the additions.
+
+Neither check proves semantics. No analytical suite, Columna test, CDT API inspection or live source
+was run by either.

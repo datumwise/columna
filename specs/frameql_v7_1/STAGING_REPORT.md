@@ -171,7 +171,16 @@ and the archived check was **not weakened** to accommodate it.
   *adopted-set local links 60 checked / 0 broken; archived `reviewed_sources/` links 57 checked / 0
   broken (still intact); adopted copies are exactly the 5 documents this pass edits.*
 
-Both pass. Neither result is offered as the other.
+- **CHECK 3 — entry-point agreement.** Added when the staging README was brought into line with the
+  completed follow-up. It verifies what the README *says*, not merely that its links resolve: that the
+  command it documents is the one that exists and runs from the repository root; that it does **not**
+  instruct running the archived audit in the expanded tree; that the reading order is delegated to
+  `proposed_adoption/INDEX.md` rather than duplicated; that the archived baseline index stays reachable
+  as history; that the patch-sheet status agrees with the recorded dispositions; that the index selects
+  the **corrected** copy of each of the five edited documents and the **archived** copy of the rest; and
+  that `audit_joint_review.py` still matches its manifest hash. Result: *19 assertions, all ok.*
+
+All three pass. No result is offered as any other.
 
 ## 7. Confirmations required by the return
 
