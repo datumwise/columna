@@ -374,7 +374,11 @@ def fetch() -> dict:
         "deposits": manifest,
         "missingText": missing,
     }
-    MANIFEST.write_text(json.dumps(payload, indent=1) + "\n")
+    # indent=2 MATCHES THE FILE ON DISK. The generator wrote indent=1 while every committed manifest
+    # carried indent=2, so the first regeneration after that drift reformatted 600 lines and buried
+    # the four that changed. A generated file whose diff cannot be read is a generated file nobody
+    # reviews, which is the opposite of why this manifest lands as bytes in a PR.
+    MANIFEST.write_text(json.dumps(payload, indent=2) + "\n")
     return payload
 
 
