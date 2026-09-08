@@ -333,9 +333,9 @@
     "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
     "class": "edition-pinned",
     "allowedDois": [
-      "10.5281/zenodo.22018598"
+      "10.5281/zenodo.22651777"
     ],
-    "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves."
+    "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves. RE-EDITIONED 2026-09-08 (v2.2 -> v2.3, Huayin's ruling of 2026-09-07): the literal moves to 22651777 because the page now renders v2.3's bytes. 22018598 LEAVES this row — an edition-pinned page cites the edition it actually presents, and a permission that outlived the bytes it covered would grant cover to a claim nobody is making. The v2.2 bytes are not deleted; they keep their own frozen-corpus row, unimported. The DOI and the imported markdown moved in the same commit, which is the whole of what `edition-pinned` promises."
   },
   {
     "path": "apps/website/src/pages/positions/never-let-your-agent-touch-the-database.astro",
@@ -1372,5 +1372,46 @@
       "10.5281/zenodo.22071910"
     ],
     "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `ledger`: `proposed_adoption/` is the MAINTAINED working/evidence set — the corrected reading copies and their provenance record, which this staging pass edits and a later pass may edit again. It is an internal working record, not a surface: it asserts no current publication fact to a reader of the property, and it is not a publication. The deposit-verification evidence record for this staging: ids, artifacts, checksums and the stated limits of what was verified. A report that named no identifiers would not be a report, which is why an evidence ledger carries literal DOIs. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "services/ask/deposits/w-theory-of-data.r08.md",
+    "class": "frozen-deposit",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091",
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "The deposited artifact itself — *The Theory of Data* v7.1, record 22649945, fetched from the record the registry rules current and md5-verified against Zenodo's own checksum before it entered the tree (sha256 00f3b675…f125c0, independently reported by the author in the ruling of 2026-09-07 and matched here). THE FIRST DEPOSIT IN THIS CORPUS TO SHIP TWO TEXT DOCUMENTS UNDER ONE RECORD: the foundation stored here, and a statistical extension reference that shares the DOI and is a supplement, not a substitute. Which of the two is the work is now DECLARED in registry/sources/sources.json rather than left to the order Zenodo's API happens to return, and the companion's identity is preserved in the deposit manifest with its own publisher checksum. The DOIs below are the paper's own reference list plus its own identifier — the author's text, not this repo's assertions, which is what `frozen-deposit` means."
+  },
+  {
+    "path": "services/ask/deposits/w-tod-primer.r06.md",
+    "class": "frozen-deposit",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22651578"
+    ],
+    "note": "The deposited artifact itself — *A Primer on the Theory of Data* v2.3, record 22651578. THIS ROW RETIRES A WEAKER PROVENANCE: every earlier Primer edition was deposited as PDF only, so Ask held an author-supplied copy that no external party could reproduce. v2.3 deposits a .md beside the PDF, so this text is md5-verified against Zenodo's own checksum and the supplied path is no longer used for this work. It cites its own DOI, the v2.2 it supersedes (22018549 — stated in its front matter, and the reason the registry did not need the deposit's malformed `isNewVersionOf` field), and the ToD v7.1 it is aligned with."
+  },
+  {
+    "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v2_3.md",
+    "class": "frozen-corpus",
+    "allowedDois": [
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22651578",
+      "10.5281/zenodo.22651777"
+    ],
+    "note": "The deposited bytes of *The Theory of Data: An Introduction* v2.3 (record 22651777), hosted at /learn/what-is-the-theory-of-data and byte-identical to the deposit — md5 1adb534f…bff879, 40,096 bytes, matched against Zenodo's own published checksum. Its v2.2 predecessor stays on disk beside it, unimported, with its own row: superseded is a status, not a deletion, and a corpus piece that was ratified does not stop having been ratified. The DOIs below are the paper's own citations — the author's text, not this repo's assertions."
   }
 ]

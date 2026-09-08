@@ -31,8 +31,11 @@ WHICH FILE IN THE RECORD IS THE WORK is a separate question from which record is
 2026-09-07 it has a separate answer: see ARTIFACT SELECTION below. A record may deposit more than one
 document, and this module refuses to guess which of them is the work.
 
-STATUS: 13 of 13 representative deposit-only works are ingested — 11 Zenodo-verified, 2
-author-supplied. All 16 Core works are now readable by Ask.
+STATUS is not re-typed here. `--check` prints the live counts, because a status line that must be
+edited to stay true is the defect this whole registry exists to remove. What is worth stating is the
+DIRECTION: the supplied path empties itself. It held two works; A Primer on the Theory of Data left it
+on 2026-09-08 when v2.3 deposited a .md beside the PDF and the text became publisher-verifiable, and
+one work remains on it. All Core works are readable by Ask.
 
 Usage:
     python services/ask/ask/ingest_deposits.py              # fetch and rewrite the deposit corpus

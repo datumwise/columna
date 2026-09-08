@@ -1,7 +1,18 @@
 ---
-// /learn/what-is-the-theory-of-data — hosts the deposited **v2.2** source (2026-08-19), byte-identical
-// to the Zenodo record: sha256 8a23ffa8…63aecc, md5 d41dbe4b…7038, 28,411 bytes, verified by
-// downloading zenodo.org/api/records/22018598's own .md and running cmp — not by trusting a filename.
+// /learn/what-is-the-theory-of-data — hosts the deposited **v2.3** source (2026-09-08), byte-identical
+// to the Zenodo record: sha256 0049e4ac…d541b44, md5 1adb534f…bff879, 40,096 bytes, verified against
+// zenodo.org/api/records/22651777's own published md5 — not by trusting a filename.
+//
+// RE-EDITIONED v2.2 → v2.3 (Huayin's ruling of 2026-09-07). Same URL, new edition, the superseded
+// copy retained on disk and unimported — the shape this route has used twice before. The ruling asked
+// for one thing in particular here and it is the reason this file changes at all: DO NOT ADVANCE THE
+// DISPLAYED EDITION WHILE LEAVING OLDER BODY TEXT BEHIND. The chrome below and the imported bytes move
+// together or not at all; a page that said v2.3 over v2.2's prose would be the misattribution this
+// whole registry exists to prevent, and it is the one defect a DOI scanner cannot see.
+//
+// The Introduction is `editionPinned` in the source catalog, so it is refreshed through THIS path and
+// not through the deposit ingester: the site build already makes the text readable, which is why
+// ingest_deposits.py skips a source that has a route.
 // Title and subtitle come from the deposit's front-matter; the edition block below is page CHROME, so
 // nothing is injected into the hosted markdown.
 //
@@ -26,9 +37,9 @@
 // The deposit's LaTeX uses \[ … \] display delimiters rather than $$ … $$ — see the edition note in
 // the PR; the site's remark-math pipeline is configured for $$ display math.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { Content, frontmatter } from '../../content/corpus/theory_of_data_an_introduction_v2_2.md';
-const DOI = '10.5281/zenodo.22018598';
-const EDITION = 'Version 2.2 · 19 August 2026';
+import { Content, frontmatter } from '../../content/corpus/theory_of_data_an_introduction_v2_3.md';
+const DOI = '10.5281/zenodo.22651777';
+const EDITION = 'Version 2.3 · 8 September 2026';
 ---
 <BaseLayout title="What is the Theory of Data? — datumwise"
   description="The systematic introduction to the Theory of Data — datums, universes, anchors, measure families and their measures, lawful transformation, and what makes an analytical result checkable.">
@@ -45,15 +56,15 @@ const EDITION = 'Version 2.2 · 19 August 2026';
 
   <p class="evidence-note">
     <strong>This edition.</strong> This page reproduces <em>The Theory of Data: An Introduction</em>,
-    <strong>Version 2.2</strong>, published <strong>19 August 2026</strong>,
+    <strong>Version 2.3</strong>, published <strong>8 September 2026</strong>,
     DOI <a href={`https://doi.org/${DOI}`} rel="noopener" target="_blank">{DOI}</a>, byte for byte from
-    the deposit. It replaces the Version 1.1 edition previously served at this URL. Earlier editions —
-    v1.0, v1.1, v1.2, v2.0 — remain historical records in the publication registry.
+    the deposit. It replaces the Version 2.2 edition previously served at this URL. Earlier editions —
+    v1.0, v1.1, v1.2, v2.0, v2.2 — remain historical records in the publication registry.
   </p>
 
   <p class="engage wayfinding">
-    Shorter first: <em>A Primer on the Theory of Data</em>, v2.2 ·
-    The foundation itself: <em>The Theory of Data</em>, v6.1 ·
+    Shorter first: <em>A Primer on the Theory of Data</em>, v2.3 ·
+    The foundation itself: <em>The Theory of Data</em>, v7.1 ·
     How the language uses it: <a href="/learn/frameql-an-introduction">Frame-QL: An Introduction</a>.
   </p>
 </BaseLayout>
