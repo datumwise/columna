@@ -186,6 +186,36 @@ instance of this defect class (`rc-primer-v22-related-identifier` is the first),
 **prepend-instead-of-replace** edit produces in Zenodo's related-identifiers editor. Repairable only
 at the deposit. It costs one unresolved seed per harvest and is recorded, not compensated for.
 
+### 4.5 Case 5 — the same defect, carried into a successor deposit
+
+Record `22651578` (*A Primer on the Theory of Data* v2.3, deposited 2026-09-07) carries **two**
+malformed related identifiers:
+
+```
+isSupplementTo   "10.5281/zenodo.2201341010.5281/zenodo.21842194"
+isNewVersionOf   "10.5281/zenodo.2201854910.5281/zenodo.22018549"
+```
+
+The first is **byte-identical** to the string recorded against this work's own v2.2 in
+`rc-primer-v22-related-identifier`. Zenodo copies `related_identifiers` onto a new version, so a
+defect left unrepaired at v2.2 arrived in v2.3 unchanged. That is new information about the class:
+it does not only recur across deposits, it **inherits** within one work's chain — which means the
+count of instances understates it, and a repair made only at the newest record would leave the
+predecessor's copy standing.
+
+The second is a fresh instance and the most self-referential one yet: the Primer's own v2.2 DOI
+(`…22018549`) written twice, the first copy truncated of its prefix. Both strings resolve HTTP 404.
+
+**The intended predecessor is not in doubt, and it is not inferred from the malformed string.** The
+deposit's own front matter states *"Supersedes: A Primer on the Theory of Data, Version 2.2, DOI
+10.5281/zenodo.22018549"*, and Huayin confirmed the same succession in the ruling of 2026-09-07 that
+authorized this registration. The registry records that edge from the ruling and the deposited prose.
+It does not read a version relationship out of a 404, and it does not write the corrected relation
+back as though Zenodo already contained it.
+
+Fourth and fifth instances of the class. Repairable only at the deposit; upstream repair remains with
+Huayin, and its later verification is recorded separately rather than assumed here.
+
 ---
 
 ## 5. What was deliberately NOT added
@@ -224,4 +254,6 @@ the stale-DOI problem started.
 | CV-7 | the live route `/positions/the-two-great-sources-of-silent-analytical-failure` and its page title name the superseded account | **OPEN** — correct as an edition-pinned rendering of the v1.1 bytes; whether the ROUTE should follow the retitled successor is editorial, and publication foundation does not get to answer it |
 | CV-8 | corpus `kind` ungoverned for all 32 works, so no surface may state a count | **OPEN by design** — G10 enforces it |
 | CV-10 | **Frame-QL Introduction v2.3 related identifier malformed at the deposit** — Zenodo record `22071910` carries a `references` entry `"10.5281/zenodo.2201341010.5281/zenodo.22018598"`: ToD v6.1 (`…22013410`) and *The Theory of Data: An Introduction* v2.2 (`…22018598`) concatenated with no separator; resolves **HTTP 404**. **The third instance of the prepend-instead-of-replace pattern**, after `rc-primer-v22-related-identifier` and `rc-frameql-primer-related-identifier` — and the first on a deposit made *after* the pattern was written down. | **OPEN** — a Zenodo edit; nothing in this repo can fix external metadata, and no page copy should compensate. The record's bibliographic fields are clean, so the registry is unaffected. Logged 2026-08-23; `rc-frameql-introduction-v23-related-identifier`. |
+| CV-11 | **ToD Primer v2.3 `isNewVersionOf` malformed at the deposit** — Zenodo record `22651578` carries `"10.5281/zenodo.2201854910.5281/zenodo.22018549"`: the Primer's own v2.2 DOI written twice, the first copy truncated of its prefix; resolves **HTTP 404**. The **fifth instance** of the prepend-instead-of-replace pattern. | **OPEN** — a Zenodo edit; nothing in this repo can fix external metadata. The registry is unaffected: the v2.2 → v2.3 edge is recorded from the deposit's own prose and Huayin's ruling of 2026-09-07, not from this string. Logged 2026-09-08; `rc-tod-primer-v23-newversion-identifier`. |
+| CV-12 | **ToD Primer v2.3 `isSupplementTo` malformed, and INHERITED** — record `22651578` carries `"10.5281/zenodo.2201341010.5281/zenodo.21842194"`, byte-identical to the string already recorded against v2.2 (`rc-primer-v22-related-identifier`). Zenodo copies related identifiers onto a new version, so this is the **fourth instance** and the first evidence that the defect propagates down a chain rather than only recurring across deposits. | **OPEN** — repairing only the newest record would leave v2.2's copy standing; both need the deposit-side edit. No intended value is asserted here: v2.2's was ToD v6.1, and v2.3's prose aligns the work with ToD v7.1, but which the depositor means is not this registry's to decide. Logged 2026-09-08; `rc-tod-primer-v23-supplement-identifier`. |
 | CV-9 | **“jurisdiction” is carrying two meanings.** `/evidence` states that Evidence is *a standing acquired through a governed crossing, not a sovereign jurisdiction*; the homepage's `ThreeQuestions` source comment calls Data · Evidence · Intelligence *“different JURISDICTIONS, not three planes of one lattice.”* Both are defensible and they are not the same word-sense: the homepage means **jurisdiction-of-law/question** — which body of law answers this question — while `/evidence` denies **Evidence-as-sovereign-province**, a region of the world with its own territory. | **OPEN, editorial, not a blocker.** Logged 2026-08-22 (Huayin, PR #194 review §4): the homepage is NOT changed. A future ruling should separate the two senses explicitly rather than let the shared word imply that Evidence is a sovereign world. Recorded here so the tension is inherited deliberately instead of rediscovered as a contradiction between two live surfaces. |
