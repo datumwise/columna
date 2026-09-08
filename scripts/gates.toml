@@ -86,7 +86,11 @@ local = true
 
 [[gate]]
 id = "deposit-corpus"
-cmd = "python services/ask/ask/ingest_deposits.py --check"
+# `--selftest` FIRST, on the same reasoning as the `publications` gate above: the artifact-selection
+# fixtures are hermetic (no network, no registry) and pin that the work's text is chosen by DECLARATION
+# and never by API order. They ride the job that already exists rather than getting one of their own,
+# because a fixture nobody runs is not a fixture.
+cmd = "python services/ask/ask/ingest_deposits.py --selftest --check"
 workflow = "ci.yml"
 local = true
 
