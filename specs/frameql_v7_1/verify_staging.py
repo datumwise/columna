@@ -135,11 +135,26 @@ def check_3_entry_point() -> bool:
     # 6. INTENDED DOCUMENT SELECTIONS: the index picks corrected copies for the edited documents,
     #    and archived copies for the rest.
     edited = {"frameql_language_vnext_working_draft_v0_4.md", "columna_o3_governed_analytical_order_v0_2.md",
-              "frameql_an_introduction_v2_4_working_draft_v0_1.md", "a_primer_on_frameql_v2_3_working_draft_v0_1.md",
               "frameql_v7_1_authority_and_supersession_index_v0_1.md"}
     for name in sorted(edited):
         want(f"]({name})" in idx and f"](../reviewed_sources/{name})" not in idx,
              f"index selects the CORRECTED copy of {name}")
+
+    # 6b. TWO DOCUMENTS WERE PUBLISHED, AND THE INDEX NOW SELECTS THE PUBLICATION (Huayin, 2026-09-09).
+    #
+    # The Introduction and the Primer were reviewed here as working drafts and deposited on 2026-09-08
+    # as real editions. Their rows moved from "read the corrected draft" to "read the published
+    # edition", and this assertion moved with them — STRENGTHENED, not relaxed. The old check would
+    # have passed vacuously on the repointed index, because the retained-draft link keeps the draft's
+    # filename in the file; an acceptance test that a change cannot fail is not one. So all three
+    # halves are pinned: the index names the DOI, it still names the retained draft, and the draft is
+    # still on disk unedited. A publication supersedes a draft; it does not delete what was reviewed.
+    for name, doi in (("frameql_an_introduction_v2_4_working_draft_v0_1.md", "10.5281/zenodo.22661455"),
+                      ("a_primer_on_frameql_v2_3_working_draft_v0_1.md", "10.5281/zenodo.22661076")):
+        want(doi in idx, f"index selects the PUBLISHED edition {doi} in place of {name}")
+        want(f"]({name})" in idx, f"...and still names the retained reviewed draft {name}")
+        want((BASE / "proposed_adoption" / name).is_file(),
+             f"...and that draft is still on disk, unmoved")
     for name in ("the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
                  "frameql_v7_1_semantic_acceptance_cases_v0_1.md",
                  "frameql_v7_1_reference_integration_patch_sheet_v0_1.md"):

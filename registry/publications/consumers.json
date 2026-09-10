@@ -1446,5 +1446,24 @@
       "10.5281/zenodo.22661076"
     ],
     "note": "The deposited bytes of *A Primer on Frame-QL* v2.3 (record 22661076), hosted at /learn/frameql-primer and byte-identical to the deposit — sha256 dec383d3…7b1ff8d9, 12,880 bytes, matched twice. Its v2.2 predecessor stays on disk, unimported, with its own row."
+  },
+  {
+    "path": "specs/frameql_v7_1/proposed_adoption/INDEX.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22661076",
+      "10.5281/zenodo.22661455"
+    ],
+    "note": "The adoption-facing reading index of the staged ToD v7.1 / Frame-QL set. It acquired literal DOIs on 2026-09-09, when Huayin ruled its Introduction and Primer rows repointed from the reviewed working drafts to the PUBLISHED editions that superseded them. An index that selects a publication has to name it, which is why a `ledger` here carries literals. The reviewed drafts are retained unedited and both rows still name them; verify_staging.py asserts all three halves. THE REPOINTING IS EXACTLY TWO ROWS WIDE: the language-law candidate, the O3 order interface, the capability/profile plan and the acceptance cases remain unpublished working successors with the status they already had."
+  },
+  {
+    "path": "specs/frameql_v7_1/verify_staging.py",
+    "class": "acceptance",
+    "allowedDois": [
+      "10.5281/zenodo.22661076",
+      "10.5281/zenodo.22661455"
+    ],
+    "note": "The staging verifier's own ruling assertions. These literals are DELIBERATE and must stay literal, for the reason scripts/check_publications.py is `acceptance` and not `derived`: a check that read its expected value out of the thing under test asserts nothing. Added 2026-09-09 with the adoption-index repointing — the check moved from 'the index selects the corrected draft' to 'the index selects the published edition, still names the retained draft, and that draft is still on disk', which is three assertions where there was one. STRENGTHENED rather than relaxed, because the old form would have passed vacuously on the repointed index: the retained-draft link keeps the draft's filename in the file, so a test that only looked for the filename could not have failed."
   }
 ]
