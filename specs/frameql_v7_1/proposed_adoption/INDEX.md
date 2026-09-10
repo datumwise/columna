@@ -23,13 +23,35 @@ There are two other indexes in this directory tree and neither is this one:
 | 5 | Semantic Acceptance Cases 0.1 | [archived](../reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md) · [json](../reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.json) | unchanged — **premises and expectations for review, not executed engine tests** |
 | 6 | Capability / Profile Plan 0.2 | [archived](../reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) | unchanged; no registry, promise or measurement altered |
 | 7 | Release-reference integration patch sheet | [archived](../reviewed_sources/frameql_v7_1_reference_integration_patch_sheet_v0_1.md) | unchanged — **proposed wording. Two items are authorized; nine are not. See [DISPOSITIONS](PATCH_SHEET_DISPOSITIONS.md) before applying anything from it.** |
-| 8 | Introduction proposed v2.4, draft 0.1 | [**corrected**](frameql_an_introduction_v2_4_working_draft_v0_1.md) | provenance masthead corrected; links repointed |
-| 9 | Primer proposed v2.3, draft 0.1 | [**corrected**](a_primer_on_frameql_v2_3_working_draft_v0_1.md) | provenance masthead corrected; links repointed |
+| 8 | **Frame-QL: An Introduction v2.4 — PUBLISHED** | [**published edition**](https://doi.org/10.5281/zenodo.22661455) · onsite: [/learn/frameql-an-introduction](https://datumwise.ai/learn/frameql-an-introduction) | deposited 8 September 2026. It **supersedes** the working draft this row used to select. The reviewed draft is retained unedited as evidence: [draft 0.1](frameql_an_introduction_v2_4_working_draft_v0_1.md) |
+| 9 | **A Primer on Frame-QL v2.3 — PUBLISHED** | [**published edition**](https://doi.org/10.5281/zenodo.22661076) · onsite: [/learn/frameql-primer](https://datumwise.ai/learn/frameql-primer) | deposited 8 September 2026. It **supersedes** the working draft this row used to select. The reviewed draft is retained unedited as evidence: [draft 0.1](a_primer_on_frameql_v2_3_working_draft_v0_1.md) |
 | — | Authority and supersession index 0.1 | [**corrected**](frameql_v7_1_authority_and_supersession_index_v0_1.md) | §4 provenance corrected; selects corrected copies; archived baseline preserved |
 | — | ToD v7.1 statistical extension supplement 0.1 | [archived](../reviewed_sources/tod_v7_1_statistical_extension_supplement_v0_1.md) | unchanged |
 | — | Reconciliation register 0.1 | [archived](../reviewed_sources/frameql_v7_1_reconciliation_register_v0_1.md) | unchanged; its historical statements are left as written |
 
 A conceptual reader may begin at 8 and 9. Neither replaces the technical authority above.
+
+## Rows 8 and 9 were repointed to published editions (Huayin's ruling of 2026-09-09)
+
+On 8 September 2026 the two reader-facing companions were **published**: *Frame-QL: An Introduction*
+v2.4 (`10.5281/zenodo.22661455`) and *A Primer on Frame-QL* v2.3 (`10.5281/zenodo.22661076`). They
+are not the drafts this index used to select — the published editions carry real publication metadata
+in place of the drafts' *"Status: working successor for review; not published, no DOI assigned"*,
+take their analytical foundation from the **published** *Theory of Data* v7.1
+(`10.5281/zenodo.22649945`) instead of a working manuscript, and revise the prose substantively (153
+and 59 changed lines respectively).
+
+So these two rows now select the publication of record, and the site serves those bytes at the two
+`/learn` routes. **The reviewed drafts are retained, unedited, exactly where they were**, and both
+rows still name them: the J1/J2 diffs are written against these paths, `REVISION_METADATA.md` and
+`EDITORIAL_FOLLOWUP.md` describe them, and `verify_staging.py` checks they have not moved. A
+publication supersedes a draft; it does not delete the record of what was reviewed.
+
+**THIS REPOINTING IS EXACTLY TWO ROWS WIDE.** Publishing two reader-facing companions adopts nothing
+else. Rows 1–7 and the unnumbered rows are unchanged, and the Frame-QL language-law candidate, the O3
+order interface, the capability/profile plan, the semantic acceptance cases and the patch sheet all
+remain **unpublished working successors** with exactly the status they had before. Nothing here is
+adopted language law, and nothing here is evidence of implementation conformance.
 
 ## Evidence beside the documents
 

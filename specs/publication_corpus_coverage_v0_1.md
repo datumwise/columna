@@ -216,6 +216,39 @@ back as though Zenodo already contained it.
 Fourth and fifth instances of the class. Repairable only at the deposit; upstream repair remains with
 Huayin, and its later verification is recorded separately rather than assumed here.
 
+### 4.6 Case 6 — the counter-example: inheritance ends where the field is rewritten
+
+§4.5 recorded that the prepend-instead-of-replace string INHERITS: the ToD Primer carried the same
+malformed `isSupplementTo` from v2.2 into v2.3 unchanged, because Zenodo copies `related_identifiers`
+onto a new version. Read alone, that reads as a one-way ratchet — a defect that, once made, walks
+down the whole chain.
+
+The Frame-QL companion pair published on 2026-09-08 falsifies the strong form of that reading. Read
+from Zenodo on 2026-09-09:
+
+```
+A Primer on Frame-QL          v2.0  21960873  MALFORMED   →  v2.2  22071833  clean  →  v2.3  22661076  clean
+Frame-QL: An Introduction     v2.3  22071910  MALFORMED   →  v2.4  22661455  clean
+A Primer on the Theory of Data v2.2 22018549  MALFORMED   →  v2.3  22651578  INHERITED   (§4.5)
+```
+
+So the refined observation, which is the one to carry forward:
+
+> **Malformed related-identifier inheritance persists only where the field is carried forward
+> unchanged. A normal rewrite of the related-identifiers block ends the propagation.**
+
+This is a better-behaved finding than §4.5's, and a narrower one. It does not make the defect benign —
+five instances across four works is still a property of the editing surface, not of any session — but
+it does mean the class is **self-limiting under ordinary editing** rather than accumulating, and that
+the instance count is a count of *deposits that carried it*, not of chains permanently infected.
+
+**IT DOES NOT CLOSE CV-10.** The Introduction's malformed `references` entry lives on record
+`22071910`, which is now superseded and which remains a **first-class historical record**. Its bytes
+and its external metadata are the record of what was deposited, defects included; a successor being
+clean repairs the successor and nothing else. What changed is only that the defect is now
+**historically confined** — the current edition of that work no longer carries it — and confinement is
+not repair. Same for CV-4 against the Frame-QL Primer's v2.0.
+
 ---
 
 ## 5. What was deliberately NOT added
@@ -256,4 +289,5 @@ the stale-DOI problem started.
 | CV-10 | **Frame-QL Introduction v2.3 related identifier malformed at the deposit** — Zenodo record `22071910` carries a `references` entry `"10.5281/zenodo.2201341010.5281/zenodo.22018598"`: ToD v6.1 (`…22013410`) and *The Theory of Data: An Introduction* v2.2 (`…22018598`) concatenated with no separator; resolves **HTTP 404**. **The third instance of the prepend-instead-of-replace pattern**, after `rc-primer-v22-related-identifier` and `rc-frameql-primer-related-identifier` — and the first on a deposit made *after* the pattern was written down. | **OPEN** — a Zenodo edit; nothing in this repo can fix external metadata, and no page copy should compensate. The record's bibliographic fields are clean, so the registry is unaffected. Logged 2026-08-23; `rc-frameql-introduction-v23-related-identifier`. |
 | CV-11 | **ToD Primer v2.3 `isNewVersionOf` malformed at the deposit** — Zenodo record `22651578` carries `"10.5281/zenodo.2201854910.5281/zenodo.22018549"`: the Primer's own v2.2 DOI written twice, the first copy truncated of its prefix; resolves **HTTP 404**. The **fifth instance** of the prepend-instead-of-replace pattern. | **OPEN** — a Zenodo edit; nothing in this repo can fix external metadata. The registry is unaffected: the v2.2 → v2.3 edge is recorded from the deposit's own prose and Huayin's ruling of 2026-09-07, not from this string. Logged 2026-09-08; `rc-tod-primer-v23-newversion-identifier`. |
 | CV-12 | **ToD Primer v2.3 `isSupplementTo` malformed, and INHERITED** — record `22651578` carries `"10.5281/zenodo.2201341010.5281/zenodo.21842194"`, byte-identical to the string already recorded against v2.2 (`rc-primer-v22-related-identifier`). Zenodo copies related identifiers onto a new version, so this is the **fourth instance** and the first evidence that the defect propagates down a chain rather than only recurring across deposits. | **OPEN** — repairing only the newest record would leave v2.2's copy standing; both need the deposit-side edit. No intended value is asserted here: v2.2's was ToD v6.1, and v2.3's prose aligns the work with ToD v7.1, but which the depositor means is not this registry's to decide. Logged 2026-09-08; `rc-tod-primer-v23-supplement-identifier`. |
+| CV-13 | **The inheritance finding, refined (§4.6).** The Frame-QL pair published 2026-09-08 — Introduction v2.4 `22661455` and Primer v2.3 `22661076` — carries **no** malformed related identifier, although each work's chain contains one (`22071910`, `21960873`). Inheritance therefore persists only where the field is carried forward unchanged; a normal rewrite ends the propagation. The class is self-limiting under ordinary editing rather than accumulating. | **RECORDED, not a defect.** Logged 2026-09-10. It does **not** close CV-4 or CV-10: those defects live on records that remain first-class historical evidence, and a clean successor confines a defect rather than repairing it. |
 | CV-9 | **“jurisdiction” is carrying two meanings.** `/evidence` states that Evidence is *a standing acquired through a governed crossing, not a sovereign jurisdiction*; the homepage's `ThreeQuestions` source comment calls Data · Evidence · Intelligence *“different JURISDICTIONS, not three planes of one lattice.”* Both are defensible and they are not the same word-sense: the homepage means **jurisdiction-of-law/question** — which body of law answers this question — while `/evidence` denies **Evidence-as-sovereign-province**, a region of the world with its own territory. | **OPEN, editorial, not a blocker.** Logged 2026-08-22 (Huayin, PR #194 review §4): the homepage is NOT changed. A future ruling should separate the two senses explicitly rather than let the shared word imply that Evidence is a sovereign world. Recorded here so the tension is inherited deliberately instead of rediscovered as a contradiction between two live surfaces. |
