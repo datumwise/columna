@@ -92,7 +92,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "registry" / "publications"
-SNAPSHOT = REG / "zenodo_snapshot_2026-09-01.json"
+SNAPSHOT = REG / "zenodo_snapshot_2026-09-08.json"
 
 # TWO SPELLINGS OF ONE ECHO (widened 2026-08-21, on a blind spot the AG v1.1 supersession found).
 #
@@ -485,21 +485,73 @@ def main() -> int:
         rs = [r for r in records_of.get(wid, []) if r["status"] == "current"]
         return rs[0] if len(rs) == 1 else None
 
-    tod = current_of("w-theory-of-data")
-    if not tod or tod["doi"] != "10.5281/zenodo.22013410" or tod["version"] != "6.1":
-        fail("G9", f"ruling 5: the current record of The Theory of Data must be v6.1 / 22013410; got "
-                   f"{tod and (tod['version'], tod['doi'])}")
-    else:
-        prev = by_record.get(tod.get("supersedes") or "")
-        if not prev or prev["doi"] != "10.5281/zenodo.21958062" or prev["version"] != "6.0":
-            fail("G9", "ruling 5: v6.1 must supersede v6.0 (21958062) by recordId")
-        elif prev["status"] != "superseded":
-            fail("G9", "ruling 5: v6.0 must remain historically addressable with status `superseded`")
+    # A RULED CHAIN, WALKED BY recordId (added 2026-09-08, for the three-edition succession below).
+    #
+    # The nested-else form the AG and GfC blocks use says exactly this at two links deep and stops
+    # being readable at four. `chain` is a LITERAL list — current first, then backwards along
+    # `supersedes` — so this is still an acceptance test that names its expectations rather than
+    # re-deriving them from the rule under test, which is the whole reason G9 exists. It asserts the
+    # SAME three things at every link the older blocks assert at theirs: the identity of the record,
+    # that the edge is followed by recordId and not by DOI or date, and that what is superseded
+    # remains first-class and historically addressable.
+    def assert_chain(label: str, wid: str, chain: list[tuple[str, str]]) -> None:
+        cur = current_of(wid)
+        want_v, want_doi = chain[0]
+        if not cur or cur["doi"] != want_doi or cur["version"] != want_v:
+            fail("G9", f"{label}: the current record of {wid} must be v{want_v} / "
+                       f"{want_doi.rsplit('.', 1)[1]}; got {cur and (cur['version'], cur['doi'])}")
+            return
+        node = cur
+        for want_v, want_doi in chain[1:]:
+            prev = by_record.get(node.get("supersedes") or "")
+            if not prev or prev["doi"] != want_doi or prev["version"] != want_v:
+                fail("G9", f"{label}: {wid} v{node['version']} must supersede v{want_v} "
+                           f"({want_doi.rsplit('.', 1)[1]}) by recordId, not by DOI or by date")
+                return
+            if prev["status"] != "superseded":
+                fail("G9", f"{label}: {wid} v{want_v} must remain a first-class historical record "
+                           f"with status `superseded` — superseded is a status, not a deletion")
+                return
+            node = prev
 
-    primer = current_of("w-tod-primer")
-    if not primer or primer["doi"] != "10.5281/zenodo.22018549" or primer["version"] != "2.2":
-        fail("G9", f"ruling 4: the current Primer record must be v2.2 / 22018549; got "
-                   f"{primer and (primer['version'], primer['doi'])}")
+    # ── THE THREE-EDITION SUCCESSION OF 2026-09-07/08 (Huayin, ruling of 2026-09-07) ───────────
+    #
+    # ToD v7.1, Primer v2.3 and Introduction v2.3 were deposited within a day of each other, each
+    # under its work's ALREADY-ATTACHED concept — 21707017, 21842993, 21763394. Three ordinary
+    # in-concept successions: no new work, no new attachment, and nothing editorial to decide.
+    #
+    # THE CHAINS EXTEND; THEY DO NOT MOVE. The ToD pin has now advanced twice in two days — v6.1 was
+    # current when the 2026-08-21 acceptance was written, v7.0 when the 2026-09-07 one was — and both
+    # earlier assertions are still asserted here, four records deep. A gate that only ever pins the
+    # newest edition would stop testing that supersession PRESERVES what it supersedes, which is the
+    # property the registry exists to hold.
+    #
+    # PUBLISHED-RESEARCH CURRENCY IS NOT IMPLEMENTATION CONFORMANCE (same ruling). What Columna
+    # implements does not decide which research edition is recorded as current, and these assertions
+    # must never be weakened to whatever the runtime happens to cover.
+    #
+    # NOT ONE OF THESE EDGES IS READ OUT OF A DOI STRING. ToD v7.1 and Introduction v2.3 each declare
+    # a well-formed `isNewVersionOf` at the deposit; the Primer's is MALFORMED and resolves 404
+    # (rc-tod-primer-v23-newversion-identifier), so its edge is recorded from the deposit's own prose
+    # — "Supersedes: A Primer on the Theory of Data, Version 2.2, DOI 10.5281/zenodo.22018549" — and
+    # from the ruling. The registry never depended on that field, and this is the case that proves it.
+    assert_chain("ruling 2026-09-07 (ToD v7.1)", "w-theory-of-data", [
+        ("7.1", "10.5281/zenodo.22649945"),   # deposited 2026-09-07
+        ("7.0", "10.5281/zenodo.22289091"),   # pinned current by the ruling of 2026-09-07
+        ("6.1", "10.5281/zenodo.22013410"),   # pinned current by ruling 5 of 2026-08-21
+        ("6.0", "10.5281/zenodo.21958062"),
+    ])
+    assert_chain("ruling 2026-09-07 (ToD Introduction v2.3)", "w-tod-introduction", [
+        ("2.3", "10.5281/zenodo.22651777"),
+        ("2.2", "10.5281/zenodo.22018598"),
+    ])
+
+    # ruling 4's Primer pin ADVANCES to v2.3 (Huayin, 2026-09-07). v2.2 does not leave the gate: it
+    # is now the predecessor arm of the edge, which is the same shape every other advance here takes.
+    assert_chain("ruling 4 / 2026-09-07 (ToD Primer v2.3)", "w-tod-primer", [
+        ("2.3", "10.5281/zenodo.22651578"),
+        ("2.2", "10.5281/zenodo.22018549"),   # pinned current by ruling 4 of 2026-08-21
+    ])
     v20 = [r for r in records_of.get("w-tod-primer", []) if r["doi"] == "10.5281/zenodo.21959668"]
     if len(v20) != 1 or v20[0]["status"] != "superseded" or v20[0]["version"] != "2.0":
         fail("G9", "ruling 4: Primer v2.0 (21959668) must be a superseded record of the SAME work as v2.2")

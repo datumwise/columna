@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<title>Frame-QL — Release-Reference Integration Patch Sheet</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="frameql_v7_1_reference_integration_patch_sheet_v0_1.md">Source Markdown</a></div>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#frame-ql-release-reference-integration-patch-sheet" id="toc-frame-ql-release-reference-integration-patch-sheet">Frame-QL —
+Release-Reference Integration Patch Sheet</a>
+<ul>
+<li><a href="#use-and-source-boundary" id="toc-use-and-source-boundary">1. Use and source boundary</a></li>
+<li><a href="#opening-compatibility-authority-notice" id="toc-opening-compatibility-authority-notice">2. Opening compatibility
+/ authority notice</a></li>
+<li><a href="#query-aliases-and-output-keys" id="toc-query-aliases-and-output-keys">3. Query aliases and output
+keys</a></li>
+<li><a href="#explain" id="toc-explain">4. EXPLAIN</a></li>
+<li><a href="#canonical-target-versus-execution-decomposition" id="toc-canonical-target-versus-execution-decomposition">5. Canonical
+target versus execution decomposition</a></li>
+<li><a href="#default-completion-and-input-anchor-clarification" id="toc-default-completion-and-input-anchor-clarification">6. Default
+completion and input-anchor clarification</a></li>
+<li><a href="#family-and-ordered-operation-explanation" id="toc-family-and-ordered-operation-explanation">7. Family and
+ordered-operation explanation</a></li>
+<li><a href="#where-having-and-frame-selection" id="toc-where-having-and-frame-selection">8. WHERE, HAVING, and frame
+selection</a></li>
+<li><a href="#phi-null-support-and-partial-results" id="toc-phi-null-support-and-partial-results">9. Phi, NULL, support, and
+partial results</a></li>
+<li><a href="#bracket-roadmap-and-typed-value-access" id="toc-bracket-roadmap-and-typed-value-access">10. Bracket roadmap and
+typed value access</a></li>
+<li><a href="#profile-and-generated-table-notices" id="toc-profile-and-generated-table-notices">11. Profile and
+generated-table notices</a></li>
+<li><a href="#adoption-and-supersession-checklist" id="toc-adoption-and-supersession-checklist">12. Adoption and
+supersession checklist</a></li>
+</ul></li>
+</ul>
+</nav>
+<section class="level1" id="frame-ql-release-reference-integration-patch-sheet">
+<h1>Frame-QL — Release-Reference Integration Patch Sheet</h1>
+<p><strong>Working editorial replacements 0.1 — 7 September
+2026</strong><br/>
+<strong>Scope:</strong> Proposed wording and version notices for the
+release-reference layer. Not applied to a repository.<br/>
+<strong>Working target:</strong> <a href="frameql_language_vnext_working_draft_v0_4.html">Language-Law
+Candidate 0.4</a> and <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">ToD
+v7.1 Full Manuscript Draft 0.4</a>.</p>
+<section class="level2" id="use-and-source-boundary">
+<h2>1. Use and source boundary</h2>
+<p>The public <code>docs/frame_ql_language.md</code> was read at a
+moving <code>main</code> URL. Its headings identify the destinations
+below; line numbers from older reconnaissance are not reused as current
+patch coordinates. This sheet is not a byte-level diff or a claim that
+these replacements apply cleanly to a particular commit.</p>
+<p>The replacement paragraphs below are actual proposed text, not
+instructions to edit generated measurements. An authorized documentation
+adoption should compare them with the exact current source, keep
+release-specific facts truthful, and make version scope explicit. If a
+paragraph describes a successor obligation not yet met by the released
+implementation, retain that limitation beside it.</p>
+<p><strong>Source read:</strong>
+<code>https://raw.githubusercontent.com/datumwise/columna/main/docs/frame_ql_language.md</code>,
+7 September 2026. The earlier companion assessment records the broader
+profile/capability/revision-history observations; none was rerun as
+implementation evidence in this task.</p>
+</section>
+<section class="level2" id="opening-compatibility-authority-notice">
+<h2>2. Opening compatibility / authority notice</h2>
+<p><strong>Destination:</strong> the edition/availability and ToD
+reconciliation opening.</p>
+<p><strong>Proposed successor notice:</strong></p>
+<blockquote>
+<p>This reference describes the accepted grammar and behavior of its
+identified Frame-QL release. The accompanying v7.1 language-law
+candidate supplies the successor analytical interpretation; it is not
+evidence that this release implements every admitted family
+construction. The Theory of Data governs analytical identity and family
+law. The versioned grammar determines formal syntax, this reference
+describes its released meaning, profiles state authored implementation
+obligations, and build-status records report measured coverage. Retained
+implementation vocabulary does not redefine the theory, and theoretical
+admission does not enlarge the released language.</p>
+</blockquote>
+<p><strong>Adoption condition:</strong> identify the reference’s actual
+release scope. Do not relabel the existing document as fully
+v7.1-conforming while it still documents known legacy gaps. The current
+working theory is not a published v7.1 edition.</p>
+</section>
+<section class="level2" id="query-aliases-and-output-keys">
+<h2>3. Query aliases and output keys</h2>
+<p><strong>Destination:</strong> §1.6 and other passages calling an
+alias the output column’s “identity.”</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p>An alias supplies an output column key and follows the reference’s
+existing visibility and collision rules. It does not establish
+analytical family identity. A canonical analytical construction can
+denote a family when its complete law is admitted; assigning
+<code>AS name</code> neither supplies a missing law nor publishes or
+ratifies a definition. Changing the output key does not change the
+already-resolved analytical quantity.</p>
+</blockquote>
+<p>Keep the actual syntax, alias scope, error behavior, and
+compatibility code unchanged. This is a terminology correction, not an
+alias feature change.</p>
+</section>
+<section class="level2" id="explain">
+<h2>4. EXPLAIN</h2>
+<p><strong>Destination:</strong> §1.7, especially the promise to return
+“every disclosure the executed query would carry” while not touching
+data.</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p>EXPLAIN presents the resolved request, the proposed realization, and
+findings justified by information available to that explanation. It must
+distinguish applicable assurance from checks not yet performed. A
+data-free explanation does not itself establish every data-dependent
+support condition or guarantee every later disclosure. Execution must
+use the same resolved analytical meaning; it may establish additional
+evidence or decline the proposed realization when its premises fail. The
+exact fields emitted by this release remain defined by its documented
+interface.</p>
+</blockquote>
+<p><strong>Adoption condition:</strong> compare this contract against
+the actual payload and document any missing distinction. Do not add
+fields or claim data validation through an editorial change. Retain the
+parser/render round-trip guarantee separately where it is an actual
+release contract.</p>
+</section>
+<section class="level2" id="canonical-target-versus-execution-decomposition">
+<h2>5. Canonical target versus execution decomposition</h2>
+<p><strong>Destination:</strong> §2.1 and EXPLAIN descriptions that
+equate canonical form with reducer-atom decomposition.</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p>A normalized surface spelling, the resolved analytical target, and a
+physical decomposition are different records. Equivalent admitted plans
+may establish the same target. A particular engine’s reducer atoms,
+scans, or materialization choices do not become constitutive lineage
+merely by appearing in its trace. The implementation must preserve the
+resolved target and its meaning-bearing anchors, law, order, and
+participation throughout execution.</p>
+</blockquote>
+<p>Retain genuine release-specific trace mechanics as mechanics. Do not
+let a statement that a particular plan has been produced stand in for
+evidence that its inputs are available.</p>
+</section>
+<section class="level2" id="default-completion-and-input-anchor-clarification">
+<h2>6. Default completion and input-anchor clarification</h2>
+<p><strong>Destination:</strong> bare-name/default-family sugars and
+omitted input-anchor rules.</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p>Default completion resolves an already-governed construction when the
+selected definitions establish one analytical meaning. The zero/one/many
+reading discipline counts distinct targets after governed equivalence,
+not candidate bases or physical plans. Several adequate bases for one
+target do not require an intent clarification. If two identity-distinct
+readings remain and only one can currently execute, availability does
+not silently select the user’s meaning. A resolved target can remain
+unavailable from the present evidence without becoming a different
+target.</p>
+</blockquote>
+<p>Keep actual supported sugar and reason codes version-specific. This
+text does not create new default-completion authority.</p>
+</section>
+<section class="level2" id="family-and-ordered-operation-explanation">
+<h2>7. Family and ordered-operation explanation</h2>
+<p><strong>Destination:</strong> family/member explanations, FIRST/LAST
+descriptions, and the ordered-operation section.</p>
+<p><strong>Proposed successor paragraph:</strong></p>
+<blockquote>
+<p>Analytical-point-order dependence does not categorically exclude
+family standing under the v7.1 working theory. A complete admitted
+FIRST/LAST construction uses governed order on the constitutive
+analytical points and adequate state. Its witness-valued family can
+supply scalar LAST without making the scalar sufficient for witness
+continuation. The released <code>first</code>/<code>last</code> category
+and legacy declaration encoding are implementation facts; neither the
+spelling nor the runtime kind proves the full successor family contract.
+Missing constituent order or precedence, unestablished analytical
+formation, and physical row selection must remain visible as gaps rather
+than being completed by backend convention.</p>
+</blockquote>
+<p><strong>Do not:</strong> delete public <code>.last</code>, set
+re-entry true, change family-founding gates, or declare all legacy paths
+conforming through this wording. The eventual mechanism is a separately
+authorized engineering decision.</p>
+</section>
+<section class="level2" id="where-having-and-frame-selection">
+<h2>8. WHERE, HAVING, and frame selection</h2>
+<p><strong>Destination:</strong> frame clauses and any summary saying
+all clauses simply shape output.</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p><code>WHERE</code> restricts inputs within the request’s declared
+formation scope. It can change the quantities formed from those
+contributions. It must not silently re-form an already-constituted
+contextual quantity under a different context while claiming the same
+construction. <code>HAVING</code> selects already-formed output, and
+output <code>ORDER BY</code> and <code>LIMIT ... PER</code> order or
+select the returned frame. Their use does not supply the order of an
+inner analytical operation. Predicate pushdown is a realization choice
+only when it preserves the declared analytical formation and
+participation.</p>
+</blockquote>
+<p>Keep current per-series reachability, valid clause forms, and
+documented realization limitations. A currently unsupported lawful
+filter remains a realization issue; this wording does not reclassify it
+automatically.</p>
+</section>
+<section class="level2" id="phi-null-support-and-partial-results">
+<h2>9. Phi, NULL, support, and partial results</h2>
+<p><strong>Destination:</strong> basis/fill explanation and
+absence-disclosure summaries.</p>
+<p><strong>Proposed addition:</strong></p>
+<blockquote>
+<p>The release’s fill and carrier representation is not the ontology of
+analytical standing. Point existence, placement, eligibility, target
+support, known-empty contribution, and supported zero are distinct
+judgments. Evidence requirements depend on the target law; not every
+unavailable earlier value blocks LAST, and a sufficient witness is not
+necessary for every adequate scalar argument. A downstream caveat or row
+filter cannot repair a computation that has already consumed an
+unestablished ordered contribution. Where the release cannot represent a
+distinction, record that limitation rather than mapping it silently to
+NULL or zero.</p>
+</blockquote>
+<p><strong>Adoption condition:</strong> preserve the exact released Phi
+behavior as a compatibility description unless a separate implementation
+change alters it. Do not promise new predicates, standing enums, or a
+complete R4 implementation.</p>
+</section>
+<section class="level2" id="bracket-roadmap-and-typed-value-access">
+<h2>10. Bracket roadmap and typed value access</h2>
+<p><strong>Destination:</strong> roadmap analytical filtering and
+reserved syntax.</p>
+<p><strong>Proposed replacement:</strong></p>
+<blockquote>
+<p>The older analytical bracket-filter roadmap is withdrawn from the
+successor language target. The working semantic role of
+<code>E[key]</code> is value subscription where the semantic type and
+language contract admit it. This reservation does not assert current
+parser acceptance or type support. A future expression-local analytical
+restriction requires its own unambiguous language rule.</p>
+</blockquote>
+<p>This withdraws a roadmap recommendation. Any code retirement, parser
+grammar change, or new subscription implementation requires separate
+authorization.</p>
+</section>
+<section class="level2" id="profile-and-generated-table-notices">
+<h2>11. Profile and generated-table notices</h2>
+<p><strong>Destination:</strong> capability-reference introduction and
+profile/build-status cross-links; not generated rows.</p>
+<p><strong>Proposed addition:</strong></p>
+<blockquote>
+<p>These entries record the distinct authorities identified by their
+columns or source files. Callable availability is not full
+analytical-law conformance. A family-capable construction may have a
+scalar output insufficient for continuation; retained capability must be
+qualified by what the representation contains and what next use is
+admitted. No theoretical revision silently changes operator standing,
+profile promises, or measured release coverage.</p>
+</blockquote>
+<p>Do not hand-edit generated tables to produce superficial agreement.
+The rebased capability/profile plan defers schema decisions until actual
+coupling is inspected.</p>
+</section>
+<section class="level2" id="adoption-and-supersession-checklist">
+<h2>12. Adoption and supersession checklist</h2>
+<p>After a separate authorized documentation adoption, reviewers should
+verify that the selected current reference points to the current
+candidate or publication; historical editions remain identifiable;
+active O1/O2/R4/O3 instructions use the same theory; the latest
+Intro/Primer links do not point to older successor drafts; generated
+tables remain generated; and no public page claims a DOI, publication,
+implementation, or verification state that has not been established.</p>
+<p>No part of that installation has been performed in this local task.
+This sheet closes the wording-design portion and supplies the proposed
+changes; it does not report repository or site alignment as
+completed.</p>
+</section>
+</section>
+</body>
+</html>

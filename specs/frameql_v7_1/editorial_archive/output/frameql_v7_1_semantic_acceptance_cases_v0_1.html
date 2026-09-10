@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<title>Frame-QL / ToD v7.1 — Semantic Acceptance Cases</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="frameql_v7_1_semantic_acceptance_cases_v0_1.md">Source Markdown</a></div>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#frame-ql-tod-v7.1-semantic-acceptance-cases" id="toc-frame-ql-tod-v7.1-semantic-acceptance-cases">Frame-QL / ToD v7.1
+— Semantic Acceptance Cases</a>
+<ul>
+<li><a href="#f01-specified-target-before-bases" id="toc-f01-specified-target-before-bases">F01 — Specified target before
+bases</a></li>
+<li><a href="#f02-canonical-family-without-a-business-name" id="toc-f02-canonical-family-without-a-business-name">F02 — Canonical
+family without a business name</a></li>
+<li><a href="#f03-aliases-do-not-admit-law" id="toc-f03-aliases-do-not-admit-law">F03 — Aliases do not admit
+law</a></li>
+<li><a href="#f04-constitutive-ancestry-versus-plan" id="toc-f04-constitutive-ancestry-versus-plan">F04 — Constitutive
+ancestry versus plan</a></li>
+<li><a href="#f05-meaning-before-executable-availability" id="toc-f05-meaning-before-executable-availability">F05 — Meaning before
+executable availability</a></li>
+<li><a href="#f06-several-bases-one-target" id="toc-f06-several-bases-one-target">F06 — Several bases, one
+target</a></li>
+<li><a href="#f07-multiplicity-remains-part-of-the-law" id="toc-f07-multiplicity-remains-part-of-the-law">F07 — Multiplicity
+remains part of the law</a></li>
+<li><a href="#f08-intake-versus-continuation" id="toc-f08-intake-versus-continuation">F08 — Intake versus
+continuation</a></li>
+<li><a href="#o01-one-dimensional-analytical-order" id="toc-o01-one-dimensional-analytical-order">O01 — One-dimensional
+analytical order</a></li>
+<li><a href="#o02-compound-precedence-required" id="toc-o02-compound-precedence-required">O02 — Compound precedence
+required</a></li>
+<li><a href="#o03-missing-constituent-order" id="toc-o03-missing-constituent-order">O03 — Missing constituent
+order</a></li>
+<li><a href="#o04-sparse-analytical-point-space" id="toc-o04-sparse-analytical-point-space">O04 — Sparse analytical point
+space</a></li>
+<li><a href="#o05-form-the-support-measure-first" id="toc-o05-form-the-support-measure-first">O05 — Form the support
+measure first</a></li>
+<li><a href="#o06-ordered-family-not-automatic-legacy-conformance" id="toc-o06-ordered-family-not-automatic-legacy-conformance">O06 —
+Ordered family not automatic legacy conformance</a></li>
+<li><a href="#o07-original-point-witness-through-coarsening" id="toc-o07-original-point-witness-through-coarsening">O07 — Original
+point witness through coarsening</a></li>
+<li><a href="#o08-scalar-is-not-witness-continuation" id="toc-o08-scalar-is-not-witness-continuation">O08 — Scalar is not
+witness continuation</a></li>
+<li><a href="#o09-r-is-optional" id="toc-o09-r-is-optional">O09 — R is
+optional</a></li>
+<li><a href="#o10-same-results-different-laws" id="toc-o10-same-results-different-laws">O10 — Same results, different
+laws</a></li>
+<li><a href="#o11-frame-selection-can-coincide-with-last" id="toc-o11-frame-selection-can-coincide-with-last">O11 — Frame
+selection can coincide with LAST</a></li>
+<li><a href="#c01-contextual-formation-can-precede-a-family" id="toc-c01-contextual-formation-can-precede-a-family">C01 — Contextual
+formation can precede a family</a></li>
+<li><a href="#c02-restriction-must-preserve-formation" id="toc-c02-restriction-must-preserve-formation">C02 — Restriction must
+preserve formation</a></li>
+<li><a href="#c03-faithful-recomputation-is-not-forbidden" id="toc-c03-faithful-recomputation-is-not-forbidden">C03 — Faithful
+recomputation is not forbidden</a></li>
+<li><a href="#c04-focal-window-law-needs-its-own-contract" id="toc-c04-focal-window-law-needs-its-own-contract">C04 — Focal window
+law needs its own contract</a></li>
+<li><a href="#e01-established-output-unplaced-source" id="toc-e01-established-output-unplaced-source">E01 — Established
+output, unplaced source</a></li>
+<li><a href="#e02-known-domain-with-incomplete-operand-support" id="toc-e02-known-domain-with-incomplete-operand-support">E02 — Known
+domain with incomplete operand support</a></li>
+<li><a href="#e03-coarser-witness-unavailable-staged-input" id="toc-e03-coarser-witness-unavailable-staged-input">E03 — Coarser
+witness, unavailable staged input</a></li>
+<li><a href="#e04-scalar-without-winner-identity" id="toc-e04-scalar-without-winner-identity">E04 — Scalar without winner
+identity</a></li>
+<li><a href="#e05-missing-selected-operand" id="toc-e05-missing-selected-operand">E05 — Missing selected
+operand</a></li>
+<li><a href="#e06-known-empty-is-not-unknown" id="toc-e06-known-empty-is-not-unknown">E06 — Known empty is not
+unknown</a></li>
+<li><a href="#e07-late-filtering-cannot-undo-ordered-influence" id="toc-e07-late-filtering-cannot-undo-ordered-influence">E07 — Late
+filtering cannot undo ordered influence</a></li>
+<li><a href="#r01-lossy-compression-can-hide-contradiction" id="toc-r01-lossy-compression-can-hide-contradiction">R01 — Lossy
+compression can hide contradiction</a></li>
+<li><a href="#r02-three-materialization-claims" id="toc-r02-three-materialization-claims">R02 — Three materialization
+claims</a></li>
+<li><a href="#r03-equal-mean-display-unequal-continuation" id="toc-r03-equal-mean-display-unequal-continuation">R03 — Equal mean
+display, unequal continuation</a></li>
+<li><a href="#r04-restriction-or-deletion-of-winner" id="toc-r04-restriction-or-deletion-of-winner">R04 — Restriction or
+deletion of winner</a></li>
+<li><a href="#r05-approximate-realization-of-unchanged-target" id="toc-r05-approximate-realization-of-unchanged-target">R05 —
+Approximate realization of unchanged target</a></li>
+<li><a href="#g01-explain-does-not-observe-unperformed-checks" id="toc-g01-explain-does-not-observe-unperformed-checks">G01 — EXPLAIN
+does not observe unperformed checks</a></li>
+<li><a href="#g02-family-law-versus-engine-kind" id="toc-g02-family-law-versus-engine-kind">G02 — Family law versus
+engine kind</a></li>
+<li><a href="#g03-no-syntax-from-theory-alone" id="toc-g03-no-syntax-from-theory-alone">G03 — No syntax from theory
+alone</a></li>
+<li><a href="#g04-cdt-interface-remains-unverified" id="toc-g04-cdt-interface-remains-unverified">G04 — CDT interface
+remains unverified</a></li>
+<li><a href="#g05-historical-instructions-are-not-active-authority" id="toc-g05-historical-instructions-are-not-active-authority">G05 —
+Historical instructions are not active authority</a></li>
+</ul></li>
+</ul>
+</nav>
+<section class="level1" id="frame-ql-tod-v7.1-semantic-acceptance-cases">
+<h1>Frame-QL / ToD v7.1 — Semantic Acceptance Cases</h1>
+<p><strong>Working set 0.1 — 7 September 2026</strong><br/>
+<strong>Status:</strong> 40 source-derived semantic review cases, not
+executed Columna tests, mathematical proofs, or release-conformance
+claims.<br/>
+<strong>Theory:</strong> <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">T
+Draft 0.4</a>. <strong>Language:</strong> <a href="frameql_language_vnext_working_draft_v0_4.html">Candidate
+0.4</a>.</p>
+<p>Each case states its premises so a future test cannot replace the
+governed claim with an easier one. Exact runtime outcomes or reason
+codes are not invented where only the semantic disposition is fixed.
+Contextual-language implications are identified by their LQ sections;
+the underlying family and evidence rules remain T’s.</p>
+<p>The <a href="frameql_v7_1_semantic_acceptance_cases_v0_1.json">JSON
+companion</a> contains the same cases for future review tooling. This
+pass checks document consistency and premise coverage; it does not run
+these cases against an engine.</p>
+<section class="level2" id="f01-specified-target-before-bases">
+<h2>F01 — Specified target before bases</h2>
+<p><strong>Premises.</strong> A proposed family has two mutually
+agreeing constructors but no nominated defining construction or
+independent target specification.</p>
+<p><strong>Expected judgment.</strong> The family contract is
+incomplete; agreement has no independently specified target against
+which adequacy can be judged.</p>
+<p><strong>Do not.</strong> Admit the family solely because the two
+implementations agree.</p>
+<p><strong>Sources:</strong> T §§4, 5.3; LQ §6.5.</p>
+</section>
+<section class="level2" id="f02-canonical-family-without-a-business-name">
+<h2>F02 — Canonical family without a business name</h2>
+<p><strong>Premises.</strong> An admitted law and fully specified
+constitutive input establish mean(revenue@order); no business alias has
+been assigned.</p>
+<p><strong>Expected judgment.</strong> Its canonical family expression
+can denote the family. Institutional publication remains a separate
+authority.</p>
+<p><strong>Do not.</strong> Require an AS name or a new authoring
+ceremony before the analytical identity can be denoted.</p>
+<p><strong>Sources:</strong> T §§3.9, 4; LQ §§3.5, 11.1.</p>
+</section>
+<section class="level2" id="f03-aliases-do-not-admit-law">
+<h2>F03 — Aliases do not admit law</h2>
+<p><strong>Premises.</strong> A query computes revenue/orders AS aov
+without a supplied AOV family contract.</p>
+<p><strong>Expected judgment.</strong> The alias names an output; it
+does not establish the missing law. An explicitly governed AOV family
+remains possible.</p>
+<p><strong>Do not.</strong> Treat output naming as either automatic
+family admission or a permanent ban on an AOV family.</p>
+<p><strong>Sources:</strong> T §§3.5, 3.7, 3.9; LQ §§2.3, 11.2.</p>
+</section>
+<section class="level2" id="f04-constitutive-ancestry-versus-plan">
+<h2>F04 — Constitutive ancestry versus plan</h2>
+<p><strong>Premises.</strong> Two licensed derivations claim the same
+family and anchor using different staging paths under matching
+premises.</p>
+<p><strong>Expected judgment.</strong> Consistency applies to the same
+target; physical path/proof method is not new identity.</p>
+<p><strong>Do not.</strong> Include plan identity in the family
+signature to evade required agreement.</p>
+<p><strong>Sources:</strong> T §§2.2, 6.4–6.5; LQ §§3.1, 10.1.</p>
+</section>
+<section class="level2" id="f05-meaning-before-executable-availability">
+<h2>F05 — Meaning before executable availability</h2>
+<p><strong>Premises.</strong> Mean over orders and mean over customers
+are identity-distinct possible readings; only one has a presently
+executable plan.</p>
+<p><strong>Expected judgment.</strong> The unresolved intent distinction
+remains. Availability can be reported, not silently used to choose
+meaning.</p>
+<p><strong>Do not.</strong> Serve the available target as though
+availability resolved the request.</p>
+<p><strong>Sources:</strong> T §§2.2, 3.9, 9.1; LQ §10.1.</p>
+</section>
+<section class="level2" id="f06-several-bases-one-target">
+<h2>F06 — Several bases, one target</h2>
+<p><strong>Premises.</strong> SUM/COUNT and an exact multiset are both
+adequate and available for the same fixed MEAN with matching
+participation.</p>
+<p><strong>Expected judgment.</strong> They are alternative
+constructions of one target, not an intent ambiguity.</p>
+<p><strong>Do not.</strong> Return Clarify merely because there are two
+bases.</p>
+<p><strong>Sources:</strong> T §§5.3, 5.5; LQ §§6.6, 10.1.</p>
+</section>
+<section class="level2" id="f07-multiplicity-remains-part-of-the-law">
+<h2>F07 — Multiplicity remains part of the law</h2>
+<p><strong>Premises.</strong> Ordinary MEAN is defined over
+participating values 0,0,6.</p>
+<p><strong>Expected judgment.</strong> The mean is 2; replacing the
+multiset by set {0,6} yields another construction and gives 3.</p>
+<p><strong>Do not.</strong> Declare a deduplicating set an exact basis
+for this MEAN.</p>
+<p><strong>Sources:</strong> T §5.3; LQ §6.6.</p>
+</section>
+<section class="level2" id="f08-intake-versus-continuation">
+<h2>F08 — Intake versus continuation</h2>
+<p><strong>Premises.</strong> Two retained count values 37 and 12
+represent compatible disjoint contributions.</p>
+<p><strong>Expected judgment.</strong> Count continuation adds them to
+49. Counting the two summary rows instead would answer a different
+question.</p>
+<p><strong>Do not.</strong> Use count-of-summary-rows as count-state
+merge.</p>
+<p><strong>Sources:</strong> T §5.2; LQ §6.6.</p>
+</section>
+<section class="level2" id="o01-one-dimensional-analytical-order">
+<h2>O01 — One-dimensional analytical order</h2>
+<p><strong>Premises.</strong> Day is a governed anchor with complete
+chronology and the family has its remaining complete contract.</p>
+<p><strong>Expected judgment.</strong> Precedence is trivial; the
+declared order supports the admitted finite FIRST/LAST construction.</p>
+<p><strong>Do not.</strong> Require a new generic tie policy or infer
+chronology from a lineage label alone.</p>
+<p><strong>Sources:</strong> T §§7.1, 8; LQ §9.2.</p>
+</section>
+<section class="level2" id="o02-compound-precedence-required">
+<h2>O02 — Compound precedence required</h2>
+<p><strong>Premises.</strong> Customer and Day have complete point
+orders, but no precedence is supplied for the claimed global
+Customer-Day support.</p>
+<p><strong>Expected judgment.</strong> The compound order is not fully
+selected.</p>
+<p><strong>Do not.</strong> Infer precedence from output column
+order.</p>
+<p><strong>Sources:</strong> T §7.1; LQ §9.2.</p>
+</section>
+<section class="level2" id="o03-missing-constituent-order">
+<h2>O03 — Missing constituent order</h2>
+<p><strong>Premises.</strong> Precedence is supplied but Customer has no
+complete governed point order.</p>
+<p><strong>Expected judgment.</strong> The claimed complete compound
+order is unestablished.</p>
+<p><strong>Do not.</strong> Sort Customer IDs lexically as an implicit
+analytical order.</p>
+<p><strong>Sources:</strong> T §§7.1–7.3; LQ §9.2.</p>
+</section>
+<section class="level2" id="o04-sparse-analytical-point-space">
+<h2>O04 — Sparse analytical point space</h2>
+<p><strong>Premises.</strong> The governed support contains only
+(C1,d3),(C2,d1),(C2,d2).</p>
+<p><strong>Expected judgment.</strong> Only these points participate;
+order does not create (C2,d3) or another absent combination.</p>
+<p><strong>Do not.</strong> Fill the Cartesian product before LAST
+without an existence law.</p>
+<p><strong>Sources:</strong> T §§2.1.3, 7.1; LQ §9.2.</p>
+</section>
+<section class="level2" id="o05-form-the-support-measure-first">
+<h2>O05 — Form the support measure first</h2>
+<p><strong>Premises.</strong> Several Product carrier records lie
+beneath one Account-Day point.</p>
+<p><strong>Expected judgment.</strong> Apply the operand formation law
+to establish its value at Account-Day before FIRST/LAST consumes that
+analytical point.</p>
+<p><strong>Do not.</strong> Select a raw row by day or invent SUM as the
+formation rule merely to collapse duplicates.</p>
+<p><strong>Sources:</strong> T §§3.1, 7.3; LQ §9.3.</p>
+</section>
+<section class="level2" id="o06-ordered-family-not-automatic-legacy-conformance">
+<h2>O06 — Ordered family not automatic legacy conformance</h2>
+<p><strong>Premises.</strong> FIRST/LAST has an admitted construction in
+T; a legacy .last spelling is accepted by a particular build.</p>
+<p><strong>Expected judgment.</strong> Analytical admission and that
+execution path’s conformance are separate claims.</p>
+<p><strong>Do not.</strong> Certify every existing .last because the
+theory now admits an ordered family.</p>
+<p><strong>Sources:</strong> T §§3.6, 4, 8; LQ §§9.1, 9.7, 13.</p>
+</section>
+<section class="level2" id="o07-original-point-witness-through-coarsening">
+<h2>O07 — Original point witness through coarsening</h2>
+<p><strong>Premises.</strong> For s1&lt;s2&lt;s3&lt;s4, admitted
+intermediate groups are {s1,s4} and {s2,s3}, with coherent supported
+values.</p>
+<p><strong>Expected judgment.</strong> Retained winners s4 and s3
+combine to s4 using the original support order.</p>
+<p><strong>Do not.</strong> Compare intermediate group labels or demand
+an unrelated new order on B.</p>
+<p><strong>Sources:</strong> T §§8.3–8.4; LQ §9.5.</p>
+</section>
+<section class="level2" id="o08-scalar-is-not-witness-continuation">
+<h2>O08 — Scalar is not witness continuation</h2>
+<p><strong>Premises.</strong> An exact scalar LAST was materialized but
+its selected point is not retained or recoverable.</p>
+<p><strong>Expected judgment.</strong> The scalar target is available;
+further witness comparison is not licensed from it alone.</p>
+<p><strong>Do not.</strong> Set scalar re-entry true merely because LAST
+has family standing.</p>
+<p><strong>Sources:</strong> T §§8.1, 10.7; LQ §§9.4, 10.6.</p>
+</section>
+<section class="level2" id="o09-r-is-optional">
+<h2>O09 — R is optional</h2>
+<p><strong>Premises.</strong> An adequate argument establishes W; a full
+retained point–value set is unavailable.</p>
+<p><strong>Expected judgment.</strong> W can be used under its actual
+admitted contract; full R storage is not mandatory.</p>
+<p><strong>Do not.</strong> Impose R→W→L as a required runtime/storage
+pipeline.</p>
+<p><strong>Sources:</strong> T §§8.6, 9.2; LQ §9.4.</p>
+</section>
+<section class="level2" id="o10-same-results-different-laws">
+<h2>O10 — Same results, different laws</h2>
+<p><strong>Premises.</strong> Two different declared precedence orders
+currently yield the same winner.</p>
+<p><strong>Expected judgment.</strong> Numerical agreement does not
+merge their analytical identities.</p>
+<p><strong>Do not.</strong> Infer equivalent family identity from
+observed equality.</p>
+<p><strong>Sources:</strong> T §§2.2, 7.2; LQ §§9.2, 10.1.</p>
+</section>
+<section class="level2" id="o11-frame-selection-can-coincide-with-last">
+<h2>O11 — Frame selection can coincide with LAST</h2>
+<p><strong>Premises.</strong> A versioned output ORDER BY/LIMIT PER
+query selects a row whose value equals a LAST answer.</p>
+<p><strong>Expected judgment.</strong> Frame selection remains
+legitimate in its own scope; no inner family identity or reusable
+witness follows.</p>
+<p><strong>Do not.</strong> Either ban the frame operation or use it as
+ambient order/family proof.</p>
+<p><strong>Sources:</strong> T §12.4; LQ §9.7.</p>
+</section>
+<section class="level2" id="c01-contextual-formation-can-precede-a-family">
+<h2>C01 — Contextual formation can precede a family</h2>
+<p><strong>Premises.</strong> The law fixes daily predecessor formation
+over 100,110,95,105 and a separately admitted additive family over the
+changes.</p>
+<p><strong>Expected judgment.</strong> Established changes 10,-15,10 sum
+to 5 coherently.</p>
+<p><strong>Do not.</strong> Exclude the family solely because formation
+used neighboring points.</p>
+<p><strong>Sources:</strong> T §§3.3–3.4; LQ §6.10.</p>
+</section>
+<section class="level2" id="c02-restriction-must-preserve-formation">
+<h2>C02 — Restriction must preserve formation</h2>
+<p><strong>Premises.</strong> The same change family is requested after
+grouping the source into pairs.</p>
+<p><strong>Expected judgment.</strong> Reusing original changes differs
+from restarting predecessor formation inside the pairs, which gives
+20.</p>
+<p><strong>Do not.</strong> Push a restriction/grouping through
+formation without an equivalence justification.</p>
+<p><strong>Sources:</strong> T §§3.3, 10.2; LQ §§2.4, 6.10.</p>
+</section>
+<section class="level2" id="c03-faithful-recomputation-is-not-forbidden">
+<h2>C03 — Faithful recomputation is not forbidden</h2>
+<p><strong>Premises.</strong> The original contextual formation and its
+full governing context can be reproduced from adequate evidence.</p>
+<p><strong>Expected judgment.</strong> Recomputation can establish the
+same constitutive values; caching is not required by the theory.</p>
+<p><strong>Do not.</strong> Interpret “do not change formation” as
+“never recompute.”</p>
+<p><strong>Sources:</strong> T §§3.3–3.4; LQ §6.10.</p>
+</section>
+<section class="level2" id="c04-focal-window-law-needs-its-own-contract">
+<h2>C04 — Focal window law needs its own contract</h2>
+<p><strong>Premises.</strong> A rolling expression is written without
+specifying positional versus time-range neighborhood and material
+endpoint conventions.</p>
+<p><strong>Expected judgment.</strong> The expression’s meaning remains
+incomplete where these choices change the result.</p>
+<p><strong>Do not.</strong> Treat complete order alone as a full window
+specification or automatically admit family continuation.</p>
+<p><strong>Sources:</strong> T §§3.4, 11.4; LQ §9.6.</p>
+</section>
+<section class="level2" id="e01-established-output-unplaced-source">
+<h2>E01 — Established output, unplaced source</h2>
+<p><strong>Premises.</strong> A Day output point exists and Revenue is
+eligible, but required known source contributions cannot be placed by
+Day.</p>
+<p><strong>Expected judgment.</strong> The target value may be
+unsupported; the upstream placement cause remains distinct.</p>
+<p><strong>Do not.</strong> Declare the output point nonexistent or
+forbid target missingness solely because a source placement is
+unresolved.</p>
+<p><strong>Sources:</strong> T §§2.3, 9.1–9.4; LQ §§8.1–8.4.</p>
+</section>
+<section class="level2" id="e02-known-domain-with-incomplete-operand-support">
+<h2>E02 — Known domain with incomplete operand support</h2>
+<p><strong>Premises.</strong> Governance establishes exactly 100
+participating transactions, with 99 supported Revenue observations.</p>
+<p><strong>Expected judgment.</strong> Point count is 100; a count under
+a declared supported-operand participation law may be 99. A mean over
+all 100 cannot silently shrink.</p>
+<p><strong>Do not.</strong> Infer intended population from surviving
+ordinary rows.</p>
+<p><strong>Sources:</strong> T §§2.3, 4.2, 11.5.1; LQ §8.5.</p>
+</section>
+<section class="level2" id="e03-coarser-witness-unavailable-staged-input">
+<h2>E03 — Coarser witness, unavailable staged input</h2>
+<p><strong>Premises.</strong> Participation s1&lt;s2&lt;s3 and
+intermediate blocks {s1},{s2,s3} are known; f(s1) unavailable, f(s2)=20
+and f(s3)=30 supported.</p>
+<p><strong>Expected judgment.</strong> Coarser W=(s3,30) is established
+by maximality evidence even though a plan consuming both exact
+intermediate witnesses lacks an input.</p>
+<p><strong>Do not.</strong> Replace unavailable intermediate W with
+known-empty identity, or infer target impossibility from this plan’s
+failure.</p>
+<p><strong>Sources:</strong> T §§6.1, 9.5; LQ §8.7.</p>
+</section>
+<section class="level2" id="e04-scalar-without-winner-identity">
+<h2>E04 — Scalar without winner identity</h2>
+<p><strong>Premises.</strong> Fixed LAST law; p&lt;q; p definitely
+participates; q participation unresolved; p,q exhaust possible
+participants; both operand values supported as 7.</p>
+<p><strong>Expected judgment.</strong> Nonempty scalar L=7 is
+established; selected-point W is not.</p>
+<p><strong>Do not.</strong> Claim W, choose an arbitrary observed 7
+without the exhaustive evidence, or treat W as necessary for every L
+proof.</p>
+<p><strong>Sources:</strong> T §9.6; LQ §8.8.</p>
+</section>
+<section class="level2" id="e05-missing-selected-operand">
+<h2>E05 — Missing selected operand</h2>
+<p><strong>Premises.</strong> Participation and order identify the
+latest eligible point, whose operand value is unsupported.</p>
+<p><strong>Expected judgment.</strong> Ordinary LAST value is
+unsupported unless another adequate argument establishes the same
+target.</p>
+<p><strong>Do not.</strong> Return an earlier supported value by silent
+support-skipping.</p>
+<p><strong>Sources:</strong> T §§9.2–9.3; LQ §8.6.</p>
+</section>
+<section class="level2" id="e06-known-empty-is-not-unknown">
+<h2>E06 — Known empty is not unknown</h2>
+<p><strong>Premises.</strong> An intermediate contribution set is
+unknown, or the selected value is unsupported.</p>
+<p><strong>Expected judgment.</strong> No algebraic unit can stand for
+that unknown evidence without a separate admitted argument.</p>
+<p><strong>Do not.</strong> Coerce carrier NULL or unknown support to
+bottom/zero/empty set.</p>
+<p><strong>Sources:</strong> T §§5.2, 6.1.1, 8.2, 9; LQ §8.9.</p>
+</section>
+<section class="level2" id="e07-late-filtering-cannot-undo-ordered-influence">
+<h2>E07 — Late filtering cannot undo ordered influence</h2>
+<p><strong>Premises.</strong> An unplaceable contribution affects
+cumulative/lag output, then its own row is withheld.</p>
+<p><strong>Expected judgment.</strong> The resulting computation has not
+been repaired by the late withholding.</p>
+<p><strong>Do not.</strong> Report ordinary established results merely
+because no NULL-coordinate row remains.</p>
+<p><strong>Sources:</strong> T §9.4; LQ §8.10.</p>
+</section>
+<section class="level2" id="r01-lossy-compression-can-hide-contradiction">
+<h2>R01 — Lossy compression can hide contradiction</h2>
+<p><strong>Premises.</strong> With p&lt;q, one alleged coherent input
+has (p,10),(q,20); another has (p,11).</p>
+<p><strong>Expected judgment.</strong> Their coherent-instance premise
+is violated; compressed winner comparison cannot validate it.</p>
+<p><strong>Do not.</strong> Treat equal-point conflict checks or a
+common context label as a global consistency certificate.</p>
+<p><strong>Sources:</strong> T §10.6; LQ §10.7.</p>
+</section>
+<section class="level2" id="r02-three-materialization-claims">
+<h2>R02 — Three materialization claims</h2>
+<p><strong>Premises.</strong> A catalog holds W, scalar L projected from
+discarded W, or scalar L established without identifying its winner.</p>
+<p><strong>Expected judgment.</strong> Record retained content,
+established claim and justification, and permitted reuse; the scalar
+rows need not have different family identities.</p>
+<p><strong>Do not.</strong> Collapse all entries into “LAST available”
+or create family identity by proof method.</p>
+<p><strong>Sources:</strong> T §10.7; LQ §10.6.</p>
+</section>
+<section class="level2" id="r03-equal-mean-display-unequal-continuation">
+<h2>R03 — Equal mean display, unequal continuation</h2>
+<p><strong>Premises.</strong> Exact states (10,1) and (1000,100) both
+display 10; both are extended by (20,1).</p>
+<p><strong>Expected judgment.</strong> The results become 15 and
+1020/101; scalar equality did not preserve continuation information.</p>
+<p><strong>Do not.</strong> Merge or substitute displayed means as
+adequate state.</p>
+<p><strong>Sources:</strong> T §10.5; LQ §6.6.</p>
+</section>
+<section class="level2" id="r04-restriction-or-deletion-of-winner">
+<h2>R04 — Restriction or deletion of winner</h2>
+<p><strong>Premises.</strong> Only the compressed maximal witness is
+retained, and the next request excludes or deletes that point.</p>
+<p><strong>Expected judgment.</strong> A new adequate derivation or
+richer retained information is required to identify its replacement.</p>
+<p><strong>Do not.</strong> Infer arbitrary filtering/deletion
+capability from witness coarsening capability.</p>
+<p><strong>Sources:</strong> T §§10.2–10.3; LQ §10.8.</p>
+</section>
+<section class="level2" id="r05-approximate-realization-of-unchanged-target">
+<h2>R05 — Approximate realization of unchanged target</h2>
+<p><strong>Premises.</strong> An explicit approximation contract
+supports an HLL estimate of exact count distinct.</p>
+<p><strong>Expected judgment.</strong> It may target the same family
+while remaining an approximate realization, not an exact
+sufficient-state basis.</p>
+<p><strong>Do not.</strong> Invent a new target solely from error grade,
+or silently reuse the estimate as exact state.</p>
+<p><strong>Sources:</strong> T §10.9; LQ §§6.9, 10.8.</p>
+</section>
+<section class="level2" id="g01-explain-does-not-observe-unperformed-checks">
+<h2>G01 — EXPLAIN does not observe unperformed checks</h2>
+<p><strong>Premises.</strong> EXPLAIN resolves meaning and a proposed
+plan without data execution or applicable evidence for all runtime
+conditions.</p>
+<p><strong>Expected judgment.</strong> It distinguishes what is
+established from checks outstanding.</p>
+<p><strong>Do not.</strong> Guarantee all future disclosures or complete
+data support from a data-free explanation.</p>
+<p><strong>Sources:</strong> T §§9.1, 12.3–12.4; LQ §10.3.</p>
+</section>
+<section class="level2" id="g02-family-law-versus-engine-kind">
+<h2>G02 — Family law versus engine kind</h2>
+<p><strong>Premises.</strong> An operator belongs to a runtime category
+or a canonical capability list.</p>
+<p><strong>Expected judgment.</strong> Family admission still needs the
+complete target/law contract; category does not confer authority.</p>
+<p><strong>Do not.</strong> Grant family founding solely from an
+anchor-changing kind.</p>
+<p><strong>Sources:</strong> T §3.6; LQ §13.</p>
+</section>
+<section class="level2" id="g03-no-syntax-from-theory-alone">
+<h2>G03 — No syntax from theory alone</h2>
+<p><strong>Premises.</strong> The theory admits tuples, witnesses, order
+definitions or a family construction not exposed by a shipped
+grammar/profile.</p>
+<p><strong>Expected judgment.</strong> Semantic admission and
+language/implementation availability remain separate.</p>
+<p><strong>Do not.</strong> Advertise theoretical notation as accepted
+syntax or edit measured build status to imply support.</p>
+<p><strong>Sources:</strong> T §§12–13; LQ §§1, 13.</p>
+</section>
+<section class="level2" id="g04-cdt-interface-remains-unverified">
+<h2>G04 — CDT interface remains unverified</h2>
+<p><strong>Premises.</strong> This pass specifies required comparison
+and representation behavior but does not inspect CDT v0.5.</p>
+<p><strong>Expected judgment.</strong> Readiness is unverified; a new
+nominal Witness type is neither asserted absent nor mandated.</p>
+<p><strong>Do not.</strong> Claim present API support/absence from the
+theory manuscript.</p>
+<p><strong>Sources:</strong> T §§8.5, 12.2, 13.3; LQ §9.5.</p>
+</section>
+<section class="level2" id="g05-historical-instructions-are-not-active-authority">
+<h2>G05 — Historical instructions are not active authority</h2>
+<p><strong>Premises.</strong> An earlier O1/O2/M2/CP document says
+FIRST/LAST cannot found families or universal formation locality is
+required.</p>
+<p><strong>Expected judgment.</strong> Use the explicit current
+supersession index and reconciled language target; preserve historical
+observations at their own snapshots.</p>
+<p><strong>Do not.</strong> Execute an old “settled” instruction because
+its filename or prior PASS sounds authoritative.</p>
+<p><strong>Sources:</strong> T Appendix C.4; LQ §§15–16.</p>
+</section>
+</section>
+</body>
+</html>

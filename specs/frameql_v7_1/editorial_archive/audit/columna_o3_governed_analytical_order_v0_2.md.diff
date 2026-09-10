@@ -1,0 +1,325 @@
+--- columna_o3_governed_analytical_order_v0_1.md
++++ columna_o3_governed_analytical_order_v0_2.md
+@@ -1,29 +1,17 @@
+ # O3 — Governed Analytical Order
+ ## Declaration, comparison, identity, and realization
+ 
+-**Working architecture proposal 0.1 — 6 September 2026**  
+-**Program:** Theory of Data v7.1 / Frame-QL vNext / Columna  
+-**Basis:** the agreed two-level order construction in the ToD v7.1 amendment 0.2 and its O2 reconciliation.  
+-**Status:** design for review. No repository, syntax, publication, or implementation change is authorized by this document.
+-
+-> **The Manifold governs the order of analytical points. Columna Data Types supplies the value semantics used to realize that order. An ordered family selects that governed order as part of its law. Execution preserves it.**
+-
+-# 0. What this proposal does
+-
+-The agreed construction has two levels: complete point order within each constituent anchor dimension, and comparison precedence among those dimensions. Their lexicographic composition determines the order of points of the support anchor. FIRST and LAST consume that ordered analytical space after the operand has been established at its constitutive anchor. They do not select arbitrary carrier records. [S1, §§3–11]
+-
+-O3 proposes where those facts belong, how they are referenced, what the type layer must supply, and what an implementation must establish before using them. It does not introduce another definition of analytical order or a generic tie-selection mechanism.
+-
+-The source-derived commitments and the new proposals are deliberately separate:
+-
+-| Standing | Content |
+-|---|---|
+-| Inherited from the current working amendment | Complete constituent point orders; explicit dimension precedence; analytical order distinct from enumeration; FIRST/LAST family standing conditional on the family contract. |
+-| Inherited from the architectural handoff | Logical-only authored Manifold; separate private realization; publication, certification, and serving admission are different authorities. |
+-| Proposed here | Reusable logical order declarations; typed realization obligations; explicit family/order binding; order-relative state compatibility; a resolved order contract shared by explanation and execution. |
+-| Not decided here | Concrete Manifold schema, CDT capability names, query syntax, wire shape, operator-kind migration, or the full standing representation. |
+-
+-The engineering baseline in the inspector reports is `bfb3cfe`. Statements about that implementation below are attributed to those reports, not presented as a new inspection of current `main`. The separate CDT v0.5 specification was not retrieved in this pass; the CDT section states requirements, not a claim that its existing API already satisfies them. [S3–S6]
++**Working Draft 0.2 — 7 September 2026**  
++**Status:** Order-interface proposal subordinate to [ToD v7.1 Full Manuscript Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md) (**T**) and [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md).  
++**No schema, syntax, runtime, publication, or implementation authorization.**
++
++# 0. Scope and authority
++
++This revision preserves O3's two-level order construction, sparse partition geometry, logical declaration proposal, and comparison/realization separation. It replaces the older witness-proof and evidence summaries with references to T §§7–10 so that those laws have one source.
++
++The existing order-interface proposal supplies two kinds of logical order fact and one family binding, not necessarily three new classes or registries. The actual CDT v0.5 API has not been inspected in this revision. Requirements below do not imply that a type literally named `Witness` must be added or that no existing structure can implement them.
++
++Historical inspector statements concern the recorded `bfb3cfe` baseline and are not a fresh repository audit. This revision does not repeat or close their runtime probes. The [active-source index](frameql_v7_1_authority_and_supersession_index_v0_1.md) distinguishes current semantic guidance, historical implementation evidence, and superseded recommendations.
+ 
+ # 1. The anchor remains a partition
+ 
+@@ -39,7 +27,7 @@
+ \bigl(\forall i,\ q_i(s)=q_i(t)\bigr)\Longrightarrow s=t.
+ \]
+ 
+-**Precision correction to amendment 0.2, §3.** Its schematic product notation and the word “independent” must not imply that every Cartesian combination exists, that the dimensions are statistically independent, or that an anchor has a uniquely discoverable factorization. The earlier ToD partition account defines a compound anchor through nonempty intersections over its governed universe. That account is preserved here. [S7, §2.7]
++**Sparse compound geometry (T §2.1.3).** Constituent coordinates must not imply that every Cartesian combination exists, that the dimensions are statistically independent, or that an anchor has a uniquely discoverable factorization. A compound anchor is the common refinement through nonempty intersections over the governed universe.
+ 
+ Thus the point coordinates embed \(S\) into a product:
+ 
+@@ -51,7 +39,7 @@
+ 
+ The declaration identifies the constituent structure it uses. It does not ask an engine to discover “independent dimensions” from currently observed rows. Redundant coordinate spellings can be normalized only through established partition equivalence. No general factorization algorithm is required for O3.
+ 
+-In this document, **support anchor** retains the amendment's meaning of *constitutive input anchor*. It must not be confused with the subset of points whose operand values currently have evidence support.
++In this document, **support anchor** means the *constitutive input anchor* of T §§7–8. It is not another anchor kind and must not be confused with the subset of points whose operand values currently have evidence support.
+ 
+ # 2. The two levels of order
+ 
+@@ -79,7 +67,7 @@
+ q_{\sigma(k)}(s)<_{\sigma(k)}q_{\sigma(k)}(t).
+ \]
+ 
+-A differing component exists because the coordinates jointly identify the point. The component comparison determines one direction. Transitivity follows from the first-differing-component rule and the transitivity of the constituent orders. This is the standard lexicographic construction; the external reference [E1] corroborates the mathematical construction only and supplies no Columna governance authority.
++A differing component exists because the coordinates jointly identify the point. The component comparison determines one direction. Transitivity follows from the first-differing-component rule and the transitivity of the constituent orders. This is the lexicographic construction admitted by T §7.1. The mathematical order argument and the institutional authority selecting its definitions remain different questions.
+ 
+ For a one-dimensional support anchor, precedence is trivial. For several dimensions, omitting precedence leaves the analytical order incomplete. Omitting one constituent point order likewise fails to establish this declared complete-order construction. Coincidental equality of current results does not fill either omission.
+ 
+@@ -125,15 +113,13 @@
+ 
+ ## 3.3 The ordered family's binding
+ 
+-A family construction selects the governed support order:
+-
+-\[
+-G=\operatorname{LAST}_{\mathcal O_S}(F@S).
+-\]
+-
+-Its defining contract still includes its operand, participation law, sufficient-state basis, admitted movements, and finalization. A complete support order does not by itself establish the operand or admit every coarser target.
+-
+-The support order can be reused by FIRST, LAST, or another admitted law. It is therefore more appropriately declared with the analytical geometry than buried inside a physical `last` implementation.
++A family construction selects a fully resolved governed support order and its constitutive operand. The full target specification and family contract remain T §4: neither a complete order nor a callable FIRST/LAST spelling supplies the remaining obligations.
++
++For the finite construction in T §8, W is constituted from operand, order, and participation with its own witness-selection and continuation law. Scalar L has an admitted construction by value projection from W. An optional rich retained family R supplies an alternative basis with an exact compatible-union compression to W. These names denote ordinary analytical families, not mandatory public declaration kinds or engine types.
++
++A declaration must identify whether the referenced analytical object is the scalar target, witness-valued family, or another admitted family. It must not grant a scalar materialization the continuation capability of the witness solely because both concern LAST.
++
++The order can be reused by another admitted analytical law. A human-readable name is optional where canonical construction already resolves identity. Institutional publication and ratification remain separate from denotation.
+ 
+ # 4. What CDT supplies, and what it does not
+ 
+@@ -162,7 +148,7 @@
+ 
+ For the first implementation contract, CDT must be able to express the relevant value domain, equality, comparison law, and any meaning-bearing parameters. Conversion into that representation is a separate obligation: failed conversion is not a new position in the order. The exact capability name and type catalogue remain a CDT reconciliation question.
+ 
+-The inspector report identified why this interface matters: the inspected build's `ORDERED` set classifies accepted measure dtypes, while coordinate levels have no dtype and no declared comparison operation. That is evidence of the gap, not a template for the successor. [S3, §§F.0–F.1]
++The earlier O2 inspector report identified a gap at its recorded baseline: the `ORDERED` accept-set concerned measure dtypes while coordinate levels lacked a declared semantic comparator. That observation is historical implementation evidence, not a claim about the uninspected CDT specification or the current build. The successor contract must be established against the actual type specification before conformance is claimed.
+ 
+ # 5. A complete example without new query syntax
+ 
+@@ -249,81 +235,31 @@
+ 
+ The same distinction prevents coordinate normalization from silently changing precedence. Adding a redundant `Month` display coordinate to `{Customer,Day}` must not cause an engine to invent a new order or a monthly reset.
+ 
+-# 8. The finite sufficient-state law, fully stated
+-
+-This section makes the complete, finite FIRST/LAST fragment explicit. It is not a full missingness calculus.
+-
+-Fix one family definition, one governed order, one eligible participation domain \(D\subseteq S\), and one coherent operand evidence instance. Assume every participating point in this fragment has an established value \(f(s)\). For a target point \(a\), the contributing set is
+-
+-\[
+-D(a)=D\cap\pi_{S\to A}^{-1}(a).
+-\]
+-
+-For the initial finite fragment, every nonempty \(D(a)\) has a unique extremum under the total support order. A total order on an infinite unbounded fiber would not alone guarantee an extremum; such cases are outside this proved fragment, not an invitation to weaken the complete-order requirement.
+-
+-Define the witness state space
+-
+-\[
+-W=\{\bot\}\cup\{(s,f(s)):s\in D\}.
+-\]
+-
+-Here \(\bot\) means an empty **contribution state**. It does not mean unsupported existence, an unknown value, zero, or a semantic Null.
+-
+-For LAST, \(\oplus\) retains the later support-point witness. Define the previously unstated cases as well:
+-
+-\[
+-\bot\oplus w=w\oplus\bot=w,
+-\qquad
+-w\oplus w=w.
+-\]
+-
+-For two distinct support-point witnesses, use their governed support-point comparison. FIRST uses the earlier witness.
+-
+-Because one coherent operand instance assigns one value to each participating point, two valid witnesses for the same point agree. Conflicting values attributed to the same point and evidence context are not a tie for LAST to resolve; they fail the premise that the input measure is established. Mixing snapshots or differently constituted orders likewise fails state compatibility. Idempotence is not blanket permission to duplicate source contributions in other laws.
+-
+-Under these premises, \((W,\oplus,\bot)\) is a commutative monoid: an identity exists, swapping operands does not change their extremum, and grouping three operands does not change their common extremum.
+-
+-For every target point,
+-
+-\[
+-w_A(a)=\bigoplus_{s\in D(a)}(s,f(s)).
+-\]
+-
+-Partitioning the same set of contributions through \(B\) gives
+-
+-\[
+-w_A(a)=
+-\bigoplus_{b\subseteq a}
+-\left(\bigoplus_{s\in D\cap\pi_{S\to B}^{-1}(b)}(s,f(s))\right).
+-\]
+-
+-Thus direct and staged results agree, provided they retain compatible witnesses, use the same participation rule and evidence, and follow admitted projections. No requirement that the intermediate groups be consecutive has entered the proof.
+-
+-This proof concerns continuation after the constitutive operand has been established. It does not prove a universal prohibition on all contextually formed families. The broader “projection-fiber locality” claim in the previous stress test should not be expanded into a new general admission theorem merely through O3.
++# 8. The family proof remains in the theory
++
++T §§8.1–8.6 is the sole mathematical account used here. Its propositions define coherent-instance witness composition and show that extracting an extremum witness from compatible finite point–value sets preserves the admitted union/combine operation. No parallel witness theorem is introduced in this interface note.
++
++The complete finite-input fragment fixes coherent operand instance f, order, and contribution domain. Known-empty contribution supplies the identity; an unsupported contribution is not that identity. Two conflicting values for one analytical point do not satisfy the coherent-instance premise.
++
++A representation must preserve original point identity, declared order comparison, the associated operand value where required, and the distinction between known-empty and unavailable state. It may use a typed record, coordinate tuple, governed point reference, or a faithful encoding. A nominal built-in type called `Witness` is not required.
++
++R is an optional sufficient basis, not a prerequisite to serving W or L. A direct implementation can establish W without retaining the full pair set if its evidence establishes the winning-point claim. An adequately justified scalar may be available without an identified winner. These possibilities are not a mandatory `R → W → L` runtime pipeline.
++
++The family law is uniform across coherent instances; the instance-relative carrier does not create a new family identity for each snapshot. Whether two materializations are compatible instances for a proposed use is an evidence/reuse question, not a fact certified by a local winner comparison.
+ 
+ # 9. Declaration completeness is not current evidence completeness
+ 
+-A complete order law can exist while the system lacks the evidence needed to position a particular point under it. The order has not become partial. Its current realization is unsupported for that request.
+-
+-The request must distinguish the following questions:
+-
+-| Question | Possible failure |
+-|---|---|
+-| Which points exist in the governed domain? | Point existence or population completeness is unsupported. |
+-| Which support point does the evidence belong to? | Required analytical placement is unsupported. |
+-| How are established support points compared? | The declared order is incomplete, or a required comparison representation is unavailable. |
+-| Does the operand apply at the selected point? | Eligibility is unresolved or the measure is ineligible. |
+-| What is its value there? | The selected eligible value lacks support. |
+-
+-O3 does not turn these into one `is_null` check or mandate new runtime enums.
+-
+-In particular, if the latest eligible analytical point exists but its operand value is unavailable, FIRST/LAST must not silently retreat to a different supported point. “LAST over the eligible points” and “LAST over supported observations” use different participation rules. They can be separately governed, but one cannot quietly replace the other.
+-
+-Likewise, a known point with unresolved Day placement must not be assigned “nulls first” and consumed by a cumulative computation. Dropping it and serving the surviving sequence as the full answer is not a repair either. A separately defined restricted result can sometimes be served with truthful conditions, but a disclosure does not make an undefined ordering determinate.
+-
+-Not every support defect invalidates every result. A total that does not require Day placement may remain established. Establishing a winner may also require less operand evidence than reconstructing every nonwinning value. Any such optimization needs a specific justification; missing comparison information cannot simply be ignored.
+-
+-These distinctions refine the containment boundary but do not implement full R4. The inspector report's examples show both selected-value skipping and ordered contributions surviving after final-frame withholding. They remain implementation findings awaiting a bounded disposition. [S4, §§1–3]
++A complete declared order does not prove that a current materialization can place every required point or recover its comparison representation. Conversely, loss of an irrelevant operand value need not make a target unavailable. Evidence obligations depend on the requested law.
++
++The following distinctions from T §9 must remain visible in a resolved order contract and its supporting evidence:
++
++- A known domain `s1 < s2 < s3` with supported maximal value 30 can establish the coarser witness `(s3,30)` even when a finer intermediate witness at s1 cannot be obtained. Do not replace that unavailable intermediate by empty state.
++- A fixed LAST law can establish scalar 7 without identifying the winner only under an adequate argument; T §9.6's example requires known nonemptiness, exhaustive possible-participant coverage, and supported equal values at every possible winner. Equal values among observed rows alone are insufficient.
++- Missing selected value, unknown possible later participation, incomplete point placement, and incomplete declared order are different failures. “Last supported value” cannot replace “last participating point's value” silently.
++
++No order-specific standing enum is introduced here. The needed claim, its dependencies, and the evidence supporting it must be distinguished however the concrete implementation represents them.
++
++A false number is not made lawful by adding disclosure later. A late frame filter does not repair an earlier ordered walk that consumed an unplaceable contribution. Exact outcome policy and current containment remain separately authorized engineering work.
+ 
+ # 10. Authored meaning, admission, and execution
+ 
+@@ -346,13 +282,13 @@
+ 
+ A fresh scan that happens to contain no collisions does not prove that a declared comparator distinguishes every point in a larger intended domain. Conversely, a definition that establishes totality mathematically does not prove the current source retained every point or value.
+ 
+-The successor should remove dependence on the spelling of a lineage name. A label change from `calendar` to another label must not remove chronology when the governed references and definition remain the same. The inspected build's name-based source of order is a reported compatibility gap, not a normative rule to extend. [S3, §F.3]
++The successor should remove dependence on the spelling of a lineage name. A label change from `calendar` to another label must not remove chronology when the governed references and definition remain the same. The inspected build's name-based source of order is a reported compatibility gap, not a normative rule to extend. [historical source S3 in archived O3 v0.1]
+ 
+ # 11. One resolved semantic contract, not an explanation-only overlay
+ 
+ A resolved ordered-family request needs to identify its selected family law, operand, support anchor, support-order definition, target anchor, admitted projection, participation rule, and the status of required realization evidence.
+ 
+-That does not mean every field must appear in a canonical query string. Surface round-tripping and resolved meaning are different concerns. The current reconstruction report identifies an additive EXPLAIN location, while also observing that merely placing data there would not make execution consume it. [S5, §§2–4]
++That does not mean every field must appear in a canonical query string. Surface round-tripping and resolved meaning are different concerns. The current reconstruction report identifies an additive EXPLAIN location, while also observing that merely placing data there would not make execution consume it. [historical source S5 in archived O3 v0.1]
+ 
+ The proposed invariant is:
+ 
+@@ -366,15 +302,15 @@
+ 
+ # 12. State identity and reuse
+ 
+-A retained extremum witness is interpretable only under the support order and family law that selected it. Safe reuse therefore needs a reference to that semantic context as well as enough point information to compare the winner later.
+-
+-The exact representation may be a structured analytical point reference, a governed order-preserving encoding, or an equivalent certified representation. O3 does not require storing a complete coordinate tuple in every physical state. It requires that compression preserve the relevant comparison and identity.
+-
+-A materialization must not compare states from different precedence rules merely because both expose the same scalar dtype. Nor may it silently compare witnesses from incompatible order-definition versions or evidence contexts.
+-
+-A carrier containing only the displayed FIRST/LAST value generally lacks the selected point witness. A valid recovery rule might reconstruct it in a special case, but recoverability has to be established. The default is not to infer the winner from its value.
+-
+-This carries forward the existing distinction between analytical identity, sufficient state, and materialized availability; it does not revive an independent information-quotient ontology. [S1, §§14–18; S7, §7.10]
++T §10.7 governs the materialization interface. The retained artifact must distinguish what it holds, which target claim is established and why, and what later use that information justifies.
++
++A retained nonempty W can construct scalar L and supply admitted witness continuation. A retained L after W was discarded and an L established without a winner may share the same scalar family identity and value while carrying different establishment records. Neither implies retained W. A trace recording historical witness use is not present recoverability.
++
++Compatibility must be established before invoking the lossy-composition theorem. With `p < q`, a source claiming `(p,10),(q,20)` can compress to `(q,20)` and conceal conflict with another source's `(p,11)`. Equal-point conflict checks on compressed winners are not a global validator. A matching context identifier must refer to adequate evidence rather than act as assurance by itself.
++
++Reordering the governed constituent definitions or changing their precedence can change family identity. Physical serialization can change without changing that identity if its semantic representation remains faithful. Evidence refresh can change availability without creating another family, but mixing incompatible instances is not authorized by a common family name.
++
++Coarsening sufficiency does not automatically cover deleting the winner, restricting it out, or re-forming a contextual input under different conditions. Each reuse needs the information and compatible premises required by that use. The concrete catalog and certificate schema remain outside this note.
+ 
+ # 13. Scope boundaries
+ 
+@@ -421,59 +357,24 @@
+ | New point outside an explicitly ordered closed domain | No inferred append position; resolve governed scope/version. |
+ | A business-priority field changes during execution | No silently mutable relation; bind the required context first. |
+ 
+-# 15. Finite mathematical checks
+-
+-A local reference calculation tested the formal construction. It did not run Columna, DuckDB, Polars, or any repository tests and made no repository changes.
+-
+-The model used a two-point dimension and a three-point dimension, both precedence choices, and both orientations of each component order: eight complete orders. It considered every subset of the six-point coordinate product, both FIRST and LAST, every enumeration of each subset, and every nested set partition for staged reduction. Intermediate blocks were not constrained to be contiguous.
+-
+-| Check | Instances checked | Result |
+-|---|---:|---|
+-| Trichotomy of the induced order | 288 | All passed |
+-| Transitivity of the induced order | 1,728 | All passed |
+-| Witness-merge commutativity | 784 | All passed |
+-| Witness-merge associativity | 5,488 | All passed |
+-| Empty-state identity and witness idempotence | 112 | All passed |
+-| FIRST/LAST × order × support-subset cases | 1,024 | All passed |
+-| Enumeration permutations | 31,312 | All passed |
+-| Direct/staged target-fiber comparisons | 215,856 | All passed |
+-
+-These checks support the finite construction and guard the examples. The proof in §8, not a finite test count, establishes the stated general finite-fiber result. The checks do not validate source completeness, comparison realizations, any current compiler, or the broader family-admission claims in earlier drafts.
+-
+-# 16. Review decisions and next unit
+-
+-The proposed O3 boundary is now small enough to review as one unit:
+-
+-1. Component point orders are logical declarations attached to their governed anchors.
+-2. Compound support orders select those orders and state dimension precedence.
+-3. Family definitions select complete support orders as constitutive law.
+-4. CDT supplies the required equality/comparison semantics; realization must preserve them.
+-5. Resolved semantics, explanation, and execution share one order contract.
+-
+-Before incorporating O3 into a full ToD v7.1 text, amend the earlier schematic product language as noted in §1, state the finite/extremum and empty-state premises, and separately review the breadth of the earlier projection-fiber-locality admission claim. None of those editorial obligations changes the agreed two-level order construction.
+-
+-The next implementation-facing unit should be **a focused contract review**, not another broad reconnaissance and not a request to build all ordered operations. CC already supplied the relevant implementation evidence. The useful return would map this proposal onto the actual CDT specification, identify the smallest logical publication representation, and identify the consumed resolved-contract seam. Concrete syntax and class names remain CC recommendations subject to the semantic boundary above.
+-
+-The reproduced current defects remain a separate correctness obligation. They need not wait for a full order-authoring UI or a universal standing model: a system can decline to assert an ordered result whose required point formation or order is not established. Conversely, a small containment patch cannot claim O3 implementation merely because it refuses the known bad cases.
+-
+-No new CC mission has been sent by this document. No changes to `.cml`, operator kinds, profiles, wire contracts, or public compatibility surfaces are authorized.
++# 15. Validation status
++
++The finite mathematical checks reported in O3 v0.1 remain historical results of that earlier proposal. They were not rerun or extended for this document reconciliation and do not verify the present Columna or CDT implementation.
++
++This revision defers mathematical propositions to the unchanged T Draft 0.4. The current acceptance cases are semantic review obligations, not a claim that every case has an implementation or that a document check proves conformance.
++
++# 16. Remaining specification work
++
++The order structure remains settled as a working theory input. The remaining interface review should determine whether the actual CDT specification can supply the required equality, point representation, and comparison semantics; how logical publication carries the selected constituent orders and precedence; and how the same resolved meaning reaches explanation and execution.
++
++This task must not use legacy FIRST/LAST internals as the definition of the target. Nor should it introduce a new authoring kind, registry, or wire field merely because the requirements are listed separately. Recommend the smallest faithful representation after inspecting the relevant interfaces.
++
++No such implementation or schema work is authorized here. The [capability/profile reconciliation plan](frameql_vnext_capability_profile_reconciliation_plan_v0_2.md) states the separate adoption boundaries.
+ 
+ # 17. Sources and evidence boundaries
+ 
+-**[S1] Working theory input.** `tod_v7_1_ordered_measure_families_amendment_v0_2.md`, 6 September 2026. Especially §§3–11 (constituents, precedence, family construction), §§14–18 (state, coherence, identity), and §§24–25 (admission and revised boundary). This is an agreed working amendment, not asserted here to be a published v7.1 release.
+-
+-**[S2] Working language input.** `frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md`, 6 September 2026. Especially §§3–4, 12–18. It identifies the eight O3 questions addressed by this proposal.
+-
+-**[S3] andFam, order representation and strength inspector.** Attached as `Pasted markdown (3)(9).md`; report headings `F. ORDER RELATION REPRESENTATION` and `G. ORDER STRENGTH / TIES`, reported HEAD `bfb3cfe`. Used for the coordinate-type, comparison, lineage-name, and incomplete legacy-order findings. Its v7.0-era categorical family conclusions are not adopted over S1.
+-
+-**[S4] andFam, participation and standing inspector.** Attached as `Pasted markdown(20260906-221513).md`; heading `H / O2-Q4 — Participation and standing for ordered expressions (post-R4-C0)`, reported HEAD `bfb3cfe`. Used for lost-placement contamination and operand-skipping evidence. Its runtime probes were reported by andFam, not independently rerun here.
+-
+-**[S5] andFam, resolved artifact and descriptor inspector.** Attached as `Pasted markdown (4)(4).md`, reported HEAD `bfb3cfe`. Especially §§2–4 and §5.3. Used for the surface/resolved distinction and planner/engine authority boundary.
+-
+-**[S6] Architectural handoff.** `START_HERE(2).md`, 14 August 2026. Used only for persistent authority boundaries: logical authored Manifold, private mapping, publication/certification/admission, and planner/engine roles. Its operational status is historical, not current.
+-
+-**[S7] Huayin Wang, The Theory of Data, v6.0.** `theory_of_data_v6_0_zenodo_21958062.md`. Used narrowly for the unchanged partition/common-refinement account in §2.7 and materialization distinction in §7.10, not as a replacement for later theoretical revisions.
+-
+-**[E1] External mathematical cross-check.** Mathlib, `Mathlib.Data.Prod.Lex`, especially `Prod.Lex.instLinearOrder` and the defining lexicographic comparison. Retrieved 6 September 2026. It supports only the ordinary mathematical fact that lexicographic composition of linear orders is a linear order. It is not a ToD or Columna source. Source address: `https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/Prod/Lex.html`.
+-
+-The repository's current live status and a definitive CDT v0.5 interface were not established in this pass. This proposal does not attribute proposed fields or capabilities to an implementation that has not been inspected.
++The fixed theoretical source is [T, Full Manuscript Working Draft 0.4](the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md), especially §§2.1.3, 4–10, and 12. The language account is [Language-Law Candidate 0.4](frameql_language_vnext_working_draft_v0_4.md). Both are working documents, not published v7.1 or shipped-language certification.
++
++The full original O3 v0.1 is retained in the editorial archive, including its sources, historical inspector references, and previous validation record. Its opening source hierarchy and duplicated witness/evidence summaries are replaced by this note; unchanged declaration and geometry content is retained where consistent with T.
++
++The [source/supersession index](frameql_v7_1_authority_and_supersession_index_v0_1.md) identifies the active note, historical inputs, and withdrawn recommendations. No source byte, publication, or runtime was changed by this revision.

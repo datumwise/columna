@@ -377,10 +377,18 @@ console.log(`  ${totalSpans} span(s) across ${filesWithSpans} file(s) ` +
 // make this guard a second place the publication registry has to police. So the pairing declared
 // below is STRUCTURAL — this route renders that corpus file — and the number of blocks to expect is
 // counted from the deposited bytes at run time. Re-edition moves it by itself.
+//
+// THE PAIRING ITSELF IS STILL HAND-DECLARED, AND IT DRIFTED (2026-09-08). The count derives, but
+// WHICH FILE the route renders is typed here as well as in the route's own import — two places, and
+// the v2.2 -> v2.3 re-edition moved one of them. This guard caught its own stale half: it compared
+// v2.3's built HTML against v2.2's byte counts and failed, which is the right outcome and the wrong
+// reason. Advanced here deliberately rather than derived from the .astro import, because scraping an
+// import statement is its own fragility and choosing between them is not this change's to make. IF
+// YOU RE-EDITION THIS ROUTE, MOVE THIS LINE IN THE SAME COMMIT AS THE IMPORT.
 const ROUTES = [
   {
     route: '/learn/what-is-the-theory-of-data',
-    source: 'src/content/corpus/theory_of_data_an_introduction_v2_2.md',
+    source: 'src/content/corpus/theory_of_data_an_introduction_v2_3.md',
   },
 ];
 

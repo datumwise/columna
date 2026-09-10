@@ -79,7 +79,7 @@
   "forbiddenContexts": [
    "derived"
   ],
-  "reason": "Ruling 8 (2026-08-21): do NOT rewrite it in Phase 1 merely because it is mounted at /research. Three things follow and all three are done: it stops being treated as publication authority (its class here is frozen-corpus, and no derived surface reads it); it is recorded as a remaining manual/frozen consumer (consumers.json); and the registry knows the current truth independently of it. Replacing the live /research presentation with a registry-derived institutional view, while preserving this file as source material, is a later unit. That page architecture is not solved here. CONTRACT MADE VISIBLE 2026-08-23 (Repair Unit 3). Everything above stayed true and none of it reached a reader. This row said the map's publication statements are accurate as of its own edition date and not maintained against the record \u2014 and the page said nothing of the kind: its only date was the `v0.3 \u00b7 August 2026` line inside the frozen body, which reads as a version stamp on the map rather than as a bound on everything the map claims. A reader could arrive at \"The Theory of Data \u2014 Version 4.0 \u2026, the canonical manuscript\", in the present tense, with no signal that the sentence was written on 2026-08-03 and that ToD has since been deposited at v6.1. THE FIX IS NOT IN THE MAP AND THIS ROW'S DISPOSITION DOES NOT MOVE: the body is byte-identical (sha256 d5249e8a\u20269130), the class stays frozen-corpus, and nothing here is reclassified as current-maintained. What changed is /research's page-authored chrome, which now carries one plain orientation line before the body and one bounded edition/status block after it, naming the snapshot, its date, that the text is preserved rather than updated, and where current records live. The current-records pointer is a LINK to /about, which renders the registry \u2014 no DOI, version or date is typed into the route, so it states no publication fact and takes no consumer permission. The edition named to readers is v0.3, not the v0.2 of this file's path: the filename was frozen at creation and f27318d deliberately bumped the body 0.2 \u2192 0.3 the same day, so v0.3 is what the snapshot declares and what the page has been showing all along. The path is NOT renamed \u2014 it is this registry's key for a frozen consumer. Whether the map is eventually regenerated from the registry instead of frozen is still the open Phase-2 question; making the existing contract legible is not that, and does not decide it.",
+  "reason": "Ruling 8 (2026-08-21): do NOT rewrite it in Phase 1 merely because it is mounted at /research. Three things follow and all three are done: it stops being treated as publication authority (its class here is frozen-corpus, and no derived surface reads it); it is recorded as a remaining manual/frozen consumer (consumers.json); and the registry knows the current truth independently of it. Replacing the live /research presentation with a registry-derived institutional view, while preserving this file as source material, is a later unit. That page architecture is not solved here. CONTRACT MADE VISIBLE 2026-08-23 (Repair Unit 3). Everything above stayed true and none of it reached a reader. This row said the map's publication statements are accurate as of its own edition date and not maintained against the record — and the page said nothing of the kind: its only date was the `v0.3 · August 2026` line inside the frozen body, which reads as a version stamp on the map rather than as a bound on everything the map claims. A reader could arrive at \"The Theory of Data — Version 4.0 …, the canonical manuscript\", in the present tense, with no signal that the sentence was written on 2026-08-03 and that ToD has since been deposited at v6.1. THE FIX IS NOT IN THE MAP AND THIS ROW'S DISPOSITION DOES NOT MOVE: the body is byte-identical (sha256 d5249e8a…9130), the class stays frozen-corpus, and nothing here is reclassified as current-maintained. What changed is /research's page-authored chrome, which now carries one plain orientation line before the body and one bounded edition/status block after it, naming the snapshot, its date, that the text is preserved rather than updated, and where current records live. The current-records pointer is a LINK to /about, which renders the registry — no DOI, version or date is typed into the route, so it states no publication fact and takes no consumer permission. The edition named to readers is v0.3, not the v0.2 of this file's path: the filename was frozen at creation and f27318d deliberately bumped the body 0.2 → 0.3 the same day, so v0.3 is what the snapshot declares and what the page has been showing all along. The path is NOT renamed — it is this registry's key for a frozen consumer. Whether the map is eventually regenerated from the registry instead of frozen is still the open Phase-2 question; making the existing contract legible is not that, and does not decide it.",
   "provenance": "Huayin, ruling 8 of 2026-08-21. Slice 2 ledger §3.4 records the same surface as REVISE / route KEEP. Contract made reader-visible by Repair Unit 3, 2026-08-23 (Huayin). Edition wording supported by repository provenance: the body has declared v0.3 since f27318d (2026-08-03), and 09891a4 (2026-08-03) is the last commit to touch the file."
  },
  {
@@ -259,5 +259,49 @@
   ],
   "reason": "NEXT-DEPOSIT METADATA DEBT, NOT A ROUTE DEFECT. The deposit was frozen on 2026-08-19; AG v1.1 landed on the 21st and Frame-QL Introduction v2.3 on the 23rd, so both pointers went stale after these bytes existed. A deposit that cited works published after it would be a forgery, not a repair, and the bytes are not editable. Recorded here so the debt is addressed at the next deposit of this work rather than rediscovered. THE READER IS NOT STRANDED: the route's own wayfinding chrome names the current reading order — Primer v2.2, this Introduction v2.2, ToD v6.1 — and links Frame-QL: An Introduction at its live route, which serves v2.3.",
   "provenance": "Repair Unit 2, 2026-08-23, on importing the v2.2 deposit. Both successor records verified against registry/publications/records.json at commit a24e395."
+ },
+ {
+  "id": "rc-tod-primer-v23-newversion-identifier",
+  "tokens": [
+   "10.5281/zenodo.2201854910.5281/zenodo.22018549",
+   "10.5281/zenodo.2201854910",
+   "10.5281/zenodo.220185491"
+  ],
+  "disposition": "malformed-external-metadata",
+  "claim": "Zenodo record 22651578 (A Primer on the Theory of Data v2.3) carries a related_identifiers entry with relation `isNewVersionOf` and identifier = '10.5281/zenodo.2201854910.5281/zenodo.22018549'",
+  "truth": "One DOI written twice with no separator — the Primer's OWN v2.2 record (…22018549), the first copy truncated of its `10.5281/zenodo.` prefix. Resolves HTTP 404. The relation is `isNewVersionOf`, so the intended identifier is 10.5281/zenodo.22018549, which is record w-tod-primer.r05 and the edge the registry records.",
+  "replacement": "10.5281/zenodo.22018549",
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived",
+   "apps/website/src/**"
+  ],
+  "provenance": "Read from zenodo.org/api/records/22651578 on 2026-09-08, while verifying the three editions Huayin's ruling of 2026-09-07 authorized for registration. Not requested; surfaced because the deposit's metadata was read whole before anything was minted from it.",
+  "tokenNote": "Three forms, because two different scanners see two different non-identifiers in one string. The publication gate reads `zenodo\\.[0-9]{6,10}` and extracts …2201854910; the snapshot harvester reads `zenodo\\.[0-9]{6,9}` and extracts …220185491, which it will report as an unresolved seed for as long as the coverage ledger quotes the defect. Both were confirmed HTTP 404 on 2026-09-08. A reconciliation item that named only the human-readable form would not match the bytes the echo audit reads.",
+  "reason": "THE FIFTH INSTANCE OF THE PREPEND-INSTEAD-OF-REPLACE PATTERN, after rc-primer-v22-related-identifier, rc-frameql-primer-related-identifier, rc-frameql-introduction-v23-related-identifier and the inherited copy recorded as rc-tod-primer-v23-supplement-identifier. Repairable only at the deposit; nothing in this repo can edit external metadata and no page copy may compensate for it. THE REGISTRY DOES NOT NEED THIS STRING AND MUST NOT BE SEEN TO DEPEND ON IT: the v2.2 → v2.3 edge is recorded from two independent sources that are not the broken field — the deposit's own front matter, which reads 'Supersedes: A Primer on the Theory of Data, Version 2.2, DOI 10.5281/zenodo.22018549', and Huayin's ruling of 2026-09-07 naming 22651578 as the published successor of v2.2. The evidence is preserved as Zenodo actually serves it; the corrected relation is NOT written back into the snapshot or the record as though the deposit already contained it. Upstream repair remains with Huayin, and its later verification is to be recorded separately rather than assumed here."
+ },
+ {
+  "id": "rc-tod-primer-v23-supplement-identifier",
+  "tokens": [
+   "10.5281/zenodo.2201341010.5281/zenodo.21842194",
+   "10.5281/zenodo.2201341010",
+   "10.5281/zenodo.220134101"
+  ],
+  "disposition": "malformed-external-metadata",
+  "claim": "Zenodo record 22651578 (A Primer on the Theory of Data v2.3) carries a related_identifiers entry with relation `isSupplementTo` and identifier = '10.5281/zenodo.2201341010.5281/zenodo.21842194'",
+  "truth": "Two DOIs concatenated with no separator — ToD v6.1 (…22013410) followed by ToD v5.0 (…21842194). Resolves HTTP 404. It is BYTE-IDENTICAL to the string recorded against this same work's v2.2 in rc-primer-v22-related-identifier: Zenodo copies related_identifiers onto a new version, so the v2.2 defect was carried into v2.3 unrepaired rather than reintroduced.",
+  "replacement": null,
+  "allowedContexts": [
+   "specs/publication_corpus_coverage_v0_1.md"
+  ],
+  "forbiddenContexts": [
+   "derived",
+   "apps/website/src/**"
+  ],
+  "provenance": "Read from zenodo.org/api/records/22651578 on 2026-09-08, alongside rc-tod-primer-v23-newversion-identifier. Its v2.2 predecessor was recorded 2026-08-21 as rc-primer-v22-related-identifier and is left exactly as written — a ledger that revises its earlier entries stops being evidence of what was asserted when.",
+  "tokenNote": "The same three-form problem as the sibling item, and the ten-digit scanner form …2201341010 is BYTE-IDENTICAL to the one produced by rc-primer-v22-related-identifier and rc-frameql-introduction-v23-related-identifier. Three distinct deposit defects therefore collapse to one non-identifier under a DOI scanner, and the harvester's unresolved-seed line reports 220134101 exactly once. Do not read that single MISS as a single defect.",
+  "reason": "NO INTENDED VALUE IS ASSERTED HERE, DELIBERATELY. `replacement` is null because this registry does not know what the depositor means the supplement pointer to say at v2.3: the value recorded for v2.2 was ToD v6.1, while v2.3's own front matter reads 'Aligned with: The Theory of Data, Version 7.1, DOI 10.5281/zenodo.22649945'. Choosing between them would be inventing publication metadata, which is exactly the act the ruling of 2026-09-07 separates from recording an existing publication. THE FINDING THIS ITEM CARRIES IS THE INHERITANCE, not the string: the defect class propagates down a work's own version chain, so the instance count understates it and a repair made only at the newest record leaves the predecessor's copy standing. Both records need the deposit-side edit."
  }
 ]

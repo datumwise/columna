@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+
+<html lang="en-US" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<meta content="pandoc" name="generator"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=yes" name="viewport"/>
+<title>The Frame-QL Manual — vNext Language-Law Candidate</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+<style type="text/css">html{scroll-behavior:smooth}body{font-family:Georgia,"Times New Roman",serif;color:#202b33;background:#fff;max-width:920px;margin:auto;padding:42px 44px;line-height:1.58;font-size:17px}h1,h2,h3,h4{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#173e4b;scroll-margin-top:20px}h1{font-size:2em;margin-top:2em}h2{font-size:1.45em;margin-top:1.8em}h3{font-size:1.12em;margin-top:1.6em}#title-block-header h1{margin-top:0}a{color:#17637a;text-decoration-thickness:.06em;text-underline-offset:.15em}p{margin:.85em 0}blockquote{border-left:3px solid #abc1c9;margin:1.2em 0;padding:.2em 1.25em;background:#f5f8f9}table{border-collapse:collapse;width:100%;font-size:.9em;margin:1.2em 0;display:block;overflow-x:auto}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e1e5;padding:.65em .8em}th{font-family:Arial,Helvetica,sans-serif;background:#eef4f6}pre{padding:1em;background:#f4f6f8;border:1px solid #e2e8eb;overflow-x:auto;font-size:.84em;line-height:1.45}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em}pre code{font-size:inherit}math{font-size:1.04em}math[display=block]{margin:1.1em 0;max-width:100%;overflow-x:auto}nav#TOC{border:1px solid #dce5e9;background:#f8fafb;padding:18px 24px;font-size:.9em;margin:2em 0;max-height:420px;overflow:auto}nav#TOC ul{list-style:none;padding-left:1em}nav#TOC>ul{padding-left:0}nav#TOC li{margin:.24em 0}hr{border:0;border-top:1px solid #dce4e8;margin:2em 0}.reading-status{font:13px/1.5 Arial,Helvetica,sans-serif;border-bottom:1px solid #c8d8de;padding-bottom:12px;color:#48626d}.reading-status a{margin-right:18px}.math.display{display:block;overflow-x:auto;padding:.3em 0} @media(max-width:720px){body{padding:24px 18px;font-size:16px}h1{font-size:1.7em}th,td{min-width:140px}} @media print{body{max-width:none;padding:0;font-size:10.5pt}nav#TOC{max-height:none;background:white}.reading-status{font-size:8pt}h1,h2,h3{break-after:avoid}table,pre,blockquote{break-inside:avoid}a{color:inherit;text-decoration:none}}</style>
+</head>
+<body><div class="reading-status">WORKING COMPANION SET · 7 SEPTEMBER 2026 · NOT A LANGUAGE RELEASE<br/><a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">Reading index</a><a href="frameql_language_vnext_working_draft_v0_4.md">Source Markdown</a></div>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#the-frame-ql-manual-vnext-language-law-candidate" id="toc-the-frame-ql-manual-vnext-language-law-candidate">The Frame-QL
+Manual — vNext Language-Law Candidate</a></li>
+<li><a href="#preface" id="toc-preface">Preface</a></li>
+<li><a href="#authority-and-jurisdictions" id="toc-authority-and-jurisdictions">1. Authority and jurisdictions</a>
+<ul>
+<li><a href="#the-languages-job" id="toc-the-languages-job">1.1 The
+language’s job</a></li>
+<li><a href="#what-theory-of-data-owns" id="toc-what-theory-of-data-owns">1.2 What Theory of Data owns</a></li>
+<li><a href="#what-columna-data-types-owns" id="toc-what-columna-data-types-owns">1.3 What Columna Data Types
+owns</a></li>
+<li><a href="#what-frame-ql-owns" id="toc-what-frame-ql-owns">1.4 What
+Frame-QL owns</a></li>
+<li><a href="#what-profiles-own" id="toc-what-profiles-own">1.5 What
+profiles own</a></li>
+<li><a href="#what-a-build-owns" id="toc-what-a-build-owns">1.6 What a
+build owns</a></li>
+</ul></li>
+<li><a href="#the-query-and-the-frame" id="toc-the-query-and-the-frame">2. The query and the frame</a>
+<ul>
+<li><a href="#a-query-returns-one-frame" id="toc-a-query-returns-one-frame">2.1 A query returns one
+frame</a></li>
+<li><a href="#the-output-frame-is-not-a-new-analytical-ontology" id="toc-the-output-frame-is-not-a-new-analytical-ontology">2.2 The
+output frame is not a new analytical ontology</a></li>
+<li><a href="#query-aliases-name-output-columns" id="toc-query-aliases-name-output-columns">2.3 Query aliases name output
+columns</a></li>
+<li><a href="#request-clauses-have-different-analytical-jurisdictions" id="toc-request-clauses-have-different-analytical-jurisdictions">2.4
+Request clauses have different analytical jurisdictions</a></li>
+</ul></li>
+<li><a href="#expression-sorts" id="toc-expression-sorts">3. Expression
+sorts</a>
+<ul>
+<li><a href="#family-reference" id="toc-family-reference">3.1 Family
+reference</a></li>
+<li><a href="#measure-expression" id="toc-measure-expression">3.2
+Measure expression</a></li>
+<li><a href="#general-anchorable-expression" id="toc-general-anchorable-expression">3.3 General anchorable
+expression</a></li>
+<li><a href="#tuple-expression" id="toc-tuple-expression">3.4 Tuple
+expression</a></li>
+<li><a href="#family-forming-analytical-expression" id="toc-family-forming-analytical-expression">3.5 Family-forming
+analytical expression</a></li>
+<li><a href="#ordered-analytical-expression" id="toc-ordered-analytical-expression">3.6 Ordered analytical
+expression</a></li>
+<li><a href="#predicate-and-standing-expression" id="toc-predicate-and-standing-expression">3.7 Predicate and standing
+expression</a></li>
+<li><a href="#semantic-value-access-expression" id="toc-semantic-value-access-expression">3.8 Semantic-value access
+expression</a></li>
+</ul></li>
+<li><a href="#analytical-anchoring" id="toc-analytical-anchoring">4.
+Analytical anchoring</a>
+<ul>
+<li><a href="#the-semantic-operation" id="toc-the-semantic-operation">4.1 The semantic operation</a></li>
+<li><a href="#and-at" id="toc-and-at">4.2 <code>@</code> and
+<code>AT</code></a></li>
+<li><a href="#one-current-anchor-constitutive-inner-anchors" id="toc-one-current-anchor-constitutive-inner-anchors">4.3 One current
+anchor, constitutive inner anchors</a></li>
+<li><a href="#pointwise-anchoring" id="toc-pointwise-anchoring">4.4
+Pointwise anchoring</a></li>
+<li><a href="#tuple-anchoring" id="toc-tuple-anchoring">4.5 Tuple
+anchoring</a></li>
+<li><a href="#broadcast-and-structural-expression-alignment" id="toc-broadcast-and-structural-expression-alignment">4.6 Broadcast and
+structural expression alignment</a></li>
+<li><a href="#anchoring-and-family-identity" id="toc-anchoring-and-family-identity">4.7 Anchoring and family
+identity</a></li>
+</ul></li>
+<li><a href="#the-three-postfix-axes" id="toc-the-three-postfix-axes">5.
+The three postfix axes</a></li>
+<li><a href="#family-forming-analytical-laws" id="toc-family-forming-analytical-laws">6. Family-forming analytical
+laws</a>
+<ul>
+<li><a href="#a-family-law-does-more-than-compute-a-value" id="toc-a-family-law-does-more-than-compute-a-value">6.1 A family law
+does more than compute a value</a></li>
+<li><a href="#the-constitutive-inner-anchor" id="toc-the-constitutive-inner-anchor">6.2 The constitutive inner
+anchor</a></li>
+<li><a href="#anchor-derived-families" id="toc-anchor-derived-families">6.3 Anchor-derived families</a></li>
+<li><a href="#pointwise-formation-before-reduction" id="toc-pointwise-formation-before-reduction">6.4 Pointwise formation
+before reduction</a></li>
+<li><a href="#the-family-law-contract" id="toc-the-family-law-contract">6.5 The family-law contract</a></li>
+<li><a href="#sufficient-state-belongs-to-analytical-law" id="toc-sufficient-state-belongs-to-analytical-law">6.6 Sufficient state
+belongs to analytical law</a></li>
+<li><a href="#rich-value-state-remains-ordinary-analytical-data" id="toc-rich-value-state-remains-ordinary-analytical-data">6.7
+Rich-value state remains ordinary analytical data</a></li>
+<li><a href="#family-aliases-and-governed-named-families" id="toc-family-aliases-and-governed-named-families">6.8 Family aliases
+and governed named families</a></li>
+<li><a href="#availability-is-profile-specific" id="toc-availability-is-profile-specific">6.9 Availability is
+profile-specific</a></li>
+<li><a href="#contextual-formation-and-later-continuation" id="toc-contextual-formation-and-later-continuation">6.10 Contextual
+formation and later continuation</a></li>
+</ul></li>
+<li><a href="#semantic-values-attributes-methods-and-subscription" id="toc-semantic-values-attributes-methods-and-subscription">7. Semantic
+values, attributes, methods, and subscription</a>
+<ul>
+<li><a href="#analytical-location-and-value-structure-are-different-axes" id="toc-analytical-location-and-value-structure-are-different-axes">7.1
+Analytical location and value structure are different axes</a></li>
+<li><a href="#dot-at-the-name-layer" id="toc-dot-at-the-name-layer">7.2
+Dot at the name layer</a></li>
+<li><a href="#dot-at-the-value-layer" id="toc-dot-at-the-value-layer">7.3 Dot at the value layer</a></li>
+<li><a href="#historical-dotted-family-forms" id="toc-historical-dotted-family-forms">7.4 Historical dotted family
+forms</a></li>
+<li><a href="#value-subscription" id="toc-value-subscription">7.5 Value
+subscription</a></li>
+<li><a href="#subscription-does-not-imply-current-implementation-support" id="toc-subscription-does-not-imply-current-implementation-support">7.6
+Subscription does not imply current implementation support</a></li>
+</ul></li>
+<li><a href="#analytical-standing-existence-placement-eligibility-and-support" id="toc-analytical-standing-existence-placement-eligibility-and-support">8.
+Analytical standing: existence, placement, eligibility, and support</a>
+<ul>
+<li><a href="#standing-questions-precede-carrier-interpretation" id="toc-standing-questions-precede-carrier-interpretation">8.1 Standing
+questions precede carrier interpretation</a></li>
+<li><a href="#point-existence-and-placement" id="toc-point-existence-and-placement">8.2 Point existence and
+placement</a></li>
+<li><a href="#four-different-anchor-related-failures" id="toc-four-different-anchor-related-failures">8.3 Four different
+anchor-related failures</a></li>
+<li><a href="#eligibility-support-and-missing" id="toc-eligibility-support-and-missing">8.4 Eligibility, support, and
+missing</a></li>
+<li><a href="#lost-records-and-point-counts" id="toc-lost-records-and-point-counts">8.5 Lost records and point
+counts</a></li>
+<li><a href="#target-relative-evidence-requirements" id="toc-target-relative-evidence-requirements">8.6 Target-relative
+evidence requirements</a></li>
+<li><a href="#an-unavailable-staged-plan-need-not-make-the-target-unavailable" id="toc-an-unavailable-staged-plan-need-not-make-the-target-unavailable">8.7
+An unavailable staged plan need not make the target unavailable</a></li>
+<li><a href="#a-scalar-can-be-established-without-an-identified-winner" id="toc-a-scalar-can-be-established-without-an-identified-winner">8.8 A
+scalar can be established without an identified winner</a></li>
+<li><a href="#empty-contribution-unsupported-value-and-zero" id="toc-empty-contribution-unsupported-value-and-zero">8.9 Empty
+contribution, unsupported value, and zero</a></li>
+<li><a href="#frame-level-consequence" id="toc-frame-level-consequence">8.10 Frame-level consequence</a></li>
+<li><a href="#introspection-remains-a-separate-language-decision" id="toc-introspection-remains-a-separate-language-decision">8.11
+Introspection remains a separate language decision</a></li>
+</ul></li>
+<li><a href="#ordered-families-and-contextual-ordered-expressions" id="toc-ordered-families-and-contextual-ordered-expressions">9. Ordered
+families and contextual ordered expressions</a>
+<ul>
+<li><a href="#order-is-a-semantic-dependency-not-a-family-veto" id="toc-order-is-a-semantic-dependency-not-a-family-veto">9.1 Order is a
+semantic dependency, not a family veto</a></li>
+<li><a href="#constitutive-ordered-support" id="toc-constitutive-ordered-support">9.2 Constitutive ordered
+support</a></li>
+<li><a href="#form-analytical-points-before-selecting-them" id="toc-form-analytical-points-before-selecting-them">9.3 Form
+analytical points before selecting them</a></li>
+<li><a href="#witness-family-and-value-returning-family" id="toc-witness-family-and-value-returning-family">9.4 Witness family
+and value-returning family</a></li>
+<li><a href="#continuation-preserves-original-point-witnesses" id="toc-continuation-preserves-original-point-witnesses">9.5
+Continuation preserves original-point witnesses</a></li>
+<li><a href="#contextual-order-and-neighborhoods" id="toc-contextual-order-and-neighborhoods">9.6 Contextual order and
+neighborhoods</a></li>
+<li><a href="#shorthand-output-selection-and-compatibility" id="toc-shorthand-output-selection-and-compatibility">9.7 Shorthand,
+output selection, and compatibility</a></li>
+</ul></li>
+<li><a href="#resolution-canonicalization-and-materialized-reuse" id="toc-resolution-canonicalization-and-materialized-reuse">10.
+Resolution, canonicalization, and materialized reuse</a>
+<ul>
+<li><a href="#resolve-the-target-before-selecting-a-realization" id="toc-resolve-the-target-before-selecting-a-realization">10.1 Resolve
+the target before selecting a realization</a></li>
+<li><a href="#four-different-records" id="toc-four-different-records">10.2 Four different records</a></li>
+<li><a href="#explain-states-what-is-known-and-what-remains-to-be-established" id="toc-explain-states-what-is-known-and-what-remains-to-be-established">10.3
+EXPLAIN states what is known and what remains to be established</a></li>
+<li><a href="#input-anchors-and-governed-completion" id="toc-input-anchors-and-governed-completion">10.4 Input anchors and
+governed completion</a></li>
+<li><a href="#dots-brackets-and-retained-surfaces" id="toc-dots-brackets-and-retained-surfaces">10.5 Dots, brackets, and
+retained surfaces</a></li>
+<li><a href="#retained-content-established-claim-and-permitted-reuse" id="toc-retained-content-established-claim-and-permitted-reuse">10.6
+Retained content, established claim, and permitted reuse</a></li>
+<li><a href="#compatibility-before-lossy-combination" id="toc-compatibility-before-lossy-combination">10.7 Compatibility
+before lossy combination</a></li>
+<li><a href="#reuse-is-specific-to-the-next-operation" id="toc-reuse-is-specific-to-the-next-operation">10.8 Reuse is specific
+to the next operation</a></li>
+</ul></li>
+<li><a href="#family-denotation-naming-and-publication" id="toc-family-denotation-naming-and-publication">11. Family denotation,
+naming, and publication</a>
+<ul>
+<li><a href="#canonical-denotation-does-not-require-a-business-name-ceremony" id="toc-canonical-denotation-does-not-require-a-business-name-ceremony">11.1
+Canonical denotation does not require a business-name ceremony</a></li>
+<li><a href="#output-naming-and-institutional-authoring-are-separate" id="toc-output-naming-and-institutional-authoring-are-separate">11.2
+Output naming and institutional authoring are separate</a></li>
+<li><a href="#contextual-and-structural-declarations" id="toc-contextual-and-structural-declarations">11.3 Contextual and
+structural declarations</a></li>
+<li><a href="#no-new-authoring-format-is-specified-here" id="toc-no-new-authoring-format-is-specified-here">11.4 No new authoring
+format is specified here</a></li>
+</ul></li>
+<li><a href="#validity-adjudication-and-realization" id="toc-validity-adjudication-and-realization">12. Validity,
+adjudication, and realization</a></li>
+<li><a href="#capability-and-profile-boundary" id="toc-capability-and-profile-boundary">13. Capability and profile
+boundary</a></li>
+<li><a href="#semantic-acceptance-suite" id="toc-semantic-acceptance-suite">14. Semantic acceptance
+suite</a></li>
+<li><a href="#remaining-work-before-implementation-reconciliation" id="toc-remaining-work-before-implementation-reconciliation">15.
+Remaining work before implementation reconciliation</a></li>
+<li><a href="#status-and-sources" id="toc-status-and-sources">16. Status
+and sources</a></li>
+</ul>
+</nav>
+<section class="level1" id="the-frame-ql-manual-vnext-language-law-candidate">
+<h1>The Frame-QL Manual — vNext Language-Law Candidate</h1>
+<p><strong>Working Draft 0.4 — 7 September 2026</strong><br/>
+<strong>Status:</strong> Reconciled working semantic target; not the
+shipped Manual.<br/>
+<strong>Theory reference:</strong> <a href="the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html">ToD
+v7.1 Full Manuscript Working Draft 0.4</a>, abbreviated
+<strong>T</strong> below.<br/>
+<strong>Scope:</strong> Expression and request meaning, evidence and
+reuse obligations, and compatibility boundaries. This is not a complete
+grammar reference or a release-conformance claim.<br/>
+<strong>No DOI assigned. Not a syntax release. Not an implementation
+authorization.</strong></p>
+<p>This candidate succeeds Language-Law Candidate 0.3 for the local
+working program. The <a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">authority
+and supersession index</a> identifies its supporting notes and the older
+rules withdrawn for current design. It does not replace a published
+edition, change repository files, or establish that current code
+conforms to the successor theory.</p>
+<p><strong>Reading notation.</strong> Fenced <code>frameql</code>
+examples retain familiar envelope forms; they were not executed in this
+documentation pass. Fenced <code>text</code> expressions and
+mathematical formulas describe semantics and do not claim parser
+acceptance. The applicable versioned grammar determines formal syntax,
+the language reference its versioned meaning, the profiles their
+obligations, and measured build records implementation coverage. T
+determines analytical family law. These responsibilities are
+distinct.</p>
+<hr/>
+</section>
+<section class="level1" id="preface">
+<h1>Preface</h1>
+<p>Frame-QL is a language for stating a governed analytical result.</p>
+<p>A query says which analytical expressions should appear in the
+result, where the result frame should live, and which conditions shape
+that frame. It does not prescribe a relational procedure, choose
+physical joins, or tell an execution engine how to manufacture the
+result.</p>
+<p>The central boundary is:</p>
+<blockquote>
+<p><strong>The query should contain the information required to identify
+the analytical result, not the information required to physically
+manufacture it.</strong></p>
+</blockquote>
+<p>That boundary is why Frame-QL has an output anchor but no
+<code>GROUP BY</code>, can express meaning-bearing input anchors without
+exposing arbitrary query-time joins, and can refuse or clarify a request
+before physical execution.</p>
+<p>The language sits between three neighboring authorities:</p>
+<pre class="text"><code>Theory of Data
+    analytical identity and analytical law
+
+Frame-QL
+    expression and request semantics
+
+Columna Data Types
+    semantic value types and capabilities</code></pre>
+<p>An implementation then realizes a profile of the language.</p>
+<pre class="text"><code>Frame-QL language law
+        ↓
+Core / Platform profile
+        ↓
+specific build</code></pre>
+<p>These layers must not be collapsed.</p>
+<p>A value-returning expression is not automatically a measure
+family.</p>
+<p>A syntax accepted by a parser is not automatically canonical language
+law.</p>
+<p>A capability executed by one build is not automatically part of the
+language.</p>
+<p>A new Theory distinction does not automatically become Frame-QL
+syntax.</p>
+<p>This candidate states the proposed reconciled language meaning. It is
+not a replacement for the applicable shipped reference until separately
+adopted.</p>
+<p>The Core Profile states what a conforming Core implementation
+undertakes to realize.</p>
+<p>The Platform Profile states what Platform adds beyond Core.</p>
+<p>Build Status records implementation coverage measured for a
+particular build. A coverage result is not, by itself, a proof of the
+complete analytical contract.</p>
+<hr/>
+</section>
+<section class="level1" id="authority-and-jurisdictions">
+<h1>1. Authority and jurisdictions</h1>
+<section class="level2" id="the-languages-job">
+<h2>1.1 The language’s job</h2>
+<p>Frame-QL has one job:</p>
+<blockquote>
+<p><strong>Represent a governed analytical request precisely enough that
+its meaning can be adjudicated independently of its physical
+realization.</strong></p>
+</blockquote>
+<p>The request may contain:</p>
+<ul>
+<li>governed family references;</li>
+<li>anchored measures and other anchorable expressions;</li>
+<li>pointwise expressions;</li>
+<li>family-forming analytical laws;</li>
+<li>order-sensitive analytical expressions;</li>
+<li>predicates over values or analytical standing;</li>
+<li>clauses that shape or select the returned frame.</li>
+</ul>
+<p>Those forms do not all have the same analytical standing.</p>
+<p>Frame-QL must preserve that difference.</p>
+</section>
+<section class="level2" id="what-theory-of-data-owns">
+<h2>1.2 What Theory of Data owns</h2>
+<p>Theory of Data owns analytical facts such as:</p>
+<ul>
+<li>universe and point existence;</li>
+<li>anchor geometry;</li>
+<li>measure-family identity;</li>
+<li>the measure identity <code>F@A</code>;</li>
+<li>family formation under admitted analytical law;</li>
+<li>sufficient-state relationships;</li>
+<li>lawful analytical derivability;</li>
+<li>analytical lineage;</li>
+<li>identity-relative consistency.</li>
+</ul>
+<p>Frame-QL consumes those objects and laws.</p>
+<p>It does not redefine them. The authored Manifold supplies the
+selected logical definitions; separate private mappings and runtime
+evidence realize them. Physical bindings do not become authored
+analytical law.</p>
+</section>
+<section class="level2" id="what-columna-data-types-owns">
+<h2>1.3 What Columna Data Types owns</h2>
+<p>Columna Data Types owns the semantic value domains and capabilities
+required by expressions and analytical laws.</p>
+<p>Examples of capability requirements include:</p>
+<ul>
+<li>addition;</li>
+<li>multiplication;</li>
+<li>division;</li>
+<li>equality;</li>
+<li>value ordering;</li>
+<li>set union;</li>
+<li>structured values;</li>
+<li>attribute access;</li>
+<li>methods;</li>
+<li>value subscription.</li>
+</ul>
+<p>A set, tuple, vector, sketch, struct, or other rich value can be the
+value of one measure.</p>
+<p>Its internal structure is not an analytical anchor.</p>
+<blockquote>
+<p><strong>Internal value structure is not analytical
+location.</strong></p>
+</blockquote>
+</section>
+<section class="level2" id="what-frame-ql-owns">
+<h2>1.4 What Frame-QL owns</h2>
+<p>Frame-QL owns the language-level distinctions needed to make
+analytical requests explicit.</p>
+<p>It determines:</p>
+<ul>
+<li>expression sorts;</li>
+<li>expression composition;</li>
+<li>where analytical anchoring may appear;</li>
+<li>how pointwise co-participation is expressed;</li>
+<li>how admitted family-forming laws are referenced;</li>
+<li>how order-sensitive expressions state their order contracts;</li>
+<li>how semantic value capabilities are accessed;</li>
+<li>how analytical standing may be inspected;</li>
+<li>how a frame is assembled, filtered, ordered, and limited;</li>
+<li>what constitutes a valid request before realization.</li>
+</ul>
+</section>
+<section class="level2" id="what-profiles-own">
+<h2>1.5 What profiles own</h2>
+<p>A profile says which canonical language capabilities an
+implementation undertakes to realize.</p>
+<p>Profiles may undertake different subsets of canonical language
+capabilities. Their declarations do not execute those capabilities or
+change their meaning.</p>
+<p>It may not change what the language means.</p>
+</section>
+<section class="level2" id="what-a-build-owns">
+<h2>1.6 What a build owns</h2>
+<p>A build owns no semantics merely by existing.</p>
+<p>It is evidence of implementation.</p>
+<p>Build Status may say that a build:</p>
+<pre class="text"><code>conforms
+lags
+exceeds</code></pre>
+<p>a profile.</p>
+<p>That is a useful fact.</p>
+<p>It is not a license to redefine the language to make every build
+appear conforming.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="the-query-and-the-frame">
+<h1>2. The query and the frame</h1>
+<section class="level2" id="a-query-returns-one-frame">
+<h2>2.1 A query returns one frame</h2>
+<p>A Frame-QL query requests one result frame.</p>
+<p>Conceptually:</p>
+<pre class="text"><code>[governed environment]
+SELECT &lt;expressions&gt;
+AT {&lt;output anchor&gt;}
+[frame-shaping clauses]</code></pre>
+<p>The frame has one final output anchor.</p>
+<p>The output anchor’s coordinates identify its analytical rows.</p>
+<p>The selected expressions provide its value columns.</p>
+</section>
+<section class="level2" id="the-output-frame-is-not-a-new-analytical-ontology">
+<h2>2.2 The output frame is not a new analytical ontology</h2>
+<p>A frame is a requested assembly of analytical results.</p>
+<p>It does not become a new measure family merely because several
+expressions appear beside one another.</p>
+<p>Two selected expressions may:</p>
+<ul>
+<li>belong to different measure families;</li>
+<li>be ordinary pointwise expressions;</li>
+<li>be ordered expressions;</li>
+<li>even belong to different governed universes where the language
+permits juxtaposition.</li>
+</ul>
+<p>Co-location in one frame does not collapse those identities.</p>
+</section>
+<section class="level2" id="query-aliases-name-output-columns">
+<h2>2.3 Query aliases name output columns</h2>
+<p>A query may assign an output key:</p>
+<pre class="frameql"><code>SELECT revenue / orders AS aov
+AT {region}</code></pre>
+<p><code>aov</code> is an output-column alias.</p>
+<p>It does not establish a durable <code>AOV</code> measure family.</p>
+<p>Saving the query text does not establish one either.</p>
+<p>An admitted canonical analytical construction can denote a family
+without a separate business name. An output label does not establish
+that law, publish a declaration, or ratify a new analytical identity
+(§11).</p>
+</section>
+<section class="level2" id="request-clauses-have-different-analytical-jurisdictions">
+<h2>2.4 Request clauses have different analytical jurisdictions</h2>
+<p>The envelope contains several request-level operations. They do not
+all act at the same stage.</p>
+<section class="level3" id="where-analytical-restriction">
+<h3><code>WHERE</code> — analytical restriction</h3>
+<p><code>WHERE</code> restricts the input participation/domain of the
+request before the affected analytical expressions are formed.</p>
+<p>It can therefore change the values those expressions establish.</p>
+<p>A Frame-QL <code>WHERE</code> is request-local restriction over the
+existing governed universe. It does not, merely by appearing in a
+query:</p>
+<ul>
+<li>redefine the Manifold universe;</li>
+<li>mint a named subuniverse;</li>
+<li>promote a durable family;</li>
+<li>grant the requester authority over physical scan mechanics.</li>
+</ul>
+<p>A separate governed carve or population declaration is required where
+the population claim itself changes.</p>
+<p>Restriction must preserve the declared formation scope. A
+request-local law may deliberately form its inputs within the stated
+restriction. A previously constituted contextual quantity must not
+silently be re-formed under a new context while retaining the same
+claim. Selecting already-established daily changes differs from
+restarting the predecessor relation inside each selected group. Physical
+predicate pushdown is permitted only where that equivalence is
+established; this is a semantic obligation, not a new clause or
+prescribed plan. See T §§3.1–3.4 and §10.2.</p>
+</section>
+<section class="level3" id="having-output-selection">
+<h3><code>HAVING</code> — output selection</h3>
+<p><code>HAVING</code> selects among already-formed output points using
+output coordinates or expressions.</p>
+<p>It does not change which input contributions formed those
+expressions.</p>
+</section>
+<section class="level3" id="order-by-limit-and-limit-...-per-frame-ordering-and-selection">
+<h3><code>ORDER BY</code>, <code>LIMIT</code>, and
+<code>LIMIT ... PER</code> — frame ordering and selection</h3>
+<p>These operate on the returned frame.</p>
+<p><code>ORDER BY</code> in particular orders output points.</p>
+<p>It does not silently provide any field of the order contract of an
+inner ordered analytical expression.</p>
+<p>None of these clauses mints measure-family identity merely by shaping
+a request.</p>
+<hr/>
+</section>
+</section>
+</section>
+<section class="level1" id="expression-sorts">
+<h1>3. Expression sorts</h1>
+<p>Frame-QL has several expression sorts.</p>
+<p>These are language distinctions, not a proposal for mutually
+exclusive runtime enum values. Some descriptions overlap: an ordered
+family-forming expression is both ordered and family-forming. They are
+not additional ontological kinds in Theory of Data.</p>
+<section class="level2" id="family-reference">
+<h2>3.1 Family reference</h2>
+<p>Example:</p>
+<pre class="text"><code>revenue</code></pre>
+<p>A family reference resolves to one governed measure-family
+identity.</p>
+<p>It can be anchored.</p>
+<p>Its family identity and constitutive analytical lineage are resolved
+from governed declarations. The chosen realization path and proof method
+for an already specified target do not create another family
+identity.</p>
+<p>A query alias cannot create or change that identity.</p>
+</section>
+<section class="level2" id="measure-expression">
+<h2>3.2 Measure expression</h2>
+<p>Example:</p>
+<pre class="text"><code>revenue @ {region}</code></pre>
+<p>Conceptually this denotes:</p>
+<pre class="text"><code>Revenue@Region</code></pre>
+<p>where the governed environment establishes the family and anchor.</p>
+<p>The final anchor is the current analytical location of the
+measure.</p>
+</section>
+<section class="level2" id="general-anchorable-expression">
+<h2>3.3 General anchorable expression</h2>
+<p>Examples:</p>
+<pre class="text"><code>revenue / orders
+price * quantity
+margin / revenue</code></pre>
+<p>A general anchorable expression is:</p>
+<ul>
+<li>typed;</li>
+<li>governed by the co-participation rules of its operands;</li>
+<li>anchorable where its operands can be lawfully co-established;</li>
+<li>not given durable measure-family identity merely by its syntax;</li>
+<li>not given an independent continuation law merely by its syntax.</li>
+</ul>
+<p>For ordinary pointwise forms:</p>
+<pre class="text"><code>(E1 ★ E2) @ A</code></pre>
+<p>has the pointwise reading:</p>
+<pre class="text"><code>(E1 @ A) ★ (E2 @ A)</code></pre>
+<p>only where the governed co-participation contract and semantic type
+capabilities admit the operation.</p>
+<p>A computable expression is therefore not automatically a new measure
+family.</p>
+</section>
+<section class="level2" id="tuple-expression">
+<h2>3.4 Tuple expression</h2>
+<p>Example:</p>
+<pre class="text"><code>(revenue, cost)</code></pre>
+<p>At anchor <code>A</code>:</p>
+<pre class="text"><code>(revenue, cost) @ A</code></pre>
+<p>means the co-participating pair:</p>
+<pre class="text"><code>(revenue @ A, cost @ A)</code></pre>
+<p>where the governed pairing contract is satisfied.</p>
+<p>The tuple is a structured expression value.</p>
+<p>It is not an anchor.</p>
+<p>It does not become a measure family merely because its value is
+structured.</p>
+</section>
+<section class="level2" id="family-forming-analytical-expression">
+<h2>3.5 Family-forming analytical expression</h2>
+<p>Conceptual examples include:</p>
+<pre class="text"><code>sum(revenue @ {order})
+mean(revenue @ {order})
+variance(price @ {transaction})
+count(order)</code></pre>
+<p>Where the complete admitted analytical law applies, a canonical
+family expression can denote the resulting family. It need not first
+receive a noun-like business name. Operator spelling alone does not
+supply the law: the target, formation, constitutive anchors,
+participation, basis adequacy, and admitted continuation must be
+established under T §4.</p>
+<p>The inner anchor remains identity-bearing when changing it changes
+the quantity. <code>mean(revenue @ {order})</code> and
+<code>mean(revenue @ {customer})</code> need not denote the same family
+even when reported at the same outer anchor. Syntax, catalog membership,
+a query alias, or code execution does not replace this admission
+judgment.</p>
+<p>Family-forming and ordered are not mutually exclusive
+classifications. An admitted ordered law is one case of this same family
+contract.</p>
+</section>
+<section class="level2" id="ordered-analytical-expression">
+<h2>3.6 Ordered analytical expression</h2>
+<p>An ordered expression uses a governed order of analytical points.
+Whether it denotes a family is a separate question about its complete
+analytical law.</p>
+<p>T §§7–8 admits finite FIRST/LAST constructions through an
+independently constituted witness-valued family and a value-returning
+target family. General contextual expressions such as LAG, ranking,
+cumulative, and rolling operations need their own domain and operator
+contracts. Their focal syntax does not itself establish continuation,
+but a contextual formation history does not categorically prohibit a
+subsequently governed family (§6.10).</p>
+<p>The earlier distinction between value order and analytical-point
+order remains useful: MAX compares operand values; LAST selects a point
+under the constitutive analytical order and returns its associated
+value. Both can belong to admitted family constructions. Neither is
+admitted merely by its name.</p>
+<p>All such constructions must be invariant to incidental evidence
+enumeration to the extent claimed by their analytical laws. Backend row
+order, storage layout, and output <code>ORDER BY</code> supply no hidden
+inner-order authority. Chapter 9 describes the ordered-family and
+contextual-expression cases without merging their distinct
+requirements.</p>
+</section>
+<section class="level2" id="predicate-and-standing-expression">
+<h2>3.7 Predicate and standing expression</h2>
+<p>Predicates may inspect different jurisdictions.</p>
+<section class="level3" id="value-predicates">
+<h3>Value predicates</h3>
+<p>These operate on semantic values where the type supplies the required
+capability.</p>
+<p>Examples include equality and ordered comparisons.</p>
+</section>
+<section class="level3" id="standing-predicates">
+<h3>Standing predicates</h3>
+<p>These inspect analytical standing such as:</p>
+<pre class="text"><code>point existence
+measure eligibility
+measure support</code></pre>
+<p>Standing predicates are not ordinary functions over a nullable value
+type.</p>
+<p>An unsupported expression has no established semantic value merely
+because a carrier happens to use <code>NULL</code>.</p>
+</section>
+</section>
+<section class="level2" id="semantic-value-access-expression">
+<h2>3.8 Semantic-value access expression</h2>
+<p>Typed semantic values may support value-layer access forms such
+as:</p>
+<pre class="text"><code>E.member
+E.method(...)
+E[key]</code></pre>
+<p>where the resolved semantic value type supplies the requested
+capability.</p>
+<p>These expressions operate on the value carried by <code>E</code>.</p>
+<p>They do not turn internal value structure into analytical location,
+and they do not create measure-family identity merely by exposing part
+or a property of a value.</p>
+<p>The exact member, method, and subscription capabilities belong to
+Columna Data Types and the canonical Frame-QL capability authority.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="analytical-anchoring">
+<h1>4. Analytical anchoring</h1>
+<section class="level2" id="the-semantic-operation">
+<h2>4.1 The semantic operation</h2>
+<p>Analytical anchoring is written conceptually as:</p>
+<pre class="text"><code>E @ A</code></pre>
+<p>and asks for expression <code>E</code> at analytical anchor
+<code>A</code>.</p>
+<p>Where <code>E</code> is a family reference <code>F</code>, the result
+is the measure:</p>
+<pre class="text"><code>F@A</code></pre>
+<p>where the family law and governed environment establish it.</p>
+<p>Where <code>E</code> is a general anchorable expression, its operands
+must be lawfully available for participation at the evaluation anchor
+under the applicable co-participation, structural-alignment, and type
+rules.</p>
+<p>Anchoring does not mean “group these physical rows.”</p>
+<p>It states analytical location.</p>
+<p>It also does not grant arbitrary movement authority. In particular,
+making the value of a coarser anchored expression available inside a
+finer outer expression by broadcast does not thereby establish a finer
+measure of the same family.</p>
+</section>
+<section class="level2" id="and-at">
+<h2>4.2 <code>@</code> and <code>AT</code></h2>
+<p>The shipped Frame-QL surface uses two spellings because two
+structural positions must remain visible.</p>
+<pre class="text"><code>E @ {A}
+    expression-level / input-position anchoring
+
+AT {A}
+    the one final output anchor of the frame</code></pre>
+<p>The underlying semantic distinction is not two unrelated meanings of
+anchor.</p>
+<p><code>@</code> anchors an expression that can be consumed by another
+expression.</p>
+<p><code>AT</code> declares the unique anchoring of the completed
+frame.</p>
+</section>
+<section class="level2" id="one-current-anchor-constitutive-inner-anchors">
+<h2>4.3 One current anchor, constitutive inner anchors</h2>
+<p>A measure has one current analytical anchor.</p>
+<p>For a constructed family expression:</p>
+<pre class="text"><code>mean(revenue @ {order}) @ {region}</code></pre>
+<p>the two anchors have different jobs.</p>
+<pre class="text"><code>order
+    constitutive inner anchor of the mean-family identity
+
+region
+    current analytical location of the resulting measure</code></pre>
+<p>The inner anchor does not become a second current anchor.</p>
+<p>It belongs to family identity because changing it can change what
+quantity the family denotes.</p>
+</section>
+<section class="level2" id="pointwise-anchoring">
+<h2>4.4 Pointwise anchoring</h2>
+<p>For a pointwise expression:</p>
+<pre class="text"><code>revenue / orders</code></pre>
+<p>anchoring at <code>region</code> has the intended reading:</p>
+<pre class="text"><code>(revenue @ {region}) / (orders @ {region})</code></pre>
+<p>only when both operands are themselves lawfully establishable at
+<code>region</code> and:</p>
+<ul>
+<li>the operands may co-participate;</li>
+<li>their universes are compatible for one expression;</li>
+<li>division is supported by their semantic value types;</li>
+<li>denominator exceptional cases are governed.</li>
+</ul>
+<p>The more general pointwise rule is slightly broader: every operand
+must be lawfully <strong>available for participation</strong> at the
+evaluation anchor. An operand may be directly established there, or an
+already-established coarser expression may be made available there
+through a governed structural alignment such as broadcast.</p>
+<p>Structural availability does not change analytical identity.</p>
+<p>Anchor equality alone does not establish all of these premises.</p>
+</section>
+<section class="level2" id="tuple-anchoring">
+<h2>4.5 Tuple anchoring</h2>
+<p>For:</p>
+<pre class="text"><code>(revenue, cost) @ {order}</code></pre>
+<p>the pair exists only where both components have governed
+co-participating standing at <code>order</code>.</p>
+<p>This matters for multi-input laws such as covariance and
+correlation.</p>
+<p>A physical join that happens to place two values on one row does not
+by itself establish the analytical pair.</p>
+</section>
+<section class="level2" id="broadcast-and-structural-expression-alignment">
+<h2>4.6 Broadcast and structural expression alignment</h2>
+<p>A coarser anchored expression may sometimes participate in a finer
+outer expression.</p>
+<p>For example:</p>
+<pre class="frameql"><code>SELECT
+    (revenue @ {customer}) / (revenue @ {}) AS share
+AT {customer}</code></pre>
+<p>The denominator remains the scalar measure:</p>
+<pre class="text"><code>Revenue @ {}</code></pre>
+<p>Its value is replicated so that the outer ratio can be evaluated at
+customer points.</p>
+<p>That broadcast does <strong>not</strong> establish:</p>
+<pre class="text"><code>Revenue @ customer</code></pre>
+<p>merely by replication.</p>
+<p>Broadcast therefore has a narrow semantic role:</p>
+<ul>
+<li>make an already-established coarse value available to a finer
+enclosing expression;</li>
+<li>replicate, never allocate;</li>
+<li>preserve the analytical identity of the broadcast operand;</li>
+<li>carry any downstream conservation or reaggregation restrictions
+required by governed law.</li>
+</ul>
+<p>Broadcast is structural expression alignment, not family
+formation.</p>
+</section>
+<section class="level2" id="anchoring-and-family-identity">
+<h2>4.7 Anchoring and family identity</h2>
+<p>This expression:</p>
+<pre class="text"><code>(revenue / orders) @ {region}</code></pre>
+<p>can be a lawful result without creating a durable <code>AOV</code>
+measure family.</p>
+<p>A complete governed analytical law can establish a family from a
+suitable expression. Its canonical family expression can then denote
+that identity without a separate business name. The act of anchoring an
+arbitrary arithmetic expression does not perform that admission, and
+<code>AS</code> or <code>WITH</code> does not publish or ratify it
+(§11).</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="the-three-postfix-axes">
+<h1>5. The three postfix axes</h1>
+<p>The language should keep three semantic axes distinct:</p>
+<pre class="text"><code>E @ A
+    analytical anchoring / location
+
+E.member
+E.method(...)
+    governed semantic-value capability or qualified-name resolution
+
+E[key]
+    semantic-value subscription</code></pre>
+<p>They answer different questions:</p>
+<pre class="text"><code>@
+    where does this analytical object live?
+
+.
+    what governed name qualification or semantic value capability is being used?
+
+[]
+    what internal part of the semantic value is being subscribed?</code></pre>
+<p>No axis may silently act as another.</p>
+<p>In particular:</p>
+<ul>
+<li>an internal key is not an analytical dimension;</li>
+<li>a value attribute does not change anchor merely because it exposes
+structure;</li>
+<li>analytical filtering is not value subscription;</li>
+<li>backend object-property lookup is not language authority.</li>
+</ul>
+<hr/>
+<hr/>
+</section>
+<section class="level1" id="family-forming-analytical-laws">
+<h1>6. Family-forming analytical laws</h1>
+<section class="level2" id="a-family-law-does-more-than-compute-a-value">
+<h2>6.1 A family law does more than compute a value</h2>
+<p>Some Frame-QL expressions can denote measure families because Theory
+of Data admits a governed analytical law for them.</p>
+<p>Conceptual examples include:</p>
+<pre class="text"><code>sum(revenue @ {order})
+count(order)
+count(revenue @ {order})
+mean(revenue @ {order})
+variance(price @ {transaction})
+covariance(price @ {order}, quantity @ {order})</code></pre>
+<p>These expressions are different from ordinary arithmetic such as:</p>
+<pre class="text"><code>revenue / orders
+price * quantity</code></pre>
+<p>A pointwise arithmetic expression may produce a lawful analytical
+value without acquiring:</p>
+<ul>
+<li>a family ID;</li>
+<li>independent analytical lineage;</li>
+<li>a continuation law;</li>
+<li>sufficient-state standing;</li>
+<li>durable materializability.</li>
+</ul>
+<p>A family-forming law does establish a governed analytical family when
+its law contract is satisfied.</p>
+<blockquote>
+<p><strong>Computability does not create family identity. Analytical law
+does.</strong></p>
+</blockquote>
+</section>
+<section class="level2" id="the-constitutive-inner-anchor">
+<h2>6.2 The constitutive inner anchor</h2>
+<p>A family-forming law consumes its analytical input at an inner
+anchor.</p>
+<p>For example:</p>
+<pre class="text"><code>mean(revenue @ {order})</code></pre>
+<p>denotes a different family from:</p>
+<pre class="text"><code>mean(revenue @ {customer})</code></pre>
+<p>unless governance establishes an explicit equivalence.</p>
+<p>The inner anchor is therefore part of family identity when changing
+it changes what quantity is being formed.</p>
+<p>Later anchoring does a different job:</p>
+<pre class="text"><code>mean(revenue @ {order}) @ {region}</code></pre>
+<p>has:</p>
+<pre class="text"><code>order
+    constitutive inner anchor
+
+region
+    current analytical location</code></pre>
+<p>The resulting measure still has one current anchor.</p>
+<p>The inner anchor survives inside the family identity.</p>
+</section>
+<section class="level2" id="anchor-derived-families">
+<h2>6.3 Anchor-derived families</h2>
+<p>A family law need not begin with a measure-valued operand.</p>
+<p>The clearest example is:</p>
+<pre class="text"><code>count(I)</code></pre>
+<p>where <code>I</code> is an anchor.</p>
+<p><code>count(I)</code> counts points of the anchor.</p>
+<p>This must remain distinct from:</p>
+<pre class="text"><code>count(x @ I)</code></pre>
+<p>which counts participating <code>x @ I</code> measures under the
+governed participation law.</p>
+<p>Suppose 100 orders are known to exist but Revenue is supported on
+only 97.</p>
+<p>Then, conceptually:</p>
+<pre class="text"><code>count(order)              = 100
+count(revenue @ {order})   = 97</code></pre>
+<p>unless a separate totality/support rule establishes another
+result.</p>
+<p>This distinction becomes especially important under data loss.</p>
+<p>Point existence is not measure participation.</p>
+</section>
+<section class="level2" id="pointwise-formation-before-reduction">
+<h2>6.4 Pointwise formation before reduction</h2>
+<p>Some family laws need relationships among several values at the same
+inner point.</p>
+<p>For a weighted mean, the numerator needs the pointwise product of
+value and weight while both are jointly available.</p>
+<p>Conceptually:</p>
+<pre class="text"><code>(x * w) @ I</code></pre>
+<p>must be formed before a reduction that would destroy their pointwise
+pairing.</p>
+<p>Likewise covariance and correlation require governed paired
+participation at their constitutive inner anchor.</p>
+<p>A physical join does not by itself establish that pair.</p>
+<p>The governing co-participation contract must do so.</p>
+<blockquote>
+<p><strong>A later law cannot use a relationship that was neither
+retained nor reconstructed from governed evidence.</strong></p>
+</blockquote>
+</section>
+<section class="level2" id="the-family-law-contract">
+<h2>6.5 The family-law contract</h2>
+<p><strong>T §4 is the governing family-law contract.</strong> This
+language candidate references that contract rather than maintaining a
+competing shortened admission rule.</p>
+<p>In particular, a family must specify its asserted target, either
+through a nominated non-circular defining construction or an independent
+semantic specification over the governed inputs and contributions.
+Candidate bases are checked against that target; agreement among bases
+cannot supply a missing target specification. The same law fixes
+formation, constitutive ancestry and parameters, admitted anchors and
+movements, participation and coverage, semantic value requirements,
+sufficient-state constructors and adequacy, and empty or undefined
+cases.</p>
+<p>Frame-QL must resolve which admitted target and which meaning-bearing
+parameters the request selects. It must distinguish an absent or
+ambiguous definition from inadequate present evidence or unsupported
+implementation. A catalog entry stated at incomplete contract depth does
+not become realizable merely by appearing in an example here.</p>
+<p>Canonical names resolve the identity; they do not mint it.
+Constitutive formation is identity-bearing where the law makes it so. A
+choice between compatible realizations or proof methods for the same
+specified target is not.</p>
+</section>
+<section class="level2" id="sufficient-state-belongs-to-analytical-law">
+<h2>6.6 Sufficient state belongs to analytical law</h2>
+<p>For a target family F, an admitted basis is a collection of ordinary
+families whose established measures at A construct F@A under its law. T
+§§5–6 defines adequacy, well-foundedness, and coherence. Frame-QL
+consumes those obligations; it does not infer sufficiency from a type
+name or matching display.</p>
+<p>For exact MEAN, SUM and COUNT supply one admitted basis. A finalized
+mean alone does not generally supply continuation state. An exact
+multiset can supply an alternative basis under the same participation
+law, while a set that discards multiplicity cannot replace it: the mean
+of <code>0, 0, 6</code> is 2; the mean after deduplication is 3.</p>
+<p>Three questions remain distinct: whether a basis is valid for the
+target, whether its required measures are available in the present
+evidence, and whether a proposed substitution retains what a later
+operation requires. The two exact states <code>(sum=10,count=1)</code>
+and <code>(sum=1000,count=100)</code> both display 10, but adding
+<code>(20,1)</code> produces 15 and <code>1020/101</code>. Current
+display agreement is not continuation equivalence.</p>
+<p>This also separates intake from continuation. Adding two retained
+counts 37 and 12 yields 49; treating them as two raw observations and
+counting them yields 2. The requested law determines which operation is
+intended.</p>
+<p>An unavailable basis does not prove that the target is unavailable
+through every admitted argument. Conversely, an available scalar target
+does not prove that a particular basis is retained. Chapters 8–10 carry
+these distinctions into evidence, explanation, and reuse.</p>
+</section>
+<section class="level2" id="rich-value-state-remains-ordinary-analytical-data">
+<h2>6.7 Rich-value state remains ordinary analytical data</h2>
+<p>A family can carry a structured semantic value.</p>
+<p>Examples may include:</p>
+<pre class="text"><code>Set&lt;T&gt;
+Multiset&lt;T&gt;
+sketch values
+tuples
+structured state</code></pre>
+<p>The value’s internal fields or elements do not become analytical
+anchor levels.</p>
+<p>A set-valued family remains a measure family.</p>
+<p>Its concrete value representation belongs to Columna Data Types.</p>
+<p>Its analytical law belongs to Theory of Data.</p>
+<p>An exact finite set or multiset can retain a growing amount of
+evidence. Failure to provide a bounded-size sketch is not proof that no
+finite exact sufficient basis exists. Analytical adequacy and the cost
+of a particular representation remain different questions.</p>
+</section>
+<section class="level2" id="family-aliases-and-governed-named-families">
+<h2>6.8 Family aliases and governed named families</h2>
+<p>A Manifold may already declare a governed family whose law
+corresponds to an explicit family-forming expression.</p>
+<p>For example, a governed <code>revenue</code> family may already be
+the family established by the relevant sum law.</p>
+<p>Where identity, participation, and law agree, canonicalization may
+resolve the explicit construction to the governed family identity.</p>
+<p>This is governed identity resolution.</p>
+<p>It is not string aliasing.</p>
+</section>
+<section class="level2" id="availability-is-profile-specific">
+<h2>6.9 Availability is profile-specific</h2>
+<p>A theoretically admitted law is not automatically a ratified language
+construct, a profile obligation, or an implemented operation. Those
+claims require their own versioned authorities. This chapter makes no
+new availability or implementation-conformance claim.</p>
+<p>Exact semantic requirements also remain distinct from an approximate
+realization of the same target. Under T §10.9, an HLL estimate may
+target exact count distinct under an explicit approximation contract; it
+is not an exact sufficient-state basis for that target. Approximation
+does not automatically create another family identity, and it cannot
+excuse an undefined computation.</p>
+</section>
+<section class="level2" id="contextual-formation-and-later-continuation">
+<h2>6.10 Contextual formation and later continuation</h2>
+<p>A contextual expression can be the input to an admitted family
+construction only when the target, constitutive formation and
+participation, empty or undefined cases, an independently establishable
+adequate basis, and coherent admitted continuation are specified. The
+continuation must not change the formation. These are the same T §4
+obligations, not a new admission test.</p>
+<p>For example, governed predecessor formation over
+<code>100, 110, 95, 105</code> yields changes <code>10, -15, 10</code>.
+Summing those established changes yields 5 under regrouping. Recomputing
+changes separately inside <code>(100,110)</code> and
+<code>(95,105)</code> yields 20 because it omits the boundary change.
+That is changed formation, not an alternative continuation of the
+original construction.</p>
+<p>Faithful recomputation using the same governing formation and
+adequate evidence remains possible; caching is not a theoretical
+requirement. Ordinary LAG, rank, cumulative, or rolling syntax neither
+supplies a family contract by itself nor makes such a contract
+impossible merely because formation uses context.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="semantic-values-attributes-methods-and-subscription">
+<h1>7. Semantic values, attributes, methods, and subscription</h1>
+<section class="level2" id="analytical-location-and-value-structure-are-different-axes">
+<h2>7.1 Analytical location and value structure are different axes</h2>
+<p>A Frame-QL expression can have both:</p>
+<ul>
+<li>an analytical location;</li>
+<li>an internal semantic value.</li>
+</ul>
+<p>These must remain separate.</p>
+<pre class="text"><code>E @ A</code></pre>
+<p>asks where the analytical expression lives.</p>
+<pre class="text"><code>E.member
+E.method(...)
+E[key]</code></pre>
+<p>operates on the semantic value carried there.</p>
+<blockquote>
+<p><strong>Internal value structure is not analytical
+location.</strong></p>
+</blockquote>
+</section>
+<section class="level2" id="dot-at-the-name-layer">
+<h2>7.2 Dot at the name layer</h2>
+<p>A dotted token can be a governed qualified name when the whole token
+resolves as one governed analytical or structural name.</p>
+<p>Example:</p>
+<pre class="text"><code>category.touch</code></pre>
+<p>where <code>touch</code> is a governed relationship face.</p>
+<p>In that case the dot belongs to name resolution.</p>
+<p>It is not value-member access.</p>
+<p>The parser/resolver should first ask whether the complete dotted form
+is a governed qualified name.</p>
+</section>
+<section class="level2" id="dot-at-the-value-layer">
+<h2>7.3 Dot at the value layer</h2>
+<p>If the complete dotted token does not resolve as a governed name, dot
+may denote a semantic-value attribute or method where the value type
+supplies that capability.</p>
+<p>Conceptually:</p>
+<pre class="text"><code>E.cardinality
+E.norm
+E.method(...)</code></pre>
+<p>The exact catalog belongs to Columna Data Types and the canonical
+language capability registry.</p>
+<p>Value-member access:</p>
+<ul>
+<li>acts on the semantic value;</li>
+<li>does not create a dimension;</li>
+<li>does not create a new anchor;</li>
+<li>does not create family identity merely by being applied;</li>
+<li>does not turn internal fields into analytical coordinates.</li>
+</ul>
+</section>
+<section class="level2" id="historical-dotted-family-forms">
+<h2>7.4 Historical dotted family forms</h2>
+<p>Historical forms such as:</p>
+<pre class="text"><code>revenue.sum
+level.last</code></pre>
+<p>may remain compatibility syntax where their normalized meaning is
+uniquely governed.</p>
+<p>They are not the vNext conceptual grammar.</p>
+<p><code>revenue.sum</code> belongs conceptually to family-forming
+analytical law.</p>
+<p><code>level.last</code> requires resolution to its complete governed
+analytical meaning; an admitted FIRST/LAST family law is possible, while
+the legacy spelling alone supplies no proof of that contract.</p>
+<p>A generic “family member” model must not erase that difference.</p>
+</section>
+<section class="level2" id="value-subscription">
+<h2>7.5 Value subscription</h2>
+<p>Brackets are reserved for semantic-value subscription:</p>
+<pre class="text"><code>E[key]
+E[i]</code></pre>
+<p>where the semantic value type supports subscription.</p>
+<p>Subscription means access to an internal part of a value.</p>
+<p>It does not mean:</p>
+<pre class="text"><code>filter analytical points
+restrict a population
+select an anchor coordinate
+create a dimension</code></pre>
+<p>The former roadmap form:</p>
+<pre class="text"><code>revenue[region = "east"]</code></pre>
+<p>is therefore not canonical analytical filtering.</p>
+<p>Analytical restriction remains in explicit predicate/request
+semantics unless a separate local-restriction surface is ruled in
+later.</p>
+</section>
+<section class="level2" id="subscription-does-not-imply-current-implementation-support">
+<h2>7.6 Subscription does not imply current implementation support</h2>
+<p>Reserving <code>[]</code> for value subscription settles semantic
+ownership of the syntax.</p>
+<p>It does not require current Core to ship a subscriptable semantic
+type immediately.</p>
+<p>A semantic role can be settled before a profile undertakes it.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="analytical-standing-existence-placement-eligibility-and-support">
+<h1>8. Analytical standing: existence, placement, eligibility, and
+support</h1>
+<section class="level2" id="standing-questions-precede-carrier-interpretation">
+<h2>8.1 Standing questions precede carrier interpretation</h2>
+<p>A missing row, SQL NULL, NaN, absent JSON field, or failed conversion
+is a realization observation. It does not determine an analytical
+judgment by itself. T §§2.3 and 9 distinguish point existence,
+eligibility, evidence support, and supported values; the earlier R4 work
+additionally identifies support for placing an existing point under a
+governed anchor.</p>
+<p>These are dependencies of particular claims, not a mandatory
+all-input pipeline. A request needs evidence sufficient for its actual
+law. The point whose existence or placement is unresolved must be
+identified: it may be a contributing point, not the already-established
+output point.</p>
+</section>
+<section class="level2" id="point-existence-and-placement">
+<h2>8.2 Point existence and placement</h2>
+<p>An existence law specifies what makes a root point belong to the
+universe. Evidence may establish existence, establish nonexistence, or
+leave a candidate’s existence unresolved. Absence from a surviving
+physical table alone does not prove nonexistence.</p>
+<p>When a point is known to exist and A is a governed anchor, partition
+law determines its unique A-block. Evidence may still be insufficient to
+identify that block. This is an unavailable placement judgment, not an
+invalid partition and not necessarily an unavailable operand value.</p>
+<p>A known transaction can retain its value and Store placement while
+losing Day placement. A Store total may remain establishable; a complete
+Day breakdown may not. Conversely, an independently established Day
+output point can exist while source contributions cannot be placed into
+it. Do not relabel that output point nonexistent merely because its
+measure cannot be established.</p>
+</section>
+<section class="level2" id="four-different-anchor-related-failures">
+<h2>8.3 Four different anchor-related failures</h2>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Case</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A necessary input anchor is omitted</td>
+<td>The request may have several identity-distinct readings. This is
+request determinacy, not missing data.</td>
+</tr>
+<tr class="even">
+<td>The referenced anchor is not governed</td>
+<td>The requested analytical location is not established by the selected
+model.</td>
+</tr>
+<tr class="odd">
+<td>A candidate point’s existence is unresolved</td>
+<td>The system lacks adequate evidence whether the point belongs to the
+governed domain.</td>
+</tr>
+<tr class="even">
+<td>An existing point’s required projection is unresolved</td>
+<td>The point is known; its membership under this particular anchor
+cannot be established.</td>
+</tr>
+</tbody>
+</table>
+<p>The exact refusal/clarification codes remain a versioned language and
+serving contract. No new code or standing enum is defined here.</p>
+</section>
+<section class="level2" id="eligibility-support-and-missing">
+<h2>8.4 Eligibility, support, and missing</h2>
+<p>At an established output point, a measure may be eligible,
+ineligible, or of unresolved eligibility. Its value is supported only
+where adequate evidence establishes it under the governing law.</p>
+<p>The conceptual predicate <code>missing(E)</code> retains its narrow
+reading:</p>
+<pre class="text"><code>established point + established eligibility + unsupported target value</code></pre>
+<p>It does not mean a nonexistent point, established ineligibility,
+unresolved eligibility, or carrier NULL. If the target point exists and
+eligibility is established, an upstream placement gap can be the reason
+the value is unsupported there. Calling that measure missing does not
+erase the distinct upstream cause.</p>
+<p>This corrects the earlier overbroad precondition that every relevant
+contributing placement must already be established before target
+missingness can be described. Required evidence depends on the law;
+failure causes and target standing should both remain legible.</p>
+</section>
+<section class="level2" id="lost-records-and-point-counts">
+<h2>8.5 Lost records and point counts</h2>
+<p>Accepting a governed account that a particular transaction occurred
+but its record was lost can establish the point’s existence
+independently of its values. A count of known transaction points can
+remain 100 while only 99 Revenue values are supported. That does not
+authorize a mean over the 100-point eligible population to shrink its
+denominator to 99.</p>
+<p><code>count(I)</code> and <code>count(x@I)</code> refer to different
+targets: point count and law-defined measure participation. A
+complete-case participation rule, where actually declared, defines its
+own contribution semantics; missing observations cannot silently
+establish that rule.</p>
+<p>Loss of the whole record can affect existence evidence, coordinates,
+eligibility evidence, or values differently. Do not classify every known
+loss as universal value missingness, or every absent record as
+unsupported existence.</p>
+</section>
+<section class="level2" id="target-relative-evidence-requirements">
+<h2>8.6 Target-relative evidence requirements</h2>
+<p>FIRST/LAST illustrates why a universal all-values-present rule would
+be wrong. With a fixed complete participating domain
+<code>s1 &lt; s2 &lt; s3</code>, known placement and order, and
+supported value 30 at the maximal point s3, the LAST witness can be
+established even when an earlier operand value is unavailable. SUM
+generally requires different evidence.</p>
+<p>The converse limitation matters: a supported value at s3 is
+insufficient when a later eligible point may exist and affect the
+target. The law requires evidence about the possible winner, not simply
+a convenient supported value.</p>
+<p>Under the ordinary last-participating-point law, an unsupported
+selected operand is not replaced by an earlier supported value. “Last
+participating point’s value” and “last supported value” are different
+targets unless an admitted equivalence establishes otherwise.</p>
+</section>
+<section class="level2" id="an-unavailable-staged-plan-need-not-make-the-target-unavailable">
+<h2>8.7 An unavailable staged plan need not make the target
+unavailable</h2>
+<p>In T §9.5, participation and order of <code>s1 &lt; s2 &lt; s3</code>
+are known. The value at s1 is unavailable; s2 and s3 have supported
+values 20 and 30. An intermediate anchor separates <code>{s1}</code>
+from <code>{s2,s3}</code>. The first exact intermediate witness is
+unavailable, yet the coarser witness <code>(s3,30)</code> is established
+by the maximality evidence.</p>
+<p>A plan consuming every intermediate witness cannot simply run with
+those missing inputs. Another adequate derivation can establish the
+target. In particular, <strong>the unavailable intermediate witness must
+not be replaced by the known-empty identity</strong>. Admitted movements
+do not by themselves establish a staged plan’s evidence premises.</p>
+</section>
+<section class="level2" id="a-scalar-can-be-established-without-an-identified-winner">
+<h2>8.8 A scalar can be established without an identified winner</h2>
+<p>T §9.6 supplies a bounded value-only argument. Under a fixed LAST
+law, suppose <code>p &lt; q</code>, p definitely participates,
+participation of q is unresolved, p and q exhaust all possible
+participants, and their operand values are supported as 7. The target is
+known nonempty; every possible winner has supported value 7. Thus scalar
+LAST is established as 7 while the winning point identity is not.</p>
+<p>This argument requires <strong>the fixed law, known nonemptiness,
+exhaustive possible-participant coverage, and supported equal values at
+every possible winner</strong>. Equal observed values among surviving
+records are not enough. It establishes the scalar only, never a
+fabricated witness. These are premises of this particular argument, not
+a universal necessity test for all value-only establishment.</p>
+</section>
+<section class="level2" id="empty-contribution-unsupported-value-and-zero">
+<h2>8.9 Empty contribution, unsupported value, and zero</h2>
+<p>The identity of a state-combination law represents known-empty
+contribution under that law. It is not semantic NULL and is not a
+replacement for unknown evidence. MIN/MAX may instead use a semigroup
+over nonempty supported fibers; no artificial empty value is
+required.</p>
+<p>A supported zero is an ordinary established value. An absent
+observation can establish zero only under the applicable existence,
+participation, coverage, and completion law. <code>coalesce(E,0)</code>
+cannot manufacture that authority merely through a familiar
+spelling.</p>
+</section>
+<section class="level2" id="frame-level-consequence">
+<h2>8.10 Frame-level consequence</h2>
+<p>A returned frame must not claim completeness after silently losing
+eligible evidence. Nor can a later disclosure validate a computation
+whose required participation was never established. In particular,
+removing an unplaced output row after an ordered walk does not undo that
+row’s contribution to cumulative or predecessor results.</p>
+<p>A partial-result contract must say which result is actually
+established and what is withheld. This document neither overturns the
+recorded R4-C0 empty-frame-with-disclosure decision nor certifies the
+current implementation as complete R4 support. Reported remaining
+ordered-path defects are not closed by this text.</p>
+</section>
+<section class="level2" id="introspection-remains-a-separate-language-decision">
+<h2>8.11 Introspection remains a separate language decision</h2>
+<p><code>exists</code>, <code>eligible</code>, <code>supported</code>,
+and <code>missing</code> above are conceptual names. Their public
+grammar, availability, unknown-case behavior, and wire representation
+are not finalized here. They inspect different analytical judgments;
+they are not generic functions over a nullable scalar domain.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="ordered-families-and-contextual-ordered-expressions">
+<h1>9. Ordered families and contextual ordered expressions</h1>
+<section class="level2" id="order-is-a-semantic-dependency-not-a-family-veto">
+<h2>9.1 Order is a semantic dependency, not a family veto</h2>
+<p>Analytical-point order and evidence enumeration are different. An
+admitted family can depend on a governed order of analytical points
+while its continuation is invariant to the order in which compatible
+contributions are processed. T §§7–8 provides the finite FIRST/LAST
+construction. Nothing in this chapter certifies every operation called
+<code>first</code> or <code>last</code>.</p>
+<p>The MAX/LAST contrast concerns what is compared: operand values
+versus constitutive analytical points. It does not decide family
+standing. The complete target and family-law contract decides that
+question.</p>
+</section>
+<section class="level2" id="constitutive-ordered-support">
+<h2>9.2 Constitutive ordered support</h2>
+<p>For the admitted construction, S is an ordinary constitutive input
+anchor. Its governed constituent anchors A1 through An jointly identify
+its existing points:</p>
+<pre class="text"><code>q: S ↪ product(A1, ..., An)</code></pre>
+<p>The image need not fill the Cartesian product. Governance supplies a
+complete analytical-point order within each constituent anchor and a
+complete precedence among those constituents. Their lexicographic
+composition determines the order on existing S-points. This is the
+initial construction admitted by T, not a claim that every possible
+product order must be lexicographic.</p>
+<p>A complete Day chronology does not automatically supply global
+Customer-Day order. When the claimed support is the whole compound
+space, its constituent orders and precedence must be established. A
+narrower fixed-customer context does not acquire cross-customer
+continuation because several customers happen to appear in the
+carrier.</p>
+<p>Order structure is part of the identity where it constitutes the
+family law. Output-coordinate listing order, lexical identifier order, a
+lineage named <code>calendar</code>, and physical insertion order cannot
+silently supply it.</p>
+</section>
+<section class="level2" id="form-analytical-points-before-selecting-them">
+<h2>9.3 Form analytical points before selecting them</h2>
+<p>FIRST/LAST consumes established analytical support points under the
+declared law, not arbitrary finer carrier rows. Several Product records
+beneath one Account-Day point must first establish the operand at that
+Account-Day anchor. This does not authorize choosing SUM by convenience:
+the operand’s governing formation determines the value.</p>
+<p>If distinct support points are still indistinguishable under the
+supplied order representation, the claimed complete order is
+unestablished. The foundational FIRST/LAST construction has no generic
+physical tie-breaker. The valid response is to identify the missing law
+or failed realization premise, not append a row ID.</p>
+</section>
+<section class="level2" id="witness-family-and-value-returning-family">
+<h2>9.4 Witness family and value-returning family</h2>
+<p>T §8 defines a witness-valued family W independently from the
+operand, support order, and participation. It then defines a
+value-returning target L. Under an admitted nonempty construction:</p>
+<pre class="text"><code>W@A = selected original support point with its value
+L@A = value(W@A)</code></pre>
+<p>The witness family supplies sufficient state for the scalar target
+and may itself continue by the admitted extremum-witness law. The scalar
+does not generally retain the point needed for later witness comparison.
+Family standing and scalar re-entry sufficiency are separate facts.</p>
+<p>A rich retained point–value family R supplies an alternative basis
+and an exact compatible-union-to-witness compression. R, W, and L are
+mathematical family names, not mandatory API names, types, storage
+stages, or separate public declarations. The language refers to T’s
+proofs; it does not define another witness algebra here.</p>
+</section>
+<section class="level2" id="continuation-preserves-original-point-witnesses">
+<h2>9.5 Continuation preserves original-point witnesses</h2>
+<p>For admitted <code>S ⪰ B ⪰ A</code>, intermediate states retain their
+original S-point witnesses and compare them under the same constitutive
+order. No new order on intermediate B labels is needed for that
+continuation.</p>
+<p>This is not permission to cross every geometrically possible
+projection. The family must admit the movement and its evidence premises
+must hold. Selecting global LAST and summing separate customer LAST
+values are different constructions. A claim that LAST and another family
+operation commute needs its own law.</p>
+<p>A typed tuple, governed point reference, or other faithful
+representation may carry the witness. The concrete CDT comparison and
+representation contract is a separate verification task; no nominal type
+named <code>Witness</code> is required by this text.</p>
+</section>
+<section class="level2" id="contextual-order-and-neighborhoods">
+<h2>9.6 Contextual order and neighborhoods</h2>
+<p>LAG, LEAD, ranking, cumulative operations, and rolling operations
+require governed focal context. Their request semantics must determine,
+as relevant, the complete analytical points being considered, the
+comparison or positional relation, the contextual grouping, selection or
+neighborhood, boundary behavior, and operand participation.</p>
+<p>For an account’s daily balances the complete points may be
+Account-Day, not just Day labels. A contextual grouping cannot be
+inferred merely as “the output anchor minus the order key.” Changing
+presentation must not silently change that context.</p>
+<p>A positional seven-point window differs from a preceding-seven-day
+range. A complete order does not alone supply a distance convention,
+endpoint inclusion, reset rule, or support-skipping policy. Rank may
+intentionally assign equal ordinal standing to equal compared values;
+that equality-class law is not a substitute for the complete
+support-point order of the foundational FIRST/LAST family.</p>
+<p>These requirements describe contextual expression meaning. They
+neither automatically give the expression family continuation nor rule
+out a separately admitted family constructed from that expression.
+Section 6.10 and T §3.4 govern that admission.</p>
+</section>
+<section class="level2" id="shorthand-output-selection-and-compatibility">
+<h2>9.7 Shorthand, output selection, and compatibility</h2>
+<p>A short ordered spelling is usable only when its governing
+environment determines the intended meaning under the selected language
+version. Completed meaning must be inspectable even when not every field
+is written in the query. T §7’s family order is not a free query-time
+sort convention.</p>
+<p>Query-level <code>ORDER BY</code> and <code>LIMIT ... PER</code>
+order or select the returned frame. They may happen to return the same
+number as an inner LAST expression, but that does not establish the same
+target, sufficient state, or continuation. Their legitimate use as frame
+selection is not prohibited merely because the results can coincide.</p>
+<p>The published <code>.last</code> spelling and the old
+<code>FAMILY { last ORDER ... }</code> execution encoding are different
+compatibility questions. Preserve useful public reference where complete
+meaning can be resolved, but do not mechanically upgrade an incomplete
+declaration into v7.1 conformance. This document neither removes the
+spelling nor mandates retirement or preservation of a particular
+internal mechanism.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="resolution-canonicalization-and-materialized-reuse">
+<h1>10. Resolution, canonicalization, and materialized reuse</h1>
+<section class="level2" id="resolve-the-target-before-selecting-a-realization">
+<h2>10.1 Resolve the target before selecting a realization</h2>
+<p>Canonical resolution counts distinct analytical meanings, not
+spellings, execution paths, or available bases. Under the selected
+governed environment:</p>
+<pre class="text"><code>no lawful analytical reading      → cannot serve this request as stated
+one distinct analytical reading   → target resolved; evidence and realization remain to check
+several user-distinguishable readings → clarify the intended target</code></pre>
+<p>The zero/one/many discipline does not turn every unavailable plan
+into an absent meaning. A fully specified target can remain well defined
+when its required evidence is unavailable. Exact disposition codes
+belong to the applicable serving contract.</p>
+<p>MEAN over orders and MEAN over customers may be two meanings.
+SUM/COUNT and an adequate multiset construction for one fixed MEAN are
+two bases for one meaning. Current numerical equality does not collapse
+different family identities, and different valid proof methods do not
+split one identity.</p>
+<p>If two meanings remain but only one is presently executable,
+executable availability does not choose the user’s intent. Once the
+meaning is fixed, choosing among compatible admitted realizations need
+not become another intent question.</p>
+</section>
+<section class="level2" id="four-different-records">
+<h2>10.2 Four different records</h2>
+<p>Distinguish the normalized surface statement, the resolved analytical
+meaning, a proposed physical plan, and the evidence establishing the
+particular result or its premises. These are responsibilities, not a
+prescribed new wire schema.</p>
+<p>A canonical surface renderer may retain a parse/render round-trip
+contract. The complete resolved meaning can be exposed separately; it
+need not be forced into unsupported surface syntax. The selected family,
+constitutive anchors and order, participation, and target anchor must
+not diverge between explanation and execution.</p>
+</section>
+<section class="level2" id="explain-states-what-is-known-and-what-remains-to-be-established">
+<h2>10.3 EXPLAIN states what is known and what remains to be
+established</h2>
+<p>EXPLAIN can show resolved meaning, proposed realization, and
+applicable existing assurance without executing the result computation.
+It must distinguish those facts from checks not yet performed and from
+evidence that is not applicable or current.</p>
+<p>A data-free explanation cannot promise every disclosure a later
+execution will produce unless adequate applicable evidence already
+establishes all those conditions. A clean static explanation does not
+certify unobserved placement completeness, coherent inputs, or a
+numerical result. This is corrected successor-reference wording; it does
+not claim that the present EXPLAIN payload already exposes all these
+distinctions.</p>
+</section>
+<section class="level2" id="input-anchors-and-governed-completion">
+<h2>10.4 Input anchors and governed completion</h2>
+<p>An omitted identity-bearing anchor or law parameter may be completed
+only when the governed definitions determine one meaning, including any
+established equivalences. Default completion selects an already defined
+construction; it does not invent identity.</p>
+<p>An unavailable preferred basis, cache, or engine path may be
+disclosed as a constraint, not used to silently select another target.
+Governance-controlled alternatives must remain visibly alternatives when
+they change the requested quantity.</p>
+</section>
+<section class="level2" id="dots-brackets-and-retained-surfaces">
+<h2>10.5 Dots, brackets, and retained surfaces</h2>
+<p>Historical <code>revenue.sum</code> may resolve to a governed
+sum-family reference or construction. Historical <code>level.last</code>
+may resolve to an admitted ordered family where the full contract
+exists. Neither dotted spelling decides family standing or proves the
+current execution encoding faithful. Normalization must respect
+constitutive anchors, input formation, and retained information; it is
+not a string substitution.</p>
+<p>In this working target, <code>[]</code> remains reserved for
+semantic-value subscription, not the earlier analytical bracket-filter
+roadmap. That supersedes the roadmap recommendation, not an actual
+parser release. Exact accepted syntax remains versioned separately.</p>
+<p><code>AS</code> names an output key; supported <code>WITH</code>
+forms provide query-local reuse. Neither ratifies an analytical law or
+grants institutional publication authority. Section 11 distinguishes
+these acts from canonical family denotation.</p>
+</section>
+<section class="level2" id="retained-content-established-claim-and-permitted-reuse">
+<h2>10.6 Retained content, established claim, and permitted reuse</h2>
+<p>A catalog entry saying only “LAST at A is available” is insufficient
+for deciding reuse. T §10.7 distinguishes:</p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Retained content</th>
+<th>Established claim</th>
+<th>Reuse boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Nonempty witness W@A</td>
+<td>Selected point and associated value under the applicable
+evidence</td>
+<td>Scalar projection and admitted witness continuation under compatible
+premises</td>
+</tr>
+<tr class="even">
+<td>Scalar L@A after valid witness finalization, witness no longer
+retained or recoverable</td>
+<td>The scalar target</td>
+<td>No inferred witness reconstruction or continuation</td>
+</tr>
+<tr class="odd">
+<td>Scalar L@A established without identifying the winner</td>
+<td>The scalar target under its adequate argument</td>
+<td>No selected-point claim or inferred witness capability</td>
+</tr>
+</tbody>
+</table>
+<p>The last two rows can have the same family identity and value. Their
+establishment records and retained capabilities differ. The third row
+includes the specific argument of §8.8 only under its fixed law, known
+nonemptiness, exhaustive possible-participant coverage, and supported
+equal values at every possible winner.</p>
+<p>An established witness can supply the scalar through its admitted
+constructor. The scalar does not generally supply the witness. A history
+recording that a witness was once used is not proof that the witness
+remains recoverable now.</p>
+</section>
+<section class="level2" id="compatibility-before-lossy-combination">
+<h2>10.7 Compatibility before lossy combination</h2>
+<p>A compressed winner is not a global consistency validator. If
+<code>p &lt; q</code>, one source’s <code>(p,10),(q,20)</code>
+compresses to <code>(q,20)</code> and can hide a conflicting
+<code>(p,11)</code> supplied later. A local equal-point conflict
+exception does not establish coherent inputs after the conflicting point
+has been discarded.</p>
+<p>The evidence and context required for combination must be established
+outside that lossy shortcut. Matching context labels alone do not prove
+the premise. Nor does this require a full source-record set in every
+witness: a sufficient assurance or recoverability account can establish
+the needed compatibility. The concrete mechanism is outside this
+language revision.</p>
+</section>
+<section class="level2" id="reuse-is-specific-to-the-next-operation">
+<h2>10.8 Reuse is specific to the next operation</h2>
+<p>Witness coarsening does not automatically answer a later restriction
+that excludes the winner, a deletion of that winner, or changed
+formation. Additive summaries with overlapping contributions cannot
+simply be combined without compatible contribution accounting.
+Approximate and exact realizations of the same target are not
+interchangeable merely because their family IDs match.</p>
+<p>The governing rule is the same throughout: retained information and
+established premises must justify the particular target and reuse being
+claimed. Material availability creates no additional analytical
+permission.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="family-denotation-naming-and-publication">
+<h1>11. Family denotation, naming, and publication</h1>
+<section class="level2" id="canonical-denotation-does-not-require-a-business-name-ceremony">
+<h2>11.1 Canonical denotation does not require a business-name
+ceremony</h2>
+<p>A complete admitted canonical construction can denote a family
+directly. Under an established MEAN law and constitutive operand,
+<code>mean(revenue@order)</code> can be an identity-bearing reference
+even before a separate human-readable name is assigned.</p>
+<p>This does not turn arbitrary query syntax into governance authority.
+The target specification and family contract must already be supplied by
+the selected governed definitions and applicable law. Neither successful
+computation nor an alias proves that contract.</p>
+</section>
+<section class="level2" id="output-naming-and-institutional-authoring-are-separate">
+<h2>11.2 Output naming and institutional authoring are separate</h2>
+<p>An <code>AS</code> alias changes a frame column key. A supported
+<code>WITH</code> macro binds query-local text or expression reuse
+according to its language contract. Saving a query persists the request.
+None of these acts publishes or ratifies a new Manifold declaration.</p>
+<p>A governed authoring process may establish a durable named definition
+or binding when authorized to do so. Names resolve existing identity;
+changes to an identity-bearing formation or law establish succession
+rather than redefining the old family retroactively. Proof method and
+physical plan remain outside constitutive identity.</p>
+</section>
+<section class="level2" id="contextual-and-structural-declarations">
+<h2>11.3 Contextual and structural declarations</h2>
+<p>A named contextual expression does not automatically gain family
+continuation. A separately admitted family constructed from it must
+satisfy T §4 and preserve its stated formation. This applies to ordered
+and unordered contextual formation alike.</p>
+<p>A categorical-looking value also does not automatically create an
+anchor. A structural declaration must establish the partition or
+explicit universe construction it claims, including contribution
+semantics when relationships overlap.</p>
+</section>
+<section class="level2" id="no-new-authoring-format-is-specified-here">
+<h2>11.4 No new authoring format is specified here</h2>
+<p>This language revision does not add a Manifold kind, a
+<code>DERIVED</code> syntax, a publication field, or a witness type.
+Those are separate specification tasks. The distinction established here
+is semantic: denoting a family, naming an output, retaining a result,
+and publishing an authoritative definition are different acts.</p>
+<hr/>
+</section>
+</section>
+<section class="level1" id="validity-adjudication-and-realization">
+<h1>12. Validity, adjudication, and realization</h1>
+<p>A parseable request is not necessarily determinate, supported,
+realizable, or authorized. The language must preserve those distinctions
+instead of mapping every problem to a nullable cell or an engine
+exception.</p>
+<p>The selected governed model supplies the analytical laws. Resolution
+identifies the target and required context. Evidence establishes the
+applicable premises. A profile and implementation determine whether an
+admitted realization is supported here. Trusted execution must remain
+faithful to the resolved meaning. Institutional authorization and result
+policy remain surrounding responsibilities.</p>
+<p>These dependencies do not require all evidence checks to run before
+every planning step: planning can identify missing premises, and an
+execution can obtain evidence. What it cannot do is silently rewrite the
+target, reinterpret assured declarations from physical conventions, or
+replace an unknown premise with a convenient default.</p>
+<p>The planner selects the admitted route and semantic operation;
+execution performs that operation. Declaration is not certification, and
+absence of contradiction is not permission. Existing positive-admission
+boundaries are retained. A later disclosure cannot make an unestablished
+computation a lawful answer.</p>
+<p>Refusal, clarification, partial-result contracts, and errors retain
+their versioned meanings. No new reason code, outcome, standing enum,
+wire field, or approval workflow is created by this document. Known
+engineering defects reported in earlier reconnaissance remain a separate
+correctness mission; this revision neither reproduces nor closes
+them.</p>
+<hr/>
+</section>
+<section class="level1" id="capability-and-profile-boundary">
+<h1>13. Capability and profile boundary</h1>
+<p>The canonical language defines expression meaning and language
+standing. Profiles undertake subsets of those capabilities; build
+records report measured realization. T independently decides whether a
+construction satisfies analytical family law. A callable spelling or
+runtime kind does not answer all these questions.</p>
+<p>In particular, distinguish analytical-point-order dependence,
+family-law admission, retained value/state capability, and the operation
+a representation is licensed to perform next. These distinctions do not
+require four new registry columns. The <a href="frameql_vnext_capability_profile_reconciliation_plan_v0_2.html">rebased
+reconciliation plan</a> gives the constraints for a later schema
+review.</p>
+<p>An implementation may route FIRST/LAST through legacy machinery while
+the successor theory has a different account of their admitted laws.
+That is a declared implementation gap or compatibility boundary, not
+evidence that the machinery already conforms. A displayed-value re-entry
+flag cannot be changed merely because ordered family admission is now
+possible.</p>
+<p>No Core promise is reduced or enlarged in this document. No
+Platform-only dialect is introduced. Existing versioned grammar, profile
+files, generated capability tables, and measured build status remain
+unchanged. A future adoption must explicitly map language coverage,
+known limitations, and implementation evidence; it cannot manufacture
+agreement by editing generated status by hand.</p>
+<hr/>
+</section>
+<section class="level1" id="semantic-acceptance-suite">
+<h1>14. Semantic acceptance suite</h1>
+<p>The <a href="frameql_v7_1_semantic_acceptance_cases_v0_1.html">companion
+acceptance set</a> records the reconciled expectations with premises,
+expected judgments, prohibited shortcuts, and source sections. These are
+semantic review cases, <strong>not executed Columna tests or a new
+formal proof suite</strong>.</p>
+<p>The principal questions are whether FIRST/LAST can be admitted
+without certifying legacy paths, whether a target is distinguished from
+its bases, whether partial evidence is handled under the actual law,
+whether retained content limits reuse, and whether versioned
+syntax/coverage stays separate from theory.</p>
+<p>The older §14 rows that categorically placed LAST outside families
+are superseded. So are intermediate acceptance claims using universal
+formation locality or admitting TOP-k without a complete contract. The
+active index identifies the historical files rather than silently
+deleting the research record.</p>
+<hr/>
+</section>
+<section class="level1" id="remaining-work-before-implementation-reconciliation">
+<h1>15. Remaining work before implementation reconciliation</h1>
+<p>The local companion set now uses one theory reference and one
+language-law target. Its supporting notes and supersession index must
+travel together when used for review. Older handoffs are not current
+instructions merely because a filename says “settled” or “PASS.”</p>
+<p>This documentation pass does not decide public grammar for order
+declarations, typed subscriptions, standing predicates, or new authoring
+kinds. It does not establish actual CDT capability, choose a runtime
+representation, or fix reported ordered-path defects. Those require
+bounded interface and engineering work after their own
+authorization.</p>
+<p>The draft successors of the Introduction and Primer preserve their
+entry-point purpose. Repository/site/deposit adoption, release-specific
+reference patches, and final publication metadata remain separate tasks.
+This local candidate must not be advertised as already shipped.</p>
+<hr/>
+</section>
+<section class="level1" id="status-and-sources">
+<h1>16. Status and sources</h1>
+<p>This is a local working language-law candidate aligned to T Draft
+0.4, not a published language edition or implementation authorization. T
+remains unchanged. Its proofs and their recorded validation status are
+referenced, not reproduced or rerun here.</p>
+<p>The <a href="frameql_v7_1_authority_and_supersession_index_v0_1.html">active-source
+index</a> is the reading entry point. The <a href="frameql_v7_1_supporting_contract_notes_v0_1.html">supporting
+notes</a> own the order-completion, contextual-domain, standing, and
+order-realization explanations subordinate to this candidate. The <a href="frameql_v7_1_semantic_acceptance_cases_v0_1.html">acceptance set</a>
+records semantic checks. The <a href="frameql_vnext_capability_profile_reconciliation_plan_v0_2.html">capability/profile
+plan</a> records future reconciliation constraints without changing
+those authorities.</p>
+<p>The source and change register supplies exact local input hashes,
+full-text Intro/Primer retrieval provenance, and the diff against
+candidate 0.3. Historical publications retain their own versioned
+statements. Only the active working guidance identified in this package
+is superseded for current design.</p>
+</section>
+</body>
+</html>

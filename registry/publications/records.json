@@ -1003,13 +1003,45 @@
   "date": "2026-08-19",
   "doi": "10.5281/zenodo.22013410",
   "recid": "22013410",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint",
   "supersedes": "w-theory-of-data.r05"
+ },
+ {
+  "recordId": "w-theory-of-data.r07",
+  "workId": "w-theory-of-data",
+  "title": "The Theory of Data",
+  "version": "7.0",
+  "date": "2026-09-03",
+  "doi": "10.5281/zenodo.22289091",
+  "recid": "22289091",
+  "status": "superseded",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-theory-of-data.r06"
+ },
+ {
+  "recordId": "w-theory-of-data.r08",
+  "workId": "w-theory-of-data",
+  "title": "The Theory of Data",
+  "version": "7.1",
+  "date": "2026-09-07",
+  "doi": "10.5281/zenodo.22649945",
+  "recid": "22649945",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-theory-of-data.r07"
  },
  {
   "recordId": "w-three-worlds-of-analytics.r01",
@@ -1159,13 +1191,29 @@
   "date": "2026-08-19",
   "doi": "10.5281/zenodo.22018598",
   "recid": "22018598",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint",
   "supersedes": "w-tod-introduction.r04"
+ },
+ {
+  "recordId": "w-tod-introduction.r06",
+  "workId": "w-tod-introduction",
+  "title": "The Theory of Data: An Introduction",
+  "version": "2.3",
+  "date": "2026-09-08",
+  "doi": "10.5281/zenodo.22651777",
+  "recid": "22651777",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-tod-introduction.r05"
  },
  {
   "recordId": "w-tod-primer.r01",
@@ -1238,13 +1286,29 @@
   "date": "2026-08-19",
   "doi": "10.5281/zenodo.22018549",
   "recid": "22018549",
-  "status": "current",
+  "status": "superseded",
   "authors": [
    "Wang, Huayin"
   ],
   "license": "cc-by-4.0",
   "resourceType": "Preprint",
   "supersedes": "w-tod-primer.r04"
+ },
+ {
+  "recordId": "w-tod-primer.r06",
+  "workId": "w-tod-primer",
+  "title": "A Primer on the Theory of Data",
+  "version": "2.3",
+  "date": "2026-09-07",
+  "doi": "10.5281/zenodo.22651578",
+  "recid": "22651578",
+  "status": "current",
+  "authors": [
+   "Wang, Huayin"
+  ],
+  "license": "cc-by-4.0",
+  "resourceType": "Preprint",
+  "supersedes": "w-tod-primer.r05"
  },
  {
   "recordId": "w-tod-primer-applied.r01",

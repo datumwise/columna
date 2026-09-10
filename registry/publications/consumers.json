@@ -333,9 +333,9 @@
     "path": "apps/website/src/pages/learn/what-is-the-theory-of-data.astro",
     "class": "edition-pinned",
     "allowedDois": [
-      "10.5281/zenodo.22018598"
+      "10.5281/zenodo.22651777"
     ],
-    "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves."
+    "note": "The route's chrome: the edition line and DOI printed above the deposited bytes it renders. REPOINTED 2026-08-23 (Repair Unit 2): v1.1 -> v2.2, so 21774630 leaves this row and 22018598 enters, and the v4.0 token (21774032) leaves with the dated vocabulary note that carried it. That note was page-authored migration scaffolding bridging the v1.1 bytes to the theory state of 2026-08-03; both ends are superseded, and scaffolding between two superseded states is not history worth keeping on a live page. EDITION-PINNED: the allowed DOI is whichever edition's BYTES this route renders, and it moves when the bytes move — not when the registry's current record moves. RE-EDITIONED 2026-09-08 (v2.2 -> v2.3, Huayin's ruling of 2026-09-07): the literal moves to 22651777 because the page now renders v2.3's bytes. 22018598 LEAVES this row — an edition-pinned page cites the edition it actually presents, and a permission that outlived the bytes it covered would grant cover to a claim nobody is making. The v2.2 bytes are not deleted; they keep their own frozen-corpus row, unimported. The DOI and the imported markdown moved in the same commit, which is the whole of what `edition-pinned` promises."
   },
   {
     "path": "apps/website/src/pages/positions/never-let-your-agent-touch-the-database.astro",
@@ -441,6 +441,7 @@
       "10.5281/zenodo.21959749",
       "10.5281/zenodo.22013410",
       "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
       "10.5281/zenodo.22026962",
       "10.5281/zenodo.22046037",
       "10.5281/zenodo.22071508",
@@ -449,9 +450,13 @@
       "10.5281/zenodo.22071910",
       "10.5281/zenodo.22114802",
       "10.5281/zenodo.22115819",
-      "10.5281/zenodo.22118479"
+      "10.5281/zenodo.22118479",
+      "10.5281/zenodo.22289091",
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22651578",
+      "10.5281/zenodo.22651777"
     ],
-    "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS — it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does. EXTENDED 2026-08-26 (The Ground for Certainty v1.1): 22118479 is asserted as the new current Certainty record and 22114802 as the PREDECESSOR arm of the v1.0 -> v1.1 edge, so 22114802 STAYS. The clause above that called 22114802 the first record of a new work was true when written and is now the FAR END of a two-record chain; it is superseded by this clause rather than edited, because a ledger that revises its own earlier entries stops being evidence of what was asserted when. This edge is the first in the corpus that supersedes AND renames in one move, so the gate additionally pins BOTH deposited titles by name: a superseded record quietly retitled to match its successor would erase the fact that Analytical Governance v2.0's bibliography cited a title that really existed."
+    "note": "The gate's own G9 block, which asserts the four rulings of 2026-08-21 as facts about the encoded registry. These literals are DELIBERATE and must stay literal: an acceptance test that reads its expected value out of the thing under test asserts nothing. This row exists because the gate failed closed on itself the first time it ran — correctly, and that is the cheapest possible proof that G7 is real. EXTENDED 2026-08-21 (Phase 3B.1): the multi-concept attachment rulings are asserted here too, so the gate now names the Atlas's two concepts, the Two Great Sources → Three Structural Sources supersession across a concept boundary, and the two newly claimed works. Every one of these is an ACCEPTANCE ASSERTION — a literal on purpose, and the reason this file is class `acceptance` rather than `derived`: a gate that read its expectations from the registry it checks would assert nothing at all. EXTENDED 2026-08-23 (Frame-QL pair advance): the Introduction v2.1 -> v2.2 -> v2.3 and Primer v2.0 -> v2.1 -> v2.2 chains are asserted here with BOTH arms — the new current record and the superseded predecessor named by the deposit's own isNewVersionOf — the shape the AG v1.1 advance uses. The 3B.1 case-3 Primer pin advanced with them, so 21960873 LEAVES this row: it is no longer asserted by the gate, and a permission that outlives the assertion it covered is the stale-permission defect G7 fails on in the other direction. The two intermediates (22071508, 22071619) are named as PREDECESSORS a supersession edge must point at. They were current for part of one day and are modelled as deposits, because that is what they are. EXTENDED 2026-08-26 (Analytical Governance v2.0 and The Theory of Certainty v1.0): 22115819 is asserted as the new current AG record and 22114802 as the first record of a new work. 22046037 STAYS — it is now asserted as the PREDECESSOR arm of the v1.1 -> v2.0 edge, and 21959749 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance: supersession preserves what it supersedes, and the gate asserts that it does. EXTENDED 2026-08-26 (The Ground for Certainty v1.1): 22118479 is asserted as the new current Certainty record and 22114802 as the PREDECESSOR arm of the v1.0 -> v1.1 edge, so 22114802 STAYS. The clause above that called 22114802 the first record of a new work was true when written and is now the FAR END of a two-record chain; it is superseded by this clause rather than edited, because a ledger that revises its own earlier entries stops being evidence of what was asserted when. This edge is the first in the corpus that supersedes AND renames in one move, so the gate additionally pins BOTH deposited titles by name: a superseded record quietly retitled to match its successor would erase the fact that Analytical Governance v2.0's bibliography cited a title that really existed. EXTENDED 2026-09-07 (The Theory of Data v7.0): 22289091 is asserted as the new current ToD record. 22013410 STAYS — it is now asserted as the PREDECESSOR arm of the v6.1 -> v7.0 edge — and 21958062 stays as the far end of a chain that is now three records long. Nothing leaves this row in this advance, for the reason the AG v2.0 clause above gives: supersession preserves what it supersedes, and the gate asserts that it does. This is a REGISTRY RECORDING of an already-published edition, not a publication act, and it says nothing about what Columna implements. EXTENDED 2026-09-07 (the three-edition succession): 22649945 is asserted as the new current record of The Theory of Data, 22651578 of A Primer on the Theory of Data, and 22651777 of The Theory of Data: An Introduction. Their predecessors STAY and are joined by two that had not been named here before — 22289091 and 22013410 are now the second and third links of a ToD chain asserted FOUR records deep, and 22018598 enters as the predecessor arm of the Introduction edge. Nothing leaves this row: the ToD pin has advanced twice in two days and both earlier acceptances are still asserted, because a gate that only ever pins the newest edition stops testing that supersession preserves what it supersedes. 22018549 changes ROLE rather than leaving — ruling 4 pinned it as the current Primer record on 2026-08-21 and it is now the predecessor arm of v2.2 -> v2.3, an edge recorded from the deposit's own prose and the ruling because the deposit's `isNewVersionOf` field is malformed and resolves 404 (rc-tod-primer-v23-newversion-identifier)."
   },
   {
     "path": "specs/baselines/2026-07-27/external_ai_probes/INDEX.md",
@@ -612,15 +617,18 @@
     "class": "ledger",
     "allowedDois": [
       "10.5281/zenodo.21553379",
+      "10.5281/zenodo.21842194",
       "10.5281/zenodo.21888998",
       "10.5281/zenodo.2188899810",
       "10.5281/zenodo.21893929",
       "10.5281/zenodo.21960873",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
       "10.5281/zenodo.22026962",
       "10.5281/zenodo.22071619",
       "10.5281/zenodo.22071833"
     ],
-    "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing. UPDATED 2026-08-23 (Frame-QL pair advance): the 3B.1 case-3 table is left as the dated reading it was and carries a footnote instead of a restamp, which is why this row now also allows the two later Primer records (22071619, 22071833) — they are quoted in that footnote as where the chain WENT, not as a correction to what the case recorded. CV-10 opened here: the third instance of the prepend-instead-of-replace deposit defect, quoted as evidence exactly as the first one is."
+    "note": "The corpus-coverage ledger. It exists to record how coverage is MEASURED and what the measurement found, so it necessarily quotes identifiers in their bibliographic role — including one (10.5281/zenodo.2188899810.5281/zenodo.21888998, and the two forms a scanner extracts from it) that is not an identifier at all but a deposit defect quoted as evidence. Asserts no current publication fact to the public; no derived surface reads it. UPDATED 2026-08-21 (Phase 3B.1): the four cases it opened are now three closed and one unfixable-from-here, and the gate caught two stale permissions in this very row when the document was rewritten — which is the row working, not the row failing. UPDATED 2026-08-23 (Frame-QL pair advance): the 3B.1 case-3 table is left as the dated reading it was and carries a footnote instead of a restamp, which is why this row now also allows the two later Primer records (22071619, 22071833) — they are quoted in that footnote as where the chain WENT, not as a correction to what the case recorded. CV-10 opened here: the third instance of the prepend-instead-of-replace deposit defect, quoted as evidence exactly as the first one is. EXTENDED 2026-09-08 (§4.5, CV-11 and CV-12): the fourth and fifth instances of the prepend-instead-of-replace defect, both on record 22651578, and the first evidence that the class INHERITS down a work's own version chain rather than only recurring across deposits. The three ids added here are the well-formed ones the case text names in their bibliographic role: 21842194 and 22018549 are the two DOIs the malformed strings destroyed, and 22018598 is quoted as the confusable sibling. The two malformed strings themselves are NOT added to this row — they are covered by their reconciliation items, the same way 2201341010 already is. Nothing is removed: 2188899810 stays exactly as it was declared."
   },
   {
     "path": "apps/website/src/pages/evidence.astro",
@@ -929,5 +937,481 @@
       "10.5281/zenodo.22219691"
     ],
     "note": "A v0.2 reconciliation report reading The Measure Algebra of the Theory of Data v1.0 (22219691) and recording where this repo's implementation agrees with it, differs from it, and owes it. Class `ledger`, the class the other reconciliation reports in specs/ already carry (certainty_v1_1_reconciliation_report_v0_1, website_slice2_content_reconciliation_v0_1): the DOI is this repo asserting WHICH published edition the reconciliation was performed against, which is the fact that would go stale if the edition moved and nothing here changed. Not `derived` — a derived surface reads the registry and never types a DOI — and not `frozen`, because this document is ours and is expected to be revised as the reconciliation is worked off. Enrolled 2026-09-02: both files carried the token from the moment they landed and neither was classified, so the gate had been failing closed since, exactly as it should."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The reviewed ToD v7.1 full manuscript working draft 0.4, as reviewed. Its front matter names v7.0 as its Predecessor and its reference list cites the works v7.1 reads. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The browser reading copy of the reviewed ToD v7.1 working draft 0.4, rendered from the .md beside it and archived with it. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The reviewed *Frame-QL: An Introduction* proposed v2.4 working draft, as reviewed. The edition number is PROPOSED, not publication metadata. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/frameql_an_introduction_v2_4_working_draft_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The browser reading copy of the reviewed Introduction v2.4 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The reviewed *A Primer on Frame-QL* proposed v2.3 working draft, as reviewed. The edition number is PROPOSED, not publication metadata. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/a_primer_on_frameql_v2_3_working_draft_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The browser reading copy of the reviewed Primer v2.3 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The ARCHIVED BASELINE authority-and-supersession index, preserved unedited; it selects the uncorrected copies by construction. It is the file that states, in the set's own words, that published ToD v7.0 retains a position v7.1 proposes to change — a sentence that is only true while v7.0 is named as v7.0. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The browser reading copy of the archived baseline authority index. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/tod_v7_1_statistical_extension_supplement_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The reviewed statistical-extension supplement. Its single DOI is reference [2], the published v7.0 it extends. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/reviewed_sources/tod_v7_1_statistical_extension_supplement_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The browser reading copy of the reviewed statistical-extension supplement. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived INPUT copy of the ToD v7.1 working draft 0.4 that the companion build read. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/sources/frameql_an_introduction_v2_3_transcribed.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The transcribed *Frame-QL: An Introduction* v2.3 — the SUPERSEDED input the v2.4 draft was built from. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/sources/a_primer_on_frameql_v2_2_transcribed.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071619",
+      "10.5281/zenodo.22071833"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The transcribed *A Primer on Frame-QL* v2.2 — the SUPERSEDED input the v2.3 draft was built from. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/sources/frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived companion-corpus assessment against ToD v7.1 that the build was scoped from. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/build_companions.py",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071619",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build script that generated the companion drafts. Its DOI tokens are inside the prose TEMPLATES it emits, which is why they read identically to the generated documents. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/build_acceptance_and_index.py",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build script that generated the acceptance cases and the authority index. Its DOI tokens are inside the prose templates it emits. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/audit/companion_edits.json",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071619",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived companion edit log: before/after text for every generated edit, so the DOIs appear twice per edit by construction. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/audit/a_primer_on_frameql_v2_3_working_draft_v0_1.md.diff",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071619",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived unified diff for the Primer draft. A diff carries both sides, so it names tokens the final document no longer does. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/audit/frameql_an_introduction_v2_4_working_draft_v0_1.md.diff",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071508",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived unified diff for the Introduction draft. A diff carries both sides, so it names tokens the final document no longer does. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build OUTPUT copy of the ToD v7.1 working draft 0.4, kept beside the audit that describes it. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived rendered reading copy of the ToD v7.1 working draft 0.4. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build output of the Introduction v2.4 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/frameql_an_introduction_v2_4_working_draft_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived rendered reading copy of the Introduction v2.4 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build output of the Primer v2.3 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/a_primer_on_frameql_v2_3_working_draft_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived rendered reading copy of the Primer v2.3 working draft. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/frameql_v7_1_authority_and_supersession_index_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build output of the authority-and-supersession index. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/frameql_v7_1_authority_and_supersession_index_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived rendered reading copy of the authority-and-supersession index. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/tod_v7_1_statistical_extension_supplement_v0_1.md",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived build output of the statistical-extension supplement. Its single DOI is reference [2], the published v7.0 it extends. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/editorial_archive/output/tod_v7_1_statistical_extension_supplement_v0_1.html",
+    "class": "frozen",
+    "allowedDois": [
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `frozen`: this file is a PRESERVED REVIEW ARTIFACT. The staging README states the rule these trees are held to — \"Nothing under reviewed_sources/, editorial_archive/ or historical_provenance/ is edited. They are byte-identical to the packages they came from\" — and the archived audit (audit_joint_review.py, MANIFEST_SHA256.json) is written against exactly those bytes, so an edit here would falsify the integrity claim rather than repair a citation. Currency is NOT owed by this file: it records what the reviewed package said, and it must go on saying it. The archived rendered reading copy of the statistical-extension supplement. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/proposed_adoption/frameql_v7_1_authority_and_supersession_index_v0_1.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `ledger`: `proposed_adoption/` is the MAINTAINED working/evidence set — the corrected reading copies and their provenance record, which this staging pass edits and a later pass may edit again. It is an internal working record, not a surface: it asserts no current publication fact to a reader of the property, and it is not a publication. The CORRECTED authority-and-supersession index — the adoption-facing one. It names published ToD v7.0 (22289091) as retaining a position the unpublished v7.1 proposes to change; that sentence is the set's own supersession bookkeeping and is edition-pinned in substance, not a currency claim. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/proposed_adoption/frameql_an_introduction_v2_4_working_draft_v0_1.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.21959941",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `ledger`: `proposed_adoption/` is the MAINTAINED working/evidence set — the corrected reading copies and their provenance record, which this staging pass edits and a later pass may edit again. It is an internal working record, not a surface: it asserts no current publication fact to a reader of the property, and it is not a publication. The CORRECTED *Frame-QL: An Introduction* proposed v2.4 working draft (J1/J2 applied, plus the editorial follow-up). The edition number is PROPOSED, not publication metadata. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/proposed_adoption/a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22046037",
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22289091"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `ledger`: `proposed_adoption/` is the MAINTAINED working/evidence set — the corrected reading copies and their provenance record, which this staging pass edits and a later pass may edit again. It is an internal working record, not a surface: it asserts no current publication fact to a reader of the property, and it is not a publication. The CORRECTED *A Primer on Frame-QL* proposed v2.3 working draft. The edition number is PROPOSED, not publication metadata. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "specs/frameql_v7_1/proposed_adoption/PROVENANCE_EVIDENCE.md",
+    "class": "ledger",
+    "allowedDois": [
+      "10.5281/zenodo.22071833",
+      "10.5281/zenodo.22071910"
+    ],
+    "note": "ToD v7.1 / Frame-QL reviewed working-successor set, staged 2026-09-07 (specs/frameql_v7_1/README.md). Class `ledger`: `proposed_adoption/` is the MAINTAINED working/evidence set — the corrected reading copies and their provenance record, which this staging pass edits and a later pass may edit again. It is an internal working record, not a surface: it asserts no current publication fact to a reader of the property, and it is not a publication. The deposit-verification evidence record for this staging: ids, artifacts, checksums and the stated limits of what was verified. A report that named no identifiers would not be a report, which is why an evidence ledger carries literal DOIs. THE DOIs BELOW ARE CITATIONS OF ALREADY-PUBLISHED EDITIONS, not assertions this repo makes about what is current. In particular 10.5281/zenodo.22289091 is *The Theory of Data* v7.0, deposited 2026-09-03 and registered under the ruling of 2026-09-07; every occurrence in this set names it as v7.0 and as the PREDECESSOR of the unpublished v7.1 working draft. No v7.1 DOI exists, none is invented here, and no record in the registry claims one."
+  },
+  {
+    "path": "services/ask/deposits/w-theory-of-data.r08.md",
+    "class": "frozen-deposit",
+    "allowedDois": [
+      "10.5281/zenodo.21752373",
+      "10.5281/zenodo.21783563",
+      "10.5281/zenodo.21888464",
+      "10.5281/zenodo.21959749",
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22013410",
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22071910",
+      "10.5281/zenodo.22219691",
+      "10.5281/zenodo.22289091",
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "The deposited artifact itself — *The Theory of Data* v7.1, record 22649945, fetched from the record the registry rules current and md5-verified against Zenodo's own checksum before it entered the tree (sha256 00f3b675…f125c0, independently reported by the author in the ruling of 2026-09-07 and matched here). THE FIRST DEPOSIT IN THIS CORPUS TO SHIP TWO TEXT DOCUMENTS UNDER ONE RECORD: the foundation stored here, and a statistical extension reference that shares the DOI and is a supplement, not a substitute. Which of the two is the work is now DECLARED in registry/sources/sources.json rather than left to the order Zenodo's API happens to return, and the companion's identity is preserved in the deposit manifest with its own publisher checksum. The DOIs below are the paper's own reference list plus its own identifier — the author's text, not this repo's assertions, which is what `frozen-deposit` means."
+  },
+  {
+    "path": "services/ask/deposits/w-tod-primer.r06.md",
+    "class": "frozen-deposit",
+    "allowedDois": [
+      "10.5281/zenodo.22018549",
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22651578"
+    ],
+    "note": "The deposited artifact itself — *A Primer on the Theory of Data* v2.3, record 22651578. THIS ROW RETIRES A WEAKER PROVENANCE: every earlier Primer edition was deposited as PDF only, so Ask held an author-supplied copy that no external party could reproduce. v2.3 deposits a .md beside the PDF, so this text is md5-verified against Zenodo's own checksum and the supplied path is no longer used for this work. It cites its own DOI, the v2.2 it supersedes (22018549 — stated in its front matter, and the reason the registry did not need the deposit's malformed `isNewVersionOf` field), and the ToD v7.1 it is aligned with."
+  },
+  {
+    "path": "apps/website/src/content/corpus/theory_of_data_an_introduction_v2_3.md",
+    "class": "frozen-corpus",
+    "allowedDois": [
+      "10.5281/zenodo.21979821",
+      "10.5281/zenodo.22018598",
+      "10.5281/zenodo.22649945",
+      "10.5281/zenodo.22651578",
+      "10.5281/zenodo.22651777"
+    ],
+    "note": "The deposited bytes of *The Theory of Data: An Introduction* v2.3 (record 22651777), hosted at /learn/what-is-the-theory-of-data and byte-identical to the deposit — md5 1adb534f…bff879, 40,096 bytes, matched against Zenodo's own published checksum. Its v2.2 predecessor stays on disk beside it, unimported, with its own row: superseded is a status, not a deletion, and a corpus piece that was ratified does not stop having been ratified. The DOIs below are the paper's own citations — the author's text, not this repo's assertions."
   }
 ]

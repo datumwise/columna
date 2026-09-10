@@ -1,0 +1,205 @@
+{
+  "scope": "All packaged files except this manifest. Exact archived sources are unchanged; proposed corrections are separate.",
+  "files": [
+    {
+      "path": "FRAMEQL_TOD_V7_1_DOCS_ONLY_STAGING_BRIEF_v0_1.md",
+      "bytes": 4565,
+      "sha256": "e2eae0226d1ac9b32f09618ce5e159729f068c153ae421be28670b3812e16d61"
+    },
+    {
+      "path": "J1_editorial_correction.diff",
+      "bytes": 1136,
+      "sha256": "c438cc666b844bba80bb2660d67ec01a775ad30dac4fb6cb0ee572c899797d9b"
+    },
+    {
+      "path": "J2_editorial_correction.diff",
+      "bytes": 1420,
+      "sha256": "7900a0c7e1a50dbea070c302954392b17ca04f7bf1a1b7c58cf7ef280581d06c"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 3009,
+      "sha256": "4782a6a773809720da1bcdfc0b61f473c8c569eacb8dd5d19ab3ee5088c35c4a"
+    },
+    {
+      "path": "audit_joint_review.py",
+      "bytes": 7993,
+      "sha256": "9223a8a9f87abfa18ce609363ad14db5b9d618295c7df2d8ca070b4bece698ab"
+    },
+    {
+      "path": "historical_provenance/README.md",
+      "bytes": 301,
+      "sha256": "81aa5e9e4ee7ff7db7b769cc032b80baddaa1274a64cd4b7c76597ee9891d8e1"
+    },
+    {
+      "path": "historical_provenance/START_HERE(2).md",
+      "bytes": 8555,
+      "sha256": "d53b51d8072c1822ad38ccba7725de330f5a520e59f170e3921f9a4f27e89a81"
+    },
+    {
+      "path": "historical_provenance/columna_o3_governed_analytical_order_v0_1.md",
+      "bytes": 37682,
+      "sha256": "25e8cabe4c70c8ca3852664139a65a96fbe93fc04488d0f8f46f7fc00b643894"
+    },
+    {
+      "path": "reviewed_sources/a_primer_on_frameql_v2_3_working_draft_v0_1.html",
+      "bytes": 17601,
+      "sha256": "0c2043fa5ad138e232786cdada739c64bc619099da14f7f182185e1bd53055dc"
+    },
+    {
+      "path": "reviewed_sources/a_primer_on_frameql_v2_3_working_draft_v0_1.md",
+      "bytes": 11360,
+      "sha256": "68c5d0dfa936728a5d277153918015c070d2b311683315b39d64dd60ccc7de1f"
+    },
+    {
+      "path": "reviewed_sources/columna_o3_governed_analytical_order_v0_2.html",
+      "bytes": 53819,
+      "sha256": "c132832f75d5e88c6935661ba1a8c9bac22e04d7d1c860fc92913af32699aa05"
+    },
+    {
+      "path": "reviewed_sources/columna_o3_governed_analytical_order_v0_2.md",
+      "bytes": 32132,
+      "sha256": "37307c32f94b2b37f4e42628964df9ae5a3ef61690f144d60aed70a0eb54bc45"
+    },
+    {
+      "path": "reviewed_sources/frameql_an_introduction_v2_4_working_draft_v0_1.html",
+      "bytes": 49372,
+      "sha256": "faa008aee3d6b06a77872cc3528d44934f72e3128b67ed21fa5460ad26cc90aa"
+    },
+    {
+      "path": "reviewed_sources/frameql_an_introduction_v2_4_working_draft_v0_1.md",
+      "bytes": 33420,
+      "sha256": "efe432d2e95458a4924bf07a95c3089674ff8610a6a731ddbd113e61033a0e25"
+    },
+    {
+      "path": "reviewed_sources/frameql_language_vnext_working_draft_v0_4.html",
+      "bytes": 92860,
+      "sha256": "07fcdefdf340e8b1976747721ce1e0a018c4e643cc2cd7849d88f54a8bbe9bf2"
+    },
+    {
+      "path": "reviewed_sources/frameql_language_vnext_working_draft_v0_4.md",
+      "bytes": 62812,
+      "sha256": "7df997395247e6e3f218f2d8db9f21d589ba1cc7fc5914cec7225ea07e1a5820"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.html",
+      "bytes": 17249,
+      "sha256": "a9ab46c87158ccca014c85a431ad49cdcba704d67e48c59bd2946bcfa0d66b90"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_authority_and_supersession_index_v0_1.md",
+      "bytes": 10219,
+      "sha256": "d5eddcefe6adfdd79e0a5b2ef003158d8cc15cba597a8a2ec2c6ae97905252f4"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_reconciliation_register_v0_1.html",
+      "bytes": 14560,
+      "sha256": "7eefd9df8ac9bf31d8929a01ac9e3c16e9ad96bb647267c22b637bc46d72010e"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_reconciliation_register_v0_1.md",
+      "bytes": 8865,
+      "sha256": "edf328172e42d3ee0a9e4db62da85519b25fbad874f48d6c0227cd57ba10390a"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_reference_integration_patch_sheet_v0_1.html",
+      "bytes": 18434,
+      "sha256": "2f731428c4cf5da9c3cb6c6c95bd74ca905179c3aa0d5ed44e71783f9b953eb6"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_reference_integration_patch_sheet_v0_1.md",
+      "bytes": 11264,
+      "sha256": "7fb28d755c94b991330327d57d41edfcb2c0e2a0adfc518d5d374cb9b62ad4e4"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.html",
+      "bytes": 33480,
+      "sha256": "2028c9f45d230410ffcef243c18cc4fc00a71f9fe201d8f73ba88fc969cf74e5"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.json",
+      "bytes": 20497,
+      "sha256": "4e7996cd923008cd09f457ee7391f5d6545f5d3c11f5b6a9654ad70b92952d93"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md",
+      "bytes": 17387,
+      "sha256": "1fabcab1848ee486ae9e2af39dc94b44202aa6d864d8de7c09799c6e78ca9963"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_supporting_contract_notes_v0_1.html",
+      "bytes": 18655,
+      "sha256": "ddaf18031ebca0d394bcc490c0cc150a5fc985c9bad331e827343ba6b46a14de"
+    },
+    {
+      "path": "reviewed_sources/frameql_v7_1_supporting_contract_notes_v0_1.md",
+      "bytes": 12370,
+      "sha256": "1fd0579706eb0dbc43d54e4c2fbc6ea702f10772686a1aaf47f9d8e41e0b49ac"
+    },
+    {
+      "path": "reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.html",
+      "bytes": 16039,
+      "sha256": "06b84424416889f4d1f91994ede8b2221b4fa8b5fb8da219ff3fdf16ccc2a59a"
+    },
+    {
+      "path": "reviewed_sources/frameql_vnext_capability_profile_reconciliation_plan_v0_2.md",
+      "bytes": 9525,
+      "sha256": "2ba4f7efb7b3b99bfba2b4815a39e8d4d275eef2eb772907a3024164cd2d889e"
+    },
+    {
+      "path": "reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.html",
+      "bytes": 271556,
+      "sha256": "5d649440dd830a217b0462fc0776b184fdbc1b18c7eb2fcc3058d78bee3475a9"
+    },
+    {
+      "path": "reviewed_sources/the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+      "bytes": 142698,
+      "sha256": "6d44576eb6af2469c3223370c91f4efcd6c033d7f273d1fabd32060651edacd0"
+    },
+    {
+      "path": "reviewed_sources/tod_v7_1_statistical_extension_supplement_v0_1.html",
+      "bytes": 35907,
+      "sha256": "19e44c7bc6df019e499179253f0ab0c037c701c6a0697e099ba05bdc4ef12268"
+    },
+    {
+      "path": "reviewed_sources/tod_v7_1_statistical_extension_supplement_v0_1.md",
+      "bytes": 10411,
+      "sha256": "c192b255264e576ed6096797fd21fc4ca8e751cfc699a98defded68182055ec1"
+    },
+    {
+      "path": "tod_frameql_joint_consistency_case_ledger_v0_1.json",
+      "bytes": 64245,
+      "sha256": "588f807afca7017667694cd8a084dbfd51c6f10aab4f45577b4d51c2b644b48e"
+    },
+    {
+      "path": "tod_frameql_joint_consistency_case_ledger_v0_1.md",
+      "bytes": 28991,
+      "sha256": "cd9654caacbd09007544e8090a6323c9ef13c65575fd71fce01ea84b18c2d4ab"
+    },
+    {
+      "path": "tod_frameql_joint_consistency_release_readiness_report_v0_1.md",
+      "bytes": 21860,
+      "sha256": "53900dc84d70c492adb7670b73ab100626f9833b80b05c0ad732d2c4dfa5c731"
+    },
+    {
+      "path": "tod_frameql_joint_review_document_audit_v0_1.json",
+      "bytes": 1202,
+      "sha256": "a853a99768c3030e6db017b1225a476994e3db1a825f0cbd06450e132105454b"
+    },
+    {
+      "path": "tod_frameql_joint_review_editorial_corrections_v0_1.json",
+      "bytes": 2808,
+      "sha256": "af706714085984c40e6c263b83065c9e12a22759e21c1b1190bd14c450cd300f"
+    },
+    {
+      "path": "tod_frameql_joint_review_editorial_corrections_v0_1.md",
+      "bytes": 3113,
+      "sha256": "a185f879d53bb3c91196c0ec7a67e5c2a06a951af95abf0884b8b86a77d0dea5"
+    },
+    {
+      "path": "tod_frameql_joint_review_source_manifest_v0_1.json",
+      "bytes": 7015,
+      "sha256": "73b85d899e57d52b7dfb885d7be0a23d140b2e75a52db9c3ab5e7a76d9b9673e"
+    }
+  ]
+}

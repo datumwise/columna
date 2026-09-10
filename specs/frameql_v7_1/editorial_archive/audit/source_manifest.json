@@ -1,0 +1,108 @@
+[
+  {
+    "name": "the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 142698,
+    "sha256": "6d44576eb6af2469c3223370c91f4efcd6c033d7f273d1fabd32060651edacd0"
+  },
+  {
+    "name": "frameql_language_vnext_working_draft_v0_3.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 48769,
+    "sha256": "352be6f8570b412ca98d70e6cff40c8dc3a78b76805c59722fc81fc6cfb581bf"
+  },
+  {
+    "name": "frameql_vnext_o1_ordered_expression_compatibility_ruling_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 11537,
+    "sha256": "ac1b5c27a1c095024209a957f9cdd5eb0fc217b3a412afb5afe3194e61a70c71"
+  },
+  {
+    "name": "frameql_vnext_o2_ordered_expression_semantic_architecture_v0_2.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 28457,
+    "sha256": "5db4a50712f7d943442115787869313866acf1fa603ecc075fbce60db2e102cd"
+  },
+  {
+    "name": "frameql_vnext_o2_reconciliation_to_tod_v7_1_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 12471,
+    "sha256": "d1061b78251212a2c09f30ab61bdd7b8b4548f20fdac064033909e9776011de7"
+  },
+  {
+    "name": "frameql_vnext_r4_standing_amendment_v0_2.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 21740,
+    "sha256": "21e3e054c4bf56a4f5d3c4165d921341c2d78701323063e109991c9db85472d7"
+  },
+  {
+    "name": "columna_o3_governed_analytical_order_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 37682,
+    "sha256": "25e8cabe4c70c8ca3852664139a65a96fbe93fc04488d0f8f46f7fc00b643894"
+  },
+  {
+    "name": "frameql_vnext_capability_profile_reconciliation_plan_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 12567,
+    "sha256": "b76e2ea7ef5397f277fd2b1d8a8ec424369e1092f6d2102c1ae874684b56775d"
+  },
+  {
+    "name": "frameql_vnext_authority_reconciliation_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 21871,
+    "sha256": "f07c95dd423d4fb1890268a21074a8c81152a1a48ece3a288b9729a9e908fd91"
+  },
+  {
+    "name": "frameql_vnext_current_manual_migration_matrix_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 23953,
+    "sha256": "b55389d2aec3125b2369435fc2bc8c92cf969a514ff5f1be04c38cdd702b4ef4"
+  },
+  {
+    "name": "frameql_vnext_m1_semantic_review_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 10888,
+    "sha256": "a39a9c8a6dcf6e27d82bd28bb1ee2c2268639be99bf38871243f3676166a9f11"
+  },
+  {
+    "name": "FRAMEQL_VNEXT_M2_CC_RECONNAISSANCE.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 17131,
+    "sha256": "c73118f3bf2e296d457a22d8da015920917bb04d9018ececcff1c0a0b85e57c5"
+  },
+  {
+    "name": "FRAMEQL_VNEXT_O2_CC_DESIGN_RECONNAISSANCE.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 15575,
+    "sha256": "c46705af4a267a5fa2139d77894e4302d9ce4f00621ebe1e076344c201b7f5a5"
+  },
+  {
+    "name": "frameql_companion_corpus_assessment_against_tod_v7_1_v0_1.md",
+    "source": "confirmed local supplied artifact",
+    "bytes": 32065,
+    "sha256": "d9a4cf1c637234cb15f5222d1fb3cc4a8fa7212e4dd78f82808ecb54296e3f00"
+  },
+  {
+    "name": "frameql_companion_corpus_assessment_source_manifest_v0_1.json",
+    "source": "confirmed local supplied artifact",
+    "bytes": 5323,
+    "sha256": "e23e35440a84e8073f51d0b9be1f4d606c134cd7682a4434612b061f452e9b51"
+  },
+  {
+    "name": "a_primer_on_frameql_v2_2_transcribed.md",
+    "source": "full web-text transcription; normalized whitespace; not deposit bytes",
+    "url": "https://raw.githubusercontent.com/datumwise/columna/main/apps/website/src/content/corpus/a_primer_on_frameql_v2_2.md",
+    "viewed": "2026-09-07",
+    "bytes": 9295,
+    "sha256": "5555940bd9c571602d4d43c37955930c5dc09aa4079f2a686f368cb3f9ab8fa4"
+  },
+  {
+    "name": "frameql_an_introduction_v2_3_transcribed.md",
+    "source": "full web-text transcription; normalized whitespace; not deposit bytes",
+    "url": "https://raw.githubusercontent.com/datumwise/columna/main/apps/website/src/content/corpus/frameql_an_introduction_v2_3.md",
+    "viewed": "2026-09-07",
+    "bytes": 28313,
+    "sha256": "d82ec8081c999f88b7f956427842731921bcb7e5a4d752c1067b1d3a6d380d98"
+  }
+]

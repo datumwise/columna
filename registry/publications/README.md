@@ -110,7 +110,7 @@ deposited as:
 - *The Theory of Data — Particles, Atoms, Anchors, Universes, and Lawful Transformation* (v1.0, v3.1)
 - *The Theory of Data: Governed Analytical Objects, Lawful Transformation, and Certification* (v4.0)
 - *The Theory of Data: A Foundational Framework for Governed Analytical Data…* (v5.0)
-- *The Theory of Data* (v6.0, v6.1)
+- *The Theory of Data* (v6.0, v6.1, v7.0, v7.1)
 
 and its resource type changed too (v5.0 was deposited as a *Working paper*, everything else as a
 *Preprint*). Authors and licence sit on the Record for the same reason: they *may* vary between
@@ -175,6 +175,17 @@ can defend — and not one minute before.
 | `consumers.json` | every file in the repo that names a DOI, and on what terms | hand, checked mechanically |
 | `reconciliation.json` | known discrepancies and retired identifiers | hand |
 | `extra_seeds.txt` | ids the registry must cover that no file cited yet | hand |
+
+**Which snapshot is ACTIVE is a selection, so it is stated rather than inferred.** Snapshots accumulate;
+every one of them stays, and the newest file on disk is *not* automatically the evidence in force. The
+active one is named in exactly two places — the `SNAPSHOT` constant in `scripts/check_publications.py`
+and the one in `scripts/mint_publication_records.py` — and those two must always name the same file, or
+the gate is checking a registry the minter did not write.
+
+| snapshot | selected on | why it moved |
+|---|---|---|
+| **`zenodo_snapshot_2026-09-08.json`** — **ACTIVE** | 2026-09-08 | Three editions landed within a day: *The Theory of Data* **v7.1** (`22649945`), *A Primer on the Theory of Data* **v2.3** (`22651578`), *The Theory of Data: An Introduction* **v2.3** (`22651777`). All three deposit under concepts the registry already attaches, so all three are ordinary in-concept successions. The re-harvest added **exactly those three records** and moved three concept version-counts by one each; no field on any existing record changed. It also picked up a THIRD unresolved seed, `220185491` — not a new absence, but the scanner form of a malformed related identifier the coverage ledger now quotes as evidence (`rc-tod-primer-v23-newversion-identifier`). |
+| `zenodo_snapshot_2026-09-07.json` | 2026-09-07 | *The Theory of Data* v7.0 (`22289091`) was deposited 2026-09-03, after the 2026-09-01 capture, so no earlier snapshot is evidence for it. Registered under Huayin's ruling of 2026-09-07. The re-harvest changed **one** thing against 2026-09-01: one new record, and one concept version-count 6 → 7. No other publication fact in the corpus moved. |
 
 **A frozen snapshot, not a live call.** A gate that reaches the network fails on someone else's
 outage and passes on someone else's cache. This one is hermetic, and the evidence is reviewable *in

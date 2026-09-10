@@ -1,0 +1,1522 @@
+{
+  "title": "ToD v7.1 / Frame-QL Joint Consistency Review — Case Ledger",
+  "version": "0.1",
+  "date": "2026-09-07",
+  "scope": "Reviewer-authored comparison of supplied texts; not executed semantic scenarios, theorem validation, or runtime conformance.",
+  "theory": "the_theory_of_data_v7_1_full_manuscript_working_draft_v0_4.md",
+  "language": "frameql_language_vnext_working_draft_v0_4.md",
+  "summary": {
+    "cases_reviewed": 40,
+    "consistent_without_local_correction": 39,
+    "consistent_with_example_clarification": 1,
+    "semantic_contradictions_established": 0
+  },
+  "cases": [
+    {
+      "id": "F01",
+      "topic": "Specified target before bases",
+      "premises": "A proposed family has two mutually agreeing constructors but no nominated defining construction or independent target specification.",
+      "expected": "The family contract is incomplete; agreement has no independently specified target against which adequacy can be judged.",
+      "prohibited_shortcut": "Admit the family solely because the two implementations agree.",
+      "theory_sections": "§§4, 5.3",
+      "language_sections": "§6.5",
+      "review_disposition": "consistent",
+      "review_reasoning": "T requires a nominated defining construction or independent target specification before adequacy can be checked. LQ explicitly delegates admission to that contract. Two agreeing implementations cannot fill the missing target.",
+      "other_companion_checks": "Supporting notes §5; capability plan §2; Introduction §6.2.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "4",
+            "start_line": 369,
+            "end_line": 404,
+            "heading": "# 4. One family-law contract"
+          },
+          {
+            "section": "5.3",
+            "start_line": 441,
+            "end_line": 468,
+            "heading": "## 5.3 Alternative bases must agree"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.5",
+            "start_line": 784,
+            "end_line": 793,
+            "heading": "## 6.5 The family-law contract"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F02",
+      "topic": "Canonical family without a business name",
+      "premises": "An admitted law and fully specified constitutive input establish mean(revenue@order); no business alias has been assigned.",
+      "expected": "Its canonical family expression can denote the family. Institutional publication remains a separate authority.",
+      "prohibited_shortcut": "Require an AS name or a new authoring ceremony before the analytical identity can be denoted.",
+      "theory_sections": "§§3.9, 4",
+      "language_sections": "§§3.5, 11.1",
+      "review_disposition": "consistent",
+      "review_reasoning": "The family can be denoted by its admitted canonical expression without a business name. Both texts preserve the distinct institutional act of publication; neither syntax nor successful computation supplies a missing law.",
+      "other_companion_checks": "Supporting notes §1.2; Introduction §§6.2, 8.3; Primer, “Why Frame-QL Has @ and AT”.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.9",
+            "start_line": 359,
+            "end_line": 368,
+            "heading": "## 3.9 Names, canonical construction, and succession"
+          },
+          {
+            "section": "4",
+            "start_line": 369,
+            "end_line": 404,
+            "heading": "# 4. One family-law contract"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "3.5",
+            "start_line": 374,
+            "end_line": 390,
+            "heading": "## 3.5 Family-forming analytical expression"
+          },
+          {
+            "section": "11.1",
+            "start_line": 1216,
+            "end_line": 1221,
+            "heading": "## 11.1 Canonical denotation does not require a business-name ceremony"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F03",
+      "topic": "Aliases do not admit law",
+      "premises": "A query computes revenue/orders AS aov without a supplied AOV family contract.",
+      "expected": "The alias names an output; it does not establish the missing law. An explicitly governed AOV family remains possible.",
+      "prohibited_shortcut": "Treat output naming as either automatic family admission or a permanent ban on an AOV family.",
+      "theory_sections": "§§3.5, 3.7, 3.9",
+      "language_sections": "§§2.3, 11.2",
+      "review_disposition": "consistent",
+      "review_reasoning": "The query alias remains a column key. The positive, governed AOV example is retained in T; the language does not turn the warning against automatic admission into a ban on a ratio family.",
+      "other_companion_checks": "Introduction §6.2; integration sheet §3.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.5",
+            "start_line": 285,
+            "end_line": 310,
+            "heading": "## 3.5 Pointwise and tuple expressions"
+          },
+          {
+            "section": "3.7",
+            "start_line": 327,
+            "end_line": 342,
+            "heading": "## 3.7 Analytical lineage records constitutive ancestry"
+          },
+          {
+            "section": "3.9",
+            "start_line": 359,
+            "end_line": 368,
+            "heading": "## 3.9 Names, canonical construction, and succession"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "2.3",
+            "start_line": 216,
+            "end_line": 232,
+            "heading": "## 2.3 Query aliases name output columns"
+          },
+          {
+            "section": "11.2",
+            "start_line": 1222,
+            "end_line": 1227,
+            "heading": "## 11.2 Output naming and institutional authoring are separate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F04",
+      "topic": "Constitutive ancestry versus plan",
+      "premises": "Two licensed derivations claim the same family and anchor using different staging paths under matching premises.",
+      "expected": "Consistency applies to the same target; physical path/proof method is not new identity.",
+      "prohibited_shortcut": "Include plan identity in the family signature to evade required agreement.",
+      "theory_sections": "§§2.2, 6.4–6.5",
+      "language_sections": "§§3.1, 10.1",
+      "review_disposition": "consistent",
+      "review_reasoning": "Constitutive ancestry identifies the target; an alternative lawful realization or proof of that target does not create another family. Both texts retain identity-relative agreement rather than defeating it through path-specific IDs.",
+      "other_companion_checks": "Supporting notes §1.2; Introduction §8.2; integration sheet §5.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.2",
+            "start_line": 181,
+            "end_line": 212,
+            "heading": "## 2.2 Datum, family identity, and the current anchor"
+          },
+          {
+            "section": "6.4",
+            "start_line": 605,
+            "end_line": 618,
+            "heading": "## 6.4 Identity-relative consistency"
+          },
+          {
+            "section": "6.5",
+            "start_line": 619,
+            "end_line": 626,
+            "heading": "## 6.5 Compressing an analytical path"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "3.1",
+            "start_line": 278,
+            "end_line": 293,
+            "heading": "## 3.1 Family reference"
+          },
+          {
+            "section": "10.1",
+            "start_line": 1144,
+            "end_line": 1159,
+            "heading": "## 10.1 Resolve the target before selecting a realization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F05",
+      "topic": "Meaning before executable availability",
+      "premises": "Mean over orders and mean over customers are identity-distinct possible readings; only one has a presently executable plan.",
+      "expected": "The unresolved intent distinction remains. Availability can be reported, not silently used to choose meaning.",
+      "prohibited_shortcut": "Serve the available target as though availability resolved the request.",
+      "theory_sections": "§§2.2, 3.9, 9.1",
+      "language_sections": "§10.1",
+      "review_disposition": "consistent",
+      "review_reasoning": "The two analytical readings remain distinct when only one can execute. Availability is a constraint reported after meaning is resolved, not evidence of the user's intended quantity.",
+      "other_companion_checks": "Supporting notes §1.2; Introduction §3; Primer, “Why Output Dimensions Are Not Always Enough”; integration sheet §6.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.2",
+            "start_line": 181,
+            "end_line": 212,
+            "heading": "## 2.2 Datum, family identity, and the current anchor"
+          },
+          {
+            "section": "3.9",
+            "start_line": 359,
+            "end_line": 368,
+            "heading": "## 3.9 Names, canonical construction, and succession"
+          },
+          {
+            "section": "9.1",
+            "start_line": 829,
+            "end_line": 840,
+            "heading": "## 9.1 Definition, evidence, and realization"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "10.1",
+            "start_line": 1144,
+            "end_line": 1159,
+            "heading": "## 10.1 Resolve the target before selecting a realization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F06",
+      "topic": "Several bases, one target",
+      "premises": "SUM/COUNT and an exact multiset are both adequate and available for the same fixed MEAN with matching participation.",
+      "expected": "They are alternative constructions of one target, not an intent ambiguity.",
+      "prohibited_shortcut": "Return Clarify merely because there are two bases.",
+      "theory_sections": "§§5.3, 5.5",
+      "language_sections": "§§6.6, 10.1",
+      "review_disposition": "consistent",
+      "review_reasoning": "Adequate SUM/COUNT and multiset constructions are two ways to establish one target. Their common participation and domains must hold; selecting a realization does not require a new intent clarification.",
+      "other_companion_checks": "Supporting notes §1.2; Introduction §3; integration sheet §6.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "5.3",
+            "start_line": 441,
+            "end_line": 468,
+            "heading": "## 5.3 Alternative bases must agree"
+          },
+          {
+            "section": "5.5",
+            "start_line": 475,
+            "end_line": 482,
+            "heading": "## 5.5 A valid basis need not be available, and an available result need not retain a basis"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.6",
+            "start_line": 794,
+            "end_line": 805,
+            "heading": "## 6.6 Sufficient state belongs to analytical law"
+          },
+          {
+            "section": "10.1",
+            "start_line": 1144,
+            "end_line": 1159,
+            "heading": "## 10.1 Resolve the target before selecting a realization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F07",
+      "topic": "Multiplicity remains part of the law",
+      "premises": "Ordinary MEAN is defined over participating values 0,0,6.",
+      "expected": "The mean is 2; replacing the multiset by set {0,6} yields another construction and gives 3.",
+      "prohibited_shortcut": "Declare a deduplicating set an exact basis for this MEAN.",
+      "theory_sections": "§5.3",
+      "language_sections": "§6.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "The target specifies multiplicity. Set deduplication changes the inputs of ordinary MEAN, so the equality of a candidate constructor on other cases cannot make the set a sufficient basis here.",
+      "other_companion_checks": "Supporting notes §5; statistical supplement S.2 and S.7.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "5.3",
+            "start_line": 441,
+            "end_line": 468,
+            "heading": "## 5.3 Alternative bases must agree"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.6",
+            "start_line": 794,
+            "end_line": 805,
+            "heading": "## 6.6 Sufficient state belongs to analytical law"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F08",
+      "topic": "Intake versus continuation",
+      "premises": "Two retained count values 37 and 12 represent compatible disjoint contributions.",
+      "expected": "Count continuation adds them to 49. Counting the two summary rows instead would answer a different question.",
+      "prohibited_shortcut": "Use count-of-summary-rows as count-state merge.",
+      "theory_sections": "§5.2",
+      "language_sections": "§6.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "Continuation consumes retained counts as additive state and yields 49, not two. The distinction is an analytical input role, not something inferred from an integer type or operator token.",
+      "other_companion_checks": "Capability plan §§2–3; T §11.5.1.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "5.2",
+            "start_line": 429,
+            "end_line": 440,
+            "heading": "## 5.2 Self-sufficiency and source intake are different"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.6",
+            "start_line": 794,
+            "end_line": 805,
+            "heading": "## 6.6 Sufficient state belongs to analytical law"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O01",
+      "topic": "One-dimensional analytical order",
+      "premises": "Day is a governed anchor with complete chronology and the family has its remaining complete contract.",
+      "expected": "Precedence is trivial; the declared order supports the admitted finite FIRST/LAST construction.",
+      "prohibited_shortcut": "Require a new generic tie policy or infer chronology from a lineage label alone.",
+      "theory_sections": "§§7.1, 8",
+      "language_sections": "§9.2",
+      "review_disposition": "consistent",
+      "review_reasoning": "T's finite FIRST/LAST construction permits one-dimensional governed chronology, with trivial constituent precedence. The language requires the remaining family contract and does not add generic tie selection.",
+      "other_companion_checks": "O3 §§2–4; supporting notes §1.1; Introduction §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "7.1",
+            "start_line": 651,
+            "end_line": 672,
+            "heading": "## 7.1 Two levels of order"
+          },
+          {
+            "section": "8",
+            "start_line": 689,
+            "end_line": 826,
+            "heading": "# 8. FIRST and LAST through sufficient-state families"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.2",
+            "start_line": 1081,
+            "end_line": 1094,
+            "heading": "## 9.2 Constitutive ordered support"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O02",
+      "topic": "Compound precedence required",
+      "premises": "Customer and Day have complete point orders, but no precedence is supplied for the claimed global Customer-Day support.",
+      "expected": "The compound order is not fully selected.",
+      "prohibited_shortcut": "Infer precedence from output column order.",
+      "theory_sections": "§7.1",
+      "language_sections": "§9.2",
+      "review_disposition": "consistent",
+      "review_reasoning": "Complete constituent orders without selected precedence do not specify the admitted global compound order. Output-coordinate listing order cannot complete it.",
+      "other_companion_checks": "O3 §§2, 3.2; supporting notes §1.1.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "7.1",
+            "start_line": 651,
+            "end_line": 672,
+            "heading": "## 7.1 Two levels of order"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.2",
+            "start_line": 1081,
+            "end_line": 1094,
+            "heading": "## 9.2 Constitutive ordered support"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O03",
+      "topic": "Missing constituent order",
+      "premises": "Precedence is supplied but Customer has no complete governed point order.",
+      "expected": "The claimed complete compound order is unestablished.",
+      "prohibited_shortcut": "Sort Customer IDs lexically as an implicit analytical order.",
+      "theory_sections": "§§7.1–7.3",
+      "language_sections": "§9.2",
+      "review_disposition": "consistent",
+      "review_reasoning": "Precedence alone cannot replace a missing constituent point order. A sortable identifier or physical collation does not establish the selected analytical order.",
+      "other_companion_checks": "O3 §§2, 4, 13; integration sheet §7.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "7.1",
+            "start_line": 651,
+            "end_line": 672,
+            "heading": "## 7.1 Two levels of order"
+          },
+          {
+            "section": "7.3",
+            "start_line": 681,
+            "end_line": 688,
+            "heading": "## 7.3 No generic tie rule in the foundational construction"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.2",
+            "start_line": 1081,
+            "end_line": 1094,
+            "heading": "## 9.2 Constitutive ordered support"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O04",
+      "topic": "Sparse analytical point space",
+      "premises": "The governed support contains only (C1,d3),(C2,d1),(C2,d2).",
+      "expected": "Only these points participate; order does not create (C2,d3) or another absent combination.",
+      "prohibited_shortcut": "Fill the Cartesian product before LAST without an existence law.",
+      "theory_sections": "§§2.1.3, 7.1",
+      "language_sections": "§9.2",
+      "review_disposition": "consistent",
+      "review_reasoning": "The injection from the actual anchor into its coordinate product is not a Cartesian-completeness assertion. Order compares the existing points and does not create the absent tuple.",
+      "other_companion_checks": "O3 §§1, 5; Introduction §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.1.3",
+            "start_line": 165,
+            "end_line": 180,
+            "heading": "### 2.1.3 Dimensions and sparse compound anchors"
+          },
+          {
+            "section": "7.1",
+            "start_line": 651,
+            "end_line": 672,
+            "heading": "## 7.1 Two levels of order"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.2",
+            "start_line": 1081,
+            "end_line": 1094,
+            "heading": "## 9.2 Constitutive ordered support"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O05",
+      "topic": "Form the support measure first",
+      "premises": "Several Product carrier records lie beneath one Account-Day point.",
+      "expected": "Apply the operand formation law to establish its value at Account-Day before FIRST/LAST consumes that analytical point.",
+      "prohibited_shortcut": "Select a raw row by day or invent SUM as the formation rule merely to collapse duplicates.",
+      "theory_sections": "§§3.1, 7.3",
+      "language_sections": "§9.3",
+      "review_disposition": "consistent",
+      "review_reasoning": "The operand law establishes the value at the analytical input point before that point is consumed. Repeated carrier rows are neither tied analytical points nor permission to choose SUM. This formation rule does not demand every nonwinning value for the distinct partial-evidence arguments.",
+      "other_companion_checks": "O3 §§4, 8–9; supporting notes §2.1; T §§9.2–9.6.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.1",
+            "start_line": 235,
+            "end_line": 242,
+            "heading": "## 3.1 Formation establishes what will be consumed"
+          },
+          {
+            "section": "7.3",
+            "start_line": 681,
+            "end_line": 688,
+            "heading": "## 7.3 No generic tie rule in the foundational construction"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.3",
+            "start_line": 1095,
+            "end_line": 1100,
+            "heading": "## 9.3 Form analytical points before selecting them"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O06",
+      "topic": "Ordered family not automatic legacy conformance",
+      "premises": "FIRST/LAST has an admitted construction in T; a legacy .last spelling is accepted by a particular build.",
+      "expected": "Analytical admission and that execution path’s conformance are separate claims.",
+      "prohibited_shortcut": "Certify every existing .last because the theory now admits an ordered family.",
+      "theory_sections": "§§3.6, 4, 8",
+      "language_sections": "§§9.1, 9.7, 13",
+      "review_disposition": "consistent",
+      "review_reasoning": "Theoretical FIRST/LAST admission is conditional on the complete construction. Existing syntax, a runtime category, and accepted legacy declarations are separate conformance facts, not proof of that construction.",
+      "other_companion_checks": "Capability plan §§3, 7; Introduction §§8.4, 11; integration sheet §7.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.6",
+            "start_line": 311,
+            "end_line": 326,
+            "heading": "## 3.6 Operator geometry does not confer family authority"
+          },
+          {
+            "section": "4",
+            "start_line": 369,
+            "end_line": 404,
+            "heading": "# 4. One family-law contract"
+          },
+          {
+            "section": "8",
+            "start_line": 689,
+            "end_line": 826,
+            "heading": "# 8. FIRST and LAST through sufficient-state families"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.1",
+            "start_line": 1075,
+            "end_line": 1080,
+            "heading": "## 9.1 Order is a semantic dependency, not a family veto"
+          },
+          {
+            "section": "9.7",
+            "start_line": 1132,
+            "end_line": 1141,
+            "heading": "## 9.7 Shorthand, output selection, and compatibility"
+          },
+          {
+            "section": "13",
+            "start_line": 1254,
+            "end_line": 1265,
+            "heading": "# 13. Capability and profile boundary"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O07",
+      "topic": "Original point witness through coarsening",
+      "premises": "For s1<s2<s3<s4, admitted intermediate groups are {s1,s4} and {s2,s3}, with coherent supported values.",
+      "expected": "Retained winners s4 and s3 combine to s4 using the original support order.",
+      "prohibited_shortcut": "Compare intermediate group labels or demand an unrelated new order on B.",
+      "theory_sections": "§§8.3–8.4",
+      "language_sections": "§9.5",
+      "review_disposition": "consistent",
+      "review_reasoning": "Both texts preserve the original S-point in intermediate witnesses. Arbitrary admitted intermediate grouping does not require an order on group labels; compatible contributions and admitted projections remain premises.",
+      "other_companion_checks": "O3 §7; T §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "8.3",
+            "start_line": 753,
+            "end_line": 780,
+            "heading": "## 8.3 Witness coherence and scalar construction"
+          },
+          {
+            "section": "8.4",
+            "start_line": 781,
+            "end_line": 788,
+            "heading": "## 8.4 Intermediate anchors need no new point order"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.5",
+            "start_line": 1114,
+            "end_line": 1121,
+            "heading": "## 9.5 Continuation preserves original-point witnesses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O08",
+      "topic": "Scalar is not witness continuation",
+      "premises": "An exact scalar LAST was materialized but its selected point is not retained or recoverable.",
+      "expected": "The scalar target is available; further witness comparison is not licensed from it alone.",
+      "prohibited_shortcut": "Set scalar re-entry true merely because LAST has family standing.",
+      "theory_sections": "§§8.1, 10.7",
+      "language_sections": "§§9.4, 10.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "A stored scalar answers its scalar claim but does not automatically retain the selected point. Family admission does not turn a scalar re-entry flag on, and re-entry insufficiency does not veto family standing.",
+      "other_companion_checks": "Capability plan §3; O3 §12; Introduction §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "8.1",
+            "start_line": 691,
+            "end_line": 716,
+            "heading": "## 8.1 One construction, two analytical families"
+          },
+          {
+            "section": "10.7",
+            "start_line": 937,
+            "end_line": 970,
+            "heading": "## 10.7 A stored answer and retained sufficient state are different claims"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.4",
+            "start_line": 1101,
+            "end_line": 1113,
+            "heading": "## 9.4 Witness family and value-returning family"
+          },
+          {
+            "section": "10.6",
+            "start_line": 1186,
+            "end_line": 1199,
+            "heading": "## 10.6 Retained content, established claim, and permitted reuse"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O09",
+      "topic": "R is optional",
+      "premises": "An adequate argument establishes W; a full retained point–value set is unavailable.",
+      "expected": "W can be used under its actual admitted contract; full R storage is not mandatory.",
+      "prohibited_shortcut": "Impose R→W→L as a required runtime/storage pipeline.",
+      "theory_sections": "§§8.6, 9.2",
+      "language_sections": "§9.4",
+      "review_disposition": "consistent",
+      "review_reasoning": "R is an optional sufficient basis. Adequate direct witness evidence may exist when R cannot be retained or fully established; the homomorphism is not a mandatory storage pipeline.",
+      "other_companion_checks": "O3 §§8–9; Introduction §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "8.6",
+            "start_line": 795,
+            "end_line": 826,
+            "heading": "## 8.6 A retained point-value basis and its exact witness compression"
+          },
+          {
+            "section": "9.2",
+            "start_line": 841,
+            "end_line": 852,
+            "heading": "## 9.2 A result need not require every possible input value"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.4",
+            "start_line": 1101,
+            "end_line": 1113,
+            "heading": "## 9.4 Witness family and value-returning family"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O10",
+      "topic": "Same results, different laws",
+      "premises": "Two different declared precedence orders currently yield the same winner.",
+      "expected": "Numerical agreement does not merge their analytical identities.",
+      "prohibited_shortcut": "Infer equivalent family identity from observed equality.",
+      "theory_sections": "§§2.2, 7.2",
+      "language_sections": "§§9.2, 10.1",
+      "review_disposition": "consistent",
+      "review_reasoning": "Observed winner equality does not constitute equivalence of different order laws. Equivalence must be established over the relevant declared scope; identity-neutral physical serialization changes remain possible.",
+      "other_companion_checks": "O3 §§5–6; supporting notes §1.2.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.2",
+            "start_line": 181,
+            "end_line": 212,
+            "heading": "## 2.2 Datum, family identity, and the current anchor"
+          },
+          {
+            "section": "7.2",
+            "start_line": 673,
+            "end_line": 680,
+            "heading": "## 7.2 What belongs to identity"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.2",
+            "start_line": 1081,
+            "end_line": 1094,
+            "heading": "## 9.2 Constitutive ordered support"
+          },
+          {
+            "section": "10.1",
+            "start_line": 1144,
+            "end_line": 1159,
+            "heading": "## 10.1 Resolve the target before selecting a realization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O11",
+      "topic": "Frame selection can coincide with LAST",
+      "premises": "A versioned output ORDER BY/LIMIT PER query selects a row whose value equals a LAST answer.",
+      "expected": "Frame selection remains legitimate in its own scope; no inner family identity or reusable witness follows.",
+      "prohibited_shortcut": "Either ban the frame operation or use it as ambient order/family proof.",
+      "theory_sections": "§12.4",
+      "language_sections": "§9.7",
+      "review_disposition": "consistent",
+      "review_reasoning": "Frame ORDER BY/LIMIT PER remains legitimate output selection. It neither becomes a forbidden operation because it resembles LAST nor supplies an inner ordered family, witness, or implicit order contract.",
+      "other_companion_checks": "Supporting notes §2.4; O3 §§11, 14; integration sheet §8.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "12.4",
+            "start_line": 1161,
+            "end_line": 1172,
+            "heading": "## 12.4 Request languages and general expressions"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.7",
+            "start_line": 1132,
+            "end_line": 1141,
+            "heading": "## 9.7 Shorthand, output selection, and compatibility"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C01",
+      "topic": "Contextual formation can precede a family",
+      "premises": "The law fixes daily predecessor formation over 100,110,95,105 and a separately admitted additive family over the changes.",
+      "expected": "Established changes 10,-15,10 sum to 5 coherently.",
+      "prohibited_shortcut": "Exclude the family solely because formation used neighboring points.",
+      "theory_sections": "§§3.3–3.4",
+      "language_sections": "§6.10",
+      "review_disposition": "consistent",
+      "review_reasoning": "The original predecessor context forms the three changes. The separately admitted additive family can continue over them. Contextual formation is not rejected merely because it used another point.",
+      "other_companion_checks": "Supporting notes §2.3; Introduction §8.4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.3",
+            "start_line": 251,
+            "end_line": 272,
+            "heading": "## 3.3 Contextual formation does not defeat later coherence"
+          },
+          {
+            "section": "3.4",
+            "start_line": 273,
+            "end_line": 284,
+            "heading": "## 3.4 The corrected locality statement"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.10",
+            "start_line": 848,
+            "end_line": 857,
+            "heading": "## 6.10 Contextual formation and later continuation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "topic": "Restriction must preserve formation",
+      "premises": "The same change family is requested after grouping the source into pairs.",
+      "expected": "Reusing original changes differs from restarting predecessor formation inside the pairs, which gives 20.",
+      "prohibited_shortcut": "Push a restriction/grouping through formation without an equivalence justification.",
+      "theory_sections": "§§3.3, 10.2",
+      "language_sections": "§§2.4, 6.10",
+      "review_disposition": "consistent",
+      "review_reasoning": "Restarting predecessor formation in subgroups loses a boundary contribution and changes the construction. LQ locates WHERE in its declared formation scope instead of licensing arbitrary predicate pushdown.",
+      "other_companion_checks": "Supporting notes §§2.3–2.4; Introduction §6.4; integration sheet §8.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.3",
+            "start_line": 251,
+            "end_line": 272,
+            "heading": "## 3.3 Contextual formation does not defeat later coherence"
+          },
+          {
+            "section": "10.2",
+            "start_line": 899,
+            "end_line": 904,
+            "heading": "## 10.2 Regrouping is not arbitrary restriction"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "2.4",
+            "start_line": 233,
+            "end_line": 271,
+            "heading": "## 2.4 Request clauses have different analytical jurisdictions"
+          },
+          {
+            "section": "6.10",
+            "start_line": 848,
+            "end_line": 857,
+            "heading": "## 6.10 Contextual formation and later continuation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "topic": "Faithful recomputation is not forbidden",
+      "premises": "The original contextual formation and its full governing context can be reproduced from adequate evidence.",
+      "expected": "Recomputation can establish the same constitutive values; caching is not required by the theory.",
+      "prohibited_shortcut": "Interpret “do not change formation” as “never recompute.”",
+      "theory_sections": "§§3.3–3.4",
+      "language_sections": "§6.10",
+      "review_disposition": "consistent",
+      "review_reasoning": "A faithful reconstruction of the same constitutive values and context remains allowed. Neither theory nor companion text converts formation preservation into a requirement to cache rather than recompute.",
+      "other_companion_checks": "Supporting notes §2.3; integration sheet §8.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.3",
+            "start_line": 251,
+            "end_line": 272,
+            "heading": "## 3.3 Contextual formation does not defeat later coherence"
+          },
+          {
+            "section": "3.4",
+            "start_line": 273,
+            "end_line": 284,
+            "heading": "## 3.4 The corrected locality statement"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.10",
+            "start_line": 848,
+            "end_line": 857,
+            "heading": "## 6.10 Contextual formation and later continuation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C04",
+      "topic": "Focal window law needs its own contract",
+      "premises": "A rolling expression is written without specifying positional versus time-range neighborhood and material endpoint conventions.",
+      "expected": "The expression’s meaning remains incomplete where these choices change the result.",
+      "prohibited_shortcut": "Treat complete order alone as a full window specification or automatically admit family continuation.",
+      "theory_sections": "§§3.4, 11.4",
+      "language_sections": "§9.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "The order relation alone does not fix a contextual window. Positional/range choice, participation, and meaningful boundary conventions require the particular expression contract; family continuation remains separately admitted.",
+      "other_companion_checks": "Supporting notes §2.2; O3 §13; capability plan §4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.4",
+            "start_line": 273,
+            "end_line": 284,
+            "heading": "## 3.4 The corrected locality statement"
+          },
+          {
+            "section": "11.4",
+            "start_line": 1039,
+            "end_line": 1044,
+            "heading": "## 11.4 General focal expressions"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.6",
+            "start_line": 1122,
+            "end_line": 1131,
+            "heading": "## 9.6 Contextual order and neighborhoods"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E01",
+      "topic": "Established output, unplaced source",
+      "premises": "A Day output point exists and Revenue is eligible, but required known source contributions cannot be placed by Day.",
+      "expected": "The target value may be unsupported; the upstream placement cause remains distinct.",
+      "prohibited_shortcut": "Declare the output point nonexistent or forbid target missingness solely because a source placement is unresolved.",
+      "theory_sections": "§§2.3, 9.1–9.4",
+      "language_sections": "§§8.1–8.4",
+      "review_disposition": "consistent",
+      "review_reasoning": "The subject of the failed placement claim is the source point. The target point may already exist and be eligible but have an unsupported value. R4 no longer makes all source placements a precondition for describing target missingness.",
+      "other_companion_checks": "Supporting notes §3.1; O3 §9; integration sheet §9.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.3",
+            "start_line": 213,
+            "end_line": 232,
+            "heading": "## 2.3 Existence, eligibility, and value support"
+          },
+          {
+            "section": "9.1",
+            "start_line": 829,
+            "end_line": 840,
+            "heading": "## 9.1 Definition, evidence, and realization"
+          },
+          {
+            "section": "9.4",
+            "start_line": 863,
+            "end_line": 870,
+            "heading": "## 9.4 Downstream disclosure cannot repair an undefined computation"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.1",
+            "start_line": 988,
+            "end_line": 993,
+            "heading": "## 8.1 Standing questions precede carrier interpretation"
+          },
+          {
+            "section": "8.4",
+            "start_line": 1013,
+            "end_line": 1026,
+            "heading": "## 8.4 Eligibility, support, and missing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E02",
+      "topic": "Known domain with incomplete operand support",
+      "premises": "Governance establishes exactly 100 participating transactions, with 99 supported Revenue observations.",
+      "expected": "Point count is 100; a count under a declared supported-operand participation law may be 99. A mean over all 100 cannot silently shrink.",
+      "prohibited_shortcut": "Infer intended population from surviving ordinary rows.",
+      "theory_sections": "§§2.3, 4.2, 11.5.1",
+      "language_sections": "§8.5",
+      "review_disposition": "consistent_with_local_example_clarification",
+      "review_reasoning": "T §11.5.1, LQ §8.5, and this case correctly make 99 depend on a declared supported-observation participation rule. LQ §6.3's separate 97-observation example should state that same premise locally; correction J1 supplies it without changing the count forms or law.",
+      "other_companion_checks": "Supporting notes §3.2; correction J1.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "2.3",
+            "start_line": 213,
+            "end_line": 232,
+            "heading": "## 2.3 Existence, eligibility, and value support"
+          },
+          {
+            "section": "4.2",
+            "start_line": 397,
+            "end_line": 404,
+            "heading": "## 4.2 Participation must survive staging"
+          },
+          {
+            "section": "11.5.1",
+            "start_line": 1049,
+            "end_line": 1056,
+            "heading": "### 11.5.1 SUM, COUNT, MIN, and MAX"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.5",
+            "start_line": 1027,
+            "end_line": 1034,
+            "heading": "## 8.5 Lost records and point counts"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E03",
+      "topic": "Coarser witness, unavailable staged input",
+      "premises": "Participation s1<s2<s3 and intermediate blocks {s1},{s2,s3} are known; f(s1) unavailable, f(s2)=20 and f(s3)=30 supported.",
+      "expected": "Coarser W=(s3,30) is established by maximality evidence even though a plan consuming both exact intermediate witnesses lacks an input.",
+      "prohibited_shortcut": "Replace unavailable intermediate W with known-empty identity, or infer target impossibility from this plan’s failure.",
+      "theory_sections": "§§6.1, 9.5",
+      "language_sections": "§8.7",
+      "review_disposition": "consistent",
+      "review_reasoning": "Participation and intermediate-block membership are known; the unavailable item is the first witness value. The coarser witness follows from maximality evidence, not from substituting empty state or pretending the blocked staged plan ran.",
+      "other_companion_checks": "Supporting notes §3.3; O3 §9.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "6.1",
+            "start_line": 525,
+            "end_line": 586,
+            "heading": "## 6.1 Self-sufficient continuation"
+          },
+          {
+            "section": "9.5",
+            "start_line": 871,
+            "end_line": 878,
+            "heading": "## 9.5 Coarser support need not require every finer witness to be available"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.7",
+            "start_line": 1043,
+            "end_line": 1048,
+            "heading": "## 8.7 An unavailable staged plan need not make the target unavailable"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E04",
+      "topic": "Scalar without winner identity",
+      "premises": "Fixed LAST law; p<q; p definitely participates; q participation unresolved; p,q exhaust possible participants; both operand values supported as 7.",
+      "expected": "Nonempty scalar L=7 is established; selected-point W is not.",
+      "prohibited_shortcut": "Claim W, choose an arbitrary observed 7 without the exhaustive evidence, or treat W as necessary for every L proof.",
+      "theory_sections": "§9.6",
+      "language_sections": "§8.8",
+      "review_disposition": "consistent",
+      "review_reasoning": "The scalar-only argument retains its fixed law, known nonemptiness, exhaustive possible-participant account, and supported equality at every possible winner. It establishes L, not a selected W, and is not a general constant-fill procedure.",
+      "other_companion_checks": "Supporting notes §3.3; O3 §9; Introduction §8.4; T §10.7.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "9.6",
+            "start_line": 879,
+            "end_line": 888,
+            "heading": "## 9.6 A sufficient witness is not a necessity theorem for a value-only target"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.8",
+            "start_line": 1049,
+            "end_line": 1054,
+            "heading": "## 8.8 A scalar can be established without an identified winner"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E05",
+      "topic": "Missing selected operand",
+      "premises": "Participation and order identify the latest eligible point, whose operand value is unsupported.",
+      "expected": "Ordinary LAST value is unsupported unless another adequate argument establishes the same target.",
+      "prohibited_shortcut": "Return an earlier supported value by silent support-skipping.",
+      "theory_sections": "§§9.2–9.3",
+      "language_sections": "§8.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "Ordinary LAST of the participating points does not silently become LAST of supported values. Any alternative adequate argument must establish the same target rather than change participation.",
+      "other_companion_checks": "Supporting notes §2.2; O3 §§9, 14.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "9.2",
+            "start_line": 841,
+            "end_line": 852,
+            "heading": "## 9.2 A result need not require every possible input value"
+          },
+          {
+            "section": "9.3",
+            "start_line": 853,
+            "end_line": 862,
+            "heading": "## 9.3 What cannot be silently changed"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.6",
+            "start_line": 1035,
+            "end_line": 1042,
+            "heading": "## 8.6 Target-relative evidence requirements"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E06",
+      "topic": "Known empty is not unknown",
+      "premises": "An intermediate contribution set is unknown, or the selected value is unsupported.",
+      "expected": "No algebraic unit can stand for that unknown evidence without a separate admitted argument.",
+      "prohibited_shortcut": "Coerce carrier NULL or unknown support to bottom/zero/empty set.",
+      "theory_sections": "§§5.2, 6.1.1, 8.2, 9",
+      "language_sections": "§8.9",
+      "review_disposition": "consistent",
+      "review_reasoning": "The empty unit describes known-empty contribution where admitted. Unavailable value, unestablished placement, and unknown participation are not identities. The inherited MIN/MAX semigroup case introduces no synthetic null.",
+      "other_companion_checks": "Supporting notes §3.3; O3 §§8–9; integration sheet §9.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "5.2",
+            "start_line": 429,
+            "end_line": 440,
+            "heading": "## 5.2 Self-sufficiency and source intake are different"
+          },
+          {
+            "section": "6.1.1",
+            "start_line": 579,
+            "end_line": 586,
+            "heading": "### 6.1.1 The inherited nonempty semigroup case"
+          },
+          {
+            "section": "8.2",
+            "start_line": 717,
+            "end_line": 752,
+            "heading": "## 8.2 The complete finite-input fragment"
+          },
+          {
+            "section": "9",
+            "start_line": 827,
+            "end_line": 888,
+            "heading": "# 9. Evidence adequacy is relative to the law"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.9",
+            "start_line": 1055,
+            "end_line": 1060,
+            "heading": "## 8.9 Empty contribution, unsupported value, and zero"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E07",
+      "topic": "Late filtering cannot undo ordered influence",
+      "premises": "An unplaceable contribution affects cumulative/lag output, then its own row is withheld.",
+      "expected": "The resulting computation has not been repaired by the late withholding.",
+      "prohibited_shortcut": "Report ordinary established results merely because no NULL-coordinate row remains.",
+      "theory_sections": "§9.4",
+      "language_sections": "§8.10",
+      "review_disposition": "consistent",
+      "review_reasoning": "Removing the unplaced row after an ordered walk does not undo its effect on surviving outputs. Disclosure alone cannot establish the original target; a restricted result needs its own explicit claim and conditions.",
+      "other_companion_checks": "Supporting notes §3.4; O3 §9; integration sheet §9; capability plan §7.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "9.4",
+            "start_line": 863,
+            "end_line": 870,
+            "heading": "## 9.4 Downstream disclosure cannot repair an undefined computation"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "8.10",
+            "start_line": 1061,
+            "end_line": 1066,
+            "heading": "## 8.10 Frame-level consequence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R01",
+      "topic": "Lossy compression can hide contradiction",
+      "premises": "With p<q, one alleged coherent input has (p,10),(q,20); another has (p,11).",
+      "expected": "Their coherent-instance premise is violated; compressed winner comparison cannot validate it.",
+      "prohibited_shortcut": "Treat equal-point conflict checks or a common context label as a global consistency certificate.",
+      "theory_sections": "§10.6",
+      "language_sections": "§10.7",
+      "review_disposition": "consistent",
+      "review_reasoning": "The contradictory nonwinning claim can disappear before local winner comparison. T and all technical companions require adequate compatibility evidence outside the lossy combine; a matching context label alone is not that evidence.",
+      "other_companion_checks": "Supporting notes §5; O3 §§8, 12.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "10.6",
+            "start_line": 929,
+            "end_line": 936,
+            "heading": "## 10.6 Lossy state does not certify the consistency premise"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "10.7",
+            "start_line": 1200,
+            "end_line": 1205,
+            "heading": "## 10.7 Compatibility before lossy combination"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R02",
+      "topic": "Three materialization claims",
+      "premises": "A catalog holds W, scalar L projected from discarded W, or scalar L established without identifying its winner.",
+      "expected": "Record retained content, established claim and justification, and permitted reuse; the scalar rows need not have different family identities.",
+      "prohibited_shortcut": "Collapse all entries into “LAST available” or create family identity by proof method.",
+      "theory_sections": "§10.7",
+      "language_sections": "§10.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "All three materialization situations remain distinguished. W can supply L on the nonempty constructor domain. Scalar proof histories do not create new family identities and do not imply W is retained or recoverable.",
+      "other_companion_checks": "O3 §12; Introduction §8.4; capability plan §2.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "10.7",
+            "start_line": 937,
+            "end_line": 970,
+            "heading": "## 10.7 A stored answer and retained sufficient state are different claims"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "10.6",
+            "start_line": 1186,
+            "end_line": 1199,
+            "heading": "## 10.6 Retained content, established claim, and permitted reuse"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R03",
+      "topic": "Equal mean display, unequal continuation",
+      "premises": "Exact states (10,1) and (1000,100) both display 10; both are extended by (20,1).",
+      "expected": "The results become 15 and 1020/101; scalar equality did not preserve continuation information.",
+      "prohibited_shortcut": "Merge or substitute displayed means as adequate state.",
+      "theory_sections": "§10.5",
+      "language_sections": "§6.6",
+      "review_disposition": "consistent",
+      "review_reasoning": "Equal present scalar means do not determine weights for later extension. Continuation-state substitution requires the next operation's adequate information and compatible premises, not merely equal displays.",
+      "other_companion_checks": "Supporting notes §5; Primer, “The Result Can Be the Query”.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "10.5",
+            "start_line": 919,
+            "end_line": 928,
+            "heading": "## 10.5 Result agreement is not continuation-equivalent state"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.6",
+            "start_line": 794,
+            "end_line": 805,
+            "heading": "## 6.6 Sufficient state belongs to analytical law"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R04",
+      "topic": "Restriction or deletion of winner",
+      "premises": "Only the compressed maximal witness is retained, and the next request excludes or deletes that point.",
+      "expected": "A new adequate derivation or richer retained information is required to identify its replacement.",
+      "prohibited_shortcut": "Infer arbitrary filtering/deletion capability from witness coarsening capability.",
+      "theory_sections": "§§10.2–10.3",
+      "language_sections": "§10.8",
+      "review_disposition": "consistent",
+      "review_reasoning": "Extremum state sufficient for admitted coarsening can lose the replacement winner needed after deletion or restriction. A richer input or adequate new argument may be necessary; stored availability alone does not grant it.",
+      "other_companion_checks": "O3 §12; supporting notes §5.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "10.2",
+            "start_line": 899,
+            "end_line": 904,
+            "heading": "## 10.2 Regrouping is not arbitrary restriction"
+          },
+          {
+            "section": "10.3",
+            "start_line": 905,
+            "end_line": 910,
+            "heading": "## 10.3 Mergeability is not deletion-maintainability"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "10.8",
+            "start_line": 1206,
+            "end_line": 1213,
+            "heading": "## 10.8 Reuse is specific to the next operation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R05",
+      "topic": "Approximate realization of unchanged target",
+      "premises": "An explicit approximation contract supports an HLL estimate of exact count distinct.",
+      "expected": "It may target the same family while remaining an approximate realization, not an exact sufficient-state basis.",
+      "prohibited_shortcut": "Invent a new target solely from error grade, or silently reuse the estimate as exact state.",
+      "theory_sections": "§10.9",
+      "language_sections": "§§6.9, 10.8",
+      "review_disposition": "consistent",
+      "review_reasoning": "An approximate realization can target the same analytical family, but does not become exact sufficient state. Both source and companion texts preserve the error/realization boundary and forbid approximation as an excuse for unestablished meaning.",
+      "other_companion_checks": "Capability plan §4; supporting notes §5.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "10.9",
+            "start_line": 983,
+            "end_line": 992,
+            "heading": "## 10.9 Approximation remains explicit"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "6.9",
+            "start_line": 842,
+            "end_line": 847,
+            "heading": "## 6.9 Availability is profile-specific"
+          },
+          {
+            "section": "10.8",
+            "start_line": 1206,
+            "end_line": 1213,
+            "heading": "## 10.8 Reuse is specific to the next operation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G01",
+      "topic": "EXPLAIN does not observe unperformed checks",
+      "premises": "EXPLAIN resolves meaning and a proposed plan without data execution or applicable evidence for all runtime conditions.",
+      "expected": "It distinguishes what is established from checks outstanding.",
+      "prohibited_shortcut": "Guarantee all future disclosures or complete data support from a data-free explanation.",
+      "theory_sections": "§§9.1, 12.3–12.4",
+      "language_sections": "§10.3",
+      "review_disposition": "consistent",
+      "review_reasoning": "EXPLAIN can expose resolved meaning, plans, and applicable assurance, not evidence of every unperformed data check. The same semantic request must reach execution; disclosure completeness is not promised without applicable evidence.",
+      "other_companion_checks": "O3 §11; Introduction §7; integration sheet §4.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "9.1",
+            "start_line": 829,
+            "end_line": 840,
+            "heading": "## 9.1 Definition, evidence, and realization"
+          },
+          {
+            "section": "12.3",
+            "start_line": 1151,
+            "end_line": 1160,
+            "heading": "## 12.3 Manifold declarations and assurance"
+          },
+          {
+            "section": "12.4",
+            "start_line": 1161,
+            "end_line": 1172,
+            "heading": "## 12.4 Request languages and general expressions"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "10.3",
+            "start_line": 1166,
+            "end_line": 1171,
+            "heading": "## 10.3 EXPLAIN states what is known and what remains to be established"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G02",
+      "topic": "Family law versus engine kind",
+      "premises": "An operator belongs to a runtime category or a canonical capability list.",
+      "expected": "Family admission still needs the complete target/law contract; category does not confer authority.",
+      "prohibited_shortcut": "Grant family founding solely from an anchor-changing kind.",
+      "theory_sections": "§3.6",
+      "language_sections": "§13",
+      "review_disposition": "consistent",
+      "review_reasoning": "The complete analytical family law, language meaning, profile obligation, runtime category, and materialized capability remain different questions. No fourth-cell or reducer-kind shortcut confers family founding.",
+      "other_companion_checks": "Capability plan §§2–3; supporting notes §1.3.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "3.6",
+            "start_line": 311,
+            "end_line": 326,
+            "heading": "## 3.6 Operator geometry does not confer family authority"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "13",
+            "start_line": 1254,
+            "end_line": 1265,
+            "heading": "# 13. Capability and profile boundary"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G03",
+      "topic": "No syntax from theory alone",
+      "premises": "The theory admits tuples, witnesses, order definitions or a family construction not exposed by a shipped grammar/profile.",
+      "expected": "Semantic admission and language/implementation availability remain separate.",
+      "prohibited_shortcut": "Advertise theoretical notation as accepted syntax or edit measured build status to imply support.",
+      "theory_sections": "§§12–13",
+      "language_sections": "§§1, 13",
+      "review_disposition": "consistent",
+      "review_reasoning": "Theory notation and working semantic admission are not accepted syntax or build conformance. The intros preserve their examples and versioned release boundary without reporting new execution.",
+      "other_companion_checks": "Introduction §§11–12; Primer scope paragraphs; capability plan §5; authority index §§2, 5.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "12",
+            "start_line": 1115,
+            "end_line": 1204,
+            "heading": "# 12. Realization and neighboring responsibilities"
+          },
+          {
+            "section": "13",
+            "start_line": 1205,
+            "end_line": 1240,
+            "heading": "# 13. Formal status and review scope"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "1",
+            "start_line": 70,
+            "end_line": 179,
+            "heading": "# 1. Authority and jurisdictions"
+          },
+          {
+            "section": "13",
+            "start_line": 1254,
+            "end_line": 1265,
+            "heading": "# 13. Capability and profile boundary"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G04",
+      "topic": "CDT interface remains unverified",
+      "premises": "This pass specifies required comparison and representation behavior but does not inspect CDT v0.5.",
+      "expected": "Readiness is unverified; a new nominal Witness type is neither asserted absent nor mandated.",
+      "prohibited_shortcut": "Claim present API support/absence from the theory manuscript.",
+      "theory_sections": "§§8.5, 12.2, 13.3",
+      "language_sections": "§9.5",
+      "review_disposition": "consistent",
+      "review_reasoning": "The actual CDT API has not been verified in this set. Requirements are explicit, but neither absence of a nominal Witness type nor presence of a usable implementation is inferred. Interface verification is a separate gate.",
+      "other_companion_checks": "O3 §§0, 4, 16; capability plan §§4–5.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "8.5",
+            "start_line": 789,
+            "end_line": 794,
+            "heading": "## 8.5 The witness need not have one physical format"
+          },
+          {
+            "section": "12.2",
+            "start_line": 1143,
+            "end_line": 1150,
+            "heading": "## 12.2 Semantic types and analytical order"
+          },
+          {
+            "section": "13.3",
+            "start_line": 1225,
+            "end_line": 1232,
+            "heading": "## 13.3 Advisory reviews and the remaining publication gate"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "9.5",
+            "start_line": 1114,
+            "end_line": 1121,
+            "heading": "## 9.5 Continuation preserves original-point witnesses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "G05",
+      "topic": "Historical instructions are not active authority",
+      "premises": "An earlier O1/O2/M2/CP document says FIRST/LAST cannot found families or universal formation locality is required.",
+      "expected": "Use the explicit current supersession index and reconciled language target; preserve historical observations at their own snapshots.",
+      "prohibited_shortcut": "Execute an old “settled” instruction because its filename or prior PASS sounds authoritative.",
+      "theory_sections": "Appendix C.4",
+      "language_sections": "§§15–16",
+      "review_disposition": "consistent",
+      "review_reasoning": "The active index explicitly supersedes the categorical ordered-family and universal formation-locality rules in old notes and handoffs. Historical reports remain evidence at their snapshots, not new implementation instructions.",
+      "other_companion_checks": "Authority index §§3–6; integration sheet §12; reconciliation register §6.",
+      "source_locations": {
+        "T": [
+          {
+            "section": "C.4",
+            "start_line": 1421,
+            "end_line": 1434,
+            "heading": "## C.4 Working revisions and downstream scope"
+          }
+        ],
+        "LQ": [
+          {
+            "section": "15",
+            "start_line": 1276,
+            "end_line": 1285,
+            "heading": "# 15. Remaining work before implementation reconciliation"
+          },
+          {
+            "section": "16",
+            "start_line": 1286,
+            "end_line": 1292,
+            "heading": "# 16. Status and sources"
+          }
+        ]
+      }
+    }
+  ]
+}

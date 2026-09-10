@@ -1,0 +1,27 @@
+{
+  "title": "ToD v7.1 / Frame-QL joint-review document-integrity audit",
+  "version": "0.1",
+  "date": "2026-09-07",
+  "status": "passed",
+  "scope": "File integrity, source mapping, and patch preservation only. No semantic scenarios, theorem suites, Columna tests, live sources, or CDT API were executed or verified.",
+  "checks": {
+    "twelve_active_markdown_source_hashes": "passed",
+    "reading_copy_and_historical_source_hashes": "passed",
+    "forty_original_cases_and_expected_judgments_preserved": "passed",
+    "case_to_theory_and_language_section_locations": "passed",
+    "case_ledger_dispositions": "39 consistent; E02 consistent with local example clarification",
+    "J1_J2_unique_replay_and_exact_diffs": "passed",
+    "equations_and_fenced_examples_unchanged_under_proposed_edits": "passed",
+    "S6_historical_referent_and_scope": "passed",
+    "packaged_local_file_link_destinations": "passed"
+  },
+  "not_claimed": [
+    "semantic proof",
+    "independent external review",
+    "new execution of historical mathematical suites",
+    "runtime conformance",
+    "published status",
+    "live corpus adoption"
+  ],
+  "source_changes": "None. Patches were replayed in memory only."
+}
