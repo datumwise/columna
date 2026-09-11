@@ -166,8 +166,10 @@ class Frame:
 #     <columns> ::= <column> ("," <column>)*
 #     <column>  ::= <name> ":" <expr>  |  <expr>          # bare expr -> name defaults to the expr text
 #     <anchor>  ::= <level> (("*" | ",") <level>)*      # `*` canonical (the anchor product); `,` accepted
-# Commas inside parentheses (e.g. `lag(revenue.sum, n=1)`) are NOT top-level separators. No SQL: a
+# Commas inside parentheses (e.g. `lag(revenue.sum, n: 1)`) are NOT top-level separators. No SQL: a
 # query that does not fit this envelope (or whose expression core rejects) is an error, never executed.
+# (`n = 1` parses too — compatibility input, canonicalized to the colon by the expression grammar,
+# §15.2. The colon is written here because a comment that shows a spelling is teaching one.)
 _SQL_HINTS = ("select ", "insert ", "update ", "delete ", "drop ", "create ", "with ", ";")
 
 
