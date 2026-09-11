@@ -2597,6 +2597,33 @@ actually shows is the publication under-determining its own meaning — restorin
 governed layer removes the under-determination at its source, which adding a mapping digest to the
 binding would not.
 
+### Synthesis delivered 2026-09-11 — awaiting ruling
+
+`specs/unit_d_family_law_carrier_synthesis_v0_1.md`, written to the seven-part frame Huayin set that
+day (obligations · what already exists · open choices · alternatives · recommendation · per-layer
+consequences · migration burden). It covers **D2**, **D3** and **D4** (whose count is **1 of 1** —
+`firstlight` is the entire set of publications that would stop compiling, and only under the one
+recommended required key). **D1's crosswalk table is still owed** and the synthesis is written not to
+presuppose it.
+
+Two findings from it belong in this row because they change its urgency, not just its content:
+
+1. **The fossil is confirmed by reading, with line numbers.** `compiler/compile.py:321-329` builds
+   `FAMILY {…}` out of `MemberRealization.root_evaluator` — the private mapping — while
+   `compiler/inputs.py:166-169` says of that same field *"a compiler that chose a reducer would be
+   manufacturing analytical law."* The compiler is not manufacturing law; it is importing it from the
+   wrong side of the boundary, one level above where its own docstring is looking.
+2. **K0's lawfulness is an accident of scope.** `boundary` refuses outright
+   (`compile.py:104-107`), and `emit` emits no hierarchies, so an image has no edge to travel and an
+   empty B-anchor is vacuously safe. **The K1 hierarchy step breaks both halves on the day it lands**
+   — a publication with a boundary still refuses, and a publication without one compiles into an
+   image open along every lineage. This unit now has a deadline it did not have when it was opened.
+
+A third item is raised for ruling and is not a finding: the authoring ruling *"additivity is the
+absence of a boundary… an additive answer produces nothing"* and the Unit D invariant *"absence of
+prohibition is not permission"* **cannot both hold at the carrier**. Every alternative inherits the
+answer; the synthesis recommends ruling it first.
+
 ### What it unblocks
 
 **OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a
