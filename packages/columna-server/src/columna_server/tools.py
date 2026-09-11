@@ -419,10 +419,17 @@ def check_frame_query(store: ManifoldStore, manifold_id: str, frameql: str,
 
 
 def frame_ql_grammar() -> dict:
-    """The FrameQL (envelope) query grammar, verbatim, with the columna-core version it came from. The
-    language the ask is written in — `[EXPLAIN] [FROM m] [WITH …] SELECT <series [AS alias]>,… AT
-    {anchor} [WHERE][HAVING][ORDER BY][LIMIT n [PER {dims}]]` — so a caller writes a query rather than
-    guessing the shape. Touches no manifold and no data."""
+    """The FrameQL grammar, verbatim, with the columna-core version it came from. BOTH LEVELS, because
+    `envelope.__doc__` carries both and this tool returns it unedited: the ENVELOPE — `[EXPLAIN]
+    [FROM m] [WITH …] SELECT <series [AS alias]>,… AT {anchor} [WHERE][HAVING][ORDER BY][LIMIT n [PER
+    {dims}]]` — and the EXPRESSION dialect inside a series (Frame-QL 1.0 §15): the precedence ladder,
+    `=` compares / `:` names an argument, dotted access, braces-are-grains, brackets-subscribe. So a
+    caller writes a query rather than guessing the shape, and reads `revenue / orders @ {customer}`
+    the way the parser does. Touches no manifold and no data.
+
+    RESTATED HERE, NOT RE-AUTHORED. This sentence summarizes what the returned text contains; the text
+    itself is the module docstring, which is the single authority. If the two disagree, the docstring
+    is right and this summary is the defect — that is the only reason it is allowed to exist."""
     from importlib.metadata import version
 
     from columna_core import envelope as _env

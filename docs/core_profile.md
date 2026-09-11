@@ -71,7 +71,7 @@ What a conforming Core implementation undertakes to realize. This is a promise, 
 | Capability | Core undertakes |
 |---|---|
 | `and` | executes |
-| `=`, `==` | executes |
+| `=` (compatibility input: `==`) | executes |
 | `>=` | executes |
 | `>` | executes |
 | `<=` | executes |

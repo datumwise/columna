@@ -24,6 +24,45 @@ referent. Each tagged construct has been re-typed below against what the shipped
 turned out to **ship today**, so the marker had been withholding, in prose, capability the open
 package already serves.
 
+## 1.2a The expression grammar: precedence, `=`, and `:`
+
+**▸ Net-new section, 2026-09-11 (Frame-QL 1.0 expression language).** The Manual documented the
+envelope skeleton at §1.2 and then never said how the text *inside* a clause is read. It had no
+precedence statement of any kind, in either edition. For as long as the expression dialect was hosted
+on another language's parser there was no honest one to write — the precedence was whatever the host
+had — and that is the defect, not an omission of wording. §1.2a states the Frame-QL 1.0 §15 ladder,
+the `=` compares / `:` names rule, and the brace, bracket and dotted-path rules that go with it.
+
+It is numbered `1.2a` rather than taking the next free number because `§2.9` is cited from outside
+this repository and from this ledger; a manual whose section numbers move under a live citation costs
+more than a letter does. The precedent is §6.8a.
+
+## 1.5 `AT` and `@`: output anchors versus input anchors
+
+**▸ Correction, 2026-09-11.** This section used to close *"…and the parser is unchanged."* That was a
+claim about one implementation, written to reassure a reader that a vocabulary discussion moved
+nothing — and Frame-QL 1.0 falsified it. The two-keyword rule is untouched: `@` marks an input anchor
+wherever it appears and `AT` declares the one output anchor. What the rule never settled is where `@`
+sits against the other operators, and 1.0 settles it in the direction the retired host-language
+substrate had backwards: **`@` binds more tightly than arithmetic**, so `revenue / orders @ {customer}`
+ascribes the denominator, not the ratio. The sentence now states the precedence instead of asserting
+stability.
+
+## 1.6 Series names and the `AS` alias
+
+**▸ Canonical key text moved, 2026-09-11 (wire `contract_version` `"4"` → `"5"`).** An unaliased
+column's key *is* its canonical expression (WP-NAME-1, 0.14.0), so when the canonical SPELLING moves,
+the key of an utterance that did not change moves with it. The retired dialect carried the writer's
+incidental whitespace into the key and 1.0's canonical spelling does not: `avg(revenue@{day})` keyed
+as `avg(revenue@ {day})` and now keys as `avg(revenue @ {day})`, and `avg( revenue @ { day } )` keyed
+as itself. `EXPLAIN`'s canonical text moved further than the keys did, because it prints expressions
+the key rules never key — a named argument written `n = 1` comes back `n: 1`. No value, mood,
+disclosure, materiality or reason code moved. The precedent for the bump is `"1"` → `"2"`, which
+WP-NAME-1 took for exactly this class of change.
+
+The needs-an-`AS` list also stopped calling `revenue[region = "east"]` a "bracket-filtered column
+reference"; it is a value subscription, and the *filter* reading is gone from the language (§2.8).
+
 ## 2.1 The shape of the canonical form
 
 **▸ Second-Edition sync (the multi-input shape is [ROADMAP], 2026-08-31).** This paragraph used to
@@ -77,6 +116,26 @@ mislead a reader who checks only whether a query is accepted.
 
 Every worked example in Chapter 6 that is presented as *producing* a scan result is marked
 `[ROADMAP]` for this reason, even though its syntax and planning path already ship.
+
+**▸ The bracket filter was DECIDED, not deferred, 2026-09-11 (Frame-QL 1.0 §7.5/§10.4/§15.4).** The
+notes above treat it as an unshipped roadmap form — accurate when they were written, and superseded
+now. 1.0 reserves `[]` for semantic-value subscription and says so of the roadmap recommendation
+specifically: brackets never parse as analytical filtering, and a conforming diagnostic points the
+writer at `WHERE` or `HAVING` rather than silently reinterpreting them. So there is no deferred
+bracket-filter construct waiting to ship. The section was renamed *Scans and their family-aware
+parameters*, the form is no longer marked `[ROADMAP]` anywhere in the Manual, and §6.7 — which taught
+the filter — now teaches the refusal, with the example carried as a CHECKED one earning
+`bracket_is_not_a_filter`.
+
+**▸ The scan parameters are spelled with a colon, 2026-09-11 (§15.2).** The bullets above write
+`reset =`, `step =`, `n =`, `by =`, and that is what the signatures took when they were written. Under
+1.0 `=` compares and `:` names an argument, so the parameter names are `n:`, `by:`, `window:` — and
+`reset:`, `within:`, `step:` for the ones still unshipped. The historical `name = value` spelling
+remains compatibility INPUT and canonicalizes to the colon, so nothing already written stopped
+parsing; what changed is that the language now writes the colon back, in canonical text, in `EXPLAIN`,
+in an unaliased column's key, and in every refusal message. The dated bullets above are left in their
+own spelling: on the day each was written it was the spelling the build took, and correcting a dated
+note to today's syntax would make the record say something that was not true when it was filed.
 
 ## 2.9 The grammar grows by ruling
 
@@ -137,6 +196,18 @@ Resolving it is a language ruling, not a parser fix.
 **`AS count(*)` in a `.cml` MEASURE is a different and established case** and is unaffected: there
 the source table is declared on the measure, so what is counted is not in question.
 
+## 6.7 Bracket filter on a column **[ROADMAP]**
+
+**▸ The section was REWRITTEN, and the heading with it, 2026-09-11.** It taught a filter —
+*"It shows the form the language grows into"* — under a `[ROADMAP]` mark and a `frameql-roadmap`
+fence. Frame-QL 1.0 superseded the roadmap recommendation rather than scheduling it (§2.8), so the
+section could not be brought level by relabelling: a mark says *not yet*, and the honest word is
+*not this*. It is now **§6.7 Brackets subscribe; they do not filter**, and the example is CHECKED
+rather than excused — it parses, and the Manual's gate asserts it earns
+`error: bracket_is_not_a_filter` with the two lawful edits, `WHERE` and `HAVING`, carried in the
+answer. A roadmap example became an executed one, which is the direction that ought to be hard to
+fake.
+
 ## 6.11 Scan for running total
 
 **▸ Currency (2026-09-01).** This section read *"Parses and plans; does not execute"* and was
@@ -150,9 +221,40 @@ must make the stale sentence fail — never make the working build look like the
 execution is not available in the current Core build". That count is gone: `cumsum` executes
 (§6.11). Only the parameter count remains.
 
+**▸ Spelling, 2026-09-11.** Both examples and the prose now write `reset:` and `step:` (§15.2 — `=`
+compares, `:` names an argument). The count is unchanged: these two are still unshipped on the
+parameter, and the historical `reset = year` spelling reaches the same refusal, because a parameter
+the language has not ruled in is not admitted by the spelling it is written in.
+
 ## Appendix B: Reserved Keywords
 
 **▸ shipped-law reconciliation (2026-07-17), RESOLVED.** The prior edition of this appendix flagged `FROM`/`SELECT`/`AT`/`{…}` as "Coframe canonical form, not the shipped grammar," pending the Coframe→envelope rewrite. That rewrite has landed: the **envelope** `SELECT … AT {…}` *is* the shipped grammar (Chapter 1), so these are the shipped query keywords, reconciled above. The retired terse `@`-fragment (its `:` label and trailing-`@` output) moves to Appendix D.
+
+**▸ Reconciled to Frame-QL 1.0, 2026-09-11.** Three changes, each of them a claim that had stopped
+being true. `[…]` and `:` join the **structural markers** — subscription and the named-argument
+marker are structure, and were listed nowhere. The scan-parameter keywords split: `n`, `by` and
+`window` are what the signatures declare, while `reset`, `within` and `step` are the ones still
+`[ROADMAP]`; listing all six together said the shipped three were as unavailable as the other
+three. And the **bracket-filter `[...]` entry is struck** rather than re-marked, with a note saying
+it was superseded — a grow-by-ruling list is a list of things that may still arrive, and this one
+will not. The expression keywords are now stated as the five the expression grammar actually
+reserves (`AND`, `OR`, `NOT`, `IN`, `BETWEEN`); `CASE`/`WHEN`/`THEN`/`ELSE`/`END` stay grow-by-ruling,
+and a conditional written as the ordinary call `if(…)` parses today and is resolved against the
+operator registry like any other call.
+
+## Appendix D: Lineage — the retired terse `@`-fragment
+
+**▸ A direct contradiction, resolved by distinguishing the two roles rather than by amending the
+record, 2026-09-11.** This appendix states that the envelope **declined** the fragment's `:` label,
+and Frame-QL 1.0 **adopts** `:` for named arguments. Read as one fact about one character that is a
+reversal, and the temptation is to soften the earlier sentence. The earlier sentence is right and
+stands. The fragment's `:` was a **column label** — `inv: level.last @ region` named the output
+column, in the position `AS` occupies — and that role is still declined: output keys are declared by
+`AS` or are the canonical expression, and there is no second spelling for them. 1.0's `:` marks a
+**named analytical parameter inside a call**, a surface the fragment did not have at all. One
+character, two roles. A paragraph saying so precisely has been added to the appendix, because
+leaving two true sentences that look like a contradiction is how a reader concludes one of them is
+stale.
 
 
 ## Preface — the edition ledger

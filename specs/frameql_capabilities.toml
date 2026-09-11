@@ -547,9 +547,17 @@ source = "Frame-QL Manual Appendix A"
 # A canonical vocabulary governed by SYNTAX POSITION (ruled 2026-09-01). These are not
 # series-expression operators and never will be; profile/build support is a separate question.
 
+# `eq` IS THE ONE CAPABILITY WHOSE SPELLINGS ARE NOT ALIASES (declared 2026-09-11, Frame-QL 1.0
+# §15.2). Everywhere else in this file a multi-spelling row lists ALIASES — `mean`/`avg`,
+# `approx_distinct`/`distinct` — either of which the language is content to write back. Here the
+# language has picked: `=` IS the comparison operator, and `==` is compatibility INPUT that is
+# accepted and canonicalized to `=`. Listing the two side by side said they were interchangeable,
+# which is exactly the claim §15.2 settled against; `canonical_spelling` says which one the language
+# writes, and the projected tables carry the distinction to the reader.
 [[capability]]
 id = "eq"
 spellings = ["=", "=="]
+canonical_spelling = "="
 position = "predicate"
 category = "map"
 standing = "ratified"

@@ -22,10 +22,13 @@ The `"4"` → `"5"` bump (2026-09-11) is the opposite kind: nothing about the *s
 changed, and one thing a caller can read off it did. The expression dialect moved onto the adopted
 Frame-QL 1.0 grammar, and an unaliased column's key **is** its canonical expression text
 (WP-NAME-1), so the canonical spelling moving moves the key of an utterance that did not change.
-`sum(revenue@{transaction})` keyed as `sum(revenue@ {transaction})` on `"4"` and keys as
-`sum(revenue @ {transaction})` on `"5"`; a named argument written `n = 1` keys as `n: 1`. No value,
-mood, disclosure, materiality or existing reason code moved. The precedent is `"1"` → `"2"`, the bump
-WP-NAME-1 took for exactly this class of change.
+Measured: `SELECT avg(revenue@{day}) AT {customer}` keyed as `avg(revenue@ {day})` on `"4"` and keys
+as `avg(revenue @ {day})` on `"5"`, and `avg( revenue @ { day } )` keyed as itself and now keys as
+the same canonical text — the retired dialect carried the writer's incidental whitespace into the
+key, and 1.0's canonical spelling does not. `EXPLAIN`'s canonical form moved further, because it
+prints expressions the key rules never key: a named argument written `n = 1` comes back `n: 1`. No
+value, mood, disclosure, materiality or existing reason code moved. The precedent is `"1"` → `"2"`,
+the bump WP-NAME-1 took for exactly this class of change.
 
 ## Language surfaces this build does not realize
 
@@ -174,7 +177,7 @@ Measured from the installed `columna-core` **0.19.0**. Nothing here is authored:
 | Capability | Core undertakes | This build | Conformance |
 |---|---|---|---|
 | `and` | executes | executes | conforms |
-| `=`, `==` | executes | executes | conforms |
+| `=` (compatibility input: `==`) | executes | executes | conforms |
 | `>=` | executes | executes | conforms |
 | `>` | executes | executes | conforms |
 | `<=` | executes | executes | conforms |

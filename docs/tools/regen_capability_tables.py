@@ -82,7 +82,20 @@ _SECTIONS = [("Reducers", "reducer", None), ("Maps — series position", "map", 
 
 
 def _sp(c, cid):
-    return ", ".join(f"`{s}`" for s in c.get("spellings", [cid]))
+    """The capability's spellings, with the ALIAS/COMPATIBILITY distinction preserved rather than
+    flattened into one comma list. `mean`, `avg` are aliases: two names for one capability, and the
+    language writes whichever you wrote. `==` is not an alias of `=` — §15.2 names `=` as THE
+    comparison operator and `==` is accepted INPUT that canonicalizes to it, so a reader keying on
+    canonical text needs to be able to tell the two cases apart. The authority declares which is
+    which with `canonical_spelling`; this only projects it."""
+    sp = list(c.get("spellings", [cid]))
+    canon = c.get("canonical_spelling")
+    if not canon:
+        return ", ".join(f"`{s}`" for s in sp)
+    rest = [s for s in sp if s != canon]
+    if not rest:
+        return f"`{canon}`"
+    return f"`{canon}` (compatibility input: {', '.join(f'`{s}`' for s in rest)})"
 
 
 def render(kind: str) -> str:

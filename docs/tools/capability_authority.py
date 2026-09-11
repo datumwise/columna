@@ -49,6 +49,14 @@ def canonical_capabilities() -> dict:
     for c in doc["capability"]:
         if c["id"] in caps:
             raise SystemExit(f"canonical authority: duplicate capability id {c['id']!r}")
+        # `canonical_spelling` is OPTIONAL and, where present, must be one of the spellings. It marks
+        # the one the LANGUAGE writes, leaving the rest as compatibility input the language accepts
+        # and canonicalizes away. Validated here because a canonical spelling that names nothing would
+        # be a silently ignored declaration, and this file is the one place that reads the field.
+        canon = c.get("canonical_spelling")
+        if canon is not None and canon not in c.get("spellings", [c["id"]]):
+            raise SystemExit(f"canonical authority: {c['id']!r} declares canonical_spelling "
+                             f"{canon!r}, which is not one of its spellings")
         caps[c["id"]] = c
     return caps
 

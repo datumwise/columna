@@ -241,7 +241,7 @@ SELECT revenue AS total_revenue,
 
 Without `AS`, the framework names the column by its **canonical expression** — verbatim, not a mechanical rewrite. A column's **output key** is *what it is*: either the name you give it with `AS`, or the expression itself. No name is invented, and none is mangled.
 
-**Verbatim means the canonical spelling of what you wrote, not the characters you typed.** The key is the expression, so it is written the one way the language writes an expression (§1.2a): a compatibility spelling is normalized to the canonical one before it becomes a key, and incidental whitespace is not part of anyone's identity. `sum(revenue@{transaction})` keys as `sum(revenue @ {transaction})`; `{customer, day}` keys as `{customer*day}`; a named argument written `n = 1` keys as `n: 1`. Nothing is *invented* and nothing is *mangled* — the two spellings were always the same expression, and the key states which one of them the language writes. A consumer that needs a handle immune to this should use an `AS` alias, which is author-owned (below).
+**Verbatim means the canonical spelling of what you wrote, not the characters you typed.** The key is the expression, so it is written the one way the language writes an expression (§1.2a): a compatibility spelling is normalized to the canonical one, and incidental whitespace is not part of anyone's identity. `avg(revenue@{day})` and `avg( revenue @ { day } )` are the same expression and both key as `avg(revenue @ {day})`; `{customer, day}` keys as `{customer*day}`; a comparison written `==` keys as `=`. Nothing is *invented* and nothing is *mangled* — two spellings of one expression were always one expression, and the key states which of them the language writes. (A call carrying named parameters is not in this list: it has no derivable key at all and needs an `AS` regardless, below. Its canonical text still writes the colon, and that is what `EXPLAIN` returns.) A consumer that needs a handle immune to all of this should use an `AS` alias, which is author-owned.
 
 An alias supplies an output column key and follows the visibility and collision rules below. It does not establish analytical family identity, and changing the output key does not change the already-resolved analytical quantity.
 
@@ -1716,7 +1716,7 @@ Standing is what the language has ruled in — not what any build runs. `ratifie
 | `between` | proposed |
 | `and` | ratified |
 | `or` | proposed |
-| `=`, `==` | ratified |
+| `=` (compatibility input: `==`) | ratified |
 | `>=` | ratified |
 | `>` | ratified |
 | `<=` | ratified |
