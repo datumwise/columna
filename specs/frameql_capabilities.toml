@@ -618,7 +618,7 @@ position = "predicate"
 category = "map"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "Appendix B's reserved-keyword list already omits this."
+note = "STANDING UNCHANGED, NOTE CORRECTED 2026-09-11. This read 'Appendix B's reserved-keyword list already omits this', which was a true cross-reference and stopped being one: Appendix B now reserves AND, OR, NOT, IN and BETWEEN as EXPRESSION-grammar keywords, because the Frame-QL 1.0 ladder (specification §15) has them and columna_core.expr reads them. That is a fact about the grammar, not a ratification — canonical standing moves by ruling and is deliberately left at 'proposed' here. §15 listing these rungs is prima facie evidence for promotion; making the call is not a documentation act."
 
 [[capability]]
 id = "negation"
@@ -627,7 +627,7 @@ position = "predicate"
 category = "map"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "Appendix B's reserved-keyword list already omits this."
+note = "STANDING UNCHANGED, NOTE CORRECTED 2026-09-11. This read 'Appendix B's reserved-keyword list already omits this', which was a true cross-reference and stopped being one: Appendix B now reserves AND, OR, NOT, IN and BETWEEN as EXPRESSION-grammar keywords, because the Frame-QL 1.0 ladder (specification §15) has them and columna_core.expr reads them. That is a fact about the grammar, not a ratification — canonical standing moves by ruling and is deliberately left at 'proposed' here. §15 listing these rungs is prima facie evidence for promotion; making the call is not a documentation act."
 
 [[capability]]
 id = "between"
@@ -636,7 +636,7 @@ position = "predicate"
 category = "map"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "Appendix B's reserved-keyword list already omits this."
+note = "STANDING UNCHANGED, NOTE CORRECTED 2026-09-11. This read 'Appendix B's reserved-keyword list already omits this', which was a true cross-reference and stopped being one: Appendix B now reserves AND, OR, NOT, IN and BETWEEN as EXPRESSION-grammar keywords, because the Frame-QL 1.0 ladder (specification §15) has them and columna_core.expr reads them. That is a fact about the grammar, not a ratification — canonical standing moves by ruling and is deliberately left at 'proposed' here. §15 listing these rungs is prima facie evidence for promotion; making the call is not a documentation act."
 
 [[capability]]
 id = "membership"
@@ -645,7 +645,7 @@ position = "predicate"
 category = "map"
 standing = "proposed"
 source = "Frame-QL Manual Appendix A"
-note = "Appendix B's reserved-keyword list already omits this."
+note = "STANDING UNCHANGED, NOTE CORRECTED 2026-09-11. This read 'Appendix B's reserved-keyword list already omits this', which was a true cross-reference and stopped being one: Appendix B now reserves AND, OR, NOT, IN and BETWEEN as EXPRESSION-grammar keywords, because the Frame-QL 1.0 ladder (specification §15) has them and columna_core.expr reads them. That is a fact about the grammar, not a ratification — canonical standing moves by ruling and is deliberately left at 'proposed' here. §15 listing these rungs is prima facie evidence for promotion; making the call is not a documentation act."
 
 
 # ── SCANS ────────────────────────────────────────────────────────────────────────────────
