@@ -1443,7 +1443,7 @@ its own review.
 
 ---
 
-### P1-26-A3 · Two adjudicators disagree about the grain a BROADCAST operand's travel is judged at — a question, not a bug · **MEDIUM** · **OPEN — needs a RULING, not a repair** · SV
+### P1-26-A3 · Two adjudicators disagree about the grain a BROADCAST operand's travel is judged at · **MEDIUM** · **RULED 2026-09-11 — conformance repair outstanding** · SV
 
     planner.py:2189-2194  (comment at the site)
     `_infer`'s map-operand branch resolves a broadcast operand `X @ {}` at the scalar grain `()`.
@@ -1463,12 +1463,40 @@ lawfulness is a property of the expression it is being consumed in, so a broadca
 is still a travel with a verdict owing. Neither is obviously the language's intent, and this row takes
 no position on which.
 
-**Do not repair this by picking the one that makes the other agree.** What is wanted is a ruling on
+**Do not repair this by picking the one that makes the other agree.** What was wanted was a ruling on
 the analytical question, after which one of the two call sites is corrected to the ruled reading and
-the other is asserted against it. Until then the comment at the site is the record, and this row is
-its index. No behaviour is known to be wrong today — the divergence is between two internal
-adjudicators, and no reproduction of a bad served result from it exists, which is itself part of the
-question.
+the other is asserted against it.
+
+---
+
+**RULED 2026-09-11 (CG2), verbatim in substance:** *a locally pinned scalar/coarser expression may be
+structurally broadcast to the finer output frame. The pinned operand retains its original analytical
+anchor and identity; broadcast does not establish the corresponding finer measure or family. Core may
+implement that lawful form or refuse it as unsupported profile coverage, but should not plan it and
+then fail incidentally.*
+
+**What that settles.** The operand keeps ITS OWN anchor, and the broadcast establishes nothing at the
+finer grain. So the `_infer` reading — adjudicate a broadcast operand at `()` — is the ruled one, and
+`_law_travels` adjudicating the same operand at `anchor` is the site to correct: it asks for a travel
+verdict about a finer measure the ruling says the broadcast does not establish. The row is no longer
+a question; what remains is a bounded conformance repair with a known target.
+
+**Why the repair is NOT in this unit, deliberately.** `_law_travels` is the DG-2 laundering guard —
+the walk that keeps a prohibited reduction from escaping its law, and the one `c5a2a80` had just
+restored a dropped branch of. Relaxing the grain it adjudicates a broadcast at is exactly the shape of
+change that can widen a laundering hole, and it earns its own evidence: the laundering matrix re-run
+old-vs-new, and a test that pins the ruled reading rather than the agreement. Doing it inside the
+substrate migration would be the mirror of the error the row was opened to avoid.
+
+**The other half of the ruling IS taken here**, because it was a live plan/execution divergence rather
+than a design question. `SELECT revenue @ {} AS s AT {region}` planned `serve` and executed an error —
+Core planning a thing and then failing at it, which the ruling names directly. A scalar in whole-series
+position is now refused STATICALLY (`Planner._scalar_series_refusal`), from `plan` and `run` alike, as
+**unsupported profile coverage** — the second of the two options the ruling permits. The refusal says
+the broadcast is lawful and that this build does not carry it as a whole series; the operand form,
+which is what §2.6 is about, serves unchanged. Whichever way the profile goes later, the two doors
+cannot disagree about the same text again, because scalar-ness is decided from shape before anything
+executes.
 
 ---
 

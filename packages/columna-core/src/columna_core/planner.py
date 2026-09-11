@@ -629,6 +629,9 @@ class Planner:
                 # no ancestry here and fall through to `_infer`'s vocabulary errors unchanged.
                 self._check_expression_law(tree, anchor)
                 self._infer(tree, anchor, population)
+                scalar_ref = self._scalar_series_refusal(tree, expr, anchor)   # P1-26-A3, ruled 2026-09-11
+                if scalar_ref is not None:
+                    raise scalar_ref
                 col_uni = self._check_single_universe(tree, anchor)  # §2c expr law + the column's universe
                 blk = self._blocked_transport(tree, anchor)          # transport across a refuted-hierarchy edge
                 if blk is not None:
@@ -636,7 +639,12 @@ class Planner:
                 # EXECUTE: resolve through the engine
                 frame, disc = self._eval(expr, anchor, where, trace)
                 if not hasattr(frame, "rename"):
-                    # A SCALAR IN WHOLE-SERIES POSITION — `SELECT revenue @ {} AS s AT {region}`.
+                    # A SCALAR IN WHOLE-SERIES POSITION. `_scalar_series_refusal` above now catches
+                    # this STATICALLY, before any execution and identically in `plan`, so this branch
+                    # is a backstop rather than the answer (P1-26-A3, ruled 2026-09-11: do not plan it
+                    # and then fail). It stays because a float arriving here from some path the static
+                    # predicate does not model must still be a named refusal and never an
+                    # `AttributeError` classified as "not supported in this build".
                     # `_eval` resolves it to a bare number (correctly: `@ {}` IS the Manifold-wide
                     # scalar, §2.6) and this line then called `.rename()` on a float, so the
                     # everything-classifies backstop answered "could not be resolved in the engine
@@ -2494,6 +2502,9 @@ class Planner:
                 _refuse_bracket_filter(tree)         # §7.5: brackets subscribe, they never filter
                 self._check_expression_law(tree, anchor)                   # generated-family law (2026-08-20)
                 self._infer(tree, anchor, population)                      # static typecheck + addressability
+                scalar_ref = self._scalar_series_refusal(tree, expr, anchor)   # P1-26-A3, ruled 2026-09-11
+                if scalar_ref is not None:
+                    raise scalar_ref
                 col_uni = self._check_single_universe(tree, anchor)         # §2c expr law + column universe
                 blk = self._blocked_transport(tree, anchor)
                 if blk is not None:
@@ -2518,6 +2529,58 @@ class Planner:
         # §2c frame law: no frame-level multi-universe `coverage` caveat (retired) — per-column honesty.
         frame_disc = Disclosure.merge(*[c.disclosure for c in results if c.refusal is None])
         return FrameResult(None, frame_disc, results, anchor)
+
+    @staticmethod
+    def _is_scalar_series(node) -> bool:
+        """Does this whole series resolve to ONE number rather than a frame? Structurally, data-free.
+
+        Mirrors `_node`'s kind algebra for exactly the scalar cases: a literal; `X @ {}`, the
+        Manifold-wide scalar (§2.6, an Anchor whose grain is the empty product); and unary/binary
+        arithmetic over scalars. A binary with ONE scalar operand is a broadcast and yields a frame,
+        so it is correctly not scalar here.
+        """
+        if isinstance(node, Literal):
+            return True
+        if isinstance(node, Anchor) and node.base is not None and not node.levels:
+            return True
+        if isinstance(node, Unary) and node.op != "NOT":
+            return Planner._is_scalar_series(node.operand)
+        if isinstance(node, Binary):
+            return (Planner._is_scalar_series(node.left)
+                    and Planner._is_scalar_series(node.right))
+        return False
+
+    def _scalar_series_refusal(self, node, expr: str, anchor) -> "Refusal | None":
+        """A scalar in WHOLE-SERIES position, refused STATICALLY — the same answer from both doors.
+
+        RULED 2026-09-11 (P1-26-A3, CG2): a locally pinned scalar or coarser expression MAY be
+        structurally broadcast to the finer output frame; the pinned operand keeps its own analytical
+        anchor and identity, and the broadcast does NOT establish the corresponding finer measure or
+        family. Core may implement that lawful form or refuse it as unsupported profile coverage —
+        but it "should not plan it and then fail incidentally".
+
+        It was doing exactly that. `_eval` resolved `revenue @ {}` to a bare number and `run` called
+        `.rename()` on a float, so EXPLAIN answered `serve` and execution answered an engine error
+        for the same utterance. Naming the failure fixed the voice and left the divergence: a plan
+        that promises a serve it cannot deliver is the defect EXPLAIN exists to not have.
+
+        So this build takes the second option, and takes it STATICALLY — scalar-ness is knowable from
+        shape alone, which is `_infer`'s own standard, so plan and run cannot come apart again. The
+        lawful broadcast stays available to implement later as profile coverage; what is no longer
+        available is planning it and failing.
+        """
+        if not self._is_scalar_series(node):
+            return None
+        operand = f"`{unparse(node)}`" if not isinstance(node, Literal) else "a bare number"
+        return Refusal("unsupported",
+            f"{expr!r}: this series is {operand} — one number, with an analytical anchor of its own. "
+            f"Broadcasting it across {_fmt_anchor(anchor)} is lawful (it would keep that anchor and "
+            f"would NOT establish a measure at {_fmt_anchor(anchor)}), but this build does not carry "
+            f"the form as a whole series [ROADMAP]. As a map OPERAND it serves today.",
+            target=str(anchor),
+            alternatives=("use it as an operand inside an expression, e.g. "
+                          f"`revenue @ {{{anchor[0]}}} / {expr}`" if anchor else
+                          "use it as an operand inside an expression",))
 
     def _unreadable_construct(self, node) -> "Refusal":
         """The last resort of `_infer` and `_node`: a well-formed Frame-QL 1.0 expression this build

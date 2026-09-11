@@ -40,6 +40,7 @@ from columna_core.expr import (
     Tuple, Unary,
 )
 from columna_core.frameql import FrameQLSyntaxError
+from columna_core.planner import Planner
 from columna_core.envelope import parse_statement
 
 
@@ -1078,7 +1079,8 @@ def test_a_deep_chain_never_escapes_the_planner_as_a_raw_python_exception(fixtur
             pytest.fail("a raw RecursionError escaped the planner")
 
 
-def test_a_manifold_wide_scalar_as_a_whole_series_refuses_by_name(fixture_server):
+def test_a_manifold_wide_scalar_as_a_whole_series_refuses_identically_from_both_doors(
+        fixture_server):
     """`_eval` resolves `revenue @ {}` to a bare number — correctly, it IS the Manifold-wide scalar
     (§2.6) — and `run()` then called `.rename()` on a float, so the everything-classifies backstop
     answered "could not be resolved in the engine (AttributeError); the ask is not supported in this
@@ -1086,10 +1088,48 @@ def test_a_manifold_wide_scalar_as_a_whole_series_refuses_by_name(fixture_server
     teaches. Newly reachable, too — the builder door used to refuse `@ {}` as an illegal construct
     before it got this far, so unifying the doors is what exposed it.
 
-    It REFUSES rather than broadcasts because what a scalar means as a whole series — its grain — is
-    the question this unit deliberately left open. Serving it would settle that by implementation."""
-    r = _refusal(_series(fixture_server, ("region",), "revenue @ {}").run())
-    assert r is not None
-    assert "not supported in this build" not in r.detail
-    assert "Manifold-wide scalar" in r.detail and "OPERAND" in r.detail
-    assert r.jurisdiction == "language"       # the planner's own answer, not an engine failure
+    Naming the failure was not enough. **P1-26-A3, ruled 2026-09-11 (CG2):** the broadcast is
+    LAWFUL — a locally pinned scalar may be structurally broadcast to the finer output frame, keeping
+    its own anchor and establishing no finer measure — and Core may implement it or refuse it as
+    unsupported profile coverage, but "should not plan it and then fail incidentally". It was doing
+    exactly that: EXPLAIN said `serve`, execution said error, for one utterance.
+
+    So the refusal is STATIC and shared. What this pins is the agreement, not the choice: whichever
+    way the profile goes later, the two doors say the same thing about the same text."""
+    from columna_core.envelope import parse_statement as _ps
+
+    builder_plan = _series(fixture_server, ("region",), "revenue @ {}").plan()
+    builder_run = _series(fixture_server, ("region",), "revenue @ {}").run()
+    for fr in (builder_plan, builder_run):
+        r = _refusal(fr)
+        assert r is not None
+        assert r.reason == "unsupported"
+        assert "not supported in this build" not in r.detail      # the false capability claim
+        assert "OPERAND" in r.detail and "lawful" in r.detail      # what is true, and what is ruled
+
+    st = _ps("SELECT revenue @ {} AS s AT {region}")
+    assert _refusal(fixture_server.planner.plan_statement(st), "s").reason == "unsupported"
+    assert _refusal(fixture_server.planner.run_statement(st), "s").reason == "unsupported"
+
+
+def test_the_lawful_operand_form_still_serves(fixture_server):
+    """The refusal is scoped to WHOLE-SERIES position. `@ {}` as a map operand is the documented
+    form and is what §2.6 is about; a containment that cost it would be the same mistake as a
+    placement containment that broke the coarse total."""
+    fr = _series(fixture_server, ("region",), "revenue @ {region} / revenue @ {}").run()
+    assert _refusal(fr) is None
+    assert fr.data.height > 0
+
+
+def test_a_scalar_series_is_refused_before_anything_executes(fixture_server):
+    """Structural, not observed: scalar-ness is knowable from shape alone, which is `_infer`'s own
+    standard. Pinning that keeps plan and run from coming apart again — the divergence, not the
+    choice, was the defect. Arithmetic over scalars is still scalar; a binary with ONE scalar operand
+    is a broadcast and yields a frame, so it must NOT be caught here."""
+    assert Planner._is_scalar_series(parse("revenue @ {}"))
+    assert Planner._is_scalar_series(parse("revenue @ {} / 2"))
+    assert Planner._is_scalar_series(parse("-(revenue @ {})"))
+    assert Planner._is_scalar_series(parse("1"))
+    assert not Planner._is_scalar_series(parse("revenue @ {region} / revenue @ {}"))
+    assert not Planner._is_scalar_series(parse("revenue"))
+    assert not Planner._is_scalar_series(parse("avg(revenue @ {day})"))
