@@ -20,6 +20,72 @@ moved the contract; the header is corrected rather than left to be believed.)
 
 ### Added
 
+**The governed layer: publication format v2, and a Core family built from law
+(`columna_core.governed`, `columna_core.compiler.compile_v2`).** Unit D, authorized 2026-09-11.
+
+The v1 compiler assembled Core's `FAMILY {…}` out of `MemberRealization.root_evaluator` — a field in
+the **private realization mapping** — while its own input reader said of that field *"a compiler that
+chose a reducer would be manufacturing analytical law."* It was not manufacturing law; it was
+importing it from the wrong side of the boundary. ToD v7.1 §3.9 settles what that means: *"a change
+to an identity-bearing target, formation, participation, or declared continuation law"* **is family
+succession** — so under v1 a private file could mint a succession, which is what the four-mappings
+reproduction (P2-02) demonstrates.
+
+**`columna_core.governed.foundation`** — shared, versioned, backend-independent semantic vocabulary
+(SUM, COUNT, MIN, MAX, MEAN). A citation names `(vocabulary, version, law)` and never falls back
+across versions: a law whose content moved is a different law. **Re-derived from the theory, not
+promoted from the operator registry** — `deliver_sql`, `scan_impl`, `in_core`, the REDUCER/SCAN/MAP
+routing tag and the representation half of `witness` are realization (§3.6: *"Neither operation
+receives or loses family authority solely from an implementation classification"*; §8.5: *"the
+witness need not have one physical format"*). Two facts the vocabulary makes structural: COUNT
+**continues by SUM** and may never be cited as a continuation, because counting count-states as new
+observations is the §5.2 error; and MIN/MAX carry **no identity**, so an empty eligible fiber
+receives no fold value — a theorem, established once, never re-asked of an author.
+
+**`columna_core.governed.publication`** — the v2 artifact. ONE family kind, covering primitive and
+constructed formation and named and query-constructed alike. `measure`, `member` and `boundary` are
+**retired**, each refused by name with its own reason. Three records that do not exist: no `Σ(F)`
+object (§2.2 — *"the signature is not an additional ontological kind"*), **no lineage record** (a
+construction names its parents by `family_id`, and §3.7 defines the edge as exactly that, so lineage
+is derived from formation), and no state-schema/combine-law records. An unrecognised governed key
+refuses — consume-or-refuse at body-key granularity, which is the hole a governed `fill_rule` reached
+a compiled image through.
+
+**`columna_core.governed.resolve`** — the **total canonical `Law(F)` view**. Totality is semantic,
+not literal: the artifact does not serialize a consequence a cited law already determines, and this
+produces a view in which **silence is impossible**. Each of ToD §4's nine responsibilities carries
+`established` / `explicit-none` / `unestablished`, with the provenance that settled it — `declared`,
+`cited-law` or `entailed`. The rule it preserves: *declaration is for analytical choices; derivation
+is for consequences.* Validity is about identity: the `Σ(F)` responsibilities must be settled, and a
+family may exist while its movement has not been established. **No default is ever invented to
+satisfy validation.**
+
+**`compile_v2`** — the Core family comes from established law and the mapping is **checked against
+it**. Five checks that did not exist: family validity; grain correspondence (a realization claiming
+its source is finer than the constitutive anchor compiles only if formation establishes how
+contributions resolve — in v1 that law came silently from `root_evaluator`); delivery correspondence
+(the mapping claims an operator, the law decides, the compiler checks); **continuation conformance**,
+which cross-checks `operators.REGISTRY[op].combine` against the governed continuation law, so an
+engine that combines differently from what the publication declares is refused rather than served;
+and movement establishment. That last one matters: K0 emits no hierarchies, so nothing can travel and
+`unestablished` movement is safe — **previously true by accident, now a named constant that flips the
+check the moment a profile emits edges.**
+
+**`columna_core.governed.migrate`** — v1 + its mapping → a **proposal**, never a publication. There
+is no `--write` and no code path that emits a `family` declaration, and a test pins that. Legacy
+member names and `root_evaluator` tokens are evidence about a realization, not establishment of a
+governed target.
+
+### Changed
+
+**Publication format v2 is a HARD BREAK: no automatic v1 read, no dual-read shim.** The v2 reader
+refuses a v1 artifact outright, with the reason — a v1 artifact under-determines its own meaning, so
+reading it would require inferring analytical law, which is the defect being removed. v1 migrates
+through proposal-and-establishment, with a human, or it does not migrate. `compile_k0` and its v1
+input reader are **frozen** under a tombstone: they remain only as the producer of an image already
+published and shipped, whose v2 successor cannot be authored by a machine, and a standing test pins
+their caller set so the frozen path cannot quietly acquire a new one.
+
 **Frame-QL 1.0's expression grammar, read natively (`columna_core.expr`).** The expression dialect
 was HOSTED on CPython's `ast` from the first build — an implementation choice, never a fact about the
 language, and it leaked: `count(*)` was refused with "Invalid star expression" and

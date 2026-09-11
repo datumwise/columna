@@ -11,10 +11,22 @@ lockstep decision, its own dependency caps — for nothing.
 
 `columna-server` must never import this module: the runtime verifies a receipt WITHOUT loading the
 private mapping, reconstructing meaning from the `.cml`, or re-running lowering.
+
+**TWO COMPILE BOUNDARIES LIVE HERE, AND ONLY ONE IS CURRENT.** `compile_v2` builds the Core family
+from ESTABLISHED GOVERNED LAW and checks the private mapping against it. `compile_k0` is the FROZEN
+v1 producer — read its tombstone before touching it. Publication v2 is a hard break: the v2 reader
+refuses a v1 artifact outright, and nothing here reads one on its behalf.
 """
 from __future__ import annotations
 
 from .compile import ClosedExecutionImage, K0_REDUCERS, compile_k0
+from .compile_v2 import K0_EMITS_MOVEMENT, K0_LAWS, compile_v2
+from .realization import (
+    MAPPING_FORMAT_VERSION as MAPPING_FORMAT_VERSION_V2,
+    PrivateCoreMappingV2,
+    load_mapping as load_mapping_v2,
+    parse_mapping as parse_mapping_v2,
+)
 from .inputs import (
     MAPPING_FORMAT_VERSION,
     GovernedPublication,
@@ -37,6 +49,8 @@ from .refusals import (
 )
 
 __all__ = [
+    "compile_v2", "K0_LAWS", "K0_EMITS_MOVEMENT",
+    "PrivateCoreMappingV2", "parse_mapping_v2", "load_mapping_v2", "MAPPING_FORMAT_VERSION_V2",
     "compile_k0", "ClosedExecutionImage", "K0_REDUCERS",
     "GovernedPublication", "PrivateCoreMapping", "PublicationRef",
     "parse_publication", "parse_mapping", "load_publication", "load_mapping",
