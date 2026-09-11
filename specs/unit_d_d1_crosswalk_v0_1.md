@@ -3,7 +3,7 @@
 
 **Status:** desk draft, 2026-09-11. **No implementation.** Delivers Unit D's **D1**.
 **Still current.** The D1 ruling that followed it is carried into
-`specs/unit_d_synthesis_v0_3_successor_model.md`, which is the live synthesis; this crosswalk
+`specs/unit_d_synthesis_v0_4_model_and_publication_design.md`, which is the live synthesis; this crosswalk
 remains the evidence base for it.
 
 **Target text:** ToD **v7.1**, 7 September 2026, DOI `10.5281/zenodo.22649945`, as deposited at

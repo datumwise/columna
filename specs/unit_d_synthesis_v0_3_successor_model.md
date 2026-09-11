@@ -1,7 +1,11 @@
 # Unit D — synthesis v0.3: the corrected successor model
 ## One family kind · the classification test · foundation law re-derived · `firstlight` classified
 
-**Status:** desk draft, 2026-09-11, awaiting ruling. **No schema. No code. No field names.**
+**Status:** ⚠ **SUPERSEDED — read `specs/unit_d_synthesis_v0_4_model_and_publication_design.md`.**
+Kept for its reasoning. v0.4 carries the model forward with seven closures (legacy anchors are not
+constitutive anchors; foundation-law positive presence; the `measure` kind retires by name;
+migration evidence is not authority; family-law authority is a third standing) and adds the
+publication design.
 
 **Supersedes** `unit_d_synthesis_v0_2_successor_model.md` (same day). **Builds on**
 `unit_d_d1_crosswalk_v0_1.md`. **Target text:** ToD **v7.1**, DOI `10.5281/zenodo.22649945`.

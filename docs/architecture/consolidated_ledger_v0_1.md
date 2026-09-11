@@ -2828,6 +2828,94 @@ constructed families all cite Revenue, so `firstlight` would exercise lineage on
 movement this is *declared by the classification*, not manufactured) · whether `measure` is declared
 at all when it groups nothing.
 
+### v0.4 — the settled model and the publication design, 2026-09-11 · FOR AUTHORIZATION
+
+**THE CENTRAL MODEL IS SETTLED** (Huayin, 2026-09-11): `MeasureFamily F` is the analytical identity ·
+`Measure = F@A`, not another governed catalog object · primitive/constructed and
+named/query-constructed are not separate kinds · legacy `member` **retires** rather than mapping
+one-for-one · shared foundation laws are governed reusable vocabulary and a foundation-law token is a
+constituent of `Law(F)`, not a family identity · stable `family_id` distinct from canonical name is
+required, generation open · **absence of prohibition means unestablished, never permission.**
+
+`specs/unit_d_synthesis_v0_4_model_and_publication_design.md` is the live document; v0.1–v0.3 are
+superseded and kept for their reasoning.
+
+**Seven closures v0.4 adds:**
+
+1. **Never promote a legacy `member.anchor` to constitutive anchor.** Three things stay distinct —
+   constitutive formation/intake anchor `I`, current anchor `A` of `F@A`, and physical source grain
+   `g`. They may coincide; they are not definitionally identical, and the coincidence is a **claim**.
+   **And formation stays separate from continuation even where both name SUM.** COUNT is the standing
+   proof from the other side: its formation counts participations, its continuation **sums**
+   count-states (§5.2).
+2. **Foundation-law standing is positive presence** — constitutive declaration, or entailment by a
+   complete admitted construction, **and no other route.** Never inherited from a parent family, a
+   namespace, a realization mapping, or an available engine operator.
+3. MIN/MAX empty fibers are a **theorem of the law**, established once, never re-asked.
+4. **The governed kind named `measure` retires by name** — ToD already defines a Measure as `F@A`.
+   **The `firstlight` test passes: the primitive family simply carries canonical reference
+   `revenue`, and `measure` and `root_member` both disappear with no loss** — the cleanest possible
+   confirmation that neither carried analytical content.
+5. **Migration evidence is not governing authority.** Legacy names and `root_evaluator` seed
+   *proposals* (the existing `Status.ASSUMED` path), never definitions. **Do not assume MIN/MAX/COUNT
+   targets are governed because their names imply them.** Do not optimize the model around a question
+   count.
+6. **Family-law authority is a third standing**, distinct from mathematical entailment and runtime
+   capability — §4 names all three in one sentence. Universe ratification is **not** auto-generalized.
+7. Query-constructed families: settled ontology, lifecycle open.
+
+**The headline design result: the publication gets SMALLER.** Three kinds retired (`measure`,
+`member`, `boundary` — the last folded into `family` as C3), one added (`family`). A correct ontology
+should not need more records than a fossil one, and it does not.
+
+**Three record economies, each one a record a less careful design would have created:** no `Σ(F)`
+object (§2.2 — *"the signature is not an additional ontological kind"*); **no lineage record** —
+a constructed family's formation names its parents by `family_id`, and §3.7 defines the edge as
+exactly that, so lineage is *derived from formation* and well-foundedness is checkable rather than
+asserted; no state-schema/combine-law records — they live once in the cited shared law.
+
+**RECORD TOTALITY is the load-bearing decision.** Every family record is total over the nine §4
+responsibilities, each carrying `declared` · `none` (an explicit positive negative) · or
+`unestablished`. **Silence is not a representable state.** One decision discharges three separate
+requirements: R4 (an `unestablished` movement can never read as permission), consume-or-refuse (a
+consumer cannot omit a field it did not notice, because no shape omits one), and refusal totality
+(structural rather than a rule someone must remember).
+
+**The realization contract, and it is structural.** A mapping may name the family **by `family_id`
+only**, the endpoint, a **grain-correspondence claim** (`g` coincident with or finer than `I`), a
+**delivery claim** (exact, or approximate with the approximation disclosed per §10.9), and
+realization evidence. It may say nothing whose change would change `Σ(F)`. Because `family_id` is not
+derivable from anything in the mapping, **a mapping edit cannot be a family succession** — §3.9's
+test made mechanical, and the property P2-02's reproduction currently disproves. Sharpest
+consequence: the mapping may say *"the source is finer than the constitutive anchor"*; it may **not**
+say *"resolve the contributions by sum."* Today `root_evaluator` says it silently.
+
+**`firstlight` migration: TEN unresolved analytical facts**, partitioned from evidence and from
+entailment (v0.4 §12). Including the new ones: Revenue's constitutive anchor and formation structure
+(the `sales_lines` vs `sale_at` grain question — anchor uniqueness is gate evidence, which
+publication deliberately drops, and the fixture's one-row-per-point is *a data fact, not a law*);
+whether a SUM family distinct from Revenue exists at all; and **whether COUNT/MIN/MAX targets are
+governed at all.** The number of families is an outcome of establishment, not a migration parameter —
+**it may be fewer than four.** The v1 artifact is immutable by its own design and is not edited; a v2
+publication is authored.
+
+**FORMAT: a MAJOR bump and a hard break with no compatibility path — and that is the point, not a
+courtesy.** A v1 artifact **under-determines its own meaning** (P2-02): its family law lives in a
+private mapping. Reading it automatically would require a consumer to *infer* law, which is the exact
+defect being removed. **The format break is the boundary at which under-determined meaning stops
+being machine-readable at all.** v1 migrates through proposal-and-establishment with a human, or it
+does not migrate. No dual-read, no shim, no optional keys.
+
+**Open:** `family_id` generation · query-constructed lifecycle · whether serving an **unratified**
+family is refused/disclosed/permitted, and the asymmetry that creates with universes whose publish
+gate requires ratification currency · whether domain-and-movement folds into `family` (recommended,
+counter-argument recorded) · `firstlight`'s ten facts.
+
+**What authorization from v0.4 would cover:** the object set, identity rules, responsibility
+allocation and the derivation rule, law citation and positive presence, record totality, the
+authority mechanism's *shape*, the realization contract, consume-or-refuse, and the format break.
+**Field spelling, wire encoding and the `family_id` mechanism are explicitly not covered.**
+
 ### What it unblocks
 
 **OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a
