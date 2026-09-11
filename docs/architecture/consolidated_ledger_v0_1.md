@@ -1368,11 +1368,16 @@ Python-isms stopped being accepted: `.5` without a leading digit, `1_000` with a
 dangling comma in an argument list, and `#` as a comment. Each is refused by name with its own
 remedy. A claim that nothing moved would have been the easy sentence and the false one.
 
-Evidence: `packages/columna-core/tests/test_expression_grammar.py` — 850 passed / 28 skipped on its
+Evidence: `packages/columna-core/tests/test_expression_grammar.py` — 861 passed / 28 skipped on its
 own, including a section asserting that the grammar the parser implements is the grammar the PLANNER
 reads (one language, both doors), the §7.5 bracket diagnostic end to end, canonical 1.0 column keys,
-and a sweep that no planner refusal answers in the substrate's voice. Repository corpus 1919 passed /
-50 skipped, the pre-unit baseline, unregressed. Documentation gates: `check_manual_frameql` 49 blocks
+and a sweep that no planner refusal answers in the substrate's voice. Repository corpus, in the
+per-package shape CI runs: `pytest packages/columna-core` 1627 passed / 49 skipped. (The combined
+`pytest packages/columna-core packages/columna-server` invocation — which is NOT what CI runs, and
+`pytest.ini`'s own header says so — additionally surfaced a 1-ulp float difference between the two
+planner doors on 1 row of 24. Reproduced on an idle box, so not a load artifact; it is OF-23(b),
+independently reproduced a third time and now recorded there, and it is noise under the 0.13.1
+doctrine rather than a wrong number.) Documentation gates: `check_manual_frameql` 49 blocks
 / 67 statements, 0 drift; `regen_capability_tables --check`, `capability_authority`, `regen_examples
 --check`, `check_no_tier_claims`, `check_currency_stamps`, `print_ledgers`, `check_publications
 --selftest`, `check_corpus_membership` all green.

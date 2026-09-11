@@ -845,10 +845,27 @@ def test_one_grammar_for_the_builder_api_and_the_statement_path(fixture_server):
     # Compared as ROWS rather than with `DataFrame.equals`: the two frames carry identical values and
     # schemas but different internal chunk layouts, and `equals` is sensitive to that in a way that
     # has nothing to do with the claim under test.
-    assert (builder.data.sort("cal.month").rows()
-            == statement.data.sort("cal.month").rows())
+    #
+    # ...and compared with a TOLERANCE on the values, for the same reason one level down. Exact
+    # equality here failed on one row out of 24, by one ulp:
+    #
+    #     ('2025-02', 2810.808928571429) != ('2025-02', 2810.808928571428)
+    #
+    # The two doors deliver the same rows to the same reduction in a different ORDER, and float
+    # addition is not associative. That is OF-23 (non-deterministic served row order), which is open
+    # and is not this test's subject. The claim being made here is that the two doors accept the same
+    # LANGUAGE — same keys, same schema, same cardinality, same numbers — and bitwise-identical
+    # summation order was never part of it. Asserting it made this test a flaky detector of a defect
+    # it does not describe. (Reproduced on an idle box, so it is not a load artifact: it appears in
+    # the combined-root `pytest packages/columna-core packages/columna-server` invocation and not in
+    # the per-package invocation CI actually runs.)
     assert builder.data.columns == statement.data.columns
     assert builder.data.height == 24
+    b_rows = builder.data.sort("cal.month").rows()
+    s_rows = statement.data.sort("cal.month").rows()
+    assert [r[0] for r in b_rows] == [r[0] for r in s_rows]          # the keys, exactly
+    for (b_key, b_val), (_s_key, s_val) in zip(b_rows, s_rows, strict=True):
+        assert b_val == pytest.approx(s_val, rel=1e-12), b_key       # the numbers, to 12 figures
 
 
 def test_a_filter_shaped_subscript_is_refused_and_names_the_clause_that_filters(fixture_server):
