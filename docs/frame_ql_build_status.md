@@ -27,8 +27,18 @@ as `avg(revenue @ {day})` on `"5"`, and `avg( revenue @ { day } )` keyed as itse
 the same canonical text — the retired dialect carried the writer's incidental whitespace into the
 key, and 1.0's canonical spelling does not. `EXPLAIN`'s canonical form moved further, because it
 prints expressions the key rules never key: a named argument written `n = 1` comes back `n: 1`. No
-value, mood, disclosure, materiality or existing reason code moved. The precedent is `"1"` → `"2"`,
-the bump WP-NAME-1 took for exactly this class of change.
+mood, disclosure, materiality or existing reason code moved. The precedent is `"1"` → `"2"`, the bump
+WP-NAME-1 took for exactly this class of change.
+
+**Some values move, and that is the bump earning its number.** §15 puts `@` above arithmetic, and the
+retired dialect had it at multiplicative precedence — the host language's rung, not Frame-QL's. So an
+expression mixing the two is read differently now, and correctly: measured on the Manual's fixture,
+`SELECT revenue + (revenue / 2 @ {}) AS v AT {customer}` served `475.0` for `C1` on `"4"` — the old
+reading `(revenue / 2) @ {}`, half the grand total broadcast back — and serves `300.0` on `"5"`, the
+`revenue / (2 @ {})` §15 requires. This is a corrected reading, not a regression, and it is precisely
+why the change could not ride a patch release. A few lexical Python-isms also stopped being accepted,
+each refused by name with a remedy: `.5` without its leading digit, `1_000` with a digit separator, a
+dangling comma in an argument list, and `#` as a comment.
 
 ## Language surfaces this build does not realize
 

@@ -56,9 +56,16 @@ the key of an utterance that did not change moves with it. The retired dialect c
 incidental whitespace into the key and 1.0's canonical spelling does not: `avg(revenue@{day})` keyed
 as `avg(revenue@ {day})` and now keys as `avg(revenue @ {day})`, and `avg( revenue @ { day } )` keyed
 as itself. `EXPLAIN`'s canonical text moved further than the keys did, because it prints expressions
-the key rules never key — a named argument written `n = 1` comes back `n: 1`. No value, mood,
-disclosure, materiality or reason code moved. The precedent for the bump is `"1"` → `"2"`, which
-WP-NAME-1 took for exactly this class of change.
+the key rules never key — a named argument written `n = 1` comes back `n: 1`. No mood, disclosure,
+materiality or reason code moved. The precedent for the bump is `"1"` → `"2"`, which WP-NAME-1 took
+for exactly this class of change.
+
+Some **values** moved too, and not as a side effect of naming: §15 puts `@` above arithmetic where
+the retired dialect had it at the host language's multiplicative rung, so an expression mixing the
+two is read differently and correctly. Measured on the Manual's fixture,
+`SELECT revenue + (revenue / 2 @ {}) AS v AT {customer}` served `475.0` for `C1` on `"4"` — the old
+`(revenue / 2) @ {}` reading — and serves `300.0` on `"5"`. A corrected reading, recorded here
+because a reader of a revision ledger is exactly the reader who needs to know a number can move.
 
 The needs-an-`AS` list also stopped calling `revenue[region = "east"]` a "bracket-filtered column
 reference"; it is a value subscription, and the *filter* reading is gone from the language (§2.8).

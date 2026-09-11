@@ -19,7 +19,11 @@
 > - **Wire: `contract_version` `"4"` → `"5"`.** Ruling 2 above is the precedent *and the reasoning*:
 >   "a `contract_version` bump is what a pre-1.0 minor exists to signal", and `"1"` → `"2"` is the
 >   bump this WP took for exactly this class of change — the key of an unchanged utterance moving.
->   No value, mood, disclosure, materiality or existing reason code moved with it.
+>   No mood, disclosure, materiality or existing reason code moved with it. SOME VALUES DID move, and
+>   not through anything in this WP's scope: §15 puts `@` above arithmetic where the retired dialect
+>   had it at the host language's multiplicative rung, so `revenue + (revenue / 2 @ {})` is now read
+>   as §15 requires. That is a corrected reading in the same release, named here so a reader of this
+>   record does not take "only the key moved" away from it.
 > - **Ruling 3's migration advice is unchanged and is now load-bearing twice over.** *Consumers who key
 >   on names should key on `AS` aliases, which are author-owned and will never change under any future
 >   rule.* A consumer that took that advice in 0.14.0 was unaffected by this bump.
