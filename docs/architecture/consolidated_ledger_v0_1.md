@@ -2747,6 +2747,87 @@ edges publish now or at K1; and **D2's fifth separation — generated/family-for
 where an inline `mean(revenue@day)` mints a family at request time and its identity's origin is not
 settled.
 
+### v0.3 — the corrected successor model, 2026-09-11
+
+Huayin declined to freeze v0.2 and issued two conceptual corrections plus six closures.
+**`specs/unit_d_synthesis_v0_3_successor_model.md`** is the live synthesis; v0.2 is superseded and
+kept for its reasoning. What changed, and what it produced:
+
+**Correction 1 — legacy `member`s are heterogeneous.** A reducer over an operand may be *the
+continuation law of the operand family itself*, or *a distinct constructed family*. Classify by
+target specification and the succession test, not by the historical container. v0.3 states the test
+as a four-step procedure (target · continuation · participation · succession) with its authorities,
+and notes that **the test may fail to decide — which is information, not a gap in the test.**
+
+**Correction 2 — no extra operand kind.** v0.2's "governed analytical input" object is withdrawn.
+The operand is a **primitive/source family** at its constitutive anchor; §2.2 already types it
+(*"a measure is that family at one current anchor"*) and §3.7 gives it a graph position, not a kind.
+`measure` therefore keeps namespace/catalog/default-resolution duty and **no identity** — and need
+not be declared at all where it groups nothing. §11.5.2's *"same participating contributions in both
+components"* is discharged better than before: by two families citing the same parent `family_id` in
+their constitutive lineage.
+
+**Correction 3 — do not promote the `Operator` dataclass.** v0.3 splits it three ways: semantic
+(`combine`, `accepts`/`out_rule`, `linear`, `needs_order`), realization (`deliver_sql`, `scan_impl`,
+`in_core`, and `kind` — §3.6: *"Neither operation receives or loses family authority solely from an
+implementation classification"*), and **mixed standing**. `witness` splits *three* ways: what
+sufficient state the law requires (semantic), in what representation it is held (realization — §8.5:
+*"The witness need not have one physical format"*), and whether it is approximate (a §10.9
+disclosure). `is_monoid` and `re_entrant` are **theorems about the stated law**, not flags.
+
+**Correction 4 — declaration is for choices, derivation is for consequences.** The foundation law
+establishes once that MIN/MAX supply no identity and therefore no fold value on an empty fiber
+(§5.2, §6.1.1, §11.5.1); no family restates it. **This withdraws v0.2's claim that `min`/`max` need
+a human.** Adopted as the derivation rule's second clause, beside v0.2's *derivation is only ever
+from another declaration.*
+
+**Correction 6 — generated families close D2's fifth separation.** *A complete admitted
+family-forming construction creates/resolves a MeasureFamily under the same ontology as a named
+family.* Named vs constructed is not a kind; neither is primitive vs constructed. **One family kind**
+— which is why v0.3's object list is shorter than v0.2's. Query-constructed ID/publication mechanics
+stay open.
+
+**Correction 8 — publication law precedes implementation coverage**, in both directions: the
+publication may carry law Core cannot realize (Core refuses; §4.1 — *"a backend's inability… does not
+remove that movement from analytical law"*), **and** nothing undeclared may be manufactured.
+v0.2's "before K1 makes the gap reachable" motivation is withdrawn: representability and coverage are
+independent, and the K1 timing is a risk statement, not a reason.
+
+**`firstlight`, CLASSIFIED rather than mapped — the headline result.** It is **one primitive family
+and three constructed families, not four parallel families.** `revenue_sum` is **not a distinct
+family**: it is `Revenue@A`, the primitive family continued by its own continuation law, and its name
+is a namespace alias — which is exactly what `root_member` already records. `count`, `min` and `max`
+fail the target test (a count is not an amount; an extremum is not a total) and are constructed
+families parented on Revenue.
+
+**Three authoring questions, corrected down from v0.2's "3 of 4 families need a human":**
+1. **Does `revenue ≡ revenue_sum`?** Steps 1–2 pass, so §11.5.1 and §3.9 both attach the same
+   condition — *only where identity **and participation** agree* — and `firstlight` declares no
+   participation for either. Semantic.
+2. **Which `count`?** §11.5.1: `count(I)` and `count(x@I)` are *"distinct targets"*. Unchanged, still
+   the sharpest, still P1-10's seam, still the denominator of every mean.
+3. **NEW — at what grain do the contributions live?** The realized table is `sales_lines`; the
+   declared anchor is `sale_at = (store, day)`; **nothing in the publication asserts `sale_at` is
+   unique there** (anchor uniqueness is gate evidence, which publication deliberately drops). The
+   fixture's six rows happen to be one per point — *a data fact, not a law*, and §3.7 rules on
+   exactly this shape. So either Revenue's **intake** over multiple contributions per point is an
+   analytical rule currently supplied by `root_evaluator` at the realization layer — **the same
+   defect a second time, at the intake end rather than the continuation end** — or a finer governed
+   anchor must be declared. Structural, and the only one of the three that is.
+
+**Smallest publication representation, now smaller than v0.2's:** one new kind (`family`, covering
+primitive and constructed, named and query-constructed), one retired (`member`), one demoted
+(`measure` → namespace with no identity), one re-based (`boundary` onto family+movement), one cited
+(foundation-law vocabulary, semantic content only, re-derived not promoted), `family_id` carried
+opaquely, publication-format MAJOR bump.
+
+**Open:** foundation-law nomination vs inheritance and whether restating is recorded as inheritance
+or authorship · `family_id` generation · query-constructed family mechanics · family-law
+ratification · `firstlight`'s three questions · whether lineage edges publish now (the three
+constructed families all cite Revenue, so `firstlight` would exercise lineage on day one — and unlike
+movement this is *declared by the classification*, not manufactured) · whether `measure` is declared
+at all when it groups nothing.
+
 ### What it unblocks
 
 **OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a

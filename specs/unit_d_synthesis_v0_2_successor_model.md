@@ -1,8 +1,9 @@
 # Unit D — synthesis v0.2: the conceptual successor model
 ## Objects, identities, law allocation, and the smallest publication that carries them
 
-**Status:** desk draft, 2026-09-11, awaiting ruling. **No schema. No code. No field names** — objects,
-identities and responsibilities only.
+**Status:** ⚠ **SUPERSEDED — read `specs/unit_d_synthesis_v0_3_successor_model.md`.**
+Kept for its reasoning. v0.3 corrects it on two conceptual points (legacy `member`s are not
+uniformly families; no extra operand kind) and five smaller ones; the accounting is v0.3 §0.
 
 **Supersedes** `unit_d_family_law_carrier_synthesis_v0_1.md` (same day) wherever they differ.
 **Builds on** `unit_d_d1_crosswalk_v0_1.md` and the D1 ruling of 2026-09-11.
