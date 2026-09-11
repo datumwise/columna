@@ -9,7 +9,7 @@ measurement, never in this file.
 
 ## Current packages
 
-This build is current for **columna 0.19.0 · columna-core 0.19.0 · columna-server 0.12.0**, wire `contract_version` **`"4"`**.
+This build is current for **columna 0.19.0 · columna-core 0.19.0 · columna-server 0.12.0**, wire `contract_version` **`"5"`**.
 
 The language reference documents Frame-QL **as implemented** (columna-core 0.19.0).
 
