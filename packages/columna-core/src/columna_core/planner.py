@@ -1971,6 +1971,11 @@ class Planner:
         # wrong thing.
         for kw in node.named:
             if kw.name == "n":
+                # (The `isinstance(value, bool)` guard that stood beside this is gone, not dropped:
+                #  it existed because CPython parsed `True` into a `Constant` whose value is an `int`
+                #  by inheritance. Frame-QL 1.0 has no boolean literal — `True` is a `Path` and never
+                #  a `Literal` — so the guard could not fire and asserting it would misdescribe the
+                #  grammar. `n: True` now refuses on the `Literal` test, one line below.)
                 if not isinstance(kw.value, Literal) or not isinstance(kw.value.value, int):
                     raise Refusal("unknown",
                         f"scan '{name}': n: takes an integer offset, not "
@@ -2168,6 +2173,26 @@ class Planner:
                                    frozenset(meas.blocked.get(member, frozenset())), True))
             return out
 
+        if isinstance(node, Anchor) and node.base is not None:
+            # A MAP-OPERAND PIN IS LAW-PRESERVING AND MUST BE WALKED THROUGH (ruling §3-A).
+            #
+            # This branch is EXPLICIT now and used to be accidental. Under the retired CPython
+            # dialect `X @ {G}` was an `ast.BinOp`, so it fell into the generic binary branch below
+            # and its operand got recursed into as that branch's left-hand side. The 1.0 IR gives the
+            # ascription its own node type, which is clearer — and silently dropped the recursion,
+            # so `(level.sum @ {cal.month}) / 2` stopped earning `blocked_reduction` and started
+            # answering `unsupported` from the engine. That is precisely the DG-2 laundering shape the
+            # 2026-08-20 ruling exists to close: one more spelling in which a prohibited reduction
+            # escapes its law. Restored, and named, so the next node-set change cannot lose it again.
+            #
+            # The operand is adjudicated at `anchor`, which is exactly what the generic binary branch
+            # passed it. NOTE a pre-existing divergence this restoration deliberately does NOT settle:
+            # `_infer`'s own map-operand branch resolves a BROADCAST operand (`X @ {}`) at the scalar
+            # grain `()` while this walk adjudicates it at `anchor`. The two have disagreed since the
+            # broadcast form shipped; which grain a broadcast operand's travel is adjudicated at is an
+            # analytical question, not a substrate one, and deciding it inside a substrate migration
+            # would be smuggling a ruling in under a refactor.
+            return self._law_travels(node.base, anchor, out)
         if isinstance(node, Unary):
             return self._law_travels(node.operand, anchor, out)
         if isinstance(node, Binary):
@@ -2923,6 +2948,13 @@ class Planner:
                 grain = ((dshape.resolution_anchor,) if dshape.resolution_anchor else tuple(anchor))
                 return self._would_be_defaulted_caveats(inner, grain)
             return out
+        if isinstance(node, Anchor) and node.base is not None:
+            # Walked through for the same reason `_law_travels` walks through it, and it was lost the
+            # same way: under the retired dialect a map-operand pin was an `ast.BinOp` and rode the
+            # generic binary branch. An unpinned reduction nested under a pinned operand still
+            # defaults its anchor, and `plan()` must predict that caveat or EXPLAIN under-reports a
+            # material condition — the one thing EXPLAIN may never do.
+            return out + self._would_be_defaulted_caveats(node.base, anchor)
         if isinstance(node, Unary):
             return self._would_be_defaulted_caveats(node.operand, anchor)
         if isinstance(node, Binary):

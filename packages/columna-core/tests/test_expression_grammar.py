@@ -788,3 +788,180 @@ def test_nodes_are_hashable_and_compare_by_meaning_not_spelling():
     assert parse('a = "x"') == parse("a = 'x'")                 # the quote styles are the same literal
     assert parse("a and b") == parse("a AND b")                 # keyword case is not meaning
     assert len({parse("a @ day"), parse("a @ {day}")}) == 1
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# 7. the grammar AT THE PLANNER — the dialect is the one the planner actually reads
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# Sections 1-6 prove the PARSER. These prove that the parser is what the planner uses: that a §15
+# rule proved above is the rule a reader meets through `ManifoldServer`, and not a second dialect
+# that happens to live in the same repository. That distinction is the whole content of phase 2 —
+# before it, `columna_core.expr` was correct and unreachable.
+
+
+def _series(server, anchor, source: str):
+    """One series through the BUILDER API, with the expression passed as a VALUE.
+
+    Deliberately not written as an inline builder call with two literal arguments at each call site.
+    `_harvest()` above scrapes exactly that shape out of every `.py` file under `packages/`, so a
+    literal here would enrol these tests' intentionally-malformed probes (`revenue $$ 2`) into the
+    very corpus section 5 requires to parse. One helper keeps the probes out of their own fixture."""
+    return server.frame(*anchor).column("c", source)
+
+
+def _refusal(fr, name="c"):
+    col = next(c for c in fr.columns if c.name == name)
+    return col.refusal
+
+
+def test_the_planner_parses_with_this_grammar_and_no_other(fixture_server):
+    """The load-bearing claim: the planner's expression door IS `expr.parse`.
+
+    Asserted at the seam rather than by behaviour, because a behavioural proxy ("it accepts braces")
+    would keep passing if a second reader were introduced that also accepted braces."""
+    from columna_core import planner as P
+    assert P._parse_expr("revenue @ {day}") == expr.parse("revenue @ {day}")
+    assert isinstance(P._parse_expr("revenue"), expr.Node)
+    # and the retired substrate is gone from the module entirely
+    assert not hasattr(P, "_ALLOWED")
+    assert not hasattr(P.Planner, "_convert_input_anchor")
+    assert not hasattr(P.Planner, "_INPUT_ANCHOR_BRACE")
+
+
+def test_one_grammar_for_the_builder_api_and_the_statement_path(fixture_server):
+    """The two doors into the planner accept the SAME language.
+
+    They did not. `desugar()` ran a text shim that rewrote `@ {day}` into `@ day` before the CPython
+    substrate saw it, and `run()` — the builder API — never called that shim, so the braced pin was
+    served through one door and refused "illegal expression construct" through the other. The
+    acceptance set of the expression language depended on the caller's entry point, which means
+    there were two languages. Braces are native now; there is one."""
+    builder = _series(fixture_server, ("cal.month",), "avg(revenue @ {day})").run()
+    statement = fixture_server.planner.run_statement(
+        parse_statement("SELECT avg(revenue @ {day}) AS c AT {cal.month}"))
+    assert _refusal(builder) is None and _refusal(statement) is None
+    # Compared as ROWS rather than with `DataFrame.equals`: the two frames carry identical values and
+    # schemas but different internal chunk layouts, and `equals` is sensitive to that in a way that
+    # has nothing to do with the claim under test.
+    assert (builder.data.sort("cal.month").rows()
+            == statement.data.sort("cal.month").rows())
+    assert builder.data.columns == statement.data.columns
+    assert builder.data.height == 24
+
+
+def test_a_filter_shaped_subscript_is_refused_and_names_the_clause_that_filters(fixture_server):
+    """§7.5, end to end: `revenue[region = 'east']` earns a NAMED refusal pointing at WHERE/HAVING.
+
+    This is the P1-26 leak in its purest form. `ast.Subscript` was not in the retired `_ALLOWED`, so
+    the form never even reached the allow-list — it died as a raw CPython `SyntaxError` whose text
+    was "Maybe you meant '==' or ':=' instead of '='?", which is advice about Python's walrus
+    operator delivered to someone writing an analytical filter. §7.5 asks instead for a diagnostic
+    that "should point the writer toward `WHERE` or `HAVING` rather than silently reinterpret the
+    brackets as a filter", and that is what is asserted here — including that it is a REFUSAL and not
+    a reinterpretation, because serving a filtered number for this would answer a question nobody
+    asked in the one syntax the specification names as where that mistake happens."""
+    fr = _series(fixture_server, ("region",), "revenue[region = 'east']").run()
+    r = _refusal(fr)
+    assert r is not None and r.reason == "bracket_is_not_a_filter"
+    assert "WHERE" in r.detail and "HAVING" in r.detail
+    assert any("WHERE" in a for a in r.alternatives)
+    assert "walrus" not in r.detail and ":=" not in r.detail and "Python" not in r.detail
+    # NOT a silent reinterpretation: no data, no value, no frame
+    assert fr.data is None
+    # the same shape is refused identically on the compile-only path (EXPLAIN must not say serve)
+    replanned = _series(fixture_server, ("region",), "revenue[region = 'east']").plan()
+    assert _refusal(replanned).reason == "bracket_is_not_a_filter"
+
+
+def test_an_ordinary_subscript_is_refused_differently_and_never_crashes(fixture_server):
+    """A non-filter-shaped subscript is well-formed 1.0 that this build has no reading for. It gets
+    the vocabulary refusal, NOT the §7.5 one — the bracket diagnostic must not become a catch-all for
+    every bracket, or it would start pointing readers at WHERE for asks that have nothing to do with
+    filtering."""
+    r = _refusal(_series(fixture_server, ("region",), "revenue['sku']").run())
+    assert r is not None and r.reason == "unknown" and r.reason != "bracket_is_not_a_filter"
+    assert "revenue['sku']" in r.detail
+
+
+def test_a_malformed_series_is_a_language_error_not_a_build_capability_gap(fixture_server):
+    """`$` is in no Frame-QL expression. That is a fact about the ASK, so it classifies LANGUAGE.
+
+    It used to fall into `run()`'s everything-classifies backstop and be reported as "this frame
+    could not be resolved in the engine (FrameQLSyntaxError); the ask is not supported in this build"
+    — a capability claim about a string that never described an ask at all. The message is now the
+    parser's own, with its offset and its remedy."""
+    r = _refusal(_series(fixture_server, ("region",), "revenue $$ 2").run())
+    assert r is not None and r.is_error
+    assert "not supported in this build" not in r.detail
+    assert "offset" in r.detail
+
+
+def test_the_default_column_key_is_canonical_frame_ql_1_0_text(fixture_server):
+    """§4 column identity (WP-NAME-1) keys an unaliased series by its CANONICAL expression, and the
+    canonical dialect is now 1.0's (`contract_version` "4" -> "5").
+
+    Two spellings of one pin produce ONE key, which is the property that makes a key an identity
+    rather than a transcription. The middle case is the one that used to fail: the retired regex
+    canonicalizer normalized the brace and left everything else — including the author's spaces, and
+    including a space it failed to insert itself (`avg(revenue@ {day})`)."""
+    for written in ["avg(revenue @ {day})", "avg(revenue@day)", "avg( revenue @ {day} )",
+                    "avg(revenue @ day)"]:
+        fr = fixture_server.planner.run_statement(
+            parse_statement(f"SELECT {written} AT {{cal.month}}"))
+        assert [c.name for c in fr.columns] == ["avg(revenue @ {day})"], written
+
+
+def test_a_named_argument_is_one_ask_in_both_spellings_and_is_taught_with_a_colon(fixture_server):
+    """§15.2: "`=` compares. `:` names an argument." — with `name = value` kept as compatibility
+    INPUT that canonicalizes to the colon form.
+
+    Both halves matter and they pull in opposite directions, so both are pinned: nothing already
+    written stops working, and nothing Columna SAYS recommends the retiring spelling."""
+    colon = fixture_server.planner.desugar(
+        parse_statement("SELECT lag(revenue, n: 1) AS c AT {cal.month}"))
+    equals = fixture_server.planner.desugar(
+        parse_statement("SELECT lag(revenue, n=1) AS c AT {cal.month}"))
+    assert colon.series[0].expr == equals.series[0].expr == "lag(revenue, n: 1)"
+    # a refusal that names a parameter spells it with the colon
+    r = _refusal(_series(fixture_server, ("region",), "lag(revenue, zzz: 1)").run())
+    assert "n:" in r.detail and "n=" not in r.detail
+
+
+def test_no_planner_refusal_ever_answers_in_the_substrate_voice(fixture_server):
+    """The P1-26 guarantee, swept over the forms that used to leak it.
+
+    Each of these was once answered by CPython talking about Python — "Invalid star expression",
+    "Maybe you meant '==' or ':=' instead of '='?", "illegal expression construct: Subscript". None
+    may mention Python, a Python node class, or a Python operator, and none may escape as a raw
+    exception that is not the language's own."""
+    forbidden = ("Python", "walrus", ":=", "star expression", "ast.", "SyntaxError:",
+                 "illegal expression construct")
+    for text in ["count(*)", "revenue[region = 'east']", "revenue @ 1", "revenue $$ 2",
+                 "revenue.sum.extra.more", "(revenue", "revenue AND orders", "revenue < 1 < 2"]:
+        try:
+            fr = _series(fixture_server, ("region",), text).run()
+        except FrameQLSyntaxError as err:            # the language's own channel, by name
+            assert type(err) is FrameQLSyntaxError
+            message = str(err)
+        else:
+            r = _refusal(fr)
+            assert r is not None, f"{text!r} must not serve"
+            message = r.detail
+        for bad in forbidden:
+            assert bad not in message, f"{text!r} answered in the substrate's voice: {message!r}"
+
+
+def test_the_published_grammar_surface_states_the_rules_it_is_read_under(fixture_server):
+    """`envelope.__doc__` is returned VERBATIM by the MCP `frame_ql_grammar` tool, so it is the
+    published grammar. It must not be silent about the rules a writer will trip over first."""
+    from columna_core import envelope
+    doc = envelope.__doc__
+    assert "`=` COMPARES. `:` NAMES AN ARGUMENT." in doc
+    assert "PRECEDENCE LADDER" in doc
+    for rung in ["postfix", "anchor ascription", "numeric unary", "multiplicative", "additive",
+                 "comparison", "logical"]:
+        assert rung in doc, rung
+    assert "binds TIGHTER than arithmetic" in doc          # the one place §15 and CPython disagree
+    assert "BRACKETS SUBSCRIBE" in doc
+    assert "DOTTED ACCESS IS ONE SHAPE" in doc

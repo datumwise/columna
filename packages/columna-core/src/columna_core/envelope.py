@@ -20,6 +20,64 @@ opposite things):
   • `AT { <anchor> }` — the OUTPUT grain, the SOLE output-anchor syntax. The trailing-`@` output form
     is RETIRED.
 
+────────────────────────────────────────────────────────────────────────────────────────────────────
+THE EXPRESSION DIALECT INSIDE A SERIES  (Frame-QL 1.0, specification §15)
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+This module parses the ENVELOPE and hands each series' text to the expression parser
+(`columna_core.expr`). That text is not free-form, and this docstring is the published grammar
+surface — the MCP `frame_ql_grammar` tool returns it verbatim — so the rules it is read under belong
+here rather than only in the parser that enforces them.
+
+`=` COMPARES. `:` NAMES AN ARGUMENT.  (§15.2)
+
+    variance(price, ddof: 1)          `ddof` is a named analytical parameter
+    if(region = 'east', 1, 0)         `region = 'east'` is a comparison
+    cumsum(revenue, by: cal.day, within: {customer})
+
+  The distinction is SYNTACTIC and does not depend on the called capability's registry entry.
+  Positional operands must precede named parameters. The historical `name = value` call spelling
+  (`lag(revenue, n = 1)`) remains compatibility INPUT and canonicalizes to the colon form — the two
+  parse to the same thing, and canonical text, EXPLAIN and every refusal message write the colon.
+  `==` is likewise accepted and canonicalizes to `=`.
+
+THE PRECEDENCE LADDER (tightest first; §15's order, verbatim)
+
+    primary             literal | dotted name | `( … )` | tuple | `{ … }` grain
+    postfix             f(...) | .member | .method(...) | [key]        left-assoc, tightest
+    anchor ascription   E @ {A}                                        left-assoc
+    numeric unary       +E   -E
+    multiplicative      *  /  %                                        left-assoc
+    additive            +  -                                           left-assoc
+    comparison          =  !=  <  <=  >  >=  IN  BETWEEN               NON-associative (no chaining)
+    logical             NOT (tightest) → AND → OR
+
+  Two consequences worth stating outright, because they are where a reader's habits from other
+  languages mislead:
+    · `@` binds TIGHTER than arithmetic.  `revenue / orders @ {customer}` ≡ `revenue / (orders @
+      {customer})`. To anchor the whole ratio, write `(revenue / orders) @ {customer}`.
+    · `@` binds TIGHTER than numeric unary.  `-a @ {b}` ≡ `-(a @ {b})`.
+  Postfix binds tighter than `@`, so `state.cardinality @ {account}` ≡ `(state.cardinality) @
+  {account}`; parentheses are the only way to get `(state @ {account}).cardinality`.
+
+DOTTED ACCESS IS ONE SHAPE (§15.1). `revenue.sum`, `cal.day` and `a.b.c` are each ONE dotted path.
+  Which prefix is a governed name and which suffix is value access is a per-context semantic check
+  after resolution, not a parse decision. Parenthesizing — `(a.b).c` — is a DIFFERENT written intent
+  (explicit value access) and is preserved as one.
+
+BRACES ARE GRAINS, AND `*` INSIDE THEM IS ANCHOR REFINEMENT (§15.0). `{customer * cal.month}` is a
+  composite grain, never a multiplication; outside braces `*` is ordinary multiplication. `{}` is the
+  Manifold-wide scalar — a DECLARED grain, not a missing one. A brace group may also stand alone in
+  value position (`within: {customer}`).
+
+BRACKETS SUBSCRIBE; THEY NEVER FILTER (§15.4, §7.5). `E[key]` subscribes into a semantic value.
+  `revenue[region = 'east']` therefore asks to subscribe by a Boolean, which is not analytical
+  filtering — use `WHERE` (before reduction) or `HAVING` (after it).
+
+Every expression rejection is `FrameQLSyntaxError`, carrying the source offset. The dialect is
+Frame-QL's own — it is not hosted on another language, and it never answers in another language's
+voice.
+
 Scope of THIS increment: PARSE ONLY. It produces the AST and raises `EnvelopeSyntaxError` on a grammar
 violation, in the four-mood temperament — the remedy names itself. It enforces NO naming law (§4) and
 NO clause-reference law (§5): those are plan-time (the planner owns assembly; the engine stays

@@ -5,8 +5,21 @@ All notable changes to **columna-server** are recorded here
 
 ## 0.12.0 — the statement's `FROM` is addressed, not overridden
 
-**Wire contract stays `"4"`.** No field is added, removed or moved. This is a minor because a public
-tool's BEHAVIOUR changed: a request that names a Manifold is now served from the Manifold it names.
+**Wire contract `"4"` → `"5"`, from columna-core.** `CONTRACT_VERSION` is global and this package
+reports whatever core sets, so every tool — `query`, `check`, `explain`, `describe`,
+`list_manifolds`, `frame_ql_grammar` — now stamps `"5"`. Nothing in THIS package caused it: the
+expression dialect moved to the adopted Frame-QL 1.0 grammar and default column keys are now
+canonical 1.0 text for the same utterance (columna-core 0.19.0; see `disclosure_wire.py`'s version
+history). One thing here did move with it: `frame_ql_grammar` returns `columna_core.envelope`'s
+module docstring verbatim, and that docstring now states the §15 precedence ladder, the `=`-compares
+/ `:`-names rule, dotted access and the brackets-subscribe rule — it is the published grammar
+surface, and it was silent about all four.
+
+(This section previously read *"Wire contract stays `"4"`"*, and it was accurate for the `FROM`
+work it describes. The header is corrected rather than left to be believed.)
+
+No field is added, removed or moved. This is a minor because a public tool's BEHAVIOUR changed: a
+request that names a Manifold is now served from the Manifold it names.
 
 Version-only release, cutting a bump the payload gate had been owed since 0.11.1: the code below
 landed under the released 0.11.1 version, so this tree would have shipped changed content under a

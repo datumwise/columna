@@ -89,6 +89,16 @@ _LAUNDERING = [
     ("carrier-scalar",       "sum((on_hand.last * 2)@day)"),
     ("carrier-scan",         "sum(cumsum(on_hand.last)@day)"),
     ("unpinned",             "sum(on_hand)"),              # L5: no lawful candidate survives
+    # A MAP-OPERAND PIN IS A CARRIER TOO, and the matrix could not say so until 2026-09-11. The
+    # spelling needs a BRACED pin, and the builder API these helpers use could not express one: the
+    # brace shim that made `@ {G}` parseable lived on the statement path only, so this row was
+    # unwritable here rather than lawful. Frame-QL 1.0 reads braces natively on both surfaces, and
+    # the row promptly caught a real defect — the law walk recursed through a pin only by accident
+    # (the retired dialect made it an `ast.BinOp`, so it rode the generic binary branch), and giving
+    # the ascription its own node type dropped the recursion. `(on_hand.sum @ {store*month})`
+    # answered `unsupported` from the engine instead of `blocked_reduction` from the law. One more
+    # spelling in which the prohibited reduction escapes is exactly what this matrix exists to deny.
+    ("carrier-map-operand-pin", "(on_hand.sum @ {store*month}) / 2"),
 ]
 
 

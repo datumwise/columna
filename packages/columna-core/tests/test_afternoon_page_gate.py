@@ -117,7 +117,15 @@ def test_beat_2_the_braced_pin_now_means_the_same_thing_on_both_surfaces(afterno
     builder = wire_frame(afternoon.frame("region", "quarter")
                          .column("avg(revenue @ {order})", "avg(revenue @ {order})").run())
     assert builder["outcome"] == statement["outcome"] == "serve"
-    assert _rows(builder) == _rows(statement)
+
+    def _by_coordinate(w):
+        # Compared as a MAPPING from coordinate to value, not as a row list: the two surfaces assemble
+        # the same frame but the wire's row order is not itself under test here (and is not stable
+        # across runs on this fixture — an independent observation, not something this change moved).
+        return {(r["region"], r["quarter"]): r["value"] for r in _rows(w)}
+
+    assert _by_coordinate(builder) == _by_coordinate(statement)
+    assert len(_rows(builder)) == len(_rows(statement)) == 2
 
 
 # ── beat 3 ───────────────────────────────────────────────────────────────────────────────────────

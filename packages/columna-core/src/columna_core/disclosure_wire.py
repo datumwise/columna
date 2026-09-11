@@ -52,6 +52,16 @@ from .disclosure import Caveat, Outcome
 #
 # Durable advice, unchanged since "2": key on AS aliases. They are author-owned and no rule moves them.
 #
+# ⚠ THREE CURRENCY STAMPS ARE STALE AT THIS BUMP AND WERE DELIBERATELY NOT SWEPT HERE, because the
+# unit that made the bump was scoped out of the files they live in (a later docs/site pass owns
+# them). `scripts/check_currency_stamps.py` names them exactly and fails until they move:
+#     docs/frame_ql_build_status.md                      "the server and the wire contract"
+#     apps/website/src/content/llms_index.txt            "the four moods — the contract they arrive on"
+#     apps/website/src/components/ExhibitB.astro         "askWire copy — the contract the wire arrives on"
+# The guard was GREEN at "4" and is RED at "5" for these three and nothing else. Recorded here rather
+# than left to be discovered, because a stale contract claim outliving a bump is the exact failure
+# that guard was built for: `contract_version "1"` was live on /llms.txt through TWO bumps.
+#
 # ── CONTRACT "3" -> "4" (2026-08-31, OF-24 ruling (a)) ───────────────────────────────────────────
 # The wire gains a second disclosure channel. `disclosures` stays the SEMANTIC channel — what is true
 # of the answer, call-invariant, and the sole input to `outcome`, `rollup_severity` and materiality.

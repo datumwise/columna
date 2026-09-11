@@ -7,14 +7,79 @@ carried in `columna_core.__version__`.
 The entries below are extracted from the README version-history blocks (the de-facto changelog to
 date); future changes are recorded here going forward.
 
-## 0.19.0 — one reason, one condition; and a menu of lawful readings
+## 0.19.0 — Frame-QL reads Frame-QL; one reason, one condition; a menu of lawful readings
 
-**Wire contract stays `"4"`.** No field is added, removed or moved. The wire's REASON VOCABULARY
-grows by one, which is why this is a minor and not a patch: `input_anchor_unavailable` is new public
-surface a caller can receive and branch on, and vocabulary growth is a semantic change even when the
-envelope around it is untouched (ruled Huayin, 2026-09-02 — 0.18.2 would understate it).
+**Wire contract `"4"` → `"5"`.** The default column KEY of an unaliased series can change for the
+same utterance, which is the canonical break-by-version case and the same one that bumped `"1"` →
+`"2"` for WP-NAME-1. No value, mood, disclosure or materiality moves with it. See
+`disclosure_wire.py`'s version history for the full statement, and the entry below for why.
+
+(This section previously read *"Wire contract stays `"4"`"*, and it was accurate for the reason-
+vocabulary work it described. The expression-language unit landed into the same unreleased minor and
+moved the contract; the header is corrected rather than left to be believed.)
 
 ### Added
+
+**Frame-QL 1.0's expression grammar, read natively (`columna_core.expr`).** The expression dialect
+was HOSTED on CPython's `ast` from the first build — an implementation choice, never a fact about the
+language, and it leaked: `count(*)` was refused with "Invalid star expression" and
+`revenue[region = "east"]` with "Maybe you meant `'=='` or `':='` instead of `'='`?", which is advice
+about Python's walrus operator given to someone writing an analytical filter. P1-26 built a wall so
+the substrate's diagnostics stopped at one crossing point; this removes the need for the wall. The
+planner and the adjudicator now read specification §15 directly — own tokenizer, own precedence
+ladder, own IR, own error channel. No `ast`, no `eval`, no `compile`, and no raw Python exception
+escapes a parse.
+
+What a writer gains, each of which §15 already named and none of which was reachable:
+comparison (`=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `BETWEEN`) and logical (`NOT`/`AND`/`OR`)
+operators; colon-named analytical arguments (`variance(price, ddof: 1)`) with the historical
+`name = value` spelling kept as compatibility input; braces read natively everywhere, including
+grain literals in value position (`cumsum(revenue, within: {customer})`); subscription (`E[key]`);
+and §15's precedence, in which `@` binds tighter than arithmetic and tighter than numeric unary —
+`revenue / orders @ {customer}` is `revenue / (orders @ {customer})`, which is NOT how CPython read
+the same text.
+
+**`bracket_is_not_a_filter` (ERROR / LANGUAGE).** §7.5: `revenue[region = 'east']` subscribes into a
+semantic value by a Boolean and is not analytical filtering. The refusal points the writer at `WHERE`
+(before reduction) and `HAVING` (after it), and offers the same predicate moved to its clause. A
+refusal, deliberately — never a silent reinterpretation of brackets as a filter.
+
+**`input_anchor_unavailable` (REFUSE / UNSUPPORTED / ANALYTICAL).** No lawful input-anchor reading
+survives adjudication: the candidate grains were enumerated and every one earned a verdict against
+it. Sibling of `input_anchor_ambiguous` — same contested dimension, zero surviving readings rather
+than several.
+
+### Changed
+
+**Default column keys are canonical Frame-QL 1.0 text (the `"4"` → `"5"` bump).** An unaliased series
+is still keyed by its canonical expression (WP-NAME-1); what moved is which spelling "canonical"
+names. The retired canonicalizer was three regular expressions that normalized ANCHORS and left the
+rest of the expression as typed; the canonical form is now the whole expression re-rendered by the
+grammar's own unparser.
+
+    avg(revenue@order)          key was `avg(revenue@ {order})`      now `avg(revenue @ {order})`
+    avg( revenue @ {order} )    key carried the author's whitespace  now `avg(revenue @ {order})`
+    lag(revenue, n=1)           canonical text said `n=1`            now `n: 1`
+
+EXPLAIN's `desugared` and per-series `expr` move with the keys, being the same artifact. Durable
+advice, unchanged: key on `AS` aliases — they are author-owned and no rule moves them.
+
+**One expression language, one acceptance set.** `run()` (the builder API) and the statement path had
+silently split: `desugar()` ran a text shim rewriting `@ {day}` into `@ day` before the substrate saw
+it, and `run()` never called that shim — so `avg(revenue @ {order})` was served through one door and
+refused "illegal expression construct" through the other. Braces are native; the shim and the split
+are gone.
+
+**Refusals teach the adopted language.** Every reader-facing diagnostic renders in the canonical 1.0
+dialect, and every sentence naming an analytical parameter spells it `by:` / `n:` / `window:` rather
+than `by=` / `n=` / `window=` (§15.2 — `=` compares, `:` names an argument). The `=` spelling remains
+accepted INPUT, so nothing already written stops working; what changed is what Columna recommends.
+A clarify menu is the one place a reader copies a spelling verbatim.
+
+**A malformed series is a LANGUAGE error, not a build capability gap.** It used to reach `run()`'s
+everything-classifies backstop and be reported as "could not be resolved in the engine … not
+supported in this build" — a capability claim about a string that never described an ask. The
+parser's own message, with its source offset and its remedy, is relayed instead.
 
 **`input_anchor_unavailable` (REFUSE / UNSUPPORTED / ANALYTICAL).** No lawful input-anchor reading
 survives adjudication: the candidate grains were enumerated and every one earned a verdict against
