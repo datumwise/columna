@@ -581,7 +581,7 @@ recursively: nested ascriptions, each local, read by the planner as two atoms wi
 the outer (§2.1). Every composite reduction requires an `AS` alias, because no defensible default
 name can be derived from a nested expression (§1.6).
 
-### 2.8 Scans and their family-aware parameters **[ROADMAP]** / **[SCHEDULED]**
+### 2.8 Scans and their family-aware parameters **[ROADMAP — the family-aware parameters, and windowed scans]**
 
 This section is about **scans**, and about which of their parameters the language has and has not
 ruled in. It used to cover a second form beside them — the bracket filter — which has since been

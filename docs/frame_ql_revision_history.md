@@ -134,6 +134,8 @@ parameters*, the form is no longer marked `[ROADMAP]` anywhere in the Manual, an
 the filter — now teaches the refusal, with the example carried as a CHECKED one earning
 `bracket_is_not_a_filter`.
 
+**▸ The heading's mark is now qualified, 2026-09-11.** It read **[ROADMAP]** / **[SCHEDULED]**, one mark per form, when the section covered two. With the bracket filter decided and the section about scans alone, `[SCHEDULED]` named nothing — no work package is in flight — and a bare `[ROADMAP]` over a section whose order-only scans have executed since 2026-09-01 overstates the gap. The mark now names what is unshipped: the family-aware parameters, and windowed scans.
+
 **▸ The scan parameters are spelled with a colon, 2026-09-11 (§15.2).** The bullets above write
 `reset =`, `step =`, `n =`, `by =`, and that is what the signatures took when they were written. Under
 1.0 `=` compares and `:` names an argument, so the parameter names are `n:`, `by:`, `window:` — and
