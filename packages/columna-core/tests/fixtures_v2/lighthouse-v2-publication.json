@@ -1,0 +1,164 @@
+{
+  "authority": {
+    "family_constitution": {
+      "fam_Hs2VnE9QjLkYbW0uPcAtRf": {
+        "at": "2026-09-11T00:00:00Z",
+        "constitution_fingerprint": "fcf-1:c176d2a4f35e443c84e03e6cff3c27a1088b390887e15ae59d1312129e3840ce",
+        "established_by": "lighthouse steward",
+        "fingerprint_scheme": "fcf-1"
+      },
+      "fam_Lb7CwJ1pXtRaHm5nFsQeZi": {
+        "at": "2026-09-11T00:00:00Z",
+        "constitution_fingerprint": "fcf-1:29fc6484092ce14d43f7d6b375deca43bf9bc0c46b353639ac3a4b023f93cd42",
+        "established_by": "lighthouse steward",
+        "fingerprint_scheme": "fcf-1"
+      },
+      "fam_Zx4TgM6oBvNqUeS3rKhDyw": {
+        "at": "2026-09-11T00:00:00Z",
+        "constitution_fingerprint": "fcf-1:4e2d13aba2557769989616f1f8b430d71988dbfe885d9bba5a3d072b060ce762",
+        "established_by": "lighthouse steward",
+        "fingerprint_scheme": "fcf-1"
+      },
+      "fam_qv8Ky3mR7bTpZa1LwXcNdg": {
+        "at": "2026-09-11T00:00:00Z",
+        "constitution_fingerprint": "fcf-1:3569904ff3bb46d3c241d67102cf4ee2c3a81b1b4308a515052540e604a9fa80",
+        "established_by": "lighthouse steward",
+        "fingerprint_scheme": "fcf-1"
+      }
+    },
+    "published_at": "2026-09-11T00:00:00Z",
+    "published_by": "lighthouse steward",
+    "ratifications": {
+      "sales": {
+        "at": "2026-09-11T00:00:00Z",
+        "fingerprint": "lighthouse-existence-law",
+        "fingerprint_version": "elf-1",
+        "ratified_by": "lighthouse steward"
+      }
+    }
+  },
+  "logical": {
+    "declarations": [
+      {
+        "body": {
+          "components": [
+            {
+              "name": "store",
+              "type": "text"
+            },
+            {
+              "name": "day",
+              "type": "date"
+            }
+          ]
+        },
+        "kind": "anchor",
+        "name": "sale_at"
+      },
+      {
+        "body": {
+          "anchor": "sale_at",
+          "basis": "events"
+        },
+        "kind": "universe",
+        "name": "sales"
+      },
+      {
+        "body": {
+          "canonical_reference": "revenue",
+          "constitutive_anchor": "sale_at",
+          "continuation": {
+            "law": "SUM",
+            "version": "1",
+            "vocabulary": "datumwise.foundation"
+          },
+          "family_id": "fam_qv8Ky3mR7bTpZa1LwXcNdg",
+          "formation": {
+            "contribution_structure": "coincident",
+            "kind": "primitive"
+          },
+          "participation": "every sale point carrying a recorded amount",
+          "target": "the revenue recognised at one sale point, in currency units",
+          "universe": "sales",
+          "value_domain": "decimal"
+        },
+        "kind": "family",
+        "name": "revenue"
+      },
+      {
+        "body": {
+          "canonical_reference": "count(revenue@sale_at)",
+          "constitutive_anchor": "sale_at",
+          "family_id": "fam_Hs2VnE9QjLkYbW0uPcAtRf",
+          "formation": {
+            "kind": "construction",
+            "law": {
+              "law": "COUNT",
+              "version": "1",
+              "vocabulary": "datumwise.foundation"
+            },
+            "operands": [
+              "fam_qv8Ky3mR7bTpZa1LwXcNdg"
+            ]
+          },
+          "participation": "every sale point carrying a recorded amount",
+          "target": "count(x@I) \u2014 the number of SUPPORTED revenue observations, not the number of participating sale points. \u00a711.5.1 calls these distinct targets; this family asserts the former",
+          "universe": "sales"
+        },
+        "kind": "family",
+        "name": "count_revenue_sale_at"
+      },
+      {
+        "body": {
+          "canonical_reference": "min(revenue@sale_at)",
+          "constitutive_anchor": "sale_at",
+          "family_id": "fam_Zx4TgM6oBvNqUeS3rKhDyw",
+          "formation": {
+            "kind": "construction",
+            "law": {
+              "law": "MIN",
+              "version": "1",
+              "vocabulary": "datumwise.foundation"
+            },
+            "operands": [
+              "fam_qv8Ky3mR7bTpZa1LwXcNdg"
+            ]
+          },
+          "participation": "every sale point carrying a recorded amount",
+          "target": "the least revenue value under the decimal value order",
+          "universe": "sales"
+        },
+        "kind": "family",
+        "name": "min_revenue_sale_at"
+      },
+      {
+        "body": {
+          "canonical_reference": "max(revenue@sale_at)",
+          "constitutive_anchor": "sale_at",
+          "family_id": "fam_Lb7CwJ1pXtRaHm5nFsQeZi",
+          "formation": {
+            "kind": "construction",
+            "law": {
+              "law": "MAX",
+              "version": "1",
+              "vocabulary": "datumwise.foundation"
+            },
+            "operands": [
+              "fam_qv8Ky3mR7bTpZa1LwXcNdg"
+            ]
+          },
+          "participation": "every sale point carrying a recorded amount",
+          "target": "the greatest revenue value under the decimal value order",
+          "universe": "sales"
+        },
+        "kind": "family",
+        "name": "max_revenue_sale_at"
+      }
+    ]
+  },
+  "publication_format_version": "2",
+  "ref": {
+    "manifold_id": "lighthouse",
+    "version": "1.0.0"
+  }
+}
