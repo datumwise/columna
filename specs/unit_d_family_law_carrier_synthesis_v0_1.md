@@ -9,6 +9,22 @@ names, absent boundaries, private mappings, or runtime behavior.*
 
 All file claims are from the trees at `columna@061e022` (post-#271) and `manifold-agent@d9ea705`.
 
+> ## ⚠ PARTIALLY SUPERSEDED — 2026-09-11, later the same day
+>
+> Huayin corrected the classification of `root_evaluator`: it is **the measure-family reducer,
+> misplaced at the measure/private-mapping level — a Columna Core modeling defect — and the reducer
+> belongs to the measure family.** The private mapping must not originate or decide it.
+>
+> Six passages here are affected, and the accounting is in
+> **`specs/unit_d_d1_crosswalk_v0_1.md` §7**. In short: **O9 is withdrawn as written** (the field's
+> *file* is wrong, not only its direction of flow); **§5 Part 1(3) is under-scoped** (relocating the
+> token unchanged is exactly what the correction forbids — it conflates six of v7.1's nine
+> family-law responsibilities); **§1 O1's "the synonym hole survives every option" note is withdrawn**
+> — under the correction it closes. **§5 Part 2 is unaffected and reinforced.**
+>
+> This document is left as written. The corrections live in the crosswalk, dated, so the reasoning
+> that produced the earlier reading stays legible.
+
 ---
 
 ## 0. The finding that sets the frame

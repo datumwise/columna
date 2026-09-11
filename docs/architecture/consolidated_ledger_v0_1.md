@@ -89,6 +89,14 @@ reader should know before using it:
   reproduction shows is the publication **under-determining its own meaning**, which the receipt was
   deliberately built not to compensate for. It is expected to **dissolve** under P2-03's repair
   rather than be fixed on its own terms.
+  **RE-AMENDED 2026-09-11.** Under Huayin's correction — the reducer is family law, misplaced at the
+  private-mapping level — P2-02 does not merely dissolve. It is the **demonstration** of the defect:
+  ToD v7.1 §3.9 rules that *"a change to an identity-bearing target, formation, participation, or
+  declared continuation law"* **is** family succession, and editing `root_evaluator` from `sum` to
+  `count` changes the asserted target with the governed publication unchanged. So the four-mappings
+  reproduction shows a **private realization file minting a family succession below the governance
+  line.** It is evidence for P2-03, not an artifact of the receipt's scope, and it should be cited
+  that way rather than struck.
 - **P2-03 now outranks it,** and is the real fourth finding. Merged with the former P2-04 and
   re-graded **VX**: the reducer law is attached to the measure rather than the family — a ToD v5
   ontology fossil, not a field in the wrong file. It is the subject of **Unit D**, and **P1-10** is
@@ -2623,6 +2631,51 @@ A third item is raised for ruling and is not a finding: the authoring ruling *"a
 absence of a boundary… an additive answer produces nothing"* and the Unit D invariant *"absence of
 prohibition is not permission"* **cannot both hold at the carrier**. Every alternative inherits the
 answer; the synthesis recommends ruling it first.
+
+### D1 delivered 2026-09-11 — and the ruling it is built on
+
+**SETTLED ARCHITECTURAL FACT (Huayin, 2026-09-11), superseding the earlier classification:**
+`root_evaluator` is essentially the **measure-family reducer**, misplaced by the current Core
+implementation at the measure / private-mapping level. **The reducer belongs to the measure family.**
+Governed family law establishes the family reducer; the private realization mapping maps that
+already-established family to executable machinery, and **must not originate or decide it.** A
+Columna Core modeling defect. Explicitly supersedes the earlier statement that `root_evaluator`
+should remain purely realization-side information.
+
+`specs/unit_d_d1_crosswalk_v0_1.md` delivers **D1**, mapped onto **ToD v7.1** (the unit was opened
+against v6; v7.1 supersedes it and is the target text). Twenty-six rows, plus the inverse direction.
+
+The three findings that should be read even if the table is not:
+
+1. **The conflation is six-way, not a misplaced field.** One operator token, held on the realization
+   side, is the sole carrier of **five of v7.1 §4's nine family-law responsibilities** — target,
+   formation, continuation, sufficient-state witness, and value domain — and it carries them by
+   *indexing a global per-operator registry*, so every family naming the same operator is compelled
+   to share one continuation law and one witness whether or not its law says so. Hence the ruling's
+   *"do not simply relocate the existing field unchanged."*
+2. **The token is not even sufficient to name the target it selects.** §11.5.1: `count(I)` and
+   `count(x@I)` are *"distinct targets."* **P1-10 is that sentence arriving as a served number.**
+3. **Not one of the nine responsibilities is carried by the governed family.** Six of nine are keyed
+   on something other than the family — an operator name, a measure, a universe, or a private
+   mapping. That table is the v5 ontology stated in one place, which is what D1 was opened for.
+
+Two consequences for adjacent rows: the **synonym-operator bypass** (`total` with `sum`'s algebra
+walking past `BLOCKED { sum }`) is reclassified — it is a `family_id ≠ canonical_name` failure
+(§2.2) and it **closes** under this correction, where the morning's synthesis wrongly said it
+survived every option. And **`family_id` has no counterpart anywhere in Columna**: identity is
+carried by the declaration name, which §2.2 forbids. Adjacent to Unit D as chartered, now visibly so.
+
+**D4's count is unchanged at 1 of 1, but its character changes.** `firstlight` is still the only
+publication affected — but regenerating it is no longer mechanical, because its four members must
+acquire *declared law* and the only place that law currently exists is a private mapping. Deciding
+what those four families' laws are is authoring work. That is the first place this ruling touches a
+human.
+
+**Still open after D1:** law granularity (the §11.5 *foundation-law* reading — a family declaring
+*"my law is SUM, over operand X, with participation P"* — looks strongest and is not ruled);
+`family_id`; R4 (*"additivity is the absence of a boundary"* vs *"absence of prohibition is not
+permission"*, still first); whether `measure` survives as an object at all, which **D2 cannot be
+finished without**; and the witness key.
 
 ### What it unblocks
 
