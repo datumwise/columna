@@ -111,6 +111,45 @@ The overall shape: a query declares a frame, one structural aspect per clause.
 
 The query produces a frame. Its anchor is the *output anchor* named in `AT`, its value columns are the series listed in `SELECT`, and its rows are determined by the data, the filters, the ordering, and the limit.
 
+### 1.2a The expression grammar: precedence, `=`, and `:`
+
+Frame-QL has **two grammars, each with one job**. The envelope grammar above parses the *statement* — which clauses are present, in which order, and where each one ends. Everything *inside* a clause is an **expression**: a `WITH` binding, a series in `SELECT`, a predicate in `WHERE` or `HAVING`, an argument to a call. All of it is one expression language with one precedence, so an expression means the same thing wherever it is written; there is no per-clause dialect and no per-operator special case. (The precedence below is the closure adopted in Frame-QL 1.0 §15; §2.9 is how a rule reaches this manual at all.)
+
+The ladder, tightest binding first:
+
+| Level | Forms | Associativity |
+|---|---|---|
+| primary | a literal, a dotted name, `( … )`, a tuple, a `{ … }` anchor | — |
+| postfix | `f(…)`, `.member`, `.method(…)`, `[key]` | left |
+| anchor ascription | `E @ {A}` | left |
+| numeric unary | `+E`, `-E` | — |
+| multiplicative | `*`, `/`, `%` | left |
+| additive | `+`, `-` | left |
+| comparison | `=`, `!=`, `<`, `<=`, `>`, `>=`, `IN`, `BETWEEN` | **none** |
+| logical | `NOT`, then `AND`, then `OR` | left |
+
+Three rungs decide readings a reader coming from another language will otherwise guess wrong, and they are worth stating outright rather than leaving to be inferred from the table.
+
+**`@` binds tighter than arithmetic.** `revenue / orders @ {customer}` reads as `revenue / (orders @ {customer})`: the *denominator* is ascribed, not the ratio. To ascribe the whole ratio, parenthesize it — `(revenue / orders) @ {customer}`. Chapter 6.6 writes both operands' ascriptions out for exactly this reason. The same rung puts `@` inside a unary minus: `-a @ {b}` is `-(a @ {b})`.
+
+**Postfix binds tighter than `@`.** `state.cardinality @ {account}` is `(state.cardinality) @ {account}` — the member is taken first, and the result is ascribed. Parentheses are the only way to say the other thing: `(state @ {account}).cardinality`.
+
+**Comparison does not chain.** `a = b = c` is not an expression. A language that silently gave it a reading would be choosing one on the writer's behalf; Frame-QL asks which comparison is meant, written out and joined with `AND`.
+
+The two punctuation rules are one sentence:
+
+> **`=` compares. `:` names an argument.**
+
+This is **syntactic**, and it is decided without consulting the called operator's signature or the operands' types. `region = "east"` is a comparison in every position, including inside a call — `if(region = "east", 1, 0)` is a conditional on a comparison, not a call with a parameter named `region`. `n: 1` names an analytical parameter, in any call that declares one. Positional operands come first; named parameters follow them.
+
+**The historical `name = value` call spelling remains accepted, and canonicalizes.** `lag(revenue, n = 1)` and `lag(revenue, n: 1)` parse to the same expression. What changes is the direction of travel: the colon is what the language *writes* — in the canonical form, in `EXPLAIN`, in an unaliased column's key (§1.6), and in every message a refusal composes. `==` is accepted beside `=` on the same terms and canonicalizes to `=`. Nothing already written stops parsing; it stops being echoed back in its own spelling.
+
+**Braces are anchors, and `*` inside them is the anchor product.** `{customer * cal.month}` is a composite grain, never a multiplication, and outside braces `*` is ordinary multiplication. The grammar therefore never has to infer which meaning was intended from the operands' types. `{}` is the Manifold scalar — a *declared* anchor, not an omitted one (§1.5).
+
+**Brackets subscribe into a value; they do not filter.** `E[key]` addresses structure *inside* a value at the current analytical point — a map lookup, an index, a type-declared coordinate. It does not restrict a population, select an anchor coordinate, or create a dimension. `revenue[region = "east"]` is therefore a well-formed request to subscribe `revenue` by a Boolean, and it is refused by name rather than quietly re-read as a filter; analytical restriction has its own clauses (Chapter 6.7, §4.1, §4.2).
+
+**A dotted path is one shape.** `revenue.sum`, `cal.day` and `a.b.c` each parse as a single dotted path. Which prefix is a governed name and which suffix is member access is settled *after* parsing, against what the Manifold declares (§1.6, Chapter 5.4) — not by the lexer, and never by the shape of a backend object. Writing `(a.b).c` states a different intent, explicit access on the result of `a.b`, and is preserved as one.
+
 ### 1.3 The `FROM` clause
 
 A query may name its Manifold explicitly (this is the `FROM` clause shown alone, not a whole query):
@@ -188,7 +227,7 @@ The two are not interchangeable. The framework refuses queries that use `@` wher
 
 That law is about the **source and target structure of a reduction or pinned expression** — the `a_in` and `a_out` of the canonical form `op(input @ {a_in}) @ {a_out}` (§2.1). It is **not** the claim that one measure carries two current anchors. Under ToD v6.1 a measure has **one** current anchor; a reduction is two-anchor because it *consumes* a measure at one anchor and *produces* one at another, and family identity may preserve an earlier anchor where that anchor was constitutive of the family.
 
-Neither reading moves anything in the language: `@` marks an input anchor wherever it appears, `AT` declares the one output anchor, and the parser is unchanged.
+Neither reading moves anything in the language: `@` marks an input anchor wherever it appears, and `AT` declares the one output anchor. What that rule does *not* settle is where `@` sits against the other operators, and Frame-QL 1.0 settles it: `@` binds more tightly than arithmetic, so `revenue / orders @ {customer}` ascribes the denominator and not the ratio (§1.2a). The marker is unchanged; its precedence is now stated rather than assumed.
 
 ### 1.6 Series names and the `AS` alias
 
@@ -202,6 +241,8 @@ SELECT revenue AS total_revenue,
 
 Without `AS`, the framework names the column by its **canonical expression** — verbatim, not a mechanical rewrite. A column's **output key** is *what it is*: either the name you give it with `AS`, or the expression itself. No name is invented, and none is mangled.
 
+**Verbatim means the canonical spelling of what you wrote, not the characters you typed.** The key is the expression, so it is written the one way the language writes an expression (§1.2a): a compatibility spelling is normalized to the canonical one before it becomes a key, and incidental whitespace is not part of anyone's identity. `sum(revenue@{transaction})` keys as `sum(revenue @ {transaction})`; `{customer, day}` keys as `{customer*day}`; a named argument written `n = 1` keys as `n: 1`. Nothing is *invented* and nothing is *mangled* — the two spellings were always the same expression, and the key states which one of them the language writes. A consumer that needs a handle immune to this should use an `AS` alias, which is author-owned (below).
+
 An alias supplies an output column key and follows the visibility and collision rules below. It does not establish analytical family identity, and changing the output key does not change the already-resolved analytical quantity.
 
 **Bare column reference.** The column's own name. `revenue` → `revenue`.
@@ -214,7 +255,7 @@ An alias supplies an output column key and follows the visibility and collision 
 
 - Arithmetic and other map expressions: `revenue - cost`, `revenue / orders`.
 - Conditional expressions: `if(...)`, `case ... end`.
-- Bracket-filtered column references: `revenue[region = "east"]`.
+- Value subscriptions: `state["open"]`, `path[i][j]` (§1.2a — brackets subscribe into a value; they do not filter).
 - Composite reductions: `max(sum(revenue @ {transaction}) @ {customer, month})`.
 
 For these the canonical expression is not a single-atom identity the framework will key on, so the query is ill-formed without `AS`.
@@ -236,7 +277,7 @@ An alias is *not* visible in:
 
 **Valid alias names.** An alias is an identifier under the same rules as a column name: alphanumeric with underscores, not starting with a digit, not a reserved keyword. It must not collide with anchor dimension names, with another series's alias or default name, or with reserved identifiers in the Manifold's namespace.
 
-The aliasing rules require explicitness exactly where the canonical expression is not a single-atom identity (composite expressions, bracket filters, name collisions), and key by the expression itself everywhere else (bare columns, member access, single reductions). You are asked to name a series only when the framework cannot identify it by its own expression.
+The aliasing rules require explicitness exactly where the canonical expression is not a single-atom identity (composite expressions, value subscriptions, name collisions), and key by the expression itself everywhere else (bare columns, member access, single reductions). You are asked to name a series only when the framework cannot identify it by its own expression.
 
 (One mechanism deliberately complements the alias rules: the **macro binding** of Chapter 4.5, `WITH name = expression`. It supplies the expression *reuse* that aliases do not — an alias names an output column after reduction, a macro names an expression template before everything.)
 
@@ -538,31 +579,40 @@ recursively: nested ascriptions, each local, read by the planner as two atoms wi
 the outer (§2.1). Every composite reduction requires an `AS` alias, because no defensible default
 name can be derived from a nested expression (§1.6).
 
-### 2.8 Subsetting and scans **[ROADMAP]** / **[SCHEDULED]**
+### 2.8 Scans and their family-aware parameters **[ROADMAP]** / **[SCHEDULED]**
 
-Two further expression forms are documented as language the envelope grows into by ruling
-(§2.9). They are not part of the envelope, and the ratified grammar spec keeps them roadmap.
-
-**The bracket filter** restricts a column reference to a subset of its domain —
-`revenue[region = "east"]` — producing a degenerate column that carries its restriction as part of
-its identity. It differs from `WHERE` (§4.1): `WHERE` restricts the whole statement's input, while a
-bracket filter restricts one reference inside one expression.
-
-Whether an emptied bucket is even *expected* follows the destination universe's basis, and what
-an emptied-but-expected bucket means follows the measure's fill rule Φ. Both are §1.5's rules and are
-not restated here.
+This section is about **scans**, and about which of their parameters the language has and has not
+ruled in. It used to cover a second form beside them — the bracket filter — which has since been
+decided rather than deferred; the retirement is recorded at the end.
 
 **Scans** are order-dependent, anchor-preserving operations: `cumsum(revenue @ {customer, day})`,
-`lag(...)`, `rolling_mean(..., window=7d)`. Each point's output depends on an order and on its
+`lag(...)`, `rolling_mean(..., window: 7d)`. Each point's output depends on an order and on its
 neighbours. The order comes from an orderable axis in the anchor, such as day, or is named
-explicitly. An order-dependent operation whose order is neither derivable nor named is a
+explicitly with `by:`. An order-dependent operation whose order is neither derivable nor named is a
 clarification.
 
 The **family-aware parameters** `reset` / `within` / `step` use the verified dimension-family
-structure to express calendar and hierarchy intelligence directly: year-to-date via `reset = year`,
-same-period-last-year via `step = year`. Each names a coarser level in the order axis's family,
+structure to express calendar and hierarchy intelligence directly: year-to-date via `reset: year`,
+same-period-last-year via `step: year`. Each names a coarser level in the order axis's family,
 reached by a verified climb, and a parameter riding a `CONTRADICTED` edge carries that finding. The
 full scan reference is Appendix A.
+
+Every parameter here is written with the colon that names an argument (§1.2a). The historical
+`reset = year` spelling parses and canonicalizes to `reset: year`; it is compatibility input, not a
+second form, and a parameter the language has not ruled in is not admitted by writing it either way.
+
+**The bracket filter is retired as a roadmap form, not still pending.** The earlier roadmap proposed
+`revenue[region = "east"]` as a restriction on one column reference inside one expression, beside
+`WHERE`'s restriction of the whole statement's input. Frame-QL 1.0 reserves `[]` for semantic-value
+subscription (§1.2a) and supersedes that recommendation: brackets address structure *inside* a value
+at the current analytical point, and they never restrict a population. There is no deferred
+bracket-filter construct waiting to ship, so the form is not marked `[ROADMAP]` anywhere in this
+manual and is not a candidate for §2.9. Written anyway, it parses — the language can read it — and is
+refused by name, with `WHERE` and `HAVING` offered in its place (Chapter 6.7). Analytical restriction
+stays in the clauses that own it (§4.1, §4.2) unless a later ruling introduces a distinct
+local-restriction surface, and the rules for what an emptied bucket means — the destination
+universe's basis, and the measure's fill rule Φ — are §1.5's and apply to restriction wherever it is
+written.
 
 ### 2.9 The grammar grows by ruling
 
@@ -1129,21 +1179,28 @@ SELECT ( revenue @ {customer} ) / ( revenue @ {} ) AS share_of_total
 
 Each customer's share of total revenue. The numerator is per-customer revenue; the denominator is the Manifold-wide grand total (`{}` is the Manifold's defining boundaries collapsed to one point). The denominator is broadcast — replicated unchanged — to every customer for the division.
 
-### 6.7 Bracket filter on a column **[ROADMAP]**
+### 6.7 Brackets subscribe; they do not filter
 
-**Not shipped** (§2.8). The statement grammar accepts it and planning then refuses it. It shows
-the form the language grows into, not a query that runs today. To restrict input today, use the `WHERE` clause of §6.8.
+**Refused, and refused by name** (§1.2a, §2.8). Brackets are semantic-value subscription: `E[key]`
+addresses structure inside a value at the current analytical point. Writing a predicate between them
+asks the language to subscribe a measure by a Boolean, which is not analytical restriction and is not
+read as one.
 
-```frameql-roadmap
+```
 FROM finance_manifold
 SELECT revenue[region = "east"] AS east_revenue,
        revenue AS total_revenue
-       AT {customer}
+       AT {customer}                                   -- error: bracket_is_not_a_filter
 ```
 
-*Would compute* per-customer east-region revenue alongside total revenue. The bracket filter
-restricts the revenue column to its east-region subset; that column sits beside unrestricted
-revenue.
+The statement parses — the language can read the brackets, which is why it can say precisely what is
+wrong with them — and the error names the construct rather than reporting a generic failure. It
+carries the two lawful edits with it: the same predicate in `WHERE`, which narrows the input before
+reduction (§6.8), or in `HAVING`, which narrows the output frame after it (§6.9).
+
+To put east-region revenue beside total revenue in one frame, the two are different restrictions of
+the input and therefore different queries; a single frame carrying both is the province of a
+local-restriction surface the language has not ruled in (§2.8).
 
 ### 6.8 WHERE: pre-query filtering on a base dimension
 
@@ -1230,13 +1287,14 @@ The allocation supplies the partition-of-unity that makes per-category totals re
 ### 6.13 Time intelligence: year-to-date and year-over-year **[ROADMAP]**
 
 **Unshipped on one count** (§2.8): the family-aware parameters these two examples turn on,
-`reset =` and `step =`, are not implemented. The shipped scan signatures accept `n =`, `by =` and
-(for windowed scans) `window =`. So unlike §6.11 these two do not even plan: the parameters are
-not registered, and are refused as unknown.
+`reset:` and `step:`, are not implemented. The shipped scan signatures accept `n:`, `by:` and
+(for windowed scans) `window:`. So unlike §6.11 these two plan no further than their parameter list:
+the names are not registered, and are refused as unknown. Writing them in the historical `reset =`
+spelling changes nothing — it canonicalizes to the colon (§1.2a) and meets the same refusal.
 
 ```frameql-roadmap
 FROM finance_manifold
-SELECT cumsum( revenue @ {customer, day}, reset = year ) AS revenue_ytd
+SELECT cumsum( revenue @ {customer, day}, reset: year ) AS revenue_ytd
        AT {customer, day}
 ```
 
@@ -1245,11 +1303,11 @@ the year level reached from `day` through the verified time family.
 
 ```frameql-roadmap
 FROM finance_manifold
-SELECT ( revenue - lag(revenue, 1, step = year) ) / lag(revenue, 1, step = year) AS yoy_growth
+SELECT ( revenue - lag(revenue, 1, step: year) ) / lag(revenue, 1, step: year) AS yoy_growth
        AT {customer, month}
 ```
 
-*Would compute* per-customer year-over-year revenue growth at month grain. `lag(…, 1, step = year)`
+*Would compute* per-customer year-over-year revenue growth at month grain. `lag(…, 1, step: year)`
 is the same month one year earlier, and the growth is an ordinary map over the co-anchored pair.
 
 ### 6.14 Macro bindings for reuse
@@ -1445,7 +1503,7 @@ those cases the shipped planner already did the right thing; only the list was w
 - **Redundant pin** (shipped reason: **`redundant_pin`**). A composite input anchor (§2.3) pinning two cross-comparable levels — one functionally determines the other — so the pair fixes one axis, not two (Law 2). What to clarify: which of the two admissible pins.
 - **Ambiguous path.** A column whose root reaches the output anchor by more than one hierarchy path (sibling hierarchies), unnamed. What to clarify: which family is climbed.
 - **Attribute keyed at several levels** (shipped reason: **`ambiguous_grain`**). An attribute table keyed at more than one level, so the engine cannot infer which level the attribute is a property of — and where a delivery grain is available, it pins none of the candidates uniquely. The engine reports the fact and the candidate frames; it does not choose. What to clarify: the attribute's level, which the message enumerates (`key at '<level>'` per candidate).
-- **Several lawful orders** (shipped reason: **`order_axis_ambiguous`**). An order-dependent operation whose anchor carries more than one governed order and no `by =` selecting one. What to clarify: which order. (Where the axis carries *no* governed order the count is zero, and it refuses — see `order_not_governed` below. The First Edition's single "order missing" entry ran the two together.)
+- **Several lawful orders** (shipped reason: **`order_axis_ambiguous`**). An order-dependent operation whose anchor carries more than one governed order and no `by:` selecting one. What to clarify: which order. (Where the axis carries *no* governed order the count is zero, and it refuses — see `order_not_governed` below. The First Edition's single "order missing" entry ran the two together.)
 - **Non-traversable edge (fan-out)** (shipped reason: **`non_functional_transport`**). An aggregate-across that rides a non-functional (M:N) relationship without a declared resolution (Chapter 5.6). What to clarify: a membership filter, a primary designation, or `WITH allocation`.
 
 **Refusals — the governed law does not grant the operation, the query executes against nothing, a pin is incoherent, or a rule withholds it:**
@@ -1698,11 +1756,15 @@ The **type predicates and casts** `is_<type>` and `cast(col, <type>)` are propos
 
 **The envelope statement keywords** (case-insensitive, whole-word): `EXPLAIN`, `FROM`, `WITH`, `SELECT`, `AS`, `AT`, `WHERE`, `HAVING`, `ORDER`, `BY`, `LIMIT`, `PER`, `ASC`, `DESC`, `AND`. These are the clauses of the envelope (Chapter 1.2), in fixed order; `SELECT` and `AT` are required, the rest optional (`FROM` defaults to the bound Manifold).
 
-**Structural markers.** `@ {…}` — the **input** anchor, on a column reference or reduction, the input-anchor marker **universally**; `AT {…}` — the **output** grain, the sole output-anchor declaration; `*` — the anchor product (`store * cal.month`), the same operator as `UNIVERSE u = store * day` (comma accepted on input, `*` canonical); `{…}` — an anchor set (a product of levels). *The trailing-`@` output form is **retired** — a top-level `@` no longer spells an output anchor (Appendix D).*
+**Structural markers.** `@ {…}` — the **input** anchor, on a column reference or reduction, the input-anchor marker **universally**; `AT {…}` — the **output** grain, the sole output-anchor declaration; `*` — the anchor product (`store * cal.month`), the same operator as `UNIVERSE u = store * day` (comma accepted on input, `*` canonical); `{…}` — an anchor set (a product of levels); `[…]` — postfix **semantic-value subscription**, never analytical filtering (§1.2a, Chapter 6.7); `:` — the **named-argument** marker in a call, as against `=`, which compares (§1.2a). *The trailing-`@` output form is **retired** — a top-level `@` no longer spells an output anchor (Appendix D).*
 
 **`ON` is a DEFINITION-language clause, not a query keyword.** A population is pinned in definitions; the §2c universe law resolves universe structurally at query time (Chapters 1.5, 2.5). An `ON` in a query is a syntax error.
 
-**Grow-by-ruling keywords — documented, not yet in the shipped envelope statement grammar** (they enter by ruling, ADR-035 D1): `VERSION` (the `FROM … VERSION n` pin, Chapter 1.3, **[SCHEDULED]**); the scan-parameter keywords `window`, `n`, `by`, `reset`, `within`, `step` (recognized in scan-argument position, Chapter 2.8 **[ROADMAP]**); the bracket-filter `[...]` syntax on column references (Chapter 2.8 **[ROADMAP]**); and the expression-level `OR`, `NOT`, `IF`, `CASE`, `WHEN`, `THEN`, `ELSE`, `END`, `BETWEEN`, `IN` (series-internal expression text is captured verbatim and delegated to the expression parser at plan time, so its dialect grows independently of the envelope). `WITH allocation` is **[ROADMAP]** (Chapter 4.5).
+**Expression-grammar keywords** (case-insensitive, whole-word, reserved inside an expression rather than by the envelope): `AND`, `OR`, `NOT`, `IN`, `BETWEEN` — the comparison and logical rungs of §1.2a. Series-internal expression text is captured verbatim by the envelope and read by the expression grammar, so the two vocabularies are reserved separately and neither shadows the other.
+
+**Named scan parameters.** `n:`, `by:` and — for windowed scans — `window:` are the parameter names the scan signatures declare. `reset:`, `within:` and `step:` are documented language the scans have not ruled in (Chapter 2.8 **[ROADMAP]**); a scan refuses a parameter it does not declare, in either the colon spelling or the historical `name = value` one. These names are reserved only in named-argument position: a Manifold may declare a column called `step`, and `step` in value position is that column.
+
+**Grow-by-ruling keywords — documented, not yet in the shipped envelope statement grammar** (they enter by ruling, ADR-035 D1): `VERSION` (the `FROM … VERSION n` pin, Chapter 1.3, **[SCHEDULED]**); the conditional vocabulary `CASE`, `WHEN`, `THEN`, `ELSE`, `END` (a conditional written as the ordinary call `if(…)` parses today, and is resolved against the operator registry like any other call — Appendix A). `WITH allocation` is **[ROADMAP]** (Chapter 4.5). *The bracket-filter `[...]` syntax is no longer listed here: `[…]` is Frame-QL 1.0 subscription, and the filter reading was superseded rather than deferred (Chapter 2.8).*
 
 Reserved for future use: `INHERIT`, `JOIN`, `COMPOSE`, `ASSERT`, `ACCESS`.
 
@@ -1748,6 +1810,8 @@ This form shipped in the pre-launch demo, the `What-is-Columna` glossary, the si
 | `avg(aov@day) @ cal.month` | `SELECT avg(aov @ {day}) AT {cal.month}` |
 
 What the envelope **absorbed** from the fragment: the per-subexpression input anchor (`@ {…}`), the anchor product `*`, dotted member addressing (`level.last`), and juxtaposition of several readings at a shared anchor. What it **declined**: the trailing-`@` output spelling and the `:` label — both replaced by the unambiguous `AT {…}` / `AS`. (This is the Coframe→envelope lineage note of ADR-035 D2: the ideas the shipped grammar kept, and the container ceremony it left behind.)
+
+**The `:` the fragment lost and the `:` the language has are not the same construct.** This is worth stating plainly, because the two decisions look like a reversal and are not one. The fragment's `:` was a **column label**: in `inv: level.last @ region` it named the output column, in the position `AS` occupies today. That role was declined, and is still declined — a frame's column keys are declared by `AS` or are the canonical expression (§1.6), and there is no second spelling for them. Frame-QL 1.0's `:` does a different job in a different place: inside a call it marks a **named analytical parameter** — `lag(revenue, n: 1)` — where the fragment had nothing at all, because the fragment had no named-argument surface to spell. One character, two roles; the role that was declined was not later adopted, and the role that was adopted was never on the table when the label was declined.
 
 ---
 
