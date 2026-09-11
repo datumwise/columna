@@ -125,6 +125,15 @@ evaporated in the first place.
   its own beat. Explicitly does NOT reopen #49 (the surface-migration increment). The package semver + the
   dated `parse_frameql` tombstone already carry the break; this is the machine-readable advertisement for
   a heterogeneous fleet.
+  **ANNOTATED 2026-09-11 (Frame-QL 1.0 expression unit).** One of the two grammars this row exists to
+  tell apart no longer ships. The terse fragment's parser left the public API with the 1.0 retirement
+  (`columna_core.__all__`, the `columna_server.frameql` re-export); it is quarantined private as
+  `_parse_retired_fragment`, kept for reading archived text and reachable by no surface. So a server
+  built from this tree speaks exactly one grammar, and the fleet OF-12 was written for is a fleet of
+  *older releases* — the field's job narrows from "which of two grammars do I speak" to "which
+  RELEASE's grammar do I speak", which is a version advertisement, not a grammar one. That is a
+  smaller and more ordinary thing to build, and it is worth re-deciding whether the package semver
+  already carries it. Rowed, not re-scoped: this is evidence for the next ruling on OF-12, not a ruling.
 
 - **OF-13 opened 2026-07-18** (Cascadia case-demo recapture, POST-FLIP fork — Huayin). **Coordinate-value
   predicates in `WHERE`.** The recapture's manager transcript wanted `SELECT revenue, orders AT

@@ -101,6 +101,29 @@ candidates disagree about it. Counting them demoted the ratified §9 case (`sum(
 prohibition to "no anchor available". They are excluded from the vote; where the set is genuinely
 mixed the message says so instead of calling every candidate blocked.
 
+### Removed
+
+**The terse `@`-fragment's parser leaves the public API.** The fragment (`revenue @ region`,
+`rate: revenue / level.last @ store, day`) is not part of Frame-QL 1.0 and is not a public language
+surface (ruled 2026-09-11). `parse_frameql` leaves `columna_core.__all__` and the
+`columna_server.frameql` re-export; the implementation is quarantined in `columna_core.frameql` as
+`_parse_retired_fragment` under a rewritten tombstone, kept because the archived text written in the
+fragment deserves an executable definition of what it meant, and kept private so it cannot acquire
+new callers.
+
+0.9.0 retired the fragment from the WIRE. What it did not finish was the SURFACE, and the tombstone
+it left said "no shipped surface calls it" while the manual's own example harness
+(`docs/tools/regen_examples.py`) was calling it to run every committed example — so the one place
+this project demonstrates Frame-QL by executing it was demonstrating the retired form, and the
+sample it writes called that form "the shipped grammar". The harness now parses with
+`columna_core.envelope.parse_statement` and runs `planner.run_statement`, which is what every other
+surface calls, and its examples are envelope statements. Same fixture, same ask, same numbers: the
+regenerated output blocks came back byte-identical.
+
+`FrameQLSyntaxError` is untouched and stays public in both packages. It is the language's own error
+channel — raised by the expression grammar with a source offset, raised by the planner, relayed by
+the server as `frameql_syntax` — and it is entirely current. Only the fragment's parser was retired.
+
 ### Fixed
 
 **A Clarify menu was offering a reading that refuses.** `SELECT sum(level) AT {region}` offered

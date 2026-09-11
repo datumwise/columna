@@ -42,9 +42,12 @@ upload after that.
 
 Each construct in the reference manual's Chapter 26 carries a shipping status mark
 (**[SHIPPED vX.Y]** · **[SCHEDULED — <WP>]** · **[ROADMAP — <note>]**); unmarked constructs do not
-exist (ADR-034; the honest-hatching idiom). The Frame-QL manual documents the **shipped envelope
-grammar** as canonical (`columns @ anchor`); its historical Coframe-QL canonical form is retained as a
-lineage appendix (ADR-035).
+exist (ADR-034; the honest-hatching idiom). `frame_ql_language.md` documents the **envelope grammar**
+as canonical — `SELECT <series [AS alias]>, … AT {<anchor>}` — and keeps one lineage appendix
+(Appendix D) for the forms it supersedes: the Coframe-QL canonical form of ADR-035, and the terse
+`@`-fragment that was the pre-launch query surface. *(This paragraph read "the shipped envelope
+grammar … (`columns @ anchor`)" until 2026-09-11. That parenthesis spelled the retired fragment, not
+the envelope — two different grammars under one name. Corrected, not softened.)*
 
 ## tools/ — the regeneration harness (the manual's integrity rule)
 Every executable Frame-QL example is a ```frameql query block followed by a ```frameql-output block

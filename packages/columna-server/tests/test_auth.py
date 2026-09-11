@@ -1,7 +1,9 @@
 """Unit tests for the bearer-token check (no server needed).
 
-The Frame-QL envelope-grammar parser tests moved to columna-core with `parse_frameql` (ADR-035 D3);
-this file keeps the server-owned concern — bearer-token auth.
+The query-surface parser tests moved to columna-core (ADR-035 D3), and what moved has since been
+split: Frame-QL 1.0's envelope grammar is tested there as the language, and the terse `@`-fragment
+that `columna_server.frameql` once re-exported is quarantined as lineage (retired 2026-09-11). This
+file keeps the server-owned concern — bearer-token auth.
 """
 from columna_server.cli import _bearer, verify_token
 

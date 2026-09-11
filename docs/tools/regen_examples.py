@@ -11,7 +11,7 @@ that stops parsing (or whose answer drifts) fails the manual's build.
 
 Marking scheme (CP-M1 fork — proposed): fenced-block info strings.
     ```frameql
-    revenue @ region
+    SELECT revenue AT {region}
     ```
     ```frameql-output
     (machine-generated — do not edit by hand)
@@ -19,8 +19,10 @@ Marking scheme (CP-M1 fork — proposed): fenced-block info strings.
     ```
 An `frameql` block with no following `frameql-output` block is an authoring error (flagged).
 
-The parser is imported from the SHIPPED package; it survives the parse_frameql promotion (ADR-035 D3)
-by trying columna_core first, then columna_server.
+An example is a Frame-QL 1.0 ENVELOPE statement, and this harness has no grammar of its own: it calls
+the shipped `columna_core.envelope.parse_statement` and the planner's statement path, which is what
+every other surface calls. So an example this harness accepts is an example the product accepts —
+the property the integrity rule rests on.
 """
 from __future__ import annotations
 
@@ -30,12 +32,8 @@ import os
 import re
 import sys
 
-try:                                    # promotion-robust import (ADR-035 D3)
-    from columna_core import parse_frameql, FrameQLSyntaxError
-except ImportError:                     # pre-promotion shipped location
-    from columna_server.frameql import parse_frameql, FrameQLSyntaxError
-
 from columna_core import ManifoldServer, DuckDBConnector
+from columna_core.envelope import parse_statement
 from columna_core.parser import parse_manifold
 from columna_core.disclosure_wire import wire_frame
 
@@ -83,20 +81,22 @@ def _fixture_server():
     return srv
 
 
-# ── run one query, format its outcome as the committed output block body ─────────────────────────
+# ── run one statement, format its outcome as the committed output block body ─────────────────────
 def run_query(server, query: str) -> str:
-    anchor, columns = parse_frameql(query)              # envelope grammar (shipped)
-    fb = server.frame(*anchor)
-    for name, expr in columns:
-        fb = fb.column(name, expr)
-    fr = fb.run()
+    stmt = parse_statement(query)                       # the envelope grammar — the language
+    fr = server.planner.run_statement(stmt)             # the whole clause set, one call
     w = wire_frame(fr)
     lines = [_DO_NOT_EDIT, f"outcome: {w['outcome']}"]
     if fr.data is not None:
         cols = fr.data.columns
+        # A committed block needs a settled row order, and the output anchor gives one. Where the
+        # statement writes its own ORDER BY the planner has already applied it — sorting again would
+        # overwrite the very thing that example documents. The grand-total frame (`AT {}`) has one row
+        # and no coordinate to sort on.
+        data = fr.data if (stmt.order_by or not stmt.anchor) else fr.data.sort(list(stmt.anchor))
         lines.append(" | ".join(cols))
         lines.append(" | ".join("-" * len(c) for c in cols))
-        for row in fr.data.sort(list(anchor)).iter_rows(named=True):
+        for row in data.iter_rows(named=True):
             lines.append(" | ".join(_fmt(row[c]) for c in cols))
     for col in w.get("columns", []):
         for d in col.get("disclosures") or []:
@@ -131,7 +131,7 @@ def regenerate(text: str, server) -> tuple[str, int, list]:
         query = m.group("query").strip()
         try:
             body = run_query(server, query)
-        except (FrameQLSyntaxError, Exception) as e:      # a failing example fails the build
+        except Exception as e:                             # a failing example fails the build
             errors.append((query, f"{type(e).__name__}: {e}"))
             body = m.group("out")                          # leave prior body; error is reported
         return f"```frameql\n{query}\n```\n\n```frameql-output\n{body}\n```"

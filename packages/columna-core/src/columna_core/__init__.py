@@ -11,7 +11,7 @@ from .projection import PlannerView, MeasureShape, UniverseShape, DerivedShape, 
 from .connector import Connector, DuckDBConnector
 from .engine import ColumnEngine
 from .planner import Planner, FrameResult
-from .frameql import ManifoldServer, Frame, parse_frameql, FrameQLSyntaxError
+from .frameql import ManifoldServer, Frame, FrameQLSyntaxError
 from .disclosure import Disclosure, Caveat, Refusal, Outcome
 from .adjudication import (adjudicate, Contradiction, HierarchyContradiction,
                            PublishedScope, scope_from_report, scope_diff)
@@ -35,7 +35,7 @@ __all__ = ["Manifold", "Universe", "Predicate", "Ref", "Comparison",
            "Operator", "REGISTRY", "get_operator", "signature_ok", "output_dtype", "VALUE", "ORDERED", "REDUCER", "SCAN", "MAP", "kind_of", "reducers",
            "dtypes", "PlannerView", "MeasureShape", "UniverseShape", "DerivedShape", "ShapeEdge", "OperatorSig",
            "Connector", "DuckDBConnector", "ColumnEngine", "Planner", "FrameResult",
-           "ManifoldServer", "Frame", "parse_frameql", "FrameQLSyntaxError",
+           "ManifoldServer", "Frame", "FrameQLSyntaxError",
            "Disclosure", "Caveat", "Refusal", "Outcome",
            "adjudicate", "Contradiction", "HierarchyContradiction",
            "PublishedScope", "scope_from_report", "scope_diff",
