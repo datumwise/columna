@@ -9,7 +9,12 @@ names, absent boundaries, private mappings, or runtime behavior.*
 
 All file claims are from the trees at `columna@061e022` (post-#271) and `manifold-agent@d9ea705`.
 
-> ## ⚠ PARTIALLY SUPERSEDED — 2026-09-11, later the same day
+> ## ⚠ SUPERSEDED — 2026-09-11. Read `specs/unit_d_synthesis_v0_2_successor_model.md` instead.
+>
+> v0.2 is the current synthesis: the conceptual successor model (objects, identities, §4 law
+> allocation, declared-vs-derived, realization reference, and `firstlight`'s mapping), written to
+> the D1 ruling of the same day. This document is kept for the reasoning that produced the earlier
+> reading. The first correction pass is recorded below and remains accurate as far as it goes.
 >
 > Huayin corrected the classification of `root_evaluator`: it is **the measure-family reducer,
 > misplaced at the measure/private-mapping level — a Columna Core modeling defect — and the reducer

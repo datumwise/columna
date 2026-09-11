@@ -2677,6 +2677,76 @@ human.
 permission"*, still first); whether `measure` survives as an object at all, which **D2 cannot be
 finished without**; and the witness key.
 
+### The D1 ruling, 2026-09-11 — eight settled facts, and the successor model
+
+Ruled after D1 landed, in one instrument. Recorded in full because the successor model is checked
+against them:
+
+1. Current governed `measure` is **not** the ToD Measure — a legacy namespace / grouping /
+   default-resolution container, *unless D1 finds an additional responsibility requiring
+   preservation*, and **must not become a second analytical identity above the families.**
+2. Current `member`, where it denotes a distinct target, succeeds to a **MeasureFamily** — not to a
+   member of another family. `revenue{sum,count,min,max}` is **not** one family with four reducer
+   members. But not every historical member is automatically a valid family.
+3. `root_member` is **default completion**: namespace → uniquely governed default family.
+4. `root_evaluator` is **family-law content in the wrong jurisdiction**; separate governed law from
+   physical realization, and do not relocate the field unchanged.
+5. **Foundation laws** (SUM/COUNT/MIN/MAX) remain shared vocabulary; the token is a **constituent** of
+   `Σ(F)`, never sufficient to identify the family — COUNT's several target forms prove it. Leading
+   direction, not a schema ruling.
+6. **Stable family identity is inside Unit D.** `family_id ≠ canonical_name`; names, reducer
+   spellings and mapping keys cannot serve as identity. Generation stays open.
+7. The legacy `FAMILY { … }` grouping is **not** carried forward as ontology; its law-shaped content
+   is. D2 must separate namespace/default resolution · family identity · family law ·
+   generated/family-forming constructions · physical realization.
+8. **R4 settled:** absence of prohibition is not permission; the legacy *"additive → no
+   declaration"* rule is superseded and is **not** to be replaced by a Boolean additivity field.
+
+**`specs/unit_d_synthesis_v0_2_successor_model.md`** is the live synthesis (v0.1 is superseded and
+kept for its reasoning). It proposes the conceptual successor model — objects, identities, §4 law
+allocation, declared-vs-derived, realization reference, `firstlight`'s mapping — and the smallest
+publication representation consistent with it. Four things from it belong in this row:
+
+- **The `measure` exception clause is invoked, for ONE responsibility: the governed operand
+  identity** — and it sits *below* the families, not above, so ruling 1's prohibition holds. Evidence
+  is four-fold and three parts are already shipped: §11.5.2's MEAN basis needs two families to cite
+  *the same* operand; §3.7 needs a root that is not reducer-formed; `measure.value_type` is **already**
+  the operand's domain with each family's result domain **already derived** from it
+  (`planner.py:2713`); and the compiler **already** refuses when members realize more than one column.
+- **`Σ(F)`'s membership is not a design choice.** §2.2's signature content and §3.9's succession test
+  must agree, and they do — so anything whose change is a succession is in the signature, and
+  anything whose change is not, is out. `root_evaluator`'s content changes the target; therefore it
+  is in `Σ(F)`; therefore it cannot live in a mapping. That is the ruling, re-derived from the text.
+- **A SECOND wrong-number instance of "measure is not the family."** Φ (`fill_rule`) is ruled
+  per-measure, correctly — it is a property of the *operand* ("revenue is a flow, a level is a
+  stock"). But the **empty-fiber** question is per *family*: SUM has a monoid identity so an empty
+  fiber can lawfully be `0`; **MIN and MAX have none** (§5.2, §6.1.1, §11.5.1). `revenue_min` and
+  `revenue_sum` over one operand must answer the empty case differently and today cannot. After
+  P1-10, this is the second served-number consequence D1 has turned up.
+- **R4 falls out of the model with no field.** C3 is two positive declarations — the anchor is in
+  `𝒜_F` **and** the movement is licensed by `Γ_F` — so absence can never read as permission. §4.1 is
+  the citation, and both its halves bind: a computable operation does not confer admission, and a
+  backend's inability does not remove it (which is why `K0_REDUCERS` must keep refusing).
+
+**Smallest publication representation proposed:** one new kind (`family`), one re-scoped (`measure` →
+governed analytical input), one retired (`member`), one re-based (`boundary` onto family+movement),
+one promoted (the foundation-law vocabulary, which Core's operator registry already *is* — it lacks
+standing, not content), `family_id` carried opaquely, and a publication-format MAJOR bump.
+
+**`firstlight` migration, restated honestly: 1 publication, and 3 of 4 families need a human.**
+`count` needs a target ruling (§11.5.1 — `count(I)` and `count(x@I)` are *"distinct targets"*, and
+this number is the denominator of every mean anyone takes); `min`/`max` need an empty-fiber
+declaration the measure-level Φ cannot express. All four have **no established movement law**, which
+under R4 settled is *unestablished* — and the successor model is the first representation able to say
+so, which it can do **before** K1 makes the gap reachable.
+
+**Still open after v0.2:** whether `measure` keeps the operand responsibility or a new kind takes it;
+foundation-law inheritance (default-with-consent vs must-declare); family-law ratification, now
+concrete via `firstlight`; `family_id` generation; `firstlight`'s `count` target; whether lineage
+edges publish now or at K1; and **D2's fifth separation — generated/family-forming constructions** —
+where an inline `mean(revenue@day)` mints a family at request time and its identity's origin is not
+settled.
+
 ### What it unblocks
 
 **OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a
