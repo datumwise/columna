@@ -107,9 +107,9 @@ in *both* of the language's grammars rather than only in the predicate path: the
 lexes the two spellings to one literal and writes `'east'` back in canonical text, and the predicate
 path normalizes the literal into the backend's spelling before it becomes SQL. Re-measured
 2026-09-11: `WHERE day >= "2024-01-05"` reaches the connector as `day >= '2024-01-05'`, and running
-the two spellings in sequence serves the same rows — the second from cache, which is the sharper
-witness, because a cache hit means the two utterances resolved to one canonical key. The substrate
-does not reinterpret Frame-QL's literals.
+the two spellings in sequence serves the same rows — the second answering from cache, which is the
+sharper witness: the two utterances did not merely agree, they resolved to the same request. The
+substrate does not reinterpret Frame-QL's literals.
 
 ## How the examples are checked
 
