@@ -437,6 +437,22 @@ REASON_OUTCOME = {
     "unsupported":              (ERROR, None, REALIZATION),        # not implemented in this build (capability)
     "type_error":               (ERROR, None, LANGUAGE),        # vocabulary/type failure
     "unknown":                  (ERROR, None, LANGUAGE),        # unknown column / operator / construct
+    "bracket_is_not_a_filter":  (ERROR, None, LANGUAGE),        # MINTED 2026-09-11 (Frame-QL 1.0 §7.5/§15.4).
+                                                        #   `revenue[region = 'east']` subscribes into a
+                                                        #   semantic value by a Boolean; it is not analytical
+                                                        #   filtering, and §7.5 asks for a diagnostic pointing
+                                                        #   the writer at WHERE/HAVING rather than a silent
+                                                        #   reinterpretation. LANGUAGE, beside `type_error`
+                                                        #   and `unknown`: the writer reached for the wrong
+                                                        #   construct, which is a fact about the ask's
+                                                        #   spelling, not about this Manifold's structure or
+                                                        #   this build's capabilities. It has its own reason
+                                                        #   rather than riding `unknown` because the remedy is
+                                                        #   specific and mechanically offerable (the same
+                                                        #   predicate, moved to its clause) — and because
+                                                        #   until 1.0 this form never reached classification
+                                                        #   at all: it died as a raw CPython SyntaxError
+                                                        #   recommending Python's walrus operator (P1-26).
 }
 
 

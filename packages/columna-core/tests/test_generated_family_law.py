@@ -274,12 +274,20 @@ def test_the_b_anchor_caveat_is_tombstoned_not_deleted(afternoon_server):
             f"{expr}: the retired caveat was produced afresh"
 
 
-def test_the_wire_contract_did_not_move():
+def test_the_generated_family_reasons_did_not_move_the_wire_contract():
     """Ruling §7: `no_result.reason` is an extensible reason string in shape, so a new reason on the
-    refusal channel is additive. This is an INTERNAL vocabulary correction, not a wire break."""
+    refusal channel is additive. This is an INTERNAL vocabulary correction, not a wire break.
+
+    RENAMED AND RESTATED 2026-09-11. This was `test_the_wire_contract_did_not_move`, asserting `== "3"`
+    at the time, and the name was doing more work than the assertion: pinning today's number cannot
+    tell you that NOTHING moved it, only that nothing HAS. The number has since moved twice for
+    reasons this file knows nothing about (OF-24's channel split -> "4", the Frame-QL 1.0 expression
+    dialect -> "5"), and each time the old name turned into a small lie that had to be quietly
+    re-pinned. So the claim is narrowed to the one this file can actually make and the bumps are
+    named, so the next reader can tell an unrelated bump from a regression here."""
     from columna_core.disclosure_wire import CONTRACT_VERSION
 
-    assert CONTRACT_VERSION == "4"
+    assert CONTRACT_VERSION == "5"        # bumped by OF-24 ("4") and Frame-QL 1.0 ("5"), not by §7
 
 
 # ══ PLAN PREDICTS WHAT RUN DOES ══════════════════════════════════════════════════════════════════

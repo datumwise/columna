@@ -17,16 +17,26 @@ contradicted, and adds the §2c universe filter the enumeration never had — bo
 by routing BOTH paths through one predicate, `_admit_pin`. The tests below are written against the
 INVARIANT rather than against a candidate count, because a count is what went stale last time.
 """
-import ast
 import re
 
 import duckdb
 import pytest
 
-from columna_core import ManifoldServer
+from columna_core import ManifoldServer, expr as _expr
 from columna_core.connector import DuckDBConnector
 from columna_core.disclosure_wire import wire_frame
 from columna_core.parser import parse_manifold
+
+
+def _ir(source: str):
+    """A series expression as the planner's own tree.
+
+    These probes used to read `ast.parse(source, mode="eval").body`, because the planner's internals
+    took CPython `ast` nodes. Since 2026-09-11 they take Frame-QL 1.0 IR nodes (`columna_core.expr`),
+    so the probe is built by the same parser the planner uses. Nothing under test moved — these are
+    still bare measure references handed straight to `_lawful_pins` / `_re_entrant`, and every
+    assertion below is unchanged."""
+    return _expr.parse(source)
 
 # `region` is reached from `customer`; `day` reaches NEITHER output level and is the WP-GRAIN-1 case.
 # `warehouse` is the §2c case, and it is built to be a HARD one: it REACHES `region` through its own
@@ -135,7 +145,7 @@ def test_a_pin_that_reaches_no_output_level_is_a_lawful_reading(srv):
     w = _plan(srv, ("customer",), "avg(aov)")
     assert w["outcome"] != "refuse", "the unpinned form must not refuse where an explicit pin serves"
     assert w["outcome"] == "disclose"                  # `day` is the ONE lawful reading, so it defaults
-    assert srv.planner._lawful_pins("mean", ast.parse("aov", mode="eval").body, ("customer",)) == ["day"]
+    assert srv.planner._lawful_pins("mean", _ir("aov"), ("customer",)) == ["day"]
 
 
 # ── §2c: candidates must remain inside the resolved universe ────────────────────────────────────
@@ -165,12 +175,12 @@ def test_the_disposition_trichotomy_is_unchanged(srv):
     from columna_core.planner import Planner
 
     pl = srv.planner
-    lawful = {a: pl._lawful_pins("max", ast.parse("revenue", mode="eval").body, a)
+    lawful = {a: pl._lawful_pins("max", _ir("revenue"), a)
               for a in (("region",), ("customer",), ("customer", "day"))}
     assert len(lawful[("customer", "day")]) == 0                  # nothing left to pin
     assert len(lawful[("region",)]) > 1                           # a real menu
     assert _plan(srv, ("region",), "max(revenue)")["outcome"] == "clarify"
-    assert isinstance(Planner._lawful_pins(pl, "max", ast.parse("revenue", mode="eval").body, ("region",)), list)
+    assert isinstance(Planner._lawful_pins(pl, "max", _ir("revenue"), ("region",)), list)
 
 
 def test_a_single_lawful_reading_defaults_and_discloses(srv):
@@ -228,7 +238,7 @@ def test_the_menu_is_the_lawful_set_in_level_order(srv):
     w = _plan(srv, ("region",), "max(revenue)")
     menu = _menu(w)
     assert menu == sorted(menu) and len(menu) == len(set(menu))
-    assert menu == srv.planner._lawful_pins("max", ast.parse("revenue", mode="eval").body, ("region",))
+    assert menu == srv.planner._lawful_pins("max", _ir("revenue"), ("region",))
 
 
 # ── re-entry certification: several lawful spellings, one analytical reading ─────────────────────
@@ -240,7 +250,7 @@ def test_certified_re_entry_collapses_lawful_anchors_to_one_reading(srv):
     denotes the same result. Two lawful pins therefore collapse and the ask SERVES where it used to
     offer a menu. And because no analytical choice was made, NO material input-anchor disclosure is
     owed: realization merely picked a representative."""
-    lawful = srv.planner._lawful_pins("sum", ast.parse("revenue", mode="eval").body, ("region",))
+    lawful = srv.planner._lawful_pins("sum", _ir("revenue"), ("region",))
     assert len(lawful) > 1, "the collapse is only meaningful with a real menu behind it"
 
     w = _run(srv, ("region",), "sum(revenue)")
@@ -266,7 +276,7 @@ def test_the_collapse_requires_the_SAME_continuation(srv):
     (sum), so the inner delivers SUMS and the outer takes a max OF SUMS — a different analytical
     object at each candidate grain."""
     pl = srv.planner
-    inner = ast.parse("revenue", mode="eval").body
+    inner = _ir("revenue")
     assert pl._re_entrant("sum", inner) is True
     assert pl._re_entrant("max", inner) is False, \
         "max must not inherit sum's certification just because sum delivers its input"

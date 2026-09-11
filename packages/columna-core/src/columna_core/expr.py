@@ -863,8 +863,8 @@ class _Parser:
         chained = (tok.kind == "op" and tok.text in _COMPARISON) or \
                   (tok.kind == "keyword" and tok.text.upper() in ("IN", "BETWEEN"))
         if chained:
-            self.fail(f"comparisons do not chain in Frame-QL — say which one you mean with "
-                      f"parentheses and AND, e.g. (a < b) AND (b < c)", tok)
+            self.fail("comparisons do not chain in Frame-QL — say which one you mean with "
+                      "parentheses and AND, e.g. (a < b) AND (b < c)", tok)
 
     # additive: + -   (left-associative)
     def additive(self) -> Node:

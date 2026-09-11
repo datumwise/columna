@@ -1,14 +1,25 @@
 """columna_core.frameql — the Frame-QL surface."""
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from .model import Manifold
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .planner import Planner, FrameResult
+
+if TYPE_CHECKING:                     # annotation-only; never imported at runtime
+    from .planner import FrameResult
+
+# `Planner` is imported LAZILY, inside `ManifoldServer.__init__`, and that is structural rather than
+# stylistic. Since the Frame-QL 1.0 migration the planner imports `columna_core.expr` at module
+# scope, `expr` raises this module's `FrameQLSyntaxError`, and a module-scope `from .planner import
+# Planner` here would close the loop planner -> expr -> frameql -> planner. The language's error
+# channel must sit ABOVE its parser in the import order; the surface that uses the planner can
+# perfectly well reach for it when it builds one. `FrameResult` is referenced only in annotations,
+# which `from __future__ import annotations` leaves as strings, so it rides the TYPE_CHECKING block.
 
 
 class ManifoldServer:
     def __init__(self, manifold: Manifold, connector):
+        from .planner import Planner                  # lazy: see the import note at the top of the file
         self.m = manifold
         self.engine = ColumnEngine(manifold, connector)
         self.planner = Planner(PlannerView(manifold), self.engine)

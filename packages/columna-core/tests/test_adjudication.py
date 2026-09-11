@@ -49,10 +49,16 @@ def _server(fixture_connector, *derived_blocks: str) -> ManifoldServer:
     ("100", False),                       # a bare constant is not homogeneous
 ])
 def test_homogeneous_linear_classifier(fixture_connector, formula, is_linear):
-    """The symbolic gate is sound and conservative: only genuinely additive forms pass."""
-    import ast
+    """The symbolic gate is sound and conservative: only genuinely additive forms pass.
+
+    The formula is parsed by `columna_core.expr` — the Frame-QL 1.0 grammar — because that is what
+    the adjudicator itself now reads (2026-09-11, the expression-substrate migration). This used to
+    call `ast.parse(..., mode="eval")`: the classifier walked CPython's tree, so the test had to
+    hand it one. Nothing about WHICH forms are homogeneous-linear moved; the parametrization above
+    is untouched, and it is the assertion that matters."""
+    from columna_core import expr
     m = _server(fixture_connector, f"DERIVED probe = {formula}").m
-    assert _homogeneous_linear(ast.parse(formula, mode="eval"), m) is is_linear
+    assert _homogeneous_linear(expr.parse(formula), m) is is_linear
 
 
 # ── VERIFIED (math): reduce-path ≡ recompute-path for all data, no data touched ─────────────

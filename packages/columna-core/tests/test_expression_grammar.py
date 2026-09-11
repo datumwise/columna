@@ -18,8 +18,13 @@ Four things are asserted here, in rising order of how expensive it would be to g
   4. THE AST-FIDELITY CORPUS — for every expression the OLD `ast`-hosted dialect accepted, harvested
      mechanically from the Manual, the test suite and the `.cml` fixtures, the new unparser's HOST
      output is BYTE-IDENTICAL to `ast.unparse`. Canonical column keys ARE expression text and those
-     keys are wire-visible (`contract_version` is `"4"`), so a language substitution that changed a
-     single byte of them would be a silent wire break. This is the test that says it did not.
+     keys are wire-visible, so a language substitution that changed a single byte of them would be a
+     silent wire break. This is the test that says the SUBSTITUTION did not: HOST is byte-identical
+     to what the retired dialect printed. Phase 2 then made a separate, deliberate, declared change
+     — the planner now keys columns in the CANONICAL 1.0 dialect rather than the host one, and
+     `contract_version` bumped "4" -> "5" to say so. The two are not in tension: this test pins that
+     the translation was faithful, so that the only difference on the wire is the one that was
+     chosen. See `disclosure_wire.CONTRACT_VERSION`.
 """
 from __future__ import annotations
 
@@ -35,7 +40,6 @@ from columna_core.expr import (
 )
 from columna_core.frameql import FrameQLSyntaxError
 from columna_core.envelope import parse_statement
-from columna_core.planner import Planner, _ALLOWED
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -68,20 +72,43 @@ def different_shape(a: str, b: str) -> None:
     assert parse(a) != parse(b), f"{a!r} and {b!r} parse the same, but they must not"
 
 
-class _PlannerText:
-    """The planner's OWN anchor-conversion, borrowed unbound.
+# ── THE RETIRED DIALECT, FROZEN ─────────────────────────────────────────────────────────────────
+# `_ALLOWED` and `Planner._convert_input_anchor` were BORROWED from the planner while this file was
+# written, because the fidelity cohort below is defined as "what the shipped code accepted" and
+# borrowing is how a test avoids grading against its own second-hand copy. Phase 2 deleted both: the
+# grammar is native, so there is no allow-list and no brace shim to borrow.
+#
+# They are therefore frozen here, VERBATIM as of the migration commit, and this is honest rather
+# than convenient. The contract these two constants serve is a HISTORICAL one — "the HOST dialect
+# renders byte-for-byte what `ast.unparse` rendered for every expression the old planner accepted" —
+# and a historical contract has to be stated against the history, not against whatever the planner
+# does next. Pointing them at live planner code would have meant the cohort silently shrinking (or
+# growing) as the planner changed, which is exactly the failure mode "borrow, do not reimplement"
+# was guarding against in the other direction.
+#
+# Nothing in the shipped tree reads these. If they ever disagree with a claim made elsewhere, THIS
+# copy is the one describing the retired dialect and the other one is describing the live one.
+_RETIRED_ALLOWED = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Name, ast.Attribute,
+                    ast.Load, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.USub,
+                    ast.MatMult, ast.Tuple, ast.Call, ast.keyword)
 
-    `_convert_input_anchor` is what turned Frame-QL text into something CPython could parse, so it
-    defines what "the text the old dialect actually saw" means. Reimplementing it here would make the
-    fidelity test grade the new parser against a second-hand copy of the thing it must match, so the
-    real method is used and only the two attributes it needs are carried along."""
-
-    _INPUT_ANCHOR_BRACE = Planner._INPUT_ANCHOR_BRACE
-    _convert_input_anchor = Planner._convert_input_anchor
-    _synerr = Planner._synerr
+_RETIRED_INPUT_ANCHOR_BRACE = re.compile(r"@\s*\{([^}]*)\}")
 
 
-_planner_text = _PlannerText()
+def _retired_convert_input_anchor(source: str) -> str:
+    """`Planner._convert_input_anchor` as it stood before Frame-QL 1.0: `@ {X}` -> the shape CPython
+    could hold — `@ day` for a single level, `@ (a, b)` for a product, `@ ()` for the empty grain."""
+    def repl(m):
+        inner = m.group(1).strip()
+        if not inner:
+            return "@ ()"
+        levels = [x.strip() for x in re.split(r"[*,]", inner)]
+        if any(not x for x in levels):
+            raise FrameQLSyntaxError(f"malformed input anchor `@ {{{inner}}}`")
+        if len(levels) == 1:
+            return f"@ {levels[0]}"
+        return "@ (" + ", ".join(levels) + ")"
+    return _RETIRED_INPUT_ANCHOR_BRACE.sub(repl, source)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
@@ -628,13 +655,13 @@ def _old_dialect_tree(source: str):
 
     "Accepted by the old dialect" has a precise meaning in this repository and it is not "CPython
     could parse it": the planner converted anchors first (`_convert_input_anchor`) and then admitted
-    only the node types in `planner._ALLOWED`. Both halves are used here, unmodified, so the cohort
-    is defined by the shipped code rather than by this test's opinion."""
+    only the node types in `planner._ALLOWED`. Both halves are frozen above, verbatim, so the cohort
+    is defined by the code that shipped rather than by this test's opinion."""
     try:
-        tree = ast.parse(_planner_text._convert_input_anchor(source), mode="eval")
+        tree = ast.parse(_retired_convert_input_anchor(source), mode="eval")
     except Exception:
         return None
-    if not all(isinstance(node, _ALLOWED) for node in ast.walk(tree)):
+    if not all(isinstance(node, _RETIRED_ALLOWED) for node in ast.walk(tree)):
         return None
     return tree
 
@@ -704,10 +731,10 @@ def test_canonical_anchor_spelling_agrees_with_the_shipped_canonicalizer():
 
 
 def test_host_anchor_spelling_agrees_with_the_shipped_converter():
-    """The mirror image: HOST must spell a pin exactly as `Planner._convert_input_anchor` does, since
-    that is the text the old dialect saw."""
+    """The mirror image: HOST must spell a pin exactly as the retired `_convert_input_anchor` did,
+    since that is the text the old dialect saw."""
     for source in ["avg(aov @ {day})", "avg(aov @ {day, store})", "revenue @ {}", "avg(aov@day)"]:
-        converted = _planner_text._convert_input_anchor(source)
+        converted = _retired_convert_input_anchor(source)
         assert host(source) == ast.unparse(ast.parse(converted, mode="eval").body), source
 
 
