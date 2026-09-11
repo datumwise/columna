@@ -293,6 +293,46 @@ class ColumnEngine:
                 alternatives=("name the axis explicitly with by=<level>",
                               "publish/adjudicate so the temporal hierarchy is certified"))
 
+        # 3) ── R4-C0-S1 · ORDERED-WALK PLACEMENT CONTAINMENT (Frame-QL 1.0 §9.8/§9.19; ToD v7.1
+        #    §9.4; adopted acceptance case E07) ──────────────────────────────────────────────────
+        # THE INVARIANT: a contribution whose required analytical placement in the ordered support
+        # is not established must not influence the ordered computation. Later withholding cannot
+        # repair earlier influence.
+        #
+        # WHAT WAS WRONG (reproduced): R4-C0 withholds unplaced rows at FRAME ASSEMBLY
+        # (planner.run, after every column's _eval), so this scan sorted and walked a frame that
+        # still contained them. polars sorts nulls FIRST, so a row with no position in the order
+        # became point zero of its partition: it seeded cum_sum/cum_min/cum_max, and it consumed a
+        # shift step for lag/pct_change. Its contribution then persisted into every surviving row,
+        # all of which were served — while the row itself was withheld downstream. An ordered
+        # result computed over a contribution the frame goes on to disown.
+        #
+        # WHY THE CONTAINMENT BELONGS HERE AND NOT EARLIER OR LATER. The planner hands this scan the
+        # OUTPUT ANCHOR as `target` (planner.py, the sole scan call site), so the predicate below is
+        # the same predicate, over the same key set, that R4-C0 applies moments later — it can only
+        # remove rows the frame is already guaranteed to withhold, and so cannot cost a lawful
+        # coarse result. `AT {store}` still totals all four records, because it never asks for the
+        # lost coordinate. And unlike a reducer, a scan REQUIRES its order coordinate by
+        # construction (the refusal above): a row with no position in that order has no lawful
+        # participation to protect. Establishing placement is part of establishing Q(s) (§9.19).
+        #
+        # EXCLUSION HERE, DISCLOSURE THERE. The rows are withheld from the WALK and handed back
+        # unwalked, with a null _value. If they were simply dropped, R4-C0 would count zero unplaced
+        # rows and the frame would go on to serve a SILENT OMISSION instead of a wrong number —
+        # which ToD §9.4 forbids in the same breath. Returning them preserves the existing
+        # withholding and its existing frame-level caveat, with the same count and the same text.
+        _unplaced = None
+        for k in target:
+            if k not in frame.columns:
+                continue
+            _e = pl.col(k).is_null()
+            _unplaced = _e if _unplaced is None else (_unplaced | _e)
+        held = None
+        if _unplaced is not None:
+            _h = frame.filter(_unplaced)
+            if _h.height:
+                held, frame = _h, frame.filter(~_unplaced)
+
         partition = [d for d in target if d != order_axis]
         f = frame.sort(partition + [order_axis]) if partition else frame.sort(order_axis)
         v = pl.col("_value")
@@ -300,12 +340,20 @@ class ColumnEngine:
                 "lag": v.shift(n), "lead": v.shift(-n),
                 "pct_change": (v / v.shift(n) - 1.0)}[op.scan_impl]
         f = f.with_columns((expr.over(partition) if partition else expr).alias("_value"))
+        if held is not None:
+            # Unwalked, and carrying no ordered value — the walk never reached them. R4-C0 withholds
+            # them from the served frame and discloses the withholding at frame level.
+            f = pl.concat([f, held.with_columns(
+                pl.lit(None, dtype=f.schema["_value"]).alias("_value"))], how="vertical_relaxed")
         self._t(trace, f"  scan {scan_op} ordered by '{order_axis}'"
                        + (f", partitioned by {partition}" if partition else "")
+                       + (f"; {held.height} unplaced row(s) excluded from the walk" if held is not None else "")
                        + " (planner routed; engine walked the order)")
         disc = disc.with_caveat(Caveat(TRANSPORT,
             f"scan {scan_op} over order '{order_axis}'"
-            + (f" within {partition}" if partition else "")))
+            + (f" within {partition}" if partition else "")
+            + (f"; {held.height} row(s) whose placement in that order is unresolved did not enter "
+               f"the walk" if held is not None else "")))
         return f, disc
 
     # ---- monoid delivery + reduce (VALUE and ORDERED) ---------------------
