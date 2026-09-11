@@ -73,10 +73,16 @@ file = "docs/frame_ql_build_status.md"
 claim = "what ships — the standing self-check's package"
 template = "run against the shipped columna-core — {core} at this revision)"
 
+# RE-ENROLLED 2026-09-11 (Frame-QL 1.0 expression language). The claim this stamp guarded was
+# "These are not part of the shipped envelope (columna-core {core})", and the Frame-QL 1.0 grammar
+# made it false: the §2.8 scan-parameter forms now PARSE and are refused by the scan signature that
+# does not declare them. The bullet was re-measured and says the opposite thing, so the enrolment
+# moves with it rather than the prose being bent back to fit an enrolment. Same claim — what this
+# build does and does not realize of §2.8 — restated against the measurement.
 [[stamp]]
 file = "docs/frame_ql_build_status.md"
-claim = "unrealized surfaces — the roadmap forms"
-template = "part of the shipped envelope (columna-core {core})"
+claim = "unrealized surfaces — §2.8 parses, the capability is absent"
+template = "in the shipped envelope (columna-core {core}); it is the capability that is absent."
 
 [[stamp]]
 file = "docs/frame_ql_build_status.md"
