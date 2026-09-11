@@ -1413,5 +1413,37 @@
       "10.5281/zenodo.22651777"
     ],
     "note": "The deposited bytes of *The Theory of Data: An Introduction* v2.3 (record 22651777), hosted at /learn/what-is-the-theory-of-data and byte-identical to the deposit — md5 1adb534f…bff879, 40,096 bytes, matched against Zenodo's own published checksum. Its v2.2 predecessor stays on disk beside it, unimported, with its own row: superseded is a status, not a deletion, and a corpus piece that was ratified does not stop having been ratified. The DOIs below are the paper's own citations — the author's text, not this repo's assertions."
+  },
+  {
+    "path": "specs/unit_d_d1_crosswalk_v0_1.md",
+    "class": "edition-pinned",
+    "allowedDois": [
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "Unit D desk drafts, dated 2026-09-11. The `Target text:` line names the exact edition the crosswalk and the successor model were read against — The Theory of Data v7.1 — and every section reference in them (§2.2, §3.9, §4, §5.2, §11.5.1 …) is a v7.1 section number. EDITION-PINNED, NOT DERIVED, for the same reason as `docs/architecture/tod_v6_runtime_reconciliation.md`: repointing these at a later edition would claim a reading nobody performed, and would silently move section numbers underneath quoted text. When ToD v7.2 arrives, this row does NOT move — a NEW crosswalk moves. The DOI is the only publication token these files carry; they assert nothing about the registry and quote no other work by identifier. D1 — the crosswalk itself; still current as the evidence base for the live synthesis."
+  },
+  {
+    "path": "specs/unit_d_synthesis_v0_2_successor_model.md",
+    "class": "edition-pinned",
+    "allowedDois": [
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "Unit D desk drafts, dated 2026-09-11. The `Target text:` line names the exact edition the crosswalk and the successor model were read against — The Theory of Data v7.1 — and every section reference in them (§2.2, §3.9, §4, §5.2, §11.5.1 …) is a v7.1 section number. EDITION-PINNED, NOT DERIVED, for the same reason as `docs/architecture/tod_v6_runtime_reconciliation.md`: repointing these at a later edition would claim a reading nobody performed, and would silently move section numbers underneath quoted text. When ToD v7.2 arrives, this row does NOT move — a NEW crosswalk moves. The DOI is the only publication token these files carry; they assert nothing about the registry and quote no other work by identifier. SUPERSEDED by v0.4, kept for its reasoning. Its pin does not move: a superseded draft records what was read at the time, which is the whole value of keeping it."
+  },
+  {
+    "path": "specs/unit_d_synthesis_v0_3_successor_model.md",
+    "class": "edition-pinned",
+    "allowedDois": [
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "Unit D desk drafts, dated 2026-09-11. The `Target text:` line names the exact edition the crosswalk and the successor model were read against — The Theory of Data v7.1 — and every section reference in them (§2.2, §3.9, §4, §5.2, §11.5.1 …) is a v7.1 section number. EDITION-PINNED, NOT DERIVED, for the same reason as `docs/architecture/tod_v6_runtime_reconciliation.md`: repointing these at a later edition would claim a reading nobody performed, and would silently move section numbers underneath quoted text. When ToD v7.2 arrives, this row does NOT move — a NEW crosswalk moves. The DOI is the only publication token these files carry; they assert nothing about the registry and quote no other work by identifier. SUPERSEDED by v0.4, kept for its reasoning. Same rule as v0.2."
+  },
+  {
+    "path": "specs/unit_d_synthesis_v0_4_model_and_publication_design.md",
+    "class": "edition-pinned",
+    "allowedDois": [
+      "10.5281/zenodo.22649945"
+    ],
+    "note": "Unit D desk drafts, dated 2026-09-11. The `Target text:` line names the exact edition the crosswalk and the successor model were read against — The Theory of Data v7.1 — and every section reference in them (§2.2, §3.9, §4, §5.2, §11.5.1 …) is a v7.1 section number. EDITION-PINNED, NOT DERIVED, for the same reason as `docs/architecture/tod_v6_runtime_reconciliation.md`: repointing these at a later edition would claim a reading nobody performed, and would silently move section numbers underneath quoted text. When ToD v7.2 arrives, this row does NOT move — a NEW crosswalk moves. The DOI is the only publication token these files carry; they assert nothing about the registry and quote no other work by identifier. The live synthesis — the settled successor model and the publication design, awaiting ruling."
   }
 ]
