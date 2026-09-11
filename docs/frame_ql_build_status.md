@@ -9,7 +9,7 @@ measurement, never in this file.
 
 ## Current packages
 
-This build is current for **columna 0.19.0 · columna-core 0.19.0 · columna-server 0.12.0**, wire `contract_version` **`"4"`**.
+This build is current for **columna 0.19.0 · columna-core 0.19.0 · columna-server 0.12.0**, wire `contract_version` **`"5"`**.
 
 The language reference documents Frame-QL **as implemented** (columna-core 0.19.0).
 
@@ -17,6 +17,28 @@ The `"2"` → `"3"` bump changed the installation catalog (`list_manifolds`, whi
 publication lineage catalog) and nothing the language reference documents. `CONTRACT_VERSION` is
 global, so `query` / `check` / `EXPLAIN` / `describe` merely report the new number: no Frame-QL
 syntax, analytical behaviour, disposition, disclosure or reason code moved with it.
+
+The `"4"` → `"5"` bump (2026-09-11) is the opposite kind: nothing about the *shape* of the wire
+changed, and one thing a caller can read off it did. The expression dialect moved onto the adopted
+Frame-QL 1.0 grammar, and an unaliased column's key **is** its canonical expression text
+(WP-NAME-1), so the canonical spelling moving moves the key of an utterance that did not change.
+Measured: `SELECT avg(revenue@{day}) AT {customer}` keyed as `avg(revenue@ {day})` on `"4"` and keys
+as `avg(revenue @ {day})` on `"5"`, and `avg( revenue @ { day } )` keyed as itself and now keys as
+the same canonical text — the retired dialect carried the writer's incidental whitespace into the
+key, and 1.0's canonical spelling does not. `EXPLAIN`'s canonical form moved further, because it
+prints expressions the key rules never key: a named argument written `n = 1` comes back `n: 1`. No
+mood, disclosure, materiality or existing reason code moved. The precedent is `"1"` → `"2"`, the bump
+WP-NAME-1 took for exactly this class of change.
+
+**Some values move, and that is the bump earning its number.** §15 puts `@` above arithmetic, and the
+retired dialect had it at multiplicative precedence — the host language's rung, not Frame-QL's. So an
+expression mixing the two is read differently now, and correctly: measured on the Manual's fixture,
+`SELECT revenue + (revenue / 2 @ {}) AS v AT {customer}` served `475.0` for `C1` on `"4"` — the old
+reading `(revenue / 2) @ {}`, half the grand total broadcast back — and serves `300.0` on `"5"`, the
+`revenue / (2 @ {})` §15 requires. This is a corrected reading, not a regression, and it is precisely
+why the change could not ride a patch release. A few lexical Python-isms also stopped being accepted,
+each refused by name with a remedy: `.5` without its leading digit, `1_000` with a digit separator, a
+dangling comma in an argument list, and `#` as a comment.
 
 ## Language surfaces this build does not realize
 
@@ -28,28 +50,79 @@ a defect in the Manual.
   joined ones, so there is nothing there to bind against. Refused before execution with
   `filter_unsupported`, naming the base dimensions as the remedy. This is a fact about the build:
   rewording does not help, and the analytical reachability of the dimension is not in question.
-- **The roadmap expression forms** (language reference §2.8). These are not part of the shipped envelope (columna-core 0.19.0).
+- **The unratified scan parameters** (language reference §2.8). `reset:`, `within:` and `step:` are
+  read by the expression grammar like any other named argument and are then refused by the scan
+  signature that does not declare them: `reason = "unknown"`, detail *"scan 'cumsum': unknown
+  parameter 'reset' (accepts n:, by:, window:)"*. Windowed scans (`rolling_mean`, `rolling_sum`)
+  parse, plan as far as the window, and refuse `unsupported`.
+  Both forms are in the shipped envelope (columna-core 0.19.0); it is the capability that is absent.
+  *Corrected 2026-09-11.* This bullet used to say the §2.8 forms "are not part of the shipped
+  envelope". They are: the Frame-QL 1.0 expression grammar reads every one of them, including the
+  colon spelling, which the retired dialect could not read at all. What this build lacks is the
+  **capability**, not the grammar — and the difference is the whole value of the bullet, because a
+  form that parses can be refused by name and a form that does not parse can only be refused
+  generically. The second half of the old claim went with it: the bracket filter is no longer a §2.8
+  roadmap form in any build, because 1.0 superseded it rather than deferring it.
 
 **Query-error reason fidelity.** The query-error channel (language reference §7.3) carries two
 jurisdictions — a request the language does not accept, and a valid, admissible request this
-realization cannot carry out. **This build's `reason` does not reliably separate them.**
-`cross_universe` and `type_error` carry their own reason and `unsupported` marks a realization
-failure; every other language-invalid case reports `reason = "unknown"` and puts the information in
-`detail`. The detail is precise; the reason is not yet a field to branch on. A second route exists
-too: an unregistered operator (`wibble(revenue)`) reaches the caller as a raised error rather than as
-a frame, so a caller that reads only frames will not see the whole channel. Both are interface facts
-about columna-core 0.19.0, not language law — the language states the distinction, and this build's
-wire does not yet express it fully.
+realization cannot carry out. **This build's `reason` still does not reliably separate them**, and
+the Frame-QL 1.0 expression grammar moved two of the rows below. Re-measured 2026-09-11 against the
+Manual's own fixtures, at the server tool that returns the wire:
 
-**String literals.** Frame-QL treats `'east'` and `"east"` as one literal. This build normalizes the
-predicate into the backend's spelling before it becomes SQL, so both forms run and return the same
-rows; the substrate does not reinterpret Frame-QL's literals.
+| ask | how it reaches the caller | `reason` |
+|---|---|---|
+| `SELECT nosuchthing AS v AT {customer}` | frame, `outcome = "error"` | `unknown` |
+| `SELECT level.mode AS m AT {store}` (no such family member) | frame | `unknown` |
+| `SELECT sum(revenue) + level.last AS x AT {region}` | frame | `cross_universe` |
+| `SELECT revenue[region = 'east'] AS v AT {customer}` | frame | **`bracket_is_not_a_filter`** |
+| `SELECT revenue['k'] AS v AT {customer}` | frame | `unknown` |
+| `SELECT sum(revenue @ {product, date}) AS s AT {product}` | frame | `unsupported` |
+| `SELECT revenue + AS v AT {customer}` (will not parse) | frame | `frameql_syntax` |
+| `SELECT revenue - cost AT {customer}` (no derivable name) | frame | `frameql_syntax` |
+| `SELECT wibble(revenue) AS v AT {customer}` | **raised `Refusal`, never a frame** | `unknown` |
+| `SELECT cumsum(… , reset: year) AS r AT {…}` | **raised `Refusal`, never a frame** | `unknown` |
+| `SELECT rolling_mean(… , window: 7) AS r AT {…}` | **raised `Refusal`, never a frame** | `unsupported` |
+
+So: `cross_universe`, `type_error`, `bracket_is_not_a_filter` and `unsupported` carry their own
+reason; everything else language-invalid reports `unknown` (or, if the grammar itself rejected it,
+`frameql_syntax`) and puts the information in `detail`. The detail is precise; the reason is still
+not a field to branch on. The second route is unchanged and is the more important caveat: a raised
+`Refusal` is not caught at the tool boundary, so an unregistered operator — and an unregistered scan
+parameter, and a windowed scan — reaches the caller as an exception rather than as a frame, and a
+caller that reads only frames will not see the whole channel.
+
+Two rows moved with 1.0, and both moved the same way — from a generic failure to a named one.
+`revenue[region = 'east']` used to arrive as `frameql_syntax` with *"It is not a well-formed series
+expression"*; it now parses and earns `bracket_is_not_a_filter`, with the same predicate offered back
+in `WHERE` and in `HAVING`. `revenue['k']` and `(lambda x: x)(revenue)` used to arrive as `unknown`
+with the detail *"illegal expression construct: Subscript"* / *"…: Lambda"* — a foreign node
+vocabulary, visible to the caller; both now answer in Frame-QL's own words, with an offset into the
+expression. Neither moved the wire's shape, and no reason code was retired. All of this is an
+interface fact about columna-core 0.19.0, not language law — the language states the distinction, and
+this build's wire does not yet express it fully.
+
+**String literals.** Frame-QL treats `'east'` and `"east"` as one literal, and since 1.0 that holds
+in *both* of the language's grammars rather than only in the predicate path: the expression grammar
+lexes the two spellings to one literal and writes `'east'` back in canonical text, and the predicate
+path normalizes the literal into the backend's spelling before it becomes SQL. Re-measured
+2026-09-11: `WHERE day >= "2024-01-05"` reaches the connector as `day >= '2024-01-05'`, and running
+the two spellings in sequence serves the same rows — the second answering from cache, which is the
+sharper witness: the two utterances did not merely agree, they resolved to the same request. The
+substrate does not reinterpret Frame-QL's literals.
 
 ## How the examples are checked
 
 Every Frame-QL example in the language reference is checked against the shipped parser (`columna_core.envelope.parse_statement`, columna-core 0.19.0) by `docs/tools/check_manual_frameql.py`, which rides the manuals merge as a standing test — the
 reference can never document syntax its own parser rejects. A block fenced `frameql-illformed` is
 deliberately ill-formed and the check asserts it does **not** parse.
+
+Two parsers, not one: `parse_statement` reads the ENVELOPE and hands each series' text to the
+expression grammar (`columna_core.expr`), which implements the Frame-QL 1.0 precedence closure
+(language reference §1.2a). Both are the shipped package, and neither is hosted on another language
+— an expression this build rejects is rejected in Frame-QL's own words, with an offset, and no
+exception the language does not own reaches a reader as the language's answer. The Manual gate fails
+closed on that last point specifically.
 
 ## What ships
 
@@ -114,7 +187,7 @@ Measured from the installed `columna-core` **0.19.0**. Nothing here is authored:
 | Capability | Core undertakes | This build | Conformance |
 |---|---|---|---|
 | `and` | executes | executes | conforms |
-| `=`, `==` | executes | executes | conforms |
+| `=` (compatibility input: `==`) | executes | executes | conforms |
 | `>=` | executes | executes | conforms |
 | `>` | executes | executes | conforms |
 | `<=` | executes | executes | conforms |

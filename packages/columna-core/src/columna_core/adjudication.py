@@ -32,14 +32,13 @@ equality theorem that lets the engine skip it).
 """
 from __future__ import annotations
 
-import ast
-from .planner import _parse_expr
 import re
 from dataclasses import dataclass, field, replace
 from typing import Optional
 
 import polars as pl
 
+from .expr import Binary, Literal, Node, Path, Unary, parse as _parse_expr, walk as _walk_expr
 from .model import (License, VERIFIED, CORROBORATED, UNTESTABLE, CONTRADICTED,
                     TOUCH, ASSIGN, ORDER_MIN, EdgeKey)
 from .operators import REGISTRY
@@ -98,45 +97,48 @@ class HierarchyContradiction(Contradiction):
 # ─────────────────────────────────────────────────────────────────────────────
 # math channel — a symbolic proof of homogeneous linearity over the formula tree
 # ─────────────────────────────────────────────────────────────────────────────
-_BINOP = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*", ast.Div: "/"}
+def _atom_refs(node: Node):
+    """Every measure/derived atom referenced in the subtree — the HEAD of each dotted path.
+
+    `revenue` yields `revenue`; `level.last` yields `level` (the member is not itself an atom). A
+    path of three or more segments still yields its head, exactly as the nested `ast.Attribute` walk
+    it replaces did, because the question here is only "does any name in this subtree refer to
+    data", and the head is where a governed name can start."""
+    for n in _walk_expr(node):
+        if isinstance(n, Path):
+            yield n.segments[0]
 
 
-def _atom_refs(node: ast.AST):
-    """Every measure/derived atom referenced in the subtree (Name or dotted Attribute head)."""
-    for n in ast.walk(node):
-        if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name):
-            yield n.value.id
-        elif isinstance(n, ast.Name):
-            yield n.id
-
-
-def _is_constant_expr(node: ast.AST) -> bool:
+def _is_constant_expr(node: Node) -> bool:
     """A SCALAR operand: a literal/declared constant — an expression with NO atom reference. `100`,
     `-5`, `2*3` are scalars; anything naming a measure is data (a data-constant may corroborate,
     never verify — ruling §3), so it is deliberately NOT a scalar here."""
     return next(_atom_refs(node), None) is None
 
 
-def _homogeneous_linear(node: ast.AST, m) -> bool:
+def _homogeneous_linear(node: Node, m) -> bool:
     """Is `node` a HOMOGENEOUS linear form in its measure atoms — a linear combination with scalar
     coefficients and NO additive constant term? (Additive-monoid `sum` distributes over exactly
-    these: sum(a·x ± b·y) = a·sum(x) ± b·sum(y); a bare `+ c` offset breaks it.)"""
-    if isinstance(node, ast.Expression):
-        return _homogeneous_linear(node.body, m)
-    if isinstance(node, ast.Constant):
+    these: sum(a·x ± b·y) = a·sum(x) ± b·sum(y); a bare `+ c` offset breaks it.)
+
+    DEFAULT-DENY over the Frame-QL 1.0 node set, and that is load-bearing: this is the MATH channel
+    of an adjudicator whose verdict (VERIFIED) is timeless and never re-tested against data, so a
+    node shape it does not recognize must fall to `return False` and hand the question to the data
+    channel. Every branch below is an affirmative reason to believe the form distributes."""
+    if isinstance(node, Literal):
         return False                      # a bare constant term is an offset — not homogeneous
-    if isinstance(node, ast.Name):
-        d = m.derived.get(node.id)
-        if d is not None:                 # a derived atom: recurse into its own formula (soundness)
-            return _homogeneous_linear(_parse_expr(d.formula, mode="eval", origin="declared formula"), m)
-        return node.id in m.measures      # a measure atom is a degree-1 term
-    if isinstance(node, ast.Attribute):   # dotted family member ref (e.g. level.last) — a data atom
-        return isinstance(node.value, ast.Name) and node.value.id in m.measures
-    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+    if isinstance(node, Path):
+        if len(node.segments) == 1:       # a bare measure or derived name
+            d = m.derived.get(node.dotted)
+            if d is not None:             # a derived atom: recurse into its own formula (soundness)
+                return _homogeneous_linear(_parse_expr(d.formula, origin="declared formula"), m)
+            return node.dotted in m.measures        # a measure atom is a degree-1 term
+        # a dotted family member ref (e.g. `level.last`) — a data atom
+        return len(node.segments) == 2 and node.segments[0] in m.measures
+    if isinstance(node, Unary) and node.op == "-":
         return _homogeneous_linear(node.operand, m)
-    if isinstance(node, ast.BinOp):
-        op = _BINOP.get(type(node.op))
-        L, R = node.left, node.right
+    if isinstance(node, Binary):
+        op, L, R = node.op, node.left, node.right
         if op in ("+", "-"):
             return _homogeneous_linear(L, m) and _homogeneous_linear(R, m)
         if op == "*":                     # scalar-operand rule: exactly one side linear, the other scalar
@@ -154,7 +156,7 @@ def _prove_math(m, derived, reducer: str) -> Optional[License]:
     op = REGISTRY.get(reducer)
     if op is None or not (op.linear and op.is_monoid):
         return None
-    if not _homogeneous_linear(_parse_expr(derived.formula, mode="eval", origin="declared formula"), m):
+    if not _homogeneous_linear(_parse_expr(derived.formula, origin="declared formula"), m):
         return None
     return License(
         verdict=VERIFIED,
@@ -273,7 +275,7 @@ def _watermark(server, m, derived) -> str:
     """A stable attestation id from the connector versions of the home tables the formula touches —
     so CORROBORATED re-adjudicates when the data is re-attested (a version change ⇒ a new watermark)."""
     con = server.engine.con
-    tables = sorted({m.measures[a].home_table for a in set(_atom_refs(_parse_expr(derived.formula, mode="eval", origin="declared formula")))
+    tables = sorted({m.measures[a].home_table for a in set(_atom_refs(_parse_expr(derived.formula, origin="declared formula")))
                      if a in m.measures})
     try:
         parts = [f"{t}@{con.data_identity(t)}" for t in tables]

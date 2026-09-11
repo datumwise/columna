@@ -382,12 +382,15 @@ def test_wire_contract_version_is_current(fixture_connector):
     # (readers on the contract route by outcome). WP-NAME-1 changed the default column KEY for the same
     # utterance (canonical expression identity) -> contract "2". S2.2b-2 changed list_manifolds catalog
     # semantics (per-lineage, not per-folder) -> contract "3"; the bump is global, so this frame wire
-    # reports "3" too though no analytical behavior changed here.
+    # reports it too though no analytical behavior changed here. OF-24 split the wire's semantic and
+    # mechanical disclosure channels -> "4". Frame-QL 1.0 (2026-09-11) moved the expression dialect off
+    # CPython's `ast`, so the canonical spelling a default key is derived from moved -> "5"; the KEY
+    # asserted below is unchanged under it, which is the useful thing this test says.
     from columna_core.disclosure_wire import CONTRACT_VERSION
-    assert CONTRACT_VERSION == "4"
+    assert CONTRACT_VERSION == "5"
     s = _srv(fixture_connector)
     w = _stmt(s, "SELECT avg(revenue @ {store*product*cal.month}) AT {cal.month}")
-    assert w["contract_version"] == "4"
+    assert w["contract_version"] == "5"
     # the composite pin's reduction column is keyed by its canonical expression (WP-NAME-1)
     assert w["columns"][0]["name"] == "avg(revenue @ {store*product*cal.month})"
 

@@ -1,5 +1,28 @@
 # WP-GRAIN-1 — composite input anchor (`@ {a*b}`)
 
+> **Supersession annotation — 2026-09-11 (Frame-QL 1.0 expression language). History is annotated,
+> never rewritten: nothing below this line is edited.**
+>
+> **The composite input anchor is unchanged as law and is now NATIVE syntax rather than a shim.** This
+> WP lifted the single-level restriction so `@ {a*b}` and `@ {a,b}` parse wherever `AT {…}` does, and
+> that is still the rule; the comma form is still compatibility input canonicalizing to `*`. What
+> changed underneath is how the braces are read. The retired implementation converted `@ {a*b}` into a
+> host-language tuple before handing it to CPython's `ast`; the Frame-QL 1.0 grammar has braces as a
+> primary (§15), so there is no conversion step.
+>
+> **That shim was hiding a split dialect, which is worth recording because this WP's own surface was
+> one of the two doors.** The builder API never called the converter while the statement path did, so
+> `avg(revenue @ {order})` was refused "illegal expression construct" through one entry point and
+> served through the other — one expression language with two acceptance sets, decided by which door
+> the caller used. 1.0 unified them: one grammar, one door.
+>
+> **Wire.** §"Wire contract" above says `contract_version` STAYS `"1"`, which was true of this WP and
+> is a dated statement about it. The contract has since moved `"1"` → `"2"` (WP-NAME-1) → `"3"` → `"4"`
+> → **`"5"`** (2026-09-11, this migration: canonical expression text moved, so an unaliased column's
+> key can move). The composite pin's own key text did NOT move — `@ {customer, day}` and
+> `@ {customer*day}` both keyed as `{customer*day}` before and after, measured. — the desk
+
+
 *proposal · v0.1 · 2026-07-29 · headline of 0.13.4 (CLI-renumbered from a would-be 0.13.4)*
 
 ## The one-sentence WP

@@ -118,13 +118,25 @@ def test_by_naming_a_governed_order_outside_the_anchor_has_no_standing_for_this_
 
 def test_several_lawful_governed_orders_and_no_selection_clarifies(srv):
     """|L(Q)| > 1. Was `unknown`/ERROR, which told the caller the request was malformed when it was
-    merely under-determined."""
+    merely under-determined.
+
+    THE OFFERED TOKENS ARE SPELLED WITH A COLON (Frame-QL 1.0 §15.2, 2026-09-11). This asserted
+    `{"by='month'", "by='year'"}` — the spelling the language had when the clarify was written, and
+    the only one it had. §15.2 now rules that "`=` compares, `:` names an argument", so the menu
+    offers `by: 'month'`. Both spellings still PARSE — `by = 'month'` is compatibility input that
+    canonicalizes to the colon form, and `test_by_selects_a_governed_order` below still writes it —
+    so nothing a caller has already written stops working. What changed is what Columna RECOMMENDS,
+    and a clarify is the single place a reader is most likely to copy a spelling verbatim: offering
+    a retired one there would teach the wrong grammar to the one person paying attention. The
+    assertion is still exact (no substring softening) — only the expected strings moved."""
     anchor = ("month", "year")
     assert len(_governed(srv, anchor)) > 1
     outcome, reason, nr = _wire(srv, "SELECT cumsum(revenue.sum) AS c AT {month, year}")
     assert (outcome, reason) == (CLARIFY, "order_axis_ambiguous")
     assert jurisdiction_for(reason) == ANALYTICAL
-    assert {a["token"] for a in nr["alternatives"]} == {"by='month'", "by='year'"}
+    assert {a["token"] for a in nr["alternatives"]} == {"by: 'month'", "by: 'year'"}
+    # and the offer is honest: taking it serves, in the spelling it was offered in
+    assert _wire(srv, "SELECT cumsum(revenue.sum, by: 'month') AS c AT {month, year}")[0] != CLARIFY
 
 
 def test_no_lawful_governed_order_refuses(srv):

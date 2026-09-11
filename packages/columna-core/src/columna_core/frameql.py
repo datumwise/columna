@@ -1,14 +1,25 @@
 """columna_core.frameql — the Frame-QL surface."""
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from .model import Manifold
 from .projection import PlannerView
 from .engine import ColumnEngine
-from .planner import Planner, FrameResult
+
+if TYPE_CHECKING:                     # annotation-only; never imported at runtime
+    from .planner import FrameResult
+
+# `Planner` is imported LAZILY, inside `ManifoldServer.__init__`, and that is structural rather than
+# stylistic. Since the Frame-QL 1.0 migration the planner imports `columna_core.expr` at module
+# scope, `expr` raises this module's `FrameQLSyntaxError`, and a module-scope `from .planner import
+# Planner` here would close the loop planner -> expr -> frameql -> planner. The language's error
+# channel must sit ABOVE its parser in the import order; the surface that uses the planner can
+# perfectly well reach for it when it builds one. `FrameResult` is referenced only in annotations,
+# which `from __future__ import annotations` leaves as strings, so it rides the TYPE_CHECKING block.
 
 
 class ManifoldServer:
     def __init__(self, manifold: Manifold, connector):
+        from .planner import Planner                  # lazy: see the import note at the top of the file
         self.m = manifold
         self.engine = ColumnEngine(manifold, connector)
         self.planner = Planner(PlannerView(manifold), self.engine)
@@ -143,26 +154,26 @@ class Frame:
         return (self.run() if execute else self.plan()).explain()
 
 
-# ── the ENVELOPE grammar for a Frame-QL query string (promoted from columna-server, ADR-035 D3) ──
-# The query surface is canonical (ADR-035 D1); it lives under core's test regime because Explorer
-# tier 2 and the on-ramp both build against it. MOVED, not changed — the grammar is untouched; the
-# server keeps a thin re-export shim. The envelope owns only column names, the `@` separator, and the
-# anchor level list; every column expression is delegated verbatim to core's expression parser (via
-# `Frame.column(name, expr)`), so there is exactly ONE expression dialect.
-#
-# Grammar:
-#     <query>   ::= <columns> "@" <anchor>
-#     <columns> ::= <column> ("," <column>)*
-#     <column>  ::= <name> ":" <expr>  |  <expr>          # bare expr -> name defaults to the expr text
-#     <anchor>  ::= <level> (("*" | ",") <level>)*      # `*` canonical (the anchor product); `,` accepted
-# Commas inside parentheses (e.g. `lag(revenue.sum, n=1)`) are NOT top-level separators. No SQL: a
-# query that does not fit this envelope (or whose expression core rejects) is an error, never executed.
-_SQL_HINTS = ("select ", "insert ", "update ", "delete ", "drop ", "create ", "with ", ";")
+# ── the language's syntax-error channel ──────────────────────────────────────────────────────────
+# This is the only current surface below this line. Everything after it is quarantined lineage.
 
 
 class FrameQLSyntaxError(ValueError):
-    """The query does not fit the Frame-QL envelope (never raised for expression-internal errors —
-    those come from the planner when the frame runs)."""
+    """A Frame-QL utterance is not readable as Frame-QL.
+
+    The language's OWN error channel, and the whole of it: the expression grammar
+    (`columna_core.expr`) raises it on every rejection with a source offset, the planner raises it
+    where a statement parses but is not a valid request, and the server relays it as the
+    `frameql_syntax` query error. It lives in this module rather than beside the parser because the
+    error channel must sit ABOVE the parsers in the import order — see the note at the top of the
+    file. No Python-level exception is ever allowed out in its place (P1-26)."""
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════════
+#  QUARANTINE — the retired terse `@`-fragment. Read the tombstone on `_parse_retired_fragment`
+#  before touching anything below this line. Nothing here is a language surface.
+# ═════════════════════════════════════════════════════════════════════════════════════════════════
+_SQL_HINTS = ("select ", "insert ", "update ", "delete ", "drop ", "create ", "with ", ";")
 
 
 def _split_top(s: str, delims: str) -> list:
@@ -199,35 +210,64 @@ def _split_first_top(s: str, delim: str) -> tuple:
     return s, "", ""
 
 
-def parse_frameql(text: str) -> tuple:
-    """Parse the RETIRED terse Frame-QL form `<columns> @ <anchor>` into (anchor_levels,
-    [(column_name, column_expr)]).
+def _parse_retired_fragment(text: str) -> tuple:
+    """Read the RETIRED terse fragment `<columns> @ <anchor>` into (anchor_levels,
+    [(column_name, column_expr)]). PRIVATE, and it stays private.
 
-    ── TOMBSTONE (2026-07-17, WP-FrameQL 0.9.0) ── The terse `cols @ anchor` form is RETIRED from the
-    WIRE: the query surface is the ENVELOPE grammar (`SELECT <series [AS alias]>,… AT {anchor}`,
-    `columna_core.envelope.parse_statement`), where `@` is the INPUT-anchor marker and `AT {…}` the sole
-    output grain — the fragment's two `@`s (output vs input) were why it could not ship as the language.
-    This parser remains only for lineage/interpretability of old transcripts; no shipped surface calls
-    it. Kept as a dated tombstone — vocabularies grow by rule and shrink by tombstone, never silently.
+    Fragment grammar, recorded here because nothing else records it any more:
 
-    Raises FrameQLSyntaxError on an envelope violation. Does NOT validate expressions or levels —
-    the planner does that when the frame runs (one dialect).
+        <query>   ::= <columns> "@" <anchor>
+        <columns> ::= <column> ("," <column>)*
+        <column>  ::= <name> ":" <expr>  |  <expr>       # bare expr -> the column was named by its text
+        <anchor>  ::= <level> (("*" | ",") <level>)*
+
+    ── TOMBSTONE (raised 2026-07-17, WP-FrameQL 0.9.0; quarantined 2026-09-11) ─────────────────────
+
+    THE FRAGMENT IS NOT PART OF FRAME-QL 1.0 AND IS NOT A PUBLIC LANGUAGE SURFACE (ruled 2026-09-11).
+    The language is the ENVELOPE — `SELECT <series [AS alias]>,… AT {anchor}`,
+    `columna_core.envelope.parse_statement` — in which `@ {…}` is the INPUT-anchor marker universally
+    and `AT {…}` is the sole output grain. The fragment spelled both with `@`: the outer one meant the
+    output anchor, the inner one the input anchor, and that collision is precisely why it could not
+    ship as the language (language reference, Appendix D).
+
+    This is not deprecated public API, because it is not public. It left `columna_core.__all__` and
+    the `columna_server.frameql` re-export on 2026-09-11, and the last caller — the docs regeneration
+    harness — moved to `parse_statement` in the same change.
+
+    Nor is its `:` the language's `:`. The fragment's colon was a COLUMN LABEL, in the position `AS`
+    occupies today; that role was declined and is still declined. Frame-QL 1.0's colon marks a NAMED
+    ARGUMENT inside a call (`lag(revenue, n: 1)`), a job the fragment had no surface to spell. One
+    character, two roles — the declined one was never adopted (Appendix D).
+
+    WHAT IT IS KEPT FOR. The fragment has an archived body of text behind it — recorded transcripts,
+    corpus pages, site query strings, early manual drafts — and this function is the executable
+    definition of what those strings meant. A prose description of a retired grammar cannot be run
+    against the material written in it; this can. That is the whole warrant, and it is a lineage
+    warrant, not a compatibility one.
+
+    IT MUST NOT ACQUIRE NEW CALLERS. A caller here is a caller of a retired grammar; anything that
+    needs to read a query reaches for `parse_statement`. Kept rather than deleted because
+    vocabularies grow by rule and shrink by tombstone, never silently.
+
+    Raises FrameQLSyntaxError on a fragment violation. Recovers the SHAPE a fragment string carried
+    and nothing more — it validates neither expressions nor levels, and never did.
     """
     if text is None or not text.strip():
         raise FrameQLSyntaxError("empty query")
     low = text.strip().lower()
     if any(h in low for h in _SQL_HINTS):
-        raise FrameQLSyntaxError("this looks like SQL; the server accepts only Frame-QL "
-                                 "(<columns> @ <anchor>), never SQL")
+        raise FrameQLSyntaxError("this looks like SQL; the retired fragment read "
+                                 "'<columns> @ <anchor>', never SQL")
 
     parts = _split_top(text, "@")
     if len(parts) != 2:
-        raise FrameQLSyntaxError("a query must have exactly one '@' separating columns from the "
-                                 "anchor, e.g. \"revenue @ region\"")
+        raise FrameQLSyntaxError("the fragment form has exactly one '@' separating columns from "
+                                 "the anchor, e.g. \"revenue @ region\"")
     cols_part, anchor_part = parts
 
-    # the anchor product: `*` is the canonical separator (the SAME operator as UNIVERSE a * b * c);
-    # comma is accepted on input through launch (RULED), retiring only in the post-launch hygiene sweep.
+    # the anchor product: `*` was the fragment's canonical separator (the SAME operator as
+    # UNIVERSE a * b * c) and the comma a tolerated input spelling. Both are read here because both
+    # were written; archived text does not get to be re-spelled after the fact.
     anchor = tuple(s.strip() for s in _split_top(anchor_part, ",*") if s.strip())
     if not anchor:
         raise FrameQLSyntaxError("the anchor (after '@') must name at least one level")
@@ -246,5 +286,5 @@ def parse_frameql(text: str) -> tuple:
         else:
             columns.append((spec, spec))   # bare expression: the column is named by its text
     if not columns:
-        raise FrameQLSyntaxError("a query must have at least one column before '@'")
+        raise FrameQLSyntaxError("the fragment form has at least one column before '@'")
     return anchor, columns

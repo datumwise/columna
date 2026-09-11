@@ -35,12 +35,20 @@ A query is the ENVELOPE: `SELECT <series>, … AT { <anchor> }` with optional cl
 - `AT { <anchor> }`: the output grain — one or more levels, product-spelled with `*`, e.g.
   `{store}`, `{store*day}`, `{cal.month}`, `{region*store}`. `AT {}` is the grand total.
 - `@` is the INPUT anchor (the grain a reduction reads its operand at): `avg(aov @ {day})`. It is
-  NEVER the output anchor — that is always `AT`.
+  NEVER the output anchor — that is always `AT`. `@` binds TIGHTER than arithmetic, so
+  `revenue / orders @ {customer}` means `revenue / (orders @ {customer})`; parenthesize to anchor the
+  whole expression: `(revenue / orders) @ {customer}`.
+- `=` COMPARES; `:` NAMES AN ARGUMENT. A named parameter in a call takes a colon — `lag(revenue, n: 1)`,
+  `cumsum(revenue @ {store*day}, by: "day")` — and `=` is comparison wherever it appears, including
+  inside a call. Positional operands come before named ones. (`n = 1` is still accepted and is
+  rewritten to `n: 1`, so read a colon back in anything the engine returns.)
+- `[...]` SUBSCRIBES into a value; it never filters. `revenue[region = "east"]` is not a filter and is
+  refused as `bracket_is_not_a_filter`. To restrict, use `WHERE` (before reduction) or `HAVING` (after).
 - Optional, in this order: `WHERE <pred> [AND …]` (filters the input, pre-reduction) · `HAVING <pred>`
   (filters the output frame by column name) · `ORDER BY <col> [DESC] [, …]` · `LIMIT <n> [PER {dims}]`
   (top-n per partition; PER keys are anchor coordinates AND must appear in ORDER BY).
 - `WITH name = expression` (before SELECT) binds a reusable sub-expression.
-- Commas inside function calls (e.g. `lag(revenue.sum, n=1)`) are not separators.
+- Commas inside function calls (e.g. `lag(revenue.sum, n: 1)`) are not separators.
 
 Examples (each shows the `frameql` string you would pass to the `query` tool):
 - QUERY: SELECT revenue AT {region}

@@ -79,8 +79,10 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
 
     @mcp.tool()
     def frame_ql_grammar() -> dict:
-        """The FrameQL (envelope) query grammar VERBATIM, with the columna-core version it came from —
-        so a caller writes a valid query rather than guessing its shape. Touches no manifold, no data."""
+        """The FrameQL grammar VERBATIM, with the columna-core version it came from: the ENVELOPE
+        (clause order, `AT {…}` vs `@ {…}`) AND the expression dialect inside a series — precedence,
+        `=` compares / `:` names an argument, brackets subscribe rather than filter. So a caller writes
+        a valid query rather than guessing its shape. Touches no manifold, no data."""
         return T.frame_ql_grammar()
 
     @mcp.tool()

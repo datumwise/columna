@@ -89,6 +89,16 @@ _LAUNDERING = [
     ("carrier-scalar",       "sum((on_hand.last * 2)@day)"),
     ("carrier-scan",         "sum(cumsum(on_hand.last)@day)"),
     ("unpinned",             "sum(on_hand)"),              # L5: no lawful candidate survives
+    # A MAP-OPERAND PIN IS A CARRIER TOO, and the matrix could not say so until 2026-09-11. The
+    # spelling needs a BRACED pin, and the builder API these helpers use could not express one: the
+    # brace shim that made `@ {G}` parseable lived on the statement path only, so this row was
+    # unwritable here rather than lawful. Frame-QL 1.0 reads braces natively on both surfaces, and
+    # the row promptly caught a real defect — the law walk recursed through a pin only by accident
+    # (the retired dialect made it an `ast.BinOp`, so it rode the generic binary branch), and giving
+    # the ascription its own node type dropped the recursion. `(on_hand.sum @ {store*month})`
+    # answered `unsupported` from the engine instead of `blocked_reduction` from the law. One more
+    # spelling in which the prohibited reduction escapes is exactly what this matrix exists to deny.
+    ("carrier-map-operand-pin", "(on_hand.sum @ {store*month}) / 2"),
 ]
 
 
@@ -274,12 +284,20 @@ def test_the_b_anchor_caveat_is_tombstoned_not_deleted(afternoon_server):
             f"{expr}: the retired caveat was produced afresh"
 
 
-def test_the_wire_contract_did_not_move():
+def test_the_generated_family_reasons_did_not_move_the_wire_contract():
     """Ruling §7: `no_result.reason` is an extensible reason string in shape, so a new reason on the
-    refusal channel is additive. This is an INTERNAL vocabulary correction, not a wire break."""
+    refusal channel is additive. This is an INTERNAL vocabulary correction, not a wire break.
+
+    RENAMED AND RESTATED 2026-09-11. This was `test_the_wire_contract_did_not_move`, asserting `== "3"`
+    at the time, and the name was doing more work than the assertion: pinning today's number cannot
+    tell you that NOTHING moved it, only that nothing HAS. The number has since moved twice for
+    reasons this file knows nothing about (OF-24's channel split -> "4", the Frame-QL 1.0 expression
+    dialect -> "5"), and each time the old name turned into a small lie that had to be quietly
+    re-pinned. So the claim is narrowed to the one this file can actually make and the bumps are
+    named, so the next reader can tell an unrelated bump from a regression here."""
     from columna_core.disclosure_wire import CONTRACT_VERSION
 
-    assert CONTRACT_VERSION == "4"
+    assert CONTRACT_VERSION == "5"        # bumped by OF-24 ("4") and Frame-QL 1.0 ("5"), not by §7
 
 
 # ══ PLAN PREDICTS WHAT RUN DOES ══════════════════════════════════════════════════════════════════

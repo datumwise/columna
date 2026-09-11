@@ -1,5 +1,37 @@
 # WP-NAME-1 — column identity is the canonical expression, not a pin-eliding default (v0.1)
 
+> **Supersession annotation — 2026-09-11 (Frame-QL 1.0 expression language). History is annotated,
+> never rewritten: nothing below this line is edited.**
+>
+> **The ruling stands, and 1.0 is the reason it had to be revisited.** WP-NAME-1's law is that an
+> unaliased column's key *is* its canonical expression. That law is unchanged and was not reopened.
+> What moved is the thing the law points at: **which text is canonical**. The expression dialect left
+> CPython's `ast` for the adopted Frame-QL 1.0 grammar (specification §15, `columna_core.expr`), so
+> the canonical spelling of an expression is now 1.0's, and the key of an utterance nobody rewrote can
+> move with it.
+>
+> - **Measured.** The retired dialect carried the writer's incidental whitespace into the key:
+>   `SELECT avg(revenue@{day}) AT {customer}` keyed as `avg(revenue@ {day})`, and
+>   `avg( revenue @ { day } )` keyed as itself. Both now key as `avg(revenue @ {day})`.
+> - **Canonical text moved further than keys did**, because it prints expressions the key rules never
+>   key: `=` compares and `:` names an argument (§15.2), so `lag(revenue, n = 1)` — still accepted as
+>   compatibility INPUT — comes back from `EXPLAIN` as `lag(revenue, n: 1)`.
+> - **Wire: `contract_version` `"4"` → `"5"`.** Ruling 2 above is the precedent *and the reasoning*:
+>   "a `contract_version` bump is what a pre-1.0 minor exists to signal", and `"1"` → `"2"` is the
+>   bump this WP took for exactly this class of change — the key of an unchanged utterance moving.
+>   No mood, disclosure, materiality or existing reason code moved with it. SOME VALUES DID move, and
+>   not through anything in this WP's scope: §15 puts `@` above arithmetic where the retired dialect
+>   had it at the host language's multiplicative rung, so `revenue + (revenue / 2 @ {})` is now read
+>   as §15 requires. That is a corrected reading in the same release, named here so a reader of this
+>   record does not take "only the key moved" away from it.
+> - **Ruling 3's migration advice is unchanged and is now load-bearing twice over.** *Consumers who key
+>   on names should key on `AS` aliases, which are author-owned and will never change under any future
+>   rule.* A consumer that took that advice in 0.14.0 was unaffected by this bump.
+>
+> Current statements of the law: the Frame-QL Manual §1.6 (the key rules, with the canonical-spelling
+> paragraph) and §1.2a (the grammar the canonical spelling comes from). — the desk
+
+
 *Status: **RATIFIED & LANDED** in columna-core 0.14.0 (Huayin, 2026-07-30). Filed 2026-07-30 as a
 proposal; all three open questions ruled and the code shipped in the same window. See OF-27 (struck)
 and the CHANGELOG. Rulings folded in below.*

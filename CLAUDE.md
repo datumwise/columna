@@ -33,7 +33,7 @@ and [`specs/doctrine_gaps.md`](specs/doctrine_gaps.md) (doctrine ahead of code).
 
 ## Shipped state
 
-`columna-core` **0.18.1** · `columna-server` **0.11.1** · wire `contract_version` **4**.
+`columna-core` **0.19.0** · `columna-server` **0.12.0** · wire `contract_version` **5**.
 Read the version from `pyproject.toml`, never from prose.
 
 ## Closed units

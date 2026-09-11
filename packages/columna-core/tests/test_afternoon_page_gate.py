@@ -11,10 +11,12 @@ essay claims for them. The essay is a promise about this system; a promise nothi
 Only ONE of the five (beat 5) is a laundering case. The other four are the lawful register the refusal
 is read against — a system that refused everything would satisfy the matrix and betray the essay.
 
-SYNTAX IS PART OF THE CLAIM. Every beat goes through `parse_statement`, not the `.column()` builder.
-Beat 2's braced composite pin `avg(revenue @ {order})` is rejected by the builder outright, and a gate
-that rewrote it into builder-acceptable syntax would certify a question no reader can copy off the
-page. `scripts/afternoon_five.py` runs these same five with explicit engine provenance (source vs
+SYNTAX IS PART OF THE CLAIM. Every beat goes through `parse_statement`, not the `.column()` builder,
+because the page prints STATEMENTS and a gate over an essay should read what the essay shows — not a
+paraphrase assembled for the occasion. (Until 2026-09-11 there was a second, sharper reason: beat 2's
+braced pin `avg(revenue @ {order})` was rejected by the builder outright. That was an artifact of the
+retired CPython-hosted expression dialect, not a fact about Frame-QL, and it is gone — see beat 2.)
+`scripts/afternoon_five.py` runs these same five with explicit engine provenance (source vs
 installed); this file is the CI-resident copy that runs on every PR.
 """
 import os
@@ -91,15 +93,39 @@ def test_beat_2_pinned_inline_average_across_two_lineages_serves(afternoon):
     assert by_region["south"] == pytest.approx(afternoon_world.SOUTH_Q1_AVG_ORDER)   # 275 / 2 orders
 
 
-def test_beat_2_syntax_is_load_bearing_the_builder_cannot_express_it(afternoon):
-    """The braced pin is why this gate uses the statement parser: the builder API rejects it.
+def test_beat_2_the_braced_pin_now_means_the_same_thing_on_both_surfaces(afternoon):
+    """ONE GRAMMAR, ONE ANSWER — the builder API and the statement path agree about the braced pin.
 
-    Pinned so the gate can never be "simplified" into the builder path — that would silently certify
-    a different question than the one printed on the page.
-    """
-    w = wire_frame(afternoon.frame("region", "quarter").column("c", "avg(revenue @ {order})").run())
-    assert w["outcome"] == "error"
-    assert "illegal expression construct" in ((_column(w).get("no_result") or {}).get("detail") or "")
+    THIS TEST USED TO PIN THE OPPOSITE, and it was right to, because the opposite was true. It read
+    `test_beat_2_syntax_is_load_bearing_the_builder_cannot_express_it` and asserted that the builder
+    answered `error` / "illegal expression construct" for `avg(revenue @ {order})` — the exact
+    expression the statement path on the line above serves. The split was not a design: while the
+    expression dialect was hosted on CPython's `ast`, a brace was unparseable, so `desugar()` ran a
+    text shim (`_convert_input_anchor`) that rewrote `@ {order}` into `@ order` before the substrate
+    ever saw it. `run()` — the builder's entry — never called that shim. The acceptance set of the
+    expression language therefore depended on which door the caller used.
+
+    Frame-QL 1.0 reads braces natively (specification §15.0), so the shim is gone and with it the
+    split. The gate's underlying claim is UNCHANGED and is now stated positively: this pin is the
+    page's own syntax, it means one thing, and it means that one thing everywhere it is written.
+    Beat 2's serve assertions above are untouched.
+
+    The gate still runs every beat through `parse_statement`, because the page prints STATEMENTS and
+    a gate over an essay should read what the essay shows. That reason survives; "the builder cannot
+    express it" does not."""
+    statement = _ask(afternoon, "SELECT avg(revenue @ {order}) AT {region, quarter}")
+    builder = wire_frame(afternoon.frame("region", "quarter")
+                         .column("avg(revenue @ {order})", "avg(revenue @ {order})").run())
+    assert builder["outcome"] == statement["outcome"] == "serve"
+
+    def _by_coordinate(w):
+        # Compared as a MAPPING from coordinate to value, not as a row list: the two surfaces assemble
+        # the same frame but the wire's row order is not itself under test here (and is not stable
+        # across runs on this fixture — an independent observation, not something this change moved).
+        return {(r["region"], r["quarter"]): r["value"] for r in _rows(w)}
+
+    assert _by_coordinate(builder) == _by_coordinate(statement)
+    assert len(_rows(builder)) == len(_rows(statement)) == 2
 
 
 # ── beat 3 ───────────────────────────────────────────────────────────────────────────────────────

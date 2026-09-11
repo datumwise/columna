@@ -1301,6 +1301,205 @@ one resolved order contract) is the governing text.
 
 ---
 
+### P1-26 · The expression dialect was hosted on another language, and the substrate answered in its own voice · **HIGH** · **CLOSED 2026-09-11** · VX
+
+Identifier note: **P1-26 is not a new number.** It has been live in `planner.py`, in
+`test_expression_grammar.py` and in the CHANGELOG since the wall was built, and had no row here —
+exactly the case §0's *Picking an identifier* warns about. The row is written at its closure so those
+citations resolve, rather than minted fresh and leaving the name unhoused.
+
+    SELECT revenue[region = "east"] AS east_revenue AT {customer}
+      -> SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+
+Advice about Python's walrus operator, given to someone writing an analytical filter. The first
+repair built a WALL: one crossing point (`_parse_expr`) converting the substrate's `SyntaxError` into
+`FrameQLSyntaxError` so its voice stopped at the boundary. That contained the voice and left the
+grammar where it was — and the grammar was the defect. **FOUR THINGS WERE WRONG, AND ONLY THE FIRST
+WAS COSMETIC.**
+
+**1 · The voice.** Diagnostics named a foreign node vocabulary. Measured on the pre-migration commit:
+`SELECT revenue['k'] AS v AT {customer}` answered `reason = "unknown"`, detail *"illegal expression
+construct: Subscript"*; `(lambda x: x)(revenue)` answered *"…: Lambda"*. A reader was told which
+CPython node had been rejected.
+
+**2 · `@` PRECEDENCE WAS INVERTED AGAINST §15 — and this one moved numbers.** CPython gives `@`
+multiplicative precedence, so `revenue / orders @ {customer}` parsed as `(revenue / orders) @
+{customer}`; §15 requires `revenue / (orders @ {customer})`. Measured over the Manual's fixture,
+`SELECT revenue + (revenue / 2 @ {}) AS v AT {customer}` served `475.0` for `C1` before and serves
+`300.0` after — the earlier reading broadcast half the *grand total* back to every customer. A served
+number was wrong by the adopted language's own precedence, and no gate could see it, because the
+language had never written its precedence down for one to check against.
+
+**3 · The canonical spelling was unparseable.** §15.2 names `:` as the named-argument marker, so
+`lag(revenue, n: 1)` is canonical 1.0 — and it was a Python syntax error. The language could not
+parse its own canonical form, which is why every message, every `EXPLAIN` and every clarify menu
+still recommended `n = 1`.
+
+**4 · Brackets died before reaching classification.** §7.5 asks for a diagnostic pointing the writer
+at `WHERE`/`HAVING` rather than a silent reinterpretation of the brackets as a filter. The form never
+got far enough to earn one.
+
+**A fifth, found by the migration rather than by the audit: ONE LANGUAGE WITH TWO ACCEPTANCE SETS.**
+`desugar()` ran a text shim rewriting `@ {day}` into `@ day` before the substrate saw it, and the
+builder API `run()` never called it — so `avg(revenue @ {order})` was served through one door and
+refused *"illegal expression construct"* through the other, decided by which entry point the caller
+used. Unifying the doors is what made it visible.
+
+**The repair.** `columna_core.expr` implements §15 natively — its own tokenizer, its own
+recursive-descent ladder, its own IR, its own error channel. No `ast`, no `eval`, no `compile`, and
+no exception the language does not own escapes a parse. The allow-list, the `ast.walk` loops, the
+operator map and the brace shim went with it: the 1.0 grammar *is* the allowed set, and it refuses by
+name, at parse time, with an offset and a remedy. `bracket_is_not_a_filter` was minted for §7.5's
+case and carries the same predicate back in `WHERE` and in `HAVING`.
+
+**Wire: `contract_version` `"4"` → `"5"`.** An unaliased column's key *is* its canonical expression
+(WP-NAME-1), so a moved canonical spelling moves the key of an utterance nobody rewrote:
+`avg(revenue@{day})` keyed `avg(revenue@ {day})` and keys `avg(revenue @ {day})`, and
+`avg( revenue @ { day } )` used to carry its author's whitespace into the key. The precedent and the
+reasoning are `"1"` → `"2"`, the bump WP-NAME-1 took for exactly this — *a changed default key for an
+unchanged utterance is a breaking wire change, because a name-keyed consumer reads a different key*
+(`disclosure_wire.py`, the note above `CONTRACT_VERSION`). Durable advice unchanged since `"2"`: key
+on `AS` aliases.
+
+**What the bump does and does not carry.** No mood, disclosure, materiality or existing reason code
+moved; one reason code was minted on the existing extensible channel. Values DO move where `@` meets
+arithmetic (defect 2 above) — that is the correction, not a side effect — and four lexical
+Python-isms stopped being accepted: `.5` without a leading digit, `1_000` with a digit separator, a
+dangling comma in an argument list, and `#` as a comment. Each is refused by name with its own
+remedy. A claim that nothing moved would have been the easy sentence and the false one.
+
+Evidence: `packages/columna-core/tests/test_expression_grammar.py` — 861 passed / 28 skipped on its
+own, including a section asserting that the grammar the parser implements is the grammar the PLANNER
+reads (one language, both doors), the §7.5 bracket diagnostic end to end, canonical 1.0 column keys,
+and a sweep that no planner refusal answers in the substrate's voice. Repository corpus, in the
+per-package shape CI runs: `pytest packages/columna-core` 1627 passed / 49 skipped. (The combined
+`pytest packages/columna-core packages/columna-server` invocation — which is NOT what CI runs, and
+`pytest.ini`'s own header says so — additionally surfaced a 1-ulp float difference between the two
+planner doors on 1 row of 24. Reproduced on an idle box, so not a load artifact; it is OF-23(b),
+independently reproduced a third time and now recorded there, and it is noise under the 0.13.1
+doctrine rather than a wrong number.) Documentation gates: `check_manual_frameql` 49 blocks
+/ 67 statements, 0 drift; `regen_capability_tables --check`, `capability_authority`, `regen_examples
+--check`, `check_no_tier_claims`, `check_currency_stamps`, `print_ledgers`, `check_publications
+--selftest`, `check_corpus_membership` all green.
+
+Documentation closure (this unit): Manual §1.2a is net-new and states the ladder the defect existed
+for want of; §1.5's *"and the parser is unchanged"* is retired; §2.8 and §6.7 stop teaching a bracket
+filter; `frame_ql_build_status.md`'s query-error and string-literal facts are re-measured rather than
+reworded; the three rulings the retired parser implemented carry dated supersession notes.
+
+---
+
+### P1-26-A1 · `_CMP` is a second predicate mini-language the expression grammar now subsumes · **MEDIUM** · **OPEN — rowed 2026-09-11, deliberately not consolidated** · SV
+
+    planner.py:811
+    _CMP = [(">=", "ge"), ("<=", "le"), ("!=", "ne"), ("==", "eq"), (">", "gt"), ("<", "lt"), ("=", "eq")]
+
+`WHERE` and `HAVING` predicates are not read by the expression grammar. They are split on the first
+operator that appears anywhere in the string (`_predicate_column`, `_apply_predicate`), the right
+side is coerced by `_literal`, and the result is either a polars expression or SQL text pushed to the
+connector. The 1.0 grammar subsumes all of it: `region = 'east'` is a `Compare` node, `region IN
+(…)` is one too, and `expr.py` already reads both with an offset and a remedy where `_CMP` reads them
+with `in` and `str.split`.
+
+**Not consolidated in the substrate migration, and the reason is a boundary rather than an
+oversight.** Parsing a predicate is one thing; LOWERING one to backend SQL is a second semantic
+migration — the push-down path, `_normalize_dq_literals`, the reachability and `filter_unsupported`
+laws all hang off the string form — and no ruling asks for it. Doing it under a substrate refactor
+would be smuggling a second migration in under the first. `==` was left accepted in `_CMP` for the
+same reason it is accepted in `expr`: a reader who writes it in a `WHERE` after writing it in a
+series must not meet two different answers.
+
+What the split costs today is small and real: a predicate is the one place in the language where a
+diagnostic still reads *"cannot read predicate '…' — expected `column <op> value`"* rather than
+naming an offset, and the two readers can in principle disagree about a string nobody has tried yet.
+
+---
+
+### P1-26-A2 · A clarify menu recommends a pin spelling the language does not write · **MEDIUM** · **OPEN — rowed 2026-09-11** · VX
+
+    SELECT avg(revenue) AS v AT {customer}   ->  clarify / input_anchor_ambiguous
+      alternatives[0]: "pin the input anchor to 'date' (e.g. mean(revenue@date))"
+                                                                 ^^^^^^^^^^^^^^
+      canonical 1.0:                                             mean(revenue @ {date})
+
+`_fmt_pin` (`planner.py:1516-1520`) renders a single-level pin BARE, deliberately — *"so single-level
+rendering is byte-identical to the pre-WP-GRAIN-1 form (regression)"* — and its consumers compose
+around it without braces or spacing. `planner.py:1922` builds the clarify menu that way,
+`planner.py:2221` a law address (`sum(revenue@day)`), `planner.py:2857` a trace reading, and
+`planner.py:1558` a `co_anchor_required` detail (*"declares input anchor day"*).
+
+**A clarify menu is the one place a reader copies a spelling verbatim** — the migration's own
+CHANGELOG says so in those words while making every other diagnostic canonical — so this is the
+visible exception rather than an internal inconsistency. An agent that pastes the offered alternative
+back is writing a compatibility spelling the language accepts and then rewrites, which is exactly the
+loop the colon rule exists to end.
+
+**Nothing served is wrong, and no key is affected**: `expr.unparse` owns every path that produces a
+column key, and these strings are menu entries, law addresses and trace lines. The repair is to
+render the pin through `expr.unparse` (or to brace it inside `_fmt_pin` and drop the wrapping at the
+four call sites), with the regression pins on the bare single-level form re-baselined — which is why
+it is a row and not a one-liner. Not attempted here: it changes reader-visible refusal text, which is
+its own review.
+
+---
+
+### P1-26-A3 · Two adjudicators disagree about the grain a BROADCAST operand's travel is judged at · **MEDIUM** · **RULED 2026-09-11 — conformance repair outstanding** · SV
+
+    planner.py:2189-2194  (comment at the site)
+    `_infer`'s map-operand branch resolves a broadcast operand `X @ {}` at the scalar grain `()`.
+    `_law_travels` adjudicates the same operand at `anchor`.
+
+The two have disagreed since the broadcast form shipped; the 1.0 migration did not introduce the
+divergence and did not close it. It became *visible* because giving the anchor ascription its own IR
+node made both walks explicit where the retired dialect had them falling through a generic binary
+branch by accident (the same accident `c5a2a80` restores the other half of).
+
+**This is rowed as an open QUESTION because it is one, and the site says so in as many words:** *which
+grain a broadcast operand's travel is adjudicated at is an analytical question, not a substrate one,
+and deciding it inside a substrate migration would be smuggling a ruling in under a refactor.* Both
+readings are arguable. Judging at `()` says a value ascribed to the Manifold scalar has made its
+travel there and arrives at the map already law-cleared. Judging at `anchor` says the operand's
+lawfulness is a property of the expression it is being consumed in, so a broadcast into a finer grain
+is still a travel with a verdict owing. Neither is obviously the language's intent, and this row takes
+no position on which.
+
+**Do not repair this by picking the one that makes the other agree.** What was wanted was a ruling on
+the analytical question, after which one of the two call sites is corrected to the ruled reading and
+the other is asserted against it.
+
+---
+
+**RULED 2026-09-11 (CG2), verbatim in substance:** *a locally pinned scalar/coarser expression may be
+structurally broadcast to the finer output frame. The pinned operand retains its original analytical
+anchor and identity; broadcast does not establish the corresponding finer measure or family. Core may
+implement that lawful form or refuse it as unsupported profile coverage, but should not plan it and
+then fail incidentally.*
+
+**What that settles.** The operand keeps ITS OWN anchor, and the broadcast establishes nothing at the
+finer grain. So the `_infer` reading — adjudicate a broadcast operand at `()` — is the ruled one, and
+`_law_travels` adjudicating the same operand at `anchor` is the site to correct: it asks for a travel
+verdict about a finer measure the ruling says the broadcast does not establish. The row is no longer
+a question; what remains is a bounded conformance repair with a known target.
+
+**Why the repair is NOT in this unit, deliberately.** `_law_travels` is the DG-2 laundering guard —
+the walk that keeps a prohibited reduction from escaping its law, and the one `c5a2a80` had just
+restored a dropped branch of. Relaxing the grain it adjudicates a broadcast at is exactly the shape of
+change that can widen a laundering hole, and it earns its own evidence: the laundering matrix re-run
+old-vs-new, and a test that pins the ruled reading rather than the agreement. Doing it inside the
+substrate migration would be the mirror of the error the row was opened to avoid.
+
+**The other half of the ruling IS taken here**, because it was a live plan/execution divergence rather
+than a design question. `SELECT revenue @ {} AS s AT {region}` planned `serve` and executed an error —
+Core planning a thing and then failing at it, which the ruling names directly. A scalar in whole-series
+position is now refused STATICALLY (`Planner._scalar_series_refusal`), from `plan` and `run` alike, as
+**unsupported profile coverage** — the second of the two options the ruling permits. The refusal says
+the broadcast is lawful and that this build does not carry it as a whole series; the operand form,
+which is what §2.6 is about, serves unchanged. Whichever way the profile goes later, the two doors
+cannot disagree about the same text again, because scalar-ness is decided from shape before anything
+executes.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX

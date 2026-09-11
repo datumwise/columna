@@ -22,6 +22,63 @@ from typing import Optional
 
 from .disclosure import Caveat, Outcome
 
+# ── CONTRACT "4" -> "5" (2026-09-11, Frame-QL 1.0 expression language) ──────────────────────────
+# The expression dialect moved off CPython's `ast` onto the adopted Frame-QL 1.0 grammar
+# (specification §15), and with it the CANONICAL SPELLING of an expression. Default column keys are
+# canonical expression text (WP-NAME-1), so the key of an unchanged utterance can move:
+#
+#     avg(revenue@order)        key was `avg(revenue@ {order})`   now `avg(revenue @ {order})`
+#     avg( revenue @ {order} )  key was verbatim, spaces and all  now `avg(revenue @ {order})`
+#     variance(price, ddof=1)   spelled `ddof=1` in canonical text  now `ddof: 1`  (§15.2: `=`
+#                               compares, `:` names an argument; `=` remains compatibility INPUT)
+#
+# THIS IS A BUMP, NOT AN ADDITION, and for the same reason "1" -> "2" was: a changed default key for
+# an unchanged utterance is a breaking wire change, because a name-keyed consumer reads a different
+# key. The old canonicalizer was three regular expressions that normalized ANCHORS and left the rest
+# of the expression as written (including its whitespace, and including a missing space it inserted
+# itself); the canonical form is now the whole expression re-rendered by the grammar's own unparser,
+# so it is one spelling rather than "whatever was typed, with the pins tidied".
+#
+# WHAT ELSE MOVES. An earlier draft of this note claimed that no value moved and that nothing stopped
+# parsing. Both were false, and an adversarial review caught them; the corrected scope is below.
+# A version is only useful if its scope is honest, and the corpus test that was cited as proof
+# (`test_ast_fidelity_over_the_corpus`) is scoped to the expressions IN THIS REPOSITORY — which
+# contain no `@` mixed with `*` or `/`, precisely the shape the precedence correction moves.
+#
+#   · VALUES MOVE where `@` meets arithmetic — and this is the correction, not a side effect. §15
+#     puts anchor ascription ABOVE multiplicative, CPython's `MatMult` put it at the same rung:
+#
+#         SELECT revenue.sum + (revenue.sum / 2 @ {}) AS x AT {store*month}
+#           was  672.5, 707.5, ...   read as (revenue/2) @ ()   — CPython's grouping
+#           now  135.0, 187.5, ...   read as revenue / (2 @ {}) — §15's grouping
+#
+#     Both serve. There is no caveat, because on neither reading is anything undisclosed — the two
+#     readings are different well-formed asks, and 1.0 says which one the text means. Parentheses
+#     around the operand do NOT protect it: the regrouping happens inside them.
+#   · MOOD MOVES for a reduction over that shape. `avg(revenue / 2 @ {order})` was a PINNED
+#     reduction (the argument was one `@` node under CPython's flat precedence) and served; the
+#     argument is now a division whose right operand is pinned, so the unpinned path takes over and
+#     it refuses `input_anchor_unavailable`. The refusal is the conformant answer.
+#   · A FEW UTTERANCES STOP PARSING — all of them Python-isms the retired substrate admitted only
+#     because it WAS Python: `.5` without a leading digit (deliberate: `.` is member access),
+#     `1_000` underscore separators, a trailing comma in an argument list, and `#` comments. Frame-QL
+#     1.0 has no such forms. `.5` and `1_000` are plausible inside a `DERIVED` formula, so this is
+#     worth knowing rather than worth burying.
+#
+# In the other direction the grammar genuinely IS wider: braces natively, comparisons, `IN`,
+# `BETWEEN`, logical operators, subscription, colon-named arguments, and newlines inside an
+# expression. `revenue[region = 'east']` now reaches a named refusal (`bracket_is_not_a_filter`,
+# §7.5) instead of a raw CPython SyntaxError recommending Python's walrus operator.
+#
+# Durable advice, unchanged since "2": key on AS aliases. They are author-owned and no rule moves them.
+#
+# THREE CURRENCY STAMPS WENT STALE AT THIS BUMP AND HAVE SINCE BEEN SWEPT, by the documentation pass
+# that owns those files — `docs/frame_ql_build_status.md`, `apps/website/src/content/llms_index.txt`,
+# and the `askWire` copy in `apps/website/src/components/ExhibitB.astro`.
+# `scripts/check_currency_stamps.py` is GREEN: 11 enrolled claims across 4 files. The staleness is
+# recorded here rather than deleted, because a stale contract claim outliving a bump is the exact
+# failure that guard was built for: `contract_version "1"` was live on /llms.txt through TWO bumps.
+#
 # ── CONTRACT "3" -> "4" (2026-08-31, OF-24 ruling (a)) ───────────────────────────────────────────
 # The wire gains a second disclosure channel. `disclosures` stays the SEMANTIC channel — what is true
 # of the answer, call-invariant, and the sole input to `outcome`, `rollup_severity` and materiality.
@@ -41,8 +98,23 @@ from .disclosure import Caveat, Outcome
 #
 # `mechanical` is emitted on EVERY column and frame, empty when there is nothing to say, so a
 # consumer never has to distinguish absence-of-facts from absence-of-support.
-CONTRACT_VERSION = "4"
+CONTRACT_VERSION = "5"
 # ── VERSION HISTORY ─────────────────────────────────────────────────────────────────────────────────
+# "4" → "5" (Frame-QL 1.0 expression language, 2026-09-11): the expression dialect moved to the
+#   adopted Frame-QL 1.0 grammar (specification §15), parsed natively by `columna_core.expr` instead
+#   of being hosted on CPython's `ast`, and DEFAULT COLUMN KEYS ARE NOW CANONICAL 1.0 TEXT FOR THE
+#   SAME UTTERANCE. An unaliased series is still keyed by its canonical expression (WP-NAME-1, "1" →
+#   "2"); what moved is which spelling "canonical" names. `avg(revenue@order)` keys
+#   `avg(revenue @ {order})` where it keyed `avg(revenue@ {order})`; `avg( revenue @ {order} )` keys
+#   the same thing where it used to carry its author's whitespace; a named analytical argument is
+#   written `ddof: 1` where the canonical text said `ddof=1` (§15.2 — `=` compares, `:` names an
+#   argument; the `=` spelling remains compatibility INPUT and canonicalizes to the colon form).
+#   EXPLAIN's `desugared` and per-series `expr` move with the keys, since they are the same artifact.
+#   No value, mood, disclosure, materiality or reason code changed. One reason code was MINTED on the
+#   existing extensible channel — `bracket_is_not_a_filter` (§7.5: `revenue[region = 'east']`
+#   subscribes by a Boolean and is not analytical filtering; the diagnostic points at WHERE/HAVING).
+#   This bumps the contract for exactly the reason "1" → "2" did: a changed default key for an
+#   unchanged utterance is a breaking wire change. See the note above `CONTRACT_VERSION`.
 # "2" → "3" (S2.2b-2): list_manifolds catalog semantics changed. `manifolds[]` was a runtime-FOLDER
 #   inventory (one row per loaded folder, each with name/description/n_measures/universes); it is now a
 #   governed publication LINEAGE catalog — one row per governed `manifold_id` with `versions[]` +
@@ -84,10 +156,27 @@ CONTRACT_VERSION = "4"
 #   · packages/columna-server/tests/test_mcp_server.py, test_demo.py — catalog-shape assertions
 #
 # KNOWN IN-TREE contract_version LITERAL CONSUMERS (any bump must sweep these):
-#   · scripts/assert_demo_play.py, .github/workflows/ci.yml — the demo --play smoke
-#   (apps/demo-endpoint-vercel/scripts/generate.py was the third; the endpoint was RETIRED 2026-09-02
-#    under P1-32 and the generator deleted with it. exhibit-b.ts carries no contract literal — it was
-#    listed here as "the live-demo query endpoint gate" after that path was already disabled.)
+#   · .github/workflows/ci.yml — the demo --play smoke, which greps for the literal string
+#   · scripts/assert_demo_play.py — IMPORTS `CONTRACT_VERSION` and builds the stamp from it, so it
+#     needs no edit. Listed anyway: knowing a consumer is self-updating is part of the sweep.
+#   · packages/columna-core/tests/  — test_disclosure_wire.py, test_inline_reduction.py,
+#     test_generated_family_law.py
+#   · packages/columna-server/tests/ — test_mcp_server.py (5 sites), test_demo.py,
+#     test_governed_catalog.py (module docstring + a dedicated assertion), test_describe_insulation.py
+#   (apps/demo-endpoint-vercel/scripts/generate.py was the third entry of the original list; the
+#    endpoint was RETIRED 2026-09-02 under P1-32 and the generator deleted with it. exhibit-b.ts
+#    carries no contract literal — it was listed here as "the live-demo query endpoint gate" after
+#    that path was already disabled.)
+#   (GENERATED, never hand-edited — `apps/website/src/data/*.generated.json` carry the literal but
+#    regenerate from the live wire; listed so a reader does not go looking for the edit.
+#    `specs/open_planner/fixtures/*.json` are ARCHIVED wires at contract "1" and are historical
+#    records; they are not swept, by the same rule that keeps tombstones.)
+#
+#   THE TEST LITERALS WERE NOT IN THIS LIST BEFORE THE "4" -> "5" BUMP, AND THEY ARE THIRTEEN.
+#   The list named two consumers and one of them (assert_demo_play.py) does not need editing. A bump
+#   that trusted it would have left the whole test suite red and the enumeration would have been
+#   "corrected" by the failure rather than by the checklist — which is precisely what this section
+#   exists to stop happening a second time. Added 2026-09-11.
 # ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 # Materiality is a fixed vocabulary (structured_disclosure_capture.md: the load-bearing field).

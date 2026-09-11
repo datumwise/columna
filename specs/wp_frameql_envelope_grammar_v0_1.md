@@ -1,5 +1,35 @@
 # WP · FrameQL — the envelope grammar (0.9.0). Deliverable 1: THE GRAMMAR SPEC (proposals-first)
 
+> **Supersession annotation — 2026-09-11 (Frame-QL 1.0 expression language). History is annotated,
+> never rewritten: nothing below this line is edited.**
+>
+> **The two-level architecture this document proposed is exactly what 1.0 ratified**, and that is the
+> reason to annotate rather than retire it. Frame-QL 1.0 §15 opens by keeping "the useful two-level
+> grammar architecture of the current implementation": the envelope parses the statement and its
+> clause boundaries, and one expression grammar parses everything inside `WITH`, `SELECT`, `WHERE`,
+> `HAVING` and call arguments. Envelope law — fixed clause order, `@ {…}` as the universal input
+> marker, `AT {…}` as the sole output-grain declaration, the retirement of the trailing-`@` fragment —
+> is untouched by 1.0.
+>
+> **What this document never specified, and what 1.0 supplies, is the grammar on the other side of the
+> boundary.** Where it says series-internal text is captured verbatim and delegated to "the expression
+> parser", that parser was CPython's `ast` with an allow-list over it, so the expression dialect's
+> precedence was a host language's and not Frame-QL's. It is now `columna_core.expr`, implementing
+> §15 natively. Three consequences a reader of this document must not carry forward:
+>
+> - **`@` binds more tightly than arithmetic** (§15). `revenue / orders @ {customer}` ascribes the
+>   denominator. The retired substrate read it the other way, at multiplicative precedence.
+> - **`=` compares; `:` names an argument** (§15.2). The historical `name = value` call spelling
+>   remains compatibility input and canonicalizes to the colon.
+> - **`[…]` is semantic-value subscription, never a filter** (§15.4, §7.5). §0's `name: expr @ anchor`
+>   fragment is still retired, and its `:` was a COLUMN LABEL — a different role from 1.0's
+>   named-argument `:`. The envelope's decision to replace the label with `AS` is not reversed by 1.0
+>   adopting the character for something else (Manual Appendix D states this).
+>
+> The published grammar surface is `columna_core.envelope`'s module docstring, returned verbatim by
+> the MCP `frame_ql_grammar` tool; it now carries both levels. — the desk
+
+
 _Status: **PROPOSAL, for Huayin's ratification before any code.** Ruled: "We have to get the Query
 Language right — we can't ship in this state. The shipped `@`-fragment is not the language; the
 envelope is, and it ships before launch as 0.9.0." This document proposes exact grammar text. Nothing

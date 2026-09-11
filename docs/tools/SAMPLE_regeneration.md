@@ -1,14 +1,19 @@
 # CP-M1 sample — regenerated Frame-QL examples (proof of the harness)
 
 Not a manual page. This demonstrates the regeneration harness on real executable examples in the
-**shipped** grammar (`columns @ anchor`), run against the docs `finance` fixture Manifold. The
-`frameql-output` blocks below are machine-written by `regen_examples.py` — running it rewrites them;
-`--check` fails if they drift.
+Frame-QL 1.0 **envelope** grammar (`SELECT <series [AS alias]>, … AT {<anchor>}`), run against the
+docs `finance` fixture Manifold. The `frameql-output` blocks below are machine-written by
+`regen_examples.py` — running it rewrites them; `--check` fails if they drift.
+
+The three examples were written in the terse `@`-fragment until that form was retired from the
+language; they were rewritten into the envelope by the mechanical migration in the language
+reference's Appendix D (trailing anchor → `AT {…}`, `:` label → `AS`). The answers below are the
+proof the rewrite preserved the ask: same harness, same fixture, same numbers.
 
 ## 6.1-analogue — simple aggregation (per-region revenue)
 
 ```frameql
-revenue @ region
+SELECT revenue AT {region}
 ```
 
 ```frameql-output
@@ -23,7 +28,7 @@ west | 300
 ## 6.5-analogue — map of co-anchored columns (profit)
 
 ```frameql
-profit: revenue - cost @ customer
+SELECT revenue - cost AS profit AT {customer}
 ```
 
 ```frameql-output
@@ -39,7 +44,7 @@ c3 | 90
 ## unpinned inline reduction — the clarify (per capture v0.8 / WP-OF1)
 
 ```frameql
-mean(revenue) @ region
+SELECT mean(revenue) AT {region}
 ```
 
 ```frameql-output
