@@ -2916,6 +2916,58 @@ allocation and the derivation rule, law citation and positive presence, record t
 authority mechanism's *shape*, the realization contract, consume-or-refuse, and the format break.
 **Field spelling, wire encoding and the `family_id` mechanism are explicitly not covered.**
 
+### IMPLEMENTATION AUTHORIZED and landed, 2026-09-11 — pending review, not merged
+
+v0.4's model was **approved as the successor architecture and publication direction**, with one
+amendment: **totality is semantic, not merely declarative.** The triad becomes
+`established | explicit-none | unestablished`, where `established` may arise from an authoritative
+constitutive declaration, an admitted foundation-law citation, or **lawful entailment from other
+established parts**. Redundant consequences are NOT serialized to make a raw record look total;
+instead a validator/resolver produces a **total canonical `Law(F)` view in which silence is
+impossible**. Responsibility-local resolution standing, not a universal analytical-standing enum.
+Family validity is about identity: the `Σ(F)` responsibilities must be settled; others may remain
+explicitly unestablished; **no defaults are invented to satisfy validation.**
+
+**What shipped** (branch `specs/unit-d-family-law-carrier-synthesis`, PR #272, NOT merged):
+
+- `columna_core.governed.foundation` — shared, versioned, backend-independent semantic vocabulary,
+  **re-derived rather than promoted** from the `Operator` dataclass. Two facts made structural:
+  COUNT **continues by SUM and may never be cited as a continuation** (citing it performs the §5.2
+  error), and MIN/MAX carry **no identity**, so the empty-fiber answer is a theorem established once.
+- `columna_core.governed.publication` — format v2. One family kind; `measure`/`member`/`boundary`
+  refused by name; no `Σ(F)` record, **no lineage record** (derived from formation's parent ids,
+  §3.7), no state-schema records; unrecognised governed keys refuse.
+- `columna_core.governed.resolve` — the total view, with provenance `declared` / `cited-law` /
+  `entailed`.
+- `columna_core.compiler.compile_v2` — the Core family from **established law**, the mapping
+  **checked against it**, with five new checks. **Continuation conformance cross-checks Core's own
+  `REGISTRY[op].combine` against the governed continuation law**, so an engine that combines
+  differently from what the publication declares is refused rather than served.
+- `columna_core.governed.migrate` — v1 → a **proposal**, never a publication; a test pins that no
+  code path emits one.
+
+**Conformance evidence.** A synthetic fixture (`lighthouse`) whose law IS established, compiled and
+then **served against a real DuckDB warehouse**, with the numbers asserted against the fixture rows
+rather than against the engine. 61 new tests; **1705 core + 307 server pass with no regressions**;
+all 20 local gates green.
+
+**One accident made into a check.** K0 emits no hierarchies, so nothing can travel and unestablished
+movement is safe. That was previously true by scope; `K0_EMITS_MOVEMENT` now names it, and the check
+flips the moment a profile emits edges.
+
+**The v1 path is FROZEN under a tombstone, not deleted**, because deleting it would delete a served
+runtime whose v2 successor cannot be authored by a machine. A standing test pins its caller set — and
+caught an unenumerated caller on its first run. **This is a semantic gap carried deliberately and is
+raised for ruling**: the hard break holds at the v2 READER (which refuses v1 outright); what remains
+alive is a frozen v1 PRODUCER for an already-published artifact.
+
+**The v1 fixture's migration proposal is committed as evidence**
+(`specs/unit_d_firstlight_migration_proposal_v0_1.md`): **14 unresolved analytical facts**, none of
+them defaulted. Including the one that can REMOVE a family — whether the legacy `sum` member is the
+operand family CONTINUED under another name or a distinct constructed family, which §11.5.1 and §3.9
+both make conditional on identity *and participation* agreeing, and the artifact declares
+participation for neither.
+
 ### What it unblocks
 
 **OF-28**, the open stop-gate on the implementation vocabulary, whose own text makes it a

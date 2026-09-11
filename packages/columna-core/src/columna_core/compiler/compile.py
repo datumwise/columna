@@ -1,5 +1,26 @@
 """
-columna_core.compiler.compile — the K0 compile boundary.
+columna_core.compiler.compile — the K0 compile boundary, publication format v1. **FROZEN.**
+
+── TOMBSTONE (2026-09-11, Unit D) ───────────────────────────────────────────────────────────────
+THE SUCCESSOR IS `compile_v2`. This module builds `FAMILY {…}` out of
+`MemberRealization.root_evaluator` — a PRIVATE REALIZATION field — while `inputs.py` says of that
+same field *"a compiler that chose a reducer would be manufacturing analytical law."* It was not
+manufacturing law; it was importing it from the wrong side of the boundary. ToD v7.1 §3.9 rules that
+a change to an identity-bearing target, formation, participation or declared continuation law IS
+family succession, so under v1 a private file can mint a succession. That is the defect v2 removes.
+
+**Publication format v2 is a hard break with no automatic v1 read and no dual-read shim.** The v2
+reader (`columna_core.governed.parse_publication`) REFUSES a v1 artifact outright, with that reason.
+This module is not that shim: it is the FROZEN PRODUCER of a v1 image that was already published and
+shipped, kept because deleting it would delete a served runtime whose v2 successor cannot be authored
+by a machine — the shipped v1 publication's target specifications, contribution structure, participation and
+movement law are unresolved analytical facts requiring authoritative establishment
+(`columna_core.governed.migrate`).
+
+**No new publication may use it.** A v1 artifact migrates through proposal-and-establishment, with a
+human, or it does not migrate. A standing test pins the caller set so this cannot quietly acquire a
+new one.
+────────────────────────────────────────────────────────────────────────────────────────────────
 
     compile_k0(publication, mapping) -> ClosedExecutionImage
 
