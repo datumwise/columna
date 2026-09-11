@@ -1188,6 +1188,119 @@ caveats.
 
 ---
 
+### R4-C0-S1 · An ordered walk consumed a contribution whose placement was not established · **CRITICAL** · **CLOSED 2026-09-11** · VX
+
+    SELECT cumsum(revenue.sum) AS c AT {store, day}, one record's `day` placement lost:
+        served   [ 80.0, 100.0, 130.0 ]
+        correct  [ 10.0,  30.0,  60.0 ]      <- every served row was wrong
+
+R4-C0 above withholds the unplaced row at FRAME ASSEMBLY — after every column's `_eval` has run. A
+scan runs inside `_eval`. So `engine.scan` sorted and walked a frame that still contained the row,
+and polars sorts nulls FIRST: a row with no position in the order became point ZERO of its
+partition. It seeded the cumulative state and it consumed a shift step; its contribution persisted
+into every SURVIVING row, all of which were served, while the row itself was withheld downstream.
+Affected: `cumsum`, `cummin`, `cummax`, `lag`, `pct_change`. NOT affected: FIRST/LAST (backend
+`arg_max`/`arg_min`, which ignore NULL order keys) and `lead` — the latter clean only BY ACCIDENT of
+polars' `nulls_last=False`, which §9.22 forbids relying on.
+
+**This was never an unknown requirement.** Frame-QL 1.0 §9.19 — *"A contribution whose required
+placement is unresolved cannot influence the cumulative walk and then be made harmless by deleting
+its output row afterward"* — and §9.8 for the ordered walk generally; ToD v7.1 §9.4 a third time.
+**Acceptance case E07, "Late filtering cannot undo ordered influence"**
+(`specs/frameql_v7_1/reviewed_sources/frameql_v7_1_semantic_acceptance_cases_v0_1.md:301`) was
+reviewed and adopted, and never converted into code or a test. This row is an unimplemented known
+requirement, not a discovery. The joint-consistency release readiness report's *"The review changes
+no recorded R4-C0 outcome or current serving policy"* is superseded by this closure.
+
+**Governing invariant** (CG2, 2026-09-11): *a contribution whose required analytical placement in the
+ordered support is not established must not influence the ordered computation. Later withholding
+cannot repair earlier influence.*
+
+**The seam, and why it is the smallest one.** `ColumnEngine.scan`, between the order-axis refusal and
+the sort. The planner hands the scan the OUTPUT ANCHOR as `target` (its sole call site), so the
+predicate is the same predicate over the same key set that R4-C0 applies moments later: it can only
+remove rows the frame is already guaranteed to withhold, and so cannot cost a lawful coarse result —
+`AT {store}` still totals all four records, `AT {month}` still serves. And unlike a reducer, a scan
+REQUIRES its order coordinate by construction, so a row with no position in that order has no lawful
+participation to protect. Establishing placement is part of establishing `Q(s)` (§9.19).
+
+**Exclusion here, disclosure there.** The rows are excluded from the WALK and handed back unwalked
+with a null `_value`. Dropping them outright would leave R4-C0 counting zero unplaced rows and the
+frame serving a SILENT OMISSION instead of a wrong number — forbidden by ToD §9.4 in the same breath
+as the influence. The existing withholding and its frame-level caveat fire unchanged, same count,
+same text; the scan's existing TRANSPORT caveat now also records that the rows did not enter the
+walk. No new reason code, standing enum or wire field; `contract_version` stays `4`.
+
+**Still NOT built, unchanged from R4-C0:** there is no per-point placement standing. The excluded row
+is not represented as "a point whose placement is unsupported"; it is simply not walked and then not
+served.
+
+Evidence: 9 regressions appended to `packages/columna-core/tests/test_placement_containment.py`,
+including the anti-regression guard that exclusion still discloses, and an assertion that `lead`'s
+immunity is a result we pin rather than a dataframe default we inherit. Corpus 1069 passed / 23
+skipped (baseline 1060/23). Instrumented, the new branch fires **zero** times across every
+pre-existing test — the same blind spot R4-C0's own closure recorded, one layer down.
+
+---
+
+### R4-C0-A1 · `FrameResult.outcome` disagrees with the wire about a withheld placement · **HIGH** · **OPEN — rowed 2026-09-11, not repaired here** · VX
+
+    Python API:  fr.outcome      -> "serve"
+    wire:        wire_frame(fr)  -> {"outcome": "disclose", ...}
+
+`FrameResult.outcome` (`planner.py:130-137`) rolls up **column** disclosures only
+(`any(c.disclosure.severity == "critical" for c in self.served)`). R4-C0's caveat rides the **frame**
+channel, so it never lifts the rollup. A caller reading `fr.outcome` is told `serve` about a frame
+the wire calls `disclose` — **for that consumer the withholding is entirely silent**, which is the
+defect R4-C0 exists to prevent, surviving in the API it was fixed in.
+
+Not repaired with R4-C0-S1: the fix is one line, but `outcome` is consumed across planner, server and
+tests, and changing its rollup is a cross-cutting behavioural change with its own regression surface.
+It is not required to satisfy the ordered-walk invariant — the ordered numbers are now correct
+whichever channel the caller reads. Repair it as its own bounded unit, with the corpus re-run.
+
+---
+
+### R4-C0-A2 · Placement loss is silently absorbed at transport to a coarser anchor · **HIGH** · **OPEN — rowed 2026-09-11, not repaired here** · VX
+
+    one record's `day` lost, amount 70.0 intact:
+      SELECT revenue AT {store}   -> 100.0   serve, no disclosure   (correct: `day` not required)
+      SELECT revenue AT {month}   ->  60.0   serve, NO DISCLOSURE   (the 70.0 is simply gone)
+
+`AT {month}` requires `day` — it reaches `month` through the certified `day -> month` hierarchy — so
+the record's lost placement genuinely costs it. But the row is dropped during transport (the
+hierarchy join finds no `month` for a NULL `day`), so **no NULL-`month` row ever reaches R4-C0's
+filter**, nothing is counted as withheld, and the frame serves clean. Two frames over one manifold
+disagree about 70 units of revenue and neither carries a caveat.
+
+This is the same class of defect as R4-C0 — placement loss undisclosed — at a different seam, and it
+is arguably worse, because R4-C0's own reasoning (*"`AT {store}` has no `day` key, so nothing is
+withheld there and the exact total still serves"*) is sound only for anchors that do not REQUIRE the
+lost coordinate. `{month}` does require it. I did not trace where in the transport path the row is
+dropped; that tracing is the first step of the repair.
+
+Not repaired with R4-C0-S1: it is a transport/delivery defect, not an ordered-walk one, and the
+governing invariant here is satisfied without touching it (the coarse ordered frame's *numbers* are
+correct; what is missing is disclosure that they are incomplete). Expanding the unit to reach it
+would have meant editing the delivery layer, which is exactly what R4-C0 was scoped away from.
+
+---
+
+### R4-C0-A3 · EXPLAIN cannot predict placement withholding · **LOW** · **OPEN — recorded as a documented limit** · VX
+
+`EXPLAIN SELECT cumsum(revenue.sum) AS c AT {store, day}` reports `outcome: "serve"` with zero
+disclosures on a manifold whose execution discloses `incomplete_data`/critical. `Planner.plan()` has
+no R4-C0 branch and executes nothing.
+
+**This is a limit, not a bug**: whether a coordinate is unresolved is a property of the data, and a
+data-free plan cannot know it. Rowed rather than fixed so it is not rediscovered as a divergence
+between EXPLAIN and execution. The honest improvement, if wanted later, is for `plan()` to state that
+an ordered result is *conditional on established placement* — a static, always-true caveat — rather
+than to predict a data-dependent fact it cannot see. Frame-QL 1.0 §9.12 (EXPLAIN and execution share
+one resolved order contract) is the governing text.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
