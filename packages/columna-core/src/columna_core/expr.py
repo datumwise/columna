@@ -215,8 +215,14 @@ __all__ = [
 CANONICAL = "canonical"
 HOST = "host"
 
-#: Nesting depth beyond which the expression is refused rather than risking a RecursionError. Well
-#: past anything a human writes; present so a pathological input is a Frame-QL refusal, not a crash.
+#: Depth beyond which the expression is refused rather than risking a RecursionError. Well past
+#: anything a human writes; present so a pathological input is a Frame-QL refusal, not a crash.
+#:
+#: It bounds the DEPTH OF THE TREE, not merely the recursion that builds it — see `_grow`. For a
+#: while it bounded only the latter, which read as a guarantee and was not one: the left-associative
+#: loops balance their `_enter`/`_leave` per iteration, so `a + a + a + …` built an unbounded left
+#: spine and reached `unparse` and the planner's walks — ordinary recursive functions — as a raw
+#: `RecursionError`, the one exception class this module promises can never escape.
 MAX_DEPTH = 100
 
 
@@ -667,11 +673,33 @@ def _reads_as_named_argument(node: Node) -> bool:
     """True when `node`, written bare in call-argument position, would be RE-READ as the historical
     `name = value` named-argument spelling (§15.2 rule (2)).
 
-    One predicate, two users: the parser applies the §15.2 argument rule with it, and the unparser
-    consults it so that a positional `Compare` it must keep positional is re-parenthesized on the way
-    out. Without the second use, `f(a, (b = c))` would render as `f(a, b = c)` and change meaning on
-    the next read — the round-trip contract is the only thing that catches that."""
+    This is the PARSE-SIDE question — what the argument rule does with source text as written — so it
+    honours the `==` escape hatch: a comparison spelled `==` is never re-read as a named argument.
+
+    The unparser must NOT use this predicate. See `_renders_as_named_argument`."""
     return (isinstance(node, Compare) and node.op == "=" and node.raw_op != "=="
+            and isinstance(node.left, Path) and len(node.left.segments) == 1)
+
+
+def _renders_as_named_argument(node: Node) -> bool:
+    """True when `node`, rendered bare in call-argument position, would be RE-READ as a named
+    argument — the UNPARSE-side question, and deliberately not the same one.
+
+    The difference is `==`, and getting it wrong is a wire defect rather than a cosmetic one. `==` is
+    compatibility input that CANONICALIZES to `=` (§15.2), so both spellings render as `=`. Asking
+    the parse-side question here therefore reasons about a spelling that is about to be discarded:
+    `f(b == c)` is a positional comparison, the parse-side predicate says "not named-shaped, no
+    parentheses needed", and the emitted `f(b = c)` re-reads as a NAMED ARGUMENT. A different tree,
+    from text this module produced itself.
+
+    That mattered end to end, not just in the abstract: canonical text is the default column key and
+    the statement path canonicalizes before planning, so `cumsum(revenue, by == 'month')` was refused
+    by the builder API and SERVED A NUMBER through the statement path — the two-door split this unit
+    exists to close, re-opened by the unparser.
+
+    So the question the unparser must ask is about SHAPE ALONE: whatever spelling arrives, `=` is
+    what leaves."""
+    return (isinstance(node, Compare) and node.op == "="
             and isinstance(node.left, Path) and len(node.left.segments) == 1)
 
 
@@ -705,6 +733,12 @@ def parse(source: str, *, origin: str = "expression") -> Node:
     the voice of a substrate, and after this module there is no substrate left to leak. The blanket
     guard below extends it to a defect in this file: a bug here is a Frame-QL refusal, not a
     traceback in someone's frame result.
+
+    The guarantee covers what a CALLER can reach through this function, which is what P1-26 is about.
+    It is not a claim about `unparse` or `walk` over a tree assembled by hand in some other module:
+    those recurse, and nothing stops a caller building a 10,000-deep `Binary` chain directly. What
+    closes the practical hole is `MAX_DEPTH` bounding the tree this parser will PRODUCE, so no input
+    can hand a consumer something it cannot walk.
     """
     if source is None or not isinstance(source, str) or not source.strip():
         _fail(f"empty {origin} — a series is at least one expression, e.g. revenue", 0,
@@ -784,6 +818,23 @@ class _Parser:
     def _leave(self) -> None:
         self.depth -= 1
 
+    def _grow(self, spine: int, tok: Token) -> None:
+        """Bound the depth of the tree a LEFT-ASSOCIATIVE loop is building.
+
+        `_enter`/`_leave` are balanced around each ITERATION of those loops, so `self.depth` never
+        grows for `a + a + a + …` — but the left spine does, one level per operator. The tree was
+        therefore unbounded while the guard read as though it were bounded, and the consumers this
+        module hands trees to (`unparse`, and every recursive walk in the planner) are ordinary
+        recursive functions. A long enough chain reached them as a raw `RecursionError` — the one
+        exception class this module promises can never escape.
+
+        Bounding the spine here closes it at the parse boundary, which is where the promise lives:
+        a pathological input is refused as a Frame-QL error, in Frame-QL's voice, with an offset.
+        """
+        if self.depth + spine > MAX_DEPTH:
+            self.fail(f"this {self.origin} chains more than {MAX_DEPTH} operations — simplify it, "
+                      f"or name the parts with WITH", tok)
+
     # ══ the ladder, loosest rung first ═════════════════════════════════════════════════════════
 
     def expression(self) -> Node:
@@ -797,6 +848,7 @@ class _Parser:
             return left
         operands, raw = [left], self.peek().text
         while self.accept_keyword("OR") is not None:
+            self._grow(len(operands), self.peek())
             operands.append(self.logical_and())
         return Logical("OR", tuple(operands), raw, left.pos)
 
@@ -807,6 +859,7 @@ class _Parser:
             return left
         operands, raw = [left], self.peek().text
         while self.accept_keyword("AND") is not None:
+            self._grow(len(operands), self.peek())
             operands.append(self.logical_not())
         return Logical("AND", tuple(operands), raw, left.pos)
 
@@ -868,8 +921,10 @@ class _Parser:
 
     # additive: + -   (left-associative)
     def additive(self) -> Node:
-        node = self.multiplicative()
+        node, spine = self.multiplicative(), 0
         while (tok := self.accept_op(*_ADDITIVE)) is not None:
+            spine += 1
+            self._grow(spine, tok)
             self._enter()
             node = Binary(tok.text, node, self.multiplicative(), tok.pos)
             self._leave()
@@ -877,8 +932,10 @@ class _Parser:
 
     # multiplicative: * / %   (left-associative).  Outside braces `*` is multiplication (§15.0).
     def multiplicative(self) -> Node:
-        node = self.numeric_unary()
+        node, spine = self.numeric_unary(), 0
         while (tok := self.accept_op(*_MULTIPLICATIVE)) is not None:
+            spine += 1
+            self._grow(spine, tok)
             self._enter()
             node = Binary(tok.text, node, self.numeric_unary(), tok.pos)
             self._leave()
@@ -895,8 +952,10 @@ class _Parser:
 
     # anchor ascription: E @ {A}   (left-associative; tighter than unary, looser than postfix)
     def anchor_ascription(self) -> Node:
-        node = self.postfix()
+        node, spine = self.postfix(), 0
         while (tok := self.accept_op("@")) is not None:
+            spine += 1
+            self._grow(spine, tok)
             self._enter()
             node = Anchor(node, self._pin(tok), node.pos)
             self._leave()
@@ -942,8 +1001,12 @@ class _Parser:
 
     # postfix: f(...) | .member | .method(...) | [key]   (left-associative, tightest)
     def postfix(self) -> Node:
-        node = self.primary()
+        node, spine = self.primary(), 0
         while True:
+            if self.at_op(".") or self.at_op("(") or self.at_op("["):
+                # each postfix step is one more level on the left spine — see `_grow`
+                spine += 1
+                self._grow(spine, self.peek())
             if self.at_op("."):
                 # A `.name` on a bare dotted path was already absorbed by `_dotted_path` into ONE
                 # Path (§15.1). Reaching here means the base is something else — a parenthesized
@@ -1194,10 +1257,29 @@ def _wrap(node: Node, dialect: str, need: int) -> str:
     return f"({text})" if _precedence(node, dialect) < need else text
 
 
+#: The lexer's escape table, inverted. Anything absent is emitted RAW, which round-trips because the
+#: scanner takes an unrecognised character literally.
+_QUOTE_ESCAPES = {"\\": "\\\\", "'": "\\'", "\n": "\\n", "\t": "\\t", "\r": "\\r", "\0": "\\0"}
+
+
+def _quote(value: str) -> str:
+    """Write a string literal in FRAME-QL's escape vocabulary, not Python's.
+
+    `repr` emits Python escapes — `\\x00`, `\\u2028` — and the Frame-QL lexer knows only
+    `\\\\ \\' \\" \\n \\t \\r \\0`, deliberately preserving the backslash for anything else. So a literal
+    containing a NUL rendered as `'\\x00'` and read back as the four characters `\\`, `x`, `0`, `0`:
+    canonical text that does not mean what it came from. Canonical text is the default column key,
+    so that is an identity defect, not a display one.
+    """
+    return "'" + "".join(_QUOTE_ESCAPES.get(ch, ch) for ch in value) + "'"
+
+
 def _render(node: Node, dialect: str, need: int) -> str:
     if isinstance(node, Literal):
-        # `repr` for both dialects: it is exactly what `ast.unparse` writes for a constant, so HOST is
-        # byte-identical, and CANONICAL gains nothing from a second convention.
+        if dialect == CANONICAL and isinstance(node.value, str):
+            return _quote(node.value)
+        # HOST keeps `repr`: its whole contract is to be byte-identical to `ast.unparse`, and that
+        # is a fidelity claim about the RETIRED dialect, so it must not be improved.
         return repr(node.value)
 
     if isinstance(node, Path):
@@ -1205,7 +1287,12 @@ def _render(node: Node, dialect: str, need: int) -> str:
 
     if isinstance(node, Member):
         base = _wrap(node.base, dialect, _P_POSTFIX)
-        if dialect == CANONICAL and isinstance(node.base, (Path, Member)):
+        if isinstance(node.base, Literal) and isinstance(node.base.value, (int, float)):
+            # `785 .IN` would render `785.IN`, which the lexer reads back as the float `785.` —
+            # a round-trip failure, not a spelling preference. CPython's unparser parenthesizes
+            # here for the same reason.
+            base = f"({base})"
+        elif dialect == CANONICAL and isinstance(node.base, (Path, Member)):
             # §15.1: `(a.b).c` is a different written intent from `a.b.c`, so canonical keeps the
             # parentheses. HOST cannot spell the difference (CPython has only `Attribute`).
             base = f"({base})"
@@ -1216,6 +1303,11 @@ def _render(node: Node, dialect: str, need: int) -> str:
         if isinstance(key, Tuple) and key.items:
             # A tuple subscript key is written without its own parentheses, matching `ast.unparse`.
             inner = ", ".join(_render(i, dialect, 0) for i in key.items)
+            if len(key.items) == 1:
+                # ...except a ONE-element tuple, where dropping the comma erases the tuple and
+                # `a[(1,)]` and `a[1]` collapse to one text from two different trees. Canonical text
+                # is the default column key, so a collision here is two meanings at one address.
+                inner += ","
         else:
             inner = _render(key, dialect, 0)
         return f"{_wrap(node.base, dialect, _P_POSTFIX)}[{inner}]"
@@ -1226,7 +1318,7 @@ def _render(node: Node, dialect: str, need: int) -> str:
         # next parse. `if(region = 'east', 1, 0)` needs nothing (the run is empty); `f(a, (b = c))`
         # needs its parentheses back.
         protect = len(node.args)
-        while protect > 0 and _reads_as_named_argument(node.args[protect - 1]):
+        while protect > 0 and _renders_as_named_argument(node.args[protect - 1]):
             protect -= 1
         parts = [f"({_render(a, dialect, 0)})" if i >= protect else _render(a, dialect, 0)
                  for i, a in enumerate(node.args)]

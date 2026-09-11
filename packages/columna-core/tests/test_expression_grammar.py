@@ -36,7 +36,8 @@ import pytest
 
 from columna_core import expr
 from columna_core.expr import (
-    Anchor, Binary, Call, Compare, Literal, Logical, Member, NamedArg, Path, Subscript, Tuple, Unary,
+    MAX_DEPTH, Anchor, Binary, Call, Compare, Literal, Logical, Member, NamedArg, Path, Subscript,
+    Tuple, Unary,
 )
 from columna_core.frameql import FrameQLSyntaxError
 from columna_core.envelope import parse_statement
@@ -965,3 +966,113 @@ def test_the_published_grammar_surface_states_the_rules_it_is_read_under(fixture
     assert "binds TIGHTER than arithmetic" in doc          # the one place §15 and CPython disagree
     assert "BRACKETS SUBSCRIBE" in doc
     assert "DOTTED ACCESS IS ONE SHAPE" in doc
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════════
+# 8. what an adversarial review found after the migration landed
+# ═════════════════════════════════════════════════════════════════════════════════════════════════
+# Every test below corresponds to a defect that the 1,919-test suite was green over. They are kept
+# together, rather than filed into the sections above, because what they have in common is more
+# useful than what they are each about: all six are places where the CANONICAL FORM and the PARSE
+# disagreed, and canonical text is the default column key. A canonical form that does not re-read as
+# the tree it came from is not a spelling preference — it is two meanings at one address.
+
+
+def test_a_compare_written_with_the_escape_hatch_survives_canonicalization():
+    """`==` is the documented way to force the comparison reading in trailing argument position. It
+    was being erased: the unparser asked whether the source was SPELLED `==` (so: not named-shaped,
+    no parentheses needed) and then rendered the normalized `=`, so `f(b == c)` came out as
+    `f(b = c)` and re-read as a NAMED ARGUMENT — a different tree, from text this module wrote.
+
+    It reached the wire. The statement path canonicalizes before planning, so
+    `cumsum(revenue, by == 'month')` was refused by the builder API and SERVED A NUMBER through the
+    statement path — the two-door split this whole unit exists to close, re-opened by the unparser.
+    """
+    for source in ("f(b == c)", "f(a, b == c)", "cumsum(revenue, by == 'month')"):
+        node = parse(source)
+        assert parse(expr.unparse(node)) == node, source
+        # specifically: it is still a positional comparison, not a named argument
+        assert not parse(expr.unparse(node)).named, source
+
+
+def test_canonical_text_is_a_fixed_point_for_the_escape_hatch_too():
+    """`_canon_expr`'s docstring promises idempotence, and the corpus that pins it contains no `==`
+    in call position. Canonicalizing twice used to give three different strings."""
+    once = expr.unparse(parse("cumsum(revenue, by == 'month')"))
+    assert expr.unparse(parse(once)) == once
+
+
+def test_a_one_element_tuple_subscript_is_not_the_same_key_as_a_scalar_one():
+    """`a[(1,)]` and `a[1]` are different trees. Rendering the tuple without its comma collapsed them
+    to one canonical text — a key collision, which for a column key means two meanings at one
+    address."""
+    tup, scalar = parse("a[(1,)]"), parse("a[1]")
+    assert tup != scalar
+    assert expr.unparse(tup) != expr.unparse(scalar)
+    assert parse(expr.unparse(tup)) == tup
+
+
+def test_string_literals_round_trip_in_frame_qls_own_escape_vocabulary():
+    """Literals were rendered with Python `repr`, which emits `\\x00` and `\\u2028`. The Frame-QL
+    lexer knows only `\\\\ \\' \\" \\n \\t \\r \\0` and deliberately PRESERVES the backslash for anything
+    else — so a NUL came back as the four characters `\\`, `x`, `0`, `0`. The retired substrate
+    round-tripped these, so this was a regression against it, not merely a gap."""
+    for value in ("\x00", " ", "a\nb", "it's", "a\\b", "\x0b", "tab\there", "plain"):
+        node = parse("f(" + repr(value) + ")")
+        assert parse(expr.unparse(node)) == node, repr(value)
+
+
+def test_a_numeric_literal_base_keeps_its_parentheses_before_a_member():
+    """`785 .IN` rendered as `785.IN`, which the lexer reads back as the float `785.` followed by a
+    name. CPython's unparser parenthesizes here for exactly this reason."""
+    node = parse("785 .IN")
+    assert expr.unparse(node) == "(785).IN"
+    assert parse(expr.unparse(node)) == node
+
+
+@pytest.mark.parametrize("chain", [
+    " + revenue", " @ {day}", " * 2", " AND a = 1",
+])
+def test_a_long_chain_is_refused_in_frame_qls_voice_not_as_a_recursionerror(chain):
+    """MAX_DEPTH bounded the recursion that BUILDS the tree, not the tree. The left-associative loops
+    balance `_enter`/`_leave` per iteration, so `a + a + a + …` grew an unbounded left spine, and the
+    consumers this module hands trees to — `unparse`, and every recursive walk in the planner — are
+    ordinary recursive functions. A long enough chain reached them as a raw `RecursionError`: the one
+    exception class this module promises can never escape, escaping through the module that promises
+    it."""
+    source = "revenue" + chain * (MAX_DEPTH + 50)
+    with pytest.raises(FrameQLSyntaxError) as caught:
+        expr.unparse(parse(source))
+    assert "simplify it" in str(caught.value)
+
+
+def test_a_deep_chain_never_escapes_the_planner_as_a_raw_python_exception(fixture_server):
+    """The guarantee restated where it is actually owed — at the planner's doors, which is what
+    P1-26 is about. `plan()` may RAISE FrameQLSyntaxError (it is the language's own error type);
+    what it may never do is hand back a RecursionError."""
+    source = "revenue" + " + revenue" * 3000
+    for call in (lambda: _series(fixture_server, ("region",), source).plan(),
+                 lambda: _series(fixture_server, ("region",), source).run()):
+        try:
+            call()
+        except FrameQLSyntaxError:
+            pass          # the language's own voice — allowed, and the point
+        except RecursionError:                                   # pragma: no cover
+            pytest.fail("a raw RecursionError escaped the planner")
+
+
+def test_a_manifold_wide_scalar_as_a_whole_series_refuses_by_name(fixture_server):
+    """`_eval` resolves `revenue @ {}` to a bare number — correctly, it IS the Manifold-wide scalar
+    (§2.6) — and `run()` then called `.rename()` on a float, so the everything-classifies backstop
+    answered "could not be resolved in the engine (AttributeError); the ask is not supported in this
+    build". False twice: the planner resolved it fine, and the form is one the published grammar
+    teaches. Newly reachable, too — the builder door used to refuse `@ {}` as an illegal construct
+    before it got this far, so unifying the doors is what exposed it.
+
+    It REFUSES rather than broadcasts because what a scalar means as a whole series — its grain — is
+    the question this unit deliberately left open. Serving it would settle that by implementation."""
+    r = _refusal(_series(fixture_server, ("region",), "revenue @ {}").run())
+    assert r is not None
+    assert "not supported in this build" not in r.detail
+    assert "Manifold-wide scalar" in r.detail and "OPERAND" in r.detail
+    assert r.jurisdiction == "language"       # the planner's own answer, not an engine failure

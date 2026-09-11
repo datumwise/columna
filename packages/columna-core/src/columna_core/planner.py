@@ -635,6 +635,29 @@ class Planner:
                     raise self._blocked_transport_refusal(blk)
                 # EXECUTE: resolve through the engine
                 frame, disc = self._eval(expr, anchor, where, trace)
+                if not hasattr(frame, "rename"):
+                    # A SCALAR IN WHOLE-SERIES POSITION — `SELECT revenue @ {} AS s AT {region}`.
+                    # `_eval` resolves it to a bare number (correctly: `@ {}` IS the Manifold-wide
+                    # scalar, §2.6) and this line then called `.rename()` on a float, so the
+                    # everything-classifies backstop answered "could not be resolved in the engine
+                    # (AttributeError); the ask is not supported in this build". That is FALSE twice
+                    # over: the planner resolved it fine, and the form is one the published grammar
+                    # teaches. The migration made the falsehood newly reachable (the builder door
+                    # used to refuse `@ {}` as an illegal construct before it got this far) and
+                    # newly advertised, so the honest refusal belongs with it.
+                    #
+                    # It is a REFUSAL and not a broadcast because what a scalar means as a whole
+                    # series — its grain — is exactly the question this unit deliberately left open
+                    # (`_infer` resolves a broadcast operand at `()`, `_law_travels` adjudicates it
+                    # at `anchor`; see the note at that site). Serving it would settle that by
+                    # implementation. As a map OPERAND, which is the documented form, it works.
+                    raise Refusal("unknown",
+                        f"{expr!r}: `@ {{}}` is the Manifold-wide scalar, and a scalar has no grain "
+                        f"of its own to serve at {anchor}. It is defined as a map OPERAND — a value "
+                        f"the rest of an expression is measured against — not as a whole series.",
+                        target=str(anchor),
+                        alternatives=(f"use it as an operand, e.g. `revenue @ {{{anchor[0]}}} / {expr}`"
+                                      if anchor else "use it as an operand inside an expression",))
                 results.append(ColumnResult(name, expr, frame.rename({_V: name}), disc,
                                             trace=trace, universe=col_uni,
                                             fill_rule=self._column_fill_rule(tree, anchor)))
@@ -1036,8 +1059,12 @@ class Planner:
         for op, _m in self._CMP:
             if op in pred:
                 return pred.split(op, 1)[0].strip()
+        # `=` leads the list because §15.2 names it THE comparison operator and the published
+        # grammar teaches it; `==` follows as the compatibility spelling it is. The list used to omit
+        # `=` entirely while `_CMP` accepted it — an offer that withheld the canonical answer.
         self._synerr(f"cannot read predicate {pred!r} — expected `column <op> value` "
-                     f"(op: > < >= <= == !=) or `column IN (v, …)`")
+                     f"(op: = != < <= > >=, or the compatibility spelling ==) "
+                     f"or `column IN (v, …)`")
 
     def _apply_predicate(self, data, pred: str):
         hit = self._in_predicate(pred)

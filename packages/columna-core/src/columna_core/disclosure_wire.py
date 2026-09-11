@@ -39,28 +39,45 @@ from .disclosure import Caveat, Outcome
 # itself); the canonical form is now the whole expression re-rendered by the grammar's own unparser,
 # so it is one spelling rather than "whatever was typed, with the pins tidied".
 #
-# Two things this bump does NOT carry, stated because a version is only useful if its scope is:
-#   · NO VALUE MOVES. Every number, mood, disclosure, materiality and reason code is unchanged; the
-#     substitution was proved byte-faithful against the retired dialect over the repository's whole
-#     expression corpus (`test_ast_fidelity_over_the_corpus`) before the canonical dialect was
-#     adopted for keys, so the only difference on the wire is the one that was chosen.
-#   · NO UTTERANCE STOPS PARSING that used to. The 1.0 grammar is a superset of what the retired
-#     `_ALLOWED` node list admitted — it additionally reads braces natively, comparisons, `IN`,
-#     `BETWEEN`, logical operators, subscription and colon-named arguments. `revenue[region =
-#     'east']` now reaches a named refusal (`bracket_is_not_a_filter`, §7.5) instead of a raw CPython
-#     SyntaxError recommending Python's walrus operator.
+# WHAT ELSE MOVES. An earlier draft of this note claimed that no value moved and that nothing stopped
+# parsing. Both were false, and an adversarial review caught them; the corrected scope is below.
+# A version is only useful if its scope is honest, and the corpus test that was cited as proof
+# (`test_ast_fidelity_over_the_corpus`) is scoped to the expressions IN THIS REPOSITORY — which
+# contain no `@` mixed with `*` or `/`, precisely the shape the precedence correction moves.
+#
+#   · VALUES MOVE where `@` meets arithmetic — and this is the correction, not a side effect. §15
+#     puts anchor ascription ABOVE multiplicative, CPython's `MatMult` put it at the same rung:
+#
+#         SELECT revenue.sum + (revenue.sum / 2 @ {}) AS x AT {store*month}
+#           was  672.5, 707.5, ...   read as (revenue/2) @ ()   — CPython's grouping
+#           now  135.0, 187.5, ...   read as revenue / (2 @ {}) — §15's grouping
+#
+#     Both serve. There is no caveat, because on neither reading is anything undisclosed — the two
+#     readings are different well-formed asks, and 1.0 says which one the text means. Parentheses
+#     around the operand do NOT protect it: the regrouping happens inside them.
+#   · MOOD MOVES for a reduction over that shape. `avg(revenue / 2 @ {order})` was a PINNED
+#     reduction (the argument was one `@` node under CPython's flat precedence) and served; the
+#     argument is now a division whose right operand is pinned, so the unpinned path takes over and
+#     it refuses `input_anchor_unavailable`. The refusal is the conformant answer.
+#   · A FEW UTTERANCES STOP PARSING — all of them Python-isms the retired substrate admitted only
+#     because it WAS Python: `.5` without a leading digit (deliberate: `.` is member access),
+#     `1_000` underscore separators, a trailing comma in an argument list, and `#` comments. Frame-QL
+#     1.0 has no such forms. `.5` and `1_000` are plausible inside a `DERIVED` formula, so this is
+#     worth knowing rather than worth burying.
+#
+# In the other direction the grammar genuinely IS wider: braces natively, comparisons, `IN`,
+# `BETWEEN`, logical operators, subscription, colon-named arguments, and newlines inside an
+# expression. `revenue[region = 'east']` now reaches a named refusal (`bracket_is_not_a_filter`,
+# §7.5) instead of a raw CPython SyntaxError recommending Python's walrus operator.
 #
 # Durable advice, unchanged since "2": key on AS aliases. They are author-owned and no rule moves them.
 #
-# ⚠ THREE CURRENCY STAMPS ARE STALE AT THIS BUMP AND WERE DELIBERATELY NOT SWEPT HERE, because the
-# unit that made the bump was scoped out of the files they live in (a later docs/site pass owns
-# them). `scripts/check_currency_stamps.py` names them exactly and fails until they move:
-#     docs/frame_ql_build_status.md                      "the server and the wire contract"
-#     apps/website/src/content/llms_index.txt            "the four moods — the contract they arrive on"
-#     apps/website/src/components/ExhibitB.astro         "askWire copy — the contract the wire arrives on"
-# The guard was GREEN at "4" and is RED at "5" for these three and nothing else. Recorded here rather
-# than left to be discovered, because a stale contract claim outliving a bump is the exact failure
-# that guard was built for: `contract_version "1"` was live on /llms.txt through TWO bumps.
+# THREE CURRENCY STAMPS WENT STALE AT THIS BUMP AND HAVE SINCE BEEN SWEPT, by the documentation pass
+# that owns those files — `docs/frame_ql_build_status.md`, `apps/website/src/content/llms_index.txt`,
+# and the `askWire` copy in `apps/website/src/components/ExhibitB.astro`.
+# `scripts/check_currency_stamps.py` is GREEN: 11 enrolled claims across 4 files. The staleness is
+# recorded here rather than deleted, because a stale contract claim outliving a bump is the exact
+# failure that guard was built for: `contract_version "1"` was live on /llms.txt through TWO bumps.
 #
 # ── CONTRACT "3" -> "4" (2026-08-31, OF-24 ruling (a)) ───────────────────────────────────────────
 # The wire gains a second disclosure channel. `disclosures` stays the SEMANTIC channel — what is true
