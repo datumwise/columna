@@ -1200,9 +1200,11 @@ wrong with them — and the error names the construct rather than reporting a ge
 carries the two lawful edits with it: the same predicate in `WHERE`, which narrows the input before
 reduction (§6.8), or in `HAVING`, which narrows the output frame after it (§6.9).
 
-To put east-region revenue beside total revenue in one frame, the two are different restrictions of
-the input and therefore different queries; a single frame carrying both is the province of a
-local-restriction surface the language has not ruled in (§2.8).
+Note what the two columns above were asking for: one restricted input and one unrestricted one, in a
+single frame. `WHERE` cannot express that — it restricts the whole statement's input — so today the
+two are separate queries. A frame carrying both is exactly the job a local-restriction surface would
+do, and the language has not ruled one in (§2.8). That is the honest state, and it is not what
+brackets are for.
 
 ### 6.8 WHERE: pre-query filtering on a base dimension
 
