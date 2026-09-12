@@ -10,16 +10,18 @@ columns, assembles the frame, and folds disclosures. It never sees provenance.
 from __future__ import annotations
 import re
 from collections import namedtuple
-from dataclasses import dataclass, field
 from typing import Optional
 import polars as pl
 
 from .projection import PlannerView
 from .engine import ColumnEngine
+# The serving result types now live in `serving_contract`, which owns no execution strategy.
+# RE-EXPORTED, NOT REDEFINED (2026-09-12): `from columna_core.planner import FrameResult` still
+# works, and there is exactly one definition. See serving_contract.py for why they moved.
+from .serving_contract import ColumnResult, FrameResult, _fmt_anchor   # noqa: F401  (re-export)
 from .disclosure import (Disclosure, Refusal, Caveat, TRANSPORT, UNCONFIRMED,
                          DECLARED_FILL, UNKNOWN_ABSENCE, OUT_OF_POPULATION, UNDECLARED_ABSENCE,
-                         DATA_GAP,
-                         SERVE, DISCLOSE, CLARIFY, REFUSE, ERROR, AMBIGUOUS, Outcome)
+                         DATA_GAP, AMBIGUOUS)
 from .model import parse_faced, EdgeKey   # EdgeKey: the certification identity of an edge (P0.5a)
 from .frameql import FrameQLSyntaxError   # the language's own error channel (P1-26)
 from .expr import (CANONICAL, Anchor, Binary, Call, Literal, Node, Path, Unary,
@@ -119,74 +121,6 @@ _Travel = namedtuple("_Travel", "op frm to subject law written")
 #: Verdicts about a PIN'S SHAPE against the output rather than about the reduction's lawfulness
 #: (§2.3 Laws 1 and 2). Excluded from the unanimity test in `_no_lawful_pin_refusal` — see there.
 _PIN_SHAPE_REASONS = frozenset({"pin_coarser_than_output", "redundant_pin"})
-
-
-def _fmt_anchor(anchor) -> str:
-    """Spell an anchor with the canonical product separator `*` (never a comma). Every surface that
-    WRITES an anchor — the EXPLAIN header, error/clarify messages, traces — routes through here so no
-    output ever emits a comma anchor (capture §2b RULED (a))."""
-    if isinstance(anchor, (tuple, list)):
-        return "*".join(str(a) for a in anchor)
-    return str(anchor)
-
-
-@dataclass
-class ColumnResult:
-    name: str
-    expr: str
-    frame: Optional[pl.DataFrame]
-    disclosure: Disclosure
-    refusal: Optional[Outcome] = None
-    trace: list = field(default_factory=list)
-    universe: Optional[str] = None      # the column's sole universe (§2c)
-    fill_rule: Optional[str] = None     # Φ_v resolved from the member contract (columna#143) — drives
-                                        # absence semantics. None = undeclared (disclose, never fill).
-
-
-@dataclass
-class FrameResult:
-    data: Optional[pl.DataFrame]
-    disclosure: Disclosure
-    columns: list                 # [ColumnResult]
-    anchor: tuple
-
-    # ---- the four-outcome contract, surfaced (ADR-032) --------------------
-    # Served columns carry a frame (+ disclosure); a no-result column carries a classified
-    # refusal. These expose the planner's verdicts so any surface reads them uniformly.
-    @property
-    def served(self): return [c for c in self.columns if c.refusal is None]
-
-    @property
-    def clarifies(self): return [c for c in self.columns if c.refusal and c.refusal.is_clarify]
-
-    @property
-    def refusals(self): return [c for c in self.columns if c.refusal and c.refusal.is_refuse]
-
-    @property
-    def errors(self): return [c for c in self.columns if c.refusal and c.refusal.is_error]
-
-    @property
-    def outcome(self):
-        """Frame-level rollup of the strongest signal: refuse > clarify > error > disclose > serve.
-        (A mixed frame still reports its served columns in `data`; this names what needs attention.)"""
-        if self.refusals: return REFUSE
-        if self.clarifies: return CLARIFY
-        if self.errors: return ERROR
-        if any(c.disclosure.severity == "critical" for c in self.served): return DISCLOSE
-        return SERVE
-
-    def explain(self) -> str:
-        lines = [f"EXPLAIN  frame @ {_fmt_anchor(self.anchor)}"]
-        for c in self.columns:
-            head = f"  • {c.name}" + (f" = {c.expr}" if c.expr != c.name else "")
-            lines.append(head)
-            for t in c.trace:
-                lines.append(f"      ├─ {t}")
-            if c.refusal:
-                lines.append(f"      └─ {c.refusal}")
-            else:
-                lines.append(f"      └─ {c.disclosure.render_human()}")
-        return "\n".join(lines)
 
 
 class _ExpressionFault(Exception):

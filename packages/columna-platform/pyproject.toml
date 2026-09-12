@@ -1,0 +1,32 @@
+[build-system]
+# Capped like every other dependency (the cap guard globs packages/*/pyproject.toml, so this file
+# is in its scope from the moment it exists).
+requires = ["hatchling>=1.27,<2.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "columna-platform"
+version = "0.0.0"
+description = "Columna Platform — the successor execution path. Proof-stage; NOT PUBLISHED."
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+# DELIBERATELY OUTSIDE THE RELEASE SET. `scripts/release_pins.py` names the three published packages
+# by path (UMBRELLA/CORE/SERVER) and LOCKSTEP covers two of them; this package is invisible to both
+# by construction, not by an exclusion that could rot. Version stays 0.0.0 for the same reason: a
+# version that never moves cannot drift from a lockstep it does not belong to.
+dependencies = [
+    # The governed layer, the realization reader, and the refusal taxonomy come from Core. pyarrow
+    # arrives transitively (core pins pyarrow>=15,<26) and is used directly here for the synthetic
+    # carrier, so it is declared rather than borrowed.
+    "columna-core>=0.19.0,<0.20.0",
+    "pyarrow>=15,<26",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0,<10.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/columna_platform"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

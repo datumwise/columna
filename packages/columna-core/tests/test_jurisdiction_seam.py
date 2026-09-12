@@ -92,7 +92,24 @@ _TRANSITIONAL = {(LANGUAGE, ERROR), (REALIZATION, ERROR)}
 # analytical Refuse — and the shared plan/run repair (P1-21) closed it. The set is kept, with this
 # note, because an empty allow-list is the assertion: any future reason whose stage and mood disagree
 # has to be added here deliberately, in front of a reviewer, rather than merging quietly.
-_KNOWN_INVERSIONS = {}
+_KNOWN_INVERSIONS = {
+    # RULED, NOT A DEFECT (Huayin, 2026-09-12). `want_of_state` is a REALIZATION-stage reason wearing
+    # REFUSE, which this ledger's classifier calls an inversion because, before the ruling, every
+    # realization reason was expected to ride the transitional `error` umbrella until Step 6.
+    #
+    # The ruling settles the three-way split the umbrella could not express:
+    #     want_of_law    the governed continuation is not licensed        -> refuse / analytical
+    #     want_of_state  lawful, but no admissible state establishes it   -> refuse / REALIZATION
+    #     error          the machinery failed while attempting execution  -> error
+    # A lawful request with no admissible state is NOT a machinery failure, so reporting it as
+    # `error` was the defect; this row is the first realization reason to say so.
+    #
+    # It is listed here rather than by relaxing `_inversions()` DELIBERATELY. Relaxing the classifier
+    # would legitimize (realization, refuse) for every future reason at a stroke; a row keeps the
+    # guard's teeth and puts the next one in front of a reviewer, which is what this ledger is for.
+    # This entry is expected to survive until Step 6 generalizes the stage/mood relationship.
+    "want_of_state": (("realization", "refuse"), "proof-a/want-of-state", "step-6"),
+}
 
 
 def _inversions():
