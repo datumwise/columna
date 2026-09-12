@@ -3,7 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
+  # `edited` IS IN THIS LIST FOR EXACTLY ONE REASON: A RETARGET (2026-09-12, ruled Huayin).
+  #
+  # The default activity types are `opened`, `synchronize`, `reopened`. Changing a pull request's
+  # BASE BRANCH fires none of them — it fires `edited` — so a stacked PR retargeted from its parent
+  # branch to `main` kept displaying the green it earned against the OLD base, on a base it had
+  # never been built against. That is worse than a missing check: it is a check that asserts
+  # something nobody verified.
+  #
+  # WHY THERE IS NO JOB-LEVEL `if` FILTER HERE, THOUGH ONE WAS TRIED AND MEASURED.
+  # `edited` also fires on TITLE and BODY edits, so the obvious narrowing is to add
+  # `if: github.event.action != 'edited' || github.event.changes.base` to every job and skip the
+  # rest. It works — the run costs no runner time. It also REPLACES THE PR'S CHECK DISPLAY WITH
+  # `skipped`: measured on this very PR, a title edit turned 14 green checks into 10 skipped ones,
+  # while `mergeStateStatus` stayed CLEAN so the merge button never objected.
+  #
+  # That is the same defect in a new costume. We came here to stop a PR displaying a status nobody
+  # verified; a skipped check that has quietly replaced a real green is also a status nobody
+  # verified, and it reads as benign. A matrix re-run on a description edit is the cheaper mistake:
+  # it wastes minutes, and minutes are recoverable in a way that a misleading green is not.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   test:
@@ -64,9 +84,12 @@ jobs:
       - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
         run: python scripts/gates.py --gate pytest-server
 
-      # Proof A — the successor execution path. A non-published workspace member still gets a gate:
+      # The successor execution path — Proof A (identity, standing, admission) and Proof B
+      # (one positively licensed movement). A non-published workspace member still gets a gate:
       # being outside the release set is exactly what makes a package's tests easy to leave unrun.
-      - name: Pytest — columna-platform (Proof A)
+      # LABEL KEPT CURRENT ON PURPOSE: a step named for only its first occupant quietly
+      # under-reports what a red X covers.
+      - name: Pytest — columna-platform (successor path — Proofs A and B)
         run: python scripts/gates.py --gate pytest-platform
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
