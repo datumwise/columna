@@ -62,8 +62,29 @@ _WHY_NOT = {
 #: Governed value domain -> Core logical dtype. FROZEN and TOTAL over the governed vocabulary: an
 #: unrecognised domain refuses rather than defaulting, because defaulting substitutes the compiler's
 #: guess for the author's declaration.
+#: Governed value domain -> the Core logical dtype that CARRIES it.
+#:
+#: `decimal` maps to `Decimal`, not `Float64` (correction, Huayin, 2026-09-12). The earlier entry
+#: substituted binary floating point for a governed exact-decimal domain, which is the type-system
+#: instance of reducing law rather than coverage — and it was UNFORCED. Measured through Core's own
+#: doorway (`connector.py` does `pl.from_arrow(con.execute(q).arrow())`):
+#:
+#:     duckdb DECIMAL(18,4) -> arrow decimal128(18,4) -> polars Decimal(precision=18, scale=4)
+#:     12345678901234.5678  ->                        -> 12345678901234.5678        exact
+#:
+#: `Decimal` is already in `types.DTYPES` and in the `NUMERIC` class, so `sum` admits it by the
+#: existing operator signature and `types.py` itself calls Decimal-vs-Float64 for money "a real
+#: authoring choice". Binary FP also breaks the exact associativity that C7/`has_identity` and
+#: `_check_continuation_conformance` assert at token level, so the old mapping was asserting a
+#: property of a representation that did not hold.
+#:
+#: WHERE THE ENVELOPE REFUSAL LIVES, and why it is not here: a governed `value_domain` is the bare
+#: token `"decimal"` — it carries no precision or scale, so at lowering there is nothing to compare
+#: against a substrate envelope. The faithfully-supported envelope (decimal128, 38 digits, measured)
+#: can only be checked where a concrete physical precision exists, which is the ADMISSION boundary.
+#: Refusing here would require the compiler to invent a precision, and it will not.
 _DOMAIN_TO_DTYPE = {
-    "integer": "Int64", "decimal": "Float64", "text": "String", "boolean": "Boolean",
+    "integer": "Int64", "decimal": "Decimal", "text": "String", "boolean": "Boolean",
     "date": "Date", "timestamp": "Datetime", "time": "Time",
 }
 
@@ -245,6 +266,11 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2) -> ClosedExecutionIma
                     "multi-parent construction is out of K0 scope: a Core measure delivers one "
                     "operand", subject=f"family {f.canonical_reference}")
 
+    #: Every governed family this lowering accounted for — emitted as a Core MEASURE (a primitive)
+    #: or contributed as a member of its operand's FAMILY block (a construction over a primitive).
+    #: Checked for TOTALITY after the loop; see the refusal below for why that check exists.
+    accounted: set = set()
+
     measure_blocks, used_levels = [], set()
     for prim in sorted(primitives, key=lambda f: f.canonical_reference):
         subject = f"family {prim.canonical_reference} [{prim.family_id}]"
@@ -332,6 +358,7 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2) -> ClosedExecutionIma
                     f"cannot represent — which refuses, and does not narrow the law.", subject=csub)
             seen_ops[op] = child.canonical_reference
             aggs.append(op)
+            accounted.add(child.family_id)
 
         if not aggs:
             raise LogicalMeaningMissing(
@@ -341,6 +368,28 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2) -> ClosedExecutionIma
         measure_blocks.append(emit.measure_block(
             prim.canonical_reference, universe, real.endpoint.table, real.endpoint.column,
             tuple(sorted(aggs)), dtype))
+        accounted.add(prim.family_id)
+
+    # ── 5b. TOTALITY. Every governed family is emitted, or this refuses. ─────────────────────────
+    #
+    # Measured behaviour before this check: a family whose operand is ITSELF a construction was
+    # placed in `by_parent` under a non-primitive key, never visited by the loop above, and never
+    # refused — the image came out BYTE-IDENTICAL to one compiled without it, and no realization was
+    # required for it either. A governed family disappeared, and nothing said so.
+    #
+    # The check is stated as totality over `publication.families` rather than as a special case for
+    # nested construction, because the defect was not nested construction: it was that lowering had
+    # no obligation to account for what it was given. A future profile that grows a new formation
+    # shape inherits the obligation instead of inheriting the silence.
+    unaccounted = sorted(
+        f.canonical_reference for f in publication.families if f.family_id not in accounted)
+    if unaccounted:
+        raise UnsupportedCoreCapability(
+            f"this profile did not account for governed famil{'y' if len(unaccounted) == 1 else 'ies'} "
+            f"{unaccounted}: K0 realizes constructions over a PRIMITIVE operand, so a construction "
+            f"whose operand is itself a construction has no Core measure to be a member of. "
+            f"Refusing rather than emitting an image that silently omits established law.",
+            subject=f"families {unaccounted}")
 
     # ── 6. render, deterministically ─────────────────────────────────────────────────────────────
     level_lines = [emit.level_line(n, level_column[n]) for n in sorted(used_levels)]

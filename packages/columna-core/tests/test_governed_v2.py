@@ -307,11 +307,58 @@ def test_an_unestablished_contribution_structure_is_legitimate_at_parse_and_fata
 
 # ══ the compile boundary ═════════════════════════════════════════════════════════════════════════
 def test_lighthouse_compiles_and_its_family_comes_from_law():
+    """The governed `decimal` domain is CARRIED as `Decimal`, not coerced to `Float64`.
+
+    This assertion previously read `TYPE Float64` and PINNED a law-loss path as correct behaviour
+    (correction, Huayin, 2026-09-12). The substitution of binary floating point for a governed
+    exact-decimal domain was the type-system instance of reducing law rather than coverage — and it
+    was unforced: measured through Core's own doorway, `pl.from_arrow(con.execute(q).arrow())`
+    carries `duckdb DECIMAL(18,4) -> arrow decimal128(18,4) -> polars Decimal(18,4)` exactly.
+    `Decimal` was already in `types.DTYPES` and in `NUMERIC`, so `sum` admitted it all along.
+
+    The test is edited here as part of that explicit architectural correction, and for no other
+    reason: a pinning test is the record of what was believed correct, so changing one is a ruling,
+    not a repair.
+    """
     image = compile_v2(_pub(), _map())
-    assert "MEASURE revenue ON sales FROM sales_lines TYPE Float64 VALUE amount" in image.text
+    assert "MEASURE revenue ON sales FROM sales_lines TYPE Decimal VALUE amount" in image.text
     assert "FAMILY {" in image.text
     for member in ("sum", "count", "min", "max"):
         assert f"        {member}" in image.text
+
+
+def test_no_governed_family_may_silently_disappear_from_the_image():
+    """Totality over `publication.families` — measured behaviour before this was SILENCE.
+
+    A family whose operand is itself a construction landed in `by_parent` under a non-primitive key,
+    was never visited by the emission loop, and was never refused: the image came out BYTE-IDENTICAL
+    to one compiled without it, and no realization was required for it either. An established
+    governed family disappeared and nothing said so.
+
+    The check is stated as totality rather than as a special case for nested construction, because
+    the defect was not nested construction — it was that lowering had no obligation to account for
+    what it was given.
+    """
+    def add_nested(doc):
+        constructed = next(d for d in doc["logical"]["declarations"]
+                           if d["kind"] == "family"
+                           and d["body"]["formation"]["kind"] == "construction")
+        nested = copy.deepcopy(constructed)
+        nested["name"] = "nested_min"
+        nested["body"].update(family_id="fam-nested-xyz", canonical_reference="nested_min",
+                              aliases=[])
+        nested["body"]["formation"]["operands"] = [constructed["body"]["family_id"]]
+        doc["logical"]["declarations"].append(nested)
+
+    publication = _pub(add_nested)
+    assert any(f.family_id == "fam-nested-xyz" for f in publication.families), (
+        "the governed layer parses it — the loss was downstream, at lowering")
+
+    with pytest.raises(UnsupportedCoreCapability) as caught:
+        compile_v2(publication, _map())
+    message = str(caught.value)
+    assert "nested_min" in message, "the refusal names the family it could not account for"
+    assert "silently omits" in message
 
 
 def test_the_mapping_cannot_change_which_family_member_exists():
