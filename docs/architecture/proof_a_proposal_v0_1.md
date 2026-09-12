@@ -20,6 +20,19 @@ it does not inherit that profile's value-domain table. Its admission check compa
 where a concrete precision exists to check, which is exactly why the envelope refusal could not live
 in the compiler.
 
+**The governing ruling, verbatim** — recorded in full at
+`docs/architecture/ruling_2026_09_12_exact_decimal_carriage.md`, which is the authority; it is
+quoted here because it is load-bearing for this proof:
+
+> A governed exact-decimal domain must be carried exactly where the current substrate can carry it
+> exactly; it must not be silently lowered to binary floating point.
+
+Two things follow for this proof, and they pull in opposite directions, which is why the ruling is
+quoted rather than paraphrased. **Where the substrate can carry it exactly, Proof A must carry it
+exactly** — the lawful case is not "close enough". **Where it cannot, Proof A must refuse rather than
+approximate**, because the ruling forbids the silent lowering, not the refusal. Neither half licenses
+Proof A to *decide* the envelope: the envelope is measured (§5), not chosen.
+
 ## 2. Reused, unchanged (all present today)
 
 | Module | Used for |

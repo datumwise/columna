@@ -1,7 +1,13 @@
-# Sufficient State Engine — minimal contract — **v0.1 CANDIDATE**
+# Minimal SSE Contract — Proof A/B/C boundary — **v0.1 CANDIDATE**
 
-**Status:** candidate, prepared 2026-09-12 for review. One page by intent: the smallest contract
-that can survive Proofs A, B and C without being rewritten by them.
+**Status:** candidate, prepared 2026-09-12 for review; revised 2026-09-12 on instruction.
+**Scope discipline, not a page count** (clarification, Huayin, 2026-09-12). The governing constraint
+is the *smallest contract that can survive Proofs A, B and C without being rewritten by them* — an
+admission test for what belongs here, not a length budget. An earlier draft said "one page by
+intent", which invited trimming load-bearing material to satisfy a metaphor; the rule is stated as
+scope from here on. Nothing is removed to make this shorter.
+**Filename retained** as `sse_contract_v0_1.md` so existing citations resolve; the title is the
+change.
 **Excluded by instruction:** DuckDB, ADBC, adaptive materialization, cross-Manifold sharing,
 distributed execution, approximation policy beyond what a landed proof requires.
 
@@ -75,9 +81,12 @@ Retained-state standing must keep available, **where relevant**:
 - realization standing;
 - currency / validity.
 
-*The public name and the exact tuple shape of the standing object are deliberately NOT frozen here* —
-no term is being established for it, and the list above is a set of facts that must remain
-**reachable where relevant**, not a record layout. What is frozen is only this: the two questions
+*The public name and the exact tuple shape of the standing object are deliberately NOT frozen here*
+(ruling, Huayin, 2026-09-12). In particular **`CompatibilityClass` is not adopted as a term** by this
+document — it has been used in discussion, and using it here would establish it. No term is being
+established, and the list above is a set of facts that must remain **reachable where relevant**, not
+a record layout. A later document may name the object; this one deliberately does not, because
+naming it would also fix its arity, and the arity is what is still being learned. What is frozen is only this: the two questions
 have two answers, and the second one is not `F @ A`.
 
 ## 2. What retained state must be able to answer, after retrieval
@@ -140,6 +149,33 @@ changes — an incomparable token reads as stale, not as equal. `Connector.data_
 its token by algorithm and engine version for the same reason, and returns `None` — closing reuse —
 when it cannot honestly warrant one. Two repos already agree; the SSE should make it three.
 
+### 4.1 The structural insight — six axes, four mechanisms, not one
+
+The axes on which retained state can cease to be reusable do **not** share a mechanism. Collapsing
+them into a single "invalidate" is the error this section exists to prevent: it would convert
+want-of-law refusals into want-of-state refusals, which §3's `evict` row already forbids in the
+other direction and for the same reason.
+
+| Axis | What a change to it means | Mechanism | Refusal, if any |
+|---|---|---|---|
+| **`family_id`** | an identity-bearing change — target, formation, participation, declared continuation, value domain (`_FAMILY_KEYS`; ToD v7.1 §3.9) — mints a **new** identity | **unreachable by construction** | none: no logic runs, prior state is simply never retrieved |
+| **constitution / state-law standing** | the governing text or the comparison scheme changed *without* minting a new identity | **explicit, conservative invalidation** | want-of-state; an *incomparable* standing must read as stale, never as agreement |
+| **participation / support / eligibility regime** | two states of the **same** identity formed under different regimes — the pairwise-vs-listwise co-moment case | **blocks combination; does NOT invalidate** | want-of-compatibility on `combine`. Both states stay valid and individually reusable |
+| **sufficient-state basis / representation** | the runtime state specification changed, or the retained basis does not support the continuation now asked of it | **closes reuse for that continuation; retains for retrieval** | **want-of-law** — the state is still what it is; the law does not license this use of it |
+| **realization standing** | the realization claim, or its faithfulness, changed | **invalidate** | **want-of-state**, and it MUST carry that re-realization would resolve it |
+| **currency** (data and realization, kept distinct) | the token moved, or cannot be honestly warranted | **fail closed** | a `None` token permits insert and closes reuse; never manufacture freshness |
+
+Four distinct mechanisms — *unreachable*, *invalidate*, *block combination*, *close reuse for a
+continuation* — and the difference between them is the difference between refusals that carry
+different remedies. Re-realization fixes row 5. It does nothing for row 4, where the remedy is a
+licence, and nothing for row 3, where there is no defect to fix at all: two valid states that may
+not be added together.
+
+The first row is worth stating plainly because it is the cheapest guarantee in the design and is
+easy to mistake for an absence of one: **identity-bearing change needs no invalidation logic,
+because the old key is never asked for again.** Rows 2–6 are the cases where something must
+actually be decided — which is exactly why the rule is governed outside the SSE.
+
 ## 5. Currency, and the precedent to copy
 
 Core's existing mechanism is the right shape and should be reused rather than reinvented: an opaque
@@ -155,7 +191,19 @@ Two currency axes must stay distinct in the SSE:
 
 Composite sufficient-state *declaration* (the governed model has no state-carrier slot — a Proof C
 precondition, and by §0 it is the governed layer's projection to derive, not the SSE's to invent),
-governed movement enablement (Proof B), approximation composition under continuation (open until the
-governing text is located; **treat unsupported approximation continuation as a refusal** and do not
-infer composition standing from the implementation), eviction policy, the shape of the runtime state
+governed movement enablement (Proof B), eviction policy, the shape of the runtime state
 specification itself, and every excluded item named at the head of this document.
+
+**Approximation composition under continuation is OPEN and stays open** (standing instruction,
+Huayin, 2026-09-12). Until the governing text has been re-checked:
+
+- **treat unsupported approximation continuation as a REFUSAL**, and
+- **do not infer composition standing from the implementation.**
+
+Named explicitly, because it is the nearest thing to a temptation: `FoundationLaw.approximation`
+exists in `governed/foundation.py` and defaults to `"exact"`. **That field is not the governing
+text.** It is one layer's representation of a decision taken elsewhere, and a default is the weakest
+possible evidence of a rule — it is what was needed to construct an object, not what was ruled. No
+conclusion about approximation-continuation semantics may be drawn from it, from its default, or
+from the set of values it currently takes. This document draws none, and a later document that does
+should first cite the governing text, not the attribute.
