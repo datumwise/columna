@@ -72,6 +72,17 @@ cmd = "pytest packages/columna-server -q"
 workflow = "ci.yml"
 local = true
 
+# ENROLLED 2026-09-12 with Proof A. `columna-platform` is a NON-PUBLISHED workspace member — invisible
+# to release_pins.py (which names the three published packages by path) and to the lockstep. It is
+# enrolled here for the opposite reason: a package outside the release set is exactly the kind that
+# acquires tests nothing runs. Enrolment is how it gets a gate; being unpublished is not a reason to
+# be unchecked.
+[[gate]]
+id = "pytest-platform"
+cmd = "pytest packages/columna-platform -q"
+workflow = "ci.yml"
+local = true
+
 [[gate]]
 id = "publications"
 cmd = "python scripts/check_publications.py --selftest --report"

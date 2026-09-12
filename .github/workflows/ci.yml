@@ -40,6 +40,9 @@ jobs:
           # its `__version__` is COVERED: `columna` ships a package directory and has no test suite
           # of its own, which is exactly how its attribute drifted four releases (P0-19).
           pip install --no-deps -e packages/columna
+          # The successor execution path (Proof A). --no-deps: columna-core is already editable
+          # above, and this package is never resolved from an index — it is not published.
+          pip install --no-deps -e packages/columna-platform
           pip install ruff
 
       # Bare invocations: exit codes count (no pipe through tail/head).
@@ -60,6 +63,11 @@ jobs:
 
       - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
         run: python scripts/gates.py --gate pytest-server
+
+      # Proof A — the successor execution path. A non-published workspace member still gets a gate:
+      # being outside the release set is exactly what makes a package's tests easy to leave unrun.
+      - name: Pytest — columna-platform (Proof A)
+        run: python scripts/gates.py --gate pytest-platform
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
       # Post-§2c the tour is clarify -> refuse -> disclose -> serve; disclose is driven by
