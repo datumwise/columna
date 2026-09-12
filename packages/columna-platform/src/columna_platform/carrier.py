@@ -11,6 +11,7 @@ so the negative controls are evidence rather than illustration.
 """
 from __future__ import annotations
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from typing import Optional
 
@@ -115,3 +116,58 @@ def describe(c: Carrier) -> str:
 
 def precision_of(t: pa.DataType) -> Optional[int]:
     return t.precision if pa.types.is_decimal(t) else None
+
+
+# ── ANCHORED CARRIERS (Proof B) ──────────────────────────────────────────────────────────────────
+# Proof A's carriers are bare value arrays: enough to prove that a governed domain survives
+# admission, because admission asks about the VALUE's representation and nothing else.
+#
+# A movement asks a different question — it folds contributions ACROSS a coordinate — so the carrier
+# has to say which analytical point each value sits at. That is a `pa.Table` whose non-value columns
+# are the anchor's declared components. Still synthetic, still in memory, still from no source.
+
+
+def exact_money_at_sale_at() -> "AnchoredCarrier":
+    """Exact decimal revenue at `sale_at = store x day`, four points over two stores.
+
+    Chosen so the fold is not a no-op and not a coincidence: each store has TWO days, and the two
+    stores' totals differ, so a projection that dropped rows, double-counted, or grouped on the wrong
+    column produces a visibly wrong answer rather than an accidentally right one.
+
+        east / 2026-01-01   10.0000        east total   30.0000
+        east / 2026-01-02   20.0000
+        west / 2026-01-01    1.2345        west total    4.9382
+        west / 2026-01-02    3.7037
+    """
+    return AnchoredCarrier(
+        table=pa.table({
+            "store": pa.array(["east", "east", "west", "west"], type=pa.string()),
+            "day": pa.array([date(2026, 1, 1), date(2026, 1, 2),
+                             date(2026, 1, 1), date(2026, 1, 2)], type=pa.date32()),
+            "amount": pa.array([Decimal("10.0000"), Decimal("20.0000"),
+                                Decimal("1.2345"), Decimal("3.7037")],
+                               type=pa.decimal128(18, 4)),
+        }),
+        value_column="amount",
+        anchor_columns=("store", "day"),
+        measured_as="duckdb DECIMAL(18,4) -> arrow decimal128(18,4) -> preserved",
+    )
+
+
+@dataclass(frozen=True)
+class AnchoredCarrier:
+    """A carrier that knows which analytical point each value sits at."""
+
+    table: pa.Table
+    value_column: str
+    anchor_columns: tuple
+    measured_as: str
+
+    @property
+    def values(self) -> pa.Array:
+        return self.table.column(self.value_column).combine_chunks()
+
+    def as_carrier(self) -> Carrier:
+        """The value column alone — what ADMISSION looks at. Admission asks about the value's
+        representation; the coordinates are not its business."""
+        return Carrier(self.values, self.measured_as)

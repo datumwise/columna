@@ -51,6 +51,8 @@ from columna_core.disclosure_wire import wire_frame
 from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
+from .continuation import continue_to
+from .movement import MovementLicence
 from .refusals import ProofRefusal, WantOfLaw, WantOfState
 from .state import AnalyticalIdentity, RetainedState, RetainedStateStore, Standing
 
@@ -172,7 +174,9 @@ def _no_licence_detail(law_view, source: str, target: str) -> str:
     else:
         why = f"governed movement is {c3.standing}"
     return (f"the ask moves from {source!r} to {target!r} and there is no positive movement "
-            f"licence: {why}. No re-realization can supply one")
+            f"licence: {why}. Mechanical combinability is NOT analytical permission — the "
+            f"operator's monoid property says these values CAN be folded, never that this family "
+            f"MAY be moved. No re-realization can supply a licence")
 
 
 #: reason tokens, minted 2026-09-12 in the closed registry. Named here once so a typo is an
@@ -204,7 +208,8 @@ def _served_column(name: str, st: RetainedState) -> ColumnResult:
 
 
 def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
-           at_anchor: Optional[str] = None, column: str = "revenue") -> dict:
+           at_anchor: Optional[str] = None, column: str = "revenue",
+           licence: Optional[MovementLicence] = None) -> dict:
     """serve | refuse, rendered through the REAL wire contract.
 
     Returns the wire dict from `disclosure_wire.wire_frame` — not a Proof-A-shaped imitation of it.
@@ -213,8 +218,12 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
     an operator to re-materialize against a question the law was never going to answer."""
     try:
         # ── law first ───────────────────────────────────────────────────────────────────────────
-        if at_anchor is not None and at_anchor != identity.anchor:
-            # CONTENT, NOT STANDING. See `movement_licence`.
+        moving = at_anchor is not None and at_anchor != identity.anchor
+        if moving and licence is None:
+            # No licence was carried into execution. Before refusing, the GOVERNED slot is consulted
+            # — and it is read by CONTENT, not standing (see `movement_licence`). It carries no
+            # movement shape today, so in practice this is the refusal path; the check is here so
+            # that the day C3 does carry one, this is where it is honoured.
             if movement_licence(law_view) is None:
                 raise WantOfLaw(_no_licence_detail(law_view, identity.anchor, at_anchor),
                                 subject=law_view.canonical_reference)
@@ -245,6 +254,12 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
         if st.finalized:
             raise WantOfLaw("a finalized value is not sufficient state",
                             subject=law_view.canonical_reference)
+
+        if moving:
+            # THE MOVEMENT. `continue_to` refuses before it folds — the values here are trivially
+            # foldable, so asking the law first is the whole proposition.
+            st = continue_to(law_view, st, licence, target_anchor=at_anchor)
+            identity = st.identity
 
         col = _served_column(column, st)
         return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),
