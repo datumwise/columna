@@ -3,10 +3,25 @@ name: CI
 on:
   push:
     branches: [main]
+  # `edited` IS IN THIS LIST FOR EXACTLY ONE REASON: A RETARGET (2026-09-12, ruled Huayin).
+  #
+  # The default activity types are `opened`, `synchronize`, `reopened`. Changing a pull request's
+  # BASE BRANCH fires none of them — it fires `edited` — so a stacked PR retargeted from its parent
+  # branch to `main` kept displaying the green it earned against the OLD base, on a base it had
+  # never been built against. That is worse than a missing check: it is a check that asserts
+  # something nobody verified.
+  #
+  # `edited` also fires on TITLE and BODY edits, which must not cost a full matrix run. The job-level
+  # guard `github.event.action != 'edited' || github.event.changes.base` is the narrow part: it admits
+  # the base change and nothing else. Broadening the types without it would have traded a false green
+  # for a workflow that reruns every time someone fixes a typo in a description.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   test:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -64,9 +79,12 @@ jobs:
       - name: Pytest — columna-server (MCP stdio acceptance + packaged demo)
         run: python scripts/gates.py --gate pytest-server
 
-      # Proof A — the successor execution path. A non-published workspace member still gets a gate:
+      # The successor execution path — Proof A (identity, standing, admission) and Proof B
+      # (one positively licensed movement). A non-published workspace member still gets a gate:
       # being outside the release set is exactly what makes a package's tests easy to leave unrun.
-      - name: Pytest — columna-platform (Proof A)
+      # LABEL KEPT CURRENT ON PURPOSE: a step named for only its first occupant quietly
+      # under-reports what a red X covers.
+      - name: Pytest — columna-platform (successor path — Proofs A and B)
         run: python scripts/gates.py --gate pytest-platform
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
@@ -88,6 +106,8 @@ jobs:
   # red because Zenodo had a bad afternoon. `--live` re-verification exists and is run by hand when a
   # deposit changes, not on every commit.
   publication-registry:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: publication registry (fails closed on an unregistered DOI)
     runs-on: ubuntu-latest
     steps:
@@ -131,6 +151,8 @@ jobs:
   # Both legs run the SAME assertion file (scripts/assert_demo_play.py) rather than an inline
   # `python -c`, so they cannot silently drift into proving different things.
   demo-wheel-install:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: demo wheel install (${{ matrix.os }} / py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -175,6 +197,8 @@ jobs:
             | demoenv/${{ matrix.venv-bin }}/python scripts/assert_demo_play.py
 
   dep-caps:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: dependency cap guard
     runs-on: ubuntu-latest
     steps:
@@ -194,6 +218,8 @@ jobs:
         run: python scripts/gates.py --gate dep-caps
 
   release-set:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: release-set coherence guard
     runs-on: ubuntu-latest
     steps:
@@ -217,6 +243,8 @@ jobs:
         run: python scripts/gates.py --gate release-set-selftest
 
   currency-stamps:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: currency-stamp guard
     runs-on: ubuntu-latest
     steps:
@@ -249,6 +277,8 @@ jobs:
         run: python scripts/gates.py --gate currency-stamps
 
   purged-grammar:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: purged-grammar guard
     runs-on: ubuntu-latest
     steps:
@@ -270,6 +300,8 @@ jobs:
   # defect), or if the manifest names a gate no workflow actually runs (a row that reads as coverage
   # while running nowhere). Cheap, no install, and it guards every other gate's reachability.
   meta-gate:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -280,6 +312,8 @@ jobs:
         run: python scripts/gates.py --gate meta-gate
 
   build:
+    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
+    if: github.event.action != 'edited' || github.event.changes.base
     name: build wheels + sdists
     runs-on: ubuntu-latest
     steps:
