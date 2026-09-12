@@ -1,5 +1,11 @@
+import copy
+import json
 from pathlib import Path
+
 import pytest
+
+from columna_core.governed.publication import parse_publication
+from columna_core.governed.resolve import resolve_all
 
 from columna_platform import serving
 
@@ -35,3 +41,31 @@ def reason(wire: dict) -> str:
 
 def alternatives(wire: dict) -> list:
     return [a["token"] for a in no_result(wire)["alternatives"]]
+
+
+def _publication_with(**family_body):
+    """The lighthouse artifact with extra slots on `revenue`. Built in-memory, never written.
+
+    A FIXTURE VARIANT RATHER THAN A SECOND FIXTURE FILE: the fact under test is one slot's presence,
+    and a whole committed artifact differing in one key is a thing that drifts from its sibling."""
+    doc = json.loads(PUBLICATION.read_text(encoding="utf-8"))
+    doc = copy.deepcopy(doc)
+    for dec in doc["logical"]["declarations"]:
+        if dec.get("body", {}).get("family_id") == REVENUE:
+            dec["body"].update(family_body)
+    pub = parse_publication(doc)
+    return pub, resolve_all(pub)[REVENUE]
+
+
+@pytest.fixture
+def domain_only_view():
+    """C3 ESTABLISHED by a DOMAIN alone — movement absent. The hole the corrected guard closes."""
+    _pub, view = _publication_with(domain="the trading calendar")
+    return view
+
+
+@pytest.fixture
+def declared_no_movement_view():
+    """C3 EXPLICIT-NONE: the family has declared that nothing moves."""
+    _pub, view = _publication_with(movement={"none": "this family does not move"})
+    return view
