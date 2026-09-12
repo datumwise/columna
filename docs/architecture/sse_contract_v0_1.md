@@ -75,9 +75,12 @@ Retained-state standing must keep available, **where relevant**:
 - realization standing;
 - currency / validity.
 
-*The public name and the exact tuple shape of the standing object are deliberately NOT frozen here* —
-no term is being established for it, and the list above is a set of facts that must remain
-**reachable where relevant**, not a record layout. What is frozen is only this: the two questions
+*The public name and the exact tuple shape of the standing object are deliberately NOT frozen here*
+(ruling, Huayin, 2026-09-12). In particular **`CompatibilityClass` is not adopted as a term** by this
+document — it has been used in discussion, and using it here would establish it. No term is being
+established, and the list above is a set of facts that must remain **reachable where relevant**, not
+a record layout. A later document may name the object; this one deliberately does not, because
+naming it would also fix its arity, and the arity is what is still being learned. What is frozen is only this: the two questions
 have two answers, and the second one is not `F @ A`.
 
 ## 2. What retained state must be able to answer, after retrieval
@@ -139,6 +142,33 @@ logic. That is a property of that representation, not a requirement of this cont
 changes — an incomparable token reads as stale, not as equal. `Connector.data_identity` namespaces
 its token by algorithm and engine version for the same reason, and returns `None` — closing reuse —
 when it cannot honestly warrant one. Two repos already agree; the SSE should make it three.
+
+### 4.1 The structural insight — six axes, four mechanisms, not one
+
+The axes on which retained state can cease to be reusable do **not** share a mechanism. Collapsing
+them into a single "invalidate" is the error this section exists to prevent: it would convert
+want-of-law refusals into want-of-state refusals, which §3's `evict` row already forbids in the
+other direction and for the same reason.
+
+| Axis | What a change to it means | Mechanism | Refusal, if any |
+|---|---|---|---|
+| **`family_id`** | an identity-bearing change — target, formation, participation, declared continuation, value domain (`_FAMILY_KEYS`; ToD v7.1 §3.9) — mints a **new** identity | **unreachable by construction** | none: no logic runs, prior state is simply never retrieved |
+| **constitution / state-law standing** | the governing text or the comparison scheme changed *without* minting a new identity | **explicit, conservative invalidation** | want-of-state; an *incomparable* standing must read as stale, never as agreement |
+| **participation / support / eligibility regime** | two states of the **same** identity formed under different regimes — the pairwise-vs-listwise co-moment case | **blocks combination; does NOT invalidate** | want-of-compatibility on `combine`. Both states stay valid and individually reusable |
+| **sufficient-state basis / representation** | the runtime state specification changed, or the retained basis does not support the continuation now asked of it | **closes reuse for that continuation; retains for retrieval** | **want-of-law** — the state is still what it is; the law does not license this use of it |
+| **realization standing** | the realization claim, or its faithfulness, changed | **invalidate** | **want-of-state**, and it MUST carry that re-realization would resolve it |
+| **currency** (data and realization, kept distinct) | the token moved, or cannot be honestly warranted | **fail closed** | a `None` token permits insert and closes reuse; never manufacture freshness |
+
+Four distinct mechanisms — *unreachable*, *invalidate*, *block combination*, *close reuse for a
+continuation* — and the difference between them is the difference between refusals that carry
+different remedies. Re-realization fixes row 5. It does nothing for row 4, where the remedy is a
+licence, and nothing for row 3, where there is no defect to fix at all: two valid states that may
+not be added together.
+
+The first row is worth stating plainly because it is the cheapest guarantee in the design and is
+easy to mistake for an absence of one: **identity-bearing change needs no invalidation logic,
+because the old key is never asked for again.** Rows 2–6 are the cases where something must
+actually be decided — which is exactly why the rule is governed outside the SSE.
 
 ## 5. Currency, and the precedent to copy
 
