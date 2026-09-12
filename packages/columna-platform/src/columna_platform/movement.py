@@ -18,6 +18,24 @@ THE ONLY ADMITTED MOVEMENT NOTION IN THIS PROOF:
 No hierarchy, no lineage, no calendar, no functional edge, no provider table, no blocked-lineage
 scope, no legacy planner movement. `sale_at = store x day` -> `store` is the whole of it.
 
+WHAT THE COMPONENT-SUBSET RELATION IS, AND WHAT IT IS NOT (ruled Huayin, 2026-09-12). Recorded here
+because the check below is the kind that quietly grows into a doctrine if nobody writes down its
+edge:
+
+    The component-subset relation is a STRUCTURAL ADMISSIBILITY CHECK for this proof. It does not
+    create or imply a movement licence. Positive movement authority comes ONLY from the explicit
+    licence.
+
+    Proof B does not establish that every subset of a compound anchor is automatically a governed
+    target. Its claim is narrower: GIVEN an explicitly licensed source->target continuation,
+    component-subset projection is sufficient MECHANICAL STRUCTURE to realize this exact coarsening
+    without hierarchy or lineage machinery.
+
+So the subset check answers "could this coarsening be realized at all?" and the licence answers "may
+this family be moved?" — and the first never answers the second. `sale_at(store x day) -> store` is
+structurally projectable whether or not anyone licensed it; that is exactly why the unlicensed case
+still refuses. NO FORMAT OR GENERAL MOVEMENT DOCTRINE FOLLOWS FROM THIS PROOF.
+
 THE SUBSET IS CHECKED, NOT TRUSTED. A licence naming a target anchor is a string; a licence whose
 target components are verified against the publication's DECLARED anchor components is a fact. The
 string is never the evidence — `_declared_components` reads the anchor declaration and the projection
@@ -28,6 +46,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .refusals import WantOfLaw
+
+#: THE SCOPE OF THIS PROOF, verbatim (ruled Huayin, 2026-09-12). A constant for the reason
+#: `EMPTY_FIBER_RULING` and `RESPONSIBILITY_STANDING_RULE` are constants: it is the sentence that
+#: stops a reader inferring a general movement doctrine from a passing structural check.
+PROOF_B_SCOPE = (
+    "The component-subset relation is a structural admissibility check for this proof. It does not "
+    "create or imply a movement licence. Positive movement authority comes only from the explicit "
+    "licence. Given an explicitly licensed source->target continuation, component-subset projection "
+    "is sufficient mechanical structure to realize this exact coarsening without hierarchy or "
+    "lineage machinery."
+)
 
 #: The only standing this proof accepts. Stated as a token rather than a bool so that "licensed" is
 #: never the absence of a negative — a licence must POSITIVELY say so.

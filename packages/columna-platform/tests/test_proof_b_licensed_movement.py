@@ -173,3 +173,46 @@ def test_all_four_unlicensed_cases_refuse_differently(anchored, licence):
             continuation.continue_to(view, st, lic, target_anchor="store")
         details.add(str(e.value))
     assert len(details) == 4
+
+
+# ── THE SCOPE OF THE CLAIM (ruled 2026-09-12) ────────────────────────────────────────────────────
+def test_the_scope_of_this_proof_is_recorded_verbatim():
+    assert movement.PROOF_B_SCOPE == (
+        "The component-subset relation is a structural admissibility check for this proof. It does "
+        "not create or imply a movement licence. Positive movement authority comes only from the "
+        "explicit licence. Given an explicitly licensed source->target continuation, "
+        "component-subset projection is sufficient mechanical structure to realize this exact "
+        "coarsening without hierarchy or lineage machinery."
+    )
+
+
+def test_a_structurally_projectable_target_is_still_refused_without_a_licence(anchored):
+    """THE CLARIFICATION, AS A TEST. `store` is a true subset of `sale_at`'s declared components —
+    structurally projectable — and it STILL refuses, because structure is not authority."""
+    pub, view, st = anchored
+
+    # the projection is structurally admissible: `project` accepts it without complaint
+    lic = movement.project(pub, source_anchor="sale_at", target_anchor="store",
+                           target_components=["store"], law="SUM")
+    assert set(lic.target_components) < set(lic.source_components)
+
+    # and with no licence carried into execution, the same movement refuses
+    w = serving.decide(view, _store(st), st.identity, at_anchor="store", licence=None)
+    assert reason(w) == "want_of_law"
+
+
+def test_no_subset_is_licensed_merely_by_being_a_subset(anchored):
+    """`day` is equally a true subset. Proof B licenses neither by structure; it licenses the one
+    movement that was explicitly authorized, and nothing follows about the other."""
+    pub, view, st = anchored
+
+    day = movement.project(pub, source_anchor="sale_at", target_anchor="day",
+                           target_components=["day"], law="SUM")
+    assert set(day.target_components) < set(day.source_components)      # structurally fine
+
+    # a licence for `store` says nothing about `day`
+    store_only = movement.project(pub, source_anchor="sale_at", target_anchor="store",
+                                  target_components=["store"], law="SUM")
+    w = serving.decide(view, _store(st), st.identity, at_anchor="day", licence=store_only)
+    assert reason(w) == "want_of_law"
+    assert "specific, not general" in no_result(w)["detail"]
