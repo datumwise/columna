@@ -7,6 +7,49 @@ distributed execution, approximation policy beyond what a landed proof requires.
 
 ---
 
+## 0. Where the SSE sits in the chain of authority
+
+**Architectural ruling (Huayin, 2026-09-12):**
+
+> An entailed fact does not need to be repeated as constitutive authority. It may be re-derived
+> wherever the consumer is itself authorized and equipped to perform that derivation. If a
+> downstream component does not own that derivation, the fact must cross the boundary as an
+> explicitly derived runtime projection rather than be reinvented there.
+
+The chain this puts the SSE at the end of:
+
+```
+constitution  →  entailed law  →  runtime projection  →  material state
+  (governed)      (derived by         (derived           (the SSE
+   authority)       the layer          EXECUTION          executes it)
+                    owning the law)     INPUT)
+```
+
+Three consequences that shape everything below.
+
+**The SSE executes sufficient-state law; it does not rediscover why a state is sufficient.** C7's
+sufficient-state requirement is entailed by the governed foundation — `foundation.py` carries a
+`sufficient_state` per law and `resolve.py` derives C7 from the continuation. The SSE does not own
+that derivation and must not re-perform it: it would need the foundation vocabulary, the law
+citations, and the version discipline that go with them, and a runtime that can re-derive law can
+also re-derive it *differently*. So the owning layer derives a **runtime state specification** and
+carries it across. That projection is derived execution input — **not** new constitutive authority,
+and **not** realization.
+
+**Absence of an entailed fact from a serialized artifact is not law loss.** The question is never
+"was it written down?" but "does the receiving component hold the authoritative premises and the
+lawful derivation?" Where it does, re-derivation is lawful. Where it does not, the projection must
+be carried. This is the same reasoning that keeps entailed consequences out of the constitution
+fingerprint: a fact already determined by what is declared cannot distinguish two families that
+declare the same thing.
+
+**`empty_fiber` is settled by this rule and stays settled.** It is an entailment of continuation
+algebra — not Φ, and not a family declaration. Core's `FILL` answers a different question about a
+different object (*what does an eligible point with no observed value denote* — a declaration, "a
+choice… never a consequence"), and the withdrawn `empty_fiber → FILL` mapping stays withdrawn.
+
+---
+
 ## 1. Two questions, kept apart
 
 The contract's whole shape follows from refusing to answer these with one key:
@@ -32,8 +75,10 @@ Retained-state standing must keep available, **where relevant**:
 - realization standing;
 - currency / validity.
 
-*The public name and exact tuple shape of the standing object are deliberately NOT frozen here.* What
-is frozen is that the two questions have two answers and that the six facts above remain reachable.
+*The public name and the exact tuple shape of the standing object are deliberately NOT frozen here* —
+no term is being established for it, and the list above is a set of facts that must remain
+**reachable where relevant**, not a record layout. What is frozen is only this: the two questions
+have two answers, and the second one is not `F @ A`.
 
 ## 2. What retained state must be able to answer, after retrieval
 
@@ -63,18 +108,31 @@ the same lesson one layer down.
 The `refuse` row is load-bearing. A refusal that cannot distinguish *this is not establishable* from
 *we evicted it* destroys the evidentiary value of refusal, which is the product's core asset.
 
-## 4. Invalidation is governed outside the SSE — and mostly comes out free
+## 4. Invalidation is governed outside the SSE
 
-The SSE may perform invalidation. It may not invent the rule. Keying retained state on
-`(family_id, constitution_fingerprint)` makes ToD v7.1 §3.9 **structural rather than policy**:
+The SSE may perform invalidation. It may not invent the rule.
 
-- an **identity-bearing** change mints a new `family_id`, so prior state is simply *unreachable* —
-  no invalidation logic runs;
-- a **non-identity** change (a movement established, an alias added) leaves the fingerprint
-  unchanged, so valid state **survives** — also with no logic.
+**The invariant, stated semantically — this is the part that is frozen:**
 
-That is the §7.1 requirement discharged by construction rather than by a policy that could be got
-wrong.
+> Retained state must be bound to the governing constitution / state-law standing under which it was
+> formed, with **explicit comparability** and **conservative invalidation when the comparison scheme
+> itself changes**.
+
+"Explicit comparability" means the binding must be *comparable at all* — two states either agree on
+the governing standing, disagree, or are **incomparable**, and incomparable must not read as agree.
+"Conservative invalidation" means a change to the comparison scheme invalidates rather than being
+assumed benign.
+
+**A constitution fingerprint is a strong implementation candidate** for that binding and may be used
+in Proof A. It is not the invariant, and this contract does not elevate it to one: a different
+representation that satisfies comparability and conservatism would satisfy the contract.
+
+*If* a fingerprint is the chosen representation, one consequence is worth noting because it is
+unusually cheap: keying on `(family_id, <constitution standing>)` discharges ToD v7.1 §3.9 by
+construction rather than by policy — an identity-bearing change mints a new `family_id`, so prior
+state is simply *unreachable* and no invalidation logic runs; a non-identity change (a movement
+established, an alias added) leaves the standing unchanged, so valid state survives, also with no
+logic. That is a property of that representation, not a requirement of this contract.
 
 **Adopt the conservative-invalidation polarity both existing mechanisms already share.**
 `manifold_agent.family.constitution_status` returns STALE when the *fingerprint scheme version*
@@ -95,8 +153,9 @@ Two currency axes must stay distinct in the SSE:
 
 ## 6. Out of scope for v0.1
 
-Composite sufficient-state *declaration* (the governed model has no state-carrier slot — Proof C
-precondition, not SSE work), governed movement enablement (Proof B), approximation composition under
-continuation (open until the governing text is re-checked; treat unsupported approximation
-continuation as a refusal), eviction policy, and every excluded item named at the head of this
-document.
+Composite sufficient-state *declaration* (the governed model has no state-carrier slot — a Proof C
+precondition, and by §0 it is the governed layer's projection to derive, not the SSE's to invent),
+governed movement enablement (Proof B), approximation composition under continuation (open until the
+governing text is located; **treat unsupported approximation continuation as a refusal** and do not
+infer composition standing from the implementation), eviction policy, the shape of the runtime state
+specification itself, and every excluded item named at the head of this document.

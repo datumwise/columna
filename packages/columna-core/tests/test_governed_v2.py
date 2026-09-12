@@ -606,30 +606,83 @@ def test_the_v1_compiler_carries_its_tombstone_and_names_its_successor():
     assert "compile_v2" in doc
 
 
+#: Every declared caller of the FROZEN v1 compiler. A path is here because someone wrote it down,
+#: not because it happened to exist when the guard was written.
+#:
+#: `apps/website/scripts/gen_firstlight.py` is the one that matters, and it was INVISIBLE to this
+#: guard until 2026-09-12: the scan globbed `packages/**/*.py` only, so the single caller that is
+#: gated into the production deploy path — it re-runs `compile_k0` to assert the shipped firstlight
+#: image reproduces byte-for-byte, behind `generator-determinism` — was unenforced. A freeze whose
+#: guard cannot see its most load-bearing caller is not a freeze, so the scan now covers the repo.
+#: The entry is a RECORDED RETIREMENT BLOCKER, not an endorsement: firstlight is a frozen historical
+#: v1 artifact (see `docs/architecture/firstlight_frozen_v1_dependencies.md`), and this caller is
+#: why the v1 compiler cannot be deleted yet.
+_V1_COMPILER_CALLERS = {
+    # the firstlight fixture's runtime stage — rebuilds an image already published under v1
+    "packages/columna-server/fixtures/firstlight/build.py",
+    # the website generator: byte-reproduction assertion for the shipped artifact. GATED.
+    "apps/website/scripts/gen_firstlight.py",
+    # the module that defines and re-exports it
+    "packages/columna-core/src/columna_core/compiler/__init__.py",
+    "packages/columna-core/src/columna_core/compiler/compile.py",
+    # the tests that cover the frozen path
+    "packages/columna-core/tests/test_k0_compiler.py",
+    "packages/columna-core/tests/test_governed_v2.py",
+    "packages/columna-server/tests/test_k0_governed_producer.py",
+    "packages/columna-server/tests/test_lowering_receipt.py",
+    "packages/columna-server/tests/test_provisioner.py",
+    "packages/columna-server/tests/test_firstlight_governed_fixture.py",
+}
+
+#: Directories the scan must not walk: dependency and build trees are not this repo's callers, and
+#: a virtualenv containing an installed copy of `columna_core` would otherwise report itself.
+_SCAN_PRUNE = {".git", ".venv", "node_modules", "dist", "build", "__pycache__",
+               ".mypy_cache", ".pytest_cache", ".ruff_cache", "site-packages"}
+
+
+def _v1_compiler_callers(root: pathlib.Path) -> set:
+    """Every `.py` in the REPO that names `compile_k0`, pruned of non-repo trees."""
+    found = set()
+    for path in root.rglob("*.py"):
+        rel = path.relative_to(root)
+        if _SCAN_PRUNE & set(rel.parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):                   # pragma: no cover
+            continue
+        if "compile_k0" in text:
+            found.add(rel.as_posix())
+    return found
+
+
 def test_the_v1_compiler_has_not_acquired_a_new_caller():
     """A frozen producer that quietly gains callers is not frozen.
 
-    The pinned set is: the `firstlight` fixture's runtime stage (which rebuilds an image already
-    published under v1), and the tests that cover it. Anything else reaching for `compile_k0` is a
-    new v1 publication path, which the hard break forbids."""
+    Anything reaching for `compile_k0` outside the declared set is a new v1 publication path, which
+    the hard break forbids. The scan covers the whole repository, not `packages/` alone — see
+    `_V1_COMPILER_CALLERS` for why that mattered.
+    """
     root = pathlib.Path(__file__).resolve().parents[3]
-    allowed = {
-        "packages/columna-server/fixtures/firstlight/build.py",
-        "packages/columna-core/tests/test_k0_compiler.py",
-        "packages/columna-core/tests/test_governed_v2.py",
-        "packages/columna-server/tests/test_k0_governed_producer.py",
-        "packages/columna-server/tests/test_lowering_receipt.py",
-        "packages/columna-server/tests/test_provisioner.py",
-        "packages/columna-server/tests/test_firstlight_governed_fixture.py",
-        "packages/columna-core/src/columna_core/compiler/__init__.py",
-        "packages/columna-core/src/columna_core/compiler/compile.py",
-    }
-    callers = set()
-    for path in root.glob("packages/**/*.py"):
-        rel = path.relative_to(root).as_posix()
-        if "compile_k0" in path.read_text(encoding="utf-8"):
-            callers.add(rel)
-    unexpected = sorted(callers - allowed)
+    unexpected = sorted(_v1_compiler_callers(root) - _V1_COMPILER_CALLERS)
     assert not unexpected, (
         f"new caller(s) of the FROZEN v1 compiler: {unexpected}. Publication v2 is a hard break; a "
         f"v1 artifact migrates through proposal-and-establishment, not through this path.")
+
+
+def test_the_caller_freeze_guard_scans_beyond_the_packages_tree():
+    """The guard's own blind spot, pinned so it cannot reopen.
+
+    Until 2026-09-12 the scan globbed `packages/**/*.py`, which silently excluded
+    `apps/website/scripts/gen_firstlight.py` — a real, gated caller. This asserts the scan reaches
+    outside `packages/` at all, so a future narrowing of the glob fails here rather than quietly
+    un-enforcing the freeze.
+    """
+    root = pathlib.Path(__file__).resolve().parents[3]
+    found = _v1_compiler_callers(root)
+    assert "apps/website/scripts/gen_firstlight.py" in found, (
+        "the website generator calls compile_k0 and the guard must see it")
+    assert any(not c.startswith("packages/") for c in found)
+    # and every declared caller still exists — a stale allow-list entry hides a real caller
+    missing = sorted(c for c in _V1_COMPILER_CALLERS if not (root / c).is_file())
+    assert not missing, f"declared v1 caller(s) no longer present: {missing}"

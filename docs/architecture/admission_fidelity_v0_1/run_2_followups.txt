@@ -1,0 +1,26 @@
+=== A. the INCUMBENT doorway: connector.py does pl.from_arrow(con.execute(q).arrow()) ===
+type of .arrow() in duckdb 1.5.5 -> RecordBatchReader
+pl.from_arrow(reader) -> Schema({'v': Decimal(precision=18, scale=4)}) value: 12345678901234.5678
+via read_all(): arrow decimal128(18, 4) -> 12345678901234.5678
+            polars Schema({'v': Decimal(precision=18, scale=4)}) 12345678901234.5678
+
+=== B. HUGEINT: real loss or display artifact? ===
+arrow : decimal128(38, 0) Decimal('170141183460469231731687303715884105727')
+polars: Decimal(precision=38, scale=0) Decimal('1.7014118346046923173168730371588410573E+38') Decimal
+equal to arrow value? False | exact digits kept? False
+
+=== C. timestamptz: is the SOURCE zone recoverable? ===
+  SELECT CAST('2026-09-12 11:59:00-04:00' AS TIMESTAMPTZ) AS -> timestamp[us, tz=Etc/UTC] = 2026-09-12 15:59:00+00:00
+  SET TimeZone='America/New_York'; SELECT CAST('2026-09-12 1 -> timestamp[us, tz=America/New_York] = 2026-09-12 11:59:00-04:00
+
+=== D. decimal wider than 38 digits ===
+  DECIMAL(38,10) -> decimal128(38, 10) = 1.1111111111
+  DECIMAL(38,37) -> decimal128(38, 37) = 1.1111111111111111111111111111111111111
+
+=== E. SQLite dynamic typing: how deep does type inference look? ===
+  arrow type: string values: ['1', '2', '3', 'surprise']
+  reversed order -> arrow type: string values: ['surprise', '1', '2', '3']
+
+=== F. null vs NaN in a float column (are they distinguishable?) ===
+  arrow : [None, nan, 0.0] | null_count = 1
+  polars: [None, nan, 0.0] | null_count = 1

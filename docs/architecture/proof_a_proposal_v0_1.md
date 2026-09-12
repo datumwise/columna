@@ -1,6 +1,7 @@
 # Proof A — identity, standing, admission — **implementation proposal v0.1**
 
-**Status:** proposal for authorization, 2026-09-12. **No implementation has begun.**
+**Status:** proposal for authorization, 2026-09-12. **No implementation has begun.** Merging this
+file does not authorize the work it describes.
 **Success condition:** a governed family identity and its standing survive the passage into retained
 material state and return through serving without the physical representation redefining the
 meaning — and each neighbouring unlawful case fails **for the right reason, in the right
@@ -79,12 +80,21 @@ lighthouse v2 publication
   → admission.admit(law_view, realization, carrier)
         CHECK 1  governed decimal  ⇔  carrier decimal128(p,s) within the 38-digit envelope
         CHECK 2  carrier null      ≠  analytical absence
-  → state.insert(RetainedState(identity=(family_id, anchor), standing=…, basis="running total"))
+  → state.insert(RetainedState(identity=(family_id, anchor), standing=…, basis=<runtime state spec>))
+        # `basis` is a RUNTIME PROJECTION derived by the governed layer from C7, carried in as
+        # execution input — the SSE executes sufficient-state law, it does not re-derive it.
   → serving.serve(request)  → disclosure_wire.wire_frame(...)  → serve | refuse
 ```
 
 **Lawful case:** `lh-revenue` — primitive, `SUM`-continuing, `grain: coincident`, exact decimal.
 Serves, with standing read off the retained state rather than recomputed.
+
+**On the constitution binding.** Proof A binds retained state to the governing constitution standing
+using the **constitution fingerprint** available on the v2 artifact's `constitution_authority`. That
+is an implementation choice permitted for this proof, not an elevation of the representation: the
+contract's invariant is comparability plus conservative invalidation when the comparison scheme
+changes, and Proof A should demonstrate the invariant — including at least one assertion that an
+incomparable standing does **not** read as agreement.
 
 ## 5. Negative controls — measured, not contrived
 
@@ -119,6 +129,11 @@ Arrow→in-process conversion boundary, which is the empirical reason §Admissio
   does an eligible point with no observed value denote* — a declaration, *"a choice… never a
   consequence"*. `empty_fiber` answers *what does the fold over an empty fiber denote* — entailed
   from the law's algebra. Check 2 concerns the carrier-null distinction only.
+- **Entailed facts are projected in, never re-derived.** Per the 2026-09-12 ruling, anything Proof A
+  needs that the governed foundation entails — the sufficient-state basis above all — is derived by
+  the layer that owns the law and passed in as execution input. If Proof A finds itself importing
+  `governed.foundation` to work out *why* a state is sufficient, that is the signal it has taken on
+  authority it does not hold, and is a finding to report rather than a shortcut to take.
 
 ## 7. What Proof A deliberately does not prove
 

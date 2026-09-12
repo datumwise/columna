@@ -1,0 +1,44 @@
+crossing       | case                         | arrow type                         | arrow value (as_py)                        | polars dtype           | polars value                   | verdict       
+---------------+------------------------------+------------------------------------+--------------------------------------------+------------------------+--------------------------------+---------------
+duckdb-native  | decimal(38,9) exact          | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | decimal(18,4) money          | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | decimal(3,1) 0.1+0.2         | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | hugeint/int128               | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | timestamp us                 | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | timestamp ns                 | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | timestamptz                  | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | time                         | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | date                         | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | null in decimal col          | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | all-null typed col           | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | empty string vs null         | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | list<int>                    | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | struct                       | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-native  | map                          | -                                  | <AttributeError>                           | -                      | 'pyarrow.lib.RecordBatchReader | ERROR         
+duckdb-adbc    | decimal(38,9) exact          | decimal128(38, 9)                  | 123456789012345678.123456789               | Decimal(precision=38,  | 123456789012345678.123456789   | ok            
+duckdb-adbc    | decimal(18,4) money          | decimal128(18, 4)                  | 12345678901234.5678                        | Decimal(precision=18,  | 12345678901234.5678            | ok            
+duckdb-adbc    | decimal(3,1) 0.1+0.2         | decimal128(4, 1)                   | 0.3                                        | Decimal(precision=4, s | 0.3                            | ok            
+duckdb-adbc    | hugeint/int128               | decimal128(38, 0)                  | 170141183460469231731687303715884105727    | Decimal(precision=38,  | 1.7014118346046923173168730371 | POLARS-LOSS   
+duckdb-adbc    | timestamp us                 | timestamp[us]                      | 2026-09-12 11:59:00.123456                 | Datetime(time_unit='us | 2026-09-12 11:59:00.123456     | ok            
+duckdb-adbc    | timestamp ns                 | timestamp[ns]                      | <as_py failed: ValueError>                 | Datetime(time_unit='ns | 2026-09-12 11:59:00.123456     | ok            
+duckdb-adbc    | timestamptz                  | timestamp[us, tz=Etc/UTC]          | 2026-09-12 15:59:00+00:00                  | Datetime(time_unit='us | 2026-09-12 15:59:00+00:00      | ok            
+duckdb-adbc    | time                         | time64[us]                         | 11:59:00.123456                            | Time                   | 11:59:00.123456                | ok            
+duckdb-adbc    | date                         | date32[day]                        | 2026-09-12                                 | Date                   | 2026-09-12                     | ok            
+duckdb-adbc    | null in decimal col          | decimal128(18, 4)                  | None                                       | Decimal(precision=18,  | None                           | ok            
+duckdb-adbc    | all-null typed col           | timestamp[us, tz=Etc/UTC]          | None                                       | Datetime(time_unit='us | None                           | ok            
+duckdb-adbc    | empty string vs null         | string                             |                                            | String                 |                                | ok            
+duckdb-adbc    | list<int>                    | list<l: int32>                     | [1, 2, 3]                                  | List(Int32)            | shape: (3,)
+Series: '' [i32]
+[ | POLARS-LOSS   
+duckdb-adbc    | struct                       | struct<a: int32, b: string>        | {'a': 1, 'b': 'x'}                         | Struct({'a': Int32, 'b | {'a': 1, 'b': 'x'}             | ok            
+duckdb-adbc    | map                          | map<string, int32>                 | [('k', 1)]                                 | List(Struct({'key': St | shape: (1,)
+Series: '' [struct | ok            
+sqlite-adbc    | decimal as TEXT              | string                             | 12345678901234.5678                        | String                 | 12345678901234.5678            | ok            
+sqlite-adbc    | decimal as REAL              | double                             | 12345678901234.568                         | Float64                | 12345678901234.568             | BOTH-LOSS     
+sqlite-adbc    | int64 max                    | int64                              | 9223372036854775807                        | Int64                  | 9223372036854775807            | ok            
+sqlite-adbc    | timestamp as TEXT            | string                             | 2026-09-12 11:59:00.123456                 | String                 | 2026-09-12 11:59:00.123456     | ok            
+sqlite-adbc    | timestamptz as TEXT          | string                             | 2026-09-12 11:59:00-04:00                  | String                 | 2026-09-12 11:59:00-04:00      | ok            
+sqlite-adbc    | null                         | int64                              | None                                       | Int64                  | None                           | ok            
+sqlite-adbc    | empty string                 | string                             |                                            | String                 |                                | ok            
+sqlite-adbc    | mixed-type column            | string                             | 1                                          | String                 | 1                              | ok            
+duckdb-native  | order w/o ORDER BY (5 runs)  | -                                  | {(3, 1, 2)}                                | -                      | stable                         | observed-stabl

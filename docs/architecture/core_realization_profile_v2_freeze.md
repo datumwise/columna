@@ -3,6 +3,8 @@
 **Status:** **CANDIDATE, not ratified.** Prepared 2026-09-12 on instruction (Huayin) for
 ratification review. Supersedes nothing until ratified; `core_p1_k0_design_freeze.md` §3 remains the
 ratified freeze for mapping format v1.
+**Merging this file does not ratify it.** It is committed so it can be reviewed in place; its status
+line is the authority on its standing, and only an explicit ruling changes that line.
 **Shape follows:** `core_p1_k0_design_freeze.md` §3 (*"`PrivateCoreMapping` — field freeze —
 RATIFIED"*, CG2, 2026-08-22), deliberately, so the two are read the same way.
 **Evidence base:** `columna_core/compiler/realization.py` (the v2 consumer as built),
@@ -135,6 +137,11 @@ meaning nobody carried"*) that is not a a tidiness question but a silent drop. T
 
 Both are conformance requirements on a *profile*, not on this format. K0v2 satisfies neither today;
 that is recorded in the law-loss register and is not repaired by this document.
+
+**R1/R2 enforcement is deliberately NOT landed** (ruling, Huayin, 2026-09-12): it waits on review
+and ratification of this candidate. Landing a refusal that this document merely proposes would let a
+candidate acquire force by being written, which is the same error as a golden acquiring normative
+status by being committed.
 
 ---
 
