@@ -54,6 +54,10 @@ class Standing:
     realization: Optional[str]
     #: opaque comparable currency token. `None` closes reuse; it never means "fresh".
     currency: Optional[str] = None
+    #: the movement licence this state was continued under, if it was. ADDITIVE (Proof B): a state
+    #: that arrived by a licensed movement must be able to say so, or the standing it carries forward
+    #: is a claim about a path nobody recorded.
+    movement: Optional[str] = None
 
     @property
     def comparable_to(self):
@@ -75,6 +79,11 @@ class RetainedState:
     #: physical description, kept for disclosure only. NEVER consulted in a governed decision.
     carrier_type: str = ""
     finalized: bool = False
+    #: ANCHORED STATE (Proof B), optional so Proof A's bare-value states are unaffected. Where
+    #: present, `table` carries the anchor coordinates alongside the values and `anchor_columns`
+    #: names them — which is what makes a fold across a coordinate possible at all.
+    table: Optional["pa.Table"] = None
+    anchor_columns: tuple = ()
 
 
 class RetainedStateStore:

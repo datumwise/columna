@@ -109,6 +109,43 @@ def main():
     _print_refusal(w3)
     print(f"\n  {serving.RESPONSIBILITY_STANDING_RULE}")
 
+    rule("PROOF B — ONE POSITIVELY LICENSED MOVEMENT")
+    from columna_platform import movement, continuation
+    from columna_platform.state import RetainedState
+    ac = carrier.exact_money_at_sale_at()
+    adm = admission.admit(view, real, ac.as_carrier())
+    anchored = RetainedState(
+        identity=AnalyticalIdentity(REVENUE, family.constitutive_anchor),
+        standing=held.standing, array=adm.array, governed_domain=adm.governed_domain,
+        carrier_type=adm.carrier_type, table=ac.table, anchor_columns=ac.anchor_columns)
+    print("  state @ sale_at(store*day):")
+    for row in zip(*[ac.table.to_pydict()[c] for c in ("store", "day", "amount")]):
+        print(f"    {row[0]:6} {row[1]}  {row[2]}")
+    lic = movement.project(pub, source_anchor="sale_at", target_anchor="store",
+                           target_components=["store"], law="SUM")
+    print(f"\n  licence          {lic.describe()}")
+    print(f"  validated against DECLARED components {list(lic.source_components)}")
+    print(f"  C8 continuation  {continuation.established_continuation_law(view)}")
+    moved = continuation.continue_to(view, anchored, lic, target_anchor="store")
+    print("\n  continued @ store:")
+    for row in zip(*[moved.table.to_pydict()[c] for c in ("store", "amount")]):
+        print(f"    {row[0]:6} {row[1]}")
+    print(f"  same family      {moved.identity.family_id == REVENUE}   anchor now {moved.identity.anchor!r}")
+    print(f"  carrier type     {moved.array.type}  (exact, never widened)")
+    print(f"  movement on standing: {moved.standing.movement}")
+    st_b = RetainedStateStore(); st_b.insert(anchored)
+    wb = serving.decide(view, st_b, anchored.identity, at_anchor="store", licence=lic)
+    print(f"\n  WIRE             contract_version={wb['contract_version']!r} outcome={wb['outcome'].upper()}"
+          f"  anchor={wb['frame']['anchor']}")
+    print(f"  values           {[v['value'] for v in wb['columns'][0]['values']]}")
+
+    rule("PROOF B — MECHANICALLY COMBINABLE, NOT LICENSED")
+    from columna_core.operators import get_operator
+    op = get_operator("sum")
+    print(f"  Operator('sum')  is_monoid={op.is_monoid}  combine={op.combine!r}  -> the fold is MECHANICALLY available")
+    st_c = RetainedStateStore(); st_c.insert(anchored)
+    _print_refusal(serving.decide(view, st_c, anchored.identity, at_anchor="store", licence=None))
+
     rule("EMPTY-FIBER LAW IS NOT ABSENCE LAW")
     from columna_platform.admission import EMPTY_FIBER_RULING
     print(f"  C9 standing: {view['exceptional_cases'].standing}   value: {view['exceptional_cases'].value}")

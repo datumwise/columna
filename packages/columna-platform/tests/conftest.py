@@ -69,3 +69,38 @@ def declared_no_movement_view():
     """C3 EXPLICIT-NONE: the family has declared that nothing moves."""
     _pub, view = _publication_with(movement={"none": "this family does not move"})
     return view
+
+
+@pytest.fixture
+def anchored(governed):
+    """Retained state at `sale_at(store x day)` — admitted, then retained with its coordinates."""
+    from columna_platform import admission, carrier
+    from columna_platform.state import AnalyticalIdentity, RetainedState, Standing
+
+    pub, views, mapping, family = governed
+    view = views[REVENUE]
+    real = [r for r in mapping.families if r.family_id == REVENUE][0]
+    ac = carrier.exact_money_at_sale_at()
+
+    admitted = admission.admit(view, real, ac.as_carrier())      # the value column, admitted
+    st = RetainedState(
+        identity=AnalyticalIdentity(REVENUE, family.constitutive_anchor),
+        standing=Standing(
+            constitution="fcf-1:c176d2a4f35e443c84e03e6cff3c27a1088b390887e15ae59d1312129e3840ce",
+            constitution_scheme="fcf-1",
+            participation=view["eligibility_and_participation"].value,
+            basis=view["sufficient_state_bases"].value,
+            realization="warehouse:sales.fact_sale.amount/coincident/exact",
+            currency="tok-1"),
+        array=admitted.array, governed_domain=admitted.governed_domain,
+        carrier_type=admitted.carrier_type,
+        table=ac.table, anchor_columns=ac.anchor_columns)
+    return pub, view, st
+
+
+@pytest.fixture
+def licence(anchored):
+    from columna_platform import movement
+    pub, _view, _st = anchored
+    return movement.project(pub, source_anchor="sale_at", target_anchor="store",
+                            target_components=["store"], law="SUM")
