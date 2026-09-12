@@ -434,6 +434,44 @@ REASON_OUTCOME = {
                                                         #   "cannot be summed, weighted, or routed". A
                                                         #   structural prohibition with named alternatives:
                                                         #   REFUSE/UNSUPPORTED, never an ERROR.
+    # ── THE SERVING-BOUNDARY PAIR (MINTED 2026-09-12, ruled Huayin; found by Proof A) ───────────
+    # Before these, the table could not express a REFUSE in the REALIZATION jurisdiction at all: all
+    # four realization reasons were ERROR, which says "the machinery failed", and a lawful request
+    # with no admissible state is not a machinery failure. An operator told `error` goes looking for a
+    # bug; an operator told `want_of_state` re-materializes. The distinction is the product.
+    #
+    # THE THREE-WAY SPLIT THESE COMPLETE:
+    #   want_of_law    the governed continuation is NOT LICENSED. No amount of materialization helps.
+    #   want_of_state  the request IS lawful; no admissible/sufficient state can establish it NOW.
+    #   error          the machinery failed while attempting execution.
+    #
+    # Both refuse, and they differ by REASON and JURISDICTION rather than by mood — which is what
+    # jurisdiction was introduced for (v0.2 §1) and why no new mood is minted here.
+    #
+    # `want_of_state` IS NOT "EVICTED", DELIBERATELY (ruled). A retrieval miss is not a refusal: a
+    # future SSE may transparently re-materialize an evicted state, and a reason naming the cache's
+    # internal state would freeze an implementation detail into the public vocabulary and go stale
+    # the moment re-materialization lands. The condition is the ABSENCE OF ANY CURRENTLY ADMISSIBLE
+    # PATH OR STATE that can establish the target — which is why it is stated as want OF STATE, not
+    # as a cache outcome.
+    #
+    # REMEDY. A `want_of_state` refusal must carry that re-realization / re-materialization MAY
+    # resolve it, on `Outcome.alternatives` (re-encoded verbatim by the wire, never synthesized). It
+    # rides an existing field on purpose: the remedy is information the caller already has a channel
+    # for, and CONTRACT_VERSION does not move for a reason the wire was always able to carry.
+    "want_of_law":              (REFUSE, UNSUPPORTED, ANALYTICAL),   # the governed law does not license the
+                                                        #   continuation asked for — e.g. a movement to a
+                                                        #   coarser anchor where governed movement is
+                                                        #   UNESTABLISHED. Distinct from `blocked_reduction`,
+                                                        #   which is a DECLARED block along a lineage: an
+                                                        #   absent licence and a declared prohibition are not
+                                                        #   the same fact, and collapsing them would repeat
+                                                        #   the conflation `input_anchor_unavailable` was
+                                                        #   split out of `blocked_reduction` to end.
+    "want_of_state":            (REFUSE, UNSUPPORTED, REALIZATION),  # the request is lawful; no admissible or
+                                                        #   sufficient state can establish it in this
+                                                        #   execution. The FIRST refuse-in-realization entry.
+                                                        #   Carries its remedy in `alternatives`.
     "unsupported":              (ERROR, None, REALIZATION),        # not implemented in this build (capability)
     "type_error":               (ERROR, None, LANGUAGE),        # vocabulary/type failure
     "unknown":                  (ERROR, None, LANGUAGE),        # unknown column / operator / construct

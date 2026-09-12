@@ -1,4 +1,4 @@
-"""The successor execution path, end to end — and the exact line where it stops.
+"""The successor execution path, end to end — and out through the REAL wire.
 
     lighthouse v2 publication
       -> parse_publication            governed artifact reader, unchanged
@@ -9,59 +9,34 @@
       -> admission.admit              two checks, both refusing
       -> RetainedState                analytical identity + standing
       -> decide                       serve / refuse
-      -> [WIRE]                       *** NOT REACHED — see FINDING 1 below ***
+      -> disclosure_wire.wire_frame   THE REAL WIRE CONTRACT, contract_version "5"
 
-FINDING 1 — THE WIRE IS UNREACHABLE INSIDE THE APPROVED BOUNDARY.
+FINDINGS 1 AND 2 ARE CLOSED (2026-09-12, ruled Huayin). Both were accidental seams, and both were
+repaired at the seam rather than worked around here:
 
-`disclosure_wire.wire_frame` takes a `FrameResult`. `FrameResult` and `ColumnResult` are defined in
-`columna_core.planner`, and importing that module executes
+  1. `FrameResult`/`ColumnResult` MOVED to `columna_core.serving_contract`, an architecture-neutral
+     module owned by no execution strategy. `planner` re-exports them, so every existing import keeps
+     working and there is exactly ONE definition — no second enumeration of the wire's types.
+     Platform still imports no planner/engine/model, and the import-graph test still says so.
 
-    from .projection import PlannerView
-    from .engine import ColumnEngine
-    from .model import parse_faced, EdgeKey
-    from .frameql import FrameQLSyntaxError
-    from .expr import ...
+  2. `want_of_law` and `want_of_state` MINTED in the closed reason registry. The table previously had
+     no REFUSE in the `realization` jurisdiction at all, so a lawful request with no admissible state
+     had to be reported as `error` — sending an operator to hunt a bug instead of re-materializing.
 
-— the whole legacy stack the boundary excludes. So "use the existing disclosure/wire" and "no legacy
-planner / engine" cannot both be honoured: the wire contract's DATA TYPES are owned by the module
-that also owns the legacy execution behaviour.
+A RETRIEVAL MISS IS NOT A REFUSAL. `want_of_state` is not "evicted": where a re-materialization path
+exists, an evicted state is re-established transparently and the request SERVES. Refusal is reserved
+for the real condition — no currently admissible path or state can establish the target.
 
-This is a RESPONSIBILITY defect, not a packaging inconvenience. `FrameResult`/`ColumnResult` carry no
-planner logic — they are plain dataclasses — but they sit behind an import wall that makes the
-disclosure surface reachable only through the engine. Any successor path must therefore either import
-the excluded stack or restate the result types, and restating them would be a SECOND enumeration of
-the wire contract, free to drift from the one CI checks.
-
-Proof A does neither. It stops at `decide()` and reports. Re-implementing the wire here to make the
-proof "complete" would have produced exactly the false agreement the candidate discipline forbids.
-
-FINDING 2 — THE CLOSED REASON REGISTRY CANNOT EXPRESS A WANT-OF-STATE REFUSAL.
-
-`disclosure.REASON_OUTCOME` is closed and fail-closed: `outcome_for` raises `UnregisteredReason`
-rather than defaulting, by ruling. Of its 28 reasons, the four in the `realization` jurisdiction are
-ALL `error`:
-
-    chained_crossing, filter_unsupported, mixed_faced_anchor, unsupported   -> (error, None, realization)
-
-There is no `refuse` reason in the realization jurisdiction at all — no way to say *the law licenses
-this, the state is not here, and re-realization would resolve it*. The analytical `refuse` reasons
-exist to their own planner intents (`input_anchor_unavailable` is the |R|=0 branch of the input-anchor
-split; `anchor_spent` is the G5 frontier prohibition), and borrowing one would recreate precisely the
-conflation the registry was repaired to end — the module's own note records `input_anchor_unavailable`
-being split out of `blocked_reduction` because "one reason carried two analytical conditions and a
-reader branching on it was told a lineage was blocked when none was".
-
-Minting a reason is a ruling, not an implementation decision. Proof A therefore raises its own
-un-collapsed refusals (`refusals.py`) and does not touch the registry.
-
-CONSEQUENCE FOR THE SSE CONTRACT CANDIDATE: its `refuse` row requires a refusal to name want-of-law or
-want-of-state, and requires a want-of-state refusal to carry that re-realization would resolve it.
-The existing wire vocabulary cannot express that distinction. The candidate is not wrong; the
-vocabulary is missing. Reported, not patched.
+RESIDUAL SEAM, REPORTED NOT REPAIRED. `columna_core/__init__.py` imports `planner` (and thus the
+execution stack) eagerly, so importing ANY `columna_core.X` submodule loads it at runtime. That is a
+pre-existing property of the package's import surface, not something this path introduces, and making
+the package lazy is a larger change to a public surface than this proof was authorized to make. The
+architectural property that WAS asked for — the wire's types no longer belong to the planner — is
+real and is asserted over the static import closure in `tests/test_proof_a_findings.py`.
 """
 from __future__ import annotations
 import json
-from dataclasses import dataclass
+import polars as pl
 from pathlib import Path
 from typing import Optional
 
@@ -70,39 +45,18 @@ from columna_core.governed.resolve import (
     C3_DOMAIN_MOVEMENT, C7_SUFFICIENT_STATE, ESTABLISHED, resolve_all,
 )
 from columna_core.compiler.realization import load_mapping, require_same_publication
+from columna_core.disclosure import Disclosure, Outcome
+from columna_core.disclosure_wire import wire_frame
+from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
 from .refusals import ProofRefusal, WantOfLaw, WantOfState
 from .state import AnalyticalIdentity, RetainedState, RetainedStateStore, Standing
 
 
-@dataclass(frozen=True)
-class Served:
-    """A served answer, with standing READ OFF the retained state rather than recomputed."""
-
-    identity: AnalyticalIdentity
-    standing: Standing
-    governed_domain: str
-    carrier_type: str
-    row_count: int
-    mood: str = "serve"
-
-
-@dataclass(frozen=True)
-class Refused:
-    """A refusal as a VALUE — the condition, its jurisdiction, and its remedy if it has one."""
-
-    condition: str
-    jurisdiction: str
-    detail: str
-    remedy: Optional[str]
-    mood: str = "refuse"
-
-    @classmethod
-    def of(cls, r: ProofRefusal) -> "Refused":
-        return cls(condition=r.condition, jurisdiction=r.jurisdiction,
-                   detail=str(r), remedy=r.remedy)
-
+# `Served`/`Refused` were Proof A's own answer shapes. They are GONE (2026-09-12): the wire
+# contract is now reachable, and a local imitation of a wire answer beside the real one is
+# exactly the second enumeration this amendment exists to avoid.
 
 def open_publication(path):
     """Read the governed artifact and resolve every family's total law view."""
@@ -156,13 +110,42 @@ def materialize(family, law_view, realization, carrier_obj, *, basis: str,
     return store.insert(st)
 
 
-def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
-           at_anchor: Optional[str] = None):
-    """serve | refuse — the decision, with the mood the wire WOULD carry if it were reachable.
+#: reason tokens, minted 2026-09-12 in the closed registry. Named here once so a typo is an
+#: ImportError rather than an `UnregisteredReason` at the wire.
+WANT_OF_LAW = "want_of_law"
+WANT_OF_STATE = "want_of_state"
 
-    The order matters and is not incidental: LAW IS ASKED FIRST. A want-of-law must not be reported
-    as a want-of-state merely because the state also happens to be absent, or an operator is sent to
-    re-materialize against a question the law was never going to answer."""
+#: The remedy a want-of-state refusal must carry. Rides `Outcome.alternatives`, which the wire
+#: re-encodes VERBATIM and never synthesizes.
+REMATERIALIZE = "re-realization / re-materialization may resolve this"
+
+
+def _refusal_column(name: str, reason: str, detail: str, alternatives=()) -> ColumnResult:
+    """A no-result column carrying a classified refusal — the shape the wire already understands."""
+    return ColumnResult(
+        name=name, expr=name, frame=None, disclosure=Disclosure.clean(),
+        refusal=Outcome(reason=reason, detail=detail, measure=name, alternatives=tuple(alternatives)),
+    )
+
+
+def _served_column(name: str, st: RetainedState) -> ColumnResult:
+    """A served column. The value crosses as the GOVERNED decimal, not as a float.
+
+    `pl.from_arrow` is the same doorway Core's own connector uses; the point of admission having run
+    first is that what reaches this line is already known to be faithfully carriable."""
+    series = pl.from_arrow(st.array).alias(name)
+    return ColumnResult(name=name, expr=name, frame=pl.DataFrame({name: series}),
+                        disclosure=Disclosure.clean())
+
+
+def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
+           at_anchor: Optional[str] = None, column: str = "revenue") -> dict:
+    """serve | refuse, rendered through the REAL wire contract.
+
+    Returns the wire dict from `disclosure_wire.wire_frame` — not a Proof-A-shaped imitation of it.
+
+    ORDER IS LOAD-BEARING: law is asked BEFORE state. A want-of-law reported as a want-of-state sends
+    an operator to re-materialize against a question the law was never going to answer."""
     try:
         # ── law first ───────────────────────────────────────────────────────────────────────────
         if at_anchor is not None and at_anchor != identity.anchor:
@@ -181,8 +164,14 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
         # ── then state ──────────────────────────────────────────────────────────────────────────
         held = store.retrieve(identity)
         if not held:
-            raise WantOfState(f"no retained state for {identity.family_id} @ {identity.anchor}",
-                              subject=law_view.canonical_reference)
+            # A MISS IS NOT A REFUSAL. Try to re-establish before deciding anything.
+            established = store.establish(identity)
+            if established is None:
+                raise WantOfState(
+                    f"no admissible state can establish {identity.family_id} @ {identity.anchor} in "
+                    f"this execution, and no re-materialization path resolved one",
+                    subject=law_view.canonical_reference)
+            held = (established,)
         if len(held) > 1:
             raise WantOfState(
                 f"{len(held)} retained states of one identity in different standings; serving "
@@ -194,8 +183,13 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
             raise WantOfLaw("a finalized value is not sufficient state",
                             subject=law_view.canonical_reference)
 
-        return Served(identity=st.identity, standing=st.standing,
-                      governed_domain=st.governed_domain, carrier_type=st.carrier_type,
-                      row_count=len(st.array))
+        col = _served_column(column, st)
+        return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),
+                          universe=None, executed=True)
+
     except ProofRefusal as r:
-        return Refused.of(r)
+        reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+        alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+        col = _refusal_column(column, reason, str(r), alts)
+        return wire_frame(FrameResult(None, Disclosure.clean(), [col], (identity.anchor,)),
+                          universe=None, executed=True)

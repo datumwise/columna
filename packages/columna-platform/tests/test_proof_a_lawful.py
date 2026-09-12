@@ -22,17 +22,33 @@ def _materialize(family, view, real, store, **kw):
     )
 
 
-def test_the_lawful_case_serves(revenue):
+def test_the_lawful_case_serves_through_the_real_wire(revenue):
+    """THE ACCEPTANCE CRITERION: out through `disclosure_wire`, not a Proof-A-shaped imitation."""
     family, view, real = revenue
     store = RetainedStateStore()
     _materialize(family, view, real, store)
 
-    out = serving.decide(view, store, AnalyticalIdentity(family.family_id, family.constitutive_anchor))
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, family.constitutive_anchor))
 
-    assert out.mood == "serve"
-    assert out.identity.family_id == family.family_id
-    assert out.identity.anchor == "sale_at"
-    assert out.row_count == 3
+    assert w["contract_version"] == "5"          # the REAL contract, unmodified
+    assert w["outcome"] == "serve"
+    assert w["frame"]["anchor"] == ["sale_at"]
+    assert w["executed"] is True
+    assert w["columns"][0]["status"] == "served"
+    assert len(w["columns"][0]["values"]) == 3
+
+
+def test_the_governed_decimal_reaches_the_wire_unfloated(revenue):
+    """The ruling's first half, all the way out: no binary float anywhere on the path."""
+    family, view, real = revenue
+    store = RetainedStateStore()
+    _materialize(family, view, real, store)
+
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, family.constitutive_anchor))
+
+    values = [v["value"] for v in w["columns"][0]["values"]]
+    assert str(values[0]) == "12345678901234.5678"
+    assert not any(isinstance(v, float) for v in values)
 
 
 def test_the_governed_domain_is_carried_exactly_not_lowered(revenue):
@@ -52,14 +68,14 @@ def test_standing_is_read_off_the_state_not_recomputed(revenue):
     store = RetainedStateStore()
     _materialize(family, view, real, store)
 
-    out = serving.decide(view, store, AnalyticalIdentity(family.family_id, family.constitutive_anchor))
+    held = store.retrieve(AnalyticalIdentity(family.family_id, family.constitutive_anchor))[0]
 
-    assert out.standing.constitution == CONSTITUTION
-    assert out.standing.constitution_scheme == "fcf-1"
-    assert out.standing.participation == "every sale point carrying a recorded amount"
-    assert out.standing.basis == "the running total"          # C7, projected in
-    assert out.standing.realization.startswith("warehouse:sales.fact_sale.amount/coincident/exact")
-    assert out.standing.currency == "tok-1"
+    assert held.standing.constitution == CONSTITUTION
+    assert held.standing.constitution_scheme == "fcf-1"
+    assert held.standing.participation == "every sale point carrying a recorded amount"
+    assert held.standing.basis == "the running total"          # C7, projected in
+    assert held.standing.realization.startswith("warehouse:sales.fact_sale.amount/coincident/exact")
+    assert held.standing.currency == "tok-1"
 
 
 def test_the_carrier_never_becomes_the_meaning(revenue):

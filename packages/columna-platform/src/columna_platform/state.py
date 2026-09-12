@@ -78,10 +78,39 @@ class RetainedState:
 
 
 class RetainedStateStore:
-    """Proof A's in-memory store. NO PERSISTENCE — durability belongs to a later proof."""
+    """Proof A's in-memory store. NO PERSISTENCE — durability belongs to a later proof.
 
-    def __init__(self):
+    A RETRIEVAL MISS IS NOT A REFUSAL (ruled Huayin, 2026-09-12). The store may be handed a
+    `rematerializer` — a callable that can re-establish a state for an identity. Where one exists and
+    succeeds, an evicted state is re-established TRANSPARENTLY and the request serves; the caller
+    never learns that the cache missed, because the cache's internal state is not a governed fact.
+
+    Refusal is therefore reserved for the real condition: NO CURRENTLY ADMISSIBLE PATH OR STATE can
+    establish the target. That is why the wire reason is `want_of_state` and not `evicted` — naming
+    the cache outcome would freeze an implementation detail into the public vocabulary and go stale
+    the moment transparent re-materialization lands."""
+
+    def __init__(self, rematerializer=None):
         self._states: list = []
+        #: () -> RetainedState | None. None = no re-materialization path is available at all.
+        self._rematerializer = rematerializer
+        #: counts, for evidence: did a serve go through a transparent re-establishment?
+        self.rematerializations = 0
+
+    def establish(self, identity: "AnalyticalIdentity"):
+        """Try to re-establish state for an identity. Returns the state, or None if no path exists.
+
+        Two distinct Nones collapse here ON PURPOSE — no path configured, and a path that could not
+        produce admissible state — because the caller's question is the same either way: is there a
+        currently admissible state? The DETAIL of which it was belongs in the refusal, not in the
+        control flow."""
+        if self._rematerializer is None:
+            return None
+        st = self._rematerializer(identity)
+        if st is None:
+            return None
+        self.rematerializations += 1
+        return self.insert(st)
 
     # ── insert ──────────────────────────────────────────────────────────────────────────────────
     def insert(self, st: RetainedState) -> RetainedState:

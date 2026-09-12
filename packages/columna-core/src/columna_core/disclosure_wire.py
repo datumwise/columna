@@ -21,6 +21,9 @@ import re
 from typing import Optional
 
 from .disclosure import Caveat, Outcome
+# The wire's INPUT TYPE, named explicitly (2026-09-12). It used to be reachable only through
+# `planner`, so the wire's own contract could not be imported without the execution stack.
+from .serving_contract import FrameResult
 
 # ── CONTRACT "4" -> "5" (2026-09-11, Frame-QL 1.0 expression language) ──────────────────────────
 # The expression dialect moved off CPython's `ast` onto the adopted Frame-QL 1.0 grammar
@@ -369,7 +372,7 @@ def derive_outcome(fr, material_present: bool) -> str:
     return "disclose" if material_present else "serve"
 
 
-def wire_frame(fr, universe: Optional[str] = None, executed: bool = True,
+def wire_frame(fr: FrameResult, universe: Optional[str] = None, executed: bool = True,
                fetches_delta: Optional[int] = None) -> dict:
     """A `FrameResult` -> the full wire contract (WP-2.2 spec §"Wire contract").
 

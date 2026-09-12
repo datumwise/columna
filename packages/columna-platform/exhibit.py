@@ -47,12 +47,14 @@ def main():
     print(f"carrier            {carrier.describe(carrier.exact_money())}")
     print(f"admitted as        governed domain {st.governed_domain!r}  (carrier {st.carrier_type})")
     print(f"exact value held   {st.array[0].as_py()}")
-    out = serving.decide(view, store, AnalyticalIdentity(REVENUE, family.constitutive_anchor))
-    print(f"\nDECISION           {out.mood.upper()}   {out.identity.family_id} @ {out.identity.anchor}")
-    print(f"  rows             {out.row_count}")
-    print(f"  domain           {out.governed_domain}   <- governed, NOT the carrier type")
-    print( "  standing, read off the state:")
-    for k, v in out.standing.__dict__.items():
+    w = serving.decide(view, store, AnalyticalIdentity(REVENUE, family.constitutive_anchor))
+    print(f"\nWIRE               contract_version={w['contract_version']!r}  outcome={w['outcome'].upper()}")
+    print(f"  anchor           {w['frame']['anchor']}   executed={w['executed']}")
+    print(f"  column           {w['columns'][0]['name']}  status={w['columns'][0]['status']}")
+    print(f"  values           {[v['value'] for v in w['columns'][0]['values']]}")
+    print( "  standing, read off the retained state (never recomputed):")
+    held = store.retrieve(AnalyticalIdentity(REVENUE, family.constitutive_anchor))[0]
+    for k, v in held.standing.__dict__.items():
         print(f"    {k:20} {v}")
 
     rule("NEGATIVE CONTROLS — each carrier DELIVERS; admission refuses anyway")
@@ -67,23 +69,40 @@ def main():
             print(f"    remedy: {r.remedy or 'none — re-realization cannot help'}")
             print(f"    {r.detail[:150]}...")
 
-    rule("NEGATIVE CONTROL — want-of-law and want-of-state are distinguishable")
+    rule("WANT-OF-LAW, ON THE WIRE")
     law = serving.decide(view, store, AnalyticalIdentity(REVENUE, "sale_at"), at_anchor="month")
-    print(f"  coarser anchor, no licence   {law.condition:18} [{law.jurisdiction}]  remedy={law.remedy}")
+    _print_refusal(law)
+
+    rule("WANT-OF-STATE, ON THE WIRE")
     store.evict(AnalyticalIdentity(REVENUE, "sale_at"))
     state = serving.decide(view, store, AnalyticalIdentity(REVENUE, "sale_at"))
-    print(f"  after eviction               {state.condition:18} [{state.jurisdiction}]  remedy={state.remedy}")
-    print(f"\n  the two differ: {(law.condition, law.jurisdiction) != (state.condition, state.jurisdiction)}")
+    _print_refusal(state)
+    print(f"\n  same mood ({law['outcome']}), different reason and jurisdiction — which is the point.")
 
-    rule("WHERE THE PROOF STOPS")
-    print("  wire rendering NOT REACHED. disclosure_wire.wire_frame takes a FrameResult, which is")
-    print("  defined in columna_core.planner — importing it executes engine/model/projection/frameql,")
-    print("  the stack this proof excludes. And no registered wire reason can carry a want-of-state:")
-    from columna_core.disclosure import REASON_OUTCOME
-    rz = [r for r, v in REASON_OUTCOME.items() if len(v) > 2 and v[2] == "realization"]
-    print(f"    realization-jurisdiction reasons: {len(rz)}, all ERROR, none REFUSE")
-    print(f"    {sorted(rz)}")
-    print("\n  Reported, not worked around.")
+    rule("A RETRIEVAL MISS IS NOT A REFUSAL")
+    store2 = RetainedStateStore()
+    store2._rematerializer = lambda _i: serving.materialize(
+        family, view, real, carrier.exact_money(), basis=view["sufficient_state_bases"].value,
+        constitution=CONSTITUTION, constitution_scheme="fcf-1", currency="tok-2", store=store2)
+    w2 = serving.decide(view, store2, AnalyticalIdentity(REVENUE, "sale_at"))
+    print(f"  empty store + a re-materialization path -> outcome={w2['outcome'].upper()}"
+          f"   (re-materializations: {store2.rematerializations})")
+    print("  the caller never learns the cache missed; `want_of_state` is not `evicted`.")
+
+    rule("EMPTY-FIBER LAW IS NOT ABSENCE LAW")
+    from columna_platform.admission import EMPTY_FIBER_RULING
+    print(f"  C9 standing: {view['exceptional_cases'].standing}   value: {view['exceptional_cases'].value}")
+    print(f"  {EMPTY_FIBER_RULING}")
+
+
+def _print_refusal(w):
+    nr = w["columns"][0]["no_result"]
+    from columna_core.disclosure import jurisdiction_for
+    print(f"  outcome          {w['outcome'].upper()}")
+    print(f"  kind/disc        {nr['kind']} / {nr['discriminator']}")
+    print(f"  reason           {nr['reason']}   [jurisdiction: {jurisdiction_for(nr['reason'])}]")
+    print(f"  remedy           {[a['token'] for a in nr['alternatives']] or 'none'}")
+    print(f"  detail           {nr['detail'][:120]}...")
 
 
 if __name__ == "__main__":

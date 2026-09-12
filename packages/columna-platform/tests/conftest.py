@@ -22,3 +22,16 @@ def governed():
 def revenue(governed):
     pub, views, mapping, family = governed
     return family, views[REVENUE], serving.realize(mapping, REVENUE)
+
+
+def no_result(wire: dict) -> dict:
+    """The single column's classified no-result, from a real wire payload."""
+    return wire["columns"][0]["no_result"]
+
+
+def reason(wire: dict) -> str:
+    return no_result(wire)["reason"]
+
+
+def alternatives(wire: dict) -> list:
+    return [a["token"] for a in no_result(wire)["alternatives"]]

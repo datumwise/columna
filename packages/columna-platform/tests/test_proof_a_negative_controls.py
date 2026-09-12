@@ -9,6 +9,8 @@ from columna_platform import carrier, serving
 from columna_platform.refusals import WantOfCompatibility, WantOfLaw, WantOfState
 from columna_platform.state import AnalyticalIdentity, RetainedStateStore, Standing
 from columna_platform import admission
+from columna_core.disclosure import jurisdiction_for
+from conftest import alternatives, no_result, reason
 
 from test_proof_a_lawful import _materialize
 
@@ -33,38 +35,35 @@ def test_the_fourth_hop_is_refused_even_though_arrow_held_it_exactly(revenue):
     assert "POLARS LOSS" in str(e.value)
 
 
-# ── CONTROL 2 · want-of-law and want-of-state are distinguishable ────────────────────────────────
+# ── CONTROL 2 · want-of-law and want-of-state are distinguishable ON THE WIRE ────────────────────
 def test_a_coarser_anchor_without_a_movement_licence_is_want_of_law(revenue):
     family, view, real = revenue
     store = RetainedStateStore()
     _materialize(family, view, real, store)
 
-    out = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"),
-                         at_anchor="month")
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"), at_anchor="month")
 
-    assert out.mood == "refuse"
-    assert out.condition == "WantOfLaw"
-    assert out.jurisdiction == "governed"
-    assert out.remedy is None                       # re-realization cannot supply a licence
-    assert "governed movement is unestablished" in out.detail
+    assert w["outcome"] == "refuse"
+    assert reason(w) == "want_of_law"
+    assert jurisdiction_for("want_of_law") == "analytical"
+    assert alternatives(w) == []                    # re-realization cannot supply a licence
+    assert "governed movement is unestablished" in no_result(w)["detail"]
 
 
-def test_after_eviction_the_same_ask_is_want_of_state(revenue):
+def test_no_admissible_state_is_want_of_state_and_carries_its_remedy(revenue):
     family, view, real = revenue
-    store = RetainedStateStore()
-    _materialize(family, view, real, store)
-    identity = AnalyticalIdentity(family.family_id, "sale_at")
-    assert store.evict(identity) == 1
+    store = RetainedStateStore()                     # no state, and NO re-materialization path
 
-    out = serving.decide(view, store, identity)
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"))
 
-    assert out.condition == "WantOfState"
-    assert out.jurisdiction == "realization"
-    assert out.remedy == "re-realization would resolve this"
+    assert w["outcome"] == "refuse"
+    assert reason(w) == "want_of_state"
+    assert jurisdiction_for("want_of_state") == "realization"
+    assert alternatives(w) == ["re-realization / re-materialization may resolve this"]
 
 
-def test_the_two_refusals_are_not_the_same_refusal(revenue):
-    """The controls are worthless unless the two outcomes actually differ."""
+def test_the_two_refusals_differ_in_reason_and_jurisdiction(revenue):
+    """The controls are worthless unless the two outcomes actually differ where it counts."""
     family, view, real = revenue
     store = RetainedStateStore()
     _materialize(family, view, real, store)
@@ -74,28 +73,61 @@ def test_the_two_refusals_are_not_the_same_refusal(revenue):
     store.evict(identity)
     state = serving.decide(view, store, identity)
 
-    assert (law.condition, law.jurisdiction, law.remedy) != (state.condition, state.jurisdiction,
-                                                             state.remedy)
+    assert reason(law) != reason(state)
+    assert jurisdiction_for(reason(law)) != jurisdiction_for(reason(state))
+    # ...and both are REFUSE. The mood is not what carries the distinction; jurisdiction is.
+    assert law["outcome"] == state["outcome"] == "refuse"
 
 
-def test_eviction_never_converts_a_want_of_state_into_a_want_of_law(revenue):
+def test_a_state_failure_never_borrows_an_analytical_reason(revenue):
     family, view, real = revenue
-    store = RetainedStateStore()
-    _materialize(family, view, real, store)
+    w = serving.decide(view, RetainedStateStore(), AnalyticalIdentity(family.family_id, "sale_at"))
+    assert jurisdiction_for(reason(w)) == "realization"
+
+
+def test_a_state_failure_is_never_reported_as_error(revenue):
+    """The defect the minted reason exists to end: `error` sends an operator hunting a bug."""
+    family, view, real = revenue
+    w = serving.decide(view, RetainedStateStore(), AnalyticalIdentity(family.family_id, "sale_at"))
+    assert no_result(w)["kind"] == "refuse"
+
+
+# ── A RETRIEVAL MISS IS NOT A REFUSAL (ruled 2026-09-12) ─────────────────────────────────────────
+def test_an_evicted_state_is_re_established_transparently_and_serves(revenue):
+    """`want_of_state` is NOT "evicted". Where a path exists, the caller never learns of the miss."""
+    family, view, real = revenue
     identity = AnalyticalIdentity(family.family_id, "sale_at")
+    store = RetainedStateStore()
+
+    def rematerialize(_ident):
+        return _materialize(family, view, real, store, currency="tok-2")
+
+    _materialize(family, view, real, store)
     store.evict(identity)
+    store._rematerializer = rematerialize
 
-    out = serving.decide(view, store, identity)
-    assert out.condition != "WantOfLaw"
+    w = serving.decide(view, store, identity)
+
+    assert w["outcome"] == "serve"                  # NOT a refusal
+    assert store.rematerializations == 1
 
 
-def test_law_is_asked_before_state(revenue):
-    """With BOTH defects present the refusal must name the law, not the missing state."""
+def test_refusal_needs_no_admissible_path_not_merely_a_miss(revenue):
+    """A path that cannot produce ADMISSIBLE state refuses — because nothing can establish it now."""
     family, view, real = revenue
-    store = RetainedStateStore()          # nothing retained AND no movement licence
-    out = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"),
-                         at_anchor="month")
-    assert out.condition == "WantOfLaw"
+    store = RetainedStateStore(rematerializer=lambda _i: None)
+
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"))
+
+    assert reason(w) == "want_of_state"
+    assert store.rematerializations == 0
+
+
+def test_eviction_is_not_a_wire_reason():
+    """Naming the cache outcome would freeze an implementation detail into public vocabulary."""
+    from columna_core.disclosure import REASON_OUTCOME
+    assert "evicted" not in REASON_OUTCOME
+    assert not any("evict" in r for r in REASON_OUTCOME)
 
 
 # ── CONTROL 3 · a finalized value offered back as sufficient state ───────────────────────────────
@@ -158,9 +190,9 @@ def test_retrieve_returns_several_standings_and_never_merges_them(revenue):
     assert len(held) == 2
     assert {s.standing.currency for s in held} == {"tok-1", "tok-2"}
 
-    out = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"))
-    assert out.condition == "WantOfState"
-    assert "MERGING THEM HERE IS NOT PERMITTED" in out.detail
+    w = serving.decide(view, store, AnalyticalIdentity(family.family_id, "sale_at"))
+    assert reason(w) == "want_of_state"
+    assert "MERGING THEM HERE IS NOT PERMITTED" in no_result(w)["detail"]
 
 
 def test_insert_requires_realization_standing(revenue):

@@ -27,6 +27,15 @@ from columna_core.governed.resolve import C6_SEMANTIC_VALUES, C9_EXCEPTIONAL, ES
 from . import carrier as _carrier
 from .refusals import WantOfLaw, WantOfState
 
+#: THE DISTINCTION, RECORDED VERBATIM (ruled Huayin, 2026-09-12). Kept as a constant rather than a
+#: comment because it is EVIDENCE: it is the sentence that makes the check below non-obvious, and a
+#: future reader who deletes the check should have to delete this too.
+EMPTY_FIBER_RULING = (
+    "Empty-fiber law governs evaluation of a constituted fiber with no contributions. It does not "
+    "establish analytical existence, eligibility, observed support, carrier nullability, or the "
+    "meaning of an absent observation."
+)
+
 #: C9 keys that are CONTINUATION ENTAILMENTS, not missingness declarations. Their presence says
 #: nothing about what an absent observation denotes. Listed rather than inferred, so that a C9 key
 #: added later is treated as unknown-and-refused rather than silently counted as absence law.
