@@ -1,7 +1,13 @@
-# Sufficient State Engine — minimal contract — **v0.1 CANDIDATE**
+# Minimal SSE Contract — Proof A/B/C boundary — **v0.1 CANDIDATE**
 
-**Status:** candidate, prepared 2026-09-12 for review. One page by intent: the smallest contract
-that can survive Proofs A, B and C without being rewritten by them.
+**Status:** candidate, prepared 2026-09-12 for review; revised 2026-09-12 on instruction.
+**Scope discipline, not a page count** (clarification, Huayin, 2026-09-12). The governing constraint
+is the *smallest contract that can survive Proofs A, B and C without being rewritten by them* — an
+admission test for what belongs here, not a length budget. An earlier draft said "one page by
+intent", which invited trimming load-bearing material to satisfy a metaphor; the rule is stated as
+scope from here on. Nothing is removed to make this shorter.
+**Filename retained** as `sse_contract_v0_1.md` so existing citations resolve; the title is the
+change.
 **Excluded by instruction:** DuckDB, ADBC, adaptive materialization, cross-Manifold sharing,
 distributed execution, approximation policy beyond what a landed proof requires.
 
@@ -185,7 +191,19 @@ Two currency axes must stay distinct in the SSE:
 
 Composite sufficient-state *declaration* (the governed model has no state-carrier slot — a Proof C
 precondition, and by §0 it is the governed layer's projection to derive, not the SSE's to invent),
-governed movement enablement (Proof B), approximation composition under continuation (open until the
-governing text is located; **treat unsupported approximation continuation as a refusal** and do not
-infer composition standing from the implementation), eviction policy, the shape of the runtime state
+governed movement enablement (Proof B), eviction policy, the shape of the runtime state
 specification itself, and every excluded item named at the head of this document.
+
+**Approximation composition under continuation is OPEN and stays open** (standing instruction,
+Huayin, 2026-09-12). Until the governing text has been re-checked:
+
+- **treat unsupported approximation continuation as a REFUSAL**, and
+- **do not infer composition standing from the implementation.**
+
+Named explicitly, because it is the nearest thing to a temptation: `FoundationLaw.approximation`
+exists in `governed/foundation.py` and defaults to `"exact"`. **That field is not the governing
+text.** It is one layer's representation of a decision taken elsewhere, and a default is the weakest
+possible evidence of a rule — it is what was needed to construct an object, not what was ruled. No
+conclusion about approximation-continuation semantics may be drawn from it, from its default, or
+from the set of values it currently takes. This document draws none, and a later document that does
+should first cite the governing text, not the attribute.

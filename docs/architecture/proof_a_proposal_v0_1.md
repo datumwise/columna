@@ -20,7 +20,9 @@ it does not inherit that profile's value-domain table. Its admission check compa
 where a concrete precision exists to check, which is exactly why the envelope refusal could not live
 in the compiler.
 
-**The governing ruling, verbatim (Huayin, 2026-09-12, confirmed at the merge of #274):**
+**The governing ruling, verbatim** — recorded in full at
+`docs/architecture/ruling_2026_09_12_exact_decimal_carriage.md`, which is the authority; it is
+quoted here because it is load-bearing for this proof:
 
 > A governed exact-decimal domain must be carried exactly where the current substrate can carry it
 > exactly; it must not be silently lowered to binary floating point.

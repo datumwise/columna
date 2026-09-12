@@ -155,12 +155,35 @@ claim the artifact *makes*. A claim the compiler neither honours nor tests is a 
 made and the system did not answer — the producer believes it was heard, and nothing recorded that
 it was not.
 
-**What "faithfully" means, stated as a test rather than a sentiment:**
+**What "faithfully" means, stated as a test rather than a sentiment.** An earlier draft wrote the
+test as *"must not produce the same emitted reference"*. That is too narrow, and narrowly wrong in a
+way that would license the next drop: a fact can be load-bearing without ever appearing in a
+rendered string. `connection` may select which material source is consulted; `schema` may qualify an
+endpoint's identity without changing the rendered table name a given profile emits; a fact may bear
+only on standing or admission; a fact may be relevant precisely because it should have caused a
+**refusal**. A test keyed on rendered output would call all four of those "consumed".
 
-> A fact is consumed faithfully only if it retains its **discriminating power** — two realizations
-> differing in that fact *alone* must not produce the same emitted reference.
+> **The faithful-consumption test.** A realization fact is consumed faithfully only if changing that
+> fact **alone** can change the **effective material realization**, the **standing or check
+> behaviour**, or **cause a refusal** — wherever that fact is semantically relevant.
+>
+> **Corollary, which is the operative half:** two claims differing in a relevant realization fact
+> MUST NOT be **observationally indistinguishable** merely because the implementation dropped the
+> fact.
 
-That is the whole criterion. R1 and R2 are its application to the two facts at issue.
+Four channels, then, not one — a profile discharges a fact through whichever are relevant to it:
+
+| channel | the fact changes… |
+|---|---|
+| material-source selection | *which* source is consulted |
+| qualified endpoint identity | *what* the endpoint denotes, whether or not the rendered string differs |
+| standing / admission | what the claim is admitted *as*, or whether it is admitted |
+| refusal / check behaviour | whether the profile refuses, and what it names when it does |
+
+**Indistinguishability is the defect, not silence.** The question is never whether the profile
+mentioned the fact; it is whether a producer could change the fact and observe nothing. Where that is
+true, the fact was not consumed — it was absorbed. R1 and R2 below are this test applied to the two
+facts at issue, and they are consequences of it, not additional rules.
 
 ### 5.2 R1 — `connection`
 
@@ -168,10 +191,12 @@ That is the whole criterion. R1 and R2 are its application to the two facts at i
 > connection it serves and refuses a realization whose `connection` differs, naming both the claimed
 > and the served connection. It MUST NOT accept a mismatching claim.
 >
-> A **multi-connection profile** MUST discharge it by **CONSUME** — `connection` must reach the
-> emitted reference, or the resolution that selects the source. Under multiple connections two
-> realizations differing only in `connection` denote different material locations, so a profile that
-> merely checks cannot tell them apart, and CHECK loses the discriminating power R0 requires.
+> A **multi-connection profile** MUST discharge it by **CONSUME** — `connection` must reach
+> **material-source selection**. This is the channel that matters for this fact, and it need not
+> surface in any rendered reference: what must change is *which source is consulted*. Under multiple
+> connections two realizations differing only in `connection` denote different material locations, so
+> a profile that checks against a single declared context cannot tell them apart, and two
+> distinguishable claims become observationally identical.
 >
 > A profile that can do neither MUST REFUSE.
 
@@ -183,8 +208,10 @@ That is the whole criterion. R1 and R2 are its application to the two facts at i
 > A profile that cannot MUST **REFUSE** any endpoint carrying a non-null `schema`. It MUST NOT drop
 > the field and emit an unqualified reference: `{schema: "sales", table: "revenue"}` and
 > `{schema: "staging", table: "revenue"}` are different material locations, and an unqualified
-> `FROM revenue` collapses them — the exact loss of discriminating power R0 forbids, and the more
-> dangerous for being silent, since both endpoints will usually resolve to *something*.
+> `FROM revenue` collapses them — two claims made observationally indistinguishable by the drop,
+> which is exactly what the test forbids, and the more dangerous for being silent, since both
+> endpoints will usually resolve to *something*. The channel here is **qualified endpoint identity**:
+> what the endpoint denotes changes even where a profile's rendered string would not.
 >
 > **A null `schema` is not a dropped one.** Null asserts *"no schema qualification applies"*, which a
 > profile may consume by emitting the unqualified reference. The distinction is between a fact that
@@ -266,14 +293,22 @@ The two must never be conflated, and a producer for *this* contract is not an ex
 
 ---
 
-## 10. Enrolment in the prose-currency mechanism
+## 10. Two currency checks, deliberately separate
 
-On ratification — **not before** — enrol this document in `scripts/currency_stamps.toml`. Stated
-concretely, because *"this should be enrolled"* is precisely how a document ends up not being.
+On ratification — **not before** — this document's currency must be guarded. There are **two**
+checks, they guard **different things**, and neither substitutes for the other. Keeping them
+separate is the point of this section (instruction, Huayin, 2026-09-12): a stamp that looks like it
+covers the constants would be worse than no stamp, because it would retire the question.
 
-**The mechanism as it stands renders four placeholders** — `{umbrella}` `{core}` `{server}`
-`{contract}` — and the mapping-format major is not among them. Enrolment is therefore **one guard
-change plus two entries**, not a TOML line:
+### 10.1 CHECK ONE — prose-currency enrolment (the ratified freeze)
+
+**Guards:** *does the shipped state still match what this document says about itself?*
+**Mechanism:** `scripts/currency_stamps.toml` + `scripts/check_currency_stamps.py`.
+
+Stated concretely, because *"this should be enrolled"* is precisely how a document ends up not
+being. The mechanism as it stands renders four placeholders — `{umbrella}` `{core}` `{server}`
+`{contract}` — and the mapping-format major is **not** among them. Enrolment is therefore **a guard
+change plus entries**, not a TOML line:
 
 1. **A fifth placeholder, imported, never literal.** `{mapping_major}`, rendered from
    `columna_core.compiler.realization.SUPPORTED_MAPPING_FORMAT_MAJOR`, by the rule the guard already
@@ -282,20 +317,32 @@ change plus two entries**, not a TOML line:
    in the same change, or a mistyped name reports four names when there are five.
 
 2. **A stamp on this document's own status line**, so that a mapping-major bump which leaves this
-   freeze describing the superseded major fails closed. Per the manifest's own guidance, enrol the
-   half of the claim that carries the version and does not wrap.
+   freeze describing the superseded major fails closed. Per the manifest's guidance, enrol the half
+   of the claim that carries the version and does not wrap.
 
-3. **A stamp wherever shipped prose names the mapping-format major** — the same coverage-by-named-
-   entry discipline the manifest applies everywhere else. Coverage grows by enrolment and a reason
-   beside it, never by the guard deciding for itself what looks current.
-
-**One thing the stamp cannot do, recorded so ratification does not mistake it for done.** §6's
-producer/consumer defect — `MAPPING_FORMAT_VERSION` and `SUPPORTED_MAPPING_FORMAT_MAJOR` must agree
-and nothing compares them — is **not** closeable by this mechanism. The guard checks *prose against
-the shipped state*; it has no way to compare two constants to each other. That agreement is a
-**test**, and ratification should require one.
+3. **A stamp wherever shipped prose names the mapping-format major** — coverage grows by a named
+   entry and a reason beside it, never by the guard deciding for itself what looks current.
 
 **Why enrol at all:** the v1 freeze is cited by no code, by no test, and is enrolled in nothing.
-That is exactly how a ratified format document becomes folklore — true when written, unfalsifiable
-thereafter. The guard's polarity is right for this use: *history is the default, currency is
-declared*; nothing scans this file, and a claim is checked only because a human enrolled it by name.
+That is how a ratified format document becomes folklore — true when written, unfalsifiable
+thereafter. The guard's polarity suits this use: *history is the default, currency is declared*.
+
+### 10.2 CHECK TWO — a code/test invariant on the constants (NOT a stamp)
+
+**Guards:** *do the producer and consumer constants still agree with each other?*
+**Mechanism:** a **test**. It does not exist, and ratification should require it.
+
+§6 records the defect: `MAPPING_FORMAT_VERSION = "2"` and `SUPPORTED_MAPPING_FORMAT_MAJOR = 2` live
+side by side in `realization.py`, must agree, and **nothing compares them**. The same defect is
+already live at `columna_server/registry.py:46`, still major 1 while
+`columna_core.governed.publication` is at major 2 — which is the proof that it is a real failure mode
+and not a hypothetical one.
+
+> **The prose stamp cannot close this, and must not be described as if it could.** The currency guard
+> renders a template from the shipped state and asserts the literal appears in a file. It compares
+> **prose to shipped state**. It has no mechanism for comparing **two constants to each other**, and
+> adding one would make it something other than what it is — a guard that reads no prose it was not
+> pointed at.
+
+An enrolment that quietly left this uncovered would be the more dangerous outcome of the two,
+because the stamp's presence would read as assurance. Both checks, or the gap stays named.
