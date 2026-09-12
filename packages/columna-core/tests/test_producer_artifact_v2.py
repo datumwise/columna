@@ -97,8 +97,10 @@ def test_the_produced_artifact_says_unestablished_rather_than_implying_permissio
 
 
 def test_the_produced_artifact_compiles(publication):
+    """`TYPE Decimal`, not `Float64` — see the sibling assertion in `test_governed_v2.py` for the
+    correction (Huayin, 2026-09-12) and the measurement that showed the coercion was unforced."""
     image = compile_v2(publication, _mapping(publication))
-    assert "MEASURE revenue ON sales FROM sales_lines TYPE Float64 VALUE amount" in image.text
+    assert "MEASURE revenue ON sales FROM sales_lines TYPE Decimal VALUE amount" in image.text
     for member in ("count", "max", "min", "sum"):
         assert f"        {member}" in image.text
 
