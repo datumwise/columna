@@ -11,17 +11,22 @@ on:
   # never been built against. That is worse than a missing check: it is a check that asserts
   # something nobody verified.
   #
-  # `edited` also fires on TITLE and BODY edits, which must not cost a full matrix run. The job-level
-  # guard `github.event.action != 'edited' || github.event.changes.base` is the narrow part: it admits
-  # the base change and nothing else. Broadening the types without it would have traded a false green
-  # for a workflow that reruns every time someone fixes a typo in a description.
+  # WHY THERE IS NO JOB-LEVEL `if` FILTER HERE, THOUGH ONE WAS TRIED AND MEASURED.
+  # `edited` also fires on TITLE and BODY edits, so the obvious narrowing is to add
+  # `if: github.event.action != 'edited' || github.event.changes.base` to every job and skip the
+  # rest. It works — the run costs no runner time. It also REPLACES THE PR'S CHECK DISPLAY WITH
+  # `skipped`: measured on this very PR, a title edit turned 14 green checks into 10 skipped ones,
+  # while `mergeStateStatus` stayed CLEAN so the merge button never objected.
+  #
+  # That is the same defect in a new costume. We came here to stop a PR displaying a status nobody
+  # verified; a skipped check that has quietly replaced a real green is also a status nobody
+  # verified, and it reads as benign. A matrix re-run on a description edit is the cheaper mistake:
+  # it wastes minutes, and minutes are recoverable in a way that a misleading green is not.
   pull_request:
     types: [opened, synchronize, reopened, edited]
 
 jobs:
   test:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
@@ -106,8 +111,6 @@ jobs:
   # red because Zenodo had a bad afternoon. `--live` re-verification exists and is run by hand when a
   # deposit changes, not on every commit.
   publication-registry:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: publication registry (fails closed on an unregistered DOI)
     runs-on: ubuntu-latest
     steps:
@@ -151,8 +154,6 @@ jobs:
   # Both legs run the SAME assertion file (scripts/assert_demo_play.py) rather than an inline
   # `python -c`, so they cannot silently drift into proving different things.
   demo-wheel-install:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: demo wheel install (${{ matrix.os }} / py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -197,8 +198,6 @@ jobs:
             | demoenv/${{ matrix.venv-bin }}/python scripts/assert_demo_play.py
 
   dep-caps:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: dependency cap guard
     runs-on: ubuntu-latest
     steps:
@@ -218,8 +217,6 @@ jobs:
         run: python scripts/gates.py --gate dep-caps
 
   release-set:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: release-set coherence guard
     runs-on: ubuntu-latest
     steps:
@@ -243,8 +240,6 @@ jobs:
         run: python scripts/gates.py --gate release-set-selftest
 
   currency-stamps:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: currency-stamp guard
     runs-on: ubuntu-latest
     steps:
@@ -277,8 +272,6 @@ jobs:
         run: python scripts/gates.py --gate currency-stamps
 
   purged-grammar:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: purged-grammar guard
     runs-on: ubuntu-latest
     steps:
@@ -300,8 +293,6 @@ jobs:
   # defect), or if the manifest names a gate no workflow actually runs (a row that reads as coverage
   # while running nowhere). Cheap, no install, and it guards every other gate's reachability.
   meta-gate:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -312,8 +303,6 @@ jobs:
         run: python scripts/gates.py --gate meta-gate
 
   build:
-    # Run unless this is an `edited` event that did NOT change the base (see `on:` above).
-    if: github.event.action != 'edited' || github.event.changes.base
     name: build wheels + sdists
     runs-on: ubuntu-latest
     steps:
