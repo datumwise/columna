@@ -6,6 +6,8 @@ never a seam — it is a real distinction in the law, and it stays asserted as o
 """
 import ast
 import inspect
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -90,6 +92,31 @@ def test_proof_a_does_not_import_the_excluded_stack():
             elif isinstance(n, ast.ImportFrom) and n.module and n.level == 0:
                 reached.add(n.module)
     assert not (reached & forbidden), f"Proof A reaches for {sorted(reached & forbidden)}"
+
+
+def test_the_successor_path_loads_no_execution_module_at_runtime():
+    """THE RUNTIME COMPLEMENT to the static closure, in a CLEAN INTERPRETER.
+
+    The static test says Proof A's modules do not NAME the execution stack. This one says the
+    interpreter does not END UP with it loaded — which is the property that was actually asked for,
+    and the one that was false until `columna_core.__init__` became lazy. Neither test replaces the
+    other: a module could name nothing forbidden and still pull the stack in transitively (that was
+    the bug), or name it in a docstring and pull in nothing."""
+    prog = (
+        "import sys\n"
+        "import columna_platform.serving, columna_platform.admission, columna_platform.state\n"
+        "banned = {'planner','engine','model','adjudication','parser','projection','frameql',"
+        "'expr','connector'}\n"
+        "loaded = {m.split('.')[1] for m in sys.modules "
+        "if m.startswith('columna_core.') and m.count('.') == 1}\n"
+        "print('BANNED', ' '.join(sorted(loaded & banned)))\n"
+        "print('DUCKDB', 'duckdb' in sys.modules)\n"
+    )
+    out = subprocess.run([sys.executable, "-c", prog], capture_output=True, text=True, check=True)
+    lines = {ln.split(" ", 1)[0]: (ln.split(" ", 1)[1] if " " in ln else "")
+             for ln in out.stdout.splitlines()}
+    assert lines["BANNED"] == "", f"Proof A loaded {lines['BANNED']} at runtime"
+    assert lines["DUCKDB"] == "False"
 
 
 # ── FINDING 2 · CLOSED — the registry can express a want-of-state refusal ────────────────────────
