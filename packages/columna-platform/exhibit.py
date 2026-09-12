@@ -89,6 +89,26 @@ def main():
           f"   (re-materializations: {store2.rematerializations})")
     print("  the caller never learns the cache missed; `want_of_state` is not `evicted`.")
 
+    rule("C3 STANDING IS NOT A MOVEMENT LICENCE")
+    import copy, json as _json
+    from columna_core.governed.publication import parse_publication
+    from columna_core.governed.resolve import resolve_all
+    doc = copy.deepcopy(_json.loads(PUBLICATION.read_text(encoding="utf-8")))
+    for dec in doc["logical"]["declarations"]:
+        if dec.get("body", {}).get("family_id") == REVENUE:
+            dec["body"]["domain"] = "the trading calendar"
+    trap = resolve_all(parse_publication(doc))[REVENUE]
+    print(f"  C3 standing: {trap['domain_and_movement'].standing}   "
+          f"value: {trap['domain_and_movement'].value}")
+    print(f"  movement_licence(): {serving.movement_licence(trap)}")
+    store3 = RetainedStateStore()
+    serving.materialize(family, trap, real, carrier.exact_money(),
+                        basis=trap["sufficient_state_bases"].value, constitution=CONSTITUTION,
+                        constitution_scheme="fcf-1", currency="tok-1", store=store3)
+    w3 = serving.decide(trap, store3, AnalyticalIdentity(REVENUE, "sale_at"), at_anchor="store")
+    _print_refusal(w3)
+    print(f"\n  {serving.RESPONSIBILITY_STANDING_RULE}")
+
     rule("EMPTY-FIBER LAW IS NOT ABSENCE LAW")
     from columna_platform.admission import EMPTY_FIBER_RULING
     print(f"  C9 standing: {view['exceptional_cases'].standing}   value: {view['exceptional_cases'].value}")

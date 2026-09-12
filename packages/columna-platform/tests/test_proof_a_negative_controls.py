@@ -130,6 +130,70 @@ def test_eviction_is_not_a_wire_reason():
     assert not any("evict" in r for r in REASON_OUTCOME)
 
 
+# ── C3 CONTENT, NOT C3 STANDING (ruled 2026-09-12) ───────────────────────────────────────────────
+def test_a_domain_alone_does_not_permit_movement(revenue, domain_only_view):
+    """THE CONTROL THE ORIGINAL GUARD WOULD HAVE FAILED.
+
+    C3 resolves ESTABLISHED here — off the DOMAIN — while no movement is licensed. The old guard
+    tested `standing != ESTABLISHED` and would have let this serve at a coarser anchor."""
+    family, _view, real = revenue
+    store = RetainedStateStore()
+    _materialize(family, domain_only_view, real, store)
+
+    assert domain_only_view["domain_and_movement"].standing == "established"   # the trap
+    assert domain_only_view["domain_and_movement"].value["movement"] is None
+
+    w = serving.decide(domain_only_view, store, AnalyticalIdentity(family.family_id, "sale_at"),
+                       at_anchor="store")
+
+    assert w["outcome"] == "refuse"
+    assert reason(w) == "want_of_law"
+    assert "established by its DOMAIN alone" in no_result(w)["detail"]
+
+
+def test_the_licence_reader_returns_none_for_a_domain_only_c3(domain_only_view):
+    assert serving.movement_licence(domain_only_view) is None
+
+
+def test_an_explicit_none_movement_also_refuses_and_says_so(revenue, declared_no_movement_view):
+    """A POSITIVE negative is not the same as silence, and the refusal must not spell them alike."""
+    family, _view, real = revenue
+    store = RetainedStateStore()
+    _materialize(family, declared_no_movement_view, real, store)
+
+    w = serving.decide(declared_no_movement_view, store,
+                       AnalyticalIdentity(family.family_id, "sale_at"), at_anchor="store")
+
+    assert reason(w) == "want_of_law"
+    assert "DECLARED that no movement is licensed" in no_result(w)["detail"]
+    assert serving.movement_licence(declared_no_movement_view) is None
+
+
+def test_the_three_no_licence_cases_are_distinguishable(revenue, domain_only_view,
+                                                        declared_no_movement_view):
+    """All three refuse want_of_law; an operator must still be able to tell them apart."""
+    family, view, real = revenue
+    store = RetainedStateStore()
+    _materialize(family, view, real, store)
+    ident = AnalyticalIdentity(family.family_id, "sale_at")
+
+    details = set()
+    for v in (view, domain_only_view, declared_no_movement_view):
+        st = RetainedStateStore()
+        _materialize(family, v, real, st)
+        w = serving.decide(v, st, ident, at_anchor="store")
+        assert reason(w) == "want_of_law"
+        details.add(no_result(w)["detail"])
+    assert len(details) == 3
+
+
+def test_the_governing_rule_is_recorded_verbatim():
+    assert serving.RESPONSIBILITY_STANDING_RULE == (
+        "Standing of a responsibility does not imply establishment of every fact that may appear "
+        "inside that responsibility."
+    )
+
+
 # ── CONTROL 3 · a finalized value offered back as sufficient state ───────────────────────────────
 def test_a_finalized_value_is_not_sufficient_state(revenue):
     family, view, real = revenue

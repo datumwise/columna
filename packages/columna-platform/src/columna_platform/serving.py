@@ -41,8 +41,9 @@ from pathlib import Path
 from typing import Optional
 
 from columna_core.governed.publication import parse_publication
+from columna_core.governed.publication import ExplicitNone
 from columna_core.governed.resolve import (
-    C3_DOMAIN_MOVEMENT, C7_SUFFICIENT_STATE, ESTABLISHED, resolve_all,
+    C3_DOMAIN_MOVEMENT, C7_SUFFICIENT_STATE, ESTABLISHED, EXPLICIT_NONE, resolve_all,
 )
 from columna_core.compiler.realization import load_mapping, require_same_publication
 from columna_core.disclosure import Disclosure, Outcome
@@ -110,6 +111,70 @@ def materialize(family, law_view, realization, carrier_obj, *, basis: str,
     return store.insert(st)
 
 
+#: THE GOVERNING RULE, RECORDED VERBATIM (ruled Huayin, 2026-09-12). A constant, not a comment, for
+#: the reason `EMPTY_FIBER_RULING` is one: it is the sentence that makes the guard below non-obvious,
+#: and a reader deleting the guard should have to delete this too.
+RESPONSIBILITY_STANDING_RULE = (
+    "Standing of a responsibility does not imply establishment of every fact that may appear "
+    "inside that responsibility."
+)
+
+
+def movement_licence(law_view):
+    """The movement fact a C3 standing actually carries, or `None` where it carries none.
+
+    WHY THIS IS NOT `C3.standing == ESTABLISHED`. C3 is `domain AND movement`, and `resolve` marks it
+    ESTABLISHED when EITHER is declared:
+
+        elif fam.domain is not None or fam.movement is not None:  ->  ESTABLISHED
+
+    So a family that declares a DOMAIN and no movement resolves ESTABLISHED with
+    `{'domain': ..., 'movement': None}`. Proof A's original guard tested the standing, and would
+    therefore have served a coarser anchor for such a family with NO LICENCE AT ALL. The control
+    passed only because the lighthouse fixture happens not to declare a domain — right by luck of the
+    fixture rather than by construction, which is the kind of green that hides a hole.
+
+    Same error class as the empty-fiber finding, one responsibility over: C9 ESTABLISHED did not mean
+    absence was governed, and C3 ESTABLISHED does not mean a movement is licensed.
+
+    THREE ANSWERS, KEPT APART:
+      · a movement fact          -> returned; the caller may then check it licenses THIS movement
+      · an explicit none         -> None; the family has DECLARED that nothing moves
+      · absent / domain-only     -> None; nothing was established either way
+
+    The last two both yield `None` because the caller's question is the same — *is there a positive
+    licence?* — and the DETAIL of which it was belongs in the refusal text, not in control flow.
+
+    This guard is deliberately narrow: it inspects C3's content for the successor serving path and
+    does NOT redesign C3. Whether `resolve` should split domain from movement is a governed question
+    and is left open."""
+    c3 = law_view[C3_DOMAIN_MOVEMENT]
+    if c3.standing == EXPLICIT_NONE:
+        return None
+    if c3.standing != ESTABLISHED or not isinstance(c3.value, dict):
+        return None
+    movement = c3.value.get("movement")
+    if movement is None or isinstance(movement, ExplicitNone):
+        return None
+    return movement
+
+
+def _no_licence_detail(law_view, source: str, target: str) -> str:
+    """Say WHICH of the three no-licence cases this is. A refusal that cannot tell 'declared that
+    nothing moves' from 'nobody said' is a refusal an operator cannot act on."""
+    c3 = law_view[C3_DOMAIN_MOVEMENT]
+    if c3.standing == EXPLICIT_NONE:
+        why = "the family has DECLARED that no movement is licensed"
+    elif c3.standing == ESTABLISHED:
+        why = (f"C3 is established by its DOMAIN alone and carries no movement "
+               f"(value={c3.value!r}) — standing of a responsibility is not establishment of every "
+               f"fact inside it")
+    else:
+        why = f"governed movement is {c3.standing}"
+    return (f"the ask moves from {source!r} to {target!r} and there is no positive movement "
+            f"licence: {why}. No re-realization can supply one")
+
+
 #: reason tokens, minted 2026-09-12 in the closed registry. Named here once so a typo is an
 #: ImportError rather than an `UnregisteredReason` at the wire.
 WANT_OF_LAW = "want_of_law"
@@ -149,12 +214,10 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
     try:
         # ── law first ───────────────────────────────────────────────────────────────────────────
         if at_anchor is not None and at_anchor != identity.anchor:
-            movement = law_view[C3_DOMAIN_MOVEMENT]
-            if movement.standing != ESTABLISHED:
-                raise WantOfLaw(
-                    f"the ask moves from {identity.anchor!r} to {at_anchor!r} and governed movement "
-                    f"is {movement.standing}; no re-realization can supply a licence",
-                    subject=law_view.canonical_reference)
+            # CONTENT, NOT STANDING. See `movement_licence`.
+            if movement_licence(law_view) is None:
+                raise WantOfLaw(_no_licence_detail(law_view, identity.anchor, at_anchor),
+                                subject=law_view.canonical_reference)
 
         c7 = law_view[C7_SUFFICIENT_STATE]
         if c7.standing != ESTABLISHED:
