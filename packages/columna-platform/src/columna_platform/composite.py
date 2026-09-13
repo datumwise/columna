@@ -45,12 +45,24 @@ from columna_core.governed.resolve import (
 from .refusals import WantOfCompatibility, WantOfLaw, WantOfState
 
 
+#: THE BOUNDARY ON THE MECHANISM, recorded verbatim (ruled Huayin, 2026-09-12). A constant, like
+#: `EMPTY_FIBER_RULING` and `RESPONSIBILITY_STANDING_RULE`, because the thing most likely to be
+#: mistaken for a governed fact here is the token — it is concrete, it is checked, and it works.
+PASS_ID_BOUNDARY = (
+    "pass_id is a Proof-C runtime witness of common constitution, not a frozen "
+    "constitutional/public representation of participation standing. The governing requirement is "
+    "shared participation provenance; the current token mechanism is one implementation of that "
+    "requirement."
+)
+
 @dataclass(frozen=True)
 class ParticipationWitness:
     """Evidence that a set of components was constituted over ONE participation decision.
 
     `pass_id` is minted per constitution pass and is the part that cannot be forged by assembling
-    components later. Two states constituted separately hold different `pass_id`s even when every
+    components later. IT IS A MECHANISM, NOT THE REQUIREMENT — see `PASS_ID_BOUNDARY`: what is
+    governed is shared participation PROVENANCE, and a token is one way to witness it. A successor
+    may witness the same fact differently without this proof having said otherwise. Two states constituted separately hold different `pass_id`s even when every
     other field agrees — which is exactly the case the pairing rule must catch, because it is the
     case where the numbers look fine."""
 

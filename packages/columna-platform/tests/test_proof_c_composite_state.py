@@ -220,3 +220,34 @@ def test_the_carriers_really_passed_admission(admitted_pair):
     for adm in (a, b):
         assert adm.governed_domain == "decimal"
         assert adm.carrier_type == "decimal128(18, 4)"
+
+
+# ══ the mechanism is not the requirement ═════════════════════════════════════════════════════════
+def test_the_pass_id_boundary_is_recorded_verbatim():
+    """The token is concrete, checked, and works — which is exactly why it could be mistaken for the
+    governed fact. It is not one."""
+    assert composite.PASS_ID_BOUNDARY == (
+        "pass_id is a Proof-C runtime witness of common constitution, not a frozen "
+        "constitutional/public representation of participation standing. The governing requirement "
+        "is shared participation provenance; the current token mechanism is one implementation of "
+        "that requirement."
+    )
+
+
+def test_the_two_witness_strengths_stay_distinct(mean_view, admitted_pair):
+    """Pinned so neither is quietly widened into the other.
+
+    Collapsing them breaks one half of the proposition in each direction: `matches` everywhere makes
+    lawful continuation impossible (it crosses passes by nature); `same_participation` everywhere
+    lets the after-the-fact pair through."""
+    a, b = admitted_pair
+    one = composite.constitute(mean_view, a, anchor="sale_at")
+    two = composite.constitute(mean_view, b, anchor="sale_at")
+
+    assert one.witness.same_participation(two.witness)      # same governed rule
+    assert not one.witness.matches(two.witness)             # different constitution pass
+
+    composite.continue_composite(one, two)                  # permitted on the weaker test
+    with pytest.raises(WantOfCompatibility):                # refused on the stronger one
+        composite.pair(one.component("SUM"), two.component("COUNT"),
+                       family_id=MEAN_ID, anchor="sale_at")
