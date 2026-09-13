@@ -76,6 +76,57 @@ ENTRY_LEGACY = "legacy"
 #: GovernedPublication, NEVER in the governed registry. Missing authority never manufactures a
 #: publication (the P0(c) migration discipline).
 ENTRY_SOURCE_REFERENCED_INCOMPLETE = "source_referenced_incomplete"
+# ── runtime selection: an OPERATIONAL fact, kept apart from every governed one ────────────────────
+#: Which execution runtime a deployment has chosen for one manifold. THIS IS NOT A GOVERNED FACT and
+#: not an artifact kind (ruled Huayin, 2026-09-12 §3/§8). Three things stay separate here, and the
+#: separation is the ruling:
+#:
+#:     the governed publication major        a fact about the ARTIFACT
+#:     the presence/absence of `manifold.cml`  a fact about the DEPLOYED UNIT
+#:     the selected execution provider       a fact about THIS INSTALLATION
+#:
+#: A v2 artifact therefore never activates the successor runtime by existing. Selection is explicit,
+#: or it is Core.
+RUNTIME_CORE = "core"
+RUNTIME_PLATFORM = "platform"
+
+#: PROVISIONAL, and deliberately the smallest thing that works (ruled §8: "do not freeze a larger
+#: deployment-manifest design from one slice"). `COLUMNA_RUNTIME="lighthouse=platform,demo=core"`.
+#: The permanent home for deployment configuration is not decided by this proof, and this name is
+#: expected to move when it is.
+RUNTIME_ENV_VAR = "COLUMNA_RUNTIME"
+
+
+class RuntimeSelectionError(ValueError):
+    """A deployment selected a runtime that this unit cannot satisfy — raised AT CONSTRUCTION.
+
+    FAIL CLOSED, LOUDLY, AND EARLY. The alternatives were both worse: serving the unit through the
+    other runtime would be the silent provider switch §8 forbids, and dropping it from the catalog
+    would let a misconfigured deployment look like a correctly-configured smaller one. An operator
+    who names a runtime is making a claim about what this installation is; if the claim cannot be
+    honoured, the installation should not come up pretending otherwise."""
+
+
+def parse_runtime_selection(spec: Optional[str]) -> dict:
+    """`"lighthouse=platform,demo=core"` → `{"lighthouse": "platform", "demo": "core"}`.
+
+    A malformed entry RAISES rather than being skipped: a deployment that typed the configuration
+    wrong and got the default runtime anyway would be the quietest possible way to serve the wrong
+    thing. Empty or unset means no selections, which means everything is Core, which is today."""
+    out: dict = {}
+    for chunk in (spec or "").split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        mid, sep, chosen = chunk.partition("=")
+        if not sep or not mid.strip() or not chosen.strip():
+            raise RuntimeSelectionError(
+                f"{RUNTIME_ENV_VAR} entry {chunk!r} is not `<manifold_id>=<runtime>`")
+        out[mid.strip()] = chosen.strip()
+    return out
+
+
+
 #: governed-publication.json present AND its ref matches the .cml SOURCE_MANIFOLD AND a valid
 #: lowering-receipt.json binds this exact publication to this exact execution image — a real governed
 #: publication with a Core realization bound by concrete ManifoldRef and by established provenance.
@@ -104,9 +155,16 @@ class LoadedManifold:
     manifold_id: str
     name: str
     description: str
-    manifold: object              # columna_core.model.Manifold — the logical/read model
-    provider: ExecutionProvider   # execution capability (the seam); the concrete Core
-    #                               runtime lives on CoreExecutionProvider.runtime, not here
+    #: columna_core.model.Manifold — the legacy logical/read model, or **None** for a
+    #: SUCCESSOR-NATIVE governed unit that ships no `manifold.cml` (ruled §2). `.cml` is a legacy
+    #: Core execution artifact and a private ontology; it is not baggage a governed unit must carry,
+    #: so its absence is represented as absence and never as an empty stand-in. Only the legacy Core
+    #: provider requires it.
+    manifold: Optional[object]
+    #: Execution capability (the seam), or **None** when this installation has no realization for
+    #: the unit. Not a new state: `resolve_public` already raises `NotRealizableHere` for exactly
+    #: this, and the wire already says `not_realizable_here`.
+    provider: Optional[ExecutionProvider]
     # Governed identity (S2.2a-3). ``publication``/``ref`` are set ONLY for a governed entry —
     # an artifact present AND matching the .cml SOURCE_MANIFOLD. Its ref/logical/authority come
     # from governed-publication.json, never from the .cml. A source-referenced-but-incomplete or
@@ -119,6 +177,13 @@ class LoadedManifold:
     # legacy runtime. A runtime's claim about publication origin — NOT established authority; for a
     # governed entry it equals ``ref``, for an authority-incomplete entry it is the row's source_ref.
     source_ref: Optional[ManifoldRef] = None
+    #: THE THREE SEPARATE FACTS (§3). Which runtime this deployment selected; whether a legacy `.cml`
+    #: is present; which publication major the artifact was read as. None of the three implies
+    #: another, and no combination of the first two is allowed to select the third or be selected by
+    #: it — provider choice is operational, artifact major is governed, `.cml` presence is packaging.
+    runtime: str = RUNTIME_CORE
+    has_cml: bool = True
+    publication_major: Optional[int] = None
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -132,6 +197,68 @@ def _load_duckdb(warehouse_dir: str):
         table = os.path.basename(f)[:-8]
         con.execute(f"CREATE TABLE {table} AS SELECT * FROM read_parquet('{f}')")
     return con
+
+
+def _load_governed_only(manifold_id: str, mdir: str) -> LoadedManifold:
+    """A SUCCESSOR-NATIVE governed runtime unit: a governed publication and NO `manifold.cml`.
+
+    THE DEPLOYMENT UNIT IS THE PUBLICATION, not a lowered image (ruled Huayin, 2026-09-12 §2). A
+    `.cml` is the legacy Core execution artifact and a private ontology; requiring one here would
+    make every successor unit carry a file it must not read for meaning, purely to satisfy a loader.
+    So this path builds no `Manifold`, opens no connector, and runs no adjudication — not because
+    those are deferred, but because there is no legacy image for them to be about.
+
+    NO LOWERING RECEIPT IS REQUIRED, AND THIS IS NOT A WEAKENING. The receipt discharges one specific
+    obligation: that a compiler produced THIS EXECUTION IMAGE from THIS PUBLICATION. Where there is no
+    image there is no such binding to attest, and demanding a receipt would be demanding evidence
+    about a file the unit deliberately does not have. The receipt requirement is a property of the
+    lowered path, and it stays exactly as strict there — see `_load_one`, unchanged.
+
+    IT LOADS WITHOUT A PROVIDER, and that is an already-expressed state rather than a new one. The
+    unit enters the governed registry (the publication exists) and binds no realization (this
+    installation cannot serve it yet), which is precisely what `NotRealizableHere` and the public
+    `not_realizable_here` have always meant. No new catalog kind, no new condition code, no new
+    public state — the vocabulary already had a word for this."""
+    artifact_path = _osp.join(mdir, PUBLICATION_ARTIFACT)
+    if not _osp.isfile(artifact_path):
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
+            f"which serves a governed publication, and this unit has no {PUBLICATION_ARTIFACT}")
+    try:
+        artifact = load_publication_artifact(artifact_path)
+    except PublicationArtifactError as e:
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime and "
+            f"its {PUBLICATION_ARTIFACT} is unusable: {e}") from e
+    if artifact.major != _PLATFORM_PUBLICATION_MAJOR:
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
+            f"which requires a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
+            f"is major {artifact.major}. A v{artifact.major} artifact is NOT read as v"
+            f"{_PLATFORM_PUBLICATION_MAJOR}: its family law is not there to be found, and inferring "
+            f"it is the defect v{_PLATFORM_PUBLICATION_MAJOR} exists to remove")
+
+    return LoadedManifold(
+        manifold_id=manifold_id,
+        name=manifold_id,           # no data.toml to name it, and a fabricated name is a claim
+        description="",
+        manifold=None,              # no legacy image, honestly absent
+        provider=None,              # no realization bound here → NotRealizableHere, as always
+        publication=governed_publication_from_artifact(artifact),
+        ref=artifact.ref,
+        entry_kind=ENTRY_GOVERNED,
+        condition=None,
+        source_ref=artifact.ref,    # the unit IS the publication; origin and identity coincide
+        runtime=RUNTIME_PLATFORM,
+        has_cml=False,
+        publication_major=artifact.major,
+    )
+
+
+#: The publication major a successor-native unit must carry. Not a general policy about which majors
+#: the server READS (that is `SUPPORTED_PUBLICATION_FORMAT_MAJORS`, and it includes v1 for the legacy
+#: path) — a requirement of THIS runtime, kept here so the two cannot be confused.
+_PLATFORM_PUBLICATION_MAJOR = 2
 
 
 def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
@@ -185,6 +312,7 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
     ref: Optional[ManifoldRef] = None
     entry_kind = ENTRY_LEGACY
     condition: Optional[LoadCondition] = None
+    publication_major: Optional[int] = None
 
     if _osp.isfile(artifact_path):
         try:
@@ -194,6 +322,7 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
             entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE if src_ref else ENTRY_LEGACY
             condition = LoadCondition(manifold_id, type(e).__name__, str(e))
         else:
+            publication_major = artifact.major     # what it WAS, not what it selects
             if src_ref is None or src_ref != artifact.ref:
                 # The .cml does not (or wrongly) claim to realize this publication: do not bind.
                 claimed = "no SOURCE_MANIFOLD" if src_ref is None else f"{src_ref.manifold_id}@{src_ref.version}"
@@ -249,21 +378,68 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         entry_kind=entry_kind,
         condition=condition,
         source_ref=src_ref,
+        runtime=RUNTIME_CORE,
+        has_cml=True,
+        publication_major=publication_major,
     )
 
 
 class ManifoldStore:
     """All Manifolds under a directory, parsed and connected once at construction."""
 
-    def __init__(self, manifolds_dir: str):
+    def __init__(self, manifolds_dir: str, runtime_selection: Optional[dict] = None):
+        """`runtime_selection` maps manifold_id → `RUNTIME_CORE` / `RUNTIME_PLATFORM`; when omitted it
+        is read from `COLUMNA_RUNTIME`. UNSELECTED MEANS CORE, so every existing deployment loads
+        exactly as it did — the successor runtime is reachable only by naming it."""
         self.dir = os.path.abspath(manifolds_dir)
         if not os.path.isdir(self.dir):
             raise FileNotFoundError(f"manifolds dir not found: {self.dir}")
+        self.runtime_selection = (parse_runtime_selection(os.environ.get(RUNTIME_ENV_VAR))
+                                  if runtime_selection is None else dict(runtime_selection))
+        for mid, chosen in sorted(self.runtime_selection.items()):
+            if chosen not in (RUNTIME_CORE, RUNTIME_PLATFORM):
+                raise RuntimeSelectionError(
+                    f"manifold '{mid}': unknown runtime {chosen!r} "
+                    f"(known: {RUNTIME_CORE!r}, {RUNTIME_PLATFORM!r})")
+
         self._loaded: dict[str, LoadedManifold] = {}
         for entry in sorted(os.listdir(self.dir)):
             mdir = os.path.join(self.dir, entry)
-            if os.path.isdir(mdir) and os.path.isfile(os.path.join(mdir, "manifold.cml")):
+            if not os.path.isdir(mdir):
+                continue
+            has_cml = os.path.isfile(os.path.join(mdir, "manifold.cml"))
+            chosen = self.runtime_selection.get(entry)
+
+            if chosen == RUNTIME_PLATFORM:
+                # Successor-native, and NEVER a fallback: if this unit still carries a `.cml`, that
+                # is a deployment saying two contradictory things about what it is, and guessing
+                # which it meant is the silent provider switch this seam exists to prevent.
+                if has_cml:
+                    raise RuntimeSelectionError(
+                        f"manifold '{entry}': the deployment selects the {RUNTIME_PLATFORM!r} "
+                        f"runtime and the unit also ships manifold.cml. A successor-native unit is "
+                        f"the publication; a lowered image beside it is a different unit, not a "
+                        f"variant of this one")
+                self._loaded[entry] = _load_governed_only(entry, mdir)
+                continue
+
+            if chosen == RUNTIME_CORE and not has_cml:
+                # Explicitly selected Core with nothing for Core to execute. FAIL CLOSED — and in
+                # particular do NOT quietly serve it through the successor runtime because an
+                # artifact happens to be present.
+                raise RuntimeSelectionError(
+                    f"manifold '{entry}': the deployment selects the {RUNTIME_CORE!r} runtime and "
+                    f"the unit has no manifold.cml, which that runtime executes. There is no "
+                    f"fallback to another runtime")
+
+            if has_cml:                                  # unchanged legacy discovery
                 self._loaded[entry] = _load_one(entry, mdir)
+
+        missing = sorted(set(self.runtime_selection) - set(self._loaded))
+        if missing:
+            raise RuntimeSelectionError(
+                f"the deployment selects a runtime for {missing}, which are not units under "
+                f"{self.dir} — a selection naming nothing is a configuration error, not a no-op")
         if not self._loaded:
             raise FileNotFoundError(f"no manifolds (<id>/manifold.cml) found under {self.dir}")
 
@@ -282,8 +458,11 @@ class ManifoldStore:
                 self._conditions.append(lm.condition)
             if lm.publication is not None and lm.ref is not None:
                 pubs[lm.ref] = lm.publication
-                self._providers_by_ref[lm.ref] = lm.provider
                 self._loaded_by_ref[lm.ref] = lm
+                if lm.provider is not None:
+                    # A None provider must not enter this map: `realizable_refs()` is its key set, so
+                    # registering one would advertise `realizable: true` for a unit nothing can serve.
+                    self._providers_by_ref[lm.ref] = lm.provider
         self._registry: ManifoldRegistry = FolderManifoldRegistry(pubs)
 
     # ── compatibility surface (unchanged; folder-keyed) ──────────────────────────────────────────

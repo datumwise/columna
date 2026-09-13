@@ -40,10 +40,21 @@ import json
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol, runtime_checkable
 
-#: The publication-artifact format major this server understands (matches
-#: manifold_agent.publication.PUBLICATION_FORMAT_VERSION's major). Its own dimension — unrelated to
+#: The publication-artifact format majors this server understands. Its own dimension — unrelated to
 #: the wire CONTRACT_VERSION, columna-core's engine VERSION, or the Manifold's semantic version.
-SUPPORTED_PUBLICATION_FORMAT_MAJOR = 1
+#:
+#: A SET, NOT A SCALAR (ruled Huayin, 2026-09-12). The scalar said "the major this server supports",
+#: which stopped being true the moment two majors were supportable, and a scalar cannot express the
+#: thing that is actually true now: v1 remains a supported input FOR THE LEGACY CORE SERVING PATH and
+#: v2 is a supported input FOR THE SUCCESSOR PLATFORM PATH, each read according to its own contract.
+#: Keeping the scalar and quietly widening its meaning would have been the misleading compatibility
+#: the ruling forbids.
+#:
+#: NEITHER IS A SHIM FOR THE OTHER. A v1 artifact is never read as v2 and a v2 artifact is never read
+#: as v1: no family law is inferred from a v1 artifact, and no v2 artifact is degraded to the v1
+#: shape. `_READERS` below is the whole of the per-major dispatch, so adding a major is adding a
+#: reader, never a branch inside one.
+SUPPORTED_PUBLICATION_FORMAT_MAJORS = (1, 2)
 
 
 # ── identity ─────────────────────────────────────────────────────────────────────────────────────
@@ -228,6 +239,10 @@ class PublicationArtifactData:
     server never imports ``manifold_agent`` and never re-runs authored-Manifold governance."""
 
     format_version: str
+    #: The format major this artifact was READ AS. A separate fact from which runtime serves it and
+    #: from whether a legacy `.cml` sits beside it — keeping the three apart is what stops a v2
+    #: artifact from silently meaning "successor runtime" (ruled 2026-09-12 §3).
+    major: int
     ref: ManifoldRef
     logical: dict          # the artifact's physical-clean logical projection, AUTHORING vocabulary
     authority: dict        # {published_by, published_at, ratifications{universe -> record}}
@@ -259,10 +274,12 @@ def parse_publication_artifact(data: Any) -> PublicationArtifactData:
     fmt = data.get("publication_format_version")
     if not isinstance(fmt, str) or not fmt:
         raise PublicationArtifactInvalid("missing publication_format_version")
-    if _artifact_major(fmt) != SUPPORTED_PUBLICATION_FORMAT_MAJOR:
+    major = _artifact_major(fmt)
+    reader = _READERS.get(major)
+    if reader is None:
         raise UnsupportedPublicationFormat(
             f"publication_format_version {fmt!r} has an unsupported major (this server supports "
-            f"major {SUPPORTED_PUBLICATION_FORMAT_MAJOR})"
+            f"majors {list(SUPPORTED_PUBLICATION_FORMAT_MAJORS)})"
         )
     ref = data.get("ref")
     if not isinstance(ref, dict):
@@ -293,8 +310,52 @@ def parse_publication_artifact(data: Any) -> PublicationArtifactData:
             "ratification keys must correspond exactly to the logical universe names "
             f"({sorted(set(rats) ^ set(universe_names))!r} differ)"
         )
-    return PublicationArtifactData(format_version=fmt, ref=ManifoldRef(mid, ver),
+    reader(data)                    # …then whatever THIS major's own contract additionally requires
+    return PublicationArtifactData(format_version=fmt, major=major, ref=ManifoldRef(mid, ver),
                                    logical=logical, authority=authority)
+
+
+# ── per-major contracts ──────────────────────────────────────────────────────────────────────────
+# Above this line is the SPINE both majors share: a concrete ref, declaration-native `logical`, an
+# `authority` object, and ratification keys corresponding to universe names. Below it is what each
+# major additionally means. The split is deliberate — a shared spine is not a shim, because neither
+# major is being read through the other's rules.
+
+def _read_v1(data: Any) -> None:
+    """v1 — the legacy Core serving path's input, UNCHANGED and deliberately not deepened.
+
+    v1 carries `measure`/`member` declarations and its family law lives in a private realization
+    mapping, so there is no family law here for this server to check and none may be inferred. The
+    spine is the whole of the v1 contract as this server reads it; that is exactly what it was before
+    v2 support existed, and nothing about v1 ingest changed when v2 arrived."""
+    return None
+
+
+def _read_v2(data: Any) -> None:
+    """v2 — read through V2'S OWN READER, not through a second implementation of it.
+
+    `columna_core.governed.publication.parse_publication` IS the v2 contract: family identity,
+    canonical-reference uniqueness (§2.2 — two families under one reference refuse), law citations,
+    constitution authority. Re-implementing any of that here would be a second enumeration of a
+    contract this server does not own, free to drift from the reader every other consumer uses.
+
+    Imported inside the function, not at module scope: artifact READING is stdlib-JSON work and the
+    registry's independence from any heavier surface is worth keeping visible. The disjointness that
+    matters — the server never imports `manifold_agent` — is unaffected and still test-enforced.
+
+    Structural failures are re-raised as `PublicationArtifactInvalid` so every ingest defect reaches
+    the store through the one exception family it already classifies."""
+    from columna_core.governed.publication import PublicationFormatRefusal
+    from columna_core.governed.publication import parse_publication as _v2
+
+    try:
+        _v2(data)
+    except PublicationFormatRefusal as exc:
+        raise PublicationArtifactInvalid(f"v2 contract: {exc}") from exc
+
+
+#: major → the reader for that major's own contract. The whole of the per-major dispatch.
+_READERS = {1: _read_v1, 2: _read_v2}
 
 
 def load_publication_artifact(path: str) -> PublicationArtifactData:

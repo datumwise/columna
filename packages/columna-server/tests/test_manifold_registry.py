@@ -124,9 +124,14 @@ def test_artifact_logical_is_physical_clean():
 
 
 def test_unsupported_format_is_distinct_from_invalid():
-    bad_major = _artifact_dict("retail", "1.0.0"); bad_major["publication_format_version"] = "2.0"
+    # "3.0", not "2.0": major 2 became a SUPPORTED input on 2026-09-12 (v1 for the legacy Core path,
+    # v2 for the successor Platform path, each read by its own contract). An unknown major is still
+    # a distinct condition from a structural defect, which is what this test is about.
+    bad_major = _artifact_dict("retail", "1.0.0"); bad_major["publication_format_version"] = "3.0"
     with pytest.raises(UnsupportedPublicationFormat):
         parse_publication_artifact(bad_major)
+    # (the "a v1 artifact relabelled v2 is refused" control needs a REAL v1 artifact, not this
+    #  synthetic one — it lives in test_publication_format_major.py beside the shipped fixtures.)
     # a supported-format artifact that is structurally broken is INVALID, a different condition
     no_ref = _artifact_dict("retail", "1.0.0"); del no_ref["ref"]
     with pytest.raises(PublicationArtifactInvalid):
