@@ -115,8 +115,15 @@ def publication() -> dict:
 
 
 def mapping(table: str = "sales_lines", connection: str = "warehouse",
-            schema: str = "main") -> dict:
+            schema=None) -> dict:
     """The private realization. Claims only — every field here is checked against governed law.
+
+    `schema` DEFAULTS TO `None`, CHANGED FROM `"main"` (2026-09-12, with R2). Null asserts that no
+    schema qualification applies, which K0v2 consumes by emitting the unqualified `FROM sales_lines`
+    it was always going to emit. The old default CLAIMED a qualification the Core execution grammar
+    cannot represent — its table is a bare `^\\w+$` — and the compiler silently dropped it, so
+    `main.sales_lines` and any other schema's `sales_lines` compiled to the same reference. Under R2
+    a non-null schema now refuses, and this fixture stops making a claim the image cannot carry.
 
     `root_evaluator` does not appear, and cannot: the family a realization serves is named by
     `family_id`, and which law makes that family what it is lives in the publication."""

@@ -31,12 +31,17 @@ members (it read the family out of the mapping). Members now look like anchors.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from typing import Any, Optional
 
 from .refusals import InputIdentityMismatch, MappingIncomplete
 
 #: The private-mapping format v2 producers write. Its own dimension.
+#: `mapping_format_version` is a BARE MAJOR a loader keys on — never "2.0" or "0.1".
+#: Anchored so an unrecognised spelling refuses rather than being truncated to its head.
+_FORMAT_VERSION = re.compile(r"^\d+$")
+
 MAPPING_FORMAT_VERSION = "2"
 SUPPORTED_MAPPING_FORMAT_MAJOR = 2
 
@@ -123,6 +128,12 @@ def _endpoint(obj: Any, subject: str) -> Endpoint:
     return Endpoint(conn, table, col, schema)
 
 
+#: CLOSED AT ALL THREE LEVELS (freeze §8): top level, per realization kind, and endpoint. The top
+#: level was open — an unrecognised key was silently ignored, which is the one outcome a closed
+#: format may not have: a producer writing a key this reader does not know would have been told
+#: nothing, and would have believed the claim was carried.
+_TOP_KEYS = frozenset({"mapping_format_version", "publication_ref", "realizations"})
+
 _FAMILY_KEYS = frozenset({"kind", "family_id", "endpoint", "grain", "formation_operator",
                           "continuation_operator", "exactness"})
 _ANCHOR_KEYS = frozenset({"kind", "anchor_ref", "component_name", "endpoint"})
@@ -134,15 +145,25 @@ def parse_mapping(data: Any) -> PrivateCoreMappingV2:
     fmt = data.get("mapping_format_version")
     if not isinstance(fmt, str) or not fmt:
         raise MappingIncomplete("missing mapping_format_version")
-    try:
-        major = int(fmt.split(".", 1)[0])
-    except ValueError as exc:
-        raise MappingIncomplete(f"unreadable mapping_format_version {fmt!r}") from exc
+    # SHAPE FIRST, THEN VALUE (freeze §6). `int(fmt.split(".", 1)[0])` accepted "2.5" as major 2 —
+    # it truncated a version string this format does not define instead of refusing it. A reader that
+    # silently normalizes an unrecognised spelling has decided what it means.
+    if not _FORMAT_VERSION.match(fmt):
+        raise MappingIncomplete(
+            f"unreadable mapping_format_version {fmt!r}: this format is a bare MAJOR (\"2\"), and a "
+            f"reader may not guess at another spelling")
+    major = int(fmt.split(".", 1)[0])
     if major != SUPPORTED_MAPPING_FORMAT_MAJOR:
         raise MappingIncomplete(
             f"mapping_format_version {fmt!r} has major {major}; this build reads major "
             f"{SUPPORTED_MAPPING_FORMAT_MAJOR}. A v1 mapping keyed realizations by `member_ref` and "
             f"carried `root_evaluator`, which is family law and no longer lives here.")
+
+    extra_top = sorted(set(data) - _TOP_KEYS)
+    if extra_top:
+        raise MappingIncomplete(
+            f"private mapping carries unrecognised top-level key(s) {extra_top}; the key set is "
+            f"closed, and an unrecognised key is never ignored")
 
     ref = data.get("publication_ref")
     if not isinstance(ref, dict):
@@ -155,7 +176,7 @@ def parse_mapping(data: Any) -> PrivateCoreMappingV2:
     if not isinstance(rows, list):
         raise MappingIncomplete("realizations must be a list")
 
-    anchors, families, seen = [], [], set()
+    anchors, families, seen, seen_components = [], [], set(), set()
     for i, r in enumerate(rows):
         if not isinstance(r, dict):
             raise MappingIncomplete(f"realization {i} is not an object")
@@ -169,6 +190,15 @@ def parse_mapping(data: Any) -> PrivateCoreMappingV2:
             if not isinstance(a, str) or not a or not isinstance(c, str) or not c:
                 raise MappingIncomplete("anchor_component needs anchor_ref and component_name",
                                         subject=f"realization {i}")
+            # DUPLICATE DETECTION BELONGS WITH THE OTHER TOTALITY RULES (freeze §8). Duplicate
+            # FAMILY realizations already refused here; duplicate anchor components were caught only
+            # later, in the profile — so one artifact defect refused in two different places
+            # depending on which key it was on, and a reader used outside the profile saw neither.
+            if (a, c) in seen_components:
+                raise MappingIncomplete(
+                    f"anchor component {a}.{c} is realized more than once; every authored anchor "
+                    f"component maps to exactly one realization", subject=f"realization {i}")
+            seen_components.add((a, c))
             anchors.append(AnchorComponentRealization(a, c, _endpoint(r.get("endpoint"),
                                                                      f"anchor_component {a}.{c}")))
         elif kind == "family":
@@ -186,6 +216,14 @@ def parse_mapping(data: Any) -> PrivateCoreMappingV2:
                 raise MappingIncomplete(f"family {fid!r} is realized more than once")
             seen.add(fid)
             grain = r.get("grain")
+            if "grain" not in r:
+                # ABSENCE AND ERROR ARE DIFFERENT REFUSALS (freeze §8). Both used to produce
+                # "None not in GRAINS", which told a producer that it had written something wrong
+                # rather than that it had written nothing.
+                raise MappingIncomplete(
+                    "family realization declares no grain. The correspondence between the physical "
+                    "source grain and the constitutive anchor is a CLAIM, and a mapping that does "
+                    "not make it has not been written yet", subject=f"family {fid}")
             if grain not in GRAINS:
                 raise MappingIncomplete(
                     f"grain must be one of {sorted(GRAINS)} — the correspondence between the "
@@ -215,8 +253,16 @@ def parse_mapping(data: Any) -> PrivateCoreMappingV2:
 
 
 def load_mapping(path) -> PrivateCoreMappingV2:
-    with open(path, "r", encoding="utf-8") as fh:
-        return parse_mapping(json.load(fh))
+    """Read + parse from disk. Malformed JSON refuses in THIS vocabulary (freeze §8).
+
+    Its sibling `load_lowering_receipt` already wraps `json.JSONDecodeError`; this one raised the
+    stdlib error straight through, so one of two loaders over the same kind of artifact answered in a
+    different language than the other."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return parse_mapping(json.load(fh))
+    except json.JSONDecodeError as exc:
+        raise MappingIncomplete(f"private mapping is not valid JSON: {exc}") from exc
 
 
 def require_same_publication(publication, mapping: PrivateCoreMappingV2) -> None:

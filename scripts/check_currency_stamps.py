@@ -53,6 +53,7 @@ def authoritative_values() -> dict:
     versions, _floors = read_release_set()
 
     try:
+        from columna_core.compiler.realization import SUPPORTED_MAPPING_FORMAT_MAJOR
         from columna_core.disclosure_wire import CONTRACT_VERSION
     except Exception as exc:                                # pragma: no cover - guard-cannot-run path
         print("currency guard CANNOT RUN: columna_core is not importable, so the wire contract "
@@ -70,6 +71,16 @@ def authoritative_values() -> dict:
         "core": versions["columna-core"],
         "server": versions["columna-server"],
         "contract": CONTRACT_VERSION,
+        # ENROLLED 2026-09-12 with the v2 realization freeze. IMPORTED, NEVER A LITERAL — by the same
+        # rule as the wire contract above: the mapping-format major is the package's to declare, and
+        # a literal here would be the very defect being guarded.
+        #
+        # NOTE THE DIRECTION. This makes PROSE checkable against the shipped constant. It does NOT
+        # compare the constant to its sibling `MAPPING_FORMAT_VERSION` — this guard has no mechanism
+        # for comparing two constants to each other, and giving it one would make it something other
+        # than what it is. That coherence is a TEST:
+        # packages/columna-core/tests/test_mapping_format_constants.py.
+        "mapping_major": SUPPORTED_MAPPING_FORMAT_MAJOR,
     }
 
 
@@ -101,7 +112,8 @@ def main(argv=None) -> int:
 
     print("currency guard — the shipped state this commit would ship:")
     print(f"  columna {values['umbrella']} · columna-core {values['core']} · "
-          f"columna-server {values['server']} · wire contract_version \"{values['contract']}\"")
+          f"columna-server {values['server']} · wire contract_version \"{values['contract']}\""
+          f" · mapping-format major {values['mapping_major']}")
 
     failures, checked, cache = [], 0, {}
     for st in stamps:
@@ -127,7 +139,8 @@ def main(argv=None) -> int:
             failures.append(
                 f"UNKNOWN PLACEHOLDER {exc} in the template for {rel}\n"
                 f"    claim: {st['claim']}\n"
-                f"    Known placeholders: {{umbrella}} {{core}} {{server}} {{contract}}.")
+                f"    Known placeholders: {{umbrella}} {{core}} {{server}} {{contract}} "
+                f"{{mapping_major}}.")
             continue
 
         checked += 1

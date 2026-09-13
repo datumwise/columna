@@ -37,7 +37,10 @@ def _mapping(pub):
     fid = {f.canonical_reference: f.family_id for f in pub.families}
 
     def ep(column):
-        return {"connection": "warehouse", "schema": "main", "table": "sales_lines",
+        # `schema: null` — R2 (2026-09-12): K0v2 emits an unqualified `FROM`, so a non-null schema
+        # refuses rather than being dropped. Null is the honest claim for "the connection's default
+        # applies", and is what the producer should emit.
+        return {"connection": "warehouse", "schema": None, "table": "sales_lines",
                 "column": column}
     return parse_mapping({
         "mapping_format_version": "2",

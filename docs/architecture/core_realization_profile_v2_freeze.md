@@ -1,6 +1,9 @@
 # Core Realization Profile v2 — claim-field freeze — **CANDIDATE**
 
-**Status:** **CANDIDATE, not ratified.** Prepared 2026-09-12 on instruction (Huayin) for
+**Status:** **CANDIDATE, not ratified — but the implementation now conforms.** The conformance unit
+of 2026-09-12 landed R0/R1/R2, the §6 version-shape refusal, the §8 strictness items and the
+constant-coherence test, so nothing in this document is now awaiting work. This freeze describes
+**mapping-format major 2**, which is the major `columna-core` reads and writes. Prepared 2026-09-12 on instruction (Huayin) for
 ratification review. Supersedes nothing until ratified; `core_p1_k0_design_freeze.md` §3 remains the
 ratified freeze for mapping format v1.
 **Merging this file does not ratify it.** It is committed so it can be reviewed in place; its status
@@ -220,13 +223,30 @@ facts at issue, and they are consequences of it, not additional rules.
 ### 5.4 Standing of these rules
 
 R0/R1/R2 are conformance requirements on a **profile**, not on this format: the format's obligation
-is to carry the facts, and it does. K0v2 satisfies none of the three today — that is recorded in the
-law-loss register and is **not** repaired by this document.
+is to carry the facts, and it does.
 
-**Enforcement is deliberately NOT landed** (ruling, Huayin, 2026-09-12): it waits on review and
-ratification of this candidate. Landing a refusal that this document merely proposes would let a
-candidate acquire force by being written — the same error as a golden acquiring normative status by
-being committed.
+**K0v2 NOW SATISFIES ALL THREE** (landed 2026-09-12, on instruction, after this document was
+reviewed — so the order was ruling first, implementation second, which is the order that keeps a
+candidate from acquiring force by being written):
+
+- **R2 · `schema`** — the profile **REFUSES** a non-null schema. It emits `FROM <table>` and the Core
+  execution grammar's table is a bare `^\w+$`; it has no schema notion at all, so it cannot consume
+  the fact and says so (`ExecutionRepresentationGap`). A **null** schema is consumed by emitting the
+  unqualified reference, which is the distinction between a fact that says nothing and a fact that
+  was not listened to.
+- **R1 · `connection`** — the single-connection profile **CHECKS** it: all realizations must agree on
+  one connection (`UnsupportedCoreCapability` otherwise, since one image cannot be bound to two), and
+  where the caller supplies a bound context, a differing claim refuses (`InputIdentityMismatch`).
+- **R0** — the criterion is asserted directly: two mutations that previously produced a
+  byte-identical image now each change the outcome.
+
+**Two fixtures stopped claiming what the image could not carry.** Both declared `schema: "main"`,
+which the compiler silently dropped, so `main.sales_lines` and any other schema's `sales_lines`
+compiled to the same reference. They now declare `schema: null`.
+
+**A future multi-connection profile must CONSUME `connection`, not merely check it** — under multiple
+connections two realizations differing only there denote different material locations, so a check
+against one declared context cannot tell them apart. Recorded in the profile; not implemented.
 
 ## 6. Version rules
 
@@ -235,14 +255,26 @@ being committed.
 - The major is the **only** compatibility axis. A reader accepts exactly the major it implements and
   refuses every other, with a message naming what changed.
 - A new major **adds** a golden witness set; it never edits one.
-- **Two defects in the current reader that ratification should close:**
-  - `int(fmt.split(".", 1)[0])` accepts `"2.5"` as major 2. A version string that is not
-    `MAJOR` or `MAJOR.MINOR` should be `unreadable`, not silently truncated.
-  - The producer constant `MAPPING_FORMAT_VERSION` is **never consulted** by the check — only
-    `SUPPORTED_MAPPING_FORMAT_MAJOR` is. Two constants that must agree, with nothing comparing them.
-    This is the same defect already live at `columna_server/registry.py:46`, still major 1 while
-    `columna_core.governed.publication` is at major 2. The freeze should require a single guard that
-    the two agree.
+- **Both reader defects are CLOSED (2026-09-12):**
+  - `int(fmt.split(".", 1)[0])` accepted `"2.5"` as major 2. The version is now matched against
+    `^\d+$` first: this format is a bare MAJOR, and a spelling it does not define is **unreadable**
+    rather than truncated to its head. `"2.0"` refuses too — a reader that normalizes an
+    unrecognised spelling has decided what it means.
+  - `MAPPING_FORMAT_VERSION` and `SUPPORTED_MAPPING_FORMAT_MAJOR` are now compared by a **test**
+    (`tests/test_mapping_format_constants.py`), over both the v1 and v2 readers.
+
+**A CORRECTION TO THIS DOCUMENT'S OWN CLAIM.** An earlier revision said the constants defect was
+*"the same defect already live at `columna_server/registry.py:46`"*. **That was wrong**, and checking
+it was the only way to find out. `registry.py`'s constant is `SUPPORTED_PUBLICATION_FORMAT_MAJOR` —
+a **publication**-format major, a different dimension from the mapping format — and it is genuinely
+behind (1, against `manifold_agent.publication.PUBLICATION_FORMAT_VERSION` of `"2"`). But it is not
+the same *kind* of defect: the mapping constants are a producer and a consumer **in one module**, so
+a test can compare them; the server's consumer must agree with a producer in a **deliberately
+import-disjoint tree**, and `columna-server` may not import `manifold_agent` — the disjointness is
+test-enforced and this freeze rests on it. No in-process comparison can exist without breaking that
+invariant. Whether the server should accept publication major 2 is a **compatibility ruling**, not a
+coherence test, and it is out of this unit's scope. Pinned at
+`columna-server/tests/test_publication_format_major.py` so the gap keeps a name.
 
 ---
 
@@ -273,14 +305,20 @@ unrecognised key refuses; it is never ignored. Closed enums for `grain` and `exa
 undisclosed approximation is exactly what ToD §10.9 forbids, so `exactness` must be checked on
 **every** path a profile lowers, not only the constructed one.
 
-Three reader defects ratification should close:
+**All reader defects named here are CLOSED (2026-09-12), and one more was found while closing them:**
 
-- a **missing** `grain` currently produces the same message as an **invalid** one (absent → `None
-  not in GRAINS`); absence and error are different refusals;
-- `load_mapping` does not wrap `json.JSONDecodeError`, while its sibling `load_lowering_receipt`
-  does — a malformed file should refuse in this vocabulary, not raise a stdlib error;
-- duplicate **anchor-component** realizations are not detected by the reader (they are caught later,
-  in the profile); detection belongs with the other totality rules.
+- a **missing** `grain` produced the same message as an **invalid** one (absent → `None not in
+  GRAINS`), telling a producer it had written something wrong when it had written nothing. They are
+  now different refusals;
+- `load_mapping` now wraps `json.JSONDecodeError` like its sibling `load_lowering_receipt`, so two
+  loaders over the same kind of artifact no longer answer in different languages;
+- duplicate **anchor-component** realizations now refuse in the reader, beside the duplicate-family
+  rule, rather than only later in the profile — one artifact defect was refusing in two different
+  places depending on which key it was on, and a reader used outside the profile saw neither;
+- **FOUND WHILE CHECKING: the TOP-LEVEL key set was not closed.** This section claimed closed key
+  sets at all three levels and only two were — an unrecognised top-level key was silently ignored,
+  which is the one outcome a closed format may not have, because the producer is told nothing and
+  believes the claim was carried. Now closed.
 
 ---
 
@@ -310,15 +348,16 @@ being. The mechanism as it stands renders four placeholders — `{umbrella}` `{c
 `{contract}` — and the mapping-format major is **not** among them. Enrolment is therefore **a guard
 change plus entries**, not a TOML line:
 
-1. **A fifth placeholder, imported, never literal.** `{mapping_major}`, rendered from
-   `columna_core.compiler.realization.SUPPORTED_MAPPING_FORMAT_MAJOR`, by the rule the guard already
-   applies to `{contract}`: *"the contract is the package's to declare; a literal here would be the
-   very defect being guarded."* The known-placeholder list in the guard's error path must be updated
-   in the same change, or a mistyped name reports four names when there are five.
+1. **A fifth placeholder, imported, never literal — LANDED 2026-09-12.** `{mapping_major}` is
+   rendered from `columna_core.compiler.realization.SUPPORTED_MAPPING_FORMAT_MAJOR`, by the rule the
+   guard already applies to `{contract}`: *"the contract is the package's to declare; a literal here
+   would be the very defect being guarded."* The known-placeholder list in the error path was updated
+   in the same change, and the guard's report line now names the major it read.
 
-2. **A stamp on this document's own status line**, so that a mapping-major bump which leaves this
-   freeze describing the superseded major fails closed. Per the manifest's guidance, enrol the half
-   of the claim that carries the version and does not wrap.
+2. **A stamp on this document's own status line — LANDED 2026-09-12.** The status line now carries
+   a non-wrapping sentence naming the major (*"This freeze describes **mapping-format major 2**…"*),
+   enrolled in the manifest, so a mapping-major bump that leaves this freeze describing the
+   superseded major fails closed.
 
 3. **A stamp wherever shipped prose names the mapping-format major** — coverage grows by a named
    entry and a reason beside it, never by the guard deciding for itself what looks current.
