@@ -199,7 +199,25 @@ def _load_duckdb(warehouse_dir: str):
     return con
 
 
-def _load_governed_only(manifold_id: str, mdir: str) -> LoadedManifold:
+def _is_governed_only_unit(mdir: str) -> bool:
+    """Does this `.cml`-less directory carry a v2 governed publication?
+
+    ONLY v2, and only when it READS. A v1 artifact without its execution image is an incomplete
+    LEGACY deployment, not a successor unit, and an unreadable artifact is not a unit either — both
+    are left exactly as invisible as they are today, because making them newly fatal would change
+    legacy behaviour to say something this unit was not asked to say. A deployment that MEANT either
+    of them to be a successor unit finds out the moment it selects one: the selection path refuses,
+    loudly and by name."""
+    path = _osp.join(mdir, PUBLICATION_ARTIFACT)
+    if not _osp.isfile(path):
+        return False
+    try:
+        return load_publication_artifact(path).major == _PLATFORM_PUBLICATION_MAJOR
+    except PublicationArtifactError:
+        return False
+
+
+def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool) -> LoadedManifold:
     """A SUCCESSOR-NATIVE governed runtime unit: a governed publication and NO `manifold.cml`.
 
     THE DEPLOYMENT UNIT IS THE PUBLICATION, not a lowered image (ruled Huayin, 2026-09-12 §2). A
@@ -214,11 +232,12 @@ def _load_governed_only(manifold_id: str, mdir: str) -> LoadedManifold:
     about a file the unit deliberately does not have. The receipt requirement is a property of the
     lowered path, and it stays exactly as strict there — see `_load_one`, unchanged.
 
-    IT LOADS WITHOUT A PROVIDER, and that is an already-expressed state rather than a new one. The
-    unit enters the governed registry (the publication exists) and binds no realization (this
-    installation cannot serve it yet), which is precisely what `NotRealizableHere` and the public
-    `not_realizable_here` have always meant. No new catalog kind, no new condition code, no new
-    public state — the vocabulary already had a word for this."""
+    THE PROVIDER IS BOUND BY SELECTION, NEVER BY THE ARTIFACT (`bind_provider`). A v2 publication
+    sitting in a directory makes the unit VISIBLE — a governed lineage this installation knows about
+    — and nothing more. Only an explicit deployment selection binds the successor runtime to it.
+    Unselected, it loads with no provider, which is not a new state: `NotRealizableHere` and the
+    public `not_realizable_here` have always meant "the publication exists and this installation
+    cannot serve it". No new catalog kind, no new condition code, no new public state.""" 
     artifact_path = _osp.join(mdir, PUBLICATION_ARTIFACT)
     if not _osp.isfile(artifact_path):
         raise RuntimeSelectionError(
@@ -232,8 +251,9 @@ def _load_governed_only(manifold_id: str, mdir: str) -> LoadedManifold:
             f"its {PUBLICATION_ARTIFACT} is unusable: {e}") from e
     if artifact.major != _PLATFORM_PUBLICATION_MAJOR:
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
-            f"which requires a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
+            f"manifold '{manifold_id}': a governed unit with no manifold.cml is served by the "
+            f"{RUNTIME_PLATFORM!r} runtime, which requires "
+            f"a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
             f"is major {artifact.major}. A v{artifact.major} artifact is NOT read as v"
             f"{_PLATFORM_PUBLICATION_MAJOR}: its family law is not there to be found, and inferring "
             f"it is the defect v{_PLATFORM_PUBLICATION_MAJOR} exists to remove")
@@ -243,16 +263,42 @@ def _load_governed_only(manifold_id: str, mdir: str) -> LoadedManifold:
         name=manifold_id,           # no data.toml to name it, and a fabricated name is a claim
         description="",
         manifold=None,              # no legacy image, honestly absent
-        provider=None,              # no realization bound here → NotRealizableHere, as always
+        provider=_platform_provider(manifold_id, artifact_path) if bind_provider else None,
         publication=governed_publication_from_artifact(artifact),
         ref=artifact.ref,
         entry_kind=ENTRY_GOVERNED,
         condition=None,
         source_ref=artifact.ref,    # the unit IS the publication; origin and identity coincide
-        runtime=RUNTIME_PLATFORM,
+        runtime=RUNTIME_PLATFORM if bind_provider else RUNTIME_CORE,
         has_cml=False,
         publication_major=artifact.major,
     )
+
+
+def _platform_provider(manifold_id: str, artifact_path: str):
+    """The successor runtime's provider, or a fail-closed refusal — NEVER a fallback to Core.
+
+    THE IMPORT IS LAZY, AND THAT IS A PACKAGING FACT WORTH STATING. `columna-platform` is a
+    workspace member that is deliberately NOT published and NOT in the release-set lockstep, so
+    `columna-server` cannot declare a dependency on it without dragging it into the published
+    triad. The consequence is honest and must not be hidden: THE SUCCESSOR RUNTIME IS SELECTABLE
+    ONLY WHERE `columna-platform` IS INSTALLED — a source/workspace install today, not the shipped
+    wheel. A deployment that selects it without the package gets a refusal that says so, at
+    construction, rather than a unit that loads and then cannot answer.
+
+    THE DEPENDENCY RUNS SERVER → PLATFORM, one way. Platform implements `ExecutionProvider`
+    structurally (it is a `@runtime_checkable` Protocol) and imports nothing from this package,
+    because `columna_server.store` imports `columna_core.parser` at module scope and importing the
+    server from the successor path would drag the legacy execution stack into it."""
+    try:
+        from columna_platform.provider import PlatformExecutionProvider
+    except ImportError as exc:                                   # pragma: no cover - env-dependent
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime and "
+            f"`columna-platform` is not installed in this environment ({exc}). That package is not "
+            f"published, so the successor runtime is available only to a workspace install. There "
+            f"is no fallback to the {RUNTIME_CORE!r} runtime") from exc
+    return PlatformExecutionProvider.from_artifact(artifact_path, manifold_id=manifold_id)
 
 
 #: The publication major a successor-native unit must carry. Not a general policy about which majors
@@ -410,6 +456,8 @@ class ManifoldStore:
             has_cml = os.path.isfile(os.path.join(mdir, "manifold.cml"))
             chosen = self.runtime_selection.get(entry)
 
+            has_v2_only = (not has_cml) and _is_governed_only_unit(mdir)
+
             if chosen == RUNTIME_PLATFORM:
                 # Successor-native, and NEVER a fallback: if this unit still carries a `.cml`, that
                 # is a deployment saying two contradictory things about what it is, and guessing
@@ -420,7 +468,7 @@ class ManifoldStore:
                         f"runtime and the unit also ships manifold.cml. A successor-native unit is "
                         f"the publication; a lowered image beside it is a different unit, not a "
                         f"variant of this one")
-                self._loaded[entry] = _load_governed_only(entry, mdir)
+                self._loaded[entry] = _load_governed_only(entry, mdir, bind_provider=True)
                 continue
 
             if chosen == RUNTIME_CORE and not has_cml:
@@ -434,6 +482,13 @@ class ManifoldStore:
 
             if has_cml:                                  # unchanged legacy discovery
                 self._loaded[entry] = _load_one(entry, mdir)
+            elif has_v2_only:
+                # VISIBLE, UNSERVED. The publication is a governed fact this installation can see;
+                # binding a runtime to it is a separate, explicit act. Loading it here is what lets
+                # `not_realizable_here` be the honest answer instead of "no such manifold" — the
+                # deployment gap made visible, which is the same discipline the load conditions
+                # already follow.
+                self._loaded[entry] = _load_governed_only(entry, mdir, bind_provider=False)
 
         missing = sorted(set(self.runtime_selection) - set(self._loaded))
         if missing:

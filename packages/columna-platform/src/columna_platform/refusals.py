@@ -74,3 +74,18 @@ class WantOfCompatibility(ProofRefusal):
     condition = "WantOfCompatibility"
     jurisdiction = "governed"
     remedy = None
+
+
+class UnsupportedByThisProfile(Exception):
+    """NOT a governed verdict — a limit of what this profile implements (ruled 2026-09-12 §7).
+
+    DELIBERATELY NOT A `ProofRefusal`. The three refusals above are findings of law or of state: they
+    say the request was answered and the answer was no. This says the request was not answered at
+    all. It carries no `jurisdiction`, because attaching one would place a capability gap inside a
+    governed jurisdiction and tell an operator their question was unlawful when it was merely
+    unimplemented here — and `want_of_state`'s remedy would then send them to re-materialize against
+    a path that does not exist.
+
+    It must therefore never be mapped to a wire reason. Where it escapes, it escapes as what it is:
+    a profile that was asked for something it does not do, and said so, WITHOUT falling back to Core.
+    """

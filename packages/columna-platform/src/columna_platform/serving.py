@@ -51,6 +51,7 @@ from columna_core.disclosure_wire import wire_frame
 from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
+from . import request as _request
 from . import composite as _composite
 from .continuation import continue_to
 from .movement import MovementLicence
@@ -215,12 +216,70 @@ def _finalized_column(name: str, final) -> ColumnResult:
                         disclosure=Disclosure.clean())
 
 
-def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
-           at_anchor: Optional[str] = None, column: str = "revenue",
-           licence: Optional[MovementLicence] = None) -> dict:
-    """serve | refuse, rendered through the REAL wire contract.
+def plan_result(pub, views: dict, statement) -> FrameResult:
+    """PRE-FLIGHT. The would-be answer to a Frame-QL request, TOUCHING NO DATA and no retained state.
 
-    Returns the wire dict from `disclosure_wire.wire_frame` — not a Proof-A-shaped imitation of it.
+    This is what `check_frame_query` asks for, and the whole of what this slice implements. It reads
+    the request, resolves it to a governed `AnalyticalIdentity` (see `request.resolve`), asks whether
+    the governed law licenses the ask, and returns the neutral `FrameResult` the server will wire.
+
+    IT DELIBERATELY DOES NOT CONSULT THE STORE. A pre-flight that asked whether material state was
+    present would answer a different question — "can this be served right now" rather than "is this
+    askable" — and would make the cheap check depend on materialization. `decide_result` is where
+    state is consulted; the two are separate on purpose, and the separation is why this path can
+    honestly claim to touch nothing.
+
+    The column carries `frame=None`, exactly as Core's own `Planner.plan` does: a planned column has
+    no data by construction, and the wire already understands that shape."""
+    try:
+        req = _request.resolve(pub, statement)
+
+        view = views.get(req.family.family_id)
+        if view is None:
+            raise WantOfLaw(
+                f"the publication declares {req.family.canonical_reference!r} but no resolved law "
+                f"view was supplied for {req.family.family_id}; this path does not resolve law on "
+                f"the fly", subject=req.family.family_id)
+
+        c7 = view[C7_SUFFICIENT_STATE]
+        if c7.standing != ESTABLISHED:
+            raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
+                            subject=view.canonical_reference)
+
+        col = ColumnResult(name=req.column_name, expr=statement.series[0].expr, frame=None,
+                           disclosure=Disclosure.clean())
+        return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
+
+    except ProofRefusal as r:
+        # Governed defects only. `UnsupportedByThisProfile` is NOT caught here: a capability limit is
+        # not a governed verdict, and dressing it as one is the specific dishonesty §7 forbids.
+        reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+        alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+        col = _refusal_column(_planned_name(statement), reason, str(r), alts)
+        return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
+
+
+def _planned_name(statement) -> str:
+    """The column name for a request that did not resolve — the alias if the author gave one, else
+    the series text verbatim. Never a guess at what they meant."""
+    if len(statement.series) == 1:
+        return statement.series[0].alias or statement.series[0].expr.strip()
+    return "?"
+
+
+def decide_result(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
+                  at_anchor: Optional[str] = None, column: str = "revenue",
+                  licence: Optional[MovementLicence] = None) -> FrameResult:
+    """serve | refuse, as the NEUTRAL `FrameResult` — the successor path's answer, unwired.
+
+    THIS IS THE INTEGRATION SEAM (ruled Huayin, 2026-09-12 §4). `FrameResult` is owned by
+    `columna_core.serving_contract`, which belongs to no execution strategy, so a serving surface can
+    take this path's answer without either side importing the other's runtime. The result carries no
+    `executed` flag and no `contract_version`: BOTH ARE THE WIRE'S TO DECIDE, and the wire is applied
+    exactly once, by the server. A second serializer here would be a second contract.
+
+    `decide` (below) is the wrapper that wires this for the standalone proofs. Nothing else in this
+    module calls `wire_frame`.
 
     ORDER IS LOAD-BEARING: law is asked BEFORE state. A want-of-law reported as a want-of-state sends
     an operator to re-materialize against a question the law was never going to answer."""
@@ -275,16 +334,30 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
             # is caught by its standing rather than by its answer looking wrong.
             final = _composite.finalize(st.composite)
             col = _finalized_column(column, final)
-            return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),
-                              universe=None, executed=True)
+            return FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,))
 
         col = _served_column(column, st)
-        return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),
-                          universe=None, executed=True)
+        return FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,))
 
     except ProofRefusal as r:
         reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
         alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
         col = _refusal_column(column, reason, str(r), alts)
-        return wire_frame(FrameResult(None, Disclosure.clean(), [col], (identity.anchor,)),
-                          universe=None, executed=True)
+        return FrameResult(None, Disclosure.clean(), [col], (identity.anchor,))
+
+
+def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
+           at_anchor: Optional[str] = None, column: str = "revenue",
+           licence: Optional[MovementLicence] = None) -> dict:
+    """`decide_result`, WIRED — the standalone-proof entry point, unchanged in behaviour.
+
+    Returns the wire dict from `disclosure_wire.wire_frame` — not a Proof-A-shaped imitation of it.
+    The proofs assert against the real wire and keep doing so; this wrapper is why the factoring
+    below it cost them nothing.
+
+    `executed=True` is right HERE and only here: this function runs the path. The server's check
+    surface plans without executing and wires the same neutral result with `executed=False`, which is
+    precisely why the flag cannot live inside `decide_result`."""
+    return wire_frame(decide_result(law_view, store, identity, at_anchor=at_anchor, column=column,
+                                    licence=licence),
+                      universe=None, executed=True)

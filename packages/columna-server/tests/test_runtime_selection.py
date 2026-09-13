@@ -11,8 +11,9 @@ The failure this guards against is the quiet one: a v2 artifact appearing in a d
 appearing, changing which runtime serves it. That is why every positive case below names its runtime
 explicitly and every negative case fails closed rather than falling back.
 
-NO `PlatformExecutionProvider` IS INTEGRATED HERE (§6). A successor-native unit loads, enters the
-governed registry, and binds no provider — which the server has always had a word for.
+SINCE THE INTEGRATION LANDED (2026-09-13), an OPTED-IN unit binds `PlatformExecutionProvider` and an
+UNSELECTED one still binds nothing. That is the whole proposition in one file: the artifact makes a
+unit visible, and only a deployment selection makes it served.
 """
 from __future__ import annotations
 
@@ -80,23 +81,33 @@ def test_v2_plus_platform_optin_plus_no_cml_is_an_accepted_SUCCESSOR_NATIVE_unit
     assert lm.publication_major == 2
     assert lm.entry_kind == ENTRY_GOVERNED
     assert lm.publication is not None and lm.ref.manifold_id == "lighthouse"
-    # it is a real governed lineage…
     assert store.governed_ids() == ["lighthouse"]
-    # …that this installation cannot yet serve, which is an ALREADY-EXISTING state, not a new one.
-    assert lm.provider is None
-    assert store.realizable_refs() == set()
-    with pytest.raises(NotRealizableHere):
-        store.resolve_public("lighthouse")
+    # SELECTED, so the successor runtime is bound — and it is the successor's own provider, not a
+    # Core one wearing its name.
+    assert lm.provider is not None
+    assert type(lm.provider).__name__ == "PlatformExecutionProvider"
+    assert store.realizable_refs() == {lm.ref}
+    resolved_lm, resolved_ref = store.resolve_public("lighthouse")
+    assert resolved_lm is lm and resolved_ref == lm.ref
 
 
 def test_the_same_v2_artifact_without_optin_does_not_switch_providers(tmp_path):
-    """ROW 3 — THE ONE THAT MATTERS. The artifact is identical; only the selection differs. Without
-    it the unit is not served by the successor runtime, and it does not silently become anything."""
+    """ROW 3 — THE ONE THAT MATTERS. The artifact is byte-identical to the row above; only the
+    selection differs. VISIBLE, BUT NOT SERVED: the publication is a governed fact the installation
+    can see, and no runtime is bound to it. Artifact presence never selects execution."""
     _governed_only_unit(tmp_path)
-    _legacy_unit(tmp_path)                     # so the store has at least one loadable unit
+    _legacy_unit(tmp_path)
     store = ManifoldStore(str(tmp_path), runtime_selection={})
-    assert store.ids() == ["cascadia"]          # the governed-only unit is simply not picked up
-    assert store.governed_ids() == []
+
+    lm = store.get("lighthouse")
+    assert lm.provider is None                  # nothing bound, so nothing switched
+    assert lm.runtime == RUNTIME_CORE           # the default, and it cannot serve this unit
+    assert store.governed_ids() == ["lighthouse"]       # visible as a governed lineage…
+    assert store.realizable_refs() == set()             # …and realizable by nothing here
+    with pytest.raises(NotRealizableHere):
+        store.resolve_public("lighthouse")
+
+    assert store.get("cascadia").provider is not None   # and the legacy unit is untouched
     assert store.get("cascadia").runtime == RUNTIME_CORE
 
 
@@ -196,15 +207,24 @@ def test_a_successor_native_unit_needs_no_data_toml_and_no_lowering_receipt(tmp_
     assert store.conditions() == []             # not a deployment gap; a different kind of unit
 
 
-def test_the_catalog_shows_it_as_governed_and_not_realizable_with_no_new_public_vocabulary(tmp_path):
-    """§5. No new catalog kind and no new condition code: the successor-native unit is a governed
-    lineage whose only version is not realizable here, which contract v3 already expresses."""
+def test_the_catalog_shows_it_as_governed_and_NOT_REALIZABLE_until_a_provider_is_selected(tmp_path):
+    """§5 + the ruled pin (2026-09-13). No new catalog kind and no new condition code: an unselected
+    successor-native unit is a governed lineage whose only version is not realizable here, which
+    contract v3 already expresses. Selecting a runtime — and only that — flips `realizable`."""
     from columna_server.tools import list_manifolds
 
     _governed_only_unit(tmp_path)
-    store = ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
-    cat = list_manifolds(store)
-    assert cat["contract_version"] == "5"
-    assert cat["manifolds"] == [{
+
+    unselected = list_manifolds(ManifoldStore(str(tmp_path), runtime_selection={}))
+    assert unselected["contract_version"] == "5"
+    assert unselected["manifolds"] == [{
         "manifold_id": "lighthouse", "kind": "governed", "latest_version": "1.0.0",
         "versions": [{"version": "1.0.0", "realizable": False}]}]
+
+    selected = list_manifolds(
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM}))
+    assert selected["manifolds"] == [{
+        "manifold_id": "lighthouse", "kind": "governed", "latest_version": "1.0.0",
+        "versions": [{"version": "1.0.0", "realizable": True}]}]
+    # the SHAPE never changed — same keys, same kind, one boolean
+    assert set(selected["manifolds"][0]) == set(unselected["manifolds"][0])

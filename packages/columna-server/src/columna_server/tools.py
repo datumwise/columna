@@ -186,7 +186,7 @@ def list_manifolds(store: ManifoldStore) -> dict:
 # --- tool 2 ---------------------------------------------------------------------------------
 def describe_manifold(store: ManifoldStore, manifold_id: str, version: Optional[str] = None) -> dict:
     lm, ref = _resolve(store, manifold_id, version)
-    m = lm.manifold
+    m = _legacy_model(lm)
     from columna_core import (describe_derived, describe_universe, describe_hierarchy)
     # C-2 insulation (§2b, CP-3): dimensions no longer emit `realized_by` (a physical identifier).
     # Attributes emit their LOGICAL names only (case-demo c) — the physical binding stays map-side.
@@ -245,7 +245,7 @@ def describe_manifold(store: ManifoldStore, manifold_id: str, version: Optional[
 def describe_measure(store: ManifoldStore, manifold_id: str, measure: str,
                      version: Optional[str] = None) -> dict:
     lm, ref = _resolve(store, manifold_id, version)
-    m = lm.manifold
+    m = _legacy_model(lm)
     mc = m.measures.get(measure)
     if mc is None:
         raise ToolInputError(f"unknown measure '{measure}' in manifold '{manifold_id}' "
@@ -292,6 +292,27 @@ def _invalid_request_wire(reason: str, detail: str) -> dict:
     return {"contract_version": CONTRACT_VERSION, "outcome": "error",
             "frame": {"anchor": [], "universe": None, "rollup_severity": "none", "disclosures": []},
             "columns": [], "error": {"reason": reason, "detail": detail}}
+
+
+def _legacy_model(lm):
+    """The legacy `.cml` read model, or a structural refusal — never an attribute error.
+
+    A SUCCESSOR-NATIVE governed unit has no `manifold.cml` and therefore no `Manifold` object, and
+    the tools below this line are presentation over exactly that object: measures, universes,
+    hierarchies, evidence grades. They are LEGACY-MODEL tools, and asking them about a unit that has
+    no legacy model is a structural mistake by the caller, not an analytical outcome.
+
+    So it lands in the existing structural channel — the same one `not_realizable_here` and
+    `publication_not_found` use — rather than inventing a wire mood for it. What the successor
+    surface should say about a governed unit's shape is a real question and a separate one: it would
+    be describe-over-the-governed-projection, which this slice did not build and must not fake."""
+    if lm.manifold is None:
+        raise ToolInputError(
+            f"no_legacy_model: '{lm.manifold_id}' is a governed runtime unit with no manifold.cml, "
+            f"and this tool presents the legacy read model. Its governed publication is served "
+            f"through the execution seam (check_frame_query); describing it from the governed "
+            f"projection is not part of this build")
+    return lm.manifold
 
 
 def _resolve_for_request(store: ManifoldStore, manifold_id: str, ref, lm, stmt,
@@ -444,7 +465,7 @@ def discovery(store: ManifoldStore, manifold_id: str, version: Optional[str] = N
     `SELECT <measure> AT {anchor}` can name. Logical names only; the universe is resolved structurally,
     never named in a query (§2c)."""
     lm, ref = _resolve(store, manifold_id, version)
-    m = lm.manifold
+    m = _legacy_model(lm)
     measures = [{"measure": mc.name, "universe": mc.universe, "reducers": list(mc.family),
                  "grain": sorted(m.universes[mc.universe].base_dimensions),
                  "description": mc.description} for mc in m.measures.values()]
@@ -463,7 +484,7 @@ def manifold_status(store: ManifoldStore, manifold_id: str, version: Optional[st
     hierarchies), and the evidence standing (how many adjudicated Licenses are verified / corroborated /
     untestable)."""
     lm, ref = _resolve(store, manifold_id, version)
-    m = lm.manifold
+    m = _legacy_model(lm)
     ps = lm.provider.published_scope()
     licenses = getattr(ps, "licenses", None) if ps else None
     lic_list = list(licenses.values()) if isinstance(licenses, dict) else (list(licenses) if licenses else [])
@@ -489,7 +510,7 @@ def get_evidence(store: ManifoldStore, manifold_id: str, measure: Optional[str] 
     attestation) minted at publish. With `measure`, scoped to that measure's family and universe."""
     from columna_core.describe import license_to_dict
     lm, ref = _resolve(store, manifold_id, version)
-    m = lm.manifold
+    m = _legacy_model(lm)
 
     def _lic(lic: object) -> Optional[dict]:
         return license_to_dict(lic) if lic is not None else None

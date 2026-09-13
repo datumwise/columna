@@ -79,6 +79,47 @@ def test_wire_frame_consumes_the_neutral_type():
         "columna_core.serving_contract", fromlist=["FrameResult"]).FrameResult)
 
 
+# ══ the integration factoring (ruled Huayin 2026-09-12 §4) ═══════════════════════════════════════
+
+def test_the_successor_path_answers_in_the_neutral_type():
+    """`decide_result` returns the architecture-neutral `FrameResult`, NOT a wire dict.
+
+    This is the seam a serving surface consumes. If it ever returns a dict again, the server would
+    be handed something already serialized and would either double-wire it or bypass its own
+    stamping — which is how a second contract starts."""
+    from columna_core.serving_contract import FrameResult
+    from columna_platform import serving
+    assert serving.decide_result.__annotations__["return"] in ("FrameResult", FrameResult)
+
+
+def test_the_platform_serializes_the_wire_in_exactly_one_place():
+    """ONE SERIALIZER. `wire_frame` may be called from `decide` — the standalone-proof wrapper — and
+    from nowhere else in the package, because the server is the single place the wire is applied for
+    the integrated path. Asserted over the AST rather than by grep, so a call inside a nested
+    function or a comprehension cannot hide from it."""
+    calls = []
+    for f in sorted(PLATFORM.glob("*.py")):
+        tree = ast.parse(f.read_text(encoding="utf-8"))
+        for fn in ast.walk(tree):
+            if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for n in ast.walk(fn):
+                if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "wire_frame":
+                    calls.append(f"{f.name}::{fn.name}")
+    assert calls == ["serving.py::decide"], f"wire_frame is called from {calls}"
+
+
+def test_the_wrapper_still_wires_the_real_contract():
+    """The factoring cost the proofs nothing: `decide` remains the wired entry point at version 5."""
+    src = inspect.getsource(_serving().decide)
+    assert "wire_frame(" in src and "executed=True" in src
+
+
+def _serving():
+    from columna_platform import serving
+    return serving
+
+
 def test_proof_a_does_not_import_the_excluded_stack():
     """Platform still climbs nothing. The repair was at the seam, not here."""
     forbidden = {"columna_core.planner", "columna_core.engine", "columna_core.model",
