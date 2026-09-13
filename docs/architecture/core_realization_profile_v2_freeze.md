@@ -1,14 +1,44 @@
 # Core Realization Profile v2 — claim-field freeze — **RATIFIED**
 
-**Status:** **RATIFIED IN FULL** (Huayin, 2026-09-13), on the conformance unit reviewed green at
-head `2dfebbc`. R0/R1/R2, the §6 version-shape refusal, the §8 strictness items and the
-constant-coherence test are landed and enforced; no section of this document is proposed any longer.
-This freeze describes **mapping-format major 2**, which is the major `columna-core` reads and writes.
-Prepared 2026-09-12 on instruction (Huayin); ratified 2026-09-13 after the ratification review.
+**Status:** **RATIFIED IN FULL** (Huayin, 2026-09-12). R0/R1/R2, the §6 version-shape refusal, the
+§8 strictness items and the constant-coherence test are landed and enforced; no section of this
+document is proposed any longer. This freeze describes **mapping-format major 2**, which is the major
+`columna-core` reads and writes.
 **This document now supersedes `core_p1_k0_design_freeze.md` §3 as the ratified field freeze for the
 mapping format**, for major 2 only; §3 remains the ratified freeze for mapping format v1, which the
 v1 reader still serves.
-**Date:** 2026-09-12 (candidate, prepared) · 2026-09-13 (RATIFIED; reviewed head `2dfebbc`).
+**Date:** 2026-09-12 (candidate, prepared) · 2026-09-12 (RATIFIED).
+
+**DATES IN THIS DOCUMENT ARE AMERICA/NEW_YORK**, the project working timezone — the convention
+already in use, not a new one. This is worth one sentence because the boundary is live: `2dfebbc`
+was committed at 2026-09-13 02:09 **UTC** and the document it carries says *"landed 2026-09-12"*
+throughout, which is the same ET convention. No UTC dating rule for ratifications exists, and this
+document does not introduce one.
+
+### Ratification provenance
+
+The ratification is a chain of four distinct facts, kept distinct because collapsing them is how a
+record stops being checkable:
+
+| | what | head |
+|---|---|---|
+| 1 | candidate prepared, on instruction (Huayin) | 2026-09-12 |
+| 2 | conformance implementation reviewed green — R0/R1/R2 and the §6/§8 strictness | `2dfebbc` |
+| 3 | ratification recorded; schema fixture-change control added; final content verified green | `5d919f9` |
+| 4 | **THIS provenance correction — ET dating and this table. FINAL RATIFIED HEAD.** | see below |
+
+**The final ratified head is the head of THIS commit, and a commit cannot contain its own hash.**
+Rather than have the document name a head that is one revision stale and call it final, the final
+head is pinned OUTSIDE the file, where it can be exact:
+
+- the annotated tag **`realization-v2-freeze-ratified`**, which points at it and carries the same
+  three-fact chain in its message;
+- PR **#283**, whose merge commit carries it onto `main`.
+
+Row 3 is the last head the *substantive* ratified content had; the final head differs from it by
+this provenance correction alone — no semantic, conformance, or format change — and the required
+gates were rerun on it. `git show realization-v2-freeze-ratified` resolves the record.
+
 **Shape follows:** `core_p1_k0_design_freeze.md` §3 (*"`PrivateCoreMapping` — field freeze —
 RATIFIED"*, CG2, 2026-08-22), deliberately, so the two are read the same way.
 **Evidence base:** `columna_core/compiler/realization.py` (the v2 consumer as built),
@@ -235,7 +265,7 @@ candidate from acquiring force by being written):
   the fact and says so (`ExecutionRepresentationGap`). A **null** schema is consumed by emitting the
   unqualified reference, which is the distinction between a fact that says nothing and a fact that
   was not listened to. **Both halves are pinned, and so is the control on the fixture change**
-  (required at ratification, Huayin, 2026-09-13): the two successful fixtures moved from
+  (required at ratification, Huayin, 2026-09-12): the two successful fixtures moved from
   `schema: "main"` to `schema: null`, so the old value *restored verbatim* must still refuse, and
   refuse for the schema qualification itself rather than tripping a later check
   (`test_r2_the_exact_claim_the_fixtures_gave_up_still_refuses`,
