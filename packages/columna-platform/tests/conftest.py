@@ -104,3 +104,78 @@ def licence(anchored):
     pub, _view, _st = anchored
     return movement.project(pub, source_anchor="sale_at", target_anchor="store",
                             target_components=["store"], law="SUM")
+
+
+MEAN_ID = "lh-revmean"
+
+
+def _publication_with_mean():
+    """The lighthouse artifact plus a MEAN family over `revenue`. In-memory; fixture untouched."""
+    doc = copy.deepcopy(json.loads(PUBLICATION.read_text(encoding="utf-8")))
+    doc["logical"]["declarations"].append({"kind": "family", "name": "revenue_mean", "body": {
+        "family_id": MEAN_ID,
+        "canonical_reference": "mean(revenue@sale_at)",
+        "universe": "sales",
+        "constitutive_anchor": "sale_at",
+        "target": "the arithmetic mean of revenue over participating sale points",
+        "formation": {"kind": "construction",
+                      "law": {"law": "MEAN", "version": "1", "vocabulary": "datumwise.foundation"},
+                      "operands": ["fam_qv8Ky3mR7bTpZa1LwXcNdg"]},
+        "participation": "every sale point carrying a recorded amount"}})
+    pub = parse_publication(doc)
+    return pub, resolve_all(pub)[MEAN_ID]
+
+
+@pytest.fixture
+def mean_view():
+    _pub, view = _publication_with_mean()
+    return view
+
+
+@pytest.fixture
+def admitted_pair(governed):
+    """Two carriers that have genuinely PASSED ADMISSION, chosen so the mean is exact.
+
+        A: 10.0000 + 15.0000 + 5.0000  = 30.0000 over 3
+        B:  6.0000                     =  6.0000 over 1
+        combined                        = 36.0000 over 4  ->  9.0000  exactly representable
+
+    Routed through `admission.admit` against `revenue`'s law view rather than hand-built: "one
+    ADMITTED carrier" is the premise of the whole proof, and a fixture that fabricates the admission
+    would let the composite be constituted from something admission would have refused."""
+    from decimal import Decimal
+    import pyarrow as pa
+    from columna_platform import admission, carrier
+
+    _pub, views, mapping, _family = governed
+    revenue_view = views[REVENUE]
+    realization = [r for r in mapping.families if r.family_id == REVENUE][0]
+
+    def _adm(values):
+        c = carrier.Carrier(
+            pa.array([Decimal(v) for v in values], type=pa.decimal128(18, 4)),
+            "duckdb DECIMAL(18,4) -> arrow decimal128(18,4), preserved")
+        return admission.admit(revenue_view, realization, c)
+
+    return _adm(["10.0000", "15.0000", "5.0000"]), _adm(["6.0000"])
+
+
+def _publication_with_mean_no_participation():
+    """A MEAN family that declares NO participation — so C5 is genuinely unestablished."""
+    doc = copy.deepcopy(json.loads(PUBLICATION.read_text(encoding="utf-8")))
+    doc["logical"]["declarations"].append({"kind": "family", "name": "revenue_mean", "body": {
+        "family_id": MEAN_ID,
+        "canonical_reference": "mean(revenue@sale_at)",
+        "universe": "sales",
+        "constitutive_anchor": "sale_at",
+        "target": "the arithmetic mean of revenue over participating sale points",
+        "formation": {"kind": "construction",
+                      "law": {"law": "MEAN", "version": "1", "vocabulary": "datumwise.foundation"},
+                      "operands": ["fam_qv8Ky3mR7bTpZa1LwXcNdg"]}}})
+    pub = parse_publication(doc)
+    return resolve_all(pub)[MEAN_ID]
+
+
+@pytest.fixture
+def mean_view_without_participation():
+    return _publication_with_mean_no_participation()

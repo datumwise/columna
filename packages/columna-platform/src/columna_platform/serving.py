@@ -51,6 +51,7 @@ from columna_core.disclosure_wire import wire_frame
 from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
+from . import composite as _composite
 from .continuation import continue_to
 from .movement import MovementLicence
 from .refusals import ProofRefusal, WantOfLaw, WantOfState
@@ -207,6 +208,13 @@ def _served_column(name: str, st: RetainedState) -> ColumnResult:
                         disclosure=Disclosure.clean())
 
 
+def _finalized_column(name: str, final) -> ColumnResult:
+    """A served column carrying a FINALIZED value. It is served; it is not retained."""
+    return ColumnResult(name=name, expr=name,
+                        frame=pl.DataFrame({name: pl.Series([final.value])}),
+                        disclosure=Disclosure.clean())
+
+
 def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
            at_anchor: Optional[str] = None, column: str = "revenue",
            licence: Optional[MovementLicence] = None) -> dict:
@@ -260,6 +268,15 @@ def decide(law_view, store: RetainedStateStore, identity: AnalyticalIdentity, *,
             # foldable, so asking the law first is the whole proposition.
             st = continue_to(law_view, st, licence, target_anchor=at_anchor)
             identity = st.identity
+
+        if st.composite is not None:
+            # PROOF C. The retained state is a matching (SUM, COUNT) basis; what is SERVED is the
+            # finalized mean. `finalize` refuses on standing BEFORE it divides, so a corrupted basis
+            # is caught by its standing rather than by its answer looking wrong.
+            final = _composite.finalize(st.composite)
+            col = _finalized_column(column, final)
+            return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),
+                              universe=None, executed=True)
 
         col = _served_column(column, st)
         return wire_frame(FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,)),

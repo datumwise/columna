@@ -79,6 +79,9 @@ class RetainedState:
     #: physical description, kept for disclosure only. NEVER consulted in a governed decision.
     carrier_type: str = ""
     finalized: bool = False
+    #: COMPOSITE STATE (Proof C), optional so Proof A's and B's states are unaffected. Where present,
+    #: the sufficient state is the matching (SUM, COUNT) basis and `array` is not the witness.
+    composite: object = None
     #: ANCHORED STATE (Proof B), optional so Proof A's bare-value states are unaffected. Where
     #: present, `table` carries the anchor coordinates alongside the values and `anchor_columns`
     #: names them — which is what makes a fold across a coordinate possible at all.
@@ -127,6 +130,13 @@ class RetainedStateStore:
 
         Never manufacture freshness: a token we could not honestly warrant is recorded as absent, and
         absence closes reuse rather than being optimistically read as current."""
+        if getattr(st, "finalized", False):
+            # CONTROL 1 (Proof C). A displayed value is not sufficient state, and the store is where
+            # that has to bite — a finalized scalar that gets retained is indistinguishable from a
+            # basis at every later point.
+            raise WantOfState(
+                "a finalized value is a displayed value, not sufficient state; re-materializing the "
+                "basis it was computed from would resolve this", subject=st.identity.family_id)
         if st.standing.realization is None:
             raise WantOfState(
                 "insert requires realization standing; a state that cannot say which realization it "
