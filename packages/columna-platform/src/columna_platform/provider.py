@@ -44,6 +44,23 @@ class PlatformExecutionProvider:
         self.views = views
         self.manifold_id = manifold_id
 
+    @classmethod
+    def from_artifact(cls, artifact_path: str, *, manifold_id: str = "") -> "PlatformExecutionProvider":
+        """Build from a `governed-publication.json` on disk — THE SERVER'S ONLY ENTRY POINT.
+
+        The v2 artifact is parsed and its law resolved HERE, by v2's own reader, so the server hands
+        over a path and never a governed object it would have to know the shape of. That keeps the
+        dependency one-way and shallow: the server knows this constructor and nothing else about the
+        successor path's vocabulary.
+
+        It re-reads a file the server has already read. That is deliberate and cheap — the server's
+        read answers "is this a well-formed artifact this installation accepts", which is an ingest
+        question, and this one answers "what law does it establish", which is an execution question.
+        Passing the server's plain-data reading over instead would make the server the keeper of a
+        governed object, which is exactly the coupling this seam exists to avoid."""
+        pub, views = serving.open_publication(artifact_path)
+        return cls(pub, views, manifold_id=manifold_id)
+
     # ── the one supported capability ────────────────────────────────────────────────────────────
     def plan(self, statement) -> FrameResult:
         """Plan WITHOUT executing — the `check_frame_query` capability, and the whole slice.

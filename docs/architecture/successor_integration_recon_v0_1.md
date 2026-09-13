@@ -1,6 +1,15 @@
-# Successor → shipped serving: first integration slice — **STOPPED AT THE RULED STOP CONDITION**
+# Successor → shipped serving: first integration slice — **COMPLETE**
 
-**Status:** finding, 2026-09-12. The §5 analytical-request resolution **SUCCEEDS at the governed
+**Status:** COMPLETE, 2026-09-13. A public Frame-QL `check_frame_query` request now reaches an
+explicitly opted-in v2 governed unit that ships no `manifold.cml`, resolves to a governed
+`family_id @ anchor` without the legacy ontology, is planned by `PlatformExecutionProvider`, and is
+serialized by the one existing server-side wire path — touching no data.
+
+The rest of this document is the record of how it got here, kept because the stop was the proof's
+result rather than an obstacle: §2's two blocking facts were ruled and closed by the predecessor
+(#285), and §5 records what implementing them turned up.
+
+**Original status:** finding, 2026-09-12. The §5 analytical-request resolution **SUCCEEDS at the governed
 format level** and the slice **STOPS before the server**, for a reason that is a deployment and
 compatibility fact rather than an implementation gap. Recorded under the stop condition ruled by
 Huayin the same day: *"If the governed logical projection cannot resolve the public Frame-QL series
