@@ -1,10 +1,44 @@
-# Core Realization Profile v2 — claim-field freeze — **CANDIDATE**
+# Core Realization Profile v2 — claim-field freeze — **RATIFIED**
 
-**Status:** **CANDIDATE, not ratified.** Prepared 2026-09-12 on instruction (Huayin) for
-ratification review. Supersedes nothing until ratified; `core_p1_k0_design_freeze.md` §3 remains the
-ratified freeze for mapping format v1.
-**Merging this file does not ratify it.** It is committed so it can be reviewed in place; its status
-line is the authority on its standing, and only an explicit ruling changes that line.
+**Status:** **RATIFIED IN FULL** (Huayin, 2026-09-12). R0/R1/R2, the §6 version-shape refusal, the
+§8 strictness items and the constant-coherence test are landed and enforced; no section of this
+document is proposed any longer. This freeze describes **mapping-format major 2**, which is the major
+`columna-core` reads and writes.
+**This document now supersedes `core_p1_k0_design_freeze.md` §3 as the ratified field freeze for the
+mapping format**, for major 2 only; §3 remains the ratified freeze for mapping format v1, which the
+v1 reader still serves.
+**Date:** 2026-09-12 (candidate, prepared) · 2026-09-12 (RATIFIED).
+
+**DATES IN THIS DOCUMENT ARE AMERICA/NEW_YORK**, the project working timezone — the convention
+already in use, not a new one. This is worth one sentence because the boundary is live: `2dfebbc`
+was committed at 2026-09-13 02:09 **UTC** and the document it carries says *"landed 2026-09-12"*
+throughout, which is the same ET convention. No UTC dating rule for ratifications exists, and this
+document does not introduce one.
+
+### Ratification provenance
+
+The ratification is a chain of four distinct facts, kept distinct because collapsing them is how a
+record stops being checkable:
+
+| | what | head |
+|---|---|---|
+| 1 | candidate prepared, on instruction (Huayin) | 2026-09-12 |
+| 2 | conformance implementation reviewed green — R0/R1/R2 and the §6/§8 strictness | `2dfebbc` |
+| 3 | ratification recorded; schema fixture-change control added; final content verified green | `5d919f9` |
+| 4 | **THIS provenance correction — ET dating and this table. FINAL RATIFIED HEAD.** | see below |
+
+**The final ratified head is the head of THIS commit, and a commit cannot contain its own hash.**
+Rather than have the document name a head that is one revision stale and call it final, the final
+head is pinned OUTSIDE the file, where it can be exact:
+
+- the annotated tag **`realization-v2-freeze-ratified`**, which points at it and carries the same
+  three-fact chain in its message;
+- PR **#283**, whose merge commit carries it onto `main`.
+
+Row 3 is the last head the *substantive* ratified content had; the final head differs from it by
+this provenance correction alone — no semantic, conformance, or format change — and the required
+gates were rerun on it. `git show realization-v2-freeze-ratified` resolves the record.
+
 **Shape follows:** `core_p1_k0_design_freeze.md` §3 (*"`PrivateCoreMapping` — field freeze —
 RATIFIED"*, CG2, 2026-08-22), deliberately, so the two are read the same way.
 **Evidence base:** `columna_core/compiler/realization.py` (the v2 consumer as built),
@@ -220,13 +254,36 @@ facts at issue, and they are consequences of it, not additional rules.
 ### 5.4 Standing of these rules
 
 R0/R1/R2 are conformance requirements on a **profile**, not on this format: the format's obligation
-is to carry the facts, and it does. K0v2 satisfies none of the three today — that is recorded in the
-law-loss register and is **not** repaired by this document.
+is to carry the facts, and it does.
 
-**Enforcement is deliberately NOT landed** (ruling, Huayin, 2026-09-12): it waits on review and
-ratification of this candidate. Landing a refusal that this document merely proposes would let a
-candidate acquire force by being written — the same error as a golden acquiring normative status by
-being committed.
+**K0v2 NOW SATISFIES ALL THREE** (landed 2026-09-12, on instruction, after this document was
+reviewed — so the order was ruling first, implementation second, which is the order that keeps a
+candidate from acquiring force by being written):
+
+- **R2 · `schema`** — the profile **REFUSES** a non-null schema. It emits `FROM <table>` and the Core
+  execution grammar's table is a bare `^\w+$`; it has no schema notion at all, so it cannot consume
+  the fact and says so (`ExecutionRepresentationGap`). A **null** schema is consumed by emitting the
+  unqualified reference, which is the distinction between a fact that says nothing and a fact that
+  was not listened to. **Both halves are pinned, and so is the control on the fixture change**
+  (required at ratification, Huayin, 2026-09-12): the two successful fixtures moved from
+  `schema: "main"` to `schema: null`, so the old value *restored verbatim* must still refuse, and
+  refuse for the schema qualification itself rather than tripping a later check
+  (`test_r2_the_exact_claim_the_fixtures_gave_up_still_refuses`,
+  `test_the_schema_this_fixture_gave_up_still_refuses`). If `"main"` ever compiles again, the fact
+  was erased to make fixtures green rather than the fixtures corrected.
+- **R1 · `connection`** — the single-connection profile **CHECKS** it: all realizations must agree on
+  one connection (`UnsupportedCoreCapability` otherwise, since one image cannot be bound to two), and
+  where the caller supplies a bound context, a differing claim refuses (`InputIdentityMismatch`).
+- **R0** — the criterion is asserted directly: two mutations that previously produced a
+  byte-identical image now each change the outcome.
+
+**Two fixtures stopped claiming what the image could not carry.** Both declared `schema: "main"`,
+which the compiler silently dropped, so `main.sales_lines` and any other schema's `sales_lines`
+compiled to the same reference. They now declare `schema: null`.
+
+**A future multi-connection profile must CONSUME `connection`, not merely check it** — under multiple
+connections two realizations differing only there denote different material locations, so a check
+against one declared context cannot tell them apart. Recorded in the profile; not implemented.
 
 ## 6. Version rules
 
@@ -235,14 +292,26 @@ being committed.
 - The major is the **only** compatibility axis. A reader accepts exactly the major it implements and
   refuses every other, with a message naming what changed.
 - A new major **adds** a golden witness set; it never edits one.
-- **Two defects in the current reader that ratification should close:**
-  - `int(fmt.split(".", 1)[0])` accepts `"2.5"` as major 2. A version string that is not
-    `MAJOR` or `MAJOR.MINOR` should be `unreadable`, not silently truncated.
-  - The producer constant `MAPPING_FORMAT_VERSION` is **never consulted** by the check — only
-    `SUPPORTED_MAPPING_FORMAT_MAJOR` is. Two constants that must agree, with nothing comparing them.
-    This is the same defect already live at `columna_server/registry.py:46`, still major 1 while
-    `columna_core.governed.publication` is at major 2. The freeze should require a single guard that
-    the two agree.
+- **Both reader defects are CLOSED (2026-09-12):**
+  - `int(fmt.split(".", 1)[0])` accepted `"2.5"` as major 2. The version is now matched against
+    `^\d+$` first: this format is a bare MAJOR, and a spelling it does not define is **unreadable**
+    rather than truncated to its head. `"2.0"` refuses too — a reader that normalizes an
+    unrecognised spelling has decided what it means.
+  - `MAPPING_FORMAT_VERSION` and `SUPPORTED_MAPPING_FORMAT_MAJOR` are now compared by a **test**
+    (`tests/test_mapping_format_constants.py`), over both the v1 and v2 readers.
+
+**A CORRECTION TO THIS DOCUMENT'S OWN CLAIM.** An earlier revision said the constants defect was
+*"the same defect already live at `columna_server/registry.py:46`"*. **That was wrong**, and checking
+it was the only way to find out. `registry.py`'s constant is `SUPPORTED_PUBLICATION_FORMAT_MAJOR` —
+a **publication**-format major, a different dimension from the mapping format — and it is genuinely
+behind (1, against `manifold_agent.publication.PUBLICATION_FORMAT_VERSION` of `"2"`). But it is not
+the same *kind* of defect: the mapping constants are a producer and a consumer **in one module**, so
+a test can compare them; the server's consumer must agree with a producer in a **deliberately
+import-disjoint tree**, and `columna-server` may not import `manifold_agent` — the disjointness is
+test-enforced and this freeze rests on it. No in-process comparison can exist without breaking that
+invariant. Whether the server should accept publication major 2 is a **compatibility ruling**, not a
+coherence test, and it is out of this unit's scope. Pinned at
+`columna-server/tests/test_publication_format_major.py` so the gap keeps a name.
 
 ---
 
@@ -273,14 +342,20 @@ unrecognised key refuses; it is never ignored. Closed enums for `grain` and `exa
 undisclosed approximation is exactly what ToD §10.9 forbids, so `exactness` must be checked on
 **every** path a profile lowers, not only the constructed one.
 
-Three reader defects ratification should close:
+**All reader defects named here are CLOSED (2026-09-12), and one more was found while closing them:**
 
-- a **missing** `grain` currently produces the same message as an **invalid** one (absent → `None
-  not in GRAINS`); absence and error are different refusals;
-- `load_mapping` does not wrap `json.JSONDecodeError`, while its sibling `load_lowering_receipt`
-  does — a malformed file should refuse in this vocabulary, not raise a stdlib error;
-- duplicate **anchor-component** realizations are not detected by the reader (they are caught later,
-  in the profile); detection belongs with the other totality rules.
+- a **missing** `grain` produced the same message as an **invalid** one (absent → `None not in
+  GRAINS`), telling a producer it had written something wrong when it had written nothing. They are
+  now different refusals;
+- `load_mapping` now wraps `json.JSONDecodeError` like its sibling `load_lowering_receipt`, so two
+  loaders over the same kind of artifact no longer answer in different languages;
+- duplicate **anchor-component** realizations now refuse in the reader, beside the duplicate-family
+  rule, rather than only later in the profile — one artifact defect was refusing in two different
+  places depending on which key it was on, and a reader used outside the profile saw neither;
+- **FOUND WHILE CHECKING: the TOP-LEVEL key set was not closed.** This section claimed closed key
+  sets at all three levels and only two were — an unrecognised top-level key was silently ignored,
+  which is the one outcome a closed format may not have, because the producer is told nothing and
+  believes the claim was carried. Now closed.
 
 ---
 
@@ -310,15 +385,16 @@ being. The mechanism as it stands renders four placeholders — `{umbrella}` `{c
 `{contract}` — and the mapping-format major is **not** among them. Enrolment is therefore **a guard
 change plus entries**, not a TOML line:
 
-1. **A fifth placeholder, imported, never literal.** `{mapping_major}`, rendered from
-   `columna_core.compiler.realization.SUPPORTED_MAPPING_FORMAT_MAJOR`, by the rule the guard already
-   applies to `{contract}`: *"the contract is the package's to declare; a literal here would be the
-   very defect being guarded."* The known-placeholder list in the guard's error path must be updated
-   in the same change, or a mistyped name reports four names when there are five.
+1. **A fifth placeholder, imported, never literal — LANDED 2026-09-12.** `{mapping_major}` is
+   rendered from `columna_core.compiler.realization.SUPPORTED_MAPPING_FORMAT_MAJOR`, by the rule the
+   guard already applies to `{contract}`: *"the contract is the package's to declare; a literal here
+   would be the very defect being guarded."* The known-placeholder list in the error path was updated
+   in the same change, and the guard's report line now names the major it read.
 
-2. **A stamp on this document's own status line**, so that a mapping-major bump which leaves this
-   freeze describing the superseded major fails closed. Per the manifest's guidance, enrol the half
-   of the claim that carries the version and does not wrap.
+2. **A stamp on this document's own status line — LANDED 2026-09-12.** The status line now carries
+   a non-wrapping sentence naming the major (*"This freeze describes **mapping-format major 2**…"*),
+   enrolled in the manifest, so a mapping-major bump that leaves this freeze describing the
+   superseded major fails closed.
 
 3. **A stamp wherever shipped prose names the mapping-format major** — coverage grows by a named
    entry and a reason beside it, never by the guard deciding for itself what looks current.
@@ -330,13 +406,19 @@ thereafter. The guard's polarity suits this use: *history is the default, curren
 ### 10.2 CHECK TWO — a code/test invariant on the constants (NOT a stamp)
 
 **Guards:** *do the producer and consumer constants still agree with each other?*
-**Mechanism:** a **test**. It does not exist, and ratification should require it.
+**Mechanism:** a **test** — `tests/test_mapping_format_constants.py`, **LANDED 2026-09-12**, which
+ratification required and now has.
 
-§6 records the defect: `MAPPING_FORMAT_VERSION = "2"` and `SUPPORTED_MAPPING_FORMAT_MAJOR = 2` live
-side by side in `realization.py`, must agree, and **nothing compares them**. The same defect is
-already live at `columna_server/registry.py:46`, still major 1 while
-`columna_core.governed.publication` is at major 2 — which is the proof that it is a real failure mode
-and not a hypothetical one.
+§6 records the defect it closes: `MAPPING_FORMAT_VERSION = "2"` and `SUPPORTED_MAPPING_FORMAT_MAJOR
+= 2` live side by side in `realization.py`, must agree, and until that test nothing compared them.
+The test compares them over **both** the v1 and v2 readers.
+
+**The server's publication-major mismatch is NOT this check, and is not closed by it** (see §6's
+correction). `columna_server/registry.py`'s `SUPPORTED_PUBLICATION_FORMAT_MAJOR` is a *publication*
+major, behind its producer across a deliberately import-disjoint tree; whether the server should
+accept publication major 2 is a **separate compatibility ruling**, held open under that name and
+pinned by `columna-server/tests/test_publication_format_major.py`. It is not realization-format
+constant coherence and must not be folded into it.
 
 > **The prose stamp cannot close this, and must not be described as if it could.** The currency guard
 > renders a template from the shipped state and asserts the literal appears in a file. It compares

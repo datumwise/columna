@@ -33,6 +33,8 @@ with a named category, and the governed law is untouched.
 """
 from __future__ import annotations
 
+from typing import Optional
+
 from ..governed import resolve as R
 from ..governed.publication import COINCIDENT as FORMATION_COINCIDENT
 from ..governed.publication import CONSTRUCTION
@@ -42,6 +44,7 @@ from .compile import ClosedExecutionImage
 from .realization import COINCIDENT, EXACT, FINER, PrivateCoreMappingV2, require_same_publication
 from .refusals import (
     ExecutionRepresentationGap,
+    InputIdentityMismatch,
     LogicalMeaningMissing,
     MappingIncomplete,
     UnsupportedCoreCapability,
@@ -150,10 +153,88 @@ def _check_continuation_conformance(law_name: str, member_op: str, subject: str)
             f"the publication does not describe.", subject=subject)
 
 
-def compile_v2(publication, mapping: PrivateCoreMappingV2) -> ClosedExecutionImage:
+# ── R0 · NO REALIZATION FACT MAY BE DROPPED ──────────────────────────────────────────────────────
+# The v2 realization freeze, §5 (candidate; landed here 2026-09-12 on ratification-readiness
+# instruction). For every fact the format carries, a conforming profile must do exactly one of:
+#
+#     CONSUME it   carry it into the emitted reference
+#     CHECK it     compare it against a context the profile can justify, and refuse a mismatch
+#     REFUSE       state that it cannot consume the fact faithfully
+#
+# Silently ignoring a fact is not one of the three. The test for "faithfully" is NOT emitted-string
+# equality — a fact can be load-bearing without reaching a rendered string:
+#
+#     a realization fact is consumed faithfully only if changing that fact ALONE can change the
+#     effective material realization, the standing or check behaviour, or cause a refusal.
+#
+# Before this, `connection` was read nowhere and `schema` was validated and then dropped at emission,
+# so two mappings differing only in either produced a byte-identical image: the producer's claim was
+# made, and the compiler neither honoured nor tested it.
+
+
+def _realization_endpoints(mapping):
+    """Every endpoint the mapping carries, with a subject for refusals."""
+    for r in mapping.anchor_components:
+        yield f"anchor component {r.anchor_ref}.{r.component_name}", r.endpoint
+    for r in mapping.families:
+        yield f"family {r.family_id}", r.endpoint
+
+
+def _check_realization_facts(mapping, connection: Optional[str]) -> str:
+    """R1 and R2, before any lowering. Returns the single connection this image is bound to."""
+    claimed = {ep.connection for _s, ep in _realization_endpoints(mapping)}
+
+    # ── R2 · `schema` ───────────────────────────────────────────────────────────────────────────
+    # K0v2 emits `FROM <table>` and the Core execution grammar's table is a BARE name (`^\w+$`); it
+    # has no schema notion at all. So this profile cannot represent a schema-qualified endpoint, and
+    # under R2 it must REFUSE rather than drop the qualification: `{schema: "sales", table: "rev"}`
+    # and `{schema: "staging", table: "rev"}` denote different material locations, and an unqualified
+    # `FROM rev` collapses them — the more dangerous for being silent, since both usually resolve.
+    #
+    # A NULL schema is NOT a dropped one. Null asserts "no schema qualification applies", which this
+    # profile consumes by emitting the unqualified reference. That is the whole difference between a
+    # fact that says nothing and a fact that was not listened to.
+    for subject, ep in _realization_endpoints(mapping):
+        if ep.schema is not None:
+            raise ExecutionRepresentationGap(
+                f"endpoint claims schema {ep.schema!r}, and this profile emits an unqualified "
+                f"`FROM {ep.table}` — the Core execution grammar has no schema notion. Dropping the "
+                f"qualification would make {ep.schema}.{ep.table} and any other schema's {ep.table} "
+                f"the same material reference. Declare `schema: null` where the connection's default "
+                f"applies; a profile that cannot carry a schema refuses it", subject=subject)
+
+    # ── R1 · `connection` ───────────────────────────────────────────────────────────────────────
+    # This is a SINGLE-CONNECTION profile, so it discharges `connection` by CHECK. Two rules follow,
+    # and both give the fact real discriminating power: changing `connection` on one realization
+    # alone now changes behaviour, where before it changed nothing at all.
+    if len(claimed) > 1:
+        raise UnsupportedCoreCapability(
+            f"realizations claim {len(claimed)} different connections ({sorted(claimed)}) and this "
+            f"is a single-connection profile; one image cannot be bound to two connections",
+            subject="mapping")
+    bound = next(iter(claimed)) if claimed else None
+    if connection is not None and bound is not None and bound != connection:
+        raise InputIdentityMismatch(
+            f"the mapping realizes on connection {bound!r} and this execution is bound to "
+            f"{connection!r}; a realization claim for another connection is not this execution's "
+            f"realization", subject="mapping")
+    return bound
+
+# A FUTURE MULTI-CONNECTION PROFILE MUST *CONSUME* `connection`, NOT MERELY CHECK IT. Under multiple
+# connections, two realizations differing only in `connection` denote different material locations,
+# so a profile that checks against one declared context cannot tell them apart and the two claims
+# become observationally identical. Recorded here, not implemented: this unit does not generalize to
+# multi-connection routing.
+
+
+def compile_v2(publication, mapping: PrivateCoreMappingV2, *,
+               connection: Optional[str] = None) -> ClosedExecutionImage:
     """Compile a v2 governed publication + its v2 realization into a CLOSED Core image."""
     # ── 0. input authority ───────────────────────────────────────────────────────────────────────
     require_same_publication(publication, mapping)
+    # R0/R1/R2, before any lowering — an endpoint fact this profile cannot honour must refuse before
+    # the compiler starts producing an image that would silently omit it.
+    _check_realization_facts(mapping, connection)
 
     # ── 1. scope gate: refuse, never omit ────────────────────────────────────────────────────────
     for kind, (exc, why) in _OUT_OF_SCOPE.items():

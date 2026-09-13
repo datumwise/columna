@@ -18,7 +18,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from fixtures_v2 import lighthouse as lh                                       # noqa: E402
 
 from columna_core.compiler.compile_v2 import K0_LAWS, compile_v2               # noqa: E402
-from columna_core.compiler.realization import parse_mapping                    # noqa: E402
+from columna_core.compiler.realization import load_mapping, parse_mapping     # noqa: E402
 from columna_core.compiler.refusals import (                                   # noqa: E402
     ExecutionRepresentationGap, InputIdentityMismatch, LogicalMeaningMissing, MappingIncomplete,
     UnsupportedCoreCapability,
@@ -797,3 +797,154 @@ def test_the_caller_freeze_guard_scans_beyond_the_packages_tree():
     # and every declared caller still exists — a stale allow-list entry hides a real caller
     missing = sorted(c for c in _V1_COMPILER_CALLERS if not (root / c).is_file())
     assert not missing, f"declared v1 caller(s) no longer present: {missing}"
+
+
+# ══ R0/R1/R2 — realization-freeze conformance (landed 2026-09-12) ════════════════════════════════
+#
+# The general rule these three test: every realization fact must be CONSUMED, CHECKED, or REFUSED,
+# and "faithfully" is not emitted-string equality — changing a semantically relevant fact must be
+# capable of changing effective material realization, standing/check behaviour, or causing refusal.
+
+def test_r2_a_non_null_schema_refuses_rather_than_being_dropped():
+    """`sales.revenue` and `staging.revenue` must not become the same material reference."""
+    with pytest.raises(ExecutionRepresentationGap, match="schema"):
+        compile_v2(_pub(), _map(lambda d: [r["endpoint"].update(schema="sales")
+                                           for r in d["realizations"]]))
+
+
+def test_r2_the_exact_claim_the_fixtures_gave_up_still_refuses():
+    """THE CONTROL ON THE FIXTURE CHANGE (ruled 2026-09-12).
+
+    Both successful fixtures were changed from `schema: "main"` to `schema: null` when R2 landed.
+    That is only legitimate if the old value was an OVERCLAIM — so the old value itself, restored
+    verbatim, must still refuse, and refuse FOR THE SCHEMA QUALIFICATION rather than tripping some
+    later check. If `"main"` ever compiles again, the fact was erased to make fixtures green rather
+    than the fixtures corrected to stop claiming what the image cannot carry."""
+    with pytest.raises(ExecutionRepresentationGap) as e:
+        compile_v2(_pub(), parse_mapping(lh.mapping(schema="main")))
+    msg = str(e.value)
+    assert "'main'" in msg and "schema" in msg          # refused for THIS fact,
+    assert "no schema notion" in msg                    # for THIS reason,
+    assert "main.sales_lines" in msg                    # naming the collapse it prevents.
+
+
+def test_r2_a_null_schema_is_not_a_dropped_one():
+    """Null asserts that no qualification applies — which this profile CAN consume."""
+    image = compile_v2(_pub(), _map())            # the fixture declares schema: null
+    assert "FROM sales_lines" in image.text
+
+
+def test_r2_the_refusal_names_the_collapse_it_prevents():
+    with pytest.raises(ExecutionRepresentationGap) as e:
+        compile_v2(_pub(), _map(lambda d: d["realizations"][0]["endpoint"].update(schema="staging")))
+    assert "same material reference" in str(e.value)
+    assert "Declare `schema: null`" in str(e.value)
+
+
+def test_r1_a_connection_mismatch_against_the_bound_context_refuses():
+    with pytest.raises(InputIdentityMismatch, match="connection"):
+        compile_v2(_pub(), _map(), connection="analytics")
+
+
+def test_r1_a_matching_connection_compiles():
+    assert compile_v2(_pub(), _map(), connection="warehouse").text
+
+
+def test_r1_no_bound_context_still_compiles_but_the_fact_is_not_ignored():
+    """With nothing to check against, the claim is still not discarded — internal coherence holds."""
+    assert compile_v2(_pub(), _map()).text
+
+
+def test_r1_two_connections_refuse_because_this_profile_serves_one():
+    def mutate(d):
+        d["realizations"][-1]["endpoint"]["connection"] = "elsewhere"
+    with pytest.raises(UnsupportedCoreCapability, match="single-connection"):
+        compile_v2(_pub(), _map(mutate))
+
+
+def test_r0_changing_a_fact_alone_changes_behaviour(tmp_path):
+    """THE FAITHFUL-CONSUMPTION CRITERION, asserted directly.
+
+    Before R0/R1/R2 both mutations below produced a BYTE-IDENTICAL image to the unmutated one: the
+    facts were validated and then ignored. Now each one alone changes the outcome — which is what it
+    means for a fact to be consumed rather than absorbed."""
+    baseline = compile_v2(_pub(), _map()).encode()
+
+    with pytest.raises(ExecutionRepresentationGap):
+        compile_v2(_pub(), _map(lambda d: [r["endpoint"].update(schema="other")
+                                           for r in d["realizations"]]))
+    with pytest.raises(UnsupportedCoreCapability):
+        compile_v2(_pub(), _map(lambda d: d["realizations"][0]["endpoint"]
+                                .update(connection="other")))
+
+    # and the unchanged mapping still compiles to the same bytes
+    assert compile_v2(_pub(), _map()).encode() == baseline
+
+
+# ══ freeze §6/§8 — strict parser and refusal behaviour (landed 2026-09-12) ═══════════════════════
+def _bare(**over):
+    d = {"mapping_format_version": "2",
+         "publication_ref": {"manifold_id": "lighthouse", "version": "1.0.0"},
+         "realizations": []}
+    d.update(over)
+    return d
+
+
+def _ep(column="amount"):
+    return {"connection": "warehouse", "schema": None, "table": "sales_lines", "column": column}
+
+
+def test_the_top_level_key_set_is_closed():
+    """The third of the three levels. It was open — an unknown key was silently ignored."""
+    with pytest.raises(MappingIncomplete, match="top-level"):
+        parse_mapping(_bare(mapping_note="a key this reader does not know"))
+
+
+def test_a_version_string_this_format_does_not_define_is_unreadable_not_truncated():
+    """`"2.5"` used to be accepted AS MAJOR 2. A reader that normalizes has decided what it means."""
+    with pytest.raises(MappingIncomplete, match="unreadable"):
+        parse_mapping(_bare(mapping_format_version="2.5"))
+    with pytest.raises(MappingIncomplete, match="unreadable"):
+        parse_mapping(_bare(mapping_format_version="2.0"))
+    assert parse_mapping(_bare()).mapping_format_version == "2"
+
+
+def test_a_missing_grain_and_an_invalid_grain_are_different_refusals():
+    """Both used to say "None not in GRAINS" — telling a producer it wrote something wrong when it
+    had written nothing at all."""
+    missing = {"kind": "family", "family_id": "lh-revenue", "endpoint": _ep(), "exactness": "exact"}
+    with pytest.raises(MappingIncomplete, match="declares no grain"):
+        parse_mapping(_bare(realizations=[missing]))
+    with pytest.raises(MappingIncomplete, match="must be one of"):
+        parse_mapping(_bare(realizations=[{**missing, "grain": "nearly"}]))
+
+
+def test_duplicate_anchor_components_refuse_in_the_reader():
+    """Detection belongs with the other totality rules, not only later in the profile."""
+    ac = {"kind": "anchor_component", "anchor_ref": "sale_at", "component_name": "store",
+          "endpoint": _ep("store_id")}
+    with pytest.raises(MappingIncomplete, match="realized more than once"):
+        parse_mapping(_bare(realizations=[ac, dict(ac)]))
+
+
+def test_malformed_json_refuses_in_this_vocabulary(tmp_path):
+    """Its sibling loader already wrapped `JSONDecodeError`; this one raised the stdlib error."""
+    bad = tmp_path / "m.json"
+    bad.write_text("{not json", encoding="utf-8")
+    with pytest.raises(MappingIncomplete, match="not valid JSON"):
+        load_mapping(bad)
+
+
+def test_the_closed_enums_and_key_sets_still_hold():
+    fam = {"kind": "family", "family_id": "lh-revenue", "endpoint": _ep(), "grain": "coincident"}
+    with pytest.raises(MappingIncomplete):                       # exactness enum
+        parse_mapping(_bare(realizations=[{**fam, "exactness": "sortof"}]))
+    with pytest.raises(MappingIncomplete):                       # family key set
+        parse_mapping(_bare(realizations=[{**fam, "root_evaluator": "sum"}]))
+    with pytest.raises(MappingIncomplete):                       # endpoint key set
+        parse_mapping(_bare(realizations=[{**fam, "endpoint": {**_ep(), "database": "x"}}]))
+    with pytest.raises(MappingIncomplete):                       # unknown kind
+        parse_mapping(_bare(realizations=[{"kind": "measure", "endpoint": _ep()}]))
+    with pytest.raises(MappingIncomplete):                       # duplicate family
+        parse_mapping(_bare(realizations=[{**fam, "exactness": "exact"},
+                                          {**fam, "exactness": "exact"}]))

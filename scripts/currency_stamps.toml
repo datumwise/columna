@@ -121,3 +121,16 @@ template = '"{contract}"), identical over MCP or a direct API call.'
 file = "packages/columna-core/README.md"
 claim = "packaged front door — the H1 states the shipped core version"
 template = "# columna-core ({core})"
+
+# ── docs/architecture/core_realization_profile_v2_freeze.md ─────────────────────────────────────
+# ENROLLED 2026-09-12 with the realization-freeze conformance unit. A format freeze that names the
+# major it describes is a CURRENT-STATE claim: if the reader moves to major 3 and this sentence still
+# says 2, the document is describing a superseded format while presenting itself as the freeze.
+#
+# The v1 freeze is cited by no code, no test, and is enrolled in nothing — which is how a ratified
+# format document becomes folklore, true when written and unfalsifiable afterwards. This entry is the
+# difference.
+[[stamp]]
+file = "docs/architecture/core_realization_profile_v2_freeze.md"
+claim = "the mapping-format major this freeze describes"
+template = "This freeze describes **mapping-format major {mapping_major}**"
