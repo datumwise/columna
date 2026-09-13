@@ -20,6 +20,7 @@ import pytest
 
 from columna_core.compiler.compile_v2 import compile_v2
 from columna_core.compiler.realization import parse_mapping
+from columna_core.compiler.refusals import ExecutionRepresentationGap
 from columna_core.governed import parse_publication, resolve_all
 from columna_core.governed.resolve import C3_DOMAIN_MOVEMENT, UNESTABLISHED
 
@@ -33,14 +34,15 @@ def publication():
     return parse_publication(json.loads(ARTIFACT.read_text(encoding="utf-8")))
 
 
-def _mapping(pub):
+def _mapping(pub, schema=None):
     fid = {f.canonical_reference: f.family_id for f in pub.families}
 
     def ep(column):
-        # `schema: null` — R2 (2026-09-12): K0v2 emits an unqualified `FROM`, so a non-null schema
-        # refuses rather than being dropped. Null is the honest claim for "the connection's default
-        # applies", and is what the producer should emit.
-        return {"connection": "warehouse", "schema": None, "table": "sales_lines",
+        # `schema` DEFAULTS TO None — R2 (2026-09-12): K0v2 emits an unqualified `FROM`, so a
+        # non-null schema refuses rather than being dropped. Null is the honest claim for "the
+        # connection's default applies", and is what the producer should emit. The parameter exists
+        # so the control below can restore the old `"main"` and watch it refuse.
+        return {"connection": "warehouse", "schema": schema, "table": "sales_lines",
                 "column": column}
     return parse_mapping({
         "mapping_format_version": "2",
@@ -65,6 +67,16 @@ def test_the_consumer_does_not_import_the_producer():
     import sys
     assert "manifold_agent" not in sys.modules, (
         "the artifact is the only thing that may cross this boundary")
+
+
+def test_the_schema_this_fixture_gave_up_still_refuses(publication):
+    """CONTROL on this fixture's R2 change: it declared `schema: "main"` until 2026-09-12.
+
+    The value was dropped because the profile cannot carry it — not to make this file green. So the
+    old value, restored, must still refuse for the schema qualification itself."""
+    with pytest.raises(ExecutionRepresentationGap) as e:
+        compile_v2(publication, _mapping(publication, schema="main"))
+    assert "'main'" in str(e.value) and "no schema notion" in str(e.value)
 
 
 def test_the_producer_artifact_is_format_v2_and_carries_its_authority(publication):

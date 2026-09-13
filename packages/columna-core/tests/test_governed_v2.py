@@ -812,6 +812,22 @@ def test_r2_a_non_null_schema_refuses_rather_than_being_dropped():
                                            for r in d["realizations"]]))
 
 
+def test_r2_the_exact_claim_the_fixtures_gave_up_still_refuses():
+    """THE CONTROL ON THE FIXTURE CHANGE (ruled 2026-09-12).
+
+    Both successful fixtures were changed from `schema: "main"` to `schema: null` when R2 landed.
+    That is only legitimate if the old value was an OVERCLAIM — so the old value itself, restored
+    verbatim, must still refuse, and refuse FOR THE SCHEMA QUALIFICATION rather than tripping some
+    later check. If `"main"` ever compiles again, the fact was erased to make fixtures green rather
+    than the fixtures corrected to stop claiming what the image cannot carry."""
+    with pytest.raises(ExecutionRepresentationGap) as e:
+        compile_v2(_pub(), parse_mapping(lh.mapping(schema="main")))
+    msg = str(e.value)
+    assert "'main'" in msg and "schema" in msg          # refused for THIS fact,
+    assert "no schema notion" in msg                    # for THIS reason,
+    assert "main.sales_lines" in msg                    # naming the collapse it prevents.
+
+
 def test_r2_a_null_schema_is_not_a_dropped_one():
     """Null asserts that no qualification applies — which this profile CAN consume."""
     image = compile_v2(_pub(), _map())            # the fixture declares schema: null

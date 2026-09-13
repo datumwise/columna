@@ -1,13 +1,14 @@
-# Core Realization Profile v2 — claim-field freeze — **CANDIDATE**
+# Core Realization Profile v2 — claim-field freeze — **RATIFIED**
 
-**Status:** **CANDIDATE, not ratified — but the implementation now conforms.** The conformance unit
-of 2026-09-12 landed R0/R1/R2, the §6 version-shape refusal, the §8 strictness items and the
-constant-coherence test, so nothing in this document is now awaiting work. This freeze describes
-**mapping-format major 2**, which is the major `columna-core` reads and writes. Prepared 2026-09-12 on instruction (Huayin) for
-ratification review. Supersedes nothing until ratified; `core_p1_k0_design_freeze.md` §3 remains the
-ratified freeze for mapping format v1.
-**Merging this file does not ratify it.** It is committed so it can be reviewed in place; its status
-line is the authority on its standing, and only an explicit ruling changes that line.
+**Status:** **RATIFIED IN FULL** (Huayin, 2026-09-13), on the conformance unit reviewed green at
+head `2dfebbc`. R0/R1/R2, the §6 version-shape refusal, the §8 strictness items and the
+constant-coherence test are landed and enforced; no section of this document is proposed any longer.
+This freeze describes **mapping-format major 2**, which is the major `columna-core` reads and writes.
+Prepared 2026-09-12 on instruction (Huayin); ratified 2026-09-13 after the ratification review.
+**This document now supersedes `core_p1_k0_design_freeze.md` §3 as the ratified field freeze for the
+mapping format**, for major 2 only; §3 remains the ratified freeze for mapping format v1, which the
+v1 reader still serves.
+**Date:** 2026-09-12 (candidate, prepared) · 2026-09-13 (RATIFIED; reviewed head `2dfebbc`).
 **Shape follows:** `core_p1_k0_design_freeze.md` §3 (*"`PrivateCoreMapping` — field freeze —
 RATIFIED"*, CG2, 2026-08-22), deliberately, so the two are read the same way.
 **Evidence base:** `columna_core/compiler/realization.py` (the v2 consumer as built),
@@ -233,7 +234,13 @@ candidate from acquiring force by being written):
   execution grammar's table is a bare `^\w+$`; it has no schema notion at all, so it cannot consume
   the fact and says so (`ExecutionRepresentationGap`). A **null** schema is consumed by emitting the
   unqualified reference, which is the distinction between a fact that says nothing and a fact that
-  was not listened to.
+  was not listened to. **Both halves are pinned, and so is the control on the fixture change**
+  (required at ratification, Huayin, 2026-09-13): the two successful fixtures moved from
+  `schema: "main"` to `schema: null`, so the old value *restored verbatim* must still refuse, and
+  refuse for the schema qualification itself rather than tripping a later check
+  (`test_r2_the_exact_claim_the_fixtures_gave_up_still_refuses`,
+  `test_the_schema_this_fixture_gave_up_still_refuses`). If `"main"` ever compiles again, the fact
+  was erased to make fixtures green rather than the fixtures corrected.
 - **R1 · `connection`** — the single-connection profile **CHECKS** it: all realizations must agree on
   one connection (`UnsupportedCoreCapability` otherwise, since one image cannot be bound to two), and
   where the caller supplies a bound context, a differing claim refuses (`InputIdentityMismatch`).
@@ -369,13 +376,19 @@ thereafter. The guard's polarity suits this use: *history is the default, curren
 ### 10.2 CHECK TWO — a code/test invariant on the constants (NOT a stamp)
 
 **Guards:** *do the producer and consumer constants still agree with each other?*
-**Mechanism:** a **test**. It does not exist, and ratification should require it.
+**Mechanism:** a **test** — `tests/test_mapping_format_constants.py`, **LANDED 2026-09-12**, which
+ratification required and now has.
 
-§6 records the defect: `MAPPING_FORMAT_VERSION = "2"` and `SUPPORTED_MAPPING_FORMAT_MAJOR = 2` live
-side by side in `realization.py`, must agree, and **nothing compares them**. The same defect is
-already live at `columna_server/registry.py:46`, still major 1 while
-`columna_core.governed.publication` is at major 2 — which is the proof that it is a real failure mode
-and not a hypothetical one.
+§6 records the defect it closes: `MAPPING_FORMAT_VERSION = "2"` and `SUPPORTED_MAPPING_FORMAT_MAJOR
+= 2` live side by side in `realization.py`, must agree, and until that test nothing compared them.
+The test compares them over **both** the v1 and v2 readers.
+
+**The server's publication-major mismatch is NOT this check, and is not closed by it** (see §6's
+correction). `columna_server/registry.py`'s `SUPPORTED_PUBLICATION_FORMAT_MAJOR` is a *publication*
+major, behind its producer across a deliberately import-disjoint tree; whether the server should
+accept publication major 2 is a **separate compatibility ruling**, held open under that name and
+pinned by `columna-server/tests/test_publication_format_major.py`. It is not realization-format
+constant coherence and must not be folded into it.
 
 > **The prose stamp cannot close this, and must not be described as if it could.** The currency guard
 > renders a template from the shipped state and asserts the literal appears in a file. It compares
