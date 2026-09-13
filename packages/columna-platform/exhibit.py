@@ -146,6 +146,60 @@ def main():
     st_c = RetainedStateStore(); st_c.insert(anchored)
     _print_refusal(serving.decide(view, st_c, anchored.identity, at_anchor="store", licence=None))
 
+    rule("PROOF C — COMPOSITE SUFFICIENT STATE FOR MEAN")
+    import copy as _copy, json as _json2
+    from decimal import Decimal as _D
+    from columna_core.governed.publication import parse_publication as _pp
+    from columna_core.governed.resolve import resolve_all as _ra
+    from columna_core.governed.foundation import LAWS as _LAWS
+    from columna_platform import composite as _comp
+    doc = _copy.deepcopy(_json2.loads(PUBLICATION.read_text(encoding="utf-8")))
+    doc["logical"]["declarations"].append({"kind": "family", "name": "revenue_mean", "body": {
+        "family_id": "lh-revmean", "canonical_reference": "mean(revenue@sale_at)",
+        "universe": "sales", "constitutive_anchor": "sale_at",
+        "target": "the arithmetic mean of revenue over participating sale points",
+        "formation": {"kind": "construction",
+                      "law": {"law": "MEAN", "version": "1", "vocabulary": "datumwise.foundation"},
+                      "operands": [REVENUE]},
+        "participation": "every sale point carrying a recorded amount"}})
+    mv = _ra(_pp(doc))["lh-revmean"]
+    print(f"  C8 continuation  {mv['continuation_and_agreement'].standing}   (the displayed mean does not compose)")
+    b = _comp.declared_basis(mv)
+    print(f"  C7 basis         {mv['sufficient_state_bases'].standing}  {b.components}  "
+          f"common participation required = {b.requires_common_participation}")
+    print(f"  COUNT component continues under {_LAWS['COUNT'].entails_continuation!r} "
+          f"(usable_as_continuation={_LAWS['COUNT'].usable_as_continuation})")
+
+    def _adm(vals):
+        return admission.admit(view, real, carrier.Carrier(
+            __import__("pyarrow").array([_D(v) for v in vals], type=__import__("pyarrow").decimal128(18, 4)),
+            "duckdb DECIMAL(18,4) -> arrow decimal128(18,4), preserved"))
+    A, B = _adm(["10.0000", "15.0000", "5.0000"]), _adm(["6.0000"])
+    s1, s2 = _comp.constitute(mv, A, anchor="sale_at"), _comp.constitute(mv, B, anchor="sale_at")
+    print(f"\n  pass 1  SUM={s1.component('SUM').value} COUNT={s1.component('COUNT').value}  pass_id={s1.witness.pass_id[:8]}")
+    print(f"  pass 2  SUM={s2.component('SUM').value} COUNT={s2.component('COUNT').value}  pass_id={s2.witness.pass_id[:8]}")
+    comb = _comp.continue_composite(s1, s2)
+    print(f"  continued  SUM={comb.component('SUM').value} COUNT={comb.component('COUNT').value}")
+    fin = _comp.finalize(comb)
+    print(f"  FINALIZED  mean = {fin.value}   is_sufficient_state={fin.is_sufficient_state}")
+    st_c = RetainedStateStore()
+    st_c.insert(RetainedState(identity=AnalyticalIdentity("lh-revmean", "sale_at"),
+                              standing=held.standing, array=None, governed_domain="decimal",
+                              composite=comb))
+    wc = serving.decide(mv, st_c, AnalyticalIdentity("lh-revmean", "sale_at"), column="mean_revenue")
+    print(f"  WIRE       contract_version={wc['contract_version']!r} outcome={wc['outcome'].upper()}"
+          f"  value={wc['columns'][0].get('value')}")
+
+    rule("PROOF C — THE PAIR NOBODY CONSTITUTED")
+    from columna_platform.refusals import ProofRefusal as _PR
+    try:
+        _comp.pair(s1.component("SUM"), s2.component("COUNT"), family_id="lh-revmean", anchor="sale_at")
+        print("  PAIRED  <-- CONTROL FAILED")
+    except _PR as r:
+        print(f"  same participation rule: {s1.witness.same_participation(s2.witness)}   "
+              f"same pass: {s1.witness.matches(s2.witness)}")
+        print(f"  {r.condition} [{r.jurisdiction}]  {r.detail[:150]}...")
+
     rule("EMPTY-FIBER LAW IS NOT ABSENCE LAW")
     from columna_platform.admission import EMPTY_FIBER_RULING
     print(f"  C9 standing: {view['exceptional_cases'].standing}   value: {view['exceptional_cases'].value}")
