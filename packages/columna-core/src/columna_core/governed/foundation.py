@@ -116,14 +116,16 @@ class FoundationLaw:
     #: `exact` or `approximate`. An approximate law is a §10.9 disclosure, never a silent default.
     approximation: str = "exact"
     #: The COMPOSITE basis, where this law's own displayed value is not a finite witness. `None` means
-    #: the law's own `sufficient_state` IS the basis — not that no basis exists. A law that positively
-    #: denies any sufficient state would say so with `denies_sufficient_state`, below; none does today.
+    #: the law's own `sufficient_state` IS the basis — NOT that no basis exists.
+    #:
+    #: THERE IS NO FIELD HERE FOR "THIS LAW POSITIVELY DENIES ANY SUFFICIENT STATE", and the absence
+    #: is deliberate (ruled Huayin, 2026-09-12). Such a fact would be a governed statement, and no law
+    #: in this vocabulary makes it. One was drafted while implementing the C7 correction, purely so
+    #: that all three branches of the rule would be executable — which is inventing a foundation fact
+    #: in anticipation of a future law, exactly backwards. The RULE still holds and is stated in
+    #: `resolve`; it simply has no vocabulary to fire on yet, and it should acquire one only when a
+    #: law genuinely needs to say it.
     state_basis: Optional["StateBasis"] = None
-    #: Does this law positively establish that NO sufficient state applies? Distinct in every
-    #: direction from "the basis is not stated": one is a governed fact, the other is a silence. No
-    #: law in the vocabulary currently asserts it, and a test pins that so the day one does, the
-    #: `EXPLICIT_NONE` branch it unlocks is noticed rather than discovered.
-    denies_sufficient_state: bool = False
     #: Identity-bearing parameters the law requires (e.g. FIRST/LAST need a constitutive order).
     required_parameters: tuple = ()
 

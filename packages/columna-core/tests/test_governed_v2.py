@@ -288,13 +288,41 @@ def test_control_3_a_family_whose_basis_is_genuinely_not_established():
     assert view[R.C7_SUFFICIENT_STATE].standing != R.EXPLICIT_NONE
 
 
-def test_no_foundation_law_currently_denies_a_sufficient_state():
-    """The `EXPLICIT_NONE` branch exists and is unreachable today, ON PURPOSE.
+def test_the_foundation_has_no_negative_basis_vocabulary_and_that_is_deliberate():
+    """C7 `explicit-none` requires a LAW that positively denies a sufficient state. None exists.
 
-    C7 may be `explicit-none` only where a LAW positively establishes that no sufficient state
-    applies. None does. Pinned so that the day one is added, the branch it unlocks is noticed rather
-    than discovered by a family quietly acquiring a denial nobody wrote."""
-    assert [n for n, law in fdn.LAWS.items() if law.denies_sufficient_state] == []
+    A `denies_sufficient_state` flag was drafted with this correction so that all three branches of
+    the rule would be executable, and was REMOVED before merge (ruled Huayin, 2026-09-12): adding
+    vocabulary in anticipation of a future law is inventing a governed fact. The rule keeps its third
+    outcome; it simply has no law that means it yet.
+
+    This test is the guard on that decision. If someone reintroduces a negative-basis field, they
+    should have to delete this test and say why in the same change."""
+    assert not any(hasattr(law, "denies_sufficient_state") for law in fdn.LAWS.values())
+    assert not hasattr(fdn.FoundationLaw, "denies_sufficient_state")
+
+
+def test_c7_never_resolves_explicit_none_today():
+    """The consequence, asserted over real families rather than over the branch table.
+
+    Not a claim that C7 may never be `explicit-none` — the rule allows it. A claim that NOTHING in
+    the current vocabulary produces it, so a future `explicit-none` will arrive with a law behind it
+    rather than by accident."""
+    def all_variants():
+        yield R.resolve_all(_pub())
+        yield R.resolve_all(_pub(_with_mean))
+
+        def no_continuation(d):
+            del _family(d, "revenue")["continuation"]
+        yield R.resolve_all(_pub(no_continuation))
+
+        def none_continuation(d):
+            _family(d, "revenue")["continuation"] = {"none": "a stock does not compose over time"}
+        yield R.resolve_all(_pub(none_continuation))
+
+    seen = {v.standing(R.C7_SUFFICIENT_STATE) for views in all_variants() for v in views.values()}
+    assert seen == {R.ESTABLISHED, R.UNESTABLISHED}
+    assert R.EXPLICIT_NONE not in seen
 
 
 def test_c7_no_longer_follows_c8():

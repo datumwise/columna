@@ -348,6 +348,16 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
         basis_law = fdn.resolve(fam.formation.law)
         basis_source = "the formation law"
 
+    # THE RULE HAS THREE OUTCOMES; TWO ARE REACHABLE TODAY, AND THAT IS CORRECT (ruled 2026-09-12).
+    #
+    #     a governing law establishes a basis            -> ESTABLISHED
+    #     a governing law positively denies any basis    -> EXPLICIT_NONE
+    #     otherwise                                      -> UNESTABLISHED
+    #
+    # The middle outcome has no branch below, because NO FOUNDATION LAW MAKES THAT STATEMENT. A field
+    # for it was drafted with this correction and removed before merge: adding vocabulary so that a
+    # rule's every branch is executable is inventing a governed fact in anticipation of a future law.
+    # The rule is not weakened by having no live branch — it is waiting on a law that means it.
     if basis_law is None:
         # No law speaks to this family's state. NOT `explicit-none`: nobody has said that no basis
         # applies, only that none has been established — and those are different in every direction.
@@ -355,11 +365,6 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
             C7_SUFFICIENT_STATE, UNESTABLISHED,
             note=("no governing law establishes a sufficient-state basis. Absence of a continuation "
                   "is NOT a denial of state (ruled 2026-09-12)"))
-    elif basis_law.denies_sufficient_state:
-        e[C7_SUFFICIENT_STATE] = Standing(
-            C7_SUFFICIENT_STATE, EXPLICIT_NONE, ENTAILED,
-            note=f"{basis_source} {basis_law.name} positively establishes that no sufficient state "
-                 f"applies")
     elif basis_law.state_basis is not None:
         e[C7_SUFFICIENT_STATE] = Standing(
             C7_SUFFICIENT_STATE, ESTABLISHED, basis_provenance, value=basis_law.state_basis,
