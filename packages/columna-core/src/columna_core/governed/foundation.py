@@ -69,6 +69,34 @@ class UnknownFoundationLaw(LookupError):
 
 
 @dataclass(frozen=True)
+class StateBasis:
+    """A COMPOSITE sufficient-state basis: the component laws whose MATCHING states witness this law.
+
+    Some laws carry a finite witness in their displayed value — a running total witnesses a SUM. Some
+    do not: §5.2 records that *"a displayed scalar generally loses the weight required for exact
+    continuation"*, and names the remedy in the same breath — *"Its SUM and COUNT basis retains that
+    information."*
+
+    This record makes that already-stated fact MACHINE-READABLE. It invents nothing: `components` and
+    `requires_common_participation` are transcribed from the law's own `target_form` and
+    `sufficient_state` prose, which have said this since the vocabulary was written. What changes is
+    that a resolver can now read it instead of a human.
+
+    WHY `requires_common_participation` IS A FIELD AND NOT A COMMENT. §11.5.2's basis is *"a matching
+    SUM and COUNT with the same participating contributions in both components"*. The word doing the
+    work is MATCHING. A SUM and a COUNT that ranged over different contributions are individually
+    valid and jointly meaningless — their quotient is a mean of nothing. A basis that did not carry
+    this requirement would license exactly the pairing it exists to forbid."""
+
+    #: component law names, in the order the basis states them
+    components: tuple
+    #: must the components have been constituted over the SAME participating contributions?
+    requires_common_participation: bool
+    #: the governing sentence, quoted
+    note: str
+
+
+@dataclass(frozen=True)
 class FoundationLaw:
     """One governed foundation law. Semantic content only."""
 
@@ -87,6 +115,17 @@ class FoundationLaw:
     sufficient_state: str
     #: `exact` or `approximate`. An approximate law is a §10.9 disclosure, never a silent default.
     approximation: str = "exact"
+    #: The COMPOSITE basis, where this law's own displayed value is not a finite witness. `None` means
+    #: the law's own `sufficient_state` IS the basis — NOT that no basis exists.
+    #:
+    #: THERE IS NO FIELD HERE FOR "THIS LAW POSITIVELY DENIES ANY SUFFICIENT STATE", and the absence
+    #: is deliberate (ruled Huayin, 2026-09-12). Such a fact would be a governed statement, and no law
+    #: in this vocabulary makes it. One was drafted while implementing the C7 correction, purely so
+    #: that all three branches of the rule would be executable — which is inventing a foundation fact
+    #: in anticipation of a future law, exactly backwards. The RULE still holds and is stated in
+    #: `resolve`; it simply has no vocabulary to fire on yet, and it should acquire one only when a
+    #: law genuinely needs to say it.
+    state_basis: Optional["StateBasis"] = None
     #: Identity-bearing parameters the law requires (e.g. FIRST/LAST need a constitutive order).
     required_parameters: tuple = ()
 
@@ -250,6 +289,12 @@ LAWS: dict = {
         sufficient_state=("no finite witness is carried by the displayed value — §5.2: 'a displayed "
                           "scalar generally loses the weight required for exact continuation. Its "
                           "SUM and COUNT basis retains that information.'"),
+        state_basis=StateBasis(
+            components=("SUM", "COUNT"),
+            requires_common_participation=True,
+            note=("§11.5.2: the exact finite basis is a matching SUM and COUNT with the same "
+                  "participating contributions in both components"),
+        ),
         usable_as_continuation=False,
         identity_note="does not compose; a mean of means is not a mean",
     ),

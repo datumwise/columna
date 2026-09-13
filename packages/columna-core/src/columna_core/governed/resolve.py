@@ -308,19 +308,72 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
                 f"compose under a law that does not accept the values it carries.")
 
     # ── C7 · sufficient-state bases ──────────────────────────────────────────────────────────────
+    # DERIVED FROM THE GOVERNING FOUNDATION LAW, NOT FROM C8 (ruled Huayin, 2026-09-12).
+    #
+    #     A family's sufficient-state basis is independent of whether its displayed value has a
+    #     direct continuation operator.
+    #
+    # This branch used to read `C8 EXPLICIT_NONE -> C7 EXPLICIT_NONE`, on the note "no continuation,
+    # therefore no state that continues it". That implication is INVALID. It conflates
+    #
+    #     the displayed value does not continue
+    #
+    # with
+    #
+    #     no sufficient state exists from which the family can be continued or re-established
+    #
+    # and MEAN is the case that separates them: a mean of means is not a mean, so the displayed value
+    # correctly does not compose — while §11.5.2's matching (SUM, COUNT) basis both composes lawfully
+    # AND finalizes to the mean. The old rule denied the basis the foundation itself describes.
+    #
+    # For SUM the two coincide — the running total is the displayed value's own witness — which is
+    # exactly what let the conflation live unnoticed. Three responsibilities have now been found with
+    # this shape (C9 established != absence governed; C3 established != movement licensed; and this),
+    # so the reading is stated once, generally: THE STANDING OF A RESPONSIBILITY IS NOT THE
+    # ESTABLISHMENT OF EVERY FACT THAT MAY APPEAR INSIDE IT.
+    #
+    # WHICH LAW GOVERNS THE BASIS. The continuation law where the family has one — a family that
+    # composes carries the state that composes it. Otherwise the FORMATION law, which is the law that
+    # knows how the value was made and therefore what finitely determines it. Families that continue
+    # are unaffected by this change; only those that do not can now acquire a basis.
+    # `cont` stays a SEPARATE name from `basis_law` on purpose: C9 below reads `cont.empty_fiber`,
+    # and empty-fiber is an entailment of the CONTINUATION law specifically. Letting one variable mean
+    # "the continuation" in one place and "whatever governs the state" in another is how the two facts
+    # this correction separates would quietly grow back together.
     cont = _continuation_law(e[C8_CONTINUATION])
-    if cont is not None:
-        e[C7_SUFFICIENT_STATE] = Standing(
-            C7_SUFFICIENT_STATE, ESTABLISHED, ENTAILED, value=cont.sufficient_state,
-            note=f"entailed by the continuation law {cont.name}")
-    elif e[C8_CONTINUATION].standing == EXPLICIT_NONE:
-        e[C7_SUFFICIENT_STATE] = Standing(
-            C7_SUFFICIENT_STATE, EXPLICIT_NONE, ENTAILED,
-            note="no continuation, therefore no state that continues it")
-    else:
+    basis_law = cont
+    basis_provenance = ENTAILED
+    basis_source = "the continuation law"
+    if basis_law is None and fam.formation.kind == CONSTRUCTION:
+        basis_law = fdn.resolve(fam.formation.law)
+        basis_source = "the formation law"
+
+    # THE RULE HAS THREE OUTCOMES; TWO ARE REACHABLE TODAY, AND THAT IS CORRECT (ruled 2026-09-12).
+    #
+    #     a governing law establishes a basis            -> ESTABLISHED
+    #     a governing law positively denies any basis    -> EXPLICIT_NONE
+    #     otherwise                                      -> UNESTABLISHED
+    #
+    # The middle outcome has no branch below, because NO FOUNDATION LAW MAKES THAT STATEMENT. A field
+    # for it was drafted with this correction and removed before merge: adding vocabulary so that a
+    # rule's every branch is executable is inventing a governed fact in anticipation of a future law.
+    # The rule is not weakened by having no live branch — it is waiting on a law that means it.
+    if basis_law is None:
+        # No law speaks to this family's state. NOT `explicit-none`: nobody has said that no basis
+        # applies, only that none has been established — and those are different in every direction.
         e[C7_SUFFICIENT_STATE] = Standing(
             C7_SUFFICIENT_STATE, UNESTABLISHED,
-            note="follows the continuation, which is unestablished")
+            note=("no governing law establishes a sufficient-state basis. Absence of a continuation "
+                  "is NOT a denial of state (ruled 2026-09-12)"))
+    elif basis_law.state_basis is not None:
+        e[C7_SUFFICIENT_STATE] = Standing(
+            C7_SUFFICIENT_STATE, ESTABLISHED, basis_provenance, value=basis_law.state_basis,
+            note=f"composite basis, entailed by {basis_source} {basis_law.name}: "
+                 f"{basis_law.state_basis.note}")
+    else:
+        e[C7_SUFFICIENT_STATE] = Standing(
+            C7_SUFFICIENT_STATE, ESTABLISHED, basis_provenance, value=basis_law.sufficient_state,
+            note=f"entailed by {basis_source} {basis_law.name}")
 
     # ── C3 · domain and movement ─────────────────────────────────────────────────────────────────
     # Two POSITIVE declarations are required for admission (§4.1): the anchor must be in the declared

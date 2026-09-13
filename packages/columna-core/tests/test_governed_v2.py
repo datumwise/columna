@@ -227,7 +227,118 @@ def test_explicit_none_is_a_positive_negative_distinct_from_absence():
     assert view.standing(R.C8_CONTINUATION) == R.EXPLICIT_NONE
     assert view[R.C8_CONTINUATION].settled
     assert view.valid                          # explicitly none IS established
-    assert view.standing(R.C7_SUFFICIENT_STATE) == R.EXPLICIT_NONE
+    # C7 CHANGED HERE, AND THE CHANGE IS A RULING (Huayin, 2026-09-12), not a repair.
+    #
+    # This line read `== R.EXPLICIT_NONE`. It was the pinned form of the implication
+    # `C8 EXPLICIT_NONE -> C7 EXPLICIT_NONE`, which has been ruled INVALID: a family's
+    # sufficient-state basis is independent of whether its displayed value has a direct continuation
+    # operator. The publisher here has positively said the DISPLAYED VALUE does not compose. Nobody
+    # has said anything about whether a sufficient state exists — so the honest standing is
+    # UNESTABLISHED, and reading the one as the other is the defect MEAN exposed.
+    assert view.standing(R.C7_SUFFICIENT_STATE) == R.UNESTABLISHED
+    assert "NOT a denial of state" in view[R.C7_SUFFICIENT_STATE].note
+
+
+# ══ C7 is derived from the foundation, not from C8 (ruled 2026-09-12) ════════════════════════════
+def _with_mean(d):
+    """Add a MEAN family over `lh-revenue`. In-memory only; the shared fixture is untouched."""
+    d["logical"]["declarations"].append({"kind": "family", "name": "revenue_mean", "body": {
+        "family_id": "lh-revmean",
+        "canonical_reference": "mean(revenue@sale_at)",
+        "universe": "sales",
+        "constitutive_anchor": "sale_at",
+        "target": "the arithmetic mean of revenue over participating sale points",
+        "formation": {"kind": "construction", "law": lh._cite("MEAN"),
+                      "operands": ["lh-revenue"]},
+        "participation": "every sale point carrying a recorded amount"}})
+
+
+def test_control_1_sum_the_displayed_value_and_the_sufficient_state_coincide():
+    """The case that hid the defect: for SUM the two questions have the same answer."""
+    view = R.resolve_all(_pub())["lh-revenue"]
+    assert view.standing(R.C8_CONTINUATION) == R.ESTABLISHED
+    assert view[R.C8_CONTINUATION].value.name == "SUM"
+    assert view.standing(R.C7_SUFFICIENT_STATE) == R.ESTABLISHED
+    assert view[R.C7_SUFFICIENT_STATE].value == "the running total"
+    assert "the continuation law SUM" in view[R.C7_SUFFICIENT_STATE].note
+
+
+def test_control_2_mean_has_no_direct_continuation_and_still_has_a_basis():
+    """The case that separates them. A mean of means is not a mean — and (SUM, COUNT) still is."""
+    view = R.resolve_all(_pub(_with_mean))["lh-revmean"]
+
+    assert view.standing(R.C8_CONTINUATION) == R.EXPLICIT_NONE      # the displayed value: no
+    assert view.standing(R.C7_SUFFICIENT_STATE) == R.ESTABLISHED    # the basis: yes
+
+    basis = view[R.C7_SUFFICIENT_STATE].value
+    assert basis.components == ("SUM", "COUNT")
+    assert basis.requires_common_participation is True
+    assert "the formation law MEAN" in view[R.C7_SUFFICIENT_STATE].note
+
+
+def test_control_3_a_family_whose_basis_is_genuinely_not_established():
+    """MEAN must NOT stand in for this case. A primitive whose continuation is unestablished has no
+    governing law for its state either — and `unestablished` is the honest answer, not a denial."""
+    def mutate(d):
+        del _family(d, "revenue")["continuation"]
+    view = R.resolve_all(_pub(mutate))["lh-revenue"]
+
+    assert view.standing(R.C8_CONTINUATION) == R.UNESTABLISHED
+    assert view.standing(R.C7_SUFFICIENT_STATE) == R.UNESTABLISHED
+    assert view[R.C7_SUFFICIENT_STATE].standing != R.EXPLICIT_NONE
+
+
+def test_the_foundation_has_no_negative_basis_vocabulary_and_that_is_deliberate():
+    """C7 `explicit-none` requires a LAW that positively denies a sufficient state. None exists.
+
+    A `denies_sufficient_state` flag was drafted with this correction so that all three branches of
+    the rule would be executable, and was REMOVED before merge (ruled Huayin, 2026-09-12): adding
+    vocabulary in anticipation of a future law is inventing a governed fact. The rule keeps its third
+    outcome; it simply has no law that means it yet.
+
+    This test is the guard on that decision. If someone reintroduces a negative-basis field, they
+    should have to delete this test and say why in the same change."""
+    assert not any(hasattr(law, "denies_sufficient_state") for law in fdn.LAWS.values())
+    assert not hasattr(fdn.FoundationLaw, "denies_sufficient_state")
+
+
+def test_c7_never_resolves_explicit_none_today():
+    """The consequence, asserted over real families rather than over the branch table.
+
+    Not a claim that C7 may never be `explicit-none` — the rule allows it. A claim that NOTHING in
+    the current vocabulary produces it, so a future `explicit-none` will arrive with a law behind it
+    rather than by accident."""
+    def all_variants():
+        yield R.resolve_all(_pub())
+        yield R.resolve_all(_pub(_with_mean))
+
+        def no_continuation(d):
+            del _family(d, "revenue")["continuation"]
+        yield R.resolve_all(_pub(no_continuation))
+
+        def none_continuation(d):
+            _family(d, "revenue")["continuation"] = {"none": "a stock does not compose over time"}
+        yield R.resolve_all(_pub(none_continuation))
+
+    seen = {v.standing(R.C7_SUFFICIENT_STATE) for views in all_variants() for v in views.values()}
+    assert seen == {R.ESTABLISHED, R.UNESTABLISHED}
+    assert R.EXPLICIT_NONE not in seen
+
+
+def test_c7_no_longer_follows_c8():
+    """The implication itself, asserted dead: the two standings now vary independently."""
+    pairs = set()
+    for view in R.resolve_all(_pub(_with_mean)).values():
+        pairs.add((view.standing(R.C8_CONTINUATION), view.standing(R.C7_SUFFICIENT_STATE)))
+    assert (R.EXPLICIT_NONE, R.ESTABLISHED) in pairs        # MEAN — impossible under the old rule
+    assert (R.ESTABLISHED, R.ESTABLISHED) in pairs          # SUM and friends, unchanged
+
+
+def test_empty_fiber_is_still_read_from_the_continuation_not_the_basis_law():
+    """The correction must not blur the neighbouring fact it was modelled on. `empty_fiber` is an
+    entailment of the CONTINUATION law; MEAN, which has none, gets `not_applicable`."""
+    view = R.resolve_all(_pub(_with_mean))["lh-revmean"]
+    assert view[R.C9_EXCEPTIONAL].value == {"empty_fiber": "not_applicable"}
 
 
 def test_a_declared_continuation_that_diverges_from_the_formation_law_refuses():
