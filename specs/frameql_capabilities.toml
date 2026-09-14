@@ -173,7 +173,7 @@ id = "product"
 spellings = ["product"]
 position = "series"
 category = "reducer"
-standing = "proposed"
+standing = "ratified"
 source = "Frame-QL Manual Appendix A"
 note = "watch for overflow / zero"
 
