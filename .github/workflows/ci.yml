@@ -63,12 +63,23 @@ jobs:
           # The successor execution path (Proof A). --no-deps: columna-core is already editable
           # above, and this package is never resolved from an index — it is not published.
           pip install --no-deps -e packages/columna-platform
+          # THE FIRST ADBC INGRESS. Installed WITH its deps, unlike its three siblings above: the
+          # whole point of this package is the driver, and `--no-deps` would leave the one thing
+          # under test uninstalled. It brings `duckdb` and `adbc-driver-manager`, both pinned
+          # exactly in its pyproject.
+          #
+          # INSTALLING THEM DOES NOT WEAKEN PLATFORM'S IMPORT BAN. That ban is about what
+          # `columna_platform` IMPORTS, not about what is present in the environment — and the
+          # clean-interpreter control asserts `duckdb` and `adbc_*` are absent from `sys.modules`
+          # after importing Platform, which is a stronger statement when the packages ARE installed
+          # than when they are not. The ban was never "this repository contains no driver".
+          pip install -e "packages/columna-adbc[test]"
           pip install ruff
 
       # Bare invocations: exit codes count (no pipe through tail/head).
       - name: Ruff (correctness only — F, E9)
         run: |
-          python scripts/gates.py --gate ruff-core ruff-server ruff-platform
+          python scripts/gates.py --gate ruff-core ruff-server ruff-platform ruff-adbc
 
       # P0-19: every package's `__version__` is the distribution pip actually resolved, never a
       # literal. Runs before the suites because it is a two-second structural check, and a tree
@@ -95,6 +106,12 @@ jobs:
       # package's scope is correct for every future occupant without being touched.
       - name: Pytest — columna-platform (successor path)
         run: python scripts/gates.py --gate pytest-platform
+
+      # The first material crossing through a real driver. Separate from the step above because the
+      # dependency arrow is the thing under test: this package depends on Platform and Platform does
+      # not know it exists, and two steps make a red X say which side failed.
+      - name: Pytest — columna-adbc (ADBC source adapters)
+        run: python scripts/gates.py --gate pytest-adbc
 
       # One cheap regression over the whole wedge path: the demo prints all four moods in order.
       # Post-§2c the tour is clarify -> refuse -> disclose -> serve; disclose is driven by

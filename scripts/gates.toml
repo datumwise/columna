@@ -98,6 +98,28 @@ cmd = "pytest packages/columna-platform -q"
 workflow = "ci.yml"
 local = true
 
+# ENROLLED 2026-09-14 with the first ADBC ingress, on the same reasoning that enrolled
+# `pytest-platform` and `ruff-platform`: `columna-adbc` is a NON-PUBLISHED workspace member, and a
+# package outside the release set is exactly the kind that acquires tests nothing runs. Being
+# unpublished is not a reason to be unchecked, and enrolling a gate is NOT enrolling the package
+# into the release lockstep — `release_pins.py` names the three published packages by path and this
+# one remains invisible to it by construction.
+#
+# NAMES THE PACKAGE ROOT, like `ruff-platform` and for the same reason: the DuckDB fixture lives in
+# `tests/` beside the suite and a gate spelled `src tests` would still cover it, but the root is the
+# form that stays correct when a future occupant appears beside them.
+[[gate]]
+id = "ruff-adbc"
+cmd = "ruff check packages/columna-adbc"
+workflow = "ci.yml"
+local = true
+
+[[gate]]
+id = "pytest-adbc"
+cmd = "pytest packages/columna-adbc -q"
+workflow = "ci.yml"
+local = true
+
 [[gate]]
 id = "publications"
 cmd = "python scripts/check_publications.py --selftest --report"
