@@ -391,3 +391,41 @@ comparison — remains a design choice, and the evidence so far favours the latt
 supplies a *necessary* condition on the key and explicitly not a sufficient one, and no equivalence
 relation on sufficient state has been defined; a key built to be sufficient would be encoding an
 equivalence nobody has ruled.
+
+
+### 7.5 Cross-request reuse under DuckDB-ADBC v1 — **a capability boundary, not a backlog item**
+
+**RULED 2026-09-14 (Huayin).**
+
+> **A zero-material-fetch reuse proof is not presently expressible for DuckDB-ADBC under the current
+> source contract and evidence model.**
+
+The five steps of the argument, each grounded above:
+
+1. a previously retained state may carry its **historical** data-state detector;
+2. request N+1 has **no independently warranted current** data-state token;
+3. **realization currency is also `None`** (source-adapter contract §5.3);
+4. comparing a retained token **only with itself** proves nothing about the current source;
+5. obtaining the new detector **requires performing the scan reuse was intended to avoid**.
+
+**This is a source/evidence capability boundary. It is not an implementation backlog item**, and it
+must not be recorded as one — a backlog item invites someone to close it with effort, and no amount
+of effort inside this profile closes this. What would close it is a **source characteristic**: an
+independently obtainable, warrantable current-state token. DuckDB does not expose one, and the
+measurement behind that is recorded in the adapter contract §5.2.
+
+**The adjudication order of §7.4 is unchanged and terminates conservatively here**, which is
+correct behaviour and not failure:
+
+```
+retrieve by F @ A
+  -> compatibility standing        (adjudicated)
+  -> data currency                 cannot be independently established for request N+1
+  -> realization currency          None
+  -> reuse CLOSES; the source is read again
+```
+
+A profile that reached a different conclusion from the same evidence would be manufacturing a
+warrant nobody issued. **The architecture is correct; it is the evidence that is absent**, and
+saying so plainly is worth more than a mechanism that lets the sequence return "reuse" without
+anything having established that it may.
