@@ -1574,10 +1574,20 @@ row count    : 4 (2 = folded to store; 4 = NOT folded)
     {'day': '2026-01-02', 'store': 'west', 'value': '3.7037'}
 ```
 
-A store-grain ask returned `serve` carrying sale_at-grain material. **The geometry check never runs,
-because the geometry is never consulted** — the whole movement decision is taken on a string nobody
-validated. Note the polarity: this is not a refusal that should have served, it is a SERVE that should
-have been a fold or a refusal, and nothing in the outcome, the disclosure, or the caveat set marks it.
+**THIS IS A WRONG ANALYTICAL ANSWER, NOT MISLEADING METADATA** (Huayin, 2026-09-14, accepting this row).
+The distinction is the grade. A request for the `{store}` location returned, with `outcome=serve`, the
+unfolded `sale_at(store*day)` state — four points over a location the requester did not ask about,
+where two were owed. It is not a correct answer inconveniently labelled, and it is not a presentation
+fault: the quantity served is not the quantity the ask denotes. `east` is owed `30.0000` and receives
+two rows of `10.0000` and `20.0000`; a consumer summing what arrives recovers the right number only by
+performing the fold the system refused to perform, and a consumer reading a row gets a number that is
+not revenue at `store` at all. **The geometry check never runs, because the geometry is never
+consulted** — the whole movement decision is taken on a string nobody validated.
+
+Note the polarity, which is the unusual part: this is not a refusal that should have served. It is a
+SERVE that should have been a fold or a refusal, and nothing in the outcome, the disclosure, or the
+caveat set marks it. The fail-closed posture the rest of this system maintains is absent here because
+no gate is reached — the decision that would have led to one was taken on an unvalidated label first.
 
 #### Witness B — plan and run hold two incompatible definitions of the target analytical location
 
