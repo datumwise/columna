@@ -1,0 +1,42 @@
+=== Q1. the driver PACKAGE, not a filesystem path ===
+  python                      3.12.14  Linux-6.12.105-fly-x86_64-with-glibc2.41
+  dist duckdb                   1.5.5
+  dist adbc-driver-manager      1.12.0
+  dist pyarrow                  25.0.1
+  dist polars                   1.44.2
+  dist adbc-driver-duckdb       <PackageNotFoundError>   <-- NO DISTRIBUTION OF ITS OWN
+  module adbc_driver_duckdb   /data/probe-venv/lib/python3.12/site-packages/adbc_driver_duckdb/__init__.py
+  driver_path() resolves to   /data/probe-venv/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so
+  _duckdb spec origin         /data/probe-venv/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so
+  -> the ADBC driver and the duckdb-native path are THE SAME SHARED OBJECT,
+     reached through two different APIs. Distinct crossings, not distinct dependencies.
+
+=== Q2a. the three CAP v1 admitted shapes, through the complete path ===
+  fetch_arrow_table() returns Table
+  amount  arrow  decimal128(18, 4)      to_pylist ['12345678901234.5678', '0.0001']
+          polars Decimal(precision=18, scale=4) values    ['12345678901234.5678', '0.0001']
+          python Decimal / Decimal   ->  EXACT across all four hops
+  store   arrow  string                 to_pylist ['store-7', 'store-8']
+          polars String                 values    ['store-7', 'store-8']
+          python str / str   ->  EXACT across all four hops
+  day     arrow  date32[day]            to_pylist ['2026-09-12', '2026-09-13']
+          polars Date                   values    ['2026-09-12', '2026-09-13']
+          python date / date   ->  EXACT across all four hops
+
+=== Q2b. CAP v1's coordinate refusals are REACHABLE (the driver emits these) ===
+  governed text  | integer where the anchor declares text     -> arrow int32                  value 7  nulls=0
+  governed text  | NULL text coordinate                       -> arrow string                 value None  nulls=1
+  governed date  | NULL date coordinate                       -> arrow date32[day]            value None  nulls=1
+  governed date  | string where the anchor declares date      -> arrow string                 value '2026-09-12'  nulls=0
+  governed date  | timestamp where the anchor declares date   -> arrow timestamp[us]          value datetime.datetime(2026, 9, 12, 0, 0)  nulls=0
+
+=== Q2c. CAP v1's value refusals are REACHABLE ===
+  decimal(9,2)     -> arrow decimal128(9, 2)         value 1.23
+  decimal(38,9)    -> arrow decimal128(38, 9)        value 1.123456789
+  double           -> arrow double                   value 12345678901234.568
+  bigint           -> arrow int64                    value 42
+  varchar decimal  -> arrow string                   value 12345678901234.5678
+  boolean          -> arrow bool                     value True
+  timestamp us     -> arrow timestamp[us]            value 2026-09-12 11:59:00.123456
+
+done.
