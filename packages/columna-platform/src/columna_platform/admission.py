@@ -1,4 +1,4 @@
-"""The narrow admission boundary — five checks, all refusing, none defaulting.
+"""The narrow admission boundary — seven checks, all refusing, none defaulting.
 
 ADMISSION IS WHERE A CONCRETE PRECISION EXISTS. A governed `value_domain` is the bare token
 `"decimal"` — no precision, no scale — so at LOWERING there is nothing to compare against a substrate
@@ -15,6 +15,10 @@ The checks, and what each exists to stop:
              Stops material at the wrong grain being folded, or not folded, by accident.
     CHECK 4  carrier COORDINATES  <->  the anchor's declared components.       (2026-09-14)
              Stops a value being retained at an analytical point nobody governed.
+    CHECK 4a coordinate GOVERNED TYPE  <->  the Arrow type delivered.          (2026-09-14)
+             Stops a value being retained at a point named by the wrong kind of thing.
+    CHECK 4b coordinate NULLITY.                                               (2026-09-14)
+             Stops a value being retained at a point that is not fully specified.
     CHECK 5  the COINCIDENT claim  <->  the material actually delivered.        (2026-09-14)
              Stops a claim of one-contribution-per-point standing over material that has several.
 
@@ -42,7 +46,7 @@ from columna_core.governed.resolve import (
 )
 
 from . import carrier as _carrier
-from .refusals import WantOfLaw, WantOfState
+from .refusals import UnsupportedByThisProfile, WantOfLaw, WantOfState
 
 #: THE DISTINCTION, RECORDED VERBATIM (ruled Huayin, 2026-09-12). Kept as a constant rather than a
 #: comment because it is EVIDENCE: it is the sentence that makes the check below non-obvious, and a
@@ -61,6 +65,26 @@ _ENTAILED_NOT_ABSENCE = frozenset({"empty_fiber"})
 #: Governed domains this proof knows how to admit. NARROW ON PURPOSE — an unknown domain refuses
 #: rather than being waved through, because "we did not recognise it" must not read as "it is fine".
 _ADMISSIBLE = {"decimal"}
+
+#: ── CAP v1's COORDINATE ENVELOPE: governed component type -> the ONE admitted Arrow type ────────
+#:
+#: RATIFIED 2026-09-14. Its authority is THE GOVERNED DEFINITION OF THE ANALYTICAL POINT, not the
+#: fidelity study — a coordinate whose governed type is contradicted does not identify the point the
+#: publication declares, and that would be true if no measurement had ever been taken.
+#:
+#: CLOSED, AND NOT COERCIBLE. A governed `date` presented as an Arrow `string` refuses EVEN WHERE THE
+#: STRING WOULD PARSE. Parsing it would put a semantic decision — what '2026-01-01' denotes, in which
+#: calendar, under which locale — inside admission, which is the profile deciding a governed meaning.
+#: That is the same substitution CHECK 2 refuses on the value axis.
+#:
+#: NARROW WITHIN ARROW TOO, DELIBERATELY. `large_string` and `string_view` refuse for a governed
+#: `text`; `date64[ms]` refuses for a governed `date`. Not oversights: the profile inspects the
+#: schema ACTUALLY DELIVERED, so a driver upgrade that starts emitting `string_view` surfaces as a
+#: refusal a human reads, rather than as a silent pass a later hop reinterprets.
+_COORDINATE_TYPES = {
+    "text": pa.string(),
+    "date": pa.date32(),
+}
 
 
 @dataclass(frozen=True)
@@ -168,8 +192,8 @@ def admit_anchored(law_view, realization, anchored: _carrier.AnchoredCarrier,
     carrier refused for its representation when its coordinates were already wrong would send an
     operator to fix the narrower of two faults.
 
-    `declared_components` is the anchor's component set, read from the governed publication by the
-    caller. It is passed in rather than resolved here for the reason `basis` is: this function
+    `declared_components` maps the anchor's declared component NAME to its GOVERNED TYPE, read from
+    the publication by the caller. It is passed in rather than resolved here for the reason `basis` is: this function
     executes law, it does not go looking for it."""
     subject = law_view.canonical_reference
 
@@ -219,6 +243,54 @@ def admit_anchored(law_view, realization, anchored: _carrier.AnchoredCarrier,
             + (f"; not declared: {extra}" if extra else "")
             + ". A value retained at coordinates the publication does not declare is retained at an "
               "analytical point nobody governed", subject=subject)
+
+    # ── CHECK 4a · the coordinate's GOVERNED TYPE against the type actually delivered ───────────
+    # CHECK 4 verified NAMES and stopped there (OF-48). Its own comment states the standard — "a
+    # value retained at coordinates the publication does not declare is retained at an analytical
+    # point nobody governed" — and enforced half of it: a coordinate whose NAME was undeclared was
+    # refused, one whose governed TYPE was contradicted was not. Measured before this check: a
+    # governed `store: text` delivered as int32 SERVED, with `store=1` on the public wire.
+    #
+    # AN UNKNOWN GOVERNED TYPE IS A CAPABILITY LIMIT, NOT A DEFECT IN THE MATERIAL. The publication
+    # may lawfully declare a `timestamp` coordinate; CAP v1 does not carry one. That is
+    # `UnsupportedByThisProfile` — telling an operator to re-materialize against a type this profile
+    # has no mapping for would send them to fix something that is not theirs to fix.
+    for name in sorted(anchored.anchor_columns):
+        governed_type = declared_components[name]
+        expected = _COORDINATE_TYPES.get(governed_type)
+        if expected is None:
+            raise UnsupportedByThisProfile(
+                f"anchor component {name!r} is governed as {governed_type!r}, and this profile's "
+                f"coordinate envelope carries {sorted(_COORDINATE_TYPES)}. The declaration is "
+                f"lawful; this profile does not implement it")
+        actual = anchored.table.schema.field(name).type
+        if actual != expected:
+            raise WantOfState(
+                f"anchor component {name!r} is governed as {governed_type!r}, which this profile "
+                f"admits as {expected} only; the material delivers {actual}. The mapping is exact "
+                f"and not coercive — reading a {governed_type} out of a {actual} would be admission "
+                f"deciding a governed meaning", subject=subject)
+
+    # ── CHECK 4b · a coordinate is never ABSENT ─────────────────────────────────────────────────
+    # AN ANALYTICAL POINT CANNOT BE PARTIALLY SPECIFIED merely because Arrow can carry a validity
+    # bitmap there. `store=None` under an anchor that declares `store` is not a point, and a value
+    # retained at it is retained nowhere. Structural: the format's ability to say "absent here" does
+    # not give a coordinate column permission to use it.
+    #
+    # REFUSES THE CARRIER, NOT THE ROW, and that is the conservative branch. Dropping rows would
+    # silently change which analytical points the answer covers — a disclosure question nobody has
+    # ruled — and an admission boundary that quietly narrows the population is a worse defect than
+    # one that refuses.
+    #
+    # NOTE FOR READERS OF CHECK 5: that check keys points on coordinate VALUES, so a null is a
+    # perfectly good key and passes it. It never was this check, though it looks like it.
+    for name in sorted(anchored.anchor_columns):
+        nulls = anchored.table.column(name).null_count
+        if nulls:
+            raise WantOfState(
+                f"anchor component {name!r} is absent in {nulls} row(s). An analytical point cannot "
+                f"be partially specified: a value carried at an unspecified coordinate is not "
+                f"retained at a coarser point, it is retained at no point at all", subject=subject)
 
     # ── CHECK 5 · the coincident claim against the material that actually arrived ──────────────
     # CHECK 3 compared two CLAIMS — the realization's grain and the governed contribution structure.

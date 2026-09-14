@@ -43,7 +43,8 @@ from typing import Optional
 from columna_core.governed.publication import parse_publication
 from columna_core.governed.publication import CONSTRUCTION, PRIMITIVE, ExplicitNone
 from columna_core.governed.resolve import (
-    C3_DOMAIN_MOVEMENT, C4_FORMATION, C7_SUFFICIENT_STATE, ESTABLISHED, EXPLICIT_NONE, resolve_all,
+    C3_DOMAIN_MOVEMENT, C4_FORMATION, C7_SUFFICIENT_STATE, C8_CONTINUATION, ESTABLISHED,
+    EXPLICIT_NONE, resolve_all,
 )
 from columna_core.compiler.realization import EXACT, load_mapping, require_same_publication
 from columna_core.disclosure import Disclosure, Outcome
@@ -57,7 +58,8 @@ from . import formation as _formation
 from . import source as _source
 from .continuation import continue_to
 from .movement import MovementLicence
-from .refusals import ProofRefusal, UnsupportedByThisProfile, WantOfLaw, WantOfState
+from .refusals import (ProofRefusal, RealizationContradictsLaw, UnsupportedByThisProfile,
+                       WantOfCompatibility, WantOfLaw, WantOfState)
 from .state import AnalyticalIdentity, RetainedState, RetainedStateStore, Standing
 
 
@@ -141,13 +143,87 @@ def require_exact_realization(law_view, realization):
             subject=law_view.canonical_reference)
 
 
-def declared_components(pub, anchor: str) -> frozenset:
-    """The anchor's declared component names, from the governed logical projection."""
+def require_continuation_conformance(law_view, realization):
+    """The realization's CONTINUATION CLAIM against the family's governed C8. All seven cells.
+
+    A GATE, NOT A DISCLOSURE (ruled Huayin, 2026-09-14): if the claim disagrees with governed C8,
+    THE MATERIAL PATH DOES NOT PROCEED. A served number carrying a disclosure that its continuation
+    claim was wrong is still a served number, and the disclosure channel is not where a conformance
+    failure belongs.
+
+    CHECKED HERE, BESIDE `require_exact_realization`, AND NOT AT ADMISSION — for exactly the reason
+    that one is: admission inspects the CARRIER, and this is a statement about the CLAIM.
+    Conformance is knowable from law and claim alone, so it is answerable before a single row is
+    read, and the ordering principle `admit_anchored` states says it therefore must be.
+
+        C8 ESTABLISHED = X   claim X        -> conforming
+        C8 ESTABLISHED = X   null / absent  -> WantOfState (the realization is incomplete)
+        C8 ESTABLISHED = X   claim Y != X   -> RealizationContradictsLaw
+        C8 EXPLICIT_NONE     null / absent  -> conforming
+        C8 EXPLICIT_NONE     any operator   -> RealizationContradictsLaw
+        C8 UNESTABLISHED     null / absent  -> conforming (no assertion is made)
+        C8 UNESTABLISHED     any operator   -> WantOfLaw (no governed meaning to realize)
+
+    THE JURISDICTIONS DIFFER FROM K0v2's ON PURPOSE, AND THE MATRIX DOES NOT. K0v2 raises compiler
+    conditions — `MappingIncomplete`, `MappingContradictsLaw`, `LogicalMeaningMissing` — because it
+    is lowering; this path raises execution conditions, because it is executing. The row that
+    decides is the same row in both profiles, which is the point (OF-47 was opened because one
+    profile checked the field and the other did not read it at all). Stated separately rather than
+    imported from `compile_v2`: the two profiles have different execution grammars, and a shared
+    table would tie their envelopes together silently.
+
+    An ABSENT claim under an ESTABLISHED law is a want of STATE, not of law: the governed family has
+    its continuation and what is unavailable is a realization that says how it is delivered —
+    re-realization is the remedy, which is what `want_of_state` carries. An ASSERTED claim under an
+    UNESTABLISHED law is a want of LAW: there is no governed continuation to realize, and no amount
+    of re-realizing supplies one. A CONTRADICTION is neither; see `RealizationContradictsLaw`."""
+    cont = law_view[C8_CONTINUATION]
+    claimed = realization.continuation_operator
+    ref = law_view.canonical_reference
+    if cont.standing == ESTABLISHED:
+        governed = getattr(cont.value, "name", cont.value)
+        if claimed is None:
+            raise WantOfState(
+                f"the continuation law {governed} is established for {ref} and the realization "
+                f"makes no continuation claim; a realization null asserts nothing, and is not a "
+                f"claim that the governed continuation is none", subject=ref)
+        if claimed.upper() != str(governed).upper():
+            raise RealizationContradictsLaw(
+                f"{ref} is governed by continuation law {governed}; the realization claims "
+                f"{claimed!r}. The realization does not get to choose the law it implements",
+                subject=ref)
+        return
+    if cont.standing == EXPLICIT_NONE:
+        if claimed is not None:
+            raise RealizationContradictsLaw(
+                f"{ref} positively establishes that it has NO continuation; the realization claims "
+                f"{claimed!r}. That is not a gap the realization may fill — it is a governed fact "
+                f"the realization contradicts", subject=ref)
+        return
+    if claimed is not None:
+        raise WantOfLaw(
+            f"the realization claims continuation operator {claimed!r} for {ref}, whose "
+            f"continuation is {cont.standing}. There is no governed continuation here to realize, "
+            f"and a realization may not manufacture one", subject=ref)
+
+
+def declared_components(pub, anchor: str) -> dict:
+    """The anchor's declared components — **name -> GOVERNED TYPE** — from the logical projection.
+
+    RETURNS THE TYPE, WHICH IT USED TO DROP (OF-48, repaired 2026-09-14). This function read
+    `components` and kept `c.get("name")`, discarding `c.get("type")` in the same expression; so did
+    `movement._declared_components`. The publication declares `sale_at{store: text, day: date}` and
+    the governed type was read by NOTHING on the material path, which is why a governed `text`
+    coordinate delivered as `int32` served, with `store=1` on the public wire.
+
+    The type is a GOVERNED FACT of the same standing as the value domain, so it is returned here
+    rather than fetched separately: the defect was not that a check was missing downstream, it was
+    that the fact never left this function."""
     for decl in pub.of_kind(_request.ANCHOR):
         if decl.name == anchor:
             comps = decl.body.get("components") or []
-            return frozenset(c.get("name") for c in comps
-                             if isinstance(c, dict) and c.get("name"))
+            return {c["name"]: c.get("type") for c in comps
+                    if isinstance(c, dict) and c.get("name")}
     raise WantOfLaw(f"the publication declares no anchor {anchor!r}", subject=anchor)
 
 
@@ -368,14 +444,58 @@ def _no_licence_detail(law_view, source: str, target: str) -> str:
             f"MAY be moved. No re-realization can supply a licence")
 
 
-#: reason tokens, minted 2026-09-12 in the closed registry. Named here once so a typo is an
-#: ImportError rather than an `UnregisteredReason` at the wire.
+#: reason tokens from the closed registry (`want_of_law`/`want_of_state` minted 2026-09-12;
+#: `want_of_compatibility` and `realization_contradicts_law` 2026-09-14). Named here once so a typo
+#: is an ImportError rather than an `UnregisteredReason` at the wire.
 WANT_OF_LAW = "want_of_law"
 WANT_OF_STATE = "want_of_state"
+WANT_OF_COMPATIBILITY = "want_of_compatibility"
+REALIZATION_CONTRADICTS_LAW = "realization_contradicts_law"
 
 #: The remedy a want-of-state refusal must carry. Rides `Outcome.alternatives`, which the wire
 #: re-encodes VERBATIM and never synthesizes.
 REMATERIALIZE = "re-realization / re-materialization may resolve this"
+
+#: ── THE CLOSED DISPATCH ─────────────────────────────────────────────────────────────────────────
+#:
+#: refusal class -> (wire reason, alternatives). NO FALLBACK, BY RULING (Huayin, 2026-09-14).
+#:
+#: WHAT THIS REPLACES, AND WHY IT WAS A DEFECT. Three sites read
+#:
+#:     reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+#:     alts   = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+#:
+#: — a two-way `if/else` over a growing taxonomy, whose `else` was TOTAL. Measured before the
+#: repair (`docs/architecture/cap_v1_evidence/run_refusal_dispatch.txt`): `WantOfCompatibility`
+#: reached the wire as `want_of_state` WITH `REMATERIALIZE` OFFERED, against its own docstring's
+#: warning, and any contradiction class dropped in would have done the same. The internal taxonomy
+#: was honest and the public one was not, which is the worse half of the two.
+#:
+#: THE MAPPING DETERMINES `alternatives` AS WELL AS THE REASON. Deriving the remedy from the reason
+#: — `(REMATERIALIZE,) if reason == WANT_OF_STATE` — is how a remedy gets attached to a condition
+#: that never asked for one; here each row states its own, and a row with no lawful remedy states
+#: the empty tuple rather than borrowing a misleading one.
+_REFUSAL_WIRE = {
+    WantOfLaw:            (WANT_OF_LAW,           ()),
+    WantOfState:          (WANT_OF_STATE,         (REMATERIALIZE,)),
+    WantOfCompatibility:  (WANT_OF_COMPATIBILITY, ()),
+}
+
+
+def _classify(r: ProofRefusal):
+    """`ProofRefusal` -> `(reason, alternatives)`, by EXACT CLASS. Fail-closed.
+
+    EXACT CLASS, NOT `isinstance`, AND THAT IS THE GUARD. An `isinstance` walk would silently give a
+    future subclass its parent's reason — the same shape of failure as the `else` this replaces, one
+    level down. A class with no entry raises, and the completeness control asserts none exists."""
+    try:
+        return _REFUSAL_WIRE[type(r)]
+    except KeyError:                                    # pragma: no cover - the guard, pinned by test
+        raise AssertionError(
+            f"{type(r).__name__} has no wire classification. Every concrete ProofRefusal subclass "
+            f"must have an entry in _REFUSAL_WIRE; there is deliberately no fallback, because a "
+            f"fallback is how {WantOfCompatibility.__name__} came to travel as {WANT_OF_STATE!r}."
+        ) from None
 
 
 def _refusal_column(name: str, reason: str, detail: str, alternatives=()) -> ColumnResult:
@@ -456,11 +576,17 @@ def plan_result(pub, views: dict, statement) -> FrameResult:
                            disclosure=Disclosure.clean())
         return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
 
+    except RealizationContradictsLaw as c:
+        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed
+        # and there is no finding about the data to report. Caught before the governed
+        # handler and never allowed to fall through to it.
+        return FrameResult(None, Disclosure.clean(),
+                           [_contradiction_column(_planned_name(statement), str(c))],
+                           tuple(statement.anchor))
     except ProofRefusal as r:
         # Governed defects only. `UnsupportedByThisProfile` is NOT caught here: a capability limit is
         # not a governed verdict, and dressing it as one is the specific dishonesty §7 forbids.
-        reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
-        alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+        reason, alts = _classify(r)
         col = _refusal_column(_planned_name(statement), reason, str(r), alts)
         return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
 
@@ -488,6 +614,27 @@ def _unsupported_column(name: str, detail: str) -> ColumnResult:
     return ColumnResult(
         name=name, expr=name, frame=None, disclosure=Disclosure.clean(),
         refusal=Outcome(reason=UNSUPPORTED, detail=detail, measure=name, alternatives=()),
+    )
+
+
+def _contradiction_column(name: str, detail: str) -> ColumnResult:
+    """A realization that contradicts governed law, as the wire outcome it is.
+
+    ERROR / REALIZATION, carrying `realization_contradicts_law` — minted 2026-09-14 with the
+    realization-claim ruling. Translated HERE and nowhere earlier, for the same reason
+    `_unsupported_column` is: `RealizationContradictsLaw` is deliberately not a `ProofRefusal`, so
+    the governed handler cannot reach it and cannot hand it a governed jurisdiction.
+
+    NO ALTERNATIVES, AND SPECIFICALLY NOT `REMATERIALIZE`. The fix is to correct or replace the
+    realization mapping. `alternatives` is re-encoded verbatim by the wire and never synthesized,
+    and this vocabulary has no lawful spelling for that remedy — the nearest string reads
+    "re-realization / re-materialization may resolve this", which looks lawful for a mapping fix
+    while bundling it with a data re-pull the operator would then actually perform. Ruled: omit
+    rather than reuse a misleading one."""
+    return ColumnResult(
+        name=name, expr=name, frame=None, disclosure=Disclosure.clean(),
+        refusal=Outcome(reason=REALIZATION_CONTRADICTS_LAW, detail=detail, measure=name,
+                        alternatives=()),
     )
 
 
@@ -540,6 +687,7 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         # ── 3. the claim, still touching nothing ────────────────────────────────────────────────
         realization = realize(mapping, req.family.family_id)
         require_exact_realization(view, realization)
+        require_continuation_conformance(view, realization)
 
         c4 = view[C4_FORMATION]
         if c4.standing != ESTABLISHED or not isinstance(c4.value, dict):
@@ -569,6 +717,7 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
                     subject=req.family.family_id)
             operand_realization = realize(mapping, operand.family_id)
             require_exact_realization(operand_view, operand_realization)
+            require_continuation_conformance(operand_view, operand_realization)
             if realization.endpoint != operand_realization.endpoint:
                 raise WantOfState(
                     f"{req.family.canonical_reference} realizes a different endpoint from its "
@@ -599,9 +748,14 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         # never allowed to fall through to the governed handler below and borrow a jurisdiction.
         return FrameResult(None, Disclosure.clean(), [_unsupported_column(column, str(u))],
                            tuple(statement.anchor))
+    except RealizationContradictsLaw as c:
+        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed
+        # and there is no finding about the data to report. Caught before the governed
+        # handler and never allowed to fall through to it.
+        return FrameResult(None, Disclosure.clean(), [_contradiction_column(column, str(c))],
+                           tuple(statement.anchor))
     except ProofRefusal as r:
-        reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
-        alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+        reason, alts = _classify(r)
         return FrameResult(None, Disclosure.clean(),
                            [_refusal_column(column, reason, str(r), alts)],
                            tuple(statement.anchor))
@@ -687,9 +841,14 @@ def decide_result(law_view, store: RetainedStateStore, identity: AnalyticalIdent
         col = _served_column(column, st)
         return FrameResult(col.frame, Disclosure.clean(), [col], (identity.anchor,))
 
+    except RealizationContradictsLaw as c:
+        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed
+        # and there is no finding about the data to report. Caught before the governed
+        # handler and never allowed to fall through to it.
+        return FrameResult(None, Disclosure.clean(), [_contradiction_column(column, str(c))],
+                           (identity.anchor,))
     except ProofRefusal as r:
-        reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
-        alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+        reason, alts = _classify(r)
         col = _refusal_column(column, reason, str(r), alts)
         return FrameResult(None, Disclosure.clean(), [col], (identity.anchor,))
 

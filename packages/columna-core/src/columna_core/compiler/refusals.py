@@ -1,18 +1,19 @@
 """
 columna_core.compiler.refusals — the K0 refusal taxonomy, kept deliberately un-collapsed.
 
-Five conditions, never merged into a generic ``LoweringError``. Collapsing them is precisely what
+Six conditions, never merged into a generic ``LoweringError``. Collapsing them is precisely what
 would breach the blast wall: "lowering failed" tells an operator nothing about WHOSE gap it is, and
-the whole point of the taxonomy is that the four gap classes answer four different questions and are
-owned by four different people.
+the whole point of the taxonomy is that the five gap classes answer five different questions.
+(**M** and **X** share an owner and not a condition — see ``MappingContradictsLaw``.)
 
     InputIdentityMismatch      is this mapping even FOR this publication?   (input authority)
     LogicalMeaningMissing (L)  do we know what this MEANS?                  (authoring/model gap)
     MappingIncomplete     (M)  do we know how that meaning is REALIZED?     (mapping gap)
+    MappingContradictsLaw (X)  does the mapping DISAGREE with the law?      (mapping defect)
     UnsupportedCoreCapability (C)  can Core PERFORM it faithfully?          (compiler coverage gap)
     ExecutionRepresentationGap (G)  can the image REPRESENT the law at all? (execution grammar gap)
 
-``InputIdentityMismatch`` sits BEFORE the four gap categories: it is an input-authority condition,
+``InputIdentityMismatch`` sits BEFORE the five gap categories: it is an input-authority condition,
 not a lowering outcome, and it is checked before any lowering work begins.
 
 Certification is NOT here, by ruling. ``compile()`` answers "can governed law be faithfully
@@ -67,6 +68,31 @@ class MappingIncomplete(CompileRefusal):
     category = "MappingIncomplete"
 
 
+class MappingContradictsLaw(CompileRefusal):
+    """**X** — the private mapping asserts a fact the governed publication POSITIVELY DENIES.
+
+    MINTED 2026-09-14 with the realization-claim null-semantics ruling, after an inspection of all
+    three refusal vocabularies found no exact contradiction category in any of them.
+
+    NOT **M**, AND THE DIFFERENCE IS THE WHOLE POINT. `MappingIncomplete` is *absent or ambiguous*;
+    this is *present and wrong*. A mapping that says nothing has not agreed to anything and can be
+    completed; a mapping that says the opposite of the law has to be CORRECTED, and telling its
+    author it is "incomplete" sends them looking for something to add.
+
+    NOT **L** either: under `EXPLICIT_NONE` the publication is not silent — it positively establishes
+    that there is no continuation. Nothing is missing. The two artifacts disagree.
+
+    The `Mapping…` prefix is deliberate and is shared with **M**: the OWNER is the same — whoever
+    authored the private mapping — and only the condition differs. Filing the same person's defect
+    under a different noun would buy nothing.
+
+    Reaches the wire as `realization_contradicts_law` (ERROR / REALIZATION), which carries NO
+    alternatives: the fix is to correct or replace the realization mapping, and re-materializing the
+    same data cannot repair a claim that contradicts the governing law."""
+
+    category = "MappingContradictsLaw"
+
+
 class UnsupportedCoreCapability(CompileRefusal):
     """**C** — meaning and realization are both present, but Core cannot perform the operation
     faithfully (or K0 does not yet cover it).
@@ -94,6 +120,7 @@ CATEGORIES = (
     InputIdentityMismatch.category,
     LogicalMeaningMissing.category,
     MappingIncomplete.category,
+    MappingContradictsLaw.category,
     UnsupportedCoreCapability.category,
     ExecutionRepresentationGap.category,
 )

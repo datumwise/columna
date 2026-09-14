@@ -249,11 +249,26 @@ def test_members_split_across_two_tables_is_a_representation_gap():
 
 def test_every_category_is_enumerated():
     """A category that exists but is not enumerated is a condition that vanishes from a report
-    rather than surfacing in it — the same reason the server pins its LoadCondition codes."""
+    rather than surfacing in it — the same reason the server pins its LoadCondition codes.
+
+    DERIVED FROM THE CLASS SET, NOT FROM A HAND-LIST (2026-09-14). This used to compare `CATEGORIES`
+    against six names written out here, which meant a new refusal class was caught only if whoever
+    added it also remembered to edit this line — i.e. the guard depended on the diligence it exists
+    to replace. It now walks `CompileRefusal.__subclasses__()`, so a class added without an entry in
+    `CATEGORIES` fails the build by construction."""
+    from columna_core.compiler.refusals import CompileRefusal
+
+    concrete = CompileRefusal.__subclasses__()
+    assert concrete, "no refusal subclasses found — the walk is not finding the hierarchy"
+    for exc in concrete:
+        assert exc.category in CATEGORIES, f"{exc.__name__} has no CATEGORIES entry"
+    assert len(CATEGORIES) == len(concrete), (
+        f"CATEGORIES has {len(CATEGORIES)} entries for {len(concrete)} classes: "
+        f"{sorted(set(CATEGORIES) ^ {e.category for e in concrete})}")
+    # and the ones the taxonomy was designed around are still there by name
     for exc in (InputIdentityMismatch, LogicalMeaningMissing, MappingIncomplete,
                 UnsupportedCoreCapability, ExecutionRepresentationGap):
         assert exc.category in CATEGORIES
-    assert len(CATEGORIES) == 5
 
 
 # ── the reducer allow-list ───────────────────────────────────────────────────────────────────────

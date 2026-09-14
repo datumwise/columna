@@ -52,7 +52,8 @@
       },
       "grain": "coincident",
       "formation_operator": "min",
-      "exactness": "exact"
+      "exactness": "exact",
+      "continuation_operator": "min"
     },
     {
       "kind": "family",
@@ -65,7 +66,8 @@
       },
       "grain": "coincident",
       "formation_operator": "count",
-      "exactness": "exact"
+      "exactness": "exact",
+      "continuation_operator": "sum"
     }
   ]
 }
