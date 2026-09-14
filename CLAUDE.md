@@ -1,12 +1,20 @@
 # ⚙️ OPS — read first
 
-**Pushing / opening PRs on `datumwise/columna`: use the `DATUMWISE_PUSH_PAT` token, NOT `GITHUB_TOKEN`.**
-The ambient `GITHUB_TOKEN` authenticates as a collaborator (`reeeneeee`) whose fine-grained PAT lacks
-`Contents: write` here, so `git push` / ref-writes 403 ("Resource not accessible by personal access
-token") even though the repo reports `push:true`. `DATUMWISE_PUSH_PAT` authenticates as `datumwise`
-and has write. Push with:
-`git push "https://x-access-token:${DATUMWISE_PUSH_PAT}@github.com/datumwise/columna.git" HEAD:<branch>`
-and run `gh pr create` with `GH_TOKEN="$DATUMWISE_PUSH_PAT"`.
+**All GitHub work on `datumwise/columna` runs under `DATUMWISE_PUSH_PAT`, and it is now the DEFAULT**
+(Huayin, 2026-09-14: *"Use datumwise Pat in your environment"*). `~/.bashrc` exports
+`GH_TOKEN`/`GITHUB_TOKEN` from it when present, and the checkout carries a `credential.helper` that
+reads the same variable — **so plain `git push` and plain `gh pr create` authenticate as `datumwise`
+with no per-command override.** Verify with `gh api user -q .login`.
+
+**Why, and a correction to what this file used to say.** The ambient `GITHUB_TOKEN` authenticates as a
+collaborator (`reeeneeee`). This file previously said that token lacks `Contents: write`; **as of
+2026-09-14 it pushes fine and what it lacks is `Pull requests: write`** — `git push` succeeds and
+`gh pr create` 403s with *"Resource not accessible by personal access token"*. Either way the answer
+is the same token, so the rule is unchanged; only the symptom to recognise it by has moved.
+
+**Never write the PAT into a file.** `.git/config` accumulated seven `branch.<name>.remote` entries
+carrying a tokenized push URL (from `git push -u <url-with-token>`); they were rewritten to `origin`
+on 2026-09-14. The credential helper references the variable by name and copies nothing.
 
 **Commit authorship: never commit as `Claude <noreply@anthropic.com>`.** Claude is the tool, not the
 committer (same as we wouldn't register `curl` as a committer). Author + committer must be a real human/org
