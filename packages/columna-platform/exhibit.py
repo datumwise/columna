@@ -12,7 +12,12 @@ REVENUE = "fam_qv8Ky3mR7bTpZa1LwXcNdg"
 HERE = Path(__file__).resolve().parent
 PUBLICATION = HERE.parent / "columna-core" / "tests" / "fixtures_v2" / "lighthouse-v2-publication.json"
 MAPPING = HERE / "fixtures" / "proof_a" / "private-core-mapping-v2.json"
-CONSTITUTION = "fcf-1:c176d2a4f35e443c84e03e6cff3c27a1088b390887e15ae59d1312129e3840ce"
+#: READ FROM THE PUBLICATION, not pasted (OF-39, corrected 2026-09-14). The literal that stood here
+#: was `count(revenue@sale_at)`'s fingerprint, carried as revenue's through three proofs. It never
+#: failed a test because `Standing.comparable_to` carries the SCHEME and not the FINGERPRINT — so it
+#: was inert as well as wrong. A constant is exactly the wrong shape for a per-family governed fact.
+def _constitution(pub, family_id):
+    return serving.constitution_of(pub, family_id)
 
 
 def rule(t=""):
@@ -40,9 +45,10 @@ def main():
 
     rule("POSITIVE CONTROL — identity and standing survive materialization")
     store = RetainedStateStore()
+    fingerprint, scheme = _constitution(pub, REVENUE)
     st = serving.materialize(family, view, real, carrier.exact_money(),
                              basis=view["sufficient_state_bases"].value,
-                             constitution=CONSTITUTION, constitution_scheme="fcf-1",
+                             constitution=fingerprint, constitution_scheme=scheme,
                              currency="tok-1", store=store)
     print(f"carrier            {carrier.describe(carrier.exact_money())}")
     print(f"admitted as        governed domain {st.governed_domain!r}  (carrier {st.carrier_type})")
@@ -83,7 +89,7 @@ def main():
     store2 = RetainedStateStore()
     store2._rematerializer = lambda _i: serving.materialize(
         family, view, real, carrier.exact_money(), basis=view["sufficient_state_bases"].value,
-        constitution=CONSTITUTION, constitution_scheme="fcf-1", currency="tok-2", store=store2)
+        constitution=fingerprint, constitution_scheme=scheme, currency="tok-2", store=store2)
     w2 = serving.decide(view, store2, AnalyticalIdentity(REVENUE, "sale_at"))
     print(f"  empty store + a re-materialization path -> outcome={w2['outcome'].upper()}"
           f"   (re-materializations: {store2.rematerializations})")
@@ -103,7 +109,7 @@ def main():
     print(f"  movement_licence(): {serving.movement_licence(trap)}")
     store3 = RetainedStateStore()
     serving.materialize(family, trap, real, carrier.exact_money(),
-                        basis=trap["sufficient_state_bases"].value, constitution=CONSTITUTION,
+                        basis=trap["sufficient_state_bases"].value, constitution=fingerprint,
                         constitution_scheme="fcf-1", currency="tok-1", store=store3)
     w3 = serving.decide(trap, store3, AnalyticalIdentity(REVENUE, "sale_at"), at_anchor="store")
     _print_refusal(w3)

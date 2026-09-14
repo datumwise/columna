@@ -8,15 +8,21 @@ from decimal import Decimal
 from columna_platform import carrier, serving
 from columna_platform.state import AnalyticalIdentity, RetainedStateStore
 
-CONSTITUTION = "fcf-1:c176d2a4f35e443c84e03e6cff3c27a1088b390887e15ae59d1312129e3840ce"
+from conftest import PUBLICATION
+
+
+def _constitution():
+    """READ FROM THE PUBLICATION (OF-39). The literal that stood here was the COUNT family's."""
+    pub, _views = serving.open_publication(PUBLICATION)
+    return serving.constitution_of(pub, "fam_qv8Ky3mR7bTpZa1LwXcNdg")
 
 
 def _materialize(family, view, real, store, **kw):
     return serving.materialize(
         family, view, real, kw.pop("carrier_obj", carrier.exact_money()),
         basis=view["sufficient_state_bases"].value,      # DERIVED BY THE GOVERNED LAYER, passed in
-        constitution=kw.pop("constitution", CONSTITUTION),
-        constitution_scheme=kw.pop("scheme", "fcf-1"),
+        constitution=kw.pop("constitution", _constitution()[0]),
+        constitution_scheme=kw.pop("scheme", _constitution()[1]),
         currency=kw.pop("currency", "tok-1"),
         store=store,
     )
@@ -70,7 +76,7 @@ def test_standing_is_read_off_the_state_not_recomputed(revenue):
 
     held = store.retrieve(AnalyticalIdentity(family.family_id, family.constitutive_anchor))[0]
 
-    assert held.standing.constitution == CONSTITUTION
+    assert held.standing.constitution == _constitution()[0]
     assert held.standing.constitution_scheme == "fcf-1"
     assert held.standing.participation == "every sale point carrying a recorded amount"
     assert held.standing.basis == "the running total"          # C7, projected in

@@ -86,6 +86,20 @@ class UnsupportedByThisProfile(Exception):
     unimplemented here — and `want_of_state`'s remedy would then send them to re-materialize against
     a path that does not exist.
 
-    It must therefore never be mapped to a wire reason. Where it escapes, it escapes as what it is:
-    a profile that was asked for something it does not do, and said so, WITHOUT falling back to Core.
+    THE PROHIBITION, NARROWED (ruled Huayin, 2026-09-14). It read "it must never be mapped to a wire
+    reason", which was right about the danger and too wide about the remedy: an exception escaping
+    past the server is not an answer either, and a caller who asked a meaningful question learns
+    nothing from a transport-level error. The rule that survives is the one that was always doing the
+    work — A GOVERNED REFUSAL MAY NEVER BORROW THE CAPABILITY REASON, and a capability limit may
+    never borrow a governed one. So:
+
+        · the three `ProofRefusal`s above must never carry `unsupported`;
+        · this exception must never carry `want_of_law` or `want_of_state`;
+        · the provider/serving boundary MAY translate this into the already-registered wire reason
+          `unsupported` — `(ERROR, None, REALIZATION)`, "not implemented in this build (capability)"
+          — which mints nothing, changes no mood, and moves no contract version.
+
+    The translation happens at that boundary and nowhere earlier, which is why this stays outside the
+    `ProofRefusal` hierarchy: a class that cannot be caught by the governed handler cannot be
+    accidentally given a jurisdiction by it.
     """

@@ -12,11 +12,19 @@ imports `columna_core.parser` at module scope, so importing the server from this
 the legacy execution stack into the successor path and break the isolation this whole package exists
 to demonstrate. The dependency runs SERVER → PLATFORM, one way, and this file is the reason it can.
 
-HONEST ABOUT WHAT IT CANNOT DO (ruled 2026-09-12 §7). Four of the five protocol methods are not
-implemented by this slice, and none of them falls back to Core. `run` would be material execution;
-`explain` would be a second, richer answer shape this proof has not earned; `operators` would be a
-claim about an operator registry this path does not have. Each raises `UnsupportedByThisProfile`,
-which is not a governed refusal and must not be reported as one.
+HONEST ABOUT WHAT IT CANNOT DO (ruled 2026-09-12 §7; amended 2026-09-14). `run` is now implemented
+for ONE shape of ask — an exact primitive family at its constitutive anchor, over material reached
+through a deployment-local source binding — and answers every other ask with the registered wire
+reason `unsupported`, never with a governed refusal and never by delegating to Core. `explain` would
+be a second, richer answer shape this proof has not earned; `operators` would be a claim about an
+operator registry this path does not have. Both still raise `UnsupportedByThisProfile`, which is not
+a governed refusal and must not be reported as one.
+
+WHY `run` TRANSLATES AND `explain` STILL RAISES. `run`'s answer goes out through `wire_frame`, which
+has a shape for a no-result and a registered reason that means exactly "this build does not implement
+it". `explain`'s payload is passed through by the server unwired and unvalidated, so there is no
+answer shape to translate INTO — inventing one would be this slice freezing a serialization it was
+not asked to. The asymmetry is the wire's, not a preference.
 
 `published_scope` IS THE EXCEPTION, AND RETURNS `None`. Not because None is convenient, but because
 the existing contract already defines it: the protocol says *"the current published serving scope, or
@@ -27,10 +35,13 @@ the smallest behaviour consistent with the contract as written. Reported rather 
 """
 from __future__ import annotations
 
+from typing import Optional
+
 from columna_core.serving_contract import FrameResult
 
 from . import serving
 from .refusals import UnsupportedByThisProfile
+from .source import MaterialBinding
 
 
 class PlatformExecutionProvider:
@@ -39,13 +50,18 @@ class PlatformExecutionProvider:
     Construction takes governed inputs only: the parsed v2 publication and the resolved law views.
     No `.cml`, no Core model, no connector, no store."""
 
-    def __init__(self, publication, views: dict, *, manifold_id: str = ""):
+    def __init__(self, publication, views: dict, *, manifold_id: str = "",
+                 material: Optional[MaterialBinding] = None):
         self.publication = publication
         self.views = views
         self.manifold_id = manifold_id
+        #: The deployment's material binding, or None. None PLANS; it does not execute.
+        self.material = material
+        self._mapping = serving.bind(publication, material.mapping_path) if material else None
 
     @classmethod
-    def from_artifact(cls, artifact_path: str, *, manifold_id: str = "") -> "PlatformExecutionProvider":
+    def from_artifact(cls, artifact_path: str, *, manifold_id: str = "",
+                      material: Optional[MaterialBinding] = None) -> "PlatformExecutionProvider":
         """Build from a `governed-publication.json` on disk — THE SERVER'S ONLY ENTRY POINT.
 
         The v2 artifact is parsed and its law resolved HERE, by v2's own reader, so the server hands
@@ -59,7 +75,7 @@ class PlatformExecutionProvider:
         Passing the server's plain-data reading over instead would make the server the keeper of a
         governed object, which is exactly the coupling this seam exists to avoid."""
         pub, views = serving.open_publication(artifact_path)
-        return cls(pub, views, manifold_id=manifold_id)
+        return cls(pub, views, manifold_id=manifold_id, material=material)
 
     # ── the one supported capability ────────────────────────────────────────────────────────────
     def plan(self, statement) -> FrameResult:
@@ -71,11 +87,27 @@ class PlatformExecutionProvider:
         return serving.plan_result(self.publication, self.views, statement)
 
     # ── the four that are not ───────────────────────────────────────────────────────────────────
-    def run(self, statement):
-        raise UnsupportedByThisProfile(
-            "this profile plans; it does not execute. Material execution over a governed publication "
-            "is a later slice, and answering `run` by handing the statement to Core would make the "
-            "provider a passthrough that misreports whose semantics served the number")
+    def run(self, statement) -> FrameResult:
+        """MATERIAL EXECUTION — the `execute_frame_query` capability, for one shape of ask.
+
+        Returns the architecture-neutral `FrameResult`, wired exactly once by the server, exactly as
+        `plan` does. A profile that cannot answer this particular ask says so IN the result, as the
+        registered `unsupported` reason, rather than by raising past the server — because a caller
+        who asked a meaningful question deserves an answer that says which kind of no it is, and an
+        exception escaping the tool is not an answer at all.
+
+        A DEPLOYMENT WITH NO MATERIAL BINDING DOES NOT EXECUTE, and that is the default. It is a
+        capability limit of this deployment, not a governed verdict about the ask, and it is
+        certainly not grounds to hand the statement to Core — which would make the provider a
+        passthrough that misreports whose semantics served the number."""
+        if self.material is None:
+            return serving.unsupported_result(
+                statement,
+                "this deployment binds no material for the successor runtime, so this profile plans "
+                "and does not execute; binding a material source for the realization's connection "
+                "is a deployment act, not a governed one")
+        return serving.run_result(self.publication, self.views, self._mapping,
+                                  self.material.sources, statement)
 
     def explain(self, statement):
         raise UnsupportedByThisProfile(

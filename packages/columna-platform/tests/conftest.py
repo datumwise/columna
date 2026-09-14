@@ -86,8 +86,8 @@ def anchored(governed):
     st = RetainedState(
         identity=AnalyticalIdentity(REVENUE, family.constitutive_anchor),
         standing=Standing(
-            constitution="fcf-1:c176d2a4f35e443c84e03e6cff3c27a1088b390887e15ae59d1312129e3840ce",
-            constitution_scheme="fcf-1",
+            constitution=serving.constitution_of(pub, REVENUE)[0],
+            constitution_scheme=serving.constitution_of(pub, REVENUE)[1],
             participation=view["eligibility_and_participation"].value,
             basis=view["sufficient_state_bases"].value,
             realization="warehouse:sales.fact_sale.amount/coincident/exact",

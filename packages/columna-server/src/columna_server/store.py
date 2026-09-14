@@ -222,7 +222,8 @@ def _is_governed_only_unit(mdir: str) -> bool:
         return False
 
 
-def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool) -> LoadedManifold:
+def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool,
+                        material=None) -> LoadedManifold:
     """A SUCCESSOR-NATIVE governed runtime unit: a governed publication and NO `manifold.cml`.
 
     THE DEPLOYMENT UNIT IS THE PUBLICATION, not a lowered image (ruled Huayin, 2026-09-12 §2). A
@@ -268,7 +269,8 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool) -> 
         name=manifold_id,           # no data.toml to name it, and a fabricated name is a claim
         description="",
         manifold=None,              # no legacy image, honestly absent
-        provider=_platform_provider(manifold_id, artifact_path) if bind_provider else None,
+        provider=(_platform_provider(manifold_id, artifact_path, material)
+                  if bind_provider else None),
         publication=governed_publication_from_artifact(artifact),
         ref=artifact.ref,
         entry_kind=ENTRY_GOVERNED,
@@ -281,7 +283,7 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool) -> 
     )
 
 
-def _platform_provider(manifold_id: str, artifact_path: str):
+def _platform_provider(manifold_id: str, artifact_path: str, material=None):
     """The successor runtime's provider, or a fail-closed refusal — NEVER a fallback to Core.
 
     THE IMPORT IS LAZY, AND THAT IS A PACKAGING FACT WORTH STATING. `columna-platform` is a
@@ -295,7 +297,14 @@ def _platform_provider(manifold_id: str, artifact_path: str):
     THE DEPENDENCY RUNS SERVER → PLATFORM, one way. Platform implements `ExecutionProvider`
     structurally (it is a `@runtime_checkable` Protocol) and imports nothing from this package,
     because `columna_server.store` imports `columna_core.parser` at module scope and importing the
-    server from the successor path would drag the legacy execution stack into it."""
+    server from the successor path would drag the legacy execution stack into it.
+
+    `material` IS OPAQUE HERE, AND DELIBERATELY SO (2026-09-14). It is the deployment's binding of
+    realization connections to material sources, and this module neither builds one nor inspects
+    one — it carries whatever it was handed to the constructor it already knew about. Knowing the
+    shape would make the server the keeper of a successor-path object, which is the coupling this
+    seam exists to avoid; `None` means the unit PLANS and does not EXECUTE, which the provider
+    reports as a capability limit rather than a governed refusal."""
     try:
         from columna_platform.provider import PlatformExecutionProvider
     except ImportError as exc:                                   # pragma: no cover - env-dependent
@@ -304,7 +313,8 @@ def _platform_provider(manifold_id: str, artifact_path: str):
             f"`columna-platform` is not installed in this environment ({exc}). That package is not "
             f"published, so the successor runtime is available only to a workspace install. There "
             f"is no fallback to the {RUNTIME_CORE!r} runtime") from exc
-    return PlatformExecutionProvider.from_artifact(artifact_path, manifold_id=manifold_id)
+    return PlatformExecutionProvider.from_artifact(artifact_path, manifold_id=manifold_id,
+                                                   material=material)
 
 
 #: The publication major a successor-native unit must carry. Not a general policy about which majors
@@ -440,10 +450,17 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
 class ManifoldStore:
     """All Manifolds under a directory, parsed and connected once at construction."""
 
-    def __init__(self, manifolds_dir: str, runtime_selection: Optional[dict] = None):
+    def __init__(self, manifolds_dir: str, runtime_selection: Optional[dict] = None,
+                 material_bindings: Optional[dict] = None):
         """`runtime_selection` maps manifold_id → `RUNTIME_CORE` / `RUNTIME_PLATFORM`; when omitted it
         is read from `COLUMNA_RUNTIME`. UNSELECTED MEANS CORE, so every existing deployment loads
-        exactly as it did — the successor runtime is reachable only by naming it."""
+        exactly as it did — the successor runtime is reachable only by naming it.
+
+        `material_bindings` maps manifold_id → an OPAQUE deployment material binding, passed to the
+        successor provider untouched. There is no environment variable and no file format for it, on
+        purpose: a configuration surface for material placement is a thing to design once rather than
+        to grow accidentally out of a proof (the same reason `COLUMNA_RUNTIME` is stamped
+        PROVISIONAL). A unit with no binding plans and does not execute."""
         self.dir = os.path.abspath(manifolds_dir)
         if not os.path.isdir(self.dir):
             raise FileNotFoundError(f"manifolds dir not found: {self.dir}")
@@ -455,6 +472,7 @@ class ManifoldStore:
                     f"manifold '{mid}': unknown runtime {chosen!r} "
                     f"(known: {RUNTIME_CORE!r}, {RUNTIME_PLATFORM!r})")
 
+        self.material_bindings = dict(material_bindings or {})
         self._loaded: dict[str, LoadedManifold] = {}
         for entry in sorted(os.listdir(self.dir)):
             mdir = os.path.join(self.dir, entry)
@@ -475,7 +493,9 @@ class ManifoldStore:
                         f"runtime and the unit also ships manifold.cml. A successor-native unit is "
                         f"the publication; a lowered image beside it is a different unit, not a "
                         f"variant of this one")
-                self._loaded[entry] = _load_governed_only(entry, mdir, bind_provider=True)
+                self._loaded[entry] = _load_governed_only(
+                    entry, mdir, bind_provider=True,
+                    material=self.material_bindings.get(entry))
                 continue
 
             if chosen == RUNTIME_CORE and not has_cml:
