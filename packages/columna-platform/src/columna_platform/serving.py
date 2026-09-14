@@ -41,9 +41,9 @@ from pathlib import Path
 from typing import Optional
 
 from columna_core.governed.publication import parse_publication
-from columna_core.governed.publication import ExplicitNone
+from columna_core.governed.publication import CONSTRUCTION, PRIMITIVE, ExplicitNone
 from columna_core.governed.resolve import (
-    C3_DOMAIN_MOVEMENT, C7_SUFFICIENT_STATE, ESTABLISHED, EXPLICIT_NONE, resolve_all,
+    C3_DOMAIN_MOVEMENT, C4_FORMATION, C7_SUFFICIENT_STATE, ESTABLISHED, EXPLICIT_NONE, resolve_all,
 )
 from columna_core.compiler.realization import EXACT, load_mapping, require_same_publication
 from columna_core.disclosure import Disclosure, Outcome
@@ -53,6 +53,7 @@ from columna_core.serving_contract import ColumnResult, FrameResult
 from . import admission
 from . import request as _request
 from . import composite as _composite
+from . import formation as _formation
 from . import source as _source
 from .continuation import continue_to
 from .movement import MovementLicence
@@ -226,6 +227,77 @@ def materialize_anchored(pub, family, law_view, realization, anchored, *, basis:
         carrier_type=admitted.carrier_type,
         table=anchored.table,
         anchor_columns=anchored.anchor_columns,
+    )
+    return store.insert(st)
+
+
+def operand_family(pub, family):
+    """The single operand a constructed family is formed over. One, and refuses otherwise.
+
+    The lineage lives in `formation.operands` (§3.7) and is the governed fact that says WHICH
+    family's contributions are folded. It is read, never inferred from the canonical reference —
+    `min(revenue@sale_at)` is a NAME, and a profile that parsed it would be resolving meaning from
+    spelling, which is the whole thing `request.py` refuses to do at the other end of the path."""
+    operands = tuple(family.formation.operands or ())
+    if len(operands) != 1:
+        raise UnsupportedByThisProfile(
+            f"{family.canonical_reference} is formed over {len(operands)} operands; this profile "
+            f"forms over exactly one")
+    by_id = {f.family_id: f for f in pub.families}
+    operand = by_id.get(operands[0])
+    if operand is None:
+        raise WantOfLaw(
+            f"{family.canonical_reference} cites operand {operands[0]!r}, which the publication does "
+            f"not declare", subject=family.family_id)
+    return operand
+
+
+def materialize_constructed(pub, family, law_view, operand, operand_view, realization,
+                            operand_realization, anchored, *, basis: str,
+                            store: RetainedStateStore) -> RetainedState:
+    """Admit the OPERAND's material, form the constructed value from it, retain under the CONSTRUCTED
+    identity.
+
+    THE ADMISSION IS THE OPERAND'S, AND THAT IS NOT A SHORTCUT. What was delivered is revenue's
+    material; what admission asks is whether that material is faithfully the operand's governed
+    domain. The constructed family's value is not admitted because it was not delivered — it comes
+    into existence here, after admission, from material already known to be governed. Admitting it
+    would mean checking a carrier that does not exist.
+
+    So the primitive-only guard in `admit_anchored` is untouched and is still right: this path never
+    asks admission about a construction. It asks about the operand, and the operand is primitive."""
+    admitted = admission.admit_anchored(
+        operand_view, operand_realization, anchored,
+        declared_components(pub, operand.constitutive_anchor))
+
+    law = _formation.formation_law(law_view[C4_FORMATION].value, family.canonical_reference)
+    # ORDER: the LAW's composition before the PROFILE's operator map. Both refuse as capability
+    # limits, and the first is the durable reason — "COUNT declares no composition over operand
+    # values" is true of every composing profile, while "not in this build's law map" is contingent
+    # on this build. An operator told the contingent reason would reasonably wait for a release.
+    fold = _formation.composition_for(law, family.canonical_reference)
+    _formation.check_operator_claim(realization, law, family.canonical_reference)
+    formed = _formation.form(anchored, law, fold)
+
+    fingerprint, scheme = constitution_of(pub, family.family_id)
+    st = RetainedState(
+        identity=AnalyticalIdentity(family.family_id, family.constitutive_anchor),
+        standing=Standing(
+            constitution=fingerprint,
+            constitution_scheme=scheme,
+            participation=law_view["eligibility_and_participation"].value,
+            basis=basis,
+            realization=f"{realization.endpoint.connection}:{realization.endpoint.schema}."
+                        f"{realization.endpoint.table}.{realization.endpoint.column}"
+                        f"/{realization.grain}/{realization.exactness}"
+                        f"/{law.name}({operand.canonical_reference})",
+            currency=None,
+        ),
+        array=formed.table.column(formed.value_column).combine_chunks(),
+        governed_domain=admitted.governed_domain,
+        carrier_type=admitted.carrier_type,
+        table=formed.table,
+        anchor_columns=formed.anchor_columns,
     )
     return store.insert(st)
 
@@ -469,15 +541,55 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         realization = realize(mapping, req.family.family_id)
         require_exact_realization(view, realization)
 
-        # ── 4. material, through the deployment-local binding ───────────────────────────────────
-        anchored = _source.read_anchored(
-            bindings, realization,
-            component_realizations(mapping, req.family.constitutive_anchor))
-
-        # ── 5-6. admission and retention ────────────────────────────────────────────────────────
+        c4 = view[C4_FORMATION]
+        if c4.standing != ESTABLISHED or not isinstance(c4.value, dict):
+            raise WantOfLaw(f"the formation responsibility is {c4.standing}",
+                            subject=view.canonical_reference)
+        kind = c4.value.get("kind")
         store = RetainedStateStore()
-        materialize_anchored(pub, req.family, view, realization, anchored,
-                             basis=c7.value, store=store)
+
+        if kind == PRIMITIVE:
+            # INTAKE. The family's own realization names the material; admission decides whether
+            # what arrived is faithfully the governed domain.
+            anchored = _source.read_anchored(
+                bindings, realization,
+                component_realizations(mapping, req.family.constitutive_anchor))
+            materialize_anchored(pub, req.family, view, realization, anchored,
+                                 basis=c7.value, store=store)
+
+        elif kind == CONSTRUCTION:
+            # FORMATION. The material is the OPERAND's — a constructed family is not delivered from
+            # anywhere — so its claim is resolved and checked first, and the constructed family's own
+            # claim is checked to describe the SAME material rather than a second source.
+            operand = operand_family(pub, req.family)
+            operand_view = views.get(operand.family_id)
+            if operand_view is None:
+                raise WantOfLaw(
+                    f"no resolved law view for operand {operand.family_id}",
+                    subject=req.family.family_id)
+            operand_realization = realize(mapping, operand.family_id)
+            require_exact_realization(operand_view, operand_realization)
+            if realization.endpoint != operand_realization.endpoint:
+                raise WantOfState(
+                    f"{req.family.canonical_reference} realizes a different endpoint from its "
+                    f"operand {operand.canonical_reference}; a constructed family is formed FROM "
+                    f"its operand's contributions, so a second source would be a second family",
+                    subject=req.family.family_id)
+            if realization.grain != operand_realization.grain:
+                raise WantOfState(
+                    f"{req.family.canonical_reference} claims grain {realization.grain!r} and its "
+                    f"operand claims {operand_realization.grain!r} over the same material; one of "
+                    f"the two is wrong and this profile will not choose",
+                    subject=req.family.family_id)
+            anchored = _source.read_anchored(
+                bindings, operand_realization,
+                component_realizations(mapping, operand.constitutive_anchor))
+            materialize_constructed(pub, req.family, view, operand, operand_view, realization,
+                                    operand_realization, anchored, basis=c7.value, store=store)
+
+        else:                                                  # pragma: no cover - closed vocabulary
+            raise UnsupportedByThisProfile(
+                f"formation kind {kind!r} is not one this profile executes")
 
         # ── 7. serve ────────────────────────────────────────────────────────────────────────────
         return decide_result(view, store, req.identity, column=column)

@@ -1,26 +1,70 @@
 {
   "mapping_format_version": "2",
-  "publication_ref": { "manifold_id": "lighthouse", "version": "1.0.0" },
+  "publication_ref": {
+    "manifold_id": "lighthouse",
+    "version": "1.0.0"
+  },
   "realizations": [
     {
       "kind": "anchor_component",
       "anchor_ref": "sale_at",
       "component_name": "store",
-      "endpoint": { "connection": "warehouse", "schema": "sales", "table": "fact_sale", "column": "store_code" }
+      "endpoint": {
+        "connection": "warehouse",
+        "schema": "sales",
+        "table": "fact_sale",
+        "column": "store_code"
+      }
     },
     {
       "kind": "anchor_component",
       "anchor_ref": "sale_at",
       "component_name": "day",
-      "endpoint": { "connection": "warehouse", "schema": "sales", "table": "fact_sale", "column": "sold_on" }
+      "endpoint": {
+        "connection": "warehouse",
+        "schema": "sales",
+        "table": "fact_sale",
+        "column": "sold_on"
+      }
     },
     {
       "kind": "family",
       "family_id": "fam_qv8Ky3mR7bTpZa1LwXcNdg",
-      "endpoint": { "connection": "warehouse", "schema": "sales", "table": "fact_sale", "column": "amount" },
+      "endpoint": {
+        "connection": "warehouse",
+        "schema": "sales",
+        "table": "fact_sale",
+        "column": "amount"
+      },
       "grain": "coincident",
       "formation_operator": null,
       "continuation_operator": "sum",
+      "exactness": "exact"
+    },
+    {
+      "kind": "family",
+      "family_id": "fam_Zx4TgM6oBvNqUeS3rKhDyw",
+      "endpoint": {
+        "connection": "warehouse",
+        "schema": "sales",
+        "table": "fact_sale",
+        "column": "amount"
+      },
+      "grain": "coincident",
+      "formation_operator": "min",
+      "exactness": "exact"
+    },
+    {
+      "kind": "family",
+      "family_id": "fam_Hs2VnE9QjLkYbW0uPcAtRf",
+      "endpoint": {
+        "connection": "warehouse",
+        "schema": "sales",
+        "table": "fact_sale",
+        "column": "amount"
+      },
+      "grain": "coincident",
+      "formation_operator": "count",
       "exactness": "exact"
     }
   ]

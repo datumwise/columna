@@ -172,3 +172,47 @@ def test_the_preflight_still_touches_nothing_on_a_bound_deployment(served):
     assert wire["executed"] is False
     assert wire["columns"][0].get("values") is None
     assert wire["columns"][0].get("value") is None
+
+
+# ══ THE CONSTRUCTED FAMILY, AT THE PUBLIC SURFACE (second material slice, 2026-09-14) ═══════════
+
+MIN_ASK = "SELECT min(revenue@sale_at) AT {store*day}"
+
+
+def test_a_constructed_family_is_served_from_governed_formation_law(served):
+    """The second slice's whole claim, as a caller of the public tool sees it: the successor is not
+    special-cased to primitive SUM.
+
+    DEGENERATE BY CONSTRUCTION, and said so here as well as in the platform suite: at coincident
+    grain each fiber holds one contribution, so MIN returns the value it selected from. What this
+    proves is that a CONSTRUCTED family executes from its cited foundation law — not that
+    aggregation over several contributions works, which is the finer branch and still refuses."""
+    wire = execute_frame_query(served, UNIT, MIN_ASK)
+    assert wire["outcome"] == "serve"
+    assert wire["executed"] is True
+    assert wire["columns"][0]["name"] == "min(revenue@sale_at)"
+    rows = wire["columns"][0]["values"]
+    assert [sorted(r) for r in rows] == [["day", "store", "value"]] * 4
+    assert all(isinstance(r["value"], Decimal) for r in rows)
+
+
+def test_the_constructed_and_primitive_families_agree_at_coincident_grain(served):
+    """The degeneracy, at the public surface. Equality here is the EXPECTED result and is asserted
+    so that a future reader cannot mistake a passing constructed-family test for evidence of a
+    non-trivial fold."""
+    def by_point(ask):
+        return {(r["store"], str(r["day"])): r["value"]
+                for r in execute_frame_query(served, UNIT, ask)["columns"][0]["values"]}
+    assert by_point(MIN_ASK) == by_point(GOOD)
+
+
+def test_count_is_refused_at_the_public_surface_without_reading_its_target(served):
+    """OF-44 held. COUNT carries a realization claim in the fixture, so this is not "no claim": it
+    is the composition gate, reached from a governed fact about the law, saying nothing about
+    §11.5.1."""
+    wire = execute_frame_query(served, UNIT, "SELECT count(revenue@sale_at) AT {store*day}")
+    assert wire["outcome"] == "error"
+    detail = wire["columns"][0]["no_result"]["detail"]
+    assert wire["columns"][0]["no_result"]["reason"] == "unsupported"
+    assert "declares no composition over operand values" in detail
+    assert "11.5.1" not in detail

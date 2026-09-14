@@ -1,4 +1,4 @@
-"""The narrow admission boundary — four checks, all refusing, none defaulting.
+"""The narrow admission boundary — five checks, all refusing, none defaulting.
 
 ADMISSION IS WHERE A CONCRETE PRECISION EXISTS. A governed `value_domain` is the bare token
 `"decimal"` — no precision, no scale — so at LOWERING there is nothing to compare against a substrate
@@ -15,6 +15,8 @@ The checks, and what each exists to stop:
              Stops material at the wrong grain being folded, or not folded, by accident.
     CHECK 4  carrier COORDINATES  <->  the anchor's declared components.       (2026-09-14)
              Stops a value being retained at an analytical point nobody governed.
+    CHECK 5  the COINCIDENT claim  <->  the material actually delivered.        (2026-09-14)
+             Stops a claim of one-contribution-per-point standing over material that has several.
 
 CHECKS 3 AND 4 ARE WHY `realization` IS A PARAMETER. It was one before they existed, and was never
 read — the seam was reserved and empty, which is the shape a check takes before it is written
@@ -217,6 +219,28 @@ def admit_anchored(law_view, realization, anchored: _carrier.AnchoredCarrier,
             + (f"; not declared: {extra}" if extra else "")
             + ". A value retained at coordinates the publication does not declare is retained at an "
               "analytical point nobody governed", subject=subject)
+
+    # ── CHECK 5 · the coincident claim against the material that actually arrived ──────────────
+    # CHECK 3 compared two CLAIMS — the realization's grain and the governed contribution structure.
+    # Neither of them is the material. `coincident` says "one contribution per analytical point"
+    # (C4's own note), which is a statement about rows, and it is checkable the moment rows exist.
+    #
+    # WITHOUT THIS, "COINCIDENT" IS AN UNTESTED ASSERTION AND TWO PATHS GO WRONG DIFFERENTLY. A
+    # family served WITHOUT formation would emit two rows at one analytical point — two answers to
+    # one governed question, under an anchor that declares one. A family served WITH formation would
+    # silently fold contributions the governed contribution structure says do not exist, which is
+    # resolution law being performed by a profile that was told there was none to perform.
+    if realization.grain == COINCIDENT:
+        seen, repeated = set(), set()
+        for row in anchored.table.select(list(anchored.anchor_columns)).to_pylist():
+            key = tuple(row[c] for c in anchored.anchor_columns)
+            (repeated if key in seen else seen).add(key)
+        if repeated:
+            raise WantOfState(
+                f"the realization claims COINCIDENT grain — one contribution per analytical point — "
+                f"and the material presents several at {len(repeated)} point(s), e.g. "
+                f"{sorted(repeated)[0]}. Folding them here would perform a resolution the governed "
+                f"contribution structure says there is none of", subject=subject)
 
     # ── CHECKS 1 and 2, unchanged, on the value column ─────────────────────────────────────────
     return admit(law_view, realization, anchored.as_carrier())
