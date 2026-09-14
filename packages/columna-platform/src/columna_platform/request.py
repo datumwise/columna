@@ -136,3 +136,103 @@ def resolve(pub: GovernedPublicationV2, statement) -> ResolvedRequest:
 def _spell_anchors(declared: dict) -> str:
     """Spell the declared anchors for a refusal message: `sale_at{day*store}`, sorted."""
     return ", ".join(f"{name}{{{'*'.join(sorted(c))}}}" for name, c in sorted(declared.items())) or "none"
+
+
+# ══ REQUEST COMPLETENESS — no accepted clause may simply be unread ════════════════════════════
+#
+# THE INVARIANT (ruled Huayin, 2026-09-14): every syntactic part of a request accepted into
+# successor execution is either CONSUMED by governed resolution or EXPLICITLY REJECTED as
+# unsupported. A clause may not be parsed, carried, and then ignored.
+#
+# WHY THIS IS A CHECK AND NOT A CONVENTION. `Statement` has nine fields and this profile reads two.
+# The other seven were accepted and discarded, so a request carrying `WHERE store = 'nowhere'` was
+# answered with every row — an affirmative serve for a question nobody asked (OF-53). Nothing
+# failed: not a test, not a gate, not a type. A profile is entitled to implement a subset of the
+# language; it is not entitled to accept the rest and answer anyway.
+#
+# AND WHY THE PARTITION IS COMPUTED RATHER THAN LISTED. The same defect was already found once, for
+# `from_manifold`, and repaired for that field alone (`tools._resolve_for_request`, P1-19) — the
+# class stayed open because the fix was per-field. So the rule here is stated over the WHOLE field
+# set: anything not classified below is unknown, and an unknown field fails closed on every
+# request until someone decides what the successor does with it. That is deliberately loud. A new
+# `Statement` field turns every successor test red in CI on the first run, which is the cheapest
+# possible moment to be asked the question.
+
+#: Fields this profile CONSUMES. `series` names the governed reference; `anchor` names where the
+#: value stands. Together they are the whole of `AnalyticalIdentity`.
+CONSUMED_CLAUSES = frozenset({"series", "anchor"})
+
+#: Fields consumed BEFORE the provider is reached, by the server's statement-routing boundary.
+#: `from_manifold` is read by `tools._resolve_for_request`, which redirects to the runtime the
+#: statement names and returns an invalid wire for an unknown one. Not this profile's to re-check:
+#: a second consumer would be a second definition of which manifold a request addresses.
+CONSUMED_UPSTREAM = frozenset({"from_manifold"})
+
+#: field -> (public spelling, why this profile has no governed reading of it). The reason is part
+#: of the data because it reaches the caller: "unsupported" without a reason is not an answer.
+UNSUPPORTED_CLAUSES = {
+    "where": (
+        "WHERE",
+        "a restriction narrows which analytical points exist, and this profile has no governed "
+        "restriction object for it to mean — lowering it to a physical predicate would decide "
+        "population, support and absence by implementation rather than by law"),
+    "having": (
+        "HAVING",
+        "an output-frame predicate restricts the served frame after the fold, and this profile has "
+        "no governed account of a partial frame or of what its omissions disclose"),
+    "order_by": (
+        "ORDER BY",
+        "CAP v1 carries no ordering guarantee, so an order served here would be the driver's "
+        "incidental one presented as the request's — a claim the profile cannot make"),
+    "limit": (
+        "LIMIT",
+        "a row cap changes which analytical points the answer covers, which is a disclosure "
+        "question this profile has no governed answer to; silently serving all of them is worse"),
+    "bindings": (
+        "WITH",
+        "a binding introduces a name whose meaning is evaluated, and this profile evaluates no "
+        "expressions — it resolves one governed reference from governed law"),
+    "explain": (
+        "EXPLAIN",
+        "EXPLAIN asks for a plan and NOT an execution; this path has no plan representation, and "
+        "executing in answer to it would do the one thing the keyword exists to prevent"),
+}
+
+
+def require_supported_clauses(statement) -> None:
+    """Refuse any accepted-but-unimplemented clause as a CAPABILITY LIMIT, before anything resolves.
+
+    `UnsupportedByThisProfile`, never `WantOfLaw` (ruled Huayin, 2026-09-14). The public request
+    form may be perfectly lawful and executable in another profile; what is missing is a governed
+    interpretation HERE. A `want_of_law` would tell the caller their question was unlawful when the
+    truth is that this build does not implement it, and it would send them to fix a publication
+    that is not wrong. There is likewise NO Core fallback: handing the statement to another runtime
+    would misreport whose semantics produced the number.
+
+    This runs FIRST — before `resolve`, before law, before any material access — so a rejected
+    clause costs zero fetches and cannot be discarded by a partial resolution that ran ahead of it.
+    """
+    import dataclasses
+
+    fields = {f.name for f in dataclasses.fields(statement)}
+    classified = CONSUMED_CLAUSES | CONSUMED_UPSTREAM | set(UNSUPPORTED_CLAUSES)
+
+    unknown = fields - classified
+    if unknown:
+        # THE COMPLETENESS RULE, ENFORCED RATHER THAN DOCUMENTED. Not a developer error and not an
+        # assertion: a request surface this profile has not classified is one it cannot honestly
+        # execute against, because the unclassified part might change the answer.
+        raise UnsupportedByThisProfile(
+            f"the request carries {sorted(unknown)}, which this profile has not classified as "
+            f"either consumed or unsupported; it will not execute against a request surface it "
+            f"has not decided about")
+
+    present = [name for name in UNSUPPORTED_CLAUSES
+               if getattr(statement, name, None) not in (None, False, [], (), "")]
+    if present:
+        spellings = ", ".join(UNSUPPORTED_CLAUSES[n][0] for n in present)
+        why = "; ".join(f"{UNSUPPORTED_CLAUSES[n][0]}: {UNSUPPORTED_CLAUSES[n][1]}" for n in present)
+        raise UnsupportedByThisProfile(
+            f"this profile does not implement {spellings} — {why}. The statement is valid Frame-QL "
+            f"and may execute on another profile; it is not executed here, and it is not silently "
+            f"served without the clause")

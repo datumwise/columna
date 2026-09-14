@@ -55,13 +55,13 @@ def _source(tmp_path, **kw) -> DuckDbAdbcSource:
     return DuckDbAdbcSource(path=LH.build(tmp_path, **kw), name="lighthouse-warehouse")
 
 
-def _run(tmp_path, *, source=None, mutate=None, connection=LH.CONNECTION):
+def _run(tmp_path, *, source=None, mutate=None, connection=LH.CONNECTION, statement=ASK):
     src = source if source is not None else _source(tmp_path)
     provider = PlatformExecutionProvider.from_artifact(
         str(PUBLICATION), manifold_id="lighthouse",
         material=MaterialBinding(mapping_path=_mapping_file(tmp_path, mutate),
                                  sources=SourceBindings({connection: src})))
-    wire = wire_frame(provider.run(parse_statement(ASK)), universe=None, executed=True)
+    wire = wire_frame(provider.run(parse_statement(statement)), universe=None, executed=True)
     return wire, src
 
 
@@ -634,3 +634,61 @@ def test_admission_and_execution_see_the_whole_multi_batch_carrier(tmp_path):
     assert len(rows) == WIDE_DAYS
     assert sum(r["value"] for r in rows) == Decimal(WIDE_DAYS * (WIDE_DAYS + 1) // 2)
     assert all(r["store"] == "east" for r in rows)
+
+
+# ══ 8 · request completeness, through the real driver ═════════════════════════════════════════
+#
+# The format-level controls live in `columna-platform/tests/test_request_clause_completeness.py`.
+# These are the two claims that can only be made HERE, with a real source that counts its own
+# reads: that a rejected clause costs NOTHING, and that the witness statement which used to serve
+# four rows over a real warehouse now does not.
+
+CLAUSE_ASKS = [
+    ("WHERE",    ASK + " WHERE store = 'east'"),
+    ("WHERE-∅",  ASK + " WHERE store = 'nowhere'"),
+    ("HAVING",   ASK + " HAVING revenue > 1000000"),
+    ("ORDER BY", ASK + " ORDER BY revenue DESC"),
+    ("LIMIT",    ASK + " LIMIT 1"),
+    ("EXPLAIN",  "EXPLAIN " + ASK),
+]
+
+
+@pytest.mark.parametrize("label,ask", CLAUSE_ASKS)
+def test_a_rejected_clause_costs_zero_fetches(tmp_path, label, ask):
+    """CONTROL 7, and the reason the guard sits at step 0 rather than anywhere later.
+
+    A capability limit discovered AFTER the material read would be a correct answer bought with a
+    real warehouse query — and on `EXPLAIN`, whose whole meaning is *do not execute*, it would be
+    the exact wrong thing done before saying it would not be done. The adapter counts its own
+    reads, so this is measured rather than argued."""
+    src = _source(tmp_path)
+    wire, _ = _run(tmp_path, source=src, statement=ask)
+
+    assert len(src.fetches) == 0, f"{label} read material before refusing: {src.fetches}"
+    assert wire["outcome"] != "serve"
+    assert _no_result(wire)["reason"] == "unsupported"
+
+
+def test_the_nowhere_witness_no_longer_serves_the_whole_warehouse(tmp_path):
+    """THE WITNESS, KEPT AS A TEST. This exact statement returned all four rows — east and west,
+    `outcome: serve`, clean disclosure — over real DuckDB material through ADBC. It is kept in this
+    file, against a real driver, because that is the form in which the defect was actually found."""
+    src = _source(tmp_path)
+    wire, _ = _run(tmp_path, source=src, statement=ASK + " WHERE store = 'nowhere'")
+
+    assert wire["outcome"] != "serve"
+    assert wire["columns"][0].get("values") in (None, [])
+    assert "10.0000" not in _text(wire) and "west" not in _text(wire)
+    assert len(src.fetches) == 0
+
+
+def test_the_unrestricted_request_is_completely_unchanged(tmp_path):
+    """CONTROL 1 and CONTROL 8, through the real driver: the guard is invisible to the ask that
+    already worked — same outcome, same four exact decimals, same single projected fetch."""
+    src = _source(tmp_path)
+    wire, _ = _run(tmp_path, source=src)
+
+    assert wire["outcome"] == "serve"
+    assert {(r["store"], str(r["day"]), str(r["value"]))
+            for r in wire["columns"][0]["values"]} == EXPECTED
+    assert len(src.fetches) == 1

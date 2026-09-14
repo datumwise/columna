@@ -160,15 +160,34 @@ def test_the_grand_total_frame_is_movement_and_refuses(pub):
 
 def test_a_multi_series_request_is_UNSUPPORTED_not_unlawful(pub, views):
     """Control 5, and the distinction the ruling insists on: a capability limit may not wear a
-    governed jurisdiction. `UnsupportedByThisProfile` is not a `ProofRefusal`, is not caught by the
-    planning path, and therefore cannot arrive at the wire as a governed refusal."""
+    governed jurisdiction. `UnsupportedByThisProfile` is not a `ProofRefusal`, so it can never
+    arrive at the wire as a governed refusal.
+
+    UPDATED 2026-09-14 (OF-55). This test previously asserted that `plan` RAISES — and that was a
+    faithful record of the rule as it then stood, which forbade any mapping of this class to a wire
+    reason. That rule was NARROWED the same day: *"an exception escaping past the server is not an
+    answer either, and a caller who asked a meaningful question learns nothing from a
+    transport-level error"* (`refusals.py:136-141`). `run` left the raising list under that
+    narrowing; `plan` was left behind, so `check_frame_query` crashed on a statement
+    `execute_frame_query` answered cleanly. The surviving half of the rule — A GOVERNED REFUSAL MAY
+    NEVER BORROW THE CAPABILITY REASON, AND A CAPABILITY LIMIT MAY NEVER BORROW A GOVERNED ONE — is
+    what this test now asserts, on both entry points, which is the thing that was ever load-bearing.
+
+    `rq.resolve` still raises: the translation happens at the SERVING boundary and nowhere earlier,
+    which is why the class stays outside the `ProofRefusal` hierarchy."""
     from columna_platform.refusals import ProofRefusal
     stmt = parse_statement("SELECT revenue, revenue AT {store*day}")
+
     with pytest.raises(UnsupportedByThisProfile) as e:
         rq.resolve(pub, stmt)
     assert not isinstance(e.value, ProofRefusal)
-    with pytest.raises(UnsupportedByThisProfile):
-        PlatformExecutionProvider(pub, views).plan(stmt)
+
+    # The serving boundary translates it, and the two public capabilities now AGREE.
+    planned = PlatformExecutionProvider(pub, views).plan(stmt)
+    col = planned.columns[0]
+    assert col.refusal is not None
+    assert col.refusal.reason == "unsupported"
+    assert col.refusal.reason not in ("want_of_law", "want_of_state")
 
 
 @pytest.mark.parametrize("method,args", [("explain", ("stmt",)), ("operators", ())])
