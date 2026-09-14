@@ -19,9 +19,16 @@ constituted value · which anchor is constitutive · who the parents are · what
 first two of those, which is why a private file could mint a family succession under ToD v7.1 §3.9.
 
 THE GUARANTEE IS STRUCTURAL, NOT A RULE TO REMEMBER. `family_id` is not derivable from anything in
-this file: the reader never computes one, never falls back to a name, and refuses a realization whose
-`family_id` the publication does not declare. A mapping edit therefore cannot be a family succession,
-because it cannot change which family is being realized — it can only fail to match one.
+this file: THIS READER never computes one and never falls back to a name, so a mapping edit cannot be
+a family succession — it cannot change which family is being realized, it can only fail to match one.
+
+AND THE OTHER HALF IS NOT THIS MODULE'S TO GIVE (corrected 2026-09-14, OF-40). §4's rule is
+"missing, duplicate and UNKNOWN all refuse", and the three are discharged in two different places.
+The reader owns the two it can see from the bytes alone — a realization with no `family_id`, and two
+realizations naming one. It cannot own the third: `parse_mapping` is handed a document and no
+publication, so "the publication does not declare this family" is a sentence it has no standing to
+say. That check lives in `compile_v2._check_realization_family_references`, beside the binding check.
+Until it was written, this docstring claimed it and nothing in the tree performed it.
 
 THE CLAIM/CHECK INVERSION. Every field above is a CLAIM the compiler checks against governed law,
 never a fact the compiler adopts. That is the same shape the v1 compiler already used correctly for
