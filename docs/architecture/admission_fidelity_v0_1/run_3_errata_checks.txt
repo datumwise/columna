@@ -1,0 +1,35 @@
+=== versions, PRINTED rather than remembered (study §2 records these; run 1 and run 2 do not) ===
+  python                 3.12.14   Linux-6.12.105-fly-x86_64-with-glibc2.41
+  duckdb                 1.5.5
+  adbc-driver-manager    1.12.0
+  pyarrow                25.0.1
+  polars                 1.44.2
+  adbc_driver_duckdb     vendored by the duckdb wheel; no distribution of its own
+  driver shared object   /data/probe-venv/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so
+
+=== Q. does a decimal128(38,0) lose digits at the fourth hop because of its TYPE? ===
+  HUGEINT, 38 nines        (38 digits)
+      arrow  decimal128(38, 0)  ->  99999999999999999999999999999999999999
+      polars                    ->  99999999999999999999999999999999999999
+      exact across the fourth hop? YES
+  HUGEINT, int128 max      (39 digits)
+      arrow  decimal128(38, 0)  ->  170141183460469231731687303715884105727
+      polars                    ->  1.7014118346046923173168730371588410573E+38
+      exact across the fourth hop? NO   <-- LOSS
+  HUGEINT, int128 max - 1  (39 digits)
+      arrow  decimal128(38, 0)  ->  170141183460469231731687303715884105726
+      polars                    ->  1.7014118346046923173168730371588410573E+38
+      exact across the fourth hop? NO   <-- LOSS
+  HUGEINT, 10^38           (39 digits)
+      arrow  decimal128(38, 0)  ->  100000000000000000000000000000000000000
+      polars                    ->  1.0000000000000000000000000000000000000E+38
+      exact across the fourth hop? NO   <-- LOSS
+  DECIMAL(38,0), 38 nines  (38 digits)
+      arrow  decimal128(38, 0)  ->  99999999999999999999999999999999999999
+      polars                    ->  99999999999999999999999999999999999999
+      exact across the fourth hop? YES
+
+=== Q. the same fact from the other side: can pyarrow BUILD a 39-digit decimal128(38,0)? ===
+  refused: ArrowInvalid: Decimal type with precision 39 does not fit into precision inferred from first array element: 38
+
+done.
