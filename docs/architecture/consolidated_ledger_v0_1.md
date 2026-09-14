@@ -2532,14 +2532,27 @@ governance line and not declarable.
 
 **No implementation is authorized.** These are recorded so later work has a referent.
 
+**RECONCILED 2026-09-14 (Huayin), and nothing here is closed by it.** Three rows carried claims
+that later reconnaissance had already falsified or outgrown, and the corrections had never been
+folded back — so the governing record knowingly disagreed with verified work sitting in `specs/`.
+That is the OF-50 shape (a finding recorded in one place and not enforced in the authority) applied
+to this file, which makes it worse than an ordinary staleness: this is the record other rows are
+checked against.
+
+**The original wording is preserved verbatim in every case.** A correction is appended inside the
+row, dated and sourced, rather than overwriting it — a retired claim is still the name of a thing
+that happened, and the rows are cited by archived transcripts and commit messages. **No row's grade
+changed and no row is closed**; a corrected claim is still an open claim, and P5 remains
+unauthorized for implementation.
+
 | id | item | grade |
 |---|---|---|
-| **P5-01** | No MME exists. The only hit for `MME` in the tree is the topology record's own list of claims it does not make (`:493`) | SV |
+| **P5-01** | No MME exists. The only hit for `MME` in the tree is the topology record's own list of claims it does not make (`:493`) — **[CORRECTED 2026-09-14, EXPLANATION ONLY]** the head claim *"no MME exists"* **still holds** (verified 2026-09-14: the only `MME` occurrences are the topology record's negative list at `:493` and a reconnaissance note's own mandate exclusion). Two things in the row have gone stale. (i) *"the only hit"* is no longer true — `specs/family_law_capability_reusable_state_reconciliation_v0_2.md:6` and `:347` now mention MME/Cache(r); the row was accurate when written and is a claim about tree state, which ages. (ii) More substantively, **the row understates the design corpus**: a Cache(r) design capture exists carrying **two RULED laws** (Huayin, 2026-07-14) — *only the fertile is cached; the fertile is cached as components first*, and *a cache hit may never change the quantity asked* — plus *a cache hit is a theorem application* (`specs/context/design_capture_execution_positions_v0_8.md:249-284`). So the accurate statement is not *"nothing has been thought about this"* but *"no MME has shipped, and the design that exists predates the topology ruling and is unreconciled with it"*. Grade unchanged (SV); scope unchanged; **not closed**. | SV |
 | **P5-02** | Sufficient state is absent as a governed object. Three partial seeds — `WitnessStore` HLL sketches, connector monoid witness columns, `CacheEntry` — none carries a composable measure state alongside its support and absence typing | SV |
 | **P5-03** | No carrier proof can cross an execution boundary without law loss. The closest existing combination is `{publication, receipt, wire_frame}`, which still loses typed absence, support (a *name*), standing, and data-state identity | SV |
-| **P5-04** | A cached object is not distinguishable from a sole-holder observation. Result cache adds only `Caveat(FRESHNESS, "served from cache")`; **witness reuse adds no marker at all** | VX |
+| **P5-04** | A cached object is not distinguishable from a sole-holder observation. Result cache adds only `Caveat(FRESHNESS, "served from cache")`; **witness reuse adds no marker at all** — **[CORRECTED 2026-09-14: THE ROW IS UNDERSTATED, and the correction strengthens it]** the original claim stands unaltered (`engine.py:233`, `:737` are the only two `"served from cache"` sites). What the row omits is **where the sketch APPROXIMATION caveat gets its number**: it is computed from `meas.sketch_precision` — the measure's DECLARATION (`model.py:189`) — at `engine.py:1286-1287`, and **not** from the stored artifact's own recorded precision, which the `sketch.py` module docstring advertises as *"PROVENANCE-bearing"* (`:26`) and which has **no reader on the caveat path** (verified 2026-09-14 by source sweep). So a reused witness is not merely unmarked: the accuracy statement riding on it is derived from what the measure *says* it is, not from what the held artifact *is*. Grade unchanged (VX) for the original claim; **this appended clause is SV**, read and not executed. Scope unchanged — same defect, a sharper statement of it; **not closed**. | VX |
 | **P5-05** | Cache and witness keys cannot be keyed by canonical governed identity — the record's own question at `:535` answers *no* as built | SV |
-| **P5-06** | The portability proof is not "two engines returned the same number." Required experiment recorded at record §22: a genuinely non-SQL second connector, full governed wire semantics compared, including decimal, timestamp/time-zone, null/absence, ordered reducers, sketches, and holistic reducers or explicit refusal | — |
+| **P5-06** | The portability proof is not "two engines returned the same number." Required experiment recorded at record §22: a genuinely non-SQL second connector, full governed wire semantics compared, including decimal, timestamp/time-zone, null/absence, ordered reducers, sketches, and holistic reducers or explicit refusal — **[CORRECTED 2026-09-14: THE CITATION IS UNRESOLVABLE]** *"record §22"* points at nothing. The topology record (`docs/architecture/topology_core_platform_delivery_v0_1.md`) has **17 numbered sections**, ending at *"17. Standing statements required at adoption"*; a `§22` does not exist there and the string appears nowhere in the file (verified 2026-09-14). **The row's SUBSTANCE is unaffected and is not a pointer**: the required experiment is stated in full in this row itself, which is now its only home — a genuinely non-SQL second connector, with full governed wire semantics compared. **The pointer is struck rather than repaired**, because no in-tree section was found that states the experiment, and inventing a plausible target would replace a visibly broken citation with an invisibly wrong one. Explanation only: grade unchanged (none recorded); scope unchanged; **not closed**. | — |
 
 ---
 
