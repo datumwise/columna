@@ -1,0 +1,42 @@
+=== PART A. the shipped Platform-refusal -> wire dispatch, read out of the source ===
+  serving.py:462  reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+  serving.py:463  alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+  serving.py:603  reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+  serving.py:604  alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+  serving.py:691  reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+  serving.py:692  alts = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+  -> 3 translation site(s), all identical.
+  REMATERIALIZE = 're-realization / re-materialization may resolve this'
+
+  applying that exact expression to one instance of each refusal class:
+    WantOfLaw                -> reason='want_of_law'      alternatives=()
+    WantOfState              -> reason='want_of_state'    alternatives=(REMATERIALIZE,)
+    WantOfCompatibility      -> reason='want_of_state'    alternatives=(REMATERIALIZE,)   <-- COLLAPSED
+    _StandInContradiction    -> reason='want_of_state'    alternatives=(REMATERIALIZE,)   <-- COLLAPSED
+
+  2 class(es) reach the wire as `want_of_state` though they are neither a
+  WantOfLaw nor a WantOfState: ['WantOfCompatibility', '_StandInContradiction']
+  The dispatch is a two-way if/else over a four-class taxonomy; the `else` is total.
+  UnsupportedByThisProfile is NOT a ProofRefusal (False), so it is not caught here at all --
+  which is correct, and is why the collapse affects exactly the governed classes.
+
+=== PART B. the minted reason, from the closed registry ===
+  REASON_OUTCOME['realization_contradicts_law'] = ('error', None, 'realization')
+  outcome_for   -> ('error', None)
+  jurisdiction  -> 'realization'
+
+  against the three it must never be confused with:
+    vs want_of_state    ('refuse', 'unsupported', 'realization')   DISTINCT
+    vs want_of_law      ('refuse', 'unsupported', 'analytical')    DISTINCT
+    vs unsupported      ('error', None, 'realization')             SAME VERDICT (separated by meaning)
+
+  and the registry is fail-closed, so an unregistered reason cannot acquire a verdict:
+    outcome_for('a_reason_nobody_registered') -> UnregisteredReason
+
+=== CONCLUSION ===
+  B holds today: the minted reason classifies ERROR / REALIZATION and is NOT want_of_state.
+  A does NOT hold today: the dispatch would send a contradiction class to want_of_state
+  with REMATERIALIZE offered. Closing A is part of the conformance repair, and the control
+  that proves it is the one named in the ruling document -- a refusal-class-keyed dispatch
+  with a completeness pin, so a class with no wire reason fails the build rather than
+  silently inheriting one.

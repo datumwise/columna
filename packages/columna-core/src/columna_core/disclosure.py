@@ -472,6 +472,53 @@ REASON_OUTCOME = {
                                                         #   sufficient state can establish it in this
                                                         #   execution. The FIRST refuse-in-realization entry.
                                                         #   Carries its remedy in `alternatives`.
+    "realization_contradicts_law": (ERROR, None, REALIZATION),  # MINTED 2026-09-14 (Huayin, the
+                                                        #   realization-claim null-semantics ruling). THE
+                                                        #   REALIZATION ARTIFACT ASSERTS AN EXECUTION FACT
+                                                        #   INCOMPATIBLE WITH A POSITIVE GOVERNED FACT IN THE
+                                                        #   PUBLICATION. The publication establishes X (or
+                                                        #   positively establishes NONE); the private mapping
+                                                        #   claims Y. Nothing is missing and nothing is
+                                                        #   unlawful to ask — the two artifacts disagree.
+                                                        #
+                                                        #   WHY IT IS NOT ONE OF THE THREE IT SITS BESIDE, and
+                                                        #   the reason it had to be minted rather than
+                                                        #   borrowed: `want_of_law` says the governed law does
+                                                        #   not license the ask, and here the law licenses it
+                                                        #   and says the opposite of the claim. `want_of_state`
+                                                        #   says no admissible state establishes it and carries
+                                                        #   RE-MATERIALIZATION as its remedy — and
+                                                        #   re-materializing the same data cannot repair a
+                                                        #   claim that contradicts the governing law, so that
+                                                        #   remedy would send an operator to do work that
+                                                        #   cannot possibly help. `unsupported` is a capability
+                                                        #   limit and would say the profile had not
+                                                        #   implemented something, when it implemented it and
+                                                        #   the artifact is wrong.
+                                                        #
+                                                        #   REMEDY: DELIBERATELY NO `alternatives` ENTRY. The
+                                                        #   fix is to correct or replace the realization
+                                                        #   mapping, and the vocabulary has no already-lawful
+                                                        #   spelling for that. The nearest string —
+                                                        #   "re-realization / re-materialization may resolve
+                                                        #   this" — is exactly the misleading one: it bundles
+                                                        #   the mapping fix with a data re-pull, and the
+                                                        #   operator reading it will re-pull. Ruled: omit an
+                                                        #   alternative rather than reuse a misleading one.
+                                                        #
+                                                        #   DETAIL should name the family/reference, the
+                                                        #   governed C8 fact, the realization claim, and the
+                                                        #   contradiction — without exposing internal
+                                                        #   implementation identifiers unnecessarily.
+                                                        #
+                                                        #   NO EMITTER YET, AND THAT IS NOT AN OVERSIGHT. The
+                                                        #   conformance repair that raises it is gated behind
+                                                        #   ratification of the CAP v1 candidate set. Minting
+                                                        #   is a RULING and lands where rulings about this
+                                                        #   vocabulary live; the checks that raise it are
+                                                        #   implementation and land later. `outcome_for` is a
+                                                        #   keyed lookup, so an entry with no emitter changes
+                                                        #   no behaviour.
     "unsupported":              (ERROR, None, REALIZATION),        # not implemented in this build (capability)
     "type_error":               (ERROR, None, LANGUAGE),        # vocabulary/type failure
     "unknown":                  (ERROR, None, LANGUAGE),        # unknown column / operator / construct
