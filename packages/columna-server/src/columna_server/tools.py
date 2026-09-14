@@ -488,11 +488,26 @@ def manifold_status(store: ManifoldStore, manifold_id: str, version: Optional[st
     ps = lm.provider.published_scope()
     licenses = getattr(ps, "licenses", None) if ps else None
     lic_list = list(licenses.values()) if isinstance(licenses, dict) else (list(licenses) if licenses else [])
+    # THE SNAPSHOT HOLDS VERDICT STRINGS, NOT LICENSE OBJECTS (corrected 2026-09-13).
+    # `PublishedScope.licenses` is documented at its source as `"derived.member" -> verdict
+    # (license-state snapshot)`, and `_snapshot_licenses` builds it as `fm.license.verdict if
+    # fm.license else None`. This loop previously did `getattr(lic, "verdict", None)` over those
+    # values — and `getattr("verified", "verdict", None)` is None, so the counter could never
+    # increment and `evidence.verdicts` was STRUCTURALLY ALWAYS `{}` while the tool's published
+    # description promised "how many adjudicated Licenses are verified / corroborated / untestable".
+    #
+    # It survived because no `.cml` in this repository declares a derived `FERTILE` family, so the
+    # snapshot is empty everywhere in-tree and the only test asserted the key's PRESENCE. A field
+    # that cannot be populated is not tested by a fixture that never populates it.
+    #
+    # EVERY non-null verdict is counted, not only the three the description names: a verdict this
+    # code did not expect must appear in the count rather than vanish from it, which is the same
+    # fail-closed discipline the condition-code vocabulary already follows. A `None` entry is an
+    # UNADJUDICATED member and is not a verdict, so it is not counted here.
     verdicts: dict[str, int] = {}
-    for lic in lic_list:
-        v = getattr(lic, "verdict", None)
-        if v:
-            verdicts[v] = verdicts.get(v, 0) + 1
+    for verdict in lic_list:
+        if verdict:
+            verdicts[verdict] = verdicts.get(verdict, 0) + 1
     return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
             "counts": {"measures": len(m.measures), "universes": len(m.universes),
                        "levels": len(m.levels), "hierarchies": len(m.hierarchies),
