@@ -69,6 +69,10 @@ def _fetch_count(provider) -> Optional[int]:
     return None
 
 # evidence grade (model.py) -> wire provenance vocabulary (WP-2.2 ruling C)
+#: The one spelling of discovery's `ask_form`, shared by the legacy and governed paths so the two
+#: cannot drift into describing the same language differently.
+_ASK_FORM = ("SELECT <measure> AT {<levels>} — the universe is structural, never named")
+
 _PROVENANCE = {"proven": "data_attested", "declared": "declared",
                "inferred_sample": "inferred", "inferred_docs": "inferred"}
 
@@ -181,6 +185,97 @@ def list_manifolds(store: ManifoldStore) -> dict:
     incomplete.sort(key=lambda r: r["runtime_id"])
 
     return {"contract_version": CONTRACT_VERSION, "manifolds": governed + legacy + incomplete}
+
+
+#: The `logical` declaration kinds governed discovery reads. Structural names in the publication's
+#: own projection — not legacy model concepts wearing governed labels.
+_D_FAMILY, _D_ANCHOR, _D_UNIVERSE = "family", "anchor", "universe"
+
+
+def _governed_discovery(lm, manifold_id, ref) -> dict:
+    """`discovery` answered from the GOVERNED PUBLICATION, for a successor-native unit.
+
+    THE SAME PAYLOAD SHAPE, populated from different facts — which is the whole discipline for a
+    successor read-only surface: preserve the public shape where governed facts can fill it
+    faithfully, never manufacture a legacy fact to satisfy the shape, and stop rather than invent
+    where the shape wants a fact the governed model does not have.
+
+    IT READS THE PUBLICATION AND NOTHING ELSE. No provider (no `operators()`, no
+    `published_scope()`), no adjudication, no legacy model — `lm.publication.logical` is a
+    structural projection the server already holds and already validated at ingest. That is why
+    this tool is the first governed-native one: it tests the governed projection rather than the
+    boundary between layers.
+
+    EVERY GOVERNED FAMILY IS ITS OWN ROW (ruled Huayin, 2026-09-14), primitive and constructed
+    alike. A constructed family — `count(revenue@sale_at)` — is a family in its own right with its
+    own identity and its own askable reference, so it appears as a `measures[]` row rather than
+    being folded back into its operand as a legacy "member". Row cardinality therefore rises for a
+    governed unit, deliberately: hiding an independently askable analytical object to preserve a
+    legacy count would be the silent disappearance this whole line of work exists to prevent.
+
+    `reducers` IS EMPTY FOR EVERY GOVERNED ROW. The legacy field lists suffixes that are askable
+    after a dot (`revenue.sum`). v2 has no members, and the governed relation that replaces them —
+    a constructed family citing its operand in `formation.operands` — is NOT that relation: those
+    references are not legal suffixes, and putting them here would change what the field means to
+    every existing reader. The operand relation stays governed and real, and this slice adds no
+    public field for it.
+
+    `description` IS EMPTY, AND THE REASON IS NOT LAZINESS — see `_governed_description_is_absent`.
+    """
+    decls = (lm.publication.logical or {}).get("declarations") or []
+    by_kind = {}
+    for d in decls:
+        by_kind.setdefault(d.get("kind"), []).append(d)
+
+    #: anchor name -> its declared component tokens. The governed anchor's components ARE the
+    #: tokens a Frame-QL `AT {…}` may name; they are not legacy `DimensionLevel` objects and
+    #: nothing here claims they are.
+    components = {
+        d["name"]: sorted({c["name"] for c in (d.get("body") or {}).get("components") or []
+                           if isinstance(c, dict) and c.get("name")})
+        for d in by_kind.get(_D_ANCHOR, [])
+    }
+
+    measures = []
+    for d in by_kind.get(_D_FAMILY, []):
+        body = d.get("body") or {}
+        measures.append({
+            "measure": body.get("canonical_reference"),
+            "universe": body.get("universe"),
+            "reducers": [],
+            "grain": components.get(body.get("constitutive_anchor"), []),
+            "description": _governed_description_is_absent(),
+        })
+
+    anchors = []
+    for d in by_kind.get(_D_UNIVERSE, []):
+        body = d.get("body") or {}
+        anchors.append({"universe": d["name"], "basis": body.get("basis"),
+                        "grain": components.get(body.get("anchor"), [])})
+
+    #: the deduplicated governed anchor-component tokens — what `AT {…}` may actually name here.
+    levels = sorted({token for tokens in components.values() for token in tokens})
+
+    return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+                      "measures": measures, "anchors": anchors, "levels": levels,
+                      "ask_form": _ASK_FORM}, manifold_id, ref)
+
+
+def _governed_description_is_absent() -> str:
+    """`""` — and the emptiness is a finding, not a gap left to fill later.
+
+    `Family.target` is prose and `measures[].description` is prose, and THAT IS THE WHOLE OF THEIR
+    RESEMBLANCE. `description` is DESCRIPTION folklore (case-demo b): additive, non-normative,
+    editable without consequence. `target` is responsibility C1, the family's TARGET SPECIFICATION,
+    and it is IDENTITY-BEARING — §2.2/§3.9 put it in `Σ(F)`, so changing it is a SUCCESSION, a
+    different family. `resolve.py` is explicit that citing a law does not establish it.
+
+    Publishing governed law in a folklore field would tell every reader that an edit here is
+    harmless when the corresponding governed edit mints a new analytical identity. The existing
+    contract already permits emptiness — `description` is a `str` defaulting to `""` — so the
+    governed row says nothing rather than saying it in the wrong register. Where the target
+    belongs on a public surface is a real question and a separate one."""
+    return ""
 
 
 # --- tool 2 ---------------------------------------------------------------------------------
@@ -465,6 +560,8 @@ def discovery(store: ManifoldStore, manifold_id: str, version: Optional[str] = N
     `SELECT <measure> AT {anchor}` can name. Logical names only; the universe is resolved structurally,
     never named in a query (§2c)."""
     lm, ref = _resolve(store, manifold_id, version)
+    if lm.manifold is None:
+        return _governed_discovery(lm, manifold_id, ref)
     m = _legacy_model(lm)
     measures = [{"measure": mc.name, "universe": mc.universe, "reducers": list(mc.family),
                  "grain": sorted(m.universes[mc.universe].base_dimensions),
@@ -474,8 +571,7 @@ def discovery(store: ManifoldStore, manifold_id: str, version: Optional[str] = N
     return _disclose({"contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
                       "measures": measures, "anchors": anchors,
                       "levels": [lv.name for lv in m.levels.values()],
-                      "ask_form": "SELECT <measure> AT {<levels>} — the universe is structural, "
-                                  "never named"}, manifold_id, ref)
+                      "ask_form": _ASK_FORM}, manifold_id, ref)
 
 
 def manifold_status(store: ManifoldStore, manifold_id: str, version: Optional[str] = None) -> dict:
