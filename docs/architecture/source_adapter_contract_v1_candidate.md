@@ -208,6 +208,66 @@ of the delivered rows. Its specification is
 [`projection_scoped_change_detector_v0_1.md`](projection_scoped_change_detector_v0_1.md); nothing is
 implemented, and `Standing.currency` continues to record `None` until that specification is ruled.
 
+
+### 5.3 Realization currency for the first Platform profile — **RULED 2026-09-14 (Huayin)**
+
+> **Realization currency is `None` unless an INDEPENDENT WARRANTED MECHANISM can establish that the
+> specific realization assertion revision remains true of the source.**
+>
+> **For DuckDB-ADBC v1, no such mechanism exists. Realization currency therefore remains `None`, and
+> `None` closes cross-request reuse.**
+
+**The reason is structural, not a gap in the implementation.** Classifying every realization claim
+fact by what could establish its truth (reconnaissance, 2026-09-14):
+
+| fact | establishable from |
+|---|---|
+| connection binding still exists | **deployment binding alone** — a local lookup, no source contact |
+| schema/table object still resolves | **only by performing the material read** — the contract has no schema-discovery call, by ruling |
+| projected columns still resolve | **only by performing the material read** — the short-projection check runs after `fetch` |
+| delivered types still satisfy CAP / the claim | **the delivered Arrow schema — which arrives WITH the material** |
+| grain / coincident claim still holds | **only by performing the material read** — CHECK 5 tests the delivered rows |
+| exactness claim remains supportable | **not a currency question** — checked before any material is read, claim against law |
+| formation / continuation operator agreement | **not a currency question** — *"the realization CLAIMS an operator; the law DECIDES"* |
+
+So every fact that is genuinely *about the source* requires the read, and the two cheap facts are
+cheap precisely because they are **claim-vs-law conformance**, already checked on every execution
+from law and claim alone. **Establishing realization currency would require performing the read that
+reuse exists to avoid.**
+
+**Explicitly insufficient, so the requirement is not weakened by degrees:**
+
+- **connection-binding existence alone** is not realization currency — it says a deployment still
+  binds a name, not that the assertion is true of what that name reaches;
+- **claim-vs-law checks** (exactness, operator agreement) are not realization currency — they are
+  conformance of a claim to governed law and touch no source;
+- **equality of assertion revision** is not realization currency — it establishes that THE CLAIM did
+  not change, which is a different proposition from the claim still being true;
+- **equality of the projection-scoped data-state detector** is not realization currency — see §5.4.
+
+**The requirement must not be weakened merely to enable reuse.** A profile that relaxed it would be
+reporting a warrant nobody issued, which is the failure every other mechanism in this contract
+fails closed to avoid.
+
+### 5.4 What the projection-scoped detector is FOR — **RULED 2026-09-14 (Huayin)**
+
+A consequence of §5.1 that is easy to misread, so it is recorded:
+
+> **The detector is produced from the SAME SCAN that produces the material. It identifies the
+> material state FROM WHICH a retained state was established. It does NOT provide an independently
+> obtainable current-state check for a LATER request.**
+
+**It may support:** observation provenance; comparison between two states when **both** observations
+have already occurred; and future sources whose current token can be warranted independently.
+
+**It may not be interpreted as:** freshness; proof that the source is still unchanged at request
+N+1; or authorization to reuse without observing the source again.
+
+The asymmetry is worth naming because it decides what the detector is worth: **it rides free on a
+read you are already performing, and there is no carrier for it on a read you are trying not to
+perform.** That is exactly why it cannot answer the request-N+1 question, and why implementing it to
+claim cross-request reuse would be implementing it to assert something it does not establish.
+
 ---
 
 ## 6. OF-42 / joins — one execution, one object

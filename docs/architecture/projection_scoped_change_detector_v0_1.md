@@ -1,6 +1,18 @@
 # Projection-scoped change detector — specification — **v0.1 CANDIDATE**
 
-**Status:** candidate, prepared 2026-09-14 on instruction, for review. **Nothing here is
+**Status:** specification **RATIFIED 2026-09-14 (Huayin)**; **implementation NOT authorized.**
+Nothing here is implemented.
+
+**DO NOT IMPLEMENT THIS FOR REUSE (ruled 2026-09-14).** The specification stands, and production
+implementation must wait for **a capability that actually consumes the detector lawfully**. The
+detector cannot answer the request-N+1 question — it is produced from the same scan that produces
+the material, so obtaining a *current* one requires the very read reuse was meant to avoid (see
+`source_adapter_contract_v1_candidate.md` §5.4). Implementing it in order to claim cross-request
+reuse would be implementing it to assert something it does not establish. If it is later wanted for
+**observation provenance**, or for **comparing two states whose observations have both already
+occurred**, implement it then and for that reason.
+
+**Original status:** candidate, prepared 2026-09-14 on instruction, for review. **Nothing here is
 implemented.** `Standing.currency` continues to record `None`, and both adapters continue to return
 `data_state=None`, until this specification is ruled.
 
