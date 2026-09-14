@@ -171,13 +171,31 @@ def test_a_multi_series_request_is_UNSUPPORTED_not_unlawful(pub, views):
         PlatformExecutionProvider(pub, views).plan(stmt)
 
 
-@pytest.mark.parametrize("method,args", [("run", ("stmt",)), ("explain", ("stmt",)), ("operators", ())])
+@pytest.mark.parametrize("method,args", [("explain", ("stmt",)), ("operators", ())])
 def test_unsupported_provider_operations_refuse_honestly_and_never_delegate(pub, views, method, args):
     """Control 5. No Core fallback: the provider says it does not do this, rather than quietly
-    handing the request to the runtime it was built to stand beside."""
+    handing the request to the runtime it was built to stand beside.
+
+    `run` LEFT THIS LIST ON 2026-09-14 and is covered by `test_material_execution.py` instead. It no
+    longer raises: its answer goes out through `wire_frame`, which has a shape for a no-result and a
+    registered reason for a capability limit, so a caller gets an answer that names which kind of no
+    it is. `explain` and `operators` stay here for the reason `run` left — `explain`'s payload is
+    passed through by the server unwired, so there is no answer shape to translate into, and
+    inventing one would freeze a serialization this slice was not asked to."""
     p = PlatformExecutionProvider(pub, views)
     with pytest.raises(UnsupportedByThisProfile):
         getattr(p, method)(*args)
+
+
+def test_run_answers_a_capability_limit_rather_than_raising(pub, views):
+    """The replacement for `run`'s old row above, kept HERE so the pairing stays visible: the three
+    still-unimplemented protocol methods are in one place, and one of them now answers."""
+    from columna_core.disclosure_wire import wire_frame
+    stmt = parse_statement("SELECT revenue AT {store*day}")
+    fr = PlatformExecutionProvider(pub, views).run(stmt)     # no material binding on this provider
+    wire = wire_frame(fr, universe=None, executed=True)
+    assert wire["outcome"] == "error"
+    assert wire["columns"][0]["no_result"]["reason"] == "unsupported"
 
 
 def test_published_scope_is_none_which_the_existing_contract_already_allows(pub, views):

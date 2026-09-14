@@ -133,14 +133,26 @@ def test_a_syntax_error_still_lands_in_the_existing_syntax_channel(opted_in):
     assert wire["contract_version"] == "5"
 
 
-def test_material_execution_is_refused_and_does_not_fall_back_to_core(opted_in):
-    """`run` is not implemented by this profile and is not quietly handed to Core. It raises out of
-    the provider rather than answering — reported as a finding, since mapping it to a wire mood is a
-    public-surface ruling this slice was not given."""
-    with pytest.raises(Exception) as e:
-        execute_frame_query(opted_in, UNIT, GOOD)
-    assert "does not execute" in str(e.value)
-    assert "columna_core.planner" not in str(type(e.value).__mro__)
+def test_material_execution_on_an_unbound_deployment_is_a_capability_limit(opted_in):
+    """UPDATED 2026-09-14, WHEN THE RULING THIS TEST WAS WAITING FOR ARRIVED.
+
+    It used to assert that `run` RAISED past the server, and said so as a finding: "mapping it to a
+    wire mood is a public-surface ruling this slice was not given". The ruling (Huayin, 2026-09-14)
+    is that a profile capability limit uses the already-registered reason `unsupported` — ERROR
+    mood, realization jurisdiction — so the answer now comes back as a wire payload rather than as
+    an exception. Nothing was minted and no mood was added.
+
+    THIS UNIT BINDS NO MATERIAL, which is the case being pinned: a deployment that has bound no
+    source plans and does not execute. What must not happen is either of the two dishonest answers —
+    a governed refusal (the law licensed this ask), or Core serving it (whose semantics would then
+    be reported as the successor's)."""
+    wire = execute_frame_query(opted_in, UNIT, GOOD)
+    assert wire["outcome"] == "error"
+    no_result = wire["columns"][0]["no_result"]
+    assert no_result["reason"] == "unsupported"
+    assert no_result["reason"] not in ("want_of_law", "want_of_state")
+    assert "binds no material" in no_result["detail"]
+    assert wire["contract_version"] == "5"
 
 
 def test_legacy_model_tools_refuse_honestly_rather_than_erroring_on_a_missing_manifold(opted_in):

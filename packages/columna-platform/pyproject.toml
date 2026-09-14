@@ -20,6 +20,11 @@ dependencies = [
     # carrier, so it is declared rather than borrowed.
     "columna-core>=0.19.0,<0.20.0",
     "pyarrow>=15,<26",
+    # DECLARED, NOT BORROWED (2026-09-14). `serving.py` imports polars directly — `pl.from_arrow` at
+    # the last inch, because the neutral `ColumnResult` carries a polars frame — and until now it
+    # arrived only because columna-core happens to pin it. A direct import is a direct dependency:
+    # the WP-0 pyarrow lesson, applied to the one this package had left implicit.
+    "polars>=1.0,<2.0",
 ]
 
 [project.optional-dependencies]
