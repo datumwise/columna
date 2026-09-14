@@ -7,6 +7,8 @@ and [`../source_adapter_contract_v1_candidate.md`](../source_adapter_contract_v1
 |---|---|
 | `probe_cap_v1_ingress.py` | the probe: the DuckDB-ADBC driver *package* identity, and CAP v1's three admitted shapes through the complete four-hop path, plus confirmation that every refused shape is actually emitted by this driver |
 | `run_cap_v1_ingress.txt` | verbatim stdout |
+| `probe_refusal_dispatch.py` | **added 2026-09-14 with the wire-reason mint** — does a contradiction-class refusal travel as `want_of_state` today? Part A applies the shipped dispatch (read out of `serving.py` at runtime, so it cannot drift) to one instance of each refusal class; part B reads the minted reason's classification out of the closed registry |
+| `run_refusal_dispatch.txt` | verbatim stdout |
 
 **SUPPORTING EVIDENCE, NOT NORMATIVE AUTHORITY.** CAP v1 §0 rule 5: no rule in that profile is
 justified by *"the probe measured it"*. This run is cited only in blocks marked

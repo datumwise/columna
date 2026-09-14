@@ -296,6 +296,15 @@ same refusal in the wrong jurisdiction sends an operator to fix the wrong thing.
 dressed as a governed refusal, because it would tell an operator to go and re-materialize against a
 capability that does not exist.
 
+**A fourth jurisdiction now exists beside these three, and no CAP rule uses it.** `ERROR` /
+`REALIZATION` / `realization_contradicts_law` — *the realization artifact asserts an execution fact
+incompatible with a positive governed fact* — minted 2026-09-14 with the continuation ruling. It is
+named here so the table above is not read as exhaustive of the Platform's refusals: it is exhaustive
+of **admission's**. A contradiction is knowable from law and claim alone, so it refuses **before**
+material is reached and never arrives at these checks. See
+[`ruling_2026_09_14_realization_claim_null_semantics.md`](ruling_2026_09_14_realization_claim_null_semantics.md)
+§3a.
+
 ---
 
 ## 6. Ordering — **CAP v1 carries no ordering guarantee**

@@ -89,24 +89,38 @@ the tree).
 
 ---
 
-## 3a. The refusal taxonomy — **and the category that does not exist yet**
+## 3a. The continuation matrix — **RATIFIED 2026-09-14, all seven cells**
 
-Ruled: **do not collapse the cases.** Four cells, not three — the fourth is the one the instruction
-did not name and it belongs with the third.
+**Do not collapse the cases.** The complete matrix, as ruled:
 
-| # | governed C8 | realization claim | the condition, in words |
-|---|---|---|---|
-| 1 | ESTABLISHED | **absent / null** | the realization has not said how the established continuation is delivered → **mapping incomplete** |
-| 2 | UNESTABLISHED | **asserts an operator** | the publication establishes no continuation and the mapping tries to supply one → **logical meaning unestablished; the profile may not invent it** |
-| 3 | EXPLICIT_NONE | **asserts an operator** | the publication positively says there is no continuation and the realization asserts one → **CONTRADICTION** |
-| 4 | ESTABLISHED = *X* | **asserts *Y* ≠ *X*** | the publication establishes *X* and the realization asserts *Y* → **CONTRADICTION** |
+| governed C8 | realization claim | outcome |
+|---|---|---|
+| **ESTABLISHED = *X*** | claim *X* | **conforming** |
+| **ESTABLISHED = *X*** | null / absent | **mapping incomplete** |
+| **ESTABLISHED = *X*** | claim *Y* ≠ *X* | **realization contradicts governed law** |
+| **EXPLICIT_NONE** | null / absent | **conforming** |
+| **EXPLICIT_NONE** | any operator claim | **realization contradicts governed law** |
+| **UNESTABLISHED** | null / absent | **no realization assertion; the profile may not invent continuation** |
+| **UNESTABLISHED** | any operator claim | **logical meaning unestablished; the realization may not invent it** |
 
-> **CELL 4 IS RAISED HERE RATHER THAN ASSUMED.** The instruction named three cases. Cell 4 is the
-> same species as cell 3 — a claim the governed law positively denies, not a claim that is missing —
-> and today it is the *only* cell that refuses at all, carrying `MappingIncomplete`. If cells 3 and 4
-> are both contradictions then cell 4's existing category is the same misuse the ruling forbids for
-> cell 3, and correcting it is part of this repair rather than a separate one. **Recommendation:
-> cells 3 and 4 share the contradiction category.** Flagged for confirmation, not decided.
+> ### The EXPLICIT_NONE / UNESTABLISHED distinction is load-bearing
+>
+> Ruled, and it is the reason the last four rows are four rows and not two:
+>
+> - **`EXPLICIT_NONE` is a positive governed negative, and can therefore be CONTRADICTED.** The
+>   publication has spoken: there is no continuation. A realization that names one is asserting
+>   against a fact that exists.
+> - **`UNESTABLISHED` supplies no governed continuation fact for the realization to contradict.** The
+>   defect is different in kind: the realization is attempting to **manufacture analytical meaning**.
+>   There is nothing to disagree with, and that is precisely the problem.
+>
+> Two wrong claims, two different wrongs, two different people to tell. Collapsing them would file a
+> manufactured law as a disagreement, and send whoever reads it looking for a governed fact that was
+> never there.
+
+**Cell 4 — `ESTABLISHED = X` with a claim of `Y` — is ruled a contradiction** (2026-09-14), *"not
+mapping incompleteness and not want-of-state"*. It is the only cell that refuses today, and it
+refuses as `MappingIncomplete`; correcting it is part of this repair.
 
 ### The vocabulary inspection the ruling required
 
@@ -135,7 +149,7 @@ admissible, remedy **re-materialization** — which would not help, the mapping 
 *("data violates a declared functional edge (tested+refuted)")* — a genuine contradiction category,
 but its subject is **data against a declaration**, not **a realization claim against governed law**.
 
-### Therefore: the smallest explicitly named contradiction refusal
+### Therefore: the smallest explicitly named contradiction refusal, plus a minted wire reason
 
 **Core — a sixth category.**
 
@@ -162,11 +176,49 @@ RealizationContradictsLaw    jurisdiction = "realization"
 The remedy clause is the whole reason it is not `WantOfState`: `WantOfState` promises that
 re-realizing the **material** fixes it, and here nothing about the material is wrong.
 
-`LogicalMeaningMissing` (cell 2) needs **one clause added to its docstring**, not a new category: it
-currently reads *"the publication does not carry meaning the compiler needs"*, and must also cover
-*"…and the mapping attempted to supply it, which the compiler may not accept."*
+`LogicalMeaningMissing` (the UNESTABLISHED-with-a-claim row) needs **one clause added to its
+docstring**, not a new category: it currently reads *"the publication does not carry meaning the
+compiler needs"*, and must also cover *"…and the realization attempted to MANUFACTURE it, which no
+profile may accept."*
 
-### ⚠ One blocker found in the inspection, which is not this ruling's to settle
+### The wire reason — **MINTED 2026-09-14**
+
+Ruled and **already added to the closed registry** (`columna_core/disclosure.py`), because minting is
+a ruling and the registry is where rulings about this vocabulary live:
+
+```python
+"realization_contradicts_law": (ERROR, None, REALIZATION),
+```
+
+| | |
+|---|---|
+| **meaning** | the realization artifact asserts an execution fact **incompatible with a positive governed fact** in the publication |
+| **mood** | `ERROR` |
+| **jurisdiction** | `REALIZATION` |
+| **explicitly not** | `want_of_state`, `want_of_law`, `unsupported` |
+| **alternatives** | **none — deliberately omitted** |
+
+**On the omitted remedy.** *"Do not offer ordinary `REMATERIALIZE` as the remedy. Re-materializing the
+same data cannot repair a realization claim that contradicts the governing law. If the existing
+alternatives vocabulary has no already-lawful spelling for 'correct/replace the realization mapping,'
+omit an alternative rather than reuse a misleading one."* **It has none.** The Platform's only remedy
+constant is `REMATERIALIZE = "re-realization / re-materialization may resolve this"` — and that
+string is the trap rather than the near-miss: it *says* "re-realization", which reads lawful for a
+mapping fix, while bundling it with a data re-pull that the operator will then perform. So:
+`alternatives = ()`.
+
+**The detail should name** the family / canonical reference, the governed C8 fact, the realization
+claim, and the contradiction — **without exposing internal implementation identifiers
+unnecessarily.** (Opaque `family_id`s and module paths are implementation; `revenue`, `SUM` and the
+claimed operator are the fact.)
+
+**No emitter yet, and that is not an oversight.** The checks that raise it are gated behind
+ratification of this candidate set. `outcome_for` is a keyed lookup, so an entry with no emitter
+changes no behaviour — and the classification is pinned by a control in the vocabulary's own suite
+(`test_realization_contradicts_law_is_classified_and_is_not_want_of_state`), so when the checks land
+they inherit the ruled verdict rather than choosing one.
+
+### ⚠ The dispatch defect this repair must close — **measured**
 
 All three Platform-refusal→wire translation sites read:
 
@@ -178,19 +230,38 @@ alts   = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
 **A two-way `if/else` over a four-class taxonomy.** Anything that is not a `WantOfLaw` is labelled
 `want_of_state` on the wire and offered `REMATERIALIZE`. So:
 
-- a new `RealizationContradictsLaw` would reach the wire **as `want_of_state`, telling the operator to
-  re-materialize** — precisely the misdirection the new category exists to prevent. The internal
-  taxonomy would be honest and the public one would not.
-- `WantOfCompatibility` already falls into that same branch, and its own docstring says *"collapsing
-  it into either of the other two would misdirect every operator who read it."* Whether it reaches a
-  live translation site today I have **not** reproduced, and that check belongs with the repair rather
-  than with this ruling.
+**Measured, not argued** (`cap_v1_evidence/run_refusal_dispatch.txt` — the expression is read out of
+`serving.py` at runtime rather than restated, so the probe cannot drift from the code it reports on):
 
-**Minting a wire reason is a ruling, not an implementation decision** — the registry says so itself.
-So the taxonomy above is complete **internally** and its public face needs a decision: mint
-`realization_contradicts_law`, or rule that the contradiction travels under an existing reason and
-say which. Returned as an open item; **the repair should not ship with the contradiction silently
-wearing `want_of_state`.**
+```
+WantOfLaw                -> reason='want_of_law'      alternatives=()
+WantOfState              -> reason='want_of_state'    alternatives=(REMATERIALIZE,)
+WantOfCompatibility      -> reason='want_of_state'    alternatives=(REMATERIALIZE,)   <-- COLLAPSED
+_StandInContradiction    -> reason='want_of_state'    alternatives=(REMATERIALIZE,)   <-- COLLAPSED
+```
+
+So a `RealizationContradictsLaw` dropped into today's code would reach the wire **as `want_of_state`
+with `REMATERIALIZE` offered** — precisely the misdirection the ruling forbids. `WantOfCompatibility`
+already meets that branch, against its own docstring's warning. (Whether `WantOfCompatibility`
+*reaches* a live translation site on a served request is a separate question — it is raised from
+`store.combine`, which is not on the single-request path — and is **not** claimed here.)
+
+**Closing it is part of this repair, and the mechanism is specified rather than left to taste:**
+
+1. the translation becomes an **exhaustive mapping keyed on the refusal class**, not an `if/else` on
+   one of them;
+2. a **completeness pin** asserts every `ProofRefusal` subclass has an entry — the same discipline
+   `refusals.CATEGORIES` and `REASON_OUTCOME` already carry, where *"a category that exists but is not
+   enumerated is a condition that vanishes from the report rather than surfacing in it"*;
+3. `alternatives` is derived from the mapping, so `REMATERIALIZE` cannot be attached to a reason that
+   did not ask for it.
+
+With (1) and (2), a future refusal class with no wire reason **fails the build** instead of silently
+inheriting `want_of_state`. That is the executable proof, and it lands with the repair.
+
+**`WantOfCompatibility` is the second beneficiary and should be fixed in the same change** — it is
+already mis-labelled by the same expression, and repairing the dispatch for one class while leaving
+the other in the `else` would be the same defect with one fewer instance.
 
 ---
 
@@ -267,6 +338,10 @@ One test per cell, each **failing on `main` today**:
 | 8 | C8 not ESTABLISHED, claim present → **refuses** |
 | 9 | the same matrix, on the **Platform** path, through the public wire |
 | 10 | a **byte-identity** control: two mappings differing only in `continuation_operator` must not compile to the same image — stated as an invariant, because "byte-identical" is how this defect was found and is the only evidence that will notice it returning |
+| 11 | **`EXPLICIT_NONE` + an operator claim** refuses as a **contradiction**, and **`UNESTABLISHED` + an operator claim** refuses as **manufactured meaning** — two controls, asserting *different* categories, so the load-bearing distinction is pinned by the build and not only by §3a's prose |
+| 12 | **the wire face**: a contradiction refusal reaches the wire as `realization_contradicts_law`, `ERROR` / `REALIZATION`, **with `alternatives == ()`** — asserted positively, and asserted *negatively* against `want_of_state` and against `REMATERIALIZE` appearing anywhere in the payload |
+| 13 | **the completeness pin**: every `ProofRefusal` subclass has a wire-reason entry. A new class with none must **fail the build**, not inherit `want_of_state` |
+| 14 | `WantOfCompatibility` no longer reaches the wire as `want_of_state` — the second beneficiary of control 13, pinned so the dispatch repair is not done for one class only |
 
 ### 4.5 `endpoint.schema` — the field-specific exception, **CONFIRMED**
 
@@ -315,13 +390,16 @@ already hold* is not *checked*, and this ruling is what makes the difference mat
 | **Format version** | Not a version event. The serialized shape is unchanged; this is conformance repair against already-ratified meaning. (§4.6) |
 | **Platform behaviour** | A **gate, not a disclosure.** If the claim disagrees with governed C8, the material path does not proceed. Do not serve with a caveat. (§4.3) |
 
-### Still open — both surfaced by the vocabulary inspection
+### Also ruled 2026-09-14
 
-1. **Cell 4** (C8 ESTABLISHED, claim present but mismatched) — confirm it joins cell 3 in the
-   contradiction category. It is the only cell that refuses today, and it refuses as
-   `MappingIncomplete`. *(Recommendation: yes — same species, and leaving it would preserve the misuse
-   the ruling forbids one cell over.)*
-2. **The wire face of the contradiction refusal.** Mint `realization_contradicts_law`, or rule that it
-   travels under an existing registered reason and say which. Minting is a ruling. As things stand the
-   contradiction would reach the wire as `want_of_state` **with `REMATERIALIZE` offered**, which is the
-   wrong remedy. (§3a)
+| | ruling |
+|---|---|
+| **Cell 4** | `C8 ESTABLISHED = X` + a claim of `Y ≠ X` is **realization contradiction** — not mapping incompleteness and not want-of-state. (§3a) |
+| **The full matrix** | Seven cells, ratified. The `EXPLICIT_NONE` / `UNESTABLISHED` distinction is **load-bearing**: a positive governed negative can be contradicted; an unestablished fact cannot, and the defect there is manufacture. (§3a) |
+| **Wire reason** | `realization_contradicts_law` **minted** — `ERROR` / `REALIZATION`, not `want_of_state`, not `want_of_law`, not `unsupported`, **no alternatives**. (§3a) |
+
+### Nothing open in this ruling
+
+Both prior open items are ruled. What remains is implementation, which is gated behind ratification of
+the candidate set — and which must include the dispatch repair above, or the ratified taxonomy will be
+honest internally and wrong on the wire.

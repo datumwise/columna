@@ -35,6 +35,31 @@ def test_every_registered_reason_has_a_jurisdiction():
         assert entry[2] in _STAGES, (reason, entry[2])
 
 
+def test_realization_contradicts_law_is_classified_and_is_not_want_of_state():
+    """MINTED 2026-09-14 (Huayin). The vocabulary half of the realization-claim ruling.
+
+    A realization artifact asserting an execution fact incompatible with a POSITIVE governed fact is
+    not a want of state, and the distinction is the whole reason it was minted rather than borrowed:
+    `want_of_state` carries RE-MATERIALIZATION as its remedy, and re-materializing the same data
+    cannot repair a claim that contradicts the governing law.
+
+    Pinned here, in the vocabulary's own test, and NOT on the conformance path — nothing raises this
+    reason yet. The checks that do are gated behind ratification of the CAP v1 candidate set. What
+    this asserts is that when they land, the classification they inherit is already the ruled one."""
+    assert REASON_OUTCOME["realization_contradicts_law"] == (ERROR, None, REALIZATION)
+    assert outcome_for("realization_contradicts_law") == (ERROR, None)
+    assert jurisdiction_for("realization_contradicts_law") == REALIZATION
+
+    # and it is none of the three it must never be confused with
+    for other in ("want_of_state", "want_of_law", "unsupported"):
+        assert outcome_for("realization_contradicts_law") != outcome_for(other) or other == "unsupported", other
+    # `unsupported` shares the (ERROR, None) verdict and is separated by MEANING, not by mood: it
+    # says the profile did not implement something. Asserted as a distinct REASON so a future
+    # collapse of the two has to delete this line.
+    assert "realization_contradicts_law" != "unsupported"
+    assert outcome_for("realization_contradicts_law") != outcome_for("want_of_state")
+
+
 def test_an_unregistered_reason_still_fails_closed():
     """The property that makes the classification exhaustive by construction, re-asserted from the
     jurisdiction side: there is no path to a stage-less verdict."""
