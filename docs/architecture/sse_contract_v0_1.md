@@ -1,6 +1,20 @@
-# Minimal SSE Contract — Proof A/B/C boundary — **v0.1 CANDIDATE**
+# Minimal SSE Contract — Proof A/B/C boundary — **PARTIALLY RATIFIED**
 
-**Status:** candidate, prepared 2026-09-12 for review; revised 2026-09-12 on instruction.
+**Status:** **§§1, 2, 4, 4.1 and 5 RATIFIED (Huayin, 2026-09-14)**, with the corrections and the one
+substantive addition recorded in this revision. §3 is revised to state implementation status and is
+**not** ratified as a description of what Platform does today. §6's exclusions stand. The rest of
+the document remains candidate.
+**Prepared** 2026-09-12 for review; revised 2026-09-12 on instruction; **revised and partially
+ratified 2026-09-14** after Proof A, Proof C and the first real material ingress (DuckDB via ADBC)
+had exercised it.
+
+**WHAT RATIFICATION MEANS HERE, AND WHAT IT DOES NOT.** The ratified sections are held to have
+survived contact: the two-questions split, the compatibility invariant and the six-axis structure
+were used to adjudicate a real defect (OF-39) and did not need rewriting to do it — the standing
+object's *arity changed under a ruling with no amendment to this contract*, which is the strongest
+available evidence that §1 was right to leave the arity unfixed. Ratification does **not** freeze the
+standing object's name or arity, does not authorize persistence, and does not convert any §3 row
+into a claim about shipped behaviour.
 **Scope discipline, not a page count** (clarification, Huayin, 2026-09-12). The governing constraint
 is the *smallest contract that can survive Proofs A, B and C without being rewritten by them* — an
 admission test for what belongs here, not a length budget. An earlier draft said "one page by
@@ -74,12 +88,26 @@ realization standing differs, or one of which is stale.
 `AnalyticalIdentity` is `(family_id, anchor)` and must not be widened to encode storage details.
 Retained-state standing must keep available, **where relevant**:
 
-- governing constitution / state law standing (constitution fingerprint);
-- participation regime;
-- eligibility / support standing;
+- governing constitution / state-law standing — **both the comparison SCHEME and the ACTUAL
+  constitution fingerprint** (ratified 2026-09-14; see §4);
+- **participation / eligibility / support regime — ONE axis, not two.** An earlier revision listed
+  participation and eligibility-support as separate bullets while §4.1's table carried them as one
+  row. §4.1 was right and this list was the anomaly: **the governed model fuses them.** C5 is
+  literally named `eligibility_and_participation` (`governed/resolve.py`), so a runtime standing
+  that split them would be modelling a distinction the governed layer does not make, and would
+  invite two compatibility comparisons where the law supplies one fact. Corrected 2026-09-14;
 - sufficient-state basis / representation;
 - realization standing;
 - currency / validity.
+
+**Additive beyond this list: MOVEMENT STANDING (Proof B).** A state that arrived by a licensed
+movement must be able to say so, or the standing it carries forward is a claim about a path nobody
+recorded. It is recorded here so its presence in a runtime standing object does not read as
+accidental drift — but it is **deliberately not folded into the six-axis table of §4.1**, because it
+does not play that table's role: the six axes are the ways retained state ceases to be reusable, and
+a movement licence is not a way state goes bad. It is provenance of how the state came to stand
+where it does. Whether a *change* to movement standing ever blocks combination is an open question
+for Proof B, and until Proof B answers it, movement is carried and not compared.
 
 *The public name and the exact tuple shape of the standing object are deliberately NOT frozen here*
 (ruling, Huayin, 2026-09-12). In particular **`CompatibilityClass` is not adopted as a term** by this
@@ -102,6 +130,39 @@ alongside the frame because *"STORING THE DISCLOSURE IS THE POINT, not an optimi
 the same lesson one layer down.
 
 ## 3. Operations
+
+**READ THE STATUS COLUMN BEFORE THE SEMANTICS COLUMN (added 2026-09-14).** This table states what
+each operation MEANS. It has been read as a description of what Platform does, which it is not and
+never was — so status is now carried per row. **A contract operation appearing in this table does
+not imply Platform implements it today.**
+
+| status | meaning |
+|---|---|
+| **LIVE** | specified here AND called on the successor serving path today |
+| **BUILT, UNCALLED** | implemented in `columna-platform` with no caller in any `src/` module — exercised only by direct tests |
+| **NOT IMPLEMENTED** | specified here, absent from the code |
+| **NOT A STORE OPERATION** | specified here as a semantic requirement, realized by a different mechanism |
+
+| Operation | Status (2026-09-14) | Where |
+|---|---|---|
+| `insert` | **BUILT, UNCALLED** on the reuse path — called during materialization, never to offer state for a later request | `state.py` |
+| `retrieve` | **LIVE** — `decide_result` calls it on every serve | `state.py`, `serving.py` |
+| `establish` (re-materialization on a miss) | **LIVE** — the ruled "a retrieval miss is not a refusal" path | `state.py`, `serving.py` |
+| `combine` | **BUILT, UNCALLED** — no `src/` caller; a control asserts it acquires none | `state.py` |
+| `continue` | **BUILT, UNCALLED** (Proof B/C) | `composite.py`, `continuation.py` |
+| `finalize` | **BUILT, UNCALLED** on the serving path | `state.py` |
+| `invalidate` | **NOT IMPLEMENTED** | absent |
+| `replace` | **NOT IMPLEMENTED** | absent |
+| `refuse` | **NOT A STORE OPERATION** — realized by the refusal classes and their wire classification | `refusals.py`, `serving.py` |
+| `evict` | **BUILT, UNCALLED**; no eviction POLICY exists (§6) | `state.py` |
+
+**`invalidate`'s absence is benign only because nothing survives a request to be invalidated.** It
+becomes mandatory with the first retention mechanism, and it is the operation whose rule §4 says is
+governed OUTSIDE the SSE — so its absence today is not merely unbuilt code, it is an unanswered
+governed question with no placeholder. Recorded here rather than left to be discovered by the unit
+that needs it.
+
+### 3.1 Semantics
 
 | Operation | Precondition | Refusal / note |
 |---|---|---|
@@ -126,6 +187,33 @@ The SSE may perform invalidation. It may not invent the rule.
 > Retained state must be bound to the governing constitution / state-law standing under which it was
 > formed, with **explicit comparability** and **conservative invalidation when the comparison scheme
 > itself changes**.
+
+**THE PARTICIPATION RULE — NORMATIVE, ADDED 2026-09-14 (Huayin).**
+
+> **Every governed axis whose change blocks combination must PARTICIPATE IN THE COMPATIBILITY
+> COMPARISON. Merely storing that fact, or making it reachable from the state, is insufficient.**
+
+This is the rule OF-39 demonstrated was missing, and the demonstration is why it is normative rather
+than advisory. The earlier wording required the standing facts to be *"reachable where relevant"* —
+and every fact **was** reachable. `Standing` carried the constitution fingerprint the whole time.
+The comparison simply did not use it: `comparable_to` returned the fingerprint SCHEME and not the
+fingerprint, so two states formed under different governed constitutions compared as **compatible**
+and could be folded together. Nothing was missing, nothing was unreachable, and the invariant as
+then stated was satisfied by an implementation that was wrong.
+
+So reachability is not the requirement; **participation in the comparison is**. An axis that is
+stored and not compared is a defect of *this invariant*, not an implementation detail beneath it —
+and it is a defect of a particularly quiet kind, because the stored value makes the state look
+correctly described while the comparison silently ignores it. OF-39 survived precisely that way: the
+wrong value was inert, and inertness reads as absence of a problem.
+
+**Corollary, for reviewers of any future standing object:** it is not enough to check that the
+object carries the six axes. Check which of them the comparison consumes, and require a stated
+reason for every axis carried but not compared. (Two such reasons exist today and both are sound:
+**currency** is not in the comparison because its mechanism is *fail closed* rather than *block
+combination* — it is checked by a separate gate raising a different class — and **movement** is not
+compared because Proof B has not yet established that a change to it blocks anything. Each is a
+decision on the record, which is the standard this corollary sets.)
 
 "Explicit comparability" means the binding must be *comparable at all* — two states either agree on
 the governing standing, disagree, or are **incomparable**, and incomparable must not read as agree.
@@ -207,3 +295,65 @@ possible evidence of a rule — it is what was needed to construct an object, no
 conclusion about approximation-continuation semantics may be drawn from it, from its default, or
 from the set of values it currently takes. This document draws none, and a later document that does
 should first cite the governing text, not the attribute.
+
+---
+
+## 7. The 2026-09-14 ratification record
+
+### 7.1 What is ratified, and what exercised it
+
+| § | ratified | what tested it |
+|---|---|---|
+| **1** | identity vs compatibility, kept apart — `F @ A` answers *what of*, standing answers *may these combine* | OF-39: the constitution fingerprint joined the comparison **without** joining identity. The two questions stayed two |
+| **2** | standing travels WITH state; a retrieved state answers for itself | Proof A's `RetainedState` carries its `Standing`; the wire never reconstructs it from a value buffer |
+| **4** | explicit comparability + conservative invalidation, **plus the participation rule added above** | OF-39 is the demonstration, and the reason the addition is normative |
+| **4.1** | six axes, four mechanisms | corroborated in code: `comparable_to` carries exactly the *block-combination* axes; currency is checked by a **separate gate raising a different class**, which is row 6 (*fail closed*) correctly kept apart from row 3 (*blocks combination*) |
+| **5** | data currency and realization currency stay distinct | both remain unfilled, and the distinction is now load-bearing rather than theoretical: realization currency is one of three open jurisdictions in a RATIFIED freeze, while data currency has a precedent (`Connector.data_identity`) and no implementation |
+
+**The strongest evidence for §1 is negative and worth stating.** Between 2026-09-12 and 2026-09-14
+the standing object's arity changed — a four-tuple comparison became a five-tuple — under a ruling,
+**with no amendment to this contract**. That is exactly what §1 predicted by declining to fix the
+arity, and it is why the decision not to name the object is ratified along with the rest.
+
+### 7.2 What remains deliberately unfrozen
+
+Unchanged by this ratification, and not to be inferred as settled by it:
+
+- **`CompatibilityClass`** as a public, name-bearing object — still not adopted. Naming it would fix
+  its arity, and the arity is still being learned;
+- **the exact name and arity of the runtime `Standing`** — it has already changed once;
+- **persistence backend**, **eviction policy**, **durable state representation** — all out of scope,
+  and §6's exclusions stand in full;
+- **approximation composition under continuation** — OPEN, per the standing instruction; treat
+  unsupported approximation continuation as a refusal and infer nothing from the implementation;
+- **the composite side's standing model** — what governed standing must travel with a constituted
+  composite basis so that common-pass provenance and cross-basis compatibility stay distinct
+  without duplicating or collapsing the model. Rowed as **OF-56**; `pass_id` stays
+  observation-local and cross-request equality must never depend on it.
+
+### 7.3 Before state may lawfully survive request N → request N+1
+
+Four things, and **permanent persistence is deliberately NOT among them**. The sequencing rule is
+**prove lawful reuse first; make it durable afterward** (Huayin, 2026-09-14).
+
+1. **Warranted data-state identity.** A source must be able to return an opaque comparable token
+   under a ruled contract. `None` continues to close reuse, and freshness is never manufactured.
+   Both adapters return `None` today, so reuse is closed by construction rather than by omission.
+2. **Realization currency.** A separate open jurisdiction, and **data-state equality cannot
+   substitute for it**: equal tokens mean *comparable*, not *current*, and the realization question
+   is about whether the CLAIM is still true, which admission does not check.
+3. **A sound reuse key.** P5-05 reconciled against the now-ratified compatibility rule. Identity and
+   every compatibility axis relevant to reuse must be represented correctly — and the realized
+   support set must **not** be included where the contract assigns it to attestation rather than to
+   identity or keying.
+4. **A cross-request retention mechanism**, sufficient for a controlled proof that state established
+   by request N can be OFFERED to request N+1. For the first proof this may be an in-memory,
+   provider-held store with an explicitly bounded lifetime. Permanent persistence, eviction, process
+   restart and durable invalidation remain later work.
+
+**A design note that #316 has already settled, recorded here so a key design does not reopen it:**
+a mismatched constitution must be **retrieved and refused as incompatibility**, never hidden by key
+construction. Retrieval stays keyed by analytical identity; compatibility is adjudicated explicitly
+afterwards. Folding compatibility facts into the lookup key would convert a governed refusal that
+names its reason into a silent cache miss that names nothing — and the evidentiary value of refusal
+is, per §3, the product's core asset.
