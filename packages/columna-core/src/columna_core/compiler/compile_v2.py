@@ -180,6 +180,35 @@ def _realization_endpoints(mapping):
         yield f"family {r.family_id}", r.endpoint
 
 
+def _check_realization_family_references(publication, mapping):
+    """Every `family` realization must name a family the PUBLICATION declares. §4, RATIFIED.
+
+    THE RULE IS "MISSING, DUPLICATE AND UNKNOWN ALL REFUSE" (realization-v2 freeze §4), and until
+    2026-09-14 only the first two did. Missing is caught by the totality check below (computed over
+    `publication.families`) and duplicate by the reader; UNKNOWN is the direction neither of those
+    can see, because both start from the publication and this one starts from the mapping. The
+    anchor side has carried exactly this check since v2 landed — "mapping realizes a component of
+    anchor {…}, which the publication does not declare" — so the family side was the asymmetry.
+
+    WHY IT CANNOT LIVE IN THE READER, though the reader's docstring claimed it (OF-40). A mapping is
+    parsed without a publication: `parse_mapping` is handed bytes and nothing else, so it can refuse
+    a realization with NO `family_id` and a DUPLICATE `family_id`, and cannot possibly refuse an
+    unknown one. The guarantee is real, and the compiler is the only component in a position to
+    discharge it.
+
+    IT RUNS IN INPUT AUTHORITY, BESIDE `require_same_publication`, AND NOT AT LOWERING. What it asks
+    is whether this claim is ABOUT this publication at all, which is the same question the binding
+    check asks one level up — an unknown `family_id` is a mapping talking about a family that does
+    not exist here, and a compiler that discovered that only while emitting would already have
+    accepted the claim's endpoint under R1/R2."""
+    declared = {f.family_id for f in publication.families}
+    for r in mapping.families:
+        if r.family_id not in declared:
+            raise MappingIncomplete(
+                f"mapping realizes family {r.family_id!r}, which the publication does not declare",
+                subject=f"family {r.family_id}")
+
+
 def _check_realization_facts(mapping, connection: Optional[str]) -> str:
     """R1 and R2, before any lowering. Returns the single connection this image is bound to."""
     claimed = {ep.connection for _s, ep in _realization_endpoints(mapping)}
@@ -232,6 +261,9 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2, *,
     """Compile a v2 governed publication + its v2 realization into a CLOSED Core image."""
     # ── 0. input authority ───────────────────────────────────────────────────────────────────────
     require_same_publication(publication, mapping)
+    # §4 — every realization must name a family this publication declares. Beside the binding check
+    # because it is the same question one level down: is this claim about this publication at all.
+    _check_realization_family_references(publication, mapping)
     # R0/R1/R2, before any lowering — an endpoint fact this profile cannot honour must refuse before
     # the compiler starts producing an image that would silently omit it.
     _check_realization_facts(mapping, connection)
@@ -362,6 +394,17 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2, *,
         if real.endpoint.column is None:
             raise MappingIncomplete("primitive family's realization names no value column",
                                     subject=subject)
+        # EXACTNESS, ON THIS PATH TOO (freeze §8, RATIFIED; repaired 2026-09-14).
+        # The rule is "`exactness` must be checked on EVERY path a profile lowers, not only the
+        # constructed one", and this path was the one it was not checked on. The constructed twin
+        # sits at the bottom of the child loop below and has been there since v2 landed; a primitive
+        # claiming `approximate` reached the image with its claim unread, which is the undisclosed
+        # approximation ToD §10.9 forbids — and the one that matters most, because a primitive is
+        # what every construction over it delivers from.
+        if real.exactness != EXACT:
+            raise UnsupportedCoreCapability(
+                "K0 emits exact deliveries only; a disclosed approximation needs an explicit "
+                "governed contract and K0 does not invent one", subject=subject)
 
         # CHECK 2 — grain correspondence against established formation.
         formation = view[R.C4_FORMATION].value

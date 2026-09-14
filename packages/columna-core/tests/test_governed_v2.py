@@ -524,6 +524,91 @@ def test_an_undisclosed_approximation_is_refused():
         compile_v2(_pub(), _map(mutate))
 
 
+def test_an_undisclosed_approximation_is_refused_ON_THE_PRIMITIVE_PATH_TOO():
+    """THE FREEZE'S §8 CLAUSE, AS A CONTROL (repaired 2026-09-14).
+
+    The rule is that `exactness` must be checked on EVERY path a profile lowers, not only the
+    constructed one; the constructed twin above has passed since v2 landed and the primitive path
+    read the field nowhere. `lh-revenue` is the exact primitive SUM family — the one every
+    construction in this publication delivers from — so an approximation claimed here is the widest
+    undisclosed approximation the format can express, and it compiled clean.
+
+    Deliberately the SAME refusal as its constructed twin: the profile's incapacity is one fact, and
+    two messages for it would invite a reader to think the two paths refuse for different reasons."""
+    def mutate(d):
+        for r in d["realizations"]:
+            if r.get("family_id") == "lh-revenue":
+                r["exactness"] = "approximate"
+    with pytest.raises(UnsupportedCoreCapability, match="exact deliveries only"):
+        compile_v2(_pub(), _map(mutate))
+
+
+def test_the_two_exactness_paths_refuse_independently_of_each_other():
+    """Both paths, each with the other left exact — so a single check cannot pass for both.
+
+    Without this, one implementation satisfies both tests: a check placed anywhere the two claims
+    are both visible would pass whichever one it read. Refusing when ONLY the primitive is
+    approximate is what says the primitive path has its own check."""
+    def _set(d, approximate_for):
+        for r in d["realizations"]:
+            if r.get("kind") != "family":      # anchor components carry no exactness key at all
+                continue
+            r["exactness"] = "approximate" if r["family_id"] == approximate_for else "exact"
+
+    def only_primitive(d):
+        _set(d, "lh-revenue")
+
+    def only_constructed(d):
+        _set(d, "lh-revmin")
+
+    for mutate in (only_primitive, only_constructed):
+        with pytest.raises(UnsupportedCoreCapability, match="exact deliveries only"):
+            compile_v2(_pub(), _map(mutate))
+
+
+def test_a_realization_naming_a_family_the_publication_does_not_declare_refuses():
+    """§4: "missing, duplicate and UNKNOWN all refuse" — and until 2026-09-14, unknown did not.
+
+    The direction matters. Missing is found by the totality check, which runs over
+    `publication.families`; duplicate is found by the reader. Both start from a set this claim is
+    absent from. UNKNOWN starts from the mapping, and nothing iterated the mapping for identity —
+    only for endpoint facts — so an extra realization was carried, R1/R2-checked, and never asked
+    whether the family it names exists."""
+    def mutate(d):
+        d["realizations"].append({
+            "kind": "family", "family_id": "lh-nonesuch",
+            "endpoint": {"connection": "warehouse", "schema": None,
+                         "table": "sales_lines", "column": "amount"},
+            "grain": "coincident", "formation_operator": "sum", "exactness": "exact"})
+    with pytest.raises(MappingIncomplete, match="does not declare"):
+        compile_v2(_pub(), _map(mutate))
+
+
+def test_the_unknown_family_refusal_names_the_family_and_precedes_lowering():
+    """It must refuse BEFORE the endpoint facts, or the claim's endpoint is accepted on the way past.
+
+    An unknown family is an input-authority defect, the same question `require_same_publication`
+    asks one level up. Pinned by giving the unknown realization an endpoint that R1 would refuse on
+    its own (a second connection): if the family check ran after `_check_realization_facts`, the
+    connection refusal would arrive first and this assertion would fail."""
+    def mutate(d):
+        d["realizations"].append({
+            "kind": "family", "family_id": "lh-nonesuch",
+            "endpoint": {"connection": "elsewhere", "schema": None,
+                         "table": "sales_lines", "column": "amount"},
+            "grain": "coincident", "formation_operator": "sum", "exactness": "exact"})
+    with pytest.raises(MappingIncomplete) as caught:
+        compile_v2(_pub(), _map(mutate))
+    assert "lh-nonesuch" in str(caught.value)
+
+
+def test_a_known_family_is_still_accepted_after_the_unknown_check():
+    """The positive control the refusal needs: the unmodified mapping still compiles.
+
+    A check that refuses everything also passes every negative test above."""
+    assert compile_v2(_pub(), _map()).text
+
+
 def test_a_law_outside_the_profile_refuses_and_does_not_narrow_the_law():
     def mutate(d):
         _family(d, "min(revenue@sale_at)")["formation"]["law"] = lh._cite("MEAN")
