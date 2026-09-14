@@ -21,6 +21,7 @@ substrate behaviour it did not choose.
 from __future__ import annotations
 from collections import OrderedDict
 from dataclasses import replace
+from typing import Optional
 from decimal import Decimal
 
 import pyarrow as pa
@@ -49,23 +50,37 @@ def established_continuation_law(law_view) -> str:
     return name
 
 
-def continue_to(law_view, state: RetainedState, licence: MovementLicence,
-                *, target_anchor: str) -> RetainedState:
-    """Fold `state` from its anchor to `target_anchor` under `licence`. Refuses before it folds."""
-    subject = law_view.canonical_reference
+def require_licensed(law_view, licence: Optional[MovementLicence], *, source_anchor: str,
+                     target_anchor: str, subject: Optional[str] = None) -> None:
+    """THE LAW HALF OF A MOVEMENT, ASKED ALONE — no state, no values, no fold.
+
+    Extracted from `continue_to` so the PRE-FLIGHT can ask exactly the same question the executing
+    path asks. It is the same code, not a parallel re-statement: a second implementation of "may
+    this family move" would be a second answer waiting to diverge, and `check_frame_query` and
+    `execute_frame_query` disagreeing about governed authority is worse than either answer alone."""
+    subject = subject or law_view.canonical_reference
     continuation = established_continuation_law(law_view)
 
-    # ── LAW FIRST. Nothing below this line touches a value. ─────────────────────────────────────
-    why_not = licence_for(licence, source=state.identity.anchor, target=target_anchor,
+    why_not = licence_for(licence, source=source_anchor, target=target_anchor,
                           continuation_law=continuation)
     if why_not is not None:
-        raise WantOfLaw(f"cannot continue {state.identity.anchor!r} -> {target_anchor!r}: {why_not}",
+        raise WantOfLaw(f"cannot continue {source_anchor!r} -> {target_anchor!r}: {why_not}",
                         subject=subject)
 
     if continuation != "SUM":
         # Bounded on purpose. Proof B proves ONE law; a second would be a movement framework.
         raise WantOfLaw(f"this proof continues SUM only; the family's continuation is {continuation!r}",
                         subject=subject)
+
+
+def continue_to(law_view, state: RetainedState, licence: MovementLicence,
+                *, target_anchor: str) -> RetainedState:
+    """Fold `state` from its anchor to `target_anchor` under `licence`. Refuses before it folds."""
+    subject = law_view.canonical_reference
+
+    # ── LAW FIRST. Nothing below this line touches a value. ─────────────────────────────────────
+    require_licensed(law_view, licence, source_anchor=state.identity.anchor,
+                     target_anchor=target_anchor, subject=subject)
 
     # ── then state ──────────────────────────────────────────────────────────────────────────────
     if state.table is None:

@@ -51,17 +51,25 @@ class PlatformExecutionProvider:
     No `.cml`, no Core model, no connector, no store."""
 
     def __init__(self, publication, views: dict, *, manifold_id: str = "",
-                 material: Optional[MaterialBinding] = None):
+                 material: Optional[MaterialBinding] = None, movement: tuple = ()):
         self.publication = publication
         self.views = views
         self.manifold_id = manifold_id
         #: The deployment's material binding, or None. None PLANS; it does not execute.
         self.material = material
+        #: MOVEMENT LICENCES AS EXECUTION INPUT, on the same footing as the C7 sufficient-state
+        #: basis and the material binding: derived by the layer that owns the law and handed to
+        #: this path, never constituted here. An empty tuple is the default and means this
+        #: deployment licenses no movement — which is a deployment fact, not a governed verdict
+        #: about any family, and is why the absence produces `want_of_law` at adjudication rather
+        #: than a capability limit here.
+        self.movement = tuple(movement)
         self._mapping = serving.bind(publication, material.mapping_path) if material else None
 
     @classmethod
     def from_artifact(cls, artifact_path: str, *, manifold_id: str = "",
-                      material: Optional[MaterialBinding] = None) -> "PlatformExecutionProvider":
+                      material: Optional[MaterialBinding] = None,
+                      movement: tuple = ()) -> "PlatformExecutionProvider":
         """Build from a `governed-publication.json` on disk — THE SERVER'S ONLY ENTRY POINT.
 
         The v2 artifact is parsed and its law resolved HERE, by v2's own reader, so the server hands
@@ -75,7 +83,7 @@ class PlatformExecutionProvider:
         Passing the server's plain-data reading over instead would make the server the keeper of a
         governed object, which is exactly the coupling this seam exists to avoid."""
         pub, views = serving.open_publication(artifact_path)
-        return cls(pub, views, manifold_id=manifold_id, material=material)
+        return cls(pub, views, manifold_id=manifold_id, material=material, movement=movement)
 
     # ── the one supported capability ────────────────────────────────────────────────────────────
     def plan(self, statement) -> FrameResult:
@@ -84,7 +92,8 @@ class PlatformExecutionProvider:
         Returns the architecture-neutral `FrameResult`. It does not wire it: the server applies
         `wire_frame`, `_disclose` and the `manifold_id` stamp exactly once, as it already does for
         the Core provider, and a second serializer here would be a second contract."""
-        return serving.plan_result(self.publication, self.views, statement)
+        return serving.plan_result(self.publication, self.views, statement,
+                                   licences=self.movement)
 
     # ── the four that are not ───────────────────────────────────────────────────────────────────
     def run(self, statement) -> FrameResult:
@@ -107,7 +116,7 @@ class PlatformExecutionProvider:
                 "and does not execute; binding a material source for the realization's connection "
                 "is a deployment act, not a governed one")
         return serving.run_result(self.publication, self.views, self._mapping,
-                                  self.material.sources, statement)
+                                  self.material.sources, statement, licences=self.movement)
 
     def explain(self, statement):
         raise UnsupportedByThisProfile(
