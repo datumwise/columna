@@ -41,10 +41,15 @@ class AnalyticalIdentity:
 class Standing:
     """Whether a state may be reused or combined — the axes, each reachable, none merged."""
 
-    #: governing constitution / state-law standing. The SSE contract's invariant is COMPARABILITY
-    #: plus conservative invalidation; a fingerprint is a permitted representation, not the invariant.
+    #: THE ACTUAL GOVERNED CONSTITUTION under which this state was established. Part of
+    #: compatibility (RULED Huayin, 2026-09-14 — OF-39). The SSE contract's invariant is
+    #: COMPARABILITY plus conservative invalidation; a fingerprint is a permitted representation of
+    #: it, not the invariant itself.
     constitution: Optional[str]
-    #: the fingerprint SCHEME. An incomparable scheme must read as STALE, never as equal.
+    #: HOW constitution fingerprints are formed, and therefore WHETHER two are comparable at all.
+    #: An incomparable scheme must read as STALE, never as equal. Distinct in role from the field
+    #: above: the scheme says whether the comparison is meaningful, the fingerprint says which
+    #: constitution was in force.
     constitution_scheme: Optional[str]
     #: C5 — the regime under which contributions participate.
     participation: Optional[str]
@@ -64,8 +69,37 @@ class Standing:
         """The sub-tuple on which two standings may be COMPARED AT ALL.
 
         Explicit comparability is the point: two standings either agree, disagree, or are
-        INCOMPARABLE, and incomparable must not read as agree."""
-        return (self.constitution_scheme, self.participation, self.basis, self.realization)
+        INCOMPARABLE, and incomparable must not read as agree.
+
+        THE CONSTITUTION FINGERPRINT IS IN THIS TUPLE (RULED Huayin, 2026-09-14, closing OF-39).
+        It was not, and the two fields' roles are why that was wrong:
+
+          · `constitution_scheme` establishes HOW fingerprints are formed, and therefore whether
+            two of them are comparable at all;
+          · `constitution` identifies WHICH actual governed constitution this state stands under.
+
+        Carrying only the scheme meant two states established under DIFFERENT governed
+        constitutions, agreeing on every other axis, compared as compatible and could be folded
+        together. The defect was inert only because nothing on the serving path calls `combine` —
+        which is precisely why it survived, and why it is repaired while it still changes no
+        behaviour rather than later, when it would.
+
+        THIS DOES NOT MAKE THE CONSTITUTION PART OF ANALYTICAL IDENTITY, and the distinction is
+        load-bearing:
+
+          · ANALYTICAL IDENTITY (`AnalyticalIdentity`, `F @ A`) is what the state is OF. Two states
+            under different constitutions are still states of the same thing, and a request for
+            that thing still names them both.
+          · COMPATIBILITY STANDING is whether two otherwise-identical states may lawfully
+            participate in one continuation. That is the question this tuple answers, and it is a
+            different question with a different answer.
+
+        Widening `AnalyticalIdentity` to carry the constitution would be the specific error the SSE
+        contract forbids — encoding storage/standing detail into identity — and it would make a
+        re-constituted state a state of something ELSE, which it is not.
+        """
+        return (self.constitution_scheme, self.constitution,
+                self.participation, self.basis, self.realization)
 
 
 @dataclass(frozen=True)
