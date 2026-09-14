@@ -7,7 +7,7 @@ lives here and could not live in the compiler (ruling 2026-09-12, §4).
 
 The checks, and what each exists to stop:
 
-    CHECK 1  governed value domain  <->  carrier type, within the measured envelope.
+    CHECK 1  governed value domain  <->  carrier type, within CAP v1's admitted envelope.
              Stops a SUCCESSFULLY DELIVERED carrier that is not the governed thing.
     CHECK 2  carrier NULL  !=  analytical absence.
              Stops the carrier's "no value here" being read as a governed answer nobody gave.
@@ -61,6 +61,12 @@ EMPTY_FIBER_RULING = (
 #: nothing about what an absent observation denotes. Listed rather than inferred, so that a C9 key
 #: added later is treated as unknown-and-refused rather than silently counted as absence law.
 _ENTAILED_NOT_ABSENCE = frozenset({"empty_fiber"})
+
+#: CAP v1's ADMITTED VALUE SHAPE — `decimal128(18, 4)`, the exact governed revenue case, and the
+#: only shape the corrected measurement record establishes through the COMPLETE path this profile
+#: uses (source -> driver -> Arrow -> in-process carrier). One tuple rather than a range, because a
+#: range is a claim about shapes nobody crossed.
+CAP_V1_DECIMAL = (18, 4)
 
 #: Governed domains this proof knows how to admit. NARROW ON PURPOSE — an unknown domain refuses
 #: rather than being waved through, because "we did not recognise it" must not read as "it is fine".
@@ -133,18 +139,28 @@ def admit(law_view, realization, carrier: _carrier.Carrier) -> Admitted:
             f"governed exact-decimal domain {domain!r} presented on carrier "
             f"{_carrier.describe(carrier)}, which is not an exact-decimal carrier", subject=subject)
 
-    if t.precision > _carrier.DECIMAL128_MAX_PRECISION:
+    # ── CAP v1's VALUE ENVELOPE: `decimal128(18,4)`, exactly, and nothing else ──────────────────
+    #
+    # RATIFIED 2026-09-14, ENFORCED 2026-09-14 (discovered unenforced while building the first ADBC
+    # ingress: `decimal128(9,2)` and `decimal128(38,9)` both SERVED through a real driver).
+    #
+    # THE BROAD STATEMENT IS NOT WHAT WAS RATIFIED. The rule here used to be "any decimal of
+    # precision <= 38, except (38,0)", and the proposal to ratify that range was WITHDRAWN on four
+    # evidential grounds recorded in the profile: the excluded case was excluded on a misread
+    # discriminator (study [E11], rowed as OF-49); the widest supporting shapes never crossed hop
+    # four ([E4]); no case above precision 38 was ever run ([E3]); and the interior of the range was
+    # never measured on any crossing. A range whose interior was never crossed is not an envelope.
+    #
+    # A REFUSAL HERE IS PROFILE NON-SUPPORT, not a claim that the shape is unlawful or lossy. The
+    # way to make another shape admissible is an amendment carrying a measurement through the
+    # COMPLETE path plus a ratification — not an argument.
+    if (t.precision, t.scale) != CAP_V1_DECIMAL:
         raise WantOfState(
-            f"carrier precision {t.precision} exceeds the measured faithfully-supported envelope "
-            f"({_carrier.DECIMAL128_MAX_PRECISION} digits)", subject=subject)
-
-    if t.precision == _carrier.DECIMAL128_MAX_PRECISION and t.scale == 0:
-        # THE FOURTH HOP, MEASURED. Exact in Arrow, lost on the in-process conversion, and nothing
-        # raises in between. Admission refuses at the boundary where the loss is still preventable.
-        raise WantOfState(
-            f"carrier {_carrier.describe(carrier)} is exact in Arrow but is not faithfully carried "
-            f"across the in-process conversion [{carrier.measured_as}]; the envelope is four hops, "
-            f"and this one fails at the fourth", subject=subject)
+            f"governed exact-decimal domain {domain!r} presented as "
+            f"decimal128({t.precision}, {t.scale}); this profile's admitted value envelope is "
+            f"decimal128{CAP_V1_DECIMAL} and nothing else. The shape may be perfectly lawful and "
+            f"perfectly carried — it is outside the profile [{carrier.measured_as}]",
+            subject=subject)
 
     # ── CHECK 2 · a carrier NULL is not an analytical absence ───────────────────────────────────
     # The carrier faithfully reports THAT a value is absent (the study measured the null and the

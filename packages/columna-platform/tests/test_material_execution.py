@@ -308,7 +308,12 @@ def test_the_column_also_participates(tmp_path):
                 r["endpoint"]["column"] = "net_amount"
     wire = _run(_provider(tmp_path, mutate=mutate))
     assert wire["outcome"] == "refuse"
-    assert "has no column 'net_amount'" in _no_result(wire)["detail"]
+    # WORDING MOVED 2026-09-14 with the projected fetch: the source is now asked for the whole
+    # projection in one request, so it reports the missing column(s) as a set. The FACT under test is
+    # unchanged -- the endpoint's `column` participates in selection, and naming one the object does
+    # not have refuses instead of serving something else.
+    assert "'net_amount'" in _no_result(wire)["detail"]
+    assert "has no column" in _no_result(wire)["detail"]
 
 
 def test_material_in_two_objects_is_a_capability_limit_and_not_a_governed_refusal(tmp_path):

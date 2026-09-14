@@ -22,17 +22,22 @@ refusing it, which is a different lawful choice from K0v2's — K0v2 REFUSES a n
 its execution grammar cannot represent one, and it is not weakened to match this. Two profiles may
 discharge one fact through different channels; what neither may do is drop it.
 
-NO DATABASE, NO DRIVER, NO FILE. `InMemoryArrowSource` holds `pyarrow.Table`s that were constructed
-in the process. DuckDB and ADBC are not merely unused here: both are in this package's standing
-forbidden-import set, statically and in a clean interpreter
-(`tests/test_proof_a_findings.py`). The first material execution proves the ARCHITECTURE — that a
-governed identity survives the passage into material and back — and a source that proved a driver
-works would be proving something else.
+NO DATABASE, NO DRIVER, NO FILE — IN THIS PACKAGE. `InMemoryArrowSource` holds `pyarrow.Table`s
+constructed in the process. DuckDB and ADBC are not merely unused here: both are in this package's
+standing forbidden-import set, statically and in a clean interpreter
+(`tests/test_proof_a_findings.py`), and that ban is UNCHANGED now that a driver-backed adapter
+exists. It was always package-scoped — *Platform must not import a driver* — and never a claim that
+the repository contains none.
+
+A DRIVER-BACKED SOURCE IMPLEMENTS `MaterialSource` FROM OUTSIDE. `columna-adbc` depends on this
+package; this package does not know it exists, statically or at runtime. The deployment constructs
+the adapter and injects it through `MaterialBinding`, which is the seam that was reserved for
+exactly this and is unchanged by its arrival.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Mapping, Optional, Tuple
+from typing import Dict, Mapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
 import pyarrow as pa
 
@@ -45,6 +50,54 @@ ObjectKey = Tuple[Optional[str], str]
 
 
 @dataclass(frozen=True)
+class Material:
+    """What ONE PROJECTED FETCH returns — the ratified source-adapter contract's return shape.
+
+    `data_state` IS AN OPAQUE, COMPARABLE TOKEN OR `None`, AND IT RIDES HERE RATHER THAN ON A SECOND
+    CALL. The token belongs to the SAME MATERIAL OBSERVATION as the carrier beside it; a separate
+    `data_state()` call could observe a different state, and the pair would then describe two moments
+    while looking like one.
+
+    `None` IS NOT "FRESH" AND NOT "UNKNOWN-BUT-FINE" — it CLOSES REUSE (`Standing.currency`).
+    Platform never interprets, parses, orders or derives meaning from a token: it may compare one for
+    equality with another from the same adapter, and nothing else. Equality does not mean current."""
+
+    table: pa.Table
+    data_state: Optional[str] = None
+
+
+@runtime_checkable
+class MaterialSource(Protocol):
+    """One deployment-bound source of Arrow material. ONE METHOD, ON PURPOSE.
+
+    THERE IS DELIBERATELY NO METHOD THAT RETURNS A WHOLE OBJECT. That is what makes "do not establish
+    `SELECT *` / full-object reads as the external execution model" a property of THE SHAPE OF THIS
+    INTERFACE rather than of anyone's discipline: an adapter *cannot express* a full-object read
+    through it. There is likewise no predicate parameter (a predicate is an analytical restriction,
+    and which restrictions are governed is not transport's jurisdiction), no ordering parameter (CAP
+    v1 carries no ordering guarantee), no `execute(sql)` (the adapter is asked for a projection of a
+    named object, not for the result of a statement), and no schema-discovery call (admission
+    inspects the schema that ARRIVED, and a second schema could differ from it)."""
+
+    def fetch(self, *, schema: Optional[str], table: str,
+              columns: Sequence[str]) -> Material:
+        """Return exactly `columns` from `(schema, table)`, as Arrow, in one request.
+
+        `schema=None` is a POSITIVE claim that no schema qualification applies, never a dropped one.
+
+        A MISSING REQUESTED COLUMN OR OBJECT IS A REFUSAL. An implementation must NOT silently
+        return a shorter projection: a caller that asked for three columns and received two would
+        hold a carrier whose coordinates are quietly incomplete, and admission would then refuse it
+        naming the ANCHOR when the fault is in the SOURCE.
+
+        `Material.table` is a fully materialized `pa.Table`, never a `RecordBatchReader`. An adapter
+        MAY consume a reader internally — duckdb's native `.arrow()` returns one, and that hazard is
+        measured (admission study [E1]: fifteen ERROR rows) — but it must DISCHARGE the hazard before
+        handing material over. A consumed-once object must not reach the admission path."""
+        ...
+
+
+@dataclass(frozen=True)
 class InMemoryArrowSource:
     """One deterministic material source, held as Arrow tables in this process.
 
@@ -54,22 +107,28 @@ class InMemoryArrowSource:
     name: str
     objects: Mapping[ObjectKey, pa.Table]
 
-    def object_for(self, schema: Optional[str], table: str) -> pa.Table:
-        key: ObjectKey = (schema, table)
-        obj = self.objects.get(key)
+    def fetch(self, *, schema: Optional[str], table: str,
+              columns: Sequence[str]) -> Material:
+        """`MaterialSource.fetch` over in-process tables. One projection, one observation.
+
+        THE PROJECTION IS REAL EVEN HERE. This source holds whole tables and could hand one back
+        whole; it does not, because the interface it implements is the one a driver-backed adapter
+        implements, and a fixture that quietly took a wider path than production would stop being a
+        fixture for production.
+
+        `data_state=None`: an in-process table has no opaque state identity to report, and inventing
+        one would be manufacturing the freshness semantics the contract leaves unresolved."""
+        obj = self.objects.get((schema, table))
         if obj is None:
             raise WantOfState(
                 f"source {self.name!r} holds no object {_spell_object(schema, table)}; it holds "
                 f"{_spell_objects(self.objects)}", subject=self.name)
-        return obj
-
-    def column(self, schema: Optional[str], table: str, column: str) -> pa.Array:
-        obj = self.object_for(schema, table)
-        if column not in obj.column_names:
+        missing = [c for c in columns if c not in obj.column_names]
+        if missing:
             raise WantOfState(
-                f"object {_spell_object(schema, table)} in source {self.name!r} has no column "
-                f"{column!r}; it has {sorted(obj.column_names)}", subject=self.name)
-        return obj.column(column).combine_chunks()
+                f"object {_spell_object(schema, table)} in source {self.name!r} has no column(s) "
+                f"{missing}; it has {sorted(obj.column_names)}", subject=self.name)
+        return Material(table=obj.select(list(columns)).combine_chunks(), data_state=None)
 
 
 class SourceBindings:
@@ -132,7 +191,13 @@ def read_anchored(bindings: SourceBindings, family_realization, component_realiz
     source = bindings.source_for(ep.connection)
     home = (ep.connection, ep.schema, ep.table)
 
-    columns = {}
+    # ONE PROJECTED REQUEST, NOT N+1 (2026-09-14, the ratified source-adapter contract). This used to
+    # call `source.column(...)` once per coordinate and once for the value — free against an
+    # in-process table, N+1 ROUND TRIPS against a driver. The deeper reason is not cost:
+    # ONE PROJECTION IS ONE OBSERVATION. N separate reads of one object may see N different states of
+    # it, and the equal-length check below would then be comparing columns that were never one
+    # delivery — it would look like a guarantee and be a coincidence.
+    physical = {}                      # governed component name -> physical column name
     for name in sorted(component_realizations):
         creal = component_realizations[name]
         cep = creal.endpoint
@@ -145,9 +210,44 @@ def read_anchored(bindings: SourceBindings, family_realization, component_realiz
         if cep.column is None:
             raise WantOfState(
                 f"the realization for anchor component {name!r} names no column", subject=name)
-        columns[name] = source.column(cep.schema, cep.table, cep.column)
+        physical[name] = cep.column
 
-    values = source.column(ep.schema, ep.table, ep.column)
+    # DUPLICATE PHYSICAL COLUMNS ARE NOT AN ERROR HERE. Two governed components realized onto one
+    # source column is a realization claim this function honours rather than judges; the projection
+    # asks for the column once and the rename below delivers it under both governed names.
+    requested = list(dict.fromkeys([*physical.values(), ep.column]))
+    # AN ADAPTER SAYS "I COULD NOT"; PLATFORM SAYS WHICH KIND OF NO IT IS. An adapter has no business
+    # choosing a governed jurisdiction — it does not know whether the law licensed the ask — so the
+    # contract has it raise a plain `LookupError` for an object or column it cannot read, and the
+    # translation happens HERE, once, at the seam that owns the vocabulary.
+    #
+    # WANT OF STATE, and the remedy is why: the law licensed the ask and the realization named an
+    # object or column this source does not have, which is precisely what re-realization resolves.
+    # It is NOT a want of law (the publication is fine), and NOT `unsupported` (the profile
+    # implements material access; this deployment's source simply cannot answer).
+    try:
+        material = source.fetch(schema=ep.schema, table=ep.table, columns=requested)
+    except LookupError as e:
+        raise WantOfState(
+            f"the material source could not read the projection {requested} from "
+            f"{_spell_object(ep.schema, ep.table)} for connection {ep.connection!r}: {e}",
+            subject=family_realization.family_id) from e
+    got = material.table
+
+    # The adapter contract says a missing column REFUSES rather than shortening the projection.
+    # Verified here too, against the schema that actually arrived: the contract binds adapters, and
+    # this is the boundary that must not be made to trust one.
+    short = [c for c in requested if c not in got.column_names]
+    if short:
+        raise WantOfState(
+            f"the projected fetch of {_spell_object(ep.schema, ep.table)} did not return "
+            f"{short}; an adapter may not shorten a projection", subject=family_realization.family_id)
+
+    columns = {name: got.column(col).combine_chunks() for name, col in physical.items()}
+    values = got.column(ep.column).combine_chunks()
+
+    # Retained though one fetch makes a length mismatch near-impossible: it is the check that says
+    # the columns came from ONE delivery, and a future adapter is the reason to keep asking.
     heights = {name: len(arr) for name, arr in columns.items()}
     if any(h != len(values) for h in heights.values()):
         raise WantOfState(
@@ -157,8 +257,9 @@ def read_anchored(bindings: SourceBindings, family_realization, component_realiz
     table = pa.table({**columns, value_column: values})
     return AnchoredCarrier(
         table=table, value_column=value_column, anchor_columns=tuple(sorted(columns)),
-        measured_as=(f"in-memory arrow source {source.name!r} via connection {ep.connection!r}, "
-                     f"object {_spell_object(ep.schema, ep.table)}, column {ep.column!r}"),
+        measured_as=(f"material source {getattr(source, 'name', type(source).__name__)!r} via "
+                     f"connection {ep.connection!r}, object {_spell_object(ep.schema, ep.table)}, "
+                     f"projected columns {requested}, value column {ep.column!r}"),
     )
 
 

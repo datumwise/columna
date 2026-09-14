@@ -26,13 +26,29 @@ def test_binary_float_carrier_is_refused_though_delivery_succeeded(revenue):
     assert e.value.remedy == "re-realization would resolve this"
 
 
-def test_the_fourth_hop_is_refused_even_though_arrow_held_it_exactly(revenue):
-    """decimal128(38,0): exact in Arrow, lost on the in-process conversion. Nothing raises."""
+def test_a_decimal_outside_the_cap_v1_envelope_is_refused(revenue):
+    """`decimal128(38,0)` — still refused, and NO LONGER ON A REASON THAT IS FALSE OF IT.
+
+    THE REFUSAL SURVIVES; ITS JUSTIFICATION CHANGED (2026-09-14). This control asserted the shipped
+    reason "the envelope is four hops, and this one fails at the fourth". Errata [E11] re-measured
+    it: the fourth-hop collapse tracks a VALUE requiring 39 digits, and a conforming 38-digit
+    `(38,0)` round-trips exactly. So the old sentence was not true of the thing it refused, which is
+    OF-49.
+
+    Under CAP v1's ratified envelope — `decimal128(18,4)` and nothing else — this shape is refused as
+    PROFILE NON-SUPPORT, which is a claim the evidence does support. The refusal is unchanged in
+    outcome and honest in reason.
+
+    OF-49 IS NOT CLAIMED CLOSED BY THIS. Its question is which AUTHORITY a `(38,0)` refusal stands
+    on; under the ratified envelope there is no longer a separate `(38,0)` rule for an authority to
+    attach to, and the question survives for any amendment that widens the envelope."""
     family, view, real = revenue
     with pytest.raises(WantOfState) as e:
         admission.admit(view, real, carrier.over_envelope())
-    assert "four hops" in str(e.value)
-    assert "POLARS LOSS" in str(e.value)
+    assert "decimal128(38, 0)" in str(e.value)
+    assert "admitted value envelope is decimal128(18, 4)" in str(e.value)
+    assert "four hops" not in str(e.value)              # the false empirical claim is gone
+    assert e.value.jurisdiction == "realization"
 
 
 # ── CONTROL 2 · want-of-law and want-of-state are distinguishable ON THE WIRE ────────────────────

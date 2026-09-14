@@ -201,7 +201,12 @@ def test_the_material_comes_from_the_operands_realization(tmp_path):
         _fam(MIN_FAMILY, doc)["endpoint"]["column"] = "net_amount"
     wire = _run(_provider(tmp_path, mutate=mutate))
     assert wire["outcome"] == "refuse"
-    assert "has no column 'net_amount'" in _no_result(wire)["detail"]
+    # WORDING MOVED 2026-09-14 with the projected fetch: the source is now asked for the whole
+    # projection in one request, so it reports the missing column(s) as a set. The FACT under test is
+    # unchanged -- the endpoint's `column` participates in selection, and naming one the object does
+    # not have refuses instead of serving something else.
+    assert "'net_amount'" in _no_result(wire)["detail"]
+    assert "has no column" in _no_result(wire)["detail"]
 
 
 def test_a_constructed_family_realizing_a_different_endpoint_from_its_operand_refuses(tmp_path):

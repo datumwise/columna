@@ -1,0 +1,55 @@
+[build-system]
+# Capped like every other dependency (the cap guard globs packages/*/pyproject.toml, so this file
+# is in its scope from the moment it exists).
+requires = ["hatchling>=1.27,<2.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "columna-adbc"
+version = "0.0.0"
+description = "Columna ADBC source adapters — the first material crossing. Proof-stage; NOT PUBLISHED."
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+# DELIBERATELY OUTSIDE THE RELEASE SET, on the same terms as columna-platform.
+# `scripts/release_pins.py` names the three published packages by path (UMBRELLA/CORE/SERVER) and
+# LOCKSTEP covers two of them; this package is invisible to both BY CONSTRUCTION, not by an exclusion
+# that could rot. Version stays 0.0.0 for the same reason: a version that never moves cannot drift
+# from a lockstep it does not belong to. Enrolling it would be a ruling, not a packaging convenience.
+dependencies = [
+    # THE DIRECTION OF THE ARROW, DECLARED. This package depends on Platform; Platform does not know
+    # this package exists, statically or at runtime, and its forbidden-import tests are unchanged.
+    # Two clauses, for the same reason as the pins below: `assert_dep_caps.has_cap` only sees a
+    # ceiling when it is its own comma-clause, so a single-clause `columna-platform<1.0` reads as
+    # uncapped. Platform is unpublished and pinned at 0.0.0; the ceiling is the next major.
+    "columna-platform>=0.0.0,<1.0",
+    "pyarrow>=15,<26",
+    # THE VENDORED DUCKDB ADBC SURFACE HAS NO DISTRIBUTION OF ITS OWN, so there is nothing named
+    # `adbc-driver-duckdb` to depend on: `pip install adbc-driver-duckdb` finds nothing, and
+    # `importlib.metadata.version("adbc-driver-duckdb")` raises. The `duckdb` wheel VENDORS the
+    # `adbc_driver_duckdb` package (four entries in duckdb-1.5.5's RECORD, no dist-info), and its
+    # `driver_path()` resolves the same shared object the native API loads.
+    #
+    # SO `duckdb` IS PINNED EXACTLY, NOT AS A RANGE. The ADBC entrypoint is not part of any published
+    # compatibility promise we can cite, and the vendored sub-package has no independent version and
+    # no deprecation channel — it moves with `duckdb` or disappears with it. A range would be a
+    # compatibility claim nobody made.
+    # WRITTEN AS A DEGENERATE RANGE, WHICH IS EXACTLY `==1.5.5`. `scripts/assert_dep_caps.py`
+    # documents `==` as a cap and its implementation misses it on a SINGLE-CLAUSE requirement --
+    # `has_cap` tests `clause.startswith("==")` after splitting on commas, and the only clause here
+    # is `duckdb==1.5.5`, which starts with `d`. The guard is not weakened to accommodate this and
+    # no change was made to it; the pin is spelled so its ceiling is visible to the guard as
+    # written. Reported as a finding.
+    "duckdb>=1.5.5,<=1.5.5",
+    # Pinned SEPARATELY AND VISIBLY. The manager is a real distribution with its own version, and
+    # conflating the two would be the false-version claim this package is forbidden to make.
+    "adbc-driver-manager>=1.12.0,<=1.12.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0,<10.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/columna_adbc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
