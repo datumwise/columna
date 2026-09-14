@@ -357,3 +357,37 @@ construction. Retrieval stays keyed by analytical identity; compatibility is adj
 afterwards. Folding compatibility facts into the lookup key would convert a governed refusal that
 names its reason into a silent cache miss that names nothing — and the evidentiary value of refusal
 is, per §3, the product's core asset.
+
+### 7.4 The reuse adjudication architecture — working direction (Huayin, 2026-09-14)
+
+**Not one maximal key.** The working architecture for the next review is an ordered adjudication:
+
+1. **retrieve** by canonical analytical identity (`F @ A`);
+2. inspect **retained-state compatibility standing**;
+3. inspect **data currency**;
+4. inspect **realization currency**;
+5. **reuse only if all required conditions positively permit it**;
+6. otherwise **re-establish or refuse** according to the existing jurisdiction rules.
+
+**The lookup key therefore does not need to encode every condition of lawful reuse.** That is not a
+weakening — it is what preserves the #316 ruling: a constitution mismatch must be **retrieved and
+explicitly adjudicated**, never hidden as a miss. Folding compatibility facts into the key would
+convert a governed refusal that names its reason into a silent cache miss that names nothing, and
+§3 records that the evidentiary value of refusal is the product's core asset.
+
+Note the ordering is not arbitrary: steps 2–4 are three different jurisdictions with three different
+remedies (a licence, re-materialization, re-realization), and collapsing them into one boolean would
+reproduce the error §4.1's mechanism table exists to prevent.
+
+**P5-05 remains binding, and is clarified rather than relaxed.** Participation law and support
+contract must **participate in reuse semantics**; the realized support set must remain **material
+attestation**, not semantic key identity. But it does not follow that those facts must literally
+occupy the lookup key tuple. The binding requirement is:
+
+> **No state may be reused unless those semantic distinctions have been positively adjudicated.**
+
+**Where** that adjudication happens — inside the lookup key, or as an explicit post-retrieval
+comparison — remains a design choice, and the evidence so far favours the latter. The corpus
+supplies a *necessary* condition on the key and explicitly not a sufficient one, and no equivalence
+relation on sufficient state has been defined; a key built to be sufficient would be encoding an
+equivalence nobody has ruled.

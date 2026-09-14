@@ -150,6 +150,64 @@ than as a governed refusal. Unchanged.
 eventually fill it, and v1 does not fill it** — v1 defines the return slot so that an adapter has
 somewhere lawful to put a token, and Platform continues to record `None`.
 
+### 5.1 What may fill it, for DuckDB/ADBC — **RULED 2026-09-14 (Huayin)**
+
+> **A projection-scoped, scan-derived content CHANGE DETECTOR is an admissible data-state token for
+> retained state derived from exactly that projection.**
+
+Admissible only when **all** of these hold:
+
+1. computed from **the same material observation** that constituted the retained state;
+2. scoped to **the exact projected material** that state depends on;
+3. **stable** while that projected material is unchanged;
+4. **changes** when that projected material changes, to the strength the detector warrants;
+5. its representation is **namespaced** by detector/algorithm version **and** DuckDB engine version;
+6. failure to establish it yields **`None`**;
+7. **`None` closes reuse**;
+8. equality means only that two tokens are **comparable and equal under that detector** — never
+   "fresh", never "current", never "the source is globally unchanged".
+
+**Call it what it is: a *projection-scoped change detector*.** It must not be called table identity,
+snapshot identity, MVCC identity, a freshness token, or a collision-free content identity. Naming it
+any of those would assert a guarantee it does not carry, and the whole reason this class is
+admissible is that its guarantee is narrow and stated.
+
+**The token belongs to the material observation that produced the retained state** — not to the
+table, and not to the source. A second observation of the same table is a different observation.
+
+### 5.2 DuckDB sources that are NOT admissible — and the measurement that disqualifies them
+
+**Not admissible:** `table_oid`; `estimated_size`; row count alone; ADBC `get_statistics`;
+transaction ids; transaction timestamps; `pragma database_size`; file mtime/size; any value from
+`duckdb_tables()` or `pragma_storage_info()`.
+
+**The disqualifying property is one measured fact, and it disqualifies the whole catalog class at
+once: DuckDB's catalog and storage surfaces can describe a LATER MOMENT than the scan returned
+beside them, inside one statement and one transaction.** Measured on duckdb 1.5.5, two cursors on
+one database — connection A inside a transaction reads 2 rows; connection B inserts a third and
+commits; A then runs a SINGLE statement selecting both the scan and the catalog:
+
+```
+rows_seen = 2        catalog estimated_size = 3        storage_info count = 6
+```
+
+Data is under MVCC; the catalog is not. **So the race the adapter's docstring names — "a second
+query would describe a different moment while looking like the same one" — is NOT avoided by
+putting the probe in the same query.** That is why condition (1) above cannot be satisfied by any
+catalog surface, regardless of its other properties.
+
+Those other properties are independently disqualifying and were also measured: `table_oid` did not
+move across `UPDATE`, `INSERT` or `DELETE` (it moved only on `CREATE OR REPLACE`); `estimated_size`
+did not move on a same-cardinality `UPDATE` **and did not move on a `DELETE`**; `txid_current()`
+advanced across three consecutive read-only statements with nothing mutated, failing the stability
+half of the guarantee. `Connector.data_identity`'s standing rule — *"ROW COUNT ALONE IS NEVER A
+VALID IMPLEMENTATION"* — independently excludes `estimated_size` and the ADBC statistics row count.
+
+**The construction that satisfies (1) is the one computed from the scan itself**, because it is made
+of the delivered rows. Its specification is
+[`projection_scoped_change_detector_v0_1.md`](projection_scoped_change_detector_v0_1.md); nothing is
+implemented, and `Standing.currency` continues to record `None` until that specification is ruled.
+
 ---
 
 ## 6. OF-42 / joins — one execution, one object
