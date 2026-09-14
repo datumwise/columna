@@ -40,7 +40,12 @@ def build_server(store: ManifoldStore, name: str = "columna") -> FastMCP:
     def describe_measure(manifold_id: str, measure: str, version: str | None = None) -> dict:
         """Describe one measure: the family (root, members, reducer kinds), per-member anchors
         (blocked lineages, order-by, monoid), dtype, v-anchor {universe, grain}, m-anchor, and
-        provenance. Touches no data. `version` selects a governed publication (omitted ⇒ latest)."""
+        provenance. Touches no data. `version` selects a governed publication (omitted ⇒ latest).
+        For a GOVERNED-ONLY publication (one served without a legacy execution image), fields whose
+        jurisdiction is not present are ABSENT rather than defaulted: representation (`dtype`),
+        missingness (`m_anchor`) and evidence (`provenance`) are omitted, because a default there
+        would assert something the publication never declared. Empty member structures are not the
+        same thing — a governed family genuinely has no members."""
         return T.describe_measure(store, manifold_id, measure, version)
 
     @mcp.tool()

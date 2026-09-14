@@ -184,6 +184,11 @@ class LoadedManifold:
     runtime: str = RUNTIME_CORE
     has_cml: bool = True
     publication_major: Optional[int] = None
+    #: Where this unit's governed artifact lives, when it has one. Carried so a governed-native
+    #: read-only surface can resolve a reference THROUGH THE v2 CONTRACT'S OWN READER rather than
+    #: reimplementing the lookup over the plain-data projection — the server holds a path, never a
+    #: second name→family map.
+    publication_path: Optional[str] = None
 
 
 def _load_duckdb(warehouse_dir: str):
@@ -271,6 +276,7 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool) -> 
         source_ref=artifact.ref,    # the unit IS the publication; origin and identity coincide
         runtime=RUNTIME_PLATFORM if bind_provider else RUNTIME_CORE,
         has_cml=False,
+        publication_path=artifact_path,
         publication_major=artifact.major,
     )
 
@@ -427,6 +433,7 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
         runtime=RUNTIME_CORE,
         has_cml=True,
         publication_major=publication_major,
+        publication_path=artifact_path if publication is not None else None,
     )
 
 
