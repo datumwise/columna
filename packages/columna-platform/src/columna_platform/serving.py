@@ -52,6 +52,7 @@ from columna_core.disclosure_wire import wire_frame
 from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
+from .anchors import declared_coordinate_types
 from . import request as _request
 from . import composite as _composite
 from . import formation as _formation
@@ -207,24 +208,15 @@ def require_continuation_conformance(law_view, realization):
             f"and a realization may not manufacture one", subject=ref)
 
 
-def declared_components(pub, anchor: str) -> dict:
-    """The anchor's declared components — **name -> GOVERNED TYPE** — from the logical projection.
-
-    RETURNS THE TYPE, WHICH IT USED TO DROP (OF-48, repaired 2026-09-14). This function read
-    `components` and kept `c.get("name")`, discarding `c.get("type")` in the same expression; so did
-    `movement._declared_components`. The publication declares `sale_at{store: text, day: date}` and
-    the governed type was read by NOTHING on the material path, which is why a governed `text`
-    coordinate delivered as `int32` served, with `store=1` on the public wire.
-
-    The type is a GOVERNED FACT of the same standing as the value domain, so it is returned here
-    rather than fetched separately: the defect was not that a check was missing downstream, it was
-    that the fact never left this function."""
-    for decl in pub.of_kind(_request.ANCHOR):
-        if decl.name == anchor:
-            comps = decl.body.get("components") or []
-            return {c["name"]: c.get("type") for c in comps
-                    if isinstance(c, dict) and c.get("name")}
-    raise WantOfLaw(f"the publication declares no anchor {anchor!r}", subject=anchor)
+#: THE ADMISSION VIEW: `name -> governed type`. Admission asks a LOOKUP question about a coordinate
+#: it already holds from the carrier — "what is this governed as?" — so a mapping is the right shape
+#: where movement's ordered tuple is the right shape there.
+#:
+#: DERIVED, NOT RE-PARSED (2026-09-14). This was one of three parsers of the same `anchor`
+#: declaration, and the most permissive: a missing or non-list `components` returned `{}` silently
+#: where movement's parser refused. The type it returns was itself only added on 2026-09-14 (OF-48);
+#: the malformation policy behind it now comes from `anchors`, which judges it once for everyone.
+declared_components = declared_coordinate_types
 
 
 def component_realizations(mapping, anchor: str) -> dict:

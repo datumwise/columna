@@ -37,11 +37,15 @@ from dataclasses import dataclass
 
 from columna_core.governed.publication import Family, GovernedPublicationV2
 
+from .anchors import ANCHOR, declared_anchor_names   # noqa: F401 - ANCHOR re-exported
 from .refusals import UnsupportedByThisProfile, WantOfLaw
 from .state import AnalyticalIdentity
 
-#: The declaration kind that carries an anchor's components in the governed logical projection.
-ANCHOR = "anchor"
+# `ANCHOR` moved to `anchors`, which owns the governed reading; it is re-exported here because it
+# WAS a public name of this module and removing a name is a separate decision from moving its
+# definition. Checked at the time of the move: nothing outside `anchors` references it today
+# (`serving` did, and no longer needs to), so this re-export is a courtesy, not a load-bearing seam.
+# There is deliberately only ONE definition of it.
 
 
 @dataclass(frozen=True)
@@ -56,17 +60,16 @@ class ResolvedRequest:
     column_name: str
 
 
-def _declared_anchors(pub: GovernedPublicationV2) -> dict[str, frozenset]:
-    """anchor name → its declared component names, read from the governed logical projection.
-
-    The anchor's components are governed facts sitting in the publication's own `anchor`
-    declarations. Nothing about dimension levels, hierarchies or `.cml` geometry enters here."""
-    out = {}
-    for decl in pub.of_kind(ANCHOR):
-        components = decl.body.get("components") or []
-        names = frozenset(c.get("name") for c in components if isinstance(c, dict) and c.get("name"))
-        out[decl.name] = names
-    return out
+#: THE REQUEST VIEW: `anchor name -> its declared coordinate names`, as SETS, for every anchor.
+#: Resolution matches an ask against the declarations, and a set is what an ask is — `AT {store*day}`
+#: names no order. Nothing about dimension levels, hierarchies or `.cml` geometry enters here.
+#:
+#: DERIVED, NOT RE-PARSED (2026-09-14). This was the third parser of the same `anchor` declaration
+#: and the one whose leniency was load-bearing by accident: a malformed declaration silently became
+#: an empty set here, and the refusal a caller actually saw — "no governed anchor is declared over
+#: the components [...]" — was correct in jurisdiction but only because this happened to run first.
+#: That was luck about ordering. The canonical reader refuses at the reading boundary instead.
+_declared_anchors = declared_anchor_names
 
 
 def resolve(pub: GovernedPublicationV2, statement) -> ResolvedRequest:

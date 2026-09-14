@@ -45,6 +45,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+from .anchors import declared_coordinate_names
 from .refusals import WantOfLaw
 
 #: THE SCOPE OF THIS PROOF, verbatim (ruled Huayin, 2026-09-12). A constant for the reason
@@ -90,17 +91,15 @@ class MovementLicence:
                 f" under {self.law} [{self.standing}]")
 
 
-def _declared_components(publication, anchor_name: str) -> tuple:
-    """The anchor's components AS DECLARED. The publication is the authority, not the licence."""
-    for decl in publication.of_kind("anchor"):
-        if decl.name == anchor_name:
-            body = decl.body or {}
-            comps = body.get("components")
-            if not isinstance(comps, list):
-                raise WantOfLaw(f"anchor {anchor_name!r} declares no component list", subject=anchor_name)
-            return tuple(c["name"] for c in comps if isinstance(c, dict) and "name" in c)
-    raise WantOfLaw(f"no anchor declaration named {anchor_name!r} in this publication",
-                    subject=anchor_name)
+#: THE MOVEMENT VIEW: ordered governed coordinate NAMES. A movement asks whether a target names real
+#: coordinates and is a proper part of the anchor; it never asks what a coordinate IS. Order is
+#: load-bearing here and nowhere else — it reaches `MovementLicence.source_components` and is
+#: rendered in the licence's description, which is evidence a human reads.
+#:
+#: DERIVED, NOT RE-PARSED (2026-09-14). This used to be its own parser of the anchor declaration's
+#: with its own malformation policy — the strictest of the three that existed, and reachable only
+#: through this door. The canonical reader in `anchors` now carries that policy for every consumer.
+_declared_components = declared_coordinate_names
 
 
 def project(publication, *, source_anchor: str, target_anchor: str, target_components,
