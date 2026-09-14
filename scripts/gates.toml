@@ -54,6 +54,21 @@ cmd = "ruff check packages/columna-server/src packages/columna-server/tests"
 workflow = "ci.yml"
 local = true
 
+# ENROLLED 2026-09-14 (OF-43). `pytest-platform` was enrolled when Proof A landed and no matching
+# LINT gate was added beside it — an asymmetry rather than a policy, and one that stopped mattering
+# less the day this package started resolving public Frame-QL and serving material through the wire.
+#
+# IT NAMES THE PACKAGE ROOT, NOT THREE SUBDIRECTORIES, and that is the one deliberate difference
+# from its two siblings above. The material fixture lives in `packages/columna-platform/fixtures/`
+# and is imported by BOTH test suites; a gate spelled `src tests` the way `ruff-server` is would
+# leave the one file two packages depend on unchecked, which is the same shape of gap this gate
+# exists to close. The root also covers `exhibit.py`, which sits beside them at the top level.
+[[gate]]
+id = "ruff-platform"
+cmd = "ruff check packages/columna-platform"
+workflow = "ci.yml"
+local = true
+
 [[gate]]
 id = "version-attributes"
 cmd = "python scripts/check_version_attributes.py"

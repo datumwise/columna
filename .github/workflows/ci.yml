@@ -68,7 +68,7 @@ jobs:
       # Bare invocations: exit codes count (no pipe through tail/head).
       - name: Ruff (correctness only — F, E9)
         run: |
-          python scripts/gates.py --gate ruff-core ruff-server
+          python scripts/gates.py --gate ruff-core ruff-server ruff-platform
 
       # P0-19: every package's `__version__` is the distribution pip actually resolved, never a
       # literal. Runs before the suites because it is a two-second structural check, and a tree
