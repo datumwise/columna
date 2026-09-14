@@ -46,7 +46,7 @@ from .refusals import (
     ExecutionRepresentationGap,
     InputIdentityMismatch,
     LogicalMeaningMissing,
-    MappingIncomplete,
+    MappingContradictsLaw, MappingIncomplete,
     UnsupportedCoreCapability,
 )
 
@@ -132,6 +132,69 @@ def _core_operator(law_name: str, subject: str) -> str:
             detail += f" — {why}"
         raise UnsupportedCoreCapability(detail, subject=subject)
     return op
+
+
+def _check_continuation_claim(cont, claimed, subject: str) -> None:
+    """The realization's CONTINUATION CLAIM against the family's governed C8. All seven cells.
+
+    RATIFIED 2026-09-14 (Huayin): *"A realization null means no realization assertion. It is not a
+    positive assertion of 'none,' except where a field-specific contract explicitly says
+    otherwise."* The realization claim is IMPLEMENTATION AGREEMENT WITH GOVERNED LAW; it is not the
+    authority that creates the law, so a mapping that says nothing has not agreed to anything.
+
+        C8 ESTABLISHED = X   claim X        -> conforming
+        C8 ESTABLISHED = X   null / absent  -> MappingIncomplete
+        C8 ESTABLISHED = X   claim Y != X   -> MappingContradictsLaw
+        C8 EXPLICIT_NONE     null / absent  -> conforming
+        C8 EXPLICIT_NONE     any operator   -> MappingContradictsLaw
+        C8 UNESTABLISHED     null / absent  -> conforming (no assertion is made)
+        C8 UNESTABLISHED     any operator   -> LogicalMeaningMissing
+
+    THE EXPLICIT_NONE / UNESTABLISHED SPLIT IS LOAD-BEARING and is why the last four rows are four
+    rows and not two. `EXPLICIT_NONE` is a POSITIVE GOVERNED NEGATIVE — the publication has spoken,
+    and a realization naming an operator is asserting against a fact that exists, which is a
+    contradiction. `UNESTABLISHED` supplies no governed fact to contradict at all; the defect there
+    is that the realization is trying to MANUFACTURE analytical meaning. Two wrong claims, two
+    different wrongs, two different people to tell — and collapsing them would file a manufactured
+    law as a disagreement, sending whoever reads it looking for a governed fact that was never there.
+
+    WHY IT IS NOT FOLDED INTO `_check_continuation_conformance`: that function checks CORE'S ENGINE
+    MECHANICS against governed law. This checks A MAPPING'S CLAIM against governed law. Two
+    jurisdictions; merging them into one function is the shape of the defect this repairs (OF-47).
+
+    `cont` is the resolved C8 standing; `claimed` is `realization.continuation_operator`. Called
+    from BOTH the primitive and the constructed path, from OUTSIDE any `standing == ESTABLISHED`
+    guard — a guard inside a conditional cannot police the conditional's other branches, which was
+    the structural cause of the third consequence in OF-47."""
+    if cont.standing == R.ESTABLISHED:
+        op = _core_operator(cont.value.name, subject)
+        if claimed is None:
+            raise MappingIncomplete(
+                f"the family's continuation law {cont.value.name} is ESTABLISHED and the "
+                f"realization makes no continuation claim: it must name the backend operator it "
+                f"claims discharges that law. A realization null asserts nothing; it is not a claim "
+                f"that the governed continuation is none", subject=subject)
+        if claimed != op:
+            raise MappingContradictsLaw(
+                f"the realization claims continuation operator {claimed!r}, but the family's "
+                f"established continuation law is {cont.value.name}, which this profile realizes as "
+                f"{op!r}. The law decides; the mapping claims; the two disagree", subject=subject)
+        return
+    if cont.standing == R.EXPLICIT_NONE:
+        if claimed is not None:
+            raise MappingContradictsLaw(
+                f"the realization claims continuation operator {claimed!r}, and the publication "
+                f"POSITIVELY ESTABLISHES that this family has no continuation. That is not a gap "
+                f"the mapping may fill: it is a governed fact the mapping contradicts",
+                subject=subject)
+        return
+    # UNESTABLISHED
+    if claimed is not None:
+        raise LogicalMeaningMissing(
+            f"the realization claims continuation operator {claimed!r} for a family whose "
+            f"continuation is UNESTABLISHED. There is no governed continuation here to agree or "
+            f"disagree with, and a realization may not manufacture one: the claim would make the "
+            f"private mapping the author of analytical meaning", subject=subject)
 
 
 def _check_continuation_conformance(law_name: str, member_op: str, subject: str) -> None:
@@ -431,14 +494,14 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2, *,
         # continued, not a separate family (the classification test, applied).
         aggs, seen_ops = [], {}
         cont = view[R.C8_CONTINUATION]
+        # THE CLAIM, ON EVERY BRANCH (2026-09-14, OF-47). Called before the ESTABLISHED test, not
+        # inside it: the previous shape read the claim only where C8 was established, so a mapping
+        # naming a continuation for a family whose law establishes none was never looked at, and a
+        # null claim under an ESTABLISHED law was exempted.
+        _check_continuation_claim(cont, real.continuation_operator, subject)
         if cont.standing == R.ESTABLISHED:
             op = _core_operator(cont.value.name, subject)
             _check_continuation_conformance(cont.value.name, op, subject)
-            if real.continuation_operator not in (None, op):
-                raise MappingIncomplete(
-                    f"the realization claims continuation operator {real.continuation_operator!r}, "
-                    f"but the family's established continuation law {cont.value.name} is realized "
-                    f"here as {op!r}", subject=subject)
             aggs.append(op)
             seen_ops[op] = prim.canonical_reference
 
@@ -474,6 +537,14 @@ def compile_v2(publication, mapping: PrivateCoreMappingV2, *,
             ccont = cview[R.C8_CONTINUATION]
             if ccont.standing == R.ESTABLISHED:
                 _check_continuation_conformance(ccont.value.name, op, csub)
+            # CHECK 4b — the realization's CONTINUATION CLAIM vs the governed continuation
+            # (2026-09-14, OF-47). This path read `continuation_operator` NOWHERE: CHECK 4 above
+            # looks like the constructed continuation check and is not one — it compares governed C8
+            # against `op` derived from the FORMATION law, so a claim of "wildly_wrong" compiled to
+            # a byte-identical image. The two facts are distinct and COUNT is the case that proves
+            # it: count's formation COUNTS and its continuation SUMS (§5.2), so its realization must
+            # carry `formation_operator: "count"` AND `continuation_operator: "sum"`.
+            _check_continuation_claim(ccont, creal.continuation_operator, csub)
             if op in seen_ops:
                 raise ExecutionRepresentationGap(
                     f"two governed families realize the same Core operator {op!r} over one operand "

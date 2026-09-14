@@ -54,12 +54,19 @@ def _mapping(pub, schema=None):
              "endpoint": ep("sale_date")},
             {"kind": "family", "family_id": fid["revenue"], "endpoint": ep("amount"),
              "grain": "coincident", "continuation_operator": "sum"},
+            # THE TWO CLAIMS ARE DIFFERENT FACTS, and `count` is where that stops being academic:
+            # its FORMATION counts and its CONTINUATION sums (foundation section 5.2), so the
+            # realization carries `count` and `sum`. For min/max the two coincide, which is exactly
+            # why a fixture written only on those two would prove nothing (2026-09-14).
             {"kind": "family", "family_id": fid["count(revenue@sale_at)"], "endpoint": ep("amount"),
-             "grain": "coincident", "formation_operator": "count"},
+             "grain": "coincident", "formation_operator": "count",
+             "continuation_operator": "sum"},
             {"kind": "family", "family_id": fid["min(revenue@sale_at)"], "endpoint": ep("amount"),
-             "grain": "coincident", "formation_operator": "min"},
+             "grain": "coincident", "formation_operator": "min",
+             "continuation_operator": "min"},
             {"kind": "family", "family_id": fid["max(revenue@sale_at)"], "endpoint": ep("amount"),
-             "grain": "coincident", "formation_operator": "max"},
+             "grain": "coincident", "formation_operator": "max",
+             "continuation_operator": "max"},
         ]})
 
 

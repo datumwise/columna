@@ -519,6 +519,33 @@ REASON_OUTCOME = {
                                                         #   implementation and land later. `outcome_for` is a
                                                         #   keyed lookup, so an entry with no emitter changes
                                                         #   no behaviour.
+    "want_of_compatibility":    (REFUSE, UNSUPPORTED, ANALYTICAL), # MINTED 2026-09-14 (Huayin, the second
+                                                        #   refusal mint). THE REQUESTED COMBINATION IS
+                                                        #   ANALYTICALLY BARRED because the states/objects are
+                                                        #   not mutually compatible under the governed
+                                                        #   compatibility conditions -- EVEN THOUGH EACH MAY BE
+                                                        #   INDIVIDUALLY VALID. Nothing is missing and neither
+                                                        #   object is defective; they may not be combined.
+                                                        #
+                                                        #   THE THREE-WAY DISTINCTION, RULED, AND THE REASON
+                                                        #   THIS COULD NOT BORROW EITHER NEIGHBOUR:
+                                                        #     want_of_law           no positive law licenses the
+                                                        #                           requested transformation;
+                                                        #     want_of_compatibility the relevant VALID objects
+                                                        #                           cannot lawfully be combined
+                                                        #                           because their compatibility
+                                                        #                           conditions differ;
+                                                        #     want_of_state         required admissible state is
+                                                        #                           unavailable, and
+                                                        #                           re-realization MAY resolve it.
+                                                        #
+                                                        #   NO `alternatives`, AND SPECIFICALLY NOT
+                                                        #   REMATERIALIZE. Re-materializing cannot make two
+                                                        #   differing compatibility conditions agree, and
+                                                        #   offering it would send an operator to do work that
+                                                        #   cannot possibly help -- the same misdirection the
+                                                        #   want-of-law/want-of-state split exists to prevent,
+                                                        #   one axis over.
     "unsupported":              (ERROR, None, REALIZATION),        # not implemented in this build (capability)
     "type_error":               (ERROR, None, LANGUAGE),        # vocabulary/type failure
     "unknown":                  (ERROR, None, LANGUAGE),        # unknown column / operator / construct

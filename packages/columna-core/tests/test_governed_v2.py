@@ -625,7 +625,14 @@ def test_two_governed_families_on_one_core_operator_refuse_rather_than_collapse(
     def map_mutate(d):
         for r in d["realizations"]:
             if r.get("family_id") == "lh-revmax":
-                r["formation_operator"] = "min"       # an honest claim about a colliding law
+                # AN HONEST CLAIM ABOUT A COLLIDING LAW -- honest on BOTH axes (2026-09-14).
+                # Moving max's formation law to MIN also moves its ENTAILED C8 to MIN, so a
+                # realization still claiming continuation "max" would be CONTRADICTING the mutated
+                # publication and would refuse for that reason first -- before this test ever
+                # reached the operator collision it exists to assert. The repair found it: the
+                # fixture's honesty was partial because only one of the two claims was ever read.
+                r["formation_operator"] = "min"
+                r["continuation_operator"] = "min"
     with pytest.raises(ExecutionRepresentationGap, match="cannot hold both"):
         compile_v2(_pub(pub_mutate), _map(map_mutate))
 
