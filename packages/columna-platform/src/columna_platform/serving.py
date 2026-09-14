@@ -52,6 +52,7 @@ from columna_core.disclosure_wire import wire_frame
 from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
+from . import assertion as _assertion
 from .anchors import declared_coordinate_types
 from . import request as _request
 from . import composite as _composite
@@ -235,12 +236,18 @@ def component_realizations(mapping, anchor: str) -> dict:
 
 def materialize(family, law_view, realization, carrier_obj, *, basis: str,
                 constitution: Optional[str], constitution_scheme: Optional[str],
-                currency: Optional[str], store: RetainedStateStore) -> RetainedState:
+                currency: Optional[str], store: RetainedStateStore,
+                publication_ref) -> RetainedState:
     """Admit a carrier and retain it with its standing.
 
     `basis` is a RUNTIME PROJECTION derived by the governed layer from C7 and passed in as EXECUTION
     INPUT. This function does not re-derive it — the SSE executes sufficient-state law, it does not
-    rediscover why a state is sufficient."""
+    rediscover why a state is sufficient.
+
+    `publication_ref` is REQUIRED and has no default. The assertion revision is the content asserted
+    BY a responsibility ABOUT a publication; a revision identity computed without knowing which
+    publication would compare two different frames of reference as one. A default here would have
+    been a silently wrong fingerprint, which is the failure class this repair exists to close."""
     admitted = admission.admit(law_view, realization, carrier_obj)
     st = RetainedState(
         identity=AnalyticalIdentity(family.family_id, family.constitutive_anchor),
@@ -249,9 +256,7 @@ def materialize(family, law_view, realization, carrier_obj, *, basis: str,
             constitution_scheme=constitution_scheme,
             participation=law_view["eligibility_and_participation"].value,
             basis=basis,
-            realization=f"{realization.endpoint.connection}:{realization.endpoint.schema}."
-                        f"{realization.endpoint.table}.{realization.endpoint.column}"
-                        f"/{realization.grain}/{realization.exactness}",
+            realization=_assertion.revision(publication_ref, realization),
             currency=currency,
         ),
         array=admitted.array,
@@ -285,9 +290,7 @@ def materialize_anchored(pub, family, law_view, realization, anchored, *, basis:
             constitution_scheme=scheme,
             participation=law_view["eligibility_and_participation"].value,
             basis=basis,
-            realization=f"{realization.endpoint.connection}:{realization.endpoint.schema}."
-                        f"{realization.endpoint.table}.{realization.endpoint.column}"
-                        f"/{realization.grain}/{realization.exactness}",
+            realization=_assertion.revision(pub.ref, realization),
             currency=None,
         ),
         array=admitted.array,
@@ -355,10 +358,12 @@ def materialize_constructed(pub, family, law_view, operand, operand_view, realiz
             constitution_scheme=scheme,
             participation=law_view["eligibility_and_participation"].value,
             basis=basis,
-            realization=f"{realization.endpoint.connection}:{realization.endpoint.schema}."
-                        f"{realization.endpoint.table}.{realization.endpoint.column}"
-                        f"/{realization.grain}/{realization.exactness}"
-                        f"/{law.name}({operand.canonical_reference})",
+            # The continuation law and operand ACTUALLY APPLIED are part of what this state
+            # asserts and do not live on the realization object, so they are passed explicitly
+            # rather than appended to a string — visible at the call site, by design.
+            realization=_assertion.revision(
+                pub.ref, realization,
+                extra={"continuation_law": law.name, "operand": operand.canonical_reference}),
             currency=None,
         ),
         array=formed.table.column(formed.value_column).combine_chunks(),

@@ -5,16 +5,22 @@ CARRIER REDEFINING THEM.
 """
 from decimal import Decimal
 
-from columna_platform import carrier, serving
+from columna_platform import assertion, carrier, serving
 from columna_platform.state import AnalyticalIdentity, RetainedStateStore
 
 from conftest import PUBLICATION
 
 
+def _publication():
+    """The publication object, read once per call. Cheap, and the alternative — caching it in a
+    module global — would make two tests share a frame of reference they did not each establish."""
+    pub, _views = serving.open_publication(PUBLICATION)
+    return pub
+
+
 def _constitution():
     """READ FROM THE PUBLICATION (OF-39). The literal that stood here was the COUNT family's."""
-    pub, _views = serving.open_publication(PUBLICATION)
-    return serving.constitution_of(pub, "fam_qv8Ky3mR7bTpZa1LwXcNdg")
+    return serving.constitution_of(_publication(), "fam_qv8Ky3mR7bTpZa1LwXcNdg")
 
 
 def _materialize(family, view, real, store, **kw):
@@ -25,6 +31,7 @@ def _materialize(family, view, real, store, **kw):
         constitution_scheme=kw.pop("scheme", _constitution()[1]),
         currency=kw.pop("currency", "tok-1"),
         store=store,
+        publication_ref=kw.pop("publication_ref", _publication().ref),
     )
 
 
@@ -80,7 +87,12 @@ def test_standing_is_read_off_the_state_not_recomputed(revenue):
     assert held.standing.constitution_scheme == "fcf-1"
     assert held.standing.participation == "every sale point carrying a recorded amount"
     assert held.standing.basis == "the running total"          # C7, projected in
-    assert held.standing.realization.startswith("warehouse:sales.fact_sale.amount/coincident/exact")
+    # OF-57: the realization axis is now the ASSERTION REVISION identity, not a hand-built prose
+    # string. The test's point is unchanged — the standing is READ OFF THE STATE — so it is asserted
+    # against a freshly computed revision for the same claim rather than against a literal, which
+    # would just re-encode the composition in a second place.
+    assert held.standing.realization.startswith(assertion.ASSERTION_SCHEME + ":")
+    assert held.standing.realization == assertion.revision(_publication().ref, real)
     assert held.standing.currency == "tok-1"
 
 
