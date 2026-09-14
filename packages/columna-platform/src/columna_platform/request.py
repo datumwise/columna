@@ -34,6 +34,7 @@ law refusal would tell an operator their question was unlawful when it was merel
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 from columna_core.governed.publication import Family, GovernedPublicationV2
 
@@ -58,6 +59,15 @@ class ResolvedRequest:
     identity: AnalyticalIdentity
     family: Family
     column_name: str
+    #: The DECLARED anchor the ask names, when it is not the family's constitutive one — i.e. this
+    #: request is a MOVEMENT. `None` on every non-moving request.
+    #:
+    #: IDENTITY STAYS AT THE CONSTITUTIVE ANCHOR HERE, deliberately. Resolution establishes what the
+    #: state is OF and where it is constituted; whether the family MAY move to the named target is a
+    #: question of governed authority that resolution cannot answer, because a licence is EXECUTION
+    #: INPUT and this module may use only the statement and the publication. So the target rides
+    #: alongside as a request fact, and the adjudication happens where the licence is.
+    target_anchor: Optional[str] = None
 
 
 #: THE REQUEST VIEW: `anchor name -> its declared coordinate names`, as SETS, for every anchor.
@@ -72,7 +82,7 @@ class ResolvedRequest:
 _declared_anchors = declared_anchor_names
 
 
-def resolve(pub: GovernedPublicationV2, statement) -> ResolvedRequest:
+def resolve(pub: GovernedPublicationV2, statement, *, licences=()) -> ResolvedRequest:
     """Frame-QL request → `AnalyticalIdentity`, or a refusal that says which kind of no it is.
 
     `statement` is whatever `columna_core.envelope.parse_statement` returned. This function reads
@@ -107,9 +117,34 @@ def resolve(pub: GovernedPublicationV2, statement) -> ResolvedRequest:
     declared = _declared_anchors(pub)
     matches = sorted(name for name, components in declared.items() if components == requested)
     if not matches:
+        # NO DECLARED ANCHOR CARRIES THESE COMPONENTS. Before refusing, ask whether a POSITIVE
+        # MOVEMENT LICENCE names a target over exactly them.
+        #
+        # WHY THIS IS NOT "GENERALIZING ANCHOR RESOLUTION". Without a licence nothing changes and
+        # the refusal below is reached unaltered — a coarser component set is not resolvable on its
+        # own, and this profile still invents no anchor. What a licence adds is a NAME, supplied by
+        # the layer that owns the law: `MovementLicence.target_anchor` is the governed target, and
+        # its components were validated against the DECLARED source anchor when the licence was
+        # projected. So the target is named by an authority, not derived from the request.
+        #
+        # AND IT IS THE ONLY WAY THE LICENSED CASE CAN BE EXPRESSED AT ALL. `store` is a component
+        # of `sale_at`, not a declared anchor of its own; a request for it dies here unless
+        # something names it. The alternative — declaring every coarsening as its own anchor — would
+        # put movement targets in the publication, which is the general movement doctrine Proof B
+        # explicitly does not establish.
+        licensed = _licensed_target(licences, family, requested)
+        if licensed is not None:
+            return ResolvedRequest(
+                identity=AnalyticalIdentity(family_id=family.family_id,
+                                            anchor=family.constitutive_anchor),
+                family=family,
+                column_name=statement.series[0].alias or token,
+                target_anchor=licensed,
+            )
         raise WantOfLaw(
-            f"no governed anchor is declared over the components {sorted(requested)}; the "
-            f"publication declares {_spell_anchors(declared)}", subject=family.family_id)
+            f"no governed anchor is declared over the components {sorted(requested)}, and no "
+            f"positive movement licence names a target over them; the publication declares "
+            f"{_spell_anchors(declared)}", subject=family.family_id)
     if len(matches) > 1:                                              # pragma: no cover - see below
         # Two anchors over one component set. The format does not forbid it today, so this profile
         # refuses rather than picking: an arbitrary choice here would bind material state to an
@@ -120,17 +155,54 @@ def resolve(pub: GovernedPublicationV2, statement) -> ResolvedRequest:
             f"choose between two governed anchors", subject=family.family_id)
 
     anchor = matches[0]
-    if anchor != family.constitutive_anchor:
-        raise WantOfLaw(
-            f"{family.canonical_reference!r} is constituted at {family.constitutive_anchor!r} and "
-            f"this asks it at {anchor!r}; moving a family between anchors requires a positive "
-            f"governed movement licence, which this pre-flight carries none of", subject=family.family_id)
+    moving = anchor != family.constitutive_anchor
 
+    # A REQUEST THAT NAMES ANOTHER DECLARED ANCHOR IS A MOVEMENT REQUEST, AND IT RESOLVES.
+    #
+    # It used to refuse here, with "this pre-flight carries none of" a licence — true of a
+    # pre-flight, and wrong as a property of RESOLUTION. Resolution answers *what is being asked
+    # for*; whether the family may be moved there is governed AUTHORITY, and authority arrives as
+    # execution input (the licence) which this module is forbidden to see. Refusing here meant the
+    # licensed case could never be expressed, because the ask died before anything could license it.
+    #
+    # So the identity stays at the CONSTITUTIVE anchor — that is where the state is established —
+    # and the target rides alongside. The refusal has not been weakened, it has MOVED to the one
+    # place that can adjudicate it: an unlicensed movement is still `want_of_law`, raised where the
+    # licence is known to be absent rather than where it is merely unavailable.
     return ResolvedRequest(
-        identity=AnalyticalIdentity(family_id=family.family_id, anchor=anchor),
+        identity=AnalyticalIdentity(
+            family_id=family.family_id,
+            anchor=family.constitutive_anchor if moving else anchor),
         family=family,
         column_name=statement.series[0].alias or token,
+        target_anchor=anchor if moving else None,
     )
+
+
+def _licensed_target(licences, family, requested) -> Optional[str]:
+    """The target anchor a POSITIVE licence names over exactly `requested`, or `None`.
+
+    Three conditions, all required, and each is a refusal this proof already owns:
+
+      · the licence is POSITIVE — standing is a token, never the absence of a negative;
+      · its SOURCE is this family's constitutive anchor — a licence off some other anchor licenses
+        a movement this request is not making;
+      · its TARGET COMPONENTS are exactly what was asked for — not a superset, not a subset. A
+        licence for `{store}` does not answer an ask for `{day}`.
+
+    Ambiguity refuses rather than picking: two licences naming different targets over one component
+    set is a deployment that has said two things, and choosing here would bind a served result to
+    listing order."""
+    named = sorted({lic.target_anchor for lic in licences
+                    if lic.is_positive
+                    and lic.source_anchor == family.constitutive_anchor
+                    and frozenset(lic.target_components) == requested})
+    if len(named) > 1:
+        raise WantOfLaw(
+            f"{len(named)} movement licences name different targets {named} over the components "
+            f"{sorted(requested)}; this profile will not choose between two governed targets",
+            subject=family.family_id)
+    return named[0] if named else None
 
 
 def _spell_anchors(declared: dict) -> str:

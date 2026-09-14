@@ -53,6 +53,7 @@ from columna_core.serving_contract import ColumnResult, FrameResult
 
 from . import admission
 from . import assertion as _assertion
+from . import continuation as _continuation
 from .anchors import declared_coordinate_types
 from . import request as _request
 from . import composite as _composite
@@ -539,7 +540,30 @@ def _finalized_column(name: str, final) -> ColumnResult:
                         disclosure=Disclosure.clean())
 
 
-def plan_result(pub, views: dict, statement) -> FrameResult:
+def _licence_for_request(licences, req) -> Optional[MovementLicence]:
+    """The one licence a deployment supplied for THIS source -> target, or `None`.
+
+    SELECTION IS BY SOURCE AND TARGET ONLY, and the licence is then re-adjudicated in full by
+    `continuation.continue_to` — including its law and its positive standing. Two checks over one
+    fact look redundant and are not: this one answers *did the deployment hand us anything that
+    even claims to be about this movement*, and that one answers *does it license it*. A selector
+    that also checked the law would quietly turn a WRONG-LAW licence into NO licence, and those are
+    different refusals with different remedies.
+
+    Ambiguity refuses rather than picking. Two licences for one source -> target is a deployment
+    that has said two things, and choosing between them here would bind a served result to whichever
+    happened to be listed first."""
+    found = [lic for lic in licences
+             if lic.source_anchor == req.identity.anchor and lic.target_anchor == req.target_anchor]
+    if len(found) > 1:
+        raise WantOfLaw(
+            f"this deployment supplied {len(found)} movement licences for "
+            f"{req.identity.anchor!r} -> {req.target_anchor!r}; this profile will not choose "
+            f"between two", subject=req.family.family_id)
+    return found[0] if found else None
+
+
+def plan_result(pub, views: dict, statement, *, licences=()) -> FrameResult:
     """PRE-FLIGHT. The would-be answer to a Frame-QL request, TOUCHING NO DATA and no retained state.
 
     This is what `check_frame_query` asks for, and the whole of what this slice implements. It reads
@@ -560,7 +584,7 @@ def plan_result(pub, views: dict, statement) -> FrameResult:
         # being carried past resolution and dropped (OF-53).
         _request.require_supported_clauses(statement)
 
-        req = _request.resolve(pub, statement)
+        req = _request.resolve(pub, statement, licences=licences)
 
         view = views.get(req.family.family_id)
         if view is None:
@@ -573,6 +597,19 @@ def plan_result(pub, views: dict, statement) -> FrameResult:
         if c7.standing != ESTABLISHED:
             raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
                             subject=view.canonical_reference)
+
+        # MOVEMENT, ADJUDICATED ON LAW ALONE — which is all a pre-flight may touch. `check` and
+        # `execute` must agree about whether an ask is askable, so the same licence question is
+        # asked here; what this path does NOT do is fold anything, because it consults no state.
+        if req.target_anchor is not None:
+            licence = _licence_for_request(licences, req)
+            if licence is None:
+                raise WantOfLaw(_no_licence_detail(view, req.identity.anchor, req.target_anchor),
+                                subject=view.canonical_reference)
+            _continuation.require_licensed(view, licence,
+                                           source_anchor=req.identity.anchor,
+                                           target_anchor=req.target_anchor,
+                                           subject=view.canonical_reference)
 
         col = ColumnResult(name=req.column_name, expr=statement.series[0].expr, frame=None,
                            disclosure=Disclosure.clean())
@@ -685,7 +722,8 @@ def unsupported_result(statement, detail: str) -> FrameResult:
                        tuple(statement.anchor))
 
 
-def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
+def run_result(pub, views: dict, mapping, bindings, statement, *,
+               licences=()) -> FrameResult:
     """MATERIAL EXECUTION — the `execute_frame_query` capability, for one shape of ask.
 
     THE ORDER IS THE PROPOSITION, and it is the same order the rest of this path already keeps: law
@@ -714,7 +752,7 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         # resolution that ran ahead of the check (OF-53).
         _request.require_supported_clauses(statement)
 
-        req = _request.resolve(pub, statement)
+        req = _request.resolve(pub, statement, licences=licences)
         box["column"] = req.column_name
         column = req.column_name
 
@@ -728,6 +766,30 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         if c7.standing != ESTABLISHED:
             raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
                             subject=view.canonical_reference)
+
+        # ── 2b. MOVEMENT AUTHORITY, ASKED HERE AND NOT LATER ────────────────────────────────────
+        #
+        # ORDERING DEFECT FOUND BY THE PROOF-B CONTROLS, 2026-09-14. `decide_result` already
+        # adjudicates the licence — but it runs at step 7, AFTER material has been fetched. The
+        # unlicensed case was fine by accident (no licence names the target, so resolution refuses
+        # before anything is read), and the WRONG-LAW case was not: a licence claiming MIN over a
+        # SUM family selected cleanly on source+target, materialization ran, and only then did the
+        # law refuse. One real warehouse read, to answer a question that needed no data at all.
+        #
+        # This is the same "law first" discipline the step list above already declares, applied to
+        # the one step that had escaped it. `decide_result` still re-checks: that is not redundant,
+        # it is the executing path re-asking at the point of use, and it is the same function.
+        movement_licence_for_request = None
+        if req.target_anchor is not None:
+            movement_licence_for_request = _licence_for_request(licences, req)
+            if movement_licence_for_request is None:
+                raise WantOfLaw(
+                    _no_licence_detail(view, req.identity.anchor, req.target_anchor),
+                    subject=view.canonical_reference)
+            _continuation.require_licensed(
+                view, movement_licence_for_request,
+                source_anchor=req.identity.anchor, target_anchor=req.target_anchor,
+                subject=view.canonical_reference)
 
         # ── 3. the claim, still touching nothing ────────────────────────────────────────────────
         realization = realize(mapping, req.family.family_id)
@@ -785,8 +847,16 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
             raise UnsupportedByThisProfile(
                 f"formation kind {kind!r} is not one this profile executes")
 
-        # ── 7. serve ────────────────────────────────────────────────────────────────────────────
-        return decide_result(view, store, req.identity, column=column)
+        # ── 7. serve, moving first if the request named another declared anchor ─────────────
+        #
+        # The licence is selected here and adjudicated by `decide_result` / `continue_to`. Note the
+        # ORDER this preserves: the state has been established at the CONSTITUTIVE anchor by the
+        # steps above, exactly as a non-moving request would, and the movement is a governed act
+        # performed on that state. Nothing about materialization changes because the ask was
+        # coarser — in particular, no second fetch.
+        return decide_result(view, store, req.identity, column=column,
+                             at_anchor=req.target_anchor,
+                             licence=movement_licence_for_request)
 
     return _translated(statement, _produce)
 
