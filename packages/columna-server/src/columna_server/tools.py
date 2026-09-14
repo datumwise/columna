@@ -340,6 +340,8 @@ def describe_manifold(store: ManifoldStore, manifold_id: str, version: Optional[
 def describe_measure(store: ManifoldStore, manifold_id: str, measure: str,
                      version: Optional[str] = None) -> dict:
     lm, ref = _resolve(store, manifold_id, version)
+    if lm.manifold is None:
+        return _governed_describe_measure(lm, manifold_id, measure, ref)
     m = _legacy_model(lm)
     mc = m.measures.get(measure)
     if mc is None:
@@ -373,6 +375,77 @@ def describe_measure(store: ManifoldStore, manifold_id: str, measure: str,
         "v_anchor": {"universe": mc.universe, "grain": base_grain},   # structured, ruling C
         "m_anchor": {"mechanism": mc.missingness, "columns": sorted(mc.m_anchor)},
         "provenance": {"measure": _PROVENANCE.get(mc.evidence, mc.evidence)},
+    }, manifold_id, ref)
+
+
+def _governed_publication(lm):
+    """The v2 publication, read by V2'S OWN READER from the artifact this unit was loaded from.
+
+    NOT a second name→family map. `GovernedPublicationV2.resolve_reference` already owns the rule —
+    canonical reference or declared alias, one direction, at most one family, with ambiguity refused
+    at parse time — and reimplementing that lookup over the plain-data projection would be a second
+    enumeration of a contract this server does not own. The store carries the path so this can read
+    the artifact rather than reconstruct a governed object out of its own projection."""
+    import json as _json
+
+    from columna_core.governed.publication import parse_publication
+    with open(lm.publication_path, encoding="utf-8") as f:
+        return parse_publication(_json.load(f))
+
+
+def _governed_describe_measure(lm, manifold_id: str, measure: str, ref) -> dict:
+    """`describe_measure` for a successor-native unit — governed facts only, and NOTHING ELSE.
+
+    THE OMISSION RULE (ruled Huayin, 2026-09-14), which is the whole design of this function:
+
+        True structural emptiness may be represented as empty. A fact belonging to another
+        jurisdiction, and not established for this object, must be OMITTED rather than represented
+        by a domain-significant empty or default value.
+
+    So three fields are empty and three are absent, and the difference is not stylistic:
+
+      EMPTY, because it is TRUE.  `family.members`, `member_anchors`, `signatures` — a governed
+      family HAS no members (the same relation `reducers: []` already denies), so an empty member
+      structure is an accurate statement about it. The per-member provider facts never arise:
+      `operators()` is not called, not refused — with no members there is nothing to look up.
+
+      ABSENT, because a DEFAULT WOULD ASSERT SOMETHING NOBODY DECLARED.
+        · `dtype` — governed `value_domain` and execution-representation dtype are different facts
+          and neither substitutes for the other. Mapping `decimal` onto a substrate dtype name would
+          invent a correspondence the publication never made.
+        · `m_anchor` — `mechanism` is DERIVED: an empty M-anchor yields `"MCAR"`. Emitting the block
+          would publish MISSING-COMPLETELY-AT-RANDOM, a real statistical claim, out of nothing. C5
+          participation and C9 exceptional cases are neighbouring facts in another register and are
+          not substitutes.
+        · `provenance` — ratification and constitution authority say WHO RATIFIED THIS LAW; an
+          evidence grade says WHETHER THE DATA BEARS IT OUT. The block's only field was the grade,
+          so the block goes with it rather than standing empty.
+
+    `description` is `""` per the ratified target/description distinction: C1 is identity-bearing
+    governed constitution and does not travel in a folklore field."""
+    pub = _governed_publication(lm)
+    family = pub.resolve_reference(measure)
+    if family is None:
+        raise ToolInputError(
+            f"unknown measure '{measure}' in manifold '{manifold_id}' "
+            f"(have {sorted(f.canonical_reference for f in pub.families)})")
+
+    components = {d.name: sorted({c["name"] for c in (d.body or {}).get("components") or []
+                                  if isinstance(c, dict) and c.get("name")})
+                  for d in pub.of_kind("anchor")}
+
+    return _disclose({
+        "contract_version": CONTRACT_VERSION, "manifold_id": manifold_id,
+        "measure": measure,
+        "description": _governed_description_is_absent(),
+        "universe": family.universe,
+        # no members in v2 — and therefore no member-keyed provider facts to look up
+        "family": {"root": family.canonical_reference, "members": [], "reducer_kind": {}},
+        "member_anchors": {},
+        "signatures": {},
+        "v_anchor": {"universe": family.universe,
+                     "grain": components.get(family.constitutive_anchor, [])},
+        # dtype · m_anchor · provenance — DELIBERATELY ABSENT, see this function's docstring
     }, manifold_id, ref)
 
 
