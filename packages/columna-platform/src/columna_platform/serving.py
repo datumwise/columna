@@ -549,7 +549,12 @@ def plan_result(pub, views: dict, statement) -> FrameResult:
 
     The column carries `frame=None`, exactly as Core's own `Planner.plan` does: a planned column has
     no data by construction, and the wire already understands that shape."""
-    try:
+    def _produce(box):
+        # STEP 0 — the request surface itself, before anything is resolved. A clause this profile
+        # does not implement is answered as a capability limit here, at zero cost, rather than
+        # being carried past resolution and dropped (OF-53).
+        _request.require_supported_clauses(statement)
+
         req = _request.resolve(pub, statement)
 
         view = views.get(req.family.family_id)
@@ -568,19 +573,10 @@ def plan_result(pub, views: dict, statement) -> FrameResult:
                            disclosure=Disclosure.clean())
         return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
 
-    except RealizationContradictsLaw as c:
-        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed
-        # and there is no finding about the data to report. Caught before the governed
-        # handler and never allowed to fall through to it.
-        return FrameResult(None, Disclosure.clean(),
-                           [_contradiction_column(_planned_name(statement), str(c))],
-                           tuple(statement.anchor))
-    except ProofRefusal as r:
-        # Governed defects only. `UnsupportedByThisProfile` is NOT caught here: a capability limit is
-        # not a governed verdict, and dressing it as one is the specific dishonesty §7 forbids.
-        reason, alts = _classify(r)
-        col = _refusal_column(_planned_name(statement), reason, str(r), alts)
-        return FrameResult(None, Disclosure.clean(), [col], tuple(statement.anchor))
+    # The planning path deliberately does NOT sharpen `box["column"]` after resolution: its refusal
+    # columns have always been named by `_planned_name`, and this repair changes no served or
+    # refused shape that already worked.
+    return _translated(statement, _produce)
 
 
 #: The wire reason for a PROFILE CAPABILITY LIMIT (ruled Huayin, 2026-09-14). Already registered —
@@ -630,6 +626,53 @@ def _contradiction_column(name: str, detail: str) -> ColumnResult:
     )
 
 
+def _translated(statement, produce):
+    """THE ONE PLACE THE FAILURE-TO-WIRE-REASON TABLE LIVES (OF-55).
+
+    Both successor entry points — `plan_result` and `run_result` — must translate the same three
+    escapes into the same three wire shapes, and they must never cross:
+
+        UnsupportedByThisProfile  -> `unsupported`, an ERROR and a CAPABILITY limit
+        RealizationContradictsLaw -> a contradiction column; nothing executed, no finding about data
+        ProofRefusal              -> a classified governed refusal
+
+    THEY DID NOT. `run_result` caught all three; `plan_result` caught two, so a capability limit
+    raised during planning escaped `check_frame_query` as a transport-level error while
+    `execute_frame_query` answered the identical statement with a clean `unsupported` wire. That is
+    precisely the outcome the 2026-09-14 narrowing of `UnsupportedByThisProfile` was written to
+    prevent: "an exception escaping past the server is not an answer either." The narrowing was
+    applied to one of the two parallel handlers.
+
+    So the table is hoisted here rather than copied a third time. A new entry point INHERITS the
+    contract — including the rule that a capability limit may never borrow a governed reason and a
+    governed refusal may never borrow the capability reason — instead of restating it and getting
+    one clause of it wrong.
+
+    `produce` receives a mutable `box` whose `column` it may sharpen once the request resolves; a
+    caller that never sharpens it keeps `_planned_name`, which is what the planning path did before
+    and still does.
+    """
+    box = {"column": _planned_name(statement)}
+    try:
+        return produce(box)
+    except UnsupportedByThisProfile as u:
+        # A CAPABILITY LIMIT, NOT A VERDICT. Never allowed to fall through to the governed handler
+        # below and borrow a jurisdiction.
+        return FrameResult(None, Disclosure.clean(), [_unsupported_column(box["column"], str(u))],
+                           tuple(statement.anchor))
+    except RealizationContradictsLaw as c:
+        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed and there is
+        # no finding about the data to report.
+        return FrameResult(None, Disclosure.clean(), [_contradiction_column(box["column"], str(c))],
+                           tuple(statement.anchor))
+    except ProofRefusal as r:
+        # Governed defects only.
+        reason, alts = _classify(r)
+        return FrameResult(None, Disclosure.clean(),
+                           [_refusal_column(box["column"], reason, str(r), alts)],
+                           tuple(statement.anchor))
+
+
 def unsupported_result(statement, detail: str) -> FrameResult:
     """A capability limit as a whole neutral result — for the cases that never reach `run_result`."""
     return FrameResult(None, Disclosure.clean(),
@@ -660,9 +703,14 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
     stale state because it cannot serve a state it did not just constitute, and the honest cost is
     that it re-reads material every time. Persistence is a later proof and is gated on the identity
     and reuse-key questions the register still carries."""
-    column = _planned_name(statement)
-    try:
+    def _produce(box):
+        # STEP 0 — the request surface itself. Ordered ahead of `resolve` on purpose: a clause this
+        # profile does not implement must cost ZERO fetches and must not be discarded by a partial
+        # resolution that ran ahead of the check (OF-53).
+        _request.require_supported_clauses(statement)
+
         req = _request.resolve(pub, statement)
+        box["column"] = req.column_name
         column = req.column_name
 
         view = views.get(req.family.family_id)
@@ -735,22 +783,7 @@ def run_result(pub, views: dict, mapping, bindings, statement) -> FrameResult:
         # ── 7. serve ────────────────────────────────────────────────────────────────────────────
         return decide_result(view, store, req.identity, column=column)
 
-    except UnsupportedByThisProfile as u:
-        # A CAPABILITY LIMIT, NOT A VERDICT. Caught separately and translated to `unsupported`; it is
-        # never allowed to fall through to the governed handler below and borrow a jurisdiction.
-        return FrameResult(None, Disclosure.clean(), [_unsupported_column(column, str(u))],
-                           tuple(statement.anchor))
-    except RealizationContradictsLaw as c:
-        # NOT A GOVERNED VERDICT. The two artifacts disagree, so nothing was executed
-        # and there is no finding about the data to report. Caught before the governed
-        # handler and never allowed to fall through to it.
-        return FrameResult(None, Disclosure.clean(), [_contradiction_column(column, str(c))],
-                           tuple(statement.anchor))
-    except ProofRefusal as r:
-        reason, alts = _classify(r)
-        return FrameResult(None, Disclosure.clean(),
-                           [_refusal_column(column, reason, str(r), alts)],
-                           tuple(statement.anchor))
+    return _translated(statement, _produce)
 
 
 def _planned_name(statement) -> str:
