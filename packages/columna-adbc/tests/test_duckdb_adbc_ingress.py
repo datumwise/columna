@@ -395,3 +395,242 @@ def _clean_env():
         str(REPO / "packages/columna-platform/src"),
     ])
     return env
+
+
+# ══ 7 · ingress hardening — three controls over the mechanism already present ══════════════════
+#
+# These close proof gaps in the slice above. They add no architecture: no predicate crosses, no
+# second driver, no streaming contract, no new absence policy. Each one exercises a rule or a
+# mechanism that ALREADY SHIPPED and had never been run through the real driver.
+
+
+def _evil_endpoints(schema=None, table=None, store=None, day=None, value=None):
+    """Repoint every realization endpoint in the mapping at the adversarially-named object.
+
+    The realization is the ONLY thing that says which physical object is meant, so this is the
+    honest way to pose the question: a deployment whose warehouse really does contain an identifier
+    with a quote in it is not misconfigured, it is ordinary."""
+    def mutate(doc):
+        for r in doc["realizations"]:
+            e = r.get("endpoint")
+            if not e:
+                continue
+            if schema is not None:
+                e["schema"] = schema
+            if table is not None:
+                e["table"] = table
+            if e.get("column") == LH.STORE_COLUMN and store is not None:
+                e["column"] = store
+            elif e.get("column") == LH.DAY_COLUMN and day is not None:
+                e["column"] = day
+            elif e.get("column") == LH.VALUE_COLUMN and value is not None:
+                e["column"] = value
+    return mutate
+
+
+# ── control 1 · an absent VALUE, through the real driver ───────────────────────────────────────
+
+def test_a_null_value_in_an_admissible_carrier_is_delivered_and_refused_as_want_of_law(tmp_path):
+    """THE ABSENCE CONTROL, ON THE REAL PATH. The carrier is `decimal128(18,4)` — admissible by
+    TYPE, inside CAP v1's envelope, nothing lossy anywhere. The ONLY thing wrong with it is that one
+    observation is absent, and the family's C9 carries `empty_fiber` (a CONTINUATION entailment)
+    rather than a rule about absent observations.
+
+    This exercises the shipped rule; it does not create an absence policy. The jurisdiction is the
+    load-bearing part: `want_of_law`, not `want_of_state`. Nothing about the MATERIAL is deficient
+    — the driver did its job perfectly — so the deficiency cannot be a want of state. What is
+    missing is a LAW saying what an absent observation denotes, and admission refuses rather than
+    borrowing the empty-fiber theorem to answer a question it was not asked."""
+    src = _source(tmp_path, null_value=True)
+    m = src.fetch(schema="sales", table="fact_sale", columns=["amount"])
+
+    # ADBC and Arrow delivered it, and the decimal type survived the absence.
+    assert str(m.table.schema.field("amount").type) == "decimal128(18, 4)"
+    assert m.table.column("amount").null_count == 1
+    assert m.table.num_rows == 4
+
+    wire, _ = _run(tmp_path, source=src)
+    assert wire["outcome"] != "serve"
+    assert _no_result(wire)["reason"] == "want_of_law"
+    detail = _no_result(wire)["detail"]
+    assert "absent observation" in detail
+    assert "EMPTY FIBER" in detail
+
+
+def test_the_absent_value_is_read_as_neither_zero_nor_an_empty_fiber(tmp_path):
+    """THE SUBSTITUTION THAT MUST NOT HAPPEN, ASSERTED BY ITS ARITHMETIC FOOTPRINT.
+
+    Both wrong readings are numerically visible and both are visible in the SAME place. Reading the
+    NULL as zero leaves west's total at `3.7037`; folding it as an empty fiber under SUM's identity
+    leaves west's total at `3.7037` too. So `3.7037` appearing anywhere on this wire means one of
+    the two substitutions happened — and it is exactly the value west WOULD legitimately carry if
+    the row were simply absent from the source, which is what makes it the right thing to look for
+    rather than a made-up sentinel."""
+    wire, _ = _run(tmp_path, source=_source(tmp_path, null_value=True))
+    assert wire["columns"][0].get("values") in (None, [])
+    assert "3.7037" not in _text(wire)
+    assert "0.0000" not in _text(wire)
+
+
+def test_the_same_fixture_with_the_value_present_serves(tmp_path):
+    """THE PAIRED POSITIVE. The absence is the only difference between this and the refusal above,
+    so the refusal cannot be blamed on the fixture."""
+    wire, _ = _run(tmp_path, source=_source(tmp_path, null_value=False))
+    assert wire["outcome"] == "serve"
+    assert {(r["store"], str(r["day"]), str(r["value"]))
+            for r in wire["columns"][0]["values"]} == EXPECTED
+
+
+# ── control 2 · adversarial quoted identifiers ─────────────────────────────────────────────────
+
+def test_an_embedded_quote_is_doubled_in_every_generated_identifier(tmp_path):
+    """The escape, at the only place that emits SQL."""
+    sql = projection_sql(LH.EVIL_SCHEMA, LH.EVIL_TABLE, [LH.EVIL_STORE_COLUMN])
+    assert sql == 'SELECT "store""code" FROM "sa""les"."fact""sale"'
+    assert sql.count("SELECT") == 1
+    assert ";" not in sql
+
+
+def test_an_injecting_column_identifier_reads_the_realization_s_object(tmp_path):
+    """THE INJECTION CONTROL. The realization names a column literally called
+
+        amount" FROM sales.decoy --
+
+    which, spelled into SQL unescaped, closes the quoted identifier, re-points the FROM at a second
+    object and comments out the remainder. The database contains that second object, carrying the
+    governed column names and a value (`999.0000`) that appears in no governed row.
+
+    WHAT THE MUTATION ACTUALLY SHOWED, RECORDED BECAUSE IT IS NOT WHAT THIS TEST FIRST CLAIMED.
+    Neutering `_quote` to stop doubling makes this test fail with `refuse`, NOT with the decoy's
+    value served. The injected query does read `sales.decoy` — `test_that_identifier_spelled_
+    unescaped_would_have_read_the_decoy` runs that exact SQL and gets the decoy row back — but the
+    adapter then finds that the object it read has no column named `amount" FROM sales.decoy --`,
+    and its standing refusal to shorten a projection turns the injection into a governed refusal.
+
+    So there are TWO independent barriers and they do different jobs: the escape makes the governed
+    case SERVE CORRECTLY; the projection-honouring check makes a broken escape FAIL LOUDLY instead
+    of serving a stranger's rows. The second is not a substitute for the first — a payload naming an
+    object that happens to carry the requested column names would pass it — and this test asserts
+    the first. The docstring said "serves the wrong material confidently" until the mutation was
+    actually run; it did not, and the claim is corrected rather than quietly dropped."""
+    src = _source(tmp_path, value_column=LH.EVIL_VALUE_COLUMN, decoy=True)
+    wire, _ = _run(tmp_path, source=src,
+                   mutate=_evil_endpoints(value=LH.EVIL_VALUE_COLUMN))
+
+    assert wire["outcome"] == "serve"
+    assert {(r["store"], str(r["day"]), str(r["value"]))
+            for r in wire["columns"][0]["values"]} == EXPECTED
+    assert LH.DECOY_VALUE not in _text(wire)
+    assert "decoy" not in _text(wire)
+
+    # ONE object was read, and it is the one the realization named.
+    assert len(src.fetches) == 1
+    (_schema, _table, _cols, sql), = src.fetches
+    assert _table == LH.TABLE
+
+    # WHY THIS IS ASSERTED STRUCTURALLY AND NOT BY COUNTING KEYWORDS. The first draft of this test
+    # asserted `sql.count(" FROM ") == 1` and FAILED — correctly. The payload contains the text
+    # ` FROM ` as DATA inside a quoted identifier, so the generated SQL legitimately contains it
+    # twice while naming exactly one object. Counting keywords in raw SQL cannot tell syntax from
+    # data, which is the same confusion the escape exists to prevent; a guard written that way
+    # would fire on safe input and would miss a payload spelled without the word. So: the payload
+    # must appear ONLY in its doubled form, and never in the form that would close the identifier.
+    assert f'"{LH.EVIL_VALUE_COLUMN.replace(chr(34), chr(34) * 2)}"' in sql
+    assert '"amount" FROM sales.decoy' not in sql
+    assert sql.endswith('FROM "sales"."fact_sale"')
+    assert ";" not in sql
+
+
+def test_that_identifier_spelled_unescaped_would_have_read_the_decoy(tmp_path):
+    """THE MUTATION CONTROL — the test above proves nothing unless this one can fail.
+
+    The same database, the same identifier, the escape NEUTERED: the query succeeds and returns the
+    decoy's row. So the assertion above is load-bearing rather than incidentally true, and the
+    hazard being guarded is real on this driver and not theoretical."""
+    import duckdb
+
+    path = LH.build(tmp_path, value_column=LH.EVIL_VALUE_COLUMN, decoy=True)
+    unescaped = (f'SELECT "{LH.DAY_COLUMN}", "{LH.STORE_COLUMN}", "{LH.EVIL_VALUE_COLUMN}" '
+                 f'FROM "{LH.SCHEMA}"."{LH.TABLE}"')
+    con = duckdb.connect(path)
+    try:
+        got = con.execute(unescaped).fetchall()
+    finally:
+        con.close()
+
+    assert got == [(__import__("datetime").date(1999, 12, 31), "decoy-store",
+                    Decimal(LH.DECOY_VALUE))]
+
+
+def test_adversarial_schema_table_and_coordinate_identifiers_serve_the_governed_case(tmp_path):
+    """Quotes in the SCHEMA, the TABLE and both coordinate columns at once. An ordinary warehouse
+    with awkward names is not a degraded deployment and must not become one."""
+    src = _source(tmp_path, schema=LH.EVIL_SCHEMA, table=LH.EVIL_TABLE,
+                  store_column=LH.EVIL_STORE_COLUMN, day_column=LH.EVIL_DAY_COLUMN,
+                  value_column=LH.EVIL_VALUE_COLUMN)
+    wire, _ = _run(tmp_path, source=src,
+                   mutate=_evil_endpoints(schema=LH.EVIL_SCHEMA, table=LH.EVIL_TABLE,
+                                          store=LH.EVIL_STORE_COLUMN, day=LH.EVIL_DAY_COLUMN,
+                                          value=LH.EVIL_VALUE_COLUMN))
+    assert wire["outcome"] == "serve"
+    assert {(r["store"], str(r["day"]), str(r["value"]))
+            for r in wire["columns"][0]["values"]} == EXPECTED
+
+
+def test_no_adversarial_physical_identifier_reaches_the_public_wire(tmp_path):
+    """The rename holds for hostile names too — including the injection payload, which would be the
+    most quotable thing on the wire if any physical spelling leaked."""
+    src = _source(tmp_path, schema=LH.EVIL_SCHEMA, table=LH.EVIL_TABLE,
+                  store_column=LH.EVIL_STORE_COLUMN, day_column=LH.EVIL_DAY_COLUMN,
+                  value_column=LH.EVIL_VALUE_COLUMN)
+    wire, _ = _run(tmp_path, source=src,
+                   mutate=_evil_endpoints(schema=LH.EVIL_SCHEMA, table=LH.EVIL_TABLE,
+                                          store=LH.EVIL_STORE_COLUMN, day=LH.EVIL_DAY_COLUMN,
+                                          value=LH.EVIL_VALUE_COLUMN))
+    payload = _text(wire)
+    for physical in (LH.EVIL_SCHEMA, LH.EVIL_TABLE, LH.EVIL_STORE_COLUMN,
+                     LH.EVIL_DAY_COLUMN, LH.EVIL_VALUE_COLUMN, "sales.decoy", "--"):
+        assert physical not in payload, physical
+
+
+# ── control 3 · a naturally multi-batch result ─────────────────────────────────────────────────
+
+WIDE_DAYS = 3000
+
+
+def test_a_multi_batch_result_is_discharged_into_one_table_carrying_all_material(tmp_path):
+    """THE BATCH-MECHANICS CONTROL, and nothing more than that.
+
+    3000 distinct days is simply more material than one Arrow record batch holds on this driver —
+    no streaming API, no adapter argument, no contract change; the volume alone produces the
+    condition. `fetch` promises ONE materialized `pa.Table` read to completion, and this is where
+    that promise is measured rather than read.
+
+    `num_chunks > 1` is asserted FIRST and deliberately: without it the test would pass trivially on
+    a single-batch result and prove nothing about batches at all. If a future driver stops chunking
+    here, this assertion fails loudly and says the control has stopped controlling — which is the
+    correct outcome, not a nuisance."""
+    src = DuckDbAdbcSource(path=LH.build_wide(tmp_path, days=WIDE_DAYS), name="wide-warehouse")
+    m = src.fetch(schema=LH.SCHEMA, table=LH.TABLE,
+                  columns=[LH.STORE_COLUMN, LH.DAY_COLUMN, LH.VALUE_COLUMN])
+
+    assert m.table.column(LH.VALUE_COLUMN).num_chunks > 1      # the condition under test exists
+    assert isinstance(m.table, pa.Table)                       # one table, not a consumed-once reader
+    assert m.table.num_rows == WIDE_DAYS                       # every batch, not just the first
+    assert m.table.column(LH.VALUE_COLUMN).null_count == 0
+
+
+def test_admission_and_execution_see_the_whole_multi_batch_carrier(tmp_path):
+    """The other half: a chunked arrival is not merely materialized, it is ADMITTED and SERVED whole.
+
+    The sum is the instrument. 1+2+...+3000 = 4_501_500, and dropping any batch — the classic
+    first-chunk-only defect — changes it. A row count alone would not: a path that measured 3000
+    rows and folded only the first batch would pass a count assertion and fail this one."""
+    src = DuckDbAdbcSource(path=LH.build_wide(tmp_path, days=WIDE_DAYS), name="wide-warehouse")
+    wire, _ = _run(tmp_path, source=src)
+
+    assert wire["outcome"] == "serve"
+    rows = wire["columns"][0]["values"]
+    assert len(rows) == WIDE_DAYS
+    assert sum(r["value"] for r in rows) == Decimal(WIDE_DAYS * (WIDE_DAYS + 1) // 2)
+    assert all(r["store"] == "east" for r in rows)
