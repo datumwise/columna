@@ -1,8 +1,10 @@
 # Source-adapter contract — v1 — **CANDIDATE**
 
-**Status:** candidate, 2026-09-14. **Not ratified, and nothing below is implemented.** Prepared on
-instruction (Huayin, 2026-09-14) as deliverables **5** (adapter Protocol), **6** (package boundary)
-and **7** (first driver) of eight, ahead of any ADBC coding.
+**Status:** **APPROVED** (Huayin, 2026-09-14) with one adjustment and a set of explicit caveats,
+amended the same day and returned for final ratification. **Nothing below is implemented**, and
+implementation is gated: the pre-ingress conformance repair (continuation-operator checks in K0v2 and
+Platform; coordinate type/nullity admission) must be green and merged **before** `columna-adbc` is
+written.
 
 **All names in this document are provisional**, per the approval of the conceptual interface.
 
@@ -40,7 +42,10 @@ class Material:
     #: the projected columns, in Arrow, with the PHYSICAL column names the request asked for
     table: pa.Table
 
-    #: OPAQUE COMPARABLE DATA-STATE IDENTITY, or None.
+    #: OPAQUE COMPARABLE DATA-STATE IDENTITY, or None. ADDED IN V1 BY RULING (2026-09-14).
+    #: WHY IT RIDES ON THE RETURN VALUE AND IS NOT A SECOND CALL: the token belongs to the SAME
+    #: material observation as the carrier beside it. A separate `data_state()` call could observe a
+    #: DIFFERENT state, and the pair would then describe two moments while looking like one.
     #: None is not "fresh" and not "unknown-but-fine" -- it CLOSES REUSE (see section 6).
     #: Platform never interprets, parses, orders or derives meaning from this value. It compares it
     #: for equality with another token from the same adapter, and does nothing else with it.
@@ -59,6 +64,18 @@ class MaterialSource(Protocol):
 
         `columns` is the complete projection: the anchor's component columns and the family's value
         column, in one request. An implementation MUST NOT return columns that were not asked for.
+
+        A MISSING REQUESTED COLUMN OR OBJECT IS A REFUSAL (ruled 2026-09-14). An adapter must NOT
+        silently return a shorter projection: a caller that asked for three columns and received two
+        would be holding a carrier whose coordinates are quietly incomplete, and CAP's coordinate
+        name check would then refuse it for the wrong reason, naming the anchor rather than the
+        source.
+
+        `table` IS A FULLY MATERIALIZED `pa.Table`, never a `RecordBatchReader` (ruled 2026-09-14).
+        The adapter MAY consume a reader internally -- duckdb's native `.arrow()` returns one, and
+        that API hazard is measured (study [E1]: it produced fifteen ERROR rows) -- but it must
+        DISCHARGE that hazard before handing material to Platform. A consumed-once object must not
+        reach the admission path.
         """
 
 
@@ -117,7 +134,7 @@ than as a governed refusal. Unchanged.
 
 ## 5. Currency
 
-Approved and recorded:
+**Ruled 2026-09-14: add the optional `data_state` slot now.** Semantics deliberately minimal:
 
 - **no token → `Standing.currency = None`, and reuse is closed.** Already the shipped behaviour and
   already tested.
@@ -190,7 +207,7 @@ Rules:
 
 ---
 
-## 8. First driver — **DuckDB-ADBC, confirmed, with one caveat that needs a decision**
+## 8. First driver — **DuckDB-ADBC, ACCEPTED for the first bounded ingress slice, with caveats**
 
 ### 8.1 Why not SQLite-ADBC, though it is better measured
 
@@ -233,46 +250,72 @@ Confirmed by `cap_v1_evidence/run_cap_v1_ingress.txt`: `adbc_driver_duckdb.dbapi
 same run confirms every shape CAP v1 refuses is **actually emitted by this driver**, so the refusals
 are load-bearing rather than decorative.
 
-### 8.3 The caveat, which is a decision and not a blocker
+### 8.3 The caveat, recorded — it is a known risk, not a blocker
 
 **A vendored, undistributed sub-package has no independent version and no deprecation channel of its
 own.** `adbc_driver_duckdb` moves with `duckdb` and cannot be pinned, constrained, or audited
 separately. That is a weaker supply-chain guarantee than a real distribution, and it should be
 recorded as a known risk rather than discovered later.
 
-Mitigations, in the order they are worth taking:
+Mitigations — all three are ruled into §8.4's binding requirements:
 
 1. **Pin `duckdb` exactly** in `columna-adbc`, not with a range — the ADBC entrypoint is not part of
    any published compatibility promise we can cite.
 2. **Assert at adapter construction** that `adbc_driver_duckdb.driver_path()` resolves, and refuse as a
    capability limit if it does not — so a dependency bump that drops the vendored package is a named
    refusal at startup, not an obscure failure at first fetch.
-3. **Keep the fallback known**: `adbc_driver_manager` can load the same `.so` by absolute path (what
-   probes 1 and 2 do). It works and is not pinnable, which is why it is a fallback and not the plan.
+3. **Never restate the risk as an absolute path.** `adbc_driver_manager` *can* load the same `.so`
+   directly, and that is what probes 1 and 2 do — but **the adapter must not**, and §8.4 makes that
+   binding. A hard-coded `.so` path trades a versioning risk for a silent portability failure and
+   removes the very signal mitigation 2 exists to raise: a missing vendored package would stop being
+   detectable at all. Recorded here as the road **not** taken, so nobody takes it later reasoning that
+   it "worked in the probe".
 
-> **The instruction was:** *"Before implementation, confirm the reproducible DuckDB-ADBC driver
-> package/version available to the adapter package. If that cannot be established cleanly, stop rather
-> than substitute a different driver silently."* **The judgement offered: it IS established cleanly —
-> a pinnable `duckdb==1.5.5` + `adbc-driver-manager==1.12.0`, confirmed running end to end — but the
-> "package" is a vendored sub-package rather than a distribution, which is not what "confirm the
-> driver package" would normally return.** That difference is surfaced rather than smoothed over,
-> because it is the kind of fact that is cheap to accept now and expensive to discover in a year.
-> **Not proceeding on it without a ruling.**
+### 8.4 RULED 2026-09-14 — accepted, and the record that must be stated accurately
+
+**Accept the vendored DuckDB ADBC surface for the first bounded ingress slice, with explicit
+caveats.** The record, stated as ruled:
+
+- **there is no independent `adbc-driver-duckdb` distribution;**
+- **the `duckdb==1.5.5` wheel vendors `adbc_driver_duckdb`;**
+- **the ADBC surface resolves to the DuckDB shared library;**
+- **therefore its version is governed by the pinned DuckDB package, not by an independently versioned
+  driver package;**
+- **`adbc-driver-manager==1.12.0` is separately pinned.**
+
+**Why this is acceptable for a first ingress:** *the crossing under test is **ADBC API → Arrow**, even
+though the underlying engine library is the same DuckDB binary used by the native API.* So
+`duckdb-native` and `duckdb-adbc` stay distinct **as crossings, not as binaries** — which is exactly
+the pair of statements §8.2 insists must both be true.
+
+**Binding requirements on the adapter:**
+
+| | requirement |
+|---|---|
+| **fail closed** | if the expected vendored ADBC surface or driver path is unavailable, the adapter **refuses at construction** as a capability limit. A dependency bump that drops the vendored package becomes a named refusal at startup, not an obscure failure at first fetch. |
+| **no absolute path** | **do not hard-code an absolute `.so` path.** Resolution goes through `adbc_driver_duckdb.driver_path()` / `importlib.util.find_spec`, never through a `DUCK_LIB`-style constant. This is the one thing probes 1 and 2 did that must not be carried into the adapter. |
+| **no false version claim** | **do not claim an independent DuckDB-ADBC driver version.** Anything that reports a driver version must report it as *"the ADBC surface vendored by `duckdb==<pin>`"*. |
+| **exact pin** | `duckdb` pinned exactly, not as a range — the ADBC entrypoint is not part of any published compatibility promise we can cite. |
+
+**SQLite-ADBC remains useful later as a source-loss negative control**, and is not a candidate for the
+positive path (§8.1).
 
 ---
 
-## 9. Open, for ratification
+## 9. Ruled, 2026-09-14
 
-1. **8.3** — accept DuckDB-ADBC on a vendored, unversioned sub-package with the three mitigations, or
-   treat "no independent distribution" as failing *"established cleanly"*?
-2. **`Material.data_state`** — define the return slot in v1 while Platform continues to record `None`
-   (recommended), or leave `fetch` returning a bare `pa.Table` until currency is ruled?
-3. **Does `fetch` refuse, or return short, when a requested column is absent?** Recommendation:
-   refuse, as `WantOfState`, naming the object and the columns it does have — matching shipped
-   `InMemoryArrowSource` behaviour exactly.
-4. **Batching / streaming.** `fetch` returns a materialized `pa.Table`. A `RecordBatchReader` return
-   would stream, and `duckdb`'s native `.arrow()` already returns one (study `[E1]`). Recommendation:
-   **`pa.Table` in v1** — CAP's coincident-multiplicity check (C5) needs the whole carrier anyway, so
-   streaming would buy nothing and would add a consumed-once object to the admission path.
-5. **Package naming** — `columna-adbc` is provisional. Confirm as a working name, or park the naming
-   question explicitly so it is not settled by inertia.
+| | ruling |
+|---|---|
+| **Return shape** | `fetch(...)` returns a small **material envelope**, not a naked table: `Material{table: pa.Table, data_state: str \| None}`. The token belongs to the **same material observation** as the carrier — a separate `data_state()` call could observe a different state. Exact class/name provisional. (§2) |
+| **No whole-object read** | Confirmed — there is no such method. (§2) |
+| **Missing column / object** | **Refuse.** Do not silently return a shorter projection. (§2) |
+| **Materialization** | `pa.Table`, **not** a `RecordBatchReader`. The adapter may consume a reader internally but must **discharge that API hazard** before handing material to Platform. (§2) |
+| **Currency** | Add the `data_state` slot now. `None` → `Standing.currency = None`, reuse closed; an opaque token travels verbatim for future equality comparison; **token equality does not mean current/fresh**; freshness remains an unresolved jurisdiction. **Do not persist or reuse state yet.** (§5) |
+| **OF-42 boundary** | One governed-family execution must be satisfiable from **one material object** after realization binding; coordinates and value resolve to the same `connection`/`schema`/`table`; otherwise capability `unsupported`. **No joins.** (§6) |
+| **Package placement** | Separate package, working name `packages/columna-adbc`, **provisional and not a product naming decision**. `columna-adbc → columna-platform`, never the reverse. Platform's existing DuckDB/ADBC import-ban tests stay **unchanged**. The deployment constructs the adapter and injects it through the material-binding seam. **No driver code in `columna-server`.** (§7) |
+| **First driver** | Vendored DuckDB ADBC surface **accepted** for the first bounded ingress slice, with the record stated accurately and four binding requirements on the adapter. (§8.4) |
+
+### Implementation gate
+
+**No `columna-adbc` code until the pre-ingress conformance repair is green and merged:**
+continuation-operator checks in K0v2 **and** Platform, and coordinate type/nullity admission.

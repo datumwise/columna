@@ -1,21 +1,25 @@
 # Ruling — 2026-09-14 — a realization null makes **no assertion**
 
-**Status:** ruled by Huayin, 2026-09-14. Recorded here with its consequences and an implementation
-plan. **Not yet implemented** — the defect it corrects is rowed as **OF-47** and stands against live
-`main`.
+**Status:** **RATIFIED** by Huayin, 2026-09-14, and amended the same day with the refusal taxonomy,
+the `endpoint.schema` exception, the format-version ruling and the Platform gate ruling. **Not yet
+implemented** — the defect it corrects is rowed as **OF-47** and stands against live `main`.
+
+**Implementation order (ruled):** this repair, together with coordinate type/nullity admission
+(OF-48), is the **pre-ingress conformance work**. `columna-adbc` is implemented only after both are
+green and merged.
 
 ---
 
 ## 1. The ruling
 
-> **A realization null means no realization assertion is made. It is never a positive claim that the
-> governed fact is "none."**
+> **A realization null means no realization assertion. It is not a positive assertion of "none,"
+> except where a field-specific contract explicitly says otherwise.**
 
 For `continuation_operator` specifically:
 
 | family's C8 continuation standing | the realization claim must be |
 |---|---|
-| **ESTABLISHED** | **present, and must name the matching operator** |
+| **ESTABLISHED** | **present, and must match the governed continuation operator** |
 | **EXPLICIT_NONE** | **null / absent** |
 | **UNESTABLISHED** | **null / absent** — and the profile may not invent a continuation |
 
@@ -85,6 +89,111 @@ the tree).
 
 ---
 
+## 3a. The refusal taxonomy — **and the category that does not exist yet**
+
+Ruled: **do not collapse the cases.** Four cells, not three — the fourth is the one the instruction
+did not name and it belongs with the third.
+
+| # | governed C8 | realization claim | the condition, in words |
+|---|---|---|---|
+| 1 | ESTABLISHED | **absent / null** | the realization has not said how the established continuation is delivered → **mapping incomplete** |
+| 2 | UNESTABLISHED | **asserts an operator** | the publication establishes no continuation and the mapping tries to supply one → **logical meaning unestablished; the profile may not invent it** |
+| 3 | EXPLICIT_NONE | **asserts an operator** | the publication positively says there is no continuation and the realization asserts one → **CONTRADICTION** |
+| 4 | ESTABLISHED = *X* | **asserts *Y* ≠ *X*** | the publication establishes *X* and the realization asserts *Y* → **CONTRADICTION** |
+
+> **CELL 4 IS RAISED HERE RATHER THAN ASSUMED.** The instruction named three cases. Cell 4 is the
+> same species as cell 3 — a claim the governed law positively denies, not a claim that is missing —
+> and today it is the *only* cell that refuses at all, carrying `MappingIncomplete`. If cells 3 and 4
+> are both contradictions then cell 4's existing category is the same misuse the ruling forbids for
+> cell 3, and correcting it is part of this repair rather than a separate one. **Recommendation:
+> cells 3 and 4 share the contradiction category.** Flagged for confirmation, not decided.
+
+### The vocabulary inspection the ruling required
+
+> *"Before implementation, inspect the existing exception/refusal vocabulary for an exact
+> contradiction category. If one exists, use it."*
+
+**Done. There is none, in any of the three vocabularies.**
+
+**`columna_core.compiler.refusals` — five categories, none exact.**
+
+| category | why it is not this |
+|---|---|
+| `InputIdentityMismatch` | *is* a mapping-vs-publication contradiction, but at the **identity** level — "this mapping is not for this publication" — and checked before lowering begins. Not a per-fact contradiction. |
+| `LogicalMeaningMissing` (**L**) | "the publication does not carry meaning the compiler needs". Under EXPLICIT_NONE the publication **does** carry the meaning; it positively says *none*. Nothing is missing. |
+| `MappingIncomplete` (**M**) | "the realization is **absent or ambiguous**". A contradicting claim is **present and wrong**, which is neither. |
+| `UnsupportedCoreCapability` (**C**) | a capability gap. |
+| `ExecutionRepresentationGap` (**G**) | a representation gap. |
+
+**`columna_platform.refusals` — four conditions, none exact.** `WantOfLaw` (the law does not license
+it — but here it does, and says the opposite of the claim); `WantOfState` (the material is not
+admissible, remedy **re-materialization** — which would not help, the mapping is wrong);
+`WantOfCompatibility` (two *states*' standings may not be combined — right shape, wrong subject);
+`UnsupportedByThisProfile` (a capability limit, and explicitly not a governed verdict).
+
+**The closed wire registry — 30 registered reasons, none exact.** The nearest is `contradicted_edge`
+*("data violates a declared functional edge (tested+refuted)")* — a genuine contradiction category,
+but its subject is **data against a declaration**, not **a realization claim against governed law**.
+
+### Therefore: the smallest explicitly named contradiction refusal
+
+**Core — a sixth category.**
+
+```
+MappingContradictsLaw  (X)   the private mapping asserts a fact the governed publication
+                             positively denies -- present and wrong, not absent or ambiguous.
+                             Fix belongs in the private mapping (same owner as M, different
+                             condition). Added to refusals.CATEGORIES, which a completeness
+                             test already pins against the class set.
+```
+
+Keeping the `Mapping…` prefix is deliberate: **the owner is the same as `MappingIncomplete`** — the
+mapping author — and only the condition differs. A name like `RealizationContradiction` would put the
+same person's defect under a different noun for no gain.
+
+**Platform — a fourth `ProofRefusal`.**
+
+```
+RealizationContradictsLaw    jurisdiction = "realization"
+                             remedy = "the realization claim must be corrected to the governed
+                                       law; RE-MATERIALIZATION CANNOT RESOLVE IT"
+```
+
+The remedy clause is the whole reason it is not `WantOfState`: `WantOfState` promises that
+re-realizing the **material** fixes it, and here nothing about the material is wrong.
+
+`LogicalMeaningMissing` (cell 2) needs **one clause added to its docstring**, not a new category: it
+currently reads *"the publication does not carry meaning the compiler needs"*, and must also cover
+*"…and the mapping attempted to supply it, which the compiler may not accept."*
+
+### ⚠ One blocker found in the inspection, which is not this ruling's to settle
+
+All three Platform-refusal→wire translation sites read:
+
+```python
+reason = WANT_OF_LAW if isinstance(r, WantOfLaw) else WANT_OF_STATE
+alts   = (REMATERIALIZE,) if reason == WANT_OF_STATE else ()
+```
+
+**A two-way `if/else` over a four-class taxonomy.** Anything that is not a `WantOfLaw` is labelled
+`want_of_state` on the wire and offered `REMATERIALIZE`. So:
+
+- a new `RealizationContradictsLaw` would reach the wire **as `want_of_state`, telling the operator to
+  re-materialize** — precisely the misdirection the new category exists to prevent. The internal
+  taxonomy would be honest and the public one would not.
+- `WantOfCompatibility` already falls into that same branch, and its own docstring says *"collapsing
+  it into either of the other two would misdirect every operator who read it."* Whether it reaches a
+  live translation site today I have **not** reproduced, and that check belongs with the repair rather
+  than with this ruling.
+
+**Minting a wire reason is a ruling, not an implementation decision** — the registry says so itself.
+So the taxonomy above is complete **internally** and its public face needs a decision: mint
+`realization_contradicts_law`, or rule that the contradiction travels under an existing reason and
+say which. Returned as an open item; **the repair should not ship with the contradiction silently
+wearing `want_of_state`.**
+
+---
+
 ## 4. Implementation plan
 
 ### 4.1 Order
@@ -137,6 +246,11 @@ checks a realization **claim** against governed law before material is reached. 
 conformance is knowable from law and claim alone, so it belongs there and not at admission — the
 ordering principle `admit_anchored` already states.
 
+> **IT IS A GATE, NOT A DISCLOSURE (ruled 2026-09-14).** If the realization claim disagrees with
+> governed C8, **the material path does not proceed.** Do not serve with a caveat. A served number
+> carrying a disclosure that its continuation claim was wrong is still a served number, and the
+> disclosure channel is not where a conformance failure belongs.
+
 ### 4.4 Controls — the part that is not optional
 
 One test per cell, each **failing on `main` today**:
@@ -154,32 +268,60 @@ One test per cell, each **failing on `main` today**:
 | 9 | the same matrix, on the **Platform** path, through the public wire |
 | 10 | a **byte-identity** control: two mappings differing only in `continuation_operator` must not compile to the same image — stated as an invariant, because "byte-identical" is how this defect was found and is the only evidence that will notice it returning |
 
-### 4.5 The generalization needs its own audit, not an assumption
+### 4.5 `endpoint.schema` — the field-specific exception, **CONFIRMED**
+
+> **RULED 2026-09-14.** `endpoint.schema = null` is a **positive realization statement that no schema
+> qualification applies.** This is an explicit exception to the general optional-field rule above.
+> **Do not reinterpret schema-null as "no assertion."** The realization freeze already gave `schema`
+> this meaning; preserve it.
+
+This is the *"unless a field's ratified contract explicitly assigns another meaning"* carve-out, and
+it is load-bearing for R2: `source.py` selects objects on `(schema, table)` where `None` and `"sales"`
+are **different keys**, and K0v2 *refuses* a non-null schema because its execution grammar cannot
+represent one. A uniform application of the null rule would break both.
+
+### 4.6 Frozen profile / format version — **NOT a version event (ruled)**
+
+> **Tightening these checks is not a realization-format version event.** The serialized shape is
+> unchanged. This is conformance repair against already-ratified meaning. **Do not bump the
+> mapping-format major merely because previously-ignored facts begin to be checked correctly.**
+> (Huayin, 2026-09-14.)
+
+`mapping_format_version` stays `"2"`. What changes is that a field already in the frozen shape is
+finally read.
+
+### 4.7 The rest of the generalization still needs its own audit
 
 The ruling extends to *every* optional realization field. Applying it needs each field's current
 null-handling read, not a blanket edit. The v2 shape's optional fields are `formation_operator`,
-`continuation_operator`, `endpoint.schema`, `endpoint.column`. **`endpoint.schema` is the one to look
-at first and is likely an EXCEPTION**: `None` there is already documented as *"a POSITIVE claim that
-no schema qualification applies and never a dropped one"* (`source.py`), which is exactly the
-*"unless a field's ratified contract explicitly assigns another meaning"* carve-out. That reading is
-load-bearing for R2 and should be **confirmed as an explicit exception in the ratified contract**
-rather than left to be rediscovered — otherwise a future reader applying this ruling uniformly will
-break schema selection.
+`continuation_operator`, `endpoint.schema` (**ruled an exception**, §4.5) and `endpoint.column`.
+
+`endpoint.column` is the remaining one to read: it is already refused as absent on both the K0v2
+primitive path and the Platform material path, so the general rule may already hold there — but *may
+already hold* is not *checked*, and this ruling is what makes the difference matter.
 
 ---
 
-## 5. Open, for ratification
+## 5. Ruled, 2026-09-14 — and what remains
 
-1. **Jurisdiction for a claim present where the law establishes none.** `MappingIncomplete` (the
-   mapping is wrong) or `LogicalMeaningMissing` (the mapping asserts law that does not exist)? The
-   second reads truer; the first matches the neighbouring refusals.
-2. **Compatibility.** This **tightens** a ratified conformance check: every existing v2 mapping that
-   omitted `continuation_operator` for an ESTABLISHED C8 now refuses. Only two artifacts exist in this
-   tree, but the realization profile is **frozen** — is tightening a frozen profile's check a format
-   version event, or a conformance repair that leaves the format alone? *(Recommendation: a
-   conformance repair. The shape does not change; what changes is that a field already in the shape is
-   finally read. But it should be said, not assumed.)*
-3. **`endpoint.schema` as a named exception** under §4.5 — confirm, or reopen?
-4. **Does the Platform's continuation check gate serving, or only disclose?** Recommendation: gate, on
-   the same reasoning as `exactness` — but Platform has not previously refused on a continuation fact
-   at all, so it is a new refusal on a live path.
+### Ruled and folded in
+
+| | ruling |
+|---|---|
+| **The null rule** | A realization null means **no realization assertion**. Not a positive assertion of *"none"*, except where a field-specific contract explicitly says otherwise. (§1) |
+| **C8 cells** | ESTABLISHED → claim required and must match; EXPLICIT_NONE → claim absent/null; UNESTABLISHED → claim absent/null and the profile may not invent continuation. Primitive and constructed alike, **including entailed C8**. (§1) |
+| **Taxonomy** | Do not collapse the cases. Inspect the existing vocabulary first; if no exact contradiction category exists, introduce the smallest explicitly named one rather than misusing `MappingIncomplete` or `LogicalMeaningMissing`. (§3a — **none exists; two are proposed**) |
+| **`endpoint.schema`** | `null` is a **positive** statement that no schema qualification applies — an explicit exception. Do not reinterpret it. (§4.5) |
+| **Format version** | Not a version event. The serialized shape is unchanged; this is conformance repair against already-ratified meaning. (§4.6) |
+| **Platform behaviour** | A **gate, not a disclosure.** If the claim disagrees with governed C8, the material path does not proceed. Do not serve with a caveat. (§4.3) |
+
+### Still open — both surfaced by the vocabulary inspection
+
+1. **Cell 4** (C8 ESTABLISHED, claim present but mismatched) — confirm it joins cell 3 in the
+   contradiction category. It is the only cell that refuses today, and it refuses as
+   `MappingIncomplete`. *(Recommendation: yes — same species, and leaving it would preserve the misuse
+   the ruling forbids one cell over.)*
+2. **The wire face of the contradiction refusal.** Mint `realization_contradicts_law`, or rule that it
+   travels under an existing registered reason and say which. Minting is a ruling. As things stand the
+   contradiction would reach the wire as `want_of_state` **with `REMATERIALIZE` offered**, which is the
+   wrong remedy. (§3a)

@@ -1,7 +1,12 @@
 # Carrier Admission Profile — v1 — **CANDIDATE**
 
-**Status:** candidate contract, 2026-09-14. **Not ratified.** Prepared on instruction (Huayin,
-2026-09-14) as deliverable 3 of eight, ahead of any ADBC implementation.
+**Status:** **APPROVED IN PRINCIPLE** (Huayin, 2026-09-14), amended the same day to the rulings
+recorded below and returned for final ratification. Nothing here is implemented.
+
+**Ruled and folded in on 2026-09-14** — the value envelope (`decimal128(18,4)` only); the coordinate
+envelope (closed mapping, NULL refuses, unknown/mismatched refuses); no ordering guarantee; the
+stronger source-loss reason kept for floating material rather than flattened; **V3 deferred**; and the
+authority order restated below so that it cannot be read off the fidelity study.
 
 **What this is.** The rules by which material that has arrived — with a concrete physical type, which
 is the thing that does not exist at lowering — is admitted as, or refused as, the governed analytical
@@ -17,18 +22,27 @@ than a claim that a representation is inherently unlawful.
 
 ## 0. Where CAP's authority comes from
 
+> ### CAP's normative authority is NOT the fidelity-study table
+>
+> Stated first, as a ruling (Huayin, 2026-09-14), because it is the thing this profile exists to make
+> unmistakable. **No table, row or verdict in
+> [`admission_fidelity_study_v0_1.md`](admission_fidelity_study_v0_1.md) is normative for any rule in
+> this document.** That study — including after its 2026-09-14 correction — **remains a measurement
+> record only**. It records what was observed on one machine at stated versions. It does not, and
+> after the correction does not even appear to, license anything.
+
 Five sources, in this order of precedence:
 
-1. **Governed anchor and value facts** — what the publication declares. Highest authority; CAP may
-   never override or supply one.
-2. **Arrow structural facts, where genuinely structural.** That Arrow's type system *has* a
-   `decimal128(p, s)` and a validity bitmap distinct from values is a property of the format. That a
-   given driver *uses* them is not, and is never treated as one.
+1. **Governed analytical facts** — what the publication declares about the family and its anchor.
+   Highest authority; CAP may never override or supply one.
+2. **Structural carrier facts.** That Arrow's type system *has* a `decimal128(p, s)` and a validity
+   bitmap distinct from values is a property of the format. That a given driver *uses* them is not,
+   and is never treated as one.
 3. **Explicit conservative profile choices.** Where neither of the above decides, CAP chooses, and
    says that it is choosing.
-4. **Runtime inspection of the schema actually delivered.** Every rule below is enforced against the
+4. **Runtime inspection of the material actually received.** Every rule below is enforced against the
    Arrow schema in hand, never against a remembered driver mapping.
-5. **Measurement — supporting evidence only.**
+5. **Measurement — non-normative supporting evidence.**
 
 > **THE RULE ABOUT RULE 5, STATED SO IT CANNOT BE FORGOTTEN.** No rule in this profile is justified by
 > *"the study measured it."* Measurement appears below only in blocks marked
@@ -118,7 +132,15 @@ does not admit it, and that the way to make it admissible is §8, not an argumen
 > deleted, V2 would still say `decimal128(18,4)` only**, because V2's force comes from being a
 > deliberately narrow profile choice (authority 3), not from the measurements.
 
-### V3 · every value must fit its declared precision — **PROPOSED, and flagged**
+### V3 · every value must fit its declared precision — **DEFERRED (ruled 2026-09-14)**
+
+> **RULED: defer.** *"CAP v1 admits only `decimal128(18,4)`, so no broad precision rule is required
+> for the first ingress. Do not turn an unmeasured >38 case into a normative claim merely because
+> Arrow's `decimal128` structural ceiling is known."* (Huayin, 2026-09-14.)
+>
+> The rule is recorded below **as a hazard, not as law**, and is carried forward as a named
+> precondition of every §8 amendment. The reasoning that produced the deferral is kept because an
+> amendment author will need it.
 
 A driver may emit a value **out of range for the Arrow type it declares**. This is not hypothetical:
 DuckDB's `HUGEINT` → `decimal128(38, 0)` mapping does it, and the resulting values lose digits at the
@@ -129,16 +151,16 @@ exists is that a driver built it.
 **The rule proposed:** every non-null value in the admitted column must satisfy
 `len(digits) ≤ declared precision`; any that does not is refused.
 
-> ⚠ **This is the one rule in CAP v1 that is not merely a narrowing of what is already shipped, and
-> it is flagged rather than assumed.** It is an **O(n) pass over values**, where every other check
-> below is O(1) on schema or O(n) on coordinates that are already being scanned. It is also, at CAP
-> v1's single admitted shape, **not obviously reachable** — the measured out-of-range emission is a
-> `HUGEINT` mapping, and no `HUGEINT`-shaped source path is admitted here at all. So the question for
-> ratification is whether CAP v1 pays a values pass for a hazard its own envelope may already
-> exclude, or states the hazard and defers the check to whichever amendment first admits a shape that
-> can reach it. **Recommendation: defer, and record the hazard as a named precondition of every §8
-> amendment** — because the cost is real now and the hazard is not, and because an amendment that
-> admits a wide decimal is exactly the moment someone should be made to think about it again.
+**Why it was deferred rather than adopted.** It is an **O(n) pass over values**, where every other
+check here is O(1) on schema or O(n) on coordinates already being scanned; and at CAP v1's single
+admitted shape it is **not reachable** — the measured out-of-range emission is a `HUGEINT` mapping,
+and no `HUGEINT`-shaped source path is admitted here at all. CAP v1 would be paying for a guard
+against material it cannot receive. An amendment that admits a wide decimal is exactly the moment
+someone should be made to think about it again, which is what §8 now requires.
+
+**And the type-wide `(38,0)` refusal this hazard was mis-stated as is rowed separately as OF-49**,
+whose question is which authority that refusal stands on. CAP v1 does not answer it and does not need
+to: `(38,0)` is outside the admitted profile either way.
 
 ### V4 · carrier NULL is not analytical absence — **retained unchanged**
 
@@ -151,6 +173,17 @@ nothing about it.
 ---
 
 ## 3. The coordinate envelope — governed types are governed facts
+
+> **RATIFIED 2026-09-14.** `text → string`, `date → date32[day]`, exact closed mapping, coordinate
+> `NULL` refuses the carrier, unknown or mismatched coordinate type refuses.
+>
+> **AND THE AUTHORITY MATTERS AS MUCH AS THE RULE.** These rules come from **the governed definition
+> of the analytical point** — authority 1 — **not from the empirical fidelity study.** No measurement
+> licenses any of them and none would be weakened by a different measurement. A coordinate whose
+> governed type is contradicted does not identify the point the publication declares, and a coordinate
+> that is absent does not identify a point at all; both would be true if no fidelity study had ever
+> been run. The `[evidence]` note in §8's companion run confirms only that a driver *can* emit the
+> shapes these rules refuse — i.e. that the refusals are reachable, not that they are warranted.
 
 The anchor declares its components **with their types** — `sale_at{store: text, day: date}` — and
 CAP v1 treats those as what they are: governed facts of the same standing as the value domain. They
@@ -327,14 +360,14 @@ CAP v1 is a contract, not a patch. For review, the mapping onto `columna-platfor
 | CHECK 1 · refuse float | unchanged, keeps its stronger reason (§4) |
 | CHECK 1 · refuse non-decimal | unchanged |
 | CHECK 1 · `precision > 38` refuses | **subsumed** — only `(18,4)` is admitted, so the bound is no longer load-bearing |
-| CHECK 1 · `(38,0)` refuses, on the fourth-hop reason | **removed as written.** Subsumed by V2; and its stated reason is wrong (`[E11]`) — see the open ruling in §10 |
+| CHECK 1 · `(38,0)` refuses, on the fourth-hop reason | **subsumed by V2** — `(38,0)` is not admitted either way. Its stated reason is separately false (`[E11]`) and is **rowed as OF-49**; CAP does not restate it and does not decide it |
 | CHECK 2 · carrier null vs analytical absence | unchanged (V4) |
 | CHECK 3 · grain vs contribution structure | unchanged (C4) |
 | CHECK 4 · coordinate names | unchanged (C1) |
 | — | **NEW** C2 · coordinate types, closed mapping (OF-48) |
 | — | **NEW** C3 · coordinate nullity (OF-48) |
 | CHECK 5 · coincident vs delivered multiplicity | unchanged (C5) |
-| — | **PROPOSED, recommended DEFERRED** V3 · value fits declared precision |
+| — | **DEFERRED by ruling** V3 · value fits declared precision — carried forward as a §8 amendment precondition |
 
 Each new rule needs a positive control **and** a negative control that fails without it — including
 the three cases OF-48 measured serving today (`int32` for governed `text`, `string` for governed
@@ -342,16 +375,29 @@ the three cases OF-48 measured serving today (`int32` for governed `text`, `stri
 
 ---
 
-## 10. Open, for ratification
+## 10. Ruled, 2026-09-14 — and what remains
 
-1. **V3** — adopt the out-of-precision value check now, or record the hazard and defer it to the
-   first §8 amendment that admits a shape which can reach it? *(Recommendation: defer.)*
-2. **The `(38,0)` refusal's stated reason in shipped code is wrong** (`[E11]`), independently of CAP
-   v1 subsuming the refusal. Does that want its own OF row, or is recording it in the study's errata
-   and in this table sufficient?
-3. **Should `string`/`large_string`/`string_view` and `date32`/`date64` narrowness be restated as a
-   general principle** — *"one governed type admits exactly one Arrow type, chosen explicitly"* — so
-   future amendments inherit it, rather than as three specific lines?
-4. **Naming.** This document uses **Carrier Admission Profile (CAP)** from the instruction. Is that
-   the durable name, and is `v1` the right index given the profile has shipped four unversioned checks
+### Ruled and folded in
+
+| | ruling |
+|---|---|
+| **Authority** | CAP's normative authority is **not** the fidelity-study table. Order: governed analytical facts → structural carrier facts → explicit conservative profile choices → runtime inspection of material actually received → measurement as **non-normative** supporting evidence. The corrected study remains a measurement record only. (§0) |
+| **Value envelope** | Admit exactly `decimal128(18,4)` — the shape the first ingress needs. Do not generalize to arbitrary `decimal128(p,s)` yet; everything else refuses by profile unless separately admitted later. (§2) |
+| **Float material** | Keep the **stronger source-loss reason**; do not flatten every refusal into *"unsupported profile"*. (§4) |
+| **Coordinate envelope** | `text → string`, `date → date32[day]`, exact closed mapping; coordinate `NULL` refuses the carrier; unknown or mismatched coordinate type refuses. **From the governed definition of the analytical point, not from the fidelity study.** (§3) |
+| **Ordering** | CAP v1 carries no ordering guarantee. (§6) |
+| **V3** | **Defer.** Do not turn an unmeasured `>38` case into a normative claim merely because Arrow's `decimal128` structural ceiling is known. (§2 V3, §8) |
+
+### Still open
+
+1. **Should the Arrow-side narrowness be restated as a general principle** — *"one governed type
+   admits exactly one Arrow type, chosen explicitly"* — so future amendments inherit it, rather than
+   as the three specific lines `large_string` / `string_view` / `date64`?
+2. **Naming.** This document uses **Carrier Admission Profile (CAP)** from the instruction. Is that the
+   durable name, and is `v1` the right index given the profile has shipped five unversioned checks
    already?
+
+### Rowed elsewhere, not open here
+
+- **OF-49** — the shipped `(38,0)` refusal's stated justification is false (`[E11]`). Subsumed by §2
+  and deliberately not restated by CAP; the authority question is the row's.
