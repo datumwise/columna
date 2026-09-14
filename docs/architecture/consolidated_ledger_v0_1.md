@@ -1508,6 +1508,149 @@ executes.
 
 ---
 
+### P1-33 · A movement licence mints the target's analytical identity from a free label, independently of the projection it licenses · **HIGH** · **OPEN — invariant ruled 2026-09-14, repair NOT authorized** · VX
+
+**THE RULED INVARIANT** (Huayin, 2026-09-14):
+
+> A movement licence may authorize establishment at a target analytical location, but it may not mint
+> that location's analytical identity independently of the governed projection it licenses.
+
+`main` violates it. `movement.project` validates the target's GEOMETRY and does not validate its
+IDENTITY — the two are set from two different sources, and only one of them is checked.
+
+`packages/columna-platform/src/columna_platform/movement.py:105-133` refuses a target component that
+is not declared (*"a movement may not invent a coordinate"*), refuses the empty target, and refuses a
+target equal to the whole declared set. It then returns:
+
+```python
+    return MovementLicence(
+        source_anchor=source_anchor, source_components=declared,
+        target_anchor=target_anchor, target_components=target,   # ← one validated, one not
+        law=law, standing=POSITIVE, authority=authority)
+```
+
+`target_anchor` is the caller's string, unexamined: not checked against the publication's declared
+anchors, not checked against `target_components`, not checked for collision with `source_anchor`.
+The module's own docstring states the standard it does not meet (`movement.py:39-42`): *"A licence
+naming a target anchor is a string; a licence whose target components are verified … is a fact."*
+
+The identity is then minted from that string, one line above the geometry
+(`packages/columna-platform/src/columna_platform/continuation.py:97-101`):
+
+```python
+    return replace(
+        state,
+        identity=AnalyticalIdentity(state.identity.family_id, target_anchor),   # the free label
+        table=folded,
+        anchor_columns=tuple(licence.target_components),                        # the validated set
+```
+
+`AnalyticalIdentity` is a frozen `(family_id, anchor: str)` (`state.py:29-37`), so equality is on the
+label; it is the retained-state retrieval key (`state.py:183-188`) and the anchor on the public wire
+(`serving.py:942` → `disclosure_wire.py:394`).
+
+#### Witness A — movement SUPPRESSED by an arbitrary identity label · served-path correctness failure
+
+A licence with source `sale_at(store*day)`, target components `("store",)`, and target label
+`"sale_at"` is ACCEPTED: `project` refuses only when the target is the *whole* of the declared set,
+and `{store}` is a proper part. Movement detection then compares the free label with the source
+anchor label and concludes there is no movement (`serving.py:890`):
+
+```python
+        moving = at_anchor is not None and at_anchor != identity.anchor
+```
+
+`moving` is `False`, so `continue_to` never runs, and with it neither the fold nor the target-coordinate
+check. The ask `AT {store}` is answered with the un-folded four-point source state:
+
+```
+licence constructed: sale_at(store*day) -> sale_at(store) under SUM [positive]
+outcome      : serve
+frame.anchor : ['sale_at']
+row count    : 4 (2 = folded to store; 4 = NOT folded)
+    {'day': '2026-01-01', 'store': 'east', 'value': '10.0000'}
+    {'day': '2026-01-02', 'store': 'east', 'value': '20.0000'}
+    {'day': '2026-01-01', 'store': 'west', 'value': '1.2345'}
+    {'day': '2026-01-02', 'store': 'west', 'value': '3.7037'}
+```
+
+A store-grain ask returned `serve` carrying sale_at-grain material. **The geometry check never runs,
+because the geometry is never consulted** — the whole movement decision is taken on a string nobody
+validated. Note the polarity: this is not a refusal that should have served, it is a SERVE that should
+have been a fold or a refusal, and nothing in the outcome, the disclosure, or the caveat set marks it.
+
+#### Witness B — plan and run hold two incompatible definitions of the target analytical location
+
+A licence with target components `("store",)` and the arbitrary label `"shop"`, single licence, same ask:
+
+```
+label='store'  plan.anchor=['store']  run.anchor=['store']  plan.outcome=serve
+label='shop'   plan.anchor=['store']  run.anchor=['shop']   plan.outcome=serve
+```
+
+`plan_result` returns `tuple(statement.anchor)` — the requested STRUCTURAL location (`serving.py:615`).
+`decide_result` returns `(identity.anchor,)` — the LICENCE LABEL (`serving.py:942`). The two doors
+answer the same text with two different analytical locations.
+
+`serving.py:600-602` states the requirement this breaks in the file that breaks it: *"`check` and
+`execute` must agree about whether an ask is askable, so the same licence question is asked here."*
+They do agree about askability. They do not agree about WHERE THE ANSWER SITS, which was not
+separated out as a second thing that must agree.
+
+**This is the same class as the row immediately above** (`P1-26-A2`/CG2, scalar-in-series): two doors
+disagreeing about one text, repaired there by deciding the property from SHAPE before anything
+executes. Platform reintroduced it one layer over, for the analytical location rather than the
+series form. The Core repair's own closing sentence — *"the two doors cannot disagree about the same
+text again, because scalar-ness is decided from shape before anything executes"* — is the standard
+this row fails.
+
+#### The general defect, of which A and B are instances
+
+**Two licences over the same validated component projection may create different
+`AnalyticalIdentity.anchor` values solely because their free labels differ.** The projection is the
+governed fact; the label is not; and it is the label that individuates the location.
+
+The system states this about itself when it refuses the two-licence case
+(`request.py:200-204`): *"N movement licences name different targets {…} over the components {…};
+this profile will not choose between two governed targets"*. That refusal is FAIL-CLOSED and is why
+nothing has been observed — but its wording is the admission: two licences over one projection are
+treated as two governed targets rather than one. The SINGLE-licence case has no such guard, and
+Witnesses A and B are both single-licence.
+
+#### Why it has been invisible
+
+Every licence in the tree is hand-authored in Python (`exhibit.py:130`, the ADBC test's `_licence`),
+and all of them follow the unenforced convention `target_anchor == the single target component name`.
+The server never passes `movement=` (`packages/columna-server/src/columna_server/store.py:316-317`),
+so there is no deployment or authoring surface that supplies a label. The exposure is in-repo — which
+is why this is graded **HIGH** and not **CRITICAL** despite being a served-path correctness failure:
+no external author can reach it today. *If that grading is wrong, it is wrong in the direction of
+understating it, and the grade is Huayin's to raise.*
+
+#### Do NOT repair this with a label convention
+
+Ruled explicitly (Huayin, 2026-09-14). Not by first-component-name, not by
+source-anchor-plus-components, not by `store`, not by `sale_at{store}`. **The missing answer is
+conceptual, not orthographic:**
+
+> What governed fact makes the projected `{store}` location the `A` in `F @ A`?
+
+A spelling rule would make Witnesses A and B stop reproducing while leaving that question unanswered,
+and would bind the answer to whichever spelling was convenient. **Implementation spelling must not
+answer it.**
+
+#### State of the surrounding work
+
+[#325](https://github.com/datumwise/columna/pull/325) (Proof B serving-path integration) merged
+2026-09-14 as `53588b2` on Huayin's instruction, BEFORE these witnesses were executed. Target-location
+establishment is **not accepted**; Proof B is stopped pending the anchor-identity question. The
+valuable parts of #325 remain reusable. Whether `main` carries the defect or the merge is reverted is
+an open decision at the time of this row.
+
+**Not repaired in this ledger unit, deliberately.**
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
