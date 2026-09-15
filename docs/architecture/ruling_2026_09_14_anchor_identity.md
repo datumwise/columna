@@ -68,6 +68,56 @@ cross-population comparisons mean anything.
 
 ---
 
+## 2b. Ruling 3 — families in one universe may have **different** constitutive anchors
+
+Recorded 2026-09-14 (Huayin), after the publication-format reconnaissance. It constrains how the
+universe↔anchor question may be answered, and it forecloses the cheapest wrong answer.
+
+> **Families in one universe MAY have different constitutive anchors.**
+>
+> **`universe.body.anchor` must NOT be interpreted or enforced as the constitutive anchor of every
+> family in that universe.**
+>
+> **The missing-relation gap must NOT be repaired by requiring
+> `family.constitutive_anchor == universe.body.anchor`.**
+
+### What this corrects, including in this repo's own reconnaissance
+
+The reconnaissance that preceded this ruling classified a publication in which a family's
+`constitutive_anchor` differs from its universe's `anchor` as a **contradiction** between two
+derivation paths. **That classification was wrong.** Under this ruling such a publication is
+**lawful**: one universe may carry families constituted at different anchors, and that is an ordinary
+analytical situation, not a malformation. What the two paths disagree about is not the truth; it is
+that one of them was never entitled to speak.
+
+It follows that the shape of the format gap is **not** "two sources disagree and the format lacks a
+tie-break." A tie-break is precisely what must not be built. The gap is that **the relation
+`anchor → universe` is absent**, and `universe.body.anchor` is not a stand-in for it.
+
+### The defect this makes visible, which was previously read as behaviour
+
+`compile_v2` derives a universe's dimension product **from that universe's own anchor**, and then
+derives every family's levels from the universe:
+
+```python
+    universe_dims[u.name] = tuple(declared[aref])      # aref = u.body["anchor"]
+...
+    used_levels.update(universe_dims[universe])        # the FAMILY's levels
+```
+
+`constitutive_anchor` **does not appear anywhere in `compile_v2.py`** — zero occurrences. So the
+compiler already does the thing this ruling forbids: it treats the universe's anchor as the anchor of
+every family bound to that universe, and a family's declared constitutive anchor is silently
+discarded. Under Ruling 3 this is a **defect**, not a convention — but it is **not repaired here**,
+and it must not be repaired by making the two equal.
+
+**Scope note.** This ruling says what the relation is *not*. It does not establish what determines
+that an anchor `A` is a particular governed partition of universe `U`; that is the subject of a
+separate theory-first reconnaissance, which must start from ToD v7.1 and Frame-QL 1.0 rather than
+from the present publication schema.
+
+---
+
 ## 3. What this makes non-authoritative on `main`
 
 | today | status under this ruling |
@@ -146,10 +196,14 @@ Recorded so that no implementation settles them by choosing a convenient spellin
   determines the smallest representation compatible with these rulings first.
 - **Whether `target_anchor` survives at all**, in a descriptive or provenance role.
 - **How the publication establishes which declared anchors belong to which universe.** The `anchor`
-  declaration carries **no universe field**; whether the relation is derivable from universe
-  declarations plus family constitutive anchors under the present format, or whether the format is
-  missing a governed relation, is an open reconnaissance question. **This ruling does not authorize a
-  publication-format change.**
+  declaration carries **no universe field**. The reconnaissance has since established that the
+  relation is **not derivable**: it is partial (an anchor declared in no universe and used by no
+  family still resolves on the request path), and multivalued (one anchor may be the constitutive
+  anchor of families in two governed universes — reproduced against the shipped parser). Ruling 3
+  further forecloses the cheapest repair. **What determines that an anchor `A` is a particular
+  governed partition of `U` is therefore an open ONTOLOGY question, to be answered from ToD v7.1 and
+  Frame-QL 1.0 before any schema is considered. This ruling does not authorize a publication-format
+  change.**
 - **What `FrameResult.anchor` means uniformly** across plan, execute, and legacy-compatible wire
   surfaces — beyond the requirement in §4 that plan and run agree.
 - **OF-58 and OF-56.** Untouched. Neither is settled, advanced, or implicated by this ruling.
