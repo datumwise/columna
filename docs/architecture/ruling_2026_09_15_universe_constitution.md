@@ -4,9 +4,9 @@
 same day** to incorporate Rulings 7-10. **Not implemented. No source change is authorized by this
 document.**
 
-**Standing of the parts.** The document as a whole is a draft awaiting your ratification. **Rulings
-7, 8, 9 and 10 (§§7-10) are decisions you issued on 2026-09-15** and are recorded as ruled, not as
-proposed. Rulings 1-6 remain draft.
+**Standing of the parts.** The document as a whole is a draft awaiting ratification. **Rulings 7
+through 11 (§§7-11), and the two amendments at §7b and §7c, are decisions Huayin issued on
+2026-09-15** and are recorded as ruled, not as proposed. Rulings 1-6 remain draft.
 
 **What it continues.** `ruling_2026_09_14_anchor_identity.md` §6 left one question explicitly open:
 
@@ -287,13 +287,46 @@ A generative law is exactly the case a restriction cannot express, and the inter
 content as prose (`interview.py:399-403`). So today a spine universe's *"whole intended population
 law"* is a name, a label, and two empty containers.
 
-### 7b. What follows for the first migration
+### 7b. Generative λ_U is REQUIRED — ruled
 
-Restriction-shaped laws (*"the points of a governed base world satisfying P"*) are within reach of
-machinery already judged sound. **Generative laws are not, and Ruling 7 forbids letting `basis`
-stand in for one.** The first migration must therefore either carry a λ_U representation able to state
-a generative law, or refuse to constitute generative worlds and route them to `Unresolved`. **This
-ruling forces the choice; it does not make it.**
+**Ruled by Huayin, 2026-09-15.**
+
+> **The first corrected universe constitution must be semantically capable of constituting BOTH
+> occurrence-established and declared/generated worlds. Do NOT route generative worlds to `Unresolved`
+> merely because the existing restriction AST cannot express them.**
+>
+> **This does not authorize designing a generalized λ_U syntax yet.**
+
+The reconnaissance had offered this as a choice — carry a generative form, or refuse generative worlds
+in phase one. **It was not a choice.** ToD §2.1.1 makes declared and generated worlds lawful in the
+same breath as occurrence-based ones, and holds that they are *"forms of the existence law, not
+additional top-level ontological kinds."* A constitution able to constitute only one of them would not
+be a constitution of a universe; it would be a constitution of the subset of universes this tree's
+restriction AST happens to reach — the tool deciding the ontology.
+
+The order is therefore: **discover the minimum λ_U abstraction, then choose a representation.** The
+narrow semantic reconnaissance that requires — the lawful existence-law forms, the governed premises
+each needs to determine `Ω_U`, what is common versus form-specific, what the restriction AST can and
+cannot faithfully express, and the smallest semantic interface λ_U must expose to the rest of the
+architecture — is a separate deliverable and is **not** settled here.
+
+### 7c. What `elf-2` covers of λ_U — the general invariant
+
+**Ruled by Huayin, 2026-09-15.** This supersedes the narrower formulation *"`basis` does not enter
+`elf-2`"*, which was true of today's vocabulary and wrong as a rule.
+
+> **`elf-2` fingerprints the RESOLVED SEMANTIC CONTENT of λ_U — not incidental labels or
+> classifications used to describe it.**
+>
+> **Today's `basis` enum does not enter merely because it exists: a purely classificatory law-form
+> label is non-constitutive. But if a future governed law form PARTICIPATES IN RESOLVING the actual
+> semantic content of λ_U, that resolved content is constitutive and must be covered. Do not prejudge
+> that question from today's `basis` vocabulary.**
+
+The test is **functional, not nominal**: *does this participate in resolving what λ_U says?* A
+field-name blacklist would need revising every time the vocabulary moved. This invariant does not, and
+it leaves the door open for a law form that genuinely carries semantic content without forcing that
+outcome now.
 
 ---
 
@@ -395,9 +428,61 @@ undisposed legacy artifact that blocks publication**, and in no other role.
 
 ---
 
-## 11. The semantic constitution of `U`, consolidated
+## 11. Ruling 11 — a governed naming / reference act survives for derived partitions
 
-The whole of §§1-10, stated once as the object.
+**Ruled by Huayin, 2026-09-15.**
+
+> **A Case-S partition is DERIVED from the universe constitution and requires NO partition
+> declaration. But a governed conventional NAME may RESOLVE to that derived partition.**
+>
+> **Keep these separate:**
+>
+> - **constitution → derived partition**
+> - **governed name / reference → resolves to that partition**
+>
+> **So `store` may name the derived `store` partition. If `sales` is constituted exactly by
+> `{store, day}`, then `{store * day} = R_sales` is derived; `sale_at` MAY be retained as a governed
+> reference to that derived anchor — IF that naming standing is actually established.**
+>
+> **Do NOT automatically reinterpret legacy `anchor` declarations as aliases or names. That would
+> invent meaning. Each must either have its naming/reference standing ESTABLISHED, be DISPOSED OF, or
+> remain `Unresolved`.**
+
+This is Ruling 5 given its positive form. §5 said what a name does *not* do; §11 says what it *does*.
+ToD §2.1.3 already licenses it — *"A dimension gives a conventional governed name to a partition"* —
+and ToD §2.2's `family_id ≠ canonical_name` is the same separation one level up.
+
+**The automatic-reinterpretation prohibition is the load-bearing half.** A migration that silently
+recast every surviving `anchor` declaration as *"a name for the partition its components denote"*
+would be manufacturing a naming standing nobody established — the same class of error as manufacturing
+a constitution (R-A) — and would additionally assert that those components denote a partition of a
+universe the declaration never named.
+
+### 11a. The consequence for `elf-2`, which closes the loop on the recorded witness
+
+**A naming act is not constitutive, so it must NOT stale the universe law.** Adding, removing or
+changing a governed name for a derived partition changes no premise.
+
+This directly reverses `elf-1`'s one sensitivity to the anchor. The witness at §14 records that
+renaming the anchor **string** `sale_at → other_at` **does** stale the law today, while deleting the
+components it points at does not. **`elf-1` was sensitive to exactly the wrong thing and blind to
+exactly the right one.** `elf-2` inverts both: the structure enters, the name does not.
+
+### 11b. Two renames that must be kept apart
+
+| rename | standing | `elf-2` |
+|---|---|---|
+| a **constituent** of the individuation — `store → outlet` | a change to a **premise** | **STALES** (Ruling 8) |
+| a governed **name for a derived partition** — `sale_at → sales_grain` | a change to a **convention resolving to a consequence** | **does NOT stale** (Ruling 11) |
+
+They look alike and are not. The first changes the world; the second changes what we call part of the
+view of it.
+
+---
+
+## 12. The semantic constitution of `U`, consolidated
+
+The whole of §§1-11, stated once as the object.
 
 ### Constituted — the three governed facts, and nothing else
 
@@ -417,16 +502,25 @@ The whole of §§1-10, stated once as the object.
 fiber partition · every compound anchor, including `{store * day} = R_sales` · the refinement order
 among all of them.
 
+### Named — a third standing, neither constituted nor derived (§11)
+
+A **governed conventional name** may *resolve to* a derived partition. `store` may name the derived
+`store` partition; `sale_at` may be a governed reference to `R_sales`. A naming act is **established,
+not inferred** — and it is **non-constitutive**, so it never enters `elf-2` and never stales the law.
+Three standings, kept apart: *constitution* (premises) → *derivation* (consequences) → *naming*
+(conventions that resolve to consequences).
+
 ### Outside the constitution
 
 Any physical binding · any realization or evidence fact, **including realization cardinality** (§9) ·
 any derived anchor, declared or not · any **Case-G placement** — a structure *on* `Ω_U` that does not
 change `Ω_U`, and therefore requires its own governed act rather than disturbing this one ·
-`universe.body.anchor`, which has no established role and is disposed of, not interpreted (§10).
+`universe.body.anchor`, which has no established role and is disposed of, not interpreted (§10) · any
+**naming act** — established separately, resolving to a derived partition, never a premise (§11).
 
 ---
 
-## 12. Conceptual disposition of the present objects
+## 13. Conceptual disposition of the present objects
 
 Recorded **without** changing source or serialization. This table states standing, not a migration.
 
@@ -434,7 +528,7 @@ Recorded **without** changing source or serialization. This table states standin
 |---|---|
 | `universe` | **Survives.** Its constitution must be **rebased** onto §1: identity, primitive root-point individuation, existence law. |
 | `coordinate` | **Survives, rebased** as a **universe-relative primitive governed constituent** of an individuation — no longer a standalone global object. |
-| `anchor` **declaration** | **No longer presumed to be a primitive ontological object.** Case-S anchors are **derived** (§2, §3). Whether any declaring act survives at all is an authoring-model question, not a given. |
+| `anchor` **declaration** | **No longer presumed to be a primitive ontological object.** Case-S anchors are **derived** (§2, §3). **Ruling 11 settles what may survive**: a governed **naming / reference act** resolving to a derived partition — never a constitutive one, and **never inferred**. Each existing declaration must have its naming standing **established**, be **disposed of**, or remain **`Unresolved`**. |
 | `anchor.components` | Its useful **coordinate-description content may survive**. Its **current container has no constitutional authority** — components of a declaration are not thereby constituents of an individuation. |
 | `universe.body.anchor` | **No semantic role has been established under this constitution.** It must **not** be reinterpreted merely to preserve compatibility, and no replacement meaning is invented here. The 2026-09-14 ruling already forbade reading it as every family's constitutive anchor; this ruling removes the last remaining presumption that it means anything at all. **Ruling 10 settles its migration treatment**: inert on a constituted universe, inspectable only as legacy evidence, **explicitly disposed of before publication**, and never compared against the constitution. |
 | `relationship` | **Survives as governed structural input.** It **does not establish a partition** (ToD Appendix D). It may be an input to a Case-G construction; it is never itself one. |
@@ -443,7 +537,7 @@ Recorded **without** changing source or serialization. This table states standin
 
 ---
 
-## 13. Recorded witness — the ratified law does not include root-point individuation
+## 14. Recorded witness — the ratified law does not include root-point individuation
 
 Run against the shipped `elf-1` machinery and the shipped universe (`manifold-agent` @ `1b76a8c`,
 v0.13.2). Baseline universe fingerprint payload:
@@ -472,7 +566,7 @@ the universe's ratified fingerprint bit-identical, so ratification today certifi
 silent about what the world's points are. Note precisely what the witness does and does not show: it
 shows the **fingerprint payload carries a name, not a structure** (`'anchor': 'sale_at'` is a string;
 nothing the string refers to enters the digest). It does **not** show that any particular field is the
-right place to put individuation — see §14.
+right place to put individuation — see §15.
 
 **The witness is not an accident of the fixture; it is structural.** `dependencies` is built only from
 `_law_reference_paths(universe)`, which walks *"the logical reference paths a universe's restriction
@@ -484,15 +578,18 @@ builder already guarantees (`src/manifold_agent/ratification.py:155-161`).
 
 ---
 
-## 14. What this ruling does NOT settle
+## 15. What this ruling does NOT settle
 
-Revised 2026-09-15 after Rulings 7-10. Recorded so that no implementation settles the
+Revised 2026-09-15 after Rulings 7-11. Recorded so that no implementation settles the
 remainder by convenience.
 
 ### Settled on 2026-09-15 — moved OUT of this list, recorded so the change is legible
 
 | was open | now ruled |
 |---|---|
+| whether the first migration must carry a **generative** λ_U or may refuse generative worlds | **must carry it** (§7b) — it was never a choice |
+| whether a **naming act** survives for a derived partition | **yes**, established and never inferred (§11) |
+| whether `basis`'s exclusion from `elf-2` is a rule | **no** — the rule is *resolved semantic content of λ_U, never incidental labels* (§7c) |
 | whether a prose-only λ_U is a lawful constitution | **no** — λ_U must be determinate (§7) |
 | whether `basis` survives, is subsumed, or is retired | **none of these yet** — compatibility vocabulary, standing undetermined, never promoted into λ_U (§7) |
 | whether a constituent rename stales | **yes**, conservatively, and **without** an identity token (§8) |
@@ -503,14 +600,13 @@ remainder by convenience.
 ### Still open
 
 - **The authoring representation.** No field names, no kinds, no schema, no serialization. The
-  smallest authoring model capable of expressing §§1-11 is the subject of the accompanying
+  smallest authoring model capable of expressing §§1-12 is the subject of the accompanying
   reconnaissance, and that reconnaissance does not itself authorize a change.
-- **The representation of λ_U**, and in particular whether the first migration carries a form able to
-  state a **generative** law or refuses to constitute generative worlds (§7b). Ruling 7 forces this
-  choice and does not make it.
+- **The representation of λ_U.** That it must reach generative worlds is ruled (§7b); *how* is not.
+  The narrow λ_U semantic reconnaissance — lawful forms, governed premises per form, common versus
+  form-specific content, the faithful reach of the restriction AST, and the smallest semantic interface
+  λ_U must expose — precedes any representation.
 - **The eventual standing of `events | spine | product | registry`** (§7).
-- **Whether an anchor declaration survives** as a naming/description act once it is no longer
-  constitutive.
 - **Whether universes require opaque identity tokens.** Not decided here, not to be decided as a side
   effect of implementation — and Ruling 8 removes the one argument that was pushing toward it.
 - **The equality convention on coordinate values** — what makes two values of a constituent the same
@@ -524,7 +620,7 @@ remainder by convenience.
 - **P1-33, P1-34, Proof B, Proof C, OF-56, OF-58, persistence, SSE, reuse.** None is repaired,
   advanced, or implicated.
 
-## 15. Doctrine relied on
+## 16. Doctrine relied on
 
 | claim | source |
 |---|---|
