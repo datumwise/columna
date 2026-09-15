@@ -1786,10 +1786,12 @@ this row must not be read as settling it.
 
 ---
 
-### P1-35 · A universe's existence-law ratification is never verified at publication, so a fabricated or stale fingerprint publishes cleanly · **HIGH** · **REPAIRED 2026-09-15 — awaiting review** · VX
+### P1-35 · A universe's existence-law ratification is never verified at publication, so a fabricated or stale fingerprint publishes cleanly · **HIGH** · **CLOSED 2026-09-15 — repaired in `f9c3ed0` (manifold-agent#32); adjudicated on current `main`** · VX
 
-**Repair:** [`datumwise/manifold-agent#32`](https://github.com/datumwise/manifold-agent/pull/32) —
-S0, authorized by Huayin as an isolated correction ahead of the constitutional migration. The
+**Repair:** [`datumwise/manifold-agent#32`](https://github.com/datumwise/manifold-agent/pull/32),
+squashed to **`f9c3ed0`** on `manifold-agent` `main`. CI green on `main` at that sha across all five
+legs — `check (3.11)`, `check (3.12)`, `postgres`, `offline-no-driver`, `nooa-reach`. S0, authorized
+by Huayin as an isolated correction ahead of the constitutional migration. The
 invariant established: *a universe may publish only when its existence-law authority is present, its
 governed law is resolvable under the current scheme, and the carried ratification is current for that
 law.* Repaired as ruled — by **wiring the adjudicator**, not by moving adjudication into the carrier.
@@ -1881,7 +1883,36 @@ None. Those concern **where a family stands**; this concerns **whether a univers
 checked**. It is reachable by any publication author, requires no licence, no movement and no Platform
 involvement, and is reproduced by the shipped fixture.
 
-**Repaired under S0 (see above). The three follow-ons this row asked the repair not to stop short
+#### Closure evidence
+
+Nine planted witnesses ship with the repair
+(`tests/test_s0_publication_enforces_existence_law.py`), and **each was confirmed to bite** by
+planting the violation, observing the failure, and reverting — the project's standing rule that a
+test which cannot fail is a comment. Four violations were planted: un-wiring the gate (5 tests
+failed), collapsing the scheme verdict into `STALE` (2 failed), restoring the fabricated fixture
+fingerprint (1 failed), and letting `publication` name a fingerprint function (the boundary guard
+failed).
+
+The row's own two reproductions no longer reproduce. `not-a-digest-at-all` is refused; the canonical
+fixture now carries `948737e5…`, minted through `ratify`.
+
+**A second-order finding, recorded because it is the more instructive half.** Wiring the gate turned
+**20 pre-existing tests red** in three other modules, which had been hand-building placeholder
+ratifications (`"fp-active"`, `"deadbeef"`, `"stub"`). One carried a comment stating the retired
+assumption outright: *"the artifact only carries authority; how it was minted is P0(c)'s concern, not
+this module's."* **The defect had shaped the surrounding test estate, not merely one function** — an
+unenforced invariant does not stay local, because fixtures are written against what the code accepts.
+All now obtain authority through `ratify`.
+
+**The architectural invariant this establishes, to be preserved going forward** (Huayin, 2026-09-15):
+
+> **Publication carries governed authority only after that authority has been adjudicated as current.
+> Publication does not construct the fingerprint or decide what the governed law means.**
+
+A source-level test guards that boundary, because the drift it prevents would otherwise be invisible
+and would create a second authority on what a law is.
+
+**The three follow-ons this row asked the repair not to stop short
 of:** the scheme-mismatch branch **landed**, as its own verdict; `ratification_status` still raises
 `LawNotResolvable` rather than returning a verdict, which the gate handles correctly and which is
 **left as-is**; the fixture **was** regenerated. One new observation for a later unit:
