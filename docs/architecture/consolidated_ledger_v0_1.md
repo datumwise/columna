@@ -1649,6 +1649,16 @@ A spelling rule would make Witnesses A and B stop reproducing while leaving that
 and would bind the answer to whichever spelling was convenient. **Implementation spelling must not
 answer it.**
 
+**THAT QUESTION IS NOW RULED** (Huayin, 2026-09-14) — see
+[`ruling_2026_09_14_anchor_identity.md`](ruling_2026_09_14_anchor_identity.md). Anchor identity is
+**universe-relative structural identity**, and declared anchors and lawful projected targets resolve
+under **one** identification scheme. A declaration name may *resolve* to that identity and a movement
+licence may *authorize* establishment at it; neither *constitutes* it. `AnalyticalIdentity` is **not**
+widened with a universe field — `F` supplies the universe, provided resolution is always performed
+inside it. **This row stays OPEN:** the ruling names the governed fact, and the repair has neither
+been designed nor landed. The four things `target_anchor` must stop independently deciding, and the
+corrected eight-step flow, are in §4 of that ruling.
+
 #### State of the surrounding work
 
 [#325](https://github.com/datumwise/columna/pull/325) (Proof B serving-path integration) merged
