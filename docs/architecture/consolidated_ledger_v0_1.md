@@ -1786,6 +1786,141 @@ this row must not be read as settling it.
 
 ---
 
+### P1-35 · A universe's existence-law ratification is never verified at publication, so a fabricated or stale fingerprint publishes cleanly · **HIGH** · **CLOSED 2026-09-15 — repaired in `f9c3ed0` (manifold-agent#32); adjudicated on current `main`** · VX
+
+**Repair:** [`datumwise/manifold-agent#32`](https://github.com/datumwise/manifold-agent/pull/32),
+squashed to **`f9c3ed0`** on `manifold-agent` `main`. CI green on `main` at that sha across all five
+legs — `check (3.11)`, `check (3.12)`, `postgres`, `offline-no-driver`, `nooa-reach`. S0, authorized
+by Huayin as an isolated correction ahead of the constitutional migration. The
+invariant established: *a universe may publish only when its existence-law authority is present, its
+governed law is resolvable under the current scheme, and the carried ratification is current for that
+law.* Repaired as ruled — by **wiring the adjudicator**, not by moving adjudication into the carrier.
+Fingerprint-scheme mismatch was included in the same unit as a correction to the ratification
+lifecycle (not `elf-2` work), and is a **distinct verdict** rather than a semantic stale. The
+canonical fixture was regenerated through `ratify` and no longer demonstrates the defect.
+
+**DEFECT SITE: `datumwise/manifold-agent`** @ `1b76a8c` (v0.13.2) — `publication.py:385-400`,
+`ratification.py:228-261`. The row is governed here because this ledger is the program's inventory and
+the P-number space spans the estate; the code is not in this repository.
+
+**Mechanically separate from the 2026-09-15 constitutional redesign, and a required gate for it.**
+This is a wiring defect in the **enforcement** of a fingerprint, not a defect in **what** is
+fingerprinted. It reproduces identically under `elf-1` and would reproduce identically under `elf-2`.
+Its closure is a precondition of the corrected universe constitution being operationally complete: a
+constitution whose staleness nothing enforces is a constitution in name only.
+(See [`ruling_2026_09_15_universe_constitution.md`](ruling_2026_09_15_universe_constitution.md).)
+
+#### What is wrong
+
+`build_publication_artifact` refuses a universe only when the ratification **object is absent**:
+
+```python
+    rec = d.existence_law_ratification
+    if rec is None:
+        unratified.append(d.name)
+```
+
+and documents that it deliberately *"never runs `law_fingerprint`/`ratification_status`"*
+(`publication.py:251-252`), on the stated basis that *"the publish gate already did"*
+(`publication.py:37-39`).
+
+**There is no such publish gate in that repository.** `assert_existence_law_complete`
+(`ratification.py:228-261`) — which holds the three correct refusals, for **unresolvable**, **MISSING**
+and **STALE** — has **zero callers in `src/`**. No module in `src/` imports `ratification` at all, and
+it is not exported from `__init__.py`. The correct refusals exist, are well written, and never run.
+
+#### The witness — executed against the shipped runtime
+
+A universe whose stored fingerprint is the string `not-a-digest-at-all`:
+
+```
+ratification_status BEFORE publish: stale
+build_publication_artifact       -> ACCEPTED
+carried fingerprint              : not-a-digest-at-all
+```
+
+And the project's own canonical fixture, `tests/fixtures/lighthouse-v2-publication.json`, shipped:
+
+```
+stored fingerprint : lighthouse-existence-law
+real elf-1 digest  : 948737e550378a2c0f0a19af08e6cf150c2851a7f409635810873570e795c8eb
+ratification_status: stale
+GovernedPublicationArtifact.from_dict(shipped artifact) -> ACCEPTED (no refusal)
+```
+
+The fabricated value is hardcoded at `tests/produce_lighthouse_v2.py:67`. Both the **read** path and
+the **write** path accept it.
+
+#### The asymmetry that makes this a defect rather than a gap
+
+**Family constitutions ARE fail-closed on staleness.** `family.assert_publishable` checks
+`constitution_status` (`family.py:274-278`, `:281-304`) and publication calls it
+(`publication.py:344-347`). Universe existence laws are not checked at all. **One authority carrier in
+the same artifact is verified and the other is taken on trust** — and the unverified one is the one a
+human ratified as *"the whole intended population law."*
+
+#### Do NOT repair by having publication recompute the fingerprint
+
+`publication.py:251-252` states the correct division of labour — **enforcement and carriage, not
+re-adjudication**. The repair is to **wire the gate that adjudicates**, not to move adjudication into
+the carrier. A publication module that recomputed law fingerprints would become a second authority on
+what the law is.
+
+#### Recorded so the repair does not stop short
+
+- `ratification_status` **raises** `LawNotResolvable` rather than returning a verdict when the law does
+  not resolve (`ratification.py:216-219`), so a caller that expects a verdict gets an exception. The
+  existing refusal at `:242-245` handles this correctly and is the shape to reuse.
+- `ratification_status` never reads `record.fingerprint_version` — contrast `family.py:276`, which
+  returns `STALE` explicitly on a scheme mismatch. This is masked today only because the version rides
+  inside the hashed payload, and it becomes load-bearing at the `elf-2` bump.
+- The lighthouse fixture must be regenerated with a real digest as part of any repair; until then the
+  canonical example teaches the defect.
+
+#### Relationship to P1-33 and P1-34
+
+None. Those concern **where a family stands**; this concerns **whether a universe's law was ever
+checked**. It is reachable by any publication author, requires no licence, no movement and no Platform
+involvement, and is reproduced by the shipped fixture.
+
+#### Closure evidence
+
+Nine planted witnesses ship with the repair
+(`tests/test_s0_publication_enforces_existence_law.py`), and **each was confirmed to bite** by
+planting the violation, observing the failure, and reverting — the project's standing rule that a
+test which cannot fail is a comment. Four violations were planted: un-wiring the gate (5 tests
+failed), collapsing the scheme verdict into `STALE` (2 failed), restoring the fabricated fixture
+fingerprint (1 failed), and letting `publication` name a fingerprint function (the boundary guard
+failed).
+
+The row's own two reproductions no longer reproduce. `not-a-digest-at-all` is refused; the canonical
+fixture now carries `948737e5…`, minted through `ratify`.
+
+**A second-order finding, recorded because it is the more instructive half.** Wiring the gate turned
+**20 pre-existing tests red** in three other modules, which had been hand-building placeholder
+ratifications (`"fp-active"`, `"deadbeef"`, `"stub"`). One carried a comment stating the retired
+assumption outright: *"the artifact only carries authority; how it was minted is P0(c)'s concern, not
+this module's."* **The defect had shaped the surrounding test estate, not merely one function** — an
+unenforced invariant does not stay local, because fixtures are written against what the code accepts.
+All now obtain authority through `ratify`.
+
+**The architectural invariant this establishes, to be preserved going forward** (Huayin, 2026-09-15):
+
+> **Publication carries governed authority only after that authority has been adjudicated as current.
+> Publication does not construct the fingerprint or decide what the governed law means.**
+
+A source-level test guards that boundary, because the drift it prevents would otherwise be invisible
+and would create a second authority on what a law is.
+
+**The three follow-ons this row asked the repair not to stop short
+of:** the scheme-mismatch branch **landed**, as its own verdict; `ratification_status` still raises
+`LawNotResolvable` rather than returning a verdict, which the gate handles correctly and which is
+**left as-is**; the fixture **was** regenerated. One new observation for a later unit:
+`family.constitution_status` collapses a scheme mismatch into `STALE`, which is the narrower
+instance of the same problem this row identified — **not repaired**.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
