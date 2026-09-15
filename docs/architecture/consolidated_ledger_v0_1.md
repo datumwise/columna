@@ -1671,6 +1671,121 @@ an open decision at the time of this row.
 
 ---
 
+### P1-34 · K0v2 compiles a family at its universe's nominated anchor, discarding the family's own governed constitutive anchor · **HIGH** · **OPEN — witnessed 2026-09-15, repair NOT authorized** · VX
+
+**THE RULED INVARIANT IT BREAKS** — Ruling 3
+([`ruling_2026_09_14_anchor_identity.md`](ruling_2026_09_14_anchor_identity.md) §2b, Huayin, 2026-09-14):
+
+> **Families in one universe MAY have different constitutive anchors.** `universe.body.anchor` must
+> NOT be interpreted or enforced as the constitutive anchor of every family in that universe.
+
+`compile_v2` does exactly what the ruling forbids. It derives a universe's dimension product from
+**that universe's own nominated anchor**, then gives **every family bound to that universe** those
+levels:
+
+```python
+    universe_dims[u.name] = tuple(declared[aref])      # aref = u.body["anchor"]
+...
+    used_levels.update(universe_dims[universe])        # the FAMILY's levels
+```
+
+**`constitutive_anchor` appears ZERO times in `compile_v2.py`.** The family's own governed anchor is
+parsed (`publication.py:270`), carried into the C2 standing (`resolve.py:160-167`), and then never
+consulted by the compiler. Nothing checks that it names a declared anchor, and nothing uses it to
+place the family.
+
+Before Ruling 3 this read as an unused field. Under Ruling 3 it is a defect with a measurable
+consequence, because the substitution is only harmless when the two anchors coincide — and the ruling
+establishes that they need not.
+
+#### The witness — the smallest LAWFUL publication that separates them
+
+Two families, **one** universe, **different** constitutive anchors. Lawful under Ruling 3:
+
+```
+  family 'revenue'  universe='sales'  constitutive_anchor='sale_at'
+  family 'footfall' universe='sales'  constitutive_anchor='daily_at'
+  universe 'sales' body.anchor = 'sale_at'
+  anchor 'sale_at'  components = ['store', 'day']
+  anchor 'daily_at' components = ['day']
+```
+
+What K0v2 compiles (verbatim, executed against the shipped compiler):
+
+```
+MANIFOLD lighthouse VERSION 1
+SOURCE_MANIFOLD lighthouse VERSION 1.0.0
+
+UNIVERSE sales = store * day   BASIS events
+
+LEVEL day = sale_date BASE
+LEVEL store = store_id BASE
+
+MEASURE footfall ON sales FROM sales_lines TYPE Decimal VALUE amount
+    FAMILY { sum }
+
+MEASURE revenue ON sales FROM sales_lines TYPE Decimal VALUE amount
+    FAMILY { count max min sum }
+```
+
+**`footfall` is constituted at `daily_at` = `{day}` and is compiled `ON sales`, where
+`UNIVERSE sales = store * day`.** It is compiled at an analytical location one refinement finer than
+the one its governed law establishes.
+
+**Aggravating, and the reason this is not recoverable downstream:** the string `daily_at` does not
+appear anywhere in the compiled image — asserted by the witness. The image carries no trace that
+`footfall` was constituted at day-level, so no consumer of the image can detect the substitution or
+undo it. The governed fact is not mis-stated; it is **gone**.
+
+#### The two engines disagree about where the family stands
+
+Same publication, same family, executed:
+
+```
+  Platform resolve 'SELECT footfall AT {day}'       -> identity.anchor='daily_at' target_anchor=None
+  Platform resolve 'SELECT footfall AT {store*day}' -> identity.anchor='daily_at' target_anchor='sale_at'
+
+  Core  says footfall stands at: store * day   (from universe.body.anchor)
+  Platform says footfall stands at: daily_at   (from family.constitutive_anchor)
+```
+
+**Platform is right and Core is wrong.** The successor path reads `family.constitutive_anchor`
+(`serving.py:286`, `:811`, `:842`) and holds the identity at `daily_at`, correctly treating the
+`{store*day}` ask as a movement request. The legacy compiler never reads it. So one governed
+publication yields two different analytical locations for one family depending on which engine is
+asked — and the disagreement is invisible from the compiled image.
+
+#### Deliberately NOT measured here
+
+Whether legacy Core then *serves* a wrong number for `footfall` was not executed in this unit; the
+ruling's assignment was what K0v2 compiles. What is established is that the compiled image places the
+family at the wrong analytical location and destroys the fact needed to notice.
+
+#### Why this is SEPARATE from P1-33
+
+| | P1-33 | **P1-34** |
+|---|---|---|
+| what goes wrong | **movement authority** mints a target analytical identity from a free label, independently of the governed target location | **compilation** disregards a family's own constitutive anchor and substitutes structure reached through the universe declaration |
+| where | Platform serving path, `continuation.py:99` / `serving.py:890` | Core compiler, `compile_v2.py:414-427` / `:486-490` |
+| reachable by | a hand-authored Python licence; no deployment surface supplies one | **an ordinary lawful publication** — no licence, no movement, no Platform involvement |
+
+**Note the reachability difference.** P1-33 is graded HIGH partly because no external author can reach
+it. P1-34 is reachable by any publication author who declares a second anchor and constitutes a family
+at it — which Ruling 3 explicitly establishes as lawful. **The grade is HIGH on the same scale, and
+the reachability argument that held P1-33 below CRITICAL does not hold here. If this should be
+CRITICAL, it is Huayin's to raise.**
+
+#### Do NOT repair by requiring `family.constitutive_anchor == universe.body.anchor`
+
+Ruled out explicitly (Huayin, 2026-09-14). That equality is the very thing Ruling 3 forbids, and
+adopting it would convert a defect into an enforced doctrine error. Note also what this row does NOT
+establish: it does not say what `universe.body.anchor` *does* mean. Its meaning is unresolved, and
+this row must not be read as settling it.
+
+**Not repaired in this ledger unit, deliberately.**
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
