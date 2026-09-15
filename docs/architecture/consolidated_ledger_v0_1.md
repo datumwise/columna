@@ -1786,7 +1786,16 @@ this row must not be read as settling it.
 
 ---
 
-### P1-35 · A universe's existence-law ratification is never verified at publication, so a fabricated or stale fingerprint publishes cleanly · **HIGH** · **OPEN — witnessed 2026-09-15, repair NOT authorized** · VX
+### P1-35 · A universe's existence-law ratification is never verified at publication, so a fabricated or stale fingerprint publishes cleanly · **HIGH** · **REPAIRED 2026-09-15 — awaiting review** · VX
+
+**Repair:** [`datumwise/manifold-agent#32`](https://github.com/datumwise/manifold-agent/pull/32) —
+S0, authorized by Huayin as an isolated correction ahead of the constitutional migration. The
+invariant established: *a universe may publish only when its existence-law authority is present, its
+governed law is resolvable under the current scheme, and the carried ratification is current for that
+law.* Repaired as ruled — by **wiring the adjudicator**, not by moving adjudication into the carrier.
+Fingerprint-scheme mismatch was included in the same unit as a correction to the ratification
+lifecycle (not `elf-2` work), and is a **distinct verdict** rather than a semantic stale. The
+canonical fixture was regenerated through `ratify` and no longer demonstrates the defect.
 
 **DEFECT SITE: `datumwise/manifold-agent`** @ `1b76a8c` (v0.13.2) — `publication.py:385-400`,
 `ratification.py:228-261`. The row is governed here because this ledger is the program's inventory and
@@ -1872,7 +1881,12 @@ None. Those concern **where a family stands**; this concerns **whether a univers
 checked**. It is reachable by any publication author, requires no licence, no movement and no Platform
 involvement, and is reproduced by the shipped fixture.
 
-**Not repaired in this ledger unit, deliberately.**
+**Repaired under S0 (see above). The three follow-ons this row asked the repair not to stop short
+of:** the scheme-mismatch branch **landed**, as its own verdict; `ratification_status` still raises
+`LawNotResolvable` rather than returning a verdict, which the gate handles correctly and which is
+**left as-is**; the fixture **was** regenerated. One new observation for a later unit:
+`family.constitution_status` collapses a scheme mismatch into `STALE`, which is the narrower
+instance of the same problem this row identified — **not repaired**.
 
 ---
 
