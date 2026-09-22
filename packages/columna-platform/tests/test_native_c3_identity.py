@@ -235,22 +235,27 @@ def test_the_request_coordinate_order_does_not_reach_the_location(pub):
 
 
 # ══ THE MOVEMENT BOUNDARY — observed, not crossed ════════════════════════════════════════════════
-def test_a_coarser_ask_is_refused_with_GEOMETRY_and_STANDING_kept_apart(pub):
-    """Ruling 3's distinction, implemented as the shape of a refusal and nothing more: the location
-    exists (geometry), and the licence to stand there is a different fact the native model does not
-    yet state. No licence object was ported and no movement was designed."""
-    with pytest.raises(WantOfLaw) as e:
-        nrq.resolve(pub, parse_statement("SELECT berthings AT {berth}"))
-    msg = str(e.value)
-    assert "target analytical location EXISTS" in msg
-    assert "forgets ['day']" in msg
-    assert "governed MOVEMENT STANDING" in msg
-    assert "not infer one from the geometry" in msg
+def test_a_coarser_ask_resolves_GEOMETRICALLY_and_carries_its_target(pub):
+    """Ruling 3's distinction, and **C4 moved the second half of it out of resolution.**
+
+    As C3 first shipped, a coarser ask was REFUSED here for want of governed movement standing. The
+    refusal said the right thing in the wrong place: resolution answers *what is being asked for*,
+    and standing is decided against `Law(F)`, which this module may not see — and refusing here left
+    the standing question unreachable. So resolution now concludes only what geometry establishes:
+    the target location exists, and `target` carries it. The refusal lives in
+    `native_law.assert_answerable` and is witnessed in `test_native_c4_answerability.py`."""
+    req = nrq.resolve(pub, parse_statement("SELECT berthings AT {berth}"))
+    assert req.is_moving
+    assert sorted(req.target.constituents) == ["berth"]
+    assert req.identity.anchor == pub.universe("harbour").denote("berthing_at")
+    # the projection is computable, and exactly what it forgets is a fact of geometry
+    assert req.identity.anchor.projection_forgets(req.target) == frozenset({"day"})
 
 
 def test_the_grand_total_frame_is_movement_too(pub):
-    with pytest.raises(WantOfLaw, match=r"forgets \['berth', 'day'\]"):
-        nrq.resolve(pub, parse_statement("SELECT berthings AT {}"))
+    req = nrq.resolve(pub, parse_statement("SELECT berthings AT {}"))
+    assert req.is_moving and req.target.is_scalar
+    assert req.identity.anchor.projection_forgets(req.target) == frozenset({"berth", "day"})
 
 
 def test_a_FINER_ask_is_not_a_movement_awaiting_a_licence(pub):

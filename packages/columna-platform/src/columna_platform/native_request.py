@@ -33,10 +33,20 @@ of what this module uses:
     geometry decides whether a target analytical location EXISTS;
     governed movement standing decides whether `F` may STAND there.
 
-So a coarser ask resolves *geometrically* — the projection exists, and this module can say so
-exactly — and then refuses for want of governed movement standing, which the native model does not
-yet define. **No licence object, no `target_anchor` carried forward, no port of the v2 movement
-implementation.** The native movement contract is derived later, from the native model.
+**THIS MODULE ANSWERS ONLY THE FIRST, AND C4 MOVED THE SECOND OUT OF IT.** As first written, a
+coarser ask was refused *here*, for want of governed movement standing. The refusal said the right
+thing and said it in the wrong place: resolution answers *what is being asked for*, and whether `F`
+may stand there is governed AUTHORITY — a different question, decided against `Law(F)`, which this
+module may not see. Refusing here also made the standing question unreachable, so nothing could ever
+be asked to license it. The v2 resolver had already drawn this line for its own reasons and states
+it in the same words; that agreement is recorded in C4's report rather than treated as a template.
+
+So a coarser ask now RESOLVES — geometry says the location exists, and `target` carries it — and a
+NON-PROJECTABLE ask still refuses here, because that is a fact about geometry and not about
+standing: if the target cannot be obtained by lawful universe geometry, the problem is not a missing
+licence. **No licence object is constructed, nothing is carried forward that names an anchor, and
+nothing of the v2 movement implementation is ported.** The native movement contract is derived
+later, from the native model.
 """
 from __future__ import annotations
 
@@ -72,10 +82,30 @@ class NativeResolvedRequest:
     family: Family
     universe: Universe
     column_name: str
+    #: The location the ask NAMES, when it is not the family's constitutive one — i.e. this request
+    #: is a MOVEMENT. `None` on every non-moving request.
+    #:
+    #: **IDENTITY STAYS AT THE CONSTITUTIVE ANCHOR HERE, deliberately.** Resolution establishes what
+    #: the state is OF and where the family is constituted; whether `F` may stand at the target is a
+    #: question of governed authority that resolution cannot answer. So the target rides alongside as
+    #: a REQUEST FACT — a geometric one: it is present exactly when the projection exists.
+    #:
+    #: It is an `Anchor`, not a name, for the same reason `identity.anchor` is: there is no name.
+    target: Optional[Anchor] = None
+
+    @property
+    def is_moving(self) -> bool:
+        return self.target is not None
 
     @property
     def location(self) -> Anchor:
-        """**Where the value stands.** One expression, one source."""
+        """**Where the value stands** if this request is answered — the constitutive anchor, or the
+        target once a movement has been adjudicated and performed. Before adjudication it is the
+        constitutive anchor, because that is where the state is established.
+
+        One expression, one source: C3's finding is unaffected by the target, because the target is
+        not a second rendering of the same location — it is a different location, named by the ask
+        and not yet occupied."""
         return self.identity.anchor
 
 
@@ -151,17 +181,13 @@ def resolve(pub: NativePublication, statement) -> NativeResolvedRequest:
 
     # ── the ask is NOT the constitutive anchor · §4's division, applied ────────────────────────
     if constitutive.refines(asked):
-        # GEOMETRY SAYS YES. The projection exists and this module can say exactly what it forgets.
-        # GOVERNED MOVEMENT STANDING SAYS NOTHING YET, and silence is not permission.
-        forgotten = sorted(constitutive.projection_forgets(asked))
-        raise WantOfLaw(
-            f"{family.canonical_reference!r} is constituted at {constitutive}, and this ask stands "
-            f"at {asked}. The target analytical location EXISTS — it is the projection that forgets "
-            f"{forgotten} — and that is a fact of GEOMETRY. Whether this family may stand there is a "
-            f"question of governed MOVEMENT STANDING, which is a different fact and one the native "
-            f"model does not yet state. A location existing is not a licence to occupy it, and this "
-            f"path will not infer one from the geometry that shows it is reachable",
-            subject=family.family_id)
+        # GEOMETRY SAYS YES: the projection exists, and exactly what it forgets is computable. That
+        # is the whole of what resolution may conclude. Whether `F` may STAND there is decided
+        # against `Law(F)` — see `native_law.assert_answerable` — and a location existing is never a
+        # licence to occupy it.
+        return NativeResolvedRequest(
+            identity=AnalyticalIdentity(family_id=family.family_id, anchor=constitutive),
+            family=family, universe=universe, column_name=column_name, target=asked)
 
     # The ask names constituents the family is not constituted over — a FINER or disjoint location.
     # Not movement, and not a standing question at all: a coarser location is reached by forgetting,
