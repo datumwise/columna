@@ -1,0 +1,150 @@
+{
+  "declarations": [
+    {
+      "case_s_denotations": {
+        "berth_day": [
+          "berth",
+          "day"
+        ],
+        "berthing_at": [
+          "berth",
+          "day"
+        ],
+        "by_berth": [
+          "berth"
+        ]
+      },
+      "constitution": {
+        "identity": {
+          "designation": "the harbour's berthing world"
+        },
+        "individuation": {
+          "closed": true,
+          "constituents": [
+            {
+              "domain": {
+                "designation": "governed berth register entry",
+                "equality": "same governed berth reference"
+              },
+              "reference": "berth"
+            },
+            {
+              "domain": {
+                "designation": "harbour operating day",
+                "equality": "same operating day under the harbour calendar"
+              },
+              "reference": "day"
+            }
+          ]
+        },
+        "law": {
+          "determination": {
+            "berth": "the governed berth the vessel occupied at the moment of making fast",
+            "day": "the harbour operating day containing that moment, boundary 04:00 local"
+          },
+          "ground": "vessel_berthing",
+          "qualification": "every berthing the harbour master accepted as having occurred"
+        },
+        "premises": [
+          {
+            "individuation": "one vessel made fast at one berth on one occasion, individuated independently of any record of it",
+            "premise": "occurrence_subject",
+            "reference": "vessel_berthing"
+          }
+        ]
+      },
+      "constitution_conformance": {
+        "asserted_by": "harbour steward",
+        "at": "2026-09-21T00:00:00Z",
+        "obligations": [
+          "determination_is_correct",
+          "domain_suffices_to_individuate",
+          "no_constitutive_content_elsewhere",
+          "qualification_is_over_occurrences_not_rows",
+          "qualification_is_the_whole_qualification",
+          "subject_individuated_independently_of_any_carrier"
+        ]
+      },
+      "existence_law_ratification": {
+        "at": "2026-09-21T00:00:00Z",
+        "fingerprint": "elf-2:f077c0e15f4af4ffb252cf72a71e13c6884a3c61f720084e3d68a7afdc124cea",
+        "fingerprint_version": "elf-2",
+        "ratified_by": "harbour steward"
+      },
+      "kind": "universe",
+      "name": "harbour"
+    },
+    {
+      "body": {
+        "canonical_reference": "berthings",
+        "constitutive_anchor": "berthing_at",
+        "continuation": {
+          "law": "SUM",
+          "version": "1",
+          "vocabulary": "datumwise.foundation"
+        },
+        "family_id": "fam_Nq4WfR8kPxDvZc2TmLbJhY",
+        "formation": {
+          "contribution_structure": "coincident",
+          "kind": "primitive"
+        },
+        "participation": "every berthing the harbour master accepted",
+        "target": "the count of vessel berthings at one berth-day, as a whole number",
+        "universe": "harbour",
+        "value_domain": "integer"
+      },
+      "family_constitution_authority": {
+        "at": "2026-09-21T00:00:00Z",
+        "constitution_fingerprint": "fcf-2:38546850c5f8393320b370db1259b9a377cc16240de16bac9bf7ff15ce39dda0",
+        "established_by": "harbour steward",
+        "fingerprint_scheme": "fcf-2"
+      },
+      "kind": "family",
+      "name": "berthings",
+      "universe_authority_binding": {
+        "at": "2026-09-21T00:00:00Z",
+        "bound_by": "harbour steward",
+        "universe_authority": "elf-2:f077c0e15f4af4ffb252cf72a71e13c6884a3c61f720084e3d68a7afdc124cea",
+        "universe_authority_scheme": "elf-2",
+        "universe_reference": "harbour"
+      }
+    },
+    {
+      "body": {
+        "canonical_reference": "moorings",
+        "constitutive_anchor": "berthing_at",
+        "continuation": {
+          "law": "SUM",
+          "version": "1",
+          "vocabulary": "datumwise.foundation"
+        },
+        "family_id": "fam_Td6JhV2yQnWsEr9BkXpLcM",
+        "formation": {
+          "contribution_structure": "coincident",
+          "kind": "primitive"
+        },
+        "participation": "every mooring line the harbour master accepted",
+        "target": "the count of mooring lines made fast at one berth-day, as a whole number",
+        "universe": "harbour",
+        "value_domain": "integer"
+      },
+      "family_constitution_authority": {
+        "at": "2026-09-21T00:00:00Z",
+        "constitution_fingerprint": "fcf-1:cecffbe222b7bda6a4601e33c82bbd6e3b46b4edff443e98afdf8fd975aae5f0",
+        "established_by": "harbour steward",
+        "fingerprint_scheme": "fcf-1"
+      },
+      "kind": "family",
+      "name": "moorings"
+    }
+  ],
+  "publication_format_version": "3.0",
+  "published": {
+    "at": "2026-09-21T00:00:00Z",
+    "by": "harbour steward"
+  },
+  "ref": {
+    "manifold_id": "harbour",
+    "version": "1.0.0"
+  }
+}
