@@ -173,10 +173,28 @@ def test_family_constitution_authority_is_a_distinct_record_type_from_elf_1():
 
 # ══ the total Law(F) view ════════════════════════════════════════════════════════════════════════
 def test_the_resolved_view_is_total_so_silence_is_impossible():
+    """Totality is the invariant: every responsibility resolves to one of three standings.
+
+    Since the C3 split (ruled 2026-09-22) the view also carries ONE extra entry — the pre-split
+    combined `domain_and_movement`, retained so the v2 serving path keeps its exact semantics. It
+    is asserted by name rather than tolerated by a loosened `>=`, because an UNNAMED extra entry is
+    precisely what this test exists to catch."""
     for view in R.resolve_all(_pub()).values():
-        assert set(view.entries) == set(R.RESPONSIBILITIES)
+        assert set(view.entries) - set(R.RESPONSIBILITIES) == {R.C3_DOMAIN_MOVEMENT}
+        assert set(R.RESPONSIBILITIES) <= set(view.entries)
         for r in R.RESPONSIBILITIES:
             assert view.entries[r].standing in (R.ESTABLISHED, R.EXPLICIT_NONE, R.UNESTABLISHED)
+
+
+def test_the_two_halves_of_C3_are_now_separate_responsibilities():
+    """The conflation retired: one standing used to become ESTABLISHED when EITHER half was
+    present. A family declaring a domain and no movement is the witness."""
+    assert R.C3_FAMILY_DOMAIN in R.RESPONSIBILITIES
+    assert R.C3_EDGE_VALIDITY in R.RESPONSIBILITIES
+    assert R.C3_DOMAIN_MOVEMENT not in R.RESPONSIBILITIES
+    # neither half is identity-bearing — R12 for the domain half, §4.1/§3.9 for both
+    assert R.C3_FAMILY_DOMAIN not in R.IDENTITY_BEARING
+    assert R.C3_EDGE_VALIDITY not in R.IDENTITY_BEARING
 
 
 def test_every_lighthouse_family_is_valid():

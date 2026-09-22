@@ -25,6 +25,8 @@ from columna_core.governed.native import parse_native_publication
 from columna_core.governed.publication import parse_family_declaration, parse_publication
 from columna_core.governed.resolve import (
     C3_DOMAIN_MOVEMENT,
+    C3_EDGE_VALIDITY,
+    C3_FAMILY_DOMAIN,
     C7_SUFFICIENT_STATE,
     ESTABLISHED,
     RESPONSIBILITIES,
@@ -60,8 +62,12 @@ def views(pub):
 
 # ══ 1 · LAW(F) RESOLVES TOTALLY FOR A NATIVE FAMILY ══════════════════════════════════════════════
 def test_every_responsibility_is_settled_for_every_native_family(views):
+    """Totality. Since the C3 split the view also carries the retained pre-split combined entry,
+    asserted BY NAME rather than tolerated by a loosened comparison — an unnamed extra entry is
+    exactly what this assertion exists to catch."""
     for view in views.values():
-        assert set(view.entries) == set(RESPONSIBILITIES)
+        assert set(view.entries) - set(RESPONSIBILITIES) == {C3_DOMAIN_MOVEMENT}
+        assert set(RESPONSIBILITIES) <= set(view.entries)
         assert view.valid, view.validity_problems
 
 
@@ -113,7 +119,7 @@ def test_a_family_at_its_constitutive_anchor_is_answerable(pub, views):
 def test_the_constitutive_anchor_raises_no_admission_question(views):
     """C3 is UNESTABLISHED for every family in the fixture, and the non-moving ask is answerable
     anyway. *Constitutive* is what it means for the family to be established there."""
-    assert views[BERTHINGS][C3_DOMAIN_MOVEMENT].standing == UNESTABLISHED
+    assert views[BERTHINGS][C3_EDGE_VALIDITY].standing == UNESTABLISHED
     nl.assert_answerable(views[BERTHINGS], moving=False)
 
 
@@ -177,13 +183,22 @@ def test_the_movement_ask_refuses_at_the_DECISION_and_names_what_is_missing(pub,
     assert "not yet decided" in msg
 
 
-def test_C3_ESTABLISHED_is_not_the_test_because_a_DOMAIN_is_not_a_MOVEMENT(pub, raw):
-    """A family declaring a domain and no movement resolves C3 ESTABLISHED. Testing the standing
-    would serve a coarser anchor with no licence at all."""
+def test_the_DOMAIN_ALONE_trap_is_gone_because_C3_SPLIT(pub, raw):
+    """**The defect this test was written to catch no longer exists** (ruled 2026-09-22).
+
+    It used to be that a family declaring a domain and no movement resolved ONE C3 standing to
+    ESTABLISHED, so testing the standing would have served a coarser anchor for a family carrying no
+    licence at all. C3 is now two responsibilities and the trap is structural rather than guarded:
+    the legacy combined entry still goes ESTABLISHED — it is retained byte-identical for the v2 path
+    — while the edge-validity standing, which is what the rule reads, correctly stays UNESTABLISHED.
+
+    Both halves are asserted, because the whole point is that they now DISAGREE."""
     d = copy.deepcopy(raw)
     d["declarations"][1]["body"]["domain"] = {"note": "a declared domain, and no movement"}
     view = nl.laws_of(parse_native_publication(_refingerprint_fcf2(d, 1)))[BERTHINGS]
-    assert view[C3_DOMAIN_MOVEMENT].standing == ESTABLISHED
+    assert view[C3_DOMAIN_MOVEMENT].standing == ESTABLISHED      # the old conflated entry
+    assert view[C3_EDGE_VALIDITY].standing == UNESTABLISHED      # what the rule now reads
+    assert view[C3_FAMILY_DOMAIN].standing == UNESTABLISHED      # a v2 `domain` marker is not P_F
     with pytest.raises(WantOfLaw, match="establishes no positive movement"):
         nl.assert_answerable(view, moving=True)
 
@@ -209,11 +224,15 @@ def test_POSITIVE_movement_content_STOPS_rather_than_being_guessed_at(pub, raw):
     assert "preserved, not rejected" in str(e.value)
 
 
-def test_the_missing_fact_is_characterized_and_carries_no_encoding():
+def test_the_missing_fact_is_NARROWED_to_the_edge_half_not_retired():
+    """C4 recorded one undecided fact covering both halves of C3. The family-domain half is now
+    decided for primitive Case-S families; the EDGE half is not, so the constant narrows rather
+    than retiring — and it must not quietly start describing the half that was answered."""
     m = nl.MOVEMENT_STANDING_UNDECIDED
-    assert "ADMITTED to stand at" in m.fact and "under whose authority" in m.fact
+    assert "EDGE CONTRACT" in m.fact
+    assert "does not make every proposed derivation to A lawful" in m.fact
     assert "steward who constitutes F" in m.whose
-    assert "C3 slot" in m.where
+    assert "movement slot" in m.where
     assert set(vars(m)) == {"fact", "whose", "where"}      # no candidate shape, by construction
 
 
@@ -237,6 +256,36 @@ def test_the_decision_rule_names_no_anchor_at_all():
     assert names.isdisjoint({"universe", "denote", "constituents", "refines", "declared"})
 
 
+def test_the_ANCHOR_FREE_CLAIM_IS_NARROWED_and_here_is_the_distinction():  # noqa: D401
+    """**What C4 proved, and what C4 over-claimed** (ruled Huayin, 2026-09-22).
+
+    C4 wrote one rule that named no anchor, ran it over a native and a legacy `LawView`, and
+    concluded that answerability converges without translating either anchor model. The test above
+    still passes and that result stands — for what it actually covers.
+
+    What it does NOT cover was discovered in C5. `assert_answerable` asks whether the family's LAW
+    makes it answerable: does it have a sufficient-state basis, does it license movement at all.
+    Those are the family's statements about itself, and no anchor belongs in them. But *may F stand
+    at THIS location* is a RELATION between the family and a resolved location, and no amount of
+    care can decide it without consuming geometry.
+
+    So the strong reading — that the COMPLETE answerability decision can stay anchor-free — is
+    withdrawn. The rule was not bent to keep it: the family-domain predicate lives in
+    `native_domain`, one layer up, where the law and the resolved geometry are both legitimately
+    in hand. This test pins the narrowing so the withdrawn claim cannot be silently re-adopted."""
+    import inspect
+
+    import columna_platform.native_domain as nd
+
+    # the law-level rule: still anchor-free, asserted above
+    assert "Anchor" not in inspect.getsource(nl.assert_answerable)
+
+    # the domain predicate: DELIBERATELY consumes geometry, and says so in its signature
+    params = list(inspect.signature(nd.assert_within_domain).parameters)
+    assert params == ["view", "family", "root", "target"]
+    assert "projection_forgets" in inspect.getsource(nd.forgotten)
+
+
 def test_the_SAME_rule_decides_a_LEGACY_law_view_unchanged():
     """The convergence question, asked in the only form that can be answered: write the rule so an
     anchor model cannot enter it, then run it over both paths' views.
@@ -257,7 +306,7 @@ def test_both_paths_reach_the_SAME_verdict_for_the_same_reason(pub, views):
     native = views[BERTHINGS]
     for view in (revenue, native):
         assert view[C7_SUFFICIENT_STATE].standing == ESTABLISHED
-        assert view[C3_DOMAIN_MOVEMENT].standing == UNESTABLISHED
+        assert view[C3_EDGE_VALIDITY].standing == UNESTABLISHED
 
 
 # ══ helpers ══════════════════════════════════════════════════════════════════════════════════════
