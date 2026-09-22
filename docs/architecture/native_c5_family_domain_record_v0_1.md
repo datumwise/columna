@@ -52,6 +52,13 @@ The refusal names what exceeded the law:
 | `columna-core` | **1847 passed, 0 failed**, 50 skipped, 38 errors | 1845 passed, **1 failed**, 50 skipped, 38 errors |
 | `columna-platform` | **342 passed** | — |
 | `columna-adbc` | **68 passed** | — |
+| `columna-server` | **416 passed, 2 skipped, 0 failed** | — |
+
+⟨measured⟩ the server suite's one earlier failure — `test_agent_process_never_imports_columna_core`,
+which spawns a subprocess under a 120-second timeout — was **CPU contention, not a defect**: it
+failed only while three suites ran concurrently, passes in isolation in 29.8s, and the uncontended
+full run above is clean in half the wall-clock (17m against 34m). The 2 skips are the tests gated on
+an absent `ANTHROPIC_API_KEY`, which skip by design.
 
 **The 38 errors are pre-existing and identical on both sides** (`test_pin_verdict_truthfulness`,
 `test_plan_run_standing`); they are not this unit's and are not repaired by it. The baseline's single
