@@ -54,7 +54,17 @@ from typing import Any, Optional, Protocol, runtime_checkable
 #: as v1: no family law is inferred from a v1 artifact, and no v2 artifact is degraded to the v1
 #: shape. `_READERS` below is the whole of the per-major dispatch, so adding a major is adding a
 #: reader, never a branch inside one.
-SUPPORTED_PUBLICATION_FORMAT_MAJORS = (1, 2)
+#:
+#: **MAJOR 3 — the native ToD-v7.1 contract (C2, 2026-09-22).** Added as a reader, exactly as the
+#: comment above promises. The failure it corrects was measured and is worth stating precisely: a
+#: v3 artifact did not REFUSE here, it was *invisible* — `_is_governed_only_unit` swallowed the
+#: unsupported-format error and the unit vanished from the catalog, so a deployment holding a
+#: lawful native publication was told it had nothing. **The refusal was never the problem; the
+#: silence was.** And the refusal itself was load-bearing: relabel that artifact `"2.0"` and the
+#: v2 reader ACCEPTS it, discarding every constitution, attestation and denotation it carries. So
+#: v3 is admitted by being READ AS v3 — never by relabelling, never by wrapping it in v2's
+#: `logical` envelope, and never by widening v2's contract to tolerate it.
+SUPPORTED_PUBLICATION_FORMAT_MAJORS = (1, 2, 3)
 
 
 # ── identity ─────────────────────────────────────────────────────────────────────────────────────
@@ -94,13 +104,34 @@ class PublicationAuthority:
 
 @dataclass(frozen=True)
 class GovernedPublication:
-    """One immutable governed publication: a concrete ``ref``, a physical-clean logical projection
-    (from the governed-publication artifact — no table/column/reject/realization), and immutable
-    authority/provenance. All three come from ``governed-publication.json``, never from the ``.cml``."""
+    """One immutable governed publication: a concrete ``ref``, immutable authority/provenance, and
+    the major's own reading of what was published. Everything here comes from
+    ``governed-publication.json``, never from the ``.cml``.
+
+    **``logical`` AND ``native`` ARE PER-MAJOR, AND EXACTLY ONE IS PRESENT** (C2, 2026-09-22).
+
+    ``logical`` is the v1/v2 physical-clean projection — a declaration list under a ``logical``
+    wrapper, named that way because it stood opposite a physical ``.cml``. ``native`` is the v3
+    resolved model (``columna_core.governed.native.NativePublication``): a constitution per
+    universe, a derived geometry, a denotation table, and per-declaration authority records.
+
+    **The v3 reading is NOT projected into ``logical``.** It could be made to fit — a native
+    declaration list would deserialize into that slot without complaint — and that is exactly why
+    it is refused: the v2 shape has no place for a constitution, an attestation or a denotation
+    table, so filling it would carry the artifact while silently dropping everything that makes it
+    native. That is the measured v2 failure, reproduced deliberately instead of accidentally. A
+    consumer asks which one it has; it never finds a fabricated one of the other kind."""
 
     ref: ManifoldRef
-    logical: dict
+    logical: Optional[dict]
     authority: PublicationAuthority
+    native: Optional[Any] = None
+
+    @property
+    def is_native(self) -> bool:
+        """True when this publication is the v3 native model. A consumer that branches on this is
+        branching on WHAT IT HOLDS, not on a version string it has to interpret."""
+        return self.native is not None
 
 
 @dataclass(frozen=True)
@@ -244,8 +275,14 @@ class PublicationArtifactData:
     #: artifact from silently meaning "successor runtime" (ruled 2026-09-12 §3).
     major: int
     ref: ManifoldRef
-    logical: dict          # the artifact's physical-clean logical projection, AUTHORING vocabulary
-    authority: dict        # {published_by, published_at, ratifications{universe -> record}}
+    #: v1/v2 ONLY. The artifact's physical-clean logical projection, AUTHORING vocabulary.
+    logical: Optional[dict] = None
+    #: v1/v2 ONLY. {published_by, published_at, ratifications{universe -> record}}. A native
+    #: artifact has no such section: its standing lives on the declarations that carry it.
+    authority: Optional[dict] = None
+    #: v3 ONLY. The native resolved model, read by `columna_core.governed.native` — never a
+    #: projection of it into either of the two slots above.
+    native: Optional[Any] = None
 
 
 def _artifact_major(version: str) -> int:
@@ -288,6 +325,43 @@ def parse_publication_artifact(data: Any) -> PublicationArtifactData:
     if not isinstance(mid, str) or not mid or not isinstance(ver, str) or not ver:
         raise PublicationArtifactInvalid("ref must carry a concrete manifold_id and version")
 
+    logical, authority, native = reader(data)   # …then THIS major's own contract, and all of it
+    return PublicationArtifactData(format_version=fmt, major=major, ref=ManifoldRef(mid, ver),
+                                   logical=logical, authority=authority, native=native)
+
+
+# ── per-major contracts ──────────────────────────────────────────────────────────────────────────
+# **THE SPINE SPLIT** (C2, ruled Huayin 2026-09-22).
+#
+# Above this line is now the whole of what EVERY major shares, and it is two facts: a supported
+# format major, and a concrete `ref`. That is not a reduction for tidiness — it is the correction
+# of a category error. The old spine additionally required a `logical` wrapper, an `authority`
+# object, and ratification keys corresponding to universe names, and called those "the spine both
+# majors share". **They were never a spine; they were v1 and v2's contract, hoisted.** Measured:
+# a native v3 artifact has no `logical` wrapper at all, no top-level `authority` section, and no
+# publication-global ratification map — its universes carry their own constitutions and their own
+# `elf-2` attestations, and its families carry their own constitution authority and U-authority
+# binding. Every one of those three "shared" requirements is a v1/v2 fact about where standing was
+# FILED, not a requirement of being a governed publication.
+#
+# So they move down, into `_v1v2_envelope`, and each major's reader owns the whole of its own
+# contract. **A shared spine is not a shim only while what it shares is genuinely common**; keeping
+# those three above the line would have forced v3 to grow a `logical` wrapper and an `authority`
+# map it does not have — translating the new house back into the old one at the very first seam.
+#
+# Adding a major remains adding a reader, never a branch inside one. Each returns
+# `(logical, authority, native)`, and exactly one side of that is populated.
+
+def _v1v2_envelope(data: Any) -> tuple[dict, dict]:
+    """The v1/v2 ENVELOPE — `logical.declarations` in the authoring vocabulary, an `authority`
+    section, and ratification keys corresponding one-to-one with the logical universe names.
+
+    **This is where publication-global standing lives, and that is a v1/v2 property.** v2 hoists
+    declaration-level standing into a top-level map keyed by universe NAME (ratifications) and
+    another keyed by `family_id` (family constitutions) — two identity spaces for one job, which
+    exists only because `{kind, name, body}` had no room for standing. Nothing is wrong with it as
+    v2's own contract, and nothing about it is changed here; it simply stops pretending to be a
+    fact about publication artifacts in general."""
     logical = data.get("logical")
     if not isinstance(logical, dict) or not isinstance(logical.get("declarations"), list):
         raise PublicationArtifactInvalid("logical.declarations must be a list")
@@ -310,28 +384,24 @@ def parse_publication_artifact(data: Any) -> PublicationArtifactData:
             "ratification keys must correspond exactly to the logical universe names "
             f"({sorted(set(rats) ^ set(universe_names))!r} differ)"
         )
-    reader(data)                    # …then whatever THIS major's own contract additionally requires
-    return PublicationArtifactData(format_version=fmt, major=major, ref=ManifoldRef(mid, ver),
-                                   logical=logical, authority=authority)
+    return logical, authority
 
 
-# ── per-major contracts ──────────────────────────────────────────────────────────────────────────
-# Above this line is the SPINE both majors share: a concrete ref, declaration-native `logical`, an
-# `authority` object, and ratification keys corresponding to universe names. Below it is what each
-# major additionally means. The split is deliberate — a shared spine is not a shim, because neither
-# major is being read through the other's rules.
-
-def _read_v1(data: Any) -> None:
+def _read_v1(data: Any) -> tuple[Optional[dict], Optional[dict], Optional[Any]]:
     """v1 — the legacy Core serving path's input, UNCHANGED and deliberately not deepened.
 
     v1 carries `measure`/`member` declarations and its family law lives in a private realization
     mapping, so there is no family law here for this server to check and none may be inferred. The
-    spine is the whole of the v1 contract as this server reads it; that is exactly what it was before
-    v2 support existed, and nothing about v1 ingest changed when v2 arrived."""
-    return None
+    ENVELOPE is the whole of the v1 contract as this server reads it; that is exactly what it was
+    before v2 support existed, and nothing about v1 ingest changed when v2 arrived.
+
+    The envelope moved out of the shared spine and into this function at C2, UNCHANGED: the same
+    checks run in the same order over the same bytes, so v1 reads exactly as it read before. What
+    changed is only that it is now stated as v1 and v2's contract rather than as every major's."""
+    return (*_v1v2_envelope(data), None)
 
 
-def _read_v2(data: Any) -> None:
+def _read_v2(data: Any) -> tuple[Optional[dict], Optional[dict], Optional[Any]]:
     """v2 — read through V2'S OWN READER, not through a second implementation of it.
 
     `columna_core.governed.publication.parse_publication` IS the v2 contract: family identity,
@@ -348,14 +418,46 @@ def _read_v2(data: Any) -> None:
     from columna_core.governed.publication import PublicationFormatRefusal
     from columna_core.governed.publication import parse_publication as _v2
 
+    logical, authority = _v1v2_envelope(data)
     try:
         _v2(data)
     except PublicationFormatRefusal as exc:
         raise PublicationArtifactInvalid(f"v2 contract: {exc}") from exc
+    return logical, authority, None
+
+
+def _read_v3(data: Any) -> tuple[Optional[dict], Optional[dict], Optional[Any]]:
+    """v3 — the NATIVE ToD-v7.1 contract, read through ITS OWN reader.
+
+    `columna_core.governed.native.parse_native_publication` IS the v3 contract, the way
+    `parse_publication` is v2's: the version gate's two mechanisms, consume-or-refuse at the
+    declaration envelope, the constitution as governed facts, and the four currency claims
+    recomputed from the carried bytes. Re-implementing any of it here would be a second
+    enumeration of a contract this server does not own.
+
+    **THIS FUNCTION IS THE WHOLE OF WHAT C2 ADDS TO INGEST, AND IT TRANSLATES NOTHING.** It calls
+    no v1/v2 helper, builds no `logical` wrapper, synthesizes no `authority` section and no
+    ratification map, and produces no declaration in the authoring vocabulary. What it returns is
+    the native model itself. Every legacy object that a v2 reading would have required — an anchor
+    declaration, a publication-global anchor map, `universe.body.anchor`, a basis, a global
+    coordinate namespace — is not "not yet supported" here; there is no expression in this path
+    that could produce one.
+
+    Imported inside the function, for the reason `_read_v2`'s import is: artifact READING is
+    stdlib-JSON work at this layer, and the registry's independence from heavier surfaces is worth
+    keeping visible. The disjointness that matters — the server never imports `manifold_agent` —
+    is unaffected and still test-enforced."""
+    from columna_core.governed.native import NativePublicationRefusal
+    from columna_core.governed.native import parse_native_publication as _v3
+
+    try:
+        return None, None, _v3(data)
+    except NativePublicationRefusal as exc:
+        raise PublicationArtifactInvalid(f"v3 contract: {exc}") from exc
 
 
 #: major → the reader for that major's own contract. The whole of the per-major dispatch.
-_READERS = {1: _read_v1, 2: _read_v2}
+_READERS = {1: _read_v1, 2: _read_v2, 3: _read_v3}
 
 
 def load_publication_artifact(path: str) -> PublicationArtifactData:
@@ -370,19 +472,47 @@ def load_publication_artifact(path: str) -> PublicationArtifactData:
 
 
 def governed_publication_from_artifact(artifact: PublicationArtifactData) -> GovernedPublication:
-    """Build the immutable ``GovernedPublication`` from the artifact — its ``ref``, ``logical``, and
-    ``authority`` come EXCLUSIVELY from ``governed-publication.json``, never from ``logical_spec(.cml)``,
-    the folder name, ``data.toml``, or Core model metadata. The ``.cml``'s ``SOURCE_MANIFOLD`` is a
-    realization claim checked separately, not publication authority."""
+    """Build the immutable ``GovernedPublication`` from the artifact — everything it carries comes
+    EXCLUSIVELY from ``governed-publication.json``, never from ``logical_spec(.cml)``, the folder
+    name, ``data.toml``, or Core model metadata. The ``.cml``'s ``SOURCE_MANIFOLD`` is a realization
+    claim checked separately, not publication authority.
+
+    **PER-MAJOR, AND NOTHING IS CROSS-FILLED** (C2). A v3 publication carries ``native`` and leaves
+    ``logical`` ``None``; a v1/v2 publication is exactly as it was.
+
+    ``PublicationAuthority.ratification`` IS ``None`` FOR v3, AND IT DOES NOT MEAN "NOT RATIFIED".
+    That field holds v2's publication-global ratification MAP, keyed by universe name. Natively
+    there is no such map: each universe carries its own ``elf-2`` attestation on its own
+    declaration, **and that attestation was recomputed from the carried constitution and verified
+    before this function was reached** — so the native standing is strictly stronger than the slot
+    it is absent from. The slot stays empty because the v2 OBJECT does not exist, never because
+    nothing was ratified, and it is not back-filled with a fabricated map: the records are reachable
+    where they actually live, on ``native``. ``actor``/``at`` come from ``published``, which is
+    provenance of the publication ACT — not a claim that this publication is the authoritative one,
+    which the surrounding governance process settles outside the bytes."""
+    if artifact.native is not None:
+        return GovernedPublication(
+            ref=artifact.ref,
+            logical=None,
+            authority=PublicationAuthority(
+                source_manifold_id=artifact.ref.manifold_id,
+                source_manifold_version=artifact.ref.version,
+                ratification=None,
+                actor=artifact.native.published_by,
+                at=artifact.native.published_at,
+            ),
+            native=artifact.native,
+        )
+    authority = artifact.authority or {}
     return GovernedPublication(
         ref=artifact.ref,
         logical=artifact.logical,
         authority=PublicationAuthority(
             source_manifold_id=artifact.ref.manifold_id,
             source_manifold_version=artifact.ref.version,
-            ratification=artifact.authority.get("ratifications"),
-            actor=artifact.authority.get("published_by"),
-            at=artifact.authority.get("published_at"),
+            ratification=authority.get("ratifications"),
+            actor=authority.get("published_by"),
+            at=authority.get("published_at"),
         ),
     )
 

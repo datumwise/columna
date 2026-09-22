@@ -1,4 +1,5 @@
-"""The server's supported publication majors — LIFTED to {1, 2} (ruled Huayin, 2026-09-12).
+"""The server's supported publication majors — {1, 2, 3} (ruled Huayin 2026-09-12, widened
+2026-09-22).
 
 WHAT THIS FILE USED TO SAY. It pinned `SUPPORTED_PUBLICATION_FORMAT_MAJOR == 1` and recorded why the
 realization-freeze conformance unit would not lift it: whether this server should accept publication
@@ -15,7 +16,15 @@ So the scalar had to go rather than change value. A scalar could express "the ma
 supports" and cannot express two majors meaning two different things — and widening its meaning while
 keeping its name would have been the misleading compatibility the ruling forbids.
 
-WHAT THIS FILE PINS NOW: that both majors are readable, that NEITHER IS A SHIM FOR THE OTHER, and
+**MAJOR 3 ARRIVED ON THE SAME PRINCIPLE (C2, 2026-09-22).** The native ToD-v7.1 contract is a third
+input read by its own reader, and the failure it corrects was not a refusal but a SILENCE: a v3
+artifact raised `UnsupportedPublicationFormat` inside the store's visibility probe, the probe
+swallowed it, and a deployment holding a lawful native publication was told it had nothing. The
+refusal itself was load-bearing and stays — relabel a v3 artifact `"2.0"` and the v2 reader accepts
+it while discarding every constitution it carries — so v3 is admitted by being READ AS v3, never by
+relabelling and never by widening v2.
+
+WHAT THIS FILE PINS NOW: that all three majors are readable, that NONE IS A SHIM FOR ANOTHER, and
 that the import-disjointness which made the original coherence untestable in-process still holds.
 """
 import json
@@ -36,7 +45,7 @@ V2 = (pathlib.Path(__file__).parents[2] / "columna-core" / "tests" / "fixtures_v
 
 
 def test_both_majors_are_supported_and_the_scalar_is_gone():
-    assert SUPPORTED_PUBLICATION_FORMAT_MAJORS == (1, 2)
+    assert SUPPORTED_PUBLICATION_FORMAT_MAJORS == (1, 2, 3)
     import columna_server.registry as reg
     assert not hasattr(reg, "SUPPORTED_PUBLICATION_FORMAT_MAJOR"), (
         "the scalar must not survive beside the set — two spellings of one policy is how they drift")
@@ -55,13 +64,13 @@ def test_a_v2_artifact_reads_as_v2():
     assert art.ref.manifold_id == "lighthouse"
 
 
-def test_a_third_major_is_still_refused():
-    """Supporting two is not supporting all. An unknown major refuses, naming what IS supported."""
+def test_an_unknown_major_is_still_refused():
+    """Supporting three is not supporting all. An unknown major refuses, naming what IS supported."""
     with pytest.raises(UnsupportedPublicationFormat) as e:
         parse_publication_artifact({
-            "publication_format_version": "3", "ref": {"manifold_id": "x", "version": "1"},
+            "publication_format_version": "9.0", "ref": {"manifold_id": "x", "version": "1"},
             "logical": {"declarations": []}, "authority": {"ratifications": {}}})
-    assert "majors [1, 2]" in str(e.value)
+    assert "majors [1, 2, 3]" in str(e.value)
 
 
 def test_v2_is_read_through_v2s_OWN_reader_not_a_second_implementation():

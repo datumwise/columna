@@ -44,6 +44,12 @@ _CONDITION_CODE = {
     "LoweringReceiptMissing": "lowering_receipt_missing",
     "LoweringReceiptInvalid": "lowering_receipt_invalid",
     "LoweringReceiptMismatch": "lowering_receipt_mismatch",
+    # C2 — a native publication shipped beside a legacy execution image. A DEPLOYMENT SHAPE
+    # condition, not a defect in either file: both may be perfectly valid, and the `.cml` language
+    # simply cannot express the universe law the publication carries, so nothing can attest that
+    # one realizes the other. Surfaced rather than silently downgraded, because a deployment that
+    # meant these to be one unit needs to be told which half is load-bearing.
+    "NativePublicationNotLowerable": "native_publication_not_lowerable",
 }
 
 #: entry_kind → the public catalog `kind` (source-referenced-but-incomplete surfaces as
@@ -221,7 +227,38 @@ def _governed_discovery(lm, manifold_id, ref) -> dict:
     public field for it.
 
     `description` IS EMPTY, AND THE REASON IS NOT LAZINESS — see `_governed_description_is_absent`.
+
+    **IT IS A v1/v2 SURFACE, AND IT REFUSES A NATIVE PUBLICATION RATHER THAN ANSWERING EMPTILY**
+    (C2). Every field below is read out of the v2 projection: `components` from `anchor`
+    DECLARATIONS, `anchors[].basis` and `anchors[].grain` from `universe.body`, `levels` from the
+    deduplicated anchor-component tokens. **A native publication has none of those objects** — a
+    Case-S anchor is derived from a constitution and structurally unwritable as a declaration, a
+    native universe has no `body`, and there is no publication-global coordinate namespace for
+    `levels` to be a list of.
+
+    The default behaviour of `(lm.publication.logical or {})` on a native unit would be to return
+    `measures: [], anchors: [], levels: []` — a well-formed answer meaning *this manifold has
+    nothing to ask*, about a publication carrying two families and a two-constituent universe.
+    That is the measured v2 failure in a different costume, so it refuses instead, in the existing
+    structural channel `_legacy_model` already uses for the same class of mistake. **What a
+    governed-native discovery payload should say is a real question and a separate one** — the
+    recon leaves the `discovery.levels` wire list explicitly unresolved — and this slice must not
+    settle it by accident.
     """
+    # PRESENTLY UNREACHABLE THROUGH `discovery`, AND PLACED ANYWAY. A native unit binds no
+    # provider today, so `_resolve` answers `not_realizable_here` before this function is called.
+    # The guard is here because this is the site that would fabricate — the day a native unit
+    # becomes servable, the failure would be a well-formed empty answer rather than an error, and
+    # a fabrication guard added after the fabrication is possible is added too late.
+    if getattr(lm.publication, "native", None) is not None:
+        raise ToolInputError(
+            f"native_publication_not_discoverable: '{manifold_id}' is a native publication, and "
+            f"`discovery` answers from the v2 projection — anchor declarations, `universe.body`, "
+            f"and a publication-global coordinate namespace. A native publication carries none of "
+            f"those: its anchors are DERIVED from a constitution and its geometry is computed "
+            f"inside one universe. Answering with empty lists would say this manifold has nothing "
+            f"to ask, which is false. What this payload should carry for a native unit is not yet "
+            f"decided")
     decls = (lm.publication.logical or {}).get("declarations") or []
     by_kind = {}
     for d in decls:

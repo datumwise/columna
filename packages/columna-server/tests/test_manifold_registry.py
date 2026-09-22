@@ -124,10 +124,17 @@ def test_artifact_logical_is_physical_clean():
 
 
 def test_unsupported_format_is_distinct_from_invalid():
-    # "3.0", not "2.0": major 2 became a SUPPORTED input on 2026-09-12 (v1 for the legacy Core path,
-    # v2 for the successor Platform path, each read by its own contract). An unknown major is still
-    # a distinct condition from a structural defect, which is what this test is about.
-    bad_major = _artifact_dict("retail", "1.0.0"); bad_major["publication_format_version"] = "3.0"
+    # "9.0", not "2.0" and no longer "3.0": majors 1 and 2 became supported inputs on 2026-09-12
+    # (v1 for the legacy Core path, v2 for the successor Platform path), and major 3 — the native
+    # ToD-v7.1 contract — on 2026-09-22, each read by its own contract. An unknown major is still a
+    # distinct condition from a structural defect, which is what this test is about.
+    #
+    # Worth recording rather than just renumbering: relabelling this v2-SHAPED artifact "3.0" no
+    # longer reaches this branch, and it does not silently succeed either — it now refuses as
+    # `PublicationArtifactInvalid` from the v3 contract, on its SHAPE (`logical` and `authority`
+    # are keys the native contract does not have). The permissiveness runs one way only, and not
+    # into v3.
+    bad_major = _artifact_dict("retail", "1.0.0"); bad_major["publication_format_version"] = "9.0"
     with pytest.raises(UnsupportedPublicationFormat):
         parse_publication_artifact(bad_major)
     # (the "a v1 artifact relabelled v2 is refused" control needs a REAL v1 artifact, not this
