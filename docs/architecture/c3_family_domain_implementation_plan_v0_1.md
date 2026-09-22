@@ -1,6 +1,6 @@
 # C3 · family domain and edge validity — bounded implementation plan
 
-**Revision v0.2**, revised against the steward's rulings R1–R10 of 2026-09-22 (second set). The first
+**Revision v0.3**, revised against the steward's rulings R1–R12 of 2026-09-22. The first
 revision's three blocking stop-gates are **closed by ruling**; one of them (SG-3) was closed by
 correcting the design rather than by defending it. The plan is smaller than v0.1.
 
@@ -171,6 +171,38 @@ discovered after v7.1 for adjudication in the next ToD edition. **No DOI; does n
 deposited v7.1 text is not edited. Its first entry covers this subject as a whole, and carries **no
 Columna implementation names** — those live in the crosswalk, not the theory statement.
 
+### R11 · The family root is identity-bearing — the resolved location, not the spelling
+
+Changing `A_0` changes family identity **unless** the change is only of reference or representation of
+the same universe-relative structural anchor. A token or synonym change does not change `A_0`; a
+structural change does.
+
+⟨measured⟩ **`fcf-2` already implements exactly this** — `constitutive_anchor` is in `NOMINAL_KEYS`
+and leaves the identity payload, replaced by `_anchor = sorted(anchor.constituents)`
+(`native.py:110-116`). No change is required for a bound family. **`fcf-1` does not**, and §10 of the
+contract records the measured witness and puts the question to the steward.
+
+### R12 · The family domain is governed law and is not identity-bearing
+
+`P_F` — and therefore `𝒜_F` — is **not** identity-bearing; a domain-law change does not by itself mint
+a successor. The existing exclusion of `domain`/`movement` from `IDENTITY_BEARING`
+(`resolve.py:64-70`) and from `NON_IDENTITY_KEYS`'s complement (`native.py:101-107`) is therefore
+**the intended theory for the domain half**, not an accidental implementation choice.
+
+**But the default runs the other way, and that matters.** `native.py:101-104`: *"Everything else is IN
+**by derivation** — a body key added later is inside the fingerprint by default, and taking one out is
+a decision someone has to write down."* So `P_F` is inside the fingerprint **unless explicitly
+excluded**, and omitting the exclusion would make every domain revision a succession. R12 is that
+decision; the contract §5 is where it is written down.
+
+⟨measured⟩ **R12's auditability requirement already has a carrier.** The native publication root
+carries `ref: {manifold_id, version}` and `published: {at, by}`, so two publications may establish
+different domains for one immutable `family_id` and be distinguished by that. **No new versioning
+machinery is needed or in scope.**
+
+**Guard.** R12 rules only the identity standing of the family-domain law presently represented by
+`P_F`. The eventual contents of `Γ_F` retain their own standing and none may be inferred from it.
+
 ---
 
 ## 2 · Exact seams
@@ -238,7 +270,12 @@ on the wire moves when this lands; the v2 serving path keeps its own reading.
 
 ---
 
-## 3 · The next bounded unit — proposed, and stopping here
+## 3 · The next bounded unit — specified, and stopping here
+
+> **The full contract is `c3_primitive_family_domain_contract_v0_1.md`.** It states the scope gate,
+> the one declared fact and its three states, what is derived and never stored, where the decision
+> lives, identity and succession under R11/R12, what must refuse, ten conformance obligations, the
+> shipped invariants that must not change, and what is out of contract. Summary only below.
 
 > ### C5 · The primitive-family Case-S domain
 >

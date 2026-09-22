@@ -203,9 +203,98 @@ This entry decides nothing about:
   only one regroups lawfully. A test on forgotten constituents alone cannot distinguish them. Vacuous
   where every admitted law is commutative; not a theorem.
 * **The general edge calculus \(\Gamma_F(B\to A)\).** Its conditions are not stated here.
-* **Whether the family root is identity-bearing**, as Version 6.1's \(R_F\) was (§A.1.2).
-* **Whether a domain law change is a succession trigger** under §3.9, whose list does not currently
-  mention domain or movement.
+
+Two questions listed as open in an earlier draft of this entry — whether the family root is
+identity-bearing, and whether a domain-law change is a succession trigger — are **decided in §A.2**.
+
+---
+
+# A.2 · Identity standing of the family root and of the family domain
+
+## A.2.1 Subject
+
+§A.1 introduced the family root \(A_0\) and the generated domain \(\mathcal A_F\). This entry rules
+what each contributes to **family identity** — that is, which changes mint a successor family and
+which do not. The two questions are ruled together because they are easily conflated and because
+deciding only one of them leaves the other's answer ambiguous.
+
+Version 7.1 §4.1 states that admitted anchors are "part of the law". §3.9's succession triggers —
+target, formation, participation, and declared continuation law — do **not** list admitted anchors or
+movement. This entry holds that both statements are correct, and that the apparent tension resolves
+once identity and domain are recognized as answering different questions.
+
+## A.2.2 The family root is identity-bearing
+
+**The family root is constitutive of the family.** Changing \(A_0\) changes family identity, unless a
+governing equivalence establishes that the apparent change is only a change of **reference or
+representation** of the same universe-relative structural anchor.
+
+Two consequences, which are the whole of the rule:
+
+* a change of **token or synonym** does not change \(A_0\), and does not mint a successor;
+* a change of **structural anchor** does change \(A_0\), and does.
+
+**The identity-bearing fact is the resolved universe-relative analytical location, not the spelling
+that denotes it.** This restores the essential standing of Version 6.1's family root — where \(R_F\)
+was a component of the identity signature — while using the corrected notion of anchor identity: an
+anchor is a governed structure within a universe, and several names may denote one structure.
+
+Where two tokens denote the same structural anchor, a family that changes from one to the other has
+not changed. Where a token is reassigned so that it denotes a different structure, the family has
+changed even if the spelling did not.
+
+## A.2.3 The family domain is governed law, and is not identity-bearing
+
+**\(P_F\), and therefore \(\mathcal A_F\), is not identity-bearing.** Changing an established
+family-domain law does not by itself mint a successor family. This is deliberate, and it is the
+intended theory rather than an omission.
+
+The two questions must remain distinct:
+
+| | asks |
+|---|---|
+| **family identity** | what analytical quantity and constitutive law is this? |
+| **family domain** | at which analytical locations is that family presently admitted to stand under its governed law? |
+
+A family does not become a different analytical quantity merely because governance later permits or
+prohibits one of its otherwise meaningful analytical locations. If a Revenue family is later
+prohibited from composing away a day constituent, the quantity at its root has not become a new
+Revenue family; what changed is the governed domain over which that family may lawfully be
+established. Conversely, moving a family root from an order location to a customer location can
+change **what quantity was constituted in the first place**, and that is identity-bearing.
+
+This is why §4.1 can say admitted anchors are part of the law while §3.9 does not list them among the
+succession triggers. **"Part of the law" does not mean "part of immutable family identity."**
+
+**Not identity-bearing is not unversioned.** A domain law remains a governed fact and its changes
+remain governed changes, with versioned and auditable standing. An earlier governed publication may
+establish one domain and a later governed publication another, **both referring to the same immutable
+family identifier**. Domain content is not mutable runtime state and does not become so by being
+excluded from the identity determinant.
+
+## A.2.4 The resulting disposition
+
+| change | consequence |
+|---|---|
+| \(A_0\) changes **structurally** | family succession |
+| \(A_0\) is **renamed** without a change of structural anchor | no succession |
+| \(P_F\) changes | governed family-law revision; **no succession by itself** |
+| \(\mathcal A_F\) changes because the universe's governed geometry changed | **not decided here** |
+
+The last row is deliberately left open. It raises questions of universe and family currency and of
+dependency between a family and the universe it is governed in, and those must not be smuggled into
+this entry.
+
+## A.2.5 Guard on the scope of A.2.3
+
+**Do not generalize §A.2.3 to every fact that may eventually be filed under the combined heading that
+Version 7.1 §4.1 gives two symbols to.** §A.1.6 separated the family domain \(\mathcal A_F\) from
+edge validity \(\Gamma_F(B\to A)\). This entry rules **only** the identity standing of the
+family-domain law presently represented by \(P_F\).
+
+The eventual contents of \(\Gamma_F\) — coverage permission, evidence requirements, commutation and
+order conditions, the residual non-Case-S conditions, and any other edge-specific premise — retain
+their own governance standing, which is not decided here and must not be inferred from this entry.
 
 ---
 
