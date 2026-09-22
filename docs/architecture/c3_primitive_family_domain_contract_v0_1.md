@@ -54,15 +54,32 @@ not lineages, not capability names.
 > test withdrawn at ToD v7.1 Appendix C.4. A reader that maps an empty collection to "absent" breaks
 > the unit's central distinction. **This is the single thing most likely to be got wrong.**
 
-**Validation — fail-closed, on the existing house precedent.** Every reference in `P_F` must
-(a) resolve as a constituent of the family's universe, and (b) be a constituent of `A_0`.
+**Validation — of the declaration itself, and of nothing else.** (R14, replacing an earlier
+requirement in this contract.) Every reference in `P_F` must resolve as a **governed constituent of
+the family's universe**. That is the whole of the validation.
 
-Rationale for (b): `Forgotten(A_0 → A) ⊆ A_0`, so a reference outside `A_0` can never be forgotten and
-is inert. The house already rules this class of declaration a mistake rather than a harmless no-op —
-`parser.py:696-698`: *"a lineage named in a FERTILE (or BLOCKED) block must be carried by a declared
-edge — opening (or closing) a door that doesn't exist is a mistake"* — and `:713-718` applied exactly
-that rule to `BLOCKED`. **`P_F` adopts it at declaration time.** An inert prohibition is a steward's
-error and must be reported as one, not silently carried.
+> **`P_F` must NOT be validated by asking whether every prohibition can presently be spent from
+> `A_0`.** An earlier draft of this contract required `P_F ⊆ A_0.constituents`, reasoning that a
+> reference outside `A_0` can never be forgotten and is therefore inert, and citing the house
+> precedent that *"opening (or closing) a door that doesn't exist is a mistake"*
+> (`parser.py:696-698`). **That requirement is withdrawn.**
+>
+> The precedent does not transfer. `BLOCKED`'s references are checked against *declared edges* — a
+> lineage not carried by any edge is unnameable, a representation error. A constituent outside `A_0`
+> is **perfectly well-formed and perfectly governed**; it is merely irrelevant to *this* family root
+> under *today's* Case-S geometry. Those are different failures, and only the first is the
+> declaration's fault.
+>
+> `P_F` is a **governed negative condition** — a statement of what the family law prohibits. It is
+> **not** an enumeration of the family's domain, and **not** a declaration of currently traversable
+> edges. Constraining it to what today's geometry can exercise would make the declaration a function
+> of the geometry it is supposed to be independent of, and would push future conditions — edge
+> validity, coverage, participation and support, commutation, evidence, later Case-G conditions — to
+> seek a home inside `P_F` in order to survive validation. **Neither is wanted.**
+
+**An irrelevant prohibition is lawful and inert.** If a member of `P_F` plays no part in
+`Forgotten(A_0 → A)` for a given projection, it simply has no effect on that test. It is not an
+error, it is not a warning, **and nothing whatever is derived from it.**
 
 **The reader is a real reader.** Modelled on `continuation` (`publication.py:275`,
 `LawCitation.from_dict`), **not** on the identity slot `lambda r: r` (`:276-277`) that `domain` and
@@ -76,10 +93,18 @@ error and must be reported as one, not silently carried.
 A ∈ 𝒜_F   ⟺   A_0 ⪰ A   ∧   Forgotten(A_0 → A) ∩ P_F = ∅        [ESTABLISHED law, Case S]
 ```
 
+The prohibition test applies **when `A_0 → A` is a geometrically available Case-S projection** — the
+first conjunct is the precondition of the second, not merely a co-equal clause. (R14.)
+
 * `A_0` — `universe.denote(family.anchor_token)`, already computed at `native_request.py:153`
 * `A_0 ⪰ A` — `Anchor.refines`, set containment, already computed at `native_request.py:183`
 * `Forgotten(A_0 → A)` — `Anchor.projection_forgets`, set difference (`native.py:360-375`), already
   pinned at `test_native_c3_identity.py:252`
+
+*Notation.* The steward's R14 states the test as `Spent(A_0→A) ∩ P_F = ∅`. This contract writes
+`Forgotten` for the same quantity, per **R7** — which ruled that `Spent(q)` belongs to the inherited
+contract calculus, is undefined even there, and is not to be adopted as our native term. The two name
+the same Case-S set; only the native name is used here.
 
 **`𝒜_F` is never materialized, enumerated, cached, or serialized.** Only the membership predicate
 exists. (ToD §4.1: *"notation for its defined analytical domain, not a proposed registry or new
@@ -161,8 +186,11 @@ The unit is not done until each of these exists and passes.
 2. **Declared-empty ≠ absent.** Two families differing only in that one omits `P_F` and one declares
    it empty must yield **different** domains.
 3. **`A_0 ∈ 𝒜_F` is derived.** Asserted through the predicate, not through a non-moving early return.
-4. **An inert prohibition refuses** at declaration time, naming the reference and why it can never be
-   forgotten.
+4. **An irrelevant prohibition is ACCEPTED and has no effect.** (R14.) A family declaring a `P_F`
+   member that cannot be forgotten from its own `A_0` must publish cleanly, must admit exactly the
+   same projections as the same family without that member, and must have nothing derived from it.
+   A reference that does **not** resolve as a governed constituent of the family's universe must
+   still refuse.
 5. **A prohibited projection refuses and names the constituent.**
 6. **A permitted projection is admitted** and is *not* thereby claimed lawful — the edge/realization
    layers are untouched and still have their say.
