@@ -43,6 +43,30 @@ The refusal names what exceeded the law:
 
 ---
 
+## 1b · Suite standing, measured against a pristine baseline
+
+⟨VX⟩ the branch was compared against an untouched `main` worktree, same interpreter, same run:
+
+| | branch | pristine `main` |
+|---|---|---|
+| `columna-core` | **1847 passed, 0 failed**, 50 skipped, 38 errors | 1845 passed, **1 failed**, 50 skipped, 38 errors |
+| `columna-platform` | **342 passed** | — |
+| `columna-adbc` | **68 passed** | — |
+
+**The 38 errors are pre-existing and identical on both sides** (`test_pin_verdict_truthfulness`,
+`test_plan_run_standing`); they are not this unit's and are not repaired by it. The baseline's single
+failure (`test_fixture_drift::test_import_and_version`) reproduces on `main` and passes on the
+branch; it is sensitive to an editable install being present, not to this change. `ruff` is clean
+across every changed package.
+
+Two incidental defects were found and deliberately **not repaired**, per the unit's holds: the
+`exhibit.py` demo crashes on `main` with `materialize() missing 1 required keyword-only argument:
+'publication_ref'` (verified on the pristine baseline — its C3 read, the part this unit touches,
+works); and the repository's own test extras omit `pytest-asyncio`, without which the server's MCP
+tests cannot run at all.
+
+---
+
 ## 2 · What changed
 
 | file | change |
