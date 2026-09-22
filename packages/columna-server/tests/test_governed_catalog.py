@@ -21,7 +21,7 @@ _CASCADIA = os.path.join(os.path.dirname(columna_server.__file__), "demo", "casc
 _STABLE_CODES = {"publication_artifact_missing", "publication_artifact_invalid",
                  "unsupported_publication_format", "realization_identity_mismatch",
                  "lowering_receipt_missing", "lowering_receipt_invalid",
-                 "lowering_receipt_mismatch"}
+                 "lowering_receipt_mismatch", "native_publication_not_lowerable"}
 
 
 def _artifact(src_id, src_ver):

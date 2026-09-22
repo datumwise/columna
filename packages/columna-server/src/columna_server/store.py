@@ -204,20 +204,38 @@ def _load_duckdb(warehouse_dir: str):
     return con
 
 
-def _is_governed_only_unit(mdir: str) -> bool:
-    """Does this `.cml`-less directory carry a v2 governed publication?
+#: The publication majors whose `.cml`-less unit is VISIBLE in this installation's catalog.
+#:
+#: **VISIBILITY IS NOT SERVING, AND C2 WIDENS ONLY THE FIRST** (ruled Huayin, 2026-09-22). A major
+#: here means: this installation can see that this governed lineage exists. Which runtime may bind
+#: to it is a separate fact with its own constant (`_PLATFORM_PUBLICATION_MAJOR`), and the two are
+#: deliberately not the same list — a v3 unit is visible and unserved, which is an existing public
+#: state (`not_realizable_here`), not a new one.
+#:
+#: v1 stays out for its original reason, unchanged: a v1 artifact without its execution image is an
+#: incomplete LEGACY deployment, not a successor unit.
+_VISIBLE_GOVERNED_ONLY_MAJORS = (2, 3)
 
-    ONLY v2, and only when it READS. A v1 artifact without its execution image is an incomplete
-    LEGACY deployment, not a successor unit, and an unreadable artifact is not a unit either — both
-    are left exactly as invisible as they are today, because making them newly fatal would change
-    legacy behaviour to say something this unit was not asked to say. A deployment that MEANT either
-    of them to be a successor unit finds out the moment it selects one: the selection path refuses,
-    loudly and by name."""
+
+def _is_governed_only_unit(mdir: str) -> bool:
+    """Does this `.cml`-less directory carry a governed publication this installation can SEE?
+
+    Only when it READS. An unreadable artifact is not a unit — left exactly as invisible as it is
+    today, because making it newly fatal would change legacy behaviour to say something this work
+    was not asked to say. A deployment that MEANT one to be a successor unit finds out the moment
+    it selects one: the selection path refuses, loudly and by name.
+
+    **THE C2 CORRECTION, AND IT IS ABOUT SILENCE RATHER THAN REFUSAL.** Before C2 a v3 artifact
+    raised `UnsupportedPublicationFormat` inside this function, the `except` swallowed it, and the
+    unit disappeared — a deployment holding a lawful native publication was told it had nothing at
+    all. That is worse than a refusal and is the failure this unit was authorized to fix. It is
+    fixed by READING v3 as v3 (`registry._read_v3`), never by relabelling it, never by wrapping it
+    in v2's `logical` envelope, and never by widening v2's contract to tolerate it."""
     path = _osp.join(mdir, PUBLICATION_ARTIFACT)
     if not _osp.isfile(path):
         return False
     try:
-        return load_publication_artifact(path).major == _PLATFORM_PUBLICATION_MAJOR
+        return load_publication_artifact(path).major in _VISIBLE_GOVERNED_ONLY_MAJORS
     except PublicationArtifactError:
         return False
 
@@ -255,14 +273,22 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool,
         raise RuntimeSelectionError(
             f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime and "
             f"its {PUBLICATION_ARTIFACT} is unusable: {e}") from e
-    if artifact.major != _PLATFORM_PUBLICATION_MAJOR:
+    # THE MAJOR REQUIREMENT BELONGS TO THE RUNTIME SELECTION, NOT TO LOADING (C2). Before C2 this
+    # check sat above both paths, so the only major that could be READ here was also the only one
+    # that could be SERVED here — one constant doing two jobs, which is what made "visible" and
+    # "servable" indistinguishable and left a v3 unit with no state to be in. They are now asked
+    # separately: loading makes a governed lineage VISIBLE, and only an explicit selection asks
+    # which runtime may bind to it.
+    if bind_provider and artifact.major != _PLATFORM_PUBLICATION_MAJOR:
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': a governed unit with no manifold.cml is served by the "
-            f"{RUNTIME_PLATFORM!r} runtime, which requires "
-            f"a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
+            f"which serves a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
             f"is major {artifact.major}. A v{artifact.major} artifact is NOT read as v"
-            f"{_PLATFORM_PUBLICATION_MAJOR}: its family law is not there to be found, and inferring "
-            f"it is the defect v{_PLATFORM_PUBLICATION_MAJOR} exists to remove")
+            f"{_PLATFORM_PUBLICATION_MAJOR}: for v1 its family law is not there to be found, and "
+            f"for v3 its universe law is a CONSTITUTION that the v{_PLATFORM_PUBLICATION_MAJOR} "
+            f"model has no representation for — inferring either is the defect the format majors "
+            f"exist to remove. The publication remains VISIBLE in this installation's catalog and "
+            f"unserved, which is what `not_realizable_here` has always meant")
 
     return LoadedManifold(
         manifold_id=manifold_id,
@@ -385,7 +411,33 @@ def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
             condition = LoadCondition(manifold_id, type(e).__name__, str(e))
         else:
             publication_major = artifact.major     # what it WAS, not what it selects
-            if src_ref is None or src_ref != artifact.ref:
+            if artifact.native is not None:
+                # A NATIVE PUBLICATION BESIDE A LEGACY EXECUTION IMAGE IS NOT A LOWERED UNIT, AND
+                # THE REASON IS THE TARGET LANGUAGE (C2).
+                #
+                # This branch would otherwise check the ref, find the lowering receipt, and promote
+                # the pair to ENTRY_GOVERNED — binding a constituted universe to a `.cml` image as
+                # though a compiler had produced one from the other. It could not have. The `.cml`
+                # universe construct is `UNIVERSE <n> = <dim> * <dim> [BASIS <b>]`: there is no slot
+                # for a constitution and no way to spell an existence law, so a native universe is
+                # not merely hard to lower, it is unwritable in that language. Whatever the receipt
+                # attests about these two files, it cannot be that THIS image realizes THIS
+                # publication's law.
+                #
+                # So: observable, classified, never promoted — the same discipline as every other
+                # condition here. Nothing is repaired and nothing is retired; `compile_v2` and the
+                # whole lowered path are untouched and still ship for the majors that have one.
+                entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE if src_ref else ENTRY_LEGACY
+                condition = LoadCondition(
+                    manifold_id, "NativePublicationNotLowerable",
+                    f"{artifact.ref.manifold_id}@{artifact.ref.version} is a native "
+                    f"v{artifact.major} publication and this unit also ships manifold.cml. A "
+                    f"native universe's law is a CONSTITUTION, which the .cml language cannot "
+                    f"express, so no lowering receipt can attest that this image realizes this "
+                    f"publication. A native unit IS the publication; an image beside it is a "
+                    f"different unit, not a realization of this one",
+                )
+            elif src_ref is None or src_ref != artifact.ref:
                 # The .cml does not (or wrongly) claim to realize this publication: do not bind.
                 claimed = "no SOURCE_MANIFOLD" if src_ref is None else f"{src_ref.manifold_id}@{src_ref.version}"
                 entry_kind = ENTRY_SOURCE_REFERENCED_INCOMPLETE if src_ref else ENTRY_LEGACY
@@ -481,7 +533,7 @@ class ManifoldStore:
             has_cml = os.path.isfile(os.path.join(mdir, "manifold.cml"))
             chosen = self.runtime_selection.get(entry)
 
-            has_v2_only = (not has_cml) and _is_governed_only_unit(mdir)
+            has_governed_only = (not has_cml) and _is_governed_only_unit(mdir)
 
             if chosen == RUNTIME_PLATFORM:
                 # Successor-native, and NEVER a fallback: if this unit still carries a `.cml`, that
@@ -509,7 +561,7 @@ class ManifoldStore:
 
             if has_cml:                                  # unchanged legacy discovery
                 self._loaded[entry] = _load_one(entry, mdir)
-            elif has_v2_only:
+            elif has_governed_only:
                 # VISIBLE, UNSERVED. The publication is a governed fact this installation can see;
                 # binding a runtime to it is a separate, explicit act. Loading it here is what lets
                 # `not_realizable_here` be the honest answer instead of "no such manifold" — the
