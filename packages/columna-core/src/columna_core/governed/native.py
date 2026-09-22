@@ -784,6 +784,23 @@ class NativePublication:
             f"resolves inside its publication and nowhere else."
         )
 
+    def resolve_reference(self, reference: str) -> Optional[Family]:
+        """**Reference → family. ONE DIRECTION ONLY**, and the whole of what a REQUEST may use.
+
+        A canonical reference or a declared alias, and nothing else — not a `family_id`, which is
+        identity rather than a way of asking, and not a declaration name. Uniqueness is guaranteed
+        upstream: two families answering to one reference is a refusal at read, so ambiguity cannot
+        reach a caller and re-checking it here would be a second enumeration of a rule the format
+        owns.
+
+        Distinct from `family()` below, deliberately. `family()` is a LOOKUP for a caller that
+        already holds an identity; this is RESOLUTION of something a human wrote."""
+        for f in self.families:
+            aliases = [a for a in (f.body.get("aliases") or []) if isinstance(a, str)]
+            if reference == f.canonical_reference or reference in aliases:
+                return f
+        return None
+
     def family(self, reference: str) -> Family:
         """Resolve a family by name, `family_id`, canonical reference or alias — all four are
         unique within the artifact, enforced at read."""

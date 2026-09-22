@@ -19,11 +19,29 @@ treat its shape as the contract.
 """
 from __future__ import annotations
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Optional, Union
 
 import pyarrow as pa
+from columna_core.governed.native import Anchor as NativeAnchor
 
 from .refusals import WantOfCompatibility, WantOfLaw, WantOfState
+
+
+#: What `A` may BE. **The two-field shape survives; the field's TYPE is per-path** (C3, ruled
+#: Huayin 2026-09-22 — the shape ruling of 2026-09-14 is not reopened and no universe field is
+#: added).
+#:
+#: `str` is the v1/v2 reading: `A` is the NAME of a declared anchor. That name is exactly what does
+#: not exist natively — a Case-S anchor is DERIVED from a constitution, many tokens may denote one
+#: anchor, and a publication-global anchor namespace is unstatable — so the native path carries
+#: `governed.native.Anchor`, a universe-relative constituent set.
+#:
+#: **Why the annotation widens rather than the dataclass changing.** Nothing about `AnalyticalIdentity`
+#: needs to change to hold either: it is a frozen two-field key, and both readings are hashable and
+#: compare by value. What would have been wrong is leaving the annotation saying `str` while a
+#: `frozenset`-bearing object travelled through it — a field whose declared type is a lie is how the
+#: next reader decides it may `.lower()` it.
+AnchorOf = Union[str, NativeAnchor]
 
 
 @dataclass(frozen=True)
@@ -31,10 +49,25 @@ class AnalyticalIdentity:
     """`F @ A` — what the state is OF, and nothing about how it is stored.
 
     Deliberately two fields. Widening this to encode storage details is the specific error the SSE
-    contract forbids: it would make two states of one analytical thing look like two things."""
+    contract forbids: it would make two states of one analytical thing look like two things.
+
+    **AND WIDENING IT WITH A UNIVERSE IS NOT NEEDED, WHICH IS A RESULT AND NOT A CONVENIENCE.** `F`
+    fixes `U`: two identities are compared only when their `family_id`s match, and a single family
+    has a single universe, so the constituent sets ever compared are always sets of the SAME
+    universe's constituents. Two families in two universes have different `family_id`s and their
+    identities differ for that reason — never by an accidental comparison of anchors across worlds.
+    The native `Anchor` additionally carries its universe and REFUSES a cross-world comparison, so
+    the guarantee is structural at both levels rather than argued at either.
+
+    **WHY THE TYPE OF `A` MATTERS MORE THAN IT LOOKS.** This is the retained-state retrieval key, the
+    fold-eligibility key (`combine` refuses unequal identities), the eviction key, and the public
+    frame location. With `A` as a NAME, two governed synonyms for one anchor are two different states
+    of the same analytical thing — and the one-anchor-identification-scheme requirement cannot be met
+    while the field holds a spelling. With `A` as the constituent set, synonyms collapse by
+    construction."""
 
     family_id: str
-    anchor: str
+    anchor: AnchorOf
 
 
 @dataclass(frozen=True)
