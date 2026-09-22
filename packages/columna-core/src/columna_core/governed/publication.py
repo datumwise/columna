@@ -280,6 +280,25 @@ def _family(name: str, body: dict) -> Family:
     )
 
 
+#: **THE FAMILY'S DECLARED CLAUSES, READ — AND THIS IS NOT A v2-ONLY CONTRACT** (measured, C4,
+#: 2026-09-22). Exposed under a public name because a second major consumes it, and for no other
+#: reason: `_family` is unchanged, nothing is renamed, and nothing is retired.
+#:
+#: The measurement behind the claim: format v3's total family-body key set and `_FAMILY_KEYS` are
+#: the SAME SET, key for key, and every clause means the same thing in both. That is not a
+#: coincidence to be tidied into a shared base class — it is the observation that **a family's
+#: declared law is not about anchors.** `universe` and `constitutive_anchor` are read here as
+#: required strings and are consumed by no rule; everything the nine responsibilities actually
+#: resolve from — target, formation, participation, value domain, continuation, domain, movement,
+#: exceptional — is stated by the family about itself.
+#:
+#: So a native-v3 family body parses here verbatim, with no anchor model in sight. **What that
+#: shows, and what it does not:** it shows the FAMILY CONTRACT is shared; it shows nothing about
+#: the universe's anchor model, which the two majors do not share at all and which no part of this
+#: function touches.
+parse_family_declaration = _family
+
+
 # ── authority ────────────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class ConstitutionAuthority:

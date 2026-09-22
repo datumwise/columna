@@ -38,6 +38,7 @@ from .publication import (
     GovernedPublicationV2,
     PublicationFormatRefusal,
     load_publication,
+    parse_family_declaration,
     parse_publication,
 )
 from .native import (
@@ -71,6 +72,7 @@ __all__ = [
     "UnknownFoundationLaw", "cite", "resolve_law",
     "PUBLICATION_FORMAT_VERSION", "GovernedPublicationV2", "Family", "Formation", "ExplicitNone",
     "PublicationFormatRefusal", "parse_publication", "load_publication",
+    "parse_family_declaration",
     "NATIVE_PUBLICATION_FORMAT_VERSION", "SUPPORTED_NATIVE_VERSIONS", "NativePublication",
     "NativePublicationRefusal", "NativeFamily", "Universe", "Constitution", "Anchor",
     "Resolution", "parse_native_publication", "load_native_publication",
