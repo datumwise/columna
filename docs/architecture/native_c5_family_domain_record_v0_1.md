@@ -66,11 +66,24 @@ failure (`test_fixture_drift::test_import_and_version`) reproduces on `main` and
 branch; it is sensitive to an editable install being present, not to this change. `ruff` is clean
 across every changed package.
 
-Two incidental defects were found and deliberately **not repaired**, per the unit's holds: the
+One incidental defect was found and deliberately **not repaired**, per the unit's holds: the
 `exhibit.py` demo crashes on `main` with `materialize() missing 1 required keyword-only argument:
 'publication_ref'` (verified on the pristine baseline — its C3 read, the part this unit touches,
-works); and the repository's own test extras omit `pytest-asyncio`, without which the server's MCP
-tests cannot run at all.
+works).
+
+> **CORRECTION, 2026-09-23.** An earlier revision of this record reported a second incidental defect:
+> *"the repository's own test extras omit `pytest-asyncio`, without which the server's MCP tests
+> cannot run at all."* **That claim is false and is withdrawn.**
+> `packages/columna-server/pyproject.toml:55` declares `pytest-asyncio>=0.23,<2.0` in the `test`
+> extra, and `.github/workflows/ci.yml:58` installs it (`pip install -e
+> "packages/columna-server[test]"`). Neither the extra nor the pipeline is at fault.
+>
+> What actually happened is that this unit's verification environment was **assembled by hand**
+> rather than installed from the `[test]` extra — against the instruction written directly above
+> that line in the server's own `pyproject.toml`: *"Install the package; do not assemble by hand."*
+> The symptom that followed is **already rowed as OF-41** (2026-09-14), which had itself corrected
+> this exact misreading: *"THE DECLARATION IS NOT THE DEFECT, AND THE FIRST FRAMING OF THIS ROW WAS
+> WRONG."* No new row is owed and none is minted; OF-41's evidence cell carries the re-observation.
 
 ---
 
