@@ -5,7 +5,7 @@ Recorded by Claude at Huayin's direction, 2026-09-22/23. Working upstream of C3/
 
 **Standing of this document.** Reconnaissance and design proposal. **No rule is enacted here and no source
 change is authorized.** Where the authorities leave a question undecided I name the missing governed
-decision and stop, per instruction. Six such decisions are named in §9; two of them are stop conditions
+decision and stop, per instruction. Seven such decisions are named in §9; two of them are stop conditions
 that were hit during the work and are reported rather than resolved.
 
 **Method.** Current Manifold schema and Columna implementation were excluded as design constraints
@@ -95,6 +95,283 @@ families:
 | **Derivation** | follows from constituted facts; asserting it independently creates a falsifiable restatement | **never** |
 | **Naming / reference** | a convention resolving to something constituted or derived | yes, separately; never constitutive |
 | **Evidence / certification / realization** | establishes that a declared object can presently be evidenced or executed | yes, elsewhere; never meaning-creating |
+
+### 1.4 The four layers, and where authority passes
+
+*Added at Huayin's request, 2026-09-23. My conceptual model, not a survey. It sits here because §1 says
+what a Manifold **is**, and this says what it is **relative to its neighbours** — which turns out to
+constrain the declaration model in §7.*
+
+#### 1.4.1 Two kinds of authority, which never convert into each other
+
+ToD §4 names three authorities in one passage and, tellingly, defines each by **what it cannot do**:
+
+> A declaration states a proposed definition. **Human ratification establishes the declaration's authority in
+> its domain; it does not prove its mathematical laws.** A proof establishes a conditional analytical
+> statement; **it does not certify that a particular source currently satisfies its premises.** A backend
+> computation establishes neither merely by returning a value.
+
+Underneath that sit **two kinds of authority**, and the whole architecture is the refusal to convert one into
+the other.
+
+**Constitutive authority** is held by a person, concerns a contingent world, and could have been exercised
+otherwise. It is ratifiable, versionable, and *wrong-able*: a Manifold can be mistaken.
+
+**Nomological authority** is held by nobody, concerns every world, and could not have been otherwise. It is
+not ratifiable — a human ratifying a theorem adds nothing to it, and a human ratifying a falsehood does not
+make it true.
+
+> **Every architectural defect this estate has found is an attempted conversion between these two.**
+
+A reducer token in a private realization mapping is constitutive content held at a site with no constitutive
+authority. A publication that enumerates \(\mathcal A_F\) is nomological content held at a constitutive site —
+and §1.2 gives the precise cost: it creates *"a surface on which they can state it **falsely**"*. The claim
+examined in §1.4.3 is a third instance: that **notation can do constitutive work**.
+
+#### 1.4.2 Four jobs, four verbs
+
+| layer | job | verb | its characteristic failure |
+|---|---|---|---|
+| **Manifold** | constitutes one analytical world and the quantities claimed in it | **constitutes** | *wrong* — it can be mistaken about its world |
+| **Measure Algebra** | states what follows in **any** world, given such a constitution | **entails** | *unsound* — or, honestly, *open* |
+| **MEL** | canonical notation in which an analytical identity is written and compared | **denotes** | *ambiguous* — two identities under one expression |
+| **Frame-QL** | states which identified result is presently wanted, and how it is presented | **requests** | *unresolved* — several identities fit the request |
+
+**Only the first verb creates anything.** That is the model in one line, and I would put it in front of the
+MA formulation:
+
+> **Manifold constitutes · Measure Algebra entails · MEL denotes · Frame-QL requests.**
+
+**Where authority passes.** Downhill only, and each edge carries a different cargo:
+
+```text
+   Manifold  ──premises──▶  Measure Algebra  ──identities──▶  MEL  ──◀──resolution──  Frame-QL
+      ▲                                                                                   │
+      └──────────────────────  NOTHING PASSES UPWARD  ───────────────────────────────────┘
+```
+
+- **Manifold → MA: premises.** MA does not check them, by its own statement: *"Measure Algebra does not decide
+  whether a Manifold is correctly authored or currently certified. It begins after the required analytical
+  standing exists."*
+- **MA → MEL: consequences, as notation.** MA proves; MEL writes the subject of the proof down canonically and
+  supplies the equivalence relation under which two writings are one identity.
+- **Frame-QL → MEL: a resolution.** A resolved request *contains* an analytical identity; it does not produce
+  one.
+- **Upward: nothing.** Not from Frame-QL (*"Computability does not create family identity. Analytical law
+  does."*), not from MEL, not from execution. MA states the same guard from its own side: *"Downstream
+  expression evaluation should not become a second Manifold validator."*
+
+Each layer may **consume** the one above it and may **refuse**. None may **write** upward. Refusal travelling
+up is not a counterexample — a refusal reports that a premise is missing; it does not supply one.
+
+#### 1.4.3 "The Manifold declares the generators…" — right in two clauses, overstated in the third
+
+**First, a fact about the text: Measure Algebra gives this formulation twice, and the third clause differs.**
+
+| | third clause |
+|---|---|
+| **rev1 §2.1** | *"The Manifold supplies the governed operands and local facts. Measure Algebra supplies the laws. **MEL supplies the canonical analytical expression.**"* |
+| **rev1 §9.1** | *"The Manifold declares the generators. Measure Algebra supplies the laws. **MEL generates the governed family space.**"* |
+
+*Supplies the canonical expression* is a **denotation** claim. *Generates the family space* is a
+**constitution** claim. They are not the same job, and §9.1 is the one carrying the load. Note also that §9
+opens with its own status line — *"new construction/generalization in Version 2.0; **intended as a candidate
+simplification for a future ToD foundation**"* — so the stronger clause is explicitly candidate, not
+established.
+
+**What "generators" means, literally.** §9 is concrete about it. A generator is a **governed analytical
+source** plus a **declared default closure law**:
+
+```text
+SOURCE revenue
+    TYPE Decimal
+    DEFAULT sum
+```
+
+…from which \(D(revenue)=sum\) and \(revenue@customer \equiv sum(revenue)@customer\) — *"**default
+completion**, not global textual substitution."* So "generators" means: **named governed quantities at their
+constitutive locations, together with the Manifold-declared completion that turns a source into a measure.**
+It is an algebraic metaphor — a generating set, closed under the algebra's operations.
+
+**My verdict: the first two clauses are exactly right, and the third is right only under the §2.1 reading.**
+
+The metaphor fails in one specific and diagnosable way. **The closure of a generating set under a set of
+operations is *determined*. The family space is not** — because each application of a law needs **fresh
+contingent input that the generators do not contain**. It is not a free algebra over generators; it is closer
+to a presentation in which every new element requires a new governed decision.
+
+**The arithmetic, against ToD §4's nine responsibilities.** Take a catalogued foundation law applied to a
+governed source at a governed anchor — the best case for the strong reading. MEL + MA determine:
+
+| determined by law + expression | **not** determined |
+|---|---|
+| formation (the expression *is* it) | **participation intent** |
+| target, where the law nominates a defining construction | **family root \(A_0\)** |
+| continuation law | **the domain law (the positive act) and \(P_F\)** |
+| sufficient-state bases (ToD Appendix A) | |
+| result value domains | |
+| empty / undefined cases | |
+
+**Six entailed, three residual.** And the residual three are not an awkward remainder — they are precisely the
+facts that are **contingent choices about this world**, which is where constitutive authority lives by
+definition.
+
+**The falsification is ToD's own published example.** `mean(revenue@order)` does not say whether the
+participating points are the 100 governed Order points or the 97 supported Revenue observations. §11.5.1
+refuses to let the expression decide: *"That does not authorize replacing an intended 100-order MEAN with a
+97-observation MEAN."* And §4.2 forecloses the general repair: participation *"is **not** automatically the set
+of surviving physical records or supported operand values."*
+
+The intent has to come from somewhere, and the expression is not it. It **may** be defaulted — MA §22:
+*"Automatic MEL completion is permitted only when the governed profile determines one lawful interpretation"* —
+but a governed profile is **itself a Manifold act**. So the fact is not eliminated; it is factored out and
+paid for once instead of per family. That is a good design, and it is not generation.
+
+**MA already knows this in the fine print.** §9.1 hedges twice in three lines: the space is *"may make
+available, **where lawful**"*, and its members are *"lawfully generated family **expressions**"* — expressions,
+not families. And §8 says outright: *"This makes 'mean revenue by region' analytically **incomplete** unless
+the input anchor is uniquely determined by governed law."* Frame-QL states the same qualification in its own
+voice, and more sharply — §11.1: a canonical construction *"can be an identity-bearing reference even before a
+separate human-readable name is assigned. **This does not turn arbitrary query syntax into governance
+authority. The target specification and family contract must already be supplied by the selected governed
+definitions and applicable law.**"*
+
+> **The slogan overstates what its own body text claims.** I would restate it as:
+>
+> **The Manifold declares the generators. Measure Algebra supplies the laws. MEL generates the *candidate*
+> family space — the expressions that *could* denote a governed family. Which of them *do* is settled per
+> family, by the Manifold, and costs three facts.**
+
+**And this is the same finding as §5.5, arriving from the other direction.** A generator is a **source**; the
+thing generated is a **family**; and the constructed family is a **different quantity** from the source. The
+prior reconnaissance's diagnosis governs both cases:
+
+> **A prohibition is a fact about a QUANTITY. A formation law CHANGES the quantity.**
+
+Replace "prohibition" with "participation intent" or "family root" and the sentence still holds. That is why
+\(P_F\) does not propagate along lineage *and* why MEL cannot finish constituting a family: **both are attempts
+to carry a fact about one quantity across a law that made a different one.**
+
+#### 1.4.4 The example, transition by transition
+
+The shape is worth naming first: **ascription → constitution → ascription.** Steps 1 and 3 are the *same kind*
+of step. Only the middle one needs a human.
+
+---
+
+**(1) `balance` ⟶ `balance @ {account, day}` — ascription. No new family.**
+
+| | |
+|---|---|
+| **meaning** | **Manifold** — which quantity `balance` is (A1). **ToD §2.2** — what \(F@A\) means: *"A **measure** is that family at one current anchor."* |
+| **law** | whether the location is admitted: \(\mathcal A_{balance}\), generated from A4+A6. Here it is \(A_0\), so §A.1.4's vacuous theorem admits it. |
+| **new declaration?** | **No.** Nothing is constituted. |
+
+One trap worth flagging, because the next step walks into it: **inside** `mean(balance @ day)` this same
+phrase is **not a measure at all** — it is a constitutive input consumed by a law, and §2.2 keeps it inside
+\(F\). Same syntax, two roles, and Frame-QL §4.3 keeps them apart in terms.
+
+---
+
+**(2) `balance @ day` ⟶ `mean(balance @ day)` — constitution. The only transition that needs a person.**
+
+| | |
+|---|---|
+| **meaning** | **split.** The *law* MEAN is universal — ToD Appendix A / MA §14. The *quantity asserted* is fixed by law + operand **for the six entailed facts**, and by **the Manifold** for the three residual ones. |
+| **law** | **Measure Algebra**, entirely: §14.3's information law (contribution + participation), §14.4's \((\Sigma,N)\) sufficient state, §14.6's finalization-loses-information. Nobody declares these and no Manifold may contradict them. |
+| **new declaration?** | **Yes — and exactly three facts.** |
+
+The three:
+
+1. **participation intent** — the 100-vs-97 choice (or a governed profile default, which is the same act paid
+   once);
+2. **the family root \(A_0\)** — or a ruling that it is derived, which is **D-2**;
+3. **the domain law: the positive act, and \(P_F\)** — and §A.1.5 is explicit that its absence is not a gap
+   to be filled downstream: *"an **absent** law admits nothing beyond what constitution separately supplies."*
+
+This reframes a question the estate has been asking as yes/no. *"Must every constructed family be declared?"* —
+**the useful answer is neither yes nor no: three facts must be, and six must not.** A declaration that restates
+the six has restated theorems; one that omits the three has not constituted a family.
+
+It also re-reads `CONSTRUCTED_DOMAIN_UNDECIDED` the same way §5.7 does, from the layering side: the refusal is
+**correct**, and what it is correctly detecting is *a missing constitutive act*, not *a missing propagation
+rule*. No amount of algebra was ever going to supply it, because algebra has no constitutive authority.
+
+---
+
+**(3) `mean(balance @ day)` ⟶ `mean(balance @ day) @ {account, week}` — ascription again. No new family.**
+
+| | |
+|---|---|
+| **meaning** | **ToD §2.2** — one current anchor; `day` stays constitutive, `week` is where this measure lives. No new quantity. |
+| **law** | **Measure Algebra / ToD** supply the construction: §5.1 anchor-locality, the \((\Sigma,N)\) basis established at the target, Proposition 6.2 for path-independence. |
+| **new declaration?** | **No** — *provided step (2) did its job.* Admission is \(\mathcal A_F\), which step (2)'s A6 already fixed. |
+
+**This is why the estate kept trying to derive step (3): step (3) genuinely is derivable.** The error was
+seeking its derivation from step (2)'s **operands** rather than from step (2)'s **declaration**.
+
+*(And under the settled Case-S geometry `week` is not reachable at all — §5.8, **D-1**. That is a fourth,
+lower-level problem and it is not a layering question.)*
+
+#### 1.4.5 MEL is not Frame-QL
+
+> **MEL is a language of identity. Frame-QL is a language of request.**
+
+MEL answers *what is this quantity?* Its equality relation is **analytical identity**: two MEL expressions are
+the same expression iff they denote the same family. Frame-QL answers *what do I want to see?* Its output is a
+**frame**, which is a presentation artifact — *"The frame assembles them without becoming a new measure family,
+universe, or analytical ontology."*
+
+| | MEL | Frame-QL |
+|---|---|---|
+| **output** | an identity | a frame |
+| **equality** | analytical identity | — (two queries are two queries) |
+| **closed under** | the algebra's operations | presentation |
+| **has** | operands, laws, anchors, parameters | all of that **plus** selection, output naming, ordering, limiting, juxtaposition, and a resolution procedure against a **selected Manifold version** |
+| **failure mode** | **unrealizable** | **unresolved** |
+
+The failure modes are the sharpest test I know for telling them apart.
+
+**MEL is entitled to express what nothing can compute.** MA §27: *"A valid Measure Algebra law may exist before
+any engine implements it. A valid MEL expression may therefore be unrealizable by a particular system… A
+missing implementation is a realization gap. It does not make the analytical expression meaningless."*
+
+**Frame-QL is not entitled to express what nothing identifies.** Its own §1: *"The query should contain the
+information required to identify the analytical result, **not** the information required to physically
+manufacture it"* — and where several identities fit, the request is **unresolved**, with *"A cache, table
+grain, implementation capability, or executable plan cannot break the tie."*
+
+So the relation is **containment, not rivalry**: a resolved Frame-QL request **contains** a MEL identity, plus
+request apparatus that sits below the analytical line. Frame-QL ≈ MEL + selection/framing/presentation + a
+resolution procedure. Neither mints; Frame-QL says so repeatedly, and MEL's body text agrees with Frame-QL even
+where its slogan does not.
+
+One asymmetry worth keeping: **Frame-QL must resolve against a *version*.** *"The resolved canonical record
+always includes the selected Manifold identity and version."* MEL needs no version — an identity is an identity.
+Versioning is a property of *which world you are asking about*, not of *what a quantity is*.
+
+#### 1.4.6 A note on what Measure Algebra says the Manifold supplies
+
+MA §2.1 lists \(\Gamma\)'s contributions: *"governed analytical sources; universes and anchor structure;
+eligibility, support, and population; governed order; declared relationships; local prohibitions and
+certifications; default closure profiles; semantic type declarations."*
+
+Read against §1's four standings, that list is **jurisdictional, not ontological** — it is "everything below the
+algebra", and it mixes the standings freely. **Support is evidence** (ToD §2.3), not constitution.
+*"Prohibitions and certifications"* pairs a constitutive fact with an evidential one. That is fine for MA's
+purpose, which is to say where its own reasoning starts; it is **not** a specification of what a Manifold
+declares, and it should not be read as one.
+
+Two absences from that list are more interesting, and they are the same diagnosis again:
+
+> \(\Gamma\) contains **no target specification** and **no family root** — the two most constitutive facts a
+> family has.
+
+That is exactly what one would expect from a framework whose slogan has the algebra generating families: if
+laws generate targets, the Manifold need not supply them. **They do — but only for catalogued constructions
+over already-governed operands, and never for the observational leaves.** Revenue's and Balance's targets
+(§§3-4) are not entailed by any law. They are the premises everything else runs on.
+
 
 ---
 
@@ -887,6 +1164,55 @@ Four properties of this surface are the whole of the design.
 4. **Three states are expressible everywhere they are needed** — `established { }`, `established {day}`, and
    `unestablished` — and `established { }` must never be confusable with absence.
 
+### 7.1 The synthesis, applied: what a *constructed* family's declaration actually costs
+
+§1.4.3 settled the arithmetic — for a catalogued law over a governed operand, **six of the nine §4
+responsibilities are entailed and three are not.** The declaration surface should therefore make the six
+*unstatable* and the three *mandatory*. Written out, `mean(balance@day)` reduces to this:
+
+```
+family mean_daily_balance
+  in            : ledger
+  formation     : MEAN( balance @ {account, day} )    # the generator + the law. Not a residual --
+                                                     # this IS the expression, and it is what MEL writes.
+  # ---- the three residual facts; nothing else is constitutive ----
+  participation : every {account,day} point at which balance is ELIGIBLE      # (1) the 100-vs-97 choice
+  root          : { account, day }                                           # (2) A_0   -- or derived, D-2
+  domain        : established { may_not_forget : { } }                       # (3) the positive act + P_F
+```
+
+Everything else about this family — its target, its continuation standing, its bases, its result value domain,
+its empty case, its lineage, its kind — **is entailed, and must be absent.** Spelling any of them out would be
+restating a theorem on a surface that permits stating it falsely (§1.2).
+
+Three consequences for the model in §7, which I would not have reached without §1.4.
+
+**(a) `quantity` is conditional, not universal.** §7's surface lists `quantity` on every family. That is right
+for an **observational** family, whose target is a premise entailed by nothing (Revenue's and Balance's targets
+are not consequences of any law — §1.4.6). It is **wrong** for a construction citing a catalogued law, where
+the law *nominates* the defining construction and a restated target is a fourth opportunity to disagree with
+the algebra. So:
+
+> `quantity` is **AUTHORED** at observational leaves and **DERIVED** wherever the formation cites a catalogued
+> foundation law — and **AUTHORED again** for a bespoke target with no catalogued law, where it carries the
+> §5.3 adequacy obligation alongside A9.
+
+This is the same shape as A7 and A9 already have in §2.2, and it means **A1 joins the conditional acts for
+constructions.** The irreducible core for a *constructed* family is therefore **A2 + A3 + A4 + A6** — four acts,
+of which A2 is the expression itself. The six-act core of §2.1 is the *observational* case, which is correct:
+that is where premises actually live.
+
+**(b) The surface must distinguish a source from a family.** MA's generators are `SOURCE`s (§1.4.3), and a
+source is **not** a family — it has no participation intent, no root, no domain law. If the authoring model
+admits sources at all (as MA's `SOURCE revenue / DEFAULT sum` proposes), then a **governed default completion**
+is a Manifold act with its own standing, and it is what pays the participation cost once instead of per family.
+Recorded as a real option, not adopted: §9 **D-7**.
+
+**(c) The refusal is a missing act, and should say so.** `CONSTRUCTED_DOMAIN_UNDECIDED` is correct, but its
+name records the wrong diagnosis. What is missing is not a propagation rule; it is one or more of the three
+residual constitutive facts. A refusal that named *which of the three* is absent would be actionable by an
+author; the present one is not.
+
 ---
 
 ## 8. Consequences for the existing architecture
@@ -992,6 +1318,7 @@ three become consequences and two change jurisdiction.
 ## 9. Missing governed decisions, and the stop conditions reached
 
 Exposed, not filled. Two are stop conditions under the brief and were the reason to stop rather than continue.
+D-7 was added after the layering analysis of §1.4.
 
 ---
 
@@ -1075,6 +1402,18 @@ hole.
 
 ---
 
+**D-7 · Does the authoring model admit `SOURCE` + governed default completion?** *(§7.1(b))*
+
+MA §9 proposes generators as **sources** with a declared default closure (`SOURCE revenue / DEFAULT sum`),
+giving \(revenue@customer\equiv sum(revenue)@customer\) — ToD §3.9's governed single-valued completion, at
+the source rather than the family. Its attraction is real: it is the mechanism that pays the **participation
+intent** cost once per source instead of once per constructed family (§1.4.3). Its risk is equally real: a
+default completion is a **naming/resolution act that resolves to a constitution**, and §3.9 permits it *"only
+where identity and participation agree under the governed declaration"*. Recorded as an option with a stated
+benefit, not adopted, and not a prerequisite for D-1 through D-3.
+
+---
+
 ### What was deliberately not done
 
 No propagation rule was invented. MAP1's union was **not** imported — §5.6 shows its premises exclude the case.
@@ -1106,6 +1445,13 @@ one thing it exists to do.
 calendar geometry (D-1), which is held, and which blocks `balance @ week` and `revenue @ region` in the same
 breath. The C3/C5 question had two problems folded into one, and the second was invisible because it was being
 read as an instance of the first.
+
+**And on "where their authority comes from" — which §1.4 was added to answer.** From the Manifold, and from
+nowhere else, because it is the only layer with a generative verb. Measure Algebra entails, MEL denotes,
+Frame-QL requests; none of the three can constitute, and every attempt to let one of them do so has shown up
+in this estate as a defect. For a constructed family the constitutive cost is small and exactly enumerable —
+**three facts** (§1.4.3) — but it is never zero, and that is why no amount of reading the algebra was ever
+going to close C3/C5.
 
 > **The suspended constructed-family-domain work turns out to be answerable. The thing underneath it is not,
 > and was not what anyone was looking at.**
