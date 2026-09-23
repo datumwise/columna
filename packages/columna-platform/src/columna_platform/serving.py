@@ -411,8 +411,16 @@ def movement_licence(law_view):
     licence?* — and the DETAIL of which it was belongs in the refusal text, not in control flow.
 
     This guard is deliberately narrow: it inspects C3's content for the successor serving path and
-    does NOT redesign C3. Whether `resolve` should split domain from movement is a governed question
-    and is left open."""
+    does NOT redesign C3.
+
+    **UPDATE (ruled Huayin, 2026-09-22).** The question this docstring left open — *whether*
+    `resolve` should split domain from movement — is now RULED, and it splits. This path is
+    deliberately NOT repointed: it reads the retained pre-split `domain_and_movement` entry, which
+    is derived and byte-identical to what it resolved before, so v2 semantics here are unchanged —
+    including `_no_licence_detail`'s third case, which exists only because of the conflation and
+    which the native path no longer has. Repointing this to `C3_EDGE_VALIDITY` would change a
+    legacy diagnostic, and the authorization is to preserve legacy behaviour and report the
+    collision rather than force convergence."""
     c3 = law_view[C3_DOMAIN_MOVEMENT]
     if c3.standing == EXPLICIT_NONE:
         return None

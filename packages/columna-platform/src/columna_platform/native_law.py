@@ -24,12 +24,15 @@ anchor, so reporting the movement gap first would send a steward to license a mo
 could not be answered. (The v2 serving path asks them in the same order. That agreement is reported
 as a measurement, not adopted as a template.)
 
-**WHY `C3.standing == ESTABLISHED` IS NOT THE TEST.** C3 is *domain AND movement*, and `resolve`
-marks it ESTABLISHED when EITHER is declared — so a family declaring a domain and no movement
-resolves ESTABLISHED carrying `{'domain': …, 'movement': None}`. Testing the standing would serve a
-coarser anchor for such a family with no licence at all. The content is inspected, as the v2 serving
-path already learned to do; the same reading is made here rather than imported, because importing it
-would drag `declared_coordinate_names` and the anchor declaration in behind it.
+**WHY `C3.standing == ESTABLISHED` WAS NOT THE TEST, AND WHY IT NOW IS.** C3 *was* "domain AND
+movement", resolved into one standing that became ESTABLISHED when EITHER was declared — so a family
+declaring a domain and no movement resolved ESTABLISHED carrying no licence, and testing the standing
+would have served a coarser anchor for it. This module inspected the content instead.
+
+**The conflation is retired (ruled Huayin, 2026-09-22): C3 is now two responsibilities.** This rule
+reads `C3_EDGE_VALIDITY`, whose standing means exactly what this module needs it to mean, and the
+content inspection is gone with the defect that forced it. The family-domain half is not read here at
+all — it is a relation to a resolved location and is adjudicated in `native_domain`, one layer up.
 
 WHAT THIS MODULE IS CAREFUL NOT TO DO (ruled Huayin, 2026-09-22)
 ----------------------------------------------------------------
@@ -54,7 +57,7 @@ from typing import Any, Optional
 from columna_core.governed.native import Family, NativePublication
 from columna_core.governed.publication import parse_family_declaration
 from columna_core.governed.resolve import (
-    C3_DOMAIN_MOVEMENT,
+    C3_EDGE_VALIDITY,
     C7_SUFFICIENT_STATE,
     ESTABLISHED,
     EXPLICIT_NONE,
@@ -130,15 +133,19 @@ class MissingGovernedFact:
 #: total key set in both majors; what has never been decided is what goes in it. v2's reader accepts
 #: arbitrary content for it (`_slot(..., lambda r: r)`), and the only thing in this tree that builds
 #: a movement is a runtime projection its own module declines to call a serialization.
+#: **NARROWED, 2026-09-22.** C4 recorded one undecided fact covering both halves of C3. The
+#: family-domain half is now decided for primitive Case-S families and implemented in
+#: `native_domain`; what remains undecided is the EDGE half, and this constant is narrowed to it
+#: rather than retired, because `Γ_F`'s conditions are still held.
 MOVEMENT_STANDING_UNDECIDED = MissingGovernedFact(
-    fact=("which analytical locations of U, other than its own constitutive anchor, a family F is "
-          "ADMITTED to stand at — and under whose authority. Natively the target location is a "
-          "constituent set that geometry can show exists; what no governed fact states is whether "
-          "F may occupy it"),
-    whose=("the steward who constitutes F, as a positive declaration about F — §4.1: 'a "
-           "geometrically available projection and a computable state operation do not by "
-           "themselves put A in the admitted anchors'"),
-    where=("the family declaration's C3 slot, which both majors already carry as a total key and "
+    fact=("what a native EDGE CONTRACT Γ_F(B→A) states — the conditions under which a particular "
+          "movement between ADMITTED locations is lawful. Family-domain membership is now decided "
+          "for a primitive family and does not answer this: being admitted to stand at A does not "
+          "make every proposed derivation to A lawful. Coverage permission γ, participation and "
+          "support, evidence, and commutation are independent premises with no home yet"),
+    whose=("the steward who constitutes F. §1.5 files coverage at edge-or-evidence validity, not "
+           "at family identity, so this is not the family-domain declaration under another name"),
+    where=("the family declaration's movement slot, which both majors carry as a total key and "
            "neither has given a content contract"),
 )
 
@@ -164,8 +171,8 @@ def assert_answerable(view: LawView, *, moving: bool) -> None:
     if not moving:
         return
 
-    c3 = view[C3_DOMAIN_MOVEMENT]
-    licensed = None if c3.standing == EXPLICIT_NONE else (c3.value or {}).get("movement")
+    c3 = view[C3_EDGE_VALIDITY]
+    licensed = None if c3.standing == EXPLICIT_NONE else c3.value
     if licensed is None:
         raise WantOfLaw(
             f"{view.canonical_reference!r} establishes no positive movement: C3 is {c3.standing}"

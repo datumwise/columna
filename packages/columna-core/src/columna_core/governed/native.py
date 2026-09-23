@@ -97,14 +97,25 @@ FAMILY_KEYS: frozenset[str] = frozenset({
 FAMILY_BODY_KEYS: frozenset[str] = frozenset({
     "family_id", "canonical_reference", "aliases", "universe", "constitutive_anchor", "target",
     "formation", "participation", "value_domain", "continuation", "domain", "movement",
-    "exceptional"})
+    "prohibited_constituents", "exceptional"})
 
 #: Body keys OUTSIDE the identity-bearing payload: identity cannot be part of its own determinant;
 #: a canonical reference and its aliases are labels; `domain`/`movement` are capability, not
 #: identity. Everything else is IN **by derivation** — a body key added later is inside the
 #: fingerprint by default, and taking one out is a decision someone has to write down.
+#:
+#: **`prohibited_constituents` is written down here, and this line IS the decision** (R12, Huayin
+#: 2026-09-22): *"P_F, and the resulting family-domain standing, is not identity-bearing. A
+#: governed revision of P_F does not by itself mint a successor family or change family_id. Make
+#: this exclusion explicit wherever the native identity-key default would otherwise pull the new
+#: declaration into the family fingerprint."* The default runs the other way, so omitting this line
+#: would silently make every domain revision a family succession.
+#:
+#: Not identity-bearing is NOT unversioned: a domain revision remains governed and auditable
+#: through publication history (`ref.version`, `published.at`/`by`), and is not runtime state.
 NON_IDENTITY_KEYS: frozenset[str] = frozenset(
-    {"family_id", "canonical_reference", "aliases", "domain", "movement"})
+    {"family_id", "canonical_reference", "aliases", "domain", "movement",
+     "prohibited_constituents"})
 IDENTITY_KEYS: frozenset[str] = FAMILY_BODY_KEYS - NON_IDENTITY_KEYS
 
 #: The two NOMINAL references that leave the payload at `fcf-2`. They stay in the declaration and
@@ -1159,6 +1170,33 @@ def _read_family(raw: Mapping[str, Any], universes: Mapping[str, Universe]) -> F
             f"not a mapping, and not uniqueness evidence. Resolution is universe-scoped: a token "
             f"that denotes elsewhere does not denote here."
         )
+
+    # ── `P_F`'s governed references, checked where the universe is in hand ───────────────────
+    # R14: validate the declaration's representation and its governed constituent references, and
+    # NOTHING ELSE. In particular do NOT require the prohibition to lie within this family's own
+    # root: a governed constituent irrelevant to the present root is lawful and inert, and
+    # refusing it would make the declaration a function of today's geometry. A reference that does
+    # not resolve as a constituent of the relevant universe IS a governance failure and refuses —
+    # `Universe.anchor` already says exactly that, so it is reused rather than reworded.
+    pf = body.get("prohibited_constituents")
+    if pf is not None and not (isinstance(pf, dict) and set(pf) == {"none"}):
+        # REPRESENTATION first, and HERE — not in the family-clause reader, which is reached only
+        # when a consumer later resolves the law. A malformed governed clause must refuse at the
+        # artifact boundary, or an artifact carrying one publishes cleanly and fails at use.
+        if not isinstance(pf, list) or not all(isinstance(r, str) and r for r in pf):
+            _refuse(
+                f"{what}: prohibited_constituents is a list of constituent references (possibly "
+                f"empty); got {pf!r}")
+        dupes = sorted({r for r in pf if pf.count(r) > 1})
+        if dupes:
+            _refuse(
+                f"{what}: prohibited_constituents names {dupes} more than once. A prohibition is a "
+                f"set condition; repeating a member states nothing further and hides a typo.")
+        # GOVERNED REFERENCES second. `Universe.anchor` already refuses a reference that does not
+        # resolve as a constituent of this world, in the words this case needs, so it is reused.
+        # R14: what is NOT checked is whether the reference lies within this family's own root — a
+        # governed constituent irrelevant to the present root is lawful and inert.
+        u.anchor(pf)
 
     family = Family(name=name, family_id=family_id, canonical_reference=canonical_reference,
                     universe_reference=universe_reference, anchor_token=token, body=body,

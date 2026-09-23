@@ -192,8 +192,44 @@ def _formation(raw: Any, what: str) -> Formation:
 _FAMILY_KEYS = frozenset({
     "family_id", "canonical_reference", "aliases", "universe", "constitutive_anchor",
     "target", "formation", "participation", "value_domain",
-    "continuation", "domain", "movement", "exceptional",
+    "continuation", "domain", "movement", "prohibited_constituents", "exceptional",
 })
+
+
+def _prohibited_constituents(raw: Any, what: str) -> frozenset:
+    """**`P_F` — the family's prohibited Case-S constituents.** Representation only.
+
+    The governed negative condition of the family-domain law: the constituent distinctions this
+    family's law prohibits losing. A LIST of constituent references, read into a set.
+
+    **THE EMPTY LIST IS A DECLARATION AND IS NOT ABSENCE.** `[]` here resolves ESTABLISHED with an
+    empty prohibition — *this law prohibits none of the available projections*. An ABSENT key
+    resolves UNESTABLISHED — *no family-domain law is established, so nothing is admitted off the
+    root by it*. Those are different governed states and a reader that maps one onto the other
+    destroys the distinction the whole responsibility exists to carry. `_slot` keeps them apart
+    because `[] is not None`.
+
+    **What is NOT checked here** (R14, Huayin 2026-09-22): whether a reference is a constituent of
+    this family's own root. `P_F` is a governed negative condition, **not** an enumeration of the
+    family's domain and not a declaration of currently traversable edges. A governed constituent
+    that the present root cannot lose is lawful and simply inert for projections from that root —
+    "do not refuse it, warn about it, or derive anything from its irrelevance". Constraining the
+    declaration to what today's geometry can exercise would make it a function of the geometry it
+    is meant to be independent of.
+
+    Whether each reference resolves as a governed constituent of the relevant universe IS checked —
+    but not here, because this reader has no universe. The native reader does it where the universe
+    is in hand."""
+    if not isinstance(raw, list) or not all(isinstance(r, str) and r for r in raw):
+        raise PublicationFormatRefusal(
+            f"{what}: prohibited_constituents is a list of constituent references (possibly "
+            f"empty); got {raw!r}")
+    dupes = sorted({r for r in raw if raw.count(r) > 1})
+    if dupes:
+        raise PublicationFormatRefusal(
+            f"{what}: prohibited_constituents names {dupes} more than once. A prohibition is a "
+            f"set condition; repeating a member states nothing further and hides a typo.")
+    return frozenset(raw)
 
 
 @dataclass(frozen=True)
@@ -217,9 +253,16 @@ class Family:
     value_domain: Optional[str] = None
     #: C8. A citation, an ExplicitNone, or None (absent: entailed for constructions).
     continuation: Any = None
-    #: C3. Content, ExplicitNone, or None (absent = unestablished).
-    domain: Any = None
+    #: C3 · edge validity. Content, ExplicitNone, or None (absent = unestablished).
     movement: Any = None
+    #: C3 (v2 only). The legacy free-form domain marker. **NOT the governed family-domain law** —
+    #: it imposes no shape, is read by no decision, and its mere presence used to raise the
+    #: combined C3 standing. Retained so v2 artifacts parse unchanged; it feeds the compatibility
+    #: entry and nothing else.
+    domain: Any = None
+    #: C3 · family domain. `P_F`. A frozenset, an ExplicitNone, or None (absent = unestablished).
+    #: **An empty frozenset is ESTABLISHED, not absent.**
+    prohibited_constituents: Any = None
     #: C9 — only what the cited law does not already establish.
     exceptional: dict = field(default_factory=dict)
     #: Non-identity reference metadata (ruling 2026-09-11). Never resolved FROM; only resolved TO.
@@ -275,6 +318,9 @@ def _family(name: str, body: dict) -> Family:
         continuation=_slot(body.get("continuation"), f"{what}.continuation", LawCitation.from_dict),
         domain=_slot(body.get("domain"), f"{what}.domain", lambda r: r),
         movement=_slot(body.get("movement"), f"{what}.movement", lambda r: r),
+        prohibited_constituents=_slot(
+            body.get("prohibited_constituents"), f"{what}.prohibited_constituents",
+            lambda r: _prohibited_constituents(r, what)),
         exceptional=dict(exceptional),
         aliases=tuple(aliases),
     )

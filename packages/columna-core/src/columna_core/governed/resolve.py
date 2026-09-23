@@ -48,6 +48,19 @@ from .publication import (
 # ── the nine responsibilities of ToD v7.1 §4, in the paper's order ───────────────────────────────
 C1_TARGET = "target_specification"
 C2_IDENTITY = "identity_and_ancestry"
+#: **C3 SPLIT (ruled Huayin, 2026-09-22).** ToD v7.1 §4.1 gives one row two symbols at two of
+#: §1.5's governance locations, and this module used to resolve them into ONE standing that became
+#: ESTABLISHED when EITHER was present — so a family declaring a domain and no movement resolved
+#: ESTABLISHED carrying no licence at all. Three consumers independently worked around that. The
+#: conflation is retired here: the two facts are two responsibilities.
+C3_FAMILY_DOMAIN = "family_domain"          # 𝒜_F — may F stand at this location?
+C3_EDGE_VALIDITY = "edge_validity"          # Γ_F(B→A) — is this particular movement lawful?
+
+#: **COMPATIBILITY ONLY — NEVER A PERMISSION.** The pre-split combined entry, retained so the v2
+#: serving path and its pins keep their exact semantics. It is DERIVED from the two above plus the
+#: legacy free-form `domain` marker, so there is no second source of truth; it is NOT in
+#: `RESPONSIBILITIES`, so it does not render and is not part of totality; and no native consumer
+#: reads it. New code must ask which of the two facts it means.
 C3_DOMAIN_MOVEMENT = "domain_and_movement"
 C4_FORMATION = "formation"
 C5_PARTICIPATION = "eligibility_and_participation"
@@ -56,16 +69,20 @@ C7_SUFFICIENT_STATE = "sufficient_state_bases"
 C8_CONTINUATION = "continuation_and_agreement"
 C9_EXCEPTIONAL = "exceptional_cases"
 
-RESPONSIBILITIES = (C1_TARGET, C2_IDENTITY, C3_DOMAIN_MOVEMENT, C4_FORMATION, C5_PARTICIPATION,
-                    C6_SEMANTIC_VALUES, C7_SUFFICIENT_STATE, C8_CONTINUATION, C9_EXCEPTIONAL)
+RESPONSIBILITIES = (C1_TARGET, C2_IDENTITY, C3_FAMILY_DOMAIN, C3_EDGE_VALIDITY, C4_FORMATION,
+                    C5_PARTICIPATION, C6_SEMANTIC_VALUES, C7_SUFFICIENT_STATE, C8_CONTINUATION,
+                    C9_EXCEPTIONAL)
 
 #: `Σ(F)` — the identity-bearing responsibilities. Derived from §2.2's signature content and §3.9's
 #: succession test, which must agree and do: anything whose change is a succession is in the
 #: signature; anything whose change is not, is out. A family is not VALID until these are settled.
 #:
-#: C3 is deliberately absent. §4.1 keeps the family's defined domain separate from its identity, and
-#: the ruling is explicit that "a family can exist while a particular continuation/movement has not
-#: been established". C7 and C9 are consequences, not constitution.
+#: BOTH halves of C3 are deliberately absent, and after the split that is a RULING rather than an
+#: inherited convenience (R12, Huayin 2026-09-22): "P_F, and the resulting family-domain standing,
+#: is not identity-bearing. A governed revision of P_F does not by itself mint a successor family."
+#: §4.1 keeps the family's defined domain separate from its identity, and §3.9's succession triggers
+#: list neither domain nor movement. "Part of the law" does not mean "part of immutable identity".
+#: C7 and C9 are consequences, not constitution.
 IDENTITY_BEARING = (C1_TARGET, C2_IDENTITY, C4_FORMATION, C5_PARTICIPATION,
                     C6_SEMANTIC_VALUES, C8_CONTINUATION)
 
@@ -375,9 +392,47 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
             C7_SUFFICIENT_STATE, ESTABLISHED, basis_provenance, value=basis_law.sufficient_state,
             note=f"entailed by {basis_source} {basis_law.name}")
 
-    # ── C3 · domain and movement ─────────────────────────────────────────────────────────────────
-    # Two POSITIVE declarations are required for admission (§4.1): the anchor must be in the declared
-    # domain AND the movement licensed. Absence is UNESTABLISHED and can never read as permission.
+    # ── C3 · family domain — 𝒜_F ─────────────────────────────────────────────────────────────────
+    # THE THREE STANDINGS MUST STAY THREE. An empty declared prohibition is ESTABLISHED, not
+    # absent: "Once the law is established, P_F = ∅ means that this particular negative condition
+    # prohibits none of the geometrically available Case-S projections" (R13). An ABSENT
+    # declaration establishes no domain law, and §4.1 forbids reading that as permission — which is
+    # also what keeps this rule clear of Appendix C.4, where a geometric family-admission test with
+    # no family law was proposed and withdrawn.
+    pf = fam.prohibited_constituents
+    if isinstance(pf, ExplicitNone):
+        e[C3_FAMILY_DOMAIN] = Standing(
+            C3_FAMILY_DOMAIN, EXPLICIT_NONE, DECLARED, value=pf,
+            note=("declared: no off-root analytical domain is admitted under this condition"))
+    elif pf is not None:
+        e[C3_FAMILY_DOMAIN] = Standing(
+            C3_FAMILY_DOMAIN, ESTABLISHED, DECLARED, value=pf,
+            note=("no constituent's loss is prohibited by this condition" if not pf else
+                  f"prohibits losing {sorted(pf)}"))
+    else:
+        e[C3_FAMILY_DOMAIN] = Standing(
+            C3_FAMILY_DOMAIN, UNESTABLISHED,
+            note=("§4.1: 'A geometrically available projection and a computable state operation do "
+                  "not by themselves put A in the admitted anchors.' No family-domain law is "
+                  "established, and absence is not permission"))
+
+    # ── C3 · edge validity — Γ_F(B→A) ────────────────────────────────────────────────────────────
+    # UNTOUCHED BY THIS UNIT. The slot is read and its standing resolved; no content contract is
+    # invented for it, because Γ_F's conditions are held.
+    if isinstance(fam.movement, ExplicitNone):
+        e[C3_EDGE_VALIDITY] = Standing(
+            C3_EDGE_VALIDITY, EXPLICIT_NONE, DECLARED, value=fam.movement,
+            note="declared: no movement is licensed for this family")
+    elif fam.movement is not None:
+        e[C3_EDGE_VALIDITY] = Standing(C3_EDGE_VALIDITY, ESTABLISHED, DECLARED, value=fam.movement)
+    else:
+        e[C3_EDGE_VALIDITY] = Standing(
+            C3_EDGE_VALIDITY, UNESTABLISHED,
+            note="no edge contract is established; absence of a prohibition is not permission")
+
+    # ── C3 · the pre-split combined entry — COMPATIBILITY, NEVER A PERMISSION ─────────────────────
+    # Byte-identical to what this module resolved before the split, so the v2 serving path and its
+    # pins are unaffected. DERIVED here rather than computed a second time.
     if isinstance(fam.movement, ExplicitNone) or isinstance(fam.domain, ExplicitNone):
         e[C3_DOMAIN_MOVEMENT] = Standing(
             C3_DOMAIN_MOVEMENT, EXPLICIT_NONE, DECLARED,
