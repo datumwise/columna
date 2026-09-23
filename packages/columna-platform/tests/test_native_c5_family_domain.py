@@ -34,7 +34,7 @@ from columna_core.governed.resolve import (
     EXPLICIT_NONE,
     UNESTABLISHED,
 )
-from columna_platform.refusals import WantOfLaw
+from columna_platform.refusals import OutsideFamilyDomain, WantOfLaw
 
 V3_ARTIFACT = (Path(__file__).resolve().parents[2]
                / "columna-core/tests/fixtures_v3/native-v3-publication.json")
@@ -158,12 +158,58 @@ def test_the_representation_itself_is_validated(raw):
 
 # ══ 5 · a prohibited projection refuses and NAMES the constituent ════════════════════════════════
 def test_a_prohibited_projection_refuses_and_names_the_constituent(raw):
+    """**A complete governed judgment, and it gets its own reason** (R16). The location exists, the
+    law is established, and the law said no — so this is NOT a want of law."""
     pub = _with_pf(raw, ["day"])
     view, req = _view_and_req(pub, "berth")              # forgets `day` — prohibited
-    with pytest.raises(WantOfLaw) as e:
+    with pytest.raises(OutsideFamilyDomain) as e:
         nd.assert_request_within_domain(view, req)
     assert "prohibits losing ['day']" in str(e.value)
     assert "may not stand at" in str(e.value)
+    assert not isinstance(e.value, WantOfLaw), "a sibling, never a subclass — dispatch is by class"
+
+
+def test_the_ONLY_reason_minted_is_the_one_where_the_law_ANSWERED(raw):
+    """**R15/R16, pinned as a boundary rather than a count.**
+
+    C5 can tell four situations apart. Three of them keep `want_of_law`, because in each the law is
+    missing or the theory is unfinished; only the fourth is a complete governed judgment. A test
+    that merely counted reason codes would not catch the mistake this guards — emitting
+    `outside_family_domain` for a case where no law was ever consulted."""
+    # 1 · geometry unreachable — adjudication never reached the law
+    pub = _with_pf(raw, ["day"])
+    view = nl.laws_of(pub)[BERTHINGS]
+    fam = next(f for f in pub.families if f.canonical_reference == "berthings")
+    u = pub.universe(fam.universe_reference)
+    with pytest.raises(WantOfLaw) as geo:
+        nd.assert_within_domain(view, fam, root=u.anchor(["berth"]),
+                                target=u.anchor(["berth", "day"]))
+    assert not isinstance(geo.value, OutsideFamilyDomain)
+
+    # 2 · the domain law is what is MISSING
+    v2, r2 = _view_and_req(_with_pf(raw, None), "berth")
+    with pytest.raises(WantOfLaw) as unest:
+        nd.assert_request_within_domain(v2, r2)
+    assert not isinstance(unest.value, OutsideFamilyDomain)
+
+    # 3 · the law is established and ANSWERED — the one boundary C5 earned
+    v3, r3 = _view_and_req(_with_pf(raw, ["day"]), "berth")
+    with pytest.raises(OutsideFamilyDomain):
+        nd.assert_request_within_domain(v3, r3)
+
+
+def test_the_new_reason_is_registered_and_is_an_analytical_refuse():
+    from columna_core.disclosure import ANALYTICAL, REASON_OUTCOME, REFUSE, UNSUPPORTED
+    from columna_platform import serving
+
+    assert REASON_OUTCOME["outside_family_domain"] == (REFUSE, UNSUPPORTED, ANALYTICAL)
+    assert serving._REFUSAL_WIRE[OutsideFamilyDomain] == ("outside_family_domain", ())
+    # no borrowed remedy: the law answered, so nothing is owed and nothing is offered
+    assert serving._REFUSAL_WIRE[OutsideFamilyDomain][1] == ()
+    # and the three reasons R16 forbade are untouched by this mint
+    for forbidden in ("anchor_spent", "blocked_reduction", "out_of_universe"):
+        assert forbidden in REASON_OUTCOME
+        assert REASON_OUTCOME[forbidden] != REASON_OUTCOME.get("__absent__")
 
 
 # ══ 6 · admission is NOT a claim about lawful query admission ════════════════════════════════════

@@ -64,6 +64,30 @@ class WantOfLaw(ProofRefusal):
     remedy = None
 
 
+class OutsideFamilyDomain(ProofRefusal):
+    """The family's ESTABLISHED domain law was consulted, and it does not admit this location.
+
+    **A SIBLING OF `WantOfLaw`, NEVER A SUBCLASS OF IT** (ruled Huayin, 2026-09-23, R16). The
+    distinction it exists to carry is the one C5 earned:
+
+    * `WantOfLaw` — the governed law is MISSING. Nothing has been adjudicated, because there was
+      nothing to adjudicate against. The remedy is a steward's declaration.
+    * `OutsideFamilyDomain` — the governed law is PRESENT, was applied, and said no. Nothing is
+      missing and no declaration is owed. The remedy is a different ask.
+
+    Collapsing them would send an operator to a steward to establish a law that already exists and
+    already answered. Subclassing would be the same defect one level down: the wire dispatch is by
+    EXACT CLASS precisely so a future sibling cannot inherit a parent's reason by accident.
+
+    Emitted only when all three premises hold — the location exists as a projection of the family
+    root, the domain law is established, and the projection forgets a prohibited constituent — and
+    the detail names the constituent(s) responsible."""
+
+    condition = "OutsideFamilyDomain"
+    jurisdiction = "governed"
+    remedy = None
+
+
 class WantOfState(ProofRefusal):
     """The law licenses the ask; the material state is not admissible, or not retained.
 
