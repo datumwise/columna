@@ -61,8 +61,8 @@ from . import formation as _formation
 from . import source as _source
 from .continuation import continue_to
 from .movement import MovementLicence
-from .refusals import (ProofRefusal, RealizationContradictsLaw, UnsupportedByThisProfile,
-                       WantOfCompatibility, WantOfLaw, WantOfState)
+from .refusals import (OutsideFamilyDomain, ProofRefusal, RealizationContradictsLaw,
+                       UnsupportedByThisProfile, WantOfCompatibility, WantOfLaw, WantOfState)
 from .state import AnalyticalIdentity, RetainedState, RetainedStateStore, Standing
 
 
@@ -454,6 +454,7 @@ def _no_licence_detail(law_view, source: str, target: str) -> str:
 #: `want_of_compatibility` and `realization_contradicts_law` 2026-09-14). Named here once so a typo
 #: is an ImportError rather than an `UnregisteredReason` at the wire.
 WANT_OF_LAW = "want_of_law"
+OUTSIDE_FAMILY_DOMAIN = "outside_family_domain"     # minted 2026-09-23 (R16)
 WANT_OF_STATE = "want_of_state"
 WANT_OF_COMPATIBILITY = "want_of_compatibility"
 REALIZATION_CONTRADICTS_LAW = "realization_contradicts_law"
@@ -483,6 +484,8 @@ REMATERIALIZE = "re-realization / re-materialization may resolve this"
 #: the empty tuple rather than borrowing a misleading one.
 _REFUSAL_WIRE = {
     WantOfLaw:            (WANT_OF_LAW,           ()),
+    OutsideFamilyDomain:  (OUTSIDE_FAMILY_DOMAIN, ()),   # no remedy: the law answered, nothing is owed
+
     WantOfState:          (WANT_OF_STATE,         (REMATERIALIZE,)),
     WantOfCompatibility:  (WANT_OF_COMPATIBILITY, ()),
 }

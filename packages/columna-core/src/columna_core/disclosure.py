@@ -468,6 +468,46 @@ REASON_OUTCOME = {
                                                         #   the same fact, and collapsing them would repeat
                                                         #   the conflation `input_anchor_unavailable` was
                                                         #   split out of `blocked_reduction` to end.
+    "outside_family_domain":    (REFUSE, UNSUPPORTED, ANALYTICAL), # MINTED 2026-09-23 (Huayin, R16, the C5
+                                                        #   family-domain ruling). GOVERNED SUBJECT: membership
+                                                        #   of the requested analytical location in the
+                                                        #   ESTABLISHED domain of this family. A complete
+                                                        #   governed judgment, and all three of its premises
+                                                        #   hold before it is emitted: the location EXISTS as a
+                                                        #   projection of the family root, the family-domain
+                                                        #   law IS established, and the projection forgets one
+                                                        #   or more constituents that law prohibits. The
+                                                        #   detail names them.
+                                                        #
+                                                        #   NOT `want_of_law`. That reason says a governed law
+                                                        #   is MISSING; here the law is present, was consulted,
+                                                        #   and said no. "No law yet" and "the law says no" are
+                                                        #   different facts and send an operator to different
+                                                        #   remedies — one to a steward to declare, one to a
+                                                        #   different ask. THIS IS THE ONLY BOUNDARY C5 EARNED:
+                                                        #   the other three situations it can distinguish
+                                                        #   internally (geometry unreachable, domain law
+                                                        #   unestablished, constructed-family law undecided)
+                                                        #   deliberately keep their broader classifications,
+                                                        #   because a reason names a stable governed failure
+                                                        #   dimension and does not mirror every branch of
+                                                        #   adjudication (R15).
+                                                        #
+                                                        #   NOT `anchor_spent` — that concerns aperture
+                                                        #   spending, a different governed subject. NOT
+                                                        #   `blocked_reduction` — that is the legacy
+                                                        #   operator x lineage prohibition, and borrowing its
+                                                        #   spelling would make a native family-domain
+                                                        #   judgment look like a migrated B-anchor mechanism.
+                                                        #   NOT `out_of_universe` — the target location EXISTS
+                                                        #   in the universe; the family is not admitted there.
+                                                        #
+                                                        #   SPELLING. `out_of_universe` is the one locative
+                                                        #   sibling in this registry, and `out_of_family_domain`
+                                                        #   would rhyme with it — which is the argument against
+                                                        #   it. These two judgments are the pair most likely to
+                                                        #   be confused, so the spellings are kept visibly
+                                                        #   apart. One sibling is not a convention.
     "want_of_state":            (REFUSE, UNSUPPORTED, REALIZATION),  # the request is lawful; no admissible or
                                                         #   sufficient state can establish it in this
                                                         #   execution. The FIRST refuse-in-realization entry.

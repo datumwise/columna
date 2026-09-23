@@ -35,10 +35,22 @@ predicate, not a universal biconditional for complete query validity."*
 construction reaches this question, the module STOPS with the missing governed fact characterized
 and supplies no derivation, no propagation, no union, and no default.
 
-**It does not mint a wire reason code.** All refusals here are `WantOfLaw`. The closed reason
-registry has no member whose governed subject is the requested OUTPUT location's admission, and
-minting one is a separate ruling — so the distinction is carried in the refusal's subject and
-detail, and the boundary is reported rather than crossed.
+**IT MINTS EXACTLY ONE WIRE DISTINCTION, AND ONLY ONE** (ruled 2026-09-23, R16). This module can
+tell four situations apart internally; that does not make four reason codes, because a reason names
+a stable governed failure dimension useful to a recipient and does not mirror every branch of
+adjudication (R15). Only the third is a COMPLETE governed judgment — the location exists, the law is
+established, and the law said no — and only it gets its own reason, `outside_family_domain`.
+
+The other three stay `want_of_law`, deliberately:
+
+* **geometry unreachable** — domain membership was never adjudicated, because its geometric
+  precondition failed. Calling this `outside_family_domain` would assert a judgment nobody made.
+* **domain law unestablished** — `want_of_law` is exactly right: the law is what is missing.
+* **constructed family undecided** — also `want_of_law`. A specialized reason would prematurely
+  stabilize a theory deliberately held open.
+
+The boundary is: **law missing or theory unfinished → `want_of_law`; law established and the request
+fails it → `outside_family_domain`.**
 """
 from __future__ import annotations
 
@@ -54,7 +66,7 @@ from columna_core.governed.resolve import (
 )
 
 from .native_law import MissingGovernedFact
-from .refusals import WantOfLaw
+from .refusals import OutsideFamilyDomain, WantOfLaw
 
 #: The fact this unit reaches and does not fill. R8: *"For a constructed family, if answering the
 #: domain question would require establishing how its own `P_F` follows from its formation or
@@ -144,7 +156,10 @@ def assert_within_domain(view: LawView, family: Family, *, root: Anchor, target:
     prohibited = slot.value or frozenset()
     offending = lost & prohibited
     if offending:
-        raise WantOfLaw(
+        # THE ONE BOUNDARY C5 EARNED (R16). Every premise of a complete governed judgment holds
+        # here — the location exists, the law is established, and it was applied — so this is NOT a
+        # want of law. `WantOfLaw` would send a steward to declare a law that already answered.
+        raise OutsideFamilyDomain(
             f"{view.canonical_reference!r} may not stand at {target}: its governed family-domain "
             f"law prohibits losing {sorted(offending)}, and the projection from its family root "
             f"{root} forgets {sorted(lost)}. The family is defined at its root and at the "
