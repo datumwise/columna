@@ -1921,6 +1921,219 @@ instance of the same problem this row identified — **not repaired**.
 
 ---
 
+### P1-36 · An ordered family whose declared order is not complete on its constitutive points serves an arbitrary order-tied winner, silently · **HIGH** · **OPEN — witnessed 2026-09-22, repair NOT authorized** · VX
+
+**THE RULED DOCTRINE IT BREAKS** — ToD v7.1 §7.3:
+
+> "Two distinct analytical points of \(S\) are distinguished by its **complete governed order**. … If a
+> physical priority value or truncated label maps distinct points to the same comparison
+> representation, **that representation has not realized the declared complete point order. Appending
+> a storage identifier or relying on sort stability is not a repair of analytical law.**"
+
+and §7.2: *"Day chronology within separately governed fixed-Customer contexts does not silently
+establish Customer priority across those contexts."* Corroborated by
+`specs/frameql_v7_1/reviewed_sources/columna_o3_governed_analytical_order_v0_2.md:72`: *"Omitting one
+constituent point order likewise fails to establish this declared complete-order construction.
+Coincidental equality of current results does not fill either omission."* — and `:145`: *"In neither
+case should the engine append a row ID, storage address, or lexical identifier as an improvised
+tie-breaker."*
+
+**The engine does not append a tie-breaker. It does something the doctrine did not anticipate: it
+lets storage order decide, and does not say so.**
+
+#### The witness — committed fixture, no modification required
+
+`packages/columna-core/tests/fixtures/afternoon.cml:33` declares the universe, and `:50-55` the family:
+
+```
+UNIVERSE stock_snapshot = store * day   BASIS spine
+
+MEASURE on_hand ON stock_snapshot FROM inventory VALUE level
+    FAMILY {
+        sum  BLOCKED { calendar }
+        last ORDER day              -- "position = the latest snapshot in the period"
+    }
+```
+
+`ORDER day` orders one of two constituents. It does not order across `store`. The declared order is
+therefore **not complete on the family's own constitutive points** — which is precisely the §7.3
+condition.
+
+`packages/columna-core/tests/fixtures/afternoon_world.py:38-46` supplies the tie:
+`("S1","2025-01-20",480)` and `("S3","2025-01-20",220)`, where `2025-01-20` is the maximal January day.
+
+⟨VX, duckdb 1.5.5, 2026-09-22⟩ **the control is correct and the tied ask is not.**
+
+```
+on_hand.last AT {store, month}   ->  serve   S1/2025-01 = 480 ;  S3/2025-01 = 220   (each group has one row)
+on_hand.last AT {month}          ->  serve      2025-01 = 480                       (two points tie; one is served)
+```
+
+#### It serves SILENTLY — this is the sharpest part of the finding
+
+⟨VX⟩ the full wire response for the tied ask, every disclosure channel exhausted:
+
+```
+outcome            : 'serve'
+column.status      : 'served'
+column.disclosures : []
+column.mechanical  : []
+frame.disclosures  : []
+frame.mechanical   : []
+column.no_result   : None
+frame keys         : ['columns','contract_version','executed','frame','outcome']
+column keys        : ['disclosures','mechanical','name','population','status','values']
+```
+
+Not a refusal, not a disclosure, not a caveat, not a reason code. **The reader receives `480` with the
+same epistemic standing as the control's `480`.** For contrast the engine *does* speak when the ask is
+a different one — `sum(on_hand.last@store) AT {month}` emits `provenance` / `immaterial` / `transport`
+disclosures. The tied ask emits strictly less than that: zero.
+
+#### The served value is a function of INSERT order, not of the declared law
+
+⟨VX⟩ the perturbation isolates row order as the only free variable — same declaration, same query,
+same data *content*:
+
+| variation | 2025-01 served | 2025-02 served |
+|---|---|---|
+| in-process, 5 repeats | `480 480 480 480 480` | — |
+| fresh server ×5 | `480 480 480 480 480` | — |
+| fresh OS process ×3, declared row order | `480 480 480` | `505` |
+| **INVENTORY reversed**, fresh process ×3 | **`220 220 220`** | **`320`** |
+| **S3 block moved first**, fresh process ×3 | **`220 220 220`** | — |
+| control `AT {store, month}`, either order | **invariant** | **invariant** |
+
+Perfectly stable for a fixed row order; **flips with row order alone.** Stability across repeats and
+fresh processes rules out per-run nondeterminism and pins the cause on storage order specifically.
+
+**A second tie was found that nobody had identified**: **2025-02 is also tied** — `max(day)` =
+`2025-02-10`, attained by S1→505 and S2→320 — and it flips too. **Both months of the shipped fixture
+are affected.** Only the fixture's row order makes either look stable.
+
+#### Mechanism, at file:line and confirmed by execution
+
+`packages/columna-core/src/columna_core/engine.py:373-376`:
+
+```python
+argfn = "arg_max" if op.combine == "argmax" else "arg_min"
+aggs = [("_value", f"{argfn}({realized}, {order_phys})"),
+        ("_order", f"{ordfn}({order_phys})")]
+```
+
+At `AT {month}` the base grain is `[day]` alone — `store` is neither in the target nor a predicate
+level, so it never enters `grain`. The group-by pools **both stores' 2025-01-20 rows into one group**,
+and `arg_max(level, day)` is asked to choose between two rows whose order key is byte-identical.
+DuckDB's `arg_max` has no defined tie-break. ⟨VX⟩ confirmed by running the engine's own emitted SQL
+directly:
+
+```
+[declared]  [('2025-01-20', 480, '2025-01-20'), ('2025-02-10', 505, '2025-02-10')]
+[reversed]  [('2025-01-20', 220, '2025-01-20'), ('2025-02-10', 320, '2025-02-10')]
+```
+
+**The tie is resolved inside DuckDB at delivery, before any Columna transport runs.** ⟨SV⟩ the
+in-engine collapse path has the same shape — `engine.py:816-821`, `pl.col("_value").sort_by("_order")
+.last()`, an unstable sort with no tie-break — so this is **the same unspecified choice expressed
+twice**, not a backend quirk. That half is source-verified only: this probe's tie was consumed by
+DuckDB before the polars path ran.
+
+#### The declaration is never validated, and the asymmetry proves it is an omission
+
+`parser.py:475-484` captures the order key and **checks nothing** — not that it names a declared
+`LEVEL`, not that it is a constituent of the measure's universe, and not that it is complete on that
+universe's points:
+
+```python
+mm = re.match(r"(\w+)\s*(?:BLOCKED\s*\{([^}]*)\})?\s*(?:ORDER\s+([\w.]+))?\s*$", t)
+order_by = mm.group(3)
+family[agg] = FamilyMember(agg, BAnchor(blocked), order_by, description=mem_desc)
+```
+
+**The same validation pass fail-closes on the sibling slot captured by the same regex.**
+`parser.py:713-718` validates `BLOCKED`, with a comment recording that the asymmetry was deliberately
+erased *in the other direction*: *"align the measure BLOCKED validation to the same fail-closed rule
+(previously unchecked …; the asymmetry is worth erasing)"*. `ORDER`, on the same member line, was left
+unchecked. That is the single sharpest line of evidence that this is an omission and not a design.
+
+A smaller adjacent defect, recorded not repaired: `engine.py:371`
+`self.m.levels[fam.order_by].realized_by` would `KeyError` on an undeclared level — an uncaught crash,
+not a classified refusal. Its only guard is `order_by is None` (`:369-370`).
+
+#### Why no test caught it
+
+⟨VX⟩ the committed suite is **green and stays green** — `tests/test_generated_family_law.py`, 59
+passed. It pins `on_hand.last` only at `AT {store, month}` (`:211-212`, `S1_JAN_POSITION = 480`), where
+`store` is in the grain, every group holds one row, and the tie cannot arise. **`on_hand.last AT
+{month}` — the tied ask — is asserted nowhere in the tree.** Nothing pins the arbitrary winner, which
+is why nobody noticed and which leaves a future repair unobstructed.
+
+#### Blast radius
+
+Same declaration shape, committed: `fixtures/cascadia_slice.cml:46`, `fixtures/benchmark.cml:56`,
+`demos/benchmark.cml:56`, `columna-server/.../demo/benchmark/manifold.cml:56`,
+`columna-server/tests/fixtures/manifolds/benchmark/manifold.cml:53`,
+`columna-server/.../demo/cascadia/manifold.cml:59-60,65`, `docs/tools/manual_fixtures/finance_manifold.cml:86`.
+Not measured; listed so a repair knows what it touches.
+
+#### Why this is SEPARATE from P1-34, and from C3
+
+| | P1-34 | **P1-36** |
+|---|---|---|
+| what goes wrong | a family is compiled at the **wrong location** | a family at the right location cannot **determine its own value** |
+| the defective declaration | the constitutive anchor is discarded | the declared **order** is incomplete on the constitutive points |
+| responsibility | C2 · identity and ancestry — *which* anchor | C2 · formation parameters — the **order** parameter |
+| symptom | the wrong anchor is served | an **arbitrary** value is served, silently |
+| reachable by | any family whose anchor differs from its universe's | any ordered family whose order does not order all constituents |
+
+**Not C3.** Both C3 reconnaissance documents of 2026-09-22 file it the same way —
+`c3_admission_rule_falsification_v0_1.md:145`: *"That is a **C2/formation** defect (order
+completeness), not a C3/domain one — the rule is untouched"*, restated at `:331`. The C3 admission
+rule is untouched by this row and this row is untouched by the C3 rulings.
+
+**It does not port.** ⟨measured⟩ the native foundation vocabulary is `{SUM, COUNT, MIN, MAX, MEAN}` —
+all commutative, none ordered — and `required_parameters` is empty for every one
+(`governed/foundation.py:222-293`). **Ordered families are not natively expressible today.** The slot
+where a native repair would attach already exists and is empty: `foundation.py:129-130`, *"Identity-
+bearing parameters the law requires (e.g. FIRST/LAST need a constitutive order)"*,
+`required_parameters: tuple = ()`, enforced at `governed/resolve.py:197-201` — which fires on
+**presence**, never on **completeness**.
+
+#### The house already knows how to say this
+
+`adjudication.py:703-711` raises `FaceContradiction` at publish time for an ASSIGN-face tie:
+
+```python
+raise FaceContradiction(key, f"ASSIGN ORDER {face.order} on '{face.selection}' has a tie at the top "
+                             f"for {tied.height} {member_side} — no unique designation: {detail}")
+```
+
+The vocabulary — *"a declared ORDER yields no unique designation"* — exists and is used for a
+different object. It is **not** proposed here as the repair; it is recorded so a repair does not
+invent a second vocabulary for the same judgment.
+
+#### Do NOT repair by making the winner deterministic
+
+Appending a storage identifier, relying on sort stability, or adding a lexical tie-break on `store`
+would each produce a stable number and would each be **exactly what §7.3 forbids**: *"Appending a
+storage identifier or relying on sort stability is not a repair of analytical law."* The two
+candidate directions — refuse at publish (the declared order is incomplete on the universe's points)
+or refuse at serve (this particular ask ties) — are **declaration-surface and planner questions
+respectively**, and choosing between them is a ruling, not a repair.
+
+**Not repaired in this ledger unit, deliberately.** Repair NOT authorized.
+
+#### What is NOT proved
+
+`480` is not *wrong* — it is a lawful reading of one of two tied points; the defect is that the engine
+had no grounds to prefer it **and said nothing about having chosen**. That a different backend,
+version, parallel plan or index would pick differently is **not** demonstrated (this is duckdb 1.5.5
+specifically) — it would strengthen the row, not weaken it. The polars collapse path is **SV, not VX**.
+The MCP wire and server routes were not exercised. And the fixture author plausibly just
+under-specified `ORDER day` rather than intending a tie.
+
+---
+
 ## P2 — Authority-carrier and ontology contradictions
 
 ### P2-01 · "Refusal before omission" is kind-granular only · **CRITICAL** · VX
