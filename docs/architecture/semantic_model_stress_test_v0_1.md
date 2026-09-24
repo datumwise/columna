@@ -11,8 +11,12 @@ Recorded by Claude at Huayin's direction, 2026-09-24.
 > family. Evidence/realization determines whether the lawful argument is available. Governance prohibition is a
 > separate question again.
 
-**Headline: the hypothesis survives all three dimensions, but it is under-specified in two places and one of my
-own earlier answers was wrong.**
+**Headline: the hypothesis survives all three dimensions, it is under-specified in two places, one of my own
+earlier answers was wrong — and the estate had the decisive fact right years ago and then lost it.**
+
+> **The legacy B-anchor was indexed by `(operator × lineage)`. `prohibited_constituents` is indexed by
+> `(family × constituent)`. The capability index was dropped, and that single deletion is the whole of the
+> constructed-family-domain problem.** §3.5.
 
 - Dimension 1 forces distinctions the hypothesis does not make. Its clause *"what arguments it can meaningfully
   consume"* is **four** gates, not one — law-to-type adequacy, governed type coverage, law determination over
@@ -480,3 +484,227 @@ prevent a misattribution that the formulation makes impossible to express.
 > around.** The machinery was answering *"may this movement happen?"* when the theorem was answering *"what is
 > the result?"*
 
+### 3.5 The estate: four unrelated substrates, one English word — and a **regression**
+
+⟨measured⟩ Four structurally unrelated mechanisms share the word *blocked*, and they attach to four different
+objects:
+
+| mechanism | attaches to | really represents |
+|---|---|---|
+| `BAnchor.blocked_lineages` (legacy) | **(operator × lineage)** on a family member | **B** — the continuation law is wrong for this quantity |
+| `blocked_edges` / `blocked_by` | a **hierarchy edge**, tested against data and **refuted** | **D** — want of evidence |
+| `prohibited_constituents` / \(P_F\) | a **family** and a requested location | attempts A + C |
+| `PublishBlocked` (studio) | a **publish plan**, overridable | **C** — a genuine governance gate, the only one |
+
+**And here is the finding that reverses the story.** The legacy B-anchor **kept the capability index**:
+
+```python
+# parser.py:476-484 —  <agg> [BLOCKED { lineages }]
+family[agg] = FamilyMember(agg, BAnchor(blocked), order_by, ...)
+
+# projection.py:49 —  member -> frozenset(blocked_lineages)
+# planner.py:2211 —   bad = sorted(crossed & t.law)   with t.law from  .blocked.get(reducer, ...)
+```
+
+It is indexed **by reducer**. `sum BLOCKED { calendar }` says *"SUM may not cross calendar for this quantity"* —
+\(\beta(\kappa)\), exactly. And ADR-036 D6 states the consequence in terms:
+
+> **No stock/flow/rating type.** Summing a stock across **stores** stays lawful, because the bar names
+> `calendar`, not the measure. **`avg`, `min`, `max` and `count` over a stock across time stay lawful, because
+> the author barred `sum` and barred nothing else** — that is a declaration, not an oversight the engine repairs.
+
+> **That is the Balance/SUM/LAST/MEAN table of §3.2, written in the estate's own grammar, correctly, and years
+> earlier.** `prohibited_constituents` is indexed by **(family, constituent)** — the capability index is gone.
+> **C5 was a regression from the legacy mechanism on precisely the axis that decides the question.**
+
+So the finding is now triangulated from three independent directions: MA's \(\beta(\kappa)\) (§3.1), the
+Balance capability table (§3.2), and the legacy grammar. The v7.2 apparatus dropped an index the implementation
+already had.
+
+**A disagreement to record, per instruction.** `native_domain.py:74-85` refuses the MA import and gives a
+direction:
+
+> **The Measure Algebra's capability-indexed union is NOT the answer**: it governs a different object, indexed by
+> capability rather than by family, and **importing it while discarding the capability index would
+> under-prohibit**
+
+The refusal is right and the *direction is only half right*. Discarding \(\kappa\) **over**-prohibits across
+capabilities — a family-level \(\{day\}\) derived from \(\beta(\text{SUM})\) wrongly bars LAST and MEAN. It also
+**under**-prohibits across derivation paths, which is the G2.8 tagged-axis case where an axis is *created* by the
+expansion and no ex-ante family set can contain it. **Both directions are real; the estate named one.**
+
+### 3.6 Two compressions that are *not* acknowledged anywhere
+
+The remarkable feature of the estate is that the compression is **documented at almost every site** —
+`native_domain.py:38-53` (*"can tell four situations apart internally; that does not make four reason codes"*),
+`movement.py:140-142`, `planner.py:1789-1800`, `serving.py:469-482`, DG-6. Three such conflations were
+subsequently split. Two are ruled deliberate. **Two are undocumented, and only these are defects rather than
+design:**
+
+**(i) `planner.py:1865` asserts a prohibition where nothing was adjudicated.** It emits `blocked_reduction`
+saying every candidate *"would reduce by `<op>` across a lineage the governed law blocks for it"* — when the
+branch is reached precisely because **no candidate earned any verdict**. The same method's docstring forbids it
+at `:1802-1806`: *"THE DETAIL REPORTS THE VERDICTS; IT DOES NOT ASSERT A CAUSE… **FALSE** once §2c and transport
+joined it… **A refusal that names the wrong cause sends the reader to fix the wrong thing.**"*
+
+**(ii) `formation.py:122-132` emits an identity guard as want-of-state, with the wrong remedy attached.** The
+docstring is unambiguous that this is **F**:
+
+> A mapping that claims `max` for a family whose cited law is MIN is not describing a different backend — **it is
+> describing a different family**, which is the succession-by-mapping the v2 format exists to make impossible.
+
+It raises `WantOfState`, which reaches the wire as `want_of_state` **with `REMATERIALIZE` offered**. Rematerializing
+cannot repair a mapping that names the wrong operator. This is **F on D's code path with D's remedy** — and
+`refusals.py:95-99` states the invariant it breaks.
+
+### 3.7 The positive formulation closes DG-4 for free
+
+DG-4, open and recorded:
+
+> Measure families are OPEN by default (`BLOCKED` closes), so a measure that simply **OMITS** an operator from
+> its family grants generated use of it for free. A stock declared `FAMILY { last }` — no `sum` member at all —
+> still serves `sum(x@day)` across time, because **there is no bar to cross**. The declared-bar case refuses;
+> the *under-declared* case does not.
+
+**DG-4 exists only because the polarity is negative.** Under law clauses stated positively, a family declaring
+only a `last` clause **has no sum clause**, so `sum` over its fibers is not a continuation of it at all — it is
+a different family (G0.7), and the identity question is the only question. There is no bar to omit and no door
+to leave open.
+
+> **A negative mechanism must enumerate what it forbids and therefore leaks whatever it forgets. A positive one
+> states what it means and leaks nothing.** DG-4 is the leak; the polarity is the cause.
+
+### 3.8 Why a prohibition was always spellable-around — ADR-036's own measurement
+
+The measurement that triggered the whole rework:
+
+```
+SELECT stock.sum           AT {store*cal.month}   ->  disclose, blocked_reduction   179656.0
+SELECT sum(stock.last@day) AT {store*cal.month}   ->  serve, CLEAN                  179656.0
+```
+
+> The identical meaningless number, one syntax away from its own prohibition, with the caveat gone. … **nine
+> spellings of one defect**
+
+**Trace both under the positive model, and the reason the guard failed becomes visible.**
+
+- `sum(stock.last@day) @ month` is a **lawful family** — the additive total of daily closing stocks. 179656 is
+  its **correct value**. It should **Serve**, under its own identity.
+- `stock @ month` is **want_of_law** under a point-clause stock law — no clause covers fibers varying in
+  calendar. It should **Refuse**, and no spelling reaches it.
+- Asking for *"monthly stock"* and getting either is a **Clarify**.
+
+> **The harm was never in the arithmetic. It was in the label.** The legacy mechanism tried to prevent a
+> labelling error by prohibiting an operation — which is why it could be spelled around, and why nine spellings
+> existed. The positive formulation prevents the labelling error directly (`stock @ month` has no meaning) and
+> never needs to prohibit the operation at all.
+
+This is G0.7 a third time: *"a computation can be typed, executable, and deterministic while failing to inherit
+analytical identity."* **The mechanism was guarding movements; the defect was in identity.**
+
+---
+
+## Part 4 · Which distinctions survive, and which collapse
+
+### 4.1 Survive — seven, and the corpus keeps them apart
+
+| # | disposition | the fact | remedy | authority |
+|---|---|---|---|---|
+| 1 | **law-to-type inadequacy** | the operand's type, under its governed profile, does not supply the capabilities *and laws* this law requires | declare a profile, or use a different law | CDT × ToD §5.7 |
+| 2 | **want of type coverage** | the law is analytically admitted; no governed value domain supplies it yet | admit a type | CDT v0.5:838 |
+| 3 | **want of law** | the family's law has no clause over these fibers; **no value is determined** | the author may state a clause — or accept that it is a different quantity | Manifold |
+| 4 | **undefined result** | the clause's result is undefined at *this point* | none; §9.4 forbids disclosing over it | law × data |
+| 5 | **want of state** | a value is determined; no admitted argument is presently available | supply evidence, or another basis | evidence |
+| 6 | **realization limit** | everything analytical is established; this build cannot execute it | a different profile | realization |
+| 7 | **governance prohibition** | meaningful, establishable, executable — and **not permitted** | an authority lifts it | policy |
+
+**Number 7 is real and it has a home already**: `PublishBlocked` is the estate's only genuine instance, and it is
+a **publish gate with an override** — not a family fact. That is the right shape and the right location.
+
+### 4.2 Collapse
+
+- **"Family domain"** collapses into 3. It was never a separate fact.
+- **"Additivity" as a property of a quantity** collapses into a law clause naming its composition.
+- **"Stock vs flow vs semi-additive"** collapses — and ADR-036 D6 already refused the type, and CDT v0.5:944
+  independently refuses *"a separate folklore taxonomy such as 'additive metric,' 'semi-additive metric,' or
+  'non-additive metric.'"* **Two authorities reached that conclusion separately.**
+- **`P_F`** collapses into 3, with the capability index restored — i.e. into the clause itself.
+- **"Anchor type" (point vs period vs interval)** collapses into the three clause-forms plus an optional
+  governed order (§2.2).
+- **DG-4** collapses — it is an artifact of negative polarity (§3.7).
+
+### 4.3 Does *not* collapse, though it looks like it should
+
+**1 and 2 are different.** Both are anchor-invariant and both concern value capability, but 1 says *the law
+cannot apply to this quantity* and 2 says *nothing has yet been admitted to carry it*. Calling 2 `want_of_law`
+would tell a caller their lawful question was unlawful — which the estate already ruled against in an adjacent
+case: *"A `want_of_law` would tell the caller their question was unlawful when the truth is that this build does
+not implement it, and it would send them to fix a publication that is not wrong."*
+
+**4 is not 5.** An undefined result is not missing evidence; more data cannot supply it.
+
+**7 is not 3.** *"Collapsing them would send an operator to a steward to establish a law that already exists and
+already answered."*
+
+## Part 5 · What is genuinely missing from the model
+
+1. **The hypothesis' clause *"what arguments it can meaningfully consume"* is four gates, not one** (§1.3), and
+   one of them — undefined result — is a **function of law and data jointly** and can be carried by no
+   declaration.
+2. **Governance prohibition has no stated location in the theory.** §A.1.8 leaves coverage permission's
+   *"governing location… not assigned"*, and this is its sibling. The estate has a working instance
+   (`PublishBlocked`); the theory has no slot.
+3. **Law-synthesis for composed families** — DG-6, still open. Nothing positively establishes the law a
+   map-composed successor **earns**. This is the real residue of Mechanism 2, and it is a **law** question, not a
+   domain question.
+4. **Non-commutative / ordered continuation** — unchanged and still a genuine falsifier of any
+   forgotten-constituents test. Vacuous while every registered law is commutative.
+5. **The G2.8 tagged-axis case** — an axis *created* by relationship expansion cannot be in any ex-ante set.
+   Held, and it is the *under*-prohibition direction of §3.5.
+6. **A recorded jurisdictional disagreement** on who governs anchor-point order (§1.3).
+
+## Part 6 · Is `P_F`, `𝒜_F`, or any family-domain object still necessary?
+
+**No — and the exercise produced three independent arguments, any one of which is sufficient.**
+
+1. **Wrong index.** \(\beta\) is capability-indexed; a family-indexed set cannot express the Balance
+   SUM/LAST/MEAN split. Over-prohibits across capabilities, under-prohibits across paths (§3.5).
+2. **Wrong granularity.** Undefined-result is **per point**, below anchor granularity, so a per-anchor object
+   cannot carry the facts adjacent to it anyway (§1.3, G4).
+3. **Wrong polarity.** A negative mechanism must enumerate what it forbids and leaks what it forgets — DG-4 — and
+   is spellable-around — ADR-036's nine spellings (§3.7, §3.8).
+
+\(\mathcal A_F\) survives **only** as derived notation, which is what ToD §4.1 always said it was: *"notation for
+its defined analytical domain, not a proposed registry or new object."*
+
+**And the discoveries are preserved.** The falsification of propagation is now a consequence. The
+family-domain/edge-validity split survives as the 3/5/6 separation. *"Absence of prohibition is not permission"*
+becomes unstatable-as-an-error. `CONSTRUCTED_DOMAIN_UNDECIDED` did the job Huayin credits it with: it refused
+long enough for the index to be found.
+
+## Part 7 · What the Manifold author therefore has to do
+
+Stated as semantic acts, **not** fields, and not a design.
+
+**For the world:** constitute it — identity, a closed root-point individuation, an existence law. Separately:
+declare a **governed order** on a constituent where one is needed, and a **governed projection** between anchors
+where one holds. Both are facts about the world, not about quantities.
+
+**For a quantity:** state its **law** — and a law is a set of **clauses**, each of which names three things
+together:
+
+> **(the fibers it is stated over) · (the composition it uses) · (the value capabilities that composition
+> requires)**
+
+The three are one act because none can be stated without the others. Naming the composition *is* naming the
+capability index that \(\beta\) carried and \(P_F\) lost. Naming the fiber scope *is* the clause-form of §2.2 and
+the domain of definition whose pullback is \(\mathcal A_F\). Plus the quantity's **participation rule** and its
+**value requirements**.
+
+**For a construction:** nothing, where the cited law is complete — and the **contingent premises the law cannot
+entail** where it is not: a governed order for FIRST/LAST, a co-participation contract for multi-input, a
+convention parameter such as `ddof` or a quantile interpolation rule, a target where no law is catalogued.
+
+**Not the author's at all:** \(\mathcal A_F\) · any prohibition set · any allow-list · additivity flags · any
+stock/flow taxonomy · lineage · agreement · empty-case theorems · governance permissions (a policy act
+elsewhere) · type coverage (CDT's) · evidence · realization.
