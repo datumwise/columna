@@ -4,6 +4,16 @@
 
 **Standing.** Design record. **No implementation, no code, no migration, no compatibility work.**
 
+> ⚠ **Three amendments from the bounded review**, [`manifold_declaration_model_review_v1_1.md`](./manifold_declaration_model_review_v1_1.md).
+> Read them together; the review supersedes this document on all three points.
+> 1. **R1 is downgraded.** A restatement is **permitted and checked**, not rejected. The constitutive content is
+>    *single authority* + *identity over the resolved form*; the rejection was an authoring choice presented as a
+>    theorem. A field is **required** exactly where its fact is not *uniquely* entailed. — review §1
+> 2. **`contributing` is removed.** A *governed* multiplicity > 1 requires a governed index, which is
+>    individuation; the antecedent is empty. — review §2
+> 3. **`co-participating` becomes `intersection | <role>`.** `defined-intersection` is removed: definedness is
+>    contagious and entailed. — review §3.5
+
 **The freeze.** [`columna_semantic_contract_v1_0.md`](./columna_semantic_contract_v1_0.md) is the semantic
 contract for this unit, subject to the standing rule that a **genuine contradiction discovered downstream can
 reopen it**. This document derives a representation from it and **does not reopen it**. Where the representation
