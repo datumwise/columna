@@ -1,5 +1,9 @@
 # The smallest Manifold declaration, from semantic acts
 
+> **SUPERSEDED for the model.** The current positive statement is
+> [`columna_semantic_contract_v1_0.md`](./columna_semantic_contract_v1_0.md), which a fresh reader should read
+> instead. This record is retained for the case-by-case derivation and for Appendix S's supersession trail.
+
 **v0.2 — reworked from the corrected conceptual centre.** Recorded by Claude at Huayin's direction,
 2026-09-23/24.
 

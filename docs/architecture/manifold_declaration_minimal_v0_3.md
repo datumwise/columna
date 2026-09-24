@@ -1,5 +1,9 @@
 # The smallest semantic Manifold declaration
 
+> **SUPERSEDED for the model.** The current positive statement is
+> [`columna_semantic_contract_v1_0.md`](./columna_semantic_contract_v1_0.md), which a fresh reader should read
+> instead. This record is retained for the case-by-case derivation and for Appendix S's supersession trail.
+
 **Revenue and Balance from first principles, then six constructions.** Recorded by Claude at Huayin's
 direction, 2026-09-24.
 
