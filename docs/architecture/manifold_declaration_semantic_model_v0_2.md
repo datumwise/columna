@@ -3,6 +3,14 @@
 **v0.2 — reworked from the corrected conceptual centre.** Recorded by Claude at Huayin's direction,
 2026-09-23/24.
 
+> **PARTLY CORRECTED, 2026-09-24.** `four_expression_exercise_v0_1.md` concedes two challenges from Huayin.
+> (a) §1.4's \(\mathcal A_F=\bigcup_{\mathcal B}\bigcap_{G}\mathcal A_G\) for a construction is
+> **withdrawn** — per ToD §5.3 and §9.6 that is a lower bound on *establishability*, not the family's standing,
+> and collapsing them erased **want of state** as a distinct refusal. Standing is *projection + target
+> denotation*. (b) \(A_0\) is **not needed at all**, rather than "forced to \(I\)": one constitutive anchor
+> per family suffices. **Preserved:** §1.1 (the MEAN law never moves its operand), §1.3 (both withdrawals),
+> §1.5 (semantic scope vs governance prohibition), and §12.
+
 **Standing.** Design reconnaissance. **No rule is enacted and no source change is authorized.**
 
 **What this supersedes.** `manifold_declaration_theory_first_recon_v0_1.md` §§2, 6, 7 — its authorial-act
