@@ -17,6 +17,11 @@ earlier answers was wrong — and the estate had the decisive fact right years a
 > **The legacy B-anchor was indexed by `(operator × lineage)`. `prohibited_constituents` is indexed by
 > `(family × constituent)`. The capability index was dropped, and that single deletion is the whole of the
 > constructed-family-domain problem.** §3.5.
+>
+> **And it is worse than a dropped index.** ⟨measured⟩ `blocked` appears **zero times** in ToD v7.1 and in every
+> v7.0 draft. **ToD v6.1 had already retired the mechanism — splitting it into family-identity and
+> \(\Gamma(e)\) edge validity, which is the split this exercise reached independently.** \(P_F\) revived a
+> retired mechanism at a novel index. §3.9.2.
 
 - Dimension 1 forces distinctions the hypothesis does not make. Its clause *"what arguments it can meaningfully
   consume"* is **four** gates, not one — law-to-type adequacy, governed type coverage, law determination over
@@ -651,9 +656,11 @@ already answered."*
 1. **The hypothesis' clause *"what arguments it can meaningfully consume"* is four gates, not one** (§1.3), and
    one of them — undefined result — is a **function of law and data jointly** and can be carried by no
    declaration.
-2. **Governance prohibition has no stated location in the theory.** §A.1.8 leaves coverage permission's
-   *"governing location… not assigned"*, and this is its sibling. The estate has a working instance
-   (`PublishBlocked`); the theory has no slot.
+2. ~~**Governance prohibition has no stated location in the theory.**~~ **Withdrawn — see §3.9.5.** It has one:
+   **`WITHHOLD`**, a per-(column, reducer) author's hard stop, *"reported as such, not the engine's analytical
+   judgment."* The estate's `PublishBlocked` is a second instance. What is genuinely missing is only the
+   *reconciliation* of `WITHHOLD` with §A.1.8's unassigned coverage permission — two policy-shaped facts with no
+   common home.
 3. **Law-synthesis for composed families** — DG-6, still open. Nothing positively establishes the law a
    map-composed successor **earns**. This is the real residue of Mechanism 2, and it is a **law** question, not a
    domain question.
@@ -708,3 +715,151 @@ convention parameter such as `ddof` or a quantile interpolation rule, a target w
 **Not the author's at all:** \(\mathcal A_F\) · any prohibition set · any allow-list · additivity flags · any
 stock/flow taxonomy · lineage · agreement · empty-case theorems · governance permissions (a policy act
 elsewhere) · type coverage (CDT's) · evidence · realization.
+---
+
+## Part 3.9 · The corpus half of the archaeology — and the theory already retired the mechanism
+
+The corpus sweep found the **formal home** of the mechanism, which is not in any document we had been reading:
+`columna/services/ask/deposits/w-contract-calculus.r01.md` (4535 lines) — the proving paper. β, γ, `Spent`, RED,
+RED1, G0.6, G0.7, G1.7, G1.8, G2.8 and a full worked Inventory certificate all live there.
+
+### 3.9.1 β is capability-indexed **by definition**, and G0.7 says so in its own witness
+
+Contract Calculus §6.3, the definition:
+
+> A core contract is \(C=(X,A,\beta)\), where … **\(\beta\) is a capability-indexed boundary map:**
+> \(\beta:\mathsf{AggCap}\to\mathcal P(\mathsf{Axis}).\)
+> For capability \(\kappa\), the set \(\beta(\kappa)\) contains axes that \(\kappa\) may not spend while the
+> output automatically inherits the current contract.
+
+And §3.1: *"**The boundary map \(\beta\) is intentionally operator-indexed.** It can express that a capability is
+available over the value carrier while blocked from spending particular axes under the inherited contract."*
+
+**G0.7's own witness settles the indexing beyond argument.** The source contract is
+\(C_x=(\mathrm{InventoryQuantity},A,\beta)\) with \(\mathrm{time}\in\beta(\kappa_+)\), \(\kappa_+\) being exact
+integer sum. **`InventoryQuantity` occupies the *value-type* slot \(X\). It does not index \(\beta\).**
+
+> **It is never written \(\beta_F\), anywhere in the corpus.** `prohibited_constituents` — indexed by
+> (family × constituent) — is the **unique exception in the entire lineage.**
+
+Even the readings that *sound* family-indexed are capability-indexed on inspection. Columna's manual argues
+*"per-family, not per-column"* — but its reason is *"applicability is a property of **a reducer applied to a
+column**… `revenue·SUM` has its B-anchor, `inventory_balance·SUM` has a different one"*, and it states the object
+twice elsewhere as *"a per-**(column, reducer)** set of blocked dimension families"* and *"a fact about the
+**(column, reducer, axis)** tuple."* That is \(\beta(\kappa)\) with different spelling.
+
+### 3.9.2 The decisive finding: **ToD v6.1 dissolved the mechanism, and v7.x has no trace of it**
+
+⟨measured⟩ **`blocked` appears zero times in any ToD v7.0 draft, in ToD v7.1, and in the v2.3 primer and
+introduction.** No β, no `Spent`, no B-anchor. And ToD v6.1 did not merely drop it — **it split it into exactly
+the two objects this exercise has been arguing for.**
+
+**The identity half — different reducer laws become different families.** v6.1:
+
+> **If two analytical directions require genuinely different coherent reducer laws, ToD assigns them distinct
+> family identities even when everyday language reuses one label.** The distinct coherent regions are connected
+> through lineage. **Ordinary language may call both quantities "inventory,"** for example; governed canonical
+> names distinguish them when their analytical identities differ.
+
+**The edge-validity half — \(\Gamma(e)\) on the lineage edge**, carrying *"the predicates and declarations that
+must hold for the edge to be admitted as the claimed analytical derivation"*, with v6.1 placing all three
+explicitly: *"identity-bearing contracts belong in \(\Sigma(F)\); edge-validity predicates in \(\Gamma(e)\);
+approximation, retained capability, and realization quality in the certificate/materialization layer."*
+
+And v6.1 restates the G2.8 fan-out case **without β at all**: *"The proposed continuation violates the
+multiplicity contract of the Revenue lineage edge, leaving the resulting 300 uncertified as `revenue@tag`."*
+
+> **So `prohibited_constituents` was not merely a dropped index. It was the revival of a mechanism the theory had
+> already retired — and retired in this direction: identity-splitting plus edge validity.** The sentence in v6.1
+> about two "inventories" is the canonical statement of the position this exercise reached independently, and it
+> was published.
+
+### 3.9.3 A genuine unreconciled contradiction in the corpus
+
+Two published statements about **the same B-anchor** disagree about whether a number exists.
+
+| | says |
+|---|---|
+| **Contract Calculus** | the value **exists** and is deterministic; only *identity* fails. *"The theorem does not state that the physical value is undefined or unstable."* *"The result is deterministic and **non-closing** as `InventoryQuantity`."* |
+| **ToD note v1.1 / paper v1.3** | **there is no number.** *"a stock summed across a year is not a number plus a caveat — it is **not a number**."* |
+
+Preserved rather than resolved, as instructed — but note that **the law-clause model explains the disagreement
+instead of picking a side**: the two sentences are about **two different expressions**, and the
+prohibition-framing made them look like one.
+
+- `sum(stock @ day) @ year` — **is** a number, deterministic and correct, under its own identity. Contract
+  Calculus is right.
+- `stock @ year` — **is not** a number; no clause determines it. v1.1/v1.3 are right.
+
+The old framing had one mechanism guarding one "movement", so the two claims collided. Separating the
+expressions dissolves the collision.
+
+### 3.9.4 The mechanism *accreted* jobs, and the corpus records each absorption
+
+| absorbed | evidence |
+|---|---|
+| **basis (stock/flow)** — demoted from a primitive | v1.1 front matter: *"**folds basis into operator-indexed B-anchor rules**"*; and *"basis is not a primitive… patterns of operator-indexed B-anchor rules over typed axes… The folklore survives intact as the B-anchor's most familiar exhibit; what it loses is primitive status."* |
+| **semantic kind (flow/stock/rate)** — deleted outright | Columna manual: *"an earlier 'semantic kind' component… is gone. It is unnecessary: everything it asserted about additivity is captured, more precisely and along specific axes, by the B-anchors."* |
+| **duplication-sensitivity under fan-out** — a *relationship* fact written into the capability map | \(\beta_R^{\mathrm{rep}}(\kappa)=\beta^S(\kappa)\cup D_{\mathrm{rep}}(\kappa)\), which is *"where fan-out refusal becomes an ordinary boundary refusal rather than a special-case join heuristic."* |
+
+**And the accretion left a residue bug the corpus never cleaned up:** v1.1 declares basis non-primitive yet
+**both** v1.3 and v1.1 still list it as a *separate clause* in the lawfulness conjunction — *"the measure family
+permits it; no B-anchor blocks the axis; **the basis is respected on temporal dimensions**"*. A fact declared
+absorbed, still carried separately. That is the signature of exactly the compression under test.
+
+### 3.9.5 Three jobs the corpus **explicitly refused** to give β — and one it gave away
+
+| fact | where the corpus put it |
+|---|---|
+| **(c) governance policy** | **a separate mechanism named `WITHHOLD`** — *"A Manifold author may additionally declare a hard stop (`WITHHOLD`) on a (column, reducer) where governance requires that the crossing never be served; **that withholding is the author's rule, reported as such, not the engine's analytical judgment**."* |
+| **(b) absent continuation rule** | a **"rule gap"**, named as such — *"This is a **rule gap**, not a proof that the candidate value is wrong."* |
+| **(e) realization limit** | *"A valid Measure Algebra law may exist before any engine implements it… **A missing implementation is a realization gap. It does not make the analytical expression meaningless.**"* |
+| **(d) evidence/coverage** | **γ, a separate side condition, with an independence theorem** — G1.7 is *"a second inhabitant of the general separation… **independent of axis-boundary failure**"*, and *"Coverage… does not decide whether the aggregate operation preserves the quantity's identity."* |
+
+> **This corrects Part 5 item 2.** I said governance prohibition *"has no stated location in the theory."*
+> **It has one: `WITHHOLD`** — a per-(column, reducer) author's hard stop, explicitly *reported as the author's
+> rule and not an analytical judgment.* That is the right shape and the right jurisdiction, and it was already
+> there.
+
+**And Contract Calculus §29's certificate matrix already separates five reasons into distinct columns** —
+boundary; coverage-does-not-discharge-boundary; **rule gap** (twice); and the certifying case (*"No prohibited
+reduction"*). **The corpus at its most careful had the facts apart. The compression happened downstream of it.**
+
+### 3.9.6 What MA v2.0 rev1 deleted, and why it mattered
+
+draft4 §4.1 factored prohibition into **three levels** — \(\mathcal C_L\) (law-level maximal continuation class),
+\(\mathrm{Adm}_\Gamma(L,o)\subseteq\mathcal C_L\) (local analytical standing), and the engine's realizable subset
+— with the governing sentence:
+
+> **A Manifold may prohibit a continuation locally. An engine may fail to realize one. Neither restriction
+> silently changes \(\mathcal C_L\) and neither mints a new SUM, MEAN, or COVARIANCE family.**
+
+⟨measured⟩ **rev1 deletes all of it** — `𝒞_L` and `Ω_L` occur 16 times in draft4 and **0 times in rev1** — along
+with draft4 §10.1's six-premise anchor-elimination judgment and its **premise 5**, *"no restriction, carve,
+**family-changing map**, or other identity-changing operation intervenes"*, which is the corpus's one sentence
+putting a family-changing map in the way of a forgetting.
+
+> **rev1 is the version of record, and it is the version that lost the vocabulary separating law-level meaning
+> from local prohibition from realization.** Reading forward from rev1 alone, a single family-level prohibition
+> set looks like the only available carrier. It is an artifact of a deletion. **If any of it is wanted as
+> authority it must be re-adopted from draft4, not cited from rev1.**
+
+### 3.9.7 Historical uses, classified
+
+Huayin's item 4, answered per use.
+
+| historical use | what it was really representing |
+|---|---|
+| Contract Calculus β(κ) / RED / RED1 / G0.6 | **F — identity guard.** *"The boundary does not say that the physical operation is unavailable. It says that **inherited analytical identity** is unavailable across the stated movement."* |
+| **G0.7 + §29 Inventory** | **F**, explicitly: deterministic, evaluable, *"non-closing as `InventoryQuantity`"*, and rebindable *"under a different contract… a different analytical object"* |
+| γ / G1.7 | **D — evidence**, with a proof of independence from β |
+| G2.8 fan-out | **F**, via a *relationship* fact absorbed into β — and v6.1 restates it as an **edge multiplicity contract** instead |
+| §29 rows 3 and 5 (LAST, exposure) | **B — absent continuation rule**, named *"rule gap"*, explicitly not a prohibition |
+| ToD note v1.1 / paper v1.3 *"not a number"* | **A — meaning absent.** True of `stock @ year`; contradicts Contract Calculus if read of the sum (§3.9.3) |
+| basis / semantic kind absorbed into B-anchor | **A**, mislabelled as a prohibition after the primitive was demoted |
+| `WITHHOLD` | **C — governance**, deliberately kept out of β |
+| legacy `BAnchor.blocked_lineages` | **B** dressed as **C** (§3.5) |
+| `blocked_edges` | **D** |
+| `PublishBlocked` | **C**, with an override |
+| `prohibited_constituents` / \(P_F\) | attempts **A + C** at the wrong index, wrong granularity, wrong polarity — and revives a mechanism ToD v6.1 had retired |
+
