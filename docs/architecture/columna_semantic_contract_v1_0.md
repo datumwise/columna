@@ -7,6 +7,17 @@ direction, 2026-09-24.
 > the standing rule that **a genuine contradiction discovered downstream can reopen it**. The representation
 > derived from it is [`manifold_declaration_model_v1_0.md`](./manifold_declaration_model_v1_0.md), which found no
 > contradiction.
+>
+> **Freeze amendments, 2026-09-24 (Huayin).** Carried as part of the freeze, from
+> [`manifold_declaration_model_review_v1_1.md`](./manifold_declaration_model_review_v1_1.md):
+> **(1) contribution multiplicity is retired as a primitive family fact** — if multiplicity is governed, the index
+> over which it exists must itself be governed, which is individuation or another governed construction. §1.4 and
+> §5.1 are amended: an observational family's irreducible facts go from **five to four**.
+> **(2) governed point selection versus population-changing restriction** — a coordinate pin selects governed
+> analytical points without introducing a new population; a value predicate may instead define a different
+> participating population and **cannot acquire constitutive authority merely because request syntax can express
+> it**. Qualified, not universal — see the contract §8.4.
+> **(3) R1 is replaced** by **R1′ single authority** and **R1″ identity over resolved semantics**.
 
 **Standing.** Design record. **No implementation, no publication schema, no migration, no deletion of code, no
 repair of the producer/consumer mismatch.** This document states what we believe and reports what happened when

@@ -5,7 +5,9 @@
 **Standing.** Design record. **No implementation, no code, no migration, no compatibility work.**
 
 > ⚠ **Three amendments from the bounded review**, [`manifold_declaration_model_review_v1_1.md`](./manifold_declaration_model_review_v1_1.md).
-> Read them together; the review supersedes this document on all three points.
+> Read them together; the review supersedes this document on all three points. **All three were accepted into
+> the freeze by Huayin on 2026-09-24**, and the abstract contract derived from the frozen model is
+> [`manifold_family_declaration_contract_v1_0.md`](./manifold_family_declaration_contract_v1_0.md).
 > 1. **R1 is downgraded.** A restatement is **permitted and checked**, not rejected. The constitutive content is
 >    *single authority* + *identity over the resolved form*; the rejection was an authoring choice presented as a
 >    theorem. A field is **required** exactly where its fact is not *uniquely* entailed. — review §1
