@@ -3,6 +3,13 @@
 **A theory-first design reconnaissance of the Manifold family declaration.**
 Recorded by Claude at Huayin's direction, 2026-09-22/23. Working upstream of C3/C5, which is suspended.
 
+> **SUPERSEDED IN PART, 2026-09-24.** `manifold_declaration_semantic_model_v0_2.md` reworks this note's
+> §§2, 6 and 7 from a corrected conceptual centre: a constructed family's analytical domain is **entailed**,
+> not declared, so \(P_F\) survives only for observational families and only as the scope of their
+> continuation law. **Preserved and load-bearing:** §1.4 (the layer model) and §5.5 (the falsification of
+> operand-domain propagation). **Withdrawn:** §1.4.3's claim that participation intent is a constitutive
+> residual, and §5.6's placement of MAP1. See v0.2 §1.3.
+
 **Standing of this document.** Reconnaissance and design proposal. **No rule is enacted here and no source
 change is authorized.** Where the authorities leave a question undecided I name the missing governed
 decision and stop, per instruction. Seven such decisions are named in §9; two of them are stop conditions
