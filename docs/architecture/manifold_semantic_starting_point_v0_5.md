@@ -1,7 +1,11 @@
 # The Manifold declaration as Columna's semantic starting point
 
-**Sixteen cases across four layers, and the model they imply.** Recorded by Claude at Huayin's direction,
+**Seventeen cases across four layers, and the model they imply.** Recorded by Claude at Huayin's direction,
 2026-09-24.
+
+**Case 17 was supplied by Huayin after the first sixteen were worked**, as a deliberate acceptance/stress case for
+the determination-clause model. It found one real defect in this record (case 6's operand rule, repaired below)
+and converted the B-anchor disposition from a counterexample into a constructive refutation (§17d).
 
 **Standing.** Design record. **No schema, no serialization, no implementation plan, no code changes.** Stops at
 the model, the classification, the disposition of inherited concepts, and reconciliation notes.
@@ -34,7 +38,7 @@ governed conversion to a numéraire                                 -- needed by
 
 ---
 
-## 1. The sixteen cases
+## 1. The seventeen cases
 
 Each answers only **A** what the author constitutes · **B** what Measure Algebra entails · **C** what MEL denotes
 · **D** what Frame-QL may request, and the disposition.
@@ -102,7 +106,10 @@ absence of a day-crossing clause is the absence of a meaning, not the presence o
 
 ### Case 4 — `balance @ {week}`
 
-**A.** **Nothing, and nothing incremental would help.**
+**A.** **Nothing — given Balance as declared in case 2.**
+
+> ⚠ **Precisely:** no incremental fact *short of a new determination clause* would help, and a new clause does
+> not lift a bar — it **changes what Balance is** (case 17). Read the two together.
 
 **B.** No clause covers fibers varying in `day`. **The law determines no value.** Not prohibited — *undetermined*.
 
@@ -129,11 +136,19 @@ balance, or a current balance). **The number was never the problem; the label wa
 
 **A.** **Nothing.**
 
-**B.** MEAN consumes Balance at **singleton fibers of its grounding clause** — never its composition clause.
-**Balance does not travel to Week; MEAN establishes a different family whose fibers happen to be week-fibers of
+**B.** MEAN consumes Balance **at the operand anchor the expression names** — here `{account,day}`, the
+singleton fibers of Balance's grounding clause. **Balance does not travel to Week; MEAN establishes a different family whose fibers happen to be week-fibers of
 days.** Extension: every anchor coarser than `{account,day}`. Result type **Rational** (exact division is not
 closed in Decimal). Empty fiber **undefined**, from the law's nonempty constructor domain. **Sufficient state
 \((\Sigma,N)\) is how it is established, not what makes it stand.**
+
+> ⚠ **Repaired at case 17.** An earlier draft of this case read *"never its composition clause"*. That is a true
+> observation about case 2's Balance — which has no composition clause reaching Week — **mis-stated as a rule**,
+> and it is the one place in this record where a family-internal clause distinction reached into a construction.
+> The rule is: **a construction names an operand \(F @ A\) and requires only that \(F @ A\) be determined; it does
+> not, and may not, inspect *which* clause determined it.** Under case 17's Balance,
+> `mean(balance @ {account,week}) @ {quarter}` — a mean of weekly closing balances — is perfectly lawful, and its
+> operand comes from a composition clause.
 
 **C.** `mean(balance @ {account,day})` — and MEL's knowledge is exactly this shape, parametric in `X`.
 
@@ -153,6 +168,10 @@ monoid composes where Balance's clause does not. **Nothing propagated; nothing w
 **C.** `last(balance @ {account,day}; order = O)`.
 
 **D.** **Serve.** Two governed day-orders → **Clarify**.
+
+> **Case 17 continues this one.** If the business *also* declares a LAST clause on Balance itself, \(W\) and
+> Balance agree in value and may be canonicalized — **without \(W\) ceasing to be its own identity**, and without
+> anything happening to cases 5 or 6.
 
 ### Case 8 — `mean(mean(balance @ {day}) @ {week}) @ {month}`
 
@@ -417,6 +436,134 @@ stock-exposure quantity**. That would create a different analytical object rathe
 **D.** **Serve**, under its own identity, with its own unit. *"Inventory for the month"* → **Clarify**: the
 closing level (case 7), the average level (case 6), or the exposure (this).
 
+### Case 17 — the business declares `balance @ {week}` — *"balance at the last day of the week"*
+
+**Supplied by Huayin, 2026-09-24, as a load-bearing acceptance case.** It is the first case in the exercise where
+a family carries **two composition clauses citing different laws over different scopes**, and the first where a
+family's declaration is **widened after constructions over its measures already exist**. Both are the situations
+in which a prohibition model fails, so this case is the model's stress test rather than another illustration.
+
+**A.** **One new authored fact: a second composition clause on Balance itself.**
+
+```
+family balance
+  grounds    : at ledger.{account,day}, the amount standing to the account at the close of the day
+  eligible   : every root point of the universe
+  contributes: one contribution per eligible point
+  valued in  : CDT Decimal
+  composes   : fiber-reducing, SUM,  over fibers varying only in { account }
+  composes   : fiber-reducing, LAST, over fibers varying only in { day },  order = O    -- NEW
+```
+
+Nothing else is authored. The order `O` is a **universe** fact (case 7, §5); *which* order is a family fact only
+where the world admits more than one (§7.2). The projection `{account,day} ⪰ {account,week}` is a **universe**
+fact (cases 4–8).
+
+**B.** Three things are entailed and one is not.
+
+- **The extension widens, monotonically.** \(\mathcal A_{balance}\) gains `{account,week}`, `{account,month}`
+  and every anchor reachable by day-fibering under the governed projection. It **loses nothing**: every anchor
+  Balance already stood at still stands, determined by the same clause and to the same value.
+- **The LAST machinery is the case-7 theorem with a different bearer.** Witness family, basis, witness monoid,
+  known-empty \(\bot\) — §§8.1–8.3 — are **establishment machinery, not identity** (§4.2, C7 narrowed to
+  establishment only). A witness family appearing inside Balance's establishment does **not** split Balance.
+- **Not entailed: fibers varying in *both* `account` and `day`.** `balance @ {week}` with no account is covered
+  by **neither** clause's scope — SUM's scope is account-only, LAST's is day-only — and the two do not commute in
+  general, because the last **observed** day can differ across accounts. The conservative reading, and the one
+  §5.2's filler (*admitted by a clause's scope*) gives, is that such a fiber is **undetermined** until a clause
+  is stated over it. This is the right failure mode: absence of meaning, not a bar. Recorded as §4.3(5).
+
+**C.** `balance @ {account,week}` — **an ascription, not a construction**, exactly as case 3. Frame-QL §3.1: the
+query names the family identity.
+
+**D.** **Serve.** *"Weekly balance"* is now unambiguous **for this business**; *"total balance"* still →
+**Clarify** (case 5), and *"monthly inventory"*-shaped questions are unaffected (case 16).
+
+> ⚠ **Case 4 is not overturned.** Given Balance **as declared in case 2**, `balance @ {week}` is want of law, and
+> the remedy was never to widen a permission. Case 17 is that remedy taken correctly: **the business changed what
+> Balance *is*, by saying one more thing about how Balance is determined.** The verdict changed because the
+> declaration changed — not because a bar was lifted.
+
+#### 17a — the coexistence test
+
+The four expressions, **after** the new clause is in force:
+
+| expression | which family | determined by | effect of the new clause |
+|---|---|---|---|
+| `balance @ {account,week}` | **Balance itself** | Balance's LAST clause | **newly determined** — was case 4 |
+| `mean(balance @ {account,day}) @ {week}` | \(M_1\), constructed | MEAN over Balance's **day** measures | **none whatsoever** |
+| `sum(balance @ {account,day}) @ {week}` | \(S_1\), constructed | SUM over Balance's **day** measures | **none whatsoever** |
+| `last(balance @ {account,day}; O) @ {week}` | \(W\), constructed | LAST over Balance's **day** measures | **same values**; may canonicalize — 17b |
+
+\(M_1\) and \(S_1\) do not ask Balance to continue from Day to Week and never did. They consume measures that
+were **already established** at `{account,day}` by Balance's grounding clause and establish **different families**
+whose fibers happen to be week-fibers of days (case 6). Nothing about that description mentions which other
+clauses Balance has, so nothing about it can change when Balance gains one.
+
+#### 17b — canonical equivalence, in three claims that must not be merged
+
+1. **Value agreement — ENTAILED, and conditional.** `last(balance @ {account,day}; O) @ {week}` and
+   `balance @ {account,week}` agree **iff** the cited law, its identity-bearing parameters (**the order**), the
+   operand anchor, the eligibility rule and the known-empty outcome, and the value type all agree. Under order
+   \(O' \neq O\) there is **no** equivalence: that is \(W(O')\), standing on its own. The agreement is checkable
+   from the declarations; it is not assumed from the spelling `last`.
+2. **Canonicalization — AUTHORED, at the naming layer.** The business declares the governed equivalence; §11.5.1
+   resolves the construction to the family name. This is the **second instance of exactly the case-5 mechanism**
+   (`sum(revenue @ line)` ≡ `revenue`), and the model still needs no other. *"It is not string aliasing."*
+   Generalized: **a construction that restates one of \(F\)'s own clauses, at an anchor inside that clause's
+   scope, with matching parameters, is canonically \(F\).** Derived, not new machinery.
+3. **Identity — NOT minted, and nothing is re-identified.** \(W\) and Balance remain distinct family identities;
+   the equivalence is a **resolution** fact (§3: *canonicalization, not identity minting*). Any downstream
+   lineage already naming \(W\) — `mean(W @ {week}) @ {month}`, a certificate, a retained basis — is untouched.
+
+> ⚠ **And the equivalence may never be inferred from extensional coincidence.** Two expressions agreeing on every
+> currently servable value is **evidence**, not a governed equivalence — §5.3's refusal to let matching types
+> imply an admitted basis, at the identity layer. A system that mints equivalences from agreeing data is
+> constituting from evidence.
+
+#### 17c — the principle the case establishes
+
+> **A family's determination clauses govern how *that family* is determined. They do not license, and cannot
+> prohibit, that family's measures serving as operands of other lawful family-forming constructions.**
+
+Three claims, in three directions, all of which this case requires:
+
+| | claim |
+|---|---|
+| **extension-monotone** | adding a clause to \(F\) can only **add** anchors at which \(F\) is determined; it changes no value already determined |
+| **downstream-inert** | adding a clause to \(F\) changes **nothing** about the identity, law, extension or meaning of any construction over \(F\)'s measures |
+| **upstream-consequential** | adding a clause **does** change \(\Sigma(F)\) — a clause is identity-bearing (§3.9). The change lands on \(F\) and stops there |
+
+The third is the counterintuitive one and is worth stating plainly: **Balance's own definition changed while
+nothing built on Balance did.** Whether a purely extension-widening clause addition is a §3.9 **succession** or a
+**refinement** is genuinely open — no previously determined value changes, which is the strongest case in the
+corpus for a definitional change that does not succeed. Recorded as §4.3(4), **not decided here.**
+
+#### 17d — what this does to B-anchor / `BLOCKED`, which is more than a counterexample
+
+The old mechanism was indexed by **axis**. Balance now says **two different things about the same axis `day`**:
+determined under LAST, silent under SUM. **A set of blocked axes cannot hold two verdicts about one axis.**
+
+To express the business's own declaration, `BLOCKED` would have to be re-indexed by **law as well as axis** — at
+which point it is \(\beta\), which is capability-indexed **and must never be imported family-indexed** (§7.1) —
+and it is then just the clause list **with its sign flipped, and strictly worse**: the negative form must be
+**complete over every law** to mean anything at all, while the positive form is open and says only what the
+author actually knows. **Case 17 is therefore a constructive refutation and not merely a counterexample.**
+
+It also separates the two propositions the temporal block collapsed:
+
+| | proposition | truth | where the model puts it |
+|---|---|---|---|
+| 1 | Balance itself does not continue through time **by SUM** | **true** | the **absence** of a SUM-over-`day` clause (cases 2, 4) |
+| 2 | **SUM may not consume** Balance values across time | **false** | case 5 — \(S_1\) is a definite quantity |
+
+A single axis-indexed block asserts both at once and cannot tell them apart. **The clause model cannot even state
+proposition 2** — a family declaration has no term that ranges over other families' constructions. That
+expressive poverty is the guarantee: the answer to *"could a continuation restriction leak into an unrelated
+construction?"* is not *"we checked"* but *"there is nothing to write it with."* Case 16 showed the label was the
+only error; case 17 shows the **index** was the other one.
+
+
 ---
 
 ## 2. The declaration model the examples imply
@@ -474,6 +621,38 @@ and an independently reported regional total — would be two grounding clauses 
 where both apply (§5.3, at the clause level). **No case here forces it, so the model permits it and this exercise
 does not adopt it.** Flagged rather than claimed.
 
+### 2.5 The separation the model rests on — *continuation is not formation*
+
+Case 17 forces this to be stated as part of the model rather than left implicit in the cases.
+
+> **A family's determination clauses govern how *that family* is determined. They do not license, and cannot
+> prohibit, that family's measures serving as operands of other lawful family-forming constructions.**
+
+**Two distinct questions, and the model answers them at different places:**
+
+| question | answered by | indexed on |
+|---|---|---|
+| **continuation** — is \(F\) itself determined at \(A\)? | \(F\)'s own clauses | the family |
+| **formation** — is \(g(F @ I) @ A\) a lawful family? | \(g\)'s law, over measures of \(F\) at \(I\) | the construction |
+
+The only thing formation asks of \(F\) is **that \(F @ I\) be determined**. It does not ask *which* clause
+determined it, and there is **no term in a family declaration that ranges over constructions**, so it cannot ask
+what clauses \(F\) lacks. **Three consequences, and the model owes all three:**
+
+1. **Extension-monotone** — adding a clause to \(F\) only adds anchors at which \(F\) is determined; no value
+   already determined changes.
+2. **Downstream-inert** — adding a clause to \(F\) changes nothing about the identity, law, extension or meaning
+   of any construction over \(F\)'s measures.
+3. **Upstream-consequential** — it *does* change \(\Sigma(F)\); a clause is identity-bearing (§3.9). The change
+   lands on \(F\) and stops there.
+
+**The operand rule that follows, and that case 6 got wrong before case 17:** a construction names an operand
+\(F @ A\); its only requirement is that \(F @ A\) be determined. **Any clause of \(F\) may supply it.**
+
+**The auditable form, for anything downstream of this record:** a check that consults \(\mathcal A_F\), an
+edge-validity fact about \(F\), or \(F\)'s clause list, **while deciding a construction over \(F\)'s
+measures**, is the defect — under whatever name. See §4.2's carve-out and §7.3.
+
 ---
 
 ## 3. Classification of every fact
@@ -508,6 +687,8 @@ declaration at all** — see §4.)*
 | \(\Sigma(F)\) / `family_id` | **ENTAILED**, with one unresolved handle (§4.3) |
 | canonical names, aliases, default completion | **NAMING** |
 | governed equivalence between two constructions | **NAMING/resolution** — §11.5.1 canonicalization, not identity minting |
+| **value agreement between a construction and one of \(F\)'s own clauses** | **ENTAILED, conditional** — on law, identity-bearing parameters, operand anchor, eligibility/known-empty, value type (case 17b.1) |
+| **the governed equivalence that canonicalizes that construction to \(F\)** | **AUTHORED**, at the naming layer — and **never inferrable from extensional coincidence** (case 17b) |
 | support, coverage, availability of a basis | **EVIDENCE-REALIZATION** |
 | ratification / assurance | **EVIDENCE-REALIZATION** |
 | bindings, carriers, plans, backend operators, precision, realization cardinality | **EVIDENCE-REALIZATION** |
@@ -522,7 +703,7 @@ declaration at all** — see §4.)*
 |---|---|
 | **\(P_F\) / `prohibited_constituents`** | cases 2, 4, 16 — a negative encoding of a missing clause, at the wrong index. **Delete; do not repair the 13-vs-14 producer gap** |
 | **family domain as a constituted object** | cases 10, 11 — definedness is *below* anchor granularity, so no per-anchor object could carry it |
-| **B-anchor / `BLOCKED` as ontology** | case 16 — what it rejected is a standard financial quantity |
+| **B-anchor / `BLOCKED` as ontology** | case 16 — what it rejected is a standard financial quantity; **case 17 — and its *index* was wrong too.** One family says two different things about the axis `day`, which an axis-indexed set cannot hold. Re-indexing it by law makes it \(\beta\) family-indexed (forbidden, §7.1) and strictly worse than the clause list it would then be: the negative form must be **complete over every law**, the positive one need not be |
 | **family root \(A_0\)** | every case — one anchor per clause suffices |
 | **`formation.kind`** | entailed by the presence of an observation clause |
 | **`domain` / `movement` declaration fields** | one is notation, the other is edge validity |
@@ -534,14 +715,14 @@ declaration at all** — see §4.)*
 
 | concept | narrowed to |
 |---|---|
-| **\(\mathcal A_F\)** | **notation only** — the extension of a partial law |
+| **\(\mathcal A_F\)** | **notation only** — the extension of a partial law. Harmless until something computes \(A \in \mathcal A_F\) as a **precondition for a construction**, at which point the leak is back (§7.3) |
 | **C7 / sufficient-state** | **establishment only, never standing** (case 8's second reading) |
 | **C8 / continuation** | **is** a fiber-reducing clause |
 | **C6 / semantic values** | a governed reference plus consequences |
 | **C5 / participation** | two facts, over **eligible** points |
-| **\(\Gamma_F(B\to A)\) / edge validity** | whether a *path* exists between two locations the family already stands at |
+| **\(\Gamma_F(B\to A)\) / edge validity** | whether a *path* exists between two locations the family already stands at — **and consulted only for ascriptions of \(F\), never for constructions over \(F\)'s measures** (§2.5) |
 | **`WITHHOLD`** | unchanged — governance, *"the author's rule… not the engine's analytical judgment"*, **outside the declaration** |
-| **`blocked_edges`** | unchanged — want of evidence about a refuted edge |
+| **`blocked_edges`** | unchanged — want of evidence about a refuted edge **of \(F\)'s own path**. A refuted Balance edge must not reach `sum(balance @ day) @ week`, whose basis is Balance's *day* measures and stands on its own |
 | **MAP1** | a conservative **default co-participation** rule, not a domain rule |
 
 ### 4.3 Genuinely open
@@ -555,7 +736,16 @@ declaration at all** — see §4.)*
    canonicalized. Conservative re-ratification on textual change is the Ruling 8 trade.
 3. **`eligibility` is a bound**, jointly determined with the resolved request (§4.2); where request-local
    restriction becomes target change is unsettled.
-4. **Universe questions, upstream and untouched:** Case G (case 3 depends on it), whether `day→week` is
+4. **Is a purely extension-widening clause addition a §3.9 succession, or a refinement?** Case 17c: adding
+   Balance's LAST clause changes \(\Sigma(F)\) but changes **no previously determined value**. That is the
+   strongest case in the corpus for a definitional change that does not succeed — and it is **not decided here.**
+   Note it is orthogonal to downstream inertness, which holds either way.
+5. **A fiber varying in the scopes of two different clauses.** Case 17: SUM is claimed over account-varying
+   fibers and LAST over day-varying ones; `balance @ {week}` varies in both, and the two do **not** commute in
+   general. The conservative reading — undetermined until a clause covers it — follows from §5.2's filler, but
+   whether a **commutation obligation** could entail it instead is open. **Do not resolve it by widening a
+   scope.**
+6. **Universe questions, upstream and untouched:** Case G (case 3 depends on it), whether `day→week` is
    constituent-forgetting or a placement, whether the world's `week` projects onto its `month` (case 8), and the
    ratification of §§1–6 of the 2026-09-15 record.
 
@@ -575,8 +765,8 @@ This is why the family declaration became small. Each was at some point treated 
 | constituent identity and value domains | **universe** |
 | equality/collation profiles for a value type | **CDT**, referenced by the family (case 13a) |
 
-> **Only two of the sixteen cases required *any* new authored fact at the family layer: case 9's co-participation
-> contract and case 15's co-participation plus `ddof`.** Everything else was either already declared, entailed,
+> **Only three of the seventeen cases required *any* new authored fact at the family layer: case 9's
+> co-participation contract, case 15's co-participation plus `ddof`, and case 17's second composition clause.** Everything else was either already declared, entailed,
 > or a universe fact.
 
 ---
@@ -590,7 +780,8 @@ This is why the family declaration became small. Each was at some point treated 
 | **A.1** — the family root and the generated Case-S domain | **WITHDRAW** | both objects it introduces disappear. \(A_0\) is not needed (one anchor per clause); \(P_F\) is a negative encoding of a missing clause at the wrong index. A.1.8's *"constructed-family propagation"* open question **dissolves rather than resolves** — there is no propagation relation to decide |
 | **A.2** — identity standing of the family root and the family domain | **WITHDRAW** | moot once A.1 goes. Its live insight survives elsewhere: a **clause** is identity-bearing (§3.9's continuation trigger), and governance restriction is not — but that is now the `WITHHOLD` boundary, not a property of a domain object |
 | **A.3** — family splitting, recovered from v6.1 | **ADOPT** (drafted as `tod_v7_2_journal_candidate_a3_family_splitting.md`) | *"different analytical directions… produce distinct family identities even when everyday language reuses one label"* is the published form of what cases 5 and 16 demonstrate |
-| **A.4 (new)** — the determination-clause model | **DRAFT** | the shape in §2: argument shape × source × scope × premises; scope/premise separated by decidability; a premise may gate but not change |
+| **A.4 (new)** — the determination-clause model | **DRAFT** | the shape in §2: argument shape × source × scope × premises; scope/premise separated by decidability; a premise may gate but not change; **and §2.5's continuation/formation separation, which A.6 carries** |
+| **A.6 (new)** — family continuation is not family formation | **DRAFT** (drafted as `tod_v7_2_journal_candidate_a6_continuation_vs_formation.md`) | case 17. The compact explanation of why the prohibition model was wrong: it conflated *how \(F\) is determined* with *what may consume \(F\)'s measures*, and indexed the conflation on an axis |
 | **A.5 (new)** — the distinct failure kinds | **DRAFT** | law-to-type inadequacy · want of type coverage · want of law · undefined result · want of state · realization · withhold. §9.4 already forbids disclosing over the fourth |
 | **§4.1** — *"\(\mathcal A_F\) … not a proposed registry or new object"* | **CONFIRM, do not change** | the exercise vindicates it. What v7.1 never said — *from what* the domain is generated — is now answered by the clauses, not by a new object |
 | **§5.2** — *"compose across **admitted refinement**"* | **SUPPLY THE FILLER** | v7.1 leaves *admitted by what?* unstated. The answer is: by a clause's scope. This is the smallest theory change the model needs |
@@ -620,7 +811,10 @@ any new ontological kind; and any resolution of the non-catalogued-construction 
   claim; §2.1's *"MEL supplies the canonical analytical expression"* is a denotation claim, and the body hedges
   toward the second (*"where lawful"*, *"lawfully generated family **expressions**"*). **Reconcile toward §2.1.**
 - **MAP1 is a conservative default co-participation rule** (\(E'=\bigcap E_i,\ S'=\bigcap S_i\)), which cases 9
-  and 15 show is a **real** recurring premise. Its \(\beta'\) union is not a domain rule.
+  and 15 show is a **real** recurring premise. Its \(\beta'\) union is not a domain rule — and **case 17 says why
+  it must be dropped rather than narrowed.** Any surviving \(\beta'\)-style propagation from operand to result
+  would have `sum(balance @ day)` inherit Balance's blocked `day` axis and refuse at week: the continuation /
+  formation leak, written in MA's own vocabulary.
 - **§30.4's *"a general multi-parent family-formation calculus"* is precisely §4.3(1)**, and the model confirms
   it is still open rather than closing it.
 - **§14.5 survives intact and is load-bearing** — *"Composite sufficient state does not imply composite measure
@@ -650,6 +844,11 @@ any new ontological kind; and any resolution of the non-catalogued-construction 
 - **§6.5's contract list — *"admitted anchors and movements"* — needs reconciling.** Admitted anchors are
   **derived notation**, not a fact the Manifold supplies. Movements are edge validity. Frame-QL should resolve
   against clauses, not against an anchor list.
+  > ⚠ **Case 17 gives this note teeth — it is the most likely operational form of the leak.** A resolver holding a
+  > per-family admitted-anchor list and checking the **request** anchor against it refuses
+  > `sum(balance @ day) @ week`, because `week ∉ \mathcal A_{balance}` before the new clause. **The rule:** for
+  > `g(F @ I) @ A`, family standing is checked on **`F @ I`**, and `A` is checked against **\(g\)'s** clause —
+  > never `A` against \(\mathcal A_F\).
 - **§3.1 is confirmed by case 3** — `revenue @ {region}` *"does not need to become `sum(...)`… The query names
   the family identity."* This reading is only coherent when standing comes from the family's own clause, which
   is what the model supplies.
@@ -662,8 +861,9 @@ Could a person look at this and say *"yes, these are exactly the contingent fact
 I actually had to tell the system"*?
 
 For Revenue and Balance: **five facts each, three of them identical, differing in one sentence and one
-quantifier.** For the fourteen derived cases: **two new authored facts in total**, both co-participation
-contracts, plus law parameters where a law genuinely has a convention. Everything else was a universe fact, a
+quantifier.** For the fifteen derived cases: **three new authored facts in total** — two co-participation
+contracts, and one further composition clause where a business genuinely *did* have one more thing to say (case
+17) — plus law parameters where a law genuinely has a convention. Everything else was a universe fact, a
 CDT reference, or a theorem.
 
 **What a person must say is: what they observe, where, for which points, in what units, and how it composes.**
