@@ -3,6 +3,11 @@
 **A positive statement of the model, and the acceptance suite it survived.** Consolidated by Claude at Huayin's
 direction, 2026-09-24.
 
+> ❄ **FROZEN**, 2026-09-24, by Huayin, as the semantic contract for the declaration-design unit — subject to
+> the standing rule that **a genuine contradiction discovered downstream can reopen it**. The representation
+> derived from it is [`manifold_declaration_model_v1_0.md`](./manifold_declaration_model_v1_0.md), which found no
+> contradiction.
+
 **Standing.** Design record. **No implementation, no publication schema, no migration, no deletion of code, no
 repair of the producer/consumer mismatch.** This document states what we believe and reports what happened when
 we tried to break it. It stops there.
