@@ -2,6 +2,11 @@
 
 **A small semantic exercise.** Recorded by Claude at Huayin's direction, 2026-09-24.
 
+> **CORRECTED, 2026-09-24.** `revenue_balance_contrast_v0_1.md` replaces this note's §5.3. *"F's target
+> denotes on the resulting fibers"* presumed a fact it did not explain — and that presumption is where
+> \(P_F\) was hiding. The corrected form is \(\mathcal A_F=\{A \mid \text{the governed law of }F\text{
+> determines }F@A\}\). **Preserved:** §0.1 and §0.2 (both concessions), and the three-refusal separation.
+
 **Standing.** Reconnaissance. No rule is enacted; no source change is authorized.
 
 **The constraint.** The four expressions below are explained using only: the universe's constitution, a

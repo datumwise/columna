@@ -10,6 +10,11 @@
 > denotation*. (b) \(A_0\) is **not needed at all**, rather than "forced to \(I\)": one constitutive anchor
 > per family suffices. **Preserved:** §1.1 (the MEAN law never moves its operand), §1.3 (both withdrawals),
 > §1.5 (semantic scope vs governance prohibition), and §12.
+>
+> **FURTHER CORRECTED, 2026-09-24** by `revenue_balance_contrast_v0_1.md`: the *fold scope* of §1.4 is also
+> withdrawn as a separate object. A family law is a partial function from a fiber of participating
+> contributions to a value; \(\mathcal A_F\) is the pullback of its domain of definition through governed
+> geometry. \(P_F\) was a **negative encoding of a missing law clause**.
 
 **Standing.** Design reconnaissance. **No rule is enacted and no source change is authorized.**
 
