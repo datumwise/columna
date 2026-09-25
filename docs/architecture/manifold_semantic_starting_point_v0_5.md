@@ -473,7 +473,9 @@ fact (cases 4–8).
   establishment only). A witness family appearing inside Balance's establishment does **not** split Balance.
 - **Not entailed: fibers varying in *both* `account` and `day`.** `balance @ {week}` with no account is covered
   by **neither** clause's scope — SUM's scope is account-only, LAST's is day-only — and the two do not commute in
-  general, because the last **observed** day can differ across accounts. The conservative reading, and the one
+  general. ⚠ **Corrected 2026-09-25:** not the last **observed** day — governed LAST is `argmax` over the
+  **participating** fiber (ToD §8.2), and the obstruction is **governed sparsity** of that domain; ToD §11.2 is the
+  worked counterexample. See [`last_sum_interchange_verification_v0_1.md`](./last_sum_interchange_verification_v0_1.md). The conservative reading, and the one
   §5.2's filler (*admitted by a clause's scope*) gives, is that such a fiber is **undetermined** until a clause
   is stated over it. This is the right failure mode: absence of meaning, not a bar. Recorded as §4.3(5).
 
@@ -747,7 +749,8 @@ declaration at all** — see §4.)*
 5. **A fiber varying in the scopes of two different clauses.** Case 17: SUM is claimed over account-varying
    fibers and LAST over day-varying ones; `balance @ {week}` varies in both, and the two do **not** commute in
    general. The conservative reading — undetermined until a clause covers it — follows from §5.2's filler, but
-   whether a **commutation obligation** could entail it instead is open. **Do not resolve it by widening a
+   whether a **commutation obligation** could entail it instead is ~~open~~ **CLOSED, 2026-09-25**: ToD v7.1
+   §11.2 already ruled that *"an interchange law would need its own premises"*, and Frame-QL §9.5 repeats it. **Do not resolve it by widening a
    scope.**
 6. **Universe questions, upstream and untouched:** Case G (case 3 depends on it), whether `day→week` is
    constituent-forgetting or a placement, whether the world's `week` projects onto its `month` (case 8), and the

@@ -341,6 +341,16 @@ to a distinct formal object.
 
 ## 6. Several clauses in one family — Balance, worked
 
+> ⚠ **NOT YET FROZEN — see [`last_sum_interchange_verification_v0_1.md`](./last_sum_interchange_verification_v0_1.md).** The conclusion
+> below (Balance is **one** family) is correct and unchanged. Two things are not: **(1)** this section is silent
+> on the fact that `determines` in §4.1 is **existential over single clauses**, so it has **no composition
+> rule** — which is the real reason `balance @ {week}` is undetermined here, prior to any question about
+> commutation; **(2)** the reason given elsewhere for non-commutation (the last *observed* day) was wrong —
+> governed LAST is `argmax` over the **participating** fiber, and the obstruction is **governed sparsity** of
+> that domain (ToD §11.2). Three decisions pend: whether to close `determines` under clause composition, whether
+> to add the **clause-incoherence versus path-disagreement** distinction it requires, and whether rectangularity
+> of a participating domain is universe-declarable.
+
 ```
 Clauses(balance) = {
   c₁  world⟨ ledger , {account,day} , "the amount standing at the close of the day" , Decimal , ⊥ ⟩

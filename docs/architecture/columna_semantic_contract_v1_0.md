@@ -417,7 +417,11 @@ family balance
   - the LAST machinery — witness family, basis, witness monoid, known-empty \(\bot\) — is **establishment, not
     identity**. A witness family inside Balance's establishment does **not** split Balance.
   - **not entailed:** a fiber varying in **both** `account` and `day`. SUM's scope is account-only, LAST's is
-    day-only, and they do not commute in general because the last *observed* day can differ across accounts.
+    day-only, and they do not commute in general. ⚠ **Corrected 2026-09-25** — the reason is **not** that the last
+    *observed* day differs across accounts, which would wrongly let support choose the winner. Governed LAST is
+    `argmax` over the **participating** fiber (ToD §8.2), and the obstruction is **governed sparsity** of that
+    domain. ToD §11.2 works the counterexample with numbers and rules that *"an interchange law would need its
+    own premises."* See [`last_sum_interchange_verification_v0_1.md`](./last_sum_interchange_verification_v0_1.md).
     `balance @ {week}` with no account stays **undetermined** until a clause covers it. **The right failure mode.**
 - **Denoted** — `balance @ {account,week}` — an **ascription**, exactly as case 4.
 - **Resolved** — Serve. *"Weekly balance"* is now unambiguous **for this business**; *"total balance"* is still
