@@ -4,6 +4,9 @@
 `attachments/4968b0f5_tod_v8_candidate_foundational_synthesis_v0_4_1_verified.md` (**v0.4.1 — verified repair**).
 Supersedes `tod_v8_synthesis_falsification_v0_1.md`, which reviewed **v0.3**.
 
+> **Superseded by `tod_v8_synthesis_falsification_v0_3.md` (v0.5).** All four class-1 findings below are
+> discharged in v0.5, three by structural repair. Read v0.3 first.
+
 **Standing.** Falsification report. **No implementation. No changes to schemas, Core, Platform, Manifold, MEL,
 Frame-QL or publications. The synthesis is not rewritten.**
 
