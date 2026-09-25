@@ -1,7 +1,15 @@
 # Falsifying the v8 candidate foundational synthesis
 
 **Claude, at Huayin's direction, 2026-09-25.** Target:
-`attachments/643d2a42_tod_v8_candidate_foundational_synthesis.md`.
+`attachments/4fbba8d8_tod_v8_candidate_foundational_synthesis_v0_3.md` (**v0.3**).
+
+> **Target provenance, verified 2026-09-25.** The report was drafted against
+> `attachments/643d2a42_tod_v8_candidate_foundational_synthesis.md`, the untagged copy. On Huayin's
+> question I diffed the two. They are **byte-identical except for two header lines** — v0.3 adds
+> `**Version:** v0.3` and changes `Status: Working synthesis for review` to `... for adversarial review`.
+> No section, proposition, example or boxed claim differs. Every finding below therefore lands on v0.3
+> verbatim, and the target is restated as v0.3. Re-measured against the v0.3 file: `observ*` — 0
+> occurrences, `ground*` — 0 occurrences, `scope` — 0 occurrences; unchanged.
 
 **Standing.** Falsification report. **No implementation. No changes to schemas, Core, Platform, Manifold, MEL,
 Frame-QL or publications. The synthesis is not rewritten.**
