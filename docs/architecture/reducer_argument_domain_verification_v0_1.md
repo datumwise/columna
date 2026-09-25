@@ -11,7 +11,35 @@ Claude, at Huayin's direction, 2026-09-25. **No implementation, serialization, s
 > `D_A(a) = D ∩ π⁻¹(a)`** — a *governed participating domain* intersected with the fiber. **Huayin's temporary
 > notation `D_{F,q}(b)` is, almost symbol for symbol, published theory.**
 
-So the seam is **between the two papers, not inside the theory**. MA v1.0 is loose at a point where ToD v7.1 is
+> ## ⚠ CORRECTION, same day, before any of this is acted on
+>
+> **Two things above and below are wrong, and the second is the more interesting.**
+>
+> **(1) Contract Calculus *is* deposited in this repository** — `services/ask/deposits/w-contract-calculus.r01.md`,
+> **published v1.0**, Zenodo recid 21752373. §3 originally said it was not. It is, and **it answers the question
+> directly.**
+>
+> **(2) The answer is three-way, not two-way, and *nobody* says "participating fiber".** Published **CC §15.4**
+> gives the \(G_1\) partial-reducer denotation that MA v1.0 defers to, and it does **not** restrict the index
+> set. It folds over the **fiber ∩ population** with a **three-way case-split embedding**:
+>
+> \[
+> \widehat\eta(a)=\begin{cases}(\eta_\kappa(v(a)),1,1)&a\in S\\(0_\kappa,1,0)&a\in E\setminus S\\(0_\kappa,0,0)&a\in P\setminus E\end{cases}
+> \]
+>
+> **So eligibility and support enter through the *embedding and the counts*, not through the index.** ToD §6.1
+> instead restricts the *index* to \(D\cap\pi^{-1}(a)\). **These are two different constructions of the same
+> intent, and the corpus contains both.**
+>
+> **(3) Therefore a zero-extension *is* published — in the state monoid — and my §4 was too strong.** See the
+> corrected §4. **Huayin's classification survives and is in fact strengthened, because Contract Calculus itself
+> draws the line he predicted.**
+>
+> The headline claim — *MA v1.0 is loose where ToD v7.1 is exact* — **survives**, but the repair is narrower than
+> stated: MA v1.0 shows the \(G_0\) formula and **does not carry forward the \(G_1\) refinement it already
+> cites.**
+
+So the seam is **between the papers, not inside the theory**. MA v1.0 is loose at a point where ToD v7.1 is
 exact, and MA v1.0 **says so itself** (§9: *"richer participation rules"* remain open).
 
 | question | answer |
@@ -208,23 +236,117 @@ supported observations has a different participation rule.**"*
 
 ---
 
-## 3. What Contract Calculus establishes
+## 3. What Contract Calculus establishes — **published, deposited, and decisive**
 
-The Contract Calculus papers (Wang 2026b) are **cited, not deposited** — MA v1.0 refers to Definition G1.D5,
-§§15, 17.2, 19.6, Theorems G0.2, G1.1, G1.6, G1.7, G2.2, G2.8, Corollaries G0.3, G1.2, Lemma G1.L2. **The primary
-text is not available to check here**, so the following is what MA v1.0 reports of it, and no more:
+`services/ask/deposits/w-contract-calculus.r01.md` — *A Contract Calculus for Governed Analytical Transformation*,
+**published v1.0**, Zenodo recid 21752373, verified deposit.
 
-- \(G_0\): contract \(C=(X,A,\beta)\) — **no eligibility, no support**. This is where `Fib_q(b)` is at home.
-- \(G_1\): \(C_1=(X,U,A,E,S,\beta,\gamma)\), \(v:S\to|X|\), and `RED1` with \(E'=q[E]\), \(S'=S'_{q,h}\).
-- **The \(G_1\) partial-reducer denotation itself is not reproduced in MA v1.0.**
+### 3.1 Where `Fib_q(b)` comes from, and why it is unqualified
 
-> **So the question *"what does `Fib_q(b)` range over once \(E\) and \(S\) exist?"* is answered, if anywhere, in a
-> document not in this repository.** That should be checked against the deposited Contract Calculus before the
-> correction in §5 is treated as settled rather than recommended.
+**§5.1 "Fibers"** — *"the source fiber is \(\operatorname{Fib}_q(a')=\{a\in\operatorname{Pts}(A)\mid q(a)=a'\}\)… A SQL group is a common
+physical representation of such a fiber. **The formal object is the preimage of the grouping map**, not the row
+container used to implement it."*
+
+**It is the set-theoretic preimage over \(\operatorname{Pts}(A)\) — no eligibility, support or participation qualifier**, and
+it is unqualified for a stated reason. **§4.4** — *"An \(X\)-typed **total** atom over anchor \(A\) is
+\(v:\operatorname{Pts}(A)\to|X|\)… **The proved core suppresses those distinctions** so that value and contract composition can be
+isolated."* \(G_0\)'s contract is \(C=(X,A,\beta)\): **no \(E\), no \(S\), no \(U\).**
+
+**§12** states the limitation outright — *"a partial function alone does not distinguish a point outside the
+population, an ineligible point, an eligible but unobserved point, or an observed point. \(G_1\) is the smallest
+population-and-partiality extension used here."* And the claims table marks *"Partiality, eligibility, support,
+observation, and evidence form a complete calculus"* as **"Not claimed."**
+
+### 3.2 What \(G_1\) actually does — and it is not what I inferred
+
+**\(G_1\) does not re-index the fold.** **§15.4** defines a **per-point embedding** over the population:
+
+\[
+\widehat\eta_{\kappa,E,S,v}(a)=
+\begin{cases}
+(\eta_\kappa(v(a)),\,1,\,1), & a\in S,\\
+(0_\kappa,\,1,\,0), & a\in E\setminus S,\\
+(0_\kappa,\,0,\,0), & a\in P_{U,A}\setminus E,
+\end{cases}
+\qquad\text{folded to }(s_q(a'),e_q(a'),o_q(a')).
+\]
+
+*"The first component contains sufficient state **for observed values only**. The second and third carry the
+analytical domain facts needed to decide eligibility and support."*
+
+**§15.1** keeps the fiber as the ambient index and intersects for the counts — \(e_q(a')=|\operatorname{Fib}_q(a')\cap E|\),
+\(o_q(a')=|\operatorname{Fib}_q(a')\cap S|\), output eligible exactly when \(e_q(a')>0\). **§15.2**:
+\(S'_{q,h}=\{a'\mid \operatorname{Covered}_h(e_q(a'),o_q(a'))\}\), \(E'_q=q[E]\).
+
+> ⚡ **So the published answer to *"what are the arguments of a reducer?"* is: the points of the fiber intersected
+> with the population, under a three-way case-split embedding in which non-supported points contribute the state
+> identity and are counted rather than dropped.** **Eligibility and support enter through the embedding and the
+> counts — not through the index set.**
+
+### 3.3 And the line is drawn where Huayin predicted
+
+**§15.5, the partial reducer denotation** — the sentence MA v1.0 defers to and does not reproduce:
+
+> *"For \(a'\in S'_{q,h}\), define \(v'(a')=\rho_\kappa(s_q(a'))\). **No value is defined outside \(S'_{q,h}\), even
+> when the aggregate monoid has an identity and \(\rho_\kappa(0_\kappa)\) is numerically meaningful. This is the formal
+> separation between an algebraic empty fold and an observed analytical value.**"*
+
+**§19.9, Proposition G1.P1** — *"A \(G_0\) reducer defines an aggregate value even on an empty fiber through the
+monoid identity. **\(G_1\) deliberately does not treat that value as observed support.**… On empty target fibers,
+\(G_0\) may return the algebraic identity while \(G_1\) returns **no observed analytical value**. This is not a
+contradiction. It is the semantic refinement introduced by population and support."*
+
+And the realization obligation, **§18.1** — *"A physical reducer must process enough domain information to
+distinguish eligible-unobserved points from points that do not belong to the eligible fiber."*
+
+### 3.4 CC versus ToD — two constructions, and they are not the same
+
+| | index set | how \(E\) and \(S\) enter | empty-fiber behaviour |
+|---|---|---|---|
+| **CC \(G_0\)** | \(\operatorname{Fib}_q(a')\) | not at all — atoms are total | returns \(\rho_\kappa(0_\kappa)\) |
+| **CC \(G_1\)** | \(\operatorname{Fib}_q(a')\cap P\) | **case-split embedding + counts \((e,o)\)** | **no value**, by §15.5 |
+| **ToD §6.1** | \(D\cap\pi^{-1}(a)\) — **index-restricted** | \(D\) is a governed participating domain | identity, only for a **known**-empty contribution fiber |
+
+**Both are published. Neither uses the phrase "participating fiber" in the sense we had been using**, and they
+are different constructions: CC is **index-total, embedding-partial**; ToD is **index-partial**. They agree on
+values wherever \(D=E\), because \(E\setminus S\) and \(P\setminus E\) contribute the state identity — **but they
+differ in what they carry** (CC carries \((e,o)\) through the fold; ToD's index simply omits non-participants) and
+**in where the empty case is decided.**
+
+> ⚠ **And ToD has its own looseness here, symmetric to MA's.** §4.2 says \(D\) is *"not automatically… supported
+> operand values"*, but §8.2's proof assumes *"**operand values are established on \(D\)**"*, and §6.1 speaks of
+> *"**established** contribution states \(g_I(i)\)"*. **So \(D\)-as-declared and \(D\)-as-used-in-the-proofs are not
+> obviously the same set**, and where they differ is exactly the eligible-but-unsupported case that CC handles
+> explicitly with \((0_\kappa,1,0)\). **Neither paper is wrong; the two have simply not been reconciled.**
 
 ---
 
-## 4. Structural zero — not established. The corpus is silent, and twice says the opposite
+## 4. Structural zero — **corrected**: published in the *state*, and explicitly barred from becoming a *value*
+
+> ⚠ **This section originally read *"not established, the corpus is silent."* That was too strong.** The term is
+> absent, but **the construction is published**, in Contract Calculus §15.4 — and CC then draws exactly the line
+> Huayin predicted. **The corrected finding is more useful than the original one.**
+
+### 4.0 What is actually established
+
+> **A zero-extension exists in published Contract Calculus \(G_1\), in the *state monoid only*.** A point in
+> \(E\setminus S\) embeds as \((0_\kappa,1,0)\) and a point in \(P\setminus E\) as \((0_\kappa,0,0)\). **It is never
+> permitted to become a value:** §15.5 — *"**No value is defined outside \(S'_{q,h}\), even when the aggregate monoid
+> has an identity and \(\rho_\kappa(0_\kappa)\) is numerically meaningful.**"*
+>
+> **The counts are what stop it collapsing.** Strip \((e,o)\) and the identity-embedding is indistinguishable from
+> a real zero. Carry them, and the embedding is bookkeeping while \(\operatorname{Covered}_h\) decides whether anything may be
+> served. **That is the whole mechanism.**
+
+**So Huayin's hypothesis is confirmed and sharpened.** *"An invariance result for SUM under lawful zero-extension;
+it does not prove that the geometric fiber is fundamentally the reducer's semantic argument."* — **Contract
+Calculus says precisely this itself**, in §19.9: \(G_0\)-over-the-fiber and \(G_1\)-over-the-population **disagree
+on empty fibers**, *"not a contradiction… the semantic refinement introduced by population and support."*
+**If the fiber were the semantic argument, there would be nothing to refine.**
+
+### 4.1 What remains genuinely absent
+
+
 
 **Searched: `structural zero`, `structural-zero`, `zero-extension`, `extend by zero`, across the specs, docs,
 editorial and research trees and the MA v1.0 deposit.**
@@ -263,9 +385,12 @@ identity is not a missing input.**"*
 > places contradicted by — the governing theory.** That is a real divergence, independent of anything in PR #343,
 > and it is worth someone's attention on its own account.
 
-> **Verdict: structural zero is not a ToD or Measure Algebra law.** It is one possible *reading of an absent
-> value*, and the corpus explicitly makes that reading a matter of governance, not of algebra. **Huayin was right
-> to check; it would have become theory by recollection.**
+> **Verdict, corrected.** **The term "structural zero" is not a law anywhere.** The *identity-embedding* is
+> published (CC §15.4) and is confined to the state. **What is not established is the thing the phrase is usually
+> reached for** — that an absent observation may be read as a zero **value**. On that, Frame-QL §8.9 is explicit:
+> *"An absent observation can establish zero **only under the applicable existence, participation, coverage, and
+> completion law**."* **Huayin was right to check. What would have become theory by recollection is not the
+> embedding — it is the licence to finalize it.**
 
 **And Huayin's classification of the SUM result is exactly right.** \(\Sigma_D r=\Sigma_G\tilde r\) is:
 
