@@ -6,6 +6,7 @@
 
 > **Superseded by `tod_v8_synthesis_falsification_v0_2.md` (v0.4.1).** Thirteen of the nineteen findings below
 > are discharged in v0.4.1; the §2 structural failure is repaired. Read v0.2 first.
+
 > **Target provenance, verified 2026-09-25.** The report was drafted against
 > `attachments/643d2a42_tod_v8_candidate_foundational_synthesis.md`, the untagged copy. On Huayin's
 > question I diffed the two. They are **byte-identical except for two header lines** — v0.3 adds
