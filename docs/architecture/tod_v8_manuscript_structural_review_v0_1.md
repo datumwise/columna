@@ -283,6 +283,178 @@ different ordered selection"*). §26 fences reuse the same way. Nothing downstre
 
 ---
 
+# C. v7.1 reconciliation
+
+**Method.** Both documents read end to end in a parallel full-read sweep, then **every claimed absence
+re-verified by me directly in both files**, and the v7.1 quotations re-derived from the publication of record
+before endorsement. Deliberate renames (`sufficient state` → `continuation state` + `sufficient basis`) were
+treated as preserved throughout. Wording, chapter order and retired ontology are not reported as losses.
+
+| classification | count |
+|---|---|
+| preserved explicitly in v8 | 24 |
+| preserved in a simpler or derived form | 17 |
+| intentionally moved outside the foundation | 9 |
+| superseded by a stronger/corrected v8 statement | **8** |
+| **apparently lost and still needed** | **12** |
+
+**Headline: v8 is a faithful and in several places better reconstruction of the v7.1 core.** The twelve losses
+are not scattered — they cluster in four places: **anchor incomparability**, **state-substitution discipline**,
+**the refinement direction**, and **the contextual-formation account v7.1 explicitly restored.**
+
+## C.1 The three that should not survive into publication
+
+### C-L1 — Refinement is a *partial* order, and same-family does not imply mutual reachability
+**This is my C9, and it is worse than I graded it.** I found the missing sentence in §3; the sweep found the
+missing *obligation* in §5. v7.1 §6.3 (line 604):
+
+> *"Family coherence does not erase partition geometry. **Revenue at Week and Revenue at Month may belong to one
+> additive family even when neither anchor refines the other.** The family guarantees agreement along admitted
+> paths; **it does not manufacture a path between incomparable locations.**"*
+
+Verified: v8 has **0** occurrences of `incomparable`, `partial order`, `reachab*`; `refine` appears 4 times,
+always as a two-anchor *B finer than A* relation; §16 assumes \(I\succeq B\succeq A\) throughout.
+
+**What breaks:** §5 defines a family as realized over admitted anchors *"with lawful derivability along its
+family structure"* — so a reader concludes any two measures of one family are mutually derivable. §5's *"geometry
+alone does not create a family edge"* guards the case where a projection exists but no law does. **Nothing in v8
+guards the case where no projection exists at all**, which is the single most common production error (rolling a
+weekly materialization up to calendar months). **Upgrade my C9 from one sentence in §3 to: one sentence in §3
+plus one obligation in §5.**
+
+### C-L2 — A declared state equivalence must be a congruence — and **this corrects my own stable list**
+v7.1 §6.6 requires \(u\equiv u', v\equiv v'\Rightarrow u\oplus v\equiv u'\oplus v'\) and
+\(u\equiv u'\Rightarrow\phi(u)=\phi(u')\), with §10.5 (line 926) giving the counterexample I verified verbatim:
+
+> *"MEAN states \((10,1)\) and \((1000,100)\) both display \(10\). Adding the same new state \((20,1)\) gives
+> means \(15\) and \(1020/101\). The equal current results did not retain equal continuation information."*
+
+Verified: `congruen*` — **0 occurrences in v8**. And §25 line 1336 lists, among the changes that do *not* create
+a successor identity:
+
+> *"— a new carrier encoding of the same continuation state;"*
+
+**with no obligation that the encoding respect \(\oplus\) and \(\phi\).** §36's realization duty is scoped to
+*physical* realization, not to a declared analytical equivalence between two continuation states.
+
+**I listed §25 as stable result E14. That was wrong, and I am withdrawing it.** As written, line 1336 is an open
+door: any two states that finalize to the same displayed value can be called the same continuation state
+re-encoded. This is the *substitution* claim, orthogonal to §26's *retention* claim — §26 says a displayed value
+does not imply retained capability; C-L2 says two states that display alike may not be swapped as continuation
+inputs. **One clause on line 1336** closes it.
+
+### C-L3 — The contextual-formation account, and the withdrawn impossibility theorem
+**The most dangerous of the twelve, because it risks silently reinstating something v7.1 explicitly retracted.**
+v7.1 Appendix C.4 (line 1424):
+
+> *"Earlier Version 7.1 working drafts proposed universal projection-fiber locality of formation as a
+> family-admission test. **That claim and the categorical contextual-family exclusions derived from it are
+> withdrawn.**"*
+
+and §3.4 (line 280): *"No general impossibility theorem for lag-, rank-, cumulative-, or rolling-derived families
+follows from it… **Neither automatic promotion nor categorical exclusion is justified by the function name.**"*
+
+Verified: v8 has **0** occurrences of `LAG`, `rolling`, `cumulative`, `rank`, `focal`; `contextual` occurs
+**once**, in §34, as something a request language *"may also articulate."*
+
+**The risk is structural, not lexical.** §16 defines continuation entirely over \(g_I(i)\) for
+\(i\in D\cap\pi^{-1}(a)\) — **contributions strictly inside the fiber.** That is precisely the projection-fiber
+locality shape from which the v7.0 drafts derived the exclusion, and which v7.1 withdrew by name. A careful
+reader of v8 alone can re-derive the retracted theorem from §16 and conclude that rolling and rank families are
+categorically inadmissible.
+
+§19's seven obligations are the right general contract and I count them as preserving v7.1 line 284's *common
+family contract* (*"not a second admission system"*). **What is missing is one paragraph saying the contract
+applies to contextually formed inputs, and that §16's in-fiber continuation is not an admission test.**
+Given that v7.1 spent an appendix withdrawing this, v8 cannot be silent about it.
+
+## C.2 Four that should be fixed, with one correction to the sweep
+
+- **C-L4 — Conservation of relationships / formation order.** v7.1 §3.5, boxed and verified: *"**An operation
+  cannot use a relationship that was neither retained nor reconstructed from governed evidence.**"* with *"A
+  weighted mean requires pointwise products at its constitutive anchor **before separate reductions destroy the
+  pairing**."* Verified absent: `pairing`, `covarian*`, `correlation`, `conserv*` (1 hit, unrelated) — all 0.
+  **Correction to the sweep:** it claims v8's basis adequacy *"is checked role-by-role and passes for
+  `SUM(value)` + `SUM(weight)`."* **That is wrong.** §10's adequacy clause is an indiscernibility condition —
+  *"Two governed evidence configurations that agree on every required basis input… must determine the same
+  target"* — and it correctly rejects that basis: \((10,1),(0,100)\) and \((0,1),(10,100)\) agree on both sums
+  and give weighted means \(10/101\) and \(1000/101\). **§10 detects the failure. What it does not do is name
+  the remedy.** The real loss is the positive formation rule — *form the pointwise product at the constitutive
+  anchor* — which is the only v7.1 rule governing **multi-input formation order**, and which v7.1 §11.6 made the
+  contract emphasis for four of eight statistical groups. Recommend one paragraph in §10 or §19.
+- **C-L5 — Lossy state cannot certify its own coherent-instance premise** (v7.1 §10.6, §8.2; `lossy` = 0 in v8).
+  §14 line 747 *asserts* the premise — *"Within one fixed coherent analytical instance"* — and §26 licenses
+  witness reuse *"under the same governed order and compatible participation"* without saying **who establishes
+  compatibility, or that the witness cannot**. A planner merging witnesses from two snapshots may read
+  successful combination as evidence of coherence. v7.1 §13.2 recorded this as one of four validated adversarial
+  checks.
+- **C-L6 — The refinement direction is entirely absent.** v7.1 §3.6, verified: *"replication of a coarse value
+  for participation in a finer expression does not establish a finer measure of the same family."*
+  `replicat*`/`broadcast`/`disaggregat*` = 0. §3's *grouping points ≠ determining a value* is the
+  coarsening-direction guard; **v8 has no mirror**, so joining a monthly target onto daily rows and calling the
+  result a daily measure is forbidden by nothing in the paper.
+- **C-L7 — Internal value structure is not analytical location** (v7.1 §5.7, boxed and verified). §9 says
+  continuation state *"is not a new ontological category"* and may be *"tuples, sets, sketches, or point-value
+  witnesses"* — the *kind* half. The *location* half is gone, and v8 then introduces \(K=Set(X)\),
+  \(K=HLLSketch\) and \(w=(s,x(s))\) as ordinary values. Without the rule, the witness's point coordinate reads
+  as a second current anchor of \(F@A\).
+
+## C.3 Five that are editorial or belong to scope
+
+**C-L8 Proposition 6.2** (coherence lifts through a well-founded basis by induction) has no v8 counterpart —
+v8 has exactly one proposition. §9's \(K=(s,n)\) brings the common staged case under 16.1, but the **induction**
+is what covers composites whose basis roles are themselves composite (variance from moments, correlation from
+paired moments). §10's anchor-locality recursion sets it up and never proves coherence lifts through it.
+**This is the same defect as B2(ii) from the other side:** the paper can prove coherence for single-\(\oplus\)
+families and must assert it everywhere else. Fixing B2 and C-L8 together is one piece of work.
+**C-L9** downstream disclosure does not repair an undefined computation (v7.1 §9.4; `disclos*` = 0) — §32 and
+§37 cover *silent* restriction only, and the contamination half (late row removal does not undo a consumed
+contribution to an order-dependent intermediate) has no substitute.
+**C-L10** positive evidence-adequacy criteria for LAST under partial evidence (v7.1 §9.2, §9.6) — v8 keeps the
+prohibitions and drops the criteria, leaving no stated way to answer LAST under partial evidence at all.
+**C-L11** the multiset counterexample (\(0,0,6\) has mean 2; discarding multiplicity gives 3) and the
+multiplicity-preserving family; `multiset`/`quantile` = 0. As with C-L4, §10's adequacy catches it and the paper
+never offers the object that fixes it.
+**C-L12** what *"must agree"* means for approximate realizations (v7.1 §6.4, §12.1) — §24's agreement obligation
+is unqualified, and §36 requires an error contract without saying **how it composes under staging**, which
+matters because §16 licenses arbitrary regrouping.
+
+## C.4 Where v8 is stronger than v7.1 — eight supersessions
+
+Worth recording so the revision does not "restore" them: the **positive** SUM/LAST sufficient condition (§15 —
+v7.1 had only the counterexample); the corrected remedy for failed interchange (§5, §15 — v7.1 §4.1 leaned
+toward auto-splitting the family, v8 rules that the destination is simply not established); **grounding as an
+explicit first-class route** (§4, §10.1, §23 — v7.1 had only *"governed primitive inputs"*); the generalized
+order requirement (§12 — lexicographic is now *"one valid form"*, not the only one); **fiber-relative LAST**
+named as such (§13); Prop 16.1's premises promoted into the statement rather than left in prose after the proof;
+the three-way lineage separation (§17); and the four-way semantic codomain with establishment kept outside it
+(§4, §8).
+
+## C.5 Two apparatus notes
+
+- **v8 names neither Contract Calculus nor Measure Algebra** (0 occurrences each; v7.1 cites both). The §5.8
+  withdrawal I pushed for two passes is complete — but v7.1's *positive* companion sentence went with it
+  (*"Compatible earlier work on constitutive anchors, closed law contracts, participation, pairing, and carrier
+  adequacy **remains applicable**"*). One sentence should say MA's continuation-class machinery is retained as
+  machinery. That is the notification obligation I flagged at v0.5, now with a concrete home.
+- **The statistical extension catalog** (v7.1 §11.6, eight groups, supplement S.1–S.8) gets **no disposition in
+  v8**. These are deterministic analytical families, so §31's Statistical Bridge is explicitly *not* the right
+  destination — v7.1 §12.5 says so. One sentence of disposition. Likewise v7.1's anti-analogy rule (*"TOP-k and
+  rank-based correlation acquire no standing merely by analogy"*) has no counterpart: §19 closes the promotion
+  routes it enumerates, and analogy is not among them.
+- **Publication apparatus** not carried over (not losses in a working draft, but flag for the revision): v7.1
+  §13.1's scope limit (*"Family admission is a set of obligations on a construction, not a claim that an
+  algorithm can discover every family"*), §13.2's two reference suites and four adversarial checks — **two of
+  which are C-L5 and C-L11 above** — and the references section; v8 cites [1]–[14] nowhere.
+
+## C.6 Correction to section E
+
+**E14 (Succession versus realization, §25) is withdrawn from the frozen list** pending C-L2's congruence clause.
+Everything else in section E stands. Section F gains C-L1, C-L3 and C-L6 as obligations; **F11 (contextual
+expressions) is upgraded from a drafting note to C.1 severity** for the reason in C-L3.
+
+---
+
 # D. Structural revision recommendations, ordered by importance
 
 **D1. Cut one of the four recapitulations.** §6, §28, §39 and §40 each restate the whole development, and §39
