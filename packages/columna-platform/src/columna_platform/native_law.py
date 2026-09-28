@@ -10,11 +10,15 @@ no family-law resolution at all. This is the next question, and it is a differen
 from the legacy engine — the rule below never mentions an anchor, a declaration, a level or a basis
 — but because the question itself is a question about the family's own governed law.
 
-THE RULE, IN TWO CLAUSES AND IN THIS ORDER
-------------------------------------------
+THE RULE, IN THREE CLAUSES AND IN THIS ORDER
+--------------------------------------------
   1. **C7 · sufficient-state bases** must be ESTABLISHED. Without a governed basis there is nothing
      from which a value of `F` can be determined, at any anchor.
-  2. **C3 · domain and movement** must POSITIVELY license the ask, and only when the ask is off the
+  2. **C7's basis must be the family's OWN.** A basis entailed by the FORMATION law rather than by
+     the family's own continuation reconstructs the value from other analytical objects; under ToD
+     v8 §9.2 that is not a route to FAMILY standing. Like clause 1 this holds at EVERY anchor,
+     including the constitutive one, so it is asked before `moving` is consulted.
+  3. **C3 · domain and movement** must POSITIVELY license the ask, and only when the ask is off the
      family's constitutive anchor. At the constitutive anchor the question does not arise:
      *constitutive* is what it means for the family to be established there.
 
@@ -62,6 +66,7 @@ from columna_core.governed.resolve import (
     ESTABLISHED,
     EXPLICIT_NONE,
     LawView,
+    is_basis_mediated,
     resolve_family,
 )
 
@@ -149,6 +154,28 @@ MOVEMENT_STANDING_UNDECIDED = MissingGovernedFact(
            "neither has given a content contract"),
 )
 
+#: The second fact C4 reaches and cannot obtain, added for ToD v8.0 (published 2026-09-28; the
+#: publication registry does not yet carry a record for it, so it is cited by version and section
+#: rather than by identifier — see the V8-1 report). v8 recognizes TWO durable analytical sorts —
+#: the continuation-bearing
+#: **measure family** `F@A` and the **governed expression** `E@A` — and `ADMITTED_KINDS` carries only
+#: the first. So when clause 2 declines family standing to a basis-mediated object, the object does
+#: not thereby become an expression: it becomes an object with NO admitted sort. That is the missing
+#: fact, and it is characterized here rather than represented, for the same reason as the movement
+#: slot above — inventing the encoding is the V8-1 design question, not C4's to answer.
+EXPRESSION_SORT_UNDECIDED = MissingGovernedFact(
+    fact=("which governed sort houses a durable analytical object whose value is determined by a "
+          "sufficient basis over OTHER families rather than carried by its own continuation. ToD v8 "
+          "§3.5 names such an object a GOVERNED EXPRESSION and §8.5 gives Manifold two reusable "
+          "analytical classes, but `ADMITTED_KINDS` admits `universe` and `family` only. The basis "
+          "itself is established and remains readable; what has no home is the object holding it"),
+    whose=("the steward who constitutes the declaration, once the governed publication contract "
+           "carries an expression sort. §3.7 forbids closing the gap by promotion: naming, caching, "
+           "repetition or durable governance does not make a result continuation-bearing"),
+    where=("the publication's admitted declaration kinds, and the declaration body that an "
+           "expression sort would define. Native v3's minor mechanism is the candidate vehicle"),
+)
+
 
 def assert_answerable(view: LawView, *, moving: bool) -> None:
     """**The decision, and the whole of it.** Raises `WantOfLaw`, or returns.
@@ -168,6 +195,28 @@ def assert_answerable(view: LawView, *, moving: bool) -> None:
             f"from which a value of this family can be determined — at this location or at any "
             f"other — so this is a defect of the family's own law and not of the ask",
             subject=view.canonical_reference)
+
+    # CLAUSE 2 · the basis must be the family's own (ToD v8 §9.2, §3.7).
+    #
+    # ASKED BEFORE `moving`, DELIBERATELY. Clause 3 is about reaching a different anchor; this is
+    # about whether the object is a family at all, which is an anchor-free question — so, like
+    # clause 1, it holds at the constitutive anchor too. Putting it after `if not moving` would have
+    # left the defect reachable at exactly the anchor where these objects are normally asked for.
+    #
+    # WHAT THIS IS NOT. It does not make the standing invalid, does not make `EXPLICIT_NONE`
+    # continuation invalid, does not delete the basis, and does not decide that the object IS an
+    # expression — `EXPRESSION_SORT_UNDECIDED` says why that last one is not C4's to decide. The
+    # basis stays on the view, machine-readable, for the layer that will own it.
+    if is_basis_mediated(c7):
+        raise WantOfLaw(
+            f"{view.canonical_reference!r} has a sufficient-state basis, but it is entailed by the "
+            f"family's FORMATION law rather than carried by the family's own continuation "
+            f"({c7.note}). A basis over other analytical objects reconstructs this value; it does "
+            f"not make the value continuation-bearing, and under ToD v8 it is not a route to family "
+            f"standing. {EXPRESSION_SORT_UNDECIDED.fact.split('.')[0]}. The basis is established and "
+            f"unchanged — what is missing is the sort that may hold it",
+            subject=view.canonical_reference)
+
     if not moving:
         return
 

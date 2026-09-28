@@ -6,6 +6,7 @@
 The controls below all use values that ADD UP. Every refusal is a refusal of standing, never of
 arithmetic — which is the proposition: matching analytical identity is necessary and not sufficient.
 """
+import json
 from dataclasses import replace
 from decimal import Decimal
 
@@ -80,7 +81,18 @@ def test_the_basis_continues_lawfully_and_finalizes_exactly(mean_view, admitted_
     assert final.is_sufficient_state is False
 
 
-def test_the_mean_serves_through_the_real_wire(mean_view, admitted_pair):
+def test_the_mean_does_NOT_serve_through_the_real_wire_as_a_family(mean_view, admitted_pair):
+    """RECLASSIFIED for ToD v8 (V8-0). This test asserted `outcome == "serve"` and a value of 9.
+
+    **The arithmetic was never wrong and is unchanged** — the basis still constitutes, still
+    continues, and still finalizes to 9 (see `test_the_composite_still_constitutes_...` below, which
+    keeps that half alive). What changed is the SORT of the object being served. `mean(revenue@...)`
+    earns its C7 basis from its FORMATION law, not from its own continuation, and ToD v8 §9.2
+    withdrew that as a route to family standing. So the wire must now refuse it AS A FAMILY MEMBER.
+
+    It is not refused for being wrong, unavailable, or stale. It is refused because the thing being
+    asked for is a family measure and this is not one — the governed expression sort that should hold
+    it does not exist yet (`native_law.EXPRESSION_SORT_UNDECIDED`)."""
     a, b = admitted_pair
     combined = composite.continue_composite(composite.constitute(mean_view, a, anchor="sale_at"),
                                             composite.constitute(mean_view, b, anchor="sale_at"))
@@ -90,8 +102,18 @@ def test_the_mean_serves_through_the_real_wire(mean_view, admitted_pair):
     w = serving.decide(mean_view, store, AnalyticalIdentity(MEAN_ID, "sale_at"), column="mean_revenue")
 
     assert w["contract_version"] == "5"
-    assert w["outcome"] == "serve"
-    assert w["columns"][0]["value"] == Decimal("9")
+    assert w["outcome"] == "refuse"
+    # and the refusal names the family/basis distinction, not an availability problem
+    assert "own continuation" in json.dumps(w)
+
+
+def test_the_composite_still_constitutes_continues_and_finalizes_to_nine(mean_view, admitted_pair):
+    """The half of the old test that v8 does NOT touch, kept explicitly so the containment cannot be
+    mistaken for having broken the arithmetic or the basis machinery."""
+    a, b = admitted_pair
+    combined = composite.continue_composite(composite.constitute(mean_view, a, anchor="sale_at"),
+                                            composite.constitute(mean_view, b, anchor="sale_at"))
+    assert composite.finalize(combined).value == Decimal("9")
 
 
 # ══ NEGATIVE CONTROL 1 · a finalized scalar is not sufficient state ══════════════════════════════
