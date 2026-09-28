@@ -277,7 +277,7 @@ the sort visible to a request without making it evaluable. V8-3 takes Proof C's 
 | suite | before V8-1 | after |
 |---|---|---|
 | platform | 361 passed | **368 passed** (+7, `test_v8_1_expression_sort_does_not_reclassify.py`) |
-| core | 1887 passed / 50 skipped | **1958 passed / 50 skipped** (+71, `test_v8_1_governed_expression.py`) |
+| core | 1887 passed / 50 skipped | **1959 passed / 50 skipped** (+71 `test_v8_1_governed_expression.py`, +1 the re-pin in `test_native_v3_reader.py`) |
 
 **Exactly one pre-existing test changed meaning, and it is the one that encoded the pre-v3.1 state:**
 `test_two_version_mechanisms_two_refusals[3.1-does not explicitly understand]` was the worked example
