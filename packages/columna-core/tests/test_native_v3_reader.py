@@ -237,7 +237,13 @@ def test_a_binding_citing_another_worlds_authority_refuses(raw):
     ("1.0", "format v1 artifact"),
     ("4.0", "has major 4"),
     ("3", "states a bare major"),
-    ("3.1", "does not explicitly understand"),
+    # **`"3.1"` MOVED OUT OF THIS LIST ON 2026-09-28, AND THE MOVE IS THE CONTRACT WORKING.** It sat
+    # here as the worked example of an unrecognised MINOR; V8-1 added it to
+    # `SUPPORTED_NATIVE_VERSIONS` by the deliberate act that set is for, so this build now
+    # understands it. The PROPERTY is unchanged and is pinned below at a minor nobody has added —
+    # which is the point the original case was making, and is why it is reclassified rather than
+    # deleted.
+    ("3.2", "does not explicitly understand"),
     ("three.oh", "expected 'MAJOR.MINOR'"),
 ])
 def test_two_version_mechanisms_two_refusals(raw, version, reason):
@@ -245,6 +251,25 @@ def test_two_version_mechanisms_two_refusals(raw, version, reason):
     d["publication_format_version"] = version
     with pytest.raises(NativePublicationRefusal, match=reason):
         parse_native_publication(d)
+
+
+def test_an_unadded_v3_minor_is_still_refused_and_is_never_inferred_from_sorting(raw):
+    """The rule `SUPPORTED_NATIVE_VERSIONS` exists to state, re-pinned after v3.1 was added to it:
+    *compatibility must be KNOWN, not presumed — a later minor is understood when it is added here by
+    a deliberate act, never because it sorts after this one.*
+
+    Both directions are asserted, because adding a minor is exactly the moment the set could quietly
+    become a floor: `"3.2"` sorts above the understood `"3.1"` and is still refused, and `"3.0"` is
+    still read even though it now sorts below the version this build writes."""
+    from columna_core.governed.native import SUPPORTED_NATIVE_VERSIONS
+    assert SUPPORTED_NATIVE_VERSIONS == ("3.0", "3.1")
+
+    later = copy.deepcopy(raw)
+    later["publication_format_version"] = "3.2"
+    with pytest.raises(NativePublicationRefusal, match="never because it sorts after this one"):
+        parse_native_publication(later)
+
+    assert parse_native_publication(raw).format_version == "3.0"
 
 
 def test_relabelling_a_v2_artifact_as_v3_is_not_a_path_in(raw):
