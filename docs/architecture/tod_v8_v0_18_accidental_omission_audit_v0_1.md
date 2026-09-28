@@ -28,8 +28,12 @@ reclassified as superseded and are recorded as such in §6.
 > relies on — two of them introduced by this very revision — which the manuscript never defines, because the
 > defining passage lived in a v7.1 section that was compressed away.**
 
-**No foundational blocker.** The largest single item is that **v0.18 restored the FIRST/LAST completeness
-*requirement* while v8 had already deleted the only *construction* v7.1 supplied to discharge it.**
+**No foundational blocker.** **Everything that concentrates is ordered families.** v8's treatment of
+FIRST/LAST inherited the *requirements* and shed the *machinery*: v0.18 restored the completeness premise
+while v8 had already deleted the only construction that discharges it (§4.1); §6.4 declares ordered families
+out of scope of the one family coherence theorem and never supplies the replacement (§4.12); the compression
+theorem that licenses root-only materialization for those families is gone (§4.5); and FIRST itself is never
+defined (§4.13). **Four of the five v7.1 chapters audited contributed a finding to this one area.**
 
 ---
 
@@ -297,6 +301,106 @@ Detection is **grouping-dependent**, which is why the fix cannot be pushed into 
 missing exactly where v8 defines the merge's \(s=t\) case as one that *"assumes compatible evidence for the
 same source point and value"* — the spot an implementer would bolt on a check.
 
+### 4.12 ⚡ v8 declares ordered families out of scope of its one family coherence theorem and never supplies the replacement
+
+**This is the largest structural gap the sweep found, and v8 says so itself.**
+
+Chapter 6 is titled *"Coherence, order, and **path independence**."* It proves path independence twice:
+**Proposition 6.2** for commutative monoid and semigroup **families**, and **Proposition 6.3** for
+**expressions** over a sufficient basis. §6.4's scope note then explicitly removes ordered families from the
+first:
+
+> *"This proposition establishes the canonical algebraic region of value closure. It does not define every
+> family law. **Ordered families, relation-sensitive families, or other stateful laws require their own
+> coherence premises.**"*
+
+**Those premises are never supplied.** §6.2 gives the *ingredient* —
+
+> *"The operation is associative and commutative over compatible witness states because every finite
+> compatible set has the same governed extremal point regardless of grouping or physical enumeration."*
+
+— and then immediately fences it: *"This does not make LAST a commutative-monoid law on scalar values."*
+**The coherence conclusion is never drawn.** `path-independen` occurs four times in v0.18: the chapter
+heading, and three times inside Propositions 6.2 and 6.3. Not once for the ordered witness law.
+
+v7.1 drew it, as a numbered result:
+
+> **Proposition 8.1 — Ordered witness families satisfy finite family coherence.** *"Under §8.2,
+> \((\mathsf V_{W,f},\oplus,\bot)\) is a commutative monoid. Its admitted finite continuation satisfies
+> Proposition 6.1."*
+
+The move v7.1 makes is the one v8 needs: the witness family is a commutative monoid **on its own carrier**
+\(\mathsf V_{W,f}\), which is exactly why the general theorem applies to it even though LAST is not a monoid
+law on scalars. v8 states both halves of that argument in §6.2 and never joins them.
+
+**So for FIRST and LAST — the law where staged-versus-direct evaluation is most dangerous, and the one this
+revision spent a restoration on — v8 has no path-independence result at all.** It is a self-acknowledged gap:
+§6.4 promises that these laws need their own premises and the paper never returns.
+
+**Repair.** Restore Proposition 8.1, or state in §6.2 that the witness carrier \((\mathsf V_{W,f},\oplus,\bot)\)
+is a commutative monoid and therefore falls under Proposition 6.2 — two sentences, using material already
+present in §6.2. This also supplies the missing half of §4.5: with 8.1 giving coherence and 8.2 giving the
+compression, the ordered-family story is closed.
+
+### 4.13 v0.18 never defines FIRST
+
+The restored completeness premise is stated for LAST only:
+
+> l.1204 — *"**For FIRST or LAST**, the governed order must be complete enough on every admitted contributing
+> fiber to determine the selected extremum. **For LAST**, every finite nonempty admitted fiber must have a
+> unique **greatest** participating point…"*
+
+There is no dual clause requiring a unique **least** participating point, and §6.2's merge defines only the
+later-wins case \((s<_St\Rightarrow(t,y))\). **FIRST is named four times in v0.18 and specified zero times**
+— §3.4's table row (*"FIRST/LAST-like results"*), §6.1's premise, §6.2's `⊥` warning, and §9.2's continuity
+recap. v7.1 supplied the dual in one clause each: *"FIRST uses the earlier witness instead"* and *"FIRST is
+symmetric."*
+
+**This one is introduced by v0.18**, since the premise it is missing from is new in this revision.
+
+### 4.14 What the witness compression costs — the bound on what "sufficient" buys
+
+v7.1 §8.6 closes the compression result with its price:
+
+> *"Its loss of nonwinning values does not invalidate that adequacy, but **it can prevent later restrictions,
+> deletions, or a change of order from being answered**."*
+
+`restriction` 0 · `deletion` 0 · `reorder` 0 in v0.18. This is the general statement of which §4.6
+(deletion-maintainability) and the coarsening/restriction item in §5 are the two special cases: **a lawfully
+compressed family value is adequate for the continuation it was certified for and for nothing else.** v8 has
+edge-relative value closure (l.302) and *"changed constitutive order ⇒ successor identity"* (l.1612), but
+never states that a compression lawful under the current law cannot answer a restricted, deleted, or
+re-ordered version of the same question.
+
+### 4.15 The two named non-repairs for a collapsing order representation
+
+v7.1 §7.3 names two ways an implementation fakes a complete order, and v8 keeps neither:
+
+> *"Several carrier records contributing to one \(S\)-point are **not several tied analytical points**. They
+> first require a lawful, coherent account of the operand at that point."*
+> *"If a physical priority value or truncated label maps distinct points to the same comparison
+> representation, **that representation has not realized the declared complete point order. Appending a
+> storage identifier or relying on sort stability is not a repair of analytical law.**"*
+
+`tied` 0 · `truncat` 0 · `storage identifier` 0. v8 retains only the fragments *"an arbitrary backend
+tie-breaker"* (l.1190) and *"a stable sort does not supply governed anchor-point order"* (l.2015).
+
+**This is the companion failure mode to §4.1, and together they bracket the restored premise.** v0.18 l.1204
+covers *too little order* — a partial order leaving relevant points incomparable. v7.1 §7.3 covers *false
+order* — a representation that looks total because it collapses distinct points. **v8 now states the
+requirement, supplies no construction for meeting it (§4.1), and names no test for when a representation only
+appears to meet it.**
+
+### 4.16 Intermediate anchors need no new point order
+
+v7.1 §8.4: *"For \(S\succeq B\succeq A\), the witness at \(B\) still identifies the winning **\(S\)-point**.
+The next combination uses \(\mathcal O_S\), **not a freshly invented order on \(B\)-point labels**."*
+
+v8's formalism implies this — its witness is a *source* witness and \(\oplus\) compares under \(<_S\) — but
+the prohibition is never stated, and it is a live anti-pattern (ordering Week labels rather than the source
+Days). Note that the rule is phrased in terms of \(\mathcal O_S\), the object dropped with §4.1.
+
+
 ---
 
 ## 5. Accidentally omitted — secondary
@@ -353,14 +457,25 @@ existing v7.1 text and none reopens v8's architecture.
 
 **In priority order:**
 
-1. **The multidimensional order construction** (§4.1) — v0.18 states the requirement and deleted the discharge.
-2. **Name ↔ identity resolution** (§4.2) — presupposed by the restored succession rule, and needed more by
+**The ordered-family cluster first — it is one repair, not four.** §§4.1, 4.5, 4.12, 4.13, 4.15 and 4.16 all
+concern FIRST/LAST, and restoring v7.1 §§7.1–7.3 and 8.1–8.6 closes every one of them:
+
+1. **Propositions 8.1 and 8.2** (§4.12, §4.5) — coherence and compression for the ordered witness law. §6.4
+   already promises these premises; the argument for 8.1 is two sentences using material in §6.2.
+2. **The multidimensional order construction** (§4.1) — v0.18 states the requirement and deleted the
+   discharge; with §4.15, v8 currently gives no construction *and* no falsity test.
+3. **Define FIRST** (§4.13) — one clause, in the premise this revision added.
+4. **§4.14 and §4.16**, a sentence each.
+
+**Then the four undefined terms:**
+
+5. **Name ↔ identity resolution** (§4.2) — presupposed by the restored succession rule, and needed more by
    v8's two-sort architecture than by v7.1's one.
-3. **The congruence obligation** (§4.3) — defines the `governed equivalence` both succession rules now invoke.
-4. **The target-specification obligation** (§4.4) — closes the target-side circularity v8 leaves open.
-5. **Proposition 8.2** (§4.5) — the theorem that licenses v8's own root-only doctrine for ordered families.
-6. **Deletion-maintainability** (§4.6) — v8 newly sanctions the cache this warns about.
-7. **§§4.7–4.11**, each a sentence or two.
+6. **The congruence obligation** (§4.3) — defines the `governed equivalence` both succession rules now invoke.
+7. **The target-specification obligation** (§4.4) — closes the target-side circularity v8 leaves open.
+8. **`formation`** (§3) — a Proposition 6.2 premise and, now, a succession trigger.
+
+**Then §§4.6–4.11**, each a sentence or two.
 
 **Everything else in v7.1 is either preserved, relocated to a better home, or genuinely made moot by the
 family/expression split.** The sweep found no case where v8 contradicts a v7.1 result.
