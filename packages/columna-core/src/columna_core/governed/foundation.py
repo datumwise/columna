@@ -165,14 +165,30 @@ class FoundationLaw:
           `identity`  a monoid identity exists, so an empty fiber lawfully folds to it;
           `no_value`  a commutative semigroup with no identity supplies no fold value — §11.5.1,
                       *"an empty eligible fiber receives no MIN/MAX value from the semigroup alone"*;
-          `not_applicable`  the family does not compose, so there is no fold to take.
+          `no_composition`  the law does not compose at all, so there is no fold to take.
+
+        **`no_composition` WAS SPELLED `not_applicable` UNTIL 2026-09-28, AND THE RENAME IS A
+        SEMANTIC REPAIR, NOT A TIDY-UP.** ToD v8 gives `NA` a precise and DIFFERENT meaning: §3.3's
+        codomain is `X_F ∪ {NA}` where `NA` denotes **resolved inapplicability of the measure at an
+        anchor location that exists** — a fact about one point, established by the family's own law,
+        and (endnote 3) explicitly not the software convention *not available*. What this property
+        reports is a fact about the LAW's algebra: whether a fold exists to take over an empty
+        contributing fiber. Those are different claims about different subjects, and one token cannot
+        carry both without deciding, silently, that a law which does not compose has thereby declared
+        every empty fiber inapplicable. No applicability model is introduced here; the collision is
+        removed BEFORE one is, so that `NA` can be introduced later against a vocabulary where the
+        spelling is free (recon §A.5, ledger item 16).
+
+        The three values remain ENTAILED from the algebra, never authored. An artifact may restate the
+        entailed value but may not contradict it (see the C9 block in `resolve`), so this rename can
+        refuse an artifact that redundantly declared the OLD spelling. No in-tree artifact does.
         """
         law = self.entails_continuation
         if law == NO_CONTINUATION:
-            return "not_applicable"
+            return "no_composition"
         other = LAWS.get(law)
         if other is None:                                   # pragma: no cover - guarded by selftest
-            return "not_applicable"
+            return "no_composition"
         return "identity" if other.has_identity else "no_value"
 
     def admits_operand(self, domain: str) -> bool:
