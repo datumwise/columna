@@ -154,8 +154,10 @@ MOVEMENT_STANDING_UNDECIDED = MissingGovernedFact(
            "neither has given a content contract"),
 )
 
-#: The second fact C4 reaches and cannot obtain, added for ToD v8 (published 2026-09-28, DOI
-#: 10.5281/zenodo.23018979). v8 recognizes TWO durable analytical sorts — the continuation-bearing
+#: The second fact C4 reaches and cannot obtain, added for ToD v8.0 (published 2026-09-28; the
+#: publication registry does not yet carry a record for it, so it is cited by version and section
+#: rather than by identifier — see the V8-1 report). v8 recognizes TWO durable analytical sorts —
+#: the continuation-bearing
 #: **measure family** `F@A` and the **governed expression** `E@A` — and `ADMITTED_KINDS` carries only
 #: the first. So when clause 2 declines family standing to a basis-mediated object, the object does
 #: not thereby become an expression: it becomes an object with NO admitted sort. That is the missing

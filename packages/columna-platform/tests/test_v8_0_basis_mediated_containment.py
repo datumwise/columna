@@ -1,6 +1,6 @@
 """V8-0 · basis-mediated family standing is contained.
 
-ToD v8.0 (DOI 10.5281/zenodo.23018979) §9.2 withdrew a route that Version 7.1 allowed:
+ToD v8.0 (published 2026-09-28) §9.2 withdrew a route that Version 7.1 allowed:
 
     a durable derived measure family could be justified EITHER by self-sufficient continuation
     OR by a sufficient-state basis.
