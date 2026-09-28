@@ -44,7 +44,7 @@ from columna_core.governed.publication import parse_publication
 from columna_core.governed.publication import CONSTRUCTION, PRIMITIVE, ExplicitNone
 from columna_core.governed.resolve import (
     C3_DOMAIN_MOVEMENT, C4_FORMATION, C7_SUFFICIENT_STATE, C8_CONTINUATION, ESTABLISHED,
-    EXPLICIT_NONE, resolve_all,
+    EXPLICIT_NONE, is_basis_mediated, resolve_all,
 )
 from columna_core.compiler.realization import EXACT, load_mapping, require_same_publication
 from columna_core.disclosure import Disclosure, Outcome
@@ -59,6 +59,38 @@ from . import request as _request
 from . import composite as _composite
 from . import formation as _formation
 from . import source as _source
+
+
+def _require_own_established_basis(view):
+    """C7 must be ESTABLISHED **and** carried by the family's own continuation.
+
+    **The v2 twin of `native_law`'s clauses 1 and 2**, in one place because three call sites asked
+    the first question and three copies of the second is how the fusion this repairs grew. The
+    criterion itself is single-sourced further up, in `columna_core.governed.resolve`: this function
+    asks `is_basis_mediated` and never compares a provenance token or reads `.note` for meaning.
+
+    The second check exists because ToD v8 §9.2 withdrew basis-mediated reconstruction as a route to
+    FAMILY standing. It does not invalidate the standing, delete the basis, or decide that the object
+    is a governed expression — `native_law.EXPRESSION_SORT_UNDECIDED` characterizes why that last one
+    is not decidable here. Callers that legitimately want the basis itself (`composite.declared_basis`)
+    do not come through this gate.
+
+    RETURNS the C7 standing, because every caller needs `c7.value` — the basis itself — immediately
+    afterwards. Refusing and then handing back the very thing that passed is the honest shape here:
+    the gate decides whether this object may be answered AS A FAMILY, and the basis it carries is
+    unaffected by that decision either way."""
+    c7 = view[C7_SUFFICIENT_STATE]
+    if c7.standing != ESTABLISHED:
+        raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
+                        subject=view.canonical_reference)
+    if is_basis_mediated(c7):
+        raise WantOfLaw(
+            f"sufficient-state basis is established but FORMATION-entailed, not carried by the "
+            f"family's own continuation ({c7.note}); under ToD v8 a basis over other analytical "
+            f"objects is not a route to family standing",
+            subject=view.canonical_reference)
+    return c7
+
 from .continuation import continue_to
 from .movement import MovementLicence
 from .refusals import (OutsideFamilyDomain, ProofRefusal, RealizationContradictsLaw,
@@ -604,10 +636,7 @@ def plan_result(pub, views: dict, statement, *, licences=()) -> FrameResult:
                 f"view was supplied for {req.family.family_id}; this path does not resolve law on "
                 f"the fly", subject=req.family.family_id)
 
-        c7 = view[C7_SUFFICIENT_STATE]
-        if c7.standing != ESTABLISHED:
-            raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
-                            subject=view.canonical_reference)
+        _require_own_established_basis(view)
 
         # MOVEMENT, ADJUDICATED ON LAW ALONE — which is all a pre-flight may touch. `check` and
         # `execute` must agree about whether an ask is askable, so the same licence question is
@@ -773,10 +802,7 @@ def run_result(pub, views: dict, mapping, bindings, statement, *,
                 f"the publication declares {req.family.canonical_reference!r} but no resolved law "
                 f"view was supplied for {req.family.family_id}", subject=req.family.family_id)
 
-        c7 = view[C7_SUFFICIENT_STATE]
-        if c7.standing != ESTABLISHED:
-            raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
-                            subject=view.canonical_reference)
+        c7 = _require_own_established_basis(view)
 
         # ── 2b. MOVEMENT AUTHORITY, ASKED HERE AND NOT LATER ────────────────────────────────────
         #
@@ -908,10 +934,7 @@ def decide_result(law_view, store: RetainedStateStore, identity: AnalyticalIdent
                 raise WantOfLaw(_no_licence_detail(law_view, identity.anchor, at_anchor),
                                 subject=law_view.canonical_reference)
 
-        c7 = law_view[C7_SUFFICIENT_STATE]
-        if c7.standing != ESTABLISHED:
-            raise WantOfLaw(f"sufficient-state basis is {c7.standing}",
-                            subject=law_view.canonical_reference)
+        _require_own_established_basis(law_view)
 
         # ── then state ──────────────────────────────────────────────────────────────────────────
         held = store.retrieve(identity)
