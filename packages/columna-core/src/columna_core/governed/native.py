@@ -67,7 +67,19 @@ from typing import Any, Iterable, Mapping, NoReturn, Optional
 
 # ── format ───────────────────────────────────────────────────────────────────────────────────────
 #: The native contract this module reads. **Complete MAJOR.MINOR, and the minor is required** (N9).
-NATIVE_PUBLICATION_FORMAT_VERSION = "3.0"
+#:
+#: **v3.0 → v3.1, 2026-09-28: the governed-expression sort is admitted.** ADDITIVE, and the word is
+#: exact: v3.0 artifacts are BYTE-IDENTICAL IN MEANING and are read by this build unchanged, because
+#: they carry no expression declarations and nothing about a family's reading moved. What changed is
+#: that one more declaration kind now has positive standing — and `ADMITTED_KINDS_BY_VERSION` makes
+#: that standing minor-relative, so a v3.0 artifact carrying an expression is still refused.
+#:
+#: **THIS LINE IS THE LAST THING THAT MOVED IN V8-1, DELIBERATELY** (ordered by Huayin, 2026-09-28:
+#: *"body contract → resolver/validation → Σ(E)/succession → tests → only then add `expression` to
+#: `ADMITTED_KINDS` and `"3.1"` to `SUPPORTED_NATIVE_VERSIONS`"*). The sort token is cheap and the
+#: constitution is not; admitting a kind before its body contract, its resolver and its
+#: canonicalization exist would be admitting a name.
+NATIVE_PUBLICATION_FORMAT_VERSION = "3.1"
 
 #: The MAJOR selecting the native semantic publication model.
 SUPPORTED_NATIVE_MAJOR = 3
@@ -77,13 +89,61 @@ SUPPORTED_NATIVE_MAJOR = 3
 #: `"3.1"` is a deliberate act stating this reader understands that contract — never inferred from
 #: `3.1 > 3.0`. v2 computes `int(version.split(".")[0])` and discards the remainder, so `"2.7"`
 #: reads as v2; that hole is not reproduced, and it is not retro-fitted to v1/v2 either (ruling 6).
-SUPPORTED_NATIVE_VERSIONS: tuple[str, ...] = ("3.0",)
+#:
+#: **`"3.1"` IS ADDED HERE BY A DELIBERATE ACT, WHICH IS THE WHOLE OF WHAT THIS SET MEANS.** Its own
+#: docstring says compatibility must be KNOWN, not presumed, and never inferred from `3.1 > 3.0`; this
+#: build understands the v3.1 contract because the expression body contract, its resolver, its `ecf-1`
+#: canonicalization and its succession rule are all in this tree. `"3.0"` stays, and stays FIRST: a
+#: v3.0 artifact is not migrated, is not relabelled, and is not read through a v3.1 lens.
+#:
+#: An older reader, whose copy of this set is `("3.0",)`, REFUSES a v3.1 artifact — and that is the
+#: contract working, not breaking. `read_version` says so in the refusal itself.
+SUPPORTED_NATIVE_VERSIONS: tuple[str, ...] = ("3.0", "3.1")
 
-#: **Positively admitted** declaration kinds. A kind is admitted because something licenses it,
-#: never because an earlier format carried it. `anchor` is absent because Case-S anchors are
-#: DERIVED (§5/N2) and Case G is unadmitted; `hierarchy`, `relationship`, `attribute` and
+#: **Positively admitted** declaration kinds, **PER MINOR**. A kind is admitted because something
+#: licenses it, never because an earlier format carried it. `anchor` is absent because Case-S anchors
+#: are DERIVED (§5/N2) and Case G is unadmitted; `hierarchy`, `relationship`, `attribute` and
 #: `crosswalk` have no native standing.
-ADMITTED_KINDS: frozenset[str] = frozenset({"universe", "family"})
+#:
+#: **WHY THIS IS A MAP AND NOT A SET, AS OF v3.1.** `expression` is admitted at v3.1 and at NO
+#: EARLIER MINOR, and that is the whole of what "additive" means here. A v3.0 artifact carrying an
+#: expression declaration is REFUSED — not because the sort is unlawful, but because v3.0's contract
+#: does not admit it, and a reader that accepted one would be deciding on the artifact's behalf that
+#: the minor it declared was a formality. Compatibility among minors is KNOWN, not presumed (N9), and
+#: a kind set that ignored the minor would be presuming it in the one direction that loses meaning:
+#: silently reading a sort the declaring contract never claimed to carry.
+#:
+#: The converse direction is the contract's own design and needs nothing here: a v3.0-only reader
+#: refuses a v3.1 artifact at `read_version`, because `"3.1"` is not in ITS `SUPPORTED_NATIVE_VERSIONS`.
+ADMITTED_KINDS_BY_VERSION: dict[str, frozenset[str]] = {
+    "3.0": frozenset({"universe", "family"}),
+    "3.1": frozenset({"universe", "family", "expression"}),
+}
+
+#: The kinds admitted at the version THIS build writes. Kept as a name because it reads as the
+#: contract's own statement of what exists; every gate asks `admitted_kinds(version)` instead.
+ADMITTED_KINDS: frozenset[str] = ADMITTED_KINDS_BY_VERSION[NATIVE_PUBLICATION_FORMAT_VERSION]
+
+
+def admitted_kinds(version: str) -> frozenset[str]:
+    """The declaration kinds admitted at `version`. Only ever called with a version `read_version`
+    has already accepted, so an unknown minor here is a structural defect, not an artifact one."""
+    kinds = ADMITTED_KINDS_BY_VERSION.get(version)
+    if kinds is None:                                       # pragma: no cover - structural guard
+        _refuse(f"no admitted-kind set is recorded for native version {version!r}.")
+    return kinds
+
+
+def minor_admitting(kind: str) -> Optional[str]:
+    """The EARLIEST supported minor that admits `kind`, or `None` if no minor does.
+
+    Exists so a refusal can say *"`expression` is admitted at v3.1; this artifact declares v3.0"*
+    rather than *"unknown kind"*. The difference matters to a steward: the first is a version to
+    re-declare under, the second is a sort that does not exist."""
+    for version in SUPPORTED_NATIVE_VERSIONS:
+        if kind in ADMITTED_KINDS_BY_VERSION.get(version, frozenset()):
+            return version
+    return None
 
 TOP_LEVEL_KEYS: frozenset[str] = frozenset(
     {"publication_format_version", "ref", "published", "declarations"})
@@ -125,6 +185,90 @@ IDENTITY_KEYS: frozenset[str] = FAMILY_BODY_KEYS - NON_IDENTITY_KEYS
 #: structure entering the payload as `_anchor`.
 NOMINAL_KEYS: frozenset[str] = frozenset({"universe", "constitutive_anchor"})
 FCF2_IDENTITY_KEYS: frozenset[str] = IDENTITY_KEYS - NOMINAL_KEYS
+
+# ── the GOVERNED EXPRESSION — a SIBLING of the family, admitted at native v3.1 ────────────────────
+#
+# ToD v8.0 §3.5 recognizes TWO durable analytical sorts, and §8.5 gives Manifold *"two distinct
+# reusable analytical classes"*. This contract has only ever carried one. The second is the GOVERNED
+# EXPRESSION: a durable object whose value is determined by a SUFFICIENT BASIS over other governed
+# families rather than carried by its own continuation. `mean(revenue@sale_at)` is the worked case,
+# and v8 §4.3 establishes it over a matching SUM and COUNT.
+#
+# **IT IS A SIBLING, NOT A VARIANT OF `Family`, AND THE KEY SETS BELOW ARE WHERE THAT IS ENFORCED.**
+# Ruled (Huayin, 2026-09-28): *"Build `Expression` as a true sibling of `Family`. Do not implement it
+# as `Family(continuation=None)` or route it through `resolve_family`."* Five family body keys are
+# therefore ABSENT here, each because carrying it would assert a family fact:
+#
+#   `constitutive_anchor`      §3.2's `R_F` is the ORIGIN OF CONTINUATION, and an expression has no
+#                              continuation to originate. An expression is EVALUATED at an anchor,
+#                              which is a property of a REQUEST, not of a declaration. It does have
+#                              CONSTITUTIVE INNER anchors (§3.6) — `mean(Revenue@Order)@Region` is
+#                              constituted over `Order` and evaluated at `Region` — and that is a
+#                              DIFFERENT FACT, spelled `inner_anchors` so that no consumer can reach
+#                              an expression through the slot it reads a family's root from.
+#   `continuation`             (C8) the whole point of the sort is that there is none.
+#   `movement`                 (C3 edge validity) movement is family continuation under licence.
+#   `prohibited_constituents`  (`P_F`) a family-domain law.
+#   `exceptional`              (C9) an expression's empty behaviour comes from its CONSTRUCTOR OVER
+#                              ITS BASIS, which v8 §4.3 states precisely for the case at hand: the
+#                              SUM/COUNT basis is established as `(0, 0)` and *"the expression is
+#                              undefined on that basis"* at `n = 0`. That is a different fact from a
+#                              LAW having no fold to take, which is what `no_composition` names.
+#
+# And three keys are genuinely new: `operands` carries ROLES, because v8 §5.3's basis is role-indexed
+# `(G₁…G_m)` and a position is not a role; `inner_anchors`; and `admitted_bases`.
+EXPRESSION_KEYS: frozenset[str] = frozenset({
+    "kind", "name", "body", "expression_constitution_authority", "universe_authority_binding"})
+
+#: Body keys a native expression declaration may carry. TOTAL — an unrecognised key is a refusal,
+#: exactly as for a family. Required: `expression_id`, `canonical_reference`, `universe`,
+#: `constructor`, `operands`, `participation`. The rest are optional and NORMALIZE (see `ecf-1`).
+EXPRESSION_BODY_KEYS: frozenset[str] = frozenset({
+    "expression_id", "canonical_reference", "aliases", "universe", "constructor", "operands",
+    "inner_anchors", "participation", "scope", "parameters", "admitted_bases"})
+
+#: Keys OUTSIDE `Σ(E)`. Identity cannot be part of its own determinant; a canonical reference and its
+#: aliases are labels.
+#:
+#: **`admitted_bases` IS IN THIS SET, AND THAT IS A RULING, NOT A CONVENIENCE** (Huayin, 2026-09-28):
+#: *"A sufficient basis is an establishment route. v8 allows more than one sufficient basis for the
+#: same expression, and alternative lawful bases must agree. Therefore do not fingerprint 'the
+#: selected basis' into Σ(E) merely because the first implementation has one basis… The distinction I
+#: want preserved is: expression identity ≠ one particular sufficient basis used to establish it."*
+#:
+#: Two consequences, both of which the default would have got wrong. Admitting a SECOND lawful route
+#: to the same expression would otherwise mint a successor — an expression would change identity
+#: because someone learned a new way to compute it. And two artifacts admitting different subsets of
+#: the same lawful routes would otherwise be two expressions, so a reader could not tell a genuine
+#: succession from a difference of coverage. `admitted_bases` is governed, versioned and auditable
+#: through publication history exactly as `prohibited_constituents` is on a family; what it is not is
+#: constitutive.
+EXPRESSION_NON_IDENTITY_KEYS: frozenset[str] = frozenset(
+    {"expression_id", "canonical_reference", "aliases", "admitted_bases"})
+EXPRESSION_IDENTITY_KEYS: frozenset[str] = EXPRESSION_BODY_KEYS - EXPRESSION_NON_IDENTITY_KEYS
+
+#: The NOMINAL references that leave the `ecf-1` payload, for the reasons `fcf-2` established: the
+#: `universe` SPELLING is not the governed world — the U-authority binding is — and an anchor TOKEN
+#: is not an anchor. Both stay in the declaration; what they lose is the pretence that a spelling was
+#: identity. The resolved inner anchors enter the payload as `_inner_anchors`.
+EXPRESSION_NOMINAL_KEYS: frozenset[str] = frozenset({"universe", "inner_anchors"})
+ECF1_IDENTITY_KEYS: frozenset[str] = EXPRESSION_IDENTITY_KEYS - EXPRESSION_NOMINAL_KEYS
+
+#: **The expression's canonicalization scheme, and there is exactly one.** `fcf` needed two because
+#: it acquired the U-authority binding and resolved anchors AFTER families were already established
+#: under a spelling-based digest, and `fcf-1` had to keep meaning what it meant. An expression sort
+#: minted today has no such era behind it, so `ecf-1` starts where `fcf-2` ended: the world governed
+#: through the binding, the anchors resolved. The number is still in the name, because the scheme is
+#: what tells a reader WHICH derivation produced a digest, and that is true of a scheme that is
+#: currently alone.
+ECF1 = "ecf-1"
+
+EXPRESSION_AUTHORITY_KEYS: frozenset[str] = frozenset(
+    {"established_by", "at", "constitution_fingerprint", "fingerprint_scheme"})
+OPERAND_KEYS: frozenset[str] = frozenset({"role", "family_id"})
+BASIS_KEYS: frozenset[str] = frozenset({"basis_id", "components", "requires_common_participation"})
+BASIS_COMPONENT_KEYS: frozenset[str] = frozenset({"role", "family_id"})
+CONSTRUCTOR_KEYS: frozenset[str] = frozenset({"vocabulary", "version", "law"})
 
 CONSTITUTION_KEYS: frozenset[str] = frozenset({"identity", "individuation", "law", "premises"})
 IDENTITY_SECTION_KEYS: frozenset[str] = frozenset({"designation"})
@@ -561,6 +705,143 @@ class Resolution:
     anchor: Anchor
 
 
+# ── N4b · the governed expression, and its governance record ─────────────────────────────────────
+@dataclass(frozen=True)
+class ExpressionAuthority:
+    """Who established this expression's constitution, when, and under which scheme.
+
+    Four fields identical to `FamilyAuthority`'s, and **a separate type on purpose.** The content is
+    sort-agnostic; the SUBJECT is not. A single shared record would be the first place a consumer
+    could hold an expression's standing in a variable typed for a family's, and the whole discipline
+    of this unit is that the two sorts do not pass for each other anywhere."""
+
+    established_by: str
+    at: str
+    fingerprint: str
+    scheme: str
+
+
+@dataclass(frozen=True)
+class Operand:
+    """One ROLE-INDEXED governed operand of an expression's constructor.
+
+    **The role is the point.** `Family.formation.operands` is a bare tuple, so an operand is
+    identified by its POSITION — and v8 §5.3's basis is role-indexed `(G₁…G_m)`. Position survives a
+    reordering of a serialization; a role does not, which is exactly why a role can be identity-
+    bearing and a position cannot. (`composite.Component.law` already keys by role at runtime, with no
+    declared counterpart to read it from. This is that counterpart.)"""
+
+    role: str
+    family_id: str
+
+
+@dataclass(frozen=True)
+class BasisComponent:
+    """One component of one admitted sufficient basis: a component LAW, and the governed family whose
+    state supplies it.
+
+    `role` here is the component law's name — `SUM`, `COUNT` — and NOT a constructor operand role.
+    Two different role spaces, kept in two types, because collapsing them is how `(Count, SumX, SumX²,
+    SumXY)` (v8 §5.4) would come to be read as four operands of a one-operand constructor."""
+
+    role: str
+    family_id: str
+
+
+@dataclass(frozen=True)
+class AdmittedBasis:
+    """**ONE admitted sufficient basis — and an expression may admit zero, one, or several.**
+
+    Ruled (Huayin, 2026-09-28): *"Please make the record structurally capable of zero/one/multiple
+    admitted bases, even if the first executable proof uses one."* So this is a member of a TUPLE on
+    the record, never a singular `declared_basis` field, and the resolver's agreement responsibility
+    exists because the tuple can have more than one member (v8: *alternative lawful bases must
+    agree*).
+
+    **ZERO IS A LEGIBLE STATE, NOT A DEFECT AT READ** — the same posture `unbound_families` takes. An
+    expression may be constituted before any establishment route is admitted; what it may not do is
+    be RESOLVED as established. That verdict belongs to the resolver, not to the reader.
+
+    `requires_common_participation` is **per basis** and deliberately not read off the constructor's
+    law. `foundation.StateBasis` carries it on the LAW, which states a requirement the law makes of
+    ANY basis; this states what THIS admitted route was established under. They must agree, and the
+    resolver checks that they do — which is a check that cannot exist while there is only one place
+    to look."""
+
+    basis_id: str
+    components: tuple[BasisComponent, ...]
+    requires_common_participation: bool
+
+    @property
+    def component_laws(self) -> tuple[str, ...]:
+        """The component law names, SORTED. A basis is a set of role-filled components; the order a
+        serialization happened to use is not one of its facts."""
+        return tuple(sorted(c.role for c in self.components))
+
+
+@dataclass(frozen=True)
+class Expression:
+    """**A durable governed expression — `E`, the second of v8's two reusable analytical sorts.**
+
+    Read the key-set commentary above for what is absent and why. What is present is the minimum that
+    v8 §3.5, §3.6, §5.3 and §7.3 require: a constructor, role-indexed governed operands, constitutive
+    inner anchors, participation and scope, identity-bearing parameters, and the admitted bases.
+
+    **This record answers no family question.** It has no root, no family domain, no continuation, no
+    movement and no empty-fiber family law, and there is nowhere on it to put one. That is not an
+    omission to be filled in later: each of those is a statement about continuation under refinement,
+    and an expression's value does not continue — it is RE-EVALUATED from a basis at each location it
+    is asked for. An expression that could answer them would be a family."""
+
+    name: str
+    expression_id: str
+    canonical_reference: str
+    universe_reference: str
+    #: The CONSTITUTIVE INNER anchor tokens (§3.6), in declaration order. **Not a root**, and there is
+    #: deliberately no `anchor_token` singular: an expression may be constituted over several inner
+    #: anchors, and reducing them to one would be inventing a root.
+    inner_anchor_tokens: tuple[str, ...]
+    operands: tuple[Operand, ...]
+    admitted_bases: tuple[AdmittedBasis, ...]
+    body: Mapping[str, Any]
+    authority: ExpressionAuthority
+    #: **REQUIRED, not optional** — the one place this record is stricter than `Family`'s, and the
+    #: reason is `ecf-1`. The scheme takes the `universe` SPELLING out of the identity payload on the
+    #: ground that the world is governed through the binding. An UNBOUND expression would therefore
+    #: carry a world that is in no payload and under no authority: a hole, not a transition. Families
+    #: may be unbound because `fcf-1` predates the binding and hashed the spelling instead; an
+    #: expression has no such history to be compatible with.
+    binding: "UniverseAuthorityBinding"
+
+    @property
+    def aliases(self) -> tuple[str, ...]:
+        return tuple(a for a in (self.body.get("aliases") or []) if isinstance(a, str) and a)
+
+    @property
+    def roles(self) -> tuple[str, ...]:
+        return tuple(o.role for o in self.operands)
+
+    def operand(self, role: str) -> Optional[Operand]:
+        for o in self.operands:
+            if o.role == role:
+                return o
+        return None
+
+    def basis(self, basis_id: str) -> Optional[AdmittedBasis]:
+        for b in self.admitted_bases:
+            if b.basis_id == basis_id:
+                return b
+        return None
+
+    @property
+    def operand_family_ids(self) -> tuple[str, ...]:
+        """Every governed family this expression's IDENTITY runs through — its operands, and nothing
+        else. **The bases are not here.** v8 §7.1 keeps family / expression / carrier lineage apart,
+        and an expression's ancestry runs through its OPERANDS; a basis is a route to a value, and a
+        route is not a parent."""
+        return tuple(sorted({o.family_id for o in self.operands}))
+
+
 # ── N5 · governed currency ───────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class CurrencyClaim:
@@ -766,6 +1047,76 @@ def family_fingerprint(family: Family, universe: Universe, scheme: str) -> str:
     return f"{scheme}:{_digest(canonical_family_payload(family, universe, scheme))}"
 
 
+# ── ecf — `Σ(E)`, the expression's own canonicalization ──────────────────────────────────────────
+#: The canonical empty for each `ecf-1` identity key. **`ecf-1` IS TOTAL OVER ITS IDENTITY KEYS**,
+#: which is the one place it does NOT copy `fcf`: `canonical_family_payload` writes a key only `if key
+#: in body`, so for a family an ABSENT optional key and a key DECLARED EMPTY produce two different
+#: digests — two identities for one analytical fact. That hole is not reproduced. An expression that
+#: declares `"scope": ""` and one that omits `scope` are making the same statement, so they digest the
+#: same, and a steward cannot change an expression's identity by adding a key that says nothing.
+#:
+#: The rule is the module's own: silence is not representable. Here it is applied to the digest.
+_ECF1_EMPTY: dict[str, Any] = {"participation": "", "scope": "", "parameters": {}, "operands": []}
+
+
+def canonical_expression_payload(expr: Expression, universe: Universe) -> dict[str, Any]:
+    """`Σ(E)` under `ecf-1` — the semantics-only structure that IS this expression's identity.
+
+    From v8 §7.3's own list, and nothing added: **constructor · governed operand identities · operand
+    roles · constitutive inner anchors · participation and scope · identity-bearing parameters.**
+
+    **WHAT IS NOT IN IT, AND WHY EACH ABSENCE IS A DECISION.**
+
+    * `admitted_bases` — ruled out (see `EXPRESSION_NON_IDENTITY_KEYS`). A sufficient basis is an
+      establishment route; v8 admits several for one expression; identity is not one of them.
+    * `expression_id`, `canonical_reference`, `aliases` — identity is not part of its own determinant,
+      and a reference is a label.
+    * the `universe` SPELLING — governed through the U-authority binding, which cites the world's own
+      attestation. This is `fcf-2`'s correction, applied from birth.
+
+    **OPERANDS ARE SORTED BY ROLE, AND THE ROLE IS WHAT CARRIES THE ORDER.** A role-indexed tuple has
+    no serialization order to preserve — `[{SUM}, {COUNT}]` and `[{COUNT}, {SUM}]` are one basis — so
+    sorting by role is what makes reordering non-identity-bearing WITHOUT losing which family filled
+    which role. That is exactly the trade a bare positional tuple cannot make, and it is why the role
+    exists on the record.
+
+    **INNER ANCHORS ARE RESOLVED, AS A SORTED SET OF SORTED CONSTITUENT SETS.** `_inner_anchors` is
+    underscore-prefixed for the reason `_scheme` and `_anchor` are: the loop below copies body keys
+    verbatim, so a DERIVED value wearing a body key's name would be the one thing nobody could later
+    tell apart from a DECLARED one, inside the digest, where that distinction is the whole doctrine.
+    Resolving them also collapses synonyms — two tokens denoting one constituent set are one anchor —
+    which is the same dividend `Anchor` gives `AnalyticalIdentity`."""
+    resolved: list[list[str]] = []
+    for token in expr.inner_anchor_tokens:
+        anchor = universe.denote(token)
+        if anchor is None:
+            _refuse(
+                f"expression {expr.name!r} is governed by `{ECF1}`, and its constitutive inner "
+                f"anchor {token!r} denotes no Case-S anchor of universe {universe.name!r} in this "
+                f"publication. There is no payload to digest, and there is NO FALLBACK to a "
+                f"spelling-based scheme: falling back would attest a token in place of the structure "
+                f"this expression's identity is stated in."
+            )
+        resolved.append(sorted(anchor.constituents))
+    payload: dict[str, Any] = {
+        "_scheme": ECF1,
+        "_inner_anchors": sorted(resolved),
+    }
+    body = expr.body
+    for key in sorted(ECF1_IDENTITY_KEYS):
+        if key == "operands":
+            payload[key] = [{"role": o.role, "family_id": o.family_id}
+                            for o in sorted(expr.operands, key=lambda o: o.role)]
+            continue
+        payload[key] = body[key] if key in body else _ECF1_EMPTY[key]
+    return payload
+
+
+def expression_fingerprint(expr: Expression, universe: Universe) -> str:
+    """The scheme-qualified digest, `"ecf-1:<digest>"`."""
+    return f"{ECF1}:{_digest(canonical_expression_payload(expr, universe))}"
+
+
 # ── the publication ──────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class NativePublication:
@@ -785,6 +1136,12 @@ class NativePublication:
     published_at: str
     universes: tuple[Universe, ...]
     families: tuple[Family, ...]
+    #: **The second sort, in its own tuple.** Not appended to `families`, and not a subtype of one:
+    #: a consumer iterating `families` iterates families, at every native minor, and a consumer that
+    #: wants expressions asks for them. That is what keeps "a v3.1-capable reader reads v3.0 family
+    #: artifacts unchanged" true by construction rather than by review. Defaulted so that every
+    #: existing construction of this record keeps its exact meaning.
+    expressions: tuple["Expression", ...] = ()
 
     def universe(self, name: str) -> Universe:
         for u in self.universes:
@@ -819,7 +1176,74 @@ class NativePublication:
             aliases = [a for a in (f.body.get("aliases") or []) if isinstance(a, str)]
             if reference in (f.name, f.family_id, f.canonical_reference, *aliases):
                 return f
+        # **THE SORT IS NAMED, AND THAT IS THE WHOLE POINT OF THIS ARM** (ToD v8 §3.7). A reference
+        # that names a governed EXPRESSION has not failed to resolve — it has resolved, to the other
+        # sort. Reporting "no family is referenced by X" would send a steward to fix a publication
+        # that is correct, and is the same defect V8-0 found at the C7 seam: a capability limit
+        # reported as a governed absence. §3.7 forbids closing the gap the other way, by promotion.
+        for e in self.expressions:
+            if reference in (e.name, e.expression_id, e.canonical_reference, *e.aliases):
+                _refuse(
+                    f"{reference!r} names a governed EXPRESSION in this publication "
+                    f"({e.expression_id}), not a measure family. The two are distinct durable "
+                    f"analytical sorts: a family's values CONTINUE under refinement from its own law, "
+                    f"and an expression's are RE-EVALUATED from a sufficient basis at each location "
+                    f"it is asked for. Ask for it as an expression — `expression()` or "
+                    f"`resolve_expression_reference()`. It is not promoted to a family by being "
+                    f"named, cached, repeated or durably governed."
+                )
         _refuse(f"no family in this publication is referenced by {reference!r}.")
+
+    # ── the second sort's own resolution, kept ONE DIRECTION at a time ────────────────────────
+    def resolve_expression_reference(self, reference: str) -> Optional["Expression"]:
+        """**Reference → expression.** The sibling of `resolve_reference`, and deliberately a SECOND
+        METHOD rather than a widened first one.
+
+        A caller that widened `resolve_reference` to return either sort would have to ask what came
+        back what it is, at every call site, forever — and the one that forgot would be the one that
+        served an expression as a family. Asking the question before the call instead of after is the
+        difference, and `sort_of` below exists so it can be asked once."""
+        for e in self.expressions:
+            if reference == e.canonical_reference or reference in e.aliases:
+                return e
+        return None
+
+    def expression(self, reference: str) -> "Expression":
+        """Resolve an expression by name, `expression_id`, canonical reference or alias — all four
+        unique within the artifact, and unique ACROSS the sorts, enforced at read."""
+        for e in self.expressions:
+            if reference in (e.name, e.expression_id, e.canonical_reference, *e.aliases):
+                return e
+        for f in self.families:
+            aliases = [a for a in (f.body.get("aliases") or []) if isinstance(a, str)]
+            if reference in (f.name, f.family_id, f.canonical_reference, *aliases):
+                _refuse(
+                    f"{reference!r} names a governed measure FAMILY in this publication "
+                    f"({f.family_id}), not an expression. A basis-mediated family declaration does "
+                    f"not become an expression because a reader now knows that sort: parsing "
+                    f"compatibility is not analytical reclassification, and the remedy is an explicit "
+                    f"re-authoring into an expression declaration by someone with authority to make "
+                    f"it."
+                )
+        _refuse(f"no expression in this publication is referenced by {reference!r}.")
+
+    def sort_of(self, reference: str) -> Optional[str]:
+        """`"family"`, `"expression"`, or `None` — **the dispatch question, asked once.**
+
+        The seam a peer request target will attach to (V8-2), and it exists now so that the target has
+        a lawful object to point at rather than a widened family lookup to bend. **Nothing in this
+        build routes on it yet**, and no serving path is touched by this unit.
+
+        `None` is genuinely unresolved and is NOT a third sort: it means the publication carries no
+        governed object under that reference, which is the answer a refusal should be built from."""
+        for f in self.families:
+            aliases = [a for a in (f.body.get("aliases") or []) if isinstance(a, str)]
+            if reference == f.canonical_reference or reference in aliases:
+                return "family"
+        for e in self.expressions:
+            if reference == e.canonical_reference or reference in e.aliases:
+                return "expression"
+        return None
 
     def resolve(self, reference: str) -> Resolution:
         """**`F → U → A`.** The whole of contextual resolution, and the only way to reach an
@@ -870,6 +1294,25 @@ class NativePublication:
                 f"{scheme} constitution", f.name,
                 CURRENT if recomputed == f.authority.fingerprint else STALE,
                 f"recomputes to {recomputed.split(':', 1)[1][:16]}…"))
+        # THE SECOND SORT REPORTS UNDER ITS OWN SCHEME AND ITS OWN SUBJECT. Not folded into the family
+        # rows: a reader showing what it checked must be able to show WHICH SORT it checked it on, and
+        # `ecf-1` and `fcf-*` are incomparable digests over different identity-bearing key sets.
+        for x in self.expressions:
+            u = self.universe(x.universe_reference)
+            claims.append(CurrencyClaim(
+                "U-authority binding", x.name, BOUND,
+                f"cites the attestation carried on {u.name!r}; required for every expression"))
+            recomputed = expression_fingerprint(x, u)
+            claims.append(CurrencyClaim(
+                f"{ECF1} constitution", x.name,
+                CURRENT if recomputed == x.authority.fingerprint else STALE,
+                f"recomputes to {recomputed.split(':', 1)[1][:16]}…"))
+            claims.append(CurrencyClaim(
+                "admitted bases", x.name,
+                "NONE" if not x.admitted_bases else f"{len(x.admitted_bases)}",
+                "zero is legible, not a defect at read: an expression may be constituted before an "
+                "establishment route is admitted. Whether it RESOLVES as established is the "
+                "resolver's verdict, not this reader's"))
         return CurrencyReport(tuple(claims))
 
 
@@ -1227,6 +1670,236 @@ def _read_family(raw: Mapping[str, Any], universes: Mapping[str, Universe]) -> F
     return family
 
 
+def _read_constructor(what: str, raw: Any) -> dict[str, Any]:
+    """The constructor citation, validated as a CITATION and **not resolved**.
+
+    This reader does not import `foundation` and must not: whether `datumwise.foundation/1#MEAN` names
+    a law this build knows is a question for the layer that holds the vocabulary, and answering it here
+    would make the artifact boundary depend on which laws happen to be registered. What is checked is
+    the only thing checkable from the bytes — that the citation names a vocabulary, a version and a
+    law, because *a bare law name is not a citation*."""
+    d = _obj(f"{what}: `constructor`", raw)
+    _strict(f"{what} constructor", d, CONSTRUCTOR_KEYS)
+    for key in sorted(CONSTRUCTOR_KEYS):
+        _req(f"{what} constructor", d, key)
+    return d
+
+
+def _read_roles(what: str, label: str, raw: Any, keys: frozenset, families: Mapping[str, Any],
+                *, required: bool) -> tuple[tuple[str, str], ...]:
+    """A role-indexed list of governed family references: `[{role, family_id}, …]`.
+
+    Shared by `operands` and a basis's `components` because the STRUCTURAL contract is identical — a
+    non-empty list, distinct roles, every `family_id` resolving to a governed family in this
+    publication. What the roles MEAN differs, and that is why the two live in two types on the record
+    rather than one; a shared reader is not a shared meaning.
+
+    **A DANGLING `family_id` REFUSES**, for the reason a dangling universe reference does: a governed
+    reference resolves inside its publication and nowhere else, so an expression citing an operand the
+    artifact does not carry is not under-specified, it is wrong."""
+    if raw is None and not required:
+        return ()
+    if not isinstance(raw, list) or not raw:
+        _refuse(f"{what}: {label!r} must be a non-empty list of role-indexed entries; got {raw!r}")
+    out: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for entry in raw:
+        d = _obj(f"{what}: a {label} entry", entry)
+        _strict(f"{what} {label} entry", d, keys)
+        role = _req(f"{what} {label} entry", d, "role")
+        fid = _req(f"{what} {label} entry", d, "family_id")
+        if role in seen:
+            _refuse(
+                f"{what}: {label!r} fills role {role!r} twice. A role is an INDEX, not a label: two "
+                f"entries under one role state two different things about one position and there is "
+                f"no rule for choosing between them."
+            )
+        seen.add(role)
+        if fid not in families:
+            _refuse(
+                f"{what}: {label!r} role {role!r} names family {fid!r}, which is not declared in this "
+                f"publication. A governed operand reference resolves inside its publication and "
+                f"nowhere else."
+            )
+        out.append((role, fid))
+    return tuple(out)
+
+
+def _read_expression(raw: Mapping[str, Any], universes: Mapping[str, Universe],
+                     families: Mapping[str, Family]) -> Expression:
+    """**Read one governed-expression declaration, or refuse it.**
+
+    Deliberately NOT `_read_family` with branches. The two readers share `_strict`, `_obj` and `_req`
+    — the strictness discipline — and nothing else, because every check below is about a fact a family
+    does not have and none of the family checks it omits are optional for a family. A shared reader
+    would have had to make each of them conditional, and a conditional check is one an artifact can
+    steer."""
+    name = _req("an expression declaration", raw, "name")
+    what = f"expression {name!r}"
+    _strict(what, raw, EXPRESSION_KEYS)
+    body = _obj(f"{what}: `body`", raw.get("body"))
+    _strict(f"{what} body", body, EXPRESSION_BODY_KEYS)
+
+    expression_id = _req(what, body, "expression_id")
+    canonical_reference = _req(what, body, "canonical_reference")
+    universe_reference = _req(what, body, "universe")
+    _req(what, body, "participation")
+    _read_constructor(what, body.get("constructor"))
+
+    if universe_reference not in universes:
+        _refuse(
+            f"{what} names universe {universe_reference!r}, which is not declared in this "
+            f"publication. An expression's universe reference resolves inside its publication and "
+            f"nowhere else."
+        )
+    u = universes[universe_reference]
+
+    # ── operands, role-indexed ────────────────────────────────────────────────────────────────
+    operands = tuple(Operand(role=r, family_id=f) for r, f in
+                     _read_roles(what, "operands", body.get("operands"), OPERAND_KEYS, families,
+                                 required=True))
+
+    # ── constitutive inner anchors (§3.6) — resolved, and NOT a root ──────────────────────────
+    raw_inner = body.get("inner_anchors")
+    if raw_inner is None:
+        inner: tuple[str, ...] = ()
+    else:
+        if not isinstance(raw_inner, list) or not all(isinstance(x, str) and x for x in raw_inner):
+            _refuse(f"{what}: `inner_anchors` is a list of anchor tokens (possibly absent); got "
+                    f"{raw_inner!r}")
+        dupes = sorted({x for x in raw_inner if raw_inner.count(x) > 1})
+        if dupes:
+            _refuse(
+                f"{what}: `inner_anchors` names {dupes} more than once. The inner anchors are a SET "
+                f"of constitutive locations; repeating one states nothing further and hides a typo."
+            )
+        for token in raw_inner:
+            if u.denote(token) is None:
+                _refuse(
+                    f"{what}: its constitutive inner anchor {token!r} denotes no Case-S anchor of "
+                    f"universe {universe_reference!r} in this publication. Nothing stands in for a "
+                    f"denotation. NOTE WHAT THIS IS NOT: an inner anchor is not a root — it is where "
+                    f"the expression is CONSTITUTED, not where its values originate a continuation."
+                )
+        inner = tuple(raw_inner)
+
+    # ── `parameters` — identity-bearing, and an object ────────────────────────────────────────
+    raw_params = body.get("parameters")
+    if raw_params is not None and not isinstance(raw_params, dict):
+        _refuse(f"{what}: `parameters` must be an object; got {raw_params!r}")
+
+    raw_scope = body.get("scope")
+    if raw_scope is not None and not isinstance(raw_scope, str):
+        _refuse(f"{what}: `scope` must be a string; got {raw_scope!r}")
+
+    # ── admitted bases — ZERO, ONE, OR SEVERAL ────────────────────────────────────────────────
+    raw_bases = body.get("admitted_bases")
+    bases: list[AdmittedBasis] = []
+    if raw_bases is not None:
+        if not isinstance(raw_bases, list):
+            _refuse(f"{what}: `admitted_bases` must be a list (possibly empty); got {raw_bases!r}")
+        seen_basis: set[str] = set()
+        seen_shape: dict[tuple, str] = {}
+        for entry in raw_bases:
+            d = _obj(f"{what}: an `admitted_bases` entry", entry)
+            _strict(f"{what} admitted_bases entry", d, BASIS_KEYS)
+            basis_id = _req(f"{what} admitted_bases entry", d, "basis_id")
+            if basis_id in seen_basis:
+                _refuse(f"{what}: basis_id {basis_id!r} is declared twice; a basis is identified, "
+                        f"not labelled.")
+            seen_basis.add(basis_id)
+            rcp = d.get("requires_common_participation")
+            if not isinstance(rcp, bool):
+                _refuse(
+                    f"{what}: basis {basis_id!r} states `requires_common_participation` "
+                    f"{rcp!r}. It must be a boolean and it must be PRESENT: absent would mean 'no "
+                    f"joint requirement to check', and a SUM and a COUNT that ranged over different "
+                    f"contributions are individually valid and jointly meaningless. Absence is the "
+                    f"one reading that licenses exactly the pairing the field exists to forbid."
+                )
+            components = tuple(BasisComponent(role=r, family_id=f) for r, f in
+                               _read_roles(f"{what} basis {basis_id!r}", "components",
+                                           d.get("components"), BASIS_COMPONENT_KEYS, families,
+                                           required=True))
+            shape = tuple(sorted((c.role, c.family_id) for c in components))
+            if shape in seen_shape:
+                _refuse(
+                    f"{what}: basis {basis_id!r} admits the same role-to-family assignment as "
+                    f"{seen_shape[shape]!r}. Two ids over one route are not two alternative bases; "
+                    f"they are one route counted twice, and the agreement obligation between "
+                    f"alternatives would be trivially satisfied by the duplicate."
+                )
+            seen_shape[shape] = basis_id
+            bases.append(AdmittedBasis(basis_id=basis_id, components=components,
+                                       requires_common_participation=rcp))
+
+    # ── authority and binding ─────────────────────────────────────────────────────────────────
+    araw = _obj(f"{what}: `expression_constitution_authority`",
+                raw.get("expression_constitution_authority"))
+    _strict(f"{what} expression_constitution_authority", araw, EXPRESSION_AUTHORITY_KEYS)
+    authority = ExpressionAuthority(
+        established_by=_req(f"{what} expression_constitution_authority", araw, "established_by"),
+        at=_req(f"{what} expression_constitution_authority", araw, "at"),
+        fingerprint=_req(f"{what} expression_constitution_authority", araw,
+                         "constitution_fingerprint"),
+        scheme=_req(f"{what} expression_constitution_authority", araw, "fingerprint_scheme"))
+    if authority.scheme != ECF1:
+        _refuse(
+            f"{what}: its constitution authority declares scheme {authority.scheme!r}; the "
+            f"expression contract knows {[ECF1]}. In particular an expression is NOT established "
+            f"under `{FCF1}` or `{FCF2}`: those schemes digest a family's identity-bearing keys, "
+            f"which are not this object's."
+        )
+
+    braw = raw.get("universe_authority_binding")
+    if braw is None:
+        _refuse(
+            f"{what}: an expression carries NO `universe_authority_binding`, and this contract "
+            f"requires one. `{ECF1}` takes the `universe` SPELLING out of the identity payload on the "
+            f"ground that the world is governed through the binding — so without a binding the world "
+            f"is in no payload and under no authority, which is a hole rather than a transition. A "
+            f"FAMILY may be UNBOUND because `{FCF1}` predates the binding and hashed the spelling "
+            f"instead; an expression has no such history to stay compatible with."
+        )
+    b = _obj(f"{what}: `universe_authority_binding`", braw)
+    _strict(f"{what} universe_authority_binding", b, BINDING_KEYS)
+    binding = UniverseAuthorityBinding(
+        bound_by=_req(f"{what} universe_authority_binding", b, "bound_by"),
+        at=_req(f"{what} universe_authority_binding", b, "at"),
+        universe_reference=_req(f"{what} universe_authority_binding", b, "universe_reference"),
+        universe_authority=_req(f"{what} universe_authority_binding", b, "universe_authority"),
+        universe_authority_scheme=_req(f"{what} universe_authority_binding", b,
+                                       "universe_authority_scheme"))
+    if binding.universe_reference != universe_reference:
+        _refuse(f"{what}: its U-authority binding cites universe {binding.universe_reference!r} "
+                f"while the expression states {universe_reference!r}.")
+    cited = (binding.universe_authority, binding.universe_authority_scheme)
+    carried = (u.attestation.fingerprint, u.attestation.scheme)
+    if cited != carried:
+        _refuse(
+            f"{what}: its U-authority binding cites {cited[1]}:{cited[0]!r} for universe "
+            f"{universe_reference!r}, and the universe carried in this publication is attested "
+            f"{carried[1]}:{carried[0]!r}. The binding does not cover the world published beside it."
+        )
+
+    expr = Expression(
+        name=name, expression_id=expression_id, canonical_reference=canonical_reference,
+        universe_reference=universe_reference, inner_anchor_tokens=inner, operands=operands,
+        admitted_bases=tuple(bases), body=body, authority=authority, binding=binding)
+
+    recomputed = expression_fingerprint(expr, u)
+    if recomputed != authority.fingerprint:
+        _refuse(
+            f"{what}: its authority cites {authority.fingerprint!r}, and the identity-bearing "
+            f"constitution carried beside it derives {recomputed!r} under {ECF1!r}. The authority "
+            f"does not cover this expression's constitution. **NOTE WHICH CHANGES CAN CAUSE THIS AND "
+            f"WHICH CANNOT**: `{ECF1}` digests the constructor, the role-indexed operands, the "
+            f"resolved inner anchors, participation, scope and the identity-bearing parameters. "
+            f"Admitting or withdrawing a sufficient BASIS cannot reach this digest, by design."
+        )
+    return expr
+
+
 def parse_native_publication(data: Any) -> NativePublication:
     """Read a native-v3 artifact into the resolved model, or refuse it.
 
@@ -1252,19 +1925,38 @@ def parse_native_publication(data: Any) -> NativePublication:
 
     universes: dict[str, Universe] = {}
     raw_families: list[dict[str, Any]] = []
+    raw_expressions: list[dict[str, Any]] = []
+    kinds = admitted_kinds(version)
     for entry in raw_decls:
         d = _obj("a declaration", entry)
         kind = d.get("kind")
         if not isinstance(kind, str) or not kind:
             _refuse("a declaration states no `kind`.")
-        if kind not in ADMITTED_KINDS:
+        if kind not in kinds:
+            # TWO REFUSALS, BECAUSE THERE ARE TWO SITUATIONS AND THEIR REMEDIES DIFFER. A kind no
+            # minor admits is a sort that does not exist. A kind a LATER minor admits is a sort that
+            # exists and that THIS artifact's declared contract does not carry — whose remedy is to
+            # re-declare the artifact under that minor, by someone with authority to do it.
+            later = minor_admitting(kind)
+            if later is not None:
+                _refuse(
+                    f"declaration kind {kind!r} is admitted at native v{later}, and this artifact "
+                    f"declares publication format {version}, which admits {sorted(kinds)}. The kind "
+                    f"is NOT rejected as unlawful and this reader will NOT read it anyway: a minor is "
+                    f"part of the contract, and treating it as a formality is how a reader comes to "
+                    f"accept meaning the declaring artifact never claimed to carry. Re-declare the "
+                    f"artifact as v{later}."
+                )
             _refuse(
                 f"declaration kind {kind!r} is not admitted in publication format {version}. "
-                f"This contract admits {sorted(ADMITTED_KINDS)}; a kind is admitted by positive "
+                f"This contract admits {sorted(kinds)}; a kind is admitted by positive "
                 f"standing, never because an earlier format carried it. `anchor` in particular "
                 f"has no referent here: a Case-S anchor is DERIVED from a constitution, which "
                 f"makes it structurally unwritable as a declaration."
             )
+        if kind == "expression":
+            raw_expressions.append(d)
+            continue
         if kind == "universe":
             u = _read_universe(d)
             if u.name in universes:
@@ -1296,10 +1988,43 @@ def parse_native_publication(data: Any) -> NativePublication:
             references[r] = f.family_id
         families.append(f)
 
+    # ── the second sort, read AFTER the families it cites ─────────────────────────────────────
+    #
+    # ORDER IS LOAD-BEARING, NOT INCIDENTAL. An expression's operands and basis components are
+    # governed FAMILY references, and a dangling one refuses — so the families must be in hand. The
+    # converse never arises: no family declaration cites an expression, because §7.1 keeps the two
+    # lineages apart and a family's parents are families.
+    by_family_id = {f.family_id: f for f in families}
+    expressions: list[Expression] = []
+    for d in raw_expressions:
+        x = _read_expression(d, universes, by_family_id)
+        # **ONE IDENTITY SPACE ACROSS BOTH SORTS, AND ONE REFERENCE SPACE.** Not because a family and
+        # an expression could be confused inside this reader — they are two tuples and two types — but
+        # because a REQUEST carries a reference and nothing else. If one reference could name both, the
+        # sort a request resolved to would depend on which lookup a consumer happened to try first,
+        # which is the dispatch defect this whole unit exists to remove.
+        if x.expression_id in seen_ids:
+            _refuse(f"expression_id {x.expression_id!r} is already declared as a family_id in this "
+                    f"publication ({seen_ids[x.expression_id]}): identity is not a label, and the two "
+                    f"sorts share one identity space.")
+        if x.expression_id in {e.expression_id for e in expressions}:
+            _refuse(f"expression_id {x.expression_id!r} is declared twice: identity is not a label.")
+        for r in (x.canonical_reference, *x.aliases):
+            if r in references:
+                _refuse(
+                    f"reference {r!r} resolves to two governed objects ({references[r]} and "
+                    f"{x.expression_id}); a request carries a reference and nothing else, so a "
+                    f"reference that named both sorts would make the SORT of the answer depend on "
+                    f"which lookup ran first."
+                )
+            references[r] = x.expression_id
+        expressions.append(x)
+
     return NativePublication(
         manifold_id=manifold_id, version=manifold_version, format_version=version,
         published_by=published_by, published_at=published_at,
-        universes=tuple(universes.values()), families=tuple(families))
+        universes=tuple(universes.values()), families=tuple(families),
+        expressions=tuple(expressions))
 
 
 def load_native_publication(path: str) -> NativePublication:

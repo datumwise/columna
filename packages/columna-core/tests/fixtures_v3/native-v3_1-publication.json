@@ -1,0 +1,213 @@
+{
+  "declarations": [
+    {
+      "case_s_denotations": {
+        "by_day": [
+          "day"
+        ],
+        "by_store": [
+          "store"
+        ],
+        "sale_at": [
+          "store",
+          "day"
+        ]
+      },
+      "constitution": {
+        "identity": {
+          "designation": "the merchant's accepted-order world"
+        },
+        "individuation": {
+          "closed": true,
+          "constituents": [
+            {
+              "domain": {
+                "designation": "governed store register entry",
+                "equality": "same governed store reference"
+              },
+              "reference": "store"
+            },
+            {
+              "domain": {
+                "designation": "merchant trading day",
+                "equality": "same trading day under the merchant's retail calendar"
+              },
+              "reference": "day"
+            }
+          ]
+        },
+        "law": {
+          "determination": {
+            "day": "the merchant trading day containing the moment of acceptance, boundary 03:00 local",
+            "store": "the governed store at which the order was accepted"
+          },
+          "ground": "customer_order",
+          "qualification": "every customer order the merchant accepted as having occurred"
+        },
+        "premises": [
+          {
+            "individuation": "one customer placed one order on one occasion, individuated independently of any record of it",
+            "premise": "occurrence_subject",
+            "reference": "customer_order"
+          }
+        ]
+      },
+      "constitution_conformance": {
+        "asserted_by": "commerce steward",
+        "at": "2026-09-28T00:00:00Z",
+        "obligations": [
+          "determination_is_correct",
+          "domain_suffices_to_individuate",
+          "no_constitutive_content_elsewhere",
+          "qualification_is_over_occurrences_not_rows",
+          "qualification_is_the_whole_qualification",
+          "subject_individuated_independently_of_any_carrier"
+        ]
+      },
+      "existence_law_ratification": {
+        "at": "2026-09-28T00:00:00Z",
+        "fingerprint": "elf-2:d2e40c9efbd842b03eee896436a47d9f27988f115c287b9eaedc7b93c912f26a",
+        "fingerprint_version": "elf-2",
+        "ratified_by": "commerce steward"
+      },
+      "kind": "universe",
+      "name": "commerce"
+    },
+    {
+      "body": {
+        "canonical_reference": "revenue",
+        "constitutive_anchor": "sale_at",
+        "continuation": {
+          "law": "SUM",
+          "version": "1",
+          "vocabulary": "datumwise.foundation"
+        },
+        "family_id": "fam_Rv7KpQ2mXsDnYc4TjLbWhE",
+        "formation": {
+          "contribution_structure": "coincident",
+          "kind": "primitive"
+        },
+        "participation": "every customer order the merchant accepted",
+        "target": "the additive total of accepted order value at one store-day, as a decimal amount",
+        "universe": "commerce",
+        "value_domain": "decimal"
+      },
+      "family_constitution_authority": {
+        "at": "2026-09-28T00:00:00Z",
+        "constitution_fingerprint": "fcf-2:a889fdc05fbae10c85c9619d8d5bd068a553adee8449f8bf25ec00285f4f3d47",
+        "established_by": "commerce steward",
+        "fingerprint_scheme": "fcf-2"
+      },
+      "kind": "family",
+      "name": "revenue",
+      "universe_authority_binding": {
+        "at": "2026-09-28T00:00:00Z",
+        "bound_by": "commerce steward",
+        "universe_authority": "elf-2:d2e40c9efbd842b03eee896436a47d9f27988f115c287b9eaedc7b93c912f26a",
+        "universe_authority_scheme": "elf-2",
+        "universe_reference": "commerce"
+      }
+    },
+    {
+      "body": {
+        "canonical_reference": "order_count",
+        "constitutive_anchor": "sale_at",
+        "continuation": {
+          "law": "SUM",
+          "version": "1",
+          "vocabulary": "datumwise.foundation"
+        },
+        "family_id": "fam_Oc5HjT9yWnQsEr2BkXpLdM",
+        "formation": {
+          "contribution_structure": "coincident",
+          "kind": "primitive"
+        },
+        "participation": "every customer order the merchant accepted",
+        "target": "the count of accepted customer orders at one store-day, as a whole number",
+        "universe": "commerce",
+        "value_domain": "integer"
+      },
+      "family_constitution_authority": {
+        "at": "2026-09-28T00:00:00Z",
+        "constitution_fingerprint": "fcf-2:0e69139f55d106734cac2286260365ba483e2e9686dc2c6e18f298c6a0dbf99f",
+        "established_by": "commerce steward",
+        "fingerprint_scheme": "fcf-2"
+      },
+      "kind": "family",
+      "name": "order_count",
+      "universe_authority_binding": {
+        "at": "2026-09-28T00:00:00Z",
+        "bound_by": "commerce steward",
+        "universe_authority": "elf-2:d2e40c9efbd842b03eee896436a47d9f27988f115c287b9eaedc7b93c912f26a",
+        "universe_authority_scheme": "elf-2",
+        "universe_reference": "commerce"
+      }
+    },
+    {
+      "body": {
+        "admitted_bases": [
+          {
+            "basis_id": "b_sum_count_store_day",
+            "components": [
+              {
+                "family_id": "fam_Rv7KpQ2mXsDnYc4TjLbWhE",
+                "role": "SUM"
+              },
+              {
+                "family_id": "fam_Oc5HjT9yWnQsEr2BkXpLdM",
+                "role": "COUNT"
+              }
+            ],
+            "requires_common_participation": true
+          }
+        ],
+        "aliases": [
+          "aov"
+        ],
+        "canonical_reference": "average_order_value",
+        "constructor": {
+          "law": "MEAN",
+          "version": "1",
+          "vocabulary": "datumwise.foundation"
+        },
+        "expression_id": "expr_Av8MpK3nXsQdYc6TjLbWhR",
+        "inner_anchors": [
+          "sale_at"
+        ],
+        "operands": [
+          {
+            "family_id": "fam_Rv7KpQ2mXsDnYc4TjLbWhE",
+            "role": "operand"
+          }
+        ],
+        "participation": "every customer order the merchant accepted",
+        "scope": "the accepted customer orders of one store-day",
+        "universe": "commerce"
+      },
+      "expression_constitution_authority": {
+        "at": "2026-09-28T00:00:00Z",
+        "constitution_fingerprint": "ecf-1:b5f1a99af884035405aed5d26f239d1627a6862fac1d01396c68e376bc1a7765",
+        "established_by": "commerce steward",
+        "fingerprint_scheme": "ecf-1"
+      },
+      "kind": "expression",
+      "name": "average_order_value",
+      "universe_authority_binding": {
+        "at": "2026-09-28T00:00:00Z",
+        "bound_by": "commerce steward",
+        "universe_authority": "elf-2:d2e40c9efbd842b03eee896436a47d9f27988f115c287b9eaedc7b93c912f26a",
+        "universe_authority_scheme": "elf-2",
+        "universe_reference": "commerce"
+      }
+    }
+  ],
+  "publication_format_version": "3.1",
+  "published": {
+    "at": "2026-09-28T00:00:00Z",
+    "by": "commerce steward"
+  },
+  "ref": {
+    "manifold_id": "commerce",
+    "version": "1.0.0"
+  }
+}
