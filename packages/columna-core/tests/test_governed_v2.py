@@ -77,7 +77,7 @@ def test_count_continues_by_sum_and_may_never_be_cited_as_a_continuation():
 
 def test_mean_is_vocabulary_without_being_servable_and_does_not_continue():
     assert fdn.LAWS["MEAN"].entails_continuation == fdn.NO_CONTINUATION
-    assert fdn.LAWS["MEAN"].empty_fiber == "not_applicable"
+    assert fdn.LAWS["MEAN"].empty_fiber == "no_composition"
     assert "MEAN" not in K0_LAWS          # §4.1 — a backend's inability does not remove the law
 
 
@@ -354,9 +354,13 @@ def test_c7_no_longer_follows_c8():
 
 def test_empty_fiber_is_still_read_from_the_continuation_not_the_basis_law():
     """The correction must not blur the neighbouring fact it was modelled on. `empty_fiber` is an
-    entailment of the CONTINUATION law; MEAN, which has none, gets `not_applicable`."""
+    entailment of the CONTINUATION law; MEAN, which has none, gets `no_composition`.
+
+    RENAMED 2026-09-28 (was `not_applicable`): ToD v8 reserves `NA` for resolved inapplicability of a
+    measure at an EXISTING anchor point, which is a different claim about a different subject than
+    "this law has no fold to take". See `FoundationLaw.empty_fiber`."""
     view = R.resolve_all(_pub(_with_mean))["lh-revmean"]
-    assert view[R.C9_EXCEPTIONAL].value == {"empty_fiber": "not_applicable"}
+    assert view[R.C9_EXCEPTIONAL].value == {"empty_fiber": "no_composition"}
 
 
 def test_a_declared_continuation_that_diverges_from_the_formation_law_refuses():
@@ -1058,3 +1062,28 @@ def test_the_closed_enums_and_key_sets_still_hold():
     with pytest.raises(MappingIncomplete):                       # duplicate family
         parse_mapping(_bare(realizations=[{**fam, "exactness": "exact"},
                                           {**fam, "exactness": "exact"}]))
+
+
+# ══ the `no_composition` / `NA` distinction, made explicit (V8-0, 2026-09-28) ═════════════════════
+
+def test_no_empty_fiber_value_is_spelled_like_v8_NA():
+    """THE COLLISION THIS REPLACED. `empty_fiber` reports a property of the LAW's algebra — is there a
+    fold to take over an empty contributing fiber. ToD v8 `NA` reports a property of ONE POINT — the
+    location exists and the measure is established inapplicable there (§3.3, endnote 3). Before this
+    rename both wore the spelling `not_applicable`, so a reader could not tell which claim was being
+    made, and an applicability model introduced later would have inherited the ambiguity.
+
+    This test is deliberately about SPELLING, because that was the whole defect."""
+    spellings = {l.empty_fiber for l in fdn.LAWS.values()}
+    assert spellings == {"identity", "no_value", "no_composition"}
+    assert not spellings & {"not_applicable", "NA", "na", "not-applicable", "inapplicable"}
+
+
+def test_the_three_empty_fiber_values_name_three_different_algebraic_facts():
+    """`identity` and `no_value` both describe a law that DOES compose (with and without an identity
+    element); `no_composition` describes one that does not compose at all. Keeping the third distinct
+    is what lets a future applicability model say something about a point without contradicting what
+    the law says about its own fold."""
+    assert fdn.LAWS["SUM"].empty_fiber == "identity"        # monoid: empty folds to 0
+    assert fdn.LAWS["MIN"].empty_fiber == "no_value"        # semigroup: composes, no empty value
+    assert fdn.LAWS["MEAN"].empty_fiber == "no_composition"  # no fold to take at all

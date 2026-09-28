@@ -90,6 +90,30 @@ IDENTITY_BEARING = (C1_TARGET, C2_IDENTITY, C4_FORMATION, C5_PARTICIPATION,
 ESTABLISHED, EXPLICIT_NONE, UNESTABLISHED = "established", "explicit-none", "unestablished"
 DECLARED, CITED_LAW, ENTAILED = "declared", "cited-law", "entailed"
 
+#: A FOURTH provenance, and it exists because v8 made a distinction constitutive that this module
+#: previously carried only in prose. C7 has two routes into ESTABLISHED (see the C7 block below):
+#: the family's OWN CONTINUATION law, and — where there is no continuation — the FORMATION law.
+#: Both used to emit `ENTAILED`, so the only machine-readable trace of which route fired was the
+#: interpolated `basis_source` inside `.note`. ToD v8 §9.2 abolishes the second route as a way to
+#: earn FAMILY standing ("Version 7.1 and earlier Frame-QL/Manifold work allowed a durable derived
+#: measure family to be justified either by self-sufficient continuation or by a sufficient-state
+#: basis. Version 8 narrows measure family to the continuation-bearing case"), so a consumer must be
+#: able to tell them apart WITHOUT parsing prose.
+#:
+#: This token does NOT make the standing invalid, and it does not mint an expression sort. The basis
+#: is real and stays readable — the expression layer needs it. What it does is name which law
+#: entailed it, so that a consumer deciding FAMILY answerability can decline to accept this one.
+ENTAILED_FROM_FORMATION = "entailed-from-formation"
+
+
+def is_basis_mediated(standing: "Standing") -> bool:
+    """Was this standing entailed by the FORMATION law rather than the family's own continuation?
+
+    **The one criterion, in one place.** Four consumers gate family answerability on C7, and four
+    copies of a comparison is how the fusion this repairs grew in the first place. Consumers ask
+    here; they do not compare provenance tokens themselves, and they never read `.note`."""
+    return standing.provenance == ENTAILED_FROM_FORMATION
+
 
 class LawResolutionRefusal(ValueError):
     """The family's contract cannot be resolved into a coherent view.
@@ -363,6 +387,13 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
     basis_source = "the continuation law"
     if basis_law is None and fam.formation.kind == CONSTRUCTION:
         basis_law = fdn.resolve(fam.formation.law)
+        # THE ROUTE v8 SEPARATES. The basis is entailed by the law that made the value, not by a law
+        # the value itself composes under. `ENTAILED_FROM_FORMATION` records that distinction as a
+        # token so consumers do not have to read `basis_source` out of the note below. The standing
+        # stays ESTABLISHED and the basis stays intact: what it can no longer do is earn this object
+        # FAMILY answerability (ToD v8 §9.2, §3.7). Deciding that is the consumer's clause, not this
+        # module's — resolution reports what the law says, it does not adjudicate answerability.
+        basis_provenance = ENTAILED_FROM_FORMATION
         basis_source = "the formation law"
 
     # THE RULE HAS THREE OUTCOMES; TWO ARE REACHABLE TODAY, AND THAT IS CORRECT (ruled 2026-09-12).
@@ -452,7 +483,7 @@ def resolve_family(fam: Family, pub: GovernedPublicationV2, _stack: tuple = ()) 
     # ── C9 · exceptional cases ───────────────────────────────────────────────────────────────────
     declared_ex = dict(fam.exceptional)
     if cont is not None or e[C8_CONTINUATION].standing == EXPLICIT_NONE:
-        entailed_empty = cont.empty_fiber if cont is not None else "not_applicable"
+        entailed_empty = cont.empty_fiber if cont is not None else "no_composition"
         if "empty_fiber" in declared_ex and declared_ex["empty_fiber"] != entailed_empty:
             raise LawResolutionRefusal(
                 f"{subject}: declares empty_fiber {declared_ex['empty_fiber']!r} while the "
