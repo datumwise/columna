@@ -15,22 +15,46 @@ source after the sweep that produced it; findings marked **VX** were reproduced 
 
 ## 0. Baseline check — the published paper vs the candidate
 
-The prior analysis in this repo was written against the v0.18 candidate. I fetched the published markdown
-(`theory_of_data_v8_0_zenodo_23018979.md`, 83.5 kB) and diffed it.
+**CORRECTED 2026-09-28, after Huayin supplied the canonical file.** The attachment
+`attachments/1710d7b5_theory_of_data_v8_0_zenodo_23018979.md` is **byte-identical** (md5, 83,539 bytes) to the
+copy I fetched from the Zenodo record, so the audited artifact is right. **My characterization of it was
+wrong, and the error was methodological.**
 
-**Structurally identical. One heading added: §1.1 "Relation to prior work"** — a related-work section citing
-Codd, OLAP/summarizability, incomplete-information semantics and provenance/lineage research, with references
-[1]–[12]. §7.2 was tightened and its supersession claim relocated to §9.2, now reading *"Version 7.1 and
-earlier **Frame-QL/Manifold work** allowed a durable derived measure family to be justified either by
-self-sufficient continuation or by a sufficient-state basis."*
+**What I did wrong.** I compared the published text to the v0.18 candidate by diffing *headings* and counting
+*tokens*. Headings are identical but one; token counts matched. I inferred "structurally identical, one section
+added" and "none of the omission-audit findings were incorporated." **A word-level content diff shows 44
+changed hunks.** `FIRST` occurs 14 times in both files — while the sentence containing it changed materially.
+**Counting occurrences cannot detect a rewritten sentence, and I should not have drawn a negative conclusion
+from a null token delta.**
 
-**Every passage this reconciliation depends on is present verbatim.** The baseline holds; the position paper
-and `tod_v8_implications_for_frameql_mme_platform_v0_1.md` both apply unchanged.
+**What is actually true.** The published v8.0 is materially edited, and **four of the sixteen findings in
+`tod_v8_v0_18_accidental_omission_audit_v0_1.md` were addressed in publication — including the two I ranked
+first and second.**
 
-**None of the sixteen findings in `tod_v8_v0_18_accidental_omission_audit_v0_1.md` were incorporated.**
-Measured against the published file: `precedence` 0 · `lexicograph` 0 · `Proposition 8` 0 · `namespace` 0 ·
-`congruen` 0 · `specification` 0 · `formation contract` 0. Their status changes, not their content: they are
-now **errata candidates against a published DOI**. Three bear on this recon and appear in §D.
+| audit finding | status in published v8.0 |
+|---|---|
+| **Ordered-family coherence** (audit §4.12 — *"the largest structural gap the sweep found"*) | **RESOLVED.** §6.2: *"Together with \(\bot\) as identity on known-empty blocks, **the witness carrier forms a commutative monoid on compatible LAST witness states.** Therefore, under the same governed order, participation, coherent-instance, and evidence premises, **staged and direct LAST continuation are path-independent on the witness carrier. The dual result holds for FIRST**."* That is v7.1's Proposition 8.1, restored. §6.4's exclusion sentence remains, but it is now *accurate* rather than an unmet promise — the ordered case is discharged in §6.2. |
+| **`FIRST` never specified** (audit §4.13) | **RESOLVED.** §6.1 l.1132: *"FIRST requires the dual condition: a unique least participating point."* |
+| **No construction for a complete order on a multi-constituent anchor** (audit §4.1) | **SUBSTANTIALLY ANSWERED.** §6.1 now specifies the *outcome* without needing a construction: *"If two relevant participating points remain incomparable, the corresponding ordered result is not established."* The theory refuses rather than constructs, which is complete. What survives is a usability point, not an insufficiency: an implementer wanting a *usable* `{account, day}` order still has no canonical constructor. |
+| **Coarsening-sufficiency ≠ restriction/deletion** (audit §5, and my §D.6 below) | **RESOLVED.** §3.1 l.297: *"Value closure is relative to admitted continuation. **It does not imply recoverability of prior contributions or sufficiency for restriction, deletion, correction, or a changed analytical law.**"* That is v7.1 §10.2/§10.3 in substance. |
+
+**Also added:** §1.1 "Relation to prior work" (Codd, OLAP/summarizability, incomplete information, provenance;
+references [1]–[12]); a rewritten abstract and §1 introducing the two forms explicitly; and in §6.2,
+*"the witness retains both the selected source point and its value, so later continuation compares governed
+source positions rather than only the displayed scalar."* **Slightly trimmed:** the `⊥` passage lost its boxed
+inequality and the sentence explaining *why* substituting `⊥` is unsafe; the rule survives as *"The state
+\(\bot\) denotes established emptiness only. An unavailable witness has want of state and must not be
+represented by \(\bot\)."*
+
+**Still standing from the audit** (content-probed, not token-counted): the name↔identity doctrine
+(`namespace`/`alias`/`immutable`/`canonical name` — 0); `formation` undefined; the congruence obligation
+defining `governed equivalence` — 0; the target-specification obligation — 0; Proposition 8.2's extraction
+homomorphism — 0; the overlapping-relationship/partition boundary — 0.
+
+**Consequence for this reconciliation, and it is good news:** the ordered-witness path is now backed by a
+published path-independence result. **My claim that "anything built on ordered continuation is building ahead
+of the published theory" is withdrawn** — Columna's `ORDERED_W` is covered. Every other finding in §A below
+was derived from repo evidence and is unaffected.
 
 ---
 
@@ -395,53 +419,43 @@ it proves it about changes.**
 Reported to the standard the brief set: *implementation inconvenience is not a theory defect.* Items 1–3 are
 carried from `tod_v8_v0_18_accidental_omission_audit_v0_1.md` and are now **live against the published DOI**.
 
-**D.1 — v8 excludes ordered families from its only family coherence theorem and never supplies the
-replacement.** §6.4's scope note: *"Ordered families, relation-sensitive families, or other stateful laws
-require their own coherence premises."* Those premises are never given. §6.2 supplies the ingredient
-(associativity/commutativity over compatible witness states) then fences it (*"This does not make LAST a
-commutative-monoid law on scalar values"*) and never draws the conclusion. v7.1 drew it as **Proposition 8.1**.
-`path-independen` occurs in the published text only in the chapter heading and inside Propositions 6.2 and 6.3
-— never for the ordered witness law. **Columna's `ORDERED_W` witness is exactly this case, and v8 §3.4 lists
-the ordered witness as a canonical family value. Anything built on ordered continuation is building ahead of
-the published theory.**
-
-**D.2 — `FIRST` is named and never specified.** §6.1 gives the completeness premise for LAST's *unique
-greatest* participating point with no dual clause; §6.2 defines only the later-wins merge. `operators.py`
-registers `first` alongside `last`.
-
-**D.3 — no construction for a complete order on a multi-constituent anchor.** §6.1 now *requires* a unique
-extremum per admitted fiber and supplies no way to obtain one; v7.1's constituent-orders-plus-precedence
-construction is absent (`precedence` 0 in the published text). `{account, day}` is both v8's running example
-and Columna's canonical anchor shape.
+**D.1 / D.2 / D.3 — WITHDRAWN. Resolved in publication.** These were my first, second and third stress items
+against the v0.18 candidate; the published text supplies the ordered-witness path-independence result, the
+`FIRST` dual condition, and a refusal rule for incomparable points. See §0. **The ordered-family blocker on
+Columna's `ORDERED_W` path does not exist.**
 
 **D.4 — v8 makes `R_F` constitutive; two frozen in-repo contracts eliminated it.**
 `manifold_family_declaration_contract_v1_0.md:472` (*"family root / A₀ — **eliminated**"*) and
 `columna_semantic_contract_v1_0.md:882` (*"Family root as a separate object — **dies**"*). **Not theory
 stress** — v8 §7.6 refutes the argument used to kill it (two incomparable groundings are *distinct family
 identities* with an agreement obligation, not one rootless family), and the **code already complies**
-(`publication.py:247`). Recorded here because the doctrine, not the code, needs withdrawing.
+(`publication.py:247`). Recorded because the doctrine, not the code, needs withdrawing.
 
-**D.5 — ⚠ v8 requires a distinction this repo ratified as non-existent.** `sse_contract_v0_1.md:93-96`,
-ratified 2026-09-14: *"**participation / eligibility / support regime — ONE axis, not two** … C5 is literally
-named `eligibility_and_participation`, so a runtime standing that split them would be modelling a distinction
-the governed layer does not make."*
+**D.5 — ⚠ v8 requires a distinction this repo ratified as non-existent. This is the live one.**
+`sse_contract_v0_1.md:93-96`, ratified 2026-09-14: *"**participation / eligibility / support regime — ONE axis,
+not two** … C5 is literally named `eligibility_and_participation`, so a runtime standing that split them would
+be modelling a distinction the governed layer does not make."*
 
-**The ratification's premise was that the governed layer does not make the distinction — and its evidence for
-that was C5's name.** v8 §4.1–§4.3 makes applicability, participation and support three separate states.
-**This is not a theory defect; it is a ratified decision resting on a v7.1 premise that v8 overturns.** But it
-is a genuine **UNRESOLVED** requiring Huayin: splitting C5 reverses a ratified §1 axis and widens
-`Standing.comparable_to` (`state.py:134-135`) from a 5- to a 6-tuple, which per the OF-39 reasoning must read
-as STALE rather than equal — i.e. it needs a scheme bump.
+**The ratification's premise was that the governed layer does not make the distinction — and its evidence was
+C5's name.** v8 §4.1–§4.3 makes applicability, participation and support three separate states. **Not a theory
+defect; a ratified decision resting on a v7.1 premise that v8 overturns.** It is a genuine **UNRESOLVED**
+requiring Huayin: splitting C5 reverses a ratified §1 axis and widens `Standing.comparable_to`
+(`state.py:134-135`) from a 5- to a 6-tuple, which per the OF-39 reasoning must read as STALE rather than
+equal — i.e. it needs a scheme bump.
 
-**D.6 — the one place v8 may be genuinely insufficient for what Columna must build next.** v8 proves
-**combination** coherence (Proposition 6.2, associativity and commutativity) and contains **no retraction,
-deletion, inverse or maintenance result** — and v7.1 §10.3's warning (*"a LAST or MAX witness can forget which
-point would win after its selected point is removed"*) was dropped. The SSE contract lists `invalidate` as
-**NOT IMPLEMENTED**, flagging its absence as *"an unanswered governed question with no placeholder."*
-**`invalidate` is the first operation whose rule differs by which of the three objects it acts on** — family
-continuation state, expression sufficient basis, expression result cache. v8 supplies the sort distinction
-and no law for retraction over any of them. This is the item where repo reality reaches past the published
-theory rather than lagging it.
+**D.6 — REVISED, and it is now a repo gap rather than theory stress.** I claimed v8 contained no retraction
+disclaimer. **It does:** §3.1 l.297 — *"Value closure … does not imply recoverability of prior contributions
+or sufficiency for restriction, deletion, correction, or a changed analytical law."* So the theory correctly
+**disclaims** sufficiency for deletion without **proving** a retraction law, which is the right posture.
+
+What remains is entirely on the repo side: `invalidate` is listed **NOT IMPLEMENTED** in the SSE contract,
+flagged as *"an unanswered governed question with no placeholder"*, and **it is the first operation whose rule
+differs by which of the three objects it acts on** — family continuation state, expression sufficient basis,
+expression result cache. v8 supplies the sort distinction and the disclaimer; the repo must supply the rule.
+`two_pillars_strategy_note_v0_4.md:166-167` (*"mergeable partials **ARE the incremental cache**"*) is the
+sentence to revisit first, and `hll_union` has no inverse.
+
+**No remaining item in this section is a defect in ToD v8.0.**
 
 ---
 
