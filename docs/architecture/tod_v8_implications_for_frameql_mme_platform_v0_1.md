@@ -19,9 +19,13 @@ quoted at `file:line` and was re-verified against the source after the sweep tha
 > either by self-sufficient continuation or by a sufficient-state basis.** Version 8 reserves the family
 > category for the former case."*
 
-**The good news is larger than the bad.** v8 closes at least five open ledger rows, settles a doctrine gap
-that was explicitly deferred *pending a ruling*, ratifies three of four ruled Cache(r) laws, and **requires no
-grammar change at all**. The work is concentrated in one place: resolution and the governed record.
+**The good news is larger than the bad.** v8 closes or decisively narrows **twenty** open ledger rows,
+doctrine gaps and open forks — including one deferred *explicitly pending a ruling* — ratifies three of four
+ruled Cache(r) laws, and **requires no grammar change at all**. The work is concentrated in one place:
+resolution and the governed record.
+
+**But the one-sort ontology is Huayin-ruled and its format break is landed and awaiting merge with "no
+dual-read, no shim, no optional keys." See §2A: that gives this assessment a deadline.**
 
 ---
 
@@ -57,6 +61,55 @@ from the basis; and `resolve.py:139-144` reports **valid**.
 That is precisely the category v8 abolishes, **and there is no second record type to move it into.** This is
 the smallest change with the largest blast radius, and it should be scoped first. Two independent sweeps
 reached these same lines from opposite directions (the Frame-QL spec, and the Core model).
+
+---
+
+## 2A. ⚡ The decision with a deadline
+
+**The one-sort ontology is not an oversight. It is Huayin-ruled, and the format break that carries it is
+landed and awaiting merge.**
+
+- `consolidated_ledger_v0_1.md:3472-3477` — *"**THE CENTRAL MODEL IS SETTLED** (Huayin, 2026-09-11):
+  `MeasureFamily F` is the analytical identity · `Measure = F@A` · **primitive/constructed and
+  named/query-constructed are not separate kinds**…"*
+- `:3423-3427` — *"Named vs constructed is not a kind; neither is primitive vs constructed. **One family
+  kind** — which is why v0.3's object list is shorter than v0.2's."*
+- `:3541-3546` — *"**FORMAT: a MAJOR bump and a hard break with no compatibility path** — and that is the
+  point, not a courtesy… **No dual-read, no shim, no optional keys.**"*
+- `:3558` — *"IMPLEMENTATION AUTHORIZED and landed, 2026-09-11 — pending review, **not merged**"* (PR #272).
+
+> **A sort discriminator added after that break costs a second format major**, and by the ledger's own rule
+> there is no shim available to soften it. **This is the last cheap moment to add the sort.**
+
+Nothing in v8 says whether the discriminator rides the pending break or a later one. That is a ruling only
+Huayin can make, and it is the only item in this note with a clock on it.
+
+**One irony worth recording.** The same settled ruling closes with *"**absence of prohibition means
+unestablished, never permission**"* (`:3477`) — which is exactly v8 §8.6's disposition of DG-4
+(*"If `Op` is not the family law, the result remains an expression even when it is lawful"*). The estate
+reasoned its way to v8's principle in one clause while ratifying the opposing ontology in the next.
+
+---
+
+## 2B. Three routes by which a declaration can mint a family today
+
+v8 §3.7 and §7.2 forbid each.
+
+1. **By citing a law over operands.** `manifold_family_declaration_contract_v1_0.md:56-57` —
+   `source ::= world⟨…⟩ | law⟨law-ref, parameters, operands⟩`; §7 then calls the result *"the constructed
+   family `G`"*. No obligation in §4 or §8.1 tests whether the value is continuation-bearing.
+2. **By naming an intermediate.** `manifold_declaration_model_v1_0.md:133` — *"An operand is always a
+   `<family> @ <anchor>` pair. It is never an inline expression"*; `:688` — *"No anonymous operands. **Every
+   intermediate is a named family.**"* So `mean(mean(balance@day)@week)@quarter` *requires* minting two
+   families. **The grammar has no term for a named non-family** — it forces promotion by syntax. v8 §8.6
+   composes the same thing without minting anything.
+3. **In the shipped reader.** `governed/publication.py:137-139` — *"CONSTRUCTION formation cites a foundation
+   law over parent families. **Its continuation is then ENTAILED by that law and is not declared.**"*
+
+**Already forbidden, correctly:** minting by *renaming* (FDC:295 — *"You cannot mint a quantity by renaming
+one"*) and by numerical coincidence. The estate blocked renaming and coincidence and permitted aggregation;
+v8 closes the remaining door.
+
 
 ---
 
@@ -256,6 +309,14 @@ Not a plan — a scoping order. **No implementation is authorized by this note.*
    which also admits the geometry-weighted MEAN case v8 allows and Columna currently cannot express.
 5. **Expression succession** (§7.3's other half) — an AOV gross→net redefinition is currently untracked.
 6. **MME**: sort tag, root reference, input anchor in the key — before any delta/append optimization.
+
+**What v8 does NOT settle, and still needs a ruling:** where the COUNT target discriminator lives (OF-44);
+OF-30's residual (b)-vs-(c); OF-35's kind-set question — to which v8 adds a *new* kind to design; the
+declaration form of a law, since §3.4 opens the catalogue without giving a production for supplying one
+(CSC:1041, MDM:670); jurisdiction for cross-object composition (OF-42), where v8 supplies the criterion but
+not the owner; and **format sequencing (§2A)**. OF-28's stop-gate — *no public governed-publication authoring
+surface opens while the implementation vocabulary decision is unresolved* — now has a second class to name,
+and Unit D's crosswalk was built against ToD **v7.1** (`consolidated_ledger_v0_1.md:3274`); its target moved.
 
 **And one caution carried from the omission audit:** v8 itself still owes a coherence result for ordered
 families (§6.4 excludes them from Proposition 6.2 and never supplies the replacement). Anything Columna builds
