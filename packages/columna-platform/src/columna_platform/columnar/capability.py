@@ -61,6 +61,38 @@ drift apart.
 Both keys are governed names owned by `kernel/law.py`. Neither is physical. The physical handle lives in
 `ExecutionCapability.execute`, which nothing above the provider ever reads.
 
+THE THREE LAYERS, AND KEEPING THEM THREE
+----------------------------------------
+Ruled (Huayin, 2026-09-29, E-1 §3) — *"this is the shape I expect to survive future DuckDB/native
+providers"*:
+
+    governed operation semantics          what the operation MEANS. `kernel/law.py`. Semantic authority.
+            ↓
+    provider execution mode               HOW a provider executes it. THIS MODULE. `GROUPED`/`POSITIONAL`.
+            ↓
+    physical implementation               WHAT actually runs. A DataFusion aggregate, an Arrow kernel, a
+                                          DataSketches call, a native routine.
+
+Worked through, in both directions the system uses:
+
+    `HLL_ESTIMATE`                  governed construction — an EXPRESSION constructor, never a continuation
+      → `POSITIONAL`                provider mode — index-preserving, and a finalizer by its value forms
+        → `_hll_estimate`           physical implementation — DataSketches via an Arrow array today
+
+    `SUM` family continuation       governed family law — what the family retains and composes under
+      → `GROUPED(addition)`         provider mode + composition — a reduction onto a coarser target index
+        → `DF.sum`                  physical implementation — DataFusion's native sum
+
+**THE MIDDLE LAYER IS WHAT E-1 ADDED**, and its absence is what let the bottom layer leak into the top:
+with no mode vocabulary and no table, the governed evaluator had nowhere to express *"execute this law
+positionally"* and so named the kernel directly. Each layer may now be replaced without the others
+noticing — a DuckDB provider changes only the third, a new constructor adds a second-and-third pair, and a
+law's meaning changes only the first.
+
+The layers are kept apart by what each may name. A law never names a mode. A mode never names an
+implementation — that is `execute`, and nothing above the provider reads it. An implementation never names
+a law, because it is reached only through its capability record.
+
 FINALIZATION IS A POSITIONAL CAPABILITY, AND IS DECLARED BY ITS VALUE-FORM TRANSITION
 -------------------------------------------------------------------------------------
 `HLL_ESTIMATE` takes a `structured` operand and produces a `scalar` one. `MEAN` takes `scalar` and
