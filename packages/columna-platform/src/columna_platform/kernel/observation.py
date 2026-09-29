@@ -22,10 +22,12 @@ THE FOUR PROPERTIES THIS SEAM HAS TO HAVE
   create analytical rights."* Nothing in the serving path reads an observation back; the sink is
   write-only by construction, and the MME holds no accessor that consults one.
 
-  **3 · NON-BLOCKING.**  Ruled §4: *"If observation fails, serving correctness must not fail."* Every
-  emission goes through `ObservationSink.emit`, which catches `BaseException` and counts it. An observer
-  that raises, hangs on a bad attribute or returns garbage costs the request nothing but a tick on
-  `sink.failures`. This is why the interface is append/event-style rather than a callback that can veto.
+  **3 · NON-BLOCKING.**  Ruled: *"observation failure must never affect analytical serving"* (Huayin,
+  2026-09-29, refining M-2 §4). Every emission goes through `ObservationSink.emit`, which contains observer
+  FAILURES and counts them. An observer that raises, hangs on a bad attribute or returns garbage costs the
+  request nothing but a tick on `sink.failures`. This is why the interface is append/event-style rather
+  than a callback that can veto. See `ObservationSink.emit` for what is contained and what deliberately
+  is not.
 
   **4 · ENOUGH SHAPE TO SUPPORT ECONOMICS LATER, WITHOUT ASSERTING ANY.**  See below.
 
@@ -225,6 +227,12 @@ class WorkloadObserver(Protocol):
     def observe(self, observation: RequestObservation) -> None: ...
 
 
+#: **Exceptions that are the PROCESS being stopped, not an observer failing.** Named as a constant so the
+#: distinction is one decision recorded in one place, rather than a tuple inlined at an `except` clause and
+#: silently re-derived the next time someone touches it.
+PROCESS_CONTROL = (KeyboardInterrupt, SystemExit, GeneratorExit)
+
+
 class NullObserver:
     """The default. An MME with no observer configured does not pay for one and does not branch on one."""
 
@@ -287,10 +295,8 @@ class ObservationSink:
     """**Where observation is made unable to break serving.**
 
     The MME holds one of these, never a bare observer, and the only method the serving path calls is
-    `emit`. It catches `BaseException` — not `Exception` — because the guarantee ruled in §4 is about
-    *serving correctness*, and a `KeyboardInterrupt` raised inside a logging callback would violate it just
-    as squarely as a `TypeError`. What is caught is counted and the last one is kept for diagnosis, so a
-    broken observer is loud in `sink.summary()` and silent everywhere that matters."""
+    `emit`. What is caught is counted and the last one is kept for diagnosis, so a broken observer is loud
+    in `sink.summary()` and silent everywhere that matters."""
 
     def __init__(self, observer: Optional[WorkloadObserver] = None) -> None:
         # **`is not None`, NOT `or`.** A `RecordingObserver` defines `__len__`, so an empty one is FALSY —
@@ -307,13 +313,40 @@ class ObservationSink:
         return not isinstance(self.observer, NullObserver)
 
     def emit(self, observation: RequestObservation) -> None:
-        """**Never raises.** This is the proof obligation of §4, discharged in one place rather than at
-        every call site — a `try` around each `measure` would have been a rule to remember instead of a
-        property to hold."""
+        """**An observation FAILURE never reaches the serving path.** The obligation is discharged in one
+        place rather than at every call site — a `try` around each `measure` would have been a rule to
+        remember instead of a property to hold.
+
+        **AND PROCESS-CONTROL EXCEPTIONS ARE NOT OBSERVATION FAILURES** (ruled 2026-09-29: *"swallowing
+        process-control exceptions such as `KeyboardInterrupt`/`SystemExit` is unusual… do not treat
+        'catch every BaseException forever' as an architectural requirement"*). M-2 shipped a bare
+        `except BaseException`, and the distinction it missed is the one that matters:
+
+          · a `TypeError`, a broken socket, a `RecursionError` inside an observer — these are the LOGGING
+            BACKEND failing. They say nothing about the request, and containing them is exactly the ruled
+            invariant;
+          · a `KeyboardInterrupt` or `SystemExit` arriving during an observer call is **the process being
+            asked to stop**. It did not originate in the observer and is not about it; the interrupt landed
+            in this frame only because this frame happened to be executing. Eating it means Ctrl-C is
+            silently ignored for as long as a serving loop runs, and a `SystemExit` raised by a shutdown
+            path is discarded — a worse failure than the one the containment was protecting against, and
+            not what the invariant asks for.
+
+        **Re-raising does not violate the invariant**, and it is worth saying why rather than asserting it:
+        the observation is emitted only AFTER the answer is fully determined, so there is no analytical
+        work left to interrupt. What an interrupt aborts is the RETURN of an already-computed answer — and
+        it would have aborted the very next instruction anyway, observer or no observer. **The serving is
+        not affected; the process is stopping, because it was told to.**
+
+        `GeneratorExit` joins them: it is the interpreter unwinding a generator, not an observer fault, and
+        swallowing it corrupts the unwind rather than protecting a request."""
         try:
             self.observer.observe(observation)
             self.emitted += 1
-        except BaseException as exc:                      # noqa: BLE001 - deliberate, and the point
+        except PROCESS_CONTROL:
+            # NOT counted as an observer failure, because it is not one. Straight back out.
+            raise
+        except Exception as exc:                          # noqa: BLE001 - deliberate, and the point
             self.failures += 1
             self.last_failure = exc
 
@@ -340,7 +373,8 @@ def observe_request(sink: ObservationSink, request: FamilyRequest, *, started_ns
     return observation
 
 
-__all__ = ["DISPOSITIONS", "NEED", "READY", "UNSUPPORTED", "UNSUPPORTED_CODES", "WANT_OF_STATE",
+__all__ = ["DISPOSITIONS", "NEED", "PROCESS_CONTROL", "READY", "UNSUPPORTED", "UNSUPPORTED_CODES",
+           "WANT_OF_STATE",
            "WANT_OF_STATE_CODES", "FamilyRequest", "Fulfillment", "NullObserver", "ObservationSink",
            "RecordingObserver", "RequestObservation", "WorkloadObserver", "disposition_for",
            "observe_request"]
