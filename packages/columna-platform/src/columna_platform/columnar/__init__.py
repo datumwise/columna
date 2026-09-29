@@ -45,6 +45,7 @@ from .provider import (
     HLL_PRECISION,
     PROVIDER_NAME,
     estimate_of,
+    estimates_of,
     sketch_of,
     sketch_parameters,
 )
@@ -55,7 +56,7 @@ __all__ = ["AlignmentReport", "AnchorInstance", "CapabilityTable", "ExecutionCap
            "ColumnarExpressionEvaluator", "ColumnarExpressionOutput", "ColumnarFamilyState",
            "ColumnarMME", "ColumnarProvider",
            "ContinuationResult", "CoordinateIndex", "GovernedBlock", "HLL_PRECISION", "POPULATION",
-           "PROVIDER_NAME", "VALUE_BEARING", "estimate_of", "mask", "sketch_of", "sketch_parameters",
+           "PROVIDER_NAME", "VALUE_BEARING", "estimate_of", "estimates_of", "mask", "sketch_of", "sketch_parameters",
            "standing", "value_column_name"]
 
 COLUMN_STANDING_SHAPES = (POPULATION, VALUE_BEARING)

@@ -436,12 +436,19 @@ def test_no_new_engine_arrived():
     assert package is not None
 
 
-def test_the_HLL_kernel_was_not_rewritten(provider):
-    """Ruled: no HLL kernel rewrite yet (E-X step 3). It is still the Python comprehension it was — moved
-    into a named function, not changed."""
-    source = inspect.getsource(provider_module)
-    assert "for v in sketches" in source                        # still O(cells) in Python
-    assert "estimate_of(v.as_py())" in source
+def test_the_HLL_kernel_was_not_rewritten_BY_E1(provider):
+    """Ruled at E-1: no HLL kernel rewrite *here*. E-1 moved the comprehension into a named function in the
+    provider's table and changed nothing about it.
+
+    **E-3 (2026-09-29) then adjudicated the kernel itself and the assertions moved with it.** What E-1's
+    ruling protects is unchanged and still checked: the finalizer is the provider's, declared in the table,
+    and reached by governed law name. What E-1 asserted about the kernel's *internals* — `for v in
+    sketches`, `estimate_of(v.as_py())` — is now `test_e3_hll_estimate_execution.py`'s business, and E-3
+    removed the double `as_py()` it pinned. The E-1 invariant is asserted here; the E-3 one is asserted
+    there."""
+    estimate = provider.capability(POSITIONAL, "HLL_ESTIMATE")
+    assert estimate.finalizes and estimate.execute.__module__ == provider_module.__name__
+    assert not provider.realizes(GROUPED, "HLL_ESTIMATE")
 
 
 def test_coordinate_index_identity_was_not_memoised():

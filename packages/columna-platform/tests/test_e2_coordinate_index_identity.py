@@ -360,18 +360,11 @@ def test_no_provider_interface_changed():
     assert "law" in inspect.signature(provider.evaluate_positional).parameters
 
 
-def test_the_hll_kernel_is_still_untouched():
-    """Ruled: no HLL changes — that is E-3, where `Realization.finalize`'s fate is also decided. This test
-    is expected to be DELETED by E-3."""
-    import inspect
-
-    from columna_platform.columnar import provider as provider_module
-
-    source = inspect.getsource(provider_module)
-    assert "for v in sketches" in source                     # still the O(cells) Python comprehension
-    from columna_platform.kernel.realization import Realization
-
-    assert "finalize" in {f.name for f in fields(Realization)}    # still declared, still unresolved
+# `test_the_hll_kernel_is_still_untouched` lived here and said of itself: *"this test is expected to be
+# DELETED by E-3."* E-3 ran on 2026-09-29, rewrote the finalizer's carriage and retired
+# `Realization.finalize`, so the test was deleted as designed rather than edited into agreement with the
+# new state — a scope guard that outlives its scope stops being one. Its subject now has its own file,
+# `test_e3_hll_estimate_execution.py`.
 
 
 def test_no_broader_index_redesign_happened():
