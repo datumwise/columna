@@ -27,6 +27,7 @@ from columna_platform.columnar import (
 )
 from columna_platform.columnar.provider import HLL_PRECISION, estimate_of, sketch_of
 from columna_platform.kernel import MME, REGISTRY, KernelRefusal
+from columna_platform.kernel.materialization import SUPERSEDE, TransitionIntent
 from columna_platform.kernel.builtins import IN_MEMORY
 from columna_platform.kernel.mme import MME as KernelMME
 
@@ -342,7 +343,11 @@ def test_arrow_validity_and_the_support_mask_may_disagree_and_the_mask_wins(mme)
                              support=[True, True, False])})
     assert block.column("revenue").null_count == 0          # NO nulls at all
     assert sum(block.contributing_domain("revenue", VALUE_BEARING).to_pylist()) == 3
-    mme.establish(block, "revenue")
+    # REPLACING a family's root state is a SUPERSESSION and must say so (MME v1): offering a different
+    # value for one analytical slot without transition intent is a consistency failure, not an overwrite.
+    held = mme.materializations.select("revenue", anchor=EX.SALE_AT)
+    mme.establish(block, "revenue",
+                  intent=TransitionIntent(SUPERSEDE, tuple(m.id for m in held)))
 
     answer = mme.measure("revenue", EX.BY_DAY)
     assert not answer.served and answer.refusal.code == "want-of-state"

@@ -95,6 +95,20 @@ from columna_platform.kernel import (
     Refusal,
 )
 from columna_platform.kernel import RealizationStanding, UNSTATED_DATA_STATE
+from columna_platform.kernel.materialization import (
+    AT_ROOT,
+    CONTINUED as CONTINUED_FROM,
+    CURRENT,
+    INDEPENDENT,
+    SUPERSEDED,
+    Admission,
+    Establishment,
+    FamilyMaterialization,
+    MaterializationId,
+    MaterializationStore,
+    TransitionIntent,
+    cumulative_forgotten,
+)
 from columna_platform.kernel.mme import Retained, RetentionKey, Staleness, resolve_pool
 
 from .block import GovernedBlock, value_column_name
@@ -264,6 +278,13 @@ class ColumnarMME:
         #: carrier is named separately from the provider so that "the same value, carried differently" is
         #: representable without touching either the constitution witness or the analytical instance.
         self.realization = RealizationStanding(provider=self.provider.name, carrier=carrier)
+        #: **The columnar engine's own family-materialization cache**, under the authority's build. Its own,
+        #: because this engine holds different material; the authority's build, because a cache belongs to
+        #: one semantic world and `constitution_context = ManifoldBuildId`.
+        self.build = authority.build
+        self.materializations = authority.attach_store(MaterializationStore(self.build))
+        #: Expression outputs only. MME v1 does not manage `E@A`; until they move above the engine they are
+        #: held here, where they cannot be mistaken for family materializations.
         self._store: dict[RetentionKey, Retained] = {}
 
     # ── the delegated facts ──────────────────────────────────────────────────────────────────
@@ -289,12 +310,28 @@ class ColumnarMME:
 
     @property
     def held(self) -> tuple[RetentionKey, ...]:
-        return tuple(self._store)
+        """Descriptors of everything held. A descriptor REPORTS the analytical attributes; it is not an
+        identity and nothing is looked up by it — a materialization is located by its opaque id."""
+        return tuple([self._descriptor(m) for m in self.materializations.all()] + list(self._store))
+
+    def holdings(self) -> tuple[Retained, ...]:
+        return tuple([Retained(key=self._descriptor(m), value=m.value)
+                      for m in self.materializations.all() if m.has_payload]
+                     + list(self._store.values()))
+
+    def materialization(self, mid: MaterializationId) -> Optional[FamilyMaterialization]:
+        return self.materializations.get(mid)
+
+    def _descriptor(self, m: FamilyMaterialization) -> RetentionKey:
+        return RetentionKey(sort="family", identity=m.family_id, anchor=m.anchor,
+                            instance=m.instance, realization=m.realization,
+                            constitution=m.build.reference)
 
     # ── establishment from a governed block ──────────────────────────────────────────────────
     def establish(self, block: GovernedBlock, family_id: str, *,
                   at_root: bool = True,
-                  data_state: str = UNSTATED_DATA_STATE) -> ColumnarFamilyState:
+                  data_state: str = UNSTATED_DATA_STATE,
+                  intent: Optional[TransitionIntent] = None) -> ColumnarFamilyState:
         """Adopt one of a block's columns as this family's state at the block's anchor.
 
         **The standing comes from the BLOCK and never from the values.** Nothing here inspects
@@ -343,6 +380,7 @@ class ColumnarMME:
         # which established material this is — the third axis, set here and nowhere else.
         anchor_instance = replace(block.anchor_instance(family_id),
                                   instance=declared.with_data_state(data_state))
+        at_the_root = block.index.anchor == family.root
         state = ColumnarFamilyState(
             family_id=family_id, anchor_instance=anchor_instance,
             values=values, standing=replace(standing, instance=anchor_instance.instance),
@@ -360,18 +398,47 @@ class ColumnarMME:
                 f"established value: {[list(p) for p in state.points_wanting_state()]}. The column is held "
                 f"with that standing recorded; any {shape} reduction or basis role over this domain is "
                 f"refused until the value is established. Not `NA`, not zero, not nonparticipation."))
-        self.retain(state)
+        admission = self.admit(state, intent=intent, establishment=Establishment(
+            AT_ROOT if at_the_root else INDEPENDENT))
+        if not admission:
+            raise KernelRefusal(admission.code, family_id, admission.detail)
         return state
 
     def stale_states(self) -> tuple[Staleness, ...]:
-        """**Which columnar states are held under a superseded constitution**, asked of the authority.
+        """**Which materializations stopped being current because a declaration moved**, asked of the
+        authority. Not reimplemented here for the same reason `adjudicate` is not: whether a constitution
+        has moved is an analytical question, and the substrate does not get a second opinion about it."""
+        return self.authority.stale_states()
 
-        Not reimplemented here for the same reason `adjudicate` is not: whether a constitution has moved is
-        an analytical question, and the substrate does not get a second opinion about it."""
-        return self.authority.stale_states(self._store.values())
+    # ── admission. Holding is never authority. ───────────────────────────────────────────────
+    def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
+              intent: Optional[TransitionIntent] = None, residency: str = "resident",
+              note: str = "") -> Admission:
+        """**The one door for columnar family material.** Warm start, a grouped continuation's result and an
+        external offer all arrive here, and the entitlement question is asked of independent material
+        exactly as it is asked of derived material."""
+        family_id = value.point.identity
+        family, law = self.family(family_id), self.law_of(family_id)
+        if not law.region.admits(cumulative_forgotten(family, value.anchor)):
+            forgotten = cumulative_forgotten(family, value.anchor)
+            return Admission(
+                False, code="anchor-outside-the-continuation-region",
+                detail=f"{family_id} may hold no lawful value at {value.anchor}: reaching it from "
+                       f"{family.root} forgets {sorted(forgotten)}, which {law.region.why_not(forgotten)}. "
+                       f"**ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO** — a governed realization can "
+                       f"supply a value and cannot make the law admit one where it does not.")
+        if establishment is None:
+            establishment = Establishment(AT_ROOT if value.anchor == family.root else INDEPENDENT)
+        return self.materializations.admit(
+            point=value.point, instance=value.instance, value=value, establishment=establishment,
+            realization=self.realization, intent=intent, residency=residency, note=note)
 
-    # ── retention. Holding is never authority. ───────────────────────────────────────────────
     def retain(self, value: Any) -> Retained:
+        if value.point.sort == "family":
+            admission = self.admit(value)
+            if not admission:
+                raise KernelRefusal(admission.code, value.point.identity, admission.detail)
+            return Retained(key=self._descriptor(self.materializations.get(admission.id)), value=value)
         key = RetentionKey(sort=value.point.sort, identity=value.point.identity,
                            anchor=value.anchor, instance=value.instance,
                            realization=self.realization,
@@ -382,11 +449,20 @@ class ColumnarMME:
 
     def retained(self, sort: str, identity: str, anchor: Anchor,
                  instance: AnalyticalInstance) -> Optional[Retained]:
+        if sort == "family":
+            held = self.materializations.select(identity, anchor=anchor, instance=instance,
+                                                serviceable=True)
+            if not held:
+                return None
+            best = min(held, key=lambda m: (-m.admitted_seq,))
+            return Retained(key=self._descriptor(best), value=best.value)
         return self._store.get(RetentionKey(sort, identity, anchor, instance, self.realization,
                                             self.authority.witness_of(identity).digest))
 
     def candidates(self, family_id: str) -> tuple[Retained, ...]:
-        return tuple(r for r in self._store.values() if r.key.identity == family_id)
+        return tuple(Retained(key=self._descriptor(m), value=m.value)
+                     for m in self.materializations.select(family_id, eligibility=None)
+                     if m.has_payload)
 
     # ── THE AUTHORITY, REUSED VERBATIM ───────────────────────────────────────────────────────
     def adjudicate(self, candidate: Retained, family: MeasureFamily, target: Anchor):
@@ -406,24 +482,18 @@ class ColumnarMME:
         instance = self.authority.instance_of(family_id)
         considered: list[str] = []
 
-        # **CANDIDACY IS THE KERNEL'S QUESTION TOO** — `resolve_pool` is the kernel's own function, called
-        # here exactly as `adjudicate` is: same object, CURRENT constitution witness, ONE evidence state.
-        resolution = resolve_pool(self._store.values(), family_id, instance,
-                                  self.authority.witness_of(family_id).digest,
-                                  f"{family_id}@{anchor}", data_state)
-        if resolution.refusal is not None:
-            return Answer(route=REFUSED, refusal=resolution.refusal)
+        # **CANDIDATE SELECTION IS THE MME'S, NEVER THE CALLER'S** (ruled 2026-09-29 §2). Only CURRENT,
+        # payload-bearing materializations are candidates; the cheapest lawful one answers.
+        pool = self.materializations.candidates_for(family_id, anchor, instance, data_state=data_state)
 
-        exact = next((r for r in resolution.pool
-                      if r.key.anchor == anchor and r.continuation_bearing), None)
+        exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
-                          considered=(str(exact.key),))
+                          considered=(str(self._descriptor(exact)),))
 
-        # least-work first, falling back toward the root — the kernel's own ordering rule
-        pool = sorted(resolution.pool, key=lambda r: len(r.key.anchor.constituents))
         blockers = []
-        for candidate in pool:
+        for materialization in pool:
+            candidate = Retained(key=self._descriptor(materialization), value=materialization.value)
             considered.append(str(candidate.key))
             verdict = self.adjudicate(candidate, family, anchor)
             if not verdict:
@@ -447,7 +517,14 @@ class ColumnarMME:
                     "approximate", f"{law.name} is {law.approximation}; every value served from it "
                                    f"carries that standing"))
             if retain:
-                self.retain(state)
+                # the dependency edge, recorded where the continuation happens and nowhere else
+                admission = self.admit(state, establishment=(
+                    Establishment(CONTINUED_FROM, (materialization.id,))
+                    if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
+                if not admission:
+                    return Answer(route=REFUSED, considered=tuple(considered),
+                                  refusal=Refusal(admission.code, f"{family_id}@{anchor}",
+                                                  admission.detail))
             return Answer(route=ROOT if state.anchor == family.root else CONTINUED, value=state,
                           disclosures=state.disclosures, seeded_from=candidate.key,
                           considered=tuple(considered))
@@ -460,9 +537,25 @@ class ColumnarMME:
                              sorted(best.values(), key=lambda b: b.code == "not-reachable"))
                   or f"no columnar state of {family_id} is held under this analytical instance; a value "
                      f"must be established at {family.root} before it can be continued anywhere"
-                  ) + resolution.note
+                  ) + self._also_held(family_id)
         return Answer(route=REFUSED, considered=tuple(considered),
                       refusal=Refusal("unanswerable", f"{family_id}@{anchor}", detail))
+
+    def _also_held(self, family_id: str) -> str:
+        """What IS held and could not answer, so a refusal never pretends the cache is empty."""
+        parts = []
+        not_current = self.materializations.select(family_id, eligibility=SUPERSEDED)
+        if not_current:
+            parts.append(f"{len(not_current)} retained materialization(s) of {family_id!r} are held and are "
+                         f"NOT CURRENT (superseded): {[f'{m.id}@{m.anchor}' for m in not_current]}. "
+                         f"Residency never creates analytical authority.")
+        unusable = [m for m in self.materializations.select(family_id, eligibility=CURRENT)
+                    if not m.serviceable]
+        if unusable:
+            parts.append(f"{len(unusable)} current materialization(s) are unusable by POLICY "
+                         f"({[f'{m.id}:{m.residency}' for m in unusable]}). That is OUR absence, not the "
+                         f"world's: the remedy is to establish the state again.")
+        return (" " + " ".join(parts)) if parts else ""
 
     def _want_of_state(self, state: ColumnarFamilyState, target: Anchor) -> Refusal:
         """**The refusal a value-bearing reduction owes when its domain is not established.**

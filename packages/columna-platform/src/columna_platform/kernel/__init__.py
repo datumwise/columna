@@ -18,7 +18,9 @@ measures is a boundary that leaks.
     witness       the `ConstitutionWitness`, COMPUTED from identity-bearing governed facts
     sorts         the TWO durable analytical sorts and their identities: `F@A` and `E@A`
     value         continuation-bearing `FamilyState` vs finalized `ExpressionOutput` — two TYPES
-    mme           the engine: retain, resolve candidates, adjudicate, measure, evaluate
+    materialization  MME v1's governed family-materialization cache: opaque identity, dependency,
+                     currentness, residency, admission
+    mme           the engine: admit, select candidates, adjudicate, measure, evaluate
     builtins      the smallest law vocabulary the vertical proofs need, and its in-memory provider
     exhibit       the runnable demonstration
 
@@ -58,6 +60,31 @@ from .law import (
     RequiredBasis,
     SCALAR,
     STRUCTURED,
+)
+from .materialization import (
+    AT_ROOT,
+    COEXIST,
+    CURRENT,
+    EVICTABLE,
+    EVICTED,
+    EXPIRED,
+    INDEPENDENT,
+    PINNED,
+    REJECT,
+    RESIDENT,
+    SUPERSEDE,
+    SUPERSEDED,
+    Admission,
+    Establishment,
+    FamilyMaterialization,
+    ManifoldBuild,
+    MaterializationId,
+    MaterializationStore,
+    Slot,
+    TransitionIntent,
+    admitted_targets,
+    cumulative_forgotten,
+    entitlement_holds,
 )
 from .mme import MME, Adequacy, PoolResolution, Retained, RetentionKey, Staleness, resolve_pool
 from .realization import ProviderProfile, Realization, RealizationStanding
@@ -107,6 +134,10 @@ __all__ = [
     "SufficientBasis",
     "Answer", "FamilyState", "ExpressionOutput",
     "MME", "Adequacy", "Retained", "RetentionKey", "PoolResolution", "Staleness",
+    "FamilyMaterialization", "MaterializationId", "MaterializationStore", "ManifoldBuild",
+    "Establishment", "TransitionIntent", "Admission", "Slot", "CURRENT", "SUPERSEDED", "PINNED",
+    "RESIDENT", "EVICTABLE", "EVICTED", "EXPIRED", "AT_ROOT", "INDEPENDENT", "COEXIST", "SUPERSEDE",
+    "REJECT", "admitted_targets", "cumulative_forgotten", "entitlement_holds",
     "resolve_pool",
     "ConstitutionWitness", "WitnessComparison", "WITNESS_SCHEME", "family_witness",
     "expression_witness", "determinant_names", "FAMILY_NON_DETERMINANTS",
