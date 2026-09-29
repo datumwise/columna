@@ -33,7 +33,8 @@ from typing import Mapping, Optional
 
 from .geometry import Anchor, Edge, KernelRefusal, Universe
 from .law import SAME_AS_OPERAND, AnalyticalLaw, LawRegistry
-from .standing import AnalyticalInstance
+from .standing import UNSTATED_DATA_STATE, AnalyticalInstance
+from .witness import ConstitutionWitness, expression_witness, family_witness
 
 
 # ══ identities ════════════════════════════════════════════════════════════════════════════════════
@@ -112,8 +113,20 @@ class MeasureFamily:
     #: A governed order, where the law requires one to select at all (LAST/FIRST).
     order_by: Optional[str] = None
     parameters: Mapping[str, object] = field(default_factory=dict)
-    #: An opaque witness of the constitution this family was established under.
-    constitution: str = "c0"
+    #: **RETIRED, AND KEPT ONLY SO THAT SUPPLYING ONE IS REFUSED** (P-1, 2026-09-29). The constitution
+    #: witness is COMPUTED from this record's identity-bearing fields by `witness()`; it was previously a
+    #: caller-supplied token defaulting to `"c0"`, which agreed with itself no matter how far the
+    #: declaration moved — the exact failure a staleness check exists to catch.
+    constitution: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        self.witness()                                  # refuses a caller-supplied witness, at construction
+
+    def witness(self) -> ConstitutionWitness:
+        """**This family's computed `ConstitutionWitness`.** Derived from the declaration alone — no
+        provider, no registry, no data — which is what makes it a fact about the CONSTITUTION and not about
+        this engine, this load, or this build."""
+        return family_witness(self)
 
     def bind(self, registry: LawRegistry) -> AnalyticalLaw:
         """Resolve and VALIDATE this family's law. Called at registration, so an unlawful family cannot
@@ -170,10 +183,16 @@ class MeasureFamily:
                 f"occurrences the law consumes at the root.")
         return law
 
-    def instance(self, scope: Optional[str] = None) -> AnalyticalInstance:
+    def instance(self, scope: Optional[str] = None, *,
+                 data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
+        """The analytical instance of this family — **which does NOT carry this family's own constitution
+        witness.** That witness is per-object and answers a staleness question about one identity; it is
+        computed by `witness()` and keyed on the `RetentionKey`. What the instance carries is the shared
+        constitution CONTEXT (publication-level) and the `data_state` of the material it was established
+        from. Keeping them apart is P-1's whole instruction."""
         return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
-                                  participation=self.participation,
-                                  constitution=self.constitution, scope=scope)
+                                  participation=self.participation, scope=scope,
+                                  data_state=data_state)
 
     def at(self, anchor: Anchor) -> FamilyPoint:
         return FamilyPoint(self.family_id, anchor)
@@ -237,7 +256,20 @@ class GovernedExpression:
     scope: Optional[str] = None
     admitted_bases: tuple[SufficientBasis, ...] = ()
     parameters: Mapping[str, object] = field(default_factory=dict)
-    constitution: str = "c0"
+    #: **RETIRED** — see `MeasureFamily.constitution`. Computed by `witness()`.
+    constitution: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        self.witness()
+
+    def witness(self) -> ConstitutionWitness:
+        """**This expression's computed `ConstitutionWitness`.**
+
+        `admitted_bases` is NOT a determinant of it — ruled 2026-09-28, *"expression identity ≠ one
+        particular sufficient basis used to establish it"* — so admitting a new route leaves every value
+        already established over an existing route current rather than stale. Which route a value actually
+        took rides on the value, as `ExpressionOutput.basis_id`."""
+        return expression_witness(self)
 
     def bind(self, registry: LawRegistry, families: Mapping[str, MeasureFamily]) -> AnalyticalLaw:
         law = registry.get(self.constructor)
@@ -308,10 +340,10 @@ class GovernedExpression:
             shapes[shape] = basis.basis_id
         return law
 
-    def instance(self) -> AnalyticalInstance:
+    def instance(self, *, data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
         return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
-                                  participation=self.participation,
-                                  constitution=self.constitution, scope=self.scope)
+                                  participation=self.participation, scope=self.scope,
+                                  data_state=data_state)
 
     def at(self, anchor: Anchor) -> ExpressionPoint:
         return ExpressionPoint(self.expression_id, anchor)

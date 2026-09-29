@@ -18,10 +18,14 @@ and the occurrences below are the whole of the data. Everything printed is compu
 from __future__ import annotations
 
 
+from dataclasses import replace
+
 from .builtins import IN_MEMORY, KNOWN_EMPTY, REGISTRY, hll_rse, witness_value
 from .geometry import Constituent, KernelRefusal, Universe
 from .mme import MME
+from .realization import RealizationStanding
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
+from .witness import FAMILY_NON_DETERMINANTS
 
 MANIFOLD = "andfam.commerce"
 PARTICIPATION = "every customer order the merchant accepted"
@@ -429,6 +433,67 @@ def main() -> int:                                          # noqa: C901 - an ex
     check("an empty eligible fibre is KNOWN_EMPTY, not None", empty == KNOWN_EMPTY)
     check("and merging KNOWN_EMPTY with a witness yields the witness",
           IN_MEMORY.of("LAST").merge(KNOWN_EMPTY, ("08:00", 3)) == ("08:00", 3))
+
+    # ══ 7 · THE THREE FACTS ABOUT A RETAINED OBJECT, MOVED ONE AT A TIME ═════════════════════════
+    _rule("PROOF 7 · constitution · data state · realization — three facts, three axes, moved one "
+          "at a time")
+    witness = mme.witness_of("revenue")
+    print(f"  revenue's ConstitutionWitness   {witness.digest}")
+    print(f"    COMPUTED from {len(witness.determinants)} identity-bearing determinant(s): "
+          f"{list(witness.names)}")
+    print(f"    and NOT from: {sorted(FAMILY_NON_DETERMINANTS)}  "
+          f"(a label, a description, and the retired declared slot)")
+    supplied = None
+    try:
+        replace(revenue, constitution="c0")
+    except KernelRefusal as exc:
+        supplied = exc
+    print(f"    supplying one by hand: REFUSED [{supplied.code if supplied else '—'}]")
+
+    print("\n  ONE EDIT AT A TIME, and exactly one axis moves:")
+    load_a, load_b = "load:orders@08:00Z", "load:orders@17:30Z"
+    mme.establish_root(revenue, ORDERS, data_state=load_a)
+    mme.establish_root(revenue, ORDERS[:2], data_state=load_b)
+    reloaded = [k for k in mme.held if k.identity == "revenue" and k.data_state in (load_a, load_b)]
+    print(f"    the DATA moves   → witness {mme.witness_of('revenue').digest} unchanged; "
+          f"{len(reloaded)} retained objects, one per evidence state")
+    ambiguous = mme.measure(revenue, BY_DAY)
+    print(f"      and the engine REFUSES to pick one [{ambiguous.refusal.code}]")
+    named = mme.measure(revenue, BY_DAY, data_state=load_a)
+    other = mme.measure(revenue, BY_DAY, data_state=load_b)
+    print(f"      named: revenue@D1 under {load_a} = {named.value.cells[('D1',)]:.2f}, "
+          f"under {load_b} = {other.value.cells[('D1',)]:.2f}")
+
+    one = RealizationStanding(provider="in-memory", carrier="in-memory")
+    two = RealizationStanding(provider="in-memory", carrier="arrow-ipc")
+    print(f"    the REALIZATION moves → {one} vs {two}; witness and analytical instance both unchanged")
+
+    moved = replace(revenue, participation="every order the auditor confirmed")
+    mme.register_family(moved)
+    stale = mme.stale_states()
+    print(f"    the DECLARATION moves → witness {mme.witness_of('revenue').digest}, and "
+          f"{len(stale)} held state(s) are STALE")
+    for s_ in stale[:1]:
+        print(f"      {s_}")
+        print(f"      {s_.detail}")
+    refused_stale = mme.measure(moved, BY_DAY)
+
+    check("the witness is COMPUTED, and a caller-supplied one is refused",
+          witness.digest.startswith("cw-1:") and supplied is not None
+          and supplied.code == "constitution-is-computed")
+    check("a family and an expression both have one, and they are not comparable across sorts",
+          not mme.witness_of("average_order_value").compare(witness))
+    check("new root data: SAME witness, DIFFERENT analytical instance, two retained objects",
+          len(reloaded) == 2 and len({k.constitution for k in reloaded}) == 1)
+    check("and the engine does not choose between two evidence states",
+          ambiguous.refusal.code == "ambiguous-data-state" and named.served and other.served
+          and named.value.cells[("D1",)] != other.value.cells[("D1",)])
+    check("a realization change moves neither the witness nor the instance", one != two
+          and revenue.witness().digest == witness.digest)
+    check("a constitution change is mechanically detectable AND names the determinant",
+          bool(stale) and stale[0].changed == ("participation",))
+    check("a stale state is not served, and the refusal says it is held",
+          not refused_stale.served and "STALE" in refused_stale.refusal.detail)
 
     # ══ realization limits, and conservative invalidation ════════════════════════════════════════
     _rule("ADDENDA · a provider's inability does not remove a law; invalidation is conservative")

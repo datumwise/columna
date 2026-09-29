@@ -136,7 +136,11 @@ def test_the_kernel_reaches_exactly_one_third_party_algorithm_and_names_it():
     import columna_platform.kernel as pkg
 
     external = set()
-    stdlib = {"__future__", "dataclasses", "typing", "math", "abc", "enum", "functools", "itertools"}
+    # stdlib is not "external" in the sense this test guards: what it forbids is a THIRD-PARTY or Core
+    # import. `hashlib` joined the list when the constitution witness became computed (P-1) — a digest
+    # over identity-bearing governed facts, in-process and written nowhere.
+    stdlib = {"__future__", "dataclasses", "typing", "math", "abc", "enum", "functools", "itertools",
+              "hashlib"}
     root = pathlib.Path(pkg.__file__).parent
     for path in sorted(root.glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -505,7 +509,7 @@ def test_the_retention_key_distinguishes_sort_identity_anchor_instance_and_provi
     assert held.key.anchor == EX.BY_DAY and held.key.provider == "in-memory"
     # a DIFFERENT analytical instance is a different retained object, never a silent overwrite
     other = AnalyticalInstance(manifold=EX.MANIFOLD, universe="commerce",
-                               participation="something else", constitution="c0")
+                               participation="something else")
     assert mme.retained(state.point, other) is None
 
 
