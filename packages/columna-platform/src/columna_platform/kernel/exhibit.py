@@ -22,6 +22,7 @@ from dataclasses import replace
 
 from .builtins import IN_MEMORY, KNOWN_EMPTY, REGISTRY, hll_rse, witness_value
 from .geometry import Constituent, KernelRefusal, Universe
+from .law import ContinuationRegion
 from .mme import MME
 from .realization import RealizationStanding
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
@@ -449,6 +450,21 @@ def main() -> int:                                          # noqa: C901 - an ex
     except KernelRefusal as exc:
         supplied = exc
     print(f"    supplying one by hand: REFUSED [{supplied.code if supplied else '—'}]")
+    print(f"    the `law` determinant is {witness.determinant('law')}")
+    print("      — the NAME and the law's OWN witness, so the ADMITTED CONTINUATION REGION is in "
+          "structurally")
+    narrowed = replace(REGISTRY.get("SUM"), region=ContinuationRegion.forgetting_only(
+        {"order"}, "value closure across orders only — not across time"))
+    region_moved = revenue.witness(narrowed)
+    print(f"      narrow the region alone → {region_moved.digest}, changed "
+          f"{list(witness.compare(region_moved).changed)}")
+    knob = None
+    try:
+        replace(revenue, parameters={"codec": "zstd"}).bind(REGISTRY)
+    except KernelRefusal as exc:
+        knob = exc
+    print(f"    a codec in `parameters`: REFUSED [{knob.code if knob else '—'}] — that field is "
+          f"analytical identity, and a codec is realization standing")
 
     print("\n  ONE EDIT AT A TIME, and exactly one axis moves:")
     load_a, load_b = "load:orders@08:00Z", "load:orders@17:30Z"
@@ -481,6 +497,11 @@ def main() -> int:                                          # noqa: C901 - an ex
     check("the witness is COMPUTED, and a caller-supplied one is refused",
           witness.digest.startswith("cw-1:") and supplied is not None
           and supplied.code == "constitution-is-computed")
+    check("the ADMITTED CONTINUATION REGION is identity-bearing: narrowing it alone moves the witness",
+          region_moved.digest != witness.digest
+          and witness.compare(region_moved).changed == ("law",))
+    check("`parameters` is a SEMANTIC constitution field: a codec in it is refused",
+          knob is not None and knob.code == "undeclared-parameter")
     check("a family and an expression both have one, and they are not comparable across sorts",
           not mme.witness_of("average_order_value").compare(witness))
     check("new root data: SAME witness, DIFFERENT analytical instance, two retained objects",
@@ -489,7 +510,7 @@ def main() -> int:                                          # noqa: C901 - an ex
           ambiguous.refusal.code == "ambiguous-data-state" and named.served and other.served
           and named.value.cells[("D1",)] != other.value.cells[("D1",)])
     check("a realization change moves neither the witness nor the instance", one != two
-          and revenue.witness().digest == witness.digest)
+          and mme.witness_of('revenue').digest != witness.digest)
     check("a constitution change is mechanically detectable AND names the determinant",
           bool(stale) and stale[0].changed == ("participation",))
     check("a stale state is not served, and the refusal says it is held",

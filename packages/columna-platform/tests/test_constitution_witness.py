@@ -29,15 +29,26 @@ from columna_platform.kernel import (
     ConstitutionWitness,
     GovernedExpression,
     KernelRefusal,
+    ContinuationRegion,
+    LawRegistry,
     MeasureFamily,
     Operand,
+    REGISTRY,
     RealizationStanding,
     SufficientBasis,
     determinant_names,
 )
 from columna_platform.kernel import exhibit as KEX
-from columna_platform.kernel.witness import _determinants
+from columna_platform.kernel.witness import _determinants, law_witness
 from columna_platform.columnar import exhibit as CEX
+
+def W(obj):
+    """**The witness of a declaration, against the law it names.** A helper because the law is REQUIRED
+    (boundary check 1, 2026-09-29): the admitted continuation region is identity-bearing and lives on the
+    law, so a witness computed from the declaration's text alone would be blind to it. `MME.witness_of` is
+    the ordinary route; this is that route for a declaration not registered anywhere."""
+    return obj.witness(REGISTRY.get(getattr(obj, "law", None) or obj.constructor))
+
 
 LOAD_A = "load:orders@2026-09-29T08:00Z"
 LOAD_B = "load:orders@2026-09-29T17:30Z"
@@ -61,13 +72,13 @@ def mme():
 # ══ 0 · COMPUTED, NOT CALLER-SUPPLIED ═════════════════════════════════════════════════════════════
 def test_the_witness_is_computed_from_the_declaration(revenue, aov):
     for obj in (revenue, aov):
-        witness = obj.witness()
+        witness = W(obj)
         assert isinstance(witness, ConstitutionWitness)
         assert witness.digest.startswith(f"{WITNESS_SCHEME}:")
         assert witness.scheme == WITNESS_SCHEME
         assert witness.determinants                      # it is derived from something
         # and it is a FUNCTION of the declaration: same declaration, same witness, every time
-        assert obj.witness().digest == witness.digest
+        assert W(obj).digest == witness.digest
 
 
 def test_a_caller_supplied_witness_is_refused_at_construction():
@@ -91,9 +102,9 @@ def test_both_sorts_are_covered_and_their_witnesses_are_not_comparable(revenue, 
     """*"Family and expression witnesses are both covered."* Covered as PEERS: `compare` across the two
     sorts is not a question with an answer, so it says so rather than returning `False` as though the two
     constitutions had been weighed."""
-    assert revenue.witness().sort == "family"
-    assert aov.witness().sort == "expression"
-    verdict = revenue.witness().compare(aov.witness())
+    assert W(revenue).sort == "family"
+    assert W(aov).sort == "expression"
+    verdict = W(revenue).compare(W(aov))
     assert not verdict
     assert "not comparable" in verdict.detail and "peers" in verdict.detail
 
@@ -103,8 +114,8 @@ def test_the_witness_answers_which_constitution_and_not_which_object(revenue):
     two objects with identical governed constitutions share a digest — and the witness still names which
     object it is about, beside the digest rather than inside it."""
     renamed = replace(revenue, family_id="revenue_renamed")
-    assert renamed.witness().digest == revenue.witness().digest
-    assert renamed.witness().identity == "revenue_renamed" != revenue.witness().identity
+    assert W(renamed).digest == W(revenue).digest
+    assert W(renamed).identity == "revenue_renamed" != W(revenue).identity
 
 
 # ══ NEGATIVE CONTROL 1 · same constitution + new source/root data ══════════════════════════════════
@@ -185,12 +196,12 @@ def test_control_2_no_realization_fact_is_a_determinant_of_the_witness(revenue, 
     """The structural version of control 2: a provider cannot influence a witness because no realization
     fact is in the determinant set at all."""
     for obj in (revenue, aov):
-        rendered = " ".join(f"{n}={v}" for n, v in obj.witness().determinants).lower()
+        rendered = " ".join(f"{n}={v}" for n, v in W(obj).determinants).lower()
         for realization_word in ("provider", "carrier", "arrow", "datafusion", "in-memory", "codec",
                                  "parquet", "data_state", "load:"):
             assert realization_word not in rendered
-        assert "realization" not in obj.witness().names
-        assert "data_state" not in obj.witness().names
+        assert "realization" not in W(obj).names
+        assert "data_state" not in W(obj).names
 
 
 def test_control_2_realization_standing_is_an_object_and_not_analytical_standing():
@@ -223,9 +234,9 @@ FAMILY_IDENTITY_EDITS = [
 def test_control_3_an_identity_bearing_family_change_moves_the_witness(revenue, determinant, edit):
     """*"identity-bearing change … → different ConstitutionWitness."* And it NAMES what moved."""
     moved = replace(revenue, **edit)
-    comparison = revenue.witness().compare(moved.witness())
+    comparison = W(revenue).compare(W(moved))
     assert not comparison
-    assert moved.witness().digest != revenue.witness().digest
+    assert W(moved).digest != W(revenue).digest
     assert determinant in comparison.changed
     assert "STALE" in comparison.detail and "re-establishment is from the root" in comparison.detail
 
@@ -245,7 +256,7 @@ EXPRESSION_IDENTITY_EDITS = [
                          ids=[f"{d}-{i}" for i, (d, _) in enumerate(EXPRESSION_IDENTITY_EDITS)])
 def test_control_3_an_identity_bearing_expression_change_moves_the_witness(aov, determinant, edit):
     moved = replace(aov, **edit)
-    comparison = aov.witness().compare(moved.witness())
+    comparison = W(aov).compare(W(moved))
     assert not comparison and determinant in comparison.changed
 
 
@@ -253,17 +264,158 @@ def test_control_3_the_role_alone_is_identity_bearing(aov):
     """*"operand identity, role"* — the role is an INDEX, so re-indexing the same family is a different
     constitution even though the operand family is untouched."""
     rerolled = replace(aov, operands=(Operand("numerator", "revenue"),))
-    assert rerolled.witness().digest != aov.witness().digest
-    assert "operands" in aov.witness().compare(rerolled.witness()).changed
+    assert W(rerolled).digest != W(aov).digest
+    assert "operands" in W(aov).compare(W(rerolled)).changed
+
+
+# ══ BOUNDARY CHECK 1 · THE ADMITTED CONTINUATION REGION IS IN THE FAMILY WITNESS ══════════════════
+def test_the_admitted_continuation_region_is_in_the_family_witness(revenue):
+    """*"v8 makes admitted continuation edges identity-bearing. In the Platform kernel,
+    `ContinuationRegion` is our representation of that admitted/value-closed region. Changing the region
+    must change the family witness."* — Huayin, 2026-09-29 (boundary check 1)
+
+    It did not, before this test existed: a family carries the law's NAME and the region lives on the law.
+    The `law` determinant now carries the bound law's own witness, so the region is in structurally."""
+    sum_law = REGISTRY.get("SUM")
+    narrowed = replace(
+        sum_law, region=ContinuationRegion.forgetting_only(
+            {"order"}, "value closure holds only across orders, not across time"))
+    assert sum_law.region != narrowed.region
+
+    before = revenue.witness(sum_law)
+    after = revenue.witness(narrowed)
+    assert after.digest != before.digest
+    assert before.compare(after).changed == ("law",)
+    # the DECLARATION did not change at all — only the admitted region of the law it names
+    assert before.determinant("root") == after.determinant("root")
+
+
+def test_the_region_reaches_the_witness_through_the_laws_own_witness(revenue):
+    """The mechanism, pinned so it cannot be replaced by an enumeration that later goes stale."""
+    sum_law = REGISTRY.get("SUM")
+    reference = revenue.witness(sum_law).determinant("law")
+    assert reference.startswith("SUM@")
+    assert reference.endswith(law_witness(sum_law).digest)
+    assert "region" in dict(law_witness(sum_law).determinants)
+    assert dict(law_witness(sum_law).determinants)["region"] == "region[forgettable=EVERY]"
+
+    stock = REGISTRY.get("STOCK_LEVEL")
+    assert dict(law_witness(stock).determinants)["region"].startswith("region[forgettable={")
+
+
+@pytest.mark.parametrize("edit", [
+    {"region": ContinuationRegion.forgetting_only({"store"}, "only across stores")},
+    {"continuation": replace(REGISTRY.get("SUM").continuation, token="multiplication")},
+    {"value_form": "structured", "finalized_by": "HLL_ESTIMATE"},
+    {"approximation": "approximate"},
+    {"sufficient_state": "something else"},
+    {"required_parameters": ("lg_k",)},
+    {"result_domain": "integer"},
+    {"operand_domains": frozenset({"integer"})},
+    {"finalized_by": "HLL_ESTIMATE"},
+    {"requires_order": True},
+], ids=["region", "composition", "value_form", "approximation", "sufficient_state",
+        "required_parameters", "result_domain", "operand_domains", "finalized_by", "requires_order"])
+def test_every_identity_bearing_law_fact_moves_the_family_witness(revenue, edit):
+    """**AUTOMATIC, WHICH IS THE POINT.** The law witness is derived by the same subtraction, so this list
+    is a statement about doctrine rather than about maintenance: *"future root-formation constitution should
+    likewise enter automatically when it becomes a first-class declaration field."*"""
+    moved = replace(REGISTRY.get("SUM"), **edit)
+    assert revenue.witness(moved).digest != revenue.witness(REGISTRY.get("SUM")).digest
+
+
+def test_a_laws_prose_is_not_identity_bearing(revenue):
+    """The other direction, so the law witness is an identity and not a change detector."""
+    sum_law = REGISTRY.get("SUM")
+    reworded = replace(
+        sum_law, identity_note="reworded commentary about what addition is",
+        region=replace(sum_law.region, note="a clearer sentence about the same region"),
+        continuation=replace(sum_law.continuation, note="a clearer sentence about addition"))
+    assert revenue.witness(reworded).digest == revenue.witness(sum_law).digest
+    assert law_witness(reworded).digest == law_witness(sum_law).digest
+
+
+def test_the_law_vocabulary_is_part_of_the_constitution_a_family_is_witnessed_against():
+    """A consequence, stated rather than discovered later: a witness is computed against the law vocabulary
+    of its Manifold, because the same declaration under a different vocabulary is not the same
+    constitution. `MME.witness_of` is therefore the ordinary way to obtain one."""
+    mme = KEX.build()
+    revenue = mme.family("revenue")
+    assert mme.witness_of("revenue").digest == revenue.witness(REGISTRY.get("SUM")).digest
+    with pytest.raises(TypeError):
+        revenue.witness()                                  # the law is not optional
+
+
+# ══ BOUNDARY CHECK 2 · `parameters` IS A SEMANTIC CONSTITUTION FIELD ══════════════════════════════
+def test_a_provider_or_codec_parameter_is_refused_from_the_constitution_field():
+    """*"`parameters` may be taken whole only because it is a semantic constitution field. Do not allow
+    provider/codec/performance parameters into that field. Those belong to realization standing. A
+    ConstitutionWitness is analytical identity, not merely a conservative cache-invalidation hash."*
+        — Huayin, 2026-09-29 (boundary check 2)"""
+    mme = KEX.build()
+    for knob in ({"codec": "zstd"}, {"batch_size": 4096}, {"compression": "snappy"},
+                 {"provider": "arrow+datafusion"}, {"parallelism": 8}):
+        tuned = replace(mme.family("revenue"), parameters=knob)
+        with pytest.raises(KernelRefusal) as exc:
+            mme.register_family(tuned)
+        assert exc.value.code == "undeclared-parameter"
+        assert "REALIZATION STANDING" in exc.value.detail
+        assert "cache-invalidation hash" in exc.value.detail
+
+
+def test_an_expression_parameter_is_policed_the_same_way():
+    mme = KEX.build()
+    tuned = replace(mme.expression("average_order_value"), parameters={"codec": "zstd"})
+    with pytest.raises(KernelRefusal) as exc:
+        mme.register_expression(tuned)
+    assert exc.value.code == "undeclared-parameter"
+
+
+def _with_a_parameterised_sum(name: str = "SUM_P"):
+    """A law vocabulary containing one law that DECLARES an identity-bearing parameter. The registry is
+    immutable by design, so this builds a vocabulary rather than mutating one."""
+    parameterised = replace(REGISTRY.get("SUM"), name=name, required_parameters=("basket_rule",))
+    return LawRegistry(tuple(REGISTRY) + (parameterised,),
+                       vocabulary=f"{REGISTRY.vocabulary}+parameterised",
+                       version=REGISTRY.version), parameterised
+
+
+def test_a_law_declared_parameter_is_admitted_and_is_identity_bearing():
+    """The authority for what may be in the field is the LAW, which already declares it — so a genuinely
+    individuating parameter is admitted, and it moves the witness."""
+    registry, parameterised = _with_a_parameterised_sum()
+    family = MeasureFamily(
+        family_id="revenue_p", manifold=KEX.MANIFOLD, universe="commerce", root=KEX.SALE_AT,
+        law="SUM_P", value_domain="decimal", participation="p", target="t",
+        parameters={"basket_rule": "net-of-returns"})
+    assert family.bind(registry) is parameterised          # admitted: the law declares it
+
+    other = replace(family, parameters={"basket_rule": "gross"})
+    assert other.witness(parameterised).digest != family.witness(parameterised).digest
+    assert family.witness(parameterised).compare(other.witness(parameterised)).changed == ("parameters",)
+
+    with pytest.raises(KernelRefusal) as exc:
+        replace(family, parameters={"basket_rule": "net", "codec": "zstd"}).bind(registry)
+    assert exc.value.code == "undeclared-parameter"
+
+
+def test_an_unsupplied_declared_parameter_is_still_refused():
+    """The pre-existing guard, unchanged: a parameter that individuates a law's use cannot be guessed."""
+    registry, _ = _with_a_parameterised_sum("SUM_Q")
+    with pytest.raises(KernelRefusal) as exc:
+        MeasureFamily(family_id="revenue_q", manifold=KEX.MANIFOLD, universe="commerce",
+                      root=KEX.SALE_AT, law="SUM_Q", value_domain="decimal", participation="p",
+                      target="t").bind(registry)
+    assert exc.value.code == "unsupplied-parameter"
 
 
 # ══ NEGATIVE CONTROL 4 · non-identity metadata / alias / description ══════════════════════════════
 def test_control_4_a_description_change_leaves_the_witness_identical(revenue):
     """*"non-identity metadata / alias / description change → same ConstitutionWitness."*"""
     redescribed = replace(revenue, target="the money we took, phrased for the board deck")
-    assert redescribed.witness().digest == revenue.witness().digest
-    assert revenue.witness().compare(redescribed.witness())
-    assert "target" not in revenue.witness().names
+    assert W(redescribed).digest == W(revenue).digest
+    assert W(revenue).compare(W(redescribed))
+    assert "target" not in W(revenue).names
 
 
 def test_control_4_admitting_another_route_leaves_the_witness_identical(aov):
@@ -273,8 +425,8 @@ def test_control_4_admitting_another_route_leaves_the_witness_identical(aov):
         SufficientBasis(basis_id="b_alternative",
                         components={"SUM": "revenue", "COUNT": "audited_order_count"},
                         requires_common_participation=True),))
-    assert widened.witness().digest == aov.witness().digest
-    assert "admitted_bases" not in aov.witness().names
+    assert W(widened).digest == W(aov).digest
+    assert "admitted_bases" not in W(aov).names
 
 
 def test_control_4_a_value_established_under_one_route_survives_admitting_another(mme):
@@ -339,24 +491,24 @@ def test_re_establishing_under_the_new_constitution_serves_again(mme, revenue):
 
 def test_the_three_facts_move_independently(mme, revenue):
     """**THE COLLAPSE TEST.** One edit at a time, and exactly one axis moves for each."""
-    base_witness = revenue.witness().digest
+    base_witness = W(revenue).digest
     base_instance = revenue.instance()
 
     # 1 · the DECLARATION moves: witness changes, instance's governed axes may or may not, data state does not
     declaration_moved = replace(revenue, root=KEX.STORE_DAY)
-    assert declaration_moved.witness().digest != base_witness
+    assert W(declaration_moved).digest != base_witness
     assert declaration_moved.instance().data_state == base_instance.data_state
 
     # 2 · the DATA moves: witness identical, instance different
     reloaded = revenue.instance(data_state=LOAD_A)
-    assert revenue.witness().digest == base_witness
+    assert W(revenue).digest == base_witness
     assert reloaded != base_instance and reloaded.same_but_for_data_state(base_instance)
 
     # 3 · the REALIZATION moves: witness identical, instance identical
     one = RealizationStanding(provider="in-memory", carrier="in-memory")
     two = RealizationStanding(provider="in-memory", carrier="arrow-ipc")
     assert one != two
-    assert revenue.witness().digest == base_witness and revenue.instance() == base_instance
+    assert W(revenue).digest == base_witness and revenue.instance() == base_instance
 
 
 def test_the_retention_key_references_all_three_separately(mme):
@@ -407,9 +559,9 @@ def test_an_exclusion_that_outlives_its_field_is_refused():
 def test_every_ruled_identity_bearing_fact_is_a_determinant(revenue, aov):
     """The ruling's enumeration, checked as a set rather than one edit at a time."""
     assert {"root", "law", "order_by", "participation", "parameters", "value_domain",
-            "manifold", "universe"} <= set(revenue.witness().names)
+            "manifold", "universe"} <= set(W(revenue).names)
     assert {"operands", "inner_anchors", "participation", "constructor",
-            "parameters"} <= set(aov.witness().names)
+            "parameters"} <= set(W(aov).names)
 
 
 def test_the_witness_is_not_cores_family_fingerprint():
@@ -421,7 +573,7 @@ def test_the_witness_is_not_cores_family_fingerprint():
 
 def test_asking_a_witness_about_a_non_determinant_refuses(revenue):
     with pytest.raises(KernelRefusal) as exc:
-        revenue.witness().determinant("target")
+        W(revenue).determinant("target")
     assert exc.value.code == "not-a-determinant"
 
 

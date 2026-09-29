@@ -256,14 +256,14 @@ class MME:
         self._require_own(family.manifold, family.family_id)
         self._bound[family.family_id] = family.bind(self.laws)
         self._families[family.family_id] = family
-        self._remember(family.witness())
+        self._remember(family.witness(self._bound[family.family_id]))
         return family
 
     def register_expression(self, expression: GovernedExpression) -> GovernedExpression:
         self._require_own(expression.manifold, expression.expression_id)
         self._bound[expression.expression_id] = expression.bind(self.laws, self._families)
         self._expressions[expression.expression_id] = expression
-        self._remember(expression.witness())
+        self._remember(expression.witness(self._bound[expression.expression_id]))
         return expression
 
     def _require_own(self, manifold: str, identity: str) -> None:
@@ -293,7 +293,10 @@ class MME:
                 f"{self.manifold!r}, so there is no governed constitution to witness. A witness is "
                 f"computed from a declaration; it is not something a retained object can supply about "
                 f"itself.")
-        return obj.witness()
+        # **THE BOUND LAW IS PART OF THE WITNESS** (boundary check 1, 2026-09-29): the admitted continuation
+        # region is identity-bearing and lives on the law, so the engine — which is what binds a law name to
+        # a law — is the right place for a witness to be obtained.
+        return obj.witness(self._bound[identity])
 
     def constitution_seen(self, digest: str) -> Optional[ConstitutionWitness]:
         """A constitution this engine has registered at some point, by digest — its own history."""
