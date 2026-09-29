@@ -23,6 +23,7 @@ from dataclasses import replace
 from .builtins import IN_MEMORY, KNOWN_EMPTY, REGISTRY, hll_rse, witness_value
 from .geometry import Constituent, KernelRefusal, Universe
 from .law import ContinuationRegion
+from .materialization import SUPERSEDE, TransitionIntent
 from .mme import MME
 from .realization import RealizationStanding
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
@@ -171,6 +172,12 @@ def build() -> MME:
     mme.establish_root(on_hand, LEVELS)
     mme.establish_root(gauge, READINGS)
     return mme
+
+
+def _holding(mme: MME, key):
+    """One held object, by its descriptor. A descriptor REPORTS what is held; a materialization is located
+    by its opaque `MaterializationId`, so this is a search over attributes rather than a lookup handle."""
+    return next(r for r in mme.holdings() if r.key == key)
 
 
 # ── printing ─────────────────────────────────────────────────────────────────────────────────────
@@ -396,17 +403,17 @@ def main() -> int:                                          # noqa: C901 - an ex
         if key.anchor.is_scalar:
             continue
         target = COMMERCE.anchor(sorted(key.anchor.constituents)[1:])
-        v = mme.adjudicate(mme._store[key], fam, target)
+        v = mme.adjudicate(_holding(mme, key), fam, target)
         seeded, blocked = (seeded + 1, blocked) if v else (seeded, blocked + 1)
         print(f"    {str(key):<46} → {target}  {'ADMITTED' if v else 'REFUSED  [' + v.code + ']'}")
     print("\n  every expression output, asked the same question:")
     for key in sorted(expr_keys, key=str):
-        v = mme.adjudicate(mme._store[key], revenue, key.anchor)
+        v = mme.adjudicate(_holding(mme, key), revenue, key.anchor)
         print(f"    {str(key):<46} → {'ADMITTED' if v else 'REFUSED  [' + v.code + ']'}")
 
     check("at least one family state may seed and at least one may not", seeded > 0 and blocked > 0)
     check("NO expression output may ever seed",
-          all(not mme.adjudicate(mme._store[k], revenue, k.anchor) for k in expr_keys))
+          all(not mme.adjudicate(_holding(mme, k), revenue, k.anchor) for k in expr_keys))
     check("expression outputs are nonetheless held and servable", len(expr_keys) > 0)
     check("the two sorts never collide in one store",
           len({(k.sort, k.identity, k.anchor) for k in mme.held}) == len(mme.held))
@@ -468,17 +475,27 @@ def main() -> int:                                          # noqa: C901 - an ex
 
     print("\n  ONE EDIT AT A TIME, and exactly one axis moves:")
     load_a, load_b = "load:orders@08:00Z", "load:orders@17:30Z"
-    mme.establish_root(revenue, ORDERS, data_state=load_a)
-    mme.establish_root(revenue, ORDERS[:2], data_state=load_b)
-    reloaded = [k for k in mme.held if k.identity == "revenue" and k.data_state in (load_a, load_b)]
+    held_already = mme.materializations.select("revenue", anchor=SALE_AT)[0]
+    mme.establish_root(revenue, ORDERS, data_state=load_a,
+                       intent=TransitionIntent(SUPERSEDE, (held_already.id,)))
+    first = mme.materializations.select("revenue", anchor=SALE_AT, data_state=load_a)[0]
+    mme.establish_root(revenue, ORDERS[:2], data_state=load_b)       # intent COEXIST, the default
+    both = mme.materializations.select("revenue", anchor=SALE_AT, eligibility=None)
     print(f"    the DATA moves   → witness {mme.witness_of('revenue').digest} unchanged; "
-          f"{len(reloaded)} retained objects, one per evidence state")
-    ambiguous = mme.measure(revenue, BY_DAY)
-    print(f"      and the engine REFUSES to pick one [{ambiguous.refusal.code}]")
-    named = mme.measure(revenue, BY_DAY, data_state=load_a)
-    other = mme.measure(revenue, BY_DAY, data_state=load_b)
-    print(f"      named: revenue@D1 under {load_a} = {named.value.cells[('D1',)]:.2f}, "
-          f"under {load_b} = {other.value.cells[('D1',)]:.2f}")
+          f"{len(both)} retained materializations of ONE F@A, coexisting under one opaque id each")
+    for m in both:
+        print(f"        {m}")
+    served = mme.measure(revenue, BY_DAY)
+    print(f"      an ordinary ask names an analytical identity and gets ONE answer: "
+          f"revenue@D1 = {served.value.cells[('D1',)]:.2f}  (the CURRENT evidence state)")
+    print("      the coexisting instance is retained and NOT current — an ordinary request never sees")
+    print("      two interchangeable answers, and the CACHE never asks the caller to choose.")
+    mme.establish_root(revenue, ORDERS[:2], data_state=load_b,
+                       intent=TransitionIntent(SUPERSEDE, (first.id,)))
+    after = mme.measure(revenue, BY_DAY)
+    print(f"      offering {load_b} again with intent SUPERSEDE({first.id}): revenue@D1 is now "
+          f"{after.value.cells[('D1',)]:.2f}")
+    print(f"        {mme.materialization(first.id)}")
 
     one = RealizationStanding(provider="in-memory", carrier="in-memory")
     two = RealizationStanding(provider="in-memory", carrier="arrow-ipc")
@@ -488,7 +505,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     mme.register_family(moved)
     stale = mme.stale_states()
     print(f"    the DECLARATION moves → witness {mme.witness_of('revenue').digest}, and "
-          f"{len(stale)} held state(s) are STALE")
+          f"{len(stale)} materialization(s) stopped being CURRENT (they stay RESIDENT)")
     for s_ in stale[:1]:
         print(f"      {s_}")
         print(f"      {s_.detail}")
@@ -504,17 +521,24 @@ def main() -> int:                                          # noqa: C901 - an ex
           knob is not None and knob.code == "undeclared-parameter")
     check("a family and an expression both have one, and they are not comparable across sorts",
           not mme.witness_of("average_order_value").compare(witness))
-    check("new root data: SAME witness, DIFFERENT analytical instance, two retained objects",
-          len(reloaded) == 2 and len({k.constitution for k in reloaded}) == 1)
-    check("and the engine does not choose between two evidence states",
-          ambiguous.refusal.code == "ambiguous-data-state" and named.served and other.served
-          and named.value.cells[("D1",)] != other.value.cells[("D1",)])
+    check("new root data: SAME witness, and retained materializations of one F@A COEXIST",
+          len(both) >= 3 and len({m.id for m in both}) == len(both)
+          and len({m.build for m in both}) == 1
+          and len([m for m in both if m.eligibility == "current"]) == 1)
+    check("an ordinary ask gets ONE answer — the cache chooses, the caller never does",
+          served.served and served.value.cells[("D1",)] == 175.0)
+    check("and an explicit SUPERSEDE moves currentness without touching residency",
+          after.value.cells[("D1",)] == 100.0
+          and mme.materialization(first.id).eligibility == "superseded"
+          and mme.materialization(first.id).residency == "resident")
     check("a realization change moves neither the witness nor the instance", one != two
           and mme.witness_of('revenue').digest != witness.digest)
     check("a constitution change is mechanically detectable AND names the determinant",
           bool(stale) and stale[0].changed == ("participation",))
-    check("a stale state is not served, and the refusal says it is held",
-          not refused_stale.served and "STALE" in refused_stale.refusal.detail)
+    check("a declaration move makes held material NOT CURRENT — it is not served, and the refusal says "
+          "the bytes are still here",
+          not refused_stale.served and "NOT CURRENT (superseded)" in refused_stale.refusal.detail
+          and "Residency never creates analytical authority" in refused_stale.refusal.detail)
 
     # ══ realization limits, and conservative invalidation ════════════════════════════════════════
     _rule("ADDENDA · a provider's inability does not remove a law; invalidation is conservative")

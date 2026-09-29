@@ -46,6 +46,12 @@ from columna_platform.kernel import builtins as B
 from columna_platform.kernel import exhibit as EX
 
 
+def _holding(mme, key):
+    """One held object, by its descriptor — a descriptor REPORTS what is held; materializations are located
+    by their opaque `MaterializationId`, so this is a search over attributes rather than a lookup."""
+    return next(r for r in mme.holdings() if r.key == key)
+
+
 @pytest.fixture
 def mme():
     return EX.build()
@@ -488,7 +494,7 @@ def test_proof_5_the_two_stores_are_distinct_and_their_rights_differ(mme, fams, 
     # every expression output: refused as continuation state, for every family
     for key in expr_keys:
         for fid in ("revenue", "distinct_customers"):
-            v = mme.adjudicate(mme._store[key], mme.family(fid), key.anchor)
+            v = mme.adjudicate(_holding(mme, key), mme.family(fid), key.anchor)
             assert not v and v.code == "not-continuation-bearing"
 
     # and at least one family state may seed while at least one may not
@@ -497,7 +503,7 @@ def test_proof_5_the_two_stores_are_distinct_and_their_rights_differ(mme, fams, 
         if key.anchor.is_scalar:
             continue
         target = EX.COMMERCE.anchor(sorted(key.anchor.constituents)[1:])
-        verdicts.append(bool(mme.adjudicate(mme._store[key], mme.family(key.identity), target)))
+        verdicts.append(bool(mme.adjudicate(_holding(mme, key), mme.family(key.identity), target)))
     assert any(verdicts) and not all(verdicts)
 
 

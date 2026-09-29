@@ -39,6 +39,7 @@ from columna_platform.kernel import (
     determinant_names,
 )
 from columna_platform.kernel import exhibit as KEX
+from columna_platform.kernel.materialization import SUPERSEDE, TransitionIntent
 from columna_platform.kernel.witness import _determinants, law_witness
 from columna_platform.columnar import exhibit as CEX
 
@@ -126,13 +127,11 @@ def test_control_1_new_root_data_is_the_same_witness_and_a_different_instance(mm
     mme.establish_root(revenue, KEX.ORDERS[:4], data_state=LOAD_B)
 
     assert mme.witness_of("revenue").digest == before.digest          # the constitution did not move
-    keys = [k for k in mme.held if k.identity == "revenue" and k.anchor == KEX.SALE_AT]
-    witnesses = {k.constitution for k in keys}
-    states = {k.data_state for k in keys}
-    assert witnesses == {before.digest}                               # ONE constitution
-    assert {LOAD_A, LOAD_B} <= states                                 # TWO evidence states
-    # two retained objects, NOT a silent overwrite — which is the whole reason the axis exists
-    assert len([k for k in keys if k.data_state in (LOAD_A, LOAD_B)]) == 2
+    held = mme.materializations.select("revenue", anchor=KEX.SALE_AT, eligibility=None)
+    assert {LOAD_A, LOAD_B} <= {m.data_state for m in held}           # TWO evidence states
+    assert len({m.id for m in held}) == len(held)                     # distinct CACHE identities
+    assert len({m.build for m in held}) == 1                          # ONE semantic world
+    assert len([m for m in held if m.eligibility == "current"]) == 1  # exactly one current answer
 
 
 def test_control_1_two_evidence_states_are_two_instances_not_one(revenue):
@@ -147,26 +146,38 @@ def test_control_1_two_evidence_states_are_two_instances_not_one(revenue):
     assert not any(f.name == "constitution" for f in fields(AnalyticalInstance))
 
 
-def test_control_1_the_engine_refuses_to_pick_an_evidence_state(mme, revenue):
-    """Two loads under one constitution are both current. The engine does not choose, and does not merge."""
-    mme.establish_root(revenue, KEX.ORDERS, data_state=LOAD_A)
-    mme.establish_root(revenue, KEX.ORDERS[:2], data_state=LOAD_B)   # a genuinely different D1 total
+def test_control_1_the_cache_chooses_and_the_caller_never_does(mme, revenue):
+    """**Ruled 2026-09-29 §2, reversing P-1's refusal.** *"Do not return READY with two cache instances and
+    require the request to choose one… Cache choice stays inside MME."*
 
-    ambiguous = mme.measure(revenue, KEX.BY_DAY)
-    assert not ambiguous.served and ambiguous.refusal.code == "ambiguous-data-state"
-    assert LOAD_A in ambiguous.refusal.detail and LOAD_B in ambiguous.refusal.detail
-    assert "NOTHING IS MERGED ACROSS THEM" in ambiguous.refusal.detail
+    A second evidence state offered to COEXIST is retained and NOT current, so an ordinary ask — which names
+    an analytical identity, not a materialization — gets exactly one answer."""
+    first = mme.materializations.select("revenue", anchor=KEX.SALE_AT)[0]
+    mme.establish_root(revenue, KEX.ORDERS, data_state=LOAD_A,
+                       intent=TransitionIntent(SUPERSEDE, (first.id,)))
+    current = mme.materializations.select("revenue", anchor=KEX.SALE_AT, data_state=LOAD_A)[0]
+    mme.establish_root(revenue, KEX.ORDERS[:2], data_state=LOAD_B)    # COEXIST: retained, not current
 
-    named = mme.measure(revenue, KEX.BY_DAY, data_state=LOAD_A)
-    assert named.served and named.value.instance.data_state == LOAD_A
-    other = mme.measure(revenue, KEX.BY_DAY, data_state=LOAD_B)
-    assert other.served and other.value.cells[("D1",)] != named.value.cells[("D1",)]
+    served = mme.measure(revenue, KEX.BY_DAY)
+    assert served.served                                              # ONE answer, no question asked back
+    assert served.value.cells[("D1",)] == 175.0                       # the CURRENT evidence state
+    coexisting = mme.materializations.select("revenue", anchor=KEX.SALE_AT, data_state=LOAD_B,
+                                             eligibility=None)[0]
+    assert coexisting.eligibility == "superseded"                     # retained, and not an answer
+
+    mme.establish_root(revenue, KEX.ORDERS[:2], data_state=LOAD_B,
+                       intent=TransitionIntent(SUPERSEDE, (current.id,)))
+    assert mme.measure(revenue, KEX.BY_DAY).value.cells[("D1",)] == 100.0
+    assert mme.materialization(current.id).eligibility == "superseded"
+    assert mme.materialization(current.id).residency == "resident"    # supersession is not eviction
 
 
 def test_control_1_an_expression_is_attributed_to_its_operands_evidence_state(mme, revenue):
     order_count = KEX._families()[1]
-    mme.establish_root(revenue, KEX.ORDERS, data_state=LOAD_A)
-    mme.establish_root(order_count, KEX.ORDERS, data_state=LOAD_A)
+    for family in (revenue, order_count):
+        held = mme.materializations.select(family.family_id, anchor=KEX.SALE_AT)
+        mme.establish_root(family, KEX.ORDERS, data_state=LOAD_A,
+                           intent=TransitionIntent(SUPERSEDE, tuple(m.id for m in held)))
     served = mme.evaluate(KEX._expressions()[0], KEX.BY_DAY, data_state=LOAD_A)
     assert served.served
     assert served.value.instance.data_state == LOAD_A
@@ -472,9 +483,10 @@ def test_a_stale_state_is_not_served_and_the_refusal_says_it_is_held(mme, revenu
 
     answer = mme.measure(superseded, KEX.BY_DAY)
     assert not answer.served
-    assert "STALE" in answer.refusal.detail
-    assert "superseded constitution witness" in answer.refusal.detail
-    assert "stale_states()" in answer.refusal.detail
+    # under MME v1 the governed consequence is the lifecycle's own: NOT CURRENT, and still resident
+    assert "NOT CURRENT (superseded)" in answer.refusal.detail
+    assert "Residency never creates analytical authority" in answer.refusal.detail
+    assert mme.materializations.select("revenue", eligibility="superseded")
 
 
 def test_re_establishing_under_the_new_constitution_serves_again(mme, revenue):
@@ -511,14 +523,15 @@ def test_the_three_facts_move_independently(mme, revenue):
     assert W(revenue).digest == base_witness and revenue.instance() == base_instance
 
 
-def test_the_retention_key_references_all_three_separately(mme):
+def test_the_three_facts_are_still_three_under_the_cache_model(mme):
     """*"…even if a later retention key combines references to all three."* It does; they stay three."""
-    key = next(k for k in mme.held if k.identity == "revenue")
-    assert key.constitution == mme.witness_of("revenue").digest      # fact 1
-    assert key.instance.data_state == UNSTATED_DATA_STATE            # fact 2
-    assert key.realization == RealizationStanding(provider="in-memory", carrier="in-memory")  # fact 3
-    names = {f.name for f in fields(type(key))}
-    assert {"constitution", "instance", "realization"} <= names
+    m = mme.materializations.select("revenue", anchor=KEX.SALE_AT)[0]
+    assert m.build.reference == f"{KEX.MANIFOLD}@build-1"             # fact 1: the semantic world
+    assert m.instance.data_state == UNSTATED_DATA_STATE               # fact 2: which evidence state
+    assert m.realization == RealizationStanding(provider="in-memory", carrier="in-memory")   # fact 3
+    assert m.id.token.startswith("mat-")                              # and cache identity is its OWN thing
+    assert mme.witness_of("revenue").digest.startswith("cw-1:")       # the witness is not the partition
+    assert mme.witness_of("revenue").digest not in str(m.id)
 
 
 # ══ THE DETERMINANT SET ITSELF ════════════════════════════════════════════════════════════════════
@@ -579,38 +592,39 @@ def test_asking_a_witness_about_a_non_determinant_refuses(revenue):
 
 # ══ THE COLUMNAR SUBSTRATE CARRIES THE SAME THREE FACTS ═══════════════════════════════════════════
 def test_the_columnar_engine_stamps_the_data_state_at_establishment():
-    mme, block = CEX.build()
-    state = mme.establish(block, "order_count", data_state=LOAD_A)
+    mme, block = CEX.build(data_state=LOAD_A)
+    state = mme.materializations.select("order_count", anchor=CEX.SALE_AT)[0].value
     assert state.instance.data_state == LOAD_A
     assert state.standing.instance.data_state == LOAD_A          # the standing agrees with the state
-    key = next(k for k in mme.held if k.identity == "order_count" and k.data_state == LOAD_A)
-    assert key.anchor == CEX.SALE_AT
-    assert key.constitution == mme.authority.witness_of("order_count").digest
+    m = mme.materializations.select("order_count", anchor=CEX.SALE_AT, data_state=LOAD_A)[0]
+    assert m.anchor == CEX.SALE_AT
+    assert m.build == mme.build                                  # the cache partition is the BUILD
+    assert mme.authority.witness_of("order_count").digest.startswith("cw-1:")   # still computable
 
 
 def test_the_columnar_engine_carries_the_data_state_through_a_continuation():
-    mme, block = CEX.build()
-    mme.establish(block, "order_count", data_state=LOAD_A)
+    mme, block = CEX.build(data_state=LOAD_A)
     served = mme.measure("order_count", CEX.BY_DAY, data_state=LOAD_A)
     assert served.served and served.value.instance.data_state == LOAD_A
 
 
 def test_two_columnar_evidence_states_are_two_retained_objects():
-    mme, block = CEX.build()
-    mme.establish(block, "order_count", data_state=LOAD_A)
-    mme.establish(block, "order_count", data_state=LOAD_B)
-    keys = [k for k in mme.held if k.identity == "order_count" and k.anchor == CEX.SALE_AT]
-    assert {LOAD_A, LOAD_B} <= {k.data_state for k in keys}
-    assert len({k.constitution for k in keys}) == 1
-    ambiguous = mme.measure("order_count", CEX.BY_DAY)
-    assert not ambiguous.served and ambiguous.refusal.code == "ambiguous-data-state"
+    mme, block = CEX.build(data_state=LOAD_A)
+    mme.establish(block, "order_count", data_state=LOAD_B)        # COEXIST: retained, and NOT current
+    held = mme.materializations.select("order_count", anchor=CEX.SALE_AT, eligibility=None)
+    assert {LOAD_A, LOAD_B} <= {m.data_state for m in held}
+    assert len({m.build for m in held}) == 1                      # ONE semantic world
+    assert len({m.id for m in held}) == len(held)                 # distinct cache identities
+    # and an ordinary ask still gets ONE answer — the cache chose, and never asked (ruled §2)
+    served = mme.measure("order_count", CEX.BY_DAY)
+    assert served.served
+    assert [m.data_state for m in held if m.eligibility == "current"] == [LOAD_A]
 
 
 def test_a_columnar_block_may_declare_its_data_state_but_not_its_constitution():
     """The corrected form of "a block does not get to declare a family's instance": what a block carries
     IS material from some evidence state, and that much it may say. Everything governed must still agree."""
-    mme, block = CEX.build()
-    mme.establish(block, "revenue", data_state=LOAD_A)            # allowed, and stamped
+    mme, block = CEX.build(data_state=LOAD_A)
 
     foreign = GovernedBlock.of(
         block.index, {"revenue": block.column("revenue")},
@@ -626,8 +640,7 @@ def test_a_columnar_block_may_declare_its_data_state_but_not_its_constitution():
 
 def test_the_columnar_engine_reports_staleness_through_the_authority():
     """Not reimplemented in the substrate, for the same reason `adjudicate` is not."""
-    mme, block = CEX.build()
-    mme.establish(block, "order_count", data_state=LOAD_A)
+    mme, block = CEX.build(data_state=LOAD_A)
     assert mme.stale_states() == ()
 
     moved = replace(mme.family("order_count"), participation="a different population")
@@ -639,9 +652,7 @@ def test_the_columnar_engine_reports_staleness_through_the_authority():
 
 
 def test_a_columnar_expression_is_attributed_to_its_operands_evidence_state():
-    settled, block = CEX.build(settled=True)
-    for family_id in ("revenue", "order_count"):
-        settled.establish(block, family_id, data_state=LOAD_A)
+    settled, block = CEX.build(settled=True, data_state=LOAD_A)
     served = settled.evaluate("average_order_value", CEX.BY_DAY, data_state=LOAD_A)
     assert served.served
     assert served.value.instance.data_state == LOAD_A
@@ -651,9 +662,7 @@ def test_a_value_bearing_want_of_state_refusal_survives_the_new_axes():
     """The #349 correction is untouched by P-1: the want-of-state refusal is about EVIDENCE FOR A VALUE at
     a point, and the data state is about which established material a whole column came from. Two
     different facts, and adding the second did not soften the first."""
-    mme, block = CEX.build()
-    for family_id in ("revenue", "order_count"):
-        mme.establish(block, family_id, data_state=LOAD_A)
+    mme, block = CEX.build(data_state=LOAD_A)
     answer = mme.measure("revenue", CEX.BY_DAY, data_state=LOAD_A)
     assert not answer.served and answer.refusal.code == "want-of-state"
     assert mme.measure("order_count", CEX.BY_DAY, data_state=LOAD_A).value.cell(("D1",)) == 3

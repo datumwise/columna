@@ -43,7 +43,7 @@ routing, no authoring syntax. And nothing imports `columna_core`.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Iterable, Mapping, Optional
 
 from .geometry import Anchor, KernelRefusal, Universe
@@ -63,6 +63,21 @@ from .standing import (
     REFUSED,
     ROOT,
     Refusal,
+)
+from .materialization import (
+    AT_ROOT,
+    CONTINUED as CONTINUED_FROM,
+    CURRENT,
+    INDEPENDENT,
+    SUPERSEDED,
+    Establishment,
+    FamilyMaterialization,
+    ManifoldBuild,
+    MaterializationId,
+    MaterializationStore,
+    TransitionIntent,
+    Admission,
+    cumulative_forgotten,
 )
 from .value import Answer, ExpressionOutput, FamilyState
 from .witness import ConstitutionWitness
@@ -228,12 +243,20 @@ class MME:
     """The engine. In-memory, single provider profile, conservative invalidation."""
 
     def __init__(self, universe: Universe, laws: LawRegistry, provider: ProviderProfile, *,
-                 manifold: str = "default") -> None:
+                 manifold: str = "default", build: Optional[str] = None) -> None:
         # **ONE MME PER MANIFOLD JURISDICTION.** A logical rule, not a deployment one: this engine may
         # share its process, its provider and its store with any number of others. What it may not share
         # is authority, so it refuses to register an object belonging to another Manifold — the accident
         # the ruling is against is one runtime holding two worlds that use the same family name.
         self.manifold = manifold
+        #: **The Manifold BUILD is the cache's semantic world** (ruled 2026-09-29 §6:
+        #: `constitution_context = ManifoldBuildId`). A new build is a new world and old cache state is not
+        #: reused into it by default — which is why the store is per-build and the per-object witness is no
+        #: longer the runtime partition mechanism.
+        self.build = ManifoldBuild(manifold=manifold, build=build or "build-1")
+        #: **Family materializations.** Cache-object identity is opaque and two instances of one `F@A` may
+        #: coexist here; the analytical facts are selectable attributes of the records.
+        self.materializations = MaterializationStore(self.build)
         self.universe, self.laws, self.provider = universe, laws, provider
         #: **Realization standing, as an object.** The third of P-1's three facts; an axis of the key and
         #: of nothing else.
@@ -247,6 +270,13 @@ class MME:
         #: re-registration and nothing is ever removed: a superseded constitution is a fact about the past,
         #: and forgetting it would make the state held under it unexplainable.
         self._constitutions: dict[str, ConstitutionWitness] = {}
+        #: Diagnostics only (ruled §6): which materializations stopped being current because a declaration
+        #: moved, and which determinant moved. Not a version store and not consulted when serving.
+        self._declaration_moves: list[Staleness] = []
+        #: Stores holding material under this authority's build — this engine's own, plus any columnar
+        #: engine attached to it. A declaration move must reach all of them, because the consequence is a
+        #: fact about the constitution and not about which substrate happens to hold the bytes.
+        self._attached: list[MaterializationStore] = [self.materializations]
 
     # ── constitution ─────────────────────────────────────────────────────────────────────────
     def register_family(self, family: MeasureFamily) -> MeasureFamily:
@@ -254,9 +284,13 @@ class MME:
         `MeasureFamily.bind` raises for a law with no continuation, so a Mean family is not a reachable
         state of this engine."""
         self._require_own(family.manifold, family.family_id)
+        was = self._families.get(family.family_id)
+        was_witness = self.witness_of(family.family_id) if was is not None else None
         self._bound[family.family_id] = family.bind(self.laws)
         self._families[family.family_id] = family
-        self._remember(family.witness(self._bound[family.family_id]))
+        witness = self._remember(family.witness(self._bound[family.family_id]))
+        if was_witness is not None and was_witness.digest != witness.digest:
+            self._declaration_moved(family.family_id, was_witness, witness)
         return family
 
     def register_expression(self, expression: GovernedExpression) -> GovernedExpression:
@@ -273,6 +307,34 @@ class MME:
                 f"belongs to Manifold {manifold!r} and this MME is the jurisdiction of "
                 f"{self.manifold!r}. A governed analytical object belongs to exactly one Manifold; "
                 f"registering it here would put one identity under two authorities.")
+
+    def attach_store(self, store: MaterializationStore) -> MaterializationStore:
+        """Register another engine's materialization store under this authority."""
+        if store not in self._attached:
+            self._attached.append(store)
+        return store
+
+    def _declaration_moved(self, identity: str, was: ConstitutionWitness,
+                           now: ConstitutionWitness) -> None:
+        """**A declaration moved inside one build, so every materialization of it stops being current.**
+
+        Under MME v1 the Manifold BUILD is the semantic world (ruled §6), so the ordinary way to change
+        semantics is to build again — and old cache state is not carried into a new world. Changing a
+        declaration *in place* is the irregular case, and the honest consequence is the governed one the
+        lifecycle already has: the material is not wrong, it is **not current**, and it may stay resident
+        for as long as policy likes. Nothing is patched and nothing is silently dropped; re-establishment
+        is from the root."""
+        comparison = was.compare(now)
+        for store in self._attached:
+            affected = store.select(identity, eligibility=CURRENT)
+            store.supersede(
+                [m.id for m in affected],
+                reason=f"the declaration of {identity!r} moved within build {self.build}: "
+                       f"{', '.join(comparison.changed)}")
+            for m in affected:
+                self._declaration_moves.append(Staleness(
+                    key=self._descriptor(m), held_under=was.digest, current=now,
+                    changed=comparison.changed, detail=comparison.detail))
 
     def _remember(self, witness: ConstitutionWitness) -> ConstitutionWitness:
         self._constitutions[witness.digest] = witness
@@ -302,32 +364,13 @@ class MME:
         """A constitution this engine has registered at some point, by digest — its own history."""
         return self._constitutions.get(digest)
 
-    def stale_states(self, held: Optional[Iterable[Retained]] = None) -> tuple[Staleness, ...]:
-        """**Every retained object whose constitution has moved, and which determinant moved.**
+    def stale_states(self) -> tuple[Staleness, ...]:
+        """**Which materializations stopped being current because a declaration moved, and what moved.**
 
-        Takes an optional store so the columnar engine can ask the same authority about ITS retained
-        objects — the staleness question is analytical and is answered in one place."""
-        out: list[Staleness] = []
-        for r in (held if held is not None else self._store.values()):
-            try:
-                current = self.witness_of(r.key.identity)
-            except KernelRefusal:
-                continue                      # an object no longer constituted at all is not "stale"
-            if r.key.constitution == current.digest:
-                continue
-            was = self.constitution_seen(r.key.constitution)
-            # `is not None`, NOT truthiness: a `WitnessComparison` is truthy when the two constitutions are
-            # the SAME one, so `if comparison` is false in exactly the case this loop exists for.
-            comparison = was.compare(current) if was is not None else None
-            out.append(Staleness(
-                key=r.key, held_under=r.key.constitution, current=current,
-                changed=comparison.changed if comparison is not None else (),
-                detail=(comparison.detail if comparison is not None else
-                        f"held under constitution {r.key.constitution} and this engine now constitutes "
-                        f"{r.key.identity!r} as {current.digest}. The determinants that moved cannot be "
-                        f"named because the superseded witness was never registered here — the state "
-                        f"predates this engine's own constitutional history.")))
-        return tuple(out)
+        Diagnostics (ruled §6): the per-object witness is no longer the runtime partition — the build is —
+        so this reports rather than decides. The governed consequence already happened at re-registration:
+        the affected materializations are `SUPERSEDED`, which is why they cannot be served."""
+        return tuple(self._declaration_moves)
 
     def instance_of(self, identity: str) -> Any:
         """The analytical instance of a registered object — **stamped with this engine's Manifold.**
@@ -335,7 +378,7 @@ class MME:
         The single place an instance is obtained, so no caller can construct one that forgets which
         jurisdiction it belongs to."""
         obj = self._families.get(identity) or self._expressions[identity]
-        return obj.instance()
+        return replace(obj.instance(), constitution_context=self.build.reference)
 
     def family(self, family_id: str) -> MeasureFamily:
         return self._families[family_id]
@@ -369,7 +412,8 @@ class MME:
     # ── establishment at the root ────────────────────────────────────────────────────────────
     def establish_root(self, family: MeasureFamily, rows: Iterable[Mapping[str, Any]], *,
                        value_key: str = "value",
-                       data_state: str = UNSTATED_DATA_STATE) -> Answer:
+                       data_state: str = UNSTATED_DATA_STATE,
+                       intent: Optional[TransitionIntent] = None) -> Answer:
         """**Constitute `F@R_F` from occurrences.** The canonical continuation origin, and the only place
         raw contributions land: a contribution is an occurrence at the family's root, and "a contribution
         at a coarser anchor" is not a thing the theory has.
@@ -390,9 +434,13 @@ class MME:
                                                                     "value_key": value_key})
                  for cell, rws in buckets.items()}
         state = FamilyState(point=family.root_point, law=law.name, value_form=law.value_form,
-                            cells=cells, instance=family.instance(data_state=data_state),
+                            cells=cells,
+                            instance=replace(family.instance(data_state=data_state),
+                                             constitution_context=self.build.reference),
                             forgotten_since_root=frozenset())
-        self.retain(state)
+        admission = self.admit(state, establishment=Establishment(AT_ROOT), intent=intent)
+        if not admission:
+            raise KernelRefusal(admission.code, family.family_id, admission.detail)
         return Answer(route=ROOT, value=state)
 
     # ── retention ────────────────────────────────────────────────────────────────────────────
@@ -401,6 +449,16 @@ class MME:
         use, so this method asks nothing and refuses nothing."""
         sort = value.point.sort
         identity = getattr(value.point, "family_id", None) or value.point.expression_id
+        if sort == "family":
+            # **FAMILY STATE IS A CACHE OBJECT, NOT A KEYED SLOT.** It goes to the materialization store,
+            # which mints an opaque identity so two instances of one `F@A` can coexist. Expressions stay
+            # here: MME v1 does not manage `E@A`, and until they move above the engine entirely they are
+            # held in the old keyed store where they cannot be mistaken for family materializations.
+            admission = self.admit(value)
+            if not admission:
+                raise KernelRefusal(admission.code, identity, admission.detail)
+            return Retained(key=self._descriptor(self.materializations.get(admission.id)),
+                            value=value)
         key = RetentionKey(sort=sort, identity=identity, anchor=value.anchor,
                            instance=value.instance, realization=self.realization,
                            constitution=self.witness_of(identity).digest)
@@ -408,21 +466,97 @@ class MME:
         self._store[key] = retained
         return retained
 
+    # ── admission: the one door for family material ──────────────────────────────────────────
+    def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
+              intent: Optional[TransitionIntent] = None, residency: str = "resident",
+              witness: Optional[str] = None, note: str = ""):
+        """**Offer one governed family value to the cache.**
+
+        `establishment` is the material's ACTUAL standing and is never manufactured (ruled §8): a value
+        formed at `R_F` is `AT_ROOT`, one folded from held material is `CONTINUED` and names its parent, and
+        one supplied at a non-root anchor by a governed realization is `INDEPENDENT` — which is a different
+        claim from "it was derived and we lost the receipt".
+
+        Two analytical checks run before any cache consequence:
+
+        * **off-build material** — if the offerer supplies a constitution witness, it must be this build's;
+        * **entitlement** — a materialization may only exist where the family law admits a value, and that
+          is `region.admits(R_F − anchor)`, asked identically of derived and independent material."""
+        identity = value.point.family_id
+        family, law = self._families[identity], self._bound[identity]
+        if witness is not None and witness != self.witness_of(identity).digest:
+            return Admission(False, code="off-build-material",
+                             detail=f"the offered material carries constitution witness {witness} and this "
+                                    f"build constitutes {identity!r} as "
+                                    f"{self.witness_of(identity).digest}. A new Manifold build is a new "
+                                    f"semantic world; material does not cross into one by being present.")
+        if not law.region.admits(cumulative_forgotten(family, value.anchor)):
+            return Admission(
+                False, code="anchor-outside-the-continuation-region",
+                detail=f"{identity} may hold no lawful value at {value.anchor}: reaching it from "
+                       f"{family.root} forgets {sorted(cumulative_forgotten(family, value.anchor))}, which "
+                       f"{law.region.why_not(cumulative_forgotten(family, value.anchor))}. **THIS IS ASKED "
+                       f"OF INDEPENDENTLY ESTABLISHED MATERIAL TOO**: a governed realization can supply a "
+                       f"value, and cannot make the family's law admit one where it does not.")
+        if establishment is None:
+            establishment = Establishment(
+                AT_ROOT if value.anchor == family.root else INDEPENDENT)
+        return self.materializations.admit(
+            point=value.point, instance=value.instance, value=value,
+            establishment=establishment, realization=self.realization, intent=intent,
+            residency=residency, note=note)
+
+    @staticmethod
+    def _descriptor(m: FamilyMaterialization) -> RetentionKey:
+        """A `RetentionKey`-shaped **descriptor** of a materialization, for readers that ask what is held.
+
+        It is no longer an identity — `m.id` is — and nothing looks anything up by it. It exists because the
+        analytical attributes remain the useful thing to report and select on."""
+        return RetentionKey(sort="family", identity=m.family_id, anchor=m.anchor,
+                            instance=m.instance, realization=m.realization,
+                            constitution=m.build.reference)
+
     def retained(self, point: Any, instance: Any) -> Optional[Retained]:
-        sort = point.sort
+        """The CURRENT materialization at this point under this instance, if one is held.
+
+        A convenience over `select`, kept because *"what is held for `F@A`"* is the question callers ask.
+        It answers with the cheapest current candidate; which retained instance that is remains the MME's
+        choice and never the caller's (ruled §2)."""
         identity = getattr(point, "family_id", None) or getattr(point, "expression_id", None)
-        return self._store.get(RetentionKey(sort, identity, point.anchor, instance,
+        if point.sort == "family":
+            held = self.materializations.select(identity, anchor=point.anchor, instance=instance,
+                                                serviceable=True)
+            if not held:
+                return None
+            best = min(held, key=lambda m: (len(getattr(m.value, "cells", ()) or ()), -m.admitted_seq))
+            return Retained(key=self._descriptor(best), value=best.value)
+        return self._store.get(RetentionKey(point.sort, identity, point.anchor, instance,
                                             self.realization, self.witness_of(identity).digest))
+
+    def holdings(self) -> tuple[Retained, ...]:
+        """**Everything held, as objects rather than keys** — family materializations and expression
+        outputs. Reach for this rather than the internal store: a materialization is located by its opaque
+        id, and the descriptor on a `Retained` is a report, not a lookup handle."""
+        return tuple([Retained(key=self._descriptor(m), value=m.value)
+                      for m in self.materializations.all() if m.has_payload]
+                     + list(self._store.values()))
+
+    def materialization(self, mid: MaterializationId) -> Optional[FamilyMaterialization]:
+        """One retained instance, by its opaque cache identity."""
+        return self.materializations.get(mid)
 
     def candidates(self, family: MeasureFamily) -> tuple[Retained, ...]:
         """Every retained object that *might* seed this family, **including the ones that may not.**
         Separating candidacy from permission is the whole shape of this module: a test can hold a
         candidate in one hand and its refusal in the other."""
-        return tuple(r for r in self._store.values() if r.key.identity == family.family_id)
+        return tuple(Retained(key=self._descriptor(m), value=m.value)
+                     for m in self.materializations.select(family.family_id, eligibility=None)
+                     if m.has_payload)
 
     @property
     def held(self) -> tuple[RetentionKey, ...]:
-        return tuple(self._store)
+        """Descriptors of everything held — family materializations and expression outputs alike."""
+        return tuple([self._descriptor(m) for m in self.materializations.all()] + list(self._store))
 
     # ── the adjudication ─────────────────────────────────────────────────────────────────────
     def adjudicate(self, candidate: Retained, family: MeasureFamily, target: Anchor) -> Adequacy:
@@ -451,15 +585,22 @@ class MME:
                 f"{value.anchor} is not finer than {target}, so {target} is not reachable from it by "
                 f"forgetting constituents. A coarsening forgets; it does not acquire")
 
-        # 3 · CLOSURE OVER THE WHOLE ROUTE FROM THE ROOT — the laundering guard.
-        edge = value.anchor.edge_to(target)
-        forgotten_total = value.forgotten_since_root | edge.forgotten
+        # 3 · CLOSURE OVER THE WHOLE ROUTE FROM THE ROOT — the laundering guard, ROOT-RELATIVE.
+        #
+        # **DERIVED, NOT READ OFF THE STATE** (ruled 2026-09-29 §7). The cumulative forgotten set is set
+        # subtraction, so for `T ⊆ M ⊆ R` every route forgets `(R − M) ∪ (M − T) = R − T`. The route cannot
+        # change it, so the guard is a function of the family law, `R_F` and the TARGET — and the
+        # intermediate materialization, its provenance and its resident ancestors never enter. That is what
+        # makes "evicting an ancestor must not create new analytical rights" true by construction rather
+        # than by remembering. `forgotten_since_root` survives as PROVENANCE and is no longer authority; a
+        # test pins the equivalence so that widening `ContinuationRegion` into a genuine per-edge graph —
+        # the one change that would make routes matter — fails loudly here.
+        forgotten_total = cumulative_forgotten(family, target)
         if not law.region.admits(forgotten_total):
-            through = (f" It got to {value.anchor} by forgetting "
-                       f"{sorted(value.forgotten_since_root)}, and that route is part of the question: "
-                       f"a two-step coarsening forgets the union, so an intermediate materialization "
-                       f"cannot launder an edge the law does not admit."
-                       if value.forgotten_since_root else "")
+            through = (f" This candidate sits at {value.anchor}, a NON-ROOT materialization, and that "
+                       f"changes nothing: the question is the whole route from {family.root}, so an "
+                       f"intermediate materialization cannot launder an edge the law does not admit."
+                       if value.anchor != family.root else "")
             return Adequacy(
                 False, "outside-continuation-region",
                 f"{family.family_id}: {law.region.why_not(forgotten_total)}.{through}")
@@ -493,21 +634,19 @@ class MME:
         and `adjudicate` is where "remains adequate" is decided — not here, and not by preferring the
         root so hard that the non-root case is never exercised."""
         law = self._bound[family.family_id]
-        instance = family.instance()
+        instance = self.instance_of(family.family_id)
         considered: list[str] = []
 
-        # ── WHICH OBJECTS ARE CANDIDATES AT ALL: same object, CURRENT constitution, ONE evidence state ──
-        resolution = resolve_pool(self._store.values(), family.family_id, instance,
-                                  self.witness_of(family.family_id).digest,
-                                  str(family.at(anchor)), data_state)
-        if resolution.refusal is not None:
-            return Answer(route=REFUSED, refusal=resolution.refusal)
-
-        exact = next((r for r in resolution.pool
-                      if r.key.anchor == anchor and r.continuation_bearing), None)
+        # ── CANDIDATE SELECTION IS THE MME'S, NEVER THE CALLER'S (ruled 2026-09-29 §2) ──────────────
+        # The request asked for an analytical identity; which retained instance answers it is a cache
+        # decision, made here by cost. Only CURRENT, payload-bearing materializations are candidates:
+        # a superseded one may stay resident for as long as policy likes and will never answer.
+        pool = self.materializations.candidates_for(family.family_id, anchor, instance,
+                                                    data_state=data_state)
+        exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
-                          considered=(str(exact.key),))
+                          considered=(str(self._descriptor(exact)),))
 
         # **LEAST WORK FIRST, FALLING BACK TOWARD THE ROOT** — and the order is a governed choice, not
         # an optimization detail.
@@ -523,10 +662,11 @@ class MME:
         # so it is never less permissive: if any candidate is admitted, the root is admitted. Trying the
         # cheapest first therefore cannot turn a servable ask into a refusal — it can only turn a more
         # expensive answer into a cheaper one.
-        pool = sorted(resolution.pool, key=lambda r: len(r.key.anchor.constituents))
         blockers: list[Adequacy] = []
-        for candidate in pool:
-            considered.append(str(candidate.key))
+        for materialization in pool:
+            descriptor = self._descriptor(materialization)
+            considered.append(str(descriptor))
+            candidate = Retained(key=descriptor, value=materialization.value)
             verdict = self.adjudicate(candidate, family, anchor)
             if not verdict:
                 blockers.append(verdict)
@@ -540,10 +680,15 @@ class MME:
                     "approximate", f"{law.name} is {law.approximation}; every value served from it "
                                    f"carries that standing"))
             if retain:
-                self.retain(state)
+                # **THE DEPENDENCY EDGE IS RECORDED HERE AND NOWHERE ELSE.** A continuation names what it
+                # was continued FROM, which is the relation supersession propagates along — and is a
+                # different fact from the entitlement, which is derived from the family root.
+                self.admit(state, establishment=(
+                    Establishment(CONTINUED_FROM, (materialization.id,))
+                    if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
             route = ROOT if state.anchor == family.root else CONTINUED
             return Answer(route=route, value=state, disclosures=state.disclosures,
-                          seeded_from=candidate.key, considered=tuple(considered))
+                          seeded_from=descriptor, considered=tuple(considered))
 
         # **THE BLOCKERS ARE DEDUPED AND THE UNINFORMATIVE ONES DEMOTED**, because a refusal that recites
         # the same reason once per candidate is a refusal nobody finishes reading. `not-reachable` is
@@ -562,9 +707,28 @@ class MME:
         detail = (" · ".join(f"{b.code} — {b.detail}" for b in ordered)
                   or f"no retained state of {family.family_id} exists under this analytical instance, "
                      f"and this engine does not invent one: a value must be established at "
-                     f"{family.root} before it can be continued anywhere") + resolution.note
+                     f"{family.root} before it can be continued anywhere") + self._also_held(family)
         return Answer(route=REFUSED, considered=tuple(considered),
                       refusal=Refusal("unanswerable", str(family.at(anchor)), detail))
+
+    def _also_held(self, family: MeasureFamily) -> str:
+        """What IS held that could not answer — so a refusal never pretends the cache is empty when it is
+        merely not current, or resident but evicted."""
+        parts = []
+        not_current = self.materializations.select(family.family_id, eligibility=SUPERSEDED)
+        if not_current:
+            parts.append(f"{len(not_current)} retained materialization(s) of {family.family_id!r} are held "
+                         f"and are NOT CURRENT (superseded): "
+                         f"{[f'{m.id}@{m.anchor}' for m in not_current]}. Residency never creates "
+                         f"analytical authority, so their bytes being present is not an answer.")
+        without_payload = [m for m in self.materializations.select(family.family_id, eligibility=CURRENT)
+                           if not m.serviceable]
+        if without_payload:
+            parts.append(f"{len(without_payload)} current materialization(s) are unusable by POLICY "
+                         f"(evicted or expired): {[f'{m.id}:{m.residency}' for m in without_payload]}. "
+                         f"That is OUR absence, not the world's — the remedy is to establish the state "
+                         f"again, not to conclude anything about the evidence.")
+        return (" " + " ".join(parts)) if parts else ""
 
     # ── serving an expression ────────────────────────────────────────────────────────────────
     def evaluate(self, expression: GovernedExpression, anchor: Anchor, *,
@@ -582,7 +746,7 @@ class MME:
 
         resolution = resolve_pool(self._store.values(), expression.expression_id, instance,
                                   self.witness_of(expression.expression_id).digest,
-                                  str(expression.at(anchor)), data_state)
+                                  str(expression.at(anchor)), data_state)   # expressions only, in v1
         if resolution.refusal is not None:
             return Answer(route=REFUSED, refusal=resolution.refusal)
         exact = next((r for r in resolution.pool
@@ -705,7 +869,11 @@ class MME:
         dropped = tuple(k for k in self._store if k.identity == identity)
         for k in dropped:
             del self._store[k]
-        return dropped
+        materialized = self.materializations.select(identity, eligibility=None)
+        for m in materialized:
+            self.materializations.unpin(m.id)                 # invalidation is deliberate; pinning is not a veto
+            self.materializations.drop(m.id)
+        return dropped + tuple(self._descriptor(m) for m in materialized)
 
 
 __all__ = ["MME", "Adequacy", "PoolResolution", "Retained", "RetentionKey", "Staleness",

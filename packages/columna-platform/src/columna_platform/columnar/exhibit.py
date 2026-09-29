@@ -47,6 +47,8 @@ from columna_platform.kernel import (
     Operand,
     SufficientBasis,
 )
+from columna_platform.kernel.materialization import SUPERSEDE, TransitionIntent
+from columna_platform.kernel import UNSTATED_DATA_STATE
 from columna_platform.kernel.builtins import IN_MEMORY
 from columna_platform.kernel.exhibit import COMMERCE
 
@@ -148,7 +150,8 @@ def _by_order(index: CoordinateIndex, settled: bool = False):
     return [lookup[cell] for cell in index.coordinates]
 
 
-def build(manifold: str = MANIFOLD, *, settled: bool = False) -> tuple[ColumnarMME, GovernedBlock]:
+def build(manifold: str = MANIFOLD, *, settled: bool = False,
+          data_state: str = UNSTATED_DATA_STATE) -> tuple[ColumnarMME, GovernedBlock]:
     """A constituted columnar MME and the root block. **One shared provider is fine; authority is not.**
 
     `settled=False` is the world AS RECORDED, in which O7's amount is not established. `settled=True` is the
@@ -198,7 +201,7 @@ def build(manifold: str = MANIFOLD, *, settled: bool = False) -> tuple[ColumnarM
         realization="in-memory-arrow",
         provenance=("seven accepted orders, constructed programmatically",))
     for family_id in ("revenue", "order_count", "audited_order_count", "distinct_customers"):
-        mme.establish(block, family_id)
+        mme.establish(block, family_id, data_state=data_state)
     return mme, block
 
 
@@ -644,7 +647,9 @@ def _refuses_with_no_arrow_nulls(_: ColumnarMME) -> bool:
                              support=[True, True, False])})
     if dense.column("revenue").null_count:
         return False
-    probe.establish(dense, "revenue")
+    held = probe.materializations.select("revenue", anchor=SALE_AT)
+    probe.establish(dense, "revenue",
+                    intent=TransitionIntent(SUPERSEDE, tuple(m.id for m in held)))
     answer = probe.measure("revenue", BY_DAY)
     return (not answer.served and answer.refusal.code == "want-of-state"
             and "THE REDUCTION HAS NOT RUN" in answer.refusal.detail)
@@ -669,8 +674,9 @@ def _refuses_foreign_family() -> bool:
 
 
 def _index_identity(mme: ColumnarMME) -> str:
-    return next(r.value.index.identity for r in mme._store.values()
-                if r.key.identity == "revenue" and r.key.anchor == SALE_AT)
+    return next(m.value.index.identity
+                for m in mme.materializations.select("revenue", anchor=SALE_AT, eligibility=None)
+                if m.has_payload)
 
 
 def _relational_offenders() -> dict:
