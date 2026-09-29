@@ -920,17 +920,26 @@ def test_r1_ships_no_backend_no_adbc_and_no_io():
         assert banned not in code.lower() if banned.islower() else banned not in code, banned
 
 
-def test_no_fulfillment_coordinator_arrived_early():
-    """R-1's stop condition. The coordinator's job is to COMBINE the two answers, and combining them is
-    exactly what nothing here does."""
-    import columna_platform.kernel as kernel_pkg
+def test_realization_does_not_depend_on_the_fulfillment_COORDINATOR():
+    """**R-1's stop-condition guard, retired into the claim that outlives it.**
 
-    for premature in ("FulfillmentCoordinator", "Fulfillment", "Runtime", "ManifoldRuntime"):
-        if premature == "Fulfillment":
-            # M-2's `Fulfillment` is the observation record's work-performed field — a different thing,
-            # and it must not be confused with the coordinator that does not exist yet.
-            from columna_platform.kernel.observation import Fulfillment
+    Through R-1 this test asserted that no Fulfillment Coordinator existed yet. F-1 built one, so the
+    absence is no longer the fact worth pinning — the DIRECTION is. Realization describes what the estate
+    can supply; combining that with what the MME holds is the coordinator's job, and the arrow must not
+    run backwards. A provider that could see the coordinator could start reasoning about what the cache
+    already holds, which is precisely the conflation these units were separated to prevent."""
+    from columna_platform.kernel import realization_manager as manager_module
 
-            assert {f.name for f in fields(Fulfillment)} >= {"directly_held", "selected"}
-            continue
-        assert not hasattr(kernel_pkg, premature), premature
+    code = _code_only(manager_module) + _code_only(requirement_module)
+    for forbidden in ("FulfillmentCoordinator", "fulfillment", "RoutePolicy", "RouteDecision",
+                      "UnambiguousRoute", "FulfillmentOutcome"):
+        assert forbidden not in code, forbidden
+
+    # and M-2's `Fulfillment` is a DIFFERENT thing — the observation record's work-performed field, not
+    # the coordinator's result. The names are close enough that the distinction is worth an assertion.
+    from columna_platform.kernel.fulfillment import FulfillmentOutcome
+    from columna_platform.kernel.observation import Fulfillment
+
+    assert {f.name for f in fields(Fulfillment)} >= {"directly_held", "selected"}
+    assert {f.name for f in fields(FulfillmentOutcome)} >= {"mood", "target"}
+    assert Fulfillment is not FulfillmentOutcome

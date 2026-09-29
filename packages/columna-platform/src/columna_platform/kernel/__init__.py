@@ -26,6 +26,8 @@ measures is a boundary that leaks.
                   non-authoritative, and unable to fail a request
     requirement   **what governed family state is NEEDED** — the MME's half of the realization seam.
                   An analytical requirement, never a fetch plan
+    fulfillment   **the Fulfillment Coordinator** — combines MME + Realization + evaluator. Orchestration
+                  only: no analytical authority, no execution semantics, no economic policy
     realization_manager
                   **what the physical estate can SUPPLY** — capability (`propose`) and execution
                   (`realize`) kept apart, and one door into `MME.admit`. R-1: interface only
@@ -95,6 +97,22 @@ from .materialization import (
     entitlement_holds,
 )
 from .expression import ExpressionEvaluator
+from .fulfillment import (
+    INCOMPLETE,
+    MOODS,
+    NOT_SUPPORTED,
+    ROUTE_POLICY_NEEDED,
+    SERVED,
+    UNAVAILABLE,
+    UNRESOLVED_STATE,
+    FulfillmentCoordinator,
+    FulfillmentOutcome,
+    RealizedRoute,
+    RouteContext,
+    RouteDecision,
+    RoutePolicy,
+    UnambiguousRoute,
+)
 from .mme import MME, Adequacy, Retained, RetentionKey, Staleness
 from .observation import (
     DISPOSITIONS,
@@ -172,7 +190,9 @@ __all__ = [
     "Fulfillment", "NullObserver", "ObservationSink", "RecordingObserver", "PROCESS_CONTROL",
     "FamilyRequirement", "RequirementOutcome", "acceptable_anchors", "ProposalSet",
     "RealizationManager", "RealizationOffer", "RealizationProposal", "RealizationProvider",
-    "requirement_from",
+    "requirement_from", "FulfillmentCoordinator", "FulfillmentOutcome", "RoutePolicy",
+    "RouteDecision", "RouteContext", "UnambiguousRoute", "RealizedRoute", "MOODS", "SERVED",
+    "UNAVAILABLE", "ROUTE_POLICY_NEEDED", "UNRESOLVED_STATE", "NOT_SUPPORTED", "INCOMPLETE",
     "RequestObservation", "WorkloadObserver", "disposition_for",
     "FamilyMaterialization", "MaterializationId", "MaterializationStore", "ManifoldBuild",
     "Establishment", "TransitionIntent", "Admission", "Slot", "CURRENT", "SUPERSEDED", "PINNED",
