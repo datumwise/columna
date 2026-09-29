@@ -7,34 +7,43 @@ THE RULING THIS MODULE EXISTS TO SATISFY
 `NA`; nonparticipation; unsupported evidence; known-empty fiber; want of state. Physical nulls can only be
 interpreted through governed representation contracts."* — Huayin, 2026-09-28
 
-And the minimum the proof must demonstrate: *"a participating source point is unsupported for Revenue;
-participation remains known independently of Revenue value presence; Count semantics are not reduced to
-`count(non-null Revenue)`."*
+TWO MASKS, AND THE TWO DIFFERENT JOBS THEY DO
+---------------------------------------------
+    `participation`   is this point IN the family's population?   A fact about the population law.
+    `support`         is the value required at this point ESTABLISHED?   A fact about the carrier.
 
-TWO MASKS, AND THE REASON THERE ARE EXACTLY TWO
------------------------------------------------
-This is deliberately **not** the complete v8 standing system (that is out of scope). It is the smallest
-governed representation that prevents null-driven semantics, and it is two arrays because the proof needs
-two facts to come apart:
+**THE CORRECTION OF 2026-09-29, AND THE ERROR IT REPLACES.** An earlier revision of this module had a
+single `contributing_for(shape)` that returned `participation ∧ support` for a value-bearing reduction. That
+is wrong, and the ruling that corrects it is exact:
 
-    `participation`   is this point IN the family's population?  A fact about the population law.
-    `support`         is there EVIDENCE for a value at this point?  A fact about the carrier.
+    *"Participation determines the contributing domain. Support determines whether the values required over
+    that participating domain are established."* — Huayin, 2026-09-29
 
-**A point may participate and be unsupported.** An order the merchant accepted, whose amount was never
-recorded, is *in* the population — `OrderCount` must count it — and supplies *no* contribution to
-`Revenue`. Read off Arrow validity, those two facts collapse into one and `COUNT` silently becomes
-`count(non-null revenue)`, which is a different measure with a different answer. So:
+So `participation ∧ support` is **not a contribution filter**. Using it as one silently deletes a
+participating point from a value-bearing fold and then reports a number as though the fold were complete:
 
-    a VALUE-BEARING reduction contributes where   participation ∧ support
-    a POPULATION reduction contributes where      participation
+    participating + supported     → the contribution is available;
+    participating + unsupported   → **the reduction HAS WANT OF STATE.** It does not quietly drop the
+                                    point, and it does not compute a total over the survivors.
 
-`contributing_for` is the single place that distinction is made, so no provider has to remember it.
+    a VALUE-BEARING reduction contributes over  participation,  and REQUIRES support over all of it
+    a POPULATION   reduction contributes over  participation,  and requires no value evidence at all
 
-**WHAT IS DEFERRED, NAMED RATHER THAN OMITTED.** `NA` (resolved inapplicability at a point that exists),
-known-empty-fibre versus identity-valued, and want-of-state are not represented here. Point EXISTENCE is
-carried by membership in the `CoordinateIndex` — the ruling's own permitted encoding — so it needs no mask.
-The rest await the applicability/participation/support unit, and until then nothing in this package reads a
-null as any of them.
+Count therefore remains independent, which is the whole reason the two masks exist: if three Orders
+participate, `OrderCount = 3` — and a missing Revenue on one of them changes `OrderCount` by nothing, while
+`Revenue` refuses and any expression that requires Revenue as a basis operand refuses with it.
+
+    contributing_domain(shape)  →  the domain, ALWAYS `participation`
+    want_of_state(shape)        →  where a required value is not established (empty for POPULATION)
+
+Two methods rather than one, because the old single method could only express the wrong answer.
+
+**WHAT `support = False` IS NOT.** It is not `NA`, not a known-empty fibre, not nonparticipation, and not a
+nonexistent point, and nothing in this package infers any of them from it. It is one fact only: *the value
+required here is not established.* Point EXISTENCE is carried by membership in the `CoordinateIndex` — the
+ruling's own permitted encoding. `NA`, known-empty-versus-identity, and the pointwise REPRESENTATION of want
+of state await the applicability/participation/support unit; until then want of state is expressed as a
+**refusal at the operation that requires the value**, never as a value and never as a third mask state.
 """
 from __future__ import annotations
 
@@ -42,12 +51,20 @@ from dataclasses import dataclass
 from typing import Optional, Sequence
 
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from columna_platform.kernel import AnalyticalInstance, KernelRefusal
 
-#: The two reduction shapes, and which mask each one is entitled to.
-VALUE_BEARING = "value-bearing"      # contributes where participation ∧ support
-POPULATION = "population"            # contributes where participation
+#: The two reduction shapes. Both contribute over PARTICIPATION; they differ in what they require of it.
+VALUE_BEARING = "value-bearing"      # requires an established value at every participating point
+POPULATION = "population"            # requires membership only
+
+
+def _shape_or_refuse(shape: str, family_id: str) -> str:
+    if shape not in (POPULATION, VALUE_BEARING):
+        raise KernelRefusal("unknown-reduction-shape", family_id,
+                            f"{shape!r} is not one of {[POPULATION, VALUE_BEARING]}")
+    return shape
 
 
 @dataclass(frozen=True)
@@ -85,17 +102,46 @@ class ColumnStanding:
     def __len__(self) -> int:
         return len(self.participation)
 
-    def contributing_for(self, shape: str) -> pa.BooleanArray:
-        """**The one place the two reduction shapes are distinguished.**
+    # ── the domain, and what is required over it. TWO questions, never folded into one. ───────
+    def contributing_domain(self, shape: str) -> pa.BooleanArray:
+        """**The contributing domain of a reduction, which is `participation` for EVERY shape.**
 
-        A provider asks for the mask its law's shape entitles it to and never assembles one itself, which
-        is what keeps `count(non-null value)` from reappearing inside an aggregation."""
-        if shape == POPULATION:
-            return self.participation
-        if shape == VALUE_BEARING:
-            return pa.compute.and_(self.participation, self.support)
-        raise KernelRefusal("unknown-reduction-shape", self.family_id,
-                            f"{shape!r} is not one of {[POPULATION, VALUE_BEARING]}")
+        Support is deliberately absent from this computation. *"Participation determines the contributing
+        domain"* — so an unsupported participating point is IN the domain of a value-bearing fold and the
+        fold owes an answer about it, which is why the answer can be a refusal but cannot be a total that
+        pretends the point was never there."""
+        _shape_or_refuse(shape, self.family_id)
+        return self.participation
+
+    def want_of_state(self, shape: str) -> pa.BooleanArray:
+        """**Where the reduction REQUIRES a value that is not established:** `participation ∧ ¬support`.
+
+        Empty for a `POPULATION` reduction, which needs no value evidence — a counted point is counted on
+        its membership alone. This mask is *the reason a refusal is owed*; it is never a contribution
+        filter, and nothing may subtract it from the domain."""
+        if _shape_or_refuse(shape, self.family_id) == POPULATION:
+            return pa.array([False] * len(self), type=pa.bool_())
+        return pc.and_(self.participation, pc.invert(self.support))
+
+    def wants_state(self, shape: str) -> bool:
+        return bool(pc.any(self.want_of_state(shape)).as_py())
+
+    def positions_wanting_state(self, shape: str) -> tuple[int, ...]:
+        return tuple(i for i, w in enumerate(self.want_of_state(shape).to_pylist()) if w)
+
+    def contributing_for(self, shape: str) -> pa.BooleanArray:
+        """**RETIRED, and retired loudly rather than deleted quietly.**
+
+        This method returned `participation ∧ support` and callers used it as a contribution filter, which
+        silently removed participating-but-unsupported points from value-bearing folds. Ask
+        `contributing_domain(shape)` for the domain and `want_of_state(shape)` for what the domain still
+        needs; a caller that wanted the old mask wanted the old bug."""
+        raise KernelRefusal(
+            "retired-contribution-filter", self.family_id,
+            "`contributing_for` computed `participation ∧ support` and was used to FILTER contributions. "
+            "Support does not shrink the contributing domain — it validates it (ruled 2026-09-29). Use "
+            "`contributing_domain(shape)` for the domain, and `want_of_state(shape)`/`wants_state(shape)` "
+            "to find out whether the values that domain requires are established.")
 
     def take(self, positions: Sequence[int]) -> "ColumnStanding":
         """This standing, re-positioned onto another layout. Used by explicit alignment only."""
@@ -105,11 +151,12 @@ class ColumnStanding:
             participation=self.participation.take(idx), support=self.support.take(idx),
             note=self.note)
 
-    def summary(self) -> str:
+    def summary(self, shape: str = VALUE_BEARING) -> str:
         p = self.participation.to_pylist()
         s = self.support.to_pylist()
         return (f"participation {sum(p)}/{len(p)}  support {sum(s)}/{len(s)}  "
-                f"contributing {sum(1 for a, b in zip(p, s) if a and b)}")
+                f"contributing domain {sum(p)}  "
+                f"wants state at {len(self.positions_wanting_state(shape))} position(s)")
 
 
 def all_true(n: int) -> pa.BooleanArray:

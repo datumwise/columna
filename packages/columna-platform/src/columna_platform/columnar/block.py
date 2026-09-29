@@ -18,8 +18,12 @@ verdict and the block never implies one. The proof puts an incompatible `OrderCo
 layout accident.
 
 **2 · Arrow validity is not standing.** A value column may be nullable and its nulls mean nothing here.
-`contributing(family, shape)` comes from `ColumnStanding`, never from `Array.is_valid()`. A test builds a
-column whose nulls and whose support mask DISAGREE and shows the answers follow the mask.
+`contributing_domain(family, shape)` comes from `ColumnStanding`, never from `Array.is_valid()` — and never
+from `participation ∧ support`, which is the error corrected on 2026-09-29: support VALIDATES the
+participating domain rather than shrinking it, so an unsupported participating point is in the domain and is
+reported by `want_of_state`. A test builds a column whose nulls and whose support mask DISAGREE — no Arrow
+nulls at all, one unsupported position — and shows the value-bearing reduction REFUSES rather than
+quietly folding the survivors.
 
 **3 · A value column is not a display column.** `render` prints a structured payload opaquely, for the
 reason the Frame-QL layer does: a sketch's `str()` emits a summary containing an `Estimate:` line, and
@@ -101,9 +105,19 @@ class GovernedBlock:
         """`(M, U, A, I)` for one column. **Per column**, because the instance is per column."""
         return AnchorInstance(index=self.index, instance=self.standing(family_id).instance)
 
-    def contributing(self, family_id: str, shape: str = VALUE_BEARING) -> pa.BooleanArray:
-        """The governed contribution mask for a reduction of `shape`. **Never `Array.is_valid()`.**"""
-        return self.standing(family_id).contributing_for(shape)
+    def contributing_domain(self, family_id: str, shape: str = VALUE_BEARING) -> pa.BooleanArray:
+        """The governed contributing domain of a reduction of `shape` — `participation`, for every shape.
+
+        **Never `Array.is_valid()`, and never `participation ∧ support`.** Support does not shrink this
+        domain; ask `want_of_state` what the domain still requires."""
+        return self.standing(family_id).contributing_domain(shape)
+
+    def want_of_state(self, family_id: str, shape: str = VALUE_BEARING) -> pa.BooleanArray:
+        """Where this column owes a value the reduction requires and does not have one."""
+        return self.standing(family_id).want_of_state(shape)
+
+    def wants_state(self, family_id: str, shape: str = VALUE_BEARING) -> bool:
+        return self.standing(family_id).wants_state(shape)
 
     def compatibility_of(self, a: str, b: str) -> Compatibility:
         """**Co-location confers nothing, and this is where that is said out loud.** Two columns of this

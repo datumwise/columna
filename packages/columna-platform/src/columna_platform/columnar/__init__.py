@@ -13,6 +13,10 @@ columna_platform.columnar — **the MME's columnar data plane: Arrow carriage, D
 
     THE PHYSICAL RULE   the MME does not discover analytical alignment by joining analytical tables.
     THE STANDING RULE   Arrow NULL has no intrinsic ToD standing.
+    THE DOMAIN RULE     participation determines the contributing domain; support determines whether the
+                        values required OVER that domain are established. Support never shrinks it — an
+                        unsupported participating point makes a value-bearing reduction REFUSE for want of
+                        state, and leaves a population reduction untouched.
     THE AUTHORITY RULE  the kernel adjudicates; Arrow and DataFusion realize.
 """
 from __future__ import annotations

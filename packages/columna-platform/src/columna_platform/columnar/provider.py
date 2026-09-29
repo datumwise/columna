@@ -159,9 +159,11 @@ class ColumnarProvider:
 
         The exact route, and every step is named in the result:
 
-          1. **governed filter** — keep only positions the standing says CONTRIBUTE for this reduction's
-             shape. Done in Arrow, from the mask, before the engine sees anything. This is what stops
-             `count(non-null value)` from ever being the aggregation.
+          1. **governed filter** — restrict to the reduction's CONTRIBUTING DOMAIN, which is
+             `participation` for every shape. Done in Arrow, from the mask, before the engine sees
+             anything. This is what stops `count(non-null value)` from ever being the aggregation. It is
+             *not* `participation ∧ support`: support validates this domain, and a value-bearing fold
+             handed an unsupported participating point is REFUSED below rather than quietly narrowed.
           2. **project the target coordinates** — the surviving rows' coordinate columns, restricted to the
              TARGET anchor's constituents. Forgetting a constituent is dropping its column; nothing is
              recomputed and nothing is looked up.
@@ -169,11 +171,25 @@ class ColumnarProvider:
              No SQL, no join.
           4. **explicit alignment** — `align_onto(target_index)`, a reindex against a governed index.
         """
-        contributing = block.contributing(family_id, shape)
+        wanting = block.standing(family_id).positions_wanting_state(shape)
+        if wanting:
+            # A BACKSTOP, NOT A JUDGMENT. The kernel refuses want of state before it ever calls a
+            # provider; if one reaches here the provider will not fold around it, because folding the
+            # rest is exactly the silent narrowing the 2026-09-29 ruling forbids.
+            raise KernelRefusal(
+                "want-of-state-reached-the-provider", family_id,
+                f"a {shape} grouped reduction was requested over a domain in which position(s) "
+                f"{list(wanting)} participate and are unsupported. This provider will not fold the "
+                f"remainder and report a total: support validates the participating domain, it does not "
+                f"shrink it. The analytical authority owes this request a want-of-state refusal and this "
+                f"call should not have been made.")
+
+        contributing = block.contributing_domain(family_id, shape)
         route = [f"governed-filter: {shape}, "
                  f"{pc.sum(pc.cast(contributing, pa.int64())).as_py() or 0}"
-                 f"/{len(contributing)} positions contribute "
-                 f"(from the standing masks, NOT from Arrow validity)"]
+                 f"/{len(contributing)} positions in the CONTRIBUTING DOMAIN "
+                 f"(participation, from the standing masks, NOT from Arrow validity; support was "
+                 f"validated over this domain before the fold, never subtracted from it)"]
 
         target_refs = list(target_index.anchor.order)
         arrays = {ref: pc.filter(block.batch.column(ref), contributing) for ref in target_refs}
@@ -206,7 +222,9 @@ class ColumnarProvider:
                 family_id=family_id, instance=block.instance(family_id),
                 participation=all_true(len(target_index)), support=all_true(len(target_index)),
                 note="every target point present in the index received a contribution; a target point "
-                     "with none would not be in the index, because sparse geometry stays sparse"),
+                     "with none would not be in the index, because sparse geometry stays sparse. Support "
+                     "is all-true because the fold only runs once the source's whole participating "
+                     "domain was established — it is EARNED here, not assumed"),
             route=tuple(route))
 
     @staticmethod

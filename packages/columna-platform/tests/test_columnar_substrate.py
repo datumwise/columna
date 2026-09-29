@@ -46,6 +46,24 @@ def block(built):
     return built[1]
 
 
+@pytest.fixture
+def settled_built():
+    """**The control world.** The same seven orders, with O7's amount supplied — one support bit apart
+    from `built`. Every value-bearing proof runs here, because in the as-recorded world a value-bearing
+    reduction over O7's participating domain is REFUSED rather than folded (ruled 2026-09-29)."""
+    return EX.build(settled=True)
+
+
+@pytest.fixture
+def settled(settled_built):
+    return settled_built[0]
+
+
+@pytest.fixture
+def settled_block(settled_built):
+    return settled_built[1]
+
+
 def _sources():
     import columna_platform.columnar as pkg
 
@@ -136,8 +154,8 @@ def test_alignment_refuses_a_target_point_the_reduction_did_not_produce(mme):
     assert "Nothing is zero-filled" in exc.value.detail
 
 
-def test_the_alignment_is_reported_in_the_route(mme):
-    route = mme.measure("revenue", EX.BY_DAY).value.route
+def test_the_alignment_is_reported_in_the_route(settled):
+    route = settled.measure("revenue", EX.BY_DAY).value.route
     assert any("align:" in s and "not a join on keys" in s for s in route)
 
 
@@ -200,23 +218,122 @@ def test_participation_is_known_independently_of_value_presence(block):
 def test_count_is_not_count_of_non_null_revenue(block, mme):
     revenue = block.column("revenue")
     assert revenue.null_count == 1
-    assert sum(block.contributing("order_count", POPULATION).to_pylist()) == 7
-    assert sum(block.contributing("revenue", VALUE_BEARING).to_pylist()) == 6
+    assert sum(block.contributing_domain("order_count", POPULATION).to_pylist()) == 7
     counts = mme.measure("order_count", EX.BY_DAY).value
     assert counts.cell(("D1",)) == 3                       # O1, O4 AND O7
     assert counts.cell(("D2",)) == 4
 
 
-def test_the_standing_changes_the_expression_answer(mme):
-    """The measurement that makes the standing proof non-decorative: 175/3, not 175/2."""
-    aov = mme.evaluate("average_order_value", EX.BY_DAY).value
-    assert aov.cell(("D1",)) == pytest.approx(175 / 3)
-    assert aov.cell(("D1",)) != pytest.approx(87.5)
+# ══ THE 2026-09-29 CORRECTION ═════════════════════════════════════════════════════════════════════
+# *"Participation determines the contributing domain. Support determines whether the values required
+# over that participating domain are established."*
+def test_support_does_not_shrink_the_contributing_domain(block):
+    """**The error this section exists to prevent.** The value-bearing domain is participation — all
+    seven — and the unsupported point is IN it, reported as want of state rather than removed."""
+    position = block.index.position(EX.UNSUPPORTED_POINT)
+    st = block.standing("revenue")
+    assert sum(block.contributing_domain("revenue", VALUE_BEARING).to_pylist()) == 7
+    assert block.contributing_domain("revenue", VALUE_BEARING)[position].as_py() is True
+    assert st.participation[position].as_py() is True and st.support[position].as_py() is False
+    assert block.want_of_state("revenue", VALUE_BEARING)[position].as_py() is True
+    assert st.positions_wanting_state(VALUE_BEARING) == (position,)
+    # and `participation ∧ support` — the retired filter — would have given SIX
+    assert sum(1 for a, b in zip(st.participation.to_pylist(), st.support.to_pylist())
+               if a and b) == 6
+
+
+def test_a_population_reduction_requires_no_value_and_never_wants_state(block):
+    """Count remains independent: three participating Orders are three Orders."""
+    assert not block.wants_state("order_count", POPULATION)
+    assert not any(block.want_of_state("revenue", POPULATION).to_pylist())
+    assert sum(block.contributing_domain("order_count", POPULATION).to_pylist()) == 7
+
+
+def test_the_retired_contribution_filter_refuses_rather_than_returning_the_old_mask(block):
+    with pytest.raises(KernelRefusal) as exc:
+        block.standing("revenue").contributing_for(VALUE_BEARING)
+    assert exc.value.code == "retired-contribution-filter"
+    assert "validates it" in exc.value.detail
+
+
+def test_the_canonical_case_count_serves_revenue_wants_state_aov_refuses(mme):
+    """**THE CANONICAL TEST** (Huayin, 2026-09-29). Three Orders participate at D1; one participating
+    Revenue is unsupported. `OrderCount` = 3. `Revenue` refuses. `AOV` refuses because one required
+    basis operand is not established."""
+    assert len([o for o in EX.ORDERS if o["day"] == "D1"]) == 3
+
+    counts = mme.measure("order_count", EX.BY_DAY)
+    assert counts.served and counts.value.cell(("D1",)) == 3
+
+    revenue = mme.measure("revenue", EX.BY_DAY)
+    assert not revenue.served
+    assert revenue.refusal.code == "want-of-state"
+    assert "O7" in revenue.refusal.detail
+    assert "THE REDUCTION HAS NOT RUN" in revenue.refusal.detail
+    assert "does not shrink it" in revenue.refusal.detail
+
+    aov = mme.evaluate("average_order_value", EX.BY_DAY)
+    assert not aov.served and aov.value is None
+    assert "role 'SUM'" in aov.refusal.detail and "want of state" in aov.refusal.detail
+
+
+def test_nothing_is_inferred_from_support_not_na_not_empty_not_nonparticipation(mme):
+    """*"Do not infer `NA`, known-empty, or nonparticipation from support."*"""
+    detail = mme.measure("revenue", EX.BY_DAY).refusal.detail
+    for disclaimed in ("not `NA`", "not a known-empty fibre", "not nonparticipation",
+                       "not a nonexistent point"):
+        assert disclaimed in detail
+    # the point is still counted by the population reduction, which is the operative proof that it was
+    # not read as nonparticipation
+    assert mme.measure("order_count", EX.BY_DAY).value.cell(("D1",)) == 3
+
+
+def test_the_expression_refuses_at_the_root_anchor_on_its_own_basis_check(mme):
+    """At the root both operands are held, so no continuation intervenes: the refusal is the expression
+    path's own, and it names the unestablished operand rather than dividing around it."""
+    aov = mme.evaluate("average_order_value", EX.SALE_AT)
+    assert not aov.served
+    assert "basis-operand-wants-state" in aov.refusal.detail
+    assert "THE ARITHMETIC HAS NOT RUN" in aov.refusal.detail
+    assert "NOT evaluated over the subset" in aov.refusal.detail
+    # and NOT as §4.3 undefined-on-basis, which is a different fact about an established basis
+    assert "UNDEFINED" not in aov.refusal.detail
+
+
+def test_a_held_state_may_want_state_and_discloses_it_rather_than_hiding_it(mme):
+    """Recording a column is not serving a value."""
+    held = mme.retained("family", "revenue", EX.SALE_AT,
+                        mme.authority.instance_of("revenue")).value
+    assert held.wants_state
+    assert held.points_wanting_state() == (EX.UNSUPPORTED_POINT,)
+    assert any(d.code == "want-of-state" for d in held.disclosures)
+
+
+def test_reading_a_cell_at_a_point_with_want_of_state_refuses(mme):
+    held = mme.retained("family", "revenue", EX.SALE_AT,
+                        mme.authority.instance_of("revenue")).value
+    assert held.cell(("D1", "O1", "S1")) == 100.0
+    with pytest.raises(KernelRefusal) as exc:
+        held.cell(EX.UNSUPPORTED_POINT)
+    assert exc.value.code == "want-of-state-at-a-point"
+    assert "The carrier's null at this position means nothing" in exc.value.detail
+
+
+def test_one_support_bit_is_the_whole_difference(mme, settled):
+    """The control. The same seven orders, the same law, the same layout — one support bit apart."""
+    assert not mme.measure("revenue", EX.BY_DAY).served
+    served = settled.measure("revenue", EX.BY_DAY)
+    assert served.served and served.value.cell(("D1",)) == 235.0
+    # and the population reduction is IDENTICAL in both worlds, which is the point of the two masks
+    assert (mme.measure("order_count", EX.BY_DAY).value.cell(("D1",))
+            == settled.measure("order_count", EX.BY_DAY).value.cell(("D1",)) == 3)
 
 
 def test_arrow_validity_and_the_support_mask_may_disagree_and_the_mask_wins(mme):
-    """A column whose nulls and whose support DISAGREE: three non-null values, one unsupported. The
-    reduction follows the mask."""
+    """**A support mask matters even when the Arrow value array contains NO NULLS.** Three non-null
+    values, one participating position unsupported. The effect is REFUSAL — want of state for a required
+    contribution — and not silent exclusion: the old behaviour folded the two it believed and served
+    30.0 as though the third point had never participated."""
     index = CoordinateIndex.of(EX.MANIFOLD, EX.SALE_AT,
                                [("D1", "O1", "S1"), ("D1", "O2", "S1"), ("D1", "O3", "S1")])
     block = GovernedBlock.of(
@@ -224,8 +341,40 @@ def test_arrow_validity_and_the_support_mask_may_disagree_and_the_mask_wins(mme)
         {"revenue": standing("revenue", mme.authority.instance_of("revenue"), n=3,
                              support=[True, True, False])})
     assert block.column("revenue").null_count == 0          # NO nulls at all
+    assert sum(block.contributing_domain("revenue", VALUE_BEARING).to_pylist()) == 3
     mme.establish(block, "revenue")
-    assert mme.measure("revenue", EX.BY_DAY).value.cell(("D1",)) == 30.0   # not 60.0
+
+    answer = mme.measure("revenue", EX.BY_DAY)
+    assert not answer.served and answer.refusal.code == "want-of-state"
+    assert "THE REDUCTION HAS NOT RUN" in answer.refusal.detail
+    assert answer.value is None                             # not 30.0, and not 60.0
+
+
+def test_a_provider_handed_an_unestablished_domain_refuses_rather_than_folding_around_it(mme, block):
+    """A backstop, not a judgment: if the kernel's want-of-state check were ever bypassed, the provider
+    still will not fold the remainder and report a total."""
+    with pytest.raises(KernelRefusal) as exc:
+        mme.provider.continue_grouped(block, "revenue", composition="addition",
+                                      target_index=CoordinateIndex.of(
+                                          EX.MANIFOLD, EX.BY_DAY, [("D1",), ("D2",)]),
+                                      shape=VALUE_BEARING)
+    assert exc.value.code == "want-of-state-reached-the-provider"
+    assert "will not fold the remainder" in exc.value.detail
+
+
+def test_a_carrier_that_contradicts_its_declared_support_is_refused(mme):
+    """Declaring a value established while the carrier holds none is a broken representation contract,
+    and the engine will not choose which side to believe."""
+    index = CoordinateIndex.of(EX.MANIFOLD, EX.SALE_AT,
+                               [("D1", "O1", "S1"), ("D1", "O2", "S1")])
+    bad = GovernedBlock.of(
+        index, {"revenue": pa.array([10.0, None], type=pa.float64())},
+        {"revenue": standing("revenue", mme.authority.instance_of("revenue"), n=2,
+                             support=[True, True])})
+    with pytest.raises(KernelRefusal) as exc:
+        mme.establish(bad, "revenue")
+    assert exc.value.code == "support-without-a-value"
+    assert "the honest standing is want of state" in exc.value.detail
 
 
 def test_a_null_in_a_standing_mask_is_refused_outright(mme):
@@ -244,31 +393,34 @@ def test_the_standing_default_is_all_true_and_never_derived_from_the_values(mme)
 
 
 # ══ 4 · GROUPED CONTINUATION BY DATAFUSION ════════════════════════════════════════════════════════
-def test_revenue_is_continued_by_grouped_datafusion_reduction(mme):
-    answer = mme.measure("revenue", EX.BY_DAY)
+def test_revenue_is_continued_by_grouped_datafusion_reduction(settled):
+    answer = settled.measure("revenue", EX.BY_DAY)
     assert answer.served and answer.route == "continued"
-    assert answer.value.cell(("D1",)) == 175.0 and answer.value.cell(("D2",)) == 325.0
+    assert answer.value.cell(("D1",)) == 235.0 and answer.value.cell(("D2",)) == 325.0
     assert any("datafusion: aggregate(group_by=['day'], agg=addition)" in s
                for s in answer.value.route)
 
 
-def test_the_governed_filter_runs_before_the_engine_sees_anything(mme):
-    route = mme.measure("revenue", EX.BY_DAY).value.route
+def test_the_governed_filter_runs_before_the_engine_sees_anything(settled):
+    """The filter restricts to the CONTRIBUTING DOMAIN — participation, all seven — and never to
+    `participation ∧ support`."""
+    route = settled.measure("revenue", EX.BY_DAY).value.route
     step = next(s for s in route if s.startswith("governed-filter"))
-    assert "6/7 positions contribute" in step
+    assert "7/7 positions in the CONTRIBUTING DOMAIN" in step
     assert "NOT from Arrow validity" in step
+    assert "never subtracted from it" in step
     assert route.index(step) < next(i for i, s in enumerate(route) if "datafusion" in s)
 
 
-def test_the_output_is_aligned_on_the_target_anchors_coordinate_index(mme, block):
-    state = mme.measure("revenue", EX.BY_DAY).value
+def test_the_output_is_aligned_on_the_target_anchors_coordinate_index(settled, settled_block):
+    state = settled.measure("revenue", EX.BY_DAY).value
     assert state.index.anchor == EX.BY_DAY
-    assert state.index.identity != block.index.identity
+    assert state.index.identity != settled_block.index.identity
     assert len(state.index) == 2
 
 
-def test_the_coarser_index_is_derived_from_existing_points_only(mme):
-    state = mme.measure("revenue", EX.TOTAL).value
+def test_the_coarser_index_is_derived_from_existing_points_only(settled):
+    state = settled.measure("revenue", EX.TOTAL).value
     assert len(state.index) == 1 and state.index.coordinates == ((),)
 
 
@@ -280,18 +432,19 @@ def test_an_unrealized_composition_is_a_provider_limit(mme):
 
 
 # ══ 2 · POSITIONAL EXPRESSION EVALUATION ══════════════════════════════════════════════════════════
-def test_revenue_over_ordercount_is_a_positional_column_operation(mme):
-    revenue = mme.measure("revenue", EX.BY_DAY).value
-    counts = mme.measure("order_count", EX.BY_DAY).value
+def test_revenue_over_ordercount_is_a_positional_column_operation(settled):
+    revenue = settled.measure("revenue", EX.BY_DAY).value
+    counts = settled.measure("order_count", EX.BY_DAY).value
     assert revenue.index.identity == counts.index.identity        # ONE layout, no discovery needed
-    aov = mme.evaluate("average_order_value", EX.BY_DAY)
+    aov = settled.evaluate("average_order_value", EX.BY_DAY)
     assert aov.route == "evaluated" and aov.seeded_from == "b_revenue_ordercount"
     assert aov.value.cell(("D2",)) == pytest.approx(81.25)
 
 
-def test_differing_layouts_refuse_rather_than_being_joined(mme):
+def test_differing_layouts_refuse_rather_than_being_joined(settled):
     """If two operands ever arrive on different layouts, this path REFUSES and names the lawful remedy.
     It does not reach for the columns' coordinate values."""
+    mme = settled
     state = mme.measure("revenue", EX.BY_DAY).value
     other = ColumnarFamilyState(
         family_id="order_count",
@@ -308,7 +461,8 @@ def test_differing_layouts_refuse_rather_than_being_joined(mme):
     assert "would be relational discovery of analytical alignment" in answer.refusal.detail
 
 
-def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(mme):
+def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(settled):
+    mme = settled
     output = mme.evaluate("average_order_value", EX.BY_DAY).value
     assert isinstance(output, ColumnarExpressionOutput)
     assert output.CONTINUATION_BEARING is False
@@ -322,24 +476,28 @@ def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(m
 
 
 # ══ 3 · COMPATIBILITY BEFORE ARITHMETIC ═══════════════════════════════════════════════════════════
-def test_an_incompatible_basis_is_refused_before_arithmetic_on_one_aligned_layout(mme):
-    revenue = mme.measure("revenue", EX.BY_DAY).value
-    audited = mme.measure("audited_order_count", EX.BY_DAY).value
+def test_an_incompatible_basis_is_refused_before_arithmetic_on_one_aligned_layout(settled):
+    revenue = settled.measure("revenue", EX.BY_DAY).value
+    audited = settled.measure("audited_order_count", EX.BY_DAY).value
     assert revenue.index.identity == audited.index.identity        # perfectly aligned
     assert len(revenue.values) == len(audited.values)              # same shape
 
-    answer = mme.evaluate("average_order_value_audited", EX.BY_DAY)
+    answer = settled.evaluate("average_order_value_audited", EX.BY_DAY)
     assert not answer.served
     assert "THE ARITHMETIC HAS NOT RUN" in answer.refusal.detail
     assert "different-participation" in answer.refusal.detail
+    # AUTHORITY BEFORE EVIDENCE: a jointly-unusable basis refuses on participation, and this is not
+    # dressed up as a want-of-state refusal even in a world where one could also be owed.
+    assert "basis-operand-wants-state" not in answer.refusal.detail
 
 
 # ══ 5 · NON-ROOT SEEDING, AND THE LAUNDERING GUARD ════════════════════════════════════════════════
-def test_a_non_root_columnar_state_seeds_a_later_continuation(mme):
+def test_a_non_root_columnar_state_seeds_a_later_continuation(settled):
+    mme = settled
     mme.measure("revenue", EX.BY_DAY)
     total = mme.measure("revenue", EX.TOTAL)
     assert total.seeded_from.anchor == EX.BY_DAY
-    assert total.value.cell(()) == 500.0
+    assert total.value.cell(()) == 560.0
     assert total.value.forgotten_since_root == frozenset({"order", "store", "day"})
 
 
@@ -451,8 +609,12 @@ def test_state_from_one_manifold_may_not_satisfy_or_seed_a_request_in_the_other(
                .compatible_with(other.authority.instance_of("revenue")))
     assert not verdict and verdict.code == "different-manifold"
 
-    mme.measure("revenue", EX.BY_DAY)
-    other_answer = other.measure("revenue", EX.BY_DAY)
+    # in the SETTLED world both jurisdictions can serve, and each serves only from its own state
+    mine, _ = EX.build(EX.MANIFOLD, settled=True)
+    theirs, _ = EX.build(EX.OTHER_MANIFOLD, settled=True)
+    theirs.provider = mine.provider
+    mine.measure("revenue", EX.BY_DAY)
+    other_answer = theirs.measure("revenue", EX.BY_DAY)
     assert other_answer.served
     assert other_answer.seeded_from.instance.manifold == EX.OTHER_MANIFOLD
 

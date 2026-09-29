@@ -3,15 +3,35 @@ columna_platform.columnar.exhibit — **the v8-native MME executing over real Ar
 
     python -m columna_platform.columnar.exhibit
 
-THE WORLD. The same `commerce` universe the kernel exhibit constitutes, plus **one extra order**:
+THE WORLD, AND WHY THERE ARE TWO OF IT
+--------------------------------------
+The same `commerce` universe the kernel exhibit constitutes, plus **one extra order**:
 
     O7 — accepted by the merchant, amount NEVER RECORDED.
 
 O7 is the standing proof. It **participates** (the merchant accepted it, so `OrderCount` must count it) and
-it is **unsupported** for Revenue (no evidence of an amount). Read off Arrow validity those two facts
-collapse and `COUNT` silently becomes `count(non-null revenue)` — a different measure with a different
-answer. Every number below that involves O7 is different under the two readings, so the distinction is
-measured rather than asserted.
+it is **unsupported** for Revenue (no evidence of an amount).
+
+The exhibit runs the same seven orders as TWO worlds, differing by **exactly one support bit and one
+amount**:
+
+    AS RECORDED    O7's amount is not established.  `OrderCount` = 3 at D1; `Revenue` WANTS STATE;
+                   `AOV` refuses, because a required basis operand is not established.
+    SETTLED        the merchant later supplies O7's amount (60.00).  Nothing else changes, and every
+                   value-bearing answer becomes available.
+
+That pairing is the measurement. Three readings of the same seven rows give three different answers, and only
+one of them is the governed one:
+
+    `count(non-null revenue)`     → 6 orders.  A DIFFERENT MEASURE.
+    `participation ∧ support`     → a Revenue total of 175.00 at D1 over an `OrderCount` of 3.  **A NUMBER
+                                    ABOUT NO POPULATION** — the retired filter, and the error corrected on
+                                    2026-09-29.
+    participation, validated by support
+                                  → `OrderCount` = 3 and Revenue REFUSES until the amount is established.
+
+    *"Participation determines the contributing domain. Support determines whether the values required over
+    that participating domain are established."* — Huayin, 2026-09-29
 """
 from __future__ import annotations
 
@@ -46,7 +66,7 @@ BY_DAY = COMMERCE.anchor({"day"})
 BY_STORE = COMMERCE.anchor({"store"})
 TOTAL = COMMERCE.scalar_anchor
 
-#: Seven accepted orders. **O7 participates and is unsupported for Revenue.**
+#: Seven accepted orders, AS RECORDED. **O7 participates and is unsupported for Revenue.**
 ORDERS = (
     {"store": "S1", "day": "D1", "order": "O1", "value": 100.0, "customer": "C1", "supported": True},
     {"store": "S1", "day": "D2", "order": "O2", "value": 50.0, "customer": "C2", "supported": True},
@@ -56,6 +76,21 @@ ORDERS = (
     {"store": "S2", "day": "D2", "order": "O6", "value": 50.0, "customer": "C4", "supported": True},
     {"store": "S1", "day": "D1", "order": "O7", "value": None, "customer": "C5", "supported": False},
 )
+
+#: The amount the merchant later supplies for O7 in the SETTLED world. Nothing else differs.
+O7_SETTLED_AMOUNT = 60.0
+
+#: The unsupported order, named once so no proof has to re-derive which one it is.
+UNSUPPORTED_ORDER = "O7"
+UNSUPPORTED_POINT = ("D1", "O7", "S1")
+
+
+def _orders(settled: bool = False) -> tuple:
+    """The seven orders, in one of the two worlds. **One bit and one amount apart.**"""
+    if not settled:
+        return ORDERS
+    return tuple({**o, "value": O7_SETTLED_AMOUNT, "supported": True}
+                 if o["order"] == UNSUPPORTED_ORDER else o for o in ORDERS)
 
 
 def _families(manifold: str = MANIFOLD):
@@ -107,14 +142,18 @@ def _root_index(manifold: str = MANIFOLD) -> CoordinateIndex:
                               [tuple(o[r] for r in SALE_AT.order) for o in ORDERS])
 
 
-def _by_order(index: CoordinateIndex):
+def _by_order(index: CoordinateIndex, settled: bool = False):
     """The occurrences, re-laid in the index's position order."""
-    lookup = {tuple(o[r] for r in SALE_AT.order): o for o in ORDERS}
+    lookup = {tuple(o[r] for r in SALE_AT.order): o for o in _orders(settled)}
     return [lookup[cell] for cell in index.coordinates]
 
 
-def build(manifold: str = MANIFOLD) -> tuple[ColumnarMME, GovernedBlock]:
-    """A constituted columnar MME and the root block. **One shared provider is fine; authority is not.**"""
+def build(manifold: str = MANIFOLD, *, settled: bool = False) -> tuple[ColumnarMME, GovernedBlock]:
+    """A constituted columnar MME and the root block. **One shared provider is fine; authority is not.**
+
+    `settled=False` is the world AS RECORDED, in which O7's amount is not established. `settled=True` is the
+    same seven orders after the merchant supplied it — the control, and the only difference is O7's support
+    bit and its amount."""
     authority = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=manifold)
     for family in _families(manifold):
         authority.register_family(family)
@@ -123,7 +162,7 @@ def build(manifold: str = MANIFOLD) -> tuple[ColumnarMME, GovernedBlock]:
     mme = ColumnarMME(authority)
 
     index = _root_index(manifold)
-    rows = _by_order(index)
+    rows = _by_order(index, settled)
     revenue, order_count, audited, distinct, _ = _families(manifold)
 
     block = GovernedBlock.of(
@@ -141,7 +180,11 @@ def build(manifold: str = MANIFOLD) -> tuple[ColumnarMME, GovernedBlock]:
             "revenue": standing("revenue", authority.instance_of("revenue"), n=len(rows),
                                 support=[r["supported"] for r in rows],
                                 note="O7 participates and is UNSUPPORTED: accepted by the merchant, "
-                                     "amount never recorded"),
+                                     "amount never recorded. It is IN the contributing domain of the SUM "
+                                     "and the SUM therefore has want of state — it is not removed from it"
+                                     if not settled else
+                                     "the merchant later supplied O7's amount; every participating point "
+                                     "is now established"),
             "order_count": standing("order_count", authority.instance_of("order_count"), n=len(rows),
                                     note="every accepted order participates, INCLUDING O7. This is the "
                                          "whole point: a count of the population, not of the evidence"),
@@ -172,7 +215,8 @@ def _show(state, label: str, render=lambda v: v) -> None:
 
 
 def main() -> int:                                          # noqa: C901 - an exhibit is a narrative
-    mme, block = build()
+    mme, block = build()                                    # AS RECORDED: O7's amount is not established
+    settled, settled_block = build(settled=True)            # the control: the amount later supplied
     revenue, order_count, audited, distinct, on_hand = _families()
     aov, aov_audited, estimate = _expressions()
     failures: list[str] = []
@@ -186,6 +230,10 @@ def main() -> int:                                          # noqa: C901 - an ex
     print("  COLUMNA PLATFORM · v8-native MME over Arrow/DataFusion columnar state")
     print(f"  manifold {MANIFOLD!r}   provider {mme.provider.name!r}")
     print(f"  root index {block.index}   identity {block.index.identity}")
+    print("  two worlds, ONE support bit apart:")
+    print(f"    AS RECORDED  {UNSUPPORTED_ORDER}'s amount is not established — participation ∧ ¬support")
+    print(f"    SETTLED      {UNSUPPORTED_ORDER}'s amount is {O7_SETTLED_AMOUNT:.2f} — every "
+          f"participating point established")
     print("═" * 100)
 
     # ══ 1 · REAL ARROW COLUMNAR STATE AT A GOVERNED ANCHOR INSTANCE ══════════════════════════════
@@ -210,44 +258,135 @@ def main() -> int:                                          # noqa: C901 - an ex
           == "different-participation")
 
     # ══ 8 · STANDING INDEPENDENT OF ARROW NULL (proved here, where the block is in hand) ═════════
-    _rule("PROOF 8 · a standing distinction proved INDEPENDENTLY of Arrow nullability")
+    _rule("PROOF 8 · support VALIDATES the participating domain — it does not shrink it")
     rev_col = block.column("revenue")
+    position = block.index.position(UNSUPPORTED_POINT)
     print(f"  the revenue value column has {rev_col.null_count} Arrow null(s) — and the null means NOTHING.")
-    print("  O7's standing:  participation=True  support=False")
-    contributes_value = block.contributing("revenue", VALUE_BEARING).to_pylist()
-    participates = block.contributing("order_count", POPULATION).to_pylist()
-    print(f"  revenue contributes at     {sum(contributes_value)}/7 positions   (participation ∧ support)")
-    print(f"  order_count contributes at {sum(participates)}/7 positions   (participation)")
-    print(f"  `count(non-null revenue)` would give {len(rev_col) - rev_col.null_count} — "
-          f"A DIFFERENT MEASURE.")
+    print(f"  {UNSUPPORTED_ORDER}'s standing:  participation=True  support=False")
+    print()
+    rev_domain = block.contributing_domain("revenue", VALUE_BEARING).to_pylist()
+    rev_wanting = block.want_of_state("revenue", VALUE_BEARING).to_pylist()
+    count_domain = block.contributing_domain("order_count", POPULATION).to_pylist()
+    print(f"  revenue     contributing domain {sum(rev_domain)}/7   (participation — {UNSUPPORTED_ORDER} "
+          f"IS IN IT)   want of state at {sum(rev_wanting)}")
+    print(f"  order_count contributing domain {sum(count_domain)}/7   (participation)"
+          f"                     want of state at "
+          f"{sum(block.want_of_state('order_count', POPULATION).to_pylist())}")
+    print()
+    print("  the three readings of these same seven rows:")
+    print(f"      count(non-null revenue)                  {len(rev_col) - rev_col.null_count}   "
+          f"A DIFFERENT MEASURE")
+    print(f"      participation ∧ support  (RETIRED)        "
+          f"{sum(1 for a, b in zip(rev_domain, block.standing('revenue').support.to_pylist()) if a and b)}"
+          f"   a Revenue total over an OrderCount of 3 — a number about NO population")
+    print(f"      participation, validated by support       {sum(rev_domain)}   "
+          f"and 1 of them WANTS STATE, so the SUM refuses")
 
     check("participation is known independently of value presence",
-          participates[block.index.position(("D1", "O7", "S1"))] is True)
+          count_domain[position] is True)
     check("support is False at the same position",
-          block.standing("revenue").support[block.index.position(("D1", "O7", "S1"))].as_py()
-          is False)
-    check("COUNT is not count(non-null revenue): 7 vs 6", sum(participates) == 7
+          block.standing("revenue").support[position].as_py() is False)
+    check("the unsupported point is IN the value-bearing contributing domain, not removed from it",
+          rev_domain[position] is True and sum(rev_domain) == 7)
+    check("and it is reported as WANT OF STATE, which is a different fact from exclusion",
+          rev_wanting[position] is True and sum(rev_wanting) == 1)
+    check("a POPULATION reduction has no want of state at all — it requires no value",
+          not any(block.want_of_state("order_count", POPULATION).to_pylist()))
+    check("COUNT is not count(non-null revenue): 7 vs 6", sum(count_domain) == 7
           and (len(rev_col) - rev_col.null_count) == 6)
+    check("the retired `participation ∧ support` contribution filter REFUSES if anything reaches for it",
+          _refuses_retired_filter(block))
     check("a null in a STANDING mask is refused outright",
           _refuses_null_standing(mme))
+    check("a point declared SUPPORTED with no value in the carrier is refused as a broken contract",
+          _refuses_support_without_a_value(mme))
 
-    # ══ 4 · GROUPED CONTINUATION BY DATAFUSION ═══════════════════════════════════════════════════
-    _rule("PROOF 4 · Revenue continued to a coarser anchor by DataFusion GROUPED reduction")
-    by_day = mme.measure("revenue", BY_DAY)
+    # ══ 8b · THE CANONICAL CASE, END TO END ══════════════════════════════════════════════════════
+    _rule("PROOF 8b · 3 Orders participate · 1 Revenue unsupported · Count 3 · Revenue WANTS STATE · "
+          "AOV REFUSES")
+    d1 = [o for o in ORDERS if o["day"] == "D1"]
+    print(f"  at D1: {len(d1)} orders participate — {[o['order'] for o in d1]}; "
+          f"{UNSUPPORTED_ORDER}'s Revenue is unsupported.\n")
+
+    counts = mme.measure("order_count", BY_DAY)
+    print(f"  OrderCount @ {BY_DAY}   {counts.route}")
+    _show(counts.value, "")
+
+    rev = mme.measure("revenue", BY_DAY)
+    print(f"\n  Revenue    @ {BY_DAY}   REFUSED [{rev.refusal.code}]")
+    print(f"      {rev.refusal.detail}")
+
+    aov_refused = mme.evaluate("average_order_value", BY_DAY)
+    print(f"\n  AOV        @ {BY_DAY}   REFUSED [{aov_refused.refusal.code}]")
+    print(f"      {aov_refused.refusal.detail}")
+
+    # At the ROOT anchor both operands are already held, so no continuation intervenes and the refusal
+    # is the expression path's own: the basis is lawful, aligned, compatible — and not established.
+    aov_at_root = mme.evaluate("average_order_value", SALE_AT)
+    print(f"\n  AOV        @ {SALE_AT}   REFUSED [{aov_at_root.refusal.code}]")
+    print(f"      {aov_at_root.refusal.detail}")
+
+    sketch_unaffected = mme.measure("distinct_customers", BY_DAY)
+    print(f"\n  and support is PER COLUMN: distinct_customers over the same seven rows "
+          f"{sketch_unaffected.route} — {UNSUPPORTED_ORDER}'s customer was recorded even though its "
+          f"amount was not.")
+
+    check("the population reduction serves and counts ALL THREE participating orders",
+          counts.served and counts.value.cell(("D1",)) == 3)
+    check("a missing Revenue changed OrderCount by nothing", counts.value.cell(("D2",)) == 4)
+    check("Revenue REFUSES with want of state", not rev.served
+          and rev.refusal.code == "want-of-state")
+    check("the refusal names the participating point whose value is not established",
+          "O7" in rev.refusal.detail and "want of state" in rev.refusal.detail)
+    check("and says the reduction has not run, rather than reporting a total over the remainder",
+          "THE REDUCTION HAS NOT RUN" in rev.refusal.detail
+          and "does not shrink it" in rev.refusal.detail)
+    check("NOTHING was inferred: not NA, not known-empty, not nonparticipation",
+          "not `NA`" in rev.refusal.detail and "not a known-empty" in rev.refusal.detail
+          and "not nonparticipation" in rev.refusal.detail)
+    check("AOV refuses because a REQUIRED BASIS OPERAND is not established",
+          not aov_refused.served and "role 'SUM'" in aov_refused.refusal.detail
+          and "want of state" in aov_refused.refusal.detail)
+    check("at the root anchor the expression path refuses on its own: basis-operand-wants-state",
+          not aov_at_root.served
+          and "basis-operand-wants-state" in aov_at_root.refusal.detail
+          and "THE ARITHMETIC HAS NOT RUN" in aov_at_root.refusal.detail)
+    check("and it says the expression was NOT evaluated over the supported subset of points",
+          "NOT evaluated over the subset" in aov_at_root.refusal.detail)
+    check("the old answer 175/3 = 58.3333 is NOT served, and neither is 175/2",
+          aov_refused.value is None)
+    check("a point with want of state has no value to read, and reading one refuses",
+          _refuses_cell_at_want_of_state(mme))
+    check("the held state DISCLOSES the want of state rather than hiding it",
+          any(d.code == "want-of-state" for d in
+              mme.retained("family", "revenue", SALE_AT,
+                           mme.authority.instance_of("revenue")).value.disclosures))
+    check("the same column with the amount supplied serves — ONE support bit apart",
+          settled.measure("revenue", BY_DAY, retain=False).served)
+    check("a support mask matters even with NO Arrow nulls in the value array",
+          _refuses_with_no_arrow_nulls(mme))
+
+    # ══ 4 · GROUPED CONTINUATION BY DATAFUSION (the SETTLED world) ═══════════════════════════════
+    _rule("PROOF 4 · Revenue continued to a coarser anchor by DataFusion GROUPED reduction "
+          "[SETTLED world]")
+    by_day = settled.measure("revenue", BY_DAY)
     _show(by_day.value, f"revenue @ {BY_DAY}   route={by_day.route}",
           render=lambda v: f"{v:.2f}")
     print("\n  the exact route:")
     for step in by_day.value.route:
         print(f"      • {step}")
 
-    counts_by_day = mme.measure("order_count", BY_DAY)
+    counts_by_day = settled.measure("order_count", BY_DAY)
     _show(counts_by_day.value, f"\n  order_count @ {BY_DAY}")
 
     check("revenue continued by GROUPED reduction", by_day.served and by_day.route == "continued")
-    check("D1 = 175.0 (O7 contributes NO amount) and D2 = 325.0",
-          by_day.value.cell(("D1",)) == 175.0 and by_day.value.cell(("D2",)) == 325.0)
-    check("order_count D1 = 3 (O1, O4 AND O7) and D2 = 4",
-          counts_by_day.value.cell(("D1",)) == 3 and counts_by_day.value.cell(("D2",)) == 4)
+    check("D1 = 235.0 (O1 + O4 + O7's supplied 60.00) and D2 = 325.0",
+          by_day.value.cell(("D1",)) == 235.0 and by_day.value.cell(("D2",)) == 325.0)
+    check("the fold ran over the WHOLE participating domain, all 7 positions",
+          any("7/7 positions in the CONTRIBUTING DOMAIN" in step for step in by_day.value.route))
+    check("order_count D1 = 3 (O1, O4 AND O7) and D2 = 4 — unchanged from the as-recorded world",
+          counts_by_day.value.cell(("D1",)) == 3 and counts_by_day.value.cell(("D2",)) == 4
+          and mme.measure("order_count", BY_DAY).value.cell(("D1",)) == 3)
     check("the route names the governed filter, the DataFusion aggregate and the ALIGNMENT",
           any("governed-filter" in s for s in by_day.value.route)
           and any("datafusion: aggregate" in s for s in by_day.value.route)
@@ -256,25 +395,28 @@ def main() -> int:                                          # noqa: C901 - an ex
           any("not a join on keys" in s for s in by_day.value.route))
     check("the output is aligned on the TARGET anchor's coordinate index",
           by_day.value.index.anchor == BY_DAY
-          and by_day.value.index.identity != block.index.identity)
+          and by_day.value.index.identity != settled_block.index.identity)
     check("the coarser index is still SPARSE (2 days, derived from existing points)",
           len(by_day.value.index) == 2)
 
     # ══ 2 + A · POSITIONAL EXPRESSION, NO JOIN ═══════════════════════════════════════════════════
-    _rule("PROOF 2 · Revenue / OrderCount evaluated POSITIONALLY at one anchor — no join")
-    aov_day = mme.evaluate("average_order_value", BY_DAY)
+    _rule("PROOF 2 · Revenue / OrderCount evaluated POSITIONALLY at one anchor — no join "
+          "[SETTLED world]")
+    aov_day = settled.evaluate("average_order_value", BY_DAY)
     _show(aov_day.value, f"average_order_value @ {BY_DAY}   route={aov_day.route} "
                          f"via {aov_day.seeded_from}", render=lambda v: f"{v:.4f}")
     print(f"\n  both operand columns share ONE coordinate index "
-          f"({mme.measure('revenue', BY_DAY).value.index.identity})")
+          f"({settled.measure('revenue', BY_DAY).value.index.identity})")
     print("  so the division is a position-aligned Arrow kernel. Nothing discovered which Revenue")
     print("  cell corresponds to which Count cell — they are the same position.")
 
-    check("AOV@D1 = 175/3 = 58.3333 — the governed standing changes the answer",
-          abs(aov_day.value.cell(("D1",)) - 175 / 3) < 1e-9)
+    check("AOV@D1 = 235/3 = 78.3333 — over the WHOLE participating domain, every value established",
+          abs(aov_day.value.cell(("D1",)) - 235 / 3) < 1e-9)
     check("AOV@D2 = 325/4 = 81.25", abs(aov_day.value.cell(("D2",)) - 81.25) < 1e-9)
-    check("under `count(non-null revenue)` D1 would have been 87.5 — a different number",
-          abs(175 / 3 - 87.5) > 1.0)
+    check("the denominator is the POPULATION count 3, not a count of the supported values",
+          abs(aov_day.value.cell(("D1",)) - 235 / 2) > 1.0)
+    check("and under `count(non-null revenue)` D1 would have been 117.5 — a different number",
+          abs(235 / 3 - 235 / 2) > 1.0)
     check("the result is an ExpressionOutput, not family state",
           isinstance(aov_day.value, ColumnarExpressionOutput)
           and not aov_day.value.CONTINUATION_BEARING)
@@ -282,15 +424,16 @@ def main() -> int:                                          # noqa: C901 - an ex
           not hasattr(ColumnarExpressionOutput, "fold_onto_grouped"))
 
     # ══ 3 + B · COMPATIBILITY REFUSED BEFORE ARITHMETIC ══════════════════════════════════════════
-    _rule("PROOF 3 · an incompatible basis is refused BEFORE arithmetic, on one aligned layout")
-    rev_state = mme.measure("revenue", BY_DAY).value
-    aud_state = mme.measure("audited_order_count", BY_DAY).value
+    _rule("PROOF 3 · an incompatible basis is refused BEFORE arithmetic, on one aligned layout "
+          "[SETTLED world]")
+    rev_state = settled.measure("revenue", BY_DAY).value
+    aud_state = settled.measure("audited_order_count", BY_DAY).value
     print(f"  revenue             @ {BY_DAY}  available, {len(rev_state.values)} positions, "
           f"index {rev_state.index.identity}")
     print(f"  audited_order_count @ {BY_DAY}  available, {len(aud_state.values)} positions, "
           f"index {aud_state.index.identity}")
     print(f"  SAME LAYOUT: {rev_state.index.identity == aud_state.index.identity}")
-    refused = mme.evaluate("average_order_value_audited", BY_DAY)
+    refused = settled.evaluate("average_order_value_audited", BY_DAY)
     print(f"\n  average_order_value_audited @ {BY_DAY}")
     print(f"      REFUSED [{refused.refusal.code}]")
     print(f"      {refused.refusal.detail}")
@@ -303,15 +446,17 @@ def main() -> int:                                          # noqa: C901 - an ex
           "THE ARITHMETIC HAS NOT RUN" in refused.refusal.detail)
     check("on participation, not on shape or absence",
           "different-participation" in refused.refusal.detail)
+    check("authority to combine is asked BEFORE evidence for the values: this is not a want-of-state "
+          "refusal", "wants-state" not in refused.refusal.code)
 
     # ══ 5 · NON-ROOT SEEDING THROUGH THE COLUMNAR PROVIDER ═══════════════════════════════════════
-    _rule("PROOF 5 · lawful NON-ROOT seeding, through the columnar provider")
-    total = mme.measure("revenue", TOTAL)
+    _rule("PROOF 5 · lawful NON-ROOT seeding, through the columnar provider [SETTLED world]")
+    total = settled.measure("revenue", TOTAL)
     _show(total.value, f"revenue @ {TOTAL}   route={total.route}", render=lambda v: f"{v:.2f}")
     print(f"      seeded from  {total.seeded_from}")
     print(f"      considered   {list(total.considered)}")
 
-    check("the grand total serves", total.served and total.value.cell(()) == 500.0)
+    check("the grand total serves", total.served and total.value.cell(()) == 560.0)
     check("it was seeded from the NON-ROOT {day} state, not from R_F",
           total.seeded_from.anchor == BY_DAY)
     check("so the columnar path exercises the same right, not root-only execution",
@@ -451,6 +596,58 @@ def _refuses_null_standing(mme: ColumnarMME) -> bool:
     except KernelRefusal as exc:
         return exc.code == "null-in-a-standing-mask"
     return False
+
+
+def _refuses_retired_filter(block: GovernedBlock) -> bool:
+    """`participation ∧ support` is not available as a contribution filter, and asking says why."""
+    try:
+        block.standing("revenue").contributing_for(VALUE_BEARING)
+    except KernelRefusal as exc:
+        return (exc.code == "retired-contribution-filter"
+                and "validates it" in exc.detail)
+    return False
+
+
+def _refuses_support_without_a_value(mme: ColumnarMME) -> bool:
+    """A carrier that contradicts its own declared standing is refused, not adjudicated."""
+    index = CoordinateIndex.of(MANIFOLD, SALE_AT, [("D1", "O1", "S1"), ("D1", "O2", "S1")])
+    bad = GovernedBlock.of(
+        index, {"revenue": pa.array([10.0, None], type=pa.float64())},
+        {"revenue": standing("revenue", mme.authority.instance_of("revenue"), n=2,
+                             support=[True, True])})
+    try:
+        mme.establish(bad, "revenue")
+    except KernelRefusal as exc:
+        return exc.code == "support-without-a-value"
+    return False
+
+
+def _refuses_cell_at_want_of_state(mme: ColumnarMME) -> bool:
+    """There is no value to read at a point whose required value is not established."""
+    held = mme.retained("family", "revenue", SALE_AT, mme.authority.instance_of("revenue"))
+    try:
+        held.value.cell(UNSUPPORTED_POINT)
+    except KernelRefusal as exc:
+        return exc.code == "want-of-state-at-a-point"
+    return False
+
+
+def _refuses_with_no_arrow_nulls(_: ColumnarMME) -> bool:
+    """**THE MASK MATTERS WITH NO NULLS ANYWHERE.** Three non-null values, one unsupported: the fold
+    refuses for want of state rather than quietly summing the two it believes."""
+    probe, _block = build()
+    index = CoordinateIndex.of(MANIFOLD, SALE_AT,
+                               [("D1", "O1", "S1"), ("D1", "O2", "S1"), ("D1", "O3", "S1")])
+    dense = GovernedBlock.of(
+        index, {"revenue": pa.array([10.0, 20.0, 30.0], type=pa.float64())},
+        {"revenue": standing("revenue", probe.authority.instance_of("revenue"), n=3,
+                             support=[True, True, False])})
+    if dense.column("revenue").null_count:
+        return False
+    probe.establish(dense, "revenue")
+    answer = probe.measure("revenue", BY_DAY)
+    return (not answer.served and answer.refusal.code == "want-of-state"
+            and "THE REDUCTION HAS NOT RUN" in answer.refusal.detail)
 
 
 def _refuses_invented_point(mme: ColumnarMME) -> bool:
