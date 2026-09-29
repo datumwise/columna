@@ -25,6 +25,7 @@ from .geometry import Constituent, KernelRefusal, Universe
 from .law import ContinuationRegion
 from .mme import MME
 from .realization import RealizationStanding
+from .standing import DataStateRef
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
 from .witness import FAMILY_NON_DETERMINANTS
 
@@ -467,7 +468,8 @@ def main() -> int:                                          # noqa: C901 - an ex
           f"analytical identity, and a codec is realization standing")
 
     print("\n  ONE EDIT AT A TIME, and exactly one axis moves:")
-    load_a, load_b = "load:orders@08:00Z", "load:orders@17:30Z"
+    load_a = DataStateRef("load", "orders@08:00Z")       # a TYPED opaque reference: {scheme, token}
+    load_b = DataStateRef("load", "orders@17:30Z")
     mme.establish_root(revenue, ORDERS, data_state=load_a)
     mme.establish_root(revenue, ORDERS[:2], data_state=load_b)
     reloaded = [k for k in mme.held if k.identity == "revenue" and k.data_state in (load_a, load_b)]

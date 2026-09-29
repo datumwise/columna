@@ -33,7 +33,7 @@ from typing import Mapping, Optional
 
 from .geometry import Anchor, Edge, KernelRefusal, Universe
 from .law import SAME_AS_OPERAND, AnalyticalLaw, LawRegistry
-from .standing import UNSTATED_DATA_STATE, AnalyticalInstance
+from .standing import UNSTATED_DATA_STATE, AnalyticalInstance, DataStateRef
 from .witness import (
     ConstitutionWitness,
     expression_witness,
@@ -199,7 +199,7 @@ class MeasureFamily:
         return law
 
     def instance(self, scope: Optional[str] = None, *,
-                 data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
+                 data_state: DataStateRef = UNSTATED_DATA_STATE) -> AnalyticalInstance:
         """The analytical instance of this family — **which does NOT carry this family's own constitution
         witness.** That witness is per-object and answers a staleness question about one identity; it is
         computed by `witness()` and keyed on the `RetentionKey`. What the instance carries is the shared
@@ -360,7 +360,7 @@ class GovernedExpression:
         _refuse_undeclared_parameters(law, self.parameters, self.expression_id)
         return law
 
-    def instance(self, *, data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
+    def instance(self, *, data_state: DataStateRef = UNSTATED_DATA_STATE) -> AnalyticalInstance:
         return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
                                   participation=self.participation, scope=self.scope,
                                   data_state=data_state)

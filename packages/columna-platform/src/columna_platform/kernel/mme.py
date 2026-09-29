@@ -56,12 +56,13 @@ from .sorts import (
 )
 from .standing import (
     CACHED,
-    UNSTATED_DATA_STATE,
     CONTINUED,
-    Disclosure,
     EVALUATED,
     REFUSED,
     ROOT,
+    UNSTATED_DATA_STATE,
+    DataStateRef,
+    Disclosure,
     Refusal,
 )
 from .value import Answer, ExpressionOutput, FamilyState
@@ -178,7 +179,7 @@ class PoolResolution:
 
 
 def resolve_pool(held: Iterable[Retained], identity: str, instance: Any, witness_digest: str,
-                 subject: str, data_state: Optional[str] = None) -> PoolResolution:
+                 subject: str, data_state: Optional[Any] = None) -> PoolResolution:
     """**The three prior questions, asked once for both MMEs.**
 
     The kernel owns this because every one of them is an analytical question, not a columnar one: the
@@ -192,7 +193,7 @@ def resolve_pool(held: Iterable[Retained], identity: str, instance: Any, witness
     superseded = tuple(r for r in mine if r.key.constitution != witness_digest)
     current = [r for r in mine if r.key.constitution == witness_digest
                and r.key.instance.same_but_for_data_state(instance)]
-    states = tuple(sorted({r.key.instance.data_state for r in current}))
+    states = tuple(sorted({r.key.instance.data_state.reference for r in current}))
     if data_state is not None:
         current = [r for r in current if r.key.instance.data_state == data_state]
     elif len(states) > 1:
@@ -277,6 +278,20 @@ class MME:
     def _remember(self, witness: ConstitutionWitness) -> ConstitutionWitness:
         self._constitutions[witness.digest] = witness
         return witness
+
+    def remember_constitution(self, witness: ConstitutionWitness) -> ConstitutionWitness:
+        """**Enter a constitution this engine did not itself register into its history.**
+
+        For one caller and one reason: a reload. A fresh engine has no constitutional history, so a persisted
+        block whose witness has moved could otherwise only report *"the digests differ"*. Handing the
+        superseded witness back — determinants and all, as the persistence sidecar carries them — lets
+        `stale_states()` name the governed determinant that moved ACROSS A RESTART.
+
+        It adds to history and never to the constitution: nothing here registers a family, binds a law or
+        makes anything servable. A witness remembered this way can only ever explain a refusal."""
+        if witness.digest in self._constitutions:
+            return self._constitutions[witness.digest]
+        return self._remember(witness)
 
     # ── the three facts, each obtainable on its own ──────────────────────────────────────────
     def witness_of(self, identity: str) -> ConstitutionWitness:
@@ -369,7 +384,7 @@ class MME:
     # ── establishment at the root ────────────────────────────────────────────────────────────
     def establish_root(self, family: MeasureFamily, rows: Iterable[Mapping[str, Any]], *,
                        value_key: str = "value",
-                       data_state: str = UNSTATED_DATA_STATE) -> Answer:
+                       data_state: object = UNSTATED_DATA_STATE) -> Answer:
         """**Constitute `F@R_F` from occurrences.** The canonical continuation origin, and the only place
         raw contributions land: a contribution is an occurrence at the family's root, and "a contribution
         at a coarser anchor" is not a thing the theory has.
@@ -390,7 +405,8 @@ class MME:
                                                                     "value_key": value_key})
                  for cell, rws in buckets.items()}
         state = FamilyState(point=family.root_point, law=law.name, value_form=law.value_form,
-                            cells=cells, instance=family.instance(data_state=data_state),
+                            cells=cells,
+                            instance=family.instance(data_state=DataStateRef.of(data_state)),
                             forgotten_since_root=frozenset())
         self.retain(state)
         return Answer(route=ROOT, value=state)
@@ -485,7 +501,7 @@ class MME:
 
     # ── serving a family ─────────────────────────────────────────────────────────────────────
     def measure(self, family: MeasureFamily, anchor: Anchor, *, retain: bool = True,
-                data_state: Optional[str] = None) -> Answer:
+                data_state: Optional[object] = None) -> Answer:
         """**Serve `F@A`.** Exact hit, else the best admitted seed, else a refusal that names why.
 
         **THE ROOT IS PREFERRED AND NON-ROOT SEEDS ARE PERMITTED**, which is the required distinction. A
@@ -499,7 +515,8 @@ class MME:
         # ── WHICH OBJECTS ARE CANDIDATES AT ALL: same object, CURRENT constitution, ONE evidence state ──
         resolution = resolve_pool(self._store.values(), family.family_id, instance,
                                   self.witness_of(family.family_id).digest,
-                                  str(family.at(anchor)), data_state)
+                                  str(family.at(anchor)),
+                                  None if data_state is None else DataStateRef.of(data_state))
         if resolution.refusal is not None:
             return Answer(route=REFUSED, refusal=resolution.refusal)
 
@@ -569,7 +586,7 @@ class MME:
     # ── serving an expression ────────────────────────────────────────────────────────────────
     def evaluate(self, expression: GovernedExpression, anchor: Anchor, *,
                  basis_id: Optional[str] = None, retain: bool = True,
-                 data_state: Optional[str] = None) -> Answer:
+                 data_state: Optional[object] = None) -> Answer:
         """**Evaluate `E@A` from a sufficient basis.** Never from a continuation, because there is none.
 
         Where more than one basis is admitted they are tried in declaration order and the FIRST that
@@ -582,7 +599,8 @@ class MME:
 
         resolution = resolve_pool(self._store.values(), expression.expression_id, instance,
                                   self.witness_of(expression.expression_id).digest,
-                                  str(expression.at(anchor)), data_state)
+                                  str(expression.at(anchor)),
+                                  None if data_state is None else DataStateRef.of(data_state))
         if resolution.refusal is not None:
             return Answer(route=REFUSED, refusal=resolution.refusal)
         exact = next((r for r in resolution.pool
@@ -624,7 +642,7 @@ class MME:
 
     def _establish(self, expression: GovernedExpression, law: AnalyticalLaw,
                    basis: SufficientBasis, anchor: Anchor,
-                   data_state: Optional[str] = None) -> Answer:
+                   data_state: Optional[object] = None) -> Answer:
         """One route, tried. Returns the `ExpressionOutput` or the refusal that stopped it."""
         subject = f"{expression.expression_id}@{anchor} via {basis.basis_id}"
         states: dict[str, FamilyState] = {}

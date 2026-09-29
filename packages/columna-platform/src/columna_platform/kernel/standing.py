@@ -56,6 +56,8 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Optional
 
+from .geometry import KernelRefusal
+
 # ── how an answer was reached. Reported, because the route is a governed fact. ────────────────────
 ROOT = "root"                     # served from F@R_F, the canonical continuation origin
 CONTINUED = "continued"           # merged down from a finer retained state
@@ -64,9 +66,64 @@ EVALUATED = "evaluated"           # an expression computed from a sufficient bas
 REFUSED = "refused"
 ROUTES = frozenset({ROOT, CONTINUED, CACHED, EVALUATED, REFUSED})
 
+@dataclass(frozen=True)
+class DataStateRef:
+    """**WHICH ROOT/EVIDENCE STATE — a stable TYPED OPAQUE reference, and nothing more.**
+
+    Ruled (Huayin, 2026-09-29): *"do not over-specify `data_state` yet. A stable typed opaque reference such
+    as `{scheme, token}` is enough for the first persistence proof; analytical compatibility is not defined
+    as equality of physical snapshot tokens."*
+
+    Two fields, and the SCHEME is what keeps the second clause true. A token is only meaningful inside a
+    scheme, so this record cannot be mistaken for a physical file, offset or snapshot id: a Parquet file
+    version is realization standing and belongs to `RealizationStanding`, while what this names is the
+    analytical evidence state that material is ABOUT. The persistence proof exercises exactly that
+    difference — one `DataStateRef` written twice under two codecs is one analytical instance, two
+    realizations.
+
+    **NOTHING PARSES THE TOKEN.** It is compared and reported. `scheme` is compared too, so two tokens that
+    happen to be spelled alike under different schemes are not accidentally the same state.
+
+    Equality here is *sufficient* for two states to be the same evidence state. Inequality means *a
+    different analytical instance* — never *stale*, and never *incomparable-in-principle*: what a
+    difference licenses is a refusal to combine or to pick, which is a decision about this engine's
+    authority and not a claim about the world."""
+
+    scheme: str
+    token: str
+
+    @staticmethod
+    def of(value: "DataStateRefLike") -> "DataStateRef":
+        """Coerce at the API boundary only. A bare `"scheme:token"` string is accepted for the convenience
+        of a call site and immediately becomes typed; anything else is refused rather than guessed."""
+        if isinstance(value, DataStateRef):
+            return value
+        if isinstance(value, str):
+            scheme, _, token = value.partition(":")
+            if not token:
+                raise KernelRefusal(
+                    "untyped-data-state", value,
+                    f"{value!r} carries no scheme. A data state is a TYPED reference `{{scheme, token}}` — "
+                    f"spell it `scheme:token` or pass a `DataStateRef`. An untyped token would make two "
+                    f"references from different systems comparable by accident.")
+            return DataStateRef(scheme=scheme, token=token)
+        raise KernelRefusal("untyped-data-state", str(value),
+                            f"{type(value).__name__} is not a data-state reference.")
+
+    @property
+    def reference(self) -> str:
+        return f"{self.scheme}:{self.token}"
+
+    def __str__(self) -> str:
+        return self.reference
+
+
 #: **No root/evidence state is CLAIMED.** Not a wildcard and not unknown-ness: an instance carrying it is
 #: attributable to no particular established material, and two such instances are the same unstated state.
-UNSTATED_DATA_STATE = "data:unstated"
+UNSTATED_DATA_STATE = DataStateRef(scheme="data", token="unstated")
+
+#: What an API boundary will coerce. Typed inside the kernel, always.
+DataStateRefLike = object
 
 #: The shared governed-constitution context, when nothing has stated one. See `AnalyticalInstance`.
 CONSTITUTION_CONTEXT_UNSTATED = "context:unstated"
@@ -108,14 +165,14 @@ class AnalyticalInstance:
     #: witness on the key.
     constitution_context: str = CONSTITUTION_CONTEXT_UNSTATED
     scope: Optional[str] = None
-    #: **WHICH ROOT/EVIDENCE STATE this material belongs to.** Opaque, supplied at establishment, never
-    #: parsed. `UNSTATED_DATA_STATE` means no evidence state is CLAIMED — which is a legible standing and
-    #: not a wildcard: two objects that both claim nothing are the same unstated state.
-    data_state: str = UNSTATED_DATA_STATE
+    #: **WHICH ROOT/EVIDENCE STATE this material belongs to.** A typed opaque `DataStateRef`, supplied at
+    #: establishment, never parsed. `UNSTATED_DATA_STATE` means no evidence state is CLAIMED — a legible
+    #: standing and not a wildcard: two objects that both claim nothing are the same unstated state.
+    data_state: DataStateRef = UNSTATED_DATA_STATE
 
-    def with_data_state(self, data_state: str) -> "AnalyticalInstance":
+    def with_data_state(self, data_state: object) -> "AnalyticalInstance":
         """This instance, attributed to one root/evidence state. The single place that stamp is applied."""
-        return replace(self, data_state=data_state)
+        return replace(self, data_state=DataStateRef.of(data_state))
 
     def same_but_for_data_state(self, other: "AnalyticalInstance") -> bool:
         """**Every governed axis agrees; only the evidence state may differ.** Two loads of one constitution
@@ -161,7 +218,7 @@ class AnalyticalInstance:
             # allowing one across two evidence states reports a number about neither.
             return Compatibility(
                 False, "different-data-state",
-                f"{self.data_state!r} vs {other.data_state!r}: ONE governed constitution, TWO root/evidence "
+                f"{self.data_state} vs {other.data_state}: ONE governed constitution, TWO root/evidence "
                 f"states. These are not stale-versus-current and neither is wrong — they range over "
                 f"different established material, so combining them would produce a number about neither. "
                 f"Re-establish both sides from one evidence state, or ask for one explicitly")
@@ -204,5 +261,5 @@ class Disclosure:
 
 
 __all__ = ["CACHED", "CONSTITUTION_CONTEXT_UNSTATED", "CONTINUED", "EVALUATED", "REFUSED", "ROOT",
-           "ROUTES", "UNSTATED_DATA_STATE", "AnalyticalInstance", "Compatibility", "Disclosure",
-           "Refusal"]
+           "ROUTES", "UNSTATED_DATA_STATE", "AnalyticalInstance", "Compatibility", "DataStateRef",
+           "Disclosure", "Refusal"]
