@@ -33,6 +33,24 @@ from typing import Any, Iterable
 from columna_platform.kernel import Anchor, AnalyticalInstance, KernelRefusal
 
 
+def index_digest(manifold: str, anchor: Anchor, coordinates: tuple[tuple, ...]) -> str:
+    """**The identity digest, as a pure function.** Extracted in E-2 so that the memo in
+    `CoordinateIndex.identity` is a cache around something a test can call directly and compare against —
+    *"preserve exact current identity semantics"* is then checkable rather than asserted.
+
+    The algorithm is byte-for-byte the one that shipped before E-2: the same payload keys, the same
+    `sort_keys`/`separators`, the same `default=str`, the same 32 hex characters, the same `cidx-1:`
+    prefix. A change here is a change to every layout comparison in the system."""
+    payload = {
+        "manifold": manifold,
+        "universe": anchor.universe,
+        "anchor": sorted(anchor.constituents),
+        "coordinates": [list(map(_jsonable, c)) for c in coordinates],
+    }
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return "cidx-1:" + hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
+
+
 @dataclass(frozen=True)
 class CoordinateIndex:
     """`(Manifold, universe, anchor)` + the SPARSE, ordered existing points."""
@@ -58,6 +76,8 @@ class CoordinateIndex:
                 f"{dupes} appear more than once. One analytical point would then hold two positions in "
                 f"this batch and be counted twice by every reduction over it.")
         object.__setattr__(self, "_positions", {cell: i for i, cell in enumerate(self.coordinates)})
+        # **THE IDENTITY MEMO SLOT, EMPTY.** Set on first read, never invalidated — see `identity`.
+        object.__setattr__(self, "_identity", None)
 
     # ── the local, non-universal identity ────────────────────────────────────────────────────
     @property
@@ -67,15 +87,22 @@ class CoordinateIndex:
         **Its ONLY job is to answer "is this the same layout?"** — the question the ruling raises when it
         says *"if two independently produced results use different index layouts for the same governed
         target, alignment must be explicit."* It is not a point identifier, it is not stable across
-        Manifolds, and nothing in this package uses it to look a point up."""
-        payload = {
-            "manifold": self.manifold,
-            "universe": self.anchor.universe,
-            "anchor": sorted(self.anchor.constituents),
-            "coordinates": [list(map(_jsonable, c)) for c in self.coordinates],
-        }
-        blob = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
-        return "cidx-1:" + hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
+        Manifolds, and nothing in this package uses it to look a point up.
+
+        **MEMOISED ON FIRST READ** (ruled E-2, after recon E-X measured it). The digest is
+        `O(cells × width)` Python plus a full JSON serialisation plus a SHA-256, and this was a plain
+        `@property` recomputing all of it on **every access** — including twice per role pair inside
+        `columnar/expression.py`'s layout check and twice inside `aligns_with`, both of which are asked
+        before any arithmetic runs. Nothing about the digest changed; only how many times it is computed.
+
+        **THE MEMO CANNOT GO STALE, AND THAT IS A PROPERTY RATHER THAN A PROMISE.** This class is a frozen
+        dataclass, `identity` is a pure function of its fields, and no code in the package mutates a built
+        index — `object.__setattr__` appears nowhere outside `__post_init__`. There is therefore no
+        invalidation path to get wrong, and `replace()` constructs a new object with an empty slot."""
+        if self._identity is None:                           # type: ignore[attr-defined]
+            object.__setattr__(self, "_identity",
+                               index_digest(self.manifold, self.anchor, self.coordinates))
+        return self._identity                                # type: ignore[attr-defined]
 
     def __len__(self) -> int:
         return len(self.coordinates)
@@ -152,4 +179,4 @@ class AnchorInstance:
         return f"{self.index}@{self.instance.participation[:28]!r}"
 
 
-__all__ = ["AnchorInstance", "CoordinateIndex"]
+__all__ = ["AnchorInstance", "CoordinateIndex", "index_digest"]
