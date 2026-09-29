@@ -24,6 +24,11 @@ measures is a boundary that leaks.
     expression    the expression evaluator, ABOVE the MME: consumes family state, evaluates `E@A`
     observation   the family-request observation seam — READY/NEED/WANT_OF_STATE/UNSUPPORTED, append-only,
                   non-authoritative, and unable to fail a request
+    requirement   **what governed family state is NEEDED** — the MME's half of the realization seam.
+                  An analytical requirement, never a fetch plan
+    realization_manager
+                  **what the physical estate can SUPPLY** — capability (`propose`) and execution
+                  (`realize`) kept apart, and one door into `MME.admit`. R-1: interface only
     builtins      the smallest law vocabulary the vertical proofs need, and its in-memory provider
     exhibit       the runnable demonstration
 
@@ -93,6 +98,7 @@ from .expression import ExpressionEvaluator
 from .mme import MME, Adequacy, Retained, RetentionKey, Staleness
 from .observation import (
     DISPOSITIONS,
+    PROCESS_CONTROL,
     NEED,
     READY,
     UNSUPPORTED,
@@ -107,6 +113,15 @@ from .observation import (
     disposition_for,
 )
 from .realization import ProviderProfile, Realization, RealizationStanding
+from .realization_manager import (
+    ProposalSet,
+    RealizationManager,
+    RealizationOffer,
+    RealizationProposal,
+    RealizationProvider,
+    requirement_from,
+)
+from .requirement import FamilyRequirement, RequirementOutcome, acceptable_anchors
 from .sorts import (
     ExpressionPoint,
     FamilyPoint,
@@ -154,7 +169,10 @@ __all__ = [
     "Answer", "FamilyState", "ExpressionOutput",
     "MME", "Adequacy", "Retained", "RetentionKey", "Staleness", "ExpressionEvaluator",
     "DISPOSITIONS", "NEED", "READY", "UNSUPPORTED", "WANT_OF_STATE", "FamilyRequest",
-    "Fulfillment", "NullObserver", "ObservationSink", "RecordingObserver",
+    "Fulfillment", "NullObserver", "ObservationSink", "RecordingObserver", "PROCESS_CONTROL",
+    "FamilyRequirement", "RequirementOutcome", "acceptable_anchors", "ProposalSet",
+    "RealizationManager", "RealizationOffer", "RealizationProposal", "RealizationProvider",
+    "requirement_from",
     "RequestObservation", "WorkloadObserver", "disposition_for",
     "FamilyMaterialization", "MaterializationId", "MaterializationStore", "ManifoldBuild",
     "Establishment", "TransitionIntent", "Admission", "Slot", "CURRENT", "SUPERSEDED", "PINNED",

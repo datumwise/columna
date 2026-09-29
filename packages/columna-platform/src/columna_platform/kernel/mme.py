@@ -107,6 +107,7 @@ from .materialization import (
     Admission,
     cumulative_forgotten,
 )
+from .requirement import FamilyRequirement, RequirementOutcome, acceptable_anchors
 from .value import Answer, FamilyState
 from .witness import ConstitutionWitness
 
@@ -794,6 +795,58 @@ class MME:
                          f"That is OUR absence, not the world's — the remedy is to establish the state "
                          f"again, not to conclude anything about the evidence.")
         return (" " + " ".join(parts)) if parts else ""
+
+    # ── stating what is needed — the MME's half of the realization seam (R-1 §2) ──────────────
+    def requirement_for(self, family: MeasureFamily, target: Anchor, *,
+                        data_state: Optional[str] = None, note: str = "") -> RequirementOutcome:
+        """**What governed family state would satisfy a request for `F@target`?**
+
+        Ruled R-1 §2: *"MME emits analytical requirements, not fetch plans."* So this returns
+
+            Need lawful Revenue family state sufficient to establish Revenue@{month}
+
+        and never a query, a table, a projection or a route. **The MME imports `requirement.py` and knows
+        nothing about providers** — there is no import of `realization_manager` anywhere in this module,
+        and a test pins the absence. What the estate can supply is not this engine's question, and an
+        engine that could name a provider would be an engine that could prefer one.
+
+        **AN UNLAWFUL TARGET PRODUCES NO REQUIREMENT, AND THAT IS THE LOAD-BEARING CASE** (§6). Where the
+        family law admits no value at `target`, there is no governed family state for anyone to supply, and
+        emitting a requirement would be inviting a provider to compute an answer the law forbids. A backend
+        could almost certainly produce the number; that is exactly why the refusal is here, at the point
+        where the requirement would otherwise be minted, and not left to be caught at admission."""
+        law = self._bound[family.family_id]
+        if not target.constituents <= family.root.constituents:
+            return RequirementOutcome(
+                None,
+                f"{target} is not a coarsening of {family.family_id}'s root {family.root}: it names "
+                f"{sorted(target.constituents - family.root.constituents)}, which this family's "
+                f"materializations never carry. A family lives at or below `R_F`, so there is no state "
+                f"at this location for the estate to supply — this is not a gap in the estate.")
+        if not law.region.admits(cumulative_forgotten(family, target)):
+            forgotten = cumulative_forgotten(family, target)
+            return RequirementOutcome(
+                None,
+                f"{family.family_id}@{target} is not a lawful location for this family: reaching it from "
+                f"{family.root} forgets {sorted(forgotten)}, which {law.region.why_not(forgotten)}. **NO "
+                f"REALIZATION REQUIREMENT IS EMITTED.** There is no governed family state here for a "
+                f"provider to supply, and a provider that could compute the number would not thereby make "
+                f"it a lawful Columna materialization (R-1 §6).")
+        if not self.provider.realizes(law.name):
+            return RequirementOutcome(
+                None,
+                f"law {law.name!r} has no realization in provider profile {self.provider.name!r}. The law "
+                f"is unchanged and the target is lawful; this build cannot execute the composition, so "
+                f"obtaining the material would not make the request servable. That is a capability "
+                f"question about THIS build, not a requirement for the estate.")
+        acceptable, truncated = acceptable_anchors(family, law, target)
+        return RequirementOutcome(FamilyRequirement(
+            manifold=self.manifold, build=self.build.reference,
+            family_id=family.family_id, target=target, root=family.root,
+            acceptable=acceptable, acceptable_truncated=truncated,
+            instance=self.instance_of(family.family_id), data_state=data_state,
+            law=law.name, value_form=law.value_form, sufficient_state=law.sufficient_state,
+            approximation=law.approximation, note=note))
 
     # ── serving an expression — NOT HERE ANY MORE ────────────────────────────────────────────
     #
