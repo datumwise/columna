@@ -18,13 +18,15 @@ and the occurrences below are the whole of the data. Everything printed is compu
 from __future__ import annotations
 
 
-from dataclasses import replace
+from dataclasses import fields, replace
 
 from .builtins import IN_MEMORY, KNOWN_EMPTY, REGISTRY, hll_rse, witness_value
 from .geometry import Constituent, KernelRefusal, Universe
 from .law import ContinuationRegion
 from .materialization import SUPERSEDE, TransitionIntent
-from .mme import MME
+from .expression import ExpressionEvaluator
+from .mme import MME, Retained, RetentionKey
+from .observation import RecordingObserver
 from .realization import RealizationStanding
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
 from .witness import FAMILY_NON_DETERMINANTS
@@ -205,6 +207,13 @@ def _say(answer) -> None:
 
 def main() -> int:                                          # noqa: C901 - an exhibit is a narrative
     mme = build()
+    # **THE M-2 BOUNDARY, IN ONE LINE.** Expressions are not served by the engine; they are served by an
+    # evaluator constructed OVER the engine, which obtains every operand through `mme.measure`.
+    evaluator = ExpressionEvaluator(mme)
+    # And the workload observer, which watches the family-request boundary and is authoritative over
+    # nothing. Attached here so the exhibit can show what it saw; a production engine may attach none.
+    watcher = RecordingObserver()
+    mme.observations.observer = watcher
     revenue, order_count, audited_count, distinct, on_hand, gauge = _families()
     aov, aov_audited, distinct_estimate = _expressions()
     failures: list[str] = []
@@ -303,32 +312,50 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"    payload is a sketch, not a number: {type(sketch_total.cell()).__name__}")
 
     print(f"\n  distinct_customer_estimate @ {TOTAL}  — estimate(HLLSketch) → expression scalar")
-    estimate = mme.evaluate(distinct_estimate, TOTAL)
+    estimate = evaluator.evaluate(distinct_estimate, TOTAL)
     _say(estimate)
     print(_cells(estimate))
     print(f"    true distinct customers in the occurrences: "
           f"{len({o['customer'] for o in ORDERS})};  HLL rse at p=12 ≈ {hll_rse():.4f}")
 
-    print("\n  AND NOW THE DISTINCTION. The estimate is cached and served — and may not seed.")
-    held_estimate = mme.retained(distinct_estimate.at(TOTAL), distinct_estimate.instance())
-    print(f"    held: {held_estimate.key}   continuation_bearing={held_estimate.continuation_bearing}")
-    verdict = mme.adjudicate(held_estimate, distinct, TOTAL)
+    print("\n  AND NOW THE DISTINCTION, AS M-2 LEAVES IT.")
+    print("  The estimate is SERVED and is not held ANYWHERE — MME v1 has no expression cache — and if")
+    print("  it is handed back to the engine as family state it is refused by a governed verdict.")
+    # The evaluator's output, wrapped in the same `Retained` shape a candidate would arrive in. This is
+    # the ONLY way an `ExpressionOutput` can now reach `adjudicate`: from ABOVE, by a caller who has one
+    # in hand. It cannot come out of the store, because the store cannot contain one.
+    from_above = Retained(key=RetentionKey(identity="distinct_customer_estimate", anchor=TOTAL,
+                                           instance=estimate.value.instance,
+                                           realization=mme.realization),
+                          value=estimate.value)
+    verdict = mme.adjudicate(from_above, distinct, TOTAL)
+    print(f"    offered from above: {from_above.key}   "
+          f"continuation_bearing={from_above.continuation_bearing}")
     print(f"    adjudicate(estimate → seed distinct_customers@{TOTAL}):")
     print(f"      {'ADMITTED' if verdict else 'REFUSED'} [{verdict.code}]")
     print(f"      {verdict.detail}")
+    try:
+        mme.retain(estimate.value)
+        store_refused = ""
+    except KernelRefusal as exc:
+        store_refused = exc.code
+    print(f"    offered to the STORE instead: REFUSED [{store_refused}]")
 
     check("the sketch family merges to the coarser anchor", sketch_total.served
           and sketch_total.value.value_form == "structured")
     check("the estimate is an integer in the right neighbourhood",
           estimate.cell() == len({o["customer"] for o in ORDERS}))
-    check("the estimate is retained and servable", held_estimate is not None)
-    check("the estimate is NOT continuation-bearing", not held_estimate.continuation_bearing)
-    check("and is REFUSED as continuation state, by a governed verdict",
+    check("the estimate is NOT held by the MME — v1 has no expression cache (M-2 §1)",
+          all(k.identity != "distinct_customer_estimate" for k in mme.held))
+    check("the estimate is NOT continuation-bearing", not from_above.continuation_bearing)
+    check("offered from ABOVE, it is refused as continuation state by a governed verdict",
           (not verdict) and verdict.code == "not-continuation-bearing")
+    check("offered to the STORE, it is refused by a governed verdict naming where it belongs",
+          store_refused == "not-a-family-materialization")
     check("ExpressionOutput has no merge path at all — the type is the primary enforcement",
-          not hasattr(held_estimate.value, "fold_onto"))
-    check("a second estimate cannot be folded into a coarser estimate: the route is the sketch",
-          mme.evaluate(distinct_estimate, BY_DAY).seeded_from == "b_sketch")
+          not hasattr(estimate.value, "fold_onto"))
+    check("a coarser estimate goes back through the SKETCH, never through an estimate",
+          evaluator.evaluate(distinct_estimate, BY_DAY).seeded_from == "b_sketch")
     check("the approximation rides on every answer as a disclosure",
           any(d.code == "approximate" for d in sketch_total.disclosures))
 
@@ -353,17 +380,22 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"    compatibility: {'HOLDS' if agreement else 'FAILS'} — {agreement.detail}")
 
     print(f"\n  average_order_value @ {BY_DAY}")
-    aov_day = mme.evaluate(aov, BY_DAY)
+    aov_day = evaluator.evaluate(aov, BY_DAY)
     _say(aov_day)
     print(_cells(aov_day, render=lambda v: f"{v:.4f}"))
 
     print(f"\n  average_order_value @ {TOTAL}")
-    aov_total = mme.evaluate(aov, TOTAL)
+    aov_total = evaluator.evaluate(aov, TOTAL)
     _say(aov_total)
     print(_cells(aov_total, render=lambda v: f"{v:.4f}"))
 
-    cached_again = mme.evaluate(aov, TOTAL)
-    print(f"\n  asked again: {cached_again}")
+    before = len(mme.materializations.select("revenue", eligibility=None))
+    again = evaluator.evaluate(aov, TOTAL)
+    after_n = len(mme.materializations.select("revenue", eligibility=None))
+    print(f"\n  asked again: {again}")
+    print("      re-EVALUATED, not re-cached — and its operands were not re-established either:")
+    print(f"      revenue materializations before {before} → after {after_n}. The cache that matters")
+    print("      is the FAMILY cache, and it is still doing the work.")
 
     check("AOV@D1 = 175/2 = 87.5", abs(aov_day.value.cells[("D1",)] - 87.5) < 1e-9)
     check("AOV@D2 = 325/4 = 81.25", abs(aov_day.value.cells[("D2",)] - 81.25) < 1e-9)
@@ -371,7 +403,12 @@ def main() -> int:                                          # noqa: C901 - an ex
     check("it is NOT the mean of the daily means — 83.3333 vs 84.3750 (the error a Mean family\n           would have made, and the reason the fixture is unbalanced)",
           abs(aov_total.cell() - (87.5 + 81.25) / 2) > 1.0)
     check("the expression was EVALUATED from a basis, never continued", aov_total.route == "evaluated")
-    check("and is then served from cache", cached_again.route == "cached")
+    check("asked again it is EVALUATED AGAIN — there is no expression cache in v1",
+          again.route == "evaluated")
+    check("and the second evaluation costs no new family work: the family cache absorbed it",
+          after_n == before)
+    check("the answers agree exactly across the two evaluations",
+          abs(again.cell() - aov_total.cell()) < 1e-12)
 
     # ══ PROOF 4 · the same expression refusing an INCOMPATIBLE basis ═════════════════════════════
     _rule("PROOF 4 · an incompatible basis is refused — while BOTH operands exist and are available")
@@ -380,7 +417,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"  audited_order_count  @ {BY_DAY}  served: {dict(audited.value.cells)}")
     print("  both operands are ESTABLISHED, AVAILABLE, and individually valid.")
     print(f"\n  average_order_value_audited @ {BY_DAY}")
-    refused = mme.evaluate(aov_audited, BY_DAY)
+    refused = evaluator.evaluate(aov_audited, BY_DAY)
     _say(refused)
     print(f"      {refused.refusal.detail}")
 
@@ -391,12 +428,21 @@ def main() -> int:                                          # noqa: C901 - an ex
     check("and it says so: individually valid, jointly meaningless",
           "jointly meaningless" in str(refused.refusal))
 
-    # ══ PROOF 5 · family and expression caches have different continuation rights ════════════════
-    _rule("PROOF 5 · the two caches, and their different continuation rights")
-    fam_keys = [k for k in mme.held if k.sort == "family"]
-    expr_keys = [k for k in mme.held if k.sort == "expression"]
-    print(f"  {len(fam_keys)} family states and {len(expr_keys)} expression outputs are held.")
-    print("\n  every family state, asked whether it may seed its own family one step coarser:")
+    # ══ PROOF 5 · THERE IS ONE CACHE, AND IT HOLDS FAMILIES ═════════════════════════════════════
+    #
+    # M-1 proved that the family cache and the expression cache were two stores with different rights.
+    # M-2 makes the stronger statement available: **there is no second store.** The proof is not that an
+    # expression output is held under weaker rights — it is that it is not held.
+    _rule("PROOF 5 · ONE cache, and it holds family materializations only (M-2 §1)")
+    fam_keys = list(mme.held)
+    print(f"  {len(fam_keys)} object(s) held by the MME.")
+    print(f"  of those, family materializations: "
+          f"{sum(1 for k in fam_keys if mme.sort_of(k.identity) == 'family')}")
+    print(f"  of those, expression outputs:      "
+          f"{sum(1 for k in fam_keys if mme.sort_of(k.identity) == 'expression')}")
+    print(f"\n  expressions ARE constituted by this engine — {sorted(mme.expressions)} —")
+    print("  and every one of them has just been SERVED. Constitution is not residency.")
+    print("\n  every held state, asked whether it may seed its own family one step coarser:")
     seeded, blocked = 0, 0
     for key in sorted(fam_keys, key=str):
         fam = mme.family(key.identity)
@@ -406,17 +452,17 @@ def main() -> int:                                          # noqa: C901 - an ex
         v = mme.adjudicate(_holding(mme, key), fam, target)
         seeded, blocked = (seeded + 1, blocked) if v else (seeded, blocked + 1)
         print(f"    {str(key):<46} → {target}  {'ADMITTED' if v else 'REFUSED  [' + v.code + ']'}")
-    print("\n  every expression output, asked the same question:")
-    for key in sorted(expr_keys, key=str):
-        v = mme.adjudicate(_holding(mme, key), revenue, key.anchor)
-        print(f"    {str(key):<46} → {'ADMITTED' if v else 'REFUSED  [' + v.code + ']'}")
 
     check("at least one family state may seed and at least one may not", seeded > 0 and blocked > 0)
-    check("NO expression output may ever seed",
-          all(not mme.adjudicate(_holding(mme, k), revenue, k.anchor) for k in expr_keys))
-    check("expression outputs are nonetheless held and servable", len(expr_keys) > 0)
-    check("the two sorts never collide in one store",
-          len({(k.sort, k.identity, k.anchor) for k in mme.held}) == len(mme.held))
+    check("EVERY held object is family state — nothing else can be in this store",
+          all(mme.sort_of(k.identity) == "family" for k in fam_keys))
+    check("no expression output is held, at any anchor",
+          all(mme.sort_of(k.identity) != "expression" for k in fam_keys))
+    check("expressions are nonetheless CONSTITUTED here and fully served above",
+          set(mme.expressions) >= {"average_order_value", "distinct_customer_estimate"}
+          and aov_total.served and estimate.served)
+    check("`RetentionKey.sort` is retired: a constant, not a field a caller can vary",
+          "sort" not in {f.name for f in fields(RetentionKey)} and RetentionKey.sort == "family")
 
     # ══ PROOF 6 · ordered family, if inexpensive — it was ════════════════════════════════════════
     _rule("PROOF 6 · ordered family — LAST witness continuation, governed order, known-empty standing")
@@ -550,7 +596,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     thin.establish_root(revenue, ORDERS)
     thin.establish_root(order_count, ORDERS)
     try:
-        thin.evaluate(aov, TOTAL)
+        ExpressionEvaluator(thin).evaluate(aov, TOTAL)
         realization_refused = False
         detail = ""
     except KernelRefusal as exc:
@@ -559,6 +605,69 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"  provider {NO_MEAN.name!r} realizes {NO_MEAN.laws}")
     print(f"  evaluating AOV under it: REFUSED — {detail}")
     check("an unrealized law is a PROVIDER limit and says so", realization_refused)
+
+    # ══ THE WORKLOAD OBSERVATION SEAM ═══════════════════════════════════════════════════════════
+    _rule("OBSERVATION · every family request is visible — hits AND misses (M-2 §4, §7)")
+    print(f"  {watcher.summary()}")
+    print("\n  the last eight family requests, as the observer saw them:")
+    for record in watcher.records[-8:]:
+        print(f"    {record}")
+    print("\n  demand λ(q), counted over what was ASKED and never over what answered:")
+    for (fam_id, target), n in sorted(watcher.demand().items(), key=lambda kv: -kv[1])[:6]:
+        print(f"    {fam_id + '@' + target:<40} {n}")
+    on_behalf = [r for r in watcher.records if r.request.on_behalf_of]
+    print(f"\n  {len(on_behalf)} request(s) were made ON BEHALF OF an expression — the route/use")
+    print("  evidence of §8, which keeps an expression's traffic from being read as a family's")
+    print("  popularity. One of them:")
+    if on_behalf:
+        print(f"    {on_behalf[-1].request.family_id}@{on_behalf[-1].request.target}"
+              f"  ← {on_behalf[-1].request.on_behalf_of}")
+
+    check("every request was observed, hits and misses alike", len(watcher) > 0)
+    check("MISSES are in the log — a policy cannot learn from hits alone (§7)",
+          len(watcher.misses()) > 0)
+    check("and so are hits", any(r.served for r in watcher.records))
+    check("a derived answer is distinguishable from a directly-held one (§4)",
+          any(r.served and r.fulfillment.directly_held for r in watcher.records)
+          and any(r.served and not r.fulfillment.directly_held for r in watcher.records))
+    check("a derived answer names the materialization it was seeded from, so a counterfactual\n"
+          "           is computable later without re-running the request",
+          any(r.fulfillment.seeded_from is not None and r.fulfillment.selected
+              for r in watcher.records))
+    check("expression-driven demand is attributed to the expression (§8)", len(on_behalf) > 0)
+    check("dispositions are named, not collapsed into hit/miss",
+          len(set(watcher.by_disposition())) > 1)
+
+    print("\n  AND THE OBSERVER IS NOT AUTHORITATIVE. One that raises on every call:")
+
+    class Hostile:
+        def observe(self, observation):
+            raise RuntimeError("the logging backend is down")
+
+    mme.observations.observer = Hostile()
+    hostile_served = mme.measure(on_hand, BY_DAY)          # a hit
+    hostile_refused = mme.measure(on_hand, BY_STORE)       # a refusal, under the same broken observer
+    mme.observations.observer = watcher
+    watched_served = mme.measure(on_hand, BY_DAY)
+    watched_refused = mme.measure(on_hand, BY_STORE)
+    print(f"    on_hand @ {BY_DAY}   under a raising observer: {hostile_served}")
+    print(f"    on_hand @ {BY_STORE} under a raising observer: {hostile_refused.route} "
+          f"[{hostile_refused.refusal.code}]")
+    print(f"    sink reports: {mme.observations.summary()}")
+    check("a SERVED request is unaffected by an observer that raises (§4)", hostile_served.served)
+    check("and the cells are identical to the observed ones",
+          dict(hostile_served.value.cells) == dict(watched_served.value.cells))
+    check("a REFUSED request is unaffected too — the refusal still says the same thing",
+          (not hostile_refused.served)
+          and hostile_refused.refusal.detail == watched_refused.refusal.detail)
+    check("the observer failures are COUNTED rather than swallowed silently",
+          mme.observations.failures >= 2)
+    # **WRITE-ONLY BY CONSTRUCTION** (§6: observations never create analytical rights). The engine holds
+    # a SINK, not an observer, and a sink's only verb is `emit`. There is no method on it that returns an
+    # observation, so no serving path could consult one even by mistake.
+    check("the seam is WRITE-ONLY: the engine holds a sink whose only verb is `emit` (§6)",
+          not any(hasattr(mme.observations, name) for name in ("records", "read", "history", "replay"))
+          and callable(mme.observations.emit))
 
     dropped = mme.invalidate("revenue")
     print(f"\n  invalidate('revenue') dropped {len(dropped)} retained state(s); rebuild is from R_F.")

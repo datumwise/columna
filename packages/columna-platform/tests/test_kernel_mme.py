@@ -37,7 +37,10 @@ from columna_platform.kernel import (
     ProviderProfile,
     REDUCER,
     REGISTRY,
+    ExpressionEvaluator,
     Realization,
+    Retained,
+    RetentionKey,
     RequiredBasis,
     STRUCTURED,
     SufficientBasis,
@@ -55,6 +58,14 @@ def _holding(mme, key):
 @pytest.fixture
 def mme():
     return EX.build()
+
+
+@pytest.fixture
+def evaluator(mme):
+    """**The M-2 seam, as a fixture.** Expressions are served by an evaluator constructed OVER the engine;
+    the engine has no `evaluate`. Every expression proof below goes through this object, and that it is a
+    separate object is the unit's result rather than an inconvenience."""
+    return ExpressionEvaluator(mme)
 
 
 @pytest.fixture
@@ -145,8 +156,12 @@ def test_the_kernel_reaches_exactly_one_third_party_algorithm_and_names_it():
     # stdlib is not "external" in the sense this test guards: what it forbids is a THIRD-PARTY or Core
     # import. `hashlib` joined the list when the constitution witness became computed (P-1) — a digest
     # over identity-bearing governed facts, in-process and written nowhere.
+    # `time` joined the list in M-2, when the family-request observation seam began stamping a wall
+    # clock on each record. The kernel still holds no clock of its own for any ANALYTICAL purpose —
+    # `time.time()` and `time.perf_counter_ns()` are read only for workload observation, which is
+    # non-authoritative by construction (M-2 §4, §6).
     stdlib = {"__future__", "dataclasses", "typing", "math", "abc", "enum", "functools", "itertools",
-              "hashlib"}
+              "hashlib", "time"}
     root = pathlib.Path(pkg.__file__).parent
     for path in sorted(root.glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -347,27 +362,48 @@ def test_the_guard_is_cumulative_and_not_per_hop(mme, fams):
 
 
 # ══ PROOF 2 · structured family → merge → finalize as an EXPRESSION ═══════════════════════════════
-def test_proof_2_a_sketch_family_merges_and_its_estimate_is_an_expression(mme, fams, exprs):
+def test_proof_2_a_sketch_family_merges_and_its_estimate_is_an_expression(mme, fams, exprs, evaluator):
     sketch_total = mme.measure(fams["distinct"], EX.TOTAL)
     assert sketch_total.route == CONTINUED
     assert sketch_total.value.value_form == STRUCTURED
     assert hasattr(sketch_total.cell(), "get_estimate")          # it is a sketch, not a number
 
-    estimate = mme.evaluate(exprs["estimate"], EX.TOTAL)
+    estimate = evaluator.evaluate(exprs["estimate"], EX.TOTAL)
     assert estimate.route == EVALUATED
     assert estimate.cell() == len({o["customer"] for o in EX.ORDERS}) == 4
     assert isinstance(estimate.value, ExpressionOutput)
 
 
-def test_the_estimate_is_cached_and_served_and_may_never_seed(mme, exprs, fams):
-    """**PROOF 5's other half, stated on the flagship object.** Both facts at once: it is in the store
-    and it is refused as continuation state."""
-    expr = exprs["estimate"]
-    mme.evaluate(expr, EX.TOTAL)
-    held = mme.retained(expr.at(EX.TOTAL), expr.instance())
-    assert held is not None and not held.continuation_bearing
-    assert mme.evaluate(expr, EX.TOTAL).route == CACHED          # served from cache
+def test_the_estimate_is_served_is_not_held_and_may_never_seed(mme, exprs, fams, evaluator):
+    """**M-2 restates PROOF 5's other half on the flagship object, and STRENGTHENS it.**
 
+    M-1 asserted two facts at once: the estimate is in the store, and it is refused as continuation state.
+    M-2 removes the first: `E@A` is not cached at all (§1), so the claim becomes *served, not held, and
+    still refused* — which is a strictly stronger statement about continuation, because there is now no
+    object in the engine for anyone to mistake for family state."""
+    expr = exprs["estimate"]
+    served = evaluator.evaluate(expr, EX.TOTAL)
+    assert served.served and served.route == EVALUATED
+
+    # NOT HELD. Not by the store, and not by the engine's own reckoning of what it holds.
+    assert all(k.identity != expr.expression_id for k in mme.held)
+    assert not mme.materializations.select(expr.expression_id, eligibility=None)
+
+    # ASKED AGAIN, IT IS EVALUATED AGAIN. There is no cache to hit.
+    assert evaluator.evaluate(expr, EX.TOTAL).route == EVALUATED
+
+    # OFFERED TO THE STORE, it is refused by a governed reason that names where it belongs.
+    with pytest.raises(KernelRefusal) as offered:
+        mme.retain(served.value)
+    assert offered.value.code == "not-a-family-materialization"
+    assert "ExpressionEvaluator" in offered.value.detail
+
+    # OFFERED FROM ABOVE as a continuation candidate — the only route left by which an
+    # `ExpressionOutput` can reach `adjudicate` — the sort verdict still refuses it by name.
+    held = Retained(key=RetentionKey(identity=expr.expression_id, anchor=EX.TOTAL,
+                                     instance=served.value.instance, realization=mme.realization),
+                    value=served.value)
+    assert not held.continuation_bearing
     verdict = mme.adjudicate(held, fams["distinct"], EX.TOTAL)
     assert not verdict and verdict.code == "not-continuation-bearing"
     assert "never becomes family continuation state" in verdict.detail
@@ -382,35 +418,35 @@ def test_the_type_is_the_primary_enforcement_and_the_verdict_is_the_explanation(
     assert ExpressionOutput.CONTINUATION_BEARING is False
 
 
-def test_a_coarser_estimate_goes_back_through_the_sketch_never_through_estimates(mme, exprs):
-    mme.evaluate(exprs["estimate"], EX.BY_DAY)
-    coarse = mme.evaluate(exprs["estimate"], EX.TOTAL)
+def test_a_coarser_estimate_goes_back_through_the_sketch_never_through_estimates(mme, exprs, evaluator):
+    evaluator.evaluate(exprs["estimate"], EX.BY_DAY)
+    coarse = evaluator.evaluate(exprs["estimate"], EX.TOTAL)
     assert coarse.seeded_from == "b_sketch"                       # re-established from the basis
 
 
-def test_the_approximation_rides_on_every_answer(mme, fams, exprs):
+def test_the_approximation_rides_on_every_answer(mme, fams, exprs, evaluator):
     assert any(d.code == "approximate" for d in mme.measure(fams["distinct"], EX.TOTAL).disclosures)
-    assert any(d.code == "approximate" for d in mme.evaluate(exprs["estimate"], EX.TOTAL).disclosures)
+    assert any(d.code == "approximate" for d in evaluator.evaluate(exprs["estimate"], EX.TOTAL).disclosures)
     assert B.hll_rse(12) < 0.02
 
 
 # ══ PROOF 3 · cross-family expression from compatible operands ════════════════════════════════════
-def test_proof_3_aov_is_established_from_revenue_and_order_count(mme, exprs):
+def test_proof_3_aov_is_established_from_revenue_and_order_count(mme, exprs, evaluator):
     aov = exprs["aov"]
-    by_day = mme.evaluate(aov, EX.BY_DAY)
+    by_day = evaluator.evaluate(aov, EX.BY_DAY)
     assert by_day.route == EVALUATED
     assert by_day.value.cells[("D1",)] == pytest.approx(87.5)
     assert by_day.value.cells[("D2",)] == pytest.approx(81.25)
-    total = mme.evaluate(aov, EX.TOTAL)
+    total = evaluator.evaluate(aov, EX.TOTAL)
     assert total.cell() == pytest.approx(500 / 6)
 
 
-def test_the_expression_is_not_a_mean_family_in_disguise(mme, exprs):
+def test_the_expression_is_not_a_mean_family_in_disguise(mme, exprs, evaluator):
     """The error a Mean family would have made, measured. The fixture is UNBALANCED (2 orders on D1, 4
     on D2) precisely so that this difference is not zero by coincidence."""
-    by_day = mme.evaluate(exprs["aov"], EX.BY_DAY).value.cells
+    by_day = evaluator.evaluate(exprs["aov"], EX.BY_DAY).value.cells
     mean_of_means = (by_day[("D1",)] + by_day[("D2",)]) / 2
-    true_mean = mme.evaluate(exprs["aov"], EX.TOTAL).cell()
+    true_mean = evaluator.evaluate(exprs["aov"], EX.TOTAL).cell()
     assert true_mean == pytest.approx(500 / 6)
     assert mean_of_means == pytest.approx(84.375)
     assert abs(true_mean - mean_of_means) > 1.0
@@ -423,10 +459,10 @@ def test_the_two_operands_are_established_independently(mme, fams):
     assert rev.value.instance.compatible_with(cnt.value.instance)
 
 
-def test_an_expression_is_evaluated_never_continued(mme, exprs):
+def test_an_expression_is_evaluated_never_continued(mme, exprs, evaluator):
     aov = exprs["aov"]
-    mme.evaluate(aov, EX.SALE_AT)
-    coarse = mme.evaluate(aov, EX.TOTAL)
+    evaluator.evaluate(aov, EX.SALE_AT)
+    coarse = evaluator.evaluate(aov, EX.TOTAL)
     assert coarse.route == EVALUATED and coarse.seeded_from == "b_revenue_ordercount"
 
 
@@ -442,69 +478,91 @@ def test_an_expression_undefined_on_its_basis_says_so_rather_than_returning_zero
     rows = ({"store": "S1", "day": "D1", "order": "O1", "value": None},)
     m.establish_root(revenue, rows)
     m.establish_root(order_count, rows)
-    answer = m.evaluate(aov, EX.TOTAL)
+    answer = ExpressionEvaluator(m).evaluate(aov, EX.TOTAL)
     assert answer.served
     assert answer.value.cells == {}
     assert any(d.code == "undefined-on-basis" for d in answer.disclosures)
 
 
 # ══ PROOF 4 · the same expression refusing an INCOMPATIBLE basis ══════════════════════════════════
-def test_proof_4_an_incompatible_basis_is_refused_while_both_operands_exist(mme, fams, exprs):
+def test_proof_4_an_incompatible_basis_is_refused_while_both_operands_exist(mme, fams, exprs, evaluator):
     """**The whole point: both operands are established, available, and individually valid.**"""
     rev = mme.measure(fams["revenue"], EX.BY_DAY)
     audited = mme.measure(fams["audited"], EX.BY_DAY)
     assert rev.served and audited.served                          # physically available
 
-    refused = mme.evaluate(exprs["aov_audited"], EX.BY_DAY)
+    refused = evaluator.evaluate(exprs["aov_audited"], EX.BY_DAY)
     assert not refused.served
     assert "different-participation" in refused.refusal.detail
     assert "jointly meaningless" in refused.refusal.detail
     assert "ESTABLISHED AND AVAILABLE" in refused.refusal.detail
 
 
-def test_the_refusal_is_not_a_claim_that_the_operands_are_absent(mme, exprs):
-    refused = mme.evaluate(exprs["aov_audited"], EX.BY_DAY)
+def test_the_refusal_is_not_a_claim_that_the_operands_are_absent(mme, exprs, evaluator):
+    refused = evaluator.evaluate(exprs["aov_audited"], EX.BY_DAY)
     assert "physical availability is not analytical authority" in refused.refusal.detail
     assert refused.refusal.code == "no-sufficient-basis-establishes"
 
 
-def test_an_expression_admitting_no_basis_is_well_formed_and_not_evaluable(mme):
+def test_an_expression_admitting_no_basis_is_well_formed_and_not_evaluable(mme, evaluator):
     expr = mme.register_expression(GovernedExpression(
         expression_id="unrouted", manifold=EX.MANIFOLD, universe="commerce", constructor="MEAN",
         operands=(Operand("operand", "revenue"),), participation=EX.PARTICIPATION))
-    answer = mme.evaluate(expr, EX.TOTAL)
+    answer = evaluator.evaluate(expr, EX.TOTAL)
     assert not answer.served and answer.refusal.code == "no-admitted-basis"
     assert "capability limit rather than a defect" in answer.refusal.detail
 
 
-def test_a_named_basis_that_is_not_admitted_is_refused(mme, exprs):
-    answer = mme.evaluate(exprs["aov"], EX.TOTAL, basis_id="nope")
+def test_a_named_basis_that_is_not_admitted_is_refused(mme, exprs, evaluator):
+    answer = evaluator.evaluate(exprs["aov"], EX.TOTAL, basis_id="nope")
     assert not answer.served and answer.refusal.code == "no-admitted-basis"
 
 
-# ══ PROOF 5 · the two caches have different continuation rights ═══════════════════════════════════
-def test_proof_5_the_two_stores_are_distinct_and_their_rights_differ(mme, fams, exprs):
+# ══ PROOF 5, AS M-2 LEAVES IT · there is ONE store and it holds families ══════════════════════════
+def test_proof_5_there_is_one_store_and_it_holds_family_materializations_only(mme, fams, exprs,
+                                                                              evaluator):
+    """M-1 proved two stores with different rights. **M-2 proves there is no second store** (§1), which is
+    the stronger claim: an expression output is not held under weaker rights, it is not held."""
     mme.measure(fams["revenue"], EX.TOTAL)
-    mme.evaluate(exprs["aov"], EX.TOTAL)
-    family_keys = [k for k in mme.held if k.sort == "family"]
-    expr_keys = [k for k in mme.held if k.sort == "expression"]
-    assert family_keys and expr_keys
-    assert len({(k.sort, k.identity, k.anchor) for k in mme.held}) == len(mme.held)
+    served = evaluator.evaluate(exprs["aov"], EX.TOTAL)
+    assert served.served                                        # fully supported, just not from here
 
-    # every expression output: refused as continuation state, for every family
-    for key in expr_keys:
-        for fid in ("revenue", "distinct_customers"):
-            v = mme.adjudicate(_holding(mme, key), mme.family(fid), key.anchor)
-            assert not v and v.code == "not-continuation-bearing"
+    held = list(mme.held)
+    assert held                                                 # families ARE held
+    assert all(mme.sort_of(k.identity) == "family" for k in held)
+    assert not any(mme.sort_of(k.identity) == "expression" for k in held)
 
-    # and at least one family state may seed while at least one may not
+    # the expression is CONSTITUTED by this engine and MATERIALIZED nowhere in it
+    assert "average_order_value" in mme.expressions
+    assert mme.sort_of("average_order_value") == "expression"
+    assert not mme.materializations.select("average_order_value", eligibility=None)
+
+    # every held state may be asked to seed; at least one may and at least one may not
     verdicts = []
-    for key in family_keys:
+    for key in held:
         if key.anchor.is_scalar:
             continue
         target = EX.COMMERCE.anchor(sorted(key.anchor.constituents)[1:])
         verdicts.append(bool(mme.adjudicate(_holding(mme, key), mme.family(key.identity), target)))
     assert any(verdicts) and not all(verdicts)
+
+
+def test_retention_key_sort_is_retired_and_the_sort_distinction_is_not(mme, fams, exprs, evaluator):
+    """Ruled §2: *"assess whether M-2 now allows retirement of `RetentionKey.sort`."* It does — and the
+    thing the field existed to protect is protected by the type and by `adjudicate` instead."""
+    from dataclasses import fields
+
+    # RETIRED as a field: nothing can construct a key claiming another sort.
+    assert "sort" not in {f.name for f in fields(RetentionKey)}
+    assert RetentionKey.sort == "family"
+    assert all(k.sort == "family" for k in mme.held)
+
+    # NOT RETIRED as a distinction: the two sorts are still two types with two sets of rights.
+    revenue_state = mme.measure(fams["revenue"], EX.TOTAL).value
+    estimate = evaluator.evaluate(exprs["estimate"], EX.TOTAL).value
+    assert revenue_state.point.sort == "family" and estimate.point.sort == "expression"
+    assert hasattr(revenue_state, "fold_onto") and not hasattr(estimate, "fold_onto")
+    assert mme.sort_of("revenue") == "family" and mme.sort_of("average_order_value") == "expression"
 
 
 def test_the_retention_key_distinguishes_sort_identity_anchor_instance_and_provider(mme, fams):
@@ -563,7 +621,7 @@ def test_a_backends_inability_does_not_remove_a_law(mme, exprs):
     thin.establish_root(revenue, EX.ORDERS)
     thin.establish_root(order_count, EX.ORDERS)
     with pytest.raises(KernelRefusal) as exc:
-        thin.evaluate(exprs["aov"], EX.TOTAL)
+        ExpressionEvaluator(thin).evaluate(exprs["aov"], EX.TOTAL)
     assert exc.value.code in ("unrealized-law", "unrealized-capability")
     assert "does not remove a law" in exc.value.detail or "is unchanged" in exc.value.detail
     assert "MEAN" in REGISTRY.vocabulary or REGISTRY.get("MEAN") is not None   # the law is intact

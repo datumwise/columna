@@ -30,6 +30,8 @@ from columna_platform.kernel import MME, REGISTRY, KernelRefusal
 from columna_platform.kernel.materialization import SUPERSEDE, TransitionIntent
 from columna_platform.kernel.builtins import IN_MEMORY
 from columna_platform.kernel.mme import MME as KernelMME
+from columna_platform.kernel.mme import Retained, RetentionKey
+from columna_platform.columnar.expression import ColumnarExpressionEvaluator
 
 
 @pytest.fixture
@@ -40,6 +42,16 @@ def built():
 @pytest.fixture
 def mme(built):
     return built[0]
+
+
+@pytest.fixture
+def evaluator(mme):
+    return ColumnarExpressionEvaluator(mme)
+
+
+@pytest.fixture
+def settled_evaluator(settled):
+    return ColumnarExpressionEvaluator(settled)
 
 
 @pytest.fixture
@@ -257,7 +269,7 @@ def test_the_retired_contribution_filter_refuses_rather_than_returning_the_old_m
     assert "validates it" in exc.value.detail
 
 
-def test_the_canonical_case_count_serves_revenue_wants_state_aov_refuses(mme):
+def test_the_canonical_case_count_serves_revenue_wants_state_aov_refuses(mme, evaluator):
     """**THE CANONICAL TEST** (Huayin, 2026-09-29). Three Orders participate at D1; one participating
     Revenue is unsupported. `OrderCount` = 3. `Revenue` refuses. `AOV` refuses because one required
     basis operand is not established."""
@@ -273,7 +285,7 @@ def test_the_canonical_case_count_serves_revenue_wants_state_aov_refuses(mme):
     assert "THE REDUCTION HAS NOT RUN" in revenue.refusal.detail
     assert "does not shrink it" in revenue.refusal.detail
 
-    aov = mme.evaluate("average_order_value", EX.BY_DAY)
+    aov = evaluator.evaluate("average_order_value", EX.BY_DAY)
     assert not aov.served and aov.value is None
     assert "role 'SUM'" in aov.refusal.detail and "want of state" in aov.refusal.detail
 
@@ -289,10 +301,10 @@ def test_nothing_is_inferred_from_support_not_na_not_empty_not_nonparticipation(
     assert mme.measure("order_count", EX.BY_DAY).value.cell(("D1",)) == 3
 
 
-def test_the_expression_refuses_at_the_root_anchor_on_its_own_basis_check(mme):
+def test_the_expression_refuses_at_the_root_anchor_on_its_own_basis_check(mme, evaluator):
     """At the root both operands are held, so no continuation intervenes: the refusal is the expression
     path's own, and it names the unestablished operand rather than dividing around it."""
-    aov = mme.evaluate("average_order_value", EX.SALE_AT)
+    aov = evaluator.evaluate("average_order_value", EX.SALE_AT)
     assert not aov.served
     assert "basis-operand-wants-state" in aov.refusal.detail
     assert "THE ARITHMETIC HAS NOT RUN" in aov.refusal.detail
@@ -303,7 +315,7 @@ def test_the_expression_refuses_at_the_root_anchor_on_its_own_basis_check(mme):
 
 def test_a_held_state_may_want_state_and_discloses_it_rather_than_hiding_it(mme):
     """Recording a column is not serving a value."""
-    held = mme.retained("family", "revenue", EX.SALE_AT,
+    held = mme.retained("revenue", EX.SALE_AT,
                         mme.authority.instance_of("revenue")).value
     assert held.wants_state
     assert held.points_wanting_state() == (EX.UNSUPPORTED_POINT,)
@@ -311,7 +323,7 @@ def test_a_held_state_may_want_state_and_discloses_it_rather_than_hiding_it(mme)
 
 
 def test_reading_a_cell_at_a_point_with_want_of_state_refuses(mme):
-    held = mme.retained("family", "revenue", EX.SALE_AT,
+    held = mme.retained("revenue", EX.SALE_AT,
                         mme.authority.instance_of("revenue")).value
     assert held.cell(("D1", "O1", "S1")) == 100.0
     with pytest.raises(KernelRefusal) as exc:
@@ -437,16 +449,16 @@ def test_an_unrealized_composition_is_a_provider_limit(mme):
 
 
 # ══ 2 · POSITIONAL EXPRESSION EVALUATION ══════════════════════════════════════════════════════════
-def test_revenue_over_ordercount_is_a_positional_column_operation(settled):
+def test_revenue_over_ordercount_is_a_positional_column_operation(settled, settled_evaluator):
     revenue = settled.measure("revenue", EX.BY_DAY).value
     counts = settled.measure("order_count", EX.BY_DAY).value
     assert revenue.index.identity == counts.index.identity        # ONE layout, no discovery needed
-    aov = settled.evaluate("average_order_value", EX.BY_DAY)
+    aov = settled_evaluator.evaluate("average_order_value", EX.BY_DAY)
     assert aov.route == "evaluated" and aov.seeded_from == "b_revenue_ordercount"
     assert aov.value.cell(("D2",)) == pytest.approx(81.25)
 
 
-def test_differing_layouts_refuse_rather_than_being_joined(settled):
+def test_differing_layouts_refuse_rather_than_being_joined(settled, settled_evaluator):
     """If two operands ever arrive on different layouts, this path REFUSES and names the lawful remedy.
     It does not reach for the columns' coordinate values."""
     mme = settled
@@ -460,34 +472,47 @@ def test_differing_layouts_refuse_rather_than_being_joined(settled):
         standing=standing("order_count", mme.authority.instance_of("order_count"), n=1),
         law="COUNT", value_form="scalar", forgotten_since_root=frozenset({"order", "store"}))
     mme.retain(other)
-    answer = mme.evaluate("average_order_value", EX.BY_DAY)
+    answer = settled_evaluator.evaluate("average_order_value", EX.BY_DAY)
     assert not answer.served
     assert "layouts-differ" in answer.refusal.detail
     assert "would be relational discovery of analytical alignment" in answer.refusal.detail
 
 
-def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(settled):
+def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(settled,
+                                                                               settled_evaluator):
+    """**And after M-2 it is not held either** (§1). The type still forbids continuation, the verdict
+    still names the rule, and there is no longer a store the output could be sitting in when asked."""
     mme = settled
-    output = mme.evaluate("average_order_value", EX.BY_DAY).value
+    output = settled_evaluator.evaluate("average_order_value", EX.BY_DAY).value
     assert isinstance(output, ColumnarExpressionOutput)
     assert output.CONTINUATION_BEARING is False
     assert ColumnarFamilyState.CONTINUATION_BEARING is True
     assert not hasattr(ColumnarExpressionOutput, "fold_onto_grouped")
-    verdict = mme.adjudicate(
-        mme.retained("expression", "average_order_value", EX.BY_DAY,
-                     mme.authority.instance_of("average_order_value")),
-        mme.family("revenue"), EX.BY_DAY)
+
+    # NOT HELD: the columnar MME manages family materializations only.
+    assert all(k.identity != "average_order_value" for k in mme.held)
+    assert not mme.materializations.select("average_order_value", eligibility=None)
+    with pytest.raises(KernelRefusal) as offered:
+        mme.retain(output)
+    assert offered.value.code == "not-a-family-materialization"
+
+    # OFFERED FROM ABOVE — the only remaining route to `adjudicate` — and still refused by name.
+    from_above = Retained(
+        key=RetentionKey(identity="average_order_value", anchor=EX.BY_DAY,
+                         instance=output.instance, realization=mme.realization),
+        value=output)
+    verdict = mme.adjudicate(from_above, mme.family("revenue"), EX.BY_DAY)
     assert not verdict and verdict.code == "not-continuation-bearing"
 
 
 # ══ 3 · COMPATIBILITY BEFORE ARITHMETIC ═══════════════════════════════════════════════════════════
-def test_an_incompatible_basis_is_refused_before_arithmetic_on_one_aligned_layout(settled):
+def test_an_incompatible_basis_is_refused_before_arithmetic_on_one_aligned_layout(settled, settled_evaluator):
     revenue = settled.measure("revenue", EX.BY_DAY).value
     audited = settled.measure("audited_order_count", EX.BY_DAY).value
     assert revenue.index.identity == audited.index.identity        # perfectly aligned
     assert len(revenue.values) == len(audited.values)              # same shape
 
-    answer = settled.evaluate("average_order_value_audited", EX.BY_DAY)
+    answer = settled_evaluator.evaluate("average_order_value_audited", EX.BY_DAY)
     assert not answer.served
     assert "THE ARITHMETIC HAS NOT RUN" in answer.refusal.detail
     assert "different-participation" in answer.refusal.detail
@@ -554,22 +579,26 @@ def test_the_persisted_family_value_is_the_sketch_and_not_the_estimate(mme):
     assert hll_sketch.deserialize(payload).lg_config_k == HLL_PRECISION
 
 
-def test_sketch_parameters_are_compatibility_bearing_and_read_from_the_value(mme):
+def test_sketch_parameters_are_compatibility_bearing_and_read_from_the_value(mme, evaluator):
     from columna_platform.columnar.provider import sketch_parameters
 
     state = mme.measure("distinct_customers", EX.BY_DAY).value
     assert sketch_parameters(state.cell(("D1",)))["lg_k"] == HLL_PRECISION
-    output = mme.evaluate("distinct_customer_estimate", EX.BY_DAY).value
+    output = evaluator.evaluate("distinct_customer_estimate", EX.BY_DAY).value
     assert any(d.code == "sketch-parameters" for d in output.disclosures)
 
 
-def test_the_estimate_is_served_only_through_expression_finalization(mme):
-    answer = mme.evaluate("distinct_customer_estimate", EX.BY_DAY)
+def test_the_estimate_is_served_only_through_expression_finalization(mme, evaluator):
+    answer = evaluator.evaluate("distinct_customer_estimate", EX.BY_DAY)
     assert answer.route == "evaluated" and answer.seeded_from == "b_sketch"
     assert answer.value.cell(("D1",)) == 3 and answer.value.cell(("D2",)) == 3
-    held = mme.retained("expression", "distinct_customer_estimate", EX.BY_DAY,
-                        mme.authority.instance_of("distinct_customer_estimate"))
-    verdict = mme.adjudicate(held, mme.family("distinct_customers"), EX.BY_DAY)
+    # NOT HELD (M-2 §1) — and refused as continuation state when offered from above.
+    assert all(k.identity != "distinct_customer_estimate" for k in mme.held)
+    from_above = Retained(
+        key=RetentionKey(identity="distinct_customer_estimate", anchor=EX.BY_DAY,
+                         instance=answer.value.instance, realization=mme.realization),
+        value=answer.value)
+    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), EX.BY_DAY)
     assert not verdict and verdict.code == "not-continuation-bearing"
 
 

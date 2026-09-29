@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import pytest
 
+from columna_platform.kernel import ExpressionEvaluator
+from columna_platform.kernel.mme import Retained, RetentionKey
+
 from columna_platform.frameql import FrameQLService, RequestInterpretationRefusal, interpret, parse
 from columna_platform.frameql import exhibit as FQ
 from columna_platform.frameql.serving import (
@@ -145,7 +148,7 @@ def test_no_rule_requires_a_basis_component_to_be_formed_by_the_component_law():
         operands=(Operand("operand", "revenue"),), participation=WORLD.PARTICIPATION,
         admitted_bases=(SufficientBasis(
             "b_identities", {"SUM": "revenue", "COUNT": "order_count"}, True),)))
-    assert mme.evaluate(swapped, WORLD.TOTAL).served
+    assert ExpressionEvaluator(mme).evaluate(swapped, WORLD.TOTAL).served
 
     # and no module in the kernel or the serving path compares a family's law to a basis role
     import ast
@@ -247,12 +250,31 @@ def test_the_user_asks_for_the_estimate_and_it_resolves_as_an_EXPRESSION(service
 
 
 def test_the_estimates_scalar_cannot_seed_family_continuation_after_being_served(service):
-    """**The flagship, reached through real Frame-QL.** The user's query cached an expression result; the
-    engine will not let it become family state."""
-    assert service.serve("SELECT distinct_customer_estimate AT {day}").served
+    """**The flagship, reached through real Frame-QL — and through M-2's boundary.**
+
+    The user's query served an expression result. In M-1 that result was cached and the proof was that the
+    engine would not let the CACHED object become family state. In M-2 it is not cached at all: Platform
+    serving supports the expression exactly as fully, the MME holds nothing for it, and the scalar is
+    still refused as continuation state when offered from above."""
+    served = service.serve("SELECT distinct_customer_estimate AT {day}")
+    assert served.served
+    assert served.frame.columns[0].route == "evaluated"
+
+    # The serving path supported it; the MME holds nothing for it.
+    assert all(k.identity != "distinct_customer_estimate" for k in service.mme.held)
+    assert not service.mme.materializations.select("distinct_customer_estimate", eligibility=None)
+
+    # The evaluator that served it is a SEPARATE object, above the engine.
+    assert service.expressions.mme is service.mme
+    assert not hasattr(service.mme, "evaluate")
+
     expression = service.mme.expression("distinct_customer_estimate")
-    held = service.mme.retained(expression.at(WORLD.BY_DAY), expression.instance())
-    assert held is not None and not held.continuation_bearing
+    output = service.expressions.evaluate(expression, WORLD.BY_DAY).value
+    held = Retained(key=RetentionKey(identity="distinct_customer_estimate", anchor=WORLD.BY_DAY,
+                                     instance=output.instance,
+                                     realization=service.mme.realization),
+                    value=output)
+    assert not held.continuation_bearing
     verdict = service.mme.adjudicate(held, service.mme.family("distinct_customers"), WORLD.BY_DAY)
     assert not verdict and verdict.code == "not-continuation-bearing"
     assert "never becomes family continuation state" in verdict.detail
@@ -292,7 +314,7 @@ def test_explain_reports_the_authority_path_and_serves_nothing(service):
     outcome = service.serve("EXPLAIN SELECT average_order_value AT {}")
     assert outcome.frame is None
     plan = "\n".join(outcome.plan)
-    assert "GOVERNED EXPRESSION" in plan and "MME.evaluate()" in plan
+    assert "GOVERNED EXPRESSION" in plan and "ExpressionEvaluator.evaluate()" in plan
     assert "basis b_revenue_ordercount: COUNT→order_count, SUM→revenue" in plan
     assert "NOT EXECUTED" in plan
 

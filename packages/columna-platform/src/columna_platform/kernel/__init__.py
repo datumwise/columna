@@ -20,7 +20,10 @@ measures is a boundary that leaks.
     value         continuation-bearing `FamilyState` vs finalized `ExpressionOutput` — two TYPES
     materialization  MME v1's governed family-materialization cache: opaque identity, dependency,
                      currentness, residency, admission
-    mme           the engine: admit, select candidates, adjudicate, measure, evaluate
+    mme           the engine: admit, select candidates, adjudicate, measure. **FAMILIES ONLY** (M-2)
+    expression    the expression evaluator, ABOVE the MME: consumes family state, evaluates `E@A`
+    observation   the family-request observation seam — READY/NEED/WANT_OF_STATE/UNSUPPORTED, append-only,
+                  non-authoritative, and unable to fail a request
     builtins      the smallest law vocabulary the vertical proofs need, and its in-memory provider
     exhibit       the runnable demonstration
 
@@ -86,7 +89,23 @@ from .materialization import (
     cumulative_forgotten,
     entitlement_holds,
 )
-from .mme import MME, Adequacy, PoolResolution, Retained, RetentionKey, Staleness, resolve_pool
+from .expression import ExpressionEvaluator
+from .mme import MME, Adequacy, Retained, RetentionKey, Staleness
+from .observation import (
+    DISPOSITIONS,
+    NEED,
+    READY,
+    UNSUPPORTED,
+    WANT_OF_STATE,
+    FamilyRequest,
+    Fulfillment,
+    NullObserver,
+    ObservationSink,
+    RecordingObserver,
+    RequestObservation,
+    WorkloadObserver,
+    disposition_for,
+)
 from .realization import ProviderProfile, Realization, RealizationStanding
 from .sorts import (
     ExpressionPoint,
@@ -133,12 +152,14 @@ __all__ = [
     "FamilyPoint", "ExpressionPoint", "MeasureFamily", "GovernedExpression", "Operand",
     "SufficientBasis",
     "Answer", "FamilyState", "ExpressionOutput",
-    "MME", "Adequacy", "Retained", "RetentionKey", "PoolResolution", "Staleness",
+    "MME", "Adequacy", "Retained", "RetentionKey", "Staleness", "ExpressionEvaluator",
+    "DISPOSITIONS", "NEED", "READY", "UNSUPPORTED", "WANT_OF_STATE", "FamilyRequest",
+    "Fulfillment", "NullObserver", "ObservationSink", "RecordingObserver",
+    "RequestObservation", "WorkloadObserver", "disposition_for",
     "FamilyMaterialization", "MaterializationId", "MaterializationStore", "ManifoldBuild",
     "Establishment", "TransitionIntent", "Admission", "Slot", "CURRENT", "SUPERSEDED", "PINNED",
     "RESIDENT", "EVICTABLE", "EVICTED", "EXPIRED", "AT_ROOT", "INDEPENDENT", "COEXIST", "SUPERSEDE",
     "REJECT", "admitted_targets", "cumulative_forgotten", "entitlement_holds",
-    "resolve_pool",
     "ConstitutionWitness", "WitnessComparison", "WITNESS_SCHEME", "family_witness",
     "expression_witness", "determinant_names", "FAMILY_NON_DETERMINANTS",
     "EXPRESSION_NON_DETERMINANTS",
