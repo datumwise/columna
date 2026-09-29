@@ -30,6 +30,7 @@ from columna_platform.kernel import (
     GovernedExpression,
     KernelRefusal,
     ContinuationRegion,
+    DataStateRef,
     LawRegistry,
     MeasureFamily,
     Operand,
@@ -50,8 +51,10 @@ def W(obj):
     return obj.witness(REGISTRY.get(getattr(obj, "law", None) or obj.constructor))
 
 
-LOAD_A = "load:orders@2026-09-29T08:00Z"
-LOAD_B = "load:orders@2026-09-29T17:30Z"
+#: A data state is a TYPED reference `{scheme, token}` (ruled 2026-09-29) — never a bare string, and never
+#: a physical snapshot id: what a file version is belongs to realization standing.
+LOAD_A = DataStateRef("load", "orders@2026-09-29T08:00Z")
+LOAD_B = DataStateRef("load", "orders@2026-09-29T17:30Z")
 
 
 @pytest.fixture
@@ -128,9 +131,9 @@ def test_control_1_new_root_data_is_the_same_witness_and_a_different_instance(mm
     assert mme.witness_of("revenue").digest == before.digest          # the constitution did not move
     keys = [k for k in mme.held if k.identity == "revenue" and k.anchor == KEX.SALE_AT]
     witnesses = {k.constitution for k in keys}
-    states = {k.data_state for k in keys}
+    states = {k.data_state.reference for k in keys}
     assert witnesses == {before.digest}                               # ONE constitution
-    assert {LOAD_A, LOAD_B} <= states                                 # TWO evidence states
+    assert {LOAD_A.reference, LOAD_B.reference} <= states                                 # TWO evidence states
     # two retained objects, NOT a silent overwrite — which is the whole reason the axis exists
     assert len([k for k in keys if k.data_state in (LOAD_A, LOAD_B)]) == 2
 
@@ -154,7 +157,8 @@ def test_control_1_the_engine_refuses_to_pick_an_evidence_state(mme, revenue):
 
     ambiguous = mme.measure(revenue, KEX.BY_DAY)
     assert not ambiguous.served and ambiguous.refusal.code == "ambiguous-data-state"
-    assert LOAD_A in ambiguous.refusal.detail and LOAD_B in ambiguous.refusal.detail
+    assert (LOAD_A.reference in ambiguous.refusal.detail
+            and LOAD_B.reference in ambiguous.refusal.detail)
     assert "NOTHING IS MERGED ACROSS THEM" in ambiguous.refusal.detail
 
     named = mme.measure(revenue, KEX.BY_DAY, data_state=LOAD_A)
