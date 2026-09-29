@@ -18,9 +18,12 @@ from dataclasses import dataclass, fields, replace
 import pyarrow as pa
 import pytest
 
+from columna_platform.columnar.expression import ColumnarExpressionEvaluator
+
 from columna_platform.columnar import ColumnarMME, CoordinateIndex, GovernedBlock, standing
 from columna_platform.columnar.provider import ColumnarProvider
 from columna_platform.kernel import (
+    ExpressionEvaluator,
     EXPRESSION_NON_DETERMINANTS,
     FAMILY_NON_DETERMINANTS,
     UNSTATED_DATA_STATE,
@@ -178,7 +181,7 @@ def test_control_1_an_expression_is_attributed_to_its_operands_evidence_state(mm
         held = mme.materializations.select(family.family_id, anchor=KEX.SALE_AT)
         mme.establish_root(family, KEX.ORDERS, data_state=LOAD_A,
                            intent=TransitionIntent(SUPERSEDE, tuple(m.id for m in held)))
-    served = mme.evaluate(KEX._expressions()[0], KEX.BY_DAY, data_state=LOAD_A)
+    served = ExpressionEvaluator(mme).evaluate(KEX._expressions()[0], KEX.BY_DAY, data_state=LOAD_A)
     assert served.served
     assert served.value.instance.data_state == LOAD_A
 
@@ -443,7 +446,7 @@ def test_control_4_admitting_another_route_leaves_the_witness_identical(aov):
 def test_control_4_a_value_established_under_one_route_survives_admitting_another(mme):
     """The behavioural form of the same control — not just an equal digest, an unstaled value."""
     aov = KEX._expressions()[0]
-    served = mme.evaluate(aov, KEX.BY_DAY)
+    served = ExpressionEvaluator(mme).evaluate(aov, KEX.BY_DAY)
     assert served.served and served.seeded_from == "b_revenue_ordercount"
 
     widened = replace(aov, admitted_bases=aov.admitted_bases + (
@@ -452,12 +455,17 @@ def test_control_4_a_value_established_under_one_route_survives_admitting_anothe
                         requires_common_participation=True),))
     mme.register_expression(widened)
     assert mme.stale_states() == ()                        # nothing became stale
-    again = mme.evaluate(widened, KEX.BY_DAY)
-    assert again.route == CACHED_ROUTE
+    # **RE-EVALUATED, NOT RE-SERVED FROM CACHE** (M-2 §1: no expression cache in v1). The control is
+    # unaffected and is arguably sharper for it: the claim was never "the cached scalar survived", it was
+    # "admitting another route did not invalidate the established VALUE" — and the value is identical.
+    again = ExpressionEvaluator(mme).evaluate(widened, KEX.BY_DAY)
+    assert again.route == EVALUATED_ROUTE
+    assert again.seeded_from == "b_revenue_ordercount"      # still the FIRST admitted route
     assert again.value.cells[("D1",)] == served.value.cells[("D1",)]
 
 
 CACHED_ROUTE = "cached"
+EVALUATED_ROUTE = "evaluated"
 
 
 # ══ STALENESS — MECHANICALLY DETECTABLE, AND NAMED ════════════════════════════════════════════════
@@ -653,7 +661,7 @@ def test_the_columnar_engine_reports_staleness_through_the_authority():
 
 def test_a_columnar_expression_is_attributed_to_its_operands_evidence_state():
     settled, block = CEX.build(settled=True, data_state=LOAD_A)
-    served = settled.evaluate("average_order_value", CEX.BY_DAY, data_state=LOAD_A)
+    served = ColumnarExpressionEvaluator(settled).evaluate("average_order_value", CEX.BY_DAY, data_state=LOAD_A)
     assert served.served
     assert served.value.instance.data_state == LOAD_A
 

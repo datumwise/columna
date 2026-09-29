@@ -1,22 +1,44 @@
 """
-columna_platform.kernel.mme — **the in-memory Materialized Measure Engine.**
+columna_platform.kernel.mme — **the in-memory Materialized Measure Engine. Family materializations only.**
 
-THE FOUR DISTINCTIONS THIS ENGINE MAKES OPERATIONAL
----------------------------------------------------
+    **MME manages only family materializations `F@A`.**  — Huayin, 2026-09-29 (M-2 §1)
+
+That box is this module's boundary, and after M-2 it is a property of the code rather than a convention.
+There is no expression store here, no expression retention key, no expression lifecycle and no method that
+returns an `ExpressionOutput`. Expressions are **constituted** by this engine — registered, law-bound,
+witnessed — and **evaluated above it**, by `kernel.expression.ExpressionEvaluator`, which consumes family
+state through `measure` like any other consumer.
+
+THE THREE DISTINCTIONS THIS ENGINE MAKES OPERATIONAL
+----------------------------------------------------
 Ruled (Huayin, 2026-09-28):
 
   **Family root authority.**              `F@R_F` is the canonical continuation origin.
   **Non-root family materialization.**    A lawful `F@A` may be cached and may seed later continuation
                                           ONLY WHILE its family value remains adequate for that admitted
                                           continuation.
-  **Expression cache.**                   `E@A` may be cached and served but never becomes family
-                                          continuation state.
   **Physical availability is not analytical authority.**
 
-The last one is the load-bearing one, and it is why this module is shaped as `retain` / `candidates` /
-`adjudicate` / `serve` rather than as a cache with a lookup. **Holding an object and being permitted to
-use it are two facts**, and `adjudicate` is the only place the second is decided. Every refusal below is
-a refusal about an object that is sitting in the store.
+A fourth was ruled with them — *"`E@A` may be cached and served but never becomes family continuation
+state"* — and M-2 settles it by removing its first clause: in v1 `E@A` is not cached at all, so the only
+thing left to keep true is the second clause, which is now true because there is nowhere for an expression
+output to be that the continuation machinery can see. `adjudicate`'s sort question survives as a
+**boundary** verdict for objects handed in from above, not as a screen over the store's own contents.
+
+The last distinction is the load-bearing one, and it is why this module is shaped as `retain` /
+`candidates` / `adjudicate` / `serve` rather than as a cache with a lookup. **Holding an object and being
+permitted to use it are two facts**, and `adjudicate` is the only place the second is decided. Every
+refusal below is a refusal about an object that is sitting in the store.
+
+THE REQUEST BOUNDARY IS OBSERVED
+--------------------------------
+Ruled §4/§7: every request for family state is observable — READY, NEED, WANT_OF_STATE or UNSUPPORTED —
+and *"observation should happen at the request boundary, not only when a cached materialization is
+selected."* `measure` is that boundary, and it emits exactly one `RequestObservation` on every path
+including every refusal. The emission is append-style, write-only and wrapped so that an observer which
+raises costs the request nothing: **serving correctness never depends on logging** (§4). Nothing in this
+module ever reads an observation back, which is how *"observations never create analytical rights"* (§6)
+is held as a property rather than remembered as a rule.
 
 THE ADJUDICATION, IN THE ORDER IT ASKS
 --------------------------------------
@@ -43,26 +65,32 @@ routing, no authoring syntax. And nothing imports `columna_core`.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, replace
 from typing import Any, Iterable, Mapping, Optional
 
 from .geometry import Anchor, KernelRefusal, Universe
 from .law import AnalyticalLaw, LawRegistry, STRUCTURED
 from .realization import ProviderProfile, RealizationStanding
-from .sorts import (
-    GovernedExpression,
-    MeasureFamily,
-    SufficientBasis,
-)
+from .sorts import GovernedExpression, MeasureFamily
 from .standing import (
     CACHED,
-    UNSTATED_DATA_STATE,
     CONTINUED,
+    UNSTATED_DATA_STATE,
     Disclosure,
-    EVALUATED,
     REFUSED,
     ROOT,
     Refusal,
+)
+from .observation import (
+    FamilyRequest,
+    Fulfillment,
+    NEED,
+    ObservationSink,
+    READY,
+    WorkloadObserver,
+    disposition_for,
+    observe_request,
 )
 from .materialization import (
     AT_ROOT,
@@ -79,22 +107,19 @@ from .materialization import (
     Admission,
     cumulative_forgotten,
 )
-from .value import Answer, ExpressionOutput, FamilyState
+from .value import Answer, FamilyState
 from .witness import ConstitutionWitness
 
 
 # ── retention ────────────────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class RetentionKey:
-    """**What is sufficient to distinguish a retained object — and no more than that.**
+    """**The analytical description of one retained family materialization.**
 
     Ruled: *"Do not reproduce existing cache keys merely because they exist… Do not over-design the
-    final persistent key yet."* So this is the in-memory key, carrying exactly the axes a retained object
-    must be told apart by:
+    final persistent key yet."* So this carries exactly the axes a retained object must be told apart by:
 
-      `sort`            family state and expression output are different objects with different rights,
-                        and a key that could not tell them apart would make proof 5 unstatable;
-      `identity`        the governed `family_id` / `expression_id`;
+      `identity`        the governed `family_id`;
       `anchor`          where it is;
       `instance`        the analytical instance — participation and scope where identity-bearing, the
                         shared constitution CONTEXT, and the `data_state` of the material: which actual
@@ -112,10 +137,19 @@ class RetentionKey:
     material, the provider profile), and each is separately reportable — so "the declaration moved", "the
     data was reloaded" and "the provider changed" never arrive as one undifferentiated "stale".
 
+    **`sort` IS RETIRED IN M-2, AND ITS RETIREMENT IS A RESULT** (ruled 2026-09-29 M-2 §2: *"assess
+    whether M-2 now allows retirement of `RetentionKey.sort`"* — it does). The field existed because family
+    state and expression output shared this key and had to be told apart in it. They no longer share it:
+    the MME retains family materializations and nothing else, so `sort` could only ever hold `"family"`, and
+    a key axis with one inhabitant is not an axis. **The SORT DISTINCTION is untouched** — `FamilyState` and
+    `ExpressionOutput` are still two types with two sets of rights, `FamilyPoint.sort` still answers which,
+    and `adjudicate`'s first question still refuses a non-continuation-bearing object by a governed verdict.
+    What is gone is the need to re-state that distinction *inside the cache key*, because the cache now has
+    only one sort in it.
+
     Not here: a physical grain, a storage location, a partition, a file. Those are storage facts, and
     ToD v8 keeps storage out of identity."""
 
-    sort: str
     identity: str
     anchor: Anchor
     instance: Any
@@ -132,17 +166,29 @@ class RetentionKey:
     def data_state(self) -> str:
         return self.instance.data_state
 
+    #: **A CONSTANT, NOT A FIELD.** Readers, exhibits and log lines that printed `family:revenue@…` still
+    #: print it, and nothing can construct a key claiming to be anything else.
+    sort = "family"
+
     def __str__(self) -> str:
         return f"{self.sort}:{self.identity}@{self.anchor}"
 
 
 @dataclass(frozen=True)
 class Retained:
+    """One held family materialization, as a value plus its analytical description."""
+
     key: RetentionKey
-    value: Any                       # FamilyState | ExpressionOutput
+    value: Any                       # FamilyState (columnar or in-memory)
 
     @property
     def continuation_bearing(self) -> bool:
+        """**Still asked, and now asked of things arriving from ABOVE the engine.**
+
+        Inside the MME this is now invariably true — nothing else can be retained. It survives because
+        `adjudicate` is a *public* verdict that anything may be handed to, including an `ExpressionOutput`
+        held by the evaluator above, and a boundary that refuses by returning a governed reason is worth
+        more than one that refuses by being impossible to reach."""
         return bool(getattr(self.value, "CONTINUATION_BEARING", False))
 
 
@@ -164,66 +210,25 @@ class Staleness:
         return f"{self.key} STALE [{', '.join(self.changed)}]"
 
 
-@dataclass(frozen=True)
-class PoolResolution:
-    """**Which retained objects are even candidates, before any adjudication.**
-
-    Separated from `adjudicate` deliberately: adjudication answers *"may this seed that"*, and this answers
-    the three prior questions that are not about the edge at all — is it the same object, under the CURRENT
-    constitution, and from ONE evidence state. A state failing any of those is not a blocked candidate; it
-    is not a candidate."""
-
-    pool: tuple[Retained, ...]
-    #: Held under a SUPERSEDED constitution witness. Not candidates, and not silently missing either.
-    superseded: tuple[Retained, ...]
-    #: The distinct `data_state`s among the constitution-current held objects.
-    data_states: tuple[str, ...]
-    refusal: Optional[Refusal] = None
-
-    @property
-    def note(self) -> str:
-        """What a refusal on the serving path should append about what WAS held. Empty when nothing was."""
-        if not self.superseded:
-            return ""
-        return (f" {len(self.superseded)} retained state(s) of this object ARE held and are STALE: they "
-                f"were established under a superseded constitution witness "
-                f"({sorted({r.key.constitution for r in self.superseded})}), and this engine does not "
-                f"patch a state whose constitution has moved — re-establishment is from the root. Ask "
-                f"`stale_states()` for which governed determinant moved.")
-
-
-def resolve_pool(held: Iterable[Retained], identity: str, instance: Any, witness_digest: str,
-                 subject: str, data_state: Optional[str] = None) -> PoolResolution:
-    """**The three prior questions, asked once for both MMEs.**
-
-    The kernel owns this because every one of them is an analytical question, not a columnar one: the
-    columnar engine calls exactly this function, as it calls exactly this `adjudicate`."""
-    # **CONSTITUTION SUPERSESSION IS CHECKED BEFORE THE INSTANCE AXES, AND THE ORDER IS LOAD-BEARING.**
-    # A determinant like `participation` is BOTH a witness determinant and an axis of the analytical
-    # instance, so a moved declaration moves both at once. Screening on the instance first would have
-    # dropped the superseded state as "a different instance" and the refusal would have reported nothing
-    # held — when what is held is precisely a state of this object under a constitution that has moved.
-    mine = [r for r in held if r.key.identity == identity]
-    superseded = tuple(r for r in mine if r.key.constitution != witness_digest)
-    current = [r for r in mine if r.key.constitution == witness_digest
-               and r.key.instance.same_but_for_data_state(instance)]
-    states = tuple(sorted({r.key.instance.data_state for r in current}))
-    if data_state is not None:
-        current = [r for r in current if r.key.instance.data_state == data_state]
-    elif len(states) > 1:
-        # **THE ENGINE DOES NOT PICK AN EVIDENCE STATE.** Two loads of one constitution are both current
-        # and neither is the answer; choosing the larger, the newer or the first would be the engine
-        # deciding a governed fact, and there is no "newer" here anyway — this kernel holds no clock.
-        return PoolResolution(
-            pool=(), superseded=superseded, data_states=states,
-            refusal=Refusal(
-                "ambiguous-data-state", subject,
-                f"{len(states)} root/evidence states of this object are held under ONE constitution: "
-                f"{list(states)}. They are not stale-versus-current and neither is wrong — they range over "
-                f"different established material, so serving either would answer a question nobody asked. "
-                f"Name the data state, or establish one. **NOTHING IS MERGED ACROSS THEM**: two evidence "
-                f"states are not two contributions to one quantity."))
-    return PoolResolution(pool=tuple(current), superseded=superseded, data_states=states)
+# ── THE PRIOR QUESTIONS, AND WHY THIS MODULE NO LONGER ASKS THEM ────────────────────────────────
+# M-1 shipped `PoolResolution` / `resolve_pool`: a screen that asked, before any adjudication, whether a
+# held object was (a) under the CURRENT constitution and (b) drawn from ONE evidence state. **M-2 retires
+# both**, and the reason is that each question is now answered STRUCTURALLY on the family path rather than
+# procedurally at read time:
+#
+#   (a) CONSTITUTION.   M-1 made the Manifold BUILD the semantic partition — a materialization carries its
+#                       `build`, and `AnalyticalInstance.constitution_context` carries the build reference,
+#                       so `same_but_for_data_state` already excludes material from a superseded
+#                       constitution. `stale_states()` keeps reporting WHICH determinant moved.
+#   (b) EVIDENCE STATE. `MaterializationStore._coexistence_standing` refuses to make a second evidence
+#                       state CURRENT in one slot, so "two current data states, neither of them the
+#                       answer" is not a situation this engine can be in. It was a REFUSAL in M-1 and it is
+#                       an UNREACHABLE STATE in M-2, which is strictly stronger: the ambiguity is prevented
+#                       at admission instead of detected at serving.
+#
+# The screen's only remaining caller was the **expression cache**, and M-2 does not have one. Deleting it
+# is therefore not a loss of a governed refusal; a test pins both replacements so that a future widening
+# which reintroduces the ambiguity fails loudly rather than silently picking an evidence state.
 
 
 @dataclass(frozen=True)
@@ -243,7 +248,8 @@ class MME:
     """The engine. In-memory, single provider profile, conservative invalidation."""
 
     def __init__(self, universe: Universe, laws: LawRegistry, provider: ProviderProfile, *,
-                 manifold: str = "default", build: Optional[str] = None) -> None:
+                 manifold: str = "default", build: Optional[str] = None,
+                 observer: Optional[WorkloadObserver] = None) -> None:
         # **ONE MME PER MANIFOLD JURISDICTION.** A logical rule, not a deployment one: this engine may
         # share its process, its provider and its store with any number of others. What it may not share
         # is authority, so it refuses to register an object belonging to another Manifold — the accident
@@ -264,7 +270,12 @@ class MME:
         self._families: dict[str, MeasureFamily] = {}
         self._expressions: dict[str, GovernedExpression] = {}
         self._bound: dict[str, AnalyticalLaw] = {}
-        self._store: dict[RetentionKey, Retained] = {}
+        #: **The workload observation seam** (ruled M-2 §4). Write-only, append-style, and wrapped so that
+        #: it cannot fail a request. Defaults to a `NullObserver`, so an engine nobody is watching pays
+        #: nothing and — importantly — takes exactly the same code path as one that is: there is no
+        #: `if observing:` branch anywhere in `measure`, because a serving path that differs by whether it
+        #: is being logged is a serving path whose logs describe a different program.
+        self.observations = ObservationSink(observer)
         #: **Every constitution this engine has seen, by digest.** Its own constitutional history, kept so
         #: that staleness can name WHICH determinant moved rather than only that something did. It grows on
         #: re-registration and nothing is ever removed: a superseded constitution is a fact about the past,
@@ -445,26 +456,33 @@ class MME:
 
     # ── retention ────────────────────────────────────────────────────────────────────────────
     def retain(self, value: Any) -> Retained:
-        """Hold an object. **Holding is not authority** — every right it might confer is adjudicated at
-        use, so this method asks nothing and refuses nothing."""
-        sort = value.point.sort
-        identity = getattr(value.point, "family_id", None) or value.point.expression_id
-        if sort == "family":
-            # **FAMILY STATE IS A CACHE OBJECT, NOT A KEYED SLOT.** It goes to the materialization store,
-            # which mints an opaque identity so two instances of one `F@A` can coexist. Expressions stay
-            # here: MME v1 does not manage `E@A`, and until they move above the engine entirely they are
-            # held in the old keyed store where they cannot be mistaken for family materializations.
-            admission = self.admit(value)
-            if not admission:
-                raise KernelRefusal(admission.code, identity, admission.detail)
-            return Retained(key=self._descriptor(self.materializations.get(admission.id)),
-                            value=value)
-        key = RetentionKey(sort=sort, identity=identity, anchor=value.anchor,
-                           instance=value.instance, realization=self.realization,
-                           constitution=self.witness_of(identity).digest)
-        retained = Retained(key=key, value=value)
-        self._store[key] = retained
-        return retained
+        """Hold one **governed family value**. Holding is not authority — every right it might confer is
+        adjudicated at use, so this method makes no analytical claim about what it takes.
+
+        **IT TAKES FAMILY STATE AND NOTHING ELSE** (ruled M-2 §1). In M-1 this method branched: family
+        state went to the materialization store, and an `ExpressionOutput` was filed in a keyed side store
+        living on this object. That side store is gone. An expression output offered here is refused with
+        a governed reason rather than quietly accepted into a cache that no longer exists — and the reason
+        names where it belongs, because a caller holding a finalized result and looking for somewhere to
+        put it has asked a reasonable question with a wrong answer."""
+        if value.point.sort != "family":
+            identity = getattr(value.point, "expression_id", None) or value.point.identity
+            raise KernelRefusal(
+                "not-a-family-materialization", str(identity),
+                f"{value.point} is an EXPRESSION output, and this engine manages family materializations "
+                f"only (M-2 §1). It is not refused because it is unwelcome or because its value is "
+                f"suspect — it is refused because there is no expression store here to put it in, and "
+                f"adding one back would restore exactly the shared retention key, lifecycle and "
+                f"dependency machinery this unit removed. MME v1 does not cache `E@A` at all: an "
+                f"expression is re-evaluated from a sufficient basis by "
+                f"`kernel.expression.ExpressionEvaluator`, which sits ABOVE this engine and consumes "
+                f"the family state it supplies.")
+        # **FAMILY STATE IS A CACHE OBJECT, NOT A KEYED SLOT.** It goes to the materialization store,
+        # which mints an opaque identity so two instances of one `F@A` can coexist.
+        admission = self.admit(value)
+        if not admission:
+            raise KernelRefusal(admission.code, value.point.family_id, admission.detail)
+        return Retained(key=self._descriptor(self.materializations.get(admission.id)), value=value)
 
     # ── admission: the one door for family material ──────────────────────────────────────────
     def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
@@ -512,7 +530,7 @@ class MME:
 
         It is no longer an identity — `m.id` is — and nothing looks anything up by it. It exists because the
         analytical attributes remain the useful thing to report and select on."""
-        return RetentionKey(sort="family", identity=m.family_id, anchor=m.anchor,
+        return RetentionKey(identity=m.family_id, anchor=m.anchor,
                             instance=m.instance, realization=m.realization,
                             constitution=m.build.reference)
 
@@ -522,24 +540,28 @@ class MME:
         A convenience over `select`, kept because *"what is held for `F@A`"* is the question callers ask.
         It answers with the cheapest current candidate; which retained instance that is remains the MME's
         choice and never the caller's (ruled §2)."""
-        identity = getattr(point, "family_id", None) or getattr(point, "expression_id", None)
-        if point.sort == "family":
-            held = self.materializations.select(identity, anchor=point.anchor, instance=instance,
-                                                serviceable=True)
-            if not held:
-                return None
-            best = min(held, key=lambda m: (len(getattr(m.value, "cells", ()) or ()), -m.admitted_seq))
-            return Retained(key=self._descriptor(best), value=best.value)
-        return self._store.get(RetentionKey(point.sort, identity, point.anchor, instance,
-                                            self.realization, self.witness_of(identity).digest))
+        if point.sort != "family":
+            # **NOT `None`, WHICH WOULD BE A LIE ABOUT AN EMPTY CACHE.** Nothing is held for an expression
+            # because nothing CAN be; returning "not held" would invite a caller to establish it and try
+            # again forever. (M-2 §1: no expression cache in v1.)
+            raise KernelRefusal(
+                "not-a-family-materialization", str(point),
+                f"{point} is an expression point. This engine holds family materializations only; ask "
+                f"`ExpressionEvaluator.evaluate` for `E@A`, which re-establishes it from a sufficient "
+                f"basis rather than looking it up.")
+        held = self.materializations.select(point.family_id, anchor=point.anchor, instance=instance,
+                                            serviceable=True)
+        if not held:
+            return None
+        best = min(held, key=lambda m: (len(getattr(m.value, "cells", ()) or ()), -m.admitted_seq))
+        return Retained(key=self._descriptor(best), value=best.value)
 
     def holdings(self) -> tuple[Retained, ...]:
-        """**Everything held, as objects rather than keys** — family materializations and expression
-        outputs. Reach for this rather than the internal store: a materialization is located by its opaque
-        id, and the descriptor on a `Retained` is a report, not a lookup handle."""
-        return tuple([Retained(key=self._descriptor(m), value=m.value)
-                      for m in self.materializations.all() if m.has_payload]
-                     + list(self._store.values()))
+        """**Everything held, as objects rather than keys.** All of it is family materializations; after
+        M-2 there is nothing else it could be. Reach for this rather than the store: a materialization is
+        located by its opaque id, and the descriptor on a `Retained` is a report, not a lookup handle."""
+        return tuple(Retained(key=self._descriptor(m), value=m.value)
+                     for m in self.materializations.all() if m.has_payload)
 
     def materialization(self, mid: MaterializationId) -> Optional[FamilyMaterialization]:
         """One retained instance, by its opaque cache identity."""
@@ -555,8 +577,8 @@ class MME:
 
     @property
     def held(self) -> tuple[RetentionKey, ...]:
-        """Descriptors of everything held — family materializations and expression outputs alike."""
-        return tuple([self._descriptor(m) for m in self.materializations.all()] + list(self._store))
+        """Descriptors of every held family materialization."""
+        return tuple(self._descriptor(m) for m in self.materializations.all())
 
     # ── the adjudication ─────────────────────────────────────────────────────────────────────
     def adjudicate(self, candidate: Retained, family: MeasureFamily, target: Anchor) -> Adequacy:
@@ -626,13 +648,27 @@ class MME:
 
     # ── serving a family ─────────────────────────────────────────────────────────────────────
     def measure(self, family: MeasureFamily, anchor: Anchor, *, retain: bool = True,
-                data_state: Optional[str] = None) -> Answer:
+                data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
         """**Serve `F@A`.** Exact hit, else the best admitted seed, else a refusal that names why.
 
         **THE ROOT IS PREFERRED AND NON-ROOT SEEDS ARE PERMITTED**, which is the required distinction. A
         non-root materialization is a legitimate continuation origin *while its value remains adequate*,
         and `adjudicate` is where "remains adequate" is decided — not here, and not by preferring the
-        root so hard that the non-root case is never exercised."""
+        root so hard that the non-root case is never exercised.
+
+        **THIS IS THE REQUEST BOUNDARY, AND IT IS WHERE OBSERVATION HAPPENS** (ruled M-2 §7). Exactly one
+        `RequestObservation` is emitted per call, on every path — hit, continuation and each of the four
+        refusals — because *"a cache policy cannot learn from hits alone."* `on_behalf_of` carries the
+        consumer above the MME that caused this request (an expression's basis role, typically), which is
+        §8's route/use evidence: it is the difference between demand for `Revenue@Month` and demand for
+        `AOV@Month` that happened to need it.
+
+        Observation is emitted AFTER the answer is fully determined and never gates it. Nothing below
+        branches on whether an observer exists."""
+        started_ns = time.perf_counter_ns()
+        request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
+                                family_id=family.family_id, target=anchor, data_state=data_state,
+                                on_behalf_of=on_behalf_of)
         law = self._bound[family.family_id]
         instance = self.instance_of(family.family_id)
         considered: list[str] = []
@@ -645,6 +681,12 @@ class MME:
                                                     data_state=data_state)
         exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
+            # DIRECTLY HELD. The cheapest possible fulfillment, and the row a future `V(m)` differences
+            # everything else against.
+            observe_request(self.observations, request, started_ns=started_ns, route=CACHED,
+                            disposition=READY,
+                            fulfillment=Fulfillment(directly_held=True, selected=(exact.id,),
+                                                    considered=1))
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
                           considered=(str(self._descriptor(exact)),))
 
@@ -679,14 +721,27 @@ class MME:
                 state = state.with_disclosure(Disclosure(
                     "approximate", f"{law.name} is {law.approximation}; every value served from it "
                                    f"carries that standing"))
+            admitted: tuple[MaterializationId, ...] = ()
             if retain:
                 # **THE DEPENDENCY EDGE IS RECORDED HERE AND NOWHERE ELSE.** A continuation names what it
                 # was continued FROM, which is the relation supersession propagates along — and is a
                 # different fact from the entitlement, which is derived from the family root.
-                self.admit(state, establishment=(
+                admission = self.admit(state, establishment=(
                     Establishment(CONTINUED_FROM, (materialization.id,))
                     if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
+                if admission:
+                    admitted = (admission.id,)
             route = ROOT if state.anchor == family.root else CONTINUED
+            # DERIVED. `folded` is the source cells this fold actually read — observed from the seed, not
+            # modelled — and `admitted` records that this request was also a PRODUCER, so the work is
+            # charged to the request that did it rather than appearing from nowhere.
+            observe_request(self.observations, request, started_ns=started_ns, route=route,
+                            disposition=READY,
+                            fulfillment=Fulfillment(
+                                directly_held=False, selected=(materialization.id,),
+                                seeded_from=materialization.anchor,
+                                folded=len(getattr(candidate.value, "cells", ()) or ()) or None,
+                                considered=len(considered), admitted=admitted))
             return Answer(route=route, value=state, disclosures=state.disclosures,
                           seeded_from=descriptor, considered=tuple(considered))
 
@@ -708,6 +763,16 @@ class MME:
                   or f"no retained state of {family.family_id} exists under this analytical instance, "
                      f"and this engine does not invent one: a value must be established at "
                      f"{family.root} before it can be continued anywhere") + self._also_held(family)
+        # **THE MISS IS OBSERVED, AND THE KIND OF MISS IS RECORDED** (§7, §4). The disposition is derived
+        # from the BLOCKING code rather than from the outer `unanswerable` wrapper: a request blocked by
+        # `outside-continuation-region` is UNSUPPORTED — no amount of retention would ever serve it — while
+        # one blocked by an empty pool is NEED, which is the row that says "retaining this would have
+        # helped". Collapsing them is how a cache policy learns to cache its way out of a law.
+        blocking = ordered[0].code if ordered else ""
+        observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                        refusal_code=blocking or "unanswerable",
+                        disposition=(disposition_for(blocking) if blocking else NEED),
+                        fulfillment=Fulfillment(considered=len(considered)))
         return Answer(route=REFUSED, considered=tuple(considered),
                       refusal=Refusal("unanswerable", str(family.at(anchor)), detail))
 
@@ -730,132 +795,24 @@ class MME:
                          f"again, not to conclude anything about the evidence.")
         return (" " + " ".join(parts)) if parts else ""
 
-    # ── serving an expression ────────────────────────────────────────────────────────────────
-    def evaluate(self, expression: GovernedExpression, anchor: Anchor, *,
-                 basis_id: Optional[str] = None, retain: bool = True,
-                 data_state: Optional[str] = None) -> Answer:
-        """**Evaluate `E@A` from a sufficient basis.** Never from a continuation, because there is none.
-
-        Where more than one basis is admitted they are tried in declaration order and the FIRST that
-        establishes wins; the refusal, if none does, reports every route it tried and why each failed.
-        That is what makes "refuse an incompatible basis even when both operands individually exist" a
-        legible answer rather than a bare `no`."""
-        law = self._bound[expression.expression_id]
-        instance = expression.instance()
-        considered: list[str] = []
-
-        resolution = resolve_pool(self._store.values(), expression.expression_id, instance,
-                                  self.witness_of(expression.expression_id).digest,
-                                  str(expression.at(anchor)), data_state)   # expressions only, in v1
-        if resolution.refusal is not None:
-            return Answer(route=REFUSED, refusal=resolution.refusal)
-        exact = next((r for r in resolution.pool
-                      if r.key.anchor == anchor and not r.continuation_bearing), None)
-        if exact is not None:
-            return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
-                          considered=(str(exact.key),))
-
-        routes = ([b for b in expression.admitted_bases if b.basis_id == basis_id]
-                  if basis_id else list(expression.admitted_bases))
-        if not routes:
-            missing = (f"basis {basis_id!r} is not admitted by this expression"
-                       if basis_id else
-                       "this expression admits NO sufficient basis. It is well-formed and not "
-                       "evaluable — a constituted expression may exist before any establishment route "
-                       "is admitted, and that is a capability limit rather than a defect")
-            return Answer(route=REFUSED,
-                          refusal=Refusal("no-admitted-basis", str(expression.at(anchor)), missing))
-
-        failures: list[str] = []
-        for basis in routes:
-            considered.append(basis.basis_id)
-            attempt = self._establish(expression, law, basis, anchor, data_state)
-            if attempt.served:
-                output = attempt.value
-                if retain:
-                    self.retain(output)
-                return Answer(route=EVALUATED, value=output, disclosures=output.disclosures,
-                              seeded_from=basis.basis_id, considered=tuple(considered))
-            failures.append(f"basis {basis.basis_id!r}: {attempt.refusal.detail}")
-
-        return Answer(route=REFUSED, considered=tuple(considered),
-                      refusal=Refusal(
-                          "no-sufficient-basis-establishes", str(expression.at(anchor)),
-                          " | ".join(failures) + ". Every admitted route was tried. NOTE WHAT THIS IS "
-                          "NOT: it is not a claim that the operands are absent — where they are present "
-                          "and incompatible, the refusal above says so, because physical availability "
-                          "is not analytical authority"))
-
-    def _establish(self, expression: GovernedExpression, law: AnalyticalLaw,
-                   basis: SufficientBasis, anchor: Anchor,
-                   data_state: Optional[str] = None) -> Answer:
-        """One route, tried. Returns the `ExpressionOutput` or the refusal that stopped it."""
-        subject = f"{expression.expression_id}@{anchor} via {basis.basis_id}"
-        states: dict[str, FamilyState] = {}
-        for role in basis.component_laws:
-            component = self._families[basis.components[role]]
-            served = self.measure(component, anchor, data_state=data_state)
-            if not served.served:
-                return Answer(route=REFUSED, refusal=Refusal(
-                    "role-unfilled", subject,
-                    f"role {role!r} is filled by {component.family_id!r}, which cannot be served at "
-                    f"{anchor}: {served.refusal.detail}"))
-            states[role] = served.value
-
-        # COMPATIBILITY. Asked BEFORE any arithmetic, over states that all exist — which is the whole
-        # point: two individually valid components can be jointly meaningless.
-        if basis.requires_common_participation:
-            roles = list(states)
-            reference = states[roles[0]]
-            for role in roles[1:]:
-                agreement = reference.instance.compatible_with(states[role].instance)
-                if not agreement:
-                    return Answer(route=REFUSED, refusal=Refusal(
-                        "incompatible-basis", subject,
-                        f"roles {roles[0]!r} and {role!r} are both ESTABLISHED AND AVAILABLE at "
-                        f"{anchor} and are not jointly usable [{agreement.code}]: {agreement.detail}. "
-                        f"{law.required_basis.note if law.required_basis else ''} The word doing the "
-                        f"work is MATCHING — components that ranged over different contributions are "
-                        f"individually valid and jointly meaningless, so their combination is a number "
-                        f"about no population".strip()))
-
-        apply = self.provider.capability(law.name, "apply")
-        keys: set[tuple] = set()
-        for state in states.values():
-            keys |= set(state.cells)
-        cells: dict[tuple, Any] = {}
-        undefined: list[tuple] = []
-        for key in sorted(keys):
-            payloads = {role: state.cells.get(key) for role, state in states.items()}
-            if any(p is None for p in payloads.values()):
-                undefined.append(key)
-                continue
-            result = apply(payloads, dict(expression.parameters))
-            if result is None:
-                # §4.3's case: the basis is established and the expression is UNDEFINED on it. A
-                # governed answer about that cell, not an error and not a zero.
-                undefined.append(key)
-                continue
-            cells[key] = result
-
-        # **THE OUTPUT IS ATTRIBUTED TO THE EVIDENCE STATE ITS OPERANDS CAME FROM**, where they agree on
-        # one. Where they do not — possible only for a basis the law does not require common participation
-        # for — it is attributed to none, which is what `UNSTATED_DATA_STATE` says: not a lie about a
-        # single evidence state, and not a new token invented to describe a mixture.
-        operand_states = {st.instance.data_state for st in states.values()}
-        attributed = operand_states.pop() if len(operand_states) == 1 else UNSTATED_DATA_STATE
-        output = ExpressionOutput(point=expression.at(anchor), constructor=law.name, cells=cells,
-                                 instance=expression.instance(data_state=attributed),
-                                 basis_id=basis.basis_id)
-        for state in states.values():
-            for d in state.disclosures:
-                output = output.with_disclosure(d)
-        if undefined:
-            output = output.with_disclosure(Disclosure(
-                "undefined-on-basis",
-                f"{len(undefined)} cell(s) carry no value: the basis is established there and the "
-                f"expression is UNDEFINED on it (ToD v8 §4.3). Distinct from absent and from zero"))
-        return Answer(route=EVALUATED, value=output)
+    # ── serving an expression — NOT HERE ANY MORE ────────────────────────────────────────────
+    #
+    # `evaluate` and `_establish` lived here through M-1 and moved OUT in M-2, to
+    # `kernel.expression.ExpressionEvaluator`. Ruled §1: *"Expressions remain fully supported by Platform
+    # serving, but they consume family state supplied by MME and are evaluated above it."*
+    #
+    # **No delegating shim is left behind**, deliberately. An `MME.evaluate` that forwarded to the
+    # evaluator would keep every call site compiling and would keep the boundary imaginary — consumers
+    # would go on treating the MME as the thing that serves expressions, and the next unit would find the
+    # same coupling wearing a different name. Callers construct the evaluator over the engine:
+    #
+    #     evaluator = ExpressionEvaluator(mme)
+    #     answer    = evaluator.evaluate(mme.expression("average_order_value"), month)
+    #
+    # What the MME keeps for expressions is CONSTITUTION and nothing else: `register_expression`,
+    # `expression()`, `expressions`, `sort_of`, `witness_of`, `law_of`, `instance_of`. Those are the
+    # Manifold build's authority over what an expression MEANS, which M-2 explicitly does not move
+    # (§2: *"Do not remove expression semantics from the kernel"*). What moved is where it RUNS.
 
     # ── invalidation — CONSERVATIVE, and that is the ruling ──────────────────────────────────
     def invalidate(self, identity: str) -> tuple[RetentionKey, ...]:
@@ -866,15 +823,11 @@ class MME:
         recoverability of prior contributions or sufficiency for restriction, deletion, correction, or a
         changed analytical law."* Implementing retraction because the algebra looks like a group would be
         granting a capability the theory withholds."""
-        dropped = tuple(k for k in self._store if k.identity == identity)
-        for k in dropped:
-            del self._store[k]
         materialized = self.materializations.select(identity, eligibility=None)
         for m in materialized:
             self.materializations.unpin(m.id)                 # invalidation is deliberate; pinning is not a veto
             self.materializations.drop(m.id)
-        return dropped + tuple(self._descriptor(m) for m in materialized)
+        return tuple(self._descriptor(m) for m in materialized)
 
 
-__all__ = ["MME", "Adequacy", "PoolResolution", "Retained", "RetentionKey", "Staleness",
-           "resolve_pool"]
+__all__ = ["MME", "Adequacy", "Retained", "RetentionKey", "Staleness"]

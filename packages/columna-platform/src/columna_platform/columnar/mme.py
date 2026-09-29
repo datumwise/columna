@@ -71,6 +71,8 @@ anticipates it by inference from support.
 """
 from __future__ import annotations
 
+import time
+
 from dataclasses import dataclass, replace
 from typing import Any, Optional
 
@@ -80,11 +82,9 @@ import pyarrow.compute as pc
 from columna_platform.kernel import (
     CACHED,
     CONTINUED,
-    EVALUATED,
     MME,
     REFUSED,
     ROOT,
-    STRUCTURED,
     Anchor,
     AnalyticalInstance,
     Answer,
@@ -109,11 +109,22 @@ from columna_platform.kernel.materialization import (
     TransitionIntent,
     cumulative_forgotten,
 )
-from columna_platform.kernel.mme import Retained, RetentionKey, Staleness, resolve_pool
+from columna_platform.kernel.mme import Retained, RetentionKey, Staleness
+from columna_platform.kernel.observation import (
+    FamilyRequest,
+    Fulfillment,
+    NEED,
+    ObservationSink,
+    READY,
+    WANT_OF_STATE,
+    WorkloadObserver,
+    disposition_for,
+    observe_request,
+)
 
 from .block import GovernedBlock, value_column_name
 from .index import AnchorInstance, CoordinateIndex
-from .provider import ColumnarProvider, sketch_parameters
+from .provider import ColumnarProvider
 from .standing import ColumnStanding, POPULATION, VALUE_BEARING
 
 #: Which reduction shape a law's own reduction is: a POPULATION law counts membership, everything else
@@ -271,7 +282,8 @@ class ColumnarMME:
     """The columnar data plane. **Authority is delegated to a `kernel.MME`, not re-implemented.**"""
 
     def __init__(self, authority: MME, provider: Optional[ColumnarProvider] = None, *,
-                 carrier: str = "in-memory-arrow") -> None:
+                 carrier: str = "in-memory-arrow",
+                 observer: Optional[WorkloadObserver] = None) -> None:
         self.authority = authority
         self.provider = provider or ColumnarProvider()
         #: **Realization standing** — the third of P-1's three facts, and an axis of the key alone. The
@@ -283,9 +295,10 @@ class ColumnarMME:
         #: one semantic world and `constitution_context = ManifoldBuildId`.
         self.build = authority.build
         self.materializations = authority.attach_store(MaterializationStore(self.build))
-        #: Expression outputs only. MME v1 does not manage `E@A`; until they move above the engine they are
-        #: held here, where they cannot be mistaken for family materializations.
-        self._store: dict[RetentionKey, Retained] = {}
+        #: **The workload observation seam** (ruled M-2 §4). Its OWN sink, not the authority's: this engine
+        #: is a distinct request boundary serving distinct material, and merging the two logs would make
+        #: "which substrate answered" unrecoverable from a record whose whole purpose is cost.
+        self.observations = ObservationSink(observer)
 
     # ── the delegated facts ──────────────────────────────────────────────────────────────────
     @property
@@ -312,18 +325,17 @@ class ColumnarMME:
     def held(self) -> tuple[RetentionKey, ...]:
         """Descriptors of everything held. A descriptor REPORTS the analytical attributes; it is not an
         identity and nothing is looked up by it — a materialization is located by its opaque id."""
-        return tuple([self._descriptor(m) for m in self.materializations.all()] + list(self._store))
+        return tuple(self._descriptor(m) for m in self.materializations.all())
 
     def holdings(self) -> tuple[Retained, ...]:
-        return tuple([Retained(key=self._descriptor(m), value=m.value)
-                      for m in self.materializations.all() if m.has_payload]
-                     + list(self._store.values()))
+        return tuple(Retained(key=self._descriptor(m), value=m.value)
+                     for m in self.materializations.all() if m.has_payload)
 
     def materialization(self, mid: MaterializationId) -> Optional[FamilyMaterialization]:
         return self.materializations.get(mid)
 
     def _descriptor(self, m: FamilyMaterialization) -> RetentionKey:
-        return RetentionKey(sort="family", identity=m.family_id, anchor=m.anchor,
+        return RetentionKey(identity=m.family_id, anchor=m.anchor,
                             instance=m.instance, realization=m.realization,
                             constitution=m.build.reference)
 
@@ -434,30 +446,35 @@ class ColumnarMME:
             realization=self.realization, intent=intent, residency=residency, note=note)
 
     def retain(self, value: Any) -> Retained:
-        if value.point.sort == "family":
-            admission = self.admit(value)
-            if not admission:
-                raise KernelRefusal(admission.code, value.point.identity, admission.detail)
-            return Retained(key=self._descriptor(self.materializations.get(admission.id)), value=value)
-        key = RetentionKey(sort=value.point.sort, identity=value.point.identity,
-                           anchor=value.anchor, instance=value.instance,
-                           realization=self.realization,
-                           constitution=self.authority.witness_of(value.point.identity).digest)
-        retained = Retained(key=key, value=value)
-        self._store[key] = retained
-        return retained
+        """Hold one **governed columnar family value**, and nothing else (ruled M-2 §1).
 
-    def retained(self, sort: str, identity: str, anchor: Anchor,
+        The expression branch that used to be here — and the keyed `_store` it wrote into — are gone. A
+        `ColumnarExpressionOutput` offered here is refused by a governed reason, not by an obscure failure
+        two calls later."""
+        if value.point.sort != "family":
+            raise KernelRefusal(
+                "not-a-family-materialization", str(value.point.identity),
+                f"{value.point} is an EXPRESSION output and this engine manages family materializations "
+                f"only (M-2 §1). There is no expression store here to put it in: MME v1 does not cache "
+                f"`E@A`, and a columnar expression is re-evaluated from a sufficient basis by "
+                f"`columnar.expression.ColumnarExpressionEvaluator`, above this engine.")
+        admission = self.admit(value)
+        if not admission:
+            raise KernelRefusal(admission.code, value.point.identity, admission.detail)
+        return Retained(key=self._descriptor(self.materializations.get(admission.id)), value=value)
+
+    def retained(self, family_id: str, anchor: Anchor,
                  instance: AnalyticalInstance) -> Optional[Retained]:
-        if sort == "family":
-            held = self.materializations.select(identity, anchor=anchor, instance=instance,
-                                                serviceable=True)
-            if not held:
-                return None
-            best = min(held, key=lambda m: (-m.admitted_seq,))
-            return Retained(key=self._descriptor(best), value=best.value)
-        return self._store.get(RetentionKey(sort, identity, anchor, instance, self.realization,
-                                            self.authority.witness_of(identity).digest))
+        """The CURRENT columnar materialization at this point, if one is held.
+
+        **THE `sort` PARAMETER IS GONE** (M-2 §2). It existed to dispatch between two stores; there is one
+        store, and it holds families."""
+        held = self.materializations.select(family_id, anchor=anchor, instance=instance,
+                                            serviceable=True)
+        if not held:
+            return None
+        best = min(held, key=lambda m: (-m.admitted_seq,))
+        return Retained(key=self._descriptor(best), value=best.value)
 
     def candidates(self, family_id: str) -> tuple[Retained, ...]:
         return tuple(Retained(key=self._descriptor(m), value=m.value)
@@ -476,7 +493,17 @@ class ColumnarMME:
 
     # ── serving a family, columnar ───────────────────────────────────────────────────────────
     def measure(self, family_id: str, anchor: Anchor, *, retain: bool = True,
-                data_state: Optional[str] = None) -> Answer:
+                data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
+        """**Serve `F@A` over columnar state — and OBSERVE the request** (ruled M-2 §4/§7).
+
+        Exactly one `RequestObservation` per call, on every path. The columnar engine is where
+        `WANT_OF_STATE` actually arises as a disposition: a fold whose participating domain contains a
+        point with no established value is not a cache miss, and a policy told it was one would try to
+        solve an evidence problem with residency."""
+        started_ns = time.perf_counter_ns()
+        request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
+                                family_id=family_id, target=anchor, data_state=data_state,
+                                on_behalf_of=on_behalf_of)
         family = self.family(family_id)
         law = self.law_of(family_id)
         instance = self.authority.instance_of(family_id)
@@ -488,6 +515,10 @@ class ColumnarMME:
 
         exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
+            observe_request(self.observations, request, started_ns=started_ns, route=CACHED,
+                            disposition=READY,
+                            fulfillment=Fulfillment(directly_held=True, selected=(exact.id,),
+                                                    considered=1))
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
                           considered=(str(self._descriptor(exact)),))
 
@@ -509,6 +540,13 @@ class ColumnarMME:
                 # over the supported remainder. The candidate is not "unreachable" and the point is not
                 # removed from the population — the value is owed and absent.
                 if state.wants_state:
+                    # **NOT A MISS.** The material is here; the VALUE is owed and absent. Recorded as its
+                    # own disposition so a later policy never reads it as cache pressure (§4).
+                    observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                                    refusal_code="want-of-state", disposition=WANT_OF_STATE,
+                                    fulfillment=Fulfillment(selected=(materialization.id,),
+                                                            seeded_from=materialization.anchor,
+                                                            considered=len(considered)))
                     return Answer(route=REFUSED, considered=tuple(considered),
                                   refusal=self._want_of_state(state, anchor))
                 state = self._continue(state, family, law, anchor)
@@ -516,16 +554,30 @@ class ColumnarMME:
                 state = state.with_disclosure(Disclosure(
                     "approximate", f"{law.name} is {law.approximation}; every value served from it "
                                    f"carries that standing"))
+            admitted: tuple[MaterializationId, ...] = ()
             if retain:
                 # the dependency edge, recorded where the continuation happens and nowhere else
                 admission = self.admit(state, establishment=(
                     Establishment(CONTINUED_FROM, (materialization.id,))
                     if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
                 if not admission:
+                    observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                                    refusal_code=admission.code,
+                                    fulfillment=Fulfillment(selected=(materialization.id,),
+                                                            considered=len(considered)))
                     return Answer(route=REFUSED, considered=tuple(considered),
                                   refusal=Refusal(admission.code, f"{family_id}@{anchor}",
                                                   admission.detail))
-            return Answer(route=ROOT if state.anchor == family.root else CONTINUED, value=state,
+                admitted = (admission.id,)
+            route = ROOT if state.anchor == family.root else CONTINUED
+            observe_request(self.observations, request, started_ns=started_ns, route=route,
+                            disposition=READY,
+                            fulfillment=Fulfillment(
+                                directly_held=False, selected=(materialization.id,),
+                                seeded_from=materialization.anchor,
+                                folded=len(candidate.value.index) or None,
+                                considered=len(considered), admitted=admitted))
+            return Answer(route=route, value=state,
                           disclosures=state.disclosures, seeded_from=candidate.key,
                           considered=tuple(considered))
 
@@ -533,11 +585,18 @@ class ColumnarMME:
         for b in blockers:
             if b.code not in best or len(b.detail) > len(best[b.code].detail):
                 best[b.code] = b
-        detail = (" · ".join(f"{b.code} — {b.detail}" for b in
-                             sorted(best.values(), key=lambda b: b.code == "not-reachable"))
+        ordered = sorted(best.values(), key=lambda b: b.code == "not-reachable")
+        detail = (" · ".join(f"{b.code} — {b.detail}" for b in ordered)
                   or f"no columnar state of {family_id} is held under this analytical instance; a value "
                      f"must be established at {family.root} before it can be continued anywhere"
                   ) + self._also_held(family_id)
+        # The miss, and WHICH KIND of miss — NEED (retention would have helped) versus UNSUPPORTED (no
+        # lawful route exists and never will). See the same note in `kernel.mme.measure`.
+        blocking = ordered[0].code if ordered else ""
+        observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                        refusal_code=blocking or "unanswerable",
+                        disposition=(disposition_for(blocking) if blocking else NEED),
+                        fulfillment=Fulfillment(considered=len(considered)))
         return Answer(route=REFUSED, considered=tuple(considered),
                       refusal=Refusal("unanswerable", f"{family_id}@{anchor}", detail))
 
@@ -617,137 +676,10 @@ class ColumnarMME:
         return GovernedBlock.of(state.index, {state.family_id: state.values},
                                 {state.family_id: replace(state.standing, instance=state.instance)})
 
-    # ── evaluating an expression, positionally ───────────────────────────────────────────────
-    def evaluate(self, expression_id: str, anchor: Anchor, *,
-                 basis_id: Optional[str] = None, retain: bool = True,
-                 data_state: Optional[str] = None) -> Answer:
-        expression = self.expression(expression_id)
-        law = self.law_of(expression_id)
-        instance = self.authority.instance_of(expression_id)
-
-        resolution = resolve_pool(self._store.values(), expression_id, instance,
-                                  self.authority.witness_of(expression_id).digest,
-                                  f"{expression_id}@{anchor}", data_state)
-        if resolution.refusal is not None:
-            return Answer(route=REFUSED, refusal=resolution.refusal)
-        exact = next((r for r in resolution.pool
-                      if r.key.anchor == anchor and not r.continuation_bearing), None)
-        if exact is not None:
-            return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures)
-
-        routes = ([b for b in expression.admitted_bases if b.basis_id == basis_id]
-                  if basis_id else list(expression.admitted_bases))
-        if not routes:
-            return Answer(route=REFUSED, refusal=Refusal(
-                "no-admitted-basis", f"{expression_id}@{anchor}",
-                "this expression admits no sufficient basis: well-formed and not evaluable."))
-
-        failures = []
-        for basis in routes:
-            attempt = self._establish(expression, law, basis, anchor, data_state)
-            if attempt.served:
-                if retain:
-                    self.retain(attempt.value)
-                return Answer(route=EVALUATED, value=attempt.value,
-                              disclosures=attempt.value.disclosures, seeded_from=basis.basis_id)
-            # the INNER code rides in the wrapped detail: a caller branching on "why did every
-            # route fail" needs the per-route code, not only the outer one.
-            failures.append(f"basis {basis.basis_id!r} [{attempt.refusal.code}]: "
-                            f"{attempt.refusal.detail}")
-        return Answer(route=REFUSED, refusal=Refusal(
-            "no-sufficient-basis-establishes", f"{expression_id}@{anchor}",
-            " | ".join(failures) + ". Physical availability is not analytical authority."))
-
-    def _establish(self, expression: GovernedExpression, law, basis, anchor: Anchor,
-                   data_state: Optional[str] = None) -> Answer:
-        subject = f"{expression.expression_id}@{anchor} via {basis.basis_id}"
-        states: dict[str, ColumnarFamilyState] = {}
-        for role in basis.component_laws:
-            served = self.measure(basis.components[role], anchor, data_state=data_state)
-            if not served.served:
-                return Answer(route=REFUSED, refusal=Refusal(
-                    "role-unfilled", subject,
-                    f"role {role!r} is filled by {basis.components[role]!r}, which cannot be served at "
-                    f"{anchor}: {served.refusal.detail}"))
-            states[role] = served.value
-
-        # ── ALIGNMENT AND COMPATIBILITY, BOTH BEFORE ANY ARITHMETIC ──────────────────────
-        roles = list(states)
-        reference = states[roles[0]]
-        for role in roles[1:]:
-            other = states[role]
-            if reference.index.identity != other.index.identity:
-                return Answer(route=REFUSED, refusal=Refusal(
-                    "layouts-differ", subject,
-                    f"roles {roles[0]!r} and {role!r} are laid out on different coordinate indexes "
-                    f"({reference.index.identity} vs {other.index.identity}). A positional kernel needs "
-                    f"one layout, and this path will NOT discover the correspondence by joining the two "
-                    f"columns on their coordinate values — that would be relational discovery of "
-                    f"analytical alignment. An explicit alignment against a governed target index is the "
-                    f"lawful remedy."))
-            if basis.requires_common_participation:
-                agreement = reference.instance.compatible_with(other.instance)
-                if not agreement:
-                    return Answer(route=REFUSED, refusal=Refusal(
-                        "incompatible-basis", subject,
-                        f"roles {roles[0]!r} and {role!r} are position-aligned on ONE coordinate index and "
-                        f"are not jointly usable [{agreement.code}]: {agreement.detail}. **THE ARITHMETIC "
-                        f"HAS NOT RUN.** Both columns are present, the same length, and perfectly "
-                        f"aligned; what is missing is analytical authority to combine them, and no amount "
-                        f"of physical readiness supplies it."))
-
-        # ── AND ONLY THEN: IS EVERY REQUIRED OPERAND ESTABLISHED OVER ITS DOMAIN? ─────────
-        # Deliberately AFTER compatibility: authority to combine two columns is prior to the evidence
-        # for their values, so a jointly-unusable basis refuses on participation even when it also
-        # wants state. What this check catches is the basis that is lawful and still not computable —
-        # *"AOV refuses because one required basis operand is not established."* (2026-09-29)
-        for role, state in states.items():
-            if state.wants_state:
-                return Answer(route=REFUSED, refusal=Refusal(
-                    "basis-operand-wants-state", subject,
-                    f"role {role!r} is filled by {state.family_id!r}, which has want of state at "
-                    f"{[list(p) for p in state.points_wanting_state()]}: those points participate and the "
-                    f"value this basis requires of them is not established. **THE ARITHMETIC HAS NOT "
-                    f"RUN.** One required basis operand is not established, so the expression is refused — "
-                    f"it is NOT evaluated over the subset of points whose operands happen to be supported, "
-                    f"and the other role(s) "
-                    f"{[r for r in states if r != role]} are unaffected in their own right: a population "
-                    f"operand still counts every participating point. Establish the missing value, or "
-                    f"admit a basis that does not require it."))
-
-        kernel = "ratio" if law.name == "MEAN" else "hll_estimate"
-        values = self.provider.evaluate_positional(
-            {role: states[role].values for role in states}, kernel=kernel)
-        # attributed to the operands' evidence state where they agree on one; to none where they do not
-        operand_states = {st.instance.data_state for st in states.values()}
-        attributed = operand_states.pop() if len(operand_states) == 1 else UNSTATED_DATA_STATE
-        output = ColumnarExpressionOutput(
-            expression_id=expression.expression_id,
-            anchor_instance=AnchorInstance(index=reference.index,
-                                           instance=self.authority.instance_of(
-                                               expression.expression_id
-                                           ).with_data_state(attributed)),
-            values=values, constructor=law.name, basis_id=basis.basis_id)
-        for state in states.values():
-            for d in state.disclosures:
-                output = output.with_disclosure(d)
-        undefined = values.null_count
-        if undefined:
-            output = output.with_disclosure(Disclosure(
-                "undefined-on-basis",
-                f"{undefined} position(s) carry no value: the basis is established there and the "
-                f"expression is UNDEFINED on it (ToD v8 §4.3). Distinct from absent and from zero — and "
-                f"note that this null is PRODUCED BY THE KERNEL as a governed standing, not read as one."))
-        if any(s.value_form == STRUCTURED for s in states.values()):
-            params = {role: sketch_parameters(s.values[0].as_py())
-                      for role, s in states.items() if s.value_form == STRUCTURED
-                      and len(s.values) and s.values[0].as_py() is not None}
-            if params:
-                output = output.with_disclosure(Disclosure(
-                    "sketch-parameters",
-                    f"finalized from structured state with parameters {params}. Sketch parameters are "
-                    f"COMPATIBILITY-BEARING: two sketches of different lg_k are not mergeable."))
-        return Answer(route=EVALUATED, value=output)
-
+    # ── evaluating an expression — NOT HERE ANY MORE ─────────────────────────────────────────
+    #
+    # `evaluate` and `_establish` moved OUT in M-2, to `columnar.expression.ColumnarExpressionEvaluator`.
+    # Ruled §1: expressions *"consume family state supplied by MME and are evaluated above it."* No
+    # delegating shim is left behind — see the same note in `kernel.mme`, and for the same reason.
 
 __all__ = ["ColumnarExpressionOutput", "ColumnarFamilyState", "ColumnarMME"]

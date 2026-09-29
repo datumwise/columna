@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import pyarrow as pa
 
+from columna_platform.kernel.mme import Retained, RetentionKey
 from columna_platform.kernel import (
     MME,
     REGISTRY,
@@ -54,6 +55,7 @@ from columna_platform.kernel.exhibit import COMMERCE
 
 from .block import GovernedBlock
 from .index import CoordinateIndex
+from .expression import ColumnarExpressionEvaluator
 from .mme import ColumnarExpressionOutput, ColumnarMME
 from .provider import sketch_of, sketch_parameters
 from .standing import POPULATION, VALUE_BEARING, standing
@@ -319,13 +321,13 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"\n  Revenue    @ {BY_DAY}   REFUSED [{rev.refusal.code}]")
     print(f"      {rev.refusal.detail}")
 
-    aov_refused = mme.evaluate("average_order_value", BY_DAY)
+    aov_refused = ColumnarExpressionEvaluator(mme).evaluate("average_order_value", BY_DAY)
     print(f"\n  AOV        @ {BY_DAY}   REFUSED [{aov_refused.refusal.code}]")
     print(f"      {aov_refused.refusal.detail}")
 
     # At the ROOT anchor both operands are already held, so no continuation intervenes and the refusal
     # is the expression path's own: the basis is lawful, aligned, compatible — and not established.
-    aov_at_root = mme.evaluate("average_order_value", SALE_AT)
+    aov_at_root = ColumnarExpressionEvaluator(mme).evaluate("average_order_value", SALE_AT)
     print(f"\n  AOV        @ {SALE_AT}   REFUSED [{aov_at_root.refusal.code}]")
     print(f"      {aov_at_root.refusal.detail}")
 
@@ -362,7 +364,7 @@ def main() -> int:                                          # noqa: C901 - an ex
           _refuses_cell_at_want_of_state(mme))
     check("the held state DISCLOSES the want of state rather than hiding it",
           any(d.code == "want-of-state" for d in
-              mme.retained("family", "revenue", SALE_AT,
+              mme.retained("revenue", SALE_AT,
                            mme.authority.instance_of("revenue")).value.disclosures))
     check("the same column with the amount supplied serves — ONE support bit apart",
           settled.measure("revenue", BY_DAY, retain=False).served)
@@ -405,7 +407,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     # ══ 2 + A · POSITIONAL EXPRESSION, NO JOIN ═══════════════════════════════════════════════════
     _rule("PROOF 2 · Revenue / OrderCount evaluated POSITIONALLY at one anchor — no join "
           "[SETTLED world]")
-    aov_day = settled.evaluate("average_order_value", BY_DAY)
+    aov_day = ColumnarExpressionEvaluator(settled).evaluate("average_order_value", BY_DAY)
     _show(aov_day.value, f"average_order_value @ {BY_DAY}   route={aov_day.route} "
                          f"via {aov_day.seeded_from}", render=lambda v: f"{v:.4f}")
     print(f"\n  both operand columns share ONE coordinate index "
@@ -436,7 +438,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"  audited_order_count @ {BY_DAY}  available, {len(aud_state.values)} positions, "
           f"index {aud_state.index.identity}")
     print(f"  SAME LAYOUT: {rev_state.index.identity == aud_state.index.identity}")
-    refused = settled.evaluate("average_order_value_audited", BY_DAY)
+    refused = ColumnarExpressionEvaluator(settled).evaluate("average_order_value_audited", BY_DAY)
     print(f"\n  average_order_value_audited @ {BY_DAY}")
     print(f"      REFUSED [{refused.refusal.code}]")
     print(f"      {refused.refusal.detail}")
@@ -507,17 +509,25 @@ def main() -> int:                                          # noqa: C901 - an ex
     print(f"\n  sketch parameters (COMPATIBILITY-BEARING): "
           f"{sketch_parameters(sketch_day.value.cell(('D1',)))}")
 
-    est = mme.evaluate("distinct_customer_estimate", BY_DAY)
+    est = ColumnarExpressionEvaluator(mme).evaluate("distinct_customer_estimate", BY_DAY)
     _show(est.value, f"\n  distinct_customer_estimate @ {BY_DAY}   route={est.route} "
                      f"via {est.seeded_from}")
     truth = {"D1": len({o["customer"] for o in ORDERS if o["day"] == "D1"}),
              "D2": len({o["customer"] for o in ORDERS if o["day"] == "D2"})}
     print(f"      true distinct customers: {truth}")
 
-    held = mme.retained("expression", "distinct_customer_estimate", BY_DAY,
-                        mme.authority.instance_of("distinct_customer_estimate"))
-    verdict = mme.adjudicate(held, mme.family("distinct_customers"), BY_DAY)
-    print(f"\n  may the estimate column seed the sketch family?  "
+    # **THE ESTIMATE IS NOT HELD ANYWHERE** (M-2 §1): there is no expression cache in v1, so the only
+    # way this column can reach `adjudicate` is by a caller handing it in from ABOVE. It is refused there
+    # by the same governed verdict it was refused by when it lived in a store.
+    from_above = Retained(key=RetentionKey(identity="distinct_customer_estimate", anchor=BY_DAY,
+                                           instance=est.value.instance,
+                                           realization=mme.realization),
+                          value=est.value)
+    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), BY_DAY)
+    print(f"\n  is the estimate column held by the MME?  "
+          f"{any(k.identity == 'distinct_customer_estimate' for k in mme.held)}  "
+          f"(v1 has no expression cache)")
+    print(f"  offered from above, may it seed the sketch family?  "
           f"{'ADMITTED' if verdict else 'REFUSED'} [{verdict.code}]")
 
     check("the sketch column is Arrow BINARY and the family value is the SKETCH",
@@ -530,7 +540,9 @@ def main() -> int:                                          # noqa: C901 - an ex
           est.value.cell(("D1",)) == truth["D1"] and est.value.cell(("D2",)) == truth["D2"])
     check("sketch parameters are readable from the value and carried as a disclosure",
           any(d.code == "sketch-parameters" for d in est.value.disclosures))
-    check("the estimate has NO family continuation path",
+    check("the estimate is NOT held by the MME — family materializations only (M-2 §1)",
+          all(k.identity != "distinct_customer_estimate" for k in mme.held))
+    check("offered from above, it has NO family continuation path",
           (not verdict) and verdict.code == "not-continuation-bearing")
     check("a sketch column never displays an estimate through formatting",
           "⟨sketch:" in _sketch_block(mme, sketch_day.value).render()
@@ -627,7 +639,7 @@ def _refuses_support_without_a_value(mme: ColumnarMME) -> bool:
 
 def _refuses_cell_at_want_of_state(mme: ColumnarMME) -> bool:
     """There is no value to read at a point whose required value is not established."""
-    held = mme.retained("family", "revenue", SALE_AT, mme.authority.instance_of("revenue"))
+    held = mme.retained("revenue", SALE_AT, mme.authority.instance_of("revenue"))
     try:
         held.value.cell(UNSUPPORTED_POINT)
     except KernelRefusal as exc:

@@ -8,7 +8,9 @@ columna_platform.columnar — **the MME's columnar data plane: Arrow carriage, D
     standing   governed participation/support masks, carried INDEPENDENTLY of Arrow nullability
     block      `GovernedBlock` — a physical container, never analytical identity
     provider   Arrow kernels + DataFusion grouped reduction + the HLL union UDAF. No SQL, no join
-    mme        `ColumnarMME` — delegates every authority question to `kernel.MME.adjudicate`
+    mme        `ColumnarMME` — delegates every authority question to `kernel.MME.adjudicate`.
+               **FAMILY MATERIALIZATIONS ONLY** (M-2)
+    expression `ColumnarExpressionEvaluator` — ABOVE the MME; consumes family state, evaluates `E@A`
     exhibit    the runnable proof
 
     THE PHYSICAL RULE   the MME does not discover analytical alignment by joining analytical tables.
@@ -23,6 +25,7 @@ from __future__ import annotations
 
 from .block import GovernedBlock, value_column_name
 from .index import AnchorInstance, CoordinateIndex
+from .expression import ColumnarExpressionEvaluator
 from .mme import ColumnarExpressionOutput, ColumnarFamilyState, ColumnarMME
 from .provider import (
     AlignmentReport,
@@ -37,7 +40,8 @@ from .provider import (
 from .standing import ColumnStanding, POPULATION, VALUE_BEARING, mask, standing
 
 __all__ = ["AlignmentReport", "AnchorInstance", "COLUMN_STANDING_SHAPES", "ColumnStanding",
-           "ColumnarExpressionOutput", "ColumnarFamilyState", "ColumnarMME", "ColumnarProvider",
+           "ColumnarExpressionEvaluator", "ColumnarExpressionOutput", "ColumnarFamilyState",
+           "ColumnarMME", "ColumnarProvider",
            "ContinuationResult", "CoordinateIndex", "GovernedBlock", "HLL_PRECISION", "POPULATION",
            "PROVIDER_NAME", "VALUE_BEARING", "estimate_of", "mask", "sketch_of", "sketch_parameters",
            "standing", "value_column_name"]

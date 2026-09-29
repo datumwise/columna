@@ -38,6 +38,7 @@ from columna_platform.kernel import (
     STRUCTURED,
     Anchor,
     Disclosure,
+    ExpressionEvaluator,
     KernelRefusal,
     MME,
     Refusal,
@@ -163,10 +164,20 @@ class Outcome:
 
 
 class FrameQLService:
-    """**The serving path.** One constituted MME, and Frame-QL text in."""
+    """**The serving path.** One constituted MME, one expression evaluator above it, and Frame-QL text in.
 
-    def __init__(self, mme: MME) -> None:
+    **THE TWO COLLABORATORS ARE TWO, AND THAT IS M-2** (ruled 2026-09-29 §1, §6). Platform serving supports
+    expressions exactly as fully as it did before; what changed is that it no longer gets them from the
+    MME. A family column is answered by `MME.measure` and an expression column by
+    `ExpressionEvaluator.evaluate`, and the evaluator reaches the MME for its operands — never the other
+    way round. The service is the smallest thing that stands where §6's **Fulfillment Coordinator** will
+    eventually stand: the one place that knows about both."""
+
+    def __init__(self, mme: MME, evaluator: Optional[ExpressionEvaluator] = None) -> None:
         self.mme = mme
+        #: Constructed over the engine, not obtained from it. An injected one is accepted so that a caller
+        #: with a different evaluation strategy can supply it without subclassing the service.
+        self.expressions = evaluator or ExpressionEvaluator(mme)
 
     # ── the whole path ───────────────────────────────────────────────────────────────────────
     def serve(self, query: str) -> Outcome:
@@ -222,7 +233,9 @@ class FrameQLService:
     def _serve_one(self, token: str, sort: str, anchor: Anchor) -> Answer:
         if sort == "family":
             return self.mme.measure(self.mme.family(token), anchor)
-        return self.mme.evaluate(self.mme.expression(token), anchor)
+        # **ABOVE the MME, and asked of a different object.** The dispatch was already by SORT and never
+        # by inspecting what came back; M-2 only changes who the second branch talks to.
+        return self.expressions.evaluate(self.mme.expression(token), anchor)
 
     def _frame(self, request: PlatformRequest, anchor: Anchor, sorts: dict,
                answers: dict) -> Frame:
@@ -283,7 +296,8 @@ class FrameQLService:
             else:
                 expression = self.mme.expression(s.token)
                 plan.append(f"{s.token}: GOVERNED EXPRESSION, constructor={expression.constructor} "
-                            f"→ MME.evaluate()")
+                            f"→ ExpressionEvaluator.evaluate() (ABOVE the MME; its operands come "
+                            f"from MME.measure)")
                 for basis in expression.admitted_bases:
                     roles = ", ".join(f"{r}→{f}" for r, f in sorted(basis.components.items()))
                     plan.append(f"    basis {basis.basis_id}: {roles}"

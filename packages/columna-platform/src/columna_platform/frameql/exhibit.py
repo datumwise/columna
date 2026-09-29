@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from columna_platform.kernel import exhibit as WORLD
 from columna_platform.kernel.exhibit import BY_DAY
+from columna_platform.kernel.mme import Retained, RetentionKey
 
 from .serving import (
     DISCLOSE,
@@ -78,15 +79,29 @@ def main() -> int:                                          # noqa: C901 - an ex
     sketch = run("SELECT distinct_customers AT {day}")
     estimate = run("SELECT distinct_customer_estimate AT {day}")
 
-    print("  the user asked for the ESTIMATE. It is now cached. Ask the MME whether it may seed the "
-          "sketch family:")
-    expression = mme.expression("distinct_customer_estimate")
-    held = mme.retained(expression.at(BY_DAY), expression.instance())
-    verdict = mme.adjudicate(held, mme.family("distinct_customers"), BY_DAY)
-    print(f"    held:     {held.key}   continuation_bearing={held.continuation_bearing}")
+    print("  the user asked for the ESTIMATE. **It is not cached — MME v1 has no expression cache**")
+    print("  (M-2 §1). It was evaluated above the engine from family state the engine supplied. Offer")
+    print("  its scalar back to the MME as continuation state and see what happens:")
+    served_estimate = estimate.frame.columns[0]
+    from_above = Retained(
+        key=RetentionKey(identity="distinct_customer_estimate", anchor=BY_DAY,
+                         instance=mme.expression("distinct_customer_estimate").instance(),
+                         realization=mme.realization),
+        value=service.expressions.evaluate(
+            mme.expression("distinct_customer_estimate"), BY_DAY).value)
+    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), BY_DAY)
+    print(f"    held by the MME?  "
+          f"{any(k.identity == 'distinct_customer_estimate' for k in mme.held)}")
+    print(f"    offered from above: continuation_bearing={from_above.continuation_bearing}")
     print(f"    verdict:  {'ADMITTED' if verdict else 'REFUSED'} [{verdict.code}]")
     print(f"              {verdict.detail}\n")
 
+    check("the estimate is NOT held by the MME — family materializations only (M-2 §1)",
+          all(k.identity != "distinct_customer_estimate" for k in mme.held))
+    check("offered from above it is refused as continuation state, by a governed verdict",
+          (not verdict) and verdict.code == "not-continuation-bearing")
+    check("and Platform serving supported the expression fully all the same",
+          served_estimate.route == "evaluated")
     check("the sketch family serves and CONTINUES", sketch.frame.columns[0].route == "continued")
     check("its served value is a sketch, not a number",
           hasattr(sketch.frame.rows[0][1], "get_estimate"))
@@ -103,9 +118,8 @@ def main() -> int:                                          # noqa: C901 - an ex
               for d in sketch.disclosures))
     check("both asks carry the approximation as a DISCLOSURE",
           sketch.classification == DISCLOSE and estimate.classification == DISCLOSE)
-    check("the estimate's scalar is NOT continuation-bearing", not held.continuation_bearing)
-    check("and is REFUSED as family continuation state",
-          (not verdict) and verdict.code == "not-continuation-bearing")
+    check("the estimate's scalar is NOT continuation-bearing",
+          not from_above.continuation_bearing)
 
     # ══ 3 · GOVERNED EXPRESSION ══════════════════════════════════════════════════════════════════
     _rule("PROOF 3 · governed expression — AOV over Revenue + OrderCount, pooled correctly")
