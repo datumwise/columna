@@ -141,7 +141,7 @@ def test_no_rule_requires_a_basis_component_to_be_formed_by_the_component_law():
     from columna_platform.kernel import GovernedExpression, Operand, SufficientBasis
 
     swapped = mme.register_expression(GovernedExpression(
-        expression_id="ratio_by_identity", universe="commerce", constructor="MEAN",
+        expression_id="ratio_by_identity", manifold=WORLD.MANIFOLD, universe="commerce", constructor="MEAN",
         operands=(Operand("operand", "revenue"),), participation=WORLD.PARTICIPATION,
         admitted_bases=(SufficientBasis(
             "b_identities", {"SUM": "revenue", "COUNT": "order_count"}, True),)))
@@ -426,7 +426,7 @@ def test_a_realization_limit_reaches_the_caller_as_UNSUPPORTED_not_as_a_refusal(
     from columna_platform.kernel import MME, REGISTRY
     from columna_platform.kernel.builtins import NO_MEAN
 
-    mme = MME(WORLD.COMMERCE, REGISTRY, NO_MEAN)
+    mme = MME(WORLD.COMMERCE, REGISTRY, NO_MEAN, manifold=WORLD.MANIFOLD)
     revenue, order_count, *_ = WORLD._families()
     mme.register_family(revenue)
     mme.register_family(order_count)

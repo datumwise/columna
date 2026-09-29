@@ -28,6 +28,11 @@ from __future__ import annotations
 from .builtins import IN_MEMORY, KNOWN_EMPTY, LAWS, NO_MEAN, REGISTRY, hll_rse, witness_value
 from .geometry import Anchor, Constituent, Edge, KernelRefusal, Universe
 from .law import (
+    ADDITION,
+    LATEST_BY_ORDER,
+    MAXIMUM,
+    MINIMUM,
+    SKETCH_UNION,
     AnalyticalLaw,
     Composition,
     ContinuationRegion,
@@ -67,6 +72,7 @@ __all__ = [
     "Anchor", "Constituent", "Edge", "KernelRefusal", "Universe",
     "AnalyticalLaw", "Composition", "ContinuationRegion", "LawRegistry", "RequiredBasis",
     "MAP", "REDUCER", "ORDERED", "SCALAR", "STRUCTURED", "ORDERED_WITNESS",
+    "ADDITION", "SKETCH_UNION", "LATEST_BY_ORDER", "MINIMUM", "MAXIMUM",
     "ProviderProfile", "Realization",
     "AnalyticalInstance", "Compatibility", "Disclosure", "Refusal",
     "ROOT", "CONTINUED", "CACHED", "EVALUATED", "REFUSED",

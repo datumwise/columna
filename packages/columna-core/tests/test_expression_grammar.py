@@ -567,8 +567,26 @@ _SELECT = re.compile(r"\bSELECT\b", re.IGNORECASE)
 _STATEMENT_LITERAL = re.compile(
     r"""(?<![A-Za-z0-9_])(?:r|b|rb|br)?(['"]{1,3})((?:FROM|SELECT|EXPLAIN|WITH)\b.*?)\1""",
     re.DOTALL | re.IGNORECASE)
+#: A TWO-ARGUMENT `.column("name", "expression")` call, and the harvest takes the SECOND string.
+#:
+#: **CORRECTED 2026-09-29, and the defect it had was not cosmetic.** This pattern used to carry
+#: `re.DOTALL` with `(?:.*?)` for the first argument, which let one `.column(` call pair with a string
+#: literal ANY distance further down the same file — including one in an unrelated function. Measured
+#: over `packages/` at the time of the fix: **15 of 56 harvested "expressions" from this branch were
+#: accidental cross-pairings** (`'O7'`, `'error'`, `'disclose'`, `'engine'`, `'store'`, `'{LH.STORE_COLUMN}'`
+#: …). The suite passed anyway, because almost all of that junk happens to parse as a bare identifier —
+#: so the corpus was quietly ~27% noise and the test was proving less than it claimed.
+#:
+#: It surfaced when a Platform test file produced junk that does NOT parse: a `.column("revenue")` call
+#: paired with `"PROOF 2 ·"` forty lines below it, and four corpus tests failed on a "Frame-QL expression"
+#: that was a section heading.
+#:
+#: Now each argument is delimited by its own quote character, may not contain that character, and may not
+#: cross a newline — which is what "a two-argument call" actually means. `(?!\1)` is what keeps
+#: `"cumsum(revenue.sum, by='day')"` harvested: the inner single quotes are lawful inside a double-quoted
+#: argument, and only the delimiter is excluded.
 _COLUMN_CALL = re.compile(
-    r"""\.column\(\s*(?:r)?(['"])(?:.*?)\1\s*,\s*(?:r)?(['"])(.*?)\2""", re.DOTALL)
+    r"""\.column\(\s*(?:r)?(['"])(?:(?!\1)[^\n])*\1\s*,\s*(?:r)?(['"])((?:(?!\2)[^\n])*)\2""")
 _DERIVED = re.compile(r"^\s*DERIVED\s+\w+\s*=\s*(.+?)\s*$", re.MULTILINE)
 
 

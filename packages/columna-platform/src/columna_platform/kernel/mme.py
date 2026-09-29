@@ -46,7 +46,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional
 
-from .geometry import Anchor, Universe
+from .geometry import Anchor, KernelRefusal, Universe
 from .law import AnalyticalLaw, LawRegistry, STRUCTURED
 from .realization import ProviderProfile
 from .sorts import (
@@ -124,7 +124,13 @@ class Adequacy:
 class MME:
     """The engine. In-memory, single provider profile, conservative invalidation."""
 
-    def __init__(self, universe: Universe, laws: LawRegistry, provider: ProviderProfile) -> None:
+    def __init__(self, universe: Universe, laws: LawRegistry, provider: ProviderProfile, *,
+                 manifold: str = "default") -> None:
+        # **ONE MME PER MANIFOLD JURISDICTION.** A logical rule, not a deployment one: this engine may
+        # share its process, its provider and its store with any number of others. What it may not share
+        # is authority, so it refuses to register an object belonging to another Manifold — the accident
+        # the ruling is against is one runtime holding two worlds that use the same family name.
+        self.manifold = manifold
         self.universe, self.laws, self.provider = universe, laws, provider
         self._families: dict[str, MeasureFamily] = {}
         self._expressions: dict[str, GovernedExpression] = {}
@@ -136,14 +142,32 @@ class MME:
         """**Where ToD v8 §9.2 is enforced, by refusing to construct rather than by gating later.**
         `MeasureFamily.bind` raises for a law with no continuation, so a Mean family is not a reachable
         state of this engine."""
+        self._require_own(family.manifold, family.family_id)
         self._bound[family.family_id] = family.bind(self.laws)
         self._families[family.family_id] = family
         return family
 
     def register_expression(self, expression: GovernedExpression) -> GovernedExpression:
+        self._require_own(expression.manifold, expression.expression_id)
         self._bound[expression.expression_id] = expression.bind(self.laws, self._families)
         self._expressions[expression.expression_id] = expression
         return expression
+
+    def _require_own(self, manifold: str, identity: str) -> None:
+        if manifold != self.manifold:
+            raise KernelRefusal(
+                "foreign-manifold", identity,
+                f"belongs to Manifold {manifold!r} and this MME is the jurisdiction of "
+                f"{self.manifold!r}. A governed analytical object belongs to exactly one Manifold; "
+                f"registering it here would put one identity under two authorities.")
+
+    def instance_of(self, identity: str) -> Any:
+        """The analytical instance of a registered object — **stamped with this engine's Manifold.**
+
+        The single place an instance is obtained, so no caller can construct one that forgets which
+        jurisdiction it belongs to."""
+        obj = self._families.get(identity) or self._expressions[identity]
+        return obj.instance()
 
     def family(self, family_id: str) -> MeasureFamily:
         return self._families[family_id]

@@ -40,14 +40,35 @@ class AnalyticalInstance:
 
     `constitution` is an opaque witness of the governed constitution the state was formed under — a
     digest, a publication version, anything the authoring side can make stable. It is compared and never
-    interpreted, which is what keeps this kernel free of a serialization format it does not yet have."""
+    interpreted, which is what keeps this kernel free of a serialization format it does not yet have.
 
+    **`manifold` IS FIRST AND IS CHECKED FIRST** (ruled Huayin, 2026-09-28): *"One Columna installation
+    supports many Manifolds… Each Manifold has its own MME jurisdiction… Shared infrastructure does not
+    imply shared analytical authority. A family, expression, analytical instance, retained state, cache,
+    or compatibility judgment belongs to exactly one Manifold unless an explicit cross-Manifold governed
+    bridge says otherwise."*
+
+    It lives HERE, on the combinability witness, rather than only on the engine — because the danger is
+    not two engines, it is one shared Arrow/DataFusion runtime under two Manifolds that happen to use the
+    same family name. Putting the Manifold on the instance makes such states **different retained
+    objects** and makes their combination a refusal, by the same mechanism that already separates two
+    participations. Cross-Manifold composition is then an explicit governed crossing and cannot happen
+    incidentally."""
+
+    manifold: str
     universe: str
     participation: str
     constitution: str
     scope: Optional[str] = None
 
     def compatible_with(self, other: "AnalyticalInstance") -> "Compatibility":
+        if self.manifold != other.manifold:
+            return Compatibility(
+                False, "different-manifold",
+                f"{self.manifold!r} vs {other.manifold!r}. Each Manifold owns its own MME jurisdiction, "
+                f"and shared infrastructure does not imply shared analytical authority. Composing across "
+                f"Manifolds is an EXPLICIT governed crossing — it is not an incidental consequence of one "
+                f"runtime, one store, or two worlds choosing the same name")
         if self.universe != other.universe:
             return Compatibility(False, "different-universe",
                                  f"{self.universe!r} vs {other.universe!r}: two worlds' values are "
