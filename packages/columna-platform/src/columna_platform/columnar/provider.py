@@ -49,6 +49,9 @@ from datafusion import functions as DF
 from datasketches import hll_sketch, hll_union, tgt_hll_type
 
 from columna_platform.kernel import ADDITION, KernelRefusal, SKETCH_UNION
+from columna_platform.kernel.law import SCALAR, STRUCTURED
+
+from .capability import GROUPED, POSITIONAL, CapabilityTable, ExecutionCapability
 
 from .block import GovernedBlock, value_column_name
 from .index import CoordinateIndex
@@ -143,13 +146,75 @@ class AlignmentReport:
     note: str
 
 
+# ── the positional kernels, as callables this provider OWNS ──────────────────────────────────────
+#
+# These were `"ratio"` and `"hll_estimate"`, two strings the governed evaluator chose between (E-X's
+# finding). They are now functions in the provider's own capability table, reached by GOVERNED law name.
+# Nothing above `ColumnarProvider` can name them, and adding a third edits this file rather than the
+# evaluator — which is the division E-1 exists to restore.
+def _ratio(columns: Mapping[str, pa.Array], parameters: Mapping[str, Any]) -> pa.Array:
+    """`MEAN`'s constructor: SUM / COUNT, position-wise.
+
+    Divides where the divisor is non-zero and yields null elsewhere — §4.3's *undefined on that basis*,
+    which the kernel layer turns into a governed standing rather than a zero. Fully Arrow-native: one
+    kernel chain for the whole column, no Python iteration."""
+    numerator, denominator = columns["SUM"], columns["COUNT"]
+    safe = pc.if_else(pc.equal(denominator, 0), pa.nulls(len(denominator), pa.int64()), denominator)
+    return pc.divide(pc.cast(numerator, pa.float64()), pc.cast(safe, pa.float64()))
+
+
+def _hll_estimate(columns: Mapping[str, pa.Array], parameters: Mapping[str, Any]) -> pa.Array:
+    """`HLL_ESTIMATE`'s constructor: the FINALIZER for a structured sketch family.
+
+    Declared with `value_form_in=STRUCTURED, value_form_out=SCALAR`, which is what makes
+    `ExecutionCapability.finalizes` true of it and what forbids it ever being declared as a `GROUPED`
+    capability. **Still a Python comprehension over cells** — E-X step 3 is where that changes, and E-1
+    deliberately does not touch it."""
+    sketches = columns["HLL_SKETCH"]
+    return pa.array([None if v.as_py() is None else estimate_of(v.as_py()) for v in sketches],
+                    type=pa.int64())
+
+
 class ColumnarProvider:
-    """Arrow for carriage, DataFusion for grouped reduction, Arrow compute for positional kernels."""
+    """Arrow for carriage, DataFusion for grouped reduction, Arrow compute for positional kernels.
+
+    **What it can execute is DECLARED, not discovered by trying** (ruled E-1). `self.capabilities` is a
+    `CapabilityTable` keyed by `(execution mode, governed operation)`; every dispatch below is a lookup in
+    it, and there is no `if composition == …` or `if kernel == …` left anywhere in this class."""
 
     name = PROVIDER_NAME
 
     def __init__(self) -> None:
         self.ctx = SessionContext()
+        #: **THE DECLARED TABLE.** Built per instance because `execute` for a grouped capability is this
+        #: provider's own aggregate handle, and a future provider will hold different ones.
+        self.capabilities = CapabilityTable(PROVIDER_NAME, (
+            ExecutionCapability(
+                mode=GROUPED, operation=ADDITION, execute=DF.sum,
+                value_form_in=SCALAR, value_form_out=SCALAR,
+                note="DataFusion's native sum, grouped by the target anchor's coordinate columns"),
+            ExecutionCapability(
+                mode=GROUPED, operation=SKETCH_UNION, execute=HLL_MERGE_UDAF,
+                value_form_in=STRUCTURED, value_form_out=STRUCTURED,
+                note="a governed HLL-union UDAF; sketches fold into a SKETCH and are never finalized here"),
+            ExecutionCapability(
+                mode=POSITIONAL, operation="MEAN", execute=_ratio,
+                value_form_in=SCALAR, value_form_out=SCALAR,
+                note="Arrow pc.divide with an explicit zero-divisor guard yielding null, not zero"),
+            ExecutionCapability(
+                mode=POSITIONAL, operation="HLL_ESTIMATE", execute=_hll_estimate,
+                value_form_in=STRUCTURED, value_form_out=SCALAR,
+                note="the finalizer: a structured sketch becomes a displayable integer, ABOVE the MME"),
+        ))
+
+    # ── capability discovery, without executing anything ─────────────────────────────────────
+    def capability(self, mode: str, operation: str) -> ExecutionCapability:
+        """What this provider would use for `(mode, operation)`, or the governed refusal."""
+        return self.capabilities.of(mode, operation)
+
+    def realizes(self, mode: str, operation: str) -> bool:
+        """**Asked before work, and it never raises.** The columnar peer of `ProviderProfile.realizes`."""
+        return self.capabilities.realizes(mode, operation)
 
     # ── grouped continuation ─────────────────────────────────────────────────────────────────
     def continue_grouped(self, block: GovernedBlock, family_id: str, *, composition: str,
@@ -200,7 +265,10 @@ class ColumnarProvider:
         payload = pa.RecordBatch.from_arrays(
             list(arrays.values()) + [values], names=target_refs + ["v"])
         frame = self.ctx.create_dataframe([[payload]])
-        aggregate = self._aggregate_for(composition)
+        # **THE ONLY DISPATCH, AND IT IS A TABLE LOOKUP.** The refusal for an unrealized composition comes
+        # from the table and still says *"the law is unchanged"* — a provider's inability never removes a
+        # law (ToD v8 §4.1).
+        aggregate = self.capability(GROUPED, composition).execute
         grouped = frame.aggregate([col(r) for r in target_refs],
                                   [aggregate(col("v")).alias("folded")])
         batches = grouped.collect()
@@ -227,17 +295,6 @@ class ColumnarProvider:
                      "domain was established — it is EARNED here, not assumed"),
             route=tuple(route))
 
-    @staticmethod
-    def _aggregate_for(composition: str):
-        if composition == ADDITION:
-            return DF.sum
-        if composition == SKETCH_UNION:
-            return HLL_MERGE_UDAF
-        raise KernelRefusal(
-            "unrealized-composition", PROVIDER_NAME,
-            f"composition {composition!r} has no columnar realization in provider {PROVIDER_NAME!r}. The "
-            f"law is unchanged and this provider cannot execute its grouped reduction — a REALIZATION "
-            f"limit, and its remedy is a provider.")
 
     # ── explicit alignment. NEVER a join. ────────────────────────────────────────────────────
     def align_onto(self, produced: Mapping[tuple, Any],
@@ -278,27 +335,28 @@ class ColumnarProvider:
                                      f"— a reindex against a held index, not a join on keys"))
 
     # ── positional expression evaluation ─────────────────────────────────────────────────────
-    def evaluate_positional(self, columns: Mapping[str, pa.Array], *, kernel: str) -> pa.Array:
+    def evaluate_positional(self, columns: Mapping[str, pa.Array], *, law: str,
+                            parameters: Optional[Mapping[str, Any]] = None) -> pa.Array:
         """**A COLUMN KERNEL over position-aligned arrays. No join, and no key matching.**
 
         The caller has already established that every column shares one `CoordinateIndex.identity` and a
-        compatible analytical instance; what is left is arithmetic at a position. `ratio` divides where the
-        divisor is non-zero and yields null elsewhere — §4.3's *undefined on that basis*, which the kernel
-        layer turns into a governed standing rather than a zero."""
-        if kernel == "ratio":
-            numerator, denominator = columns["SUM"], columns["COUNT"]
-            safe = pc.if_else(pc.equal(denominator, 0), pa.nulls(len(denominator), pa.int64()),
-                              denominator)
-            return pc.divide(pc.cast(numerator, pa.float64()), pc.cast(safe, pa.float64()))
-        if kernel == "hll_estimate":
-            sketches = columns["HLL_SKETCH"]
-            return pa.array([None if v.as_py() is None else estimate_of(v.as_py())
-                             for v in sketches], type=pa.int64())
-        raise KernelRefusal("unrealized-kernel", PROVIDER_NAME,
-                            f"positional kernel {kernel!r} has no realization in {PROVIDER_NAME!r}.")
+        compatible analytical instance; what is left is arithmetic at a position.
+
+        **THE CALLER NAMES A GOVERNED LAW, NOT A KERNEL** (ruled E-1). This parameter was `kernel: str`
+        and the evaluator above chose `"ratio"` or `"hll_estimate"` by a hard-coded switch on the law name
+        — a governed object naming a physical one. Now the law arrives and the provider's own table
+        resolves it, which is the same shape `ProviderProfile.capability(law, "apply")` has had on the
+        in-memory side all along.
+
+        `parameters` brings this signature into agreement with that in-memory `apply(payloads, parameters)`
+        contract. No current columnar kernel reads it; both accept it, so a parameterised constructor needs
+        no signature change."""
+        return self.capability(POSITIONAL, law).execute(columns, dict(parameters or {}))
 
     def realizes_composition(self, composition: str) -> bool:
-        return composition in (ADDITION, SKETCH_UNION)
+        """**Kept as a named question, now answered by the table.** A caller asking *"can you fold this
+        composition?"* should not have to know the mode vocabulary to ask it."""
+        return self.realizes(GROUPED, composition)
 
 
 __all__ = ["AlignmentReport", "ColumnarProvider", "ContinuationResult", "HLL_MERGE_UDAF",

@@ -166,9 +166,17 @@ class ColumnarExpressionEvaluator:
                     f"operand still counts every participating point. Establish the missing value, or "
                     f"admit a basis that does not require it."))
 
-        kernel = "ratio" if law.name == "MEAN" else "hll_estimate"
+        # ── HANDED TO THE PROVIDER BY GOVERNED LAW NAME ──────────────────────────────────
+        # This was `kernel = "ratio" if law.name == "MEAN" else "hll_estimate"` — a governed evaluator
+        # naming a PHYSICAL kernel, and choosing between two by a hard-coded law switch (recon E-X's
+        # finding). The law name now goes down and the provider's own capability table resolves it, exactly
+        # as `ProviderProfile.capability(law.name, "apply")` has always done on the in-memory side.
+        #
+        # **THE EVALUATOR NO LONGER KNOWS A SINGLE PHYSICAL NAME.** Adding a third constructor is a change
+        # to a provider; it used to be a change to this file.
         values = self.families.provider.evaluate_positional(
-            {role: states[role].values for role in states}, kernel=kernel)
+            {role: states[role].values for role in states}, law=law.name,
+            parameters=dict(expression.parameters))
         # attributed to the operands' evidence state where they agree on one; to none where they do not
         operand_states = {st.instance.data_state for st in states.values()}
         attributed = operand_states.pop() if len(operand_states) == 1 else UNSTATED_DATA_STATE

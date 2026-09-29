@@ -442,10 +442,17 @@ def test_the_coarser_index_is_derived_from_existing_points_only(settled):
 
 
 def test_an_unrealized_composition_is_a_provider_limit(mme):
+    """**Asked of the capability table now, not of a private if-chain** (E-1). The refusal is the same
+    governed answer it always was: a provider's inability does not remove a law (ToD v8 §4.1)."""
+    from columna_platform.columnar import GROUPED
+
     with pytest.raises(KernelRefusal) as exc:
-        mme.provider._aggregate_for("latest_by_order")
+        mme.provider.capability(GROUPED, "latest_by_order")
     assert exc.value.code == "unrealized-composition"
     assert "The law is unchanged" in exc.value.detail
+    # and it can be ASKED without raising, which the if-chain could not do
+    assert not mme.provider.realizes(GROUPED, "latest_by_order")
+    assert mme.provider.realizes(GROUPED, "addition")
 
 
 # ══ 2 · POSITIONAL EXPRESSION EVALUATION ══════════════════════════════════════════════════════════
