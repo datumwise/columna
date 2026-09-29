@@ -634,14 +634,55 @@ def test_a_raising_observer_cannot_change_a_REFUSAL(fams):
     assert a.refusal.detail == b.refusal.detail
 
 
-def test_even_a_BaseException_from_an_observer_is_contained(fams):
-    """`BaseException`, not `Exception`. A `KeyboardInterrupt` raised inside a logging callback would
-    violate the ruled guarantee exactly as squarely as a `TypeError`."""
+def test_an_unusual_observer_failure_is_still_contained(fams):
+    """Containment is about the LOGGING BACKEND failing, and it is not narrow: a `RecursionError` or a
+    `MemoryError` from an observer is an observer failure like any other."""
+    for exc in (RecursionError("too deep"), MemoryError(), TypeError("bad record")):
+        engine = KEX.build()
+        engine.observations.observer = Hostile(exc)
+        assert engine.measure(fams["revenue"], KEX.BY_DAY).served
+        assert type(engine.observations.last_failure) is type(exc)
+
+
+@pytest.mark.parametrize("control", [KeyboardInterrupt, SystemExit, GeneratorExit])
+def test_a_PROCESS_CONTROL_exception_is_NOT_swallowed(fams, control):
+    """**Ruled 2026-09-29**, correcting M-2's bare `except BaseException`: *"swallowing process-control
+    exceptions such as `KeyboardInterrupt`/`SystemExit` is unusual… do not treat 'catch every
+    BaseException forever' as an architectural requirement."*
+
+    A `KeyboardInterrupt` arriving during an observer call is **the process being asked to stop**, not the
+    observer failing. Eating it means Ctrl-C is silently ignored for as long as a serving loop runs."""
     engine = KEX.build()
-    engine.observations.observer = Hostile(KeyboardInterrupt())
-    answer = engine.measure(fams["revenue"], KEX.BY_DAY)
-    assert answer.served
-    assert isinstance(engine.observations.last_failure, KeyboardInterrupt)
+    engine.observations.observer = Hostile(control())
+    with pytest.raises(control):
+        engine.measure(fams["revenue"], KEX.BY_DAY)
+    # and it is NOT recorded as an observer failure, because it is not one
+    assert engine.observations.failures == 0
+    assert engine.observations.last_failure is None
+
+
+def test_re_raising_process_control_does_not_affect_ANALYTICAL_serving(fams):
+    """Why the re-raise is compatible with *"observation failure must never affect analytical serving"*:
+    the observation is emitted only AFTER the answer is fully determined, so an interrupt aborts the
+    RETURN of an already-computed answer and no analytical work at all. The proof is that the cache the
+    request populated is identical either way."""
+    def holdings(engine):
+        return sorted((m.family_id, str(m.anchor), m.eligibility, m.establishment.kind)
+                      for m in engine.materializations.all())
+
+    quiet = KEX.build()
+    quiet.measure(quiet.family("revenue"), KEX.BY_DAY)
+
+    interrupted = KEX.build()
+    interrupted.observations.observer = Hostile(KeyboardInterrupt())
+    with pytest.raises(KeyboardInterrupt):
+        interrupted.measure(interrupted.family("revenue"), KEX.BY_DAY)
+
+    # the fold ran, the dependency edge was recorded, the materialization was admitted — all of it
+    assert holdings(interrupted) == holdings(quiet)
+    # and asking again, with the observer repaired, serves the already-established state
+    interrupted.observations.observer = NullObserver()
+    assert interrupted.measure(interrupted.family("revenue"), KEX.BY_DAY).route == "cached"
 
 
 def test_an_observer_that_lies_about_its_shape_is_contained(fams):
