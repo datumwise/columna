@@ -148,6 +148,20 @@ class MME:
     def family(self, family_id: str) -> MeasureFamily:
         return self._families[family_id]
 
+    def expression(self, expression_id: str) -> GovernedExpression:
+        """**A PEER of `family()`, not a widening of it.** A caller asks `sort_of` first and then the
+        accessor for that sort; there is no lookup that returns either, so no consumer has to ask what
+        came back after the call."""
+        return self._expressions[expression_id]
+
+    @property
+    def families(self) -> tuple[str, ...]:
+        return tuple(sorted(self._families))
+
+    @property
+    def expressions(self) -> tuple[str, ...]:
+        return tuple(sorted(self._expressions))
+
     def law_of(self, identity: str) -> AnalyticalLaw:
         return self._bound[identity]
 
