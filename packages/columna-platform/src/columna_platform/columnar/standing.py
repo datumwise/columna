@@ -38,6 +38,10 @@ participate, `OrderCount = 3` — and a missing Revenue on one of them changes `
 
 Two methods rather than one, because the old single method could only express the wrong answer.
 
+**THE REFUSAL'S GRAIN IS A PROFILE FACT, NOT A SEMANTIC ONE.** Want of state is owed at the POINT. This
+profile refuses the whole request because its served column cannot carry per-point standing — see `mme.py`
+and `DG-7`. Nothing here licenses the reading that one unsupported point invalidates an analytical column.
+
 **WHAT `support = False` IS NOT.** It is not `NA`, not a known-empty fibre, not nonparticipation, and not a
 nonexistent point, and nothing in this package infers any of them from it. It is one fact only: *the value
 required here is not established.* Point EXISTENCE is carried by membership in the `CoordinateIndex` — the

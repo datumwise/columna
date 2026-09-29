@@ -44,6 +44,21 @@ point rather than handing back the carrier's null. A `COUNT` is untouched by any
 over participation and requires no value, so three participating Orders are three Orders whatever became of
 their amounts.
 
+**WHOLE-COLUMN REFUSAL IS THIS SERVING PROFILE'S LIMITATION AND NOT ToD SEMANTICS** (ruled Huayin,
+2026-09-29; recorded as `DG-7` in `specs/doctrine_gaps.md`):
+
+    *"Whole-column refusal is a current Platform/profile limitation, not ToD semantics… Later we may
+    represent, for example: D1 → want of state, D2 → established value, without invalidating the whole
+    analytical column. Do not let 'one unsupported target means whole-column refusal' become family
+    doctrine."*
+
+`Revenue@{day}` refuses entirely here even though `D2`'s fold is fully established, because a columnar family
+state is one value array plus two masks and has **nowhere to put "this point wants state"** in what it
+serves. Want of state is owed POINTWISE; refusing the whole request is the conservative thing available to a
+surface that cannot carry it, which is why the refusal names the affected target points. When a result
+surface can represent per-point standing, the remedy is that surface — **not** a weakening of the refusal,
+and not a rule that a column dies with one point.
+
 WHAT IS NOT HERE
 ----------------
 No persistence, no Iceberg, no Parquet, no Postgres, no refresh orchestration, no catalog, no constitution
