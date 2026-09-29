@@ -88,6 +88,20 @@ class MeasureFamily:
     universe: str
     #: `R_F`. The canonical continuation origin, and the only location contributions land at.
     root: Anchor
+    #: **THE FAMILY'S CONTINUATION LAW, AND THAT IS WHAT IT STAYS** (ruled Huayin, 2026-09-28): *"If
+    #: `MeasureFamily.law` in the new kernel means continuation law, keep it that way. Do not let it
+    #: become a substitute for `root_evaluator` or a generic formation-law identity."*
+    #:
+    #: It is validated as continuation-bearing (`bind`), so what this field names is the law by which this
+    #: family's values COMPOSE. **ROOT FORMATION IS A SEPARATE RESPONSIBILITY** — §3.2's origin is a
+    #: location, and what happens AT it is a different act from what composes away from it.
+    #:
+    #: Today `establish_root` reaches the same law's `Realization.contribute` to fold occurrences into a
+    #: root value. **That is a REALIZATION convenience and not a semantic identity**, and it is written
+    #: down here so it cannot quietly become one: nothing in this kernel treats this field as the
+    #: formation identity of the value, no basis role is checked against it, and when the Operator
+    #: Registry work gives root evaluation its own reusable signature, a `root_evaluator` attaches
+    #: BESIDE this field rather than replacing its meaning.
     law: str
     value_domain: str
     participation: str

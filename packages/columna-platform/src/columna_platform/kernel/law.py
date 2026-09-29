@@ -98,6 +98,23 @@ class ContinuationRegion:
     True; it stays uncertified"* — which is sound against a Boolean and refuses exactly the case ToD v8
     §3.1 and §3.5 require. So the Boolean is replaced rather than moved.
 
+    **THIS IS A PLATFORM IMPLEMENTATION REPRESENTATION AND NOT A NEW ToD PRIMITIVE** (ruled Huayin,
+    2026-09-28, approving it on exactly that footing). It represents the family's **admitted continuation
+    region / edge-relative value-closure conditions** — facts v8 already has in §3.1 and §3.5 — in a form
+    an engine can adjudicate against. It does not add a concept to the theory and must not be cited as
+    though it did.
+
+    The invariant it exists to hold, in the ruling's own words:
+
+        *A non-root family materialization does not erase the authority path from `F@R_F`. It may seed
+        later continuation only when the complete resulting route remains admitted under the same family
+        constitution and premises.*
+
+    Escalate to a theory gap only on finding a lawful family whose continuation rights **cannot** be
+    expressed by v8's admitted-edge / partial-continuation-graph semantics. The `forgettable` set below is
+    the narrow shape those semantics need for the laws in this build; a family needing a genuine
+    per-edge graph would be represented by widening THIS object, not by amending the theory.
+
     Represented POSITIVELY, as the constituents a continuation may forget. `EVERYWHERE` is the ordinary
     additive case; a restricted region is the stock case — a level of on-hand stock composes across
     stores and **does not** compose across time, and no amount of caching changes that.
@@ -142,7 +159,19 @@ class RequiredBasis:
 
     `requires_common_participation` is §11.5.2's word MATCHING made a field: a SUM and a COUNT that
     ranged over different contributions are individually valid and jointly meaningless. A basis that did
-    not carry the requirement would license exactly the pairing it exists to forbid."""
+    not carry the requirement would license exactly the pairing it exists to forbid.
+
+    **`components` NAMES BASIS SLOTS, AND A SLOT BINDS A GOVERNED ANALYTICAL IDENTITY — NOT A
+    ROOT-FORMATION OPERATOR** (ruled Huayin, 2026-09-28). The slot labels here are v8 §11.5.2's own words
+    (`SUM`, `COUNT`), and that spelling is a description of the slot's job, **not a requirement that the
+    family bound into it was formed by a law of that name.** Revenue and OrderCount are bound as governed
+    identities; how each one's root value was formed is a separate question and stays separate.
+
+    So there is deliberately **NO CHECK** anywhere in this kernel that a basis component's family was
+    "formed by" the component law. The V8-1 report recommended adding one and the ruling declined it:
+    *"Root formation and family continuation stay separate. Expression basis roles bind governed
+    analytical identities… not root-formation operators."* `test_frameql_serving.py` pins the absence, so
+    the rule cannot reappear by accident."""
 
     components: tuple[str, ...]
     requires_common_participation: bool
