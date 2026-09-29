@@ -131,6 +131,16 @@ Related dead surface: `Realization.finalize` (`kernel/realization.py:78`) is dec
 populated or called** anywhere. HLL finalization is routed through `apply` instead
 (`kernel/builtins.py:289`). A finalization slot exists on paper and is not the one in use.
 
+> **RESOLVED — E-3 retired the slot (2026-09-29).** Asked whether it named any legitimate *family-level*
+> responsibility under v8, the answer is no, and structurally so: a structured family law names its
+> finalizer by governed law name (`HLL_SKETCH.finalized_by == "HLL_ESTIMATE"`), and that named law's own
+> realization supplies it through `apply`. A `finalize` on the FAMILY's realization would be a second route
+> from family state to a displayed number, owned by a provider and authorised by no law — reachable without
+> ever consulting `finalized_by`. It was also strictly weaker than the `apply` it duplicated (one payload,
+> no parameters, and sketch parameters are compatibility-bearing). The concept's correct residue is already
+> in the code on the columnar half: `ExecutionCapability.finalizes` is **derived** from a value-form
+> transition and asserted nowhere. The ruling is recorded in `kernel/realization.py`'s module docstring.
+
 ---
 
 ## C · Minimum provider contract the evaluator would need
@@ -220,6 +230,38 @@ worth more per line than step 3.
 3. **Move `hll_estimate` off the Python comprehension** (`provider.py:293-296`) to a DataFusion UDF or an
    Arrow kernel. This is the one expression path that is O(cells) in Python, and the only one where
    DataFusion buys something today — `ratio` is already fully Arrow-native and would gain nothing.
+
+   > **⚠️ THIS RECOMMENDATION WAS WRONG, AND E-3 REVERSED IT (2026-09-29).** Both named routes fail, and the
+   > recon could not see it because — as its own *Bounded claims* section says — **it benchmarked nothing.**
+   > E-3 measured, on 2 000 sketches:
+   >
+   > * the same loop inside a **DataFusion Python UDF costs 1.95 µs/cell against 1.51 in-process — 1.29×
+   >   SLOWER.** A Python UDF *is* a per-batch Arrow→Python→Arrow round trip with the same comprehension
+   >   inside it. *"A DataFusion UDF that simply contains the same Python per-cell loop is not an
+   >   architectural improvement"* (Huayin, 2026-09-29) — and this one is not even a faster one.
+   > * DataFusion's only native HLL capability, **`approx_distinct`, is the wrong operation and returns a
+   >   confident wrong number** over the governed family value: it counts distinct *blobs* (2 where the
+   >   population is 4). Its internal HLL is a vendored redis derivative with no header or version, not
+   >   interoperable with DataSketches' `serialize_compact()` at any level.
+   > * **there is no Arrow kernel** and could not be: the work is a third-party sketch decode.
+   >
+   > What E-3 did instead: it **characterized** the boundary and removed the *carriage* around it — one
+   > vectorised `to_pylist()` in place of N boxed scalars with two `as_py()` calls each, for 36.8% (uniform
+   > 172-byte sketches) to 22.8% (mixed 12–4136-byte sketches) less CPU, leaving a remainder within 8% of
+   > the native floor. The loop that stays is one `hll_sketch.deserialize(...).get_estimate()` per sketch,
+   > i.e. already native.
+   >
+   > A genuinely vectorized native form **does** exist — Apache's own Rust crate `datasketches` ≥ 0.5.0
+   > reads C++ compact HLL images, DataFusion 54 accepts Rust UDFs in-engine via the `datafusion-ffi`
+   > PyCapsule protocol, and `datafusion-comet` PR #4802 is a merged reference. It is deferred **not for
+   > want of a library** but because the Rust crate's estimates are not bit-identical to the C++ library's
+   > for merged sketches (≈0.7%, inside RSE but not zero): adopting it is **a second `RealizationStanding`,
+   > not a faster path to the same value**, and belongs to a provider unit with its own admission evidence.
+   > See `packages/columna-platform/tests/test_e3_hll_estimate_execution.py` §C, and the adjudication
+   > recorded on `provider.estimates_of`.
+   >
+   > **Step 4 stands and is now the live recommendation** — the continuation brackets are the larger cost and
+   > E-3 measured nothing that changes that.
 4. **Then, and only then, consider the continuation brackets** — `_target_index`, the group
    materialization, and `align_onto`. These are the largest Python costs in the system and they belong to
    *continuation*, not expressions, so they are an MME-side unit and should be scoped as one.

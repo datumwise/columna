@@ -14,9 +14,28 @@ exactly what V8-0 found at Core's C7 seam and V8-1 found at its family lookup; i
 WHAT IS AND IS NOT HERE
 -----------------------
 Here: `contribute` (raw occurrences → a value at `R_F`), `merge` (the composition, executably),
-`identity` (the empty-fibre fold, where the algebra has one), `finalize` (a structured family value →
-something displayable, which is an EXPRESSION's job), and `apply` (an expression constructor over a
+`identity` (the empty-fibre fold, where the algebra has one), and `apply` (an expression constructor over a
 role-keyed basis). All of it per-provider by construction.
+
+**THERE IS NO `finalize`, AND THAT IS A RULING, NOT AN OMISSION (E-3, 2026-09-29).** The field existed
+from the start, was never populated and never read, and the question E-3 was asked is whether it named any
+legitimate *family-level* responsibility under v8. It does not, for a reason the v8 model makes structural:
+a structured family law names its finalizer by governed law name (`HLL_SKETCH.finalized_by ==
+"HLL_ESTIMATE"`), and that named law is itself a law with its own realization, whose `apply` IS the
+finalization. So finalization is already realized — one level up, on the CONSTRUCTOR, where the law that
+licenses it lives. A `finalize` on the FAMILY's realization would be a **second route from family state to
+a displayed number, owned by a provider and authorised by no law** — which is the exact defect class §4.1
+and §8.7 exist to prevent, and it would be reachable without ever consulting `finalized_by`. Two paths to
+one number is how they come to disagree.
+
+It was also strictly weaker than the `apply` it duplicated: `Callable[[Any], Any]` takes one payload and no
+parameters, so a provider using it could not express a parameterised finalizer at all — and sketch
+parameters are compatibility-bearing.
+
+The concept's correct residue is already in the code, on the columnar half: `ExecutionCapability.finalizes`
+is **derived** from a capability's value-form transition (`STRUCTURED → SCALAR`) and asserted nowhere. That
+is what "is a finalizer" should be — a property read off a declaration, not a slot a provider can fill.
+Retiring the field brings this half of the split into agreement with that one.
 
 Not here, and deliberately: `operand_domains`, `result_domain`, the composition's ALGEBRA, the
 continuation region, the required basis. A provider that could state those would be a second semantic
@@ -73,9 +92,6 @@ class Realization:
     merge: Optional[Callable[[Any, Any], Any]] = None
     #: the empty-fibre fold value, where the algebra has an identity.
     identity: Optional[Callable[[], Any]] = None
-    #: a structured family value → a displayable value. **This is an expression's finalization**, and it
-    #: lives on the realization of the CONSTRUCTOR law, not of the family law.
-    finalize: Optional[Callable[[Any], Any]] = None
     #: an expression constructor over a role-keyed basis of family payloads → the expression's value.
     apply: Optional[Callable[[Mapping[str, Any], Mapping[str, Any]], Any]] = None
     note: str = ""
