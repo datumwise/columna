@@ -48,7 +48,7 @@ from typing import Any, Iterable, Mapping, Optional
 
 from .geometry import Anchor, KernelRefusal, Universe
 from .law import AnalyticalLaw, LawRegistry, STRUCTURED
-from .realization import ProviderProfile
+from .realization import ProviderProfile, RealizationStanding
 from .sorts import (
     GovernedExpression,
     MeasureFamily,
@@ -56,6 +56,7 @@ from .sorts import (
 )
 from .standing import (
     CACHED,
+    UNSTATED_DATA_STATE,
     CONTINUED,
     Disclosure,
     EVALUATED,
@@ -64,6 +65,7 @@ from .standing import (
     Refusal,
 )
 from .value import Answer, ExpressionOutput, FamilyState
+from .witness import ConstitutionWitness
 
 
 # ── retention ────────────────────────────────────────────────────────────────────────────────────
@@ -79,11 +81,21 @@ class RetentionKey:
                         and a key that could not tell them apart would make proof 5 unstatable;
       `identity`        the governed `family_id` / `expression_id`;
       `anchor`          where it is;
-      `instance`        the analytical instance — participation and scope where identity-bearing, plus a
-                        witness of the constitution, so a state from a superseded constitution is a
-                        DIFFERENT retained object rather than a silent overwrite;
-      `provider`        realization standing: a value produced by an approximate provider is not
+      `instance`        the analytical instance — participation and scope where identity-bearing, the
+                        shared constitution CONTEXT, and the `data_state` of the material: which actual
+                        root/evidence state this object belongs to;
+      `constitution`    the per-object **`ConstitutionWitness` digest**, computed from identity-bearing
+                        governed facts, so a state from a superseded constitution is a DIFFERENT retained
+                        object rather than a silent overwrite;
+      `realization`     realization standing: a value produced by an approximate provider is not
                         interchangeable with one produced by an exact one.
+
+    **THREE AXES FOR P-1'S THREE FACTS, AND THE POINT IS THAT THEY ARE THREE** (Huayin, 2026-09-29):
+    constitution change, root/evidence freshness and physical realization *"remain separately reasoned even
+    if a later retention key combines references to all three."* This key is that combination, and it
+    combines REFERENCES: each axis is computed by its own authority (`witness.py`, whoever established the
+    material, the provider profile), and each is separately reportable — so "the declaration moved", "the
+    data was reloaded" and "the provider changed" never arrive as one undifferentiated "stale".
 
     Not here: a physical grain, a storage location, a partition, a file. Those are storage facts, and
     ToD v8 keeps storage out of identity."""
@@ -92,7 +104,18 @@ class RetentionKey:
     identity: str
     anchor: Anchor
     instance: Any
-    provider: str
+    realization: RealizationStanding
+    #: The computed `ConstitutionWitness` digest of the object this value belongs to.
+    constitution: str = ""
+
+    @property
+    def provider(self) -> str:
+        """Legibility: the provider NAME out of the realization standing."""
+        return self.realization.provider
+
+    @property
+    def data_state(self) -> str:
+        return self.instance.data_state
 
     def __str__(self) -> str:
         return f"{self.sort}:{self.identity}@{self.anchor}"
@@ -106,6 +129,86 @@ class Retained:
     @property
     def continuation_bearing(self) -> bool:
         return bool(getattr(self.value, "CONTINUATION_BEARING", False))
+
+
+@dataclass(frozen=True)
+class Staleness:
+    """**One retained object whose constitution has moved, and WHICH determinant moved.**
+
+    *"Staleness due to constitution change is mechanically detectable"* (P-1). Detectable is the floor; this
+    record is the ceiling — it names the determinants, because a steward asked to re-establish from the root
+    is owed the governed fact that made it necessary."""
+
+    key: RetentionKey
+    held_under: str
+    current: ConstitutionWitness
+    changed: tuple[str, ...]
+    detail: str
+
+    def __str__(self) -> str:
+        return f"{self.key} STALE [{', '.join(self.changed)}]"
+
+
+@dataclass(frozen=True)
+class PoolResolution:
+    """**Which retained objects are even candidates, before any adjudication.**
+
+    Separated from `adjudicate` deliberately: adjudication answers *"may this seed that"*, and this answers
+    the three prior questions that are not about the edge at all — is it the same object, under the CURRENT
+    constitution, and from ONE evidence state. A state failing any of those is not a blocked candidate; it
+    is not a candidate."""
+
+    pool: tuple[Retained, ...]
+    #: Held under a SUPERSEDED constitution witness. Not candidates, and not silently missing either.
+    superseded: tuple[Retained, ...]
+    #: The distinct `data_state`s among the constitution-current held objects.
+    data_states: tuple[str, ...]
+    refusal: Optional[Refusal] = None
+
+    @property
+    def note(self) -> str:
+        """What a refusal on the serving path should append about what WAS held. Empty when nothing was."""
+        if not self.superseded:
+            return ""
+        return (f" {len(self.superseded)} retained state(s) of this object ARE held and are STALE: they "
+                f"were established under a superseded constitution witness "
+                f"({sorted({r.key.constitution for r in self.superseded})}), and this engine does not "
+                f"patch a state whose constitution has moved — re-establishment is from the root. Ask "
+                f"`stale_states()` for which governed determinant moved.")
+
+
+def resolve_pool(held: Iterable[Retained], identity: str, instance: Any, witness_digest: str,
+                 subject: str, data_state: Optional[str] = None) -> PoolResolution:
+    """**The three prior questions, asked once for both MMEs.**
+
+    The kernel owns this because every one of them is an analytical question, not a columnar one: the
+    columnar engine calls exactly this function, as it calls exactly this `adjudicate`."""
+    # **CONSTITUTION SUPERSESSION IS CHECKED BEFORE THE INSTANCE AXES, AND THE ORDER IS LOAD-BEARING.**
+    # A determinant like `participation` is BOTH a witness determinant and an axis of the analytical
+    # instance, so a moved declaration moves both at once. Screening on the instance first would have
+    # dropped the superseded state as "a different instance" and the refusal would have reported nothing
+    # held — when what is held is precisely a state of this object under a constitution that has moved.
+    mine = [r for r in held if r.key.identity == identity]
+    superseded = tuple(r for r in mine if r.key.constitution != witness_digest)
+    current = [r for r in mine if r.key.constitution == witness_digest
+               and r.key.instance.same_but_for_data_state(instance)]
+    states = tuple(sorted({r.key.instance.data_state for r in current}))
+    if data_state is not None:
+        current = [r for r in current if r.key.instance.data_state == data_state]
+    elif len(states) > 1:
+        # **THE ENGINE DOES NOT PICK AN EVIDENCE STATE.** Two loads of one constitution are both current
+        # and neither is the answer; choosing the larger, the newer or the first would be the engine
+        # deciding a governed fact, and there is no "newer" here anyway — this kernel holds no clock.
+        return PoolResolution(
+            pool=(), superseded=superseded, data_states=states,
+            refusal=Refusal(
+                "ambiguous-data-state", subject,
+                f"{len(states)} root/evidence states of this object are held under ONE constitution: "
+                f"{list(states)}. They are not stale-versus-current and neither is wrong — they range over "
+                f"different established material, so serving either would answer a question nobody asked. "
+                f"Name the data state, or establish one. **NOTHING IS MERGED ACROSS THEM**: two evidence "
+                f"states are not two contributions to one quantity."))
+    return PoolResolution(pool=tuple(current), superseded=superseded, data_states=states)
 
 
 @dataclass(frozen=True)
@@ -132,10 +235,18 @@ class MME:
         # the ruling is against is one runtime holding two worlds that use the same family name.
         self.manifold = manifold
         self.universe, self.laws, self.provider = universe, laws, provider
+        #: **Realization standing, as an object.** The third of P-1's three facts; an axis of the key and
+        #: of nothing else.
+        self.realization = RealizationStanding(provider=provider.name, carrier="in-memory")
         self._families: dict[str, MeasureFamily] = {}
         self._expressions: dict[str, GovernedExpression] = {}
         self._bound: dict[str, AnalyticalLaw] = {}
         self._store: dict[RetentionKey, Retained] = {}
+        #: **Every constitution this engine has seen, by digest.** Its own constitutional history, kept so
+        #: that staleness can name WHICH determinant moved rather than only that something did. It grows on
+        #: re-registration and nothing is ever removed: a superseded constitution is a fact about the past,
+        #: and forgetting it would make the state held under it unexplainable.
+        self._constitutions: dict[str, ConstitutionWitness] = {}
 
     # ── constitution ─────────────────────────────────────────────────────────────────────────
     def register_family(self, family: MeasureFamily) -> MeasureFamily:
@@ -145,12 +256,14 @@ class MME:
         self._require_own(family.manifold, family.family_id)
         self._bound[family.family_id] = family.bind(self.laws)
         self._families[family.family_id] = family
+        self._remember(family.witness(self._bound[family.family_id]))
         return family
 
     def register_expression(self, expression: GovernedExpression) -> GovernedExpression:
         self._require_own(expression.manifold, expression.expression_id)
         self._bound[expression.expression_id] = expression.bind(self.laws, self._families)
         self._expressions[expression.expression_id] = expression
+        self._remember(expression.witness(self._bound[expression.expression_id]))
         return expression
 
     def _require_own(self, manifold: str, identity: str) -> None:
@@ -160,6 +273,61 @@ class MME:
                 f"belongs to Manifold {manifold!r} and this MME is the jurisdiction of "
                 f"{self.manifold!r}. A governed analytical object belongs to exactly one Manifold; "
                 f"registering it here would put one identity under two authorities.")
+
+    def _remember(self, witness: ConstitutionWitness) -> ConstitutionWitness:
+        self._constitutions[witness.digest] = witness
+        return witness
+
+    # ── the three facts, each obtainable on its own ──────────────────────────────────────────
+    def witness_of(self, identity: str) -> ConstitutionWitness:
+        """**The computed `ConstitutionWitness` of a registered object.** Fact one of three.
+
+        Read from the registered DECLARATION every time rather than cached, so it cannot drift from the
+        object it is about: if the declaration in this engine has moved, this moves with it, and that is
+        precisely what makes the states held under the old one detectably stale."""
+        obj = self._families.get(identity) or self._expressions.get(identity)
+        if obj is None:
+            raise KernelRefusal(
+                "not-constituted", identity,
+                f"no family or expression named {identity!r} is registered in Manifold "
+                f"{self.manifold!r}, so there is no governed constitution to witness. A witness is "
+                f"computed from a declaration; it is not something a retained object can supply about "
+                f"itself.")
+        # **THE BOUND LAW IS PART OF THE WITNESS** (boundary check 1, 2026-09-29): the admitted continuation
+        # region is identity-bearing and lives on the law, so the engine — which is what binds a law name to
+        # a law — is the right place for a witness to be obtained.
+        return obj.witness(self._bound[identity])
+
+    def constitution_seen(self, digest: str) -> Optional[ConstitutionWitness]:
+        """A constitution this engine has registered at some point, by digest — its own history."""
+        return self._constitutions.get(digest)
+
+    def stale_states(self, held: Optional[Iterable[Retained]] = None) -> tuple[Staleness, ...]:
+        """**Every retained object whose constitution has moved, and which determinant moved.**
+
+        Takes an optional store so the columnar engine can ask the same authority about ITS retained
+        objects — the staleness question is analytical and is answered in one place."""
+        out: list[Staleness] = []
+        for r in (held if held is not None else self._store.values()):
+            try:
+                current = self.witness_of(r.key.identity)
+            except KernelRefusal:
+                continue                      # an object no longer constituted at all is not "stale"
+            if r.key.constitution == current.digest:
+                continue
+            was = self.constitution_seen(r.key.constitution)
+            # `is not None`, NOT truthiness: a `WitnessComparison` is truthy when the two constitutions are
+            # the SAME one, so `if comparison` is false in exactly the case this loop exists for.
+            comparison = was.compare(current) if was is not None else None
+            out.append(Staleness(
+                key=r.key, held_under=r.key.constitution, current=current,
+                changed=comparison.changed if comparison is not None else (),
+                detail=(comparison.detail if comparison is not None else
+                        f"held under constitution {r.key.constitution} and this engine now constitutes "
+                        f"{r.key.identity!r} as {current.digest}. The determinants that moved cannot be "
+                        f"named because the superseded witness was never registered here — the state "
+                        f"predates this engine's own constitutional history.")))
+        return tuple(out)
 
     def instance_of(self, identity: str) -> Any:
         """The analytical instance of a registered object — **stamped with this engine's Manifold.**
@@ -200,7 +368,8 @@ class MME:
 
     # ── establishment at the root ────────────────────────────────────────────────────────────
     def establish_root(self, family: MeasureFamily, rows: Iterable[Mapping[str, Any]], *,
-                       value_key: str = "value") -> Answer:
+                       value_key: str = "value",
+                       data_state: str = UNSTATED_DATA_STATE) -> Answer:
         """**Constitute `F@R_F` from occurrences.** The canonical continuation origin, and the only place
         raw contributions land: a contribution is an occurrence at the family's root, and "a contribution
         at a coarser anchor" is not a thing the theory has.
@@ -221,7 +390,8 @@ class MME:
                                                                     "value_key": value_key})
                  for cell, rws in buckets.items()}
         state = FamilyState(point=family.root_point, law=law.name, value_form=law.value_form,
-                            cells=cells, instance=family.instance(), forgotten_since_root=frozenset())
+                            cells=cells, instance=family.instance(data_state=data_state),
+                            forgotten_since_root=frozenset())
         self.retain(state)
         return Answer(route=ROOT, value=state)
 
@@ -232,7 +402,8 @@ class MME:
         sort = value.point.sort
         identity = getattr(value.point, "family_id", None) or value.point.expression_id
         key = RetentionKey(sort=sort, identity=identity, anchor=value.anchor,
-                           instance=value.instance, provider=self.provider.name)
+                           instance=value.instance, realization=self.realization,
+                           constitution=self.witness_of(identity).digest)
         retained = Retained(key=key, value=value)
         self._store[key] = retained
         return retained
@@ -241,7 +412,7 @@ class MME:
         sort = point.sort
         identity = getattr(point, "family_id", None) or getattr(point, "expression_id", None)
         return self._store.get(RetentionKey(sort, identity, point.anchor, instance,
-                                            self.provider.name))
+                                            self.realization, self.witness_of(identity).digest))
 
     def candidates(self, family: MeasureFamily) -> tuple[Retained, ...]:
         """Every retained object that *might* seed this family, **including the ones that may not.**
@@ -313,7 +484,8 @@ class MME:
                         f"{family.family_id}'s continuation region")
 
     # ── serving a family ─────────────────────────────────────────────────────────────────────
-    def measure(self, family: MeasureFamily, anchor: Anchor, *, retain: bool = True) -> Answer:
+    def measure(self, family: MeasureFamily, anchor: Anchor, *, retain: bool = True,
+                data_state: Optional[str] = None) -> Answer:
         """**Serve `F@A`.** Exact hit, else the best admitted seed, else a refusal that names why.
 
         **THE ROOT IS PREFERRED AND NON-ROOT SEEDS ARE PERMITTED**, which is the required distinction. A
@@ -324,8 +496,16 @@ class MME:
         instance = family.instance()
         considered: list[str] = []
 
-        exact = self.retained(family.at(anchor), instance)
-        if exact is not None and exact.continuation_bearing:
+        # ── WHICH OBJECTS ARE CANDIDATES AT ALL: same object, CURRENT constitution, ONE evidence state ──
+        resolution = resolve_pool(self._store.values(), family.family_id, instance,
+                                  self.witness_of(family.family_id).digest,
+                                  str(family.at(anchor)), data_state)
+        if resolution.refusal is not None:
+            return Answer(route=REFUSED, refusal=resolution.refusal)
+
+        exact = next((r for r in resolution.pool
+                      if r.key.anchor == anchor and r.continuation_bearing), None)
+        if exact is not None:
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
                           considered=(str(exact.key),))
 
@@ -343,8 +523,7 @@ class MME:
         # so it is never less permissive: if any candidate is admitted, the root is admitted. Trying the
         # cheapest first therefore cannot turn a servable ask into a refusal — it can only turn a more
         # expensive answer into a cheaper one.
-        pool = sorted((r for r in self.candidates(family) if r.key.instance == instance),
-                      key=lambda r: len(r.key.anchor.constituents))
+        pool = sorted(resolution.pool, key=lambda r: len(r.key.anchor.constituents))
         blockers: list[Adequacy] = []
         for candidate in pool:
             considered.append(str(candidate.key))
@@ -383,13 +562,14 @@ class MME:
         detail = (" · ".join(f"{b.code} — {b.detail}" for b in ordered)
                   or f"no retained state of {family.family_id} exists under this analytical instance, "
                      f"and this engine does not invent one: a value must be established at "
-                     f"{family.root} before it can be continued anywhere")
+                     f"{family.root} before it can be continued anywhere") + resolution.note
         return Answer(route=REFUSED, considered=tuple(considered),
                       refusal=Refusal("unanswerable", str(family.at(anchor)), detail))
 
     # ── serving an expression ────────────────────────────────────────────────────────────────
     def evaluate(self, expression: GovernedExpression, anchor: Anchor, *,
-                 basis_id: Optional[str] = None, retain: bool = True) -> Answer:
+                 basis_id: Optional[str] = None, retain: bool = True,
+                 data_state: Optional[str] = None) -> Answer:
         """**Evaluate `E@A` from a sufficient basis.** Never from a continuation, because there is none.
 
         Where more than one basis is admitted they are tried in declaration order and the FIRST that
@@ -400,8 +580,14 @@ class MME:
         instance = expression.instance()
         considered: list[str] = []
 
-        exact = self.retained(expression.at(anchor), instance)
-        if exact is not None and not exact.continuation_bearing:
+        resolution = resolve_pool(self._store.values(), expression.expression_id, instance,
+                                  self.witness_of(expression.expression_id).digest,
+                                  str(expression.at(anchor)), data_state)
+        if resolution.refusal is not None:
+            return Answer(route=REFUSED, refusal=resolution.refusal)
+        exact = next((r for r in resolution.pool
+                      if r.key.anchor == anchor and not r.continuation_bearing), None)
+        if exact is not None:
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
                           considered=(str(exact.key),))
 
@@ -419,7 +605,7 @@ class MME:
         failures: list[str] = []
         for basis in routes:
             considered.append(basis.basis_id)
-            attempt = self._establish(expression, law, basis, anchor)
+            attempt = self._establish(expression, law, basis, anchor, data_state)
             if attempt.served:
                 output = attempt.value
                 if retain:
@@ -437,13 +623,14 @@ class MME:
                           "is not analytical authority"))
 
     def _establish(self, expression: GovernedExpression, law: AnalyticalLaw,
-                   basis: SufficientBasis, anchor: Anchor) -> Answer:
+                   basis: SufficientBasis, anchor: Anchor,
+                   data_state: Optional[str] = None) -> Answer:
         """One route, tried. Returns the `ExpressionOutput` or the refusal that stopped it."""
         subject = f"{expression.expression_id}@{anchor} via {basis.basis_id}"
         states: dict[str, FamilyState] = {}
         for role in basis.component_laws:
             component = self._families[basis.components[role]]
-            served = self.measure(component, anchor)
+            served = self.measure(component, anchor, data_state=data_state)
             if not served.served:
                 return Answer(route=REFUSED, refusal=Refusal(
                     "role-unfilled", subject,
@@ -487,8 +674,15 @@ class MME:
                 continue
             cells[key] = result
 
+        # **THE OUTPUT IS ATTRIBUTED TO THE EVIDENCE STATE ITS OPERANDS CAME FROM**, where they agree on
+        # one. Where they do not — possible only for a basis the law does not require common participation
+        # for — it is attributed to none, which is what `UNSTATED_DATA_STATE` says: not a lie about a
+        # single evidence state, and not a new token invented to describe a mixture.
+        operand_states = {st.instance.data_state for st in states.values()}
+        attributed = operand_states.pop() if len(operand_states) == 1 else UNSTATED_DATA_STATE
         output = ExpressionOutput(point=expression.at(anchor), constructor=law.name, cells=cells,
-                                 instance=expression.instance(), basis_id=basis.basis_id)
+                                 instance=expression.instance(data_state=attributed),
+                                 basis_id=basis.basis_id)
         for state in states.values():
             for d in state.disclosures:
                 output = output.with_disclosure(d)
@@ -514,4 +708,5 @@ class MME:
         return dropped
 
 
-__all__ = ["MME", "Adequacy", "Retained", "RetentionKey"]
+__all__ = ["MME", "Adequacy", "PoolResolution", "Retained", "RetentionKey", "Staleness",
+           "resolve_pool"]

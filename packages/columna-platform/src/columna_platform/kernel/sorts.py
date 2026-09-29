@@ -33,7 +33,13 @@ from typing import Mapping, Optional
 
 from .geometry import Anchor, Edge, KernelRefusal, Universe
 from .law import SAME_AS_OPERAND, AnalyticalLaw, LawRegistry
-from .standing import AnalyticalInstance
+from .standing import UNSTATED_DATA_STATE, AnalyticalInstance
+from .witness import (
+    ConstitutionWitness,
+    expression_witness,
+    family_witness,
+    refuse_a_declared_constitution,
+)
 
 
 # ══ identities ════════════════════════════════════════════════════════════════════════════════════
@@ -112,8 +118,29 @@ class MeasureFamily:
     #: A governed order, where the law requires one to select at all (LAST/FIRST).
     order_by: Optional[str] = None
     parameters: Mapping[str, object] = field(default_factory=dict)
-    #: An opaque witness of the constitution this family was established under.
-    constitution: str = "c0"
+    #: **RETIRED, AND KEPT ONLY SO THAT SUPPLYING ONE IS REFUSED** (P-1, 2026-09-29). The constitution
+    #: witness is COMPUTED from this record's identity-bearing fields by `witness()`; it was previously a
+    #: caller-supplied token defaulting to `"c0"`, which agreed with itself no matter how far the
+    #: declaration moved — the exact failure a staleness check exists to catch.
+    constitution: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        refuse_a_declared_constitution(self, self.family_id)
+
+    def witness(self, law: AnalyticalLaw) -> ConstitutionWitness:
+        """**This family's computed `ConstitutionWitness`, against its BOUND law.**
+
+        The law is required, not optional, and that is boundary check 1 of 2026-09-29: *"v8 makes admitted
+        continuation edges identity-bearing… Changing the region must change the family witness."* The
+        region lives on the law, so a witness computed from this record's text alone would be blind to it —
+        and to the composition, the value form and everything else the law asserts. The `law` determinant
+        therefore carries the law's NAME and the law's own witness digest.
+
+        It follows that a witness is computed against the law vocabulary of a Manifold rather than from a
+        declaration in isolation, which is the honest position: the same declaration under a different law
+        vocabulary is not the same constitution. `MME.witness_of` is the ordinary way to obtain one, because
+        the engine is what binds a law name to a law."""
+        return family_witness(self, law)
 
     def bind(self, registry: LawRegistry) -> AnalyticalLaw:
         """Resolve and VALIDATE this family's law. Called at registration, so an unlawful family cannot
@@ -144,6 +171,7 @@ class MeasureFamily:
                 f"law {law.name!r} requires identity-bearing parameters {missing}, which this family "
                 f"does not supply. No default is invented: a parameter that individuates a law's use "
                 f"cannot be guessed.")
+        _refuse_undeclared_parameters(law, self.parameters, self.family_id)
         if self.root.universe != self.universe:
             raise KernelRefusal("root-in-another-world", self.family_id,
                                 f"root {self.root} is not relative to {self.universe!r}")
@@ -170,10 +198,16 @@ class MeasureFamily:
                 f"occurrences the law consumes at the root.")
         return law
 
-    def instance(self, scope: Optional[str] = None) -> AnalyticalInstance:
+    def instance(self, scope: Optional[str] = None, *,
+                 data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
+        """The analytical instance of this family — **which does NOT carry this family's own constitution
+        witness.** That witness is per-object and answers a staleness question about one identity; it is
+        computed by `witness()` and keyed on the `RetentionKey`. What the instance carries is the shared
+        constitution CONTEXT (publication-level) and the `data_state` of the material it was established
+        from. Keeping them apart is P-1's whole instruction."""
         return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
-                                  participation=self.participation,
-                                  constitution=self.constitution, scope=scope)
+                                  participation=self.participation, scope=scope,
+                                  data_state=data_state)
 
     def at(self, anchor: Anchor) -> FamilyPoint:
         return FamilyPoint(self.family_id, anchor)
@@ -237,7 +271,24 @@ class GovernedExpression:
     scope: Optional[str] = None
     admitted_bases: tuple[SufficientBasis, ...] = ()
     parameters: Mapping[str, object] = field(default_factory=dict)
-    constitution: str = "c0"
+    #: **RETIRED** — see `MeasureFamily.constitution`. Computed by `witness()`.
+    constitution: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        refuse_a_declared_constitution(self, self.expression_id)
+
+    def witness(self, law: AnalyticalLaw) -> ConstitutionWitness:
+        """**This expression's computed `ConstitutionWitness`, against its BOUND constructor law.**
+
+        `admitted_bases` is NOT a determinant of it — ruled 2026-09-28, *"expression identity ≠ one
+        particular sufficient basis used to establish it"* — so admitting a new route leaves every value
+        already established over an existing route current rather than stale. Which route a value actually
+        took rides on the value, as `ExpressionOutput.basis_id`.
+
+        The constructor's own REQUIRED BASIS is a different matter and does enter, through the law's witness:
+        what routes an expression admits is the declaration's business, but what the law REQUIRES of any
+        route is the law's, and a law that changed its requirement is a different constitution."""
+        return expression_witness(self, law)
 
     def bind(self, registry: LawRegistry, families: Mapping[str, MeasureFamily]) -> AnalyticalLaw:
         law = registry.get(self.constructor)
@@ -306,12 +357,13 @@ class GovernedExpression:
                     f"route counted twice, and the agreement obligation between alternatives would be "
                     f"trivially satisfied by the duplicate.")
             shapes[shape] = basis.basis_id
+        _refuse_undeclared_parameters(law, self.parameters, self.expression_id)
         return law
 
-    def instance(self) -> AnalyticalInstance:
+    def instance(self, *, data_state: str = UNSTATED_DATA_STATE) -> AnalyticalInstance:
         return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
-                                  participation=self.participation,
-                                  constitution=self.constitution, scope=self.scope)
+                                  participation=self.participation, scope=self.scope,
+                                  data_state=data_state)
 
     def at(self, anchor: Anchor) -> ExpressionPoint:
         return ExpressionPoint(self.expression_id, anchor)
@@ -321,6 +373,32 @@ class GovernedExpression:
             if b.basis_id == basis_id:
                 return b
         return None
+
+
+def _refuse_undeclared_parameters(law: AnalyticalLaw, parameters: Mapping[str, object],
+                                  identity: str) -> None:
+    """**`parameters` IS A SEMANTIC CONSTITUTION FIELD, AND THE LAW SAYS WHAT MAY BE IN IT.**
+
+    Ruled (Huayin, 2026-09-29): *"`parameters` may be taken whole only because it is a semantic constitution
+    field. Do not allow provider/codec/performance parameters into that field. Those belong to realization
+    standing. A ConstitutionWitness is analytical identity, not merely a conservative cache-invalidation
+    hash."*
+
+    The witness takes this field WHOLE, so the field has to be clean at the source — and the authority for
+    what individuates a law's use is the law, which already declares it. A denylist of suspicious names
+    (`codec`, `batch_size`, `compression`…) would have to guess; `required_parameters` states it."""
+    undeclared = sorted(set(parameters) - set(law.required_parameters))
+    if undeclared:
+        raise KernelRefusal(
+            "undeclared-parameter", identity,
+            f"declares parameter(s) {undeclared}, which law {law.name!r} does not name as "
+            f"identity-bearing (it declares {list(law.required_parameters)}). **THIS FIELD IS ANALYTICAL "
+            f"IDENTITY AND IT ENTERS THE CONSTITUTION WITNESS WHOLE**, so a provider, codec, compression, "
+            f"batch-size or any other performance knob put here would make a physical tuning choice a "
+            f"different analytical constitution — and would make the witness a cache-invalidation hash "
+            f"instead of an identity. Those belong to REALIZATION STANDING "
+            f"(`RealizationStanding`/`ProviderProfile`). If the parameter genuinely individuates this "
+            f"law's use, the law must declare it.")
 
 
 def universe_of(u: Universe) -> str:                            # readability in exhibits

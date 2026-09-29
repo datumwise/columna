@@ -646,7 +646,7 @@ def test_a_block_may_not_declare_a_familys_analytical_instance(mme, block):
     from columna_platform.kernel import AnalyticalInstance
 
     forged = AnalyticalInstance(manifold=EX.MANIFOLD, universe="commerce",
-                               participation="something else", constitution="c0")
+                               participation="something else")
     bad = GovernedBlock.of(block.index, {"revenue": block.column("revenue")},
                            {"revenue": standing("revenue", forged, n=len(block.index))})
     with pytest.raises(KernelRefusal) as exc:

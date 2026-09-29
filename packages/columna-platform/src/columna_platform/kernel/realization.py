@@ -32,6 +32,35 @@ from .geometry import KernelRefusal
 
 
 @dataclass(frozen=True)
+class RealizationStanding:
+    """**WHICH PHYSICAL REALIZATION produced or carries a value — the third of P-1's three facts.**
+
+    Ruled (Huayin, 2026-09-29): constitution, data state and realization *"remain separately reasoned even
+    if a later retention key combines references to all three."* This is the third, as an object rather than
+    a bare provider string, so that it has somewhere to grow (a codec, a format, a compression) without any
+    of that leaking into the analytical instance.
+
+    It is **not** identity and **not** analytical standing: two values over one constitution and one
+    evidence state, produced by two providers, are the same analytical quantity differently realized. What
+    it distinguishes is interchangeability of the MATERIAL — *"a value produced by an approximate provider is
+    not interchangeable with one produced by an exact one"* — which is why it is an axis of `RetentionKey`
+    and of nothing else.
+
+    `carrier` names the carriage, not a persistence format: P-1 stops short of Parquet/Iceberg/Postgres, so
+    the only carriers that exist today are in-memory ones."""
+
+    provider: str
+    carrier: str = "in-memory"
+
+    @property
+    def token(self) -> str:
+        return f"{self.provider}/{self.carrier}"
+
+    def __str__(self) -> str:
+        return self.token
+
+
+@dataclass(frozen=True)
 class Realization:
     """One law, as one provider can execute it. Every field is optional except the law it realizes,
     because which of them a law NEEDS is the law's business and not this record's."""
@@ -96,4 +125,4 @@ class ProviderProfile:
         return tuple(sorted(self._by_law))
 
 
-__all__ = ["ProviderProfile", "Realization"]
+__all__ = ["ProviderProfile", "Realization", "RealizationStanding"]

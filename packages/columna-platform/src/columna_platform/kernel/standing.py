@@ -19,10 +19,41 @@ distinguished objects would let the engine combine two that should never have me
 
 The three questions are asked in three places and answered with the same `Compatibility`, so a
 consumer never has to interpret a bare Boolean.
+
+THREE FACTS ABOUT A RETAINED OBJECT, AND THIS MODULE OWNS THE SECOND
+--------------------------------------------------------------------
+Ruled (Huayin, 2026-09-29, P-1): *"Keep these three things distinct: **ConstitutionWitness** — which governed
+analytical constitution this object belongs to; **AnalyticalInstance / data-state identity** — which actual
+root/evidence state this retained material belongs to; **Realization standing** — which physical/provider/codec
+realization produced or carries it. Do not collapse them into one version/freshness token."*
+
+    constitution   `witness.py`       COMPUTED per object, and carried on the `RetentionKey` — **not here.**
+    data state     **here**           `data_state` — which root/evidence state this material came from.
+    realization    `realization.py`   `RealizationStanding`, also on the key. Absent from this record: a
+                                      value produced by two providers under one constitution and one data
+                                      state is the same analytical instance, differently realized.
+
+**WHY THE PER-OBJECT WITNESS IS NOT A FIELD OF THIS RECORD, WHICH IS A CORRECTION MADE WHILE BUILDING P-1.**
+The first attempt put the computed `ConstitutionWitness` digest here, in the old `constitution` slot. It
+broke every expression immediately, and the breakage was the lesson: `Revenue`'s witness and `OrderCount`'s
+witness necessarily DIFFER — different laws, different value domains — so `compatible_with` declared the
+canonical SUM/COUNT basis jointly unusable on `different-constitution`. Comparing two different objects'
+own constitution witnesses is a category error. The per-object witness answers *"has THIS object's
+constitution moved"*, which is a staleness question about one identity, and it is enforced where that
+question belongs: at candidate resolution, keyed on the witness. What this record carries is
+`constitution_context` — the SHARED governed constitution two different objects were constituted under,
+which is a publication-level fact and the only sense in which "same constitution" spans two identities.
+
+`data_state` exists because *"same constitution + new source/root data → same ConstitutionWitness, different
+AnalyticalInstance"* is otherwise unstatable: before it, a reload produced an instance identical in every
+field, so two evidence states silently overwrote one another in the store. It is an OPAQUE token supplied by
+whoever establishes the material — a load id, an evidence digest, a snapshot reference. **No format is
+invented for it here** (P-1: *"do not invent persistence format or serialization yet"*), and nothing in this
+kernel parses it; it is compared and reported, never interpreted.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 # ── how an answer was reached. Reported, because the route is a governed fact. ────────────────────
@@ -32,6 +63,13 @@ CACHED = "cached"                 # an exact retained hit at the asked location
 EVALUATED = "evaluated"           # an expression computed from a sufficient basis
 REFUSED = "refused"
 ROUTES = frozenset({ROOT, CONTINUED, CACHED, EVALUATED, REFUSED})
+
+#: **No root/evidence state is CLAIMED.** Not a wildcard and not unknown-ness: an instance carrying it is
+#: attributable to no particular established material, and two such instances are the same unstated state.
+UNSTATED_DATA_STATE = "data:unstated"
+
+#: The shared governed-constitution context, when nothing has stated one. See `AnalyticalInstance`.
+CONSTITUTION_CONTEXT_UNSTATED = "context:unstated"
 
 
 @dataclass(frozen=True)
@@ -58,8 +96,34 @@ class AnalyticalInstance:
     manifold: str
     universe: str
     participation: str
-    constitution: str
+    #: **THE SHARED GOVERNED CONSTITUTION CONTEXT — publication-level, and NOT the per-object
+    #: `ConstitutionWitness`** (which is computed in `witness.py` and carried on the `RetentionKey`). This is
+    #: the only sense of "same constitution" that spans two DIFFERENT identities, which is what this record
+    #: is for: it is compared when asking whether a `Revenue` state and an `OrderCount` state may combine.
+    #:
+    #: **NOTHING COMPUTES IT YET**, and it is named rather than silently defaulted for that reason: the
+    #: kernel has no publication object, so every object is constituted under one unstated context. When a
+    #: governed publication witness exists it lands here — and it lands here WITHOUT becoming a freshness
+    #: token, because freshness of the material is `data_state` and supersession of a declaration is the
+    #: witness on the key.
+    constitution_context: str = CONSTITUTION_CONTEXT_UNSTATED
     scope: Optional[str] = None
+    #: **WHICH ROOT/EVIDENCE STATE this material belongs to.** Opaque, supplied at establishment, never
+    #: parsed. `UNSTATED_DATA_STATE` means no evidence state is CLAIMED — which is a legible standing and
+    #: not a wildcard: two objects that both claim nothing are the same unstated state.
+    data_state: str = UNSTATED_DATA_STATE
+
+    def with_data_state(self, data_state: str) -> "AnalyticalInstance":
+        """This instance, attributed to one root/evidence state. The single place that stamp is applied."""
+        return replace(self, data_state=data_state)
+
+    def same_but_for_data_state(self, other: "AnalyticalInstance") -> bool:
+        """**Every governed axis agrees; only the evidence state may differ.** Two loads of one constitution
+        answer `True` here and are still different instances — which is exactly the distinction P-1 asks to
+        keep, and it is what lets candidate resolution find both and then refuse to guess between them."""
+        return (self.manifold, self.universe, self.participation, self.scope,
+                self.constitution_context) == (other.manifold, other.universe, other.participation,
+                                               other.scope, other.constitution_context)
 
     def compatible_with(self, other: "AnalyticalInstance") -> "Compatibility":
         if self.manifold != other.manifold:
@@ -82,12 +146,27 @@ class AnalyticalInstance:
         if self.scope != other.scope:
             return Compatibility(False, "different-scope",
                                  f"{self.scope!r} vs {other.scope!r}")
-        if self.constitution != other.constitution:
+        if self.constitution_context != other.constitution_context:
             return Compatibility(
-                False, "different-constitution",
-                f"{self.constitution!r} vs {other.constitution!r}: the governed constitution moved "
-                f"between these two states, so one of them is stale rather than alternative")
-        return Compatibility(True, "matching", "same world, participation, scope and constitution")
+                False, "different-constitution-context",
+                f"{self.constitution_context!r} vs {other.constitution_context!r}: these two states were "
+                f"constituted under different governed constitutions, so one of them is stale rather than "
+                f"alternative. **THIS IS THE PUBLICATION-LEVEL FACT AND NOT A PER-OBJECT WITNESS**: two "
+                f"different families never share a per-object constitution witness, and comparing theirs "
+                f"would declare the canonical SUM/COUNT basis unusable")
+        if self.data_state != other.data_state:
+            # **A SEPARATE CODE, BECAUSE IT IS A SEPARATE FACT.** The constitution is the same one; what
+            # differs is which root/evidence state each side ranged over. Conservative, and the asymmetry
+            # is the usual one: withholding a combination that may have been lawful costs an answer, while
+            # allowing one across two evidence states reports a number about neither.
+            return Compatibility(
+                False, "different-data-state",
+                f"{self.data_state!r} vs {other.data_state!r}: ONE governed constitution, TWO root/evidence "
+                f"states. These are not stale-versus-current and neither is wrong — they range over "
+                f"different established material, so combining them would produce a number about neither. "
+                f"Re-establish both sides from one evidence state, or ask for one explicitly")
+        return Compatibility(True, "matching",
+                             "same world, participation, scope, constitution and data state")
 
 
 @dataclass(frozen=True)
@@ -124,5 +203,6 @@ class Disclosure:
     detail: str
 
 
-__all__ = ["CACHED", "CONTINUED", "EVALUATED", "REFUSED", "ROOT", "ROUTES", "AnalyticalInstance",
-           "Compatibility", "Disclosure", "Refusal"]
+__all__ = ["CACHED", "CONSTITUTION_CONTEXT_UNSTATED", "CONTINUED", "EVALUATED", "REFUSED", "ROOT",
+           "ROUTES", "UNSTATED_DATA_STATE", "AnalyticalInstance", "Compatibility", "Disclosure",
+           "Refusal"]

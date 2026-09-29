@@ -13,15 +13,29 @@ measures is a boundary that leaks.
 
     geometry      the governed universe, the anchor as a CONSTITUENT SET, and the EDGE as an object
     law           the reusable semantic operator/law authority. Semantic content only
-    realization   the physical provider profile. The other half of the split
-    standing      analytical instance, compatibility, refusal, disclosure
+    realization   the physical provider profile, and `RealizationStanding` — which provider/carrier
+    standing      analytical instance (incl. the `data_state` axis), compatibility, refusal, disclosure
+    witness       the `ConstitutionWitness`, COMPUTED from identity-bearing governed facts
     sorts         the TWO durable analytical sorts and their identities: `F@A` and `E@A`
     value         continuation-bearing `FamilyState` vs finalized `ExpressionOutput` — two TYPES
-    mme           the engine: retain, adjudicate, measure, evaluate
+    mme           the engine: retain, resolve candidates, adjudicate, measure, evaluate
     builtins      the smallest law vocabulary the vertical proofs need, and its in-memory provider
     exhibit       the runnable demonstration
 
     THE RULE      physical availability is not analytical authority.
+
+THREE FACTS ABOUT A RETAINED OBJECT, AND THEY ARE THREE
+-------------------------------------------------------
+Ruled (Huayin, 2026-09-29, P-1): *"Keep these three things distinct… Do not collapse them into one
+version/freshness token."*
+
+    which CONSTITUTION   `witness.py`       `ConstitutionWitness` — computed from the declaration
+    which EVIDENCE       `standing.py`      `AnalyticalInstance.data_state` — which root state
+    which REALIZATION    `realization.py`   `RealizationStanding` — which provider/carrier
+
+`RetentionKey` references all three, and referencing is not collapsing: "the declaration moved", "the data
+was reloaded" and "the provider changed" are three separately computed, separately reportable answers, and
+`stale_states()` names which governed determinant moved rather than reporting an undifferentiated staleness.
 """
 from __future__ import annotations
 
@@ -45,8 +59,8 @@ from .law import (
     SCALAR,
     STRUCTURED,
 )
-from .mme import MME, Adequacy, Retained, RetentionKey
-from .realization import ProviderProfile, Realization
+from .mme import MME, Adequacy, PoolResolution, Retained, RetentionKey, Staleness, resolve_pool
+from .realization import ProviderProfile, Realization, RealizationStanding
 from .sorts import (
     ExpressionPoint,
     FamilyPoint,
@@ -57,28 +71,45 @@ from .sorts import (
 )
 from .standing import (
     CACHED,
+    CONSTITUTION_CONTEXT_UNSTATED,
     CONTINUED,
     EVALUATED,
     REFUSED,
     ROOT,
+    UNSTATED_DATA_STATE,
     AnalyticalInstance,
     Compatibility,
     Disclosure,
     Refusal,
 )
 from .value import Answer, ExpressionOutput, FamilyState
+from .witness import (
+    ConstitutionWitness,
+    EXPRESSION_NON_DETERMINANTS,
+    FAMILY_NON_DETERMINANTS,
+    WITNESS_SCHEME,
+    WitnessComparison,
+    determinant_names,
+    expression_witness,
+    family_witness,
+)
 
 __all__ = [
     "Anchor", "Constituent", "Edge", "KernelRefusal", "Universe",
     "AnalyticalLaw", "Composition", "ContinuationRegion", "LawRegistry", "RequiredBasis",
     "MAP", "REDUCER", "ORDERED", "SCALAR", "STRUCTURED", "ORDERED_WITNESS",
     "ADDITION", "SKETCH_UNION", "LATEST_BY_ORDER", "MINIMUM", "MAXIMUM",
-    "ProviderProfile", "Realization",
+    "ProviderProfile", "Realization", "RealizationStanding",
     "AnalyticalInstance", "Compatibility", "Disclosure", "Refusal",
+    "UNSTATED_DATA_STATE", "CONSTITUTION_CONTEXT_UNSTATED",
     "ROOT", "CONTINUED", "CACHED", "EVALUATED", "REFUSED",
     "FamilyPoint", "ExpressionPoint", "MeasureFamily", "GovernedExpression", "Operand",
     "SufficientBasis",
     "Answer", "FamilyState", "ExpressionOutput",
-    "MME", "Adequacy", "Retained", "RetentionKey",
+    "MME", "Adequacy", "Retained", "RetentionKey", "PoolResolution", "Staleness",
+    "resolve_pool",
+    "ConstitutionWitness", "WitnessComparison", "WITNESS_SCHEME", "family_witness",
+    "expression_witness", "determinant_names", "FAMILY_NON_DETERMINANTS",
+    "EXPRESSION_NON_DETERMINANTS",
     "LAWS", "REGISTRY", "IN_MEMORY", "NO_MEAN", "KNOWN_EMPTY", "hll_rse", "witness_value",
 ]
