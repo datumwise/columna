@@ -312,6 +312,10 @@ class ColumnarMME:
     def family(self, family_id: str) -> MeasureFamily:
         return self.authority.family(family_id)
 
+    def subject(self, family_or_id: Any) -> MeasureFamily:
+        """One family, however the caller named it. Delegated — the registry is the authority's."""
+        return self.authority.subject(family_or_id)
+
     def expression(self, expression_id: str) -> GovernedExpression:
         return self.authority.expression(expression_id)
 
@@ -492,7 +496,16 @@ class ColumnarMME:
         return self.authority.adjudicate(candidate, family, target)
 
     # ── serving a family, columnar ───────────────────────────────────────────────────────────
-    def measure(self, family_id: str, anchor: Anchor, *, retain: bool = True,
+    def requirement_for(self, family: Any, target: Anchor, *, data_state: Optional[str] = None,
+                        note: str = ""):
+        """**What governed family state would satisfy a request here?** Delegated to the authority, which
+        is where analytical requirements are stated (R-1 §2).
+
+        It exists on this engine so that a consumer above the two substrates never has to reach through
+        `.authority` — reaching through would be a component knowing which engine it holds."""
+        return self.authority.requirement_for(family, target, data_state=data_state, note=note)
+
+    def measure(self, family_id: Any, anchor: Anchor, *, retain: bool = True,
                 data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
         """**Serve `F@A` over columnar state — and OBSERVE the request** (ruled M-2 §4/§7).
 
@@ -501,10 +514,14 @@ class ColumnarMME:
         point with no established value is not a cache miss, and a policy told it was one would try to
         solve an evidence problem with residency."""
         started_ns = time.perf_counter_ns()
+        # **EITHER SPELLING** — see `kernel.MME.subject`. The two engines' `measure` signatures had
+        # diverged (`MeasureFamily` here, `family_id` there), so no component above both could call
+        # either without knowing which engine it held.
+        family = self.authority.subject(family_id)
+        family_id = family.family_id
         request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
                                 family_id=family_id, target=anchor, data_state=data_state,
                                 on_behalf_of=on_behalf_of)
-        family = self.family(family_id)
         law = self.law_of(family_id)
         instance = self.authority.instance_of(family_id)
         considered: list[str] = []

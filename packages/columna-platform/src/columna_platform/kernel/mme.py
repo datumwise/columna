@@ -395,6 +395,23 @@ class MME:
     def family(self, family_id: str) -> MeasureFamily:
         return self._families[family_id]
 
+    def subject(self, family_or_id: Any) -> MeasureFamily:
+        """**One family, however the caller named it** — a `MeasureFamily` or its `family_id`.
+
+        Added in F-1, and it is a seam correction rather than a convenience. The two engines had
+        divergent signatures: `kernel.MME.measure` took a `MeasureFamily` and `ColumnarMME.measure` took a
+        `family_id` string, so **no component above them could call both** — a Fulfillment Coordinator
+        written against either one was written against that substrate. Normalising here, in the analytical
+        authority that owns the registry, is the smallest fix that does not move a single existing call
+        site: every caller keeps the spelling it had.
+
+        It is deliberately NOT a lookup that returns either sort — `sort_of` is still asked first, and
+        `expression()` is still a peer of `family()` (M-2). This normalises the SPELLING of one family, not
+        the question of which sort a token is."""
+        if isinstance(family_or_id, str):
+            return self._families[family_or_id]
+        return family_or_id
+
     def expression(self, expression_id: str) -> GovernedExpression:
         """**A PEER of `family()`, not a widening of it.** A caller asks `sort_of` first and then the
         accessor for that sort; there is no lookup that returns either, so no consumer has to ask what
@@ -648,7 +665,7 @@ class MME:
                         f"{family.family_id}'s continuation region")
 
     # ── serving a family ─────────────────────────────────────────────────────────────────────
-    def measure(self, family: MeasureFamily, anchor: Anchor, *, retain: bool = True,
+    def measure(self, family: Any, anchor: Anchor, *, retain: bool = True,
                 data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
         """**Serve `F@A`.** Exact hit, else the best admitted seed, else a refusal that names why.
 
@@ -667,6 +684,7 @@ class MME:
         Observation is emitted AFTER the answer is fully determined and never gates it. Nothing below
         branches on whether an observer exists."""
         started_ns = time.perf_counter_ns()
+        family = self.subject(family)                    # a `MeasureFamily` or its id — see `subject`
         request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
                                 family_id=family.family_id, target=anchor, data_state=data_state,
                                 on_behalf_of=on_behalf_of)
@@ -797,7 +815,7 @@ class MME:
         return (" " + " ".join(parts)) if parts else ""
 
     # ── stating what is needed — the MME's half of the realization seam (R-1 §2) ──────────────
-    def requirement_for(self, family: MeasureFamily, target: Anchor, *,
+    def requirement_for(self, family: Any, target: Anchor, *,
                         data_state: Optional[str] = None, note: str = "") -> RequirementOutcome:
         """**What governed family state would satisfy a request for `F@target`?**
 
@@ -815,6 +833,7 @@ class MME:
         emitting a requirement would be inviting a provider to compute an answer the law forbids. A backend
         could almost certainly produce the number; that is exactly why the refusal is here, at the point
         where the requirement would otherwise be minted, and not left to be caught at admission."""
+        family = self.subject(family)
         law = self._bound[family.family_id]
         if not target.constituents <= family.root.constituents:
             return RequirementOutcome(

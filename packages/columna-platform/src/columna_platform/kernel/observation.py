@@ -110,7 +110,6 @@ UNSUPPORTED_CODES = frozenset({
     "outside-continuation-region",
     "anchor-outside-the-continuation-region",
     "unrealized-law",
-    "state-no-longer-sufficient",
     "no-admitted-basis",
     "incompatible-basis",
     "layouts-differ",
@@ -118,6 +117,13 @@ UNSUPPORTED_CODES = frozenset({
 })
 
 WANT_OF_STATE_CODES = frozenset({"want-of-state", "basis-operand-wants-state"})
+
+# **`state-no-longer-sufficient` IS `NEED`, NOT `UNSUPPORTED`, AND F-1 IS WHERE THAT SHOWED.** M-2 listed
+# it as unsupported; R-1's `MME.requirement_for` emits a requirement for it, because a held FINALIZED
+# scalar where the law composes structured state is precisely something the estate could supply properly.
+# The two classifications disagreeing would have meant the workload log and the Fulfillment Coordinator
+# telling a future cache economist different stories about the same request, so they are now one
+# judgement: supplying adequate state would fix it, therefore NEED.
 
 
 def disposition_for(refusal_code: str) -> str:
