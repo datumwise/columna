@@ -212,7 +212,7 @@ def test_a_mean_family_is_not_a_constructible_object(mme):
     object already constituted as a family. Here `MeasureFamily(law="MEAN")` has no reachable state."""
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
-            family_id="mean_order_value", universe="commerce", root=EX.SALE_AT, law="MEAN",
+            family_id="mean_order_value", manifold=EX.MANIFOLD, universe="commerce", root=EX.SALE_AT, law="MEAN",
             value_domain="decimal", participation=EX.PARTICIPATION, target="the mean"))
     assert exc.value.code == "not-a-family-law"
     assert "GOVERNED EXPRESSION" in exc.value.detail
@@ -222,7 +222,7 @@ def test_a_mean_family_is_not_a_constructible_object(mme):
 def test_an_expression_over_a_continuation_bearing_law_is_refused(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_expression(GovernedExpression(
-            expression_id="bad", universe="commerce", constructor="SUM",
+            expression_id="bad", manifold=EX.MANIFOLD, universe="commerce", constructor="SUM",
             operands=(Operand("operand", "revenue"),), participation=EX.PARTICIPATION))
     assert exc.value.code == "not-a-constructor"
 
@@ -230,7 +230,7 @@ def test_an_expression_over_a_continuation_bearing_law_is_refused(mme):
 def test_an_ordered_law_without_a_governed_order_is_refused(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
-            family_id="ungoverned", universe="commerce", root=EX.STORE_DAY, law="LAST",
+            family_id="ungoverned", manifold=EX.MANIFOLD, universe="commerce", root=EX.STORE_DAY, law="LAST",
             value_domain="integer", participation="p", target="t"))
     assert exc.value.code == "order-not-governed"
     assert "picks one, which is a different and ungoverned act" in exc.value.detail
@@ -239,7 +239,7 @@ def test_an_ordered_law_without_a_governed_order_is_refused(mme):
 def test_a_familys_value_domain_is_its_own_value_not_its_operands(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
-            family_id="sketchy", universe="commerce", root=EX.SALE_AT, law="HLL_SKETCH",
+            family_id="sketchy", manifold=EX.MANIFOLD, universe="commerce", root=EX.SALE_AT, law="HLL_SKETCH",
             value_domain="text", participation="p", target="t"))
     assert exc.value.code == "value-domain-mismatch"
 
@@ -247,7 +247,7 @@ def test_a_familys_value_domain_is_its_own_value_not_its_operands(mme):
 def test_a_basis_may_not_relax_the_laws_participation_requirement(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_expression(GovernedExpression(
-            expression_id="lax", universe="commerce", constructor="MEAN",
+            expression_id="lax", manifold=EX.MANIFOLD, universe="commerce", constructor="MEAN",
             operands=(Operand("operand", "revenue"),), participation=EX.PARTICIPATION,
             admitted_bases=(SufficientBasis("b", {"SUM": "revenue", "COUNT": "order_count"}, False),)))
     assert exc.value.code == "basis-participation-requirement"
@@ -257,7 +257,7 @@ def test_a_basis_may_not_relax_the_laws_participation_requirement(mme):
 def test_one_route_declared_twice_is_not_two_alternatives(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_expression(GovernedExpression(
-            expression_id="dupe", universe="commerce", constructor="MEAN",
+            expression_id="dupe", manifold=EX.MANIFOLD, universe="commerce", constructor="MEAN",
             operands=(Operand("operand", "revenue"),), participation=EX.PARTICIPATION,
             admitted_bases=(
                 SufficientBasis("b1", {"SUM": "revenue", "COUNT": "order_count"}, True),
@@ -297,7 +297,7 @@ def test_the_root_remains_the_canonical_origin_and_is_never_evicted_by_a_continu
 
 
 def test_a_family_with_no_established_root_is_unanswerable_and_nothing_is_invented(fams):
-    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY)
+    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD)
     m.register_family(fams["revenue"])
     answer = m.measure(fams["revenue"], EX.TOTAL)
     assert not answer.served
@@ -423,7 +423,7 @@ def test_an_expression_is_evaluated_never_continued(mme, exprs):
 def test_an_expression_undefined_on_its_basis_says_so_rather_than_returning_zero():
     """ToD v8 §4.3: at `n = 0` the SUM/COUNT basis IS established — as `(0, 0)` — and the expression is
     UNDEFINED on it. Not an error, and not zero."""
-    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY)
+    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD)
     revenue, order_count, *_ = EX._families()
     m.register_family(revenue)
     m.register_family(order_count)
@@ -460,7 +460,7 @@ def test_the_refusal_is_not_a_claim_that_the_operands_are_absent(mme, exprs):
 
 def test_an_expression_admitting_no_basis_is_well_formed_and_not_evaluable(mme):
     expr = mme.register_expression(GovernedExpression(
-        expression_id="unrouted", universe="commerce", constructor="MEAN",
+        expression_id="unrouted", manifold=EX.MANIFOLD, universe="commerce", constructor="MEAN",
         operands=(Operand("operand", "revenue"),), participation=EX.PARTICIPATION))
     answer = mme.evaluate(expr, EX.TOTAL)
     assert not answer.served and answer.refusal.code == "no-admitted-basis"
@@ -504,8 +504,8 @@ def test_the_retention_key_distinguishes_sort_identity_anchor_instance_and_provi
     assert held.key.sort == "family" and held.key.identity == "revenue"
     assert held.key.anchor == EX.BY_DAY and held.key.provider == "in-memory"
     # a DIFFERENT analytical instance is a different retained object, never a silent overwrite
-    other = AnalyticalInstance(universe="commerce", participation="something else",
-                               constitution="c0")
+    other = AnalyticalInstance(manifold=EX.MANIFOLD, universe="commerce",
+                               participation="something else", constitution="c0")
     assert mme.retained(state.point, other) is None
 
 
@@ -545,7 +545,7 @@ def test_a_known_empty_witness_is_a_standing_and_not_an_absence():
 
 # ══ realization, invalidation, and the geometry's own rules ═══════════════════════════════════════
 def test_a_backends_inability_does_not_remove_a_law(mme, exprs):
-    thin = MME(EX.COMMERCE, REGISTRY, B.NO_MEAN)
+    thin = MME(EX.COMMERCE, REGISTRY, B.NO_MEAN, manifold=EX.MANIFOLD)
     revenue, order_count, *_ = EX._families()
     thin.register_family(revenue)
     thin.register_family(order_count)

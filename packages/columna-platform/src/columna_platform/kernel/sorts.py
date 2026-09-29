@@ -85,6 +85,9 @@ class MeasureFamily:
     in one world may be constituted at different locations, and neither one's root is the world's."""
 
     family_id: str
+    #: **The Manifold that owns this family.** Logical ownership, not a deployment fact: many Manifolds
+    #: may share one process, runtime, store and provider, and none of that shares authority.
+    manifold: str
     universe: str
     #: `R_F`. The canonical continuation origin, and the only location contributions land at.
     root: Anchor
@@ -168,7 +171,8 @@ class MeasureFamily:
         return law
 
     def instance(self, scope: Optional[str] = None) -> AnalyticalInstance:
-        return AnalyticalInstance(universe=self.universe, participation=self.participation,
+        return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
+                                  participation=self.participation,
                                   constitution=self.constitution, scope=scope)
 
     def at(self, anchor: Anchor) -> FamilyPoint:
@@ -222,6 +226,7 @@ class GovernedExpression:
     *"the expression is undefined on that basis"* at `n = 0`."""
 
     expression_id: str
+    manifold: str
     universe: str
     constructor: str
     operands: tuple[Operand, ...]
@@ -304,7 +309,8 @@ class GovernedExpression:
         return law
 
     def instance(self) -> AnalyticalInstance:
-        return AnalyticalInstance(universe=self.universe, participation=self.participation,
+        return AnalyticalInstance(manifold=self.manifold, universe=self.universe,
+                                  participation=self.participation,
                                   constitution=self.constitution, scope=self.scope)
 
     def at(self, anchor: Anchor) -> ExpressionPoint:

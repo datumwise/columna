@@ -25,7 +25,38 @@ dependencies = [
     # arrived only because columna-core happens to pin it. A direct import is a direct dependency:
     # the WP-0 pyarrow lesson, applied to the one this package had left implicit.
     "polars>=1.0,<2.0",
+    # DECLARED, NOT BORROWED (2026-09-28) — the columnar MME substrate. `columnar/provider.py` imports
+    # both directly: DataFusion for grouped continuation and its custom-aggregate mechanism, and
+    # DataSketches for the portable HLL value that is the governed family state. Same rule as pyarrow and
+    # polars above: a direct import is a direct dependency.
+    #
+    # `datasketches` previously arrived only because columna-core pins it, which is exactly the implicit
+    # arrangement the WP-0 lesson is about — and it is now load-bearing in a Platform-owned path.
+    "datafusion>=45,<60",
+    "datasketches>=5.0,<6.0",
 ]
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# TRANSITIONAL: `columna-core` above is a LAYERING dependency this package is meant to lose.
+#
+# Ruled (Huayin, 2026-09-28): *"`columna_platform` currently imports `columna_core.envelope` as syntax.
+# The measured closure proves it is semantically clean today, but the Platform-first architecture means
+# Platform must not permanently depend on Core… Record the dependency as transitional. Recommend the
+# smallest later extraction/lift into a Platform-owned or neutral syntax module. Do not undertake a broad
+# Core refactor in this unit."*
+#
+# THE WHOLE OF THE DEPENDENCY, MEASURED: exactly one import, in exactly one file —
+# `columna_platform/frameql/syntax.py` imports `columna_core.envelope`, whose own imports are `re`,
+# `dataclasses` and `typing`, and whose import closure is two modules. Four tests in
+# `tests/test_frameql_serving.py` and `tests/test_columnar_substrate.py` hold that: the kernel and the
+# columnar layer import Core NOWHERE, and no syntax object reaches either.
+#
+# THE SMALLEST LATER EXTRACTION, recommended and NOT undertaken here: move `columna_core/envelope.py`
+# verbatim to a new neutral distribution `columna-frameql-syntax` (one module, stdlib-only, no semantic
+# content), and have BOTH packages import it. That is a file move plus two import lines and one new
+# pyproject; it needs no Core refactor, changes no grammar, and leaves one grammar rather than two — which
+# a copy into Platform would not. It should land before Platform is treated as independently deployable.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 [project.optional-dependencies]
 test = ["pytest>=8.0,<10.0"]

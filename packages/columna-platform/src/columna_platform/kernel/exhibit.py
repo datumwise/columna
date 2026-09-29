@@ -23,6 +23,7 @@ from .geometry import Constituent, KernelRefusal, Universe
 from .mme import MME
 from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
 
+MANIFOLD = "andfam.commerce"
 PARTICIPATION = "every customer order the merchant accepted"
 AUDITED = "every customer order the merchant accepted AND the auditor confirmed"
 
@@ -81,22 +82,22 @@ STORE_DAY_LEVEL = COMMERCE.anchor({"store", "day"})
 
 def _families():
     revenue = MeasureFamily(
-        family_id="revenue", universe="commerce", root=SALE_AT, law="SUM",
+        family_id="revenue", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="SUM",
         value_domain="decimal", participation=PARTICIPATION,
         target="the additive total of accepted order value")
     order_count = MeasureFamily(
-        family_id="order_count", universe="commerce", root=SALE_AT, law="COUNT",
+        family_id="order_count", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="COUNT",
         value_domain="integer", participation=PARTICIPATION,
         target="the number of accepted customer orders")
     # The SAME family law and participation, established under the AUDITED participation — the
     # incompatible operand for proof 3b. It is lawful, established and available; it is not jointly
     # usable with `revenue`, and that is the distinction.
     audited_count = MeasureFamily(
-        family_id="audited_order_count", universe="commerce", root=SALE_AT, law="COUNT",
+        family_id="audited_order_count", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="COUNT",
         value_domain="integer", participation=AUDITED,
         target="the number of auditor-confirmed customer orders")
     distinct_customers = MeasureFamily(
-        family_id="distinct_customers", universe="commerce", root=SALE_AT, law="HLL_SKETCH",
+        family_id="distinct_customers", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="HLL_SKETCH",
         # **`sketch`, not `text`.** A family's `value_domain` is the domain of ITS OWN VALUE — what it
         # retains and what an expression's constructor sees — not the domain of the occurrences it
         # consumes at the root. HLL_SKETCH admits `text` operands and yields a `sketch`; the family IS
@@ -105,11 +106,11 @@ def _families():
         value_domain="sketch", participation=PARTICIPATION,
         target="an HLL sketch of the distinct customers who ordered")
     on_hand = MeasureFamily(
-        family_id="on_hand", universe="commerce", root=STORE_DAY_LEVEL, law="STOCK_LEVEL",
+        family_id="on_hand", manifold=MANIFOLD, universe="commerce", root=STORE_DAY_LEVEL, law="STOCK_LEVEL",
         value_domain="integer", participation="every unit counted in the evening stocktake",
         target="units of stock held at one store at the close of one day")
     gauge = MeasureFamily(
-        family_id="gauge", universe="commerce", root=STORE_DAY_LEVEL, law="LAST",
+        family_id="gauge", manifold=MANIFOLD, universe="commerce", root=STORE_DAY_LEVEL, law="LAST",
         value_domain="integer", participation="every accepted gauge reading",
         target="the last gauge reading of the day", order_by="recorded_at")
     return revenue, order_count, audited_count, distinct_customers, on_hand, gauge
@@ -117,7 +118,7 @@ def _families():
 
 def _expressions():
     aov = GovernedExpression(
-        expression_id="average_order_value", universe="commerce", constructor="MEAN",
+        expression_id="average_order_value", manifold=MANIFOLD, universe="commerce", constructor="MEAN",
         operands=(Operand("operand", "revenue"),),
         participation=PARTICIPATION, inner_anchors=(SALE_AT,),
         scope="the accepted customer orders of one location",
@@ -129,7 +130,7 @@ def _expressions():
     # A SECOND, incompatible route over the audited count — admitted, lawful in shape, and refused at
     # establishment. Proof 3b: the operands both exist.
     aov_audited = GovernedExpression(
-        expression_id="average_order_value_audited", universe="commerce", constructor="MEAN",
+        expression_id="average_order_value_audited", manifold=MANIFOLD, universe="commerce", constructor="MEAN",
         operands=(Operand("operand", "revenue"),),
         participation=PARTICIPATION, inner_anchors=(SALE_AT,),
         admitted_bases=(
@@ -138,7 +139,7 @@ def _expressions():
                             requires_common_participation=True),
         ))
     distinct_estimate = GovernedExpression(
-        expression_id="distinct_customer_estimate", universe="commerce", constructor="HLL_ESTIMATE",
+        expression_id="distinct_customer_estimate", manifold=MANIFOLD, universe="commerce", constructor="HLL_ESTIMATE",
         operands=(Operand("operand", "distinct_customers"),),
         participation=PARTICIPATION, inner_anchors=(SALE_AT,),
         admitted_bases=(
@@ -151,7 +152,7 @@ def _expressions():
 
 def build() -> MME:
     """A fully constituted engine with every family and expression registered and every root sealed."""
-    mme = MME(COMMERCE, REGISTRY, IN_MEMORY)
+    mme = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
     revenue, order_count, audited_count, distinct, on_hand, gauge = _families()
     for family in (revenue, order_count, audited_count, distinct, on_hand, gauge):
         mme.register_family(family)
@@ -324,7 +325,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     print("  first: a Mean FAMILY is not a constructible object.")
     try:
         mme.register_family(MeasureFamily(
-            family_id="mean_order_value", universe="commerce", root=SALE_AT, law="MEAN",
+            family_id="mean_order_value", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="MEAN",
             value_domain="decimal", participation=PARTICIPATION, target="the mean order value"))
         check("MeasureFamily(law=MEAN) refused at constitution", False)
     except KernelRefusal as exc:
@@ -432,7 +433,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     # ══ realization limits, and conservative invalidation ════════════════════════════════════════
     _rule("ADDENDA · a provider's inability does not remove a law; invalidation is conservative")
     from .builtins import NO_MEAN
-    thin = MME(COMMERCE, REGISTRY, NO_MEAN)
+    thin = MME(COMMERCE, REGISTRY, NO_MEAN, manifold=MANIFOLD)
     for family in (revenue, order_count):
         thin.register_family(family)
     thin.register_expression(aov)
