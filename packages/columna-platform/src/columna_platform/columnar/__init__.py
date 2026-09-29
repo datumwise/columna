@@ -11,6 +11,8 @@ columna_platform.columnar — **the MME's columnar data plane: Arrow carriage, D
     mme        `ColumnarMME` — delegates every authority question to `kernel.MME.adjudicate`.
                **FAMILY MATERIALIZATIONS ONLY** (M-2)
     expression `ColumnarExpressionEvaluator` — ABOVE the MME; consumes family state, evaluates `E@A`
+    capability the PROVIDER-OWNED execution contract: `(mode, governed operation) → physical handle`.
+               GROUPED changes the index, POSITIONAL preserves it, SCAN is reserved
     exhibit    the runnable proof
 
     THE PHYSICAL RULE   the MME does not discover analytical alignment by joining analytical tables.
@@ -25,6 +27,15 @@ from __future__ import annotations
 
 from .block import GovernedBlock, value_column_name
 from .index import AnchorInstance, CoordinateIndex
+from .capability import (
+    EXECUTION_MODES,
+    GROUPED,
+    IMPLEMENTABLE_MODES,
+    POSITIONAL,
+    SCAN,
+    CapabilityTable,
+    ExecutionCapability,
+)
 from .expression import ColumnarExpressionEvaluator
 from .mme import ColumnarExpressionOutput, ColumnarFamilyState, ColumnarMME
 from .provider import (
@@ -39,7 +50,8 @@ from .provider import (
 )
 from .standing import ColumnStanding, POPULATION, VALUE_BEARING, mask, standing
 
-__all__ = ["AlignmentReport", "AnchorInstance", "COLUMN_STANDING_SHAPES", "ColumnStanding",
+__all__ = ["AlignmentReport", "AnchorInstance", "CapabilityTable", "ExecutionCapability",
+           "EXECUTION_MODES", "GROUPED", "IMPLEMENTABLE_MODES", "POSITIONAL", "SCAN", "COLUMN_STANDING_SHAPES", "ColumnStanding",
            "ColumnarExpressionEvaluator", "ColumnarExpressionOutput", "ColumnarFamilyState",
            "ColumnarMME", "ColumnarProvider",
            "ContinuationResult", "CoordinateIndex", "GovernedBlock", "HLL_PRECISION", "POPULATION",
