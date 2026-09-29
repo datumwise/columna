@@ -47,6 +47,7 @@ from columna_platform.kernel import (
     Operand,
     SufficientBasis,
 )
+from columna_platform.kernel import UNSTATED_DATA_STATE
 from columna_platform.kernel.builtins import IN_MEMORY
 from columna_platform.kernel.exhibit import COMMERCE
 
@@ -148,7 +149,8 @@ def _by_order(index: CoordinateIndex, settled: bool = False):
     return [lookup[cell] for cell in index.coordinates]
 
 
-def build(manifold: str = MANIFOLD, *, settled: bool = False) -> tuple[ColumnarMME, GovernedBlock]:
+def build(manifold: str = MANIFOLD, *, settled: bool = False,
+          data_state: object = UNSTATED_DATA_STATE) -> tuple[ColumnarMME, GovernedBlock]:
     """A constituted columnar MME and the root block. **One shared provider is fine; authority is not.**
 
     `settled=False` is the world AS RECORDED, in which O7's amount is not established. `settled=True` is the
@@ -198,7 +200,7 @@ def build(manifold: str = MANIFOLD, *, settled: bool = False) -> tuple[ColumnarM
         realization="in-memory-arrow",
         provenance=("seven accepted orders, constructed programmatically",))
     for family_id in ("revenue", "order_count", "audited_order_count", "distinct_customers"):
-        mme.establish(block, family_id)
+        mme.establish(block, family_id, data_state=data_state)
     return mme, block
 
 

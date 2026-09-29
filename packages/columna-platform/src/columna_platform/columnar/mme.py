@@ -94,7 +94,7 @@ from columna_platform.kernel import (
     MeasureFamily,
     Refusal,
 )
-from columna_platform.kernel import RealizationStanding, UNSTATED_DATA_STATE
+from columna_platform.kernel import DataStateRef, RealizationStanding, UNSTATED_DATA_STATE
 from columna_platform.kernel.mme import Retained, RetentionKey, Staleness, resolve_pool
 
 from .block import GovernedBlock, value_column_name
@@ -294,7 +294,7 @@ class ColumnarMME:
     # ── establishment from a governed block ──────────────────────────────────────────────────
     def establish(self, block: GovernedBlock, family_id: str, *,
                   at_root: bool = True,
-                  data_state: str = UNSTATED_DATA_STATE) -> ColumnarFamilyState:
+                  data_state: object = UNSTATED_DATA_STATE) -> ColumnarFamilyState:
         """Adopt one of a block's columns as this family's state at the block's anchor.
 
         **The standing comes from the BLOCK and never from the values.** Nothing here inspects
@@ -342,7 +342,7 @@ class ColumnarMME:
         # registered declaration and the realization from the provider; what establishment contributes is
         # which established material this is — the third axis, set here and nowhere else.
         anchor_instance = replace(block.anchor_instance(family_id),
-                                  instance=declared.with_data_state(data_state))
+                                  instance=declared.with_data_state(DataStateRef.of(data_state)))
         state = ColumnarFamilyState(
             family_id=family_id, anchor_instance=anchor_instance,
             values=values, standing=replace(standing, instance=anchor_instance.instance),
@@ -362,6 +362,20 @@ class ColumnarMME:
                 f"refused until the value is established. Not `NA`, not zero, not nonparticipation."))
         self.retain(state)
         return state
+
+    def held_objects(self) -> tuple[Retained, ...]:
+        """Every retained object, values and all. `held` gives the keys; this gives what they hold."""
+        return tuple(self._store.values())
+
+    def adopt(self, value: Any) -> Retained:
+        """**Take up material established elsewhere — a reload, and nothing else.**
+
+        A thin, deliberately named face on `retain`: what arrives here is a value whose constitution witness
+        has already been checked against this engine's declaration by whoever read it, and adopting it makes
+        no claim beyond "this is held". It does not establish a root, it does not bind a law, and it confers
+        no right — every right is still adjudicated at use. The name exists so that a reload cannot be
+        mistaken in a stack trace for an establishment."""
+        return self.retain(value)
 
     def stale_states(self) -> tuple[Staleness, ...]:
         """**Which columnar states are held under a superseded constitution**, asked of the authority.
@@ -400,7 +414,7 @@ class ColumnarMME:
 
     # ── serving a family, columnar ───────────────────────────────────────────────────────────
     def measure(self, family_id: str, anchor: Anchor, *, retain: bool = True,
-                data_state: Optional[str] = None) -> Answer:
+                data_state: Optional[object] = None) -> Answer:
         family = self.family(family_id)
         law = self.law_of(family_id)
         instance = self.authority.instance_of(family_id)
@@ -410,7 +424,8 @@ class ColumnarMME:
         # here exactly as `adjudicate` is: same object, CURRENT constitution witness, ONE evidence state.
         resolution = resolve_pool(self._store.values(), family_id, instance,
                                   self.authority.witness_of(family_id).digest,
-                                  f"{family_id}@{anchor}", data_state)
+                                  f"{family_id}@{anchor}",
+                                  None if data_state is None else DataStateRef.of(data_state))
         if resolution.refusal is not None:
             return Answer(route=REFUSED, refusal=resolution.refusal)
 
@@ -527,14 +542,15 @@ class ColumnarMME:
     # ── evaluating an expression, positionally ───────────────────────────────────────────────
     def evaluate(self, expression_id: str, anchor: Anchor, *,
                  basis_id: Optional[str] = None, retain: bool = True,
-                 data_state: Optional[str] = None) -> Answer:
+                 data_state: Optional[object] = None) -> Answer:
         expression = self.expression(expression_id)
         law = self.law_of(expression_id)
         instance = self.authority.instance_of(expression_id)
 
         resolution = resolve_pool(self._store.values(), expression_id, instance,
                                   self.authority.witness_of(expression_id).digest,
-                                  f"{expression_id}@{anchor}", data_state)
+                                  f"{expression_id}@{anchor}",
+                                  None if data_state is None else DataStateRef.of(data_state))
         if resolution.refusal is not None:
             return Answer(route=REFUSED, refusal=resolution.refusal)
         exact = next((r for r in resolution.pool
@@ -566,7 +582,7 @@ class ColumnarMME:
             " | ".join(failures) + ". Physical availability is not analytical authority."))
 
     def _establish(self, expression: GovernedExpression, law, basis, anchor: Anchor,
-                   data_state: Optional[str] = None) -> Answer:
+                   data_state: Optional[object] = None) -> Answer:
         subject = f"{expression.expression_id}@{anchor} via {basis.basis_id}"
         states: dict[str, ColumnarFamilyState] = {}
         for role in basis.component_laws:

@@ -9,6 +9,7 @@ columna_platform.columnar — **the MME's columnar data plane: Arrow carriage, D
     block      `GovernedBlock` — a physical container, never analytical identity
     provider   Arrow kernels + DataFusion grouped reduction + the HLL union UDAF. No SQL, no join
     mme        `ColumnarMME` — delegates every authority question to `kernel.MME.adjudicate`
+    persistence local Arrow/Parquet blocks, and restart survival. Eight named dimensions, no version token
     exhibit    the runnable proof
 
     THE PHYSICAL RULE   the MME does not discover analytical alignment by joining analytical tables.
