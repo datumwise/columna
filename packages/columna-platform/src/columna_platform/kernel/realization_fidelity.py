@@ -71,6 +71,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from .geometry import KernelRefusal
+from .sorts import PARTICIPATION_CARDINALITY
 from .standing import Disclosure, Refusal
 
 # ══ the minting guard ═════════════════════════════════════════════════════════════════════════════
@@ -278,6 +279,25 @@ class RealizationAuthority:
                 f"evidence about anything."))
         evidence.append(f"realized by {offer.realization.token}")
 
+        # ── 6 · THE ROOT PAYLOAD IS WHAT ITS DECLARED FORMATION SAYS IT IS (B-4a) ─────────────────
+        #
+        # **THE HOLE THIS CLOSES WAS MEASURED, NOT IMAGINED.** In a cold world a population family whose
+        # payload disagreed with its own membership was admitted and served — 7 participating points, 11
+        # orders reported — and the only thing that would have caught it is `duplicate-current-disagreement`,
+        # which needs an honest copy already retained. Ruled: *"must fail fidelity BEFORE admission, even
+        # when no honest materialization is already cached. Do not rely on `duplicate-current-disagreement`;
+        # that is too late and only works in a warm world."*
+        #
+        # This is the first check here that compares the payload against a governed EXPECTATION rather than
+        # against the claim's own self-description, and it is a fidelity question in the strict sense: is
+        # this result really the claimed `F@A`? A count that disagrees with the domain it is a count of is
+        # not that object, however well-formed it is.
+        if offer.anchor == family.root:
+            verdict = self._formation_holds(family, offer, subject)
+            if verdict is not None:
+                return Adjudication(refusal=verdict)
+            evidence.append(f"root payload agrees with declared formation {family.formation!r}")
+
         # ── WANT OF STATE IS EVIDENCE, NOT A FIDELITY FAILURE ─────────────────────────────────────
         # A provider may faithfully realize a family value that participates somewhere its required value is
         # not established. That is a true fact about the world and holding it is correct; what may not happen
@@ -297,6 +317,68 @@ class RealizationAuthority:
         return Adjudication(credential=AdjudicatedRealization(
             offer=offer, standing=standing.request, realization=offer.realization,
             evidence=tuple(evidence), conditions=tuple(conditions), issued_by=_MINT))
+
+    @staticmethod
+    def _formation_holds(family: Any, offer: Any, subject: str) -> Optional[Refusal]:
+        """**Does the offered root payload agree with the family's declared root formation?**
+        `None` means it does, or that this formation states nothing checkable here.
+
+        ONE FORMATION IS CHECKABLE TODAY AND THE OTHER IS DELIBERATELY NOT.
+
+        `DIRECT` says the value is independently established as a value of this family and is NOT derived
+        from participation — so there is nothing to recompute and no expectation to compare against. A
+        `DIRECT` root that arrives with the wrong number is wrong, and no authority here can know it;
+        that is what it means for a value to be established rather than derived. Silence is the correct
+        answer, not a gap.
+
+        `PARTICIPATION_CARDINALITY` says the value IS the cardinality of the governed participating domain
+        constituted at the point. That is recomputable from the offer itself, and so it is recomputed.
+
+        **WHERE THE EXPECTED CARDINALITY COMES FROM, AND WHY IT IS NOT THE LITERAL `1`.** The ruling is
+        explicit that `1` is not part of the law. So the expectation is derived from the model's own
+        representation of the domain: the participating domain at a coordinate is the set of index
+        positions carrying that coordinate, and `CoordinateIndex` REFUSES duplicate coordinates — one
+        analytical point may not hold two positions. Hence `|D(r)| = 1` at a root, as a consequence of the
+        geometry rather than as a constant written down here, and the arithmetic below would yield 7 or 20
+        unchanged the day a geometry represents multiplicity. That is the same distinction the declaration
+        makes: cardinality is the law, and the value is what the law meets.
+
+        **SUBSTRATE-NEUTRAL, BECAUSE THIS FILE IS IN THE KERNEL.** It reads `coordinates` + `cell()` — the
+        surface B-2 established on both family-state types — and touches no Arrow, no mask and no
+        `ColumnStanding`. A check that had reached for `standing.participation` would have made the kernel's
+        fidelity boundary columnar-only."""
+        if family.formation != PARTICIPATION_CARDINALITY:
+            return None
+        counts: dict[tuple, int] = {}
+        for coordinate in offer.value.coordinates:
+            counts[coordinate] = counts.get(coordinate, 0) + 1
+        for coordinate, expected in counts.items():
+            try:
+                supplied = offer.value.cell(coordinate)
+            except KernelRefusal:
+                # The payload declines to yield a value where the formation says one is constituted. A
+                # population reduction has no want of state, so this is not that; it is a payload that
+                # cannot answer for a point it claims to cover.
+                return Refusal(
+                    "realization-withholds-a-constituted-value", subject,
+                    f"{offer.provider!r} offers {subject} whose formation is "
+                    f"{PARTICIPATION_CARDINALITY!r} and whose payload will not yield a value at "
+                    f"{coordinate!r}. The cardinality of a participating domain is constituted wherever "
+                    f"the domain is; a point covered by this claim and unanswerable within it is not a "
+                    f"faithful realization of it.")
+            if supplied != expected:
+                return Refusal(
+                    "realization-contradicts-its-formation", subject,
+                    f"{offer.provider!r} offers {subject} with {supplied!r} at {coordinate!r} where its "
+                    f"declared root formation {PARTICIPATION_CARDINALITY!r} constitutes {expected!r}. "
+                    f"**THE PAYLOAD DISAGREES WITH THE DOMAIN IT IS A COUNT OF.** This family's root "
+                    f"value is not evidence a provider may report; it IS the cardinality of the governed "
+                    f"participating domain constituted at the point, so a different number is not a "
+                    f"different measurement — it is a claim to be an object it is not. Admitting it would "
+                    f"serve a count of {supplied!r} over a domain of {expected!r}, and no later check "
+                    f"recovers the difference: continuation would add it, an expression basis would "
+                    f"divide by it, and both answers would be confidently wrong.")
+        return None
 
 
 __all__ = ["AdjudicatedRealization", "Adjudication", "RealizationAuthority"]

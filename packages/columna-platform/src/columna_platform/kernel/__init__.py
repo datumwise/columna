@@ -16,7 +16,9 @@ measures is a boundary that leaks.
     realization   the physical provider profile, and `RealizationStanding` — which provider/carrier
     standing      analytical instance (incl. the `data_state` axis), compatibility, refusal, disclosure
     witness       the `ConstitutionWitness`, COMPUTED from identity-bearing governed facts
-    sorts         the TWO durable analytical sorts and their identities: `F@A` and `E@A`
+    sorts         the TWO durable analytical sorts and their identities: `F@A` and `E@A` — and
+                  **ROOT FORMATION** (`MeasureFamily.formation`), what a family's root value is
+                  constituted from. Declared by the FAMILY and never by the law
     value         continuation-bearing `FamilyState` vs finalized `ExpressionOutput` — two TYPES
     materialization  MME v1's governed family-materialization cache: opaque identity, dependency,
                      currentness, residency, admission
@@ -65,6 +67,23 @@ is REQUIRED by layer 3 and COMPARED by layer 4 — carried down, not asked twice
 
 The ladder is descended, not climbed: layer 3 succeeding licenses admission of one value and says nothing
 about what may be CONTINUED from it, which is layer 1's question about a different request.
+
+FOUR QUESTIONS ABOUT A ROOT VALUE, AND THEY ARE FOUR
+----------------------------------------------------
+Ruled (Huayin, 2026-09-30, B-4a): *"Root formation says what the root family value is constituted from.
+Evidence provenance says how that root establishment is supported. Physical realization says how the
+governed formation is executed. Continuation says how an already-established family value moves. Keep all
+four separate."*
+
+    root formation        what `F@R_F` IS            `MeasureFamily.formation`     (`sorts.py`)
+    evidence provenance   how it is supported        `AnalyticalInstance.data_state`, realization standing
+    physical realization  how formation is EXECUTED  a `RealizationProvider`, below the fidelity boundary
+    continuation          how it MOVES               `MeasureFamily.law` + the law's own region
+
+**NO ONE OF THEM MAY BE DERIVED FROM ANOTHER**, and the three inference rules this forbids are named where
+the vocabulary is declared. The nearest miss is the subtlest: `POPULATION → PARTICIPATION_CARDINALITY`
+reads a CONTINUATION fact as a FORMATION fact, and both are true of `order_count` — which is exactly why
+declaring them separately is not redundancy.
 
 THREE FACTS ABOUT A RETAINED OBJECT, AND THEY ARE THREE
 -------------------------------------------------------
@@ -189,6 +208,9 @@ from .realization_manager import (
 )
 from .requirement import FamilyRequirement, RequirementOutcome, acceptable_anchors
 from .sorts import (
+    DIRECT,
+    FORMATION_LAWS,
+    PARTICIPATION_CARDINALITY,
     ExpressionPoint,
     FamilyPoint,
     GovernedExpression,
@@ -244,6 +266,7 @@ __all__ = [
     "AnalyticalInstance", "Compatibility", "Disclosure", "Refusal",
     "UNSTATED_DATA_STATE", "CONSTITUTION_CONTEXT_UNSTATED",
     "ROOT", "CONTINUED", "CACHED", "EVALUATED", "REFUSED",
+    "DIRECT", "FORMATION_LAWS", "PARTICIPATION_CARDINALITY",
     "FamilyPoint", "ExpressionPoint", "MeasureFamily", "GovernedExpression", "Operand",
     "SufficientBasis",
     "Answer", "FamilyState", "ExpressionOutput",

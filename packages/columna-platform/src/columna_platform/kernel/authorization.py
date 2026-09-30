@@ -447,6 +447,11 @@ class ContinuationAuthority:
             family_id=family.family_id, target=target, root=family.root,
             acceptable=acceptable, acceptable_truncated=truncated,
             instance=self.constitution.instance_of(family.family_id), data_state=data_state,
+            # **OFF THE FAMILY, BECAUSE THE FAMILY DECLARES IT** (B-4a). Every other governed fact on this
+            # line comes from the law; this one cannot, and the one line of distance is the whole ruling:
+            # a law implies no formation, and reading `law.name` to choose one would be the third address
+            # of the enumeration B-0b deleted.
+            formation=family.formation,
             law=law.name, value_form=law.value_form, sufficient_state=law.sufficient_state,
             # **READ OFF THE LAW, WHICH DECLARES IT** (B-3). Not derived here, not enumerated here, and
             # sitting beside the four other governed facts already carried from the same object — which is

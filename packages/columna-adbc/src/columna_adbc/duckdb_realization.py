@@ -70,11 +70,18 @@ from columna_platform.columnar.mme import ColumnarFamilyState
 from columna_platform.columnar.standing import standing as column_standing
 from columna_platform.kernel.geometry import Anchor, KernelRefusal
 from columna_platform.kernel.realization import RealizationStanding
+from columna_platform.kernel.sorts import PARTICIPATION_CARDINALITY
 from columna_platform.kernel.realization_manager import RealizationOffer, RealizationProposal
 
 #: The carrier this provider supplies through. **A carrier, not an authority** — it names how the material
 #: travelled, which is one of the three axes a `RetentionKey` keeps apart, and it decides nothing.
 ARROW_OVER_ADBC = "duckdb/adbc→arrow"
+
+#: **THE ONE GOVERNED TOKEN THIS MODULE NAMES, AND IT IS IMPORTED RATHER THAN SPELLED** (B-4a). A provider
+#: that executes declared formations must be able to tell which one it was handed; what it must not have is
+#: any route from a LAW to a formation. So this is the formation vocabulary's own constant, and there is no
+#: law name, no fold shape and no value domain anywhere in this file.
+_CARDINALITY = PARTICIPATION_CARDINALITY
 
 
 @dataclass(frozen=True)
@@ -91,7 +98,18 @@ class PhysicalFamilyBinding:
     #: is what `propose` matches against, so a binding at the wrong grain proposes nothing rather than
     #: proposing something that would then be refused deeper in.
     coordinates: Mapping[str, str]
-    value_column: str
+    #: **OPTIONAL, AND WHICH FORMATIONS NEED IT WAS DERIVED RATHER THAN DECIDED** (B-4a).
+    #:
+    #: A `DIRECT` root's value is independently established as a value of the family, so a binding MUST
+    #: say where that value physically lives — without it there is nothing to supply.
+    #:
+    #: A `PARTICIPATION_CARDINALITY` root's value is the cardinality of the governed participating domain,
+    #: and the domain is what the projection returns: the governed coordinates. The value is therefore
+    #: **completely determined by the coordinates this realization supplies**, and a physical value column
+    #: would be a second, independent source for a value that has only one constitution. So it is not
+    #: merely unnecessary — it is REFUSED, because a binding naming one would be naming a number that could
+    #: disagree with the domain, which is precisely the laundering surface B-4a exists to close.
+    value_column: Optional[str] = None
     schema: Optional[str] = None
     note: str = ""
 
@@ -100,12 +118,14 @@ class PhysicalFamilyBinding:
         return frozenset(self.coordinates)
 
     def physical_columns(self, order: Sequence[str]) -> tuple[str, ...]:
-        """The projection, in the anchor's own constituent order plus the value column last."""
-        return tuple(self.coordinates[c] for c in order) + (self.value_column,)
+        """The projection: the anchor's own constituent order, plus the value column where there is one."""
+        columns = tuple(self.coordinates[c] for c in order)
+        return columns + ((self.value_column,) if self.value_column else ())
 
     def __str__(self) -> str:
         where = f"{self.schema}.{self.table}" if self.schema else self.table
-        return f"{self.family_id} ← {where}.{self.value_column} at {sorted(self.grain)}"
+        source = f"{where}.{self.value_column}" if self.value_column else f"{where} (coordinates only)"
+        return f"{self.family_id} ← {source} at {sorted(self.grain)}"
 
 
 @dataclass(frozen=True)
@@ -124,6 +144,9 @@ class _Handle:
     instance: Any
     law: str
     value_form: str
+    #: **CARRIED, NEVER DERIVED** (B-4a). Which formation law this realization must execute. The provider
+    #: performs the physical construction it names and decides nothing about what it means.
+    formation: str
     #: **CARRIED, NEVER DERIVED** (B-3). `value-bearing` or `population`, read off the requirement. This
     #: provider has no mapping from a law NAME to a shape and must not acquire one: B-0b deleted exactly
     #: such an enumeration (`COUNT → population`) from the columnar cache engine, and rebuilding it here
@@ -185,6 +208,7 @@ class DuckDbFamilyProvider:
                            build=requirement.build, witness=requirement.witness,
                            instance=requirement.instance, law=requirement.law,
                            value_form=requirement.value_form,
+                           formation=requirement.formation,
                            fold_shape=requirement.fold_shape),
             diagnostics=f"one bare projection of {binding}; no aggregate, no predicate, no join")
 
@@ -217,18 +241,39 @@ class DuckDbFamilyProvider:
                 f"declared by it and carried on the requirement; a provider deciding it would be a second "
                 f"opinion about what the family means.")
         binding, anchor = handle.binding, handle.anchor
+        self._binding_suits_the_formation(binding, handle.formation)
         order = tuple(anchor.order)
         material = self.source.fetch(schema=binding.schema, table=binding.table,
                                     columns=list(binding.physical_columns(order)))
         table = material.table
 
-        # ── THE LAYOUT. Python tuples, because `CoordinateIndex` IS a tuple of points. ────────
+        # ── THE DOMAIN. Python tuples, because `CoordinateIndex` IS a tuple of points. ────────
         columns = [table.column(binding.coordinates[c]).to_pylist() for c in order]
-        coordinates = tuple(zip(*columns)) if columns else ()
-        index = CoordinateIndex.of(handle.manifold, anchor, coordinates)
+        rows = tuple(zip(*columns)) if columns else ()
 
-        # ── THE VALUES. Arrow in, Arrow out, and no step between. ─────────────────────────────
-        values = _one_array(table.column(binding.value_column))
+        # ── THE PAYLOAD, BY THE FORMATION THE REQUIREMENT DECLARED ────────────────────────────
+        #
+        # **THIS IS PHYSICAL COMPUTATION, NOT PROVIDER INFERENCE** (ruled §7). The wording trap is worth
+        # naming: this method constructs a payload from coordinates, which LOOKS like deciding what a
+        # count means. It is not. The requirement named a formation law; this executes it. The forbidden
+        # shape is `provider knows COUNT → decides Count means one per row`, and the distance between the
+        # two is that nothing below reads a law name, a fold shape, or a value domain.
+        if handle.formation == _CARDINALITY:
+            # The cardinality of the governed participating domain, per governed coordinate. Counting the
+            # rows that land on each coordinate is the whole of it — and it is NOT a hardcoded `1`: a
+            # projection returning two rows for one coordinate yields 2 here, and the fidelity authority
+            # then decides whether that agrees with the domain the index can represent.
+            tally: dict[tuple, int] = {}
+            for row in rows:
+                tally[row] = tally.get(row, 0) + 1
+            coordinates = tuple(tally)
+            index = CoordinateIndex.of(handle.manifold, anchor, coordinates)
+            values = pa.array([tally[c] for c in coordinates], type=pa.int64())
+        else:
+            coordinates = rows
+            index = CoordinateIndex.of(handle.manifold, anchor, coordinates)
+            # ── Arrow in, Arrow out, and no step between. ─────────────────────────────────────
+            values = _one_array(table.column(binding.value_column))
 
         state = ColumnarFamilyState(
             family_id=binding.family_id,
@@ -254,6 +299,38 @@ class DuckDbFamilyProvider:
             instance=handle.instance, realization=self.standing,
             build=handle.build, witness=handle.witness, from_proposal=proposal,
             diagnostics=f"{len(values)} root point(s) projected from {binding}")
+
+    @staticmethod
+    def _binding_suits_the_formation(binding: "PhysicalFamilyBinding", formation: str) -> None:
+        """**Can this private binding realize the declared formation at all?** Refuses before opening.
+
+        Two refusals, and each is a contradiction rather than a preference. A `DIRECT` root without a
+        physical value source has nothing to supply. A cardinality root WITH one names a second,
+        independent source for a value that has exactly one constitution — and a second source is a number
+        that can disagree with the domain, which is the defect this unit closes."""
+        if not formation:
+            raise KernelRefusal(
+                "requirement-states-no-root-formation", f"{binding.family_id}@?",
+                f"the requirement for {binding.family_id!r} does not say what its root value is "
+                f"CONSTITUTED FROM, and this provider will not decide. Formation is family constitution; "
+                f"a provider choosing one would be choosing what the family means.")
+        if formation == _CARDINALITY:
+            if binding.value_column:
+                raise KernelRefusal(
+                    "cardinality-binding-names-a-value-column", binding.family_id,
+                    f"{binding} binds a physical value column for a family whose root formation is "
+                    f"{_CARDINALITY!r}. That value is the cardinality of the governed participating "
+                    f"domain and has ONE constitution; a physical column would be a second source for it, "
+                    f"free to disagree with the domain it is supposed to be the size of. Bind the "
+                    f"coordinates and nothing else.")
+            return
+        if not binding.value_column:
+            raise KernelRefusal(
+                "binding-names-no-value-source", binding.family_id,
+                f"{binding} names no physical value column and {binding.family_id!r} declares root "
+                f"formation {formation!r}, under which the value is independently established as a value "
+                f"of the family rather than derived from participation. There is nothing here to supply "
+                f"it from.")
 
     def versions(self) -> dict:
         """The driver evidence, straight from the crossing. Diagnostics; nothing branches on it."""

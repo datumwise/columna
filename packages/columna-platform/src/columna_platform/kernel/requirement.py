@@ -129,6 +129,22 @@ class FamilyRequirement:
     #: `scalar` / `structured`. A SUM family wants addends; an HLL family wants **sketches**, and supplying
     #: a finalized estimate would be supplying something the law cannot merge.
     value_form: str = ""
+    #: **WHAT THE ROOT VALUE THE ESTATE MUST SUPPLY IS CONSTITUTED FROM** (B-4a). One of
+    #: `sorts.FORMATION_LAWS`, read off the FAMILY — which declares it — and never off the law.
+    #:
+    #: Ruled (Huayin, 2026-09-30): *"The provider does not infer formation. It receives the already-governed
+    #: formation requirement and executes it."* B-3 established that shape for `fold_shape`; this is the
+    #: same arrow for a different fact, and the two facts are deliberately both here and deliberately not
+    #: derived from one another:
+    #:
+    #:     formation    → what `F@R_F` IS            (this field, from the family)
+    #:     fold_shape   → what domain contributes    (below, from the law)
+    #:     law          → how an established value continues
+    #:
+    #: A provider reading this supplies a value of the declared formation. **THAT IS NOT INFERENCE EVEN
+    #: THOUGH THE PROVIDER COMPUTES SOMETHING** (§7): it performs the physical construction the governed
+    #: formation names; it does not decide what the construction means.
+    formation: str = ""
     #: **`value-bearing` or `population` — WHAT THE REDUCTION CONTRIBUTES OVER** (B-3).
     #:
     #: Ruled (Huayin, 2026-09-30): *"The provider does not state or infer fold shape. Analytical authority

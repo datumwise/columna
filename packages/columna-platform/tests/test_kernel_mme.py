@@ -16,6 +16,7 @@ from __future__ import annotations
 import pytest
 
 from columna_platform.kernel import (
+    DIRECT,
     CACHED,
     CONTINUED,
     EVALUATED,
@@ -238,6 +239,7 @@ def test_a_mean_family_is_not_a_constructible_object(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
             family_id="mean_order_value", manifold=EX.MANIFOLD, universe="commerce", root=EX.SALE_AT, law="MEAN",
+            formation=DIRECT,
             value_domain="decimal", participation=EX.PARTICIPATION, target="the mean"))
     assert exc.value.code == "not-a-family-law"
     assert "GOVERNED EXPRESSION" in exc.value.detail
@@ -256,6 +258,7 @@ def test_an_ordered_law_without_a_governed_order_is_refused(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
             family_id="ungoverned", manifold=EX.MANIFOLD, universe="commerce", root=EX.STORE_DAY, law="LAST",
+            formation=DIRECT,
             value_domain="integer", participation="p", target="t"))
     assert exc.value.code == "order-not-governed"
     assert "picks one, which is a different and ungoverned act" in exc.value.detail
@@ -265,6 +268,7 @@ def test_a_familys_value_domain_is_its_own_value_not_its_operands(mme):
     with pytest.raises(KernelRefusal) as exc:
         mme.register_family(MeasureFamily(
             family_id="sketchy", manifold=EX.MANIFOLD, universe="commerce", root=EX.SALE_AT, law="HLL_SKETCH",
+            formation=DIRECT,
             value_domain="text", participation="p", target="t"))
     assert exc.value.code == "value-domain-mismatch"
 
