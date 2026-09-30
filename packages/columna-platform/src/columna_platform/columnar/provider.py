@@ -46,20 +46,28 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from datafusion import Accumulator, SessionContext, col, udaf
 from datafusion import functions as DF
-from datasketches import hll_sketch, hll_union, tgt_hll_type
+from datasketches import hll_sketch, hll_union
 
 from columna_platform.kernel import ADDITION, KernelRefusal, SKETCH_UNION
 from columna_platform.kernel.law import SCALAR, STRUCTURED
 
 from .capability import GROUPED, POSITIONAL, CapabilityTable, ExecutionCapability
 
+from columna_platform.kernel.hll_carrier import (
+    REGISTER_FORM,
+    governed_distinct_count,
+    require_mergeable,
+)
+
 from .block import GovernedBlock, value_column_name
 from .index import CoordinateIndex
 from .standing import ColumnStanding, VALUE_BEARING, all_true
 
 PROVIDER_NAME = "arrow+datafusion"
+#: The `lg_k` this provider builds a ROOT sketch at. Not a merge default and not a finalization
+#: default: both read the value's own type. See `kernel.hll_carrier`.
 HLL_PRECISION = 12
-_TGT = tgt_hll_type.HLL_8
+_TGT = REGISTER_FORM
 
 
 # ══ the structured-state UDAF ═════════════════════════════════════════════════════════════════════
@@ -76,11 +84,22 @@ class HllUnionAccumulator(Accumulator):
     value, in a portable encoding, and DataFusion's partial-aggregate plumbing carries exactly that."""
 
     def __init__(self) -> None:
-        self._union = hll_union(HLL_PRECISION)
+        #: **NOT created at a module constant.** The accumulator learns its governed type from the
+        #: first value it is handed and refuses a later one that disagrees, because `hll_union` would
+        #: reduce a mismatch to the smaller `lg_k` and report nothing.
+        self._union = None
+        self._lg_k: Optional[int] = None
 
     def _absorb(self, payload: Optional[bytes]) -> None:
-        if payload is not None:
-            self._union.update(hll_sketch.deserialize(bytes(payload)))
+        if payload is None:
+            return
+        sketch = hll_sketch.deserialize(bytes(payload))
+        if self._union is None:
+            self._lg_k = sketch.lg_config_k
+            self._union = hll_union(self._lg_k)
+        elif sketch.lg_config_k != self._lg_k:
+            require_mergeable(self._union.get_result(REGISTER_FORM), sketch, "governed_hll_union")
+        self._union.update(sketch)
 
     def update(self, values: pa.Array) -> None:
         for v in values:
@@ -91,11 +110,20 @@ class HllUnionAccumulator(Accumulator):
             for v in arr:
                 self._absorb(v.as_py())
 
+    def _result(self) -> bytes:
+        """**`get_result(REGISTER_FORM)`, never `get_result()`.** The default target is `HLL_4`, so
+        every continuation output used to be a different carrier encoding from every root this
+        provider built. Governed state was unaffected — `tgt_type` is encoding — but a carrier type
+        nobody chose is not a carrier type anybody can reason about."""
+        if self._union is None:
+            return hll_sketch(HLL_PRECISION, REGISTER_FORM).serialize_compact()
+        return self._union.get_result(REGISTER_FORM).serialize_compact()
+
     def state(self) -> list:
-        return [pa.scalar(self._union.get_result().serialize_compact(), pa.binary())]
+        return [pa.scalar(self._result(), pa.binary())]
 
     def evaluate(self) -> pa.Scalar:
-        return pa.scalar(self._union.get_result().serialize_compact(), pa.binary())
+        return pa.scalar(self._result(), pa.binary())
 
 
 HLL_MERGE_UDAF = udaf(HllUnionAccumulator, [pa.binary()], pa.binary(), [pa.binary()],
@@ -112,7 +140,13 @@ def sketch_of(values: Sequence[Any]) -> bytes:
 
 
 def estimate_of(payload: bytes) -> int:
-    return int(round(hll_sketch.deserialize(bytes(payload)).get_estimate()))
+    """**A function of the governed HLL state the payload carries.**
+
+    `get_estimate()` was here. It is not that function: it reads the HIP accumulator when the library
+    judges it valid, and HIP is a fact about the update stream rather than about the retained value.
+    Normalization lives in `kernel.hll_carrier` so that this provider and the in-memory one cannot
+    drift into two answers."""
+    return governed_distinct_count(hll_sketch.deserialize(bytes(payload)))
 
 
 def sketch_parameters(payload: bytes) -> dict:
@@ -166,8 +200,21 @@ def _ratio(columns: Mapping[str, pa.Array], parameters: Mapping[str, Any]) -> pa
 def estimates_of(payloads: Sequence[Optional[bytes]]) -> pa.Array:
     """**The finalizer's whole cell-scale step, in ONE named place. ADJUDICATED AT E-3 (2026-09-29).**
 
-    One `hll_sketch.deserialize(...).get_estimate()` per sketch, and nothing else. It is a Python `for` over
-    cells, and E-3 decided — with measurements — that it stays one for now. The four alternatives, each
+    One `hll_sketch.deserialize(...)` and one governed finalization per sketch. It is a Python `for` over
+    cells, and E-3 decided — with measurements — that it stays one for now.
+
+    **B-4a''(i-b') CHANGED WHAT THE PER-CELL CALL IS, and the E-3 numbers below predate it.** The call
+    was `get_estimate()`, which is not a function of the governed HLL state; it is now
+    `hll_carrier.governed_distinct_count`, which normalizes the carrier to its register state and lets
+    the library estimate from that. **It costs 13–20× more per cell** (≈ +12 µs on a small cell,
+    +72 µs on a large sparse one), which on a 2 000-cell column is ≈ 28 ms against ≈ 2 ms — five times
+    the cost of the governed union that produced the column, where it used to be a third of it. That is
+    a real regression in a correctness repair and it is recorded rather than buried. Two routes to
+    recover it are measured and deliberately NOT taken here: skipping normalization for a carrier
+    already in register form with no usable history, and writing the derived estimator accumulators
+    into the reconstructed image so the forcing union can be dropped. Both deepen the binary-layout
+    dependency; the second is nearly a second estimator. **The clean fix is upstream** — a public
+    register accessor or promotion API on `hll_sketch`. The four alternatives, each
     rejected for a *different* reason, because "it's still a Python loop" is not by itself an argument:
 
     * **Apache DataSketches' Python binding has no batch API, and no zero-copy input.** `hll_sketch` (5.2.0)

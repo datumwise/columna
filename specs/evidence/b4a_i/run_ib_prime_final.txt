@@ -1,0 +1,29 @@
+ITEM J — cost per finalized cell, final implementation
+                          cell      old      new   ratio      delta
+                     LIST, n=1    1.08us   50.20us   46.7x    +49.12us
+                     LIST, n=5    0.89us   51.34us   57.5x    +50.44us
+                     SET, n=50    1.50us  156.51us  104.4x   +155.01us
+                    SET, n=380  104.32us  594.73us    5.7x   +490.42us
+                   HLL, n=1000    0.93us   51.67us   55.7x    +50.74us
+                   HLL, n=5000   45.45us   53.69us    1.2x     +8.24us
+                 HLL, n=200000    0.90us  109.70us  121.2x   +108.79us
+
+    in context — a 2000-cell column of small cells, finalization vs the continuation above it
+      finalization of 2000 cells: old 1.5 ms   new 491.6 ms   (+490.2 ms)
+      one governed union over the same 2000 sketches: 6.5 ms
+      -> finalization is now 75.99x the cost of the continuation that produced it (was 0.23x)
+
+ITEM I — published integers: which changed
+           n  OLD direct  OLD staged  OLD spread  NEW (both)  NEW spread
+           1           1           1           0           1           0
+           5           5           5           0           5           0
+          50          50          50           0          50           0
+         193         193         193           0         192           0
+         384         384         384           0         383           0
+         385         385         385           0         384           0
+         400         400         399           1         399           0
+        1000        1000         998           2         998           0
+        5000        5000        5034          34        5034           0
+       20000       19832       20100         268       20100           0
+      200000      198993      199716         723      199716           0
+    -> 11/22 published integers change; every route-spread closes to 0

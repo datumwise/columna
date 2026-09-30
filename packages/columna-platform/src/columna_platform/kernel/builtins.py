@@ -44,7 +44,7 @@ from __future__ import annotations
 import math
 from typing import Any, Iterable, Mapping, Optional
 
-from datasketches import hll_sketch, hll_union, tgt_hll_type
+from datasketches import hll_sketch
 
 from .law import (
     ADDITION,
@@ -63,15 +63,20 @@ from .law import (
     SKETCH_UNION,
     STRUCTURED,
 )
+from .hll_carrier import REGISTER_FORM, governed_distinct_count, union_of
 from .realization import ProviderProfile, Realization
 
 VOCABULARY, VERSION = "datumwise.platform.v8", "1"
 
-_HLL_PRECISION = 12
-_TGT = tgt_hll_type.HLL_8
+#: **THE PROFILE'S DECLARED ROOT PRECISION, AND NOTHING ELSE.** It is the `lg_k` this provider builds
+#: a root sketch at when a declaration does not say. It is emphatically NOT a merge default: a merge
+#: reads its operands' own type (`hll_carrier.require_mergeable`), because precision is part of the
+#: value's governed type and a site that supplied it from here would be deciding what it was handed.
+_PROFILE_LG_K = 12
+_TGT = REGISTER_FORM
 
 
-def hll_rse(precision: int = _HLL_PRECISION) -> float:
+def hll_rse(precision: int = _PROFILE_LG_K) -> float:
     """HLL relative standard error at `lg_k = precision`. Lifted formula, not lifted doctrine."""
     return 1.04 / math.sqrt(2 ** precision)
 
@@ -204,7 +209,7 @@ def _count_contribute(values: Iterable[Any], params: Mapping[str, Any]):
 
 
 def _sketch_contribute(values: Iterable[Any], params: Mapping[str, Any]):
-    precision = int(params.get("precision", _HLL_PRECISION))
+    precision = int(params.get("precision", _PROFILE_LG_K))
     s = hll_sketch(precision, _TGT)
     for v in values:
         if v is not None:
@@ -213,14 +218,20 @@ def _sketch_contribute(values: Iterable[Any], params: Mapping[str, Any]):
 
 
 def _sketch_merge(a, b):
-    u = hll_union(_HLL_PRECISION)
-    u.update(a)
-    u.update(b)
-    return u.get_result()
+    """Register join at the OPERANDS' type. **Refuses a precision mismatch** rather than letting
+    `hll_union` reduce it away, and names the target encoding rather than inheriting
+    `get_result`'s `HLL_4` default — which silently made every continuation output a different
+    carrier type from every root."""
+    return union_of(a, b)
 
 
 def _sketch_identity():
-    return hll_sketch(_HLL_PRECISION, _TGT)
+    """The empty-fibre fold value, at the profile's declared root precision.
+
+    There is no polymorphic empty sketch: the unit carries a type. This is the one site where the
+    profile's own `lg_k` is the right answer, because nothing has been handed to it to read a type
+    off — which is exactly why a merge must not borrow from here."""
+    return hll_sketch(_PROFILE_LG_K, _TGT)
 
 
 #: **KNOWN-EMPTY, AS AN OBJECT.** `LAST` has no identity, so an empty eligible fibre receives no witness
@@ -266,8 +277,12 @@ def _last_merge(a, b):
 
 
 def _estimate_apply(payloads: Mapping[str, Any], params: Mapping[str, Any]):
-    sketch = payloads["HLL_SKETCH"]
-    return int(round(sketch.get_estimate()))
+    """**A function of the governed HLL state, not of the carrier that happens to hold it.**
+
+    `sketch.get_estimate()` was here and is not a function of that state: it reads the HIP
+    accumulator whenever the library thinks it may, and HIP is a fact about the update stream. One
+    governed input of 20 000 values answered 19 832 built directly and 20 100 built in two stages."""
+    return governed_distinct_count(payloads["HLL_SKETCH"])
 
 
 def _mean_apply(payloads: Mapping[str, Any], params: Mapping[str, Any]):

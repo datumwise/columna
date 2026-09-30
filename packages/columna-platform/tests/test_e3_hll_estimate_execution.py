@@ -441,12 +441,19 @@ def test_the_extraction_is_one_vectorised_call_and_the_native_call_is_one_per_sk
     assert _body_only(estimates_of).count("estimate_of(") == 1
 
 
-def test_the_in_memory_finalizer_is_already_native_and_unchanged():
-    """The in-memory twin was never the defect — recon E-X classed it **(d)**, one native call per cell
-    driven by the kernel's own cell loop. E-3 leaves it exactly as it was."""
+def test_the_in_memory_finalizer_is_native_per_cell_and_no_longer_reads_get_estimate():
+    """The in-memory twin was never E-3's defect — recon E-X classed it **(d)**, one native call per
+    cell driven by the kernel's own cell loop, and E-3 left it exactly as it was.
+
+    **B-4a''(i-b') CHANGED IT, and E-3's shape claim survives while its code claim does not.** The
+    finalizer still holds no cell loop of its own; what it no longer does is call `get_estimate()`
+    directly, because that is not a function of the governed HLL state — it reads the HIP accumulator
+    whenever the library judges it valid, and HIP is a fact about the update stream. Normalization
+    lives in `kernel.hll_carrier`, which is where the DataSketches call now happens."""
     apply = IN_MEMORY.of("HLL_ESTIMATE").apply
     assert _cell_loops(apply) == []
-    assert "get_estimate" in _body_only(apply)
+    assert "get_estimate" not in _body_only(apply)
+    assert "governed_distinct_count" in _body_only(apply)
 
 
 # ══ E · `Realization.finalize` IS RETIRED ═════════════════════════════════════════════════════════

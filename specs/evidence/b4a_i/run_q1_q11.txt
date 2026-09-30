@@ -1,0 +1,86 @@
+
+PREFLIGHT — register decoder validation
+  [PASS] V1     HLL_8 updatable layout is 40 + 2^lg_k, and start_max is HLL mode
+  [PASS] V2     CurMin / NumAtCurMin agree with the registers where maintained   STALE (HLL_8 does not maintain them): n=200000: library says curMin=0/numAtCurMin=0, registers say 3/8
+  [PASS] V3     decoded registers reproduce the library's KxQ0 / KxQ1 accumulators (to the 6 significant digits the library prints)
+  [PASS] V4     coupon decode == register state of the same support built in HLL mode
+  [FAIL] V5     est_A's forcing step discards HIP (result is out-of-order)   mode=SET ooo=False
+
+Q1 — register state is permutation-invariant (bytes need not be)
+  [PASS] Q1     N(build(perm)) is constant over permutations
+  [PASS] Q1b    control: byte images may differ across permutations   24/24 permutations byte-differ
+
+Q2 — N(deliver(S1 u S2)) == N(deliver S1) join N(deliver S2)
+  [PASS] Q2     delivery homomorphism over 30 partitions (disjoint/overlap/self/empty)
+
+Q3 — associativity / commutativity / idempotence / identity, over N
+  [PASS] Q3a    associativity
+  [PASS] Q3b    commutativity
+  [PASS] Q3c    idempotence
+  [PASS] Q3d    identity (all-zero register state is a two-sided unit)
+
+Q4 — est_A(direct) == est_A(staged), across LIST -> SET -> HLL
+         n mode(d) mode(s)  N= estA=  lib=    lib(direct)    lib(staged)   estA(direct)   estA(staged)
+         1    LIST    LIST True  True  True       1.000000       1.000000       1.000000       1.000000
+         3    LIST    LIST True  True  True       3.000000       3.000000       3.000000       3.000000
+         7    LIST    LIST True  True  True       7.000000       7.000000       7.000000       7.000000
+         8     SET     SET True  True  True       8.000000       8.000000       8.000000       8.000000
+         9     SET     SET True  True  True       9.000000       9.000000       9.000000       9.000000
+        15     SET     SET True  True  True      15.000001      15.000001      15.000001      15.000001
+        16     SET     SET True  True  True      16.000001      16.000001      16.000001      16.000001
+        31     SET     SET True  True  True      31.000002      31.000002      31.000002      31.000002
+        32     SET     SET True  True  True      32.000002      32.000002      32.000002      32.000002
+        63     SET     SET True  True  True      63.000010      63.000010      63.000010      63.000010
+        64     SET     SET True  True  True      64.000010      64.000010      64.000010      64.000010
+       100     SET     SET True  True  True     100.000025     100.000025     100.000025     100.000025
+       192     SET     SET True  True  True     192.000091     192.000091     192.000091     192.000091
+       193     SET     SET True  True  True     193.000092     193.000092     193.000092     193.000092
+       400     HLL     HLL True  True False     399.880551     399.881764     398.747996     398.747996
+      1000     HLL     HLL True  True False    1000.025143    1000.087702     998.220844     998.220844
+     20000     HLL     HLL True  True False   19831.764122   20100.166446   20100.166446   20100.166446
+  [PASS] Q4a    governed state is route-independent
+  [PASS] Q4b    est_A is route-independent
+  [FAIL] Q4c    CONTROL (expected FAIL): library get_estimate is route-independent
+
+Q5 — HLL_4 / HLL_6 / HLL_8 carry the same governed state
+  [PASS] Q5     tgt_type is encoding, not governed state   n=5:ok(curMin=-,aux=?) n=500:ok(curMin=0,aux=?) n=20000:ok(curMin=0,aux=?) n=400000:ok(curMin=4,aux=?)
+
+Q6 — serialize/deserialize and compact/updatable preserve governed state
+  [PASS] Q6     round trip and encoding form preserve N
+
+Q7 — NEGATIVE CONTROL: equal N does not imply equal get_estimate()
+    n=5      N equal=True  lib:     5.000000 vs     5.001221  HIP:            - vs      5.00122   est_A:     5.000000 vs     5.002443
+    n=50     N equal=True  lib:    50.000006 vs    50.171875  HIP:            - vs      50.1719   est_A:    50.000006 vs    50.301504
+    n=1000   N equal=True  lib:  1000.025143 vs   999.271378  HIP:      1000.03 vs      999.271   est_A:   998.220844 vs   998.220844
+    n=20000  N equal=True  lib: 19831.764122 vs 19831.010357  HIP:      19831.8 vs        19831   est_A: 20100.166446 vs 20100.166446
+  [PASS] Q7     exhibited equal-N carriers whose library estimates differ   4/4 pairs diverge under the library, 2/4 under est_A
+
+Q8 — NEGATIVE CONTROL: equal N does not imply equal bytes
+    permuted build         N equal=True  bytes equal=False  (212B vs 212B)
+    coupon vs HLL mode     N equal=True  bytes equal=False  (212B vs 4136B)
+  [PASS] Q8     equal governed state with unequal serialized bytes exists
+
+Q9 — mixed lg_k under today's realizations
+    operands lg_k = 12 and 14 -> merged lg_k = 12, est=9993.8; refusal raised = False
+    lg_k=14 merged with an lg_k=14 empty -> merged lg_k = 12 (module constant is 12)
+  [PASS] Q9     mixed lg_k is silently downsampled, not refused
+  [PASS] Q9b    a same-lg_k merge above the module constant is ALSO downsampled   merge ignores operand lg_k entirely
+
+Q10 — estimates do not merge
+    est(a)+est(b) = 5980.0   est(a u b) = 5954.4   true |A u B| = 6000
+    overlapping: est(a)+est(a') = 5952.9   est(a u a') = 2950.1   true = 3000
+  [PASS] Q10    est(a)+est(b) != est(a u b); finalization cannot continue
+
+Q11 — kernel realization ~ columnar realization, at the governed-state level
+    root:   kernel HLL /tgt_hll_type.HLL_8   columnar HLL /tgt_hll_type.HLL_8
+    merged: kernel HLL /tgt_hll_type.HLL_4   columnar HLL /tgt_hll_type.HLL_4
+  [PASS] Q11a   root state agrees across providers
+  [PASS] Q11b   merged state agrees across providers
+  [PASS] Q11c   merged state agrees with a single-shot direct build
+    today's finalizers: kernel HLL_ESTIMATE = 1408   columnar HLL_ESTIMATE = 1408
+    est_A of each:      kernel 1408.498441   columnar 1408.498441
+  [PASS] Q11d   today's two finalizers agree on the same governed state
+  [PASS] Q11e   est_A agrees across providers
+
+================================================================================================
+27 checks, 25 pass, 2 fail  ->  V5, Q4c
