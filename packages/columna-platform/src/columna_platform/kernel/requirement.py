@@ -129,6 +129,24 @@ class FamilyRequirement:
     #: `scalar` / `structured`. A SUM family wants addends; an HLL family wants **sketches**, and supplying
     #: a finalized estimate would be supplying something the law cannot merge.
     value_form: str = ""
+    #: **`value-bearing` or `population` — WHAT THE REDUCTION CONTRIBUTES OVER** (B-3).
+    #:
+    #: Ruled (Huayin, 2026-09-30): *"The provider does not state or infer fold shape. Analytical authority
+    #: determines fold shape; `FamilyRequirement` carries that governed requirement to the provider."*
+    #:
+    #: **THIS IS THE SAME REPAIR B-0b MADE ONE LAYER UP, AND THE SAME DEFECT IT PREVENTS.** B-0b deleted
+    #: `_POPULATION_LAWS = frozenset({"COUNT"})` from the columnar cache engine because a law-name
+    #: enumeration is constitutional knowledge in a place ruled to hold none. A provider that mapped
+    #: `COUNT → population` would have rebuilt that enumeration below the realization boundary instead of
+    #: above it, which is the same defect wearing a different address. The fact is a property OF THE LAW —
+    #: `AnalyticalLaw.fold_shape` declares it and it is identity-bearing, so it enters the family's
+    #: `ConstitutionWitness` — and this field carries it, unexamined, to whoever must satisfy it.
+    #:
+    #: `AuthorizedFamilyContinuation` carries the same fact through `FoldRequirement.fold_shape`, and that
+    #: is **duplication in messages, not duplication of authority**: one says what HELD state needs for
+    #: authorized execution, the other what MISSING state the estate must supply. Both read it off the one
+    #: law, neither decides it, and a test pins that they agree.
+    fold_shape: str = ""
     #: The law's own words for what its composition needs. Carried verbatim so a provider author reads the
     #: requirement rather than inferring it.
     sufficient_state: str = ""
@@ -165,7 +183,10 @@ class FamilyRequirement:
         """The requirement in the words §2 asks for, and in no other words."""
         at = f" from {self.data_state}" if self.data_state else ""
         form = f" carrying {self.value_form} state" if self.value_form else ""
-        return (f"Need lawful {self.family_id} family state{form} sufficient to establish "
+        # The fold shape is named because a provider must ESTABLISH A STANDING that satisfies it, and a
+        # requirement a provider author has to look up the law to read is a requirement that will be guessed.
+        over = f" contributing over its {self.fold_shape} domain" if self.fold_shape else ""
+        return (f"Need lawful {self.family_id} family state{form}{over} sufficient to establish "
                 f"{self.family_id}@{self.target}{at}")
 
     def __str__(self) -> str:

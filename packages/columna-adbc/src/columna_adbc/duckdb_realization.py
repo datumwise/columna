@@ -124,6 +124,11 @@ class _Handle:
     instance: Any
     law: str
     value_form: str
+    #: **CARRIED, NEVER DERIVED** (B-3). `value-bearing` or `population`, read off the requirement. This
+    #: provider has no mapping from a law NAME to a shape and must not acquire one: B-0b deleted exactly
+    #: such an enumeration (`COUNT → population`) from the columnar cache engine, and rebuilding it here
+    #: would put constitutional knowledge below the realization boundary instead of above it.
+    fold_shape: str
 
 
 class DuckDbFamilyProvider:
@@ -179,7 +184,8 @@ class DuckDbFamilyProvider:
             handle=_Handle(binding=binding, anchor=root, manifold=requirement.manifold,
                            build=requirement.build, witness=requirement.witness,
                            instance=requirement.instance, law=requirement.law,
-                           value_form=requirement.value_form),
+                           value_form=requirement.value_form,
+                           fold_shape=requirement.fold_shape),
             diagnostics=f"one bare projection of {binding}; no aggregate, no predicate, no join")
 
     # ── execution. One projection, and the Arrow that comes back is the Arrow that is offered. ─
@@ -197,6 +203,19 @@ class DuckDbFamilyProvider:
                 f"{self.name!r} was asked to realize a proposal it did not make. A handle is a provider's "
                 f"private object and executing another's would be executing a plan this provider cannot "
                 f"read.")
+        if not handle.fold_shape:
+            # **A REQUIREMENT THAT WILL NOT SAY WHAT ITS REDUCTION CONTRIBUTES OVER IS NOT A REQUIREMENT
+            # THIS PROVIDER CAN SATISFY** (B-3) — the same shape of refusal `RealizationAuthority` makes
+            # for an offer that will not state its build. The alternative is the one thing ruled out: to
+            # GUESS from the law name. `ContinuationAuthority.requirement_for` always states it, so this is
+            # the floor rather than a path; a floor that refuses is how it stays one.
+            raise KernelRefusal(
+                "requirement-states-no-fold-shape", f"{handle.binding.family_id}@{handle.anchor}",
+                f"the requirement for {handle.binding.family_id!r} does not say whether its {handle.law!r} "
+                f"reduction contributes over a value-bearing or a population domain, and this provider "
+                f"will not infer it from the law's name. Which one applies is a property of the LAW, "
+                f"declared by it and carried on the requirement; a provider deciding it would be a second "
+                f"opinion about what the family means.")
         binding, anchor = handle.binding, handle.anchor
         order = tuple(anchor.order)
         material = self.source.fetch(schema=binding.schema, table=binding.table,
@@ -225,6 +244,10 @@ class DuckDbFamilyProvider:
                 note=f"realized by {self.name!r} from {binding} over {self.carrier}"),
             law=handle.law,
             value_form=handle.value_form,
+            # **THE REQUIREMENT'S SHAPE, NOT THIS CLASS'S DEFAULT** (B-3). It was the dataclass default
+            # `VALUE_BEARING` before, which is right for SUM and silently wrong for COUNT — a population
+            # reduction would have been given a value-bearing standing and then refused, or worse, not.
+            fold_shape=handle.fold_shape,
         )
         return RealizationOffer(
             provider=self.name, family_id=binding.family_id, anchor=anchor, value=state,
