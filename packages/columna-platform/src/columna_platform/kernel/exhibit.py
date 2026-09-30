@@ -28,7 +28,14 @@ from .expression import ExpressionEvaluator
 from .mme import MME, Retained, RetentionKey
 from .observation import RecordingObserver
 from .realization import RealizationStanding
-from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
+from .sorts import (
+    DIRECT,
+    PARTICIPATION_CARDINALITY,
+    GovernedExpression,
+    MeasureFamily,
+    Operand,
+    SufficientBasis,
+)
 from .witness import FAMILY_NON_DETERMINANTS
 
 MANIFOLD = "andfam.commerce"
@@ -91,10 +98,17 @@ STORE_DAY_LEVEL = COMMERCE.anchor({"store", "day"})
 def _families():
     revenue = MeasureFamily(
         family_id="revenue", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="SUM",
+        # DIRECT: the amount of an accepted order is a value OF revenue, established. That the exhibit
+        # happens to compute it in-process changes nothing — `DIRECT` is not `observed`.
+        formation=DIRECT,
         value_domain="decimal", participation=PARTICIPATION,
         target="the additive total of accepted order value")
     order_count = MeasureFamily(
         family_id="order_count", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="COUNT",
+        # PARTICIPATION_CARDINALITY: `OrderCount@R_F(r) = |D_R_F(r)|`. **Declared, not inferred from
+        # COUNT** — and the fact that this root individuates orders, so the value is 1, is geometry
+        # meeting the law rather than part of it.
+        formation=PARTICIPATION_CARDINALITY,
         value_domain="integer", participation=PARTICIPATION,
         target="the number of accepted customer orders")
     # The SAME family law and participation, established under the AUDITED participation — the
@@ -102,10 +116,22 @@ def _families():
     # usable with `revenue`, and that is the distinction.
     audited_count = MeasureFamily(
         family_id="audited_order_count", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="COUNT",
+        # The same formation over a DIFFERENT participating domain, which is the point: cardinality is
+        # `|D(r)|` and `D` is this family's own domain, not the universe's.
+        formation=PARTICIPATION_CARDINALITY,
         value_domain="integer", participation=AUDITED,
         target="the number of auditor-confirmed customer orders")
     distinct_customers = MeasureFamily(
         family_id="distinct_customers", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="HLL_SKETCH",
+        # DIRECT, AND THIS ONE WAS ARGUED RATHER THAN ASSIGNED — it is the family B-4a was warned it might
+        # have to stop on. Its root value is a sketch, and a sketch IS a value of this family: it merges,
+        # it is continuation-bearing, and it is not derived from participation. `sketch_of([customer])`
+        # is *"physically computed under a realization contract"*, which the ruling lists among the things
+        # a DIRECT root may be. What does NOT exist yet is a formation law that DERIVES a sketch from a
+        # governed domain (over the distinct values of an attribute, at a declared precision) — that is
+        # the structured sufficient-state formation §8 defers, and it is what a coarser-rooted sketch
+        # family, or a fidelity check over sketch CONTENTS, would require. Reported for overrule.
+        formation=DIRECT,
         # **`sketch`, not `text`.** A family's `value_domain` is the domain of ITS OWN VALUE — what it
         # retains and what an expression's constructor sees — not the domain of the occurrences it
         # consumes at the root. HLL_SKETCH admits `text` operands and yields a `sketch`; the family IS
@@ -115,10 +141,15 @@ def _families():
         target="an HLL sketch of the distinct customers who ordered")
     on_hand = MeasureFamily(
         family_id="on_hand", manifold=MANIFOLD, universe="commerce", root=STORE_DAY_LEVEL, law="STOCK_LEVEL",
+        # DIRECT: units counted in a stocktake are a value of the family, established at the root.
+        formation=DIRECT,
         value_domain="integer", participation="every unit counted in the evening stocktake",
         target="units of stock held at one store at the close of one day")
     gauge = MeasureFamily(
         family_id="gauge", manifold=MANIFOLD, universe="commerce", root=STORE_DAY_LEVEL, law="LAST",
+        # DIRECT: a reading is a value of the family. Its ORDER decides which reading survives a
+        # continuation, which is `order_by` and `LAST` — continuation, not formation.
+        formation=DIRECT,
         value_domain="integer", participation="every accepted gauge reading",
         target="the last gauge reading of the day", order_by="recorded_at")
     return revenue, order_count, audited_count, distinct_customers, on_hand, gauge
@@ -367,6 +398,7 @@ def main() -> int:                                          # noqa: C901 - an ex
     try:
         mme.register_family(MeasureFamily(
             family_id="mean_order_value", manifold=MANIFOLD, universe="commerce", root=SALE_AT, law="MEAN",
+            formation=DIRECT,
             value_domain="decimal", participation=PARTICIPATION, target="the mean order value"))
         check("MeasureFamily(law=MEAN) refused at constitution", False)
     except KernelRefusal as exc:

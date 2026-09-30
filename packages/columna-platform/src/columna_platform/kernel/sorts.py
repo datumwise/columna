@@ -82,6 +82,72 @@ class ExpressionPoint:
         return "expression"
 
 
+# ══ root formation · WHAT THE ROOT FAMILY VALUE IS CONSTITUTED FROM ═══════════════════════════════
+#
+#     **Root formation says what the root family value is constituted from. Evidence provenance says how
+#     that root establishment is supported. Physical realization says how the governed formation is
+#     executed. Continuation says how an already-established family value moves. Keep all four
+#     separate.**  — Huayin, 2026-09-30 (B-4a, the governing distinction)
+#
+# **THIS VOCABULARY IS FAMILY CONSTITUTION AND IT IS NOT IN `law.py`, WHICH IS THE POINT.** Every other
+# governed vocabulary in this kernel — `VALUE_FORMS`, `DOMAINS`, `FOLD_SHAPES` — lives beside
+# `AnalyticalLaw` because the law asserts it. Formation is asserted by the FAMILY. Putting these two
+# tokens next to `FOLD_SHAPES` would have quietly suggested that a law implies a formation, and the three
+# inference rules this unit exists to forbid are exactly:
+#
+#     COUNT      → POPULATION                    (B-0b removed this one from the cache engine)
+#     COUNT      → PARTICIPATION_CARDINALITY     (would be the same defect at a third address)
+#     POPULATION → PARTICIPATION_CARDINALITY     (the subtlest: a continuation fact implying a
+#                                                 formation fact, which is two questions collapsed)
+#
+# So the constant lives with the record that states it, and a reader looking for "what does COUNT imply"
+# finds nothing to read.
+#
+# **WHY NOT `root_evaluator`.** The slot was reserved under that name in `law`'s docstring below and in
+# `witness.py`. Ruled against (B-4a): *"`root_evaluator` carries historical implementation baggage and
+# risks conflating governed formation with physical evaluation again."* An evaluator is a thing that RUNS;
+# what is declared here is what the value IS. `formation` names the act, not the machinery.
+
+#: **The root family value is independently established as a value of this family**; this formation law
+#: does not derive that value from participation.
+#:
+#: **`DIRECT` DOES NOT MEAN OBSERVED** (ruled explicitly). A `DIRECT` root may be observed, reported,
+#: assigned, supplied by an authoritative source, or physically computed under a realization contract —
+#: none of which changes the formation law, because all of them are answers to a DIFFERENT question.
+#: Evidence provenance is not root formation, and the reason this matters here is that the first draft of
+#: this unit proposed `OBSERVED` as the token and had to be corrected: it named the provenance and left
+#: the formation unstated.
+DIRECT = "direct"
+
+#: **At a root location, the family value is the cardinality of the governed participating domain
+#: constituted there:** `F@R_F(r) = |D_R_F(r)|`.
+#:
+#: **THE LAW IS CARDINALITY AND THE LITERAL `1` IS NOT PART OF IT** (ruled explicitly: do not name this
+#: `UNIT_PER_PARTICIPANT`, do not encode `1` as the formation law). At an individuating root such as
+#: `{store, day, order}` each participating point contains exactly one Order, so the value there IS 1 —
+#: but that is a consequence of the root meeting this law, not the law itself. A family rooted at
+#: `{store, day}` may legitimately have `|D(r)| = 7`: seven distinct governed Order points at one root
+#: location, under this same unchanged declaration.
+#:
+#: **THAT IS NOT "GEOMETRY REPRESENTING MULTIPLICITY", WHICH IT DOES NOT DO** (ruled, 2026-09-30). Keep
+#: these two apart:
+#:
+#:     duplicate physical representations of ONE governed point   ≠   multiple governed participating points
+#:
+#: The first is a realization/fidelity problem — two rows claiming one Order are not two Orders. The
+#: second is seven Orders, which is a fact about the domain and not about the carrier. Nothing currently
+#: declares whether a root individuates its domain, which is why `RealizationAuthority` can verify this
+#: formation only at a root that does.
+PARTICIPATION_CARDINALITY = "participation-cardinality"
+
+#: **NOT A CLOSED ONTOLOGY** (ruled §8). These are the only two formation laws the families now in hand
+#: require. Structured sufficient-state roots — HLL sketches formed over a governed domain, moment state,
+#: ordered witnesses — will need their own formation laws, and adding one must not change what this field
+#: MEANS. That is why the field carries a token from an open set rather than a boolean or an enum of
+#: "value vs count": a third token is an addition, not a redefinition.
+FORMATION_LAWS: frozenset[str] = frozenset({DIRECT, PARTICIPATION_CARDINALITY})
+
+
 # ══ sort 1 · the measure family ═══════════════════════════════════════════════════════════════════
 @dataclass(frozen=True)
 class MeasureFamily:
@@ -108,13 +174,30 @@ class MeasureFamily:
     #: Today `establish_root` reaches the same law's `Realization.contribute` to fold occurrences into a
     #: root value. **That is a REALIZATION convenience and not a semantic identity**, and it is written
     #: down here so it cannot quietly become one: nothing in this kernel treats this field as the
-    #: formation identity of the value, no basis role is checked against it, and when the Operator
-    #: Registry work gives root evaluation its own reusable signature, a `root_evaluator` attaches
-    #: BESIDE this field rather than replacing its meaning.
+    #: formation identity of the value, and no basis role is checked against it.
+    #:
+    #: **THE RESERVED SLOT IS NOW FILLED, AND NOT UNDER THE RESERVED NAME.** This note used to end *"a
+    #: `root_evaluator` attaches BESIDE this field rather than replacing its meaning"*. It does attach
+    #: beside — it is `formation`, below — and the name changed by ruling (B-4a): an evaluator is a thing
+    #: that runs, and what is declared is what the value IS.
     law: str
     value_domain: str
     participation: str
     target: str
+    #: **WHAT THIS FAMILY'S ROOT VALUE IS CONSTITUTED FROM.** One of `FORMATION_LAWS`; see the vocabulary
+    #: above for the governing distinction and for why it does not live in `law.py`.
+    #:
+    #: **NO SILENT DEFAULT** (ruled §9). The `""` is not a default value, it is the absence that
+    #: `__post_init__` refuses: formation is identity-bearing family constitution, and a family whose root
+    #: formation went unstated would be a family whose witness agreed with itself across a change of
+    #: meaning. It is spelled as an empty default rather than as a required positional field so that the
+    #: failure is a GOVERNED REFUSAL naming the ruling, rather than a `TypeError` naming a keyword.
+    #:
+    #: It is a determinant of the `ConstitutionWitness` **by derivation and with no edit to
+    #: `witness.py`**: `FAMILY_NON_DETERMINANTS` is an exclusion list and this field is not in it. So a
+    #: family that changed formation changes identity, which is correct — a count formed from cardinality
+    #: and a count supplied directly are not the same constitution even at the same root.
+    formation: str = ""
     #: A governed order, where the law requires one to select at all (LAST/FIRST).
     order_by: Optional[str] = None
     parameters: Mapping[str, object] = field(default_factory=dict)
@@ -126,6 +209,24 @@ class MeasureFamily:
 
     def __post_init__(self) -> None:
         refuse_a_declared_constitution(self, self.family_id)
+        if not self.formation:
+            raise KernelRefusal(
+                "no-root-formation-declared", self.family_id,
+                f"{self.family_id!r} declares a continuation law ({self.law!r}) and a root ({self.root}) "
+                f"and does not say what its root value is CONSTITUTED FROM. Those are different questions "
+                f"and neither answers the other: `law` is how an established value moves, `formation` is "
+                f"what the value at `R_F` is. **THERE IS NO DEFAULT** — formation is identity-bearing "
+                f"constitution, so assuming {DIRECT!r} would make this family's witness agree with itself "
+                f"across a change of meaning. Declare one of {sorted(FORMATION_LAWS)}; if none of them "
+                f"states this family's root honestly, that is a gap in the constitution and not a gap "
+                f"here.")
+        if self.formation not in FORMATION_LAWS:
+            raise KernelRefusal(
+                "unknown-root-formation", self.family_id,
+                f"{self.formation!r} is not a declared root-formation law. The vocabulary is "
+                f"{sorted(FORMATION_LAWS)} and it is deliberately OPEN — a structured sufficient-state "
+                f"root will need its own — but it is not open to a caller: a formation law nobody declared "
+                f"is a value nobody can realize or adjudicate.")
 
     def witness(self, law: AnalyticalLaw) -> ConstitutionWitness:
         """**This family's computed `ConstitutionWitness`, against its BOUND law.**
@@ -405,5 +506,5 @@ def universe_of(u: Universe) -> str:                            # readability in
     return u.name
 
 
-__all__ = ["ExpressionPoint", "FamilyPoint", "GovernedExpression", "MeasureFamily", "Operand",
-           "SufficientBasis", "universe_of"]
+__all__ = ["DIRECT", "FORMATION_LAWS", "PARTICIPATION_CARDINALITY", "ExpressionPoint", "FamilyPoint",
+           "GovernedExpression", "MeasureFamily", "Operand", "SufficientBasis", "universe_of"]

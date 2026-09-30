@@ -48,6 +48,7 @@ import pytest
 from columna_platform.columnar import exhibit as CEX
 from columna_platform.columnar import mme as columnar_mme_module
 from columna_platform.kernel import (
+    DIRECT,
     MME,
     REGISTRY,
     AuthorizedFamilyContinuation,
@@ -447,7 +448,7 @@ def test_changing_the_region_changes_which_requests_exist(forgettable, expect_to
                  ProviderProfile("test", (*(IN_MEMORY.of(n) for n in IN_MEMORY.laws), profile)),
                  manifold=EX.MANIFOLD)
     family = MeasureFamily(family_id="tested", manifold=EX.MANIFOLD, universe="commerce",
-                           root=EX.SALE_AT, law="TESTSUM", value_domain="decimal",
+                           root=EX.SALE_AT, law="TESTSUM", formation=DIRECT, value_domain="decimal",
                            participation=EX.PARTICIPATION, target="a test family")
     engine.register_family(family)
 

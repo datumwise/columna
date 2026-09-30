@@ -44,6 +44,8 @@ from columna_platform.kernel import (
     REGISTRY,
     GovernedExpression,
     KernelRefusal,
+    DIRECT,
+    PARTICIPATION_CARDINALITY,
     MeasureFamily,
     Operand,
     SufficientBasis,
@@ -99,21 +101,24 @@ def _orders(settled: bool = False) -> tuple:
 
 def _families(manifold: str = MANIFOLD):
     revenue = MeasureFamily(family_id="revenue", manifold=manifold, universe="commerce", root=SALE_AT,
-                            law="SUM", value_domain="decimal", participation=PARTICIPATION,
+                            law="SUM", formation=DIRECT,
+                            value_domain="decimal", participation=PARTICIPATION,
                             target="the additive total of accepted order value")
     order_count = MeasureFamily(family_id="order_count", manifold=manifold, universe="commerce",
-                                root=SALE_AT, law="COUNT", value_domain="integer",
+                                root=SALE_AT, law="COUNT", formation=PARTICIPATION_CARDINALITY,
+                                value_domain="integer",
                                 participation=PARTICIPATION,
                                 target="the number of accepted customer orders")
     audited = MeasureFamily(family_id="audited_order_count", manifold=manifold, universe="commerce",
-                            root=SALE_AT, law="COUNT", value_domain="integer", participation=AUDITED,
+                            root=SALE_AT, law="COUNT", formation=PARTICIPATION_CARDINALITY,
+                            value_domain="integer", participation=AUDITED,
                             target="the number of auditor-confirmed orders")
     distinct = MeasureFamily(family_id="distinct_customers", manifold=manifold, universe="commerce",
-                             root=SALE_AT, law="HLL_SKETCH", value_domain="sketch",
+                             root=SALE_AT, law="HLL_SKETCH", formation=DIRECT, value_domain="sketch",
                              participation=PARTICIPATION,
                              target="an HLL sketch of the distinct customers who ordered")
     on_hand = MeasureFamily(family_id="on_hand", manifold=manifold, universe="commerce",
-                            root=COMMERCE.anchor({"store", "day"}), law="STOCK_LEVEL",
+                            root=COMMERCE.anchor({"store", "day"}), law="STOCK_LEVEL", formation=DIRECT,
                             value_domain="integer",
                             participation="every unit counted in the evening stocktake",
                             target="units held at one store at the close of one day")

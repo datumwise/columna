@@ -30,6 +30,7 @@ import pytest
 
 from columna_platform.columnar import exhibit as CEX
 from columna_platform.kernel import (
+    DIRECT,
     IN_MEMORY,
     MME,
     REGISTRY,
@@ -318,7 +319,7 @@ def test_the_acceptable_enumeration_is_capped_and_says_so():
         Constituent(reference=f"c{i}", domain=f"d{i}") for i in range(12)),
         ground="thing", participation_law="every thing")
     family = MeasureFamily(family_id="w", manifold="m", universe="wide",
-                           root=wide.root_anchor, law="SUM", target="a wide family",
+                           root=wide.root_anchor, law="SUM", formation=DIRECT, target="a wide family",
                            participation="everything", value_domain="a number")
     anchors, truncated = requirement_module.acceptable_anchors(
         family, REGISTRY.get("SUM"), wide.scalar_anchor)

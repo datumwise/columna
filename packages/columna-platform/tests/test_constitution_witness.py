@@ -23,6 +23,7 @@ from columna_platform.columnar.expression import ColumnarExpressionEvaluator
 from columna_platform.columnar import ColumnarMME, CoordinateIndex, GovernedBlock, standing
 from columna_platform.columnar.provider import ColumnarProvider
 from columna_platform.kernel import (
+    DIRECT,
     ExpressionEvaluator,
     EXPRESSION_NON_DETERMINANTS,
     FAMILY_NON_DETERMINANTS,
@@ -90,7 +91,7 @@ def test_a_caller_supplied_witness_is_refused_at_construction():
     only so that supplying one is a refusal rather than a silent no-op."""
     with pytest.raises(KernelRefusal) as exc:
         MeasureFamily(family_id="revenue", manifold=KEX.MANIFOLD, universe="commerce", root=KEX.SALE_AT,
-                      law="SUM", value_domain="decimal", participation="p", target="t",
+                      law="SUM", formation=DIRECT, value_domain="decimal", participation="p", target="t",
                       constitution="c0")
     assert exc.value.code == "constitution-is-computed"
     assert "NEVER DECLARED" in exc.value.detail
@@ -400,7 +401,7 @@ def test_a_law_declared_parameter_is_admitted_and_is_identity_bearing():
     registry, parameterised = _with_a_parameterised_sum()
     family = MeasureFamily(
         family_id="revenue_p", manifold=KEX.MANIFOLD, universe="commerce", root=KEX.SALE_AT,
-        law="SUM_P", value_domain="decimal", participation="p", target="t",
+        law="SUM_P", formation=DIRECT, value_domain="decimal", participation="p", target="t",
         parameters={"basket_rule": "net-of-returns"})
     assert family.bind(registry) is parameterised          # admitted: the law declares it
 
@@ -418,7 +419,8 @@ def test_an_unsupplied_declared_parameter_is_still_refused():
     registry, _ = _with_a_parameterised_sum("SUM_Q")
     with pytest.raises(KernelRefusal) as exc:
         MeasureFamily(family_id="revenue_q", manifold=KEX.MANIFOLD, universe="commerce",
-                      root=KEX.SALE_AT, law="SUM_Q", value_domain="decimal", participation="p",
+                      root=KEX.SALE_AT, law="SUM_Q", formation=DIRECT, value_domain="decimal",
+                      participation="p",
                       target="t").bind(registry)
     assert exc.value.code == "unsupplied-parameter"
 
