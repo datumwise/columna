@@ -343,11 +343,23 @@ class FulfillmentCoordinator:
                                      else None,
                                      rounds=round_index)
 
-            # ── one realization, through the ordinary door ───────────────────────────────────
+            # ── one realization: EXECUTE, ADJUDICATE, THEN ADMIT ────────────────────────────
+            # **THREE ACTS SINCE B-1′, AND THE MIDDLE ONE IS NEW.** The provider executes its proposal and
+            # returns a claim; the realization authority decides whether that physical result faithfully
+            # realizes the governed object it claims to be; only then does it reach ordinary admission.
+            # The coordinator does not judge fidelity and could not — the credential is not its to mint —
+            # and it does not interpret the refusal either, exactly as it does not interpret an admission's.
             chosen = decision.chosen
             attempted.append(f"{chosen.provider}:{chosen.anchor}")
             offer = self.realization.realize(chosen)
-            admission = self.realization.establish(self.mme, offer)
+            adjudicated = self.mme.realizations.adjudicate(offer)
+            if not adjudicated:
+                realized.append(RealizedRoute(
+                    provider=offer.provider, family_id=offer.family_id, anchor=offer.anchor,
+                    admitted=False,
+                    detail=f"{adjudicated.refusal.code}: {adjudicated.refusal.detail}"))
+                continue
+            admission = self.realization.establish(self.mme, adjudicated.credential)
             realized.append(RealizedRoute(
                 provider=offer.provider, family_id=offer.family_id, anchor=offer.anchor,
                 admitted=bool(admission),

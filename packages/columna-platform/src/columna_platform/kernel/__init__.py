@@ -143,6 +143,11 @@ from .observation import (
     WorkloadObserver,
     disposition_for,
 )
+from .realization_fidelity import (
+    AdjudicatedRealization,
+    Adjudication,
+    RealizationAuthority,
+)
 from .realization import ProviderProfile, Realization, RealizationStanding
 from .realization_manager import (
     ProposalSet,
@@ -187,6 +192,9 @@ from .witness import (
 )
 
 __all__ = [
+    "RealizationAuthority",
+    "Adjudication",
+    "AdjudicatedRealization",
     "FOLD_SHAPES",
     "VALUE_BEARING",
     "POPULATION",

@@ -133,6 +133,21 @@ class FamilyRequirement:
     #: requirement rather than inferring it.
     sufficient_state: str = ""
     approximation: str = "exact"
+    #: **THE PER-OBJECT CONSTITUTION WITNESS THIS REQUIREMENT IS MADE UNDER** (added by B-1′, and it is the
+    #: one governed fact that unit found missing).
+    #:
+    #: B-1′ requires a physical offer to state which governed environment its claim was made against, so
+    #: that a value realized under a declaration that has since moved cannot be admitted as though it were
+    #: current. The test-double exercise then exposed that **a provider could not state it, because nothing
+    #: ever told it**: this record already carries `manifold`, `build`, `instance`, `law`, `value_form`,
+    #: `sufficient_state` and `approximation` — everything else a provider is told about what to supply —
+    #: and not the digest of the declaration it is supplying it for.
+    #:
+    #: It is placed here rather than invented inside the fidelity boundary because this is the object whose
+    #: whole purpose is telling a provider what governed state would satisfy a lawful request, and a
+    #: constitution digest is that kind of fact. It remains a fact the provider RESTATES and never judges;
+    #: `MME.put` compares it.
+    witness: str = ""
     #: The `NEED` this requirement came from, in words. Diagnostics; nothing branches on it.
     note: str = ""
 

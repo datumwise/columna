@@ -448,7 +448,8 @@ class ContinuationAuthority:
             acceptable=acceptable, acceptable_truncated=truncated,
             instance=self.constitution.instance_of(family.family_id), data_state=data_state,
             law=law.name, value_form=law.value_form, sufficient_state=law.sufficient_state,
-            approximation=law.approximation, note=note))
+            approximation=law.approximation,
+            witness=self.constitution.witness_of(family.family_id).digest, note=note))
 
 
 __all__ = ["EXECUTION_MODES", "GROUPED_MODE", "SCAN_MODE", "Authorization",

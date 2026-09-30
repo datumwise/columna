@@ -77,20 +77,25 @@ class StaticEstate:
         for (family_id, anchor), value in self.holdings.items():
             if family_id != requirement.family_id:
                 continue
+            # **THE ENVIRONMENT RIDES IN THE OPAQUE HANDLE** (B-1′), which is exactly what `handle` is for:
+            # *"the provider's own handle for executing THIS proposal … the manager never interprets it."*
+            # A real provider would carry a query id here; this one carries the build and witness it was
+            # told to realize against, because `realize` is given only the proposal.
             yield RealizationProposal(
                 provider=self.name, family_id=family_id, anchor=anchor,
                 value_form=getattr(value, "value_form", ""), realization=self.standing,
-                handle=(family_id, anchor),
+                handle=(family_id, anchor, requirement.build, requirement.witness),
                 diagnostics=f"{self.name} holds this at {anchor}")
 
     def realize(self, proposal):
         self.realized += 1
-        value = self.holdings[proposal.handle]
+        family_id, anchor, build, witness = proposal.handle
+        value = self.holdings[(family_id, anchor)]
         return RealizationOffer(
             provider=self.name, family_id=proposal.family_id, anchor=proposal.anchor,
             value=value, instance=value.instance, realization=self.standing,
             establishment=Establishment(INDEPENDENT), from_proposal=proposal,
-            diagnostics=proposal.diagnostics)
+            build=build, witness=witness, diagnostics=proposal.diagnostics)
 
 
 class SilentEstate:
@@ -148,6 +153,32 @@ def _state(mme, family_id, anchor, cells):
 
 
 # ── fixtures ─────────────────────────────────────────────────────────────────────────────────────
+def _offer(engine, family_id, anchor, value, *, provider="warehouse"):
+    """An offer that states the governed environment its claim was made against (B-1′). A real provider is
+    TOLD both by the requirement; a hand-built offer must state them for the same reason."""
+    return RealizationOffer(
+        provider=provider, family_id=family_id, anchor=anchor, value=value,
+        instance=value.instance, realization=RealizationStanding(provider=provider),
+        build=engine.build.reference, witness=engine.witness_of(family_id).digest)
+
+
+def _adjudicated(engine, offer):
+    """**Adjudicate a physical offer's fidelity, then hand the credential on** (B-1′).
+
+    Every `establish` in this suite goes through here, because after B-1′ there is no other way: the door
+    takes an `AdjudicatedRealization` and only `RealizationAuthority` can mint one. Fails loudly when the
+    claim is refused, so a test meaning to exercise admission cannot silently exercise nothing."""
+    adjudication = engine.realizations.adjudicate(offer)
+    assert adjudication, f"expected a faithful claim: {adjudication.refusal}"
+    return adjudication.credential
+
+
+def _establish(engine, offer, **kw):
+    """Adjudicate then establish — the ordinary provider path, in one call for the tests that are about
+    admission rather than about fidelity."""
+    return RealizationManager.establish(engine, _adjudicated(engine, offer), **kw)
+
+
 @pytest.fixture
 def mme():
     return KEX.build()
@@ -269,13 +300,11 @@ def test_acceptable_is_DESCRIPTION_and_never_permission(cold, fams):
     assert not truncated.names_anchor(KEX.BY_DAY)          # the report says nothing about it
 
     cold.establish_root(fams["revenue"], KEX.ORDERS)
-    manager = RealizationManager()
-    offer = RealizationOffer(
-        provider="p", family_id="revenue", anchor=KEX.BY_DAY,
-        value=_state(cold, "revenue", KEX.BY_DAY, {("D1",): 175.0, ("D2",): 325.0}),
-        realization=RealizationStanding(provider="p"))
+    offer = _offer(cold, "revenue", KEX.BY_DAY,
+                   _state(cold, "revenue", KEX.BY_DAY, {("D1",): 175.0, ("D2",): 325.0}),
+                   provider="p")
     # ADMITTED, despite being outside a (deliberately emptied) `acceptable` list
-    assert manager.establish(cold, offer)
+    assert _establish(cold, offer)
 
 
 def test_the_acceptable_enumeration_is_capped_and_says_so():
@@ -496,7 +525,7 @@ def test_an_arrow_backed_offer_crosses_the_boundary_unconverted():
 
     assert offer.value is state                                        # the SAME object
     assert isinstance(offer.value.values, pa.Array)                    # still Arrow
-    admitted = manager.establish(engine, offer)
+    admitted = _establish(engine, offer)
     assert admitted
     assert engine.materialization(admitted.id).value.values is state.values
 
@@ -507,23 +536,29 @@ def test_establish_is_a_call_to_mme_admit_and_nothing_else(cold, fams):
     and receive exactly the same adjudication as any other independently established `F@A`."*"""
     cold.establish_root(fams["revenue"], KEX.ORDERS)
     state = _state(cold, "revenue", KEX.BY_DAY, {("D1",): 175.0, ("D2",): 325.0})
-    offer = RealizationOffer(provider="warehouse", family_id="revenue", anchor=KEX.BY_DAY,
-                             value=state, realization=RealizationStanding(provider="warehouse"))
+    offer = _offer(cold, "revenue", KEX.BY_DAY, state)
 
     seen = {}
-    real = cold.admit
+    real = cold.put
 
-    def watched(value, **kwargs):
-        seen.update(value=value, **kwargs)
-        return real(value, **kwargs)
+    def watched(value, standing, **kwargs):
+        seen.update(value=value, standing=standing, **kwargs)
+        return real(value, standing, **kwargs)
 
-    cold.admit = watched                                               # type: ignore[method-assign]
-    admission = RealizationManager.establish(cold, offer)
+    cold.put = watched                                                 # type: ignore[method-assign]
+    admission = _establish(cold, offer)
 
     assert admission                                                   # it went in
-    assert seen["value"] is state                                      # through `admit`
+    assert seen["value"] is state                                      # through the ORDINARY cache door …
     assert seen["establishment"].kind == INDEPENDENT
     assert "realized by warehouse" in seen["note"]
+    # …carrying the standing the FIDELITY ADJUDICATION checked against, not a second one minted here
+    assert seen["standing"].subject == f"revenue@{KEX.BY_DAY}"
+    # …and the environment the claim stated, so `put` can own build/witness coherence
+    assert seen["build"] == cold.build.reference
+    assert seen["witness"] == cold.witness_of("revenue").digest
+    # …and the OFFER'S realization standing, which before B-1′ was replaced by the engine's
+    assert seen["realization"].provider == "warehouse"
     # and the resulting materialization is an ORDINARY one in every respect
     materialization = cold.materialization(admission.id)
     assert materialization.establishment.kind == INDEPENDENT
@@ -543,7 +578,11 @@ def test_the_manager_holds_no_machinery_for_a_privileged_shortcut():
     for forbidden in ("MaterializationStore", "FamilyMaterialization", "MaterializationId",
                       "_mint", "admit(point=", "materializations.admit"):
         assert forbidden not in code, forbidden
-    assert "mme.admit(" in code                                        # the one door, and it is there
+    # **THE DOOR MOVED WITH B-1′ AND IS STILL ONE DOOR.** `establish` called `mme.admit(`, which minted its
+    # own standing; it now calls `mme.put(` with the standing the FIDELITY ADJUDICATION already checked
+    # against. Same property: one call, no store, no ids, and nothing privileged.
+    assert "mme.put(" in code                                          # the one door, and it is there
+    assert "AdjudicatedRealization" in code                             # …and it only opens for a credential
 
 
 def test_realized_material_is_then_ordinary_in_every_later_respect(cold, fams):
@@ -551,9 +590,8 @@ def test_realized_material_is_then_ordinary_in_every_later_respect(cold, fams):
     standing that survives admission — it becomes `INDEPENDENT` material and is treated as such."""
     cold.establish_root(fams["revenue"], KEX.ORDERS)
     state = _state(cold, "revenue", KEX.STORE_DAY, {("S1", "D1"): 175.0, ("S1", "D2"): 325.0})
-    offer = RealizationOffer(provider="warehouse", family_id="revenue", anchor=KEX.STORE_DAY,
-                             value=state, realization=RealizationStanding(provider="warehouse"))
-    admission = RealizationManager.establish(cold, offer)
+    offer = _offer(cold, "revenue", KEX.STORE_DAY, state)
+    admission = _establish(cold, offer)
     assert admission
 
     # it can SEED a continuation, like any other lawful non-root materialization
@@ -582,10 +620,7 @@ def test_the_estate_cannot_overwrite_a_held_answer_by_asserting_a_different_one(
     assert served.served
 
     disagreeing = _state(cold, "revenue", KEX.BY_DAY, {("D1",): 999.0, ("D2",): 1.0})
-    admission = RealizationManager.establish(
-        cold, RealizationOffer(provider="warehouse", family_id="revenue", anchor=KEX.BY_DAY,
-                               value=disagreeing,
-                               realization=RealizationStanding(provider="warehouse")))
+    admission = _establish(cold, _offer(cold, "revenue", KEX.BY_DAY, disagreeing))
     assert not admission
     assert admission.code == "duplicate-current-disagreement"
     assert "will not pick between two answers to one question" in admission.detail
@@ -611,15 +646,15 @@ def test_a_provider_offering_an_unlawful_anchor_is_REFUSED_by_the_family_law(col
     refused by the same rule, in the same words, as a locally derived value at the same place."""
     cold.establish_root(fams["on_hand"], KEX.LEVELS)
     unlawful = _state(cold, "on_hand", KEX.BY_STORE, {("S1",): 42})
-    offer = RealizationOffer(provider="confident-warehouse", family_id="on_hand",
-                             anchor=KEX.BY_STORE, value=unlawful,
-                             realization=RealizationStanding(provider="confident-warehouse"))
+    offer = _offer(cold, "on_hand", KEX.BY_STORE, unlawful, provider="confident-warehouse")
 
-    admission = RealizationManager.establish(cold, offer)
-    assert not admission
-    assert admission.code == "outside-continuation-region"
-    assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in admission.detail \
-        or "THIS IS ASKED" in admission.detail
+    # **REFUSED AT THE FIDELITY BOUNDARY SINCE B-1′**, one layer before admission: no value of `on_hand` may
+    # STAND at `{store}`, so the claim is not adjudicated and never becomes a credential. The provider was
+    # perfectly capable of producing the number; capability is not permission.
+    adjudicated = cold.realizations.adjudicate(offer)
+    assert not adjudicated
+    assert adjudicated.refusal.code == "outside-continuation-region"
+    assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in adjudicated.refusal.detail
     assert not cold.materializations.select("on_hand", anchor=KEX.BY_STORE, eligibility=None)
 
 
@@ -630,12 +665,16 @@ def test_the_refusal_is_WORD_FOR_WORD_the_one_a_local_value_gets(cold, fams):
     unlawful = _state(cold, "on_hand", KEX.BY_STORE, {("S1",): 42})
 
     local = cold.admit(unlawful)
-    realized = RealizationManager.establish(
-        cold, RealizationOffer(provider="warehouse", family_id="on_hand", anchor=KEX.BY_STORE,
-                               value=unlawful, realization=RealizationStanding(provider="warehouse")))
+    # **AND SINCE B-1′ THE REALIZED SIDE IS REFUSED ONE LAYER EARLIER, BY THE SAME WORDS.** The claim never
+    # reaches admission because no value of `on_hand` may STAND at `{store}` — the fidelity authority
+    # delegates that question and returns the standing's refusal verbatim rather than restating it as a
+    # realization failure. So the word-for-word guarantee now holds ACROSS two doors, which is stronger than
+    # holding within one: whichever way material arrives, the family law says the same sentence.
+    realized = cold.realizations.adjudicate(
+        _offer(cold, "on_hand", KEX.BY_STORE, unlawful))
     assert not local and not realized
-    assert local.code == realized.code
-    assert local.detail == realized.detail
+    assert local.code == realized.refusal.code
+    assert local.detail == realized.refusal.detail
 
 
 def test_the_manager_does_not_PRE_FILTER_an_unlawful_proposal(cold, fams):
@@ -652,7 +691,10 @@ def test_the_manager_does_not_PRE_FILTER_an_unlawful_proposal(cold, fams):
     assert result.outside_requirement == result.proposals     # and flagged as outside
     assert not requirement.names_anchor(KEX.BY_STORE)
     # the refusal still comes from the family law, at admission
-    assert not manager.establish(cold, manager.realize(result.proposals[0]))
+    # the manager hands the offer on without pre-screening it; the refusal comes from the family law, and
+    # since B-1′ it arrives at the FIDELITY boundary rather than at admission — one layer earlier, same words
+    unfiltered = cold.realizations.adjudicate(manager.realize(result.proposals[0]))
+    assert not unfiltered and unfiltered.refusal.code == "outside-continuation-region"
 
 
 def test_no_realization_requirement_is_emitted_for_an_UNSUPPORTED_target(cold, fams):
@@ -683,10 +725,7 @@ def test_a_provider_cannot_grant_continuation_rights(cold, fams):
     cold.establish_root(fams["on_hand"], KEX.LEVELS)
     # a LAWFUL non-root anchor for this family, supplied by the estate
     lawful = _state(cold, "on_hand", KEX.BY_DAY, {("D1",): 10, ("D2",): 12})
-    admission = RealizationManager.establish(
-        cold, RealizationOffer(provider="warehouse", family_id="on_hand",
-                               anchor=KEX.BY_DAY, value=lawful,
-                               realization=RealizationStanding(provider="warehouse")))
+    admission = _establish(cold, _offer(cold, "on_hand", KEX.BY_DAY, lawful))
     assert admission
     assert cold.materialization(admission.id).establishment.kind == INDEPENDENT
     # the realized material is present and the unlawful target is STILL refused
@@ -797,7 +836,7 @@ def test_the_full_loop_NEED_to_requirement_to_proposal_to_offer_to_admit_to_serv
     proposals = manager.propose(outcome.requirement)
     assert len(proposals) == 1
     offer = manager.realize(proposals.proposals[0])
-    admission = manager.establish(cold, offer)
+    admission = _establish(cold, offer)
     assert admission
 
     served = cold.measure(fams["revenue"], KEX.TOTAL)
