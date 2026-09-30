@@ -559,12 +559,13 @@ def test_realized_material_is_then_ordinary_in_every_later_respect(cold, fams):
     # it can SEED a continuation, like any other lawful non-root materialization
     served = cold.measure(fams["revenue"], KEX.BY_DAY)
     assert served.served
-    # it is adjudicated by the ordinary five questions
+    # it is adjudicated by the ordinary questions — FOUR of them since B-0b, the fifth having become an
+    # authorization the request already carries
     from columna_platform.kernel.mme import Retained
 
     held = cold.materialization(admission.id)
     verdict = cold.adjudicate(Retained(key=cold._descriptor(held), value=held.value),
-                              fams["revenue"], KEX.TOTAL)
+                              cold.authorizer.authorize(fams["revenue"], KEX.TOTAL).request)
     assert verdict
     # and the ordinary lifecycle applies to it
     cold.materializations.evict(admission.id)
@@ -616,7 +617,7 @@ def test_a_provider_offering_an_unlawful_anchor_is_REFUSED_by_the_family_law(col
 
     admission = RealizationManager.establish(cold, offer)
     assert not admission
-    assert admission.code == "anchor-outside-the-continuation-region"
+    assert admission.code == "outside-continuation-region"
     assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in admission.detail \
         or "THIS IS ASKED" in admission.detail
     assert not cold.materializations.select("on_hand", anchor=KEX.BY_STORE, eligibility=None)
@@ -896,7 +897,13 @@ def test_the_mme_knows_nothing_about_providers():
     `realization_manager.py`. An engine that could name a provider would be an engine that could prefer
     one."""
     code = _code_only(kernel_mme_module)
-    assert "FamilyRequirement" in code                                 # it states requirements …
+    # **THE POSITIVE HALF MOVED WITH ITS SUBJECT (B-0b).** `requirement_for` left the cache engine for the
+    # continuation authority, so `FamilyRequirement` is no longer named in `kernel/mme.py` — it is named in
+    # `kernel/authorization.py`. The ban below is what this test is really for and is unchanged: whichever
+    # component emits requirements, it may not name a provider.
+    from columna_platform.kernel import authorization as authorization_module
+
+    assert "FamilyRequirement" in _code_only(authorization_module)      # it states requirements …
     for forbidden in ("realization_manager", "RealizationManager", "RealizationProvider",
                       "RealizationProposal", "RealizationOffer", "ProposalSet"):
         assert forbidden not in code, forbidden                        # … and knows of no estate

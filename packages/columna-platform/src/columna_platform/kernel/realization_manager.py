@@ -27,7 +27,7 @@ The blast wall (§6) falls out of it rather than being rebuilt here:
     **A backend being able to compute something does not make it a lawful Columna materialization.**
 
 A provider may propose anything it likes — including an anchor outside the family's continuation region —
-and `MME.admit` will refuse it by `anchor-outside-the-continuation-region`, in the same words, by the same
+and `MME.admit` will refuse it by `outside-continuation-region`, in the same words, by the same
 rule, as it refuses a locally-derived value at the same place. **The manager does not pre-filter**, and
 that is deliberate: filtering would be the manager adjudicating analytical lawfulness, which §1 says it
 does not do. It REPORTS the discrepancy (`ProposalSet.outside_requirement`) and adjudicates nothing.

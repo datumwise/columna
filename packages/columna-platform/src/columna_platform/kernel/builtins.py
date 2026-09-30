@@ -57,6 +57,7 @@ from .law import (
     ORDERED,
     ORDERED_WITNESS,
     REDUCER,
+    POPULATION,
     RequiredBasis,
     SCALAR,
     SKETCH_UNION,
@@ -111,6 +112,12 @@ LAWS: tuple[AnalyticalLaw, ...] = (
         operand_domains=frozenset({"integer", "decimal", "text", "boolean", "date", "timestamp"}),
         result_domain="integer", value_form=SCALAR,
         sufficient_state="the running count IS the finite witness",
+        # **THE ONLY POPULATION LAW IN THIS VOCABULARY, AND IT SAYS SO ITSELF** (B-0b). A count contributes
+        # over PARTICIPATION and reads no value, so a participating point whose value is unestablished does
+        # not block its fold — which is exactly why `OrderCount` serves 3 at D1 in the exhibit where
+        # `Revenue` wants state over the same seven orders. This was `_POPULATION_LAWS = {"COUNT"}` in the
+        # columnar MME; it is a fact about the law and now lives on the law.
+        fold_shape=POPULATION,
         continuation=_ADDITIVE, region=ContinuationRegion.everywhere(
             "counts of disjoint contributions add over every coarsening"),
         identity_note="additive monoid; empty folds to 0"),

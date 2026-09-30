@@ -47,7 +47,6 @@ from columna_platform.kernel import (
     MME,
     FamilyPoint,
     FamilyState,
-    KernelRefusal,
     Retained,
     RetentionKey,
 )
@@ -65,6 +64,18 @@ def fams():
     revenue, order_count, audited, distinct, on_hand, gauge = EX._families()
     return dict(revenue=revenue, order_count=order_count, audited=audited, distinct=distinct,
                 on_hand=on_hand, gauge=gauge)
+
+
+def _request(mme: MME, family, target):
+    """**Authorize, then hand the request to the cache** (B-0b). Every `adjudicate` call in this file goes
+    through here, because after B-0b there is no other way to reach the method: the cache adjudicates an
+    already-authorized continuation and there is no signature that takes a family and a target.
+
+    Fails loudly rather than returning `None` for an unauthorized target, so a test that meant to exercise
+    the cache cannot silently end up exercising nothing."""
+    authorized = mme.authorizer.authorize(family, target)
+    assert authorized, f"expected {family.family_id}@{target} to be authorized: {authorized.refusal}"
+    return authorized.request
 
 
 def _retained(mme: MME, state: FamilyState) -> Retained:
@@ -91,7 +102,7 @@ def test_a_sibling_anchor_cannot_reach_the_target_and_the_verdict_is_geometric(m
     by_store = mme.measure(revenue, EX.BY_STORE)
     assert by_store.served                                       # {store} is lawful and served
 
-    verdict = mme.adjudicate(_retained(mme, by_store.value), revenue, EX.BY_DAY)
+    verdict = mme.adjudicate(_retained(mme, by_store.value), _request(mme, revenue, EX.BY_DAY))
     assert not verdict
     assert verdict.code == "not-reachable"
     assert "is not finer than" in verdict.detail
@@ -103,7 +114,7 @@ def test_the_target_it_could_not_reach_is_itself_perfectly_lawful(mme, fams):
     engine serves the very target it just refused to reach, from a different seed."""
     revenue = fams["revenue"]
     by_store = mme.measure(revenue, EX.BY_STORE)
-    refused = mme.adjudicate(_retained(mme, by_store.value), revenue, EX.BY_DAY)
+    refused = mme.adjudicate(_retained(mme, by_store.value), _request(mme, revenue, EX.BY_DAY))
     assert refused.code == "not-reachable"
 
     assert mme.measure(revenue, EX.BY_DAY).served                # …and yet the target is servable
@@ -118,10 +129,10 @@ def test_reachability_is_asked_of_the_scalar_anchor_in_the_right_direction(mme, 
     assert total.served
 
     # the grand total cannot seed anything finer …
-    verdict = mme.adjudicate(_retained(mme, total.value), revenue, EX.BY_DAY)
+    verdict = mme.adjudicate(_retained(mme, total.value), _request(mme, revenue, EX.BY_DAY))
     assert not verdict and verdict.code == "not-reachable"
     # … and it is trivially adequate for itself
-    assert mme.adjudicate(_retained(mme, total.value), revenue, EX.TOTAL).code == "exact"
+    assert mme.adjudicate(_retained(mme, total.value), _request(mme, revenue, EX.TOTAL)).code == "exact"
 
 
 def test_an_equal_anchor_is_EXACT_and_never_reaches_the_reachability_test(mme, fams):
@@ -129,7 +140,7 @@ def test_an_equal_anchor_is_EXACT_and_never_reaches_the_reachability_test(mme, f
     already AT the target short-circuits with `exact` rather than being tested for refinement."""
     revenue = fams["revenue"]
     by_day = mme.measure(revenue, EX.BY_DAY)
-    verdict = mme.adjudicate(_retained(mme, by_day.value), revenue, EX.BY_DAY)
+    verdict = mme.adjudicate(_retained(mme, by_day.value), _request(mme, revenue, EX.BY_DAY))
     assert verdict and verdict.code == "exact"
     assert "already at the asked location" in verdict.detail
 
@@ -180,7 +191,7 @@ def test_a_finalized_scalar_cannot_seed_a_structured_familys_continuation(mme, f
     distinct = fams["distinct"]
     candidate = _retained(mme, _finalized_sketch_state(mme, distinct, EX.BY_DAY))
 
-    verdict = mme.adjudicate(candidate, distinct, EX.TOTAL)
+    verdict = mme.adjudicate(candidate, _request(mme, distinct, EX.TOTAL))
     assert not verdict
     assert verdict.code == "state-no-longer-sufficient"
     assert "composes over a" in verdict.detail
@@ -194,7 +205,7 @@ def test_the_verdict_quotes_the_laws_own_words_for_what_its_composition_needs(mm
     law = mme.law_of("distinct_customers")
     candidate = _retained(mme, _finalized_sketch_state(mme, distinct, EX.BY_DAY))
 
-    verdict = mme.adjudicate(candidate, distinct, EX.TOTAL)
+    verdict = mme.adjudicate(candidate, _request(mme, distinct, EX.TOTAL))
     assert law.sufficient_state
     assert law.sufficient_state in verdict.detail
 
@@ -207,7 +218,7 @@ def test_the_same_anchor_pair_is_ADMITTED_when_the_state_is_actually_sufficient(
     real = mme.measure(distinct, EX.BY_DAY)
     assert real.served and real.value.value_form == STRUCTURED
 
-    verdict = mme.adjudicate(_retained(mme, real.value), distinct, EX.TOTAL)
+    verdict = mme.adjudicate(_retained(mme, real.value), _request(mme, distinct, EX.TOTAL))
     assert verdict and verdict.code == "admitted"
 
 
@@ -221,7 +232,7 @@ def test_a_scalar_law_is_indifferent_to_the_check(mme, fams):
 
     by_day = mme.measure(revenue, EX.BY_DAY)
     assert by_day.value.value_form == SCALAR
-    verdict = mme.adjudicate(_retained(mme, by_day.value), revenue, EX.TOTAL)
+    verdict = mme.adjudicate(_retained(mme, by_day.value), _request(mme, revenue, EX.TOTAL))
     assert verdict and verdict.code == "admitted"
 
 
@@ -239,127 +250,73 @@ def test_neither_verdict_moves_when_the_continuation_region_changes(mme, fams):
     on_hand = fams["on_hand"]
     assert mme.law_of("on_hand").region != mme.law_of("revenue").region
 
-    # `not-reachable`, asked of the restricted family: same code, same reason.
+    # `not-reachable`, asked of the restricted family: same code, same reason. STILL THE CACHE'S.
     by_day = mme.measure(on_hand, EX.BY_DAY)
     assert by_day.served
-    sibling = mme.adjudicate(_retained(mme, by_day.value), on_hand, EX.STORE_DAY)
+    sibling = mme.adjudicate(_retained(mme, by_day.value), _request(mme, on_hand, EX.STORE_DAY))
     assert not sibling and sibling.code == "not-reachable"
 
-    # and the region's own verdict is a DIFFERENT code on the same family, so the two are distinguishable
-    laundered = mme.adjudicate(_retained(mme, by_day.value), on_hand, EX.TOTAL)
-    assert not laundered and laundered.code == "outside-continuation-region"
-    assert sibling.code != laundered.code
+    # **AND THE REGION'S OWN VERDICT HAS LEFT THE CACHE ENTIRELY (B-0b).** It is not a different code from
+    # a different `adjudicate` branch any more — it is a different LAYER. `on_hand@TOTAL` is unauthorized,
+    # so there is no request to adjudicate and the cache is never consulted about it. That is the sharper
+    # form of this test's claim: the two verdicts did not merely fail to move when the region changed, they
+    # are in a component the region cannot reach.
+    unauthorized = mme.authorizer.authorize(on_hand, EX.TOTAL)
+    assert not unauthorized and unauthorized.refusal.code == "outside-continuation-region"
+    assert sibling.code != unauthorized.refusal.code
+    with pytest.raises(AssertionError):
+        _request(mme, on_hand, EX.TOTAL)                         # no request exists to hand the cache
 
 
-def test_the_five_verdicts_are_all_reachable_and_distinct(mme, fams):
-    """All five, in one place, for the first time — so the refactor has a single row to check itself
-    against. Three were already covered elsewhere; `not-reachable` and `state-no-longer-sufficient` are
-    new here."""
+def test_the_cache_verdicts_are_reachable_and_the_constitutional_one_is_not_a_verdict_at_all(mme, fams):
+    """**The whole B-0a → B-0b movement, in one test.**
+
+    B-0a asserted five `adjudicate` verdicts in one place so the refactor had a single row to check itself
+    against. B-0b then removed one of them — and the removal is the unit's result, so this test records the
+    new shape rather than being deleted. Four verdicts remain in the cache, each a
+    materialization/execution question; the fifth is now an AUTHORIZATION REFUSAL one layer up, and it is
+    not a verdict about held state at all."""
     revenue, on_hand, distinct = fams["revenue"], fams["on_hand"], fams["distinct"]
-    seen = {}
 
-    seen["exact"] = mme.adjudicate(
-        _retained(mme, mme.measure(revenue, EX.BY_DAY).value), revenue, EX.BY_DAY).code
-    seen["not-reachable"] = mme.adjudicate(
-        _retained(mme, mme.measure(revenue, EX.BY_STORE).value), revenue, EX.BY_DAY).code
-    seen["outside-continuation-region"] = mme.adjudicate(
-        _retained(mme, mme.measure(on_hand, EX.BY_DAY).value), on_hand, EX.TOTAL).code
-    seen["state-no-longer-sufficient"] = mme.adjudicate(
-        _retained(mme, _finalized_sketch_state(mme, distinct, EX.BY_DAY)), distinct, EX.TOTAL).code
-    seen["admitted"] = mme.adjudicate(
-        _retained(mme, mme.measure(revenue, EX.SALE_AT).value), revenue, EX.TOTAL).code
+    cache = {}
+    cache["exact"] = mme.adjudicate(
+        _retained(mme, mme.measure(revenue, EX.BY_DAY).value), _request(mme, revenue, EX.BY_DAY)).code
+    cache["not-reachable"] = mme.adjudicate(
+        _retained(mme, mme.measure(revenue, EX.BY_STORE).value), _request(mme, revenue, EX.BY_DAY)).code
+    cache["state-no-longer-sufficient"] = mme.adjudicate(
+        _retained(mme, _finalized_sketch_state(mme, distinct, EX.BY_DAY)),
+        _request(mme, distinct, EX.TOTAL)).code
+    cache["admitted"] = mme.adjudicate(
+        _retained(mme, mme.measure(revenue, EX.SALE_AT).value), _request(mme, revenue, EX.TOTAL)).code
 
-    assert seen == {k: k for k in seen}, seen
-    assert len(set(seen.values())) == 5
+    assert cache == {k: k for k in cache}, cache
+    assert len(set(cache.values())) == 4
+
+    # the fifth, where it now lives — and note it needs no candidate, because it is not about one
+    above = mme.authorizer.authorize(on_hand, EX.TOTAL)
+    assert not above and above.refusal.code == "outside-continuation-region"
+    assert "outside-continuation-region" not in cache
 
 
-def test_nothing_in_this_file_touched_production_code():
-    """B-0a-i is coverage only. Recorded as an assertion so the unit's claim is in the suite: the two
-    verdicts are pinned exactly as they already behave, before B-0a-ii collapses the constitutional
-    predicate and before any jurisdiction moves."""
+def test_b0a_i_was_coverage_only_and_b0b_then_changed_the_production_code():
+    """**A scope guard that outlived its scope, updated rather than deleted.**
+
+    B-0a-i touched no production code and this test asserted it by counting `adjudicate`'s returns. B-0b
+    then removed one verdict, so the count moved — and that is the unit's result, not a regression. What
+    survives is the useful half: the four cache verdicts are all still there under their own names, and the
+    constitutional one is not."""
     import inspect
 
     from columna_platform.kernel import mme as mme_module
 
     source = inspect.getsource(mme_module.MME.adjudicate)
-    assert source.count("return Adequacy(") == 7                 # 5 refusals + exact + admitted
-    for code in ("not-continuation-bearing", "not-reachable", "outside-continuation-region",
+    assert source.count("return Adequacy(") == 6                 # 4 refusals + exact + admitted
+    for code in ("not-continuation-bearing", "not-reachable",
                  "state-no-longer-sufficient", "unrealized-law"):
         assert code in source, code
-
-
-# ══ D · B-0a-ii · THE CONSTITUTIONAL PREDICATE IS ASKED THROUGH ONE NAME ═══════════════════════════
-def test_the_constitutional_predicate_is_inlined_nowhere(mme):
-    """**B-0a-ii, pinned.** `law.region.admits(cumulative_forgotten(...))` was inlined at four sites —
-    `MME.admit`, `MME.adjudicate`, `MME.requirement_for` and `ColumnarMME.admit` — while
-    `entitlement_holds()` existed and none of them called it.
-
-    Four copies of one question is why the jurisdiction argument was hard to see. This test keeps it
-    visible: the predicate has exactly ONE implementation, and every asker goes through its name. That
-    matters because the question is expected to LEAVE the cache engine, and a single call site is one edit
-    rather than four."""
-    import inspect
-
-    from columna_platform.columnar import mme as columnar_mme_module
-    from columna_platform.kernel import materialization as materialization_module
-    from columna_platform.kernel import mme as kernel_mme_module
-
-    implementation = inspect.getsource(materialization_module.entitlement_holds)
-    assert "law.region.admits(cumulative_forgotten(family, target))" in implementation
-
-    for module in (kernel_mme_module, columnar_mme_module):
-        code = _code_only(module)
-        assert "region.admits(" not in code, module.__name__
-        assert "entitlement_holds(" in code, module.__name__
-
-
-def test_every_asker_of_the_predicate_still_refuses_exactly_as_before(mme, fams):
-    """The collapse is a refactor, so the burden is sameness. All four askers, reached by their own
-    public route, each still producing its own code and its own words.
-
-    (The by-eye version of this was done once, by capturing every detail string before and after the edit
-    and diffing them — byte-identical. This is the standing form.)"""
-    on_hand = fams["on_hand"]
-
-    # asker 1 · admit, on independently established material
-    unlawful = FamilyState(
-        point=FamilyPoint("on_hand", EX.BY_STORE), law="STOCK_LEVEL", value_form=SCALAR,
-        cells={("S1",): 42}, instance=mme.instance_of("on_hand"),
-        forgotten_since_root=frozenset({"day"}))
-    admitted = mme.admit(unlawful)
-    assert not admitted and admitted.code == "anchor-outside-the-continuation-region"
-    assert "THIS IS ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in admitted.detail
-
-    # asker 2 · adjudicate, on a held intermediate
-    by_day = mme.measure(on_hand, EX.BY_DAY).value
-    verdict = mme.adjudicate(_retained(mme, by_day), on_hand, EX.TOTAL)
-    assert not verdict and verdict.code == "outside-continuation-region"
-    assert "cannot launder an edge the law does not admit" in verdict.detail
-
-    # asker 3 · requirement_for, which emits NOTHING rather than refusing
-    outcome = mme.requirement_for(on_hand, EX.BY_STORE)
-    assert not outcome and outcome.requirement is None
-    assert "NO REALIZATION REQUIREMENT IS EMITTED" in outcome.reason
-
-    # asker 4 · the columnar twin, over real Arrow, which RAISES rather than returning
-    import pyarrow as pa
-
-    from columna_platform.columnar import CoordinateIndex, GovernedBlock
-    from columna_platform.columnar import exhibit as CEX
-    from columna_platform.columnar.standing import standing
-
-    engine, _block = CEX.build(settled=True, data_state="load:orders@08:00Z")
-    columnar_on_hand = next(f for f in CEX._families() if f.family_id == "on_hand")
-    engine.authority.register_family(columnar_on_hand)
-    index = CoordinateIndex.of(CEX.MANIFOLD, CEX.BY_STORE, [("S1",), ("S2",)])
-    block = GovernedBlock.of(
-        index, {"on_hand": pa.array([1, 2], type=pa.int64())},
-        {"on_hand": standing("on_hand", engine.authority.instance_of("on_hand"), n=2)})
-
-    with pytest.raises(KernelRefusal) as raised:
-        engine.establish(block, "on_hand", data_state="load:orders@08:00Z")
-    assert raised.value.code == "anchor-outside-the-continuation-region"
-    assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in raised.value.detail
+    # and the fifth is gone from the cache engine entirely
+    assert "outside-continuation-region" not in source
+    assert "region" not in source and "admits" not in source
 
 
 def _code_only(module) -> str:
@@ -377,3 +334,122 @@ def _code_only(module) -> str:
                     and isinstance(body[0].value.value, str)):
                 node.body = body[1:] or [ast.Pass()]
     return ast.unparse(tree)
+
+
+# ══ D · B-0a-ii → B-0b · ONE QUESTION, ONE NAME, AND NOW ONE MODULE ════════════════════════════════
+def test_the_constitutional_predicate_left_both_engines():
+    """**The two-step, recorded.** B-0a-ii collapsed four inlined copies of
+    `law.region.admits(cumulative_forgotten(...))` onto the one `entitlement_holds()` that already existed,
+    so the duplication became visible. B-0b then moved that one call out of both cache engines and into the
+    authority.
+
+    So the assertion inverts from B-0a's: neither engine calls the predicate now, and the module that does
+    is not a cache. This is the mechanical form of the ruling — *"MME must not read `ContinuationRegion`;
+    call `region.admits`; receive an entitlement wrapper and evaluate it; reconstruct permission from family
+    law; infer lawful continuation from provider capability."*"""
+    import inspect
+
+    from columna_platform.columnar import mme as columnar_mme_module
+    from columna_platform.kernel import authorization as authorization_module
+    from columna_platform.kernel import materialization as materialization_module
+    from columna_platform.kernel import mme as kernel_mme_module
+
+    implementation = inspect.getsource(materialization_module.entitlement_holds)
+    assert "law.region.admits(cumulative_forgotten(family, target))" in implementation
+
+    for module in (kernel_mme_module, columnar_mme_module):
+        code = _code_only(module)
+        for constitutional in ("region.admits(", "entitlement_holds(", "cumulative_forgotten(",
+                               "ContinuationRegion"):
+            assert constitutional not in code, f"{module.__name__} still reads {constitutional}"
+
+    authority = _code_only(authorization_module)
+    assert "entitlement_holds(" in authority
+    assert "region.why_not(" in authority
+
+
+def test_no_law_name_enumeration_survives_in_either_engine():
+    """The other constitutional leak B-0a found: `_POPULATION_LAWS = frozenset({"COUNT"})` and
+    `_shape_of(law_name)` in the columnar MME — a cache deciding what a reduction contributes over from a
+    hardcoded set of law NAMES.
+
+    Relocating the set would have satisfied the letter and kept the defect, so the fact moved to the law
+    instead: `AnalyticalLaw.fold_shape` is declared, `COUNT` says `POPULATION` of itself, and it enters every
+    family's constitution witness by subtraction."""
+    from columna_platform.columnar import mme as columnar_mme_module
+    from columna_platform.kernel import REGISTRY
+    from columna_platform.kernel.law import POPULATION, VALUE_BEARING
+
+    code = _code_only(columnar_mme_module)
+    assert "_POPULATION_LAWS" not in code
+    assert "_shape_of" not in code
+    assert '"COUNT"' not in code and "'COUNT'" not in code
+
+    assert REGISTRY.get("COUNT").fold_shape == POPULATION
+    assert REGISTRY.get("SUM").fold_shape == VALUE_BEARING
+    assert REGISTRY.get("HLL_SKETCH").fold_shape == VALUE_BEARING
+
+
+def test_no_approximation_disclosure_is_authored_inside_either_engine():
+    """The third leak: both engines read `law.approximation` and authored an `approximate` disclosure — a
+    cache asserting an analytical fact about a law. It is now decided by the authority and carried on the
+    request's `conditions`, which the engines propagate."""
+    from columna_platform.columnar import mme as columnar_mme_module
+    from columna_platform.kernel import authorization as authorization_module
+    from columna_platform.kernel import mme as kernel_mme_module
+
+    for module in (kernel_mme_module, columnar_mme_module):
+        code = _code_only(module)
+        assert "approximation" not in code, module.__name__
+        assert "request.conditions" in code, module.__name__
+
+    assert "approximation" in _code_only(authorization_module)
+
+
+def test_there_is_now_ONE_asker_and_its_refusals_are_the_same_words(mme, fams):
+    """**B-0a found four askers of one question; B-0b left one.**
+
+    The four were `MME.admit`, `MME.adjudicate`, `MME.requirement_for` and `ColumnarMME.admit`. Every one of
+    them now routes to `ContinuationAuthority`, and the refusals a caller sees are the same sentences in the
+    same cases — which is the whole burden of a jurisdiction move, since nothing about what is lawful
+    changed."""
+    on_hand = fams["on_hand"]
+
+    # asker 1 · a continuation. No request is minted, so the cache is never asked.
+    refused = mme.authorizer.authorize(on_hand, EX.TOTAL)
+    assert not refused and refused.refusal.code == "outside-continuation-region"
+    assert "cannot launder an edge the law does not admit" in refused.refusal.detail
+    assert "NO CONTINUATION IS AUTHORIZED" in refused.refusal.detail
+
+    # …and `measure` surfaces exactly that, rather than dressing it as a cache miss
+    served = mme.measure(on_hand, EX.TOTAL)
+    assert not served.served and served.refusal.code == refused.refusal.code
+    assert served.refusal.detail == refused.refusal.detail
+
+    # asker 2 · a STANDING, for independently established material
+    standing = mme.authorizer.authorize_standing(on_hand, EX.BY_STORE)
+    assert not standing and standing.refusal.code == "outside-continuation-region"
+    assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in standing.refusal.detail
+
+    # …and `admit` surfaces exactly that, with no second check of its own
+    unlawful = FamilyState(
+        point=FamilyPoint("on_hand", EX.BY_STORE), law="STOCK_LEVEL", value_form=SCALAR,
+        cells={("S1",): 42}, instance=mme.instance_of("on_hand"),
+        forgotten_since_root=frozenset({"day"}))
+    admitted = mme.admit(unlawful)
+    assert not admitted and admitted.code == standing.refusal.code
+    assert admitted.detail == standing.refusal.detail
+
+    # asker 3 · the realization requirement, which emits NOTHING rather than refusing
+    outcome = mme.requirement_for(on_hand, EX.BY_STORE)
+    assert not outcome and outcome.requirement is None
+    assert "NO REALIZATION REQUIREMENT IS EMITTED" in outcome.reason
+
+    # asker 4 · the columnar engine, which shares the SAME authority over the SAME constitution
+    from columna_platform.columnar import exhibit as CEX
+
+    engine, _block = CEX.build(settled=True, data_state="load:orders@08:00Z")
+    columnar_on_hand = next(f for f in CEX._families() if f.family_id == "on_hand")
+    engine.authority.register_family(columnar_on_hand)
+    columnar = engine.measure("on_hand", CEX.TOTAL)
+    assert not columnar.served and columnar.refusal.code == "outside-continuation-region"

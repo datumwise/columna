@@ -107,17 +107,15 @@ from columna_platform.kernel.materialization import (
     MaterializationId,
     MaterializationStore,
     TransitionIntent,
-    cumulative_forgotten,
-    entitlement_holds,
 )
 from columna_platform.kernel.mme import Retained, RetentionKey, Staleness
 from columna_platform.kernel.observation import (
     FamilyRequest,
     Fulfillment,
-    NEED,
     ObservationSink,
     READY,
     WANT_OF_STATE,
+    NEED,
     WorkloadObserver,
     disposition_for,
     observe_request,
@@ -126,17 +124,23 @@ from columna_platform.kernel.observation import (
 from .block import GovernedBlock, value_column_name
 from .index import AnchorInstance, CoordinateIndex
 from .provider import ColumnarProvider
-from .standing import ColumnStanding, POPULATION, VALUE_BEARING
+from .standing import ColumnStanding, VALUE_BEARING
 
-#: Which reduction shape a law's own reduction is: a POPULATION law counts membership, everything else
-#: needs evidence for a value. Declared here rather than on the law because it is a property of how a
-#: provider must read the standing masks, not a semantic fact the law asserts.
-_POPULATION_LAWS = frozenset({"COUNT"})
-
-
-def _shape_of(law_name: str) -> str:
-    """The reduction shape of a law. A `COUNT` needs membership; everything else needs values."""
-    return POPULATION if law_name in _POPULATION_LAWS else VALUE_BEARING
+# **A RETIRED CLAIM, CORRECTED (B-0b).** This module used to say the reduction shape was *"declared here
+# rather than on the law because it is a property of how a provider must read the standing masks, not a
+# semantic fact the law asserts."* That was wrong in both halves. Whether a reduction reads values or only
+# membership is exactly a semantic fact — it is why `OrderCount` serves 3 at D1 where `Revenue` wants state
+# over the same seven orders — and a provider reading masks is the CONSEQUENCE of it, not its home.
+# `_POPULATION_LAWS = frozenset({"COUNT"})` and `_shape_of(law_name)` lived here and are GONE (B-0b).
+#
+#     *"MME must not hardcode `COUNT → population-shaped` or any equivalent law-name enumeration. The
+#     authorized request should carry the already-resolved fold shape."*  — Huayin, 2026-09-29
+#
+# They were a cache engine deciding, from a hardcoded set of law NAMES, what a reduction contributes over —
+# constitutional knowledge in the one component ruled to hold none. Relocating the set would have satisfied
+# the letter and kept the defect, so instead the fact moved to where it belongs: `AnalyticalLaw.fold_shape`
+# is DECLARED (`COUNT` says `POPULATION` of itself), it enters every family's `ConstitutionWitness` by
+# subtraction, and this engine now reads it off the state it holds or the authorized request it was handed.
 
 
 @dataclass(frozen=True)
@@ -153,6 +157,9 @@ class ColumnarFamilyState:
     standing: ColumnStanding
     law: str
     value_form: str
+    #: **What this state's reduction contributes over**, carried rather than inferred (B-0b). Set from the
+    #: law's own declaration by whoever had the law; this engine never maps a law NAME onto a shape.
+    fold_shape: str = VALUE_BEARING
     forgotten_since_root: frozenset = frozenset()
     disclosures: tuple[Disclosure, ...] = ()
     route: tuple[str, ...] = ()
@@ -184,8 +191,9 @@ class ColumnarFamilyState:
 
     @property
     def shape(self) -> str:
-        """The reduction shape this state's own law has, and therefore what its standing must establish."""
-        return _shape_of(self.law)
+        """The reduction shape this state's own law declared, and therefore what its standing must
+        establish. **Carried, not derived from the law's name** (B-0b)."""
+        return self.fold_shape
 
     @property
     def wants_state(self) -> bool:
@@ -373,7 +381,7 @@ class ColumnarMME:
                 f"carries — and that is passed to `establish`, not read off the standing; every governed "
                 f"axis must agree with the registered declaration.")
         standing = block.standing(family_id)
-        shape = _shape_of(law.name)
+        shape = law.fold_shape
         values = block.column(family_id)
         # **THE ONE THING THE CARRIER IS ALLOWED TO CONTRADICT, AND IS NOT.** A null MEANS nothing — but a
         # position the standing declares SUPPORTED and the carrier has no value for is a broken
@@ -401,7 +409,7 @@ class ColumnarMME:
         state = ColumnarFamilyState(
             family_id=family_id, anchor_instance=anchor_instance,
             values=values, standing=replace(standing, instance=anchor_instance.instance),
-            law=law.name, value_form=law.value_form,
+            law=law.name, value_form=law.value_form, fold_shape=law.fold_shape,
             forgotten_since_root=frozenset() if at_root
             else family.root.forgets(block.index.anchor),
             route=(f"established from {block} column {value_column_name(family_id)!r}",))
@@ -431,21 +439,36 @@ class ColumnarMME:
     def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
               intent: Optional[TransitionIntent] = None, residency: str = "resident",
               note: str = "") -> Admission:
-        """**The one door for columnar family material.** Warm start, a grouped continuation's result and an
-        external offer all arrive here, and the entitlement question is asked of independent material
-        exactly as it is asked of derived material."""
+        """**Offer one columnar family value to the cache.** Mints a standing, then `put`s.
+
+        The kernel twin's docstring applies verbatim, including why this method is the authority half's.
+        The constitutional reading is the SHARED authority's: `self.authority` is the kernel engine, so both
+        engines authorize through one `ContinuationAuthority` over one constitution. Two caches, one
+        Manifold — which is the right shape, because a family's lawful anchors cannot depend on which
+        substrate is holding its values."""
+        authorized = self.authority.authorizer.authorize_standing(
+            value.point.identity, value.anchor)
+        if not authorized:
+            return Admission(False, code=authorized.refusal.code, detail=authorized.refusal.detail)
+        return self.put(value, authorized.request, establishment=establishment, intent=intent,
+                        residency=residency, note=note)
+
+    def put(self, value: Any, standing: Any, *, establishment: Optional[Establishment] = None,
+            intent: Optional[TransitionIntent] = None, residency: str = "resident",
+            note: str = "") -> Admission:
+        """**THE COLUMNAR CACHE DOOR. No constitution is read here.**
+
+        Identical in substance to `kernel.MME.put`; see that docstring for why each check is a comparison
+        rather than an interpretation. The only columnar difference is that identity is read as
+        `value.point.identity`, because `_Point` is a three-field record whose `family_id` is derived."""
         family_id = value.point.identity
-        family, law = self.family(family_id), self.law_of(family_id)
-        if not entitlement_holds(family, law, value.anchor):   # ← the one name (B-0a-ii)
-            forgotten = cumulative_forgotten(family, value.anchor)
+        if standing.family_id != family_id or standing.anchor != value.anchor:
             return Admission(
-                False, code="anchor-outside-the-continuation-region",
-                detail=f"{family_id} may hold no lawful value at {value.anchor}: reaching it from "
-                       f"{family.root} forgets {sorted(forgotten)}, which {law.region.why_not(forgotten)}. "
-                       f"**ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO** — a governed realization can "
-                       f"supply a value and cannot make the law admit one where it does not.")
+                False, code="standing-does-not-cover-this-material",
+                detail=f"the authorization covers {standing.subject} and the material offered is "
+                       f"{family_id}@{value.anchor}. An authorization is for one analytical location.")
         if establishment is None:
-            establishment = Establishment(AT_ROOT if value.anchor == family.root else INDEPENDENT)
+            establishment = Establishment(AT_ROOT if standing.at_root else INDEPENDENT)
         return self.materializations.admit(
             point=value.point, instance=value.instance, value=value, establishment=establishment,
             realization=self.realization, intent=intent, residency=residency, note=note)
@@ -487,14 +510,16 @@ class ColumnarMME:
                      if m.has_payload)
 
     # ── THE AUTHORITY, REUSED VERBATIM ───────────────────────────────────────────────────────
-    def adjudicate(self, candidate: Retained, family: MeasureFamily, target: Anchor):
+    def adjudicate(self, candidate: Retained, request: Any):
         """**`kernel.MME.adjudicate`, unchanged, over columnar state.**
 
-        This one line is the architectural result of the unit: the five questions — sort, reachability,
-        closure over the whole route from `R_F`, adequacy of the value, realization — are asked by the
-        analytical authority, and the substrate does not get a vote. The laundering guard therefore holds
-        here for free, because it is not reimplemented."""
-        return self.authority.adjudicate(candidate, family, target)
+        This one line is still the architectural result: the questions are asked by one implementation and
+        the substrate does not get a vote. **What changed at B-0b is that there are now FOUR of them, not
+        five** — sort, reachability, payload adequacy, build capability. The fifth was closure over the route
+        from `R_F`, and it is gone from both engines because no authorized request exists where it would
+        fail. The laundering guard still holds here for free, and now for a stronger reason: it is not
+        reimplemented AND it is not applied — it is upstream of the request."""
+        return self.authority.adjudicate(candidate, request)
 
     # ── serving a family, columnar ───────────────────────────────────────────────────────────
     def requirement_for(self, family: Any, target: Anchor, *, data_state: Optional[str] = None,
@@ -508,32 +533,56 @@ class ColumnarMME:
 
     def measure(self, family_id: Any, anchor: Anchor, *, retain: bool = True,
                 data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
-        """**Serve `F@A` over columnar state — and OBSERVE the request** (ruled M-2 §4/§7).
+        """**Serve `F@A` over columnar state: authorize, then fulfill.** The kernel twin's shape exactly.
+
+        **EITHER SPELLING** — see `kernel.MME.subject`. The two engines' `measure` signatures had diverged
+        (`MeasureFamily` here, `family_id` there), so no component above both could call either without
+        knowing which engine it held."""
+        started_ns = time.perf_counter_ns()
+        authorized = self.authority.authorizer.authorize(
+            family_id, anchor, data_state=data_state, retain=retain, on_behalf_of=on_behalf_of)
+        if not authorized:
+            # See the kernel twin: the request boundary observes an unauthorized continuation as
+            # UNSUPPORTED, and never as a cache miss.
+            subject = self.authority.subject(family_id)
+            observe_request(
+                self.observations,
+                FamilyRequest(manifold=self.manifold, build=self.build.reference,
+                              family_id=subject.family_id, target=anchor, data_state=data_state,
+                              on_behalf_of=on_behalf_of),
+                started_ns=started_ns, route=REFUSED,
+                refusal_code=authorized.refusal.code,
+                disposition=disposition_for(authorized.refusal.code),
+                fulfillment=Fulfillment(considered=0))
+            return Answer(route=REFUSED, refusal=authorized.refusal)
+        return self.fulfill(authorized.request)
+
+    def fulfill(self, request: Any) -> Answer:
+        """**Can this ALREADY-AUTHORIZED continuation be performed from columnar state held here?**
 
         Exactly one `RequestObservation` per call, on every path. The columnar engine is where
-        `WANT_OF_STATE` actually arises as a disposition: a fold whose participating domain contains a
-        point with no established value is not a cache miss, and a policy told it was one would try to
-        solve an evidence problem with residency."""
+        `WANT_OF_STATE` actually arises as a disposition: a fold whose participating domain contains a point
+        with no established value is not a cache miss, and a policy told it was one would try to solve an
+        evidence problem with residency.
+
+        Reads no constitution: no `region`, no `admits`, no law-name enumeration. The fold's shape and its
+        composition arrive on the request."""
         started_ns = time.perf_counter_ns()
-        # **EITHER SPELLING** — see `kernel.MME.subject`. The two engines' `measure` signatures had
-        # diverged (`MeasureFamily` here, `family_id` there), so no component above both could call
-        # either without knowing which engine it held.
+        anchor, family_id = request.target, request.family_id
         family = self.authority.subject(family_id)
-        family_id = family.family_id
-        request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
-                                family_id=family_id, target=anchor, data_state=data_state,
-                                on_behalf_of=on_behalf_of)
-        law = self.law_of(family_id)
-        instance = self.authority.instance_of(family_id)
+        observed = FamilyRequest(manifold=self.manifold, build=request.build,
+                                 family_id=family_id, target=anchor,
+                                 data_state=request.data_state, on_behalf_of=request.on_behalf_of)
         considered: list[str] = []
 
         # **CANDIDATE SELECTION IS THE MME'S, NEVER THE CALLER'S** (ruled 2026-09-29 §2). Only CURRENT,
         # payload-bearing materializations are candidates; the cheapest lawful one answers.
-        pool = self.materializations.candidates_for(family_id, anchor, instance, data_state=data_state)
+        pool = self.materializations.candidates_for(family_id, anchor, request.instance,
+                                                   data_state=request.data_state)
 
         exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
-            observe_request(self.observations, request, started_ns=started_ns, route=CACHED,
+            observe_request(self.observations, observed, started_ns=started_ns, route=CACHED,
                             disposition=READY,
                             fulfillment=Fulfillment(directly_held=True, selected=(exact.id,),
                                                     considered=1))
@@ -544,7 +593,7 @@ class ColumnarMME:
         for materialization in pool:
             candidate = Retained(key=self._descriptor(materialization), value=materialization.value)
             considered.append(str(candidate.key))
-            verdict = self.adjudicate(candidate, family, anchor)
+            verdict = self.adjudicate(candidate, request)
             if not verdict:
                 blockers.append(verdict)
                 continue
@@ -553,33 +602,36 @@ class ColumnarMME:
                 # ── WANT OF STATE, BEFORE THE FOLD ────────────────────────────────────────────
                 # *"Participation determines the contributing domain. Support determines whether the
                 # values required over that participating domain are established."* — 2026-09-29.
-                # A fold whose domain contains a participating point with no established value cannot
-                # be performed: the lawful answer is a refusal that says what is missing, NOT a total
-                # over the supported remainder. The candidate is not "unreachable" and the point is not
-                # removed from the population — the value is owed and absent.
+                # A fold whose domain contains a participating point with no established value cannot be
+                # performed: the lawful answer is a refusal that says what is missing, NOT a total over
+                # the supported remainder.
+                #
+                # **AND THIS IS A CACHE/EXECUTION FACT, NOT AN ANALYTICAL ONE** (B-0b §2). The continuation
+                # is authorized; what is absent is evidence the fold needs. The engine reads the SUPPORT
+                # VECTOR it was given and never asks why that vector says what it says — whether carrier
+                # validity was licensed to establish it is the realization boundary's question, above.
                 if state.wants_state:
-                    # **NOT A MISS.** The material is here; the VALUE is owed and absent. Recorded as its
-                    # own disposition so a later policy never reads it as cache pressure (§4).
-                    observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                    observe_request(self.observations, observed, started_ns=started_ns, route=REFUSED,
                                     refusal_code="want-of-state", disposition=WANT_OF_STATE,
                                     fulfillment=Fulfillment(selected=(materialization.id,),
                                                             seeded_from=materialization.anchor,
                                                             considered=len(considered)))
                     return Answer(route=REFUSED, considered=tuple(considered),
                                   refusal=self._want_of_state(state, anchor))
-                state = self._continue(state, family, law, anchor)
-            if law.approximation != "exact":
-                state = state.with_disclosure(Disclosure(
-                    "approximate", f"{law.name} is {law.approximation}; every value served from it "
-                                   f"carries that standing"))
+                state = self._continue(state, request, anchor)
+            # **CONDITIONS ARE PROPAGATED, NEVER DERIVED** (B-0b). `law.approximation` was read here to
+            # author an `approximate` disclosure — a cache asserting an analytical fact about a law.
+            for condition in request.conditions:
+                state = state.with_disclosure(condition)
             admitted: tuple[MaterializationId, ...] = ()
-            if retain:
-                # the dependency edge, recorded where the continuation happens and nowhere else
-                admission = self.admit(state, establishment=(
+            if request.retain:
+                # the dependency edge, recorded where the continuation happens and nowhere else; retained
+                # under the standing the authorization already paired with this target
+                admission = self.put(state, request.standing, establishment=(
                     Establishment(CONTINUED_FROM, (materialization.id,))
                     if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
                 if not admission:
-                    observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+                    observe_request(self.observations, observed, started_ns=started_ns, route=REFUSED,
                                     refusal_code=admission.code,
                                     fulfillment=Fulfillment(selected=(materialization.id,),
                                                             considered=len(considered)))
@@ -588,7 +640,7 @@ class ColumnarMME:
                                                   admission.detail))
                 admitted = (admission.id,)
             route = ROOT if state.anchor == family.root else CONTINUED
-            observe_request(self.observations, request, started_ns=started_ns, route=route,
+            observe_request(self.observations, observed, started_ns=started_ns, route=route,
                             disposition=READY,
                             fulfillment=Fulfillment(
                                 directly_held=False, selected=(materialization.id,),
@@ -599,6 +651,10 @@ class ColumnarMME:
                           disclosures=state.disclosures, seeded_from=candidate.key,
                           considered=tuple(considered))
 
+        # **THE MISS, AND IT CARRIES NO ANALYTICAL MEANING** (ruled §7). It means exactly one thing: this
+        # cache cannot currently satisfy an already-lawful request from the columnar state it holds. An
+        # unlawful target never arrives here at all — it has no authorized request — so a miss can no longer
+        # be confused with a governed refusal, which is the confusion the old single path allowed.
         best: dict[str, Any] = {}
         for b in blockers:
             if b.code not in best or len(b.detail) > len(best[b.code].detail):
@@ -608,10 +664,10 @@ class ColumnarMME:
                   or f"no columnar state of {family_id} is held under this analytical instance; a value "
                      f"must be established at {family.root} before it can be continued anywhere"
                   ) + self._also_held(family_id)
-        # The miss, and WHICH KIND of miss — NEED (retention would have helped) versus UNSUPPORTED (no
-        # lawful route exists and never will). See the same note in `kernel.mme.measure`.
+        # WHICH KIND of miss — NEED (retention would have helped) versus UNSUPPORTED (this build cannot
+        # execute the composition and never will). See the same note in `kernel.MME.fulfill`.
         blocking = ordered[0].code if ordered else ""
-        observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+        observe_request(self.observations, observed, started_ns=started_ns, route=REFUSED,
                         refusal_code=blocking or "unanswerable",
                         disposition=(disposition_for(blocking) if blocking else NEED),
                         fulfillment=Fulfillment(considered=len(considered)))
@@ -655,19 +711,24 @@ class ColumnarMME:
             f"them from support. A population reduction over the same points is unaffected and still "
             f"counts all {len(state.standing.participation.to_pylist())} of them that participate.")
 
-    def _continue(self, state: ColumnarFamilyState, family: MeasureFamily, law,
+    def _continue(self, state: ColumnarFamilyState, request: Any,
                   target: Anchor) -> ColumnarFamilyState:
-        """Grouped continuation through the provider, onto a governed target index."""
+        """Grouped continuation through the provider, onto a governed target index.
+
+        **BOTH EXECUTION FACTS ARRIVE ON THE REQUEST** (B-0b), and neither is looked up here. The
+        composition token is the GROUPED capability key — the provider's table is keyed by it, which is why
+        `SUM`, `COUNT` and `STOCK_LEVEL` share one `addition` capability instead of inventing three — and
+        the fold shape is the law's own declaration. This method used to take the law and read
+        `law.continuation.token` plus a law-name-to-shape mapping; it now takes neither."""
         target_index = self._target_index(state, target)
-        shape = _shape_of(law.name)
         result = self.provider.continue_grouped(
-            self._block_of(state), state.family_id, composition=law.continuation.token,
-            target_index=target_index, shape=shape)
+            self._block_of(state), state.family_id, composition=request.fold.composition,
+            target_index=target_index, shape=request.fold.fold_shape)
         return ColumnarFamilyState(
             family_id=state.family_id,
             anchor_instance=AnchorInstance(index=target_index, instance=state.instance),
             values=result.values, standing=result.standing, law=state.law,
-            value_form=state.value_form,
+            value_form=state.value_form, fold_shape=state.fold_shape,
             forgotten_since_root=state.forgotten_since_root | state.anchor.forgets(target),
             disclosures=state.disclosures,
             route=state.route + result.route)

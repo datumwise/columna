@@ -107,8 +107,11 @@ DISPOSITIONS = (READY, NEED, WANT_OF_STATE, UNSUPPORTED)
 #: mistaking "unsupported" for "need" costs a policy a wasted consideration, and the reverse teaches it that
 #: a law it can never satisfy is merely a cold cache.
 UNSUPPORTED_CODES = frozenset({
+    # ONE code for one question (B-0b). `anchor-outside-the-continuation-region` was the same refusal
+    # emitted by `MME.admit`, and it existed only because `admit` was a SECOND asker of a constitutional
+    # question. The authority is the single asker now, so the second spelling is retired rather than kept
+    # as a synonym nothing can produce.
     "outside-continuation-region",
-    "anchor-outside-the-continuation-region",
     "unrealized-law",
     "no-admitted-basis",
     "incompatible-basis",

@@ -64,6 +64,25 @@ VALUE_FORMS = frozenset({SCALAR, STRUCTURED, ORDERED_WITNESS})
 DOMAINS = frozenset({"integer", "decimal", "text", "boolean", "date", "timestamp", "sketch"})
 SAME_AS_OPERAND = "same_as_operand"
 
+# ── what a reduction CONTRIBUTES OVER. An analytical fact, and now a declared one. ───────────────
+#
+# **MOVED HERE BY B-0b (2026-09-29), and the move is the repair.** These two constants lived in
+# `columnar/standing.py`, and the columnar MME decided which one applied by consulting a hardcoded
+# `_POPULATION_LAWS = frozenset({"COUNT"})` — a LAW-NAME ENUMERATION inside a cache engine, which is
+# constitutional knowledge in the one place ruled to hold none of it:
+#
+#     *"MME must not hardcode `COUNT → population-shaped` or any equivalent law-name enumeration. The
+#     authorized request should carry the already-resolved fold shape."*  — Huayin, 2026-09-29
+#
+# Relocating the enumeration would have satisfied the letter and kept the defect. The fact it encodes is
+# a property OF THE LAW — whether its reduction reads values or only membership — so the law declares it,
+# and it enters every family's `ConstitutionWitness` automatically, because a law witness is computed by
+# subtraction over this record's fields. A law that changed from population to value-bearing WOULD change
+# what every family over it means, so being identity-bearing is correct rather than incidental.
+VALUE_BEARING = "value-bearing"      # the reduction needs an established value at every participating point
+POPULATION = "population"            # the reduction needs membership only, and reads no value
+FOLD_SHAPES = frozenset({VALUE_BEARING, POPULATION})
+
 # ── composition tokens ──────────────────────────────────────────────────────────────────────────
 ADDITION, SKETCH_UNION, LATEST_BY_ORDER, MINIMUM, MAXIMUM = (
     "addition", "sketch_union", "latest_by_order", "minimum", "maximum")
@@ -195,6 +214,12 @@ class AnalyticalLaw:
     #: Over which edges the closure holds. Meaningless without a continuation, and validated as such.
     region: ContinuationRegion = field(default_factory=ContinuationRegion.everywhere)
     approximation: str = "exact"
+    #: **What this law's reduction contributes over** — `VALUE_BEARING` or `POPULATION`. Declared rather
+    #: than inferred from the law's name (B-0b): `COUNT` counts participating points and reads no value,
+    #: so an unsupported point does not block its fold; every other law in this vocabulary needs a value
+    #: at every participating point. Identity-bearing by subtraction, which is why it is here and not in
+    #: an engine.
+    fold_shape: str = VALUE_BEARING
     #: A governed order this law needs in order to select at all (LAST/FIRST).
     requires_order: bool = False
     #: Identity-bearing parameters, which individuate the law's use rather than tune it.
@@ -213,6 +238,9 @@ class AnalyticalLaw:
         if self.value_form not in VALUE_FORMS:
             raise KernelRefusal("unknown-value-form", self.name,
                                 f"{self.value_form!r} is not one of {sorted(VALUE_FORMS)}")
+        if self.fold_shape not in FOLD_SHAPES:
+            raise KernelRefusal("unknown-fold-shape", self.name,
+                                f"{self.fold_shape!r} is not one of {sorted(FOLD_SHAPES)}")
         if self.result_domain != SAME_AS_OPERAND and self.result_domain not in DOMAINS:
             raise KernelRefusal("unknown-domain", self.name,
                                 f"result domain {self.result_domain!r} is not governed")
@@ -300,6 +328,6 @@ class LawRegistry:
 __all__ = [
     "ADDITION", "AnalyticalLaw", "Anchor", "Composition", "ContinuationRegion", "DOMAINS", "KINDS",
     "LATEST_BY_ORDER", "LawRegistry", "MAP", "MAXIMUM", "MINIMUM", "ORDERED", "ORDERED_WITNESS",
-    "REDUCER", "RequiredBasis", "SAME_AS_OPERAND", "SCALAR", "SKETCH_UNION", "STRUCTURED",
-    "VALUE_FORMS",
+    "POPULATION", "REDUCER", "RequiredBasis", "SAME_AS_OPERAND", "SCALAR", "SKETCH_UNION",
+    "STRUCTURED", "FOLD_SHAPES", "VALUE_BEARING", "VALUE_FORMS",
 ]

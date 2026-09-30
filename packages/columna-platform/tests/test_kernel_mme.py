@@ -336,7 +336,10 @@ def test_a_stock_composes_across_stores_and_not_across_time(mme, fams):
     assert lawful.served and lawful.value.cells[("D1",)] == 17 and lawful.value.cells[("D2",)] == 21
     unlawful = mme.measure(on_hand, EX.BY_STORE)
     assert not unlawful.served
-    assert "outside-continuation-region" in unlawful.refusal.detail
+    # **B-0b: the refusal is the AUTHORITY'S and carries the code as a code.** It used to arrive wrapped in
+    # a cache miss whose detail recited the blocking code as text; an unlawful target is no longer a miss.
+    assert unlawful.refusal.code == "outside-continuation-region"
+    assert "its value closure does not extend to" in unlawful.refusal.detail
 
 
 def test_an_intermediate_materialization_cannot_launder_an_inadmissible_edge(mme, fams):
@@ -357,8 +360,13 @@ def test_the_guard_is_cumulative_and_not_per_hop(mme, fams):
     on_hand = fams["on_hand"]
     by_day = mme.measure(on_hand, EX.BY_DAY).value
     assert by_day.forgotten_since_root == frozenset({"store"})
-    verdict = mme.adjudicate(mme.retained(by_day.point, by_day.instance), on_hand, EX.TOTAL)
-    assert not verdict and verdict.code == "outside-continuation-region"
+    # **B-0b: THE REGION'S VERDICT MOVED OUT OF THE CACHE.** `on_hand@TOTAL` is not a lawful location,
+    # so no continuation is AUTHORIZED and `adjudicate` is never reached — the guard is no longer a
+    # check the cache applies but a request that cannot exist. The cumulative-not-per-hop property is
+    # unchanged and is now asserted where it is computed.
+    authorized = mme.authorizer.authorize(on_hand, EX.TOTAL)
+    assert not authorized and authorized.refusal.code == "outside-continuation-region"
+    assert "cannot launder an edge the law does not admit" in authorized.refusal.detail
 
 
 # ══ PROOF 2 · structured family → merge → finalize as an EXPRESSION ═══════════════════════════════
@@ -404,7 +412,7 @@ def test_the_estimate_is_served_is_not_held_and_may_never_seed(mme, exprs, fams,
                                      instance=served.value.instance, realization=mme.realization),
                     value=served.value)
     assert not held.continuation_bearing
-    verdict = mme.adjudicate(held, fams["distinct"], EX.TOTAL)
+    verdict = mme.adjudicate(held, mme.authorizer.authorize(fams["distinct"], EX.TOTAL).request)
     assert not verdict and verdict.code == "not-continuation-bearing"
     assert "never becomes family continuation state" in verdict.detail
 
@@ -543,7 +551,8 @@ def test_proof_5_there_is_one_store_and_it_holds_family_materializations_only(mm
         if key.anchor.is_scalar:
             continue
         target = EX.COMMERCE.anchor(sorted(key.anchor.constituents)[1:])
-        verdicts.append(bool(mme.adjudicate(_holding(mme, key), mme.family(key.identity), target)))
+        _auth = mme.authorizer.authorize(mme.family(key.identity), target)
+        verdicts.append(bool(_auth) and bool(mme.adjudicate(_holding(mme, key), _auth.request)))
     assert any(verdicts) and not all(verdicts)
 
 

@@ -523,7 +523,10 @@ def main() -> int:                                          # noqa: C901 - an ex
                                            instance=est.value.instance,
                                            realization=mme.realization),
                           value=est.value)
-    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), BY_DAY)
+    # **AUTHORIZE, THEN ADJUDICATE** (B-0b). The continuation to BY_DAY is lawful for the SKETCH family,
+    # so a request exists; what the cache then refuses is the SORT of the thing offered as a seed.
+    _auth = mme.authority.authorizer.authorize(mme.family("distinct_customers"), BY_DAY)
+    verdict = mme.adjudicate(from_above, _auth.request)
     print(f"\n  is the estimate column held by the MME?  "
           f"{any(k.identity == 'distinct_customer_estimate' for k in mme.held)}  "
           f"(v1 has no expression cache)")

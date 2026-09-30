@@ -328,7 +328,9 @@ def main() -> int:                                          # noqa: C901 - an ex
                                            instance=estimate.value.instance,
                                            realization=mme.realization),
                           value=estimate.value)
-    verdict = mme.adjudicate(from_above, distinct, TOTAL)
+    # **AUTHORIZE FIRST** (B-0b): the cache adjudicates an already-authorized request, so the exhibit
+    # obtains one. `distinct_customers@TOTAL` is lawful; the refusal below is about the SORT of the seed.
+    verdict = mme.adjudicate(from_above, mme.authorizer.authorize(distinct, TOTAL).request)
     print(f"    offered from above: {from_above.key}   "
           f"continuation_bearing={from_above.continuation_bearing}")
     print(f"    adjudicate(estimate → seed distinct_customers@{TOTAL}):")
@@ -449,7 +451,14 @@ def main() -> int:                                          # noqa: C901 - an ex
         if key.anchor.is_scalar:
             continue
         target = COMMERCE.anchor(sorted(key.anchor.constituents)[1:])
-        v = mme.adjudicate(_holding(mme, key), fam, target)
+        authorized = mme.authorizer.authorize(fam, target)
+        if not authorized:
+            # NO REQUEST EXISTS — the target is outside the family law's continuation region, so the
+            # cache is never asked. Under B-0b this is a DIFFERENT outcome from a cache refusal.
+            blocked += 1
+            print(f"    {str(key):<46} → {target}  UNAUTHORIZED [{authorized.refusal.code}]")
+            continue
+        v = mme.adjudicate(_holding(mme, key), authorized.request)
         seeded, blocked = (seeded + 1, blocked) if v else (seeded, blocked + 1)
         print(f"    {str(key):<46} → {target}  {'ADMITTED' if v else 'REFUSED  [' + v.code + ']'}")
 

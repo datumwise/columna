@@ -51,6 +51,16 @@ was reloaded" and "the provider changed" are three separately computed, separate
 """
 from __future__ import annotations
 
+from .authorization import (
+    EXECUTION_MODES,
+    GROUPED_MODE,
+    SCAN_MODE,
+    Authorization,
+    AuthorizedFamilyContinuation,
+    AuthorizedStanding,
+    ContinuationAuthority,
+    FoldRequirement,
+)
 from .builtins import IN_MEMORY, KNOWN_EMPTY, LAWS, NO_MEAN, REGISTRY, hll_rse, witness_value
 from .geometry import Anchor, Constituent, Edge, KernelRefusal, Universe
 from .law import (
@@ -68,8 +78,11 @@ from .law import (
     ORDERED_WITNESS,
     REDUCER,
     RequiredBasis,
+    FOLD_SHAPES,
+    POPULATION,
     SCALAR,
     STRUCTURED,
+    VALUE_BEARING,
 )
 from .materialization import (
     AT_ROOT,
@@ -174,6 +187,17 @@ from .witness import (
 )
 
 __all__ = [
+    "FOLD_SHAPES",
+    "VALUE_BEARING",
+    "POPULATION",
+    "FoldRequirement",
+    "ContinuationAuthority",
+    "AuthorizedStanding",
+    "AuthorizedFamilyContinuation",
+    "Authorization",
+    "SCAN_MODE",
+    "GROUPED_MODE",
+    "EXECUTION_MODES",
     "Anchor", "Constituent", "Edge", "KernelRefusal", "Universe",
     "AnalyticalLaw", "Composition", "ContinuationRegion", "LawRegistry", "RequiredBasis",
     "MAP", "REDUCER", "ORDERED", "SCALAR", "STRUCTURED", "ORDERED_WITNESS",
