@@ -1,0 +1,219 @@
+{
+  "captured_at": "2026-09-30T14:54:38Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 14,
+    "uniques": 6,
+    "views": [
+      {
+        "timestamp": "2026-09-16T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-17T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-18T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-19T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-20T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-21T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 4,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 3,
+        "uniques": 3
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      }
+    ]
+  },
+  "clones": {
+    "count": 2622,
+    "uniques": 409,
+    "clones": [
+      {
+        "timestamp": "2026-09-16T00:00:00Z",
+        "count": 129,
+        "uniques": 38
+      },
+      {
+        "timestamp": "2026-09-17T00:00:00Z",
+        "count": 11,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-09-18T00:00:00Z",
+        "count": 8,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-09-19T00:00:00Z",
+        "count": 4,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-09-20T00:00:00Z",
+        "count": 4,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-09-21T00:00:00Z",
+        "count": 25,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 353,
+        "uniques": 36
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 265,
+        "uniques": 44
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 322,
+        "uniques": 63
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 274,
+        "uniques": 58
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 94,
+        "uniques": 26
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 67,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 435,
+        "uniques": 77
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 631,
+        "uniques": 97
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "github.com",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna/pulls",
+      "title": "/pulls",
+      "count": 3,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/discussions",
+      "title": "/discussions",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/issues",
+      "title": "/issues",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/blob/HEAD/specs/wp_cp2_kp_v0_5_concentration_floor_draft.md",
+      "title": "/blob/HEAD/specs/wp_cp2_kp_v0_5_concentration_floor_draft.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/platform_profile.md",
+      "title": "/blob/main/docs/platform_profile.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/343",
+      "title": "/pull/343",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main",
+      "title": "/tree/main",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main/docs/design",
+      "title": "/tree/main/docs/design",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
