@@ -335,13 +335,24 @@ class RealizationAuthority:
         constituted at the point. That is recomputable from the offer itself, and so it is recomputed.
 
         **WHERE THE EXPECTED CARDINALITY COMES FROM, AND WHY IT IS NOT THE LITERAL `1`.** The ruling is
-        explicit that `1` is not part of the law. So the expectation is derived from the model's own
-        representation of the domain: the participating domain at a coordinate is the set of index
-        positions carrying that coordinate, and `CoordinateIndex` REFUSES duplicate coordinates — one
-        analytical point may not hold two positions. Hence `|D(r)| = 1` at a root, as a consequence of the
-        geometry rather than as a constant written down here, and the arithmetic below would yield 7 or 20
-        unchanged the day a geometry represents multiplicity. That is the same distinction the declaration
-        makes: cardinality is the law, and the value is what the law meets.
+        explicit that `1` is not part of the law. So the expectation is derived from the offer's own index
+        rather than written down: the number of index positions carrying a coordinate. `CoordinateIndex`
+        REFUSES duplicate coordinates — one analytical point may not hold two positions — so that number is
+        1, and a claim of 5 there is refused.
+
+        **WHAT THIS CHECK ASSUMES, STATED BECAUSE AN EARLIER DRAFT HID IT.** It assumes the root
+        INDIVIDUATES the participating domain: that each root point contains exactly one domain element,
+        which is true of `{store, day, order}` for a family counting Orders. It is NOT true in general. A
+        cardinality family rooted at `{store, day}` may legitimately have `|D(r)| = 7` — seven distinct
+        governed Order points at one root location — and this check would wrongly refuse it.
+
+        **AND THE REASON IT WOULD IS NOT THAT "GEOMETRY REPRESENTS MULTIPLICITY", WHICH IT DOES NOT**
+        (ruled, 2026-09-30). Two physical rows claiming one governed Order point are not two participating
+        analytical points; they are a realization/fidelity problem, and this check correctly calls them
+        one. Seven distinct governed Order points inside one coarser root location are a different thing
+        entirely — they are seven points — and nothing in the declaration or the index currently says
+        whether a root individuates its domain. So this check is sound for every family now declared and
+        over-reaches for one nobody has declared; narrowing it needs a governed fact, not a comment.
 
         **SUBSTRATE-NEUTRAL, BECAUSE THIS FILE IS IN THE KERNEL.** It reads `coordinates` + `cell()` — the
         surface B-2 established on both family-state types — and touches no Arrow, no mask and no

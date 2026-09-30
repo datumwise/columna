@@ -282,8 +282,12 @@ def test_the_fidelity_check_is_substrate_neutral():
 
 def test_the_expected_cardinality_is_derived_and_is_not_a_literal_one():
     """Ruled: do not encode `1` as the formation law. The expectation is the number of index positions
-    carrying the coordinate — which is 1 because `CoordinateIndex` refuses duplicates, and which would be
-    7 unchanged the day a geometry represents multiplicity."""
+    carrying the coordinate, which is 1 because `CoordinateIndex` refuses duplicates.
+
+    **NOT because "geometry represents multiplicity"** — it does not (ruled, 2026-09-30). Duplicate
+    physical rows for one governed point are a fidelity problem and this check calls them one point,
+    correctly. A coarser root legitimately holding seven distinct governed Order points is a different
+    case, which this check cannot yet verify; see `_formation_holds` for what it assumes."""
     from columna_platform.kernel.realization_fidelity import RealizationAuthority
 
     code = _code_only(RealizationAuthority._formation_holds)

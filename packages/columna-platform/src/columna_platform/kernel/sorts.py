@@ -124,10 +124,20 @@ DIRECT = "direct"
 #:
 #: **THE LAW IS CARDINALITY AND THE LITERAL `1` IS NOT PART OF IT** (ruled explicitly: do not name this
 #: `UNIT_PER_PARTICIPANT`, do not encode `1` as the formation law). At an individuating root such as
-#: `{store, day, order}` each participating point happens to contain one Order, so the value there IS 1 —
-#: but that is a consequence of the root geometry meeting this law, not the law itself. A family rooted
-#: coarser, over a geometry that individuated its domain elements, would yield 7 or 20 under the same
-#: unchanged declaration.
+#: `{store, day, order}` each participating point contains exactly one Order, so the value there IS 1 —
+#: but that is a consequence of the root meeting this law, not the law itself. A family rooted at
+#: `{store, day}` may legitimately have `|D(r)| = 7`: seven distinct governed Order points at one root
+#: location, under this same unchanged declaration.
+#:
+#: **THAT IS NOT "GEOMETRY REPRESENTING MULTIPLICITY", WHICH IT DOES NOT DO** (ruled, 2026-09-30). Keep
+#: these two apart:
+#:
+#:     duplicate physical representations of ONE governed point   ≠   multiple governed participating points
+#:
+#: The first is a realization/fidelity problem — two rows claiming one Order are not two Orders. The
+#: second is seven Orders, which is a fact about the domain and not about the carrier. Nothing currently
+#: declares whether a root individuates its domain, which is why `RealizationAuthority` can verify this
+#: formation only at a root that does.
 PARTICIPATION_CARDINALITY = "participation-cardinality"
 
 #: **NOT A CLOSED ONTOLOGY** (ruled §8). These are the only two formation laws the families now in hand
