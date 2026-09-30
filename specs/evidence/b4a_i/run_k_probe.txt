@@ -1,0 +1,82 @@
+ROUTE 1 — in the sparse regime, is the library's register estimator the table-free
+          linear-counting closed form?  (if yes, a provider can answer for a sparse
+          carrier without a second implementation of the bias-corrected estimator)
+         n  mode  V(zeros)  library register est      k*ln(k/V)    rel diff
+         1   HLL      4095              1.000000       1.000122    0.0122%
+         5   HLL      4091              5.002443       5.003054    0.0122%
+        20   HLL      4076             20.046534      20.048988    0.0122%
+        50   HLL      4046             50.301504      50.307682    0.0123%
+       100   HLL      3997            100.203662     100.216046    0.0124%
+       193   HLL      3908            192.427138     192.451189    0.0125%
+       300   HLL      3807            299.663952     299.701905    0.0127%
+       384   HLL      3730            383.347414     383.396471    0.0128%
+       385   HLL      3729            384.445537     384.494742    0.0128%
+       500   HLL      3626            499.158852     499.223656    0.0130%
+       800   HLL      3369            800.229720     800.337606    0.0135%
+      1024   HLL      3194           1018.684899    1018.826088    0.0139%
+      1500   HLL      2842           1496.879109    1497.099707    0.0147%
+      2048   HLL      2491           2036.727839    2037.049964    0.0158%
+      3000   HLL      1991           2950.144090    2954.747341    0.1560%
+      4096   HLL      1529           4068.952554    4036.185951    0.8053%
+      6000   HLL       955           6047.938354    5964.000568    1.3879%
+    worst relative difference at n <= 4096 (= k): 0.8053%
+
+ROUTE 2 — can a register vector be handed back to the library as a carrier?
+          (construct an HLL_8 image from a template preamble + our register bytes)
+    deserialize accepted the constructed image: True
+    reconstructed register state matches: True
+    est via constructed image 118.688838  vs native dense 118.688838  equal=True
+    (preamble fields NOT patched: curMin/numAtCurMin/kxq/hip are the template's)
+
+ROUTE 3 — does the sparse/dense split change the ANSWER the user sees?
+          member alpha = 'the estimator is a function of the register vector'
+         n  sparse carrier  dense carrier  agree  rounded agree
+         1        1.000122       1.000000  False           True
+         3        3.001099       3.000733  False           True
+         8        8.007823       8.006844  False           True
+        20       20.048988      20.046534  False           True
+        50       50.307682      50.301504  False           True
+       100      100.216046     100.203662  False           True
+       193      192.451189     192.427138  False           True
+       250      252.633223     252.601416  False           True
+       300      299.701905     299.663952  False           True
+       384      383.396471     383.347414  False           True
+    -> exact disagreements 10/10, disagreements after the finalizer's rounding 0/10
+
+ROUTE 4 — the cost of the simplest alternative: dense retention everywhere
+    cell of     1 distinct values: sparse    12 B   dense  4136 B      345x
+    cell of     4 distinct values: sparse    24 B   dense  4136 B      172x
+    cell of    50 distinct values: sparse   212 B   dense  4136 B       20x
+    cell of   400 distinct values: sparse  4136 B   dense  4136 B        1x
+    cell of  5000 distinct values: sparse  4136 B   dense  4136 B        1x
+A — is the constructed carrier's register state exactly the input's?
+    register state preserved for every size tested: True  
+
+B — does finalize() agree across EVERY representation of one governed state?
+         n         sparse          dense   staged union  HLL_4 carrier  all agree
+         1       1.000000       1.000000       1.000000       1.000000       True
+         5       5.002443       5.002443       5.002443       5.002443       True
+        50      50.301504      50.301504      50.301504      50.301504       True
+       193     192.427138     192.427138     192.427138     192.427138       True
+       300     299.663952     299.663952     299.663952     299.663952       True
+       384     383.347414     383.347414     383.347414     383.347414       True
+       385     384.445537     384.445537     384.445537     384.445537       True
+       500     499.158852     499.158852     499.158852     499.158852       True
+      1000     998.220844     998.220844     998.220844     998.220844       True
+     20000   20100.166446   20100.166446   20100.166446   20100.166446       True
+    200000  199716.266517  199716.266517  199716.266517  199716.266517       True
+    -> representation-independent across sparse/dense/staged/encoding: True
+
+C — the forcing step is REQUIRED (the template's history must not be inherited)
+    n=5      unforced get_estimate() =  9956.124260   forced =     5.002443   (template was built from 9999 values)
+    n=50     unforced get_estimate() =  9956.124260   forced =    50.301504   (template was built from 9999 values)
+    n=1000   unforced get_estimate() =  9956.124260   forced =   998.220844   (template was built from 9999 values)
+
+D — and it is the same number a natively dense carrier gives
+    finalize(any carrier) == library register estimate of a native dense build: True 
+
+E — storage is untouched: what the provider RETAINS is still sparse
+    cell of    1 values: retained    12 B (dense would be 4136 B)
+    cell of    4 values: retained    24 B (dense would be 4136 B)
+    cell of   50 values: retained   212 B (dense would be 4136 B)
+    cell of  400 values: retained  4136 B (dense would be 4136 B)

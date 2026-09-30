@@ -1,5 +1,9 @@
 # Governed HLL state — B-4a″(i) specification
 
+> **SUPERSEDED by `governed_hll_state_v0_2.md`.** Its §1 two-stratum state model is WITHDRAWN: it
+> promoted a DataSketches API limitation into analytical constitution. The evidence and every other
+> section stand.
+
 **Status: SPECIFICATION + EVIDENCE. No production behaviour changes in this unit.**
 Authorized by Huayin, 2026-09-30: *"First determine the governed state. Then make the running system
 faithfully realize it. Only then give that law a durable member identity."*
