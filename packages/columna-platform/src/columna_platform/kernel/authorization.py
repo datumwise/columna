@@ -448,6 +448,11 @@ class ContinuationAuthority:
             acceptable=acceptable, acceptable_truncated=truncated,
             instance=self.constitution.instance_of(family.family_id), data_state=data_state,
             law=law.name, value_form=law.value_form, sufficient_state=law.sufficient_state,
+            # **READ OFF THE LAW, WHICH DECLARES IT** (B-3). Not derived here, not enumerated here, and
+            # sitting beside the four other governed facts already carried from the same object — which is
+            # the whole argument for it being one line: this method already had the law in hand, and the
+            # only reason a provider was guessing was that nobody passed the fact along.
+            fold_shape=law.fold_shape,
             approximation=law.approximation,
             witness=self.constitution.witness_of(family.family_id).digest, note=note))
 
