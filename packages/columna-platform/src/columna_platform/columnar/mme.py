@@ -204,6 +204,17 @@ class ColumnarFamilyState:
         return tuple(self.index.coordinates[i]
                      for i in self.standing.positions_wanting_state(self.shape))
 
+    @property
+    def coordinates(self) -> tuple[tuple, ...]:
+        """**The points this state covers**, in carrier position order.
+
+        The other half of the substrate-neutral read surface (B-2); `cell` was already here. **THIS
+        INCLUDES POINTS WITH WANT OF STATE**, and it must: they PARTICIPATE, and omitting them would make
+        this list a silent claim of nonparticipation — the very conflation the standing masks exist to
+        prevent. A consumer is told the point is covered and then told, by `cell`, that there is nothing to
+        return there. Two facts, two answers."""
+        return self.index.coordinates
+
     def cell(self, coordinate: tuple) -> Any:
         """One value, by coordinate. **REFUSES where the point has want of state.**
 
@@ -260,6 +271,11 @@ class ColumnarExpressionOutput:
 
     def with_disclosure(self, d: Disclosure) -> "ColumnarExpressionOutput":
         return replace(self, disclosures=self.disclosures + (d,))
+
+    @property
+    def coordinates(self) -> tuple[tuple, ...]:
+        """**The points this finalized result covers.** The neutral surface's other half (B-2)."""
+        return self.index.coordinates
 
     def cell(self, coordinate: tuple) -> Any:
         return self.values[self.index.position(coordinate)].as_py()
