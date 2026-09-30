@@ -43,6 +43,15 @@ from columna_platform.kernel import (
     MME,
     Refusal,
 )
+from columna_platform.kernel.fulfillment import (
+    INCOMPLETE,
+    NOT_SUPPORTED,
+    ROUTE_POLICY_NEEDED,
+    SERVED,
+    UNAVAILABLE,
+    UNRESOLVED_STATE,
+    FulfillmentCoordinator,
+)
 from columna_platform.kernel.value import Answer
 
 from .request import PlatformRequest, RequestInterpretationRefusal
@@ -173,11 +182,19 @@ class FrameQLService:
     way round. The service is the smallest thing that stands where §6's **Fulfillment Coordinator** will
     eventually stand: the one place that knows about both."""
 
-    def __init__(self, mme: MME, evaluator: Optional[ExpressionEvaluator] = None) -> None:
+    def __init__(self, mme: MME, evaluator: Optional[ExpressionEvaluator] = None,
+                 coordinator: Optional[FulfillmentCoordinator] = None) -> None:
         self.mme = mme
         #: Constructed over the engine, not obtained from it. An injected one is accepted so that a caller
         #: with a different evaluation strategy can supply it without subclassing the service.
         self.expressions = evaluator or ExpressionEvaluator(mme)
+        #: **THE FAMILY PATH, AND THERE IS NO OTHER ONE** (B-2, ruled 2026-09-30: *"Do not preserve the
+        #: direct `FrameQLService → mme.measure` family path as a fallback"*). A default coordinator over
+        #: an EMPTY estate is the honest state of a deployment with no providers: it consults nobody and a
+        #: cold family comes back `lawful-but-unavailable` rather than silently unserved. A deployment with
+        #: a real provider injects a coordinator holding it, and this class never learns what a provider is.
+        self.coordinator = coordinator if coordinator is not None else FulfillmentCoordinator(
+            mme, evaluator=self.expressions)
 
     # ── the whole path ───────────────────────────────────────────────────────────────────────
     def serve(self, query: str) -> Outcome:
@@ -213,35 +230,159 @@ class FrameQLService:
         answers: dict[str, Answer] = {}
         for s in request.series:
             try:
-                answer = self._serve_one(s.token, sorts[s.token], anchor)
+                answer, fulfilled = self._serve_one(s.token, sorts[s.token], anchor)
             except KernelRefusal as exc:
                 # A REALIZATION limit reaches here as an exception because it is not a governed verdict
                 # about the ask — the law is intact and this build cannot execute it.
                 return Outcome(UNSUPPORTED, query, request=request, sorts=sorts,
                                refusal=Refusal(exc.code, exc.subject, exc.detail))
-            if not answer.served:
-                return Outcome(REFUSE, query, request=request, sorts=sorts,
-                               refusal=Refusal(answer.refusal.code, answer.refusal.subject,
-                                               f"series {s.alias!r}: {answer.refusal.detail}"))
+            if answer is None or not answer.served:
+                return self._not_served(query, request, sorts, s.alias, answer, fulfilled)
             answers[s.alias] = answer
 
-        frame = self._frame(request, anchor, sorts, answers)
+        try:
+            frame = self._frame(request, anchor, sorts, answers)
+        except KernelRefusal as exc:
+            # **A PER-CELL GOVERNED VERDICT, AND THE FRAME DECLINES TO PRINT ANYTHING IN ITS PLACE** (B-2).
+            # `ColumnarFamilyState.cell` refuses at a point that participates and whose required value is
+            # not established. Reaching here means a state was served whose payload still has want of state
+            # somewhere — the engines refuse that before serving a fold, so this is the floor rather than
+            # the usual path — and the honest answer is the refusal, never a dash. It is classified REFUSE
+            # and not UNSUPPORTED because it IS a governed verdict: the build implements the ask perfectly.
+            return Outcome(REFUSE, query, request=request, sorts=sorts,
+                           refusal=Refusal(exc.code, exc.subject, exc.detail))
         classification = DISCLOSE if any(c.disclosures for c in frame.columns) else SERVE
         return Outcome(classification, query, request=request, frame=frame, sorts=sorts)
 
+    # ── the not-served mapping · SIX MOODS, FIVE CLASSIFICATIONS, AND THE RESIDUE IS NAMED ────
+    def _not_served(self, query: str, request: PlatformRequest, sorts: dict, alias: str,
+                    answer: Optional[Answer], fulfilled: Any) -> Outcome:
+        """**Which Frame-QL classification truthfully carries this fulfilment mood?**
+
+        Ruled (Huayin, 2026-09-30): *"Do not collapse distinctions merely to get B-2 green… do not turn
+        `lawful but unavailable` into an analytical refusal… If the existing Frame-QL classification
+        vocabulary cannot truthfully represent one of the coordinator moods without changing its meaning,
+        stop on that specific vocabulary gap rather than inventing a classification."*
+
+        **THE SPLIT IS THE ONE THIS SERVICE ALREADY MADE, NOT A NEW ONE.** Before F-1 was wired in, a
+        governed verdict arrived as an unserved `Answer` and became `REFUSE`, while a build limit arrived as
+        a `KernelRefusal` and became `UNSUPPORTED`. That rule is kept — but **the mood is read FIRST**, and
+        the order is load-bearing rather than stylistic:
+
+            the three estate moods       → **NO TRUTHFUL CLASSIFICATION EXISTS** (see below). Checked
+                                           first, because the in-memory engine states its cache miss AS a
+                                           governed refusal (`unanswerable`: *"no state is held under this
+                                           analytical instance"*), so classifying by the carried refusal
+                                           would make every cold family an ANALYTICAL REFUSAL — the one
+                                           mapping that was ruled out by name. The columnar engine returns
+                                           the same miss with no refusal object at all, and that the two
+                                           substrates differ here is exactly why the MOOD is the thing to
+                                           read and the refusal is the thing to quote.
+            `answer.refusal` present     → REFUSE, that refusal verbatim, with the mood appended and never
+                                           substituted. Covers `UNRESOLVED_STATE` (`want-of-state` IS a
+                                           governed standing about evidence) and every `NOT_SUPPORTED` the
+                                           engine already stated as a verdict — outside the continuation
+                                           region, outside `R_F`, an incompatible basis.
+            `NOT_SUPPORTED`, no verdict  → UNSUPPORTED. *"lawful Frame-QL this build does not implement"*
+                                           is exactly what the mood says when no governed refusal
+                                           accompanies it.
+
+        THE VOCABULARY GAP, STATED RATHER THAN PAPERED OVER. `UNAVAILABLE`, `ROUTE_POLICY_NEEDED` and
+        `INCOMPLETE` are conditions of the ESTATE, and Frame-QL's five classifications are about the QUERY:
+
+            `lawful-but-unavailable`   the ask is lawful, this build implements it, and nobody can supply
+                                       it right now. Not `REFUSE` (the answer is not NO — it was ruled
+                                       explicitly that this must not become an analytical refusal), not
+                                       `UNRESOLVED` (the name resolved), and not honestly `UNSUPPORTED`
+                                       (the build implements it fine).
+            `route-policy-needed`      two admissible routes and nothing executed. A request for a
+                                       DECISION, which is not a statement about the query at all.
+            `incomplete-fulfillment`   realization ran and was not enough. Work happened, so it is not an
+                                       implementation limit either.
+
+        They are returned as `UNSUPPORTED` **carrying the mood as the refusal code** so that no caller can
+        mistake which condition it met, and so that the day a sixth classification is ruled on, every one
+        of these is findable by its code. That is a recorded gap, not a resolution, and B-2 stops on it."""
+        mood = getattr(fulfilled, "mood", "")
+        subject = getattr(fulfilled, "target", alias)
+        carried = f"series {alias!r}: {answer.refusal.detail}" if (
+            answer is not None and answer.refusal is not None) else ""
+
+        # 1 · THE THREE ESTATE MOODS COME FIRST, AND THE ORDER IS THE RULING. **No truthful
+        #     classification exists** for them — see the docstring. They are checked BEFORE any refusal
+        #     the answer carried, because the in-memory engine states its cache miss AS a refusal
+        #     (`unanswerable`: *"no state is held under this analytical instance"*) and classifying by that
+        #     would turn `lawful-but-unavailable` into an analytical refusal — ruled explicitly against.
+        #     **THE ENGINE'S "I DO NOT HOLD IT" IS NOT A VERDICT ABOUT THE QUESTION.** That the two
+        #     substrates differ here at all — the columnar engine returns a miss without a refusal object —
+        #     is exactly why the mood is the thing to read and the refusal is the thing to quote.
+        if mood in (UNAVAILABLE, ROUTE_POLICY_NEEDED, INCOMPLETE):
+            detail = getattr(fulfilled, "detail", "")
+            if carried:
+                detail += f" The engine said: {carried}"
+            detail += (
+                f" **THIS IS NOT A CLAIM THAT THE BUILD CANNOT DO IT, AND NOT A REFUSAL OF THE ASK.** "
+                f"Frame-QL classifies the QUERY and {mood!r} is a condition of the ESTATE; the vocabulary "
+                f"has no classification that carries it truthfully, so it is reported here under the "
+                f"nearest existing one with its own code intact. Recorded as an open vocabulary gap "
+                f"(B-2), not as a verdict about the ask.")
+            return Outcome(UNSUPPORTED, query, request=request, sorts=sorts,
+                           refusal=Refusal(mood, subject, detail))
+
+        # 2 · A GOVERNED VERDICT CLASSIFIES ITSELF. `UNRESOLVED_STATE` always arrives this way — its
+        #     `want-of-state` IS a standing about evidence — and so does every `NOT_SUPPORTED` the engine
+        #     already stated as one: outside the continuation region, outside `R_F`, incompatible basis.
+        #     The mood is appended, never substituted: two facts, and the specific one is kept.
+        if carried:
+            detail = carried + (f" [fulfilment mood: {mood}]" if mood and mood != SERVED else "")
+            return Outcome(REFUSE, query, request=request, sorts=sorts,
+                           refusal=Refusal(answer.refusal.code, answer.refusal.subject, detail))
+
+        # 3 · NO LAWFUL ROUTE IN THIS BUILD, and no governed verdict accompanying it. `UNSUPPORTED` means
+        #     exactly *"lawful Frame-QL this build does not implement"*, so this one is a true mapping.
+        if mood == NOT_SUPPORTED:
+            return Outcome(UNSUPPORTED, query, request=request, sorts=sorts,
+                           refusal=Refusal(mood, subject, getattr(fulfilled, "detail", "")))
+        if mood == UNRESOLVED_STATE:                         # pragma: no cover - always carries a verdict
+            return Outcome(REFUSE, query, request=request, sorts=sorts,
+                           refusal=Refusal(mood, subject, getattr(fulfilled, "detail", "")))
+        return Outcome(UNSUPPORTED, query, request=request, sorts=sorts,
+                       refusal=Refusal(mood or "not-fulfilled", subject,
+                                       getattr(fulfilled, "detail", "")))
+
     # ── the two paths, chosen by SORT and never by inspection of what came back ───────────────
-    def _serve_one(self, token: str, sort: str, anchor: Anchor) -> Answer:
+    def _serve_one(self, token: str, sort: str, anchor: Anchor):
+        """`(answer, fulfilment)` — the fulfilment is the coordinator's outcome, or `None` for an
+        expression.
+
+        **THE FAMILY BRANCH NO LONGER CALLS `mme.measure`** (B-2). It was one line and it was the whole
+        reason a cold Frame-QL request could never reach a provider: `measure` asks the cache and stops,
+        so `NEED` came back as an unserved answer and was classified as a refusal. The coordinator owns
+        the loop that turns `NEED` into propose → realize → adjudicate → admit → retry, and this service
+        now has no path that skips it.
+
+        The expression branch is unchanged and deliberately does NOT go through `fulfill_expression`: that
+        method passes a `GovernedExpression` object to the evaluator, which the columnar evaluator cannot
+        take (it wants an `expression_id`), and B-2 is one family request. Recorded as the next
+        substrate-neutrality seam; untouched here on purpose."""
         if sort == "family":
-            return self.mme.measure(self.mme.family(token), anchor)
+            outcome = self.coordinator.fulfill(self.mme.family(token), anchor)
+            return outcome.answer, outcome
         # **ABOVE the MME, and asked of a different object.** The dispatch was already by SORT and never
         # by inspecting what came back; M-2 only changes who the second branch talks to.
-        return self.expressions.evaluate(self.mme.expression(token), anchor)
+        return self.expressions.evaluate(self.mme.expression(token), anchor), None
 
     def _frame(self, request: PlatformRequest, anchor: Anchor, sorts: dict,
                answers: dict) -> Frame:
+        # **THE NEUTRAL SURFACE, AND NOTHING ELSE** (B-2). This read `answer.value.cells` — a `Mapping`
+        # that only the in-memory substrate has — which is why this service could not serve a single query
+        # over the columnar engine. `coordinates` + `cell()` is the surface both substrates honestly
+        # implement, and the columnar one keeps its refusal.
+        covered: dict[str, set[tuple]] = {
+            alias: set(answer.value.coordinates) for alias, answer in answers.items()}
         keys: set[tuple] = set()
-        for answer in answers.values():
-            keys |= set(answer.value.cells)
+        for points in covered.values():
+            keys |= points
         columns = []
         for s in request.series:
             answer = answers[s.alias]
@@ -270,7 +411,13 @@ class FrameQLService:
                 # A cell absent from ONE series is reported as absent rather than as zero: §4.3's
                 # undefined-on-basis case is a governed standing and a 0 would be a value the theory
                 # does not license here.
-                row.append(answers[s.alias].value.cells.get(key, "—"))
+                #
+                # **ABSENCE IS TESTED BY MEMBERSHIP, NOT BY A DEFAULT** (B-2). `cells.get(key, "—")` made
+                # "no value here" and "a value the state declines to return" one answer. They are two:
+                # a point outside `coordinates` is absent and gets the dash, and a point INSIDE it whose
+                # value the state will not yield raises — which `serve` turns into a governed REFUSE
+                # rather than printing anything at all.
+                row.append(answers[s.alias].value.cell(key) if key in covered[s.alias] else "—")
             rows.append(tuple(row))
         return Frame(anchor=anchor, coordinates=anchor.order, columns=tuple(columns), rows=tuple(rows))
 

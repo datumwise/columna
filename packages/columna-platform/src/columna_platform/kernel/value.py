@@ -64,6 +64,44 @@ class FamilyState:
     def at_root(self) -> bool:
         return not self.forgotten_since_root
 
+    # ── THE SUBSTRATE-NEUTRAL READ SURFACE (B-2) ─────────────────────────────────────────────
+    #
+    # Ruled (Huayin, 2026-09-30): *"FrameQLService must not know whether the fulfilled family state came
+    # from the kernel or columnar substrate… A common read interface must preserve the stronger columnar
+    # standing semantics; it must not reduce them to the weaker in-memory representation. Prefer adapting
+    # the kernel state upward."*
+    #
+    # So the surface is `coordinates` + `cell(coordinate)`, which is what `ColumnarFamilyState` ALREADY
+    # had, and this class grows to meet it. **THE DIRECTION IS THE RULING.** The other direction — a
+    # `.cells` mapping on the columnar state — was available and is refused, because a dict cannot refuse:
+    # `ColumnarFamilyState.cell` raises `want-of-state-at-a-point` where a participating point's required
+    # value is not established, and a mapping would have to answer that with a null for the caller to
+    # interpret. Widening the weaker representation is free; narrowing the stronger one loses a verdict.
+
+    @property
+    def coordinates(self) -> tuple[tuple, ...]:
+        """**The points this state retains a value for**, in insertion order.
+
+        The neutral half-answer to "what is in here". It is deliberately not a set operation and not
+        sorted: a consumer that needs an order imposes its own, and `frameql` does."""
+        return tuple(self.cells)
+
+    def cell(self, coordinate: tuple) -> Any:
+        """One value, by coordinate. **REFUSES where this state retains none.**
+
+        The kernel substrate has no want-of-state: a cell is retained or the point contributed nothing, so
+        the only refusal available here is absence. That is a WEAKER condition than the columnar twin's and
+        the shapes still match, which is the point — a consumer written against this surface gets the
+        columnar refusal for free when it is handed columnar state, and never has to ask which it holds."""
+        try:
+            return self.cells[coordinate]
+        except KeyError:
+            raise KernelRefusal(
+                "no-value-at-this-point", f"{self.point.family_id}@{self.anchor}",
+                f"this state retains no value at {coordinate!r}. It is not zero and not an absence to "
+                f"interpret: the point either does not participate or contributed nothing, and which of "
+                f"those it is is a question for the constitution rather than for this payload.") from None
+
     def fold_onto(self, target: Anchor, merge: Callable[[Any, Any], Any]) -> "FamilyState":
         """Project every cell onto `target` and fold the collisions with the law's composition.
 
@@ -112,6 +150,24 @@ class ExpressionOutput:
     @property
     def anchor(self) -> Anchor:
         return self.point.anchor
+
+    @property
+    def coordinates(self) -> tuple[tuple, ...]:
+        """**The points this finalized result covers.** The same neutral surface as `FamilyState`'s."""
+        return tuple(self.cells)
+
+    def cell(self, coordinate: tuple) -> Any:
+        """One finalized value, by coordinate. Refuses on absence, exactly as the family twin does.
+
+        A finalized value carries no want-of-state — the evaluation either produced one or refused before
+        producing this object — so absence is the only condition, and `ColumnarExpressionOutput.cell` is
+        total for the same reason."""
+        try:
+            return self.cells[coordinate]
+        except KeyError:
+            raise KernelRefusal(
+                "no-value-at-this-point", f"{self.point.expression_id}@{self.anchor}",
+                f"this finalized result covers no point {coordinate!r}.") from None
 
     def with_disclosure(self, disclosure: Disclosure) -> "ExpressionOutput":
         return replace(self, disclosures=self.disclosures + (disclosure,))
