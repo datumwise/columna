@@ -110,6 +110,7 @@ from .authorization import (
     AuthorizedStanding,
     ContinuationAuthority,
 )
+from .realization_fidelity import RealizationAuthority
 from .requirement import RequirementOutcome
 from .value import Answer, FamilyState
 from .witness import ConstitutionWitness
@@ -299,6 +300,12 @@ class MME:
         #: else. `measure`, `admit` and `requirement_for` are this half's methods and go with it when the
         #: class is split; `fulfill` and `put` are the cache's and stay.
         self.authorizer = ContinuationAuthority(self)
+        #: **THE COMPONENT THAT OWNS PHYSICAL-REALIZATION FIDELITY** (B-1′). A different question from the
+        #: one above: `authorizer` decides whether an operation may be attempted, this decides whether a
+        #: particular physical result IS the object it claims to be. It obtains standings through the
+        #: authorizer rather than re-reading the constitution, so there is still exactly one reader of the
+        #: continuation region.
+        self.realizations = RealizationAuthority(self)
 
     # ── constitution ─────────────────────────────────────────────────────────────────────────
     def register_family(self, family: MeasureFamily) -> MeasureFamily:
@@ -537,7 +544,8 @@ class MME:
     def put(self, value: Any, standing: AuthorizedStanding, *,
             establishment: Optional[Establishment] = None,
             intent: Optional[TransitionIntent] = None, residency: str = "resident",
-            witness: Optional[str] = None, note: str = ""):
+            witness: Optional[str] = None, build: Optional[str] = None,
+            realization: Optional[Any] = None, note: str = ""):
         """**THE CACHE DOOR. No constitution is read here, and none can be.**
 
         Everything below is a cache/materialization question. The two checks it performs are COMPARISONS of
@@ -562,6 +570,15 @@ class MME:
                        f"{identity}@{value.anchor}. An authorization is for one analytical location; "
                        f"reusing one obtained for another is how a caller would manufacture permission "
                        f"without asking for it.")
+        if build is not None and build != standing.build:
+            return Admission(
+                False, code="off-build-material",
+                detail=f"the offered material was realized against Manifold build {build} and this engine "
+                       f"is {standing.build}. A new Manifold build is a new semantic world; material does "
+                       f"not cross into one by being present. **THIS IS CACHE COHERENCE AND IT IS ASKED "
+                       f"HERE** — a cache mixing builds serves material from a declaration that no longer "
+                       f"holds — which is why the realization authority requires the claim to STATE its "
+                       f"build and deliberately does not compare it a second time.")
         if witness is not None and witness != standing.witness:
             return Admission(False, code="off-build-material",
                              detail=f"the offered material carries constitution witness {witness} and this "
@@ -572,7 +589,7 @@ class MME:
             establishment = Establishment(AT_ROOT if standing.at_root else INDEPENDENT)
         return self.materializations.admit(
             point=value.point, instance=value.instance, value=value,
-            establishment=establishment, realization=self.realization, intent=intent,
+            establishment=establishment, realization=realization or self.realization, intent=intent,
             residency=residency, note=note)
 
     @staticmethod

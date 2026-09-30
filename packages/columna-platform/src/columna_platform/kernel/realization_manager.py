@@ -69,6 +69,7 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional, Protocol, runtime_checkable
 
 from .geometry import Anchor, KernelRefusal
+from .realization_fidelity import AdjudicatedRealization
 from .materialization import INDEPENDENT, Establishment
 from .observation import NEED, PROCESS_CONTROL, READY, UNSUPPORTED, WANT_OF_STATE
 from .realization import RealizationStanding
@@ -201,6 +202,12 @@ class RealizationOffer:
     instance: Any = None
     realization: RealizationStanding = field(
         default_factory=lambda: RealizationStanding(provider="unnamed"))
+    #: **WHICH GOVERNED ENVIRONMENT THIS CLAIM WAS MADE AGAINST** (B-1′). A provider states these; it does
+    #: not judge them. `RealizationAuthority` requires both to be present — a claim that will not say which
+    #: build and which per-object declaration it realized cannot be bound to one — and `MME.put` owns the
+    #: comparison, because build and witness coherence is cache coherence and one asker is enough.
+    build: str = ""
+    witness: str = ""
     #: **Always `Establishment(INDEPENDENT)`.** Enforced in `__post_init__` rather than documented.
     establishment: Establishment = field(default_factory=lambda: Establishment(INDEPENDENT))
     #: The proposal this executes, where there was one. Kept so a future coordinator can tell whether what
@@ -319,20 +326,50 @@ class RealizationManager:
 
     # ── THE ONE DOOR ─────────────────────────────────────────────────────────────────────────
     @staticmethod
-    def establish(mme: Any, offer: RealizationOffer, *, residency: str = "resident",
+    def establish(mme: Any, adjudicated: AdjudicatedRealization, *, residency: str = "resident",
                   intent: Any = None) -> Any:
-        """**Offer realized material to the MME, through the ordinary admission path** (§1, §D).
+        """**Offer ADJUDICATED realized material to the MME, through the ordinary admission path** (§1, §D).
 
-        There is nothing else in this method and there is nothing else there could be. `admit` asks the
-        entitlement question — `region.admits(R_F − anchor)` — of independently established material
-        exactly as it asks it of a locally derived continuation, so the blast wall (§6) is enforced by the
-        code that already existed rather than by a check added here. **A `Refusal` is a normal outcome**
-        and is returned rather than raised: the estate being able to compute something and the family law
-        admitting it are two questions, and this is where the second one is asked."""
-        return mme.admit(offer.value, establishment=offer.establishment, residency=residency,
-                         intent=intent,
-                         note=f"realized by {offer.provider}"
-                              + (f" — {offer.diagnostics}" if offer.diagnostics else ""))
+        **THE SIGNATURE IS THE B-1′ BOUNDARY.** This took a `RealizationOffer` — a provider's own claim — and
+        now takes an `AdjudicatedRealization`, which only `RealizationAuthority` can mint. So there is no path
+        from a physical result to the cache that skips the fidelity question, and the guarantee is structural
+        rather than remembered: *"a provider result does not become F@A merely because somebody labels it with
+        that identity."*
+
+        What is NOT here is as important. There is no `trusted_backend_put`, no privileged shortcut and no
+        parameter that suppresses a check (§4). Backend origin overrides nothing: duplicate-current
+        disagreement, build and witness coherence, the materialization lifecycle and every ordinary
+        consistency check apply to realized material exactly as to locally derived material, and `admit`
+        asks the entitlement question of independent material exactly as of a continuation — which is why the
+        blast wall (§6) is enforced by code that already existed rather than by a check added here.
+
+        **AND THE REALIZATION AXIS FINALLY CARRIES THE TRUTH.** Before B-1′ every admission stamped the
+        ENGINE's `RealizationStanding`, so two providers' material landed under one identical token and
+        `RetentionKey`'s realization axis — which exists precisely so that *"a value produced by an
+        approximate provider is not interchangeable with one produced by an exact one"* — recorded the wrong
+        thing about every realized value. The adjudicated offer's own standing is passed down.
+
+        A `Refusal` is a normal outcome and is returned rather than raised: the estate being able to compute
+        something, the claim being faithful, and the family law admitting it are three questions, and this is
+        where the third one is asked."""
+        if not isinstance(adjudicated, AdjudicatedRealization):
+            raise KernelRefusal(
+                "unadjudicated-offer-at-the-door", getattr(adjudicated, "provider", type(adjudicated).__name__),
+                "this door takes an `AdjudicatedRealization` and was handed a "
+                f"{type(adjudicated).__name__}. A provider's own offer is a CLAIM; whether that physical "
+                "result faithfully realizes the governed object it names is adjudicated by "
+                "`RealizationAuthority.adjudicate` first. Passing the claim straight through would be the "
+                "privileged shortcut B-1′ exists to make unavailable.")
+        offer = adjudicated.offer
+        value = offer.value
+        for condition in adjudicated.conditions:
+            value = value.with_disclosure(condition)
+        return mme.put(value, adjudicated.standing, establishment=offer.establishment,
+                       residency=residency, intent=intent,
+                       witness=offer.witness, build=offer.build,
+                       realization=adjudicated.realization,
+                       note=f"realized by {offer.provider}"
+                            + (f" — {offer.diagnostics}" if offer.diagnostics else ""))
 
 
 # ── NEED → requirement ───────────────────────────────────────────────────────────────────────────

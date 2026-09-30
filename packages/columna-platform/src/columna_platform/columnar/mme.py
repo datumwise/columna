@@ -455,7 +455,8 @@ class ColumnarMME:
 
     def put(self, value: Any, standing: Any, *, establishment: Optional[Establishment] = None,
             intent: Optional[TransitionIntent] = None, residency: str = "resident",
-            note: str = "") -> Admission:
+            witness: Optional[str] = None, build: Optional[str] = None,
+            realization: Optional[Any] = None, note: str = "") -> Admission:
         """**THE COLUMNAR CACHE DOOR. No constitution is read here.**
 
         Identical in substance to `kernel.MME.put`; see that docstring for why each check is a comparison
@@ -467,11 +468,29 @@ class ColumnarMME:
                 False, code="standing-does-not-cover-this-material",
                 detail=f"the authorization covers {standing.subject} and the material offered is "
                        f"{family_id}@{value.anchor}. An authorization is for one analytical location.")
+        if build is not None and build != standing.build:
+            return Admission(
+                False, code="off-build-material",
+                detail=f"the offered material was realized against Manifold build {build} and this engine "
+                       f"is {standing.build}. A new Manifold build is a new semantic world; material does "
+                       f"not cross into one by being present. **THIS IS CACHE COHERENCE AND IT IS ASKED "
+                       f"HERE** — a cache mixing builds serves material from a declaration that no longer "
+                       f"holds — which is why the realization authority requires the claim to STATE its "
+                       f"build and deliberately does not compare it a second time.")
+        if witness is not None and witness != standing.witness:
+            return Admission(False, code="off-build-material",
+                             detail=f"the offered material carries constitution witness {witness} and this "
+                                    f"build constitutes {family_id!r} as {standing.witness}. The columnar "
+                                    f"door had NO witness guard before B-1′ — the kernel twin's was "
+                                    f"unreachable through the realization path and this one did not exist — "
+                                    f"so a realized value could not be checked against the declaration it "
+                                    f"claimed. Both doors ask it now.")
         if establishment is None:
             establishment = Establishment(AT_ROOT if standing.at_root else INDEPENDENT)
         return self.materializations.admit(
             point=value.point, instance=value.instance, value=value, establishment=establishment,
-            realization=self.realization, intent=intent, residency=residency, note=note)
+            realization=realization or self.realization, intent=intent,
+            residency=residency, note=note)
 
     def retain(self, value: Any) -> Retained:
         """Hold one **governed columnar family value**, and nothing else (ruled M-2 §1).
@@ -510,6 +529,15 @@ class ColumnarMME:
                      if m.has_payload)
 
     # ── THE AUTHORITY, REUSED VERBATIM ───────────────────────────────────────────────────────
+    @property
+    def realizations(self) -> Any:
+        """**The realization-fidelity authority, which is the AUTHORITY'S and not this engine's** (B-1′).
+
+        Exposed here for the same reason `adjudicate` is delegated: whether a physical result faithfully
+        realizes a governed object cannot depend on which substrate is about to hold it. One constitution,
+        one judge, two caches."""
+        return self.authority.realizations
+
     def adjudicate(self, candidate: Retained, request: Any):
         """**`kernel.MME.adjudicate`, unchanged, over columnar state.**
 

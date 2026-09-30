@@ -82,15 +82,18 @@ class Estate:
                 yield RealizationProposal(
                     provider=self.name, family_id=family_id, anchor=anchor,
                     value_form=getattr(value, "value_form", ""), realization=self.standing,
-                    handle=(family_id, anchor))
+                    # the environment rides in the opaque handle — see R-1's double for why
+                    handle=(family_id, anchor, requirement.build, requirement.witness))
 
     def realize(self, proposal):
         self.realized += 1
-        value = self.holdings[proposal.handle]
+        family_id, anchor, build, witness = proposal.handle
+        value = self.holdings[(family_id, anchor)]
         return RealizationOffer(
             provider=self.name, family_id=proposal.family_id, anchor=proposal.anchor, value=value,
             instance=value.instance, realization=self.standing,
-            establishment=Establishment(INDEPENDENT), from_proposal=proposal)
+            establishment=Establishment(INDEPENDENT), from_proposal=proposal,
+            build=build, witness=witness)
 
 
 def _code_only(module) -> str:
@@ -352,9 +355,16 @@ def test_a_backend_offer_does_not_override_a_current_materialization(warm, fams)
     assert outcome.served
     assert dict(outcome.value.cells) == before
     # … and offering it directly is refused as a consistency failure, not accepted on authority
-    refused = RealizationManager.establish(
-        warm, estate.realize(next(iter(estate.propose(
-            warm.requirement_for(fams["revenue"], KEX.BY_DAY).requirement)))))
+    offer = estate.realize(next(iter(estate.propose(
+        warm.requirement_for(fams["revenue"], KEX.BY_DAY).requirement))))
+    # **THE CLAIM IS FAITHFUL AND THE ADMISSION IS STILL REFUSED** (B-1′, the layering made visible). The
+    # provider really does hold a `revenue@{day}` of the right family, anchor, value form and instance — so
+    # fidelity IS established — and the cache refuses it anyway, because a second disagreeing CURRENT answer
+    # to one question is a consistency failure no origin overrides. Forcing this into a generic realization
+    # refusal would have hidden which layer owns it.
+    adjudicated = warm.realizations.adjudicate(offer)
+    assert adjudicated, adjudicated.refusal
+    refused = RealizationManager.establish(warm, adjudicated.credential)
     assert not refused and refused.code == "duplicate-current-disagreement"
     assert dict(warm.measure(fams["revenue"], KEX.BY_DAY).value.cells) == before
 

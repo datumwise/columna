@@ -20,6 +20,9 @@ measures is a boundary that leaks.
     value         continuation-bearing `FamilyState` vs finalized `ExpressionOutput` — two TYPES
     materialization  MME v1's governed family-materialization cache: opaque identity, dependency,
                      currentness, residency, admission
+    authorization **who decides that a family continuation MAY be done** — `ContinuationAuthority`,
+                  `AuthorizedFamilyContinuation`, `AuthorizedStanding`. The constitution is read HERE and
+                  nowhere below (B-0b)
     mme           the engine: admit, select candidates, adjudicate, measure. **FAMILIES ONLY** (M-2)
     expression    the expression evaluator, ABOVE the MME: consumes family state, evaluates `E@A`
     observation   the family-request observation seam — READY/NEED/WANT_OF_STATE/UNSUPPORTED, append-only,
@@ -30,11 +33,38 @@ measures is a boundary that leaks.
                   only: no analytical authority, no execution semantics, no economic policy
     realization_manager
                   **what the physical estate can SUPPLY** — capability (`propose`) and execution
-                  (`realize`) kept apart, and one door into `MME.admit`. R-1: interface only
+                  (`realize`) kept apart, and one door into the cache, which since B-1' is reachable only
+                  through fidelity adjudication. R-1: interface only
+    realization_fidelity
+                  **does this physical result faithfully realize the object it CLAIMS to be?** —
+                  `RealizationAuthority`, `AdjudicatedRealization`. A result does not become a governed
+                  object by being produced, labelled, or offered (B-1')
     builtins      the smallest law vocabulary the vertical proofs need, and its in-memory provider
     exhibit       the runnable demonstration
 
     THE RULE      physical availability is not analytical authority.
+
+FIVE QUESTIONS, FIVE OWNERS, AND THEY ARE FIVE
+----------------------------------------------
+Ruled (Huayin, 2026-09-30), and this is the whole serving ladder in the order it is descended:
+
+    analytical authorization    what may be requested                      `authorization.ContinuationAuthority`
+            |
+    physical realization        what the estate actually produced          `realization_manager` + provider
+            |
+    realization fidelity        is that result really the claimed `F@A`?   `realization_fidelity.RealizationAuthority`
+            |
+    MME admission               may this enter this cache/build?           `MME.put` — the cache door
+            |
+    MME fulfillment             can held state answer the request?         `MME.fulfill` / `MME.adjudicate`
+
+**EACH QUESTION IS ASKED ONCE, BY ONE OWNER, AND NO LOWER LAYER RE-ASKS A HIGHER ONE.** That is the
+invariant the B-0a/B-0b/B-1' sequence bought, and it is testable rather than aspirational: no constitutional
+vocabulary appears below layer 1, fidelity does not restate a standing refusal, and build/witness coherence
+is REQUIRED by layer 3 and COMPARED by layer 4 — carried down, not asked twice.
+
+The ladder is descended, not climbed: layer 3 succeeding licenses admission of one value and says nothing
+about what may be CONTINUED from it, which is layer 1's question about a different request.
 
 THREE FACTS ABOUT A RETAINED OBJECT, AND THEY ARE THREE
 -------------------------------------------------------
@@ -143,6 +173,11 @@ from .observation import (
     WorkloadObserver,
     disposition_for,
 )
+from .realization_fidelity import (
+    AdjudicatedRealization,
+    Adjudication,
+    RealizationAuthority,
+)
 from .realization import ProviderProfile, Realization, RealizationStanding
 from .realization_manager import (
     ProposalSet,
@@ -187,6 +222,9 @@ from .witness import (
 )
 
 __all__ = [
+    "RealizationAuthority",
+    "Adjudication",
+    "AdjudicatedRealization",
     "FOLD_SHAPES",
     "VALUE_BEARING",
     "POPULATION",
