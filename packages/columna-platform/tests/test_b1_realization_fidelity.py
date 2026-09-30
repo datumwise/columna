@@ -550,3 +550,55 @@ def test_the_three_exhibits_still_run_green(capsys):
     for module in (kernel_exhibit, columnar_exhibit, frameql_exhibit):
         module.main() if hasattr(module, "main") else module.run()
     assert "ALL CHECKS PASSED" in capsys.readouterr().out
+
+
+# ══ M · FIVE QUESTIONS, FIVE OWNERS ══════════════════════════════════════════════════════════════
+#
+# Ruled (Huayin, 2026-09-30): the serving ladder is five questions, and the whole B-0a/B-0b/B-1' sequence
+# exists so that each is asked ONCE by ONE owner. The ladder is now recorded in `kernel.__doc__`, and a
+# recorded architecture nobody measures drifts from the code the week after it is written — so this pins
+# both halves: the record names the five in order, and every owner it names is a real callable.
+
+
+LADDER = (
+    ("analytical authorization", "what may be requested"),
+    ("physical realization", "what the estate actually produced"),
+    ("realization fidelity", "is that result really the claimed `F@A`?"),
+    ("MME admission", "may this enter this cache/build?"),
+    ("MME fulfillment", "can held state answer the request?"),
+)
+
+
+def test_the_recorded_ladder_names_the_five_questions_in_the_order_they_are_descended():
+    import columna_platform.kernel as kernel
+
+    doc = kernel.__doc__
+    positions = []
+    for question, _ in LADDER:
+        assert question in doc, f"the ladder no longer records {question!r}"
+        positions.append(doc.index(question))
+    assert positions == sorted(positions), (
+        "the recorded ladder is out of order. It is DESCENDED: authorization precedes realization "
+        "precedes fidelity precedes admission precedes fulfillment, and the order is the architecture")
+
+
+def test_every_owner_the_ladder_names_is_a_real_distinct_callable():
+    """Five questions, five owners, and no owner answering two of them.
+
+    `MME.put` and `MME.fulfill` live on one class — the residual B-0 recorded, since this class is still
+    both the Manifold build authority and the cache — but they are two METHODS, and that they are two is
+    what keeps admission from consulting held state and fulfillment from admitting anything."""
+    from columna_platform.kernel import MME, ContinuationAuthority, RealizationAuthority
+    from columna_platform.kernel.realization_manager import RealizationManager
+
+    owners = {
+        "analytical authorization": ContinuationAuthority.authorize,
+        "physical realization": RealizationManager.realize,
+        "realization fidelity": RealizationAuthority.adjudicate,
+        "MME admission": MME.put,
+        "MME fulfillment": MME.fulfill,
+    }
+    assert len(owners) == len(LADDER)
+    assert all(callable(owner) for owner in owners.values())
+    # Five distinct functions. A ladder whose rungs are the same object is one question with five names.
+    assert len({id(owner) for owner in owners.values()}) == 5
