@@ -106,6 +106,7 @@ from .materialization import (
     TransitionIntent,
     Admission,
     cumulative_forgotten,
+    entitlement_holds,
 )
 from .requirement import FamilyRequirement, RequirementOutcome, acceptable_anchors
 from .value import Answer, FamilyState
@@ -526,12 +527,21 @@ class MME:
                                     f"build constitutes {identity!r} as "
                                     f"{self.witness_of(identity).digest}. A new Manifold build is a new "
                                     f"semantic world; material does not cross into one by being present.")
-        if not law.region.admits(cumulative_forgotten(family, value.anchor)):
+        # **THE CONSTITUTIONAL PREDICATE, ASKED THROUGH ITS ONE NAME** (B-0a-ii, 2026-09-29). This was an
+        # inlined `law.region.admits(cumulative_forgotten(...))` — one of FOUR such inlinings, against a
+        # `entitlement_holds` that already existed and that none of them used. Same question, same answer,
+        # same message; what changes is that the four sites are now visibly ONE question, which is the
+        # prerequisite for deciding where that question belongs. It is expected to LEAVE this method: the
+        # continuation region is constitutional (it is identity-bearing in the family witness), so the
+        # governed runtime interprets it when deciding whether a request may be issued, and the cache
+        # executes an already-authorized one. Do not mistake this single call for the final design.
+        if not entitlement_holds(family, law, value.anchor):
+            forgotten = cumulative_forgotten(family, value.anchor)
             return Admission(
                 False, code="anchor-outside-the-continuation-region",
                 detail=f"{identity} may hold no lawful value at {value.anchor}: reaching it from "
-                       f"{family.root} forgets {sorted(cumulative_forgotten(family, value.anchor))}, which "
-                       f"{law.region.why_not(cumulative_forgotten(family, value.anchor))}. **THIS IS ASKED "
+                       f"{family.root} forgets {sorted(forgotten)}, which "
+                       f"{law.region.why_not(forgotten)}. **THIS IS ASKED "
                        f"OF INDEPENDENTLY ESTABLISHED MATERIAL TOO**: a governed realization can supply a "
                        f"value, and cannot make the family's law admit one where it does not.")
         if establishment is None:
@@ -636,7 +646,7 @@ class MME:
         # test pins the equivalence so that widening `ContinuationRegion` into a genuine per-edge graph —
         # the one change that would make routes matter — fails loudly here.
         forgotten_total = cumulative_forgotten(family, target)
-        if not law.region.admits(forgotten_total):
+        if not entitlement_holds(family, law, target):          # ← the one name (B-0a-ii)
             through = (f" This candidate sits at {value.anchor}, a NON-ROOT materialization, and that "
                        f"changes nothing: the question is the whole route from {family.root}, so an "
                        f"intermediate materialization cannot launder an edge the law does not admit."
@@ -842,7 +852,7 @@ class MME:
                 f"{sorted(target.constituents - family.root.constituents)}, which this family's "
                 f"materializations never carry. A family lives at or below `R_F`, so there is no state "
                 f"at this location for the estate to supply — this is not a gap in the estate.")
-        if not law.region.admits(cumulative_forgotten(family, target)):
+        if not entitlement_holds(family, law, target):          # ← the one name (B-0a-ii)
             forgotten = cumulative_forgotten(family, target)
             return RequirementOutcome(
                 None,

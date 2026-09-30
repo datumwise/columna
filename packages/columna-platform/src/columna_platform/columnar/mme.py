@@ -108,6 +108,7 @@ from columna_platform.kernel.materialization import (
     MaterializationStore,
     TransitionIntent,
     cumulative_forgotten,
+    entitlement_holds,
 )
 from columna_platform.kernel.mme import Retained, RetentionKey, Staleness
 from columna_platform.kernel.observation import (
@@ -435,7 +436,7 @@ class ColumnarMME:
         exactly as it is asked of derived material."""
         family_id = value.point.identity
         family, law = self.family(family_id), self.law_of(family_id)
-        if not law.region.admits(cumulative_forgotten(family, value.anchor)):
+        if not entitlement_holds(family, law, value.anchor):   # ← the one name (B-0a-ii)
             forgotten = cumulative_forgotten(family, value.anchor)
             return Admission(
                 False, code="anchor-outside-the-continuation-region",
