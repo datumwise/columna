@@ -288,9 +288,20 @@ class FrameQLService:
             if sort == "family":
                 family = self.mme.family(s.token)
                 plan.append(f"{s.token}: FAMILY, R_F={family.root}, law={family.law} "
-                            f"→ MME.measure()")
+                            f"→ authorize() → MME.fulfill()")
+                # **EXPLAIN NOW SHOWS THE TWO ACTS SEPARATELY** (B-0b), because they are two acts and a
+                # plan that merged them could not show which one stopped a request. Authorization is
+                # constitutional and is asked first; the cache's adjudication of each candidate is only
+                # reached when a request exists at all.
+                authorized = self.mme.authorizer.authorize(family, anchor)
+                if not authorized:
+                    plan.append(f"    AUTHORIZATION REFUSED [{authorized.refusal.code}] — the "
+                                f"constitution permits no value here, so no request reaches the cache "
+                                f"and no candidate is considered")
+                    continue
+                plan.append(f"    authorized: fold {authorized.request.fold}")
                 for candidate in self.mme.candidates(family):
-                    verdict = self.mme.adjudicate(candidate, family, anchor)
+                    verdict = self.mme.adjudicate(candidate, authorized.request)
                     plan.append(f"    candidate {candidate.key} → "
                                 + ("ADMITTED" if verdict else f"REFUSED [{verdict.code}]"))
             else:

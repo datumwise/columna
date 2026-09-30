@@ -657,7 +657,7 @@ def test_an_anchor_outside_the_region_is_refused_for_independent_material_too():
         {"on_hand": standing("on_hand", mme.authority.instance_of("on_hand"), n=2)})
     with pytest.raises(KernelRefusal) as exc:
         mme.establish(unlawful, "on_hand", at_root=False, data_state=LOAD)
-    assert exc.value.code == "anchor-outside-the-continuation-region"
+    assert exc.value.code == "outside-continuation-region"
     assert "ASKED OF INDEPENDENTLY ESTABLISHED MATERIAL TOO" in exc.value.detail
 
 

@@ -77,7 +77,6 @@ from .standing import (
     CACHED,
     CONTINUED,
     UNSTATED_DATA_STATE,
-    Disclosure,
     REFUSED,
     ROOT,
     Refusal,
@@ -105,10 +104,13 @@ from .materialization import (
     MaterializationStore,
     TransitionIntent,
     Admission,
-    cumulative_forgotten,
-    entitlement_holds,
 )
-from .requirement import FamilyRequirement, RequirementOutcome, acceptable_anchors
+from .authorization import (
+    AuthorizedFamilyContinuation,
+    AuthorizedStanding,
+    ContinuationAuthority,
+)
+from .requirement import RequirementOutcome
 from .value import Answer, FamilyState
 from .witness import ConstitutionWitness
 
@@ -290,6 +292,13 @@ class MME:
         #: engine attached to it. A declaration move must reach all of them, because the consequence is a
         #: fact about the constitution and not about which substrate happens to hold the bytes.
         self._attached: list[MaterializationStore] = [self.materializations]
+        #: **THE COMPONENT THAT OWNS ANALYTICAL CONTINUATION AUTHORIZATION** (B-0b). Constructed over this
+        #: engine because this class is still the Manifold build authority as well as the cache — the
+        #: residual the B-0 reconciliation named. What the ruling requires is that the constitutional
+        #: READING happen in one place, and it does: `region` is read in `authorization.py` and nowhere
+        #: else. `measure`, `admit` and `requirement_for` are this half's methods and go with it when the
+        #: class is split; `fulfill` and `put` are the cache's and stay.
+        self.authorizer = ContinuationAuthority(self)
 
     # ── constitution ─────────────────────────────────────────────────────────────────────────
     def register_family(self, family: MeasureFamily) -> MeasureFamily:
@@ -503,50 +512,64 @@ class MME:
             raise KernelRefusal(admission.code, value.point.family_id, admission.detail)
         return Retained(key=self._descriptor(self.materializations.get(admission.id)), value=value)
 
-    # ── admission: the one door for family material ──────────────────────────────────────────
+    # ── admission ────────────────────────────────────────────────────────────────────────────
     def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
               intent: Optional[TransitionIntent] = None, residency: str = "resident",
               witness: Optional[str] = None, note: str = ""):
-        """**Offer one governed family value to the cache.**
+        """**Offer one governed family value to the cache.** Mints a standing, then `put`s.
+
+        **THIS METHOD IS THE AUTHORITY HALF'S, NOT THE CACHE'S** (B-0b). It is on this class because this
+        class is still both the Manifold build authority and the materialization cache — the residual the
+        B-0 reconciliation recorded — and when that class is split it goes with the authority. What matters
+        for the ruling is that the *constitutional reading* happens in `ContinuationAuthority` and that
+        `put`, the cache door, performs none of it. There is no path to `put` that skips minting.
 
         `establishment` is the material's ACTUAL standing and is never manufactured (ruled §8): a value
         formed at `R_F` is `AT_ROOT`, one folded from held material is `CONTINUED` and names its parent, and
         one supplied at a non-root anchor by a governed realization is `INDEPENDENT` — which is a different
-        claim from "it was derived and we lost the receipt".
+        claim from "it was derived and we lost the receipt"."""
+        authorized = self.authorizer.authorize_standing(value.point.family_id, value.anchor)
+        if not authorized:
+            return Admission(False, code=authorized.refusal.code, detail=authorized.refusal.detail)
+        return self.put(value, authorized.request, establishment=establishment, intent=intent,
+                        residency=residency, witness=witness, note=note)
 
-        Two analytical checks run before any cache consequence:
+    def put(self, value: Any, standing: AuthorizedStanding, *,
+            establishment: Optional[Establishment] = None,
+            intent: Optional[TransitionIntent] = None, residency: str = "resident",
+            witness: Optional[str] = None, note: str = ""):
+        """**THE CACHE DOOR. No constitution is read here, and none can be.**
 
-        * **off-build material** — if the offerer supplies a constitution witness, it must be this build's;
-        * **entitlement** — a materialization may only exist where the family law admits a value, and that
-          is `region.admits(R_F − anchor)`, asked identically of derived and independent material."""
+        Everything below is a cache/materialization question. The two checks it performs are COMPARISONS of
+        carried values, never interpretations of governed meaning:
+
+        * **the standing covers this material** — a mint for `revenue@{day}` does not admit `on_hand@{store}`,
+          so an authorization cannot be obtained cheaply and reused for something else;
+        * **off-build material** — if the offerer supplies a constitution witness it must equal the one the
+          standing was minted under. A new Manifold build is a new semantic world and material does not
+          cross into one by being present. This is cache coherence: a cache mixing builds serves material
+          from a declaration that no longer holds.
+
+        What is NOT here, and is the point of B-0b: no `region`, no `admits`, no law lookup, no
+        `cumulative_forgotten`. *"A materialization may only exist where the family law admits a value"* is
+        still true and is now true because **no standing is minted where it is false** — asked once, above,
+        by the component whose question it is."""
         identity = value.point.family_id
-        family, law = self._families[identity], self._bound[identity]
-        if witness is not None and witness != self.witness_of(identity).digest:
+        if standing.family_id != identity or standing.anchor != value.anchor:
+            return Admission(
+                False, code="standing-does-not-cover-this-material",
+                detail=f"the authorization covers {standing.subject} and the material offered is "
+                       f"{identity}@{value.anchor}. An authorization is for one analytical location; "
+                       f"reusing one obtained for another is how a caller would manufacture permission "
+                       f"without asking for it.")
+        if witness is not None and witness != standing.witness:
             return Admission(False, code="off-build-material",
                              detail=f"the offered material carries constitution witness {witness} and this "
-                                    f"build constitutes {identity!r} as "
-                                    f"{self.witness_of(identity).digest}. A new Manifold build is a new "
-                                    f"semantic world; material does not cross into one by being present.")
-        # **THE CONSTITUTIONAL PREDICATE, ASKED THROUGH ITS ONE NAME** (B-0a-ii, 2026-09-29). This was an
-        # inlined `law.region.admits(cumulative_forgotten(...))` — one of FOUR such inlinings, against a
-        # `entitlement_holds` that already existed and that none of them used. Same question, same answer,
-        # same message; what changes is that the four sites are now visibly ONE question, which is the
-        # prerequisite for deciding where that question belongs. It is expected to LEAVE this method: the
-        # continuation region is constitutional (it is identity-bearing in the family witness), so the
-        # governed runtime interprets it when deciding whether a request may be issued, and the cache
-        # executes an already-authorized one. Do not mistake this single call for the final design.
-        if not entitlement_holds(family, law, value.anchor):
-            forgotten = cumulative_forgotten(family, value.anchor)
-            return Admission(
-                False, code="anchor-outside-the-continuation-region",
-                detail=f"{identity} may hold no lawful value at {value.anchor}: reaching it from "
-                       f"{family.root} forgets {sorted(forgotten)}, which "
-                       f"{law.region.why_not(forgotten)}. **THIS IS ASKED "
-                       f"OF INDEPENDENTLY ESTABLISHED MATERIAL TOO**: a governed realization can supply a "
-                       f"value, and cannot make the family's law admit one where it does not.")
+                                    f"build constitutes {identity!r} as {standing.witness}. A new Manifold "
+                                    f"build is a new semantic world; material does not cross into one by "
+                                    f"being present.")
         if establishment is None:
-            establishment = Establishment(
-                AT_ROOT if value.anchor == family.root else INDEPENDENT)
+            establishment = Establishment(AT_ROOT if standing.at_root else INDEPENDENT)
         return self.materializations.admit(
             point=value.point, instance=value.instance, value=value,
             establishment=establishment, realization=self.realization, intent=intent,
@@ -609,14 +632,39 @@ class MME:
         return tuple(self._descriptor(m) for m in self.materializations.all())
 
     # ── the adjudication ─────────────────────────────────────────────────────────────────────
-    def adjudicate(self, candidate: Retained, family: MeasureFamily, target: Anchor) -> Adequacy:
-        """**May this held object seed a continuation to `target`?** Five questions, in this order."""
-        law = self._bound[family.family_id]
+    def adjudicate(self, candidate: Retained, request: AuthorizedFamilyContinuation) -> Adequacy:
+        """**Can THIS held object fulfill an ALREADY-AUTHORIZED continuation?** Four questions, in order.
+
+        **THE SIGNATURE IS THE RESULT OF B-0b.** It was `(candidate, family, target)` and it consulted the
+        family law, because the third of its five questions was constitutional. That question is gone — the
+        authority answered it before this request existed — and with it went every reason to know the family
+        or the law. What remains is a function of the CANDIDATE and the EXECUTION REQUIREMENTS, which is the
+        clearest available statement that the adjudication is a cache/execution matter:
+
+            *"MME determines whether held family materialization can fulfill an already-authorized
+            continuation request correctly and consistently."*  — Huayin, 2026-09-29
+
+        WHY EACH SURVIVING CHECK IS NOT ANALYTICAL AUTHORIZATION — and §2 asks for this explicitly, because
+        geometry is the one most easily mistaken for governance:
+
+          1. **sort** — an expression output is not family state. A TYPE fact; the verdict is a courtesy so
+             the caller is told which rule stopped them rather than what Python noticed.
+          2. **reachability** — `{store}` cannot reach `{day}`. **THIS IS GEOMETRY, NOT GOVERNANCE**, and the
+             distinction matters: `F@{day}` may be perfectly lawful and servable from another seed, and this
+             verdict says nothing about whether it is. It says the payload in hand has already forgotten the
+             constituent the request needs. Constituent containment is a fact about what a cached value
+             retains, not about what a Manifold permits — a cache reporting `not-reachable` is not overruling
+             the constitution, it is declining to invent information it threw away.
+          3. **payload adequacy** — the fold needs `required_input_value_form` and this payload is not in it.
+             A finalized scalar where the composition reads sketches cannot be merged; merging it would
+             produce a confident wrong number. Execution, not permission.
+          4. **build capability** — can THIS build execute the composition? A provider's inability never
+             removes a law and equally never removes the authorization: the request is lawful and
+             unservable, which is a different sentence from unlawful. Deliberately kept here rather than in
+             the authority, because it is a question about the engine, not the constitution."""
         value = candidate.value
 
-        # 1 · SORT. An expression output is refused here by a governed verdict. The type already makes
-        #     it impossible — `ExpressionOutput` has no `fold_onto` — and this exists so the caller is
-        #     told which rule stopped them instead of what Python noticed.
+        # 1 · SORT.
         if not candidate.continuation_bearing:
             return Adequacy(
                 False, "not-continuation-bearing",
@@ -626,145 +674,152 @@ class MME:
                 f"and being named, cached, repeated or durably governed does not make it "
                 f"continuation-bearing (ToD v8 §3.7)")
 
-        # 2 · REACHABILITY. Geometry, not law.
-        if value.anchor == target:
+        # 2 · REACHABILITY. **GEOMETRY, NOT GOVERNANCE.** See the docstring.
+        if value.anchor == request.target:
             return Adequacy(True, "exact", "already at the asked location")
-        if not value.anchor.refines(target):
+        if not value.anchor.refines(request.target):
             return Adequacy(
                 False, "not-reachable",
-                f"{value.anchor} is not finer than {target}, so {target} is not reachable from it by "
-                f"forgetting constituents. A coarsening forgets; it does not acquire")
+                f"{value.anchor} is not finer than {request.target}, so {request.target} is not reachable "
+                f"from it by forgetting constituents. A coarsening forgets; it does not acquire. This is a "
+                f"fact about the payload held, not about the target: the continuation is AUTHORIZED and "
+                f"another seed may well serve it")
 
-        # 3 · CLOSURE OVER THE WHOLE ROUTE FROM THE ROOT — the laundering guard, ROOT-RELATIVE.
-        #
-        # **DERIVED, NOT READ OFF THE STATE** (ruled 2026-09-29 §7). The cumulative forgotten set is set
-        # subtraction, so for `T ⊆ M ⊆ R` every route forgets `(R − M) ∪ (M − T) = R − T`. The route cannot
-        # change it, so the guard is a function of the family law, `R_F` and the TARGET — and the
-        # intermediate materialization, its provenance and its resident ancestors never enter. That is what
-        # makes "evicting an ancestor must not create new analytical rights" true by construction rather
-        # than by remembering. `forgotten_since_root` survives as PROVENANCE and is no longer authority; a
-        # test pins the equivalence so that widening `ContinuationRegion` into a genuine per-edge graph —
-        # the one change that would make routes matter — fails loudly here.
-        forgotten_total = cumulative_forgotten(family, target)
-        if not entitlement_holds(family, law, target):          # ← the one name (B-0a-ii)
-            through = (f" This candidate sits at {value.anchor}, a NON-ROOT materialization, and that "
-                       f"changes nothing: the question is the whole route from {family.root}, so an "
-                       f"intermediate materialization cannot launder an edge the law does not admit."
-                       if value.anchor != family.root else "")
-            return Adequacy(
-                False, "outside-continuation-region",
-                f"{family.family_id}: {law.region.why_not(forgotten_total)}.{through}")
-
-        # 4 · ADEQUACY OF THE VALUE. Does it still carry the sufficient state the composition needs?
-        if law.value_form == STRUCTURED and value.value_form != STRUCTURED:
+        # 3 · PAYLOAD ADEQUACY. Does it still carry the state the fold's input form requires?
+        if (request.fold.required_input_value_form == STRUCTURED
+                and value.value_form != STRUCTURED):
             return Adequacy(
                 False, "state-no-longer-sufficient",
-                f"{candidate.key} holds a {value.value_form!r} value where {law.name} composes over a "
-                f"{STRUCTURED!r} one. {law.sufficient_state}")
+                f"{candidate.key} holds a {value.value_form!r} value where "
+                f"{request.fold.merge_realization} composes over a {STRUCTURED!r} one. "
+                f"{request.fold.sufficient_state}")
 
-        # 5 · REALIZATION. A provider limit, said as one.
-        if not self.provider.realizes(law.name):
+        # 4 · BUILD CAPABILITY. A provider limit, said as one.
+        if not self.provider.realizes(request.fold.merge_realization):
             return Adequacy(
                 False, "unrealized-law",
-                f"law {law.name!r} has no realization in provider profile {self.provider.name!r}. The "
+                f"law {request.fold.merge_realization!r} has no realization in provider profile "
+                f"{self.provider.name!r}. The "
                 f"law is unchanged; this build cannot execute its composition (ToD v8 §4.1)")
 
-        origin = "R_F" if value.at_root else f"a non-root materialization at {value.anchor}"
         return Adequacy(True, "admitted",
-                        f"seeded from {origin}; forgetting {sorted(forgotten_total)} is inside "
-                        f"{family.family_id}'s continuation region")
+                        f"seeded from {'R_F' if value.at_root else f'a non-root materialization at {value.anchor}'};"
+                        f" the continuation to {request.target} was authorized before this request arrived")
 
     # ── serving a family ─────────────────────────────────────────────────────────────────────
     def measure(self, family: Any, anchor: Anchor, *, retain: bool = True,
                 data_state: Optional[str] = None, on_behalf_of: str = "") -> Answer:
-        """**Serve `F@A`.** Exact hit, else the best admitted seed, else a refusal that names why.
+        """**Serve `F@A`: authorize, then fulfill.** The authority half's entry point.
 
-        **THE ROOT IS PREFERRED AND NON-ROOT SEEDS ARE PERMITTED**, which is the required distinction. A
-        non-root materialization is a legitimate continuation origin *while its value remains adequate*,
-        and `adjudicate` is where "remains adequate" is decided — not here, and not by preferring the
-        root so hard that the non-root case is never exercised.
+        Two acts, in order, and the order is the architecture (B-0b):
+
+            authorize   may this continuation be done?          ← `ContinuationAuthority`, reads the region
+            fulfill     can it be done from what I hold?        ← the cache, reads no constitution
+
+        An unauthorized target returns the AUTHORITY'S refusal verbatim rather than a cache miss, because the
+        two mean different things and §7 forbids conflating them: *"MME MISS has no analytical meaning."* A
+        target outside the continuation region is not a cold cache, and no amount of retention would change
+        it — so it never becomes a miss at all; it never reaches the cache."""
+        started_ns = time.perf_counter_ns()
+        authorized = self.authorizer.authorize(
+            family, anchor, data_state=data_state, retain=retain, on_behalf_of=on_behalf_of)
+        if not authorized:
+            # **THE REQUEST BOUNDARY STILL OBSERVES, EVEN THOUGH THE CACHE WAS NEVER ASKED** (M-2 §7 kept
+            # true under B-0b). One `RequestObservation` per call on EVERY path, and this path is the new
+            # one: an unauthorized continuation. Its disposition is `UNSUPPORTED`, which is exactly the row
+            # a cache economist needs — *no amount of retention would ever serve this* — and it is emitted
+            # here rather than in `fulfill` because `fulfill` never ran. Recording it as a cache MISS would
+            # have been the error §7 forbids: a miss means the cache could not satisfy a LAWFUL request.
+            subject = self.subject(family)
+            observe_request(
+                self.observations,
+                FamilyRequest(manifold=self.manifold, build=self.build.reference,
+                              family_id=subject.family_id, target=anchor, data_state=data_state,
+                              on_behalf_of=on_behalf_of),
+                started_ns=started_ns, route=REFUSED,
+                refusal_code=authorized.refusal.code,
+                disposition=disposition_for(authorized.refusal.code),
+                fulfillment=Fulfillment(considered=0))
+            return Answer(route=REFUSED, refusal=authorized.refusal)
+        return self.fulfill(authorized.request)
+
+    def fulfill(self, request: AuthorizedFamilyContinuation) -> Answer:
+        """**Can this ALREADY-AUTHORIZED continuation be performed from held state?**
+
+        Exact hit, else the cheapest admitted seed, else a MISS that carries no analytical meaning. Nothing
+        in this method reads the constitution: no `region`, no `admits`, no law, no `cumulative_forgotten`.
+        Every branch is a cache/materialization/execution question, and a `grep` over this method for the
+        constitutional vocabulary is one of B-0b's proofs.
+
+        **THE ROOT IS PREFERRED AND NON-ROOT SEEDS ARE PERMITTED.** A non-root materialization is a
+        legitimate continuation origin *while its payload remains adequate*, and `adjudicate` is where
+        "remains adequate" is decided.
 
         **THIS IS THE REQUEST BOUNDARY, AND IT IS WHERE OBSERVATION HAPPENS** (ruled M-2 §7). Exactly one
-        `RequestObservation` is emitted per call, on every path — hit, continuation and each of the four
-        refusals — because *"a cache policy cannot learn from hits alone."* `on_behalf_of` carries the
-        consumer above the MME that caused this request (an expression's basis role, typically), which is
-        §8's route/use evidence: it is the difference between demand for `Revenue@Month` and demand for
-        `AOV@Month` that happened to need it.
-
-        Observation is emitted AFTER the answer is fully determined and never gates it. Nothing below
-        branches on whether an observer exists."""
+        `RequestObservation` per call, on every path — hit, derivation and miss — because *"a cache policy
+        cannot learn from hits alone."* Observation is emitted AFTER the answer is determined and never gates
+        it."""
         started_ns = time.perf_counter_ns()
-        family = self.subject(family)                    # a `MeasureFamily` or its id — see `subject`
-        request = FamilyRequest(manifold=self.manifold, build=self.build.reference,
-                                family_id=family.family_id, target=anchor, data_state=data_state,
-                                on_behalf_of=on_behalf_of)
-        law = self._bound[family.family_id]
-        instance = self.instance_of(family.family_id)
+        anchor = request.target
+        observed = FamilyRequest(manifold=self.manifold, build=request.build,
+                                 family_id=request.family_id, target=anchor,
+                                 data_state=request.data_state, on_behalf_of=request.on_behalf_of)
         considered: list[str] = []
 
         # ── CANDIDATE SELECTION IS THE MME'S, NEVER THE CALLER'S (ruled 2026-09-29 §2) ──────────────
         # The request asked for an analytical identity; which retained instance answers it is a cache
-        # decision, made here by cost. Only CURRENT, payload-bearing materializations are candidates:
-        # a superseded one may stay resident for as long as policy likes and will never answer.
-        pool = self.materializations.candidates_for(family.family_id, anchor, instance,
-                                                    data_state=data_state)
+        # decision, made here by cost. Only CURRENT, payload-bearing materializations are candidates: a
+        # superseded one may stay resident for as long as policy likes and will never answer.
+        pool = self.materializations.candidates_for(request.family_id, anchor, request.instance,
+                                                   data_state=request.data_state)
         exact = next((m for m in pool if m.anchor == anchor), None)
         if exact is not None:
-            # DIRECTLY HELD. The cheapest possible fulfillment, and the row a future `V(m)` differences
-            # everything else against.
-            observe_request(self.observations, request, started_ns=started_ns, route=CACHED,
+            observe_request(self.observations, observed, started_ns=started_ns, route=CACHED,
                             disposition=READY,
                             fulfillment=Fulfillment(directly_held=True, selected=(exact.id,),
                                                     considered=1))
             return Answer(route=CACHED, value=exact.value, disclosures=exact.value.disclosures,
                           considered=(str(self._descriptor(exact)),))
 
-        # **LEAST WORK FIRST, FALLING BACK TOWARD THE ROOT** — and the order is a governed choice, not
-        # an optimization detail.
-        #
-        # The first draft tried the ROOT FIRST, which is wrong twice over. It does the most possible work
-        # on every ask, and — the real defect — it makes non-root materialization POINTLESS, so the
-        # engine could never exercise the right the ruling specifically asks it to make operational: *"a
-        # lawful F@A may be cached and may seed later continuation."* A rule that is never reached is not
-        # a rule that holds.
-        #
-        # So candidates are ordered COARSEST FIRST among those still finer than the target, which is the
-        # fewest cells to fold. The fallback direction is safe because a FINER seed has forgotten LESS,
-        # so it is never less permissive: if any candidate is admitted, the root is admitted. Trying the
-        # cheapest first therefore cannot turn a servable ask into a refusal — it can only turn a more
-        # expensive answer into a cheaper one.
+        # **LEAST WORK FIRST, FALLING BACK TOWARD THE ROOT** — a governed choice, not an optimization.
+        # Candidates are ordered COARSEST FIRST among those still finer than the target, which is the fewest
+        # cells to fold. The fallback direction is safe because a FINER seed has forgotten LESS, so it is
+        # never less permissive: trying the cheapest first cannot turn a servable ask into a refusal.
         blockers: list[Adequacy] = []
         for materialization in pool:
             descriptor = self._descriptor(materialization)
             considered.append(str(descriptor))
             candidate = Retained(key=descriptor, value=materialization.value)
-            verdict = self.adjudicate(candidate, family, anchor)
+            verdict = self.adjudicate(candidate, request)
             if not verdict:
                 blockers.append(verdict)
                 continue
             state = candidate.value
             if state.anchor != anchor:
-                merge = self.provider.capability(law.name, "merge")
+                # **THE FOLD IS KEYED BY THE REQUEST'S EXECUTION REQUIREMENT**, not by a law this method
+                # looked up. `merge_realization` is the in-memory profile's key; a columnar engine keys the
+                # same authorized fold by `composition` instead, which is why the request carries both.
+                merge = self.provider.capability(request.fold.merge_realization, "merge")
                 state = state.fold_onto(anchor, merge)
-            if law.approximation != "exact":
-                state = state.with_disclosure(Disclosure(
-                    "approximate", f"{law.name} is {law.approximation}; every value served from it "
-                                   f"carries that standing"))
+            # **CONDITIONS ARE PROPAGATED, NEVER DERIVED** (B-0b). The `approximate` standing used to be
+            # authored here by reading `law.approximation` — a cache asserting an analytical fact about a
+            # law. It now arrives on the request, decided by the authority, and this loop only carries it.
+            for condition in request.conditions:
+                state = state.with_disclosure(condition)
             admitted: tuple[MaterializationId, ...] = ()
-            if retain:
+            if request.retain:
                 # **THE DEPENDENCY EDGE IS RECORDED HERE AND NOWHERE ELSE.** A continuation names what it
-                # was continued FROM, which is the relation supersession propagates along — and is a
-                # different fact from the entitlement, which is derived from the family root.
-                admission = self.admit(state, establishment=(
+                # was continued FROM, which is the relation supersession propagates along — a different fact
+                # from the entitlement, which the authority settled before this request existed. The
+                # retention uses the standing the authorization already paired with this target, so the
+                # cache does not go back to the constitution to keep what it just computed.
+                admission = self.put(state, request.standing, establishment=(
                     Establishment(CONTINUED_FROM, (materialization.id,))
                     if state.anchor != materialization.anchor else Establishment(AT_ROOT)))
                 if admission:
                     admitted = (admission.id,)
-            route = ROOT if state.anchor == family.root else CONTINUED
-            # DERIVED. `folded` is the source cells this fold actually read — observed from the seed, not
-            # modelled — and `admitted` records that this request was also a PRODUCER, so the work is
-            # charged to the request that did it rather than appearing from nowhere.
-            observe_request(self.observations, request, started_ns=started_ns, route=route,
+            route = ROOT if state.anchor == self._families[request.family_id].root else CONTINUED
+            observe_request(self.observations, observed, started_ns=started_ns, route=route,
                             disposition=READY,
                             fulfillment=Fulfillment(
                                 directly_held=False, selected=(materialization.id,),
@@ -774,31 +829,32 @@ class MME:
             return Answer(route=route, value=state, disclosures=state.disclosures,
                           seeded_from=descriptor, considered=tuple(considered))
 
-        # **THE BLOCKERS ARE DEDUPED AND THE UNINFORMATIVE ONES DEMOTED**, because a refusal that recites
-        # the same reason once per candidate is a refusal nobody finishes reading. `not-reachable` is
-        # geometry — a candidate at a sibling location — and says nothing about the ask unless it is the
-        # only thing to say, so it sorts last.
+        # **THE MISS, AND IT CARRIES NO ANALYTICAL MEANING** (ruled §7). It means exactly one thing: the
+        # cache cannot currently satisfy this already-lawful request from the state it holds. It does not
+        # mean the target is unlawful — an unlawful target has no request and never arrives here — nor that
+        # the family does not exist, nor that a backend cannot supply it. The governed fulfillment layer
+        # interprets the miss and decides what happens next.
+        #
+        # The blockers are deduped and the uninformative ones demoted, because a refusal that recites the
+        # same reason once per candidate is a refusal nobody finishes reading. `not-reachable` is geometry
+        # and says nothing about the ask unless it is the only thing to say, so it sorts last.
         best: dict[str, Adequacy] = {}
         for b in blockers:
             kept = best.get(b.code)
-            # ONE ENTRY PER CODE, keeping the LONGEST detail. Two candidates blocked for the same reason
-            # produce the same code with different amounts of explanation — the laundering guard's
-            # message names the route it came through and the direct one does not — and the longer text
-            # strictly contains the shorter, so keeping it loses nothing and repeats nothing.
             if kept is None or len(b.detail) > len(kept.detail):
                 best[b.code] = b
         ordered = sorted(best.values(), key=lambda b: b.code == "not-reachable")
+        family = self._families[request.family_id]
         detail = (" · ".join(f"{b.code} — {b.detail}" for b in ordered)
-                  or f"no retained state of {family.family_id} exists under this analytical instance, "
+                  or f"no retained state of {request.family_id} exists under this analytical instance, "
                      f"and this engine does not invent one: a value must be established at "
                      f"{family.root} before it can be continued anywhere") + self._also_held(family)
-        # **THE MISS IS OBSERVED, AND THE KIND OF MISS IS RECORDED** (§7, §4). The disposition is derived
-        # from the BLOCKING code rather than from the outer `unanswerable` wrapper: a request blocked by
-        # `outside-continuation-region` is UNSUPPORTED — no amount of retention would ever serve it — while
-        # one blocked by an empty pool is NEED, which is the row that says "retaining this would have
-        # helped". Collapsing them is how a cache policy learns to cache its way out of a law.
+        # The disposition is derived from the BLOCKING code: a request blocked by `unrealized-law` is
+        # UNSUPPORTED — no amount of retention would ever serve it — while one blocked by an empty pool is
+        # NEED, the row that says "retaining this would have helped". Collapsing them is how a cache policy
+        # learns to cache its way out of a limit.
         blocking = ordered[0].code if ordered else ""
-        observe_request(self.observations, request, started_ns=started_ns, route=REFUSED,
+        observe_request(self.observations, observed, started_ns=started_ns, route=REFUSED,
                         refusal_code=blocking or "unanswerable",
                         disposition=(disposition_for(blocking) if blocking else NEED),
                         fulfillment=Fulfillment(considered=len(considered)))
@@ -827,55 +883,18 @@ class MME:
     # ── stating what is needed — the MME's half of the realization seam (R-1 §2) ──────────────
     def requirement_for(self, family: Any, target: Anchor, *,
                         data_state: Optional[str] = None, note: str = "") -> RequirementOutcome:
-        """**What governed family state would satisfy a request for `F@target`?**
+        """**What governed family state would satisfy a request for `F@target`?** Delegated to the authority.
 
-        Ruled R-1 §2: *"MME emits analytical requirements, not fetch plans."* So this returns
+        Its body moved to `ContinuationAuthority.requirement_for` in B-0b, because every one of its three
+        refusals is constitutional or build-capability reasoning and none of them is a cache question — and
+        because leaving it here would have left the cache engine reading `region` after everything else
+        stopped. The name stays on this class for the same reason `measure` does: this class is still the
+        authority as well as the cache, and both go with the authority half when it is split.
 
-            Need lawful Revenue family state sufficient to establish Revenue@{month}
-
-        and never a query, a table, a projection or a route. **The MME imports `requirement.py` and knows
-        nothing about providers** — there is no import of `realization_manager` anywhere in this module,
-        and a test pins the absence. What the estate can supply is not this engine's question, and an
-        engine that could name a provider would be an engine that could prefer one.
-
-        **AN UNLAWFUL TARGET PRODUCES NO REQUIREMENT, AND THAT IS THE LOAD-BEARING CASE** (§6). Where the
-        family law admits no value at `target`, there is no governed family state for anyone to supply, and
-        emitting a requirement would be inviting a provider to compute an answer the law forbids. A backend
-        could almost certainly produce the number; that is exactly why the refusal is here, at the point
-        where the requirement would otherwise be minted, and not left to be caught at admission."""
-        family = self.subject(family)
-        law = self._bound[family.family_id]
-        if not target.constituents <= family.root.constituents:
-            return RequirementOutcome(
-                None,
-                f"{target} is not a coarsening of {family.family_id}'s root {family.root}: it names "
-                f"{sorted(target.constituents - family.root.constituents)}, which this family's "
-                f"materializations never carry. A family lives at or below `R_F`, so there is no state "
-                f"at this location for the estate to supply — this is not a gap in the estate.")
-        if not entitlement_holds(family, law, target):          # ← the one name (B-0a-ii)
-            forgotten = cumulative_forgotten(family, target)
-            return RequirementOutcome(
-                None,
-                f"{family.family_id}@{target} is not a lawful location for this family: reaching it from "
-                f"{family.root} forgets {sorted(forgotten)}, which {law.region.why_not(forgotten)}. **NO "
-                f"REALIZATION REQUIREMENT IS EMITTED.** There is no governed family state here for a "
-                f"provider to supply, and a provider that could compute the number would not thereby make "
-                f"it a lawful Columna materialization (R-1 §6).")
-        if not self.provider.realizes(law.name):
-            return RequirementOutcome(
-                None,
-                f"law {law.name!r} has no realization in provider profile {self.provider.name!r}. The law "
-                f"is unchanged and the target is lawful; this build cannot execute the composition, so "
-                f"obtaining the material would not make the request servable. That is a capability "
-                f"question about THIS build, not a requirement for the estate.")
-        acceptable, truncated = acceptable_anchors(family, law, target)
-        return RequirementOutcome(FamilyRequirement(
-            manifold=self.manifold, build=self.build.reference,
-            family_id=family.family_id, target=target, root=family.root,
-            acceptable=acceptable, acceptable_truncated=truncated,
-            instance=self.instance_of(family.family_id), data_state=data_state,
-            law=law.name, value_form=law.value_form, sufficient_state=law.sufficient_state,
-            approximation=law.approximation, note=note))
+        **IT IS NOT AN AUTHORIZED REQUEST AND IS NOT BECOMING ONE** (ruled §7). An authorization says *"this
+        is lawful, attempt it from held state"*; a requirement says *"held state was not enough, and here is
+        what governed state would be"*. The second follows from attempting the first."""
+        return self.authorizer.requirement_for(family, target, data_state=data_state, note=note)
 
     # ── serving an expression — NOT HERE ANY MORE ────────────────────────────────────────────
     #

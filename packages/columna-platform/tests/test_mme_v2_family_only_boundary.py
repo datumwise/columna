@@ -293,7 +293,8 @@ def test_the_sort_verdict_survives_as_a_BOUNDARY_check(mme, evaluator, exprs, fa
                          instance=output.instance, realization=mme.realization),
         value=output)
     assert not from_above.continuation_bearing
-    verdict = mme.adjudicate(from_above, fams["distinct"], KEX.TOTAL)
+    verdict = mme.adjudicate(
+        from_above, mme.authorizer.authorize(fams["distinct"], KEX.TOTAL).request)
     assert not verdict and verdict.code == "not-continuation-bearing"
     assert "never becomes family continuation state" in verdict.detail
 
@@ -860,11 +861,17 @@ def test_eviction_neutrality_for_a_descendants_rights_still_holds(fams):
     day = [m for m in engine.materializations.select("revenue", anchor=KEX.BY_DAY)][0]
     root = engine.materializations.select("revenue", anchor=KEX.SALE_AT)[0]
 
+    # **B-0b: the authorization is minted once and reused across the eviction**, which is the sharper form
+    # of the same invariant — the request's existence does not depend on what is resident, so an eviction
+    # cannot change it, and the cache's verdict about a payload it still holds does not change either.
+    request = engine.authorizer.authorize(fams["revenue"], KEX.TOTAL).request
     before = engine.adjudicate(
-        Retained(key=engine._descriptor(day), value=day.value), fams["revenue"], KEX.TOTAL)
+        Retained(key=engine._descriptor(day), value=day.value), request)
     engine.materializations.evict(root.id)
     after = engine.adjudicate(
-        Retained(key=engine._descriptor(day), value=day.value), fams["revenue"], KEX.TOTAL)
+        Retained(key=engine._descriptor(day), value=day.value), request)
+    assert engine.authorizer.authorize(fams["revenue"], KEX.TOTAL), (
+        "authorization must not depend on residency")
 
     assert bool(before) == bool(after) and before.code == after.code
     assert engine.materialization(root.id).residency == EVICTED

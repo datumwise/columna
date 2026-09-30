@@ -89,7 +89,8 @@ def main() -> int:                                          # noqa: C901 - an ex
                          realization=mme.realization),
         value=service.expressions.evaluate(
             mme.expression("distinct_customer_estimate"), BY_DAY).value)
-    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), BY_DAY)
+    _auth = mme.authorizer.authorize(mme.family("distinct_customers"), BY_DAY)
+    verdict = mme.adjudicate(from_above, _auth.request)
     print(f"    held by the MME?  "
           f"{any(k.identity == 'distinct_customer_estimate' for k in mme.held)}")
     print(f"    offered from above: continuation_bearing={from_above.continuation_bearing}")

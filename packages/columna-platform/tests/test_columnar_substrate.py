@@ -508,7 +508,8 @@ def test_an_expression_output_is_not_family_state_and_has_no_continuation_path(s
         key=RetentionKey(identity="average_order_value", anchor=EX.BY_DAY,
                          instance=output.instance, realization=mme.realization),
         value=output)
-    verdict = mme.adjudicate(from_above, mme.family("revenue"), EX.BY_DAY)
+    verdict = mme.adjudicate(
+        from_above, mme.authority.authorizer.authorize(mme.family("revenue"), EX.BY_DAY).request)
     assert not verdict and verdict.code == "not-continuation-bearing"
 
 
@@ -545,7 +546,7 @@ def test_the_authority_is_the_kernels_own_adjudicate_reused_verbatim(mme):
     import inspect
 
     source = inspect.getsource(ColumnarMME.adjudicate)
-    assert "self.authority.adjudicate(candidate, family, target)" in source
+    assert "self.authority.adjudicate(candidate, request)" in source
     assert mme.authority.adjudicate.__func__ is KernelMME.adjudicate
 
 
@@ -605,7 +606,9 @@ def test_the_estimate_is_served_only_through_expression_finalization(mme, evalua
         key=RetentionKey(identity="distinct_customer_estimate", anchor=EX.BY_DAY,
                          instance=answer.value.instance, realization=mme.realization),
         value=answer.value)
-    verdict = mme.adjudicate(from_above, mme.family("distinct_customers"), EX.BY_DAY)
+    verdict = mme.adjudicate(
+        from_above,
+        mme.authority.authorizer.authorize(mme.family("distinct_customers"), EX.BY_DAY).request)
     assert not verdict and verdict.code == "not-continuation-bearing"
 
 

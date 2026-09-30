@@ -58,10 +58,16 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 from columna_platform.kernel import AnalyticalInstance, KernelRefusal
+from columna_platform.kernel.law import POPULATION, VALUE_BEARING
 
 #: The two reduction shapes. Both contribute over PARTICIPATION; they differ in what they require of it.
-VALUE_BEARING = "value-bearing"      # requires an established value at every participating point
-POPULATION = "population"            # requires membership only
+#
+# **RE-EXPORTED, NO LONGER DEFINED HERE (B-0b).** These two strings were declared in this module, and the
+# columnar MME chose between them with a hardcoded set of law names. The shape is a property OF THE LAW —
+# whether its reduction reads values or only membership — so `kernel.law` declares it and `AnalyticalLaw`
+# carries it. The names stay importable from here because every columnar caller already reads them from
+# this module and the vocabulary is genuinely shared; what is gone is the second DEFINITION, which is how
+# one word becomes two meanings.
 
 
 def _shape_or_refuse(shape: str, family_id: str) -> str:

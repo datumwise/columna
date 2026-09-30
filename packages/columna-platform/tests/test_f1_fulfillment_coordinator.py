@@ -315,7 +315,7 @@ def test_a_provider_offering_unlawful_material_is_refused_at_admission(cold, fam
     assert not outcome.served
     assert estate.realized == 1                                  # it did run …
     assert len(outcome.realized) == 1 and not outcome.realized[0].admitted      # … and was refused
-    assert "anchor-outside-the-continuation-region" in outcome.realized[0].detail
+    assert "outside-continuation-region" in outcome.realized[0].detail
     assert not cold.materializations.select("on_hand", anchor=KEX.BY_STORE, eligibility=None)
     assert outcome.mood == INCOMPLETE
 

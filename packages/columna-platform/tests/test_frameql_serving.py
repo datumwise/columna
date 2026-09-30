@@ -275,7 +275,9 @@ def test_the_estimates_scalar_cannot_seed_family_continuation_after_being_served
                                      realization=service.mme.realization),
                     value=output)
     assert not held.continuation_bearing
-    verdict = service.mme.adjudicate(held, service.mme.family("distinct_customers"), WORLD.BY_DAY)
+    _auth = service.mme.authorizer.authorize(
+        service.mme.family("distinct_customers"), WORLD.BY_DAY)
+    verdict = service.mme.adjudicate(held, _auth.request)
     assert not verdict and verdict.code == "not-continuation-bearing"
     assert "never becomes family continuation state" in verdict.detail
 
@@ -324,7 +326,11 @@ def test_explain_over_a_family_shows_every_candidate_and_its_adjudication(servic
     outcome = service.serve("EXPLAIN SELECT revenue AT {}")
     plan = "\n".join(outcome.plan)
     assert "FAMILY, R_F=commerce{day, order, store}" in plan
-    assert "MME.measure()" in plan
+    # **EXPLAIN SHOWS TWO ACTS SINCE B-0b**, because there are two and a plan that merged them could not
+    # say which one stopped a request: authorization is constitutional and comes first, the cache's
+    # adjudication of each candidate only when a request exists.
+    assert "authorize() → MME.fulfill()" in plan
+    assert "authorized: fold grouped:addition" in plan
     assert "ADMITTED" in plan
 
 
