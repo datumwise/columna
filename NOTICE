@@ -9,6 +9,21 @@ the License at:
 
     http://www.apache.org/licenses/LICENSE-2.0
 
+SCOPE OF THAT LICENSE. The Apache-2.0 license above governs the three
+PUBLISHED packages distributed as Columna:
+
+  - columna          (the metapackage)
+  - columna-core     (the engine + wire contract)
+  - columna-server   (the MCP server + agent)
+
+It does NOT govern the two proof-stage packages also present in this repository:
+
+  - columna-platform
+  - columna-adbc
+
+Those are PROPRIETARY, all rights reserved. They are published to no package index,
+no license is granted in them, and each carries its own LICENSE file stating so.
+
 Columna Core depends on the following third-party packages at runtime, each under
 its own license:
 
