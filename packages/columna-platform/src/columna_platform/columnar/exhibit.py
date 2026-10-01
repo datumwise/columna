@@ -61,6 +61,8 @@ from .provider import sketch_of, sketch_parameters
 from .standing import POPULATION, VALUE_BEARING, standing
 
 MANIFOLD = "andfam.commerce"
+#: **This exhibit's build.** Explicit since J-0: an engine has no default identity.
+BUILD = "build-1"
 OTHER_MANIFOLD = "acme.commerce"
 PARTICIPATION = "every customer order the merchant accepted"
 AUDITED = "every customer order the merchant accepted AND the auditor confirmed"
@@ -159,7 +161,7 @@ def build(manifold: str = MANIFOLD, *, settled: bool = False,
     `settled=False` is the world AS RECORDED, in which O7's amount is not established. `settled=True` is the
     same seven orders after the merchant supplied it — the control, and the only difference is O7's support
     bit and its amount."""
-    authority = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=manifold)
+    authority = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=manifold, build=BUILD)
     for family in _families(manifold):
         authority.register_family(family)
     for expression in _expressions(manifold):
@@ -680,7 +682,7 @@ def _refuses_invented_point(mme: ColumnarMME) -> bool:
 
 
 def _refuses_foreign_family() -> bool:
-    authority = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
+    authority = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build=BUILD)
     try:
         authority.register_family(_families(OTHER_MANIFOLD)[0])
     except KernelRefusal as exc:

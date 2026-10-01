@@ -454,7 +454,7 @@ def test_a_realization_limit_reaches_the_caller_as_UNSUPPORTED_not_as_a_refusal(
     from columna_platform.kernel import MME, REGISTRY
     from columna_platform.kernel.builtins import NO_MEAN
 
-    mme = MME(WORLD.COMMERCE, REGISTRY, NO_MEAN, manifold=WORLD.MANIFOLD)
+    mme = MME(WORLD.COMMERCE, REGISTRY, NO_MEAN, manifold=WORLD.MANIFOLD, build=WORLD.BUILD)
     revenue, order_count, *_ = WORLD._families()
     mme.register_family(revenue)
     mme.register_family(order_count)

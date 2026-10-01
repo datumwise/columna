@@ -681,16 +681,20 @@ def test_the_build_is_the_constitution_context(mme):
     assert all(m.build == mme.build for m in mme.materializations.all())
 
 
-def test_a_declaration_move_inside_one_build_supersedes_its_materializations(mme):
-    """The irregular case, given the governed consequence the lifecycle already has."""
+def test_a_declaration_move_inside_one_build_is_refused_rather_than_absorbed(mme):
+    """**J-0 retired the irregular case instead of handling it.** It used to supersede every
+    materialization of that name — across every attached store, by bare `family_id`, with no manifold
+    or build filter. A meaning change is a successor build, so the edit is refused and the held
+    material stays exactly as current as the constitution that established it."""
     held = _current(mme, "revenue", CEX.SALE_AT)[0]
-    mme.authority.register_family(
-        replace(mme.family("revenue"), participation="every order the auditor confirmed"))
-    assert mme.materialization(held.id).eligibility == SUPERSEDED
+    with pytest.raises(KernelRefusal) as exc:
+        mme.authority.register_family(
+            replace(mme.family("revenue"), participation="every order the auditor confirmed"))
+    assert exc.value.code == "constitution-moved-in-place"
+    assert "participation" in exc.value.detail
+    assert mme.materialization(held.id).eligibility == CURRENT
     assert mme.materialization(held.id).residency == RESIDENT
-    assert "the declaration of 'revenue' moved" in mme.materialization(held.id).superseded_reason
-    assert [s.changed for s in mme.stale_states()] == [("participation",)]
-    assert not mme.measure("revenue", CEX.BY_DAY).served
+    assert mme.measure("revenue", CEX.BY_DAY).served
 
 
 def test_the_per_object_witness_is_still_computable_and_is_not_the_partition(mme):

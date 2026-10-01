@@ -114,6 +114,10 @@ class ExpressionEvaluator:
         **There is no cache lookup at the top of this method**, and its absence is M-2. In M-1 this began
         by resolving a pool of retained `E@A` objects out of the MME store; that store is gone and the
         expression is established from its basis every time."""
+        # **THE EXPRESSION MUST BE THIS BUILD'S** (J-0). The law is taken from this engine's registry
+        # by name, but `admitted_bases`, `parameters` and `instance()` are read off the object handed in —
+        # so an unconstituted declaration got a local law and stamped its own jurisdiction on the output.
+        expression = self.mme.subject_expression(expression)
         law = self.families.law_of(expression.expression_id)
         considered: list[str] = []
 

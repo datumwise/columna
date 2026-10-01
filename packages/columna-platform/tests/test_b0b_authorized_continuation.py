@@ -145,14 +145,22 @@ def test_a_standing_cannot_be_manufactured_either(mme):
     assert refused.value.code == "unauthorized-standing"
 
 
-def test_the_mint_is_module_private_and_unexported(mme, fams):
-    """The capability is one module-private object. It is not in `__all__`, not on the authority, and not
-    reachable from any governed type — so "obtain a mint" is not a move an ordinary caller has."""
-    assert "_MINT" not in authorization_module.__all__
-    assert not hasattr(ContinuationAuthority, "_MINT")
+def test_the_mint_is_module_private_and_one_per_authority(mme, fams):
+    """The capability is a module-private class, so "obtain a mint" is not a move an ordinary caller has.
+
+    **AND SINCE J-0 THERE IS ONE INSTANCE PER AUTHORITY, not one per module.** A process may hold two
+    Manifold builds; with a module singleton, a credential granted by one satisfied the other's guard
+    and a foreign build's permission was indistinguishable from a local one."""
+    assert "_Mint" not in authorization_module.__all__
+    assert "_MINT" not in dir(authorization_module)
     granted = mme.authorizer.authorize(fams["revenue"], EX.BY_DAY).request
-    assert granted.issued_by is authorization_module._MINT     # the private name, reached deliberately
     assert type(granted.issued_by).__name__ == "_Mint"
+    assert granted.issued_by is mme.authorizer._mint
+    assert mme.authorizer.issued(granted)
+
+    other = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold="acme.commerce", build=EX.BUILD)
+    assert other.authorizer._mint is not mme.authorizer._mint
+    assert not other.authorizer.issued(granted)
 
 
 def test_a_minted_request_cannot_be_retargeted_by_replacing_its_fields(mme, fams):
@@ -281,7 +289,7 @@ def test_the_four_surviving_checks_and_each_ones_jurisdiction(mme, fams):
     # build capability — the law is realized by the profile or it is not, and that is about the engine
     from columna_platform.kernel.builtins import NO_MEAN
 
-    limited = MME(EX.COMMERCE, REGISTRY, NO_MEAN, manifold=EX.MANIFOLD)
+    limited = MME(EX.COMMERCE, REGISTRY, NO_MEAN, manifold=EX.MANIFOLD, build=EX.BUILD)
     assert not limited.provider.realizes("MEAN")
     assert mme.provider.realizes("SUM")
 
@@ -382,7 +390,7 @@ def test_a_miss_and_an_unauthorized_request_are_different_outcomes(mme, fams):
     """**§7: MME MISS has no analytical meaning.** A miss means only that the cache cannot currently satisfy
     an already-lawful request from what it holds. An unlawful target is not a miss — it never reaches the
     cache — so the two can no longer be confused, which the single old path allowed."""
-    cold = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD)
+    cold = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD)
     for family in EX._families():
         cold.register_family(family)
 
@@ -402,7 +410,7 @@ def test_an_unauthorized_request_is_observed_as_UNSUPPORTED_and_never_as_a_miss(
     from columna_platform.kernel.observation import RecordingObserver, UNSUPPORTED
 
     watcher = RecordingObserver()
-    engine = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD, observer=watcher)
+    engine = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD, observer=watcher)
     for family in EX._families():
         engine.register_family(family)
     engine.measure(fams["on_hand"], EX.TOTAL)
@@ -445,7 +453,7 @@ def test_changing_the_region_changes_which_requests_exist(forgettable, expect_to
 
     engine = MME(EX.COMMERCE, registry,
                  ProviderProfile("test", (*(IN_MEMORY.of(n) for n in IN_MEMORY.laws), profile)),
-                 manifold=EX.MANIFOLD)
+                 manifold=EX.MANIFOLD, build=EX.BUILD)
     family = MeasureFamily(family_id="tested", manifold=EX.MANIFOLD, universe="commerce",
                            root=EX.SALE_AT, law="TESTSUM", value_domain="decimal",
                            participation=EX.PARTICIPATION, target="a test family")

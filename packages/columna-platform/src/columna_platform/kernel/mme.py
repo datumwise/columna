@@ -197,24 +197,6 @@ class Retained:
         return bool(getattr(self.value, "CONTINUATION_BEARING", False))
 
 
-@dataclass(frozen=True)
-class Staleness:
-    """**One retained object whose constitution has moved, and WHICH determinant moved.**
-
-    *"Staleness due to constitution change is mechanically detectable"* (P-1). Detectable is the floor; this
-    record is the ceiling — it names the determinants, because a steward asked to re-establish from the root
-    is owed the governed fact that made it necessary."""
-
-    key: RetentionKey
-    held_under: str
-    current: ConstitutionWitness
-    changed: tuple[str, ...]
-    detail: str
-
-    def __str__(self) -> str:
-        return f"{self.key} STALE [{', '.join(self.changed)}]"
-
-
 # ── THE PRIOR QUESTIONS, AND WHY THIS MODULE NO LONGER ASKS THEM ────────────────────────────────
 # M-1 shipped `PoolResolution` / `resolve_pool`: a screen that asked, before any adjudication, whether a
 # held object was (a) under the CURRENT constitution and (b) drawn from ONE evidence state. **M-2 retires
@@ -253,8 +235,12 @@ class MME:
     """The engine. In-memory, single provider profile, conservative invalidation."""
 
     def __init__(self, universe: Universe, laws: LawRegistry, provider: ProviderProfile, *,
-                 manifold: str = "default", build: Optional[str] = None,
+                 manifold: str, build: str,
                  observer: Optional[WorkloadObserver] = None) -> None:
+        """**`manifold` and `build` are REQUIRED** (J-0). They used to default to `"default"` and
+        `"build-1"`, so two engines constructed without arguments shared one `build.reference` and every
+        guard keyed on it compared a world to itself. An engine that cannot say which build it is cannot
+        refuse another build's material, and the ceremony is one keyword at twenty-five call sites."""
         # **ONE MME PER MANIFOLD JURISDICTION.** A logical rule, not a deployment one: this engine may
         # share its process, its provider and its store with any number of others. What it may not share
         # is authority, so it refuses to register an object belonging to another Manifold — the accident
@@ -264,7 +250,7 @@ class MME:
         #: `constitution_context = ManifoldBuildId`). A new build is a new world and old cache state is not
         #: reused into it by default — which is why the store is per-build and the per-object witness is no
         #: longer the runtime partition mechanism.
-        self.build = ManifoldBuild(manifold=manifold, build=build or "build-1")
+        self.build = ManifoldBuild(manifold=manifold, build=build)
         #: **Family materializations.** Cache-object identity is opaque and two instances of one `F@A` may
         #: coexist here; the analytical facts are selectable attributes of the records.
         self.materializations = MaterializationStore(self.build)
@@ -286,12 +272,8 @@ class MME:
         #: re-registration and nothing is ever removed: a superseded constitution is a fact about the past,
         #: and forgetting it would make the state held under it unexplainable.
         self._constitutions: dict[str, ConstitutionWitness] = {}
-        #: Diagnostics only (ruled §6): which materializations stopped being current because a declaration
-        #: moved, and which determinant moved. Not a version store and not consulted when serving.
-        self._declaration_moves: list[Staleness] = []
         #: Stores holding material under this authority's build — this engine's own, plus any columnar
-        #: engine attached to it. A declaration move must reach all of them, because the consequence is a
-        #: fact about the constitution and not about which substrate happens to hold the bytes.
+        #: engine attached to it. Every one of them must be ON this build; `attach_store` enforces it.
         self._attached: list[MaterializationStore] = [self.materializations]
         #: **THE COMPONENT THAT OWNS ANALYTICAL CONTINUATION AUTHORIZATION** (B-0b). Constructed over this
         #: engine because this class is still the Manifold build authority as well as the cache — the
@@ -313,20 +295,24 @@ class MME:
         `MeasureFamily.bind` raises for a law with no continuation, so a Mean family is not a reachable
         state of this engine."""
         self._require_own(family.manifold, family.family_id)
-        was = self._families.get(family.family_id)
-        was_witness = self.witness_of(family.family_id) if was is not None else None
-        self._bound[family.family_id] = family.bind(self.laws)
+        bound = family.bind(self.laws)
+        witness = family.witness(bound)
+        if family.family_id in self._families:
+            self._refuse_in_place_movement(family.family_id, witness)
+        self._bound[family.family_id] = bound
         self._families[family.family_id] = family
-        witness = self._remember(family.witness(self._bound[family.family_id]))
-        if was_witness is not None and was_witness.digest != witness.digest:
-            self._declaration_moved(family.family_id, was_witness, witness)
+        self._remember(witness)
         return family
 
     def register_expression(self, expression: GovernedExpression) -> GovernedExpression:
         self._require_own(expression.manifold, expression.expression_id)
-        self._bound[expression.expression_id] = expression.bind(self.laws, self._families)
+        bound = expression.bind(self.laws, self._families)
+        witness = expression.witness(bound)
+        if expression.expression_id in self._expressions:
+            self._refuse_in_place_movement(expression.expression_id, witness)
+        self._bound[expression.expression_id] = bound
         self._expressions[expression.expression_id] = expression
-        self._remember(expression.witness(self._bound[expression.expression_id]))
+        self._remember(witness)
         return expression
 
     def _require_own(self, manifold: str, identity: str) -> None:
@@ -338,32 +324,50 @@ class MME:
                 f"registering it here would put one identity under two authorities.")
 
     def attach_store(self, store: MaterializationStore) -> MaterializationStore:
-        """Register another engine's materialization store under this authority."""
+        """Register another engine's materialization store under this authority. **It must be on this
+        build** (J-0): a store is partitioned by the world it belongs to, and attaching one from another
+        world would put this authority's name over material it never constituted."""
+        if store.build != self.build:
+            raise KernelRefusal(
+                "foreign-store", str(store.build),
+                f"a materialization store for {store.build.reference} cannot be attached to the "
+                f"authority of {self.build.reference}. A store is partitioned by build because a build "
+                f"is a semantic world; attaching across one would make this authority answerable for "
+                f"material constituted under a declaration it does not hold.")
         if store not in self._attached:
             self._attached.append(store)
         return store
 
-    def _declaration_moved(self, identity: str, was: ConstitutionWitness,
-                           now: ConstitutionWitness) -> None:
-        """**A declaration moved inside one build, so every materialization of it stops being current.**
+    def _refuse_in_place_movement(self, identity: str, now: ConstitutionWitness) -> None:
+        """**A build does not reinterpret its own constitution** (J-0, ruling 5).
 
-        Under MME v1 the Manifold BUILD is the semantic world (ruled §6), so the ordinary way to change
-        semantics is to build again — and old cache state is not carried into a new world. Changing a
-        declaration *in place* is the irregular case, and the honest consequence is the governed one the
-        lifecycle already has: the material is not wrong, it is **not current**, and it may stay resident
-        for as long as policy likes. Nothing is patched and nothing is silently dropped; re-establishment
-        is from the root."""
-        comparison = was.compare(now)
-        for store in self._attached:
-            affected = store.select(identity, eligibility=CURRENT)
-            store.supersede(
-                [m.id for m in affected],
-                reason=f"the declaration of {identity!r} moved within build {self.build}: "
-                       f"{', '.join(comparison.changed)}")
-            for m in affected:
-                self._declaration_moves.append(Staleness(
-                    key=self._descriptor(m), held_under=was.digest, current=now,
-                    changed=comparison.changed, detail=comparison.detail))
+        The former behaviour was `_declaration_moved`: re-registering a changed declaration superseded
+        every materialization of that name, in this store and in every attached one, and filed a
+        `Staleness` record describing what moved. Two things were wrong with it. It swept by bare
+        `family_id` with no manifold or build filter, so one world's edit could supersede another
+        world's material of the same name. And it treated constitutional movement as an event a
+        *running* engine absorbs, when a meaning change is a successor build — the store is per-build
+        precisely so that the old world's material is unreachable from the new one rather than needing
+        to be chased. The observability `stale_states()` carried now rides on this refusal, which names
+        the determinants that moved.
+
+        **THE TEST IS THE WITNESS, NOT DATACLASS EQUALITY**, and the distinction is load-bearing. A
+        declaration may be re-registered with a non-identity-bearing field changed — a target
+        description, an alias, or an ADDITIONAL ADMITTED BASIS, which the 2026-09-28 ruling is explicit
+        about: *"admitting a new route must not stale values already established over an existing
+        one."* Those are not movement. Only a determinant change is."""
+        before = self.witness_of(identity)
+        if before.digest == now.digest:
+            return
+        comparison = before.compare(now)
+        raise KernelRefusal(
+            "constitution-moved-in-place", f"{identity}@{self.build.reference}",
+            f"{identity!r} is already constituted in build {self.build.reference} and the declaration "
+            f"offered differs in {', '.join(comparison.changed) or 'an identity-bearing fact'}. A "
+            f"governed meaning change is a SUCCESSOR BUILD, not an edit to a running one: material held "
+            f"here was established under the constitution this engine still holds, and reinterpreting "
+            f"it in place would leave values whose meaning nobody can state. Build again. "
+            f"{comparison.detail}")
 
     def _remember(self, witness: ConstitutionWitness) -> ConstitutionWitness:
         self._constitutions[witness.digest] = witness
@@ -393,14 +397,6 @@ class MME:
         """A constitution this engine has registered at some point, by digest — its own history."""
         return self._constitutions.get(digest)
 
-    def stale_states(self) -> tuple[Staleness, ...]:
-        """**Which materializations stopped being current because a declaration moved, and what moved.**
-
-        Diagnostics (ruled §6): the per-object witness is no longer the runtime partition — the build is —
-        so this reports rather than decides. The governed consequence already happened at re-registration:
-        the affected materializations are `SUPERSEDED`, which is why they cannot be served."""
-        return tuple(self._declaration_moves)
-
     def instance_of(self, identity: str) -> Any:
         """The analytical instance of a registered object — **stamped with this engine's Manifold.**
 
@@ -424,10 +420,55 @@ class MME:
 
         It is deliberately NOT a lookup that returns either sort — `sort_of` is still asked first, and
         `expression()` is still a peer of `family()` (M-2). This normalises the SPELLING of one family, not
-        the question of which sort a token is."""
+        the question of which sort a token is.
+
+        **AND IT IS WHERE REGISTERED-DECLARATION AUTHORITY IS ESTABLISHED** (J-0). It used to return the
+        caller's object verbatim, which made it the widest door in the kernel: `authorize`,
+        `authorize_standing`, `requirement_for`, `measure`, `requirement_for` and the Fulfillment
+        Coordinator all funnel through here, and each then read `root`, `parameters` and `instance()` off
+        an object nobody had checked while taking the LAW from this engine's registry. A declaration from
+        another build — or a same-named declaration from this one that nobody constituted — was
+        authorized against a constitution it does not belong to.
+
+        The test is equality against what this build registered, **not** `obj.manifold == self.manifold`.
+        That is deliberate and it is stronger three ways: it catches an object that merely *claims* the
+        right Manifold; it catches a same-Manifold object whose root or parameters differ from the
+        constituted one, which a name check waves through and which is exactly what the callers above go
+        on to read; and it needs no new field, because `MeasureFamily` is frozen and compares by value.
+        **Constitution is authority; self-description is not.**
+
+        It returns the REGISTERED declaration rather than the caller's equal copy, so that everything
+        downstream reads the constituted object."""
         if isinstance(family_or_id, str):
             return self._families[family_or_id]
-        return family_or_id
+        return self._constituted(family_or_id, self._families, "family")
+
+    def subject_expression(self, expression_or_id: Any) -> GovernedExpression:
+        """`subject`'s peer for the expression sort (M-2 keeps them peers rather than widening either)."""
+        if isinstance(expression_or_id, str):
+            return self._expressions[expression_or_id]
+        return self._constituted(expression_or_id, self._expressions, "expression")
+
+    def _constituted(self, declared: Any, registry: Mapping[str, Any], sort: str) -> Any:
+        """**The one jurisdiction test for declarations.** See `subject`."""
+        identity = getattr(declared, "family_id", None) or getattr(declared, "expression_id", "?")
+        registered = registry.get(identity)
+        if registered is None:
+            raise KernelRefusal(
+                "not-constituted", str(identity),
+                f"no {sort} named {identity!r} is constituted in build {self.build.reference}. A "
+                f"declaration does not acquire authority by being handed to an engine; it acquires it by "
+                f"being registered, and this one was not.")
+        if registered != declared:
+            raise KernelRefusal(
+                "foreign-declaration", str(identity),
+                f"the {sort} offered as {identity!r} is not the declaration build "
+                f"{self.build.reference} constituted. It may belong to another Manifold, to another "
+                f"build of this one, or to nothing at all — this engine cannot tell and must not guess. "
+                f"Analytical authority comes from constitution, not from what an object says about "
+                f"itself, and reading a root or a parameter off an unconstituted declaration while "
+                f"taking the law from this registry would adjudicate a question nobody asked here.")
+        return registered
 
     def expression(self, expression_id: str) -> GovernedExpression:
         """**A PEER of `family()`, not a widening of it.** A caller asks `sort_of` first and then the
@@ -467,7 +508,12 @@ class MME:
         Each root cell's occurrences are handed to the provider's `contribute` as BOTH the bare operand
         values and the whole rows. The rows are there for an ORDERED law, which cannot select a witness
         from values alone — it needs the governed order key beside each one — and passing them always is
-        cheaper than a second entry point that exists for one law's benefit."""
+        cheaper than a second entry point that exists for one law's benefit.
+
+        **The family is resolved through `subject` first** (J-0): this is the one establishment path that
+        does not already go through the authority, and it reads `root`, `parameters`, `order_by` and
+        `instance()` off whatever it is handed."""
+        family = self.subject(family)
         law = self._bound[family.family_id]
         contribute = self.provider.capability(law.name, "contribute")
         buckets: dict[tuple, list[Mapping[str, Any]]] = {}
@@ -534,7 +580,25 @@ class MME:
         `establishment` is the material's ACTUAL standing and is never manufactured (ruled §8): a value
         formed at `R_F` is `AT_ROOT`, one folded from held material is `CONTINUED` and names its parent, and
         one supplied at a non-root anchor by a governed realization is `INDEPENDENT` — which is a different
-        claim from "it was derived and we lost the receipt"."""
+        claim from "it was derived and we lost the receipt".
+
+        **THE VALUE'S OWN JURISDICTION IS CHECKED HERE** (J-0), with the test the realization path has
+        always used — `same_but_for_data_state`, which compares manifold, universe, participation, scope
+        and `constitution_context`, and is therefore a jurisdiction test and a build test at once. The
+        local path reached the cache without it: `retain` checked only the sort and `establish_root`
+        stamped a context onto an instance it had not verified. `retain` inherits this check by calling
+        here, and the realization path keeps its own at fidelity check 4."""
+        carried = getattr(value, "instance", None)
+        if carried is not None:
+            declared = self.instance_of(value.point.family_id)
+            if not carried.same_but_for_data_state(declared):
+                return Admission(
+                    False, code="foreign-material",
+                    detail=f"the value offered for {value.point.family_id!r} is an instance of "
+                           f"{carried.manifold}/{carried.constitution_context} and this engine "
+                           f"constitutes it as {declared.manifold}/{declared.constitution_context}. A "
+                           f"governed value belongs to the world that established it; holding it here "
+                           f"would put one engine's name over another's material.")
         authorized = self.authorizer.authorize_standing(value.point.family_id, value.anchor)
         if not authorized:
             return Admission(False, code=authorized.refusal.code, detail=authorized.refusal.detail)
@@ -563,6 +627,21 @@ class MME:
         still true and is now true because **no standing is minted where it is false** — asked once, above,
         by the component whose question it is."""
         identity = value.point.family_id
+        # **THE STANDING MUST BE THIS ENGINE'S** (J-0). Both checks below this one compare two values the
+        # OFFERER supplied against each other, so they agree whenever an offer is internally consistent —
+        # including an offer assembled by another build. These two ask the question those could not: was
+        # this permission issued by this authority, and is it for this world.
+        if not self.authorizer.issued(standing):
+            return Admission(
+                False, code="foreign-credential",
+                detail=f"the standing offered for {identity!r} was not minted by {self.authorizer.name}. "
+                       f"A credential is permission from one authority; another authority's permission is "
+                       f"a real credential and is not permission here. Obtain one from this engine.")
+        if standing.build != self.build.reference:
+            return Admission(
+                False, code="off-build-material",
+                detail=f"the standing was minted against {standing.build} and this engine is "
+                       f"{self.build.reference}. A new Manifold build is a new semantic world.")
         if standing.family_id != identity or standing.anchor != value.anchor:
             return Admission(
                 False, code="standing-does-not-cover-this-material",
@@ -638,7 +717,12 @@ class MME:
     def candidates(self, family: MeasureFamily) -> tuple[Retained, ...]:
         """Every retained object that *might* seed this family, **including the ones that may not.**
         Separating candidacy from permission is the whole shape of this module: a test can hold a
-        candidate in one hand and its refusal in the other."""
+        candidate in one hand and its refusal in the other.
+
+        The family is resolved through `subject` (J-0): this reads a name off whatever it is handed and
+        then lists THIS build's material under it, so an unconstituted declaration would have had local
+        holdings reported as its own."""
+        family = self.subject(family)
         return tuple(Retained(key=self._descriptor(m), value=m.value)
                      for m in self.materializations.select(family.family_id, eligibility=None)
                      if m.has_payload)
@@ -651,6 +735,9 @@ class MME:
     # ── the adjudication ─────────────────────────────────────────────────────────────────────
     def adjudicate(self, candidate: Retained, request: AuthorizedFamilyContinuation) -> Adequacy:
         """**Can THIS held object fulfill an ALREADY-AUTHORIZED continuation?** Four questions, in order.
+
+        Five, since J-0: the first is whether the authorization is this authority's. A credential is a
+        permission one build issued; another build's is a real credential and is not permission here.
 
         **THE SIGNATURE IS THE RESULT OF B-0b.** It was `(candidate, family, target)` and it consulted the
         family law, because the third of its five questions was constitutional. That question is gone — the
@@ -680,6 +767,15 @@ class MME:
              unservable, which is a different sentence from unlawful. Deliberately kept here rather than in
              the authority, because it is a question about the engine, not the constitution."""
         value = candidate.value
+
+        # 0 · WHOSE PERMISSION IS THIS? (J-0)
+        if not self.authorizer.issued(request):
+            return Adequacy(
+                False, "foreign-credential",
+                f"the continuation offered for {request.family_id!r} was not authorized by "
+                f"{self.authorizer.name}. An authorization is one build's permission over its own "
+                f"governed object; adjudicating held material against another build's permission "
+                f"would answer a question this jurisdiction was never asked.")
 
         # 1 · SORT.
         if not candidate.continuation_bearing:
@@ -776,6 +872,11 @@ class MME:
         `RequestObservation` per call, on every path — hit, derivation and miss — because *"a cache policy
         cannot learn from hits alone."* Observation is emitted AFTER the answer is determined and never gates
         it."""
+        if not self.authorizer.issued(request):                      # J-0, as in `adjudicate`
+            raise KernelRefusal(
+                "foreign-credential", f"{request.family_id}@{request.target}",
+                f"this continuation was authorized by another build, not by {self.authorizer.name}. "
+                f"Serving it here would fulfil one jurisdiction's permission out of another's cache.")
         started_ns = time.perf_counter_ns()
         anchor = request.target
         observed = FamilyRequest(manifold=self.manifold, build=request.build,
@@ -948,4 +1049,4 @@ class MME:
         return tuple(self._descriptor(m) for m in materialized)
 
 
-__all__ = ["MME", "Adequacy", "Retained", "RetentionKey", "Staleness"]
+__all__ = ["MME", "Adequacy", "Retained", "RetentionKey"]

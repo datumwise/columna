@@ -187,7 +187,7 @@ def mme():
 @pytest.fixture
 def cold():
     """An engine that is CONSTITUTED and holds nothing — the world in which `NEED` is the answer."""
-    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD,
+    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD,
                  observer=RecordingObserver())
     for family in KEX._families():
         engine.register_family(family)

@@ -82,7 +82,7 @@ def _code_only(module) -> str:
 
 @pytest.fixture
 def mme():
-    engine = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD)
+    engine = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD)
     for family in EX._families():
         engine.register_family(family)
     return engine
@@ -134,11 +134,15 @@ def test_the_credential_cannot_be_constructed_outside_the_authority(mme, fams):
     assert "settle analytical identity by assertion" in refused.value.detail
 
 
-def test_the_mint_is_module_private_and_unexported():
-    """Same instrument as B-0b's, for the same reason and with no cryptography."""
-    assert "_MINT" not in fidelity_module.__all__
-    assert not hasattr(RealizationAuthority, "_MINT")
-    assert type(fidelity_module._MINT).__name__ == "_Mint"
+def test_the_mint_is_module_private_and_one_per_authority(mme):
+    """Same instrument as B-0b's, for the same reason, with no cryptography — and one per authority
+    since J-0, so an adjudication says WHICH build found the offer faithful."""
+    assert "_Mint" not in fidelity_module.__all__
+    assert "_MINT" not in dir(fidelity_module)
+    assert type(mme.realizations._mint).__name__ == "_Mint"
+
+    other = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold="acme.commerce", build=EX.BUILD)
+    assert other.realizations._mint is not mme.realizations._mint
 
 
 def test_the_door_refuses_a_raw_offer_with_a_governed_message(mme, fams):
@@ -588,7 +592,7 @@ def test_every_owner_the_ladder_names_is_a_real_distinct_callable():
     `MME.put` and `MME.fulfill` live on one class — the residual B-0 recorded, since this class is still
     both the Manifold build authority and the cache — but they are two METHODS, and that they are two is
     what keeps admission from consulting held state and fulfillment from admitting anything."""
-    from columna_platform.kernel import MME, ContinuationAuthority, RealizationAuthority
+    from columna_platform.kernel import MME, ContinuationAuthority
     from columna_platform.kernel.realization_manager import RealizationManager
 
     owners = {

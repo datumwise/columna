@@ -23,6 +23,8 @@ from columna_platform.columnar.expression import ColumnarExpressionEvaluator
 from columna_platform.columnar import ColumnarMME, CoordinateIndex, GovernedBlock, standing
 from columna_platform.columnar.provider import ColumnarProvider
 from columna_platform.kernel import (
+    IN_MEMORY,
+    MME,
     ExpressionEvaluator,
     EXPRESSION_NON_DETERMINANTS,
     FAMILY_NON_DETERMINANTS,
@@ -453,8 +455,7 @@ def test_control_4_a_value_established_under_one_route_survives_admitting_anothe
         SufficientBasis(basis_id="b_alternative",
                         components={"SUM": "revenue", "COUNT": "audited_order_count"},
                         requires_common_participation=True),))
-    mme.register_expression(widened)
-    assert mme.stale_states() == ()                        # nothing became stale
+    mme.register_expression(widened)                       # ACCEPTED: admitting a route is not movement
     # **RE-EVALUATED, NOT RE-SERVED FROM CACHE** (M-2 §1: no expression cache in v1). The control is
     # unaffected and is arguably sharper for it: the claim was never "the cached scalar survived", it was
     # "admitting another route did not invalidate the established VALUE" — and the value is identical.
@@ -468,45 +469,63 @@ CACHED_ROUTE = "cached"
 EVALUATED_ROUTE = "evaluated"
 
 
-# ══ STALENESS — MECHANICALLY DETECTABLE, AND NAMED ════════════════════════════════════════════════
-def test_a_constitution_change_makes_held_state_detectably_stale(mme, revenue):
-    """*"Staleness due to constitution change is mechanically detectable."* Detectable, and diagnosable:
-    the report names the determinant that moved."""
-    assert mme.stale_states() == ()
-
+# ══ CONSTITUTIONAL MOVEMENT — REFUSED IN PLACE, AND NAMED ════════════════════════════════════════
+#
+# **J-0 REPLACED THE STALE-STATE SWEEP WITH A REFUSAL.** Until J-0, re-registering a changed declaration
+# superseded every materialization of that name — in this store and in every attached one, by bare
+# `family_id`, with no manifold or build filter — and filed a `Staleness` record saying what moved.
+# A meaning change is a SUCCESSOR BUILD, so the edit is now refused and the diagnosis rides on the
+# refusal. *"Staleness due to constitution change is mechanically detectable"* (P-1) still holds; what
+# changed is that it is detected before anything is superseded rather than after.
+def test_a_constitution_change_is_refused_in_place_and_names_the_determinant(mme, revenue):
     superseded = replace(revenue, participation="every order the auditor confirmed")
-    mme.register_family(superseded)
 
-    stale = mme.stale_states()
-    assert [s.key.identity for s in stale] == ["revenue"]
-    assert stale[0].changed == ("participation",)
-    assert stale[0].held_under != stale[0].current.digest
-    assert "re-establishment is from the root" in stale[0].detail
+    with pytest.raises(KernelRefusal) as exc:
+        mme.register_family(superseded)
+
+    assert exc.value.code == "constitution-moved-in-place"
+    assert "participation" in exc.value.detail
+    assert "SUCCESSOR BUILD" in exc.value.detail
+    assert "re-establishment is from the root" in exc.value.detail
 
 
-def test_a_stale_state_is_not_served_and_the_refusal_says_it_is_held(mme, revenue):
-    """The state is right there. It is not served, and the refusal does not pretend nothing was held."""
+def test_a_non_determinant_edit_is_not_movement_and_is_accepted(mme, revenue):
+    """The refusal is keyed on the WITNESS, not on dataclass equality. `target` is a description and is
+    in `FAMILY_NON_DETERMINANTS`, so re-registering with a new one is not a constitutional change."""
+    relabelled = replace(revenue, target="booked revenue, net of refunds")
+    assert mme.register_family(relabelled) is relabelled
+    assert mme.witness_of("revenue").digest == W(revenue).digest
+
+
+def test_registering_the_identical_declaration_again_is_a_no_op(mme, revenue):
+    """Idempotence is not movement."""
+    before = mme.witness_of("revenue").digest
+    assert mme.register_family(revenue) is revenue
+    assert mme.witness_of("revenue").digest == before
+
+
+def test_the_held_material_stays_current_because_nothing_moved(mme, revenue):
+    """The old sweep's consequence is gone with it: the engine still holds what it constituted, and it
+    still serves, because the constitution it was established under is the one still in force."""
     superseded = replace(revenue, participation="every order the auditor confirmed")
-    mme.register_family(superseded)
+    with pytest.raises(KernelRefusal):
+        mme.register_family(superseded)
 
-    answer = mme.measure(superseded, KEX.BY_DAY)
-    assert not answer.served
-    # under MME v1 the governed consequence is the lifecycle's own: NOT CURRENT, and still resident
-    assert "NOT CURRENT (superseded)" in answer.refusal.detail
-    assert "Residency never creates analytical authority" in answer.refusal.detail
-    assert mme.materializations.select("revenue", eligibility="superseded")
+    answer = mme.measure(revenue, KEX.BY_DAY)
+    assert answer.served
+    assert not mme.materializations.select("revenue", eligibility="superseded")
 
 
-def test_re_establishing_under_the_new_constitution_serves_again(mme, revenue):
+def test_the_successor_build_constitutes_it_differently_and_holds_none_of_the_old_material(mme, revenue):
+    """Where the change actually lands: a new build, a new store, and no carry-over."""
     superseded = replace(revenue, participation="every order the auditor confirmed")
-    mme.register_family(superseded)
-    assert not mme.measure(superseded, KEX.BY_DAY).served
+    successor = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build="build-2")
+    successor.register_family(superseded)
 
-    mme.establish_root(superseded, KEX.ORDERS)
-    served = mme.measure(superseded, KEX.BY_DAY)
-    assert served.served
-    # the stale state is STILL held and still reported — nothing was patched or quietly dropped
-    assert any(s.key.identity == "revenue" for s in mme.stale_states())
+    assert successor.witness_of("revenue").digest != mme.witness_of("revenue").digest
+    assert len(successor.materializations) == 0
+    carried = successor.admit(mme.materializations.select("revenue", anchor=KEX.SALE_AT)[0].value)
+    assert not carried and carried.code == "foreign-material"
 
 
 def test_the_three_facts_move_independently(mme, revenue):
@@ -646,17 +665,16 @@ def test_a_columnar_block_may_declare_its_data_state_but_not_its_constitution():
     assert "WHAT A BLOCK MAY DECLARE IS THE DATA STATE" in exc.value.detail
 
 
-def test_the_columnar_engine_reports_staleness_through_the_authority():
-    """Not reimplemented in the substrate, for the same reason `adjudicate` is not."""
+def test_the_columnar_engine_refuses_in_place_movement_through_the_authority():
+    """Not reimplemented in the substrate, for the same reason `adjudicate` is not: whether a
+    constitution may move is an analytical question and the substrate gets no second opinion."""
     mme, block = CEX.build(data_state=LOAD_A)
-    assert mme.stale_states() == ()
 
     moved = replace(mme.family("order_count"), participation="a different population")
-    mme.authority.register_family(moved)
-    stale = mme.stale_states()
-    assert {s.key.identity for s in stale} == {"order_count"}
-    assert all(s.changed == ("participation",) for s in stale)
-    assert not mme.measure("order_count", CEX.BY_DAY).served
+    with pytest.raises(KernelRefusal) as exc:
+        mme.authority.register_family(moved)
+    assert exc.value.code == "constitution-moved-in-place"
+    assert mme.measure("order_count", CEX.BY_DAY).served
 
 
 def test_a_columnar_expression_is_attributed_to_its_operands_evidence_state():

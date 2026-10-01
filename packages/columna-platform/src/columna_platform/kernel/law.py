@@ -42,7 +42,7 @@ EXPRESSION constructor, never a continuation.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import KW_ONLY, dataclass, field
 from typing import Optional
 
 from .geometry import Anchor, Edge, KernelRefusal
@@ -292,15 +292,31 @@ class AnalyticalLaw:
         return self.continuation_bearing and self.region.admits(forgotten_since_root | edge.forgotten)
 
 
+@dataclass(frozen=True)
 class LawRegistry:
     """The semantic authority, as a lookup. **Immutable once built**, and a citation that names an
-    unknown law refuses rather than falling back to a same-named law elsewhere."""
+    unknown law refuses rather than falling back to a same-named law elsewhere.
 
-    def __init__(self, laws: tuple[AnalyticalLaw, ...], *, vocabulary: str, version: str) -> None:
-        self.vocabulary, self.version = vocabulary, version
-        self._laws = {law.name: law for law in laws}
-        if len(self._laws) != len(laws):
-            raise KernelRefusal("duplicate-law", vocabulary, "a law is registered twice")
+    **AND IT IS NOW IMMUTABLE BY CONSTRUCTION RATHER THAN BY DOCSTRING** (J-0). It was a plain class
+    whose `vocabulary`, `version` and backing dict were freely reassignable, and one object is shared by
+    every engine in the process — so the sentence above was a request. The idiom is the repository's
+    own: frozen dataclass over tuple storage, derived lookup built in `__post_init__`.
+
+    This does not prejudge B-4a″(ii), where this class becomes Catalogue plus a Manifold-local
+    selection. Installation-shared definitions and the registries resolved from them should both be
+    immutable; what differs is whose authority they carry."""
+
+    laws: tuple[AnalyticalLaw, ...]
+    _: KW_ONLY
+    vocabulary: str
+    version: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "laws", tuple(self.laws))
+        by_name = {law.name: law for law in self.laws}
+        if len(by_name) != len(self.laws):
+            raise KernelRefusal("duplicate-law", self.vocabulary, "a law is registered twice")
+        object.__setattr__(self, "_laws", by_name)
 
     def __contains__(self, name: str) -> bool:
         return name in self._laws

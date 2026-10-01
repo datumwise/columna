@@ -185,6 +185,12 @@ class FrameQLService:
     def __init__(self, mme: MME, evaluator: Optional[ExpressionEvaluator] = None,
                  coordinator: Optional[FulfillmentCoordinator] = None) -> None:
         self.mme = mme
+        #: **ONE SERVICE, ONE JURISDICTION** (J-0). An evaluator or coordinator may be injected, and
+        #: before J-0 nothing noticed when the injected one was bound to a DIFFERENT engine: the service
+        #: would resolve a name in one build and evaluate it in another, which is the same leak as a
+        #: foreign declaration arriving by hand, arriving by wiring instead.
+        self._require_same_engine(evaluator, "evaluator")
+        self._require_same_engine(coordinator, "coordinator")
         #: Constructed over the engine, not obtained from it. An injected one is accepted so that a caller
         #: with a different evaluation strategy can supply it without subclassing the service.
         self.expressions = evaluator or ExpressionEvaluator(mme)
@@ -197,6 +203,17 @@ class FrameQLService:
             mme, evaluator=self.expressions)
 
     # ── the whole path ───────────────────────────────────────────────────────────────────────
+    def _require_same_engine(self, collaborator: Any, role: str) -> None:
+        if collaborator is None:
+            return
+        theirs = getattr(collaborator, "mme", None)
+        if theirs is not None and theirs is not self.mme:
+            raise KernelRefusal(
+                "foreign-collaborator", f"{role}@{self.mme.build.reference}",
+                f"the injected {role} is bound to {getattr(theirs, 'build', '?')} and this service "
+                f"serves {self.mme.build.reference}. A service that resolves a name in one build and "
+                f"evaluates it in another has no single jurisdiction to answer in.")
+
     def serve(self, query: str) -> Outcome:
         try:
             request = interpret(query, universe_references=self.mme.universe.references)

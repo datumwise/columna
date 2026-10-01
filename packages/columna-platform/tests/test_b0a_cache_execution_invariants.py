@@ -304,14 +304,19 @@ def test_b0a_i_was_coverage_only_and_b0b_then_changed_the_production_code():
     B-0a-i touched no production code and this test asserted it by counting `adjudicate`'s returns. B-0b
     then removed one verdict, so the count moved — and that is the unit's result, not a regression. What
     survives is the useful half: the four cache verdicts are all still there under their own names, and the
-    constitutional one is not."""
+    constitutional one is not.
+
+    **J-0 added a fifth refusal and it is not a constitutional reading either.** `foreign-credential`
+    asks whose permission the request carries, which is a question about the credential rather than
+    about the family law — no `region`, no `admits`, no law lookup — so the B-0b property this test
+    guards is unaffected."""
     import inspect
 
     from columna_platform.kernel import mme as mme_module
 
     source = inspect.getsource(mme_module.MME.adjudicate)
-    assert source.count("return Adequacy(") == 6                 # 4 refusals + exact + admitted
-    for code in ("not-continuation-bearing", "not-reachable",
+    assert source.count("return Adequacy(") == 7                 # 5 refusals + exact + admitted
+    for code in ("foreign-credential", "not-continuation-bearing", "not-reachable",
                  "state-no-longer-sufficient", "unrealized-law"):
         assert code in source, code
     # and the fifth is gone from the cache engine entirely

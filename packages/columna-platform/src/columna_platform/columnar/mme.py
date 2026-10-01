@@ -108,7 +108,7 @@ from columna_platform.kernel.materialization import (
     MaterializationStore,
     TransitionIntent,
 )
-from columna_platform.kernel.mme import Retained, RetentionKey, Staleness
+from columna_platform.kernel.mme import Retained, RetentionKey
 from columna_platform.kernel.observation import (
     FamilyRequest,
     Fulfillment,
@@ -445,12 +445,6 @@ class ColumnarMME:
             raise KernelRefusal(admission.code, family_id, admission.detail)
         return state
 
-    def stale_states(self) -> tuple[Staleness, ...]:
-        """**Which materializations stopped being current because a declaration moved**, asked of the
-        authority. Not reimplemented here for the same reason `adjudicate` is not: whether a constitution
-        has moved is an analytical question, and the substrate does not get a second opinion about it."""
-        return self.authority.stale_states()
-
     # ── admission. Holding is never authority. ───────────────────────────────────────────────
     def admit(self, value: Any, *, establishment: Optional[Establishment] = None,
               intent: Optional[TransitionIntent] = None, residency: str = "resident",
@@ -461,7 +455,19 @@ class ColumnarMME:
         The constitutional reading is the SHARED authority's: `self.authority` is the kernel engine, so both
         engines authorize through one `ContinuationAuthority` over one constitution. Two caches, one
         Manifold — which is the right shape, because a family's lawful anchors cannot depend on which
-        substrate is holding its values."""
+        substrate is holding its values.
+
+        **The value's own jurisdiction is checked here too** (J-0), by the same `same_but_for_data_state`
+        the kernel twin now uses and that `establish` has always used."""
+        carried = getattr(value, "instance", None)
+        if carried is not None:
+            declared = self.authority.instance_of(value.point.identity)
+            if not carried.same_but_for_data_state(declared):
+                return Admission(
+                    False, code="foreign-material",
+                    detail=f"the value offered for {value.point.identity!r} is an instance of "
+                           f"{carried.manifold}/{carried.constitution_context} and this engine "
+                           f"constitutes it as {declared.manifold}/{declared.constitution_context}.")
         authorized = self.authority.authorizer.authorize_standing(
             value.point.identity, value.anchor)
         if not authorized:
@@ -479,6 +485,19 @@ class ColumnarMME:
         rather than an interpretation. The only columnar difference is that identity is read as
         `value.point.identity`, because `_Point` is a three-field record whose `family_id` is derived."""
         family_id = value.point.identity
+        # **THE STANDING MUST BE THIS ENGINE'S** (J-0) — see the kernel twin for why the two checks
+        # below cannot answer this. The authority is shared with the kernel engine, so the mint
+        # compared against is the same one: two caches, one Manifold, one permission-issuer.
+        if not self.authority.authorizer.issued(standing):
+            return Admission(
+                False, code="foreign-credential",
+                detail=f"the standing offered for {family_id!r} was not minted by "
+                       f"{self.authority.authorizer.name}.")
+        if standing.build != self.build.reference:
+            return Admission(
+                False, code="off-build-material",
+                detail=f"the standing was minted against {standing.build} and this engine is "
+                       f"{self.build.reference}. A new Manifold build is a new semantic world.")
         if standing.family_id != family_id or standing.anchor != value.anchor:
             return Admission(
                 False, code="standing-does-not-cover-this-material",

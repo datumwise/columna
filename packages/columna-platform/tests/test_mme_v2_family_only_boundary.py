@@ -315,14 +315,20 @@ def test_the_constitution_screen_is_now_STRUCTURAL_rather_than_procedural(fams):
     engine = KEX.build()
     engine.measure(fams["revenue"], KEX.BY_DAY)
     moved = replace(fams["revenue"], participation="every order the auditor confirmed")
-    engine.register_family(moved)                             # the declaration moves
 
-    assert engine.stale_states()                              # still reported, and still names what moved
-    assert all(m.eligibility == SUPERSEDED
+    # **J-0: the move is refused rather than absorbed**, which makes the screen's removal even less
+    # consequential than M-2 argued — the state resolve_pool existed to detect is now unreachable.
+    with pytest.raises(KernelRefusal) as exc:
+        engine.register_family(moved)
+    assert exc.value.code == "constitution-moved-in-place"
+    assert all(m.eligibility != SUPERSEDED
                for m in engine.materializations.select("revenue", eligibility=None))
-    refused = engine.measure(moved, KEX.TOTAL)
+
+    # and the successor build, which is where the change belongs, holds none of it
+    successor = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build="build-2")
+    successor.register_family(moved)
+    refused = successor.measure(moved, KEX.TOTAL)
     assert not refused.served
-    assert "NOT CURRENT (superseded)" in refused.refusal.detail
 
 
 def test_the_ambiguous_evidence_state_is_now_UNREACHABLE_rather_than_refusable():
@@ -385,7 +391,7 @@ def test_NEED_is_recorded_when_nothing_lawful_is_held(fams):
     """**The only disposition where a cache decision would have changed the outcome** — and therefore the
     row a future optimizer cares most about."""
     observer = RecordingObserver()
-    cold = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, observer=observer)
+    cold = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD, observer=observer)
     cold.register_family(fams["revenue"])
 
     refused = cold.measure(fams["revenue"], KEX.TOTAL)
@@ -435,7 +441,7 @@ def test_every_disposition_is_reachable_and_they_are_distinguished(fams):
     seen |= set(observer.by_disposition())
 
     cold_observer = RecordingObserver()
-    cold = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, observer=cold_observer)
+    cold = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD, observer=cold_observer)
     cold.register_family(fams["revenue"])
     cold.measure(fams["revenue"], KEX.TOTAL)                   # NEED
     seen |= set(cold_observer.by_disposition())
@@ -759,7 +765,7 @@ def test_a_recording_observer_is_accepted_even_though_an_empty_one_is_FALSY():
     sink = ObservationSink(empty)
     assert sink.observer is empty
     assert sink.active
-    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, observer=empty)
+    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD, observer=empty)
     assert engine.observations.observer is empty
 
 
@@ -1012,7 +1018,7 @@ def test_exhibit_both_run_over_the_COLUMNAR_substrate_too(columnar):
 
 def test_an_unrealized_law_is_still_a_PROVIDER_limit_said_as_one(exprs):
     """Above the boundary as below it: a provider's inability does not remove a law."""
-    thin = MME(KEX.COMMERCE, REGISTRY, NO_MEAN, manifold=KEX.MANIFOLD)
+    thin = MME(KEX.COMMERCE, REGISTRY, NO_MEAN, manifold=KEX.MANIFOLD, build=KEX.BUILD)
     revenue, order_count = KEX._families()[0], KEX._families()[1]
     for family in (revenue, order_count):
         thin.register_family(family)
