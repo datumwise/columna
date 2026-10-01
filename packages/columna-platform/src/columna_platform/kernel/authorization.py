@@ -72,15 +72,22 @@ from .standing import Disclosure, Refusal
 # involved and none is wanted — the point is that the ONE place able to mint is the one place that reads the
 # constitution, so "authorized" and "constitutionally checked" are the same event by construction.
 class _Mint:
-    """The issuing capability. One instance, module-private, unexported."""
+    """The issuing capability. **One instance PER AUTHORITY**, module-private, unexported.
 
-    __slots__ = ()
+    **J-0 CHANGED THIS FROM A MODULE SINGLETON TO A PER-AUTHORITY OBJECT**, and the change is the whole
+    difference between *some* authority issued this and *this* authority issued it. A process may hold
+    two Manifold builds; before J-0 both minted with the same mark, so a credential granted by one
+    satisfied the other's guard and a foreign build's permission was indistinguishable from a local one.
+    The class stays module-private so a credential remains unconstructible outside this module; which
+    authority minted it is asked at the consuming boundary, by `issued`."""
+
+    __slots__ = ("authority",)
+
+    def __init__(self, authority: str) -> None:
+        self.authority = authority
 
     def __repr__(self) -> str:                                   # pragma: no cover - diagnostics only
-        return "<continuation-authority mint>"
-
-
-_MINT = _Mint()
+        return f"<continuation-authority mint: {self.authority}>"
 
 
 # ══ execution requirements — HOW, never WHETHER ═══════════════════════════════════════════════════
@@ -201,7 +208,7 @@ class AuthorizedFamilyContinuation:
     def __post_init__(self) -> None:
         from .geometry import KernelRefusal
 
-        if self.issued_by is not _MINT:
+        if not isinstance(self.issued_by, _Mint):
             raise KernelRefusal(
                 "unauthorized-continuation", f"{self.family_id}@{self.target}",
                 "an AuthorizedFamilyContinuation was constructed outside the continuation authority. Its "
@@ -243,7 +250,7 @@ class AuthorizedStanding:
     def __post_init__(self) -> None:
         from .geometry import KernelRefusal
 
-        if self.issued_by is not _MINT:
+        if not isinstance(self.issued_by, _Mint):
             raise KernelRefusal(
                 "unauthorized-standing", f"{self.family_id}@{self.anchor}",
                 "an AuthorizedStanding was constructed outside the continuation authority. Whether a "
@@ -303,10 +310,21 @@ class ContinuationAuthority:
         #: The Manifold build authority. Duck-typed on purpose: the kernel engine and the columnar engine
         #: both satisfy it, and neither is named here.
         self.constitution = constitution
+        #: **THIS AUTHORITY'S OWN MINT** (J-0). Not shared with any other authority in the process, so a
+        #: credential can say which build permitted it and not merely that something did.
+        self._mint = _Mint(self.name)
 
     @property
     def name(self) -> str:
         return f"continuation-authority({self.constitution.manifold})"
+
+    def issued(self, credential: Any) -> bool:
+        """**Did THIS authority mint this credential?** Asked at every boundary that acts on one.
+
+        Object identity against a mint no other authority holds. A credential from another build is a
+        real credential — it is simply not permission *here*, and the difference is exactly what J-0
+        exists to make visible."""
+        return getattr(credential, "issued_by", None) is self._mint
 
     # ── the constitutional reading, in one place ─────────────────────────────────────────────────
     def _fold_for(self, law: Any) -> FoldRequirement:
@@ -373,7 +391,7 @@ class ContinuationAuthority:
             build=self.constitution.build.reference,
             witness=self.constitution.witness_of(family.family_id).digest,
             conditions=self._conditions_for(law), retain=retain, on_behalf_of=on_behalf_of,
-            issued_by=_MINT))
+            issued_by=self._mint))
 
     # ── minting a standing ───────────────────────────────────────────────────────────────────────
     def authorize_standing(self, family: Any, anchor: Anchor) -> Authorization:
@@ -400,7 +418,7 @@ class ContinuationAuthority:
         return Authorization(request=AuthorizedStanding(
             family_id=family.family_id, anchor=anchor, build=self.constitution.build.reference,
             witness=self.constitution.witness_of(family.family_id).digest,
-            at_root=anchor == family.root, issued_by=_MINT))
+            at_root=anchor == family.root, issued_by=self._mint))
 
     # ── the realization requirement — A DIFFERENT QUESTION, kept distinct (§7) ────────────────────
     def requirement_for(self, family: Any, target: Anchor, *, data_state: Optional[str] = None,

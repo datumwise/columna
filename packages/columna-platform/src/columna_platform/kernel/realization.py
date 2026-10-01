@@ -97,17 +97,28 @@ class Realization:
     note: str = ""
 
 
+@dataclass(frozen=True)
 class ProviderProfile:
-    """The realizations one provider offers. **A profile, not an authority.**"""
+    """The realizations one provider offers. **A profile, not an authority.**
 
-    def __init__(self, name: str, realizations: Iterable[Realization]) -> None:
-        self.name = name
-        self._by_law: dict[str, Realization] = {}
-        for r in realizations:
-            if r.law in self._by_law:
-                raise KernelRefusal("duplicate-realization", name,
+    **FROZEN SINCE J-0.** A profile is an installation-shared resource: one object is handed to every
+    engine in the process, so a single attribute assignment anywhere would repoint physical realization
+    for every Manifold at once. It claimed immutability in prose and had none. The idiom is the
+    repository's own — frozen dataclass over tuple storage, with the derived lookup built in
+    `__post_init__` through `object.__setattr__`, exactly as `CoordinateIndex` does."""
+
+    name: str
+    realizations: tuple[Realization, ...] = ()
+
+    def __post_init__(self) -> None:
+        by_law: dict[str, Realization] = {}
+        for r in tuple(self.realizations):
+            if r.law in by_law:
+                raise KernelRefusal("duplicate-realization", self.name,
                                     f"law {r.law!r} is realized twice in one profile")
-            self._by_law[r.law] = r
+            by_law[r.law] = r
+        object.__setattr__(self, "realizations", tuple(self.realizations))
+        object.__setattr__(self, "_by_law", by_law)
 
     def __contains__(self, law: str) -> bool:
         return law in self._by_law

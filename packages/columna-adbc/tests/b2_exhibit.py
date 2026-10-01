@@ -58,7 +58,7 @@ def cold_world(path: str, *, observer=None, provider_name: str = "duckdb-warehou
 
     **NO ROOT IS ESTABLISHED HERE.** Every other exhibit in this repository seals its roots in `build()`
     and is therefore always warm; the cold request in this one has to reach the warehouse or fail."""
-    authority = MME(CEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
+    authority = MME(CEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build=CEX.BUILD)
     authority.register_family(CEX._families(MANIFOLD)[0])          # revenue, and nothing else
     # **THE OBSERVER GOES ON THE ENGINE THAT SERVES, WHICH IS THE COLUMNAR ONE.** The two engines keep
     # their own workload logs because they hold different material; the authority above them is asked

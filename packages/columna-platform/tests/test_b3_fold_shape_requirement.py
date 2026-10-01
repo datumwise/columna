@@ -50,7 +50,7 @@ def _code_only(obj) -> str:
 
 def _world():
     """The commerce world, constituted. `revenue` is SUM; `order_count` is COUNT."""
-    mme = MME(CEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
+    mme = MME(CEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build=CEX.BUILD)
     families = CEX._families(MANIFOLD)
     for family in families:
         mme.register_family(family)

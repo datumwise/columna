@@ -32,6 +32,8 @@ from .sorts import GovernedExpression, MeasureFamily, Operand, SufficientBasis
 from .witness import FAMILY_NON_DETERMINANTS
 
 MANIFOLD = "andfam.commerce"
+#: **This exhibit's build.** Explicit since J-0: an engine has no default identity.
+BUILD = "build-1"
 PARTICIPATION = "every customer order the merchant accepted"
 AUDITED = "every customer order the merchant accepted AND the auditor confirmed"
 
@@ -160,7 +162,7 @@ def _expressions():
 
 def build() -> MME:
     """A fully constituted engine with every family and expression registered and every root sealed."""
-    mme = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
+    mme = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build=BUILD)
     revenue, order_count, audited_count, distinct, on_hand, gauge = _families()
     for family in (revenue, order_count, audited_count, distinct, on_hand, gauge):
         mme.register_family(family)
@@ -556,15 +558,28 @@ def main() -> int:                                          # noqa: C901 - an ex
     two = RealizationStanding(provider="in-memory", carrier="arrow-ipc")
     print(f"    the REALIZATION moves → {one} vs {two}; witness and analytical instance both unchanged")
 
+    # **THE DECLARATION MOVES — AND A RUNNING BUILD REFUSES TO REINTERPRET ITSELF** (J-0).
+    # This used to be demonstrated as an in-place edit that superseded the held material and filed a
+    # `Staleness` record. Both are gone: a governed meaning change is a SUCCESSOR BUILD. The engine
+    # refuses the edit and the refusal names the determinant that moved, which is the diagnosis the
+    # stale-state sweep used to carry — now delivered where the decision is made.
     moved = replace(revenue, participation="every order the auditor confirmed")
-    mme.register_family(moved)
-    stale = mme.stale_states()
-    print(f"    the DECLARATION moves → witness {mme.witness_of('revenue').digest}, and "
-          f"{len(stale)} materialization(s) stopped being CURRENT (they stay RESIDENT)")
-    for s_ in stale[:1]:
-        print(f"      {s_}")
-        print(f"      {s_.detail}")
-    refused_stale = mme.measure(moved, BY_DAY)
+    in_place = None
+    try:
+        mme.register_family(moved)
+    except KernelRefusal as exc:
+        in_place = exc
+    print(f"    the DECLARATION moves → REFUSED [{in_place.code if in_place else '—'}]")
+    print(f"      {in_place.detail.split('. ')[0]}.")
+    print("      a meaning change is a SUCCESSOR BUILD; the old build keeps its material and its meaning")
+    successor = MME(COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build="build-2")
+    successor.register_family(moved)
+    print(f"    build again      → {successor.build.reference} constitutes revenue as "
+          f"{successor.witness_of('revenue').digest}")
+    print(f"      and holds {len(successor.materializations)} materialization(s): the old world's "
+          f"material is not reachable from the new one, because the store is per build")
+    carried = successor.admit(mme.materializations.select("revenue", anchor=SALE_AT)[0].value)
+    print(f"      offering {mme.build.reference}'s material to it: REFUSED [{carried.code}]")
 
     check("the witness is COMPUTED, and a caller-supplied one is refused",
           witness.digest.startswith("cw-1:") and supplied is not None
@@ -586,19 +601,27 @@ def main() -> int:                                          # noqa: C901 - an ex
           after.value.cells[("D1",)] == 100.0
           and mme.materialization(first.id).eligibility == "superseded"
           and mme.materialization(first.id).residency == "resident")
+    # The `!=` here used to hold only because the in-place declaration edit above had already moved
+    # the witness by the time the checks ran. With the edit refused (J-0), the claim can be asserted
+    # as what it actually says.
     check("a realization change moves neither the witness nor the instance", one != two
-          and mme.witness_of('revenue').digest != witness.digest)
+          and mme.witness_of('revenue').digest == witness.digest)
     check("a constitution change is mechanically detectable AND names the determinant",
-          bool(stale) and stale[0].changed == ("participation",))
-    check("a declaration move makes held material NOT CURRENT — it is not served, and the refusal says "
-          "the bytes are still here",
-          not refused_stale.served and "NOT CURRENT (superseded)" in refused_stale.refusal.detail
-          and "Residency never creates analytical authority" in refused_stale.refusal.detail)
+          in_place is not None and in_place.code == "constitution-moved-in-place"
+          and "participation" in in_place.detail)
+    check("a running build does not reinterpret its own constitution: the edit is REFUSED and the "
+          "remedy named is a successor build",
+          in_place is not None and "SUCCESSOR BUILD" in in_place.detail
+          and successor.build.reference.endswith("build-2")
+          and successor.witness_of("revenue").digest != witness.digest)
+    check("and the successor build cannot adopt the old world's material by being handed it",
+          not carried and carried.code == "foreign-material"
+          and len(successor.materializations) == 0)
 
     # ══ realization limits, and conservative invalidation ════════════════════════════════════════
     _rule("ADDENDA · a provider's inability does not remove a law; invalidation is conservative")
     from .builtins import NO_MEAN
-    thin = MME(COMMERCE, REGISTRY, NO_MEAN, manifold=MANIFOLD)
+    thin = MME(COMMERCE, REGISTRY, NO_MEAN, manifold=MANIFOLD, build=BUILD)
     for family in (revenue, order_count):
         thin.register_family(family)
     thin.register_expression(aov)

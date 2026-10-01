@@ -83,15 +83,20 @@ from .standing import Disclosure, Refusal
 #
 # No cryptography, and none is wanted: the boundary is that a self-certifying provider is not expressible.
 class _Mint:
-    """The issuing capability. One instance, module-private, unexported."""
+    """The issuing capability. **One instance PER AUTHORITY**, module-private, unexported.
 
-    __slots__ = ()
+    Per-authority since J-0, for the reason recorded on the continuation authority's twin: a module
+    singleton proves that *an* authority adjudicated an offer, and a process holding two builds needs to
+    know *which*. `RealizationManager.establish` takes the engine and the credential as unrelated
+    parameters, so without this the credential said nothing about where it belonged."""
+
+    __slots__ = ("authority",)
+
+    def __init__(self, authority: str) -> None:
+        self.authority = authority
 
     def __repr__(self) -> str:                                   # pragma: no cover - diagnostics only
-        return "<realization-authority mint>"
-
-
-_MINT = _Mint()
+        return f"<realization-authority mint: {self.authority}>"
 
 
 # ══ the credential ════════════════════════════════════════════════════════════════════════════════
@@ -122,7 +127,7 @@ class AdjudicatedRealization:
     issued_by: Any = None
 
     def __post_init__(self) -> None:
-        if self.issued_by is not _MINT:
+        if not isinstance(self.issued_by, _Mint):
             raise KernelRefusal(
                 "unadjudicated-realization", str(getattr(self.offer, "provider", "?")),
                 "an AdjudicatedRealization was constructed outside the realization authority. The claim "
@@ -191,10 +196,16 @@ class RealizationAuthority:
 
     def __init__(self, constitution: Any) -> None:
         self.constitution = constitution
+        #: **THIS AUTHORITY'S OWN MINT** (J-0). See the continuation authority's twin.
+        self._mint = _Mint(self.name)
 
     @property
     def name(self) -> str:
         return f"realization-authority({self.constitution.manifold})"
+
+    def issued(self, credential: Any) -> bool:
+        """**Did THIS authority adjudicate this offer?** Asked by whoever is about to act on it."""
+        return getattr(credential, "issued_by", None) is self._mint
 
     def adjudicate(self, offer: Any) -> Adjudication:
         """**Adjudicate one physical offer's fidelity to its claimed analytical object.**"""
@@ -296,7 +307,7 @@ class RealizationAuthority:
 
         return Adjudication(credential=AdjudicatedRealization(
             offer=offer, standing=standing.request, realization=offer.realization,
-            evidence=tuple(evidence), conditions=tuple(conditions), issued_by=_MINT))
+            evidence=tuple(evidence), conditions=tuple(conditions), issued_by=self._mint))
 
 
 __all__ = ["AdjudicatedRealization", "Adjudication", "RealizationAuthority"]

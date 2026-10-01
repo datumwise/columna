@@ -352,6 +352,16 @@ class RealizationManager:
         A `Refusal` is a normal outcome and is returned rather than raised: the estate being able to compute
         something, the claim being faithful, and the family law admitting it are three questions, and this is
         where the third one is asked."""
+        # **THE CREDENTIAL MUST BELONG TO THIS ENGINE** (J-0). `isinstance` proves only that SOME
+        # realization authority adjudicated the offer; this method is a staticmethod whose engine and
+        # whose credential are unrelated parameters, so before J-0 a credential adjudicated against one
+        # build established cleanly into another.
+        if isinstance(adjudicated, AdjudicatedRealization) and not mme.realizations.issued(adjudicated):
+            raise KernelRefusal(
+                "foreign-credential", str(getattr(adjudicated.offer, "provider", "?")),
+                f"this AdjudicatedRealization was not issued by {mme.realizations.name}. An adjudication "
+                f"is one authority's finding that a physical result faithfully realizes ITS governed "
+                f"object; another build's finding is about another object.")
         if not isinstance(adjudicated, AdjudicatedRealization):
             raise KernelRefusal(
                 "unadjudicated-offer-at-the-door", getattr(adjudicated, "provider", type(adjudicated).__name__),

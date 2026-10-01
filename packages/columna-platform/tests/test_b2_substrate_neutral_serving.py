@@ -258,7 +258,7 @@ def _cold_kernel_world():
     """A constituted in-memory MME with **no root established** and no estate behind it."""
     from columna_platform.kernel import IN_MEMORY, MME, REGISTRY
 
-    mme = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD)
+    mme = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=MANIFOLD, build=KEX.BUILD)
     for family in KEX._families():
         mme.register_family(family)
     return mme

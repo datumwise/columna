@@ -322,7 +322,7 @@ def test_the_root_remains_the_canonical_origin_and_is_never_evicted_by_a_continu
 
 
 def test_a_family_with_no_established_root_is_unanswerable_and_nothing_is_invented(fams):
-    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD)
+    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD)
     m.register_family(fams["revenue"])
     answer = m.measure(fams["revenue"], EX.TOTAL)
     assert not answer.served
@@ -477,7 +477,7 @@ def test_an_expression_is_evaluated_never_continued(mme, exprs, evaluator):
 def test_an_expression_undefined_on_its_basis_says_so_rather_than_returning_zero():
     """ToD v8 §4.3: at `n = 0` the SUM/COUNT basis IS established — as `(0, 0)` — and the expression is
     UNDEFINED on it. Not an error, and not zero."""
-    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD)
+    m = MME(EX.COMMERCE, REGISTRY, B.IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD)
     revenue, order_count, *_ = EX._families()
     m.register_family(revenue)
     m.register_family(order_count)
@@ -622,7 +622,7 @@ def test_a_known_empty_witness_is_a_standing_and_not_an_absence():
 
 # ══ realization, invalidation, and the geometry's own rules ═══════════════════════════════════════
 def test_a_backends_inability_does_not_remove_a_law(mme, exprs):
-    thin = MME(EX.COMMERCE, REGISTRY, B.NO_MEAN, manifold=EX.MANIFOLD)
+    thin = MME(EX.COMMERCE, REGISTRY, B.NO_MEAN, manifold=EX.MANIFOLD, build=EX.BUILD)
     revenue, order_count, *_ = EX._families()
     thin.register_family(revenue)
     thin.register_family(order_count)

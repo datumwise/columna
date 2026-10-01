@@ -144,7 +144,7 @@ def warm():
 @pytest.fixture
 def cold():
     """Constituted and holding nothing — the world where `NEED` is the answer."""
-    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD,
+    engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD,
                  observer=RecordingObserver())
     for family in KEX._families():
         engine.register_family(family)
@@ -417,7 +417,7 @@ def test_the_loop_terminates_within_the_bound_however_unhelpful_the_estate_is(co
     finds nothing admissible. A coordinator that re-realized the same useless proposal every round would
     have terminated too — after paying for it `rounds` times."""
     for rounds in (0, 1, 2, 5):
-        engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD)
+        engine = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD)
         for family in KEX._families():
             engine.register_family(family)
         calls = []
@@ -646,7 +646,7 @@ def test_the_coordinator_never_reads_an_observation(cold, fams):
     assert inspect is not None
 
     # and it still works with no observer at all
-    quiet = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD)
+    quiet = MME(KEX.COMMERCE, REGISTRY, IN_MEMORY, manifold=KEX.MANIFOLD, build=KEX.BUILD)
     for family in KEX._families():
         quiet.register_family(family)
     quiet.establish_root(fams["revenue"], KEX.ORDERS)

@@ -664,7 +664,7 @@ def test_state_from_one_manifold_may_not_satisfy_or_seed_a_request_in_the_other(
 
 
 def test_a_foreign_manifolds_object_cannot_be_registered():
-    authority = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD)
+    authority = MME(EX.COMMERCE, REGISTRY, IN_MEMORY, manifold=EX.MANIFOLD, build=EX.BUILD)
     with pytest.raises(KernelRefusal) as exc:
         authority.register_family(EX._families(EX.OTHER_MANIFOLD)[0])
     assert exc.value.code == "foreign-manifold"

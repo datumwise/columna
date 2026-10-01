@@ -156,7 +156,7 @@ from .fulfillment import (
     RoutePolicy,
     UnambiguousRoute,
 )
-from .mme import MME, Adequacy, Retained, RetentionKey, Staleness
+from .mme import MME, Adequacy, Retained, RetentionKey
 from .observation import (
     DISPOSITIONS,
     PROCESS_CONTROL,
@@ -247,7 +247,7 @@ __all__ = [
     "FamilyPoint", "ExpressionPoint", "MeasureFamily", "GovernedExpression", "Operand",
     "SufficientBasis",
     "Answer", "FamilyState", "ExpressionOutput",
-    "MME", "Adequacy", "Retained", "RetentionKey", "Staleness", "ExpressionEvaluator",
+    "MME", "Adequacy", "Retained", "RetentionKey", "ExpressionEvaluator",
     "DISPOSITIONS", "NEED", "READY", "UNSUPPORTED", "WANT_OF_STATE", "FamilyRequest",
     "Fulfillment", "NullObserver", "ObservationSink", "RecordingObserver", "PROCESS_CONTROL",
     "FamilyRequirement", "RequirementOutcome", "acceptable_anchors", "ProposalSet",
