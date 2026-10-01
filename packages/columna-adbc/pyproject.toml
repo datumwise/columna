@@ -9,7 +9,11 @@ name = "columna-adbc"
 version = "0.0.0"
 description = "Columna ADBC source adapters — the first material crossing. Proof-stage; NOT PUBLISHED."
 requires-python = ">=3.10,<3.14"
-license = "Apache-2.0"
+# NOT OPEN SOURCE. This package is proof-stage, published to no index, and carries no
+# grant. See the LICENSE beside this file; the repository root's Apache-2.0 governs the
+# published trio only.
+license = "LicenseRef-Proprietary"
+license-files = ["LICENSE"]
 # DELIBERATELY OUTSIDE THE RELEASE SET, on the same terms as columna-platform.
 # `scripts/release_pins.py` names the three published packages by path (UMBRELLA/CORE/SERVER) and
 # LOCKSTEP covers two of them; this package is invisible to both BY CONSTRUCTION, not by an exclusion

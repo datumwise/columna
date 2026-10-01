@@ -122,4 +122,9 @@ the four moods.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+**Apache-2.0 for the three published packages** — `columna`, `columna-core` and `columna-server`.
+See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+`packages/columna-platform` and `packages/columna-adbc` are **proprietary, all rights reserved, and
+carry no licence**. They are proof-stage work, published to no package index, and present here only
+as part of the development record. Each has its own `LICENSE`.
