@@ -3,6 +3,8 @@
 **Status:** recommendation, design only. Nothing here authorizes implementation.
 **Responds to:** `columna_platform_shared_resources_local_meaning_architecture_note_v0_1.md` (CG + Huayin, 30 Sep 2026)
 **Based on:** the Platform tree at `7849e8a`, read at file:line; the B-4a″ HLL work; `docs/architecture/topology_core_platform_delivery_v0_1.md`.
+**Sections 8 and 9** record a follow-on discussion with Huayin, 1 Oct 2026, on MME lifecycle when meaning
+changes and on the base MME. The rulings and the design principle in those two sections are his.
 
 ---
 
@@ -11,7 +13,9 @@
 I agree with the note. Much of it describes the Platform we already have rather than proposing
 something new, which is good evidence that the architecture was found rather than invented.
 
-I would change five things:
+I would change five things, and sections 8 and 9 then work through two cases Huayin raised
+afterwards: what happens to stored material when meaning changes, and what the shared physical layer
+actually is.
 
 1. The note says what gets shared. It should also say how meaning stays local. The code has an answer,
    and that answer explains every problem we found.
@@ -200,36 +204,138 @@ A `Manifold` class would not supply any of those.
 
 ---
 
-## 8. The shared materialization pool: two things worth writing down now
+## 8. When meaning changes, the local MME is disposable
 
-The note's section 17 is right, and the evidence is better than it claims. A provider is handed only a
-`FamilyRequirement`. A `RealizationOffer` has no Manifold field at all. `RealizationManager.establish`
-is a static method whose first argument is the MME, so one manager can establish into any number of
-them. And the one real provider is Manifold-agnostic by construction: it keeps the Manifold on a
-per-proposal handle rather than on itself, rebuilds the governed wrapper on each call, and passes the
-Arrow array through untouched. "The bytes are shared, the standing is jurisdiction-specific" is already
-how it behaves.
+Huayin's design principle (1 Oct 2026): a Manifold-local MME should stay small, simple and agile, and he
+would rather regenerate one than manage a partition.
 
-Two problems to record before anyone builds a pool:
+There is no partition cost to add. `MME.__init__` constructs `MaterializationStore(self.build)` — one
+store per MME, per build. So "wipe when the constitution changes" is, concretely: build a new MME for
+the new build and do not hand it the old store. The old store then has no references and goes away.
+Keeping it is a deployment choice, not a kernel feature.
 
-**The instance check verifies agreement, not entitlement.** Fidelity check 4 compares the offer's
-instance against what the asking MME expects. A provider satisfies it by copying
-`requirement.instance`. That is safe today only because a provider's claim is backed by a declared
-physical binding and an actual refetch. A pool's claim is "I already have this", which is precisely the
-claim nothing checks. What is missing is the stored payload's evidence and formation provenance, and
-`RealizationStanding` is only `(provider, carrier)`, so it does not carry it.
+The rule and the existing design are therefore the same design, differing only in whether a deployment
+retains the old store. That choice should stay outside the kernel.
 
-**Supersession cascades across jurisdictions.** `supersede` walks descendants through
-`establishment.derived_from` and marks them, with no Manifold check. The note wants Finance's admission
-to lapse while Marketing keeps using the same bytes. That needs the cascade scoped first.
+**The rule also lets us delete code rather than add it.** There is machinery today for a case the rule
+forbids: changing a declaration in place inside one build. If a meaning change always means a new build,
+an in-place change should **refuse** rather than be handled, and `_declaration_moved`,
+`_declaration_moves`, `stale_states` and the looseness in `attach_store` all become removable. That is
+worth doing on its own merits, because `_declaration_moved` currently supersedes by bare family name
+across every attached store with no manifold or build filter — so one Manifold's declaration change can
+supersede another's material of the same name.
 
-Both are the same shape as the HLL bug we just fixed, and it is worth stating the shape plainly: a check
-that compares a claim against an expectation only tests whether they agree. It does not test whether the
-claim was earned. `get_estimate()` passed every type check for months by returning a plausible number.
+One thing to keep from the current approach: supersession and removal stay separate levers.
+Supersession stops material serving; `residency` and eviction decide whether the bytes linger.
+Conflating them turns a governance act into a storage decision.
+
+### The three detection holes
+
+These are the real content of "meaning changed and the stored fact did not".
+
+1. **The off-build guard is opt-in.** In `MME.put`, `witness` and `build` both default to `None` and the
+   checks read `if build is not None and …`. The realization path supplies them because they come off
+   the offer. The local path — `admit`, `establish_root`, `retain` — supplies nothing. So the check that
+   enforces "material does not cross into a new world by being present" does not run on the path most
+   material takes.
+2. **`_declaration_moved` is manifold-blind and build-blind**, as above.
+3. **Detection only fires at re-registration.** `_declaration_moved` is called from `register_family`
+   and `register_expression`. But a family's witness includes the full digest of its bound law, so once
+   member selection is per-Manifold, changing the selection moves every family witness in that
+   Manifold — with no declaration re-registered, nothing notices. `stale_states` only reports moves
+   already caught.
+
+Three fixes, none of which is wiping:
+
+- a change of law selection mints a new build, so the partition does the work it was designed for;
+- the off-build check becomes mandatory rather than opt-in;
+- an MME records the digest of its resolved constitution alongside the declared build, and refuses if
+  the same build token returns with a different resolved constitution. The build token stays **declared,
+  not computed** — that is the existing ruling and I would not change it. Reusing a build token after
+  changing meaning simply stops being silent.
 
 ---
 
-## 9. What not to build
+## 9. The base MME
+
+The name is Huayin's (1 Oct 2026): **base MME**, not "shared MME". Whatever it is called, it must be a
+`RealizationProvider` and nothing else. That protocol has only `propose` and `realize`, so no query
+surface exists to misuse, and "it never faces clients" becomes structural. Any other kind of object makes
+that guarantee a rule somebody has to remember.
+
+### What it can be characterized by
+
+It cannot rely on any Manifold for measure names or analytical laws. The vocabulary available to it is
+exactly what is installation-shared:
+
+```
+AVAILABLE                               UNAVAILABLE
+Catalogue member ids (HLL_SKETCH[1])    measure names
+Universe geometry, constituent names    family ids
+composition tokens                      a Manifold's SELECTION of a member
+governed value type / value form        participation
+evidence / data state                   scope
+```
+
+The distinction that makes this work: `HLL_SKETCH[1]` is a shared Catalogue address and is available to
+the base layer. *That Finance chose `[1]`* is local meaning and is not. **Member identity is shared;
+member selection is local.** This is also why universes being shared governed geometry (section 6)
+matters: anchor geometry is one of the few jurisdiction-free facts the base layer can index on.
+
+It follows that its description contains nothing a Manifold can change. Finance moving from `[1]` to
+`[2]` does not invalidate base state described as `[1]`-compatible; that state simply stops matching
+Finance's requirements. The base layer needs no wiping on any Manifold change.
+
+### Why the two halves join — this is the architecture
+
+Huayin's point, and it is a better argument for both halves than either has alone:
+
+> The local MME can be small, agile and freely discarded precisely because the base layer holds the
+> expensive jurisdiction-free work that survives a Manifold rebuild.
+
+Regenerating a local MME after a constitution change is only affordable if the base-grain scan does not
+have to happen again. The base layer is what makes disposability affordable.
+
+What belongs down there: expensive root formation at base grain, keyed by geometry plus evidence state;
+evidence-state identity, which is jurisdiction-free; cold start after a rebuild. **Not** coarsened family
+state — a family's region and law live in its jurisdiction.
+
+### Two corrections to the freedoms claimed for it
+
+**It is not free of physical-source concerns.** It holds no binding — no map from governed constituent to
+physical column — and that part is right. But its contents came from a source and carry that source's
+access restrictions. A Manifold never permitted to see a warehouse's rows must not receive base state
+derived from them. Said the other way round: the base layer is the one place where source access control
+has to be explicit, because it is the only place where state outlives the jurisdiction that paid for it.
+
+**Its correctness bar goes up, not down.** The local MME is wipeable, so a mistake there is cheap. The
+base layer is never wiped and is shared by everyone, so a mistake is wrong everywhere at once and
+survives every rebuild. Two consequences:
+
+- it needs its own supersession lifecycle keyed on **evidence state** rather than on constitution. When
+  the warehouse reloads, base state for the old load is stale for reasons that have nothing to do with
+  any Manifold;
+- admission from base layer into a local MME has to test entitlement rather than agreement. Fidelity
+  check 4 compares the offer's instance against what the asking MME expects, which a provider satisfies
+  by copying `requirement.instance` out of the requirement it was handed. What is missing is the stored
+  payload's evidence and formation provenance, and `RealizationStanding` is only `(provider, carrier)`.
+
+Both are the same shape as the HLL bug we fixed in #367, and the shape is worth stating plainly: a check
+that compares a claim against an expectation only tests whether they agree. It does not test whether the
+claim was earned. `get_estimate()` passed every type check for months by returning a plausible number.
+
+### One distinction, so we do not over-constrain
+
+Banning cross-Manifold access at the user surface should mean banning **ad-hoc** access — a Frame-QL
+query naming another Manifold's measure. It should not rule out a future **declared** bridge, if someone
+genuinely needs to compare Finance revenue with Marketing revenue. The code's current stance says the
+same thing from the other side: crossing is *"an EXPLICIT governed crossing — not an incidental
+consequence of one runtime, one store, or two worlds choosing the same name"*. Writing the rule as "no
+incidental crossing" closes the hole without nailing the door shut on a governed object we may want.
+
+---
+
+## 10. What not to build
 
 No `Manifold` class. No `ResolvedManifoldEnvironment` until two cases actually share visible machinery.
 No generic overlay or `Catalogue[T]`. No global measure catalogue. No type catalogue until there are
@@ -241,7 +347,7 @@ better doctrine than a default system. Defaults belong to the authoring surface,
 
 ---
 
-## 10. Questions I cannot settle
+## 11. Questions I cannot settle
 
 - Whether the publication object that fills `constitution_context` belongs to Core or Platform. The
   topology says the lifecycle is shared; the empty slot is in the Platform kernel.
@@ -249,3 +355,6 @@ better doctrine than a default system. Defaults belong to the authoring surface,
   fixed process-wide today, and the member constitution will carry it.
 - Whether universes should ever be private to one Manifold. I recommend shared by default. Nothing in
   the code forces either answer.
+- Whether the base MME is in scope at all before a concrete cross-Manifold reuse need exists. Sections 8
+  and 9 argue it is what makes local disposability affordable, which is an argument for it earlier than
+  "when sharing is needed" — but it is still a new component and nothing today requires it.
