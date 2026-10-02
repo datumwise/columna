@@ -70,25 +70,27 @@ def test_v1_plus_core_plus_cml_is_the_accepted_LEGACY_path(tmp_path):
     assert lm.entry_kind == ENTRY_LEGACY
 
 
-def test_v2_plus_platform_optin_plus_no_cml_is_an_accepted_SUCCESSOR_NATIVE_unit(tmp_path):
-    """ROW 2. The unit IS the publication. It loads, it is governed, and it carries no legacy image."""
+def test_platform_optin_refuses_when_the_successor_runtime_is_not_installed(tmp_path):
+    """ROW 2, AS THIS DISTRIBUTION ACTUALLY BEHAVES — and it had no test until now.
+
+    This test previously asserted the successful case: that selecting the successor runtime bound
+    `PlatformExecutionProvider` and produced a servable governed unit. It could only ever pass in a
+    workspace that had the successor package installed, which CI did and no installation of this
+    distribution ever has — the package is published to no index. So the assertion that ran in CI
+    was never the assertion a deployment would meet.
+
+    What a deployment meets is THIS: the selection is honoured, the provider is absent, and the load
+    FAILS CLOSED at construction rather than yielding a unit that loads and then cannot answer. There
+    is no fallback to Core, which is the property worth pinning — a successor opt-in that silently
+    degraded to the legacy engine would answer the question with the wrong machine.
+    """
     _governed_only_unit(tmp_path)
-    store = ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
-    lm = store.get("lighthouse")
-    assert lm.runtime == RUNTIME_PLATFORM
-    assert lm.has_cml is False
-    assert lm.manifold is None                 # absence represented as absence, not as an empty stub
-    assert lm.publication_major == 2
-    assert lm.entry_kind == ENTRY_GOVERNED
-    assert lm.publication is not None and lm.ref.manifold_id == "lighthouse"
-    assert store.governed_ids() == ["lighthouse"]
-    # SELECTED, so the successor runtime is bound — and it is the successor's own provider, not a
-    # Core one wearing its name.
-    assert lm.provider is not None
-    assert type(lm.provider).__name__ == "PlatformExecutionProvider"
-    assert store.realizable_refs() == {lm.ref}
-    resolved_lm, resolved_ref = store.resolve_public("lighthouse")
-    assert resolved_lm is lm and resolved_ref == lm.ref
+    with pytest.raises(RuntimeSelectionError) as e:
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
+    msg = str(e.value)
+    assert "lighthouse" in msg
+    assert RUNTIME_PLATFORM in msg
+    assert RUNTIME_CORE in msg and "no fallback" in msg.lower()
 
 
 def test_the_same_v2_artifact_without_optin_does_not_switch_providers(tmp_path):
@@ -151,10 +153,17 @@ def test_a_platform_unit_that_also_ships_a_cml_is_refused(tmp_path):
 # ══ the selection seam itself ════════════════════════════════════════════════════════════════════
 
 def test_selection_comes_from_the_environment_when_not_passed(tmp_path, monkeypatch):
+    """The env var is honoured — witnessed by the refusal it produces.
+
+    The claim under test is that an unpassed selection is read from the environment. The witness used
+    to be a successful platform bind; with the successor runtime not installed in this distribution
+    the witness is the refusal, which names the very runtime the environment asked for. Same claim,
+    a witness that exists here.
+    """
     _governed_only_unit(tmp_path)
     monkeypatch.setenv("COLUMNA_RUNTIME", "lighthouse=platform")
-    store = ManifoldStore(str(tmp_path))
-    assert store.get("lighthouse").runtime == RUNTIME_PLATFORM
+    with pytest.raises(RuntimeSelectionError, match=RUNTIME_PLATFORM):
+        ManifoldStore(str(tmp_path))
 
 
 def test_an_unset_environment_means_everything_is_core(tmp_path, monkeypatch):
@@ -202,7 +211,11 @@ def test_a_successor_native_unit_needs_no_data_toml_and_no_lowering_receipt(tmp_
     unchanged governed-fixture tests continue to prove."""
     unit = _governed_only_unit(tmp_path)
     assert sorted(p.name for p in unit.iterdir()) == ["governed-publication.json"]
-    store = ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
+    # NO RUNTIME SELECTED, and the claim does not need one. This used to opt the unit into the
+    # successor runtime to get it loaded, which made a test about a UNIT'S SHAPE depend on a runtime
+    # being installed. Visibility is not serving: the unit is a governed lineage whether or not any
+    # runtime will bind to it, and that is precisely what is asserted here.
+    store = ManifoldStore(str(tmp_path), runtime_selection={})
     assert store.get("lighthouse").entry_kind == ENTRY_GOVERNED
     assert store.conditions() == []             # not a deployment gap; a different kind of unit
 
@@ -221,10 +234,15 @@ def test_the_catalog_shows_it_as_governed_and_NOT_REALIZABLE_until_a_provider_is
         "manifold_id": "lighthouse", "kind": "governed", "latest_version": "1.0.0",
         "versions": [{"version": "1.0.0", "realizable": False}]}]
 
-    selected = list_manifolds(
-        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM}))
-    assert selected["manifolds"] == [{
-        "manifold_id": "lighthouse", "kind": "governed", "latest_version": "1.0.0",
-        "versions": [{"version": "1.0.0", "realizable": True}]}]
-    # the SHAPE never changed — same keys, same kind, one boolean
-    assert set(selected["manifolds"][0]) == set(unselected["manifolds"][0])
+    # THE FLIP TO `realizable: True` IS NOT ASSERTABLE IN THIS DISTRIBUTION, and saying so is better
+    # than asserting it where it cannot be true. Flipping it requires a runtime that will bind, and
+    # the successor runtime is published to no index — so in every installation of this distribution
+    # the selection REFUSES instead of flipping. That refusal is the assertion available here, and it
+    # is the one a deployment actually meets.
+    with pytest.raises(RuntimeSelectionError, match=RUNTIME_PLATFORM):
+        list_manifolds(
+            ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM}))
+
+    # and the catalog is unmoved by a refused selection — still governed, still not realizable
+    again = list_manifolds(ManifoldStore(str(tmp_path), runtime_selection={}))
+    assert again == unselected
