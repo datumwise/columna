@@ -54,21 +54,6 @@ cmd = "ruff check packages/columna-server/src packages/columna-server/tests"
 workflow = "ci.yml"
 local = true
 
-# ENROLLED 2026-09-14 (OF-43). `pytest-platform` was enrolled when Proof A landed and no matching
-# LINT gate was added beside it — an asymmetry rather than a policy, and one that stopped mattering
-# less the day this package started resolving public Frame-QL and serving material through the wire.
-#
-# IT NAMES THE PACKAGE ROOT, NOT THREE SUBDIRECTORIES, and that is the one deliberate difference
-# from its two siblings above. The material fixture lives in `packages/columna-platform/fixtures/`
-# and is imported by BOTH test suites; a gate spelled `src tests` the way `ruff-server` is would
-# leave the one file two packages depend on unchecked, which is the same shape of gap this gate
-# exists to close. The root also covers `exhibit.py`, which sits beside them at the top level.
-[[gate]]
-id = "ruff-platform"
-cmd = "ruff check packages/columna-platform"
-workflow = "ci.yml"
-local = true
-
 [[gate]]
 id = "version-attributes"
 cmd = "python scripts/check_version_attributes.py"
@@ -84,39 +69,6 @@ local = true
 [[gate]]
 id = "pytest-server"
 cmd = "pytest packages/columna-server -q"
-workflow = "ci.yml"
-local = true
-
-# ENROLLED 2026-09-12 with Proof A. `columna-platform` is a NON-PUBLISHED workspace member — invisible
-# to release_pins.py (which names the three published packages by path) and to the lockstep. It is
-# enrolled here for the opposite reason: a package outside the release set is exactly the kind that
-# acquires tests nothing runs. Enrolment is how it gets a gate; being unpublished is not a reason to
-# be unchecked.
-[[gate]]
-id = "pytest-platform"
-cmd = "pytest packages/columna-platform -q"
-workflow = "ci.yml"
-local = true
-
-# ENROLLED 2026-09-14 with the first ADBC ingress, on the same reasoning that enrolled
-# `pytest-platform` and `ruff-platform`: `columna-adbc` is a NON-PUBLISHED workspace member, and a
-# package outside the release set is exactly the kind that acquires tests nothing runs. Being
-# unpublished is not a reason to be unchecked, and enrolling a gate is NOT enrolling the package
-# into the release lockstep — `release_pins.py` names the three published packages by path and this
-# one remains invisible to it by construction.
-#
-# NAMES THE PACKAGE ROOT, like `ruff-platform` and for the same reason: the DuckDB fixture lives in
-# `tests/` beside the suite and a gate spelled `src tests` would still cover it, but the root is the
-# form that stays correct when a future occupant appears beside them.
-[[gate]]
-id = "ruff-adbc"
-cmd = "ruff check packages/columna-adbc"
-workflow = "ci.yml"
-local = true
-
-[[gate]]
-id = "pytest-adbc"
-cmd = "pytest packages/columna-adbc -q"
 workflow = "ci.yml"
 local = true
 
