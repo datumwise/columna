@@ -126,7 +126,11 @@ class RuntimeSelectionError(ValueError):
 
 
 def parse_runtime_selection(spec: Optional[str]) -> dict:
-    """`"lighthouse=platform,demo=core"` → `{"lighthouse": "platform", "demo": "core"}`.
+    """`"lighthouse=successor,demo=core"` → `{"lighthouse": "successor", "demo": "core"}`.
+
+    The example used to spell the successor runtime `platform`, which this parser would still accept
+    as a string and `ManifoldStore` would then reject as an unknown runtime — a docstring that sends a
+    reader to a configuration the code refuses. Tokens are validated at construction, not here.
 
     A malformed entry RAISES rather than being skipped: a deployment that typed the configuration
     wrong and got the default runtime anyway would be the quietest possible way to serve the wrong
