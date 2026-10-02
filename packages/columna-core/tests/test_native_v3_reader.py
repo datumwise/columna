@@ -5,7 +5,7 @@ test_native_v3_reader.py — C1's stop-gate, witnessed.
     verify, and a tampered constitution refuses."*
         — native_v3_consumer_recon_v0_1.md §13, C1
 
-Nothing here imports `manifold_agent`, `columna_server` or `columna_platform`. The fixture is the
+Nothing here imports `manifold_agent`, `columna_server` or any successor-path package. The fixture is the
 artifact; the artifact is the contract.
 """
 import copy

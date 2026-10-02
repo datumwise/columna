@@ -131,7 +131,7 @@ expressible on the native path:
   and a `body` on one refuses **by name**, with the legacy keys it carried listed.
 * *"the major that can be READ is the major that can be SERVED"* — one constant was doing both
   jobs, which is precisely what left a v3 unit with no state to be in. Now
-  `_VISIBLE_GOVERNED_ONLY_MAJORS` and `_PLATFORM_PUBLICATION_MAJOR` are asked separately.
+  `_VISIBLE_GOVERNED_ONLY_MAJORS` and `_SUCCESSOR_PUBLICATION_MAJOR` (named `_PLATFORM_PUBLICATION_MAJOR` until 2026-10-02) are asked separately.
 * *"a governed unit with a `.cml` beside it is a lowered realization of its publication"* — for a
   native publication, structurally impossible (§3).
 

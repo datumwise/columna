@@ -24,6 +24,7 @@ and must not increment the connector's fetch count.
 from __future__ import annotations
 
 import glob
+import importlib
 import os
 import os.path as _osp
 from dataclasses import dataclass
@@ -88,13 +89,30 @@ ENTRY_SOURCE_REFERENCED_INCOMPLETE = "source_referenced_incomplete"
 #: A v2 artifact therefore never activates the successor runtime by existing. Selection is explicit,
 #: or it is Core.
 RUNTIME_CORE = "core"
-RUNTIME_PLATFORM = "platform"
+
+#: THE SUCCESSOR RUNTIME, NAMED BY ROLE RATHER THAN BY IMPLEMENTATION (2026-10-02). This token read
+#: "platform" and the provider below imported one specific package by name, which made a distribution
+#: that ships to an index carry the name of a package that ships to none. The seam is unchanged; what
+#: it is called, and how it resolves, no longer name any particular implementation.
+#:
+#: NO ALIAS FOR THE OLD TOKEN, DELIBERATELY. There is no working configuration to preserve: selecting
+#: the successor runtime in any released distribution has always raised, because the provider it
+#: resolved was published to no index. A compatibility shim for a state that never existed would be
+#: carrying weight for nothing.
+RUNTIME_SUCCESSOR = "successor"
 
 #: PROVISIONAL, and deliberately the smallest thing that works (ruled §8: "do not freeze a larger
 #: deployment-manifest design from one slice"). `COLUMNA_RUNTIME="lighthouse=platform,demo=core"`.
 #: The permanent home for deployment configuration is not decided by this proof, and this name is
 #: expected to move when it is.
 RUNTIME_ENV_VAR = "COLUMNA_RUNTIME"
+
+#: WHICH provider the successor runtime resolves to, as `"module.path:ClassName"`. Unset is the
+#: shipped default and means the successor runtime is selectable but unresolvable — see
+#: `_successor_provider`. This indirection is the whole of the change: it lets an installation supply
+#: an execution provider without this package naming one, and it makes the successful-bind path
+#: TESTABLE HERE, with a stub, which it has never been.
+SUCCESSOR_PROVIDER_ENV_VAR = "COLUMNA_SUCCESSOR_PROVIDER"
 
 
 class RuntimeSelectionError(ValueError):
@@ -108,7 +126,11 @@ class RuntimeSelectionError(ValueError):
 
 
 def parse_runtime_selection(spec: Optional[str]) -> dict:
-    """`"lighthouse=platform,demo=core"` → `{"lighthouse": "platform", "demo": "core"}`.
+    """`"lighthouse=successor,demo=core"` → `{"lighthouse": "successor", "demo": "core"}`.
+
+    The example used to spell the successor runtime `platform`, which this parser would still accept
+    as a string and `ManifoldStore` would then reject as an unknown runtime — a docstring that sends a
+    reader to a configuration the code refuses. Tokens are validated at construction, not here.
 
     A malformed entry RAISES rather than being skipped: a deployment that typed the configuration
     wrong and got the default runtime anyway would be the quietest possible way to serve the wrong
@@ -208,7 +230,7 @@ def _load_duckdb(warehouse_dir: str):
 #:
 #: **VISIBILITY IS NOT SERVING, AND C2 WIDENS ONLY THE FIRST** (ruled Huayin, 2026-09-22). A major
 #: here means: this installation can see that this governed lineage exists. Which runtime may bind
-#: to it is a separate fact with its own constant (`_PLATFORM_PUBLICATION_MAJOR`), and the two are
+#: to it is a separate fact with its own constant (`_SUCCESSOR_PUBLICATION_MAJOR`), and the two are
 #: deliberately not the same list — a v3 unit is visible and unserved, which is an existing public
 #: state (`not_realizable_here`), not a new one.
 #:
@@ -265,13 +287,13 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool,
     artifact_path = _osp.join(mdir, PUBLICATION_ARTIFACT)
     if not _osp.isfile(artifact_path):
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_SUCCESSOR!r} runtime, "
             f"which serves a governed publication, and this unit has no {PUBLICATION_ARTIFACT}")
     try:
         artifact = load_publication_artifact(artifact_path)
     except PublicationArtifactError as e:
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime and "
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_SUCCESSOR!r} runtime and "
             f"its {PUBLICATION_ARTIFACT} is unusable: {e}") from e
     # THE MAJOR REQUIREMENT BELONGS TO THE RUNTIME SELECTION, NOT TO LOADING (C2). Before C2 this
     # check sat above both paths, so the only major that could be READ here was also the only one
@@ -279,13 +301,13 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool,
     # "servable" indistinguishable and left a v3 unit with no state to be in. They are now asked
     # separately: loading makes a governed lineage VISIBLE, and only an explicit selection asks
     # which runtime may bind to it.
-    if bind_provider and artifact.major != _PLATFORM_PUBLICATION_MAJOR:
+    if bind_provider and artifact.major != _SUCCESSOR_PUBLICATION_MAJOR:
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime, "
-            f"which serves a publication of major {_PLATFORM_PUBLICATION_MAJOR}, and this artifact "
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_SUCCESSOR!r} runtime, "
+            f"which serves a publication of major {_SUCCESSOR_PUBLICATION_MAJOR}, and this artifact "
             f"is major {artifact.major}. A v{artifact.major} artifact is NOT read as v"
-            f"{_PLATFORM_PUBLICATION_MAJOR}: for v1 its family law is not there to be found, and "
-            f"for v3 its universe law is a CONSTITUTION that the v{_PLATFORM_PUBLICATION_MAJOR} "
+            f"{_SUCCESSOR_PUBLICATION_MAJOR}: for v1 its family law is not there to be found, and "
+            f"for v3 its universe law is a CONSTITUTION that the v{_SUCCESSOR_PUBLICATION_MAJOR} "
             f"model has no representation for — inferring either is the defect the format majors "
             f"exist to remove. The publication remains VISIBLE in this installation's catalog and "
             f"unserved, which is what `not_realizable_here` has always meant")
@@ -295,35 +317,42 @@ def _load_governed_only(manifold_id: str, mdir: str, *, bind_provider: bool,
         name=manifold_id,           # no data.toml to name it, and a fabricated name is a claim
         description="",
         manifold=None,              # no legacy image, honestly absent
-        provider=(_platform_provider(manifold_id, artifact_path, material)
+        provider=(_successor_provider(manifold_id, artifact_path, material)
                   if bind_provider else None),
         publication=governed_publication_from_artifact(artifact),
         ref=artifact.ref,
         entry_kind=ENTRY_GOVERNED,
         condition=None,
         source_ref=artifact.ref,    # the unit IS the publication; origin and identity coincide
-        runtime=RUNTIME_PLATFORM if bind_provider else RUNTIME_CORE,
+        runtime=RUNTIME_SUCCESSOR if bind_provider else RUNTIME_CORE,
         has_cml=False,
         publication_path=artifact_path,
         publication_major=artifact.major,
     )
 
 
-def _platform_provider(manifold_id: str, artifact_path: str, material=None):
+def _successor_provider(manifold_id: str, artifact_path: str, material=None):
     """The successor runtime's provider, or a fail-closed refusal — NEVER a fallback to Core.
 
-    THE IMPORT IS LAZY, AND THAT IS A PACKAGING FACT WORTH STATING. `columna-platform` is a
-    workspace member that is deliberately NOT published and NOT in the release-set lockstep, so
-    `columna-server` cannot declare a dependency on it without dragging it into the published
-    triad. The consequence is honest and must not be hidden: THE SUCCESSOR RUNTIME IS SELECTABLE
-    ONLY WHERE `columna-platform` IS INSTALLED — a source/workspace install today, not the shipped
-    wheel. A deployment that selects it without the package gets a refusal that says so, at
-    construction, rather than a unit that loads and then cannot answer.
+    THE PROVIDER IS NAMED BY CONFIGURATION, NOT BY THIS PACKAGE (2026-10-02). This function used to
+    import one specific package by name. That made a distribution published to an index carry, in
+    shipped source, the name of a package published to none — and it meant the successor runtime
+    could only ever resolve to that one implementation. `COLUMNA_SUCCESSOR_PROVIDER` now names the
+    provider as `"module.path:ClassName"`, and this module knows nothing about what it resolves to
+    beyond the contract below.
 
-    THE DEPENDENCY RUNS SERVER → PLATFORM, one way. Platform implements `ExecutionProvider`
-    structurally (it is a `@runtime_checkable` Protocol) and imports nothing from this package,
-    because `columna_server.store` imports `columna_core.parser` at module scope and importing the
-    server from the successor path would drag the legacy execution stack into it.
+    UNSET IS THE SHIPPED DEFAULT, AND IT REFUSES. The successor runtime stays selectable and stays
+    unresolvable until an installation supplies a provider. A deployment that selects it without one
+    gets a refusal naming the variable it has to set, AT CONSTRUCTION, rather than a unit that loads
+    and then cannot answer. There is no fallback to Core: an operator who names a runtime is making a
+    claim about what this installation is, and a silent downgrade would answer the question with the
+    wrong machine.
+
+    THE CONTRACT A PROVIDER MUST MEET is `ExecutionProvider` — a `@runtime_checkable` Protocol, so it
+    is satisfied structurally — plus a `from_artifact(artifact_path, *, manifold_id, material)`
+    constructor. The dependency runs SERVER → PROVIDER, one way: a provider imports nothing from this
+    package, because `columna_server.store` imports `columna_core.parser` at module scope and
+    importing the server from a successor path would drag the legacy execution stack into it.
 
     `material` IS OPAQUE HERE, AND DELIBERATELY SO (2026-09-14). It is the deployment's binding of
     realization connections to material sources, and this module neither builds one nor inspects
@@ -331,22 +360,35 @@ def _platform_provider(manifold_id: str, artifact_path: str, material=None):
     shape would make the server the keeper of a successor-path object, which is the coupling this
     seam exists to avoid; `None` means the unit PLANS and does not EXECUTE, which the provider
     reports as a capability limit rather than a governed refusal."""
-    try:
-        from columna_platform.provider import PlatformExecutionProvider
-    except ImportError as exc:                                   # pragma: no cover - env-dependent
+    spec = (os.environ.get(SUCCESSOR_PROVIDER_ENV_VAR) or "").strip()
+    if not spec:
         raise RuntimeSelectionError(
-            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_PLATFORM!r} runtime and "
-            f"`columna-platform` is not installed in this environment ({exc}). That package is not "
-            f"published, so the successor runtime is available only to a workspace install. There "
-            f"is no fallback to the {RUNTIME_CORE!r} runtime") from exc
-    return PlatformExecutionProvider.from_artifact(artifact_path, manifold_id=manifold_id,
-                                                   material=material)
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_SUCCESSOR!r} runtime and "
+            f"no execution provider is configured. Set {SUCCESSOR_PROVIDER_ENV_VAR} to "
+            f"`module.path:ClassName`. This distribution ships no successor provider, and there is "
+            f"no fallback to the {RUNTIME_CORE!r} runtime")
+
+    mod_name, sep, cls_name = spec.partition(":")
+    if not sep or not mod_name.strip() or not cls_name.strip():
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': {SUCCESSOR_PROVIDER_ENV_VAR}={spec!r} is not "
+            f"`module.path:ClassName`")
+
+    try:
+        provider_cls = getattr(importlib.import_module(mod_name.strip()), cls_name.strip())
+    except (ImportError, AttributeError) as exc:
+        raise RuntimeSelectionError(
+            f"manifold '{manifold_id}': the deployment selects the {RUNTIME_SUCCESSOR!r} runtime and "
+            f"{SUCCESSOR_PROVIDER_ENV_VAR}={spec!r} could not be resolved ({exc}). There is no "
+            f"fallback to the {RUNTIME_CORE!r} runtime") from exc
+
+    return provider_cls.from_artifact(artifact_path, manifold_id=manifold_id, material=material)
 
 
 #: The publication major a successor-native unit must carry. Not a general policy about which majors
 #: the server READS (that is `SUPPORTED_PUBLICATION_FORMAT_MAJORS`, and it includes v1 for the legacy
 #: path) — a requirement of THIS runtime, kept here so the two cannot be confused.
-_PLATFORM_PUBLICATION_MAJOR = 2
+_SUCCESSOR_PUBLICATION_MAJOR = 2
 
 
 def _load_one(manifold_id: str, mdir: str) -> LoadedManifold:
@@ -504,7 +546,7 @@ class ManifoldStore:
 
     def __init__(self, manifolds_dir: str, runtime_selection: Optional[dict] = None,
                  material_bindings: Optional[dict] = None):
-        """`runtime_selection` maps manifold_id → `RUNTIME_CORE` / `RUNTIME_PLATFORM`; when omitted it
+        """`runtime_selection` maps manifold_id → `RUNTIME_CORE` / `RUNTIME_SUCCESSOR`; when omitted it
         is read from `COLUMNA_RUNTIME`. UNSELECTED MEANS CORE, so every existing deployment loads
         exactly as it did — the successor runtime is reachable only by naming it.
 
@@ -519,10 +561,10 @@ class ManifoldStore:
         self.runtime_selection = (parse_runtime_selection(os.environ.get(RUNTIME_ENV_VAR))
                                   if runtime_selection is None else dict(runtime_selection))
         for mid, chosen in sorted(self.runtime_selection.items()):
-            if chosen not in (RUNTIME_CORE, RUNTIME_PLATFORM):
+            if chosen not in (RUNTIME_CORE, RUNTIME_SUCCESSOR):
                 raise RuntimeSelectionError(
                     f"manifold '{mid}': unknown runtime {chosen!r} "
-                    f"(known: {RUNTIME_CORE!r}, {RUNTIME_PLATFORM!r})")
+                    f"(known: {RUNTIME_CORE!r}, {RUNTIME_SUCCESSOR!r})")
 
         self.material_bindings = dict(material_bindings or {})
         self._loaded: dict[str, LoadedManifold] = {}
@@ -535,13 +577,13 @@ class ManifoldStore:
 
             has_governed_only = (not has_cml) and _is_governed_only_unit(mdir)
 
-            if chosen == RUNTIME_PLATFORM:
+            if chosen == RUNTIME_SUCCESSOR:
                 # Successor-native, and NEVER a fallback: if this unit still carries a `.cml`, that
                 # is a deployment saying two contradictory things about what it is, and guessing
                 # which it meant is the silent provider switch this seam exists to prevent.
                 if has_cml:
                     raise RuntimeSelectionError(
-                        f"manifold '{entry}': the deployment selects the {RUNTIME_PLATFORM!r} "
+                        f"manifold '{entry}': the deployment selects the {RUNTIME_SUCCESSOR!r} "
                         f"runtime and the unit also ships manifold.cml. A successor-native unit is "
                         f"the publication; a lowered image beside it is a different unit, not a "
                         f"variant of this one")
