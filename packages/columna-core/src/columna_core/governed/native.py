@@ -4,7 +4,7 @@ RESOLVED MODEL it yields.
 
 C1 of the native-consumer sequence (`manifold-agent/docs/native_v3_consumer_recon_v0_1.md` §13):
 *the v3 reader, and nothing else*. **No serving, no Platform, no engine, no compilation.** Nothing
-in this module imports `columna_server`, `columna_platform`, or any part of `columna_core` outside
+in this module imports `columna_server`, any successor-path package, or any part of `columna_core` outside
 `governed`, and nothing here reaches the producer.
 
 WHY THIS IS A NEW MODULE AND NOT A DEEPER `publication.py`

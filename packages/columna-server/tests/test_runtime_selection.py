@@ -26,7 +26,8 @@ from columna_server.store import (
     ENTRY_GOVERNED,
     ENTRY_LEGACY,
     RUNTIME_CORE,
-    RUNTIME_PLATFORM,
+    RUNTIME_SUCCESSOR,
+    SUCCESSOR_PROVIDER_ENV_VAR,
     ManifoldStore,
     RuntimeSelectionError,
     parse_runtime_selection,
@@ -70,7 +71,7 @@ def test_v1_plus_core_plus_cml_is_the_accepted_LEGACY_path(tmp_path):
     assert lm.entry_kind == ENTRY_LEGACY
 
 
-def test_platform_optin_refuses_when_the_successor_runtime_is_not_installed(tmp_path):
+def test_successor_optin_refuses_when_no_provider_is_configured(tmp_path):
     """ROW 2, AS THIS DISTRIBUTION ACTUALLY BEHAVES — and it had no test until now.
 
     This test previously asserted the successful case: that selecting the successor runtime bound
@@ -86,10 +87,10 @@ def test_platform_optin_refuses_when_the_successor_runtime_is_not_installed(tmp_
     """
     _governed_only_unit(tmp_path)
     with pytest.raises(RuntimeSelectionError) as e:
-        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
     msg = str(e.value)
     assert "lighthouse" in msg
-    assert RUNTIME_PLATFORM in msg
+    assert RUNTIME_SUCCESSOR in msg
     assert RUNTIME_CORE in msg and "no fallback" in msg.lower()
 
 
@@ -113,23 +114,23 @@ def test_the_same_v2_artifact_without_optin_does_not_switch_providers(tmp_path):
     assert store.get("cascadia").runtime == RUNTIME_CORE
 
 
-def test_platform_optin_without_a_v2_publication_fails_closed(tmp_path):
+def test_successor_optin_without_a_v2_publication_fails_closed(tmp_path):
     """ROW 4a. A v1 artifact does not become v2 by being selected — its family law is not there."""
     _governed_only_unit(tmp_path, "firstlight", artifact=V1_ARTIFACT)
     with pytest.raises(RuntimeSelectionError) as e:
-        ManifoldStore(str(tmp_path), runtime_selection={"firstlight": RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={"firstlight": RUNTIME_SUCCESSOR})
     assert "major 1" in str(e.value) and "inferring" in str(e.value)
 
 
-def test_platform_optin_with_no_publication_at_all_fails_closed(tmp_path):
+def test_successor_optin_with_no_publication_at_all_fails_closed(tmp_path):
     """ROW 4b. Nothing to serve, and no fallback to the legacy runtime."""
     (tmp_path / "empty").mkdir()
     with pytest.raises(RuntimeSelectionError) as e:
-        ManifoldStore(str(tmp_path), runtime_selection={"empty": RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={"empty": RUNTIME_SUCCESSOR})
     assert "governed-publication.json" in str(e.value)
 
 
-def test_core_selection_without_a_cml_fails_closed_with_no_platform_fallback(tmp_path):
+def test_core_selection_without_a_cml_fails_closed_with_no_successor_fallback(tmp_path):
     """ROW 5. The artifact is present and would satisfy the successor runtime — and it is NOT used.
     An explicit Core selection with nothing for Core to execute is an error, not an invitation."""
     _governed_only_unit(tmp_path)
@@ -138,7 +139,7 @@ def test_core_selection_without_a_cml_fails_closed_with_no_platform_fallback(tmp
     assert "no manifold.cml" in str(e.value) and "no fallback" in str(e.value)
 
 
-def test_a_platform_unit_that_also_ships_a_cml_is_refused(tmp_path):
+def test_a_successor_unit_that_also_ships_a_cml_is_refused(tmp_path):
     """Not in the ruled matrix, but the ambiguity it would create is exactly what the matrix is for:
     a unit claiming to be both is a deployment saying two things, and choosing for it would be the
     silent switch. It refuses instead."""
@@ -146,7 +147,7 @@ def test_a_platform_unit_that_also_ships_a_cml_is_refused(tmp_path):
     (unit / "governed-publication.json").write_text(V2_ARTIFACT.read_text(encoding="utf-8"),
                                                     encoding="utf-8")
     with pytest.raises(RuntimeSelectionError) as e:
-        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
     assert "also ships manifold.cml" in str(e.value)
 
 
@@ -156,13 +157,13 @@ def test_selection_comes_from_the_environment_when_not_passed(tmp_path, monkeypa
     """The env var is honoured — witnessed by the refusal it produces.
 
     The claim under test is that an unpassed selection is read from the environment. The witness used
-    to be a successful platform bind; with the successor runtime not installed in this distribution
+    to be a successful successor bind; with no provider configured in this distribution
     the witness is the refusal, which names the very runtime the environment asked for. Same claim,
     a witness that exists here.
     """
     _governed_only_unit(tmp_path)
-    monkeypatch.setenv("COLUMNA_RUNTIME", "lighthouse=platform")
-    with pytest.raises(RuntimeSelectionError, match=RUNTIME_PLATFORM):
+    monkeypatch.setenv("COLUMNA_RUNTIME", "lighthouse=successor")
+    with pytest.raises(RuntimeSelectionError, match=RUNTIME_SUCCESSOR):
         ManifoldStore(str(tmp_path))
 
 
@@ -179,9 +180,9 @@ def test_a_malformed_selection_raises_rather_than_being_ignored():
     with pytest.raises(RuntimeSelectionError):
         parse_runtime_selection("lighthouse")                 # no `=runtime`
     with pytest.raises(RuntimeSelectionError):
-        parse_runtime_selection("=platform")
+        parse_runtime_selection("=successor")
     assert parse_runtime_selection(None) == {}
-    assert parse_runtime_selection(" a=core , b=platform ") == {"a": "core", "b": "platform"}
+    assert parse_runtime_selection(" a=core , b=successor ") == {"a": "core", "b": "successor"}
 
 
 def test_an_unknown_runtime_name_refuses(tmp_path):
@@ -196,7 +197,7 @@ def test_selecting_a_runtime_for_a_unit_that_does_not_exist_refuses(tmp_path):
     the id, which would otherwise leave the intended unit quietly on the other runtime."""
     _legacy_unit(tmp_path)
     with pytest.raises(RuntimeSelectionError) as e:
-        ManifoldStore(str(tmp_path), runtime_selection={"lightouse": RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={"lightouse": RUNTIME_SUCCESSOR})
     assert "not units under" in str(e.value)
 
 
@@ -239,10 +240,86 @@ def test_the_catalog_shows_it_as_governed_and_NOT_REALIZABLE_until_a_provider_is
     # the successor runtime is published to no index — so in every installation of this distribution
     # the selection REFUSES instead of flipping. That refusal is the assertion available here, and it
     # is the one a deployment actually meets.
-    with pytest.raises(RuntimeSelectionError, match=RUNTIME_PLATFORM):
+    with pytest.raises(RuntimeSelectionError, match=RUNTIME_SUCCESSOR):
         list_manifolds(
-            ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_PLATFORM}))
+            ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR}))
 
     # and the catalog is unmoved by a refused selection — still governed, still not realizable
     again = list_manifolds(ManifoldStore(str(tmp_path), runtime_selection={}))
     assert again == unselected
+
+
+# ══ the configured successor provider ════════════════════════════════════════════════════════════
+#
+# THE SUCCESSFUL BIND IS TESTABLE HERE FOR THE FIRST TIME. Before the provider became configuration,
+# this path resolved one package by name — a package published to no index — so the only way to
+# exercise a successful bind was a workspace that had it installed. CI had one; no installation of
+# this distribution ever did, which is how four tests in this file came to assert a state no
+# deployment could reach (see the rewrite note above). A stub satisfies the contract, so the happy
+# path is now provable in the same place as the refusals.
+
+
+class StubProvider:
+    """The whole of the contract: `from_artifact(path, *, manifold_id, material)`."""
+
+    def __init__(self, artifact_path, manifold_id, material):
+        self.artifact_path, self.manifold_id, self.material = artifact_path, manifold_id, material
+
+    @classmethod
+    def from_artifact(cls, artifact_path, *, manifold_id, material=None):
+        return cls(artifact_path, manifold_id, material)
+
+
+_STUB = f"{__name__}:StubProvider"
+
+
+def test_a_configured_provider_binds_and_the_unit_becomes_realizable(tmp_path, monkeypatch):
+    """The path that had no test: selection honoured, provider resolved, unit servable."""
+    _governed_only_unit(tmp_path)
+    monkeypatch.setenv(SUCCESSOR_PROVIDER_ENV_VAR, _STUB)
+    store = ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
+    lm = store.get("lighthouse")
+    assert lm.runtime == RUNTIME_SUCCESSOR
+    assert lm.has_cml is False
+    assert lm.manifold is None            # absence represented as absence, not an empty stub
+    assert lm.publication_major == 2
+    assert isinstance(lm.provider, StubProvider)
+    assert lm.provider.manifold_id == "lighthouse"
+    assert store.realizable_refs() == {lm.ref}
+
+
+def test_the_server_names_no_provider_of_its_own(tmp_path, monkeypatch):
+    """THE POINT OF THE INDIRECTION. With nothing configured the runtime is selectable and
+    unresolvable, and the refusal names the VARIABLE to set — not a package this distribution has
+    opinions about. A server that shipped the name of one implementation would be advertising it."""
+    _governed_only_unit(tmp_path)
+    monkeypatch.delenv(SUCCESSOR_PROVIDER_ENV_VAR, raising=False)
+    with pytest.raises(RuntimeSelectionError) as e:
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
+    msg = str(e.value)
+    assert SUCCESSOR_PROVIDER_ENV_VAR in msg
+    assert "module.path:ClassName" in msg
+    assert "no fallback" in msg.lower() and RUNTIME_CORE in msg
+
+
+def test_a_malformed_provider_spec_refuses_rather_than_guessing(tmp_path, monkeypatch):
+    _governed_only_unit(tmp_path)
+    monkeypatch.setenv(SUCCESSOR_PROVIDER_ENV_VAR, "columna_server.store")   # no :ClassName
+    with pytest.raises(RuntimeSelectionError, match="module.path:ClassName"):
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
+
+
+def test_an_unresolvable_provider_names_the_spec_it_could_not_resolve(tmp_path, monkeypatch):
+    _governed_only_unit(tmp_path)
+    monkeypatch.setenv(SUCCESSOR_PROVIDER_ENV_VAR, "no_such_module:Nope")
+    with pytest.raises(RuntimeSelectionError) as e:
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})
+    assert "no_such_module:Nope" in str(e.value)
+
+
+def test_a_module_that_exists_without_the_class_is_the_same_refusal(tmp_path, monkeypatch):
+    """AttributeError and ImportError are one failure to a deployment: the spec did not resolve."""
+    _governed_only_unit(tmp_path)
+    monkeypatch.setenv(SUCCESSOR_PROVIDER_ENV_VAR, "columna_server.store:NotAProvider")
+    with pytest.raises(RuntimeSelectionError, match="could not be resolved"):
+        ManifoldStore(str(tmp_path), runtime_selection={"lighthouse": RUNTIME_SUCCESSOR})

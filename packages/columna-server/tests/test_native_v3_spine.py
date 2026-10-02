@@ -24,7 +24,7 @@ from columna_server.registry import (
     PublicationArtifactInvalid,
     parse_publication_artifact,
 )
-from columna_server.store import RUNTIME_PLATFORM, ManifoldStore, RuntimeSelectionError
+from columna_server.store import RUNTIME_SUCCESSOR, ManifoldStore, RuntimeSelectionError
 from columna_server.tools import ToolInputError, discovery, list_manifolds
 
 _HERE = pathlib.Path(__file__).parent
@@ -197,10 +197,10 @@ def test_a_broken_native_artifact_is_INVALID_under_the_v3_contract(raw):
 
 
 # ── visibility is not serving ────────────────────────────────────────────────────────────────────
-def test_selecting_the_platform_runtime_for_a_v3_unit_refuses_by_name(tmp_path):
+def test_selecting_the_successor_runtime_for_a_v3_unit_refuses_by_name(tmp_path):
     _unit(tmp_path, NATIVE, V3_ARTIFACT)
     with pytest.raises(RuntimeSelectionError, match="is major 3"):
-        ManifoldStore(str(tmp_path), runtime_selection={NATIVE: RUNTIME_PLATFORM})
+        ManifoldStore(str(tmp_path), runtime_selection={NATIVE: RUNTIME_SUCCESSOR})
 
 
 def test_discovery_today_stops_at_the_provider_gate(store):
