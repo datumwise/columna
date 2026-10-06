@@ -1,0 +1,213 @@
+{
+  "captured_at": "2026-10-06T15:11:08Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 12,
+    "uniques": 7,
+    "views": [
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 4,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 2,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 3,
+        "uniques": 3
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-09-30T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-01T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-10-02T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-03T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-10-04T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-05T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      }
+    ]
+  },
+  "clones": {
+    "count": 3121,
+    "uniques": 484,
+    "clones": [
+      {
+        "timestamp": "2026-09-22T00:00:00Z",
+        "count": 353,
+        "uniques": 36
+      },
+      {
+        "timestamp": "2026-09-23T00:00:00Z",
+        "count": 265,
+        "uniques": 44
+      },
+      {
+        "timestamp": "2026-09-24T00:00:00Z",
+        "count": 322,
+        "uniques": 63
+      },
+      {
+        "timestamp": "2026-09-25T00:00:00Z",
+        "count": 274,
+        "uniques": 58
+      },
+      {
+        "timestamp": "2026-09-26T00:00:00Z",
+        "count": 94,
+        "uniques": 26
+      },
+      {
+        "timestamp": "2026-09-27T00:00:00Z",
+        "count": 67,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-09-28T00:00:00Z",
+        "count": 435,
+        "uniques": 77
+      },
+      {
+        "timestamp": "2026-09-29T00:00:00Z",
+        "count": 631,
+        "uniques": 97
+      },
+      {
+        "timestamp": "2026-09-30T00:00:00Z",
+        "count": 327,
+        "uniques": 50
+      },
+      {
+        "timestamp": "2026-10-01T00:00:00Z",
+        "count": 133,
+        "uniques": 26
+      },
+      {
+        "timestamp": "2026-10-02T00:00:00Z",
+        "count": 144,
+        "uniques": 35
+      },
+      {
+        "timestamp": "2026-10-03T00:00:00Z",
+        "count": 30,
+        "uniques": 19
+      },
+      {
+        "timestamp": "2026-10-04T00:00:00Z",
+        "count": 31,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-10-05T00:00:00Z",
+        "count": 15,
+        "uniques": 11
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "github.com",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 3,
+      "uniques": 3
+    },
+    {
+      "path": "/datumwise/columna/pulls",
+      "title": "/pulls",
+      "count": 3,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/HEAD/specs/wp_cp2_kp_v0_5_concentration_floor_draft.md",
+      "title": "/blob/HEAD/specs/wp_cp2_kp_v0_5_concentration_floor_draft.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/docs/platform_profile.md",
+      "title": "/blob/main/docs/platform_profile.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/discussions",
+      "title": "/discussions",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/343",
+      "title": "/pull/343",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main",
+      "title": "/tree/main",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/tree/main/docs/design",
+      "title": "/tree/main/docs/design",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
