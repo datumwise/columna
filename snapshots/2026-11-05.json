@@ -1,0 +1,230 @@
+{
+  "captured_at": "2026-11-05T16:27:18Z",
+  "repo": "datumwise/columna",
+  "views": {
+    "count": 32,
+    "uniques": 32,
+    "views": [
+      {
+        "timestamp": "2026-10-22T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-23T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-24T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-25T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-10-26T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-27T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-10-28T00:00:00Z",
+        "count": 4,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-10-29T00:00:00Z",
+        "count": 23,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-10-30T00:00:00Z",
+        "count": 2,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-10-31T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-11-01T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      },
+      {
+        "timestamp": "2026-11-02T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-11-03T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-11-04T00:00:00Z",
+        "count": 0,
+        "uniques": 0
+      }
+    ]
+  },
+  "clones": {
+    "count": 351,
+    "uniques": 87,
+    "clones": [
+      {
+        "timestamp": "2026-10-22T00:00:00Z",
+        "count": 102,
+        "uniques": 8
+      },
+      {
+        "timestamp": "2026-10-23T00:00:00Z",
+        "count": 3,
+        "uniques": 2
+      },
+      {
+        "timestamp": "2026-10-24T00:00:00Z",
+        "count": 22,
+        "uniques": 9
+      },
+      {
+        "timestamp": "2026-10-25T00:00:00Z",
+        "count": 127,
+        "uniques": 16
+      },
+      {
+        "timestamp": "2026-10-26T00:00:00Z",
+        "count": 19,
+        "uniques": 13
+      },
+      {
+        "timestamp": "2026-10-27T00:00:00Z",
+        "count": 6,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-10-28T00:00:00Z",
+        "count": 17,
+        "uniques": 10
+      },
+      {
+        "timestamp": "2026-10-29T00:00:00Z",
+        "count": 12,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-10-30T00:00:00Z",
+        "count": 1,
+        "uniques": 1
+      },
+      {
+        "timestamp": "2026-10-31T00:00:00Z",
+        "count": 14,
+        "uniques": 9
+      },
+      {
+        "timestamp": "2026-11-01T00:00:00Z",
+        "count": 6,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-11-02T00:00:00Z",
+        "count": 6,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-11-03T00:00:00Z",
+        "count": 5,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-11-04T00:00:00Z",
+        "count": 11,
+        "uniques": 7
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "aocr.org",
+      "count": 28,
+      "uniques": 28
+    },
+    {
+      "referrer": "github.com",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/datumwise/columna/discussions/5",
+      "title": "/discussions/5",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/pull/103",
+      "title": "/pull/103",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/pull/253",
+      "title": "/pull/253",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna/pull/49",
+      "title": "/pull/49",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "path": "/datumwise/columna",
+      "title": "Overview",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/HEAD/specs/context/design_capture_execution_positions_v0_8.md",
+      "title": "/blob/HEAD/specs/context/design_capture_execution_positions_v0_8.md",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/.github/workflows/traffic-snapshot.yml",
+      "title": "/blob/main/.github/workflows/traffic-snapshot.yml",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/blob/main/packages/columna-core/tests/test_parse_benchmark_warehouse.py",
+      "title": "/blob/main/packages/columna-core/tests/test_parse_benchmark_warehouse.py",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/1",
+      "title": "/pull/1",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "path": "/datumwise/columna/pull/113",
+      "title": "/pull/113",
+      "count": 1,
+      "uniques": 1
+    }
+  ]
+}
